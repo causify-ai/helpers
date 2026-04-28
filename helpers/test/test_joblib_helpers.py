@@ -61,10 +61,62 @@ def get_workload1(
     return workload
 
 
+# #############################################################################
+
+
+def _outcome_to_string(outcome: List[str]) -> str:
+    outcome = "\n".join(sorted(map(str, outcome)))
+    return outcome
+
+
+def _helper_success(
+    self_: Any,
+    workload: hjoblib.Workload,
+    num_threads: Union[str, int],
+    abort_on_error: bool,
+    expected_return: str,
+    backend: str,
+) -> None:
+    """
+    Run a workload that is supposed to succeed and check its result.
+    """
+    dry_run = False
+    incremental = True
+    num_attempts = 1
+    log_file = os.path.join(self_.get_scratch_space(), "log.txt")
+    #
+    res = hjoblib.parallel_execute(
+        workload,
+        dry_run,
+        num_threads,
+        incremental,
+        abort_on_error,
+        num_attempts,
+        log_file,
+        backend=backend,
+    )
+    # Check.
+    _LOG.debug("res=%s", str(res))
+    actual = _outcome_to_string(res)
+    self_.assert_equal(actual, expected_return)
+
+
+# #############################################################################
+# Test_parallel_execute1
+# #############################################################################
+
+
 class Test_parallel_execute1(hunitest.TestCase):
     """
     Execute a workload of 5 tasks that all succeed.
     """
+
+    # pylint: disable=line-too-long
+    EXPECTED_RETURN = r"""val1=0, val2=0, incremental=True, num_attempts=1, kwargs={'hello0': 'world0', 'good': 'bye'}
+val1=1, val2=2, incremental=True, num_attempts=1, kwargs={'hello1': 'world2', 'good': 'bye'}
+val1=2, val2=4, incremental=True, num_attempts=1, kwargs={'hello2': 'world4', 'good': 'bye'}
+val1=3, val2=6, incremental=True, num_attempts=1, kwargs={'hello3': 'world6', 'good': 'bye'}
+val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'good': 'bye'}"""
 
     def test_dry_run1(self) -> None:
         """
@@ -89,12 +141,20 @@ class Test_parallel_execute1(hunitest.TestCase):
         _LOG.debug("res=%s", str(res))
         self.assertIs(res, None)
 
-    # pylint: disable=line-too-long
-    EXPECTED_RETURN = r"""val1=0, val2=0, incremental=True, num_attempts=1, kwargs={'hello0': 'world0', 'good': 'bye'}
-val1=1, val2=2, incremental=True, num_attempts=1, kwargs={'hello1': 'world2', 'good': 'bye'}
-val1=2, val2=4, incremental=True, num_attempts=1, kwargs={'hello2': 'world4', 'good': 'bye'}
-val1=3, val2=6, incremental=True, num_attempts=1, kwargs={'hello3': 'world6', 'good': 'bye'}
-val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'good': 'bye'}"""
+    def _run_test(self, num_threads: Union[str, int], backend: str) -> None:
+        workload = get_workload1(randomize=True)
+        abort_on_error = True
+        #
+        expected_return = self.EXPECTED_RETURN
+        _helper_success(
+            self,
+            workload,
+            num_threads,
+            abort_on_error,
+            expected_return,
+            backend,
+        )
+
     # pylint: enable=line-too-long
 
     def test_serial1(self) -> None:
@@ -124,20 +184,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         backend = "asyncio_threading"
         self._run_test(num_threads, backend)
 
-    def _run_test(self, num_threads: Union[str, int], backend: str) -> None:
-        workload = get_workload1(randomize=True)
-        abort_on_error = True
-        #
-        expected_return = self.EXPECTED_RETURN
-        _helper_success(
-            self,
-            workload,
-            num_threads,
-            abort_on_error,
-            expected_return,
-            backend,
-        )
-
 
 # #############################################################################
 # Test_parallel_execute2
@@ -154,6 +200,77 @@ def get_workload2() -> hjoblib.Workload:
     return workload
 
 
+def _helper_fail(
+    self_: Any,
+    workload: hjoblib.Workload,
+    num_threads: Union[str, int],
+    abort_on_error: bool,
+    expected_assertion: str,
+    backend: str,
+) -> None:
+    dry_run = False
+    incremental = True
+    num_attempts = 1
+    log_file = os.path.join(self_.get_scratch_space(), "log.txt")
+    #
+    with self_.assertRaises(ValueError) as cm:
+        res = hjoblib.parallel_execute(
+            workload,
+            dry_run,
+            num_threads,
+            incremental,
+            abort_on_error,
+            num_attempts,
+            log_file,
+            backend=backend,
+        )
+        # Print result if it succeeds.
+        _LOG.debug("res=%s", str(res))
+    # Check.
+    actual = str(cm.exception)
+    self_.assert_equal(actual, expected_assertion)
+
+
+# # To observe the output in real-time.
+# if __name__ == "__main__":
+#     hdbg.init_logger(verbosity=logging.INFO)
+#     workload = get_workload1(randomize=True)
+#     # num_threads = "serial"
+#     num_threads = "1"
+#     # num_threads = "5"
+#     # backend = "loky"
+#     backend = "asyncio_threading"
+#     # backend = "asyncio_multiprocessing"
+#     abort_on_error = True
+#     #
+#     dry_run = False
+#     incremental = True
+#     num_attempts = 1
+#     log_file = "./log.txt"
+#     #
+#     _LOG.info("\n" + hprint.frame("Start workload"))
+#     with htimer.TimedScope(logging.INFO, "Execute workload"):
+#         res = hjoblib.parallel_execute(
+#             workload,
+#             dry_run,
+#             num_threads,
+#             incremental,
+#             abort_on_error,
+#             num_attempts,
+#             log_file,
+#             backend=backend,
+#         )
+#     _LOG.info("\n" + hprint.frame("Results"))
+#     import pprint
+#
+#     print(pprint.pformat(res))
+
+
+# #############################################################################
+# Test_parallel_execute2
+# #############################################################################
+
+
 class Test_parallel_execute2(hunitest.TestCase):
     """
     Execute a workload of 1 task that fails.
@@ -161,6 +278,37 @@ class Test_parallel_execute2(hunitest.TestCase):
 
     # pylint: disable=line-too-long
     EXPECTED_STRING = r"""Error: val1=-1, val2=7, incremental=True, num_attempts=1, kwargs={'hello2': 'world2', 'good2': 'bye2'}"""
+
+    # pylint: enable=line-too-long
+
+    def _run_test(
+        self,
+        abort_on_error: bool,
+        num_threads: Union[str, int],
+        backend: str,
+        should_succeed: bool,
+    ) -> None:
+        workload = get_workload2()
+        #
+        expected_return = self.EXPECTED_STRING
+        if should_succeed:
+            _helper_success(
+                self,
+                workload,
+                num_threads,
+                abort_on_error,
+                expected_return,
+                backend,
+            )
+        else:
+            _helper_fail(
+                self,
+                workload,
+                num_threads,
+                abort_on_error,
+                expected_return,
+                backend,
+            )
 
     def test_serial1(self) -> None:
         num_threads = "serial"
@@ -214,37 +362,6 @@ class Test_parallel_execute2(hunitest.TestCase):
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
-    # pylint: enable=line-too-long
-
-    def _run_test(
-        self,
-        abort_on_error: bool,
-        num_threads: Union[str, int],
-        backend: str,
-        should_succeed: bool,
-    ) -> None:
-        workload = get_workload2()
-        #
-        expected_return = self.EXPECTED_STRING
-        if should_succeed:
-            _helper_success(
-                self,
-                workload,
-                num_threads,
-                abort_on_error,
-                expected_return,
-                backend,
-            )
-        else:
-            _helper_fail(
-                self,
-                workload,
-                num_threads,
-                abort_on_error,
-                expected_return,
-                backend,
-            )
-
 
 # #############################################################################
 # Test_parallel_execute3
@@ -270,6 +387,11 @@ def get_workload3(
     return workload
 
 
+# #############################################################################
+# Test_parallel_execute3
+# #############################################################################
+
+
 class Test_parallel_execute3(hunitest.TestCase):
     """
     Execute a workload with 5 tasks that succeed and 1 task that fails.
@@ -284,6 +406,41 @@ val1=1, val2=2, incremental=True, num_attempts=1, kwargs={'hello1': 'world2', 'g
 val1=2, val2=4, incremental=True, num_attempts=1, kwargs={'hello2': 'world4', 'good': 'bye'}
 val1=3, val2=6, incremental=True, num_attempts=1, kwargs={'hello3': 'world6', 'good': 'bye'}
 val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'good': 'bye'}"""
+
+    # pylint: enable=line-too-long
+
+    def _run_test(
+        self,
+        abort_on_error: bool,
+        num_threads: Union[str, int],
+        backend: str,
+        should_succeed: bool,
+    ) -> None:
+        workload = get_workload3(randomize=False)
+        # Since there is an error and `abort_on_error=True` we only get information
+        # about the failed task.
+        if should_succeed:
+            expected_return = self.EXPECTED_STRING2
+            _helper_success(
+                self,
+                workload,
+                num_threads,
+                abort_on_error,
+                expected_return,
+                backend,
+            )
+        else:
+            # Since there is an error and `abort_on_error=True` we only get information
+            # about the failed task.
+            expected_exception = self.EXPECTED_STRING1
+            _helper_fail(
+                self,
+                workload,
+                num_threads,
+                abort_on_error,
+                expected_exception,
+                backend,
+            )
 
     def test_serial1(self) -> None:
         num_threads = "serial"
@@ -374,42 +531,12 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
-    # pylint: enable=line-too-long
 
-    def _run_test(
-        self,
-        abort_on_error: bool,
-        num_threads: Union[str, int],
-        backend: str,
-        should_succeed: bool,
-    ) -> None:
-        workload = get_workload3(randomize=False)
-        # Since there is an error and `abort_on_error=True` we only get information
-        # about the failed task.
-        if should_succeed:
-            expected_return = self.EXPECTED_STRING2
-            _helper_success(
-                self,
-                workload,
-                num_threads,
-                abort_on_error,
-                expected_return,
-                backend,
-            )
-        else:
-            # Since there is an error and `abort_on_error=True` we only get information
-            # about the failed task.
-            expected_exception = self.EXPECTED_STRING1
-            _helper_fail(
-                self,
-                workload,
-                num_threads,
-                abort_on_error,
-                expected_exception,
-                backend,
-            )
+# #############################################################################
 
 
+# #############################################################################
+# Test_joblib_example1
 # #############################################################################
 
 
@@ -440,109 +567,3 @@ class Test_joblib_example1(hunitest.TestCase):
             joblib.delayed(Test_joblib_example1.func)(val) for val in vals
         )
         print(f"res={str(res)}")
-
-
-# #############################################################################
-
-
-def _outcome_to_string(outcome: List[str]) -> str:
-    outcome = "\n".join(sorted(map(str, outcome)))
-    return outcome
-
-
-def _helper_success(
-    self_: Any,
-    workload: hjoblib.Workload,
-    num_threads: Union[str, int],
-    abort_on_error: bool,
-    expected_return: str,
-    backend: str,
-) -> None:
-    """
-    Run a workload that is supposed to succeed and check its result.
-    """
-    dry_run = False
-    incremental = True
-    num_attempts = 1
-    log_file = os.path.join(self_.get_scratch_space(), "log.txt")
-    #
-    res = hjoblib.parallel_execute(
-        workload,
-        dry_run,
-        num_threads,
-        incremental,
-        abort_on_error,
-        num_attempts,
-        log_file,
-        backend=backend,
-    )
-    # Check.
-    _LOG.debug("res=%s", str(res))
-    actual = _outcome_to_string(res)
-    self_.assert_equal(actual, expected_return)
-
-
-def _helper_fail(
-    self_: Any,
-    workload: hjoblib.Workload,
-    num_threads: Union[str, int],
-    abort_on_error: bool,
-    expected_assertion: str,
-    backend: str,
-) -> None:
-    dry_run = False
-    incremental = True
-    num_attempts = 1
-    log_file = os.path.join(self_.get_scratch_space(), "log.txt")
-    #
-    with self_.assertRaises(ValueError) as cm:
-        res = hjoblib.parallel_execute(
-            workload,
-            dry_run,
-            num_threads,
-            incremental,
-            abort_on_error,
-            num_attempts,
-            log_file,
-            backend=backend,
-        )
-        # Print result if it succeeds.
-        _LOG.debug("res=%s", str(res))
-    # Check.
-    actual = str(cm.exception)
-    self_.assert_equal(actual, expected_assertion)
-
-
-# # To observe the output in real-time.
-# if __name__ == "__main__":
-#     hdbg.init_logger(verbosity=logging.INFO)
-#     workload = get_workload1(randomize=True)
-#     # num_threads = "serial"
-#     num_threads = "1"
-#     # num_threads = "5"
-#     # backend = "loky"
-#     backend = "asyncio_threading"
-#     # backend = "asyncio_multiprocessing"
-#     abort_on_error = True
-#     #
-#     dry_run = False
-#     incremental = True
-#     num_attempts = 1
-#     log_file = "./log.txt"
-#     #
-#     _LOG.info("\n" + hprint.frame("Start workload"))
-#     with htimer.TimedScope(logging.INFO, "Execute workload"):
-#         res = hjoblib.parallel_execute(
-#             workload,
-#             dry_run,
-#             num_threads,
-#             incremental,
-#             abort_on_error,
-#             num_attempts,
-#             log_file,
-#             backend=backend,
-#         )
-#     _LOG.info("\n" + hprint.frame("Results"))
-#     import pprint
-#
-#     print(pprint.pformat(res))

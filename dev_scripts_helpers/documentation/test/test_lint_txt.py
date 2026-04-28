@@ -1923,7 +1923,6 @@ class Test_lint_txt1(hunitest.TestCase):
 
 
 class Test_lint_txt2(hunitest.TestCase):
-
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
         txt = r"""
@@ -1969,14 +1968,14 @@ class Test_lint_txt2(hunitest.TestCase):
 
     # //////////////////////////////////////////////////////////////////////////
 
-    def test_process1(self) -> None:
+    def test1(self) -> None:
         txt = _get_text1()
         expected = None
         file_name = "test.txt"
         actual = self.helper(txt, expected, file_name)
         self.check_string(actual)
 
-    def test_process2(self) -> None:
+    def test2(self) -> None:
         """
         Run the text linter on a txt file.
         """
@@ -1996,7 +1995,7 @@ class Test_lint_txt2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
     @pytest.mark.superslow
-    def test_process3(self) -> None:
+    def test3(self) -> None:
         """
         Run the text linter on a md file.
         """
@@ -2031,7 +2030,7 @@ class Test_lint_txt2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
     @pytest.mark.superslow
-    def test_process4(self) -> None:
+    def test4(self) -> None:
         """
         Check that no replacement happens inside a ``` block.
         """
@@ -2066,7 +2065,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
-    def test_process_prettier_bug1(self) -> None:
+    def test5(self) -> None:
         """
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
@@ -2088,7 +2087,7 @@ class Test_lint_txt2(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
     @pytest.mark.superslow
-    def test_process5(self) -> None:
+    def test6(self) -> None:
         """
         Run the text linter on a txt file.
         """
@@ -2106,7 +2105,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
-    def test_process6(self) -> None:
+    def test7(self) -> None:
         """
         Run the text linter on a txt file.
         """
@@ -2130,7 +2129,7 @@ class Test_lint_txt2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
     @pytest.mark.superslow
-    def test7(self) -> None:
+    def test8(self) -> None:
         """
         Test that YAML front matter is preserved in markdown files.
         """
@@ -2167,7 +2166,7 @@ class Test_lint_txt2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
     @pytest.mark.superslow
-    def test8(self) -> None:
+    def test9(self) -> None:
         """
         Test that page separators are removed but YAML front matter is
         preserved.
@@ -2279,7 +2278,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
     # ///////////////////////////////////////////////////////////////////////////
 
     @pytest.mark.superslow
-    def test_md1(self) -> None:
+    def test1(self) -> None:
         """
         Run lint_to_txt.py on a markdown file by calling the function directly.
         """
@@ -2293,28 +2292,28 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         # Check.
         self.check_string(output_txt)
 
-    def test_md2(self) -> None:
+    def test2(self) -> None:
         """
         Run lint_to_txt.py on a markdown file using the command-line script.
 
-        This test uses the same input file as test_md1 and should
+        This test uses the same input file as test1 and should
         produce the same output. It uses test_method_name to reuse the
-        golden outcome from test_md1.
+        golden outcome from test1.
         """
         # Prepare inputs.
         in_file = os.path.join(
-            self.get_input_dir(test_method_name="test_md1"), "text.md"
+            self.get_input_dir(test_method_name="test1"), "text.md"
         )
         type_ = "md"
         use_script = True
         cmd_opts = ""
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
-        # Check using the same golden outcome as test_md1.
-        self.check_string(output_txt, test_method_name="test_md1")
+        # Check using the same golden outcome as test1.
+        self.check_string(output_txt, test_method_name="test1")
 
     @pytest.mark.slow
-    def test_tex1(self) -> None:
+    def test3(self) -> None:
         """
         Run lint_to_txt.py on a latex file by calling the function directly.
         """
@@ -2329,25 +2328,25 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         self.check_string(output_txt)
 
     @pytest.mark.slow
-    def test_tex2(self) -> None:
+    def test4(self) -> None:
         """
         Run lint_to_txt.py on a latex file using the command-line script.
 
-        This test uses the same input file as test_tex1 and should
+        This test uses the same input file as test3 and should
         produce the same output. It uses test_method_name to reuse the
-        golden outcome from test_tex1.
+        golden outcome from test3.
         """
         # Prepare inputs.
         in_file = os.path.join(
-            self.get_input_dir(test_method_name="test_tex2"), "text.tex"
+            self.get_input_dir(test_method_name="test4"), "text.tex"
         )
         type_ = "tex"
         use_script = True
         cmd_opts = "--print-width 80"
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
-        # Check using the same golden outcome as test_tex1.
-        self.check_string(output_txt, test_method_name="test_tex2")
+        # Check using the same golden outcome as test3.
+        self.check_string(output_txt, test_method_name="test4")
 
 
 # #############################################################################
@@ -2392,7 +2391,7 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
         output_txt = "\n".join(out_lines)
         return output_txt
 
-    def test_idempotency_directory(self) -> None:
+    def test1(self) -> None:
         """
         Test idempotency for all markdown files in the input directory.
 

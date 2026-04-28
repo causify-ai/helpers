@@ -89,9 +89,11 @@ def _cached_add_100(x: int) -> int:
     res = x + 100
     return res
 
+
 # #############################################################################
 # _BaseCacheTest
 # #############################################################################
+
 
 class _BaseCacheTest(hunitest.TestCase):
     """
@@ -133,9 +135,11 @@ class _BaseCacheTest(hunitest.TestCase):
         hcacsimp.reset_cache_property()
         hcacsimp.set_cache_dir(self._cache_dir)
 
+
 # #############################################################################
 # Test_get_cache
 # #############################################################################
+
 
 class Test_get_cache(_BaseCacheTest):
     """
@@ -155,9 +159,11 @@ class Test_get_cache(_BaseCacheTest):
         self.assertIn('{"args": [2], "kwargs": {}}', cache)
         self.assertEqual(cache['{"args": [2], "kwargs": {}}'], 4)
 
+
 # #############################################################################
 # Test_flush_cache_to_disk
 # #############################################################################
+
 
 class Test_flush_cache_to_disk(_BaseCacheTest):
     """
@@ -198,9 +204,11 @@ class Test_flush_cache_to_disk(_BaseCacheTest):
         # Assert that the value for key '{"args": [3], "kwargs": {}}' is 6.
         self.assertEqual(disk_cache['{"args": [3], "kwargs": {}}'], 6)
 
+
 # #############################################################################
 # Test_reset_mem_cache
 # #############################################################################
+
 
 class Test_reset_mem_cache(_BaseCacheTest):
     """
@@ -222,9 +230,11 @@ class Test_reset_mem_cache(_BaseCacheTest):
         # Verify that the key '{"args": [5], "kwargs": {}}' is no longer in the cache.
         self.assertNotIn('{"args": [5], "kwargs": {}}', cache_after)
 
+
 # #############################################################################
 # Test_force_cache_from_disk
 # #############################################################################
+
 
 class Test_force_cache_from_disk(_BaseCacheTest):
     """
@@ -268,9 +278,11 @@ class Test_force_cache_from_disk(_BaseCacheTest):
             "After forcing, disk key should appear in memory.",
         )
 
+
 # #############################################################################
 # Test_get_cache_perf
 # #############################################################################
+
 
 class Test_get_cache_perf(_BaseCacheTest):
     """
@@ -305,9 +317,11 @@ class Test_get_cache_perf(_BaseCacheTest):
         # Assert that performance data is no longer available.
         self.assertIsNone(hcacsimp.get_cache_perf("_cached_json_double"))
 
+
 # #############################################################################
 # Test_set_cache_property
 # #############################################################################
+
 
 class Test_set_cache_property(_BaseCacheTest):
     """
@@ -371,9 +385,11 @@ class Test_set_cache_property(_BaseCacheTest):
         # Check output.
         self.assertIn("force_refresh: True", prop_str)
 
+
 # #############################################################################
 # Test_get_cache_func_names
 # #############################################################################
+
 
 class Test_get_cache_func_names(_BaseCacheTest):
     """
@@ -424,9 +440,11 @@ class Test_get_cache_func_names(_BaseCacheTest):
         # Check output.
         self.assertIn("_cached_json_double", disk_funcs)
 
+
 # #############################################################################
 # Test_cache_stats_to_str
 # #############################################################################
+
 
 class Test_cache_stats_to_str(_BaseCacheTest):
     """
@@ -447,9 +465,11 @@ class Test_cache_stats_to_str(_BaseCacheTest):
         self.assertIn("memory", stats_df.columns)
         self.assertIn("disk", stats_df.columns)
 
+
 # #############################################################################
 # Test__cached_kwarg_diff
 # #############################################################################
+
 
 class Test__cached_kwarg_diff(_BaseCacheTest):
     """
@@ -467,9 +487,11 @@ class Test__cached_kwarg_diff(_BaseCacheTest):
         # Both calls should return the different result as both args, kwargs are used for caching.
         self.assertNotEqual(res1, res2)
 
+
 # #############################################################################
 # Test__cached_multi_arg_sum
 # #############################################################################
+
 
 class Test__cached_multi_arg_sum(_BaseCacheTest):
     """
@@ -487,9 +509,11 @@ class Test__cached_multi_arg_sum(_BaseCacheTest):
         # Verify that the cache key is formatted as '{"args": [1, 2], "kwargs": {}}'.
         self.assertIn('{"args": [1, 2], "kwargs": {}}', cache)
 
+
 # #############################################################################
 # Test__cached_pickle_square
 # #############################################################################
+
 
 class Test__cached_pickle_square(_BaseCacheTest):
     """
@@ -516,9 +540,11 @@ class Test__cached_pickle_square(_BaseCacheTest):
         self.assertIn('{"args": [4], "kwargs": {}}', func_cache_data)
         self.assertEqual(func_cache_data['{"args": [4], "kwargs": {}}'], 16)
 
+
 # #############################################################################
 # Test__cached_refreshable_func
 # #############################################################################
+
 
 class Test__cached_refreshable_func(_BaseCacheTest):
     """
@@ -563,9 +589,11 @@ class Test__cached_refreshable_func(_BaseCacheTest):
             "Function should be re-called when force_refresh is enabled.",
         )
 
+
 # #############################################################################
 # Test_reset_cache_perf
 # #############################################################################
+
 
 class Test_reset_cache_perf(_BaseCacheTest):
     """
@@ -606,9 +634,11 @@ class Test_reset_cache_perf(_BaseCacheTest):
         self.assertEqual(perf1["tot"], 0)
         self.assertEqual(perf2["tot"], 0)
 
+
 # #############################################################################
 # Test_disable_cache_perf
 # #############################################################################
+
 
 class Test_disable_cache_perf(_BaseCacheTest):
     """
@@ -634,9 +664,11 @@ class Test_disable_cache_perf(_BaseCacheTest):
         self.assertIsNone(perf1)
         self.assertIsNone(perf2)
 
+
 # #############################################################################
 # Test_get_cache_perf_stats
 # #############################################################################
+
 
 class Test_get_cache_perf_stats(_BaseCacheTest):
     """
@@ -656,9 +688,11 @@ class Test_get_cache_perf_stats(_BaseCacheTest):
         # Check outputs.
         self.assertEqual(stats, "")
 
+
 # #############################################################################
 # Test_cache_property_to_str
 # #############################################################################
+
 
 class Test_cache_property_to_str(_BaseCacheTest):
     """
@@ -684,9 +718,11 @@ class Test_cache_property_to_str(_BaseCacheTest):
         self.assertIn("force_refresh: True", result)
         self.assertIn("enable_perf: True", result)
 
+
 # #############################################################################
 # Test_reset_mem_cache_all
 # #############################################################################
+
 
 class Test_reset_mem_cache_all(_BaseCacheTest):
     """
@@ -708,9 +744,11 @@ class Test_reset_mem_cache_all(_BaseCacheTest):
         self.assertEqual(len(cache1), 0)
         self.assertEqual(len(cache2), 0)
 
+
 # #############################################################################
 # Test_reset_disk_cache_all
 # #############################################################################
+
 
 class Test_reset_disk_cache_all(_BaseCacheTest):
     """
@@ -735,9 +773,11 @@ class Test_reset_disk_cache_all(_BaseCacheTest):
         cache_file2 = hcacsimp._get_cache_file_name("_cached_multi_arg_sum")
         self.assertFalse(os.path.exists(cache_file2))
 
+
 # #############################################################################
 # Test_force_cache_from_disk_all
 # #############################################################################
+
 
 class Test_force_cache_from_disk_all(_BaseCacheTest):
     """
@@ -763,9 +803,11 @@ class Test_force_cache_from_disk_all(_BaseCacheTest):
         self.assertGreater(len(cache1), 0)
         self.assertGreater(len(cache2), 0)
 
+
 # #############################################################################
 # Test_flush_cache_to_disk_all
 # #############################################################################
+
 
 class Test_flush_cache_to_disk_all(_BaseCacheTest):
     """
@@ -789,9 +831,11 @@ class Test_flush_cache_to_disk_all(_BaseCacheTest):
         cache_file2 = hcacsimp._get_cache_file_name("_cached_multi_arg_sum")
         self.assertTrue(os.path.exists(cache_file2))
 
+
 # #############################################################################
 # Test_cache_stats_to_str_all
 # #############################################################################
+
 
 class Test_cache_stats_to_str_all(_BaseCacheTest):
     """
@@ -813,9 +857,11 @@ class Test_cache_stats_to_str_all(_BaseCacheTest):
         self.assertIn("_cached_json_double", result.index)
         self.assertIn("_cached_multi_arg_sum", result.index)
 
+
 # #############################################################################
 # Test_get_cache_func_names_invalid
 # #############################################################################
+
 
 class Test_get_cache_func_names_invalid(_BaseCacheTest):
     """
@@ -831,9 +877,11 @@ class Test_get_cache_func_names_invalid(_BaseCacheTest):
             hcacsimp.get_cache_func_names("invalid_type")
         self.assertIn("Invalid type", str(cm.exception))
 
+
 # #############################################################################
 # Test__get_cache_file_name
 # #############################################################################
+
 
 class Test__get_cache_file_name(_BaseCacheTest):
     """
@@ -854,9 +902,11 @@ class Test__get_cache_file_name(_BaseCacheTest):
         # Reset type to valid value for teardown.
         hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
+
 # #############################################################################
 # Test__save_cache_dict_to_disk
 # #############################################################################
+
 
 class Test__save_cache_dict_to_disk(_BaseCacheTest):
     """
@@ -878,9 +928,11 @@ class Test__save_cache_dict_to_disk(_BaseCacheTest):
         # Reset type to valid value for teardown.
         hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
+
 # #############################################################################
 # Test_get_disk_cache_invalid
 # #############################################################################
+
 
 class Test_get_disk_cache_invalid(_BaseCacheTest):
     """
@@ -901,7 +953,6 @@ class Test_get_disk_cache_invalid(_BaseCacheTest):
         hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
 
-
 @hcacsimp.simple_cache(cache_type="json")
 def _cache_mode_function(x: int) -> int:
     """
@@ -917,9 +968,11 @@ def _cache_mode_function(x: int) -> int:
 
 _cache_mode_function.call_count = 0
 
+
 # #############################################################################
 # Test_cache_mode
 # #############################################################################
+
 
 class Test_cache_mode(_BaseCacheTest):
     """
@@ -987,7 +1040,6 @@ class Test_cache_mode(_BaseCacheTest):
         self.assertEqual(_cache_mode_function.call_count, initial_count + 2)
 
 
-
 @hcacsimp.simple_cache(cache_type="json")
 def _abort_test_function(x: int) -> int:
     """
@@ -999,9 +1051,11 @@ def _abort_test_function(x: int) -> int:
     res = x * 7
     return res
 
+
 # #############################################################################
 # Test_abort_on_cache_miss
 # #############################################################################
+
 
 class Test_abort_on_cache_miss(_BaseCacheTest):
     """
@@ -1032,7 +1086,6 @@ class Test_abort_on_cache_miss(_BaseCacheTest):
         self.assertIn("Cache miss", str(cm.exception))
 
 
-
 @hcacsimp.simple_cache(cache_type="json")
 def _report_test_function(x: int) -> int:
     """
@@ -1044,9 +1097,11 @@ def _report_test_function(x: int) -> int:
     res = x * 8
     return res
 
+
 # #############################################################################
 # Test_report_on_cache_miss
 # #############################################################################
+
 
 class Test_report_on_cache_miss(_BaseCacheTest):
     """
@@ -1077,7 +1132,6 @@ class Test_report_on_cache_miss(_BaseCacheTest):
         self.assertEqual(result, "_cache_miss_")
 
 
-
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _write_through_function(x: int) -> int:
     """
@@ -1089,9 +1143,11 @@ def _write_through_function(x: int) -> int:
     res = x * 9
     return res
 
+
 # #############################################################################
 # Test_write_through
 # #############################################################################
+
 
 class Test_write_through(_BaseCacheTest):
     """
@@ -1127,7 +1183,6 @@ class Test_write_through(_BaseCacheTest):
         self.assertEqual(disk_cache['{"args": [11], "kwargs": {}}'], 99)
 
 
-
 @hcacsimp.simple_cache(cache_type="json")
 def _test_cache_mode_kwarg(x: int, **kwargs) -> int:
     """
@@ -1144,9 +1199,11 @@ def _test_cache_mode_kwarg(x: int, **kwargs) -> int:
 
 _test_cache_mode_kwarg.call_count = 0
 
+
 # #############################################################################
 # Test_cache_mode_parameter
 # #############################################################################
+
 
 class Test_cache_mode_parameter(_BaseCacheTest):
     """
@@ -1376,13 +1433,9 @@ class Test_set_cache_property_new_func(_BaseCacheTest):
         was not previously registered.
         """
         # Run test.
-        hcacsimp.set_cache_property(
-            "_brand_new_func_xyz", "force_refresh", True
-        )
+        hcacsimp.set_cache_property("_brand_new_func_xyz", "force_refresh", True)
         # Check outputs.
-        val = hcacsimp.get_cache_property(
-            "_brand_new_func_xyz", "force_refresh"
-        )
+        val = hcacsimp.get_cache_property("_brand_new_func_xyz", "force_refresh")
         self.assertTrue(val)
 
 
@@ -1425,9 +1478,7 @@ class Test__get_cache_file_name_auto_detect(_BaseCacheTest):
         # Prepare inputs: create a valid .pkl file in the cache dir.
         cache_dir = hcacsimp.get_cache_dir()
         func_name = "_auto_detect_pkl_func"
-        pkl_path = os.path.join(
-            cache_dir, f"tmp.cache_simple.{func_name}.pkl"
-        )
+        pkl_path = os.path.join(cache_dir, f"tmp.cache_simple.{func_name}.pkl")
         hcacsimp._save_func_cache_data_to_file(pkl_path, "pickle", {})
         # Run test.
         file_name = hcacsimp._get_cache_file_name(func_name)
@@ -1442,9 +1493,7 @@ class Test__get_cache_file_name_auto_detect(_BaseCacheTest):
         # Prepare inputs: create a valid .json file in the cache dir.
         cache_dir = hcacsimp.get_cache_dir()
         func_name = "_auto_detect_json_func"
-        json_path = os.path.join(
-            cache_dir, f"tmp.cache_simple.{func_name}.json"
-        )
+        json_path = os.path.join(cache_dir, f"tmp.cache_simple.{func_name}.json")
         hcacsimp._save_func_cache_data_to_file(json_path, "json", {})
         # Run test.
         file_name = hcacsimp._get_cache_file_name(func_name)
@@ -1764,5 +1813,3 @@ class Test_simple_cache_no_write_through(_BaseCacheTest):
         # Check outputs: disk cache should not contain the computed value.
         disk_cache = hcacsimp.get_disk_cache("_test_no_write_through")
         self.assertNotIn('{"args": [7], "kwargs": {}}', disk_cache)
-
-

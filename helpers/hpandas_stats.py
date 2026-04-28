@@ -54,7 +54,8 @@ def compute_duration_df(
     # Collect timestamp info from all dfs.
     for tag in tag_to_df.keys():
         # Check that the passed timestamp has timezone info.
-        hdateti.dassert_has_tz(tag_to_df[tag].index[0])
+        first_idx = tag_to_df[tag].index[0]
+        hdateti.dassert_has_tz(cast(pd.Timestamp, first_idx))
         hpandass.dassert_index_is_datetime(tag_to_df[tag])
         # Compute timestamp stats.
         data_stats.loc[tag, min_col] = tag_to_df[tag].index.min()
@@ -74,9 +75,9 @@ def compute_duration_df(
             min_col = min_valid_index_col
             max_col = max_valid_index_col
         # The start of the intersection will be the max value amongt all start dates.
-        intersection_start_date = data_stats[min_col].max()
+        intersection_start_date = cast(pd.Timestamp, data_stats[min_col].max())
         # The end of the intersection will be the min value amongt all end dates.
-        intersection_end_date = data_stats[max_col].min()
+        intersection_end_date = cast(pd.Timestamp, data_stats[max_col].min())
         for tag in tag_to_df_updated.keys():
             df = hpantran.trim_df(
                 tag_to_df_updated[tag],
@@ -169,7 +170,7 @@ def remap_obj(
     # Check that every element of the object is in the mapping.
     hdbg.dassert_is_subset(obj, map_.keys())
     new_srs = obj.map(map_, **kwargs)
-    return new_srs
+    return cast(pd.Series, new_srs)
 
 
 def get_random_df(
@@ -187,6 +188,8 @@ def get_random_df(
     """
     if seed:
         np.random.seed(seed)
+    if date_range_kwargs is None:
+        date_range_kwargs = {}
     dt = pd.date_range(**date_range_kwargs)
     df = pd.DataFrame(np.random.rand(len(dt), num_cols), index=dt)
     return df
@@ -195,7 +198,7 @@ def get_random_df(
 # #############################################################################
 
 
-def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:
+def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> Any:
     """
     Colorize a df with a heatmap depending on the numeric values.
 
@@ -208,11 +211,10 @@ def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:
     import seaborn as sns
 
     cm = sns.diverging_palette(5, 250, as_cmap=True)
-    df = df.style.background_gradient(axis=axis, cmap=cm)
-    return df
+    return df.style.background_gradient(axis=axis, cmap=cm)
 
 
-def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
+def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Any) -> str:
     """
     Report percentage of True values in a list or series.
 
@@ -223,7 +225,7 @@ def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
     if isinstance(vals, list):
         vals = pd.Series(vals)
     ret = hprint.perc(vals.sum(), len(vals), **perc_kwargs)
-    return ret
+    return cast(str, ret)
 
 
 def add_end_download_timestamp(
@@ -318,14 +320,16 @@ def report_zero_nan_inf_stats(
     num_rows = df.shape[0]
     _LOG.log(dbg_log_level, "num_rows=%s", hprint.thousand_separator(num_rows))
     _LOG.log(dbg_log_level, "data=")
-    import helpers.hpandas_display as hpanddis
+    import helpers.hpandas_display as hpandisp
 
-    hpanddis.display_df(df, as_txt=as_txt, log_level=dbg_log_level)
+    hpandisp.display_df(df, as_txt=as_txt, log_level=dbg_log_level)
     # Compute date-based stats only if index is datetime.
     if isinstance(df.index, pd.DatetimeIndex):
-        num_days = len(set(df.index.date))
+        # TODO(gp): Can we do this faster?
+        dates = [d.date() for d in df.index]
+        num_days = len(set(dates))
         _LOG.log(dbg_log_level, "num_days=%s", num_days)
-        num_weekdays = len(set(d for d in df.index.date if d.weekday() < 5))
+        num_weekdays = len(set(d for d in dates if d.weekday() < 5))
         _LOG.log(dbg_log_level, "num_weekdays=%s", num_weekdays)
     #
     stats_df = pd.DataFrame(None, index=df.columns)
@@ -378,12 +382,11 @@ def pvalue_to_stars(pval: Optional[float]) -> str:
     :param pval: p-value to convert
     :return: star notation (* to ****) or ? for non-significant, NA for NaN
     """
-    if np.isnan(pval):
+    if pval is None or np.isnan(pval):
         stars = "NA"
     else:
         hdbg.dassert_lte(0.0, pval)
         hdbg.dassert_lte(pval, 1.0)
-        pval = cast(float, pval)
         if pval < 0.005:
             # More than 99.5% confidence.
             stars = "****"
@@ -428,11 +431,26 @@ def format_ols_regress_results(regr_res: Optional[pd.DataFrame]) -> pd.DataFrame
 # #############################################################################
 
 
+def _get_unique_values_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Get unique values count and percentage for each column.
+
+    :param df: dataframe to analyze
+    :return: DataFrame with num_unique and unique [%] columns
+    """
+    stats_df = pd.DataFrame(None, index=df.columns)
+    num_unique = df.nunique()
+    stats_df["num_unique"] = num_unique
+    stats_df["unique [%]"] = (100.0 * num_unique / df.shape[0]).apply(
+        hprint.round_digits
+    )
+    return stats_df
+
+
 def explore_dataframe(
     df: pd.DataFrame,
     *,
     show_distributions: bool = False,
-    num_top_cols: int = 6,
     show_correlations: bool = False,
     zero_threshold: float = 1e-9,
     dbg_log_level: int = logging.DEBUG,
@@ -447,8 +465,6 @@ def explore_dataframe(
     :param df: Input dataframe to analyze
     :param show_distributions: If True, plots distributions of top-variability
         columns in a 3-column grid
-    :param num_top_cols: Number of columns with highest variability to plot
-        (only used if show_distributions=True)
     :param show_correlations: If True, displays correlation matrix as a heatmap
     :param zero_threshold: Threshold for classifying values as "zero" in
         quality report
@@ -460,10 +476,12 @@ def explore_dataframe(
 
     hdbg.dassert_lt(0, len(df), "Dataframe is empty")
     # Compute and display data quality statistics.
-    stats_df = report_zero_nan_inf_stats(df, zero_threshold=zero_threshold, dbg_log_level=dbg_log_level)
-    # TODO(ai_gp): Add information about the number of unique values and percentage of unique values for each column.
-    # Create a function if needed to compute the stats_df.
-    # Concat the stats_df.
+    stats_df = report_zero_nan_inf_stats(
+        df, zero_threshold=zero_threshold, dbg_log_level=dbg_log_level
+    )
+    # Add information about the number of unique values and percentage of unique values for each column.
+    unique_stats_df = _get_unique_values_stats(df)
+    stats_df = pd.concat([stats_df, unique_stats_df], axis=1)
     if hsystem.is_running_in_ipynb():
         _LOG.info("stats_df=")
         display(stats_df)
@@ -471,11 +489,12 @@ def explore_dataframe(
     # Plot distributions if requested.
     if hsystem.is_running_in_ipynb():
         if show_distributions:
+            _LOG.info("Univariate distributions:")
             numeric_cols = df.select_dtypes(include="number").columns.tolist()
             if len(numeric_cols) > 0:
                 # Compute standard deviation and select top columns.
                 std_vals = df[numeric_cols].std().sort_values(ascending=False)
-                num_to_plot = min(num_top_cols, len(numeric_cols))
+                num_to_plot = len(numeric_cols)
                 top_cols = std_vals.head(num_to_plot).index.tolist()
                 # Create grid of subplots.
                 import helpers.hmatplotlib as hmatplo
@@ -483,21 +502,26 @@ def explore_dataframe(
                 fig, axes = hmatplo.get_multiple_plots(
                     num_to_plot, 3, y_scale=3.5
                 )
-                fig = _
+                _ = fig
                 for i, col in enumerate(top_cols):
                     ax = axes[i]
-                    ax.hist(df[col].dropna(), bins=30, edgecolor="k")
-                    ax.set_title(f"{col} (std={std_vals[col]:.2f})")
+                    col_data = df[col].dropna()
+                    weights = np.ones_like(col_data) / len(col_data) * 100
+                    ax.hist(col_data, bins=30, weights=weights, edgecolor="k")
+                    ax.set_title(col)
                     ax.set_xlabel("Value")
-                    ax.set_ylabel("Frequency")
+                    ax.set_ylabel("Percentage [%]")
                 plt.tight_layout()
+                plt.show()
         # Display correlation matrix if requested.
         if show_correlations:
             numeric_df = df.select_dtypes(include="number")
             if len(numeric_df.columns) >= 2:
                 corr_matrix = numeric_df.corr()
                 _LOG.info("Correlation matrix:")
-                heatmap_df(corr_matrix)
+                # TODO(gp): Improve the plot changing the number of digits.
+                corr_heatmap = heatmap_df(corr_matrix)
+                display(corr_heatmap)
     if hsystem.is_running_in_ipynb():
         return None
     return stats_df

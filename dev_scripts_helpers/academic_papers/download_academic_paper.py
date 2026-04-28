@@ -138,7 +138,9 @@ def _crossref_query(doi: str) -> Dict[str, Any]:
     exceptions=(requests.RequestException,),
     retry_delay_in_sec=RETRY_DELAY_SEC,
 )
-def _unpaywall_query(doi: str, *, email: str = "user@example.com") -> Dict[str, Any]:
+def _unpaywall_query(
+    doi: str, *, email: str = "user@example.com"
+) -> Dict[str, Any]:
     """
     Query Unpaywall API for open access PDF URL.
 
@@ -165,9 +167,11 @@ def _resolve_doi_metadata(doi: str) -> Dict[str, Any]:
     # Query CrossRef for metadata.
     cr_data = _crossref_query(doi)
     message = cr_data.get("message", {})
-    title = message.get("title", [""])[0] if isinstance(
-        message.get("title"), list
-    ) else message.get("title", "")
+    title = (
+        message.get("title", [""])[0]
+        if isinstance(message.get("title"), list)
+        else message.get("title", "")
+    )
     authors = []
     for author in message.get("author", []):
         name_parts = []
@@ -180,12 +184,9 @@ def _resolve_doi_metadata(doi: str) -> Dict[str, Any]:
     year = message.get("issued", {}).get("date-parts", [[2000]])[0][0]
     # Query Unpaywall for PDF URL.
     pdf_url = None
-    try:
-        uw_data = _unpaywall_query(doi)
-        if uw_data.get("is_oa"):
-            pdf_url = uw_data.get("best_oa_location", {}).get("url")
-    except Exception as e:
-        _LOG.warning("Unpaywall query failed: %s", e)
+    uw_data = _unpaywall_query(doi)
+    if uw_data.get("is_oa"):
+        pdf_url = uw_data.get("best_oa_location", {}).get("url")
     return {
         "year": str(year),
         "authors": authors,
@@ -230,14 +231,11 @@ def _extract_pdf_metadata_pymupdf(pdf_path: str) -> Dict[str, Any]:
             year = year_match.group(1) if year_match else None
     # If no year from metadata, try extracting from first page text.
     if not year:
-        try:
-            first_page = doc[0]
-            text = first_page.get_text("text")
-            # Look for year pattern (1900-2099).
-            year_match = re.search(r"\b(19|20)\d{2}\b", text)
-            year = year_match.group(0) if year_match else None
-        except Exception as e:
-            _LOG.debug("Could not extract year from first page: %s", e)
+        first_page = doc[0]
+        text = first_page.get_text("text")
+        # Look for year pattern (1900-2099).
+        year_match = re.search(r"\b(19|20)\d{2}\b", text)
+        year = year_match.group(0) if year_match else None
     doc.close()
     return {
         "year": year,
@@ -294,7 +292,7 @@ def _format_filename(
     filename = "_".join(parts)
     # Remove invalid characters and replace spaces with underscores.
     filename = re.sub(r'[<>:"/\\|?*]', "", filename)
-    filename = re.sub(r'\s+', "_", filename)
+    filename = re.sub(r"\s+", "_", filename)
     filename = f"{filename}.pdf"
     return filename
 
@@ -327,7 +325,9 @@ def _download_paper(
     """
     _LOG.info("Processing URL: %s", url)
     # Check if output directory exists.
-    hdbg.dassert_dir_exists(output_dir, "Output directory does not exist: %s", output_dir)
+    hdbg.dassert_dir_exists(
+        output_dir, "Output directory does not exist: %s", output_dir
+    )
     # Detect DOI.
     doi = _detect_doi(url)
     arxiv_id = None

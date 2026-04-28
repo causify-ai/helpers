@@ -5,12 +5,25 @@
   approximately 30 minutes of reading time, covering its purpose, basic usage,
   and practical examples.
 
-## Format
+# Overview and Guidelines
 
 - Follow the format and conventions in:
   - `@.claude/skills/blog.rules.md`
   - `@.claude/skills/markdown.rules.md`
   - `@.claude/skills/text.rules.bullet_points.md`
+
+## Content Guidelines
+
+- **Word count**: Target 2,000–4,000 words for a comprehensive "in 30 mins" guide
+- **Tone**: Professional and informative, suitable for developers
+- **Audience**: Developers familiar with basic command line and package management
+- **Clarity**: Prioritize clarity and brevity over completeness
+- **Examples**: Use concrete, copy-paste ready examples
+- **Performance**: Highlight speed and efficiency advantages when relevant
+- **Commands**: Show variations and flags that users commonly need
+- **Warnings**: Include "Common Gotchas" or "Known Issues" section when applicable
+
+# Document Structure
 
 ## Typical Section Order
 
@@ -29,7 +42,7 @@
 13. Integration Sections
 14. Comparison Tables
 
-## Document Structure
+## Section Details
 
 - **Introduction**: Explain why the tool matters and the problem it solves
   - Use bullet points to highlight main benefits
@@ -82,13 +95,17 @@
   - Include performance metrics when available
   - Format: `| Feature | Tool Name | Competitor |`
 
-## Writing Style and Formatting
+# Writing Style and Formatting
 
-- **Code blocks**: All code blocks must have language tags (e.g., `bash`,
+## Code Blocks
+
+- All code blocks must have language tags (e.g., `bash`,
   `python`, `yaml`, `toml`)
   - Commands in bash blocks must be prefixed with `>`
   - Output shown after commands should not have `>`
   - Use `bash` for shell commands, specific language tags for code samples
+
+## Lists and Bullets
 
 - **Bullet points**: Organize information in bullet lists
   - Follow rules in `.claude/skills/text.rules.bullet_points.md`
@@ -96,12 +113,16 @@
   - Use nested bullets for elaboration, examples, or hierarchical information
   - Do not end bullet points with periods
 
+## Headers and Hierarchy
+
 - **Headers**: Structure with proper hierarchy
   - Start with level 1 headers for main sections (`#`)
   - Use level 2 headers for subsections (`##`)
   - Use level 3 headers for sub-subsections (`###`)
   - Capitalize major words in headers
   - Avoid level 4 headers; convert to bold text or bullets instead
+
+## Emphasis and Formatting
 
 - **Bold and emphasis**: Use strategically
   - Bold key tool names and important concepts
@@ -115,6 +136,8 @@
   - File names and config files: `` `pyproject.toml` ``
   - Code elements: `` `variable_name` ``
 
+## Tables and Examples
+
 - **Tables**: Use for comparisons
   - Left-aligned columns (`:-------`)
   - Include feature comparisons between tools
@@ -127,17 +150,6 @@
   - Use ellipsis (`…`) or `...` for truncated output
   - Provide context before code blocks
   - Demonstrate both success and error cases when instructive
-
-## Content Guidelines
-
-- **Word count**: Target 2,000–4,000 words for a comprehensive "in 30 mins" guide
-- **Tone**: Professional and informative, suitable for developers
-- **Audience**: Developers familiar with basic command line and package management
-- **Clarity**: Prioritize clarity and brevity over completeness
-- **Examples**: Use concrete, copy-paste ready examples
-- **Performance**: Highlight speed and efficiency advantages when relevant
-- **Commands**: Show variations and flags that users commonly need
-- **Warnings**: Include "Common Gotchas" or "Known Issues" section when applicable
 
 ## Output Formatting
 

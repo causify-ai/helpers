@@ -12,10 +12,10 @@ import time
 from typing import Dict, List, Optional
 
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hio as hio
 
-#henv.install_module_if_not_present("openai")
+# import helpers.henv as henv
+# henv.install_module_if_not_present("openai")
 import openai  # noqa: E402
 
 _LOG = logging.getLogger(__name__)
@@ -202,6 +202,27 @@ def _load_gpt_ids() -> Dict:
         return directory_dict
 
 
+# #############################################################################
+# Upload file to OpenAI account
+# #############################################################################
+
+
+def _upload_to_gpt_no_set_id(path_from_root: str) -> str:
+    """
+    Upload a file to OpenAI.
+
+    This method will NOT set File ID to cache.
+    """
+    _LOG.info("Uploading file %s to chatgpt", path_from_root)
+    upload_file_response = client.files.create(
+        # Must use 'rb' regardless of file type.
+        file=open(os.path.join(prefix_to_root, path_from_root), "rb"),
+        purpose="assistants",
+    )
+    gpt_id = upload_file_response.id
+    return gpt_id
+
+
 def _get_gpt_id_file(dictionary: Dict, path_from_root: str) -> Dict[str, str]:
     """
     Get the OpenAI File ID for a given file using a specific cache.
@@ -255,27 +276,6 @@ def get_gpt_id(path_from_root: str) -> str:
     """
     gpt_id_dict = _load_gpt_ids()
     return _get_gpt_id_file(gpt_id_dict, path_from_root)["gpt_id"]
-
-
-# #############################################################################
-# Upload file to OpenAI account
-# #############################################################################
-
-
-def _upload_to_gpt_no_set_id(path_from_root: str) -> str:
-    """
-    Upload a file to OpenAI.
-
-    This method will NOT set File ID to cache.
-    """
-    _LOG.info("Uploading file %s to chatgpt", path_from_root)
-    upload_file_response = client.files.create(
-        # Must use 'rb' regardless of file type.
-        file=open(os.path.join(prefix_to_root, path_from_root), "rb"),
-        purpose="assistants",
-    )
-    gpt_id = upload_file_response.id
-    return gpt_id
 
 
 def upload_to_gpt(path_from_root: str) -> str:
@@ -534,7 +534,9 @@ def e2e_assistant_runner(
         thread_id, user_input, input_file_names
     )
     if model:
-        run_id = run_thread_on_assistant_by_name(assistant_name, thread_id, model)
+        run_id = run_thread_on_assistant_by_name(
+            assistant_name, thread_id, model
+        )
     else:
         run_id = run_thread_on_assistant_by_name(assistant_name, thread_id)
     messages = wait_for_run_result(thread_id, run_id)

@@ -221,182 +221,6 @@ def to_string(var: str) -> str:
     return f"""f"{var}={{{var}}}"""
 
 
-# TODO(gp): @all move to hpandas
-def compare_df(df1: "pd.DataFrame", df2: "pd.DataFrame") -> None:
-    """
-    Compare two dfs including their metadata.
-    """
-    if not df1.equals(df2):
-        print(df1.compare(df2))
-        raise ValueError("Dfs are different")
-
-    def _compute_df_signature(df: "pd.DataFrame") -> str:
-        txt = []
-        txt.append(f"df1=\n{str(df)}")
-        txt.append(f"df1.dtypes=\n{str(df.dtypes)}")
-        if hasattr(df.index, "freq"):
-            txt.append(f"df1.index.freq=\n{str(df.index.freq)}")
-        return "\n".join(txt)
-
-    full_test_name = "dummy"
-    test_dir = "."
-    assert_equal(
-        _compute_df_signature(df1),
-        _compute_df_signature(df2),
-        full_test_name,
-        test_dir,
-    )
-
-
-# #############################################################################
-
-
-def create_test_dir(
-    dir_name: str, incremental: bool, file_dict: Dict[str, str]
-) -> None:
-    """
-    Create a directory `dir_name` with the files from `file_dict`.
-
-    `file_dict` is interpreted as pair of files relative to `dir_name`
-    and content.
-    """
-    hdbg.dassert_no_duplicates(file_dict.keys())
-    hio.create_dir(dir_name, incremental=incremental)
-    for file_name in file_dict:
-        dst_file_name = os.path.join(dir_name, file_name)
-        _LOG.debug("file_name=%s -> %s", file_name, dst_file_name)
-        hio.create_enclosing_dir(dst_file_name, incremental=incremental)
-        file_content = file_dict[file_name]
-        hio.to_file(dst_file_name, file_content)
-
-
-# TODO(gp): Make remove_dir_name=True default.
-def get_dir_signature(
-    dir_name: str,
-    include_file_content: bool,
-    *,
-    remove_dir_name: bool = False,
-    num_lines: Optional[int] = None,
-) -> str:
-    """
-    Compute a string with the content of the files in `dir_name`.
-
-    :param include_file_content: include the content of the files, besides the
-        name of files and directories
-    :param remove_dir_name: use paths relative to `dir_name`
-    :param num_lines: number of lines to include for each file
-
-    The output looks like:
-    ```
-    # Dir structure
-    $GIT_ROOT/.../tmp.scratch
-    $GIT_ROOT/.../tmp.scratch/dummy_value_1=1
-    $GIT_ROOT/.../tmp.scratch/dummy_value_1=1/dummy_value_2=A
-    $GIT_ROOT/.../tmp.scratch/dummy_value_1=1/dummy_value_2=A/data.parquet
-    ...
-
-    # File signatures
-    len(file_names)=3
-    file_names=$GIT_ROOT/.../tmp.scratch/dummy_value_1=1/dummy_value_2=A/data.parquet,
-    $GIT_ROOT/.../tmp.scratch/dummy_value_1=2/dummy_value_2=B/data.parquet, ...
-    # $GIT_ROOT/.../tmp.scratch/dummy_value_1=1/dummy_value_2=A/data.parquet
-    num_lines=13
-    '''
-    original shape=(1, 1)
-    Head:
-    {
-        "0":{
-            "dummy_value_3":0
-        }
-    }
-    Tail:
-    {
-        "0":{
-            "dummy_value_3":0
-        }
-    }
-    '''
-    # $GIT_ROOT/.../tmp.scratch/dummy_value_1=2/dummy_value_2=B/data.parquet
-    ```
-    """
-
-    def _remove_dir_name(file_name: str) -> str:
-        if remove_dir_name:
-            res = os.path.relpath(file_name, dir_name)
-        else:
-            res = file_name
-        return res
-
-    txt: List[str] = []
-    # Find all the files under `dir_name`.
-    _LOG.debug("dir_name=%s", dir_name)
-    hdbg.dassert_path_exists(dir_name)
-    cmd = f'find {dir_name} -name "*"'
-    remove_files_non_present = False
-    dir_name_tmp = None
-    file_names = hsystem.system_to_files(
-        cmd, dir_name_tmp, remove_files_non_present
-    )
-    file_names = sorted(file_names)
-    # Save the directory / file structure.
-    txt.append("# Dir structure")
-    txt.append("\n".join(map(_remove_dir_name, file_names)))
-    #
-    if include_file_content:
-        txt.append("# File signatures")
-        # Remove the directories.
-        file_names = hsystem.remove_dirs(file_names)
-        # Scan the files.
-        txt.append(f"len(file_names)={len(file_names)}")
-        txt.append(f"file_names={', '.join(map(_remove_dir_name, file_names))}")
-        for file_name in file_names:
-            _LOG.debug("file_name=%s", file_name)
-            txt.append("# " + _remove_dir_name(file_name))
-            # Read file.
-            txt_tmp = hio.from_file(file_name)
-            # This seems unstable on different systems.
-            # txt.append("num_chars=%s" % len(txt_tmp))
-            txt_tmp = txt_tmp.split("\n")
-            # Filter lines, if needed.
-            txt.append(f"num_lines={len(txt_tmp)}")
-            if num_lines is not None:
-                hdbg.dassert_lte(1, num_lines)
-                txt_tmp = txt_tmp[:num_lines]
-            txt.append("'''\n" + "\n".join(txt_tmp) + "\n'''")
-    else:
-        hdbg.dassert_is(num_lines, None)
-    # Concat everything in a single string.
-    result = "\n".join(txt)
-    return result
-
-
-# TODO(gp): GSI. Use the copy in helpers/hprint.py
-def filter_text(regex: str, txt: str) -> str:
-    """
-    Remove lines in `txt` that match the regex `regex`.
-    """
-    _LOG.debug("Filtering with '%s'", regex)
-    if regex is None:
-        return txt
-    txt_out = []
-    txt_as_arr = txt.split("\n")
-    for line in txt_as_arr:
-        if re.search(regex, line):
-            _LOG.debug("Skipping line='%s'", line)
-            continue
-        txt_out.append(line)
-    # We can only remove lines.
-    hdbg.dassert_lte(
-        len(txt_out),
-        len(txt_as_arr),
-        "txt_out=\n'''%s'''\ntxt=\n'''%s'''",
-        "\n".join(txt_out),
-        "\n".join(txt_as_arr),
-    )
-    txt = "\n".join(txt_out)
-    return txt
-
-
 # #############################################################################
 
 
@@ -468,138 +292,6 @@ def diff_files(
     # Assert.
     if abort_on_exit:
         raise RuntimeError(msg_as_str)
-
-
-def diff_strings(
-    string1: str,
-    string2: str,
-    *,
-    tag: Optional[str] = None,
-    abort_on_exit: bool = True,
-    dst_dir: str = ".",
-) -> None:
-    """
-    Compare two strings using the diff_files() flow by creating a script to
-    compare with vimdiff.
-
-    :param dst_dir: where to save the intermediatary files
-    """
-    _LOG.debug(hprint.to_str("tag abort_on_exit dst_dir"))
-    # Save the actual and expected strings to files.
-    file_name1 = f"{dst_dir}/tmp.string1.txt"
-    hio.to_file(file_name1, string1)
-    #
-    file_name2 = f"{dst_dir}/tmp.string2.txt"
-    hio.to_file(file_name2, string2)
-    # Compare with diff_files.
-    if tag is None:
-        tag = "string1 vs string2"
-    diff_files(
-        file_name1,
-        file_name2,
-        tag=tag,
-        abort_on_exit=abort_on_exit,
-        dst_dir=dst_dir,
-    )
-
-
-def diff_df_monotonic(
-    df: "pd.DataFrame",
-    *,
-    tag: Optional[str] = None,
-    abort_on_exit: bool = True,
-    dst_dir: str = ".",
-) -> None:
-    """
-    Check for a dataframe to be monotonic using the vimdiff flow from
-    diff_files().
-    """
-    _LOG.debug(hprint.to_str("abort_on_exit dst_dir"))
-    if not df.index.is_monotonic_increasing:
-        df2 = df.copy()
-        df2.sort_index(inplace=True)
-        diff_strings(
-            df.to_csv(),
-            df2.to_csv(),
-            tag=tag,
-            abort_on_exit=abort_on_exit,
-            dst_dir=dst_dir,
-        )
-
-
-# #############################################################################
-
-
-# pylint: disable=protected-access
-def get_pd_default_values() -> "pd._config.config.DictWrapper":
-    """
-    Get a deep copy of the current pandas default options.
-
-    :return: a copy of pandas configuration options
-    """
-    import copy
-
-    vals = copy.deepcopy(pd.options)
-    return vals
-
-
-def set_pd_default_values() -> None:
-    """
-    Set pandas display options to standard default values for testing.
-
-    This ensures consistent output across different test environments.
-    """
-    # 'display':
-    default_pd_values = {
-        "chop_threshold": None,
-        "colheader_justify": "right",
-        "date_dayfirst": False,
-        "date_yearfirst": False,
-        "encoding": "UTF-8",
-        "expand_frame_repr": True,
-        "float_format": None,
-        "html": {"border": 1, "table_schema": False, "use_mathjax": True},
-        "large_repr": "truncate",
-        "latex": {
-            "escape": True,
-            "longtable": False,
-            "multicolumn": True,
-            "multicolumn_format": "l",
-            "multirow": False,
-            "repr": False,
-        },
-        "max_categories": 8,
-        "max_columns": 20,
-        "max_colwidth": 50,
-        "max_info_columns": 100,
-        "max_info_rows": 1690785,
-        "max_rows": 60,
-        "max_seq_items": 100,
-        "memory_usage": True,
-        "min_rows": 10,
-        "multi_sparse": True,
-        "notebook_repr_html": True,
-        "pprint_nest_depth": 3,
-        "precision": 6,
-        "show_dimensions": "truncate",
-        "unicode": {"ambiguous_as_wide": False, "east_asian_width": False},
-        "width": 80,
-    }
-    section = "display"
-    for key, new_val in default_pd_values.items():
-        if isinstance(new_val, dict):
-            continue
-        full_key = f"{section}.{key}"
-        old_val = pd.get_option(full_key)
-        if old_val != new_val:
-            _LOG.debug(
-                "-> Assigning a different value: full_key=%s, "
-                "old_val=%s, new_val=%s",
-                full_key,
-                old_val,
-                new_val,
-            )
-        pd.set_option(full_key, new_val)
 
 
 # #############################################################################
@@ -880,6 +572,314 @@ def assert_equal(
     return is_equal
 
 
+# TODO(gp): @all move to hpandas
+def compare_df(df1: "pd.DataFrame", df2: "pd.DataFrame") -> None:
+    """
+    Compare two dfs including their metadata.
+    """
+    if not df1.equals(df2):
+        print(df1.compare(df2))
+        raise ValueError("Dfs are different")
+
+    def _compute_df_signature(df: "pd.DataFrame") -> str:
+        txt = []
+        txt.append(f"df1=\n{str(df)}")
+        txt.append(f"df1.dtypes=\n{str(df.dtypes)}")
+        if hasattr(df.index, "freq"):
+            txt.append(f"df1.index.freq=\n{str(df.index.freq)}")
+        return "\n".join(txt)
+
+    full_test_name = "dummy"
+    test_dir = "."
+    assert_equal(
+        _compute_df_signature(df1),
+        _compute_df_signature(df2),
+        full_test_name,
+        test_dir,
+    )
+
+
+# #############################################################################
+
+
+def create_test_dir(
+    dir_name: str, incremental: bool, file_dict: Dict[str, str]
+) -> None:
+    """
+    Create a directory `dir_name` with the files from `file_dict`.
+
+    `file_dict` is interpreted as pair of files relative to `dir_name`
+    and content.
+    """
+    hdbg.dassert_no_duplicates(file_dict.keys())
+    hio.create_dir(dir_name, incremental=incremental)
+    for file_name in file_dict:
+        dst_file_name = os.path.join(dir_name, file_name)
+        _LOG.debug("file_name=%s -> %s", file_name, dst_file_name)
+        hio.create_enclosing_dir(dst_file_name, incremental=incremental)
+        file_content = file_dict[file_name]
+        hio.to_file(dst_file_name, file_content)
+
+
+# TODO(gp): Make remove_dir_name=True default.
+def get_dir_signature(
+    dir_name: str,
+    include_file_content: bool,
+    *,
+    remove_dir_name: bool = False,
+    num_lines: Optional[int] = None,
+) -> str:
+    """
+    Compute a string with the content of the files in `dir_name`.
+
+    :param include_file_content: include the content of the files, besides the
+        name of files and directories
+    :param remove_dir_name: use paths relative to `dir_name`
+    :param num_lines: number of lines to include for each file
+
+    The output looks like:
+    ```
+    # Dir structure
+    $GIT_ROOT/.../tmp.scratch
+    $GIT_ROOT/.../tmp.scratch/dummy_value_1=1
+    $GIT_ROOT/.../tmp.scratch/dummy_value_1=1/dummy_value_2=A
+    $GIT_ROOT/.../tmp.scratch/dummy_value_1=1/dummy_value_2=A/data.parquet
+    ...
+
+    # File signatures
+    len(file_names)=3
+    file_names=$GIT_ROOT/.../tmp.scratch/dummy_value_1=1/dummy_value_2=A/data.parquet,
+    $GIT_ROOT/.../tmp.scratch/dummy_value_1=2/dummy_value_2=B/data.parquet, ...
+    # $GIT_ROOT/.../tmp.scratch/dummy_value_1=1/dummy_value_2=A/data.parquet
+    num_lines=13
+    '''
+    original shape=(1, 1)
+    Head:
+    {
+        "0":{
+            "dummy_value_3":0
+        }
+    }
+    Tail:
+    {
+        "0":{
+            "dummy_value_3":0
+        }
+    }
+    '''
+    # $GIT_ROOT/.../tmp.scratch/dummy_value_1=2/dummy_value_2=B/data.parquet
+    ```
+    """
+
+    def _remove_dir_name(file_name: str) -> str:
+        if remove_dir_name:
+            res = os.path.relpath(file_name, dir_name)
+        else:
+            res = file_name
+        return res
+
+    txt: List[str] = []
+    # Find all the files under `dir_name`.
+    _LOG.debug("dir_name=%s", dir_name)
+    hdbg.dassert_path_exists(dir_name)
+    cmd = f'find {dir_name} -name "*"'
+    remove_files_non_present = False
+    dir_name_tmp = None
+    file_names = hsystem.system_to_files(
+        cmd, dir_name_tmp, remove_files_non_present
+    )
+    file_names = sorted(file_names)
+    # Save the directory / file structure.
+    txt.append("# Dir structure")
+    txt.append("\n".join(map(_remove_dir_name, file_names)))
+    #
+    if include_file_content:
+        txt.append("# File signatures")
+        # Remove the directories.
+        file_names = hsystem.remove_dirs(file_names)
+        # Scan the files.
+        txt.append(f"len(file_names)={len(file_names)}")
+        txt.append(f"file_names={', '.join(map(_remove_dir_name, file_names))}")
+        for file_name in file_names:
+            _LOG.debug("file_name=%s", file_name)
+            txt.append("# " + _remove_dir_name(file_name))
+            # Read file.
+            txt_tmp = hio.from_file(file_name)
+            # This seems unstable on different systems.
+            # txt.append("num_chars=%s" % len(txt_tmp))
+            txt_tmp = txt_tmp.split("\n")
+            # Filter lines, if needed.
+            txt.append(f"num_lines={len(txt_tmp)}")
+            if num_lines is not None:
+                hdbg.dassert_lte(1, num_lines)
+                txt_tmp = txt_tmp[:num_lines]
+            txt.append("'''\n" + "\n".join(txt_tmp) + "\n'''")
+    else:
+        hdbg.dassert_is(num_lines, None)
+    # Concat everything in a single string.
+    result = "\n".join(txt)
+    return result
+
+
+# TODO(gp): GSI. Use the copy in helpers/hprint.py
+def filter_text(regex: str, txt: str) -> str:
+    """
+    Remove lines in `txt` that match the regex `regex`.
+    """
+    _LOG.debug("Filtering with '%s'", regex)
+    if regex is None:
+        return txt
+    txt_out = []
+    txt_as_arr = txt.split("\n")
+    for line in txt_as_arr:
+        if re.search(regex, line):
+            _LOG.debug("Skipping line='%s'", line)
+            continue
+        txt_out.append(line)
+    # We can only remove lines.
+    hdbg.dassert_lte(
+        len(txt_out),
+        len(txt_as_arr),
+        "txt_out=\n'''%s'''\ntxt=\n'''%s'''",
+        "\n".join(txt_out),
+        "\n".join(txt_as_arr),
+    )
+    txt = "\n".join(txt_out)
+    return txt
+
+
+def diff_strings(
+    string1: str,
+    string2: str,
+    *,
+    tag: Optional[str] = None,
+    abort_on_exit: bool = True,
+    dst_dir: str = ".",
+) -> None:
+    """
+    Compare two strings using the diff_files() flow by creating a script to
+    compare with vimdiff.
+
+    :param dst_dir: where to save the intermediatary files
+    """
+    _LOG.debug(hprint.to_str("tag abort_on_exit dst_dir"))
+    # Save the actual and expected strings to files.
+    file_name1 = f"{dst_dir}/tmp.string1.txt"
+    hio.to_file(file_name1, string1)
+    #
+    file_name2 = f"{dst_dir}/tmp.string2.txt"
+    hio.to_file(file_name2, string2)
+    # Compare with diff_files.
+    if tag is None:
+        tag = "string1 vs string2"
+    diff_files(
+        file_name1,
+        file_name2,
+        tag=tag,
+        abort_on_exit=abort_on_exit,
+        dst_dir=dst_dir,
+    )
+
+
+def diff_df_monotonic(
+    df: "pd.DataFrame",
+    *,
+    tag: Optional[str] = None,
+    abort_on_exit: bool = True,
+    dst_dir: str = ".",
+) -> None:
+    """
+    Check for a dataframe to be monotonic using the vimdiff flow from
+    diff_files().
+    """
+    _LOG.debug(hprint.to_str("abort_on_exit dst_dir"))
+    if not df.index.is_monotonic_increasing:
+        df2 = df.copy()
+        df2.sort_index(inplace=True)
+        diff_strings(
+            df.to_csv(),
+            df2.to_csv(),
+            tag=tag,
+            abort_on_exit=abort_on_exit,
+            dst_dir=dst_dir,
+        )
+
+
+# #############################################################################
+
+
+# pylint: disable=protected-access
+def get_pd_default_values() -> "pd._config.config.DictWrapper":
+    """
+    Get a deep copy of the current pandas default options.
+
+    :return: a copy of pandas configuration options
+    """
+    import copy
+
+    vals = copy.deepcopy(pd.options)
+    return vals
+
+
+def set_pd_default_values() -> None:
+    """
+    Set pandas display options to standard default values for testing.
+
+    This ensures consistent output across different test environments.
+    """
+    # 'display':
+    default_pd_values = {
+        "chop_threshold": None,
+        "colheader_justify": "right",
+        "date_dayfirst": False,
+        "date_yearfirst": False,
+        "encoding": "UTF-8",
+        "expand_frame_repr": True,
+        "float_format": None,
+        "html": {"border": 1, "table_schema": False, "use_mathjax": True},
+        "large_repr": "truncate",
+        "latex": {
+            "escape": True,
+            "longtable": False,
+            "multicolumn": True,
+            "multicolumn_format": "l",
+            "multirow": False,
+            "repr": False,
+        },
+        "max_categories": 8,
+        "max_columns": 20,
+        "max_colwidth": 50,
+        "max_info_columns": 100,
+        "max_info_rows": 1690785,
+        "max_rows": 60,
+        "max_seq_items": 100,
+        "memory_usage": True,
+        "min_rows": 10,
+        "multi_sparse": True,
+        "notebook_repr_html": True,
+        "pprint_nest_depth": 3,
+        "precision": 6,
+        "show_dimensions": "truncate",
+        "unicode": {"ambiguous_as_wide": False, "east_asian_width": False},
+        "width": 80,
+    }
+    section = "display"
+    for key, new_val in default_pd_values.items():
+        if isinstance(new_val, dict):
+            continue
+        full_key = f"{section}.{key}"
+        old_val = pd.get_option(full_key)
+        if old_val != new_val:
+            _LOG.debug(
+                "-> Assigning a different value: full_key=%s, "
+                "old_val=%s, new_val=%s",
+                full_key,
+                old_val,
+                new_val,
+            )
+        pd.set_option(full_key, new_val)
+
+
 # If a golden outcome is missing asserts (instead of updating golden and adding
 # it to Git repo, corresponding to "update").
 _ACTION_ON_MISSING_GOLDEN = "assert"
@@ -1011,6 +1011,41 @@ class TestCase(unittest.TestCase):
         self._update_tests = True
         self._overriden_update_tests = True
         self._git_add = False
+
+    def _get_current_path(
+        self,
+        use_only_class_name: bool,
+        test_class_name: Optional[str],
+        test_method_name: Optional[str],
+        use_absolute_path: bool,
+    ) -> str:
+        """
+        Return the name of the directory containing the input / output data.
+
+        E.g.,
+        ```
+        ./core/dataflow/test/outcomes/TestContinuousSarimaxModel.test_compare
+        ```
+
+        The parameters have the same meaning as in `get_input_dir()`.
+        """
+        if test_class_name is None:
+            test_class_name = self.__class__.__name__
+        if use_only_class_name:
+            # Use only class name.
+            dir_name = test_class_name
+        else:
+            # Use both class and test method.
+            if test_method_name is None:
+                test_method_name = self._testMethodName
+            dir_name = f"{test_class_name}.{test_method_name}"
+        if use_absolute_path:
+            # E.g., `.../dataflow/test/outcomes/TestContinuousSarimaxModel.test_compare`.
+            dir_name = os.path.join(self._base_dir_name, "outcomes", dir_name)
+        else:
+            # E.g., `outcomes/TestContinuousSarimaxModel.test_compare`.
+            dir_name = os.path.join("outcomes", dir_name)
+        return dir_name
 
     def get_input_dir(
         self,
@@ -1171,6 +1206,12 @@ class TestCase(unittest.TestCase):
         input_dir = os.path.join(s3_bucket, test_path)
         return input_dir
 
+    def _get_test_name(self) -> str:
+        """
+        Return the full test name as `class.method`.
+        """
+        return f"{self.__class__.__name__}.{self._testMethodName}"
+
     # ///////////////////////////////////////////////////////////////////////
 
     def assert_equal(
@@ -1263,6 +1304,98 @@ class TestCase(unittest.TestCase):
                 hpandas.df_to_str(actual), hpandas.df_to_str(expected)
             )
         np.testing.assert_allclose(actual, expected, **kwargs)
+
+    # ///////////////////////////////////////////////////////////////////////
+
+    # TODO(gp): This needs to be moved to `helper.git` and generalized.
+    def _git_add_file(self, file_name: str) -> None:
+        """
+        Add to git repo `file_name`, if needed.
+        """
+        _LOG.debug(hprint.to_str("file_name"))
+        if self._git_add:
+            # Find the file relative to here.
+            mode = "assert_unless_one_result"
+            # The problem is that when we run from an included repo, we look
+            # for files like:
+            # ```
+            # helpers_root/helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
+            # ```
+            # but in our directory we find files like:
+            # ```
+            # helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
+            # ```
+            # so we need to make the file relative to the innermost repo.
+            git_root = hgit.get_client_root(super_module=False)
+            rel_file_name = os.path.relpath(file_name, git_root)
+            _LOG.debug(hprint.to_str("rel_file_name"))
+            file_names_tmp = hgit.find_docker_file(rel_file_name, mode=mode)
+            hdbg.dassert_eq(len(file_names_tmp), 1)
+            file_name_tmp = file_names_tmp[0]
+            _LOG.debug(hprint.to_str("file_name_tmp"))
+            cmd = f"cd amp; git add -u {file_name_tmp}"
+            rc = hsystem.system(cmd, abort_on_error=False)
+            if rc:
+                pytest_warning(
+                    f"Can't git add file\n'{file_name}' -> '{file_name_tmp}'\n"
+                    "You need to git add the file manually\n",
+                    prefix="\n",
+                )
+                pytest_print(f"> {cmd}\n")
+
+    def _check_string_update_outcome(
+        self, file_name: str, actual: str, use_gzip: bool
+    ) -> None:
+        """
+        Update the golden outcome file with actual test output.
+
+        :param file_name: path to the golden outcome file
+        :param actual: the actual test output to save
+        :param use_gzip: whether to compress the file with gzip
+        """
+        _LOG.debug(hprint.to_str("file_name"))
+        hio.to_file(file_name, actual, use_gzip=use_gzip)
+        # Add to git repo.
+        self._git_add_file(file_name)
+
+    # ///////////////////////////////////////////////////////////////////////
+
+    def _get_golden_outcome_file_name(
+        self,
+        tag: str,
+        *,
+        test_class_name: Optional[str] = None,
+        test_method_name: Optional[str] = None,
+    ) -> Tuple[str, str]:
+        """
+        Get the directory and file name for the golden outcome file.
+
+        :param tag: identifier tag for the golden outcome file
+        :param test_class_name: override the current test class name
+        :param test_method_name: override the current test method name
+        :return: tuple of (directory_path, file_path)
+        """
+        # Get the current dir name.
+        use_only_test_class = False
+        use_absolute_path = True
+        dir_name = self._get_current_path(
+            use_only_test_class,
+            test_class_name,
+            test_method_name,
+            use_absolute_path,
+        )
+        _LOG.debug("dir_name=%s", dir_name)
+        hio.create_dir(dir_name, incremental=True)
+        hdbg.dassert_path_exists(dir_name)
+        # Get the expected outcome.
+        file_name = (
+            self.get_output_dir(
+                test_class_name=test_class_name,
+                test_method_name=test_method_name,
+            )
+            + f"/{tag}.txt"
+        )
+        return dir_name, file_name
 
     # TODO(gp): There is a lot of similarity between `check_string()` and
     #  `check_df_string()` that can be factored out if we extract the code that
@@ -1412,6 +1545,104 @@ class TestCase(unittest.TestCase):
         self._test_was_updated = outcome_updated
         _LOG.debug(hprint.to_str("outcome_updated file_exists is_equal"))
         return outcome_updated, file_exists, is_equal
+
+    # ///////////////////////////////////////////////////////////////////////
+
+    def _check_df_update_outcome(
+        self,
+        file_name: str,
+        actual: "pd.DataFrame",
+    ) -> None:
+        """
+        Update the golden outcome file with actual dataframe output.
+
+        :param file_name: path to the golden outcome file
+        :param actual: the actual dataframe to save
+        """
+        _LOG.debug(hprint.to_str("file_name"))
+        hio.create_enclosing_dir(file_name)
+        actual.to_csv(file_name)
+        pytest_warning(f"Update golden outcome file '{file_name}'", prefix="\n")
+        # Add to git repo.
+        self._git_add_file(file_name)
+
+    def _to_error(self, msg: str) -> None:
+        """
+        Append error message to the accumulated error log.
+
+        :param msg: error message to log and accumulate
+        """
+        self._error_msg += msg + "\n"
+        _LOG.error(msg)
+
+    def _check_df_compare_outcome(
+        self, file_name: str, actual: "pd.DataFrame", err_threshold: float
+    ) -> Tuple[bool, "pd.DataFrame"]:
+        """
+        Compare actual dataframe with golden outcome from file.
+
+        :param file_name: path to the golden outcome file
+        :param actual: the actual dataframe to compare
+        :param err_threshold: relative error threshold for numerical comparison
+        :return: tuple of (is_equal, expected_dataframe)
+        """
+        _LOG.debug(hprint.to_str("file_name"))
+        _LOG.debug("actual_=\n%s", actual)
+        hdbg.dassert_lte(0, err_threshold)
+        hdbg.dassert_lte(err_threshold, 1.0)
+        # Load the expected df from file.
+        expected = pd.read_csv(file_name, index_col=0)
+        _LOG.debug("expected=\n%s", expected)
+        hdbg.dassert_isinstance(expected, pd.DataFrame)
+        ret = True
+        # Compare columns.
+        if actual.columns.tolist() != expected.columns.tolist():
+            msg = f"Columns are different:\n{str(actual.columns)}\n{str(expected.columns)}"
+            self._to_error(msg)
+            ret = False
+        # Compare the values.
+        _LOG.debug("actual.shape=%s", str(actual.shape))
+        _LOG.debug("expected.shape=%s", str(expected.shape))
+        # From https://numpy.org/doc/stable/reference/generated/numpy.allclose.html
+        # absolute(a - b) <= (atol + rtol * absolute(b))
+        # absolute(a - b) / absolute(b)) <= rtol
+        is_close = np.allclose(
+            actual, expected, rtol=err_threshold, equal_nan=True
+        )
+        if not is_close:
+            _LOG.error("Dataframe values are not close")
+            if actual.shape == expected.shape:
+                close_mask = np.isclose(actual, expected, equal_nan=True)
+                #
+                msg = f"actual=\n{actual}"
+                self._to_error(msg)
+                #
+                msg = f"expected=\n{expected}"
+                self._to_error(msg)
+                #
+                actual_masked = np.where(close_mask, np.nan, actual)
+                msg = f"actual_masked=\n{actual_masked}"
+                self._to_error(msg)
+                #
+                expected_masked = np.where(close_mask, np.nan, expected)
+                msg = f"expected_masked=\n{expected_masked}"
+                self._to_error(msg)
+                #
+                err = np.abs((actual_masked - expected_masked) / expected_masked)
+                msg = f"err=\n{err}"
+                self._to_error(msg)
+                max_err = np.nanmax(np.nanmax(err))
+                msg = "max_err=%.3f" % max_err
+                self._to_error(msg)
+            else:
+                msg = (
+                    "Shapes are different:\n"
+                    f"actual.shape={str(actual.shape)}\nexpected.shape={str(expected.shape)}"
+                )
+                self._to_error(msg)
+            ret = False
+        _LOG.debug("ret=%s", ret)
+        return ret, expected
 
     def check_dataframe(
         self,
@@ -1624,237 +1855,6 @@ class TestCase(unittest.TestCase):
                 dedent=True,
                 fuzzy_match=True,
             )
-
-    # ///////////////////////////////////////////////////////////////////////
-
-    # TODO(gp): This needs to be moved to `helper.git` and generalized.
-    def _git_add_file(self, file_name: str) -> None:
-        """
-        Add to git repo `file_name`, if needed.
-        """
-        _LOG.debug(hprint.to_str("file_name"))
-        if self._git_add:
-            # Find the file relative to here.
-            mode = "assert_unless_one_result"
-            # The problem is that when we run from an included repo, we look
-            # for files like:
-            # ```
-            # helpers_root/helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
-            # ```
-            # but in our directory we find files like:
-            # ```
-            # helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
-            # ```
-            # so we need to make the file relative to the innermost repo.
-            git_root = hgit.get_client_root(super_module=False)
-            rel_file_name = os.path.relpath(file_name, git_root)
-            _LOG.debug(hprint.to_str("rel_file_name"))
-            file_names_tmp = hgit.find_docker_file(rel_file_name, mode=mode)
-            hdbg.dassert_eq(len(file_names_tmp), 1)
-            file_name_tmp = file_names_tmp[0]
-            _LOG.debug(hprint.to_str("file_name_tmp"))
-            cmd = f"cd amp; git add -u {file_name_tmp}"
-            rc = hsystem.system(cmd, abort_on_error=False)
-            if rc:
-                pytest_warning(
-                    f"Can't git add file\n'{file_name}' -> '{file_name_tmp}'\n"
-                    "You need to git add the file manually\n",
-                    prefix="\n",
-                )
-                pytest_print(f"> {cmd}\n")
-
-    def _check_string_update_outcome(
-        self, file_name: str, actual: str, use_gzip: bool
-    ) -> None:
-        """
-        Update the golden outcome file with actual test output.
-
-        :param file_name: path to the golden outcome file
-        :param actual: the actual test output to save
-        :param use_gzip: whether to compress the file with gzip
-        """
-        _LOG.debug(hprint.to_str("file_name"))
-        hio.to_file(file_name, actual, use_gzip=use_gzip)
-        # Add to git repo.
-        self._git_add_file(file_name)
-
-    # ///////////////////////////////////////////////////////////////////////
-
-    def _check_df_update_outcome(
-        self,
-        file_name: str,
-        actual: "pd.DataFrame",
-    ) -> None:
-        """
-        Update the golden outcome file with actual dataframe output.
-
-        :param file_name: path to the golden outcome file
-        :param actual: the actual dataframe to save
-        """
-        _LOG.debug(hprint.to_str("file_name"))
-        hio.create_enclosing_dir(file_name)
-        actual.to_csv(file_name)
-        pytest_warning(f"Update golden outcome file '{file_name}'", prefix="\n")
-        # Add to git repo.
-        self._git_add_file(file_name)
-
-    def _check_df_compare_outcome(
-        self, file_name: str, actual: "pd.DataFrame", err_threshold: float
-    ) -> Tuple[bool, "pd.DataFrame"]:
-        """
-        Compare actual dataframe with golden outcome from file.
-
-        :param file_name: path to the golden outcome file
-        :param actual: the actual dataframe to compare
-        :param err_threshold: relative error threshold for numerical comparison
-        :return: tuple of (is_equal, expected_dataframe)
-        """
-        _LOG.debug(hprint.to_str("file_name"))
-        _LOG.debug("actual_=\n%s", actual)
-        hdbg.dassert_lte(0, err_threshold)
-        hdbg.dassert_lte(err_threshold, 1.0)
-        # Load the expected df from file.
-        expected = pd.read_csv(file_name, index_col=0)
-        _LOG.debug("expected=\n%s", expected)
-        hdbg.dassert_isinstance(expected, pd.DataFrame)
-        ret = True
-        # Compare columns.
-        if actual.columns.tolist() != expected.columns.tolist():
-            msg = f"Columns are different:\n{str(actual.columns)}\n{str(expected.columns)}"
-            self._to_error(msg)
-            ret = False
-        # Compare the values.
-        _LOG.debug("actual.shape=%s", str(actual.shape))
-        _LOG.debug("expected.shape=%s", str(expected.shape))
-        # From https://numpy.org/doc/stable/reference/generated/numpy.allclose.html
-        # absolute(a - b) <= (atol + rtol * absolute(b))
-        # absolute(a - b) / absolute(b)) <= rtol
-        is_close = np.allclose(
-            actual, expected, rtol=err_threshold, equal_nan=True
-        )
-        if not is_close:
-            _LOG.error("Dataframe values are not close")
-            if actual.shape == expected.shape:
-                close_mask = np.isclose(actual, expected, equal_nan=True)
-                #
-                msg = f"actual=\n{actual}"
-                self._to_error(msg)
-                #
-                msg = f"expected=\n{expected}"
-                self._to_error(msg)
-                #
-                actual_masked = np.where(close_mask, np.nan, actual)
-                msg = f"actual_masked=\n{actual_masked}"
-                self._to_error(msg)
-                #
-                expected_masked = np.where(close_mask, np.nan, expected)
-                msg = f"expected_masked=\n{expected_masked}"
-                self._to_error(msg)
-                #
-                err = np.abs((actual_masked - expected_masked) / expected_masked)
-                msg = f"err=\n{err}"
-                self._to_error(msg)
-                max_err = np.nanmax(np.nanmax(err))
-                msg = "max_err=%.3f" % max_err
-                self._to_error(msg)
-            else:
-                msg = (
-                    "Shapes are different:\n"
-                    f"actual.shape={str(actual.shape)}\nexpected.shape={str(expected.shape)}"
-                )
-                self._to_error(msg)
-            ret = False
-        _LOG.debug("ret=%s", ret)
-        return ret, expected
-
-    # ///////////////////////////////////////////////////////////////////////
-
-    def _get_golden_outcome_file_name(
-        self,
-        tag: str,
-        *,
-        test_class_name: Optional[str] = None,
-        test_method_name: Optional[str] = None,
-    ) -> Tuple[str, str]:
-        """
-        Get the directory and file name for the golden outcome file.
-
-        :param tag: identifier tag for the golden outcome file
-        :param test_class_name: override the current test class name
-        :param test_method_name: override the current test method name
-        :return: tuple of (directory_path, file_path)
-        """
-        # Get the current dir name.
-        use_only_test_class = False
-        use_absolute_path = True
-        dir_name = self._get_current_path(
-            use_only_test_class,
-            test_class_name,
-            test_method_name,
-            use_absolute_path,
-        )
-        _LOG.debug("dir_name=%s", dir_name)
-        hio.create_dir(dir_name, incremental=True)
-        hdbg.dassert_path_exists(dir_name)
-        # Get the expected outcome.
-        file_name = (
-            self.get_output_dir(
-                test_class_name=test_class_name,
-                test_method_name=test_method_name,
-            )
-            + f"/{tag}.txt"
-        )
-        return dir_name, file_name
-
-    def _get_test_name(self) -> str:
-        """
-        Return the full test name as `class.method`.
-        """
-        return f"{self.__class__.__name__}.{self._testMethodName}"
-
-    def _get_current_path(
-        self,
-        use_only_class_name: bool,
-        test_class_name: Optional[str],
-        test_method_name: Optional[str],
-        use_absolute_path: bool,
-    ) -> str:
-        """
-        Return the name of the directory containing the input / output data.
-
-        E.g.,
-        ```
-        ./core/dataflow/test/outcomes/TestContinuousSarimaxModel.test_compare
-        ```
-
-        The parameters have the same meaning as in `get_input_dir()`.
-        """
-        if test_class_name is None:
-            test_class_name = self.__class__.__name__
-        if use_only_class_name:
-            # Use only class name.
-            dir_name = test_class_name
-        else:
-            # Use both class and test method.
-            if test_method_name is None:
-                test_method_name = self._testMethodName
-            dir_name = f"{test_class_name}.{test_method_name}"
-        if use_absolute_path:
-            # E.g., `.../dataflow/test/outcomes/TestContinuousSarimaxModel.test_compare`.
-            dir_name = os.path.join(self._base_dir_name, "outcomes", dir_name)
-        else:
-            # E.g., `outcomes/TestContinuousSarimaxModel.test_compare`.
-            dir_name = os.path.join("outcomes", dir_name)
-        return dir_name
-
-    def _to_error(self, msg: str) -> None:
-        """
-        Append error message to the accumulated error log.
-
-        :param msg: error message to log and accumulate
-        """
-        self._error_msg += msg + "\n"
-        _LOG.error(msg)
 
 
 # #############################################################################

@@ -182,9 +182,18 @@ of bullet lists.
 - Extract concrete examples
 - Be concise: remove narrative prose, keep only key facts and relationships
 
-## Use `*` for top-level topic headers
+## Use : instead of - 
 
-- E.g., `* Markov Chains`
+- When writing bullet points with an explanation, use `:` and not `-` to separate
+  the first part from the comment
+  - **Bad**
+    ```
+    `SKILL.md` - Main skill instruction file
+    ```
+  - **Good**
+    ```
+    `SKILL.md`: Main skill instruction file
+    ```
 
 # Examples
 

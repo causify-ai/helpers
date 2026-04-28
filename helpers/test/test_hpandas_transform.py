@@ -19,9 +19,11 @@ _LOG = logging.getLogger(__name__)
 
 _AWS_PROFILE = "ck"
 
+
 # #############################################################################
 # Test_trim_df1
 # #############################################################################
+
 
 class Test_trim_df1(hunitest.TestCase):
     def get_df(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
@@ -524,9 +526,11 @@ class Test_trim_df1(hunitest.TestCase):
             df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
+
 # #############################################################################
 # Test_trim_df2
 # #############################################################################
+
 
 @pytest.mark.skip(
     "Used for comparing speed of different trimming methods (CmTask1404)."
@@ -872,9 +876,11 @@ class Test_trim_df2(Test_trim_df1):
         # Check.
         self.check_trimmed_df(df, ts_col_name, start_ts, end_ts)
 
+
 # #############################################################################
 # Test_assemble_df_rows
 # #############################################################################
+
 
 class Test_assemble_df_rows(hunitest.TestCase):
     """
@@ -1018,9 +1024,11 @@ class Test_assemble_df_rows(hunitest.TestCase):
         ]
         self.assertListEqual(actual, expected)
 
+
 # #############################################################################
 # Test_str_to_df
 # #############################################################################
+
 
 class Test_str_to_df(hunitest.TestCase):
     """
@@ -1098,9 +1106,11 @@ class Test_str_to_df(hunitest.TestCase):
         # Check that the initial df and the final df are the same.
         hunitest.compare_df(actual, expected)
 
+
 # #############################################################################
 # TestFindGapsInDataframes
 # #############################################################################
+
 
 class TestFindGapsInDataframes(hunitest.TestCase):
     def test_find_gaps_in_dataframes(self) -> None:
@@ -1127,9 +1137,11 @@ class TestFindGapsInDataframes(hunitest.TestCase):
         0              1             A              0"""
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+
 # #############################################################################
 # TestSubsetDf1
 # #############################################################################
+
 
 class TestSubsetDf1(hunitest.TestCase):
     def test1(self) -> None:
@@ -1154,9 +1166,11 @@ class TestSubsetDf1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+
 # #############################################################################
 # TestCheckAndFilterMatchingColumns
 # #############################################################################
+
 
 class TestCheckAndFilterMatchingColumns(hunitest.TestCase):
     """
@@ -1243,9 +1257,11 @@ class TestCheckAndFilterMatchingColumns(hunitest.TestCase):
 
 # #############################################################################
 
+
 # #############################################################################
 # Test_merge_dfs1
 # #############################################################################
+
 
 class Test_merge_dfs1(hunitest.TestCase):
     """
@@ -1458,9 +1474,11 @@ class Test_merge_dfs1(hunitest.TestCase):
                 on=cols_to_merge_on,
             )
 
+
 # #############################################################################
 # Test_apply_index_mode
 # #############################################################################
+
 
 class Test_apply_index_mode(hunitest.TestCase):
     @staticmethod
@@ -1548,9 +1566,11 @@ class Test_apply_index_mode(hunitest.TestCase):
         # Check the error exception message.
         self.check_string(actual)
 
+
 # #############################################################################
 # Test_apply_column_mode
 # #############################################################################
+
 
 class Test_apply_column_mode(hunitest.TestCase):
     """
@@ -1644,9 +1664,11 @@ class Test_apply_column_mode(hunitest.TestCase):
 
 # #############################################################################
 
+
 # #############################################################################
 # Test_get_df_from_iterator
 # #############################################################################
+
 
 class Test_get_df_from_iterator(hunitest.TestCase):
     def test1(self) -> None:
@@ -1684,9 +1706,11 @@ class Test_get_df_from_iterator(hunitest.TestCase):
         """
         self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
 
+
 # #############################################################################
 # TestFilterByTime
 # #############################################################################
+
 
 class TestFilterByTime(hunitest.TestCase):
     @staticmethod

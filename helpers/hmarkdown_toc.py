@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown_toc as hmarkdo
+import helpers.hmarkdown_toc as hmartoc
 """
 
 import logging
@@ -22,6 +22,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # YAML preamble
 # #############################################################################
+
 
 def extract_yaml_frontmatter(lines: List[str]) -> Tuple[List[str], List[str]]:
     """

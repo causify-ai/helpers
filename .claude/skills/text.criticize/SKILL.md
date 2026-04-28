@@ -99,4 +99,7 @@ appropriate.
 
 ## Step 4: Run lint_txt.py
 
-Finally run `lint_txt.py -i file` to reformat it
+- Finally run the command:
+  ```bash
+  > lint_txt.py -i <file>
+  ```

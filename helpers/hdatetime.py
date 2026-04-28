@@ -584,75 +584,6 @@ def str_to_timestamp(
     return timestamp
 
 
-def to_generalized_datetime(
-    dates: Union[pd.Series, pd.Index], date_standard: Optional[str] = None
-) -> Union[pd.Series, pd.Index]:
-    """
-    Convert string dates to datetime.
-
-    This works like `pd.to_datetime`, but supports more date formats and shifts
-    the dates to the end of period instead of the start.
-
-    :param dates: series or index of dates to convert
-    :param date_standard: "standard" or "ISO_8601", `None` defaults to
-        "standard"
-    :return: datetime dates
-    """
-    # This function doesn't deal with mixed formats.
-    hdbg.dassert_isinstance(dates, Iterable)
-    hdbg.dassert(not isinstance(dates, str))
-    # Try converting to datetime using `pd.to_datetime`.
-    format_example_index = -1
-    date_example = dates.tolist()[format_example_index]
-    format_fix = _handle_incorrect_conversions(date_example)
-    if format_fix is not None:
-        format_, date_modification_func = format_fix
-        dates = dates.map(date_modification_func)
-        date_example = dates.tolist()[format_example_index]
-    else:
-        format_ = None
-    datetime_dates = pd.to_datetime(dates, format=format_, errors="coerce")
-    # Shift to end of period if conversion has been successful.
-    # Handle both scalar and array cases for `pd.isna()`.
-    if hasattr(datetime_dates, "all"):
-        # datetime_dates is a Series or array-like
-        all_na = pd.isna(datetime_dates).all()
-        datetime_example = (
-            datetime_dates.tolist()[format_example_index]
-            if hasattr(datetime_dates, "tolist")
-            else datetime_dates
-        )
-    else:
-        # datetime_dates is a scalar
-        all_na = pd.isna(datetime_dates)
-        datetime_example = datetime_dates
-    if not all_na:
-        if (
-            not pd.isna(datetime_example)
-            and hasattr(datetime_example, "strftime")
-            and datetime_example.strftime("%Y-%m-%d") == date_example
-        ):
-            return datetime_dates
-        shift_func = _shift_to_period_end(date_example)
-        if shift_func is not None:
-            if hasattr(datetime_dates, "map"):
-                datetime_dates = datetime_dates.map(shift_func)
-            else:
-                # For scalar case, apply the shift function directly
-                datetime_dates = shift_func(datetime_dates)
-        return datetime_dates
-    # If standard conversion fails, attempt our own conversion.
-    date_standard = date_standard or "standard"
-    format_determination_output = _determine_date_format(
-        date_example, date_standard
-    )
-    if format_determination_output is None:
-        return datetime_dates
-    format_, date_modification_func = format_determination_output
-    dates = dates.map(date_modification_func)
-    return pd.to_datetime(dates, format=format_)
-
-
 def _handle_incorrect_conversions(
     date: str,
 ) -> Optional[Tuple[Optional[str], Callable[[str], str]]]:
@@ -840,6 +771,75 @@ def _determine_date_format(
         _LOG.error("This format is not supported: '%s'", date)
         return None
     return format_, date_modification_func
+
+
+def to_generalized_datetime(
+    dates: Union[pd.Series, pd.Index], date_standard: Optional[str] = None
+) -> Union[pd.Series, pd.Index]:
+    """
+    Convert string dates to datetime.
+
+    This works like `pd.to_datetime`, but supports more date formats and shifts
+    the dates to the end of period instead of the start.
+
+    :param dates: series or index of dates to convert
+    :param date_standard: "standard" or "ISO_8601", `None` defaults to
+        "standard"
+    :return: datetime dates
+    """
+    # This function doesn't deal with mixed formats.
+    hdbg.dassert_isinstance(dates, Iterable)
+    hdbg.dassert(not isinstance(dates, str))
+    # Try converting to datetime using `pd.to_datetime`.
+    format_example_index = -1
+    date_example = dates.tolist()[format_example_index]
+    format_fix = _handle_incorrect_conversions(date_example)
+    if format_fix is not None:
+        format_, date_modification_func = format_fix
+        dates = dates.map(date_modification_func)
+        date_example = dates.tolist()[format_example_index]
+    else:
+        format_ = None
+    datetime_dates = pd.to_datetime(dates, format=format_, errors="coerce")
+    # Shift to end of period if conversion has been successful.
+    # Handle both scalar and array cases for `pd.isna()`.
+    if hasattr(datetime_dates, "all"):
+        # datetime_dates is a Series or array-like
+        all_na = pd.isna(datetime_dates).all()
+        datetime_example = (
+            datetime_dates.tolist()[format_example_index]
+            if hasattr(datetime_dates, "tolist")
+            else datetime_dates
+        )
+    else:
+        # datetime_dates is a scalar
+        all_na = pd.isna(datetime_dates)
+        datetime_example = datetime_dates
+    if not all_na:
+        if (
+            not pd.isna(datetime_example)
+            and hasattr(datetime_example, "strftime")
+            and datetime_example.strftime("%Y-%m-%d") == date_example
+        ):
+            return datetime_dates
+        shift_func = _shift_to_period_end(date_example)
+        if shift_func is not None:
+            if hasattr(datetime_dates, "map"):
+                datetime_dates = datetime_dates.map(shift_func)
+            else:
+                # For scalar case, apply the shift function directly
+                datetime_dates = shift_func(datetime_dates)
+        return datetime_dates
+    # If standard conversion fails, attempt our own conversion.
+    date_standard = date_standard or "standard"
+    format_determination_output = _determine_date_format(
+        date_example, date_standard
+    )
+    if format_determination_output is None:
+        return datetime_dates
+    format_, date_modification_func = format_determination_output
+    dates = dates.map(date_modification_func)
+    return pd.to_datetime(dates, format=format_)
 
 
 # #############################################################################

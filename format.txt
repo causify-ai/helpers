@@ -1,0 +1,17 @@
+name: format
+system: |
+  You are a code assistant.
+
+  Rules:
+  - Do not wrap output in div fence blocks
+  - Output must start with --- and +++
+  - Do not include explanations, comments, or markdown
+
+  Format the given Python files according to the rules below
+    {{rules}}
+
+  Return ONLY a unified diff (git-style patch).
+
+prompt: |
+  Original file:
+  {{input}}

@@ -73,22 +73,19 @@ def _check_above_initialization(
         # initialized on the first line of the file.
         return non_empty_lines_counter, empty_lines_counter, remove_old_frame
     for i in range(line_num - 1, -1, -1):
-        # Find the last empty line before the class initialization.
         if lines[i] == "":
+            # Stop at the last empty line to separate decorators/comments from preceding code.
             break
-        # Keep score of how many non-empty lines there are immediately
-        # before the class initialization; these lines should be skipped
-        # for the class frame insertion.
+        # Count non-empty lines (decorators/comments) that must stay with the class.
         non_empty_lines_counter += 1
     if i == 0:
         # There are no empty lines and no frame between the first line of the
         # file and the class initialization.
         return non_empty_lines_counter, empty_lines_counter, remove_old_frame
     for j in range(i - 1, -1, -1):
-        # Find the last non-empty line before the last empty line; the frame
-        # will be inserted after it.
         empty_lines_counter += 1
         if lines[j] != "":
+            # Found the last non-empty line; the frame will be inserted after the empty lines.
             break
     if (
         j > 1
@@ -114,15 +111,13 @@ def _insert_frame(
     :return: lines to write into the updated file, possibly with the
         added class frame
     """
-    # Check if the current line contains a class initialization.
     current_line = lines[line_num]
     class_init_match = re.match(r"^class\s(\w+)", current_line)
     if not class_init_match:
-        # No class initialization in the current line; skip further checks.
+        # Not a class definition; pass through without modification.
         updated_lines.append(current_line)
         return updated_lines
-    # Inspect the lines above the class initialization to get the number of
-    # lines to skip before inserting a class frame.
+    # Analyze preceding decorators/comments to determine frame insertion point.
     (
         num_non_empty_lines,
         num_empty_lines,
@@ -141,25 +136,22 @@ def _insert_frame(
         else:
             updated_lines = updated_lines[:-frame_size]
     # Ensure exactly 2 empty lines before the frame (unless at file start).
-    # Count trailing empty lines (before any decorators/comments).
     if num_non_empty_lines > 0:
-        # There are decorators/comments, check empty lines before them.
+        # Exclude decorators/comments from trailing empty line count.
         lines_to_check = updated_lines[:-num_non_empty_lines]
     else:
-        # No decorators/comments, check all lines.
         lines_to_check = updated_lines
-    # Count trailing empty lines.
+    # Count trailing empty lines to determine adjustment needed.
     num_trailing_empty = 0
     for i in range(len(lines_to_check) - 1, -1, -1):
         if lines_to_check[i] == "":
             num_trailing_empty += 1
         else:
             break
-    # Check if there's any non-empty content before the class.
+    # Only enforce 2 empty lines if there is actual code before the class.
     has_content_before = len(lines_to_check) > num_trailing_empty
-    # Adjust to have exactly 2 empty lines (only if there's content before).
     if num_trailing_empty < 2 and has_content_before:
-        # Not enough empty lines but has content, add to reach 2.
+        # Add empty lines to reach the required 2 empty lines before frame.
         lines_to_add = 2 - num_trailing_empty
         if num_non_empty_lines > 0:
             updated_lines = (
@@ -170,7 +162,7 @@ def _insert_frame(
         else:
             updated_lines.extend([""] * lines_to_add)
     elif num_trailing_empty > 2:
-        # Too many empty lines, remove excess to keep only 2.
+        # Remove excess empty lines to keep exactly 2 before frame.
         excess = num_trailing_empty - 2
         if num_non_empty_lines > 0:
             updated_lines = (
@@ -201,12 +193,63 @@ def _insert_frame(
     return updated_lines
 
 
+def _remove_extra_bars(lines: List[str]) -> List[str]:
+    """
+    Remove extra/redundant comment bars that appear before complete frames.
+
+    Detects complete frames (bar -> class name -> bar) and removes
+    preceding bars and empty lines before the frame, but only if they are
+    not preceded by actual code (to preserve decorative bars between sections).
+
+    :param lines: the lines of the file
+    :return: lines with extra bars removed
+    """
+    frame_border = f"# {'#' * (MAX_LINE_LENGTH - 2)}"
+    result = []
+    i = 0
+    while i < len(lines):
+        if lines[i] == frame_border:
+            # Check if this bar starts a complete frame (bar -> name -> bar).
+            if (
+                i + 1 < len(lines)
+                and re.match(r"#\s\w+", lines[i + 1])
+                and i + 2 < len(lines)
+                and lines[i + 2] == frame_border
+            ):
+                # Collect any preceding bars and empty lines.
+                trailing_items = []
+                for j in range(len(result) - 1, -1, -1):
+                    if result[j] == frame_border or result[j] == "":
+                        trailing_items.append(result[j])
+                    else:
+                        break
+                # Remove all trailing bars/empty lines before this frame.
+                if any(item == frame_border for item in trailing_items):
+                    for _ in range(len(trailing_items)):
+                        result.pop()
+                    # Restore 2 empty lines if there is content before.
+                    if result:
+                        result.extend(["", ""])
+                result.append(lines[i])
+                result.append(lines[i + 1])
+                result.append(lines[i + 2])
+                i += 3
+            else:
+                result.append(lines[i])
+                i += 1
+        else:
+            result.append(lines[i])
+            i += 1
+    return result
+
+
 def update_class_frames(file_content: str) -> List[str]:
     """
     Update frames located above class initializations.
 
     - Old frames located above classes are removed
     - Frames with class names are added before the classes are initialized
+    - Extra/redundant bars before frames are removed
 
     :param file_content: the contents of the Python file
     :return: the lines of the updated file
@@ -215,11 +258,15 @@ def update_class_frames(file_content: str) -> List[str]:
     updated_lines: List[str] = []
     for line_num in range(len(lines)):
         updated_lines = _insert_frame(lines, line_num, updated_lines)
+    # Remove any extra bars that appear before complete frames.
+    updated_lines = _remove_extra_bars(updated_lines)
     return updated_lines
+
 
 # #############################################################################
 # _ClassFramer
 # #############################################################################
+
 
 class _ClassFramer(liaction.Action):
     def check_if_possible(self) -> bool:

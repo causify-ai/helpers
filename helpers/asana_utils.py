@@ -26,7 +26,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class EnhancedAsanaAnalytics:
-
     def __init__(self, access_token: Optional[str] = None) -> None:
         # Get token from parameter or environment variable.
         token = access_token or os.getenv("ASANA_ACCESS_TOKEN")
@@ -417,7 +416,9 @@ class EnhancedAsanaAnalytics:
         # Calculate days since last activity.
         days_since_activity = None
         if last_activity_at:
-            days_since_activity = (now - last_activity_at).total_seconds() / 86400
+            days_since_activity = (
+                now - last_activity_at
+            ).total_seconds() / 86400
 
         # Calculate activity rates (avoid division by zero).
         if task_age_days > 0:
@@ -687,10 +688,14 @@ class EnhancedAsanaAnalytics:
                             "num_comments": task.get("num_comments", 0),
                             "num_activities": task.get("num_activities", 0),
                             "total_stories": task.get("total_stories", 0),
-                            "unique_commenters": task.get("unique_commenters", 0),
+                            "unique_commenters": task.get(
+                                "unique_commenters", 0
+                            ),
                             "last_activity_at": task.get("last_activity_at"),
                             "task_age_days": task.get("task_age_days", 0),
-                            "comments_per_day": task.get("comments_per_day", 0.0),
+                            "comments_per_day": task.get(
+                                "comments_per_day", 0.0
+                            ),
                             "activities_per_day": task.get(
                                 "activities_per_day", 0.0
                             ),
@@ -800,7 +805,9 @@ class EnhancedAsanaAnalytics:
                     "estimated_hours"
                 ].sum()
             if "avg_estimated_hours" in metrics:
-                stats["avg_estimated_hours"] = team_data["estimated_hours"].mean()
+                stats["avg_estimated_hours"] = team_data[
+                    "estimated_hours"
+                ].mean()
             if "total_actual_hours" in metrics:
                 stats["total_actual_hours"] = team_data["actual_hours"].sum()
             if "overdue_tasks" in metrics:
@@ -873,7 +880,9 @@ class EnhancedAsanaAnalytics:
                     "estimated_hours"
                 ].sum()
             if "avg_estimated_hours" in metrics:
-                stats["avg_estimated_hours"] = user_data["estimated_hours"].mean()
+                stats["avg_estimated_hours"] = user_data[
+                    "estimated_hours"
+                ].mean()
             if "overdue_tasks" in metrics:
                 stats["overdue_tasks"] = user_data["is_overdue"].sum()
             if "unique_projects" in metrics:

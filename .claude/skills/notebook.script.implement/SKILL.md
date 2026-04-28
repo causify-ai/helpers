@@ -3,12 +3,12 @@ description: Implement Jupyter notebook from a script description
 ---
 
 - Given the passed description for a Jupyter notebook in the format described in
-  @.claude/skills/notebook.script.create/SKILL.md implement the cells
+  `@.claude/skills/notebook.script.create/SKILL.md` implement the cells
   requested by the user
 
 # Conventions
 
-- Always use the conventions in @.claude/skills/notebook.format_rules/SKILL.md
+- Always use the conventions in `@.claude/skills/notebook.format/SKILL.md`
 
 # Save Code to the `*_utils.py`
 
@@ -72,3 +72,7 @@ description: Implement Jupyter notebook from a script description
   fit in which case it must change so that the xlim or ylim doubles or it's
   reduced in half, so that the xlim / ylim can be stable when changing the
   widget controls
+
+# Important
+
+- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`

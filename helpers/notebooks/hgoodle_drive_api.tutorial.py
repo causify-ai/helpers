@@ -1,3 +1,17 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.0
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
+# ---
+
 # %% [markdown]
 # CONTENTS:
 # - [hgoogle_file_api.py](#hgoogle_file_api.py)
@@ -13,9 +27,9 @@
 # # hgoogle_file_api.py
 
 # %%
-#!sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"
-# !sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade pip install oauth2client)"
-#!sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade gspread)"
+# #!sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"
+# # !sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade pip install oauth2client)"
+# #!sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade gspread)"
 
 # %%
 import importlib
@@ -90,6 +104,4 @@ nice_data.shape
 # ## Write this nice data
 
 # %%
-hgodrapi.to_gsheet(
-    google_creds, nice_data, url, tab_name="testing_tab"
-)
+hgodrapi.to_gsheet(google_creds, nice_data, url, tab_name="testing_tab")

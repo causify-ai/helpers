@@ -595,10 +595,10 @@ def code_transform_remove_redundancy() -> _PROMPT_OUT:
 
 def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     """
-    Apply the style to the code using template code in `docs/ai_templates/code_template.py`.
+    Apply the style to the code using template code in `.claude/templates/code_template.py`.
     """
     system = _CODING_CONTEXT
-    file_name = "docs/ai_templates/code_template.py"
+    file_name = ".claude/templates/code_template.py"
     file_name = os.path.join(hgit.find_helpers_root(), file_name)
     file_content = hio.from_file(file_name)
     system += rf"""

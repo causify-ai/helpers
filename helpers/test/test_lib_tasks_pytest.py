@@ -699,6 +699,28 @@ class Test_pytest_repro1(hunitest.TestCase):
         expected = "\n".join(["pytest " + x for x in expected])
         self.assert_equal(actual, expected)
 
+    # ////////////////////////////////////////////////////////////////////////////
+
+    def _build_pytest_filehelper(self, txt: str) -> str:
+        txt = hprint.dedent(txt)
+        file_name = os.path.join(self.get_scratch_space(), "cache/lastfailed")
+        hio.to_file(file_name, txt)
+        return file_name
+
+    def _build_pytest_file1(self) -> str:
+        txt = """
+        {
+            "dev_scripts/testing/test/test_run_tests.py": true,
+            "dev_scripts/testing/test/test_run_tests2.py": true,
+            "helpers/test/test_printing.py::Test_dedent1::test2": true,
+            "documentation/scripts/test/test_all.py": true,
+            "documentation/scripts/test/test_render_md.py": true,
+            "helpers/test/helpers/test/test_list.py::Test_list_1": true,
+            "helpers/test/test_cache.py::TestAmpTask1407": true
+        }
+        """
+        return self._build_pytest_filehelper(txt)
+
     def test_tests1(self) -> None:
         file_name = self._build_pytest_file1()
         mode = "tests"
@@ -736,6 +758,63 @@ class Test_pytest_repro1(hunitest.TestCase):
             "helpers/test/test_printing.py::Test_dedent1",
         ]
         self.helper(file_name, mode, expected)
+
+    def _build_pytest_file2(self) -> str:
+        # pylint: disable=line-too-long
+        txt = """
+        {
+            "core/dataflow/nodes/test/test_sarimax_models.py::TestContinuousSarimaxModel::test_compare_to_linear_regression1": true,
+            "core/dataflow/nodes/test/test_sarimax_models.py::TestContinuousSarimaxModel::test_compare_to_linear_regression2": true,
+            "core/dataflow/nodes/test/test_sarimax_models.py::TestContinuousSarimaxModel::test_fit1": true,
+            "core/dataflow/nodes/test/test_sarimax_models.py::TestContinuousSarimaxModel::test_fit_no_x1": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestMultiindexVolatilityModel::test1": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestMultiindexVolatilityModel::test2": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestMultiindexVolatilityModel::test3": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestSingleColumnVolatilityModel::test1": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestSingleColumnVolatilityModel::test2": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestSingleColumnVolatilityModel::test3": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test1": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test2": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test3": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test4": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test5": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test01": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test02": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test03": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test04": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test05": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test06": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test07": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test09": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test10": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test11": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test12": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test13": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModulator::test_col_mode1": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModulator::test_col_mode2": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModulator::test_demodulate1": true,
+            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModulator::test_modulate1": true,
+            "core/dataflow/test/test_builders.py::TestArmaReturnsBuilder::test1": true,
+            "core/dataflow/test/test_runners.py::TestIncrementalDagRunner::test1": true,
+            "core/dataflow_model/test/test_model_evaluator.py::TestModelEvaluator::test_dump_json1": true,
+            "core/dataflow_model/test/test_model_evaluator.py::TestModelEvaluator::test_load_json1": true,
+            "core/dataflow_model/test/test_run_experiment.py::TestRunExperiment1::test1": true,
+            "core/dataflow_model/test/test_run_experiment.py::TestRunExperiment1::test2": true,
+            "core/dataflow_model/test/test_run_experiment.py::TestRunExperiment1::test3": true,
+            "core/test/test_config.py::Test_subtract_config1::test_test1": true,
+            "core/test/test_config.py::Test_subtract_config1::test_test2": true,
+            "core/test/test_dataframe_modeler.py::TestDataFrameModeler::test_dump_json1": true,
+            "core/test/test_dataframe_modeler.py::TestDataFrameModeler::test_load_json1": true,
+            "core/test/test_dataframe_modeler.py::TestDataFrameModeler::test_load_json2": true,
+            "dev_scripts/test/test_run_notebook.py::TestRunNotebook1::test1": true,
+            "dev_scripts/test/test_run_notebook.py::TestRunNotebook1::test2": true,
+            "dev_scripts/test/test_run_notebook.py::TestRunNotebook1::test3": true,
+            "helpers/test/test_lib_tasks.py::Test_find_check_string_output1::test2": true,
+            "helpers/test/test_printing.py::Test_dedent1::test2": true
+        }
+        """
+        # pylint: enable=line-too-long
+        return self._build_pytest_filehelper(txt)
 
     def test_tests2(self) -> None:
         file_name = self._build_pytest_file2()
@@ -837,85 +916,6 @@ class Test_pytest_repro1(hunitest.TestCase):
         ]
         # pylint: enable=line-too-long
         self.helper(file_name, mode, expected)
-
-    # ////////////////////////////////////////////////////////////////////////////
-
-    def _build_pytest_filehelper(self, txt: str) -> str:
-        txt = hprint.dedent(txt)
-        file_name = os.path.join(self.get_scratch_space(), "cache/lastfailed")
-        hio.to_file(file_name, txt)
-        return file_name
-
-    def _build_pytest_file1(self) -> str:
-        txt = """
-        {
-            "dev_scripts/testing/test/test_run_tests.py": true,
-            "dev_scripts/testing/test/test_run_tests2.py": true,
-            "helpers/test/test_printing.py::Test_dedent1::test2": true,
-            "documentation/scripts/test/test_all.py": true,
-            "documentation/scripts/test/test_render_md.py": true,
-            "helpers/test/helpers/test/test_list.py::Test_list_1": true,
-            "helpers/test/test_cache.py::TestAmpTask1407": true
-        }
-        """
-        return self._build_pytest_filehelper(txt)
-
-    def _build_pytest_file2(self) -> str:
-        # pylint: disable=line-too-long
-        txt = """
-        {
-            "core/dataflow/nodes/test/test_sarimax_models.py::TestContinuousSarimaxModel::test_compare_to_linear_regression1": true,
-            "core/dataflow/nodes/test/test_sarimax_models.py::TestContinuousSarimaxModel::test_compare_to_linear_regression2": true,
-            "core/dataflow/nodes/test/test_sarimax_models.py::TestContinuousSarimaxModel::test_fit1": true,
-            "core/dataflow/nodes/test/test_sarimax_models.py::TestContinuousSarimaxModel::test_fit_no_x1": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestMultiindexVolatilityModel::test1": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestMultiindexVolatilityModel::test2": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestMultiindexVolatilityModel::test3": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestSingleColumnVolatilityModel::test1": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestSingleColumnVolatilityModel::test2": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestSingleColumnVolatilityModel::test3": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test1": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test2": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test3": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test4": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestSmaModel::test5": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test01": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test02": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test03": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test04": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test05": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test06": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test07": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test09": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test10": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test11": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test12": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModel::test13": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModulator::test_col_mode1": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModulator::test_col_mode2": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModulator::test_demodulate1": true,
-            "core/dataflow/nodes/test/test_volatility_models.py::TestVolatilityModulator::test_modulate1": true,
-            "core/dataflow/test/test_builders.py::TestArmaReturnsBuilder::test1": true,
-            "core/dataflow/test/test_runners.py::TestIncrementalDagRunner::test1": true,
-            "core/dataflow_model/test/test_model_evaluator.py::TestModelEvaluator::test_dump_json1": true,
-            "core/dataflow_model/test/test_model_evaluator.py::TestModelEvaluator::test_load_json1": true,
-            "core/dataflow_model/test/test_run_experiment.py::TestRunExperiment1::test1": true,
-            "core/dataflow_model/test/test_run_experiment.py::TestRunExperiment1::test2": true,
-            "core/dataflow_model/test/test_run_experiment.py::TestRunExperiment1::test3": true,
-            "core/test/test_config.py::Test_subtract_config1::test_test1": true,
-            "core/test/test_config.py::Test_subtract_config1::test_test2": true,
-            "core/test/test_dataframe_modeler.py::TestDataFrameModeler::test_dump_json1": true,
-            "core/test/test_dataframe_modeler.py::TestDataFrameModeler::test_load_json1": true,
-            "core/test/test_dataframe_modeler.py::TestDataFrameModeler::test_load_json2": true,
-            "dev_scripts/test/test_run_notebook.py::TestRunNotebook1::test1": true,
-            "dev_scripts/test/test_run_notebook.py::TestRunNotebook1::test2": true,
-            "dev_scripts/test/test_run_notebook.py::TestRunNotebook1::test3": true,
-            "helpers/test/test_lib_tasks.py::Test_find_check_string_output1::test2": true,
-            "helpers/test/test_printing.py::Test_dedent1::test2": true
-        }
-        """
-        # pylint: enable=line-too-long
-        return self._build_pytest_filehelper(txt)
 
 
 # #############################################################################
