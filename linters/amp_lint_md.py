@@ -12,6 +12,7 @@ import linters.amp_lint_md as lamlimd
 import argparse
 import logging
 import os
+import re
 from typing import List
 
 import helpers.hdbg as hdbg
@@ -33,6 +34,26 @@ def _check_readme_is_capitalized(file_name: str) -> str:
     if basename.lower() == "readme.md" and basename != "README.md":
         msg = f"{file_name}:1: All README files should be named README.md"
     return msg
+
+
+def _check_repo_names_are_backticked(file_name: str) -> List[str]:
+    """
+    Check that repo names like `//cmamp` are wrapped in backticks.
+    """
+    messages: List[str] = []
+    repo_name_re = re.compile(r"(?<!:)//[A-Za-z0-9][A-Za-z0-9_.-]*")
+    with open(file_name, "r", encoding="utf-8") as file:
+        for line_num, line in enumerate(file, start=1):
+            # Inline-code spans are the odd chunks after splitting on backticks.
+            for idx, chunk in enumerate(line.split("`")):
+                if idx % 2 == 1:
+                    continue
+                for match in repo_name_re.finditer(chunk):
+                    messages.append(
+                        f"{file_name}:{line_num}: Repo name "
+                        f"'{match.group(0)}' should be wrapped in backticks"
+                    )
+    return messages
 
 
 # #############################################################################
@@ -74,6 +95,8 @@ class _LintMarkdown(liaction.Action):
         msg = _check_readme_is_capitalized(file_name)
         if msg:
             output.append(msg)
+        # Check repo names.
+        output.extend(_check_repo_names_are_backticked(file_name))
         # Remove cruft.
         output = [
             line
