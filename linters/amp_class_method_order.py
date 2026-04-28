@@ -16,7 +16,6 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -147,7 +146,7 @@ class _ClassMethodOrder(liaction.Action):
         # Write result.
         txt_old = txt.splitlines()
         txt_new = txt_new.splitlines()
-        liutils.write_file_back(file_name, txt_old, txt_new)
+        hio.write_file_back(file_name, txt_old, txt_new)
         return []
 
 

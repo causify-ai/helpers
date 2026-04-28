@@ -16,7 +16,6 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -281,7 +280,7 @@ class _ClassFramer(liaction.Action):
         file_content = hio.from_file(file_name)
         updated_lines = update_class_frames(file_content)
         # Save the updated file with the added class frames.
-        liutils.write_file_back(
+        hio.write_file_back(
             file_name, file_content.split("\n"), updated_lines
         )
         return []

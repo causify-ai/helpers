@@ -40,13 +40,6 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
-# TODO(ai_gp): Move close to the use if there is a single use of these libs.
-import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
-import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
-import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
-import dev_scripts_helpers.dockerize.lib_png as dshdlipn
-import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
-
 _LOG = logging.getLogger(__name__)
 
 # Number of AI-generated images to create per prompt.
@@ -218,17 +211,17 @@ def _render_image_code(
         # \begin{document}
         start_tag = hprint.dedent(
             r"""
-        \documentclass{standalone}
-        \usepackage{tikz}
-        \usepackage{amsmath}
-        \usepackage{pgfplots}
-        \usepackage{mathrsfs} % For script font
-        \usepackage{xcolor}
-        \usetikzlibrary{positioning}
-        \pgfplotsset{compat=newest}
-        \begin{document}
-        \begin{tikzpicture}
-        """
+            \documentclass{standalone}
+            \usepackage{tikz}
+            \usepackage{amsmath}
+            \usepackage{pgfplots}
+            \usepackage{mathrsfs} % For script font
+            \usepackage{xcolor}
+            \usetikzlibrary{positioning}
+            \pgfplotsset{compat=newest}
+            \begin{document}
+            \begin{tikzpicture}
+            """
         )
         end_tag = hprint.dedent(
             r"""
@@ -240,13 +233,13 @@ def _render_image_code(
     elif image_code_type == "latex":
         start_tag = hprint.dedent(
             r"""
-        \documentclass[border=1pt]{standalone}  % No page, tight margins
-        \usepackage{tabularx}
-        \usepackage{enumitem}
-        \usepackage{booktabs}  % Optional: For nicer tables
-        %\begin{document}
+            \documentclass[border=1pt]{standalone}  % No page, tight margins
+            \usepackage{tabularx}
+            \usepackage{enumitem}
+            \usepackage{booktabs}  % Optional: For nicer tables
+            %\begin{document}
 
-        """
+            """
         )
         end_tag = hprint.dedent(
             r"""
@@ -309,6 +302,7 @@ def _render_image_code(
             os.remove(in_code_file_path)
             return out_img_file_paths
         elif image_code_type == "plantuml":
+            import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
             dshdlipl.run_dockerized_plantuml(
                 in_code_file_path,
                 abs_img_dir_path,
@@ -317,6 +311,7 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
+            import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
             dshdlime.run_dockerized_mermaid(
                 in_code_file_path,
                 abs_img_file_path,
@@ -325,6 +320,7 @@ def _render_image_code(
             )
         elif image_code_type in ("tikz", "latex", "raw_latex"):
             cmd_opts: List[str] = ["-density 600", "-quality 95"]
+            import dev_scripts_helpers.dockerize.lib_png as dshdlipn
             dshdlipn.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
@@ -334,6 +330,7 @@ def _render_image_code(
             )
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
+            import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
             dshdligr.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
@@ -342,6 +339,7 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type == "svg":
+            import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
             dshdlisv.run_dockerized_svg_with_rsvg_convert(
                 in_code_file_path,
                 abs_img_file_path,

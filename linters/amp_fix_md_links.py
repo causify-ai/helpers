@@ -19,7 +19,6 @@ import helpers.hparser as hparser
 import helpers.hstring as hstring
 import helpers.repo_config_utils as hrecouti
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -393,7 +392,7 @@ class _LinkFixer(liaction.Action):
         # Fix links in the file.
         lines, updated_lines, warnings = fix_links(file_name)
         # Save the updated file with the fixed links.
-        liutils.write_file_back(file_name, lines, updated_lines)
+        hio.write_file_back(file_name, lines, updated_lines)
         return warnings
 
 

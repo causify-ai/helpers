@@ -212,52 +212,6 @@ def get_python_files_to_lint(dir_name: str) -> List[str]:
     return not_test_files
 
 
-# TODO(ai_gp): should this be moved to helpers/hio.py?
-def write_file_back(
-    file_name: str, txt_old: List[str], txt_new: List[str]
-) -> None:
-    """
-    Write new text to file only if it differs from the old text.
-
-    :param file_name: Path to the file to write to
-    :param txt_old: Original text as a list of strings
-    :param txt_new: New text as a list of strings
-    """
-    # Process old text.
-    hdbg.dassert_list_of_strings(txt_old)
-    txt_as_str = "\n".join(txt_old)
-    # Process new text.
-    hdbg.dassert_list_of_strings(txt_new)
-    txt_new_as_str = "\n".join(txt_new)
-    # Write file back, if needed.
-    if txt_as_str != txt_new_as_str:
-        hio.to_file(file_name, txt_new_as_str)
-
-
-# TODO(ai_gp): should this be moved to helpers/hsystem.py?
-def tee(
-    cmd: str, executable: str, abort_on_error: bool
-) -> Tuple[int, List[str]]:
-    """
-    Execute command and return its exit code and output lines.
-
-    Captures output, removes empty lines, and optionally aborts on error.
-
-    :param cmd: Command string to execute
-    :param executable: Executable to use for running the command
-    :param abort_on_error: Whether to abort execution if command fails
-    :return: Tuple of (exit code, list of non-empty output lines)
-    """
-    _LOG.debug("cmd=%s executable=%s", cmd, executable)
-    rc, output = hsystem.system_to_string(cmd, abort_on_error=abort_on_error)
-    hdbg.dassert_isinstance(output, str)
-    output1 = output.split("\n")
-    _LOG.debug("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
-    #
-    output2 = hprint.remove_empty_lines(output1)
-    _LOG.debug("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
-    hdbg.dassert_list_of_strings(output2)
-    return rc, output2
 
 
 # TODO(gp): Some of these functions can be centralized in helpers.

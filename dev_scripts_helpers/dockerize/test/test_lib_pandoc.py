@@ -260,12 +260,11 @@ class Test_build_pandoc_container1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_Pandoc_Cmd_Conversion
+# Test_convert_pandoc_cmd_to_arguments1
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_convert_pandoc_cmd_to_arguments1
-class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
+class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test `convert_pandoc_cmd_to_arguments` to parse a pandoc command string

@@ -486,17 +486,25 @@ def _main(args: argparse.Namespace) -> int:
     )
     # Report file types being selected.
     selected_types = []
+    unprocessed_types = set(file_extensions)
     if "py" in file_extensions:
         selected_types.append("python")
+        unprocessed_types.discard("py")
     if "ipynb" in file_extensions:
         selected_types.append("jupyter")
+        unprocessed_types.discard("ipynb")
     if "md" in file_extensions:
         selected_types.append("markdown")
+        unprocessed_types.discard("md")
     if "txt" in file_extensions:
         selected_types.append("text")
-    # TODO(ai_gp): Make sure that there are no file types not processed
-    # by making a copy of file_extensions to a set, removing elements
-    # from a set and then asserting that the file_extensions is empty
+        unprocessed_types.discard("txt")
+    # Ensure all requested file types are processed.
+    hdbg.dassert_eq(
+        len(unprocessed_types),
+        0,
+        msg=f"Unprocessed file types: {unprocessed_types}",
+    )
     print(hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
     all_files = python_files + jupyter_files + markdown_files
     breakdown = f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, Markdown: {len(markdown_files)}"

@@ -1007,7 +1007,7 @@ def safe_rm_file(dir_path: str) -> None:
     _LOG.debug("Successfully removed directory: %s", dir_path)
 
 
-# TODO(ai): Add unit tests.
+# TODO(ai_gp): Add unit tests.
 def is_subdir(dir1: str, dir2: str) -> bool:
     """
     Check if `dir1` is a subdirectory of `dir2`.
@@ -1023,3 +1023,24 @@ def is_subdir(dir1: str, dir2: str) -> bool:
     common = os.path.commonpath([abs_dir1, abs_dir2])
     # It's a subdir if they share the same common path as the parent.
     return common == abs_dir2
+
+
+def write_file_back(
+    file_name: str, txt_old: list[str], txt_new: list[str]
+) -> None:
+    """
+    Write new text to file only if it differs from the old text.
+
+    :param file_name: Path to the file to write to
+    :param txt_old: Original text as a list of strings
+    :param txt_new: New text as a list of strings
+    """
+    # Process old text.
+    hdbg.dassert_list_of_strings(txt_old)
+    txt_as_str = "\n".join(txt_old)
+    # Process new text.
+    hdbg.dassert_list_of_strings(txt_new)
+    txt_new_as_str = "\n".join(txt_new)
+    # Write file back, if needed.
+    if txt_as_str != txt_new_as_str:
+        to_file(file_name, txt_new_as_str)

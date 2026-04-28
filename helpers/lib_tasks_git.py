@@ -405,8 +405,7 @@ def git_files(  # type: ignore
     modified=False,
     branch=False,
     last_commit=False,
-    # TODO(ai_gp): file_types="" means every file and use this as default.
-    file_types="py,ipynb,md",
+    file_types="",
     pbcopy=False,
     only_print_files=False,
 ):
@@ -442,9 +441,13 @@ def git_files(  # type: ignore
         remove_dirs,
     )
     # Parse file_types into a list of extensions.
-    file_extensions = [ext.strip() for ext in file_types.split(",")]
-    # Filter by file type.
-    files_as_list = _filter_git_files_by_type(files_as_list, file_extensions)
+    if file_types:
+        file_extensions = [ext.strip() for ext in file_types.split(",")]
+        # Filter by file type.
+        files_as_list = _filter_git_files_by_type(files_as_list, file_extensions)
+    else:
+        # file_types="" means every file, so don't filter.
+        pass
     print("\n".join(sorted(files_as_list)))
     # Optionally copy the file list to clipboard for easy pasting.
     if not only_print_files:

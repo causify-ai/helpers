@@ -26,6 +26,7 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction
 import linters.utils as liutils
+import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -243,7 +244,7 @@ class _FixComment(liaction.Action):
         lines = hio.from_file(file_name).split("\n")
         updated_lines = _reflow_comments_in_lines(lines)
         updated_lines = _fix_comment_style(updated_lines)
-        liutils.write_file_back(file_name, lines, updated_lines)
+        hio.write_file_back(file_name, lines, updated_lines)
         return []
 
 

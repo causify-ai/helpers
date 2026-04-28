@@ -15,7 +15,6 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hstring as hstring
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -69,7 +68,7 @@ class _FormatSeparatingLine(liaction.Action):
                 updated_lines.append(_format_separating_line(line))
             else:
                 updated_lines.append(line)
-        liutils.write_file_back(file_name, lines, updated_lines)
+        hio.write_file_back(file_name, lines, updated_lines)
         return []
 
 

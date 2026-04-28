@@ -24,19 +24,6 @@ _MERMAID_CLI_NPM_VERSION = "11.12.0"
 
 _MERMAID_CONTAINER_PREFIX = "tmp.mermaid"
 
-# TODO(ai_gp): Inline this.
-_puppeteer_cache_path = r"""
-const {join} = require('path');
-
-/**
- * @type {import("puppeteer").Configuration}
- */
-module.exports = {
-  // Changes the cache location for Puppeteer.
-  cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
-};
-"""
-
 _DOCKERFILE = rf"""
 # Use a Node.js image.
 FROM node:18-slim
@@ -50,7 +37,15 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN cat > .puppeteerrc.cjs <<EOL
-{_puppeteer_cache_path}
+const {{join}} = require('path');
+
+/**
+ * @type {{import("puppeteer").Configuration}}
+ */
+module.exports = {{
+  // Changes the cache location for Puppeteer.
+  cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
+}};
 EOL
 
 RUN npx puppeteer browsers install chrome-headless-shell
