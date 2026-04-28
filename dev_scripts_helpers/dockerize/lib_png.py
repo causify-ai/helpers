@@ -45,7 +45,7 @@ def run_dockerized_imagemagick(
     # Set Bash as the default shell.
     SHELL ["/bin/bash", "-c"]
 
-    RUN apk add --no-cache imagemagick ghostscript
+    RUN apk add --no-cache imagemagick ghostscript librsvg
 
     # Set working directory
     WORKDIR /workspace

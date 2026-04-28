@@ -105,6 +105,8 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         input_file_path = os.path.join(input_dir, "input.md")
         output_file_path = os.path.join(output_dir, "output.md")
         hio.create_dir(output_dir, incremental=True)
+        hio.create_dir(input_dir, incremental=True)
+        hio.to_file(input_file_path, "# Test\n\nHello world")
         cmd_opts = [
             "--parser",
             "markdown",
