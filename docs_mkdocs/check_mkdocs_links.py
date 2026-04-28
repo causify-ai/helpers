@@ -39,7 +39,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# HTML link extractor
+# _LinkExtractor
 # #############################################################################
 
 
@@ -111,7 +111,8 @@ def crawl(
     Crawl the site starting from base_url and return broken links.
 
     :param base_url: root URL of the running MkDocs server
-    :param check_external: if True, also check external links (HEAD request)
+    :param check_external: if True, also check external links (HEAD
+        request)
     :param timeout: per-request timeout in seconds
     :return: list of dicts with keys: page, link, status
     """
@@ -146,7 +147,9 @@ def crawl(
         if is_internal and body:
             for href in _extract_links(body):
                 # Skip anchors, mailto, javascript, etc.
-                if not href or href.startswith(("#", "mailto:", "javascript:", "data:")):
+                if not href or href.startswith(
+                    ("#", "mailto:", "javascript:", "data:")
+                ):
                     continue
                 resolved = urllib.parse.urljoin(url, href)
                 resolved = urllib.parse.urldefrag(resolved)[0]

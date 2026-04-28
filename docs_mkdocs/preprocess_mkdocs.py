@@ -109,9 +109,7 @@ def _copy_directory(input_dir: str, output_dir: str, is_blog: bool) -> None:
     if is_blog:
         cmd = f"rsync -aL --ignore-errors {input_dir}/. {output_dir}/ || true && chmod -R u+w {output_dir}"
     else:
-        cmd = (
-            f"rsync -aL --ignore-errors {input_dir}/. {output_dir}/docs/ || true && chmod -R u+w {output_dir}"
-        )
+        cmd = f"rsync -aL --ignore-errors {input_dir}/. {output_dir}/docs/ || true && chmod -R u+w {output_dir}"
     hsystem.system(cmd)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
 

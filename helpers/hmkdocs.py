@@ -139,7 +139,9 @@ def rewrite_absolute_doc_links(txt: str) -> str:
         path = m.group(1)
         # Strip /docs/ prefix and convert .md → .html.
         path = re.sub(r"^/docs/", "/", path)
-        path = re.sub(r"\.md(#[^)]*)?$", lambda h: ".html" + (h.group(1) or ""), path)
+        path = re.sub(
+            r"\.md(#[^)]*)?$", lambda h: ".html" + (h.group(1) or ""), path
+        )
         return f"({path})"
 
     # Match markdown links: ([text](/docs/...md)) including optional anchors.
