@@ -28,7 +28,7 @@ _CONTAINER_PREFIX = "tmp.graphviz"
 _DOCKERFILE = rf"""
 FROM alpine:{_ALPINE_VERSION}
 
-RUN apk add --no-cache graphviz
+RUN apk add --no-cache bash graphviz
 """
 
 

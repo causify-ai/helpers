@@ -161,6 +161,7 @@ def get_files_to_check(
     return file_paths
 
 
+# TODO(gp): Obsolete?
 def get_python_files_to_lint(dir_name: str) -> List[str]:
     """
     Get Python files for linter excluding jupytext and test Python files.

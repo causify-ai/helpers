@@ -32,7 +32,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Default filters — auto-detects extensions with defaults.
+        Default filters — py,ipynb extensions.
         """
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md", "qux.txt"])
         file_paths = [
@@ -43,9 +43,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
         ]
         py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
-            keep_python_files=True,
-            keep_jupyter_files=True,
-            keep_markdown_files=False,
+            ["py", "ipynb"],
             skip_dassert_exists=True,
         )
         self.assertEqual(py_files, [paths["foo.py"]])
@@ -54,7 +52,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        py=True filter — only .py files included.
+        py extension only — only .py files included.
         """
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
@@ -64,9 +62,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
         ]
         py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
-            keep_python_files=True,
-            keep_jupyter_files=False,
-            keep_markdown_files=False,
+            ["py"],
             skip_dassert_exists=True,
         )
         self.assertEqual(py_files, [paths["foo.py"]])
@@ -75,7 +71,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        ipynb=True filter — only .ipynb files included.
+        ipynb extension only — only .ipynb files included.
         """
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
@@ -85,9 +81,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
         ]
         py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
-            keep_python_files=False,
-            keep_jupyter_files=True,
-            keep_markdown_files=False,
+            ["ipynb"],
             skip_dassert_exists=True,
         )
         self.assertEqual(py_files, [])
@@ -96,7 +90,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        md=True filter — only .md files included.
+        md extension only — only .md files included.
         """
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
@@ -106,9 +100,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
         ]
         py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
-            keep_python_files=False,
-            keep_jupyter_files=False,
-            keep_markdown_files=True,
+            ["md"],
             skip_dassert_exists=True,
         )
         self.assertEqual(py_files, [])
@@ -129,11 +121,10 @@ class Test_filter_files_by_type(hunitest.TestCase):
         hio.to_file(paired_ipynb, "")
         hio.to_file(notebook_ipynb, "")
         file_paths = [standalone_py, paired_py, notebook_ipynb]
+        file_types = ["py", "ipynb"]
         py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
-            keep_python_files=True,
-            keep_jupyter_files=True,
-            keep_markdown_files=False,
+            file_types,
             skip_dassert_exists=True,
         )
         self.assertEqual(py_files, [standalone_py])

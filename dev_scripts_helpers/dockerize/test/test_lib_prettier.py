@@ -83,7 +83,7 @@ class Test_build_prettier_container1(hunitest.TestCase):
         docker_executable = hdocker.get_docker_executable(use_sudo)
         # Build the container.
         file_type = "tex"
-        image_name = dshdalipr.get_prettier_container_image_name(file_type)
+        image_name = dshdlipr.get_prettier_container_image_name(file_type)
         # Run version command inside container.
         cmd = (
             f"{docker_executable} run --rm"

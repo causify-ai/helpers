@@ -82,13 +82,14 @@ class Test_run_dockerized_plantuml1(hunitest.TestCase):
         # Prepare inputs.
         in_file_path = dshddout.create_test_file(self, txt, extension="puml")
         out_file_path = os.path.join(self.get_scratch_space(), output_name)
+        cmd_opts = [dst_ext]
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run test.
         dshdlipl.run_dockerized_plantuml(
             in_file_path,
+            cmd_opts,
             out_file_path,
-            dst_ext,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )

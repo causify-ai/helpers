@@ -74,69 +74,7 @@ def get_mermaid_container_image_name() -> str:
 
 def run_dockerized_mermaid(
     in_file_path: str,
-    out_file_path: str,
-    *,
-    mode: str = "system",
-    force_rebuild: bool = False,
-    use_sudo: bool = False,
-) -> str:
-    """
-    Run `mermaid` in a Docker container.
-
-    :param in_file_path: path to the code of the image to render
-    :param out_file_path: path to the image to be created
-    :param force_rebuild: whether to force rebuild the Docker container
-    :param use_sudo: whether to use sudo for Docker commands
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    # Get the container image.
-    _ = force_rebuild
-    container_image = f"minlag/mermaid-cli:{_MERMAID_CLI_IMAGE_VERSION}"
-    dockerfile = ""
-    # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocexec._get_docker_mount_context()
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    mermaid_cmd = f" -i {in_file_path} -o {out_file_path}"
-    mermaid_cmd += " --scale 3"
-    ret = hdocexec._build_and_run_docker_cmd(
-        use_sudo,
-        callee_mount_path,
-        mount,
-        container_image,
-        dockerfile,
-        mermaid_cmd,
-        mode,
-        override_entrypoint=False,
-        wrap_in_bash=False,
-    )
-    return ret
-
-
-def run_dockerized_mermaid(
-    in_file_path: str,
+    cmd_opts: list,
     out_file_path: str,
     *,
     mode: str = "system",
@@ -146,6 +84,13 @@ def run_dockerized_mermaid(
     """
     Run `mermaid` in a Docker container, building the container from scratch
     and using a puppeteer config.
+
+    :param in_file_path: path to the mermaid diagram file to render
+    :param cmd_opts: additional command-line options (currently unused)
+    :param out_file_path: path to the output image file
+    :param mode: execution mode (e.g., "system")
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.

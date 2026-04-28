@@ -47,8 +47,8 @@ def get_plantuml_container_image_name() -> str:
 
 def run_dockerized_plantuml(
     in_file_path: str,
+    cmd_opts: list,
     out_file_path: str,
-    dst_ext: str,
     *,
     mode: str = "system",
     force_rebuild: bool = False,
@@ -58,12 +58,14 @@ def run_dockerized_plantuml(
     Run `plantUML` in a Docker container.
 
     :param in_file_path: path to the code of the image to render
+    :param cmd_opts: list containing the output format (e.g., ["svg", "png"])
     :param out_file_path: path to the dir where the image will be saved
-    :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
     """
     _LOG.debug(hprint.func_signature_to_str())
+    # Extract the destination extension from cmd_opts
+    dst_ext = cmd_opts[0] if cmd_opts else "svg"
     # Build the container, if needed.
     if force_rebuild:
         container_image = hdocker.build_container_image(

@@ -67,7 +67,7 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'
-            " bash -c 'markdown-toc --version'"
+            " bash -c 'npm list -g markdown-toc'"
         )
         _, output = hsystem.system_to_string(cmd)
         # Freeze version output.

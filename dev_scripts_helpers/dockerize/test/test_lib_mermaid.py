@@ -79,11 +79,13 @@ class Test_run_dockerized_mermaid1(hunitest.TestCase):
         # Prepare inputs.
         in_file_path = dshddout.create_test_file(self, txt, extension="mmd")
         out_file_path = os.path.join(self.get_scratch_space(), "output.svg")
+        cmd_opts = []
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run test.
         dshdlime.run_dockerized_mermaid(
             in_file_path,
+            cmd_opts,
             out_file_path,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,

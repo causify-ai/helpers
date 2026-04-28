@@ -862,3 +862,151 @@ class Test_is_test_input_output_file(hunitest.TestCase):
         actual = llinutil.is_test_input_output_file(file_name)
         # Check outputs.
         self.assertFalse(actual)
+
+
+# #############################################################################
+# Test_filter_files_by_type
+# #############################################################################
+
+
+class Test_filter_files_by_type(hunitest.TestCase):
+    """
+    Test filtering files by type using extension list.
+    """
+
+    def test_py_extension_only(self) -> None:
+        """
+        Test filtering with only Python extension.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        py_file = os.path.join(scratch_dir, "script.py")
+        ipynb_file = os.path.join(scratch_dir, "notebook.ipynb")
+        md_file = os.path.join(scratch_dir, "readme.md")
+        # Create files.
+        hio.to_file(py_file, "print('hello')")
+        hio.to_file(ipynb_file, "{}")
+        hio.to_file(md_file, "# Header")
+        file_paths = [py_file, ipynb_file, md_file]
+        # Run test.
+        py_files, jupyter_files, md_files = llinutil.filter_files_by_type(
+            file_paths, ["py"], skip_dassert_exists=True
+        )
+        # Check outputs.
+        self.assertEqual(len(py_files), 1)
+        self.assertEqual(len(jupyter_files), 0)
+        self.assertEqual(len(md_files), 0)
+
+    def test_ipynb_extension_only(self) -> None:
+        """
+        Test filtering with only Jupyter extension.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        py_file = os.path.join(scratch_dir, "script.py")
+        ipynb_file = os.path.join(scratch_dir, "notebook.ipynb")
+        md_file = os.path.join(scratch_dir, "readme.md")
+        # Create files.
+        hio.to_file(py_file, "print('hello')")
+        hio.to_file(ipynb_file, "{}")
+        hio.to_file(md_file, "# Header")
+        file_paths = [py_file, ipynb_file, md_file]
+        # Run test.
+        py_files, jupyter_files, md_files = llinutil.filter_files_by_type(
+            file_paths, ["ipynb"], skip_dassert_exists=True
+        )
+        # Check outputs.
+        self.assertEqual(len(py_files), 0)
+        self.assertEqual(len(jupyter_files), 1)
+        self.assertEqual(len(md_files), 0)
+
+    def test_md_extension_only(self) -> None:
+        """
+        Test filtering with only Markdown extension.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        py_file = os.path.join(scratch_dir, "script.py")
+        ipynb_file = os.path.join(scratch_dir, "notebook.ipynb")
+        md_file = os.path.join(scratch_dir, "readme.md")
+        # Create files.
+        hio.to_file(py_file, "print('hello')")
+        hio.to_file(ipynb_file, "{}")
+        hio.to_file(md_file, "# Header")
+        file_paths = [py_file, ipynb_file, md_file]
+        # Run test.
+        py_files, jupyter_files, md_files = llinutil.filter_files_by_type(
+            file_paths, ["md"], skip_dassert_exists=True
+        )
+        # Check outputs.
+        self.assertEqual(len(py_files), 0)
+        self.assertEqual(len(jupyter_files), 0)
+        self.assertEqual(len(md_files), 1)
+
+    def test_txt_extension(self) -> None:
+        """
+        Test filtering with text extension.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        py_file = os.path.join(scratch_dir, "script.py")
+        txt_file = os.path.join(scratch_dir, "data.txt")
+        # Create files.
+        hio.to_file(py_file, "print('hello')")
+        hio.to_file(txt_file, "some text")
+        file_paths = [py_file, txt_file]
+        # Run test.
+        py_files, jupyter_files, md_files = llinutil.filter_files_by_type(
+            file_paths, ["txt"], skip_dassert_exists=True
+        )
+        # Check outputs.
+        self.assertEqual(len(py_files), 0)
+        self.assertEqual(len(jupyter_files), 0)
+        self.assertEqual(len(md_files), 1)
+        self.assertEqual(md_files[0], txt_file)
+
+    def test_multiple_extensions(self) -> None:
+        """
+        Test filtering with multiple extensions.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        py_file = os.path.join(scratch_dir, "script.py")
+        ipynb_file = os.path.join(scratch_dir, "notebook.ipynb")
+        md_file = os.path.join(scratch_dir, "readme.md")
+        txt_file = os.path.join(scratch_dir, "data.txt")
+        # Create files.
+        hio.to_file(py_file, "print('hello')")
+        hio.to_file(ipynb_file, "{}")
+        hio.to_file(md_file, "# Header")
+        hio.to_file(txt_file, "some text")
+        file_paths = [py_file, ipynb_file, md_file, txt_file]
+        # Run test.
+        py_files, jupyter_files, md_files = llinutil.filter_files_by_type(
+            file_paths, ["py", "ipynb", "md", "txt"], skip_dassert_exists=True
+        )
+        # Check outputs.
+        self.assertEqual(len(py_files), 1)
+        self.assertEqual(len(jupyter_files), 1)
+        self.assertEqual(len(md_files), 2)
+
+    def test_empty_extension_list(self) -> None:
+        """
+        Test filtering with empty extension list returns no files.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        py_file = os.path.join(scratch_dir, "script.py")
+        ipynb_file = os.path.join(scratch_dir, "notebook.ipynb")
+        # Create files.
+        hio.to_file(py_file, "print('hello')")
+        hio.to_file(ipynb_file, "{}")
+        file_paths = [py_file, ipynb_file]
+        # Run test.
+        py_files, jupyter_files, md_files = llinutil.filter_files_by_type(
+            file_paths, [], skip_dassert_exists=True
+        )
+        # Check outputs.
+        self.assertEqual(len(py_files), 0)
+        self.assertEqual(len(jupyter_files), 0)
+        self.assertEqual(len(md_files), 0)

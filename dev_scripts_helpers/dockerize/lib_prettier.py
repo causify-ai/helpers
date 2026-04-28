@@ -43,7 +43,7 @@ ENTRYPOINT ["prettier"]
 # For Latex we pin dependencies to ensure compatibility between
 # prettier, unified-latex-prettier, and prettier-plugin-latex.
 latex_prettier_version = "2.7.0"
-_DOCKERFILE_TEX = rf""
+_DOCKERFILE_TEX = rf"""
 FROM node:18-slim
 
 RUN npm install -g prettier@{latex_prettier_version}

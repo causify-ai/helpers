@@ -463,22 +463,15 @@ def get_dirs_with_missing_init(
 
 def filter_files_by_type(
     file_paths: List[str],
-    keep_python_files: bool,
-    keep_jupyter_files: bool,
-    keep_markdown_files: bool,
+    file_extensions: List[str],
     *,
     skip_dassert_exists: bool = False,
 ) -> Tuple[List[str], List[str], List[str]]:
     """
-    Filter files by type (Python, Jupyter, Markdown).
-
-    If no type filters are provided (all False), returns all files grouped
-    by detected type.
+    Filter files by type (Python, Jupyter, Markdown, Text).
 
     :param file_paths: files to filter
-    :param keep_python_files: include Python files
-    :param keep_jupyter_files: include Jupyter notebooks
-    :param keep_markdown_files: include Markdown files
+    :param file_extensions: list of file extensions to include (e.g., ["py", "ipynb", "md", "txt"])
     :param skip_dassert_exists: skip file existence checks
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
@@ -488,6 +481,8 @@ def filter_files_by_type(
     # Categorize all files by type.
     for f in file_paths:
         if is_ipynb_file(f):
+            if "ipynb" not in file_extensions:
+                continue
             paired_python_file = from_ipynb_to_python_file(f)
             if not skip_dassert_exists:
                 hdbg.dassert_file_exists(
@@ -498,17 +493,18 @@ def filter_files_by_type(
                 )
             jupyter_files.append(f)
         elif is_py_file(f):
+            if "py" not in file_extensions:
+                continue
             if not is_paired_jupytext_file(f):
                 python_files.append(f)
         elif f.endswith(".md"):
+            if "md" not in file_extensions:
+                continue
+            markdown_files.append(f)
+        elif f.endswith(".txt"):
+            if "txt" not in file_extensions:
+                continue
             markdown_files.append(f)
         else:
             _LOG.warning("File type for '%s' not recognized", f)
-    # Select files based on types.
-    if not keep_python_files:
-        python_files = []
-    if not keep_jupyter_files:
-        jupyter_files = []
-    if not keep_markdown_files:
-        markdown_files = []
     return python_files, jupyter_files, markdown_files
