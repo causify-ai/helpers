@@ -44,7 +44,7 @@ class Test_build_graphviz_container1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_dockerized_graphviz1
+# Test_run_dockerized_graphviz1
 # #############################################################################
 
 

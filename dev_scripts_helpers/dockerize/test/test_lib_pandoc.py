@@ -129,7 +129,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_dockerized_pandoc1
+# Test_run_dockerized_pandoc1
 # #############################################################################
 
 

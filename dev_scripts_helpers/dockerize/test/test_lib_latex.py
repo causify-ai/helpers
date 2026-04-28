@@ -44,7 +44,7 @@ class Test_build_latex_container1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_dockerized_latex1
+# Test_run_dockerized_latex1
 # #############################################################################
 
 

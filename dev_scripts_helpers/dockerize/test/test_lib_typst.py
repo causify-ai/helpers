@@ -63,7 +63,7 @@ class Test_build_typst_container1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_dockerized_typst1
+# Test_run_dockerized_typst1
 # #############################################################################
 
 

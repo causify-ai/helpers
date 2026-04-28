@@ -47,7 +47,7 @@ class Test_build_png_container1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_dockerized_tikz_to_bitmap1
+# Test_run_dockerized_tikz_to_bitmap1
 # #############################################################################
 
 
