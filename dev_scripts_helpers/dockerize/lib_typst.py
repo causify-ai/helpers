@@ -85,7 +85,9 @@ def get_typst_container_image_name() -> str:
 
     E.g., `tmp.typst.amd64.12345678` or `tmp.typst.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(TYPST_CONTAINER_IMAGE, TYPST_DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        TYPST_CONTAINER_IMAGE, TYPST_DOCKERFILE
+    )
     return container_image
 
 

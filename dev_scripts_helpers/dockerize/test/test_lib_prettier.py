@@ -94,6 +94,7 @@ class Test_build_prettier_container1(hunitest.TestCase):
         # Freeze version output.
         self.check_string(output)
 
+
 # #############################################################################
 # Test_run_dockerized_prettier1
 # #############################################################################
@@ -115,7 +116,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             "--prose-wrap always",
             "--tab-width 2",
         ]
-        file_type="md"
+        file_type = "md"
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run test.
@@ -147,7 +148,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         output_dir = self.get_output_dir()
         output_file_path = os.path.join(output_dir, "output.md")
         #
-        file_type="md"
+        file_type = "md"
         hio.create_dir(output_dir, incremental=True)
         cmd_opts = [
             "--parser",
@@ -235,7 +236,7 @@ class Test_prettier_on_str(hunitest.TestCase):
         ## Content
         """
         text = hprint.dedent(text)
-        file_type="md"
+        file_type = "md"
         cmd_opts = [
             "--parser",
             "markdown",

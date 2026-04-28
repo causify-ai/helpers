@@ -50,16 +50,16 @@ CMD [ "bash" ]
 #     # Use a lightweight base image.
 #     # FROM debian:bullseye-slim
 #     FROM ubuntu:22.04
-# 
+#
 #     # Set environment variables to avoid interactive prompts.
 #     ENV DEBIAN_FRONTEND=noninteractive
-# 
+#
 #     # Update.
 #     RUN apt-get update && \
 #         apt-get clean && \
 #         rm -rf /var/lib/apt/lists/* && \
 #         apt-get update
-# 
+#
 #     # Install only the minimal TeX Live packages.
 #     RUN apt-get install -y --no-install-recommends \
 #         texlive-latex-base \
@@ -76,15 +76,15 @@ CMD [ "bash" ]
 #     # Use a lightweight base image.
 #     # FROM debian:bullseye-slim
 #     FROM ubuntu:22.04
-# 
+#
 #     # Set environment variables to avoid interactive prompts.
 #     ENV DEBIAN_FRONTEND=noninteractive
-# 
+#
 #     RUN rm -rf /var/lib/apt/lists/*
 #     # Update.
 #     RUN apt-get clean && \
 #         apt-get update
-# 
+#
 #     # Install texlive-full.
 #     RUN apt install -y texlive-full
 #     """
@@ -93,16 +93,17 @@ CMD [ "bash" ]
 #     _DOCKER_FILE += r"""
 #     RUN rm -rf /var/lib/apt/lists/* \
 #         && apt-get clean
-# 
+#
 #     # Verify LaTeX is installed.
 #     RUN latex --version
-# 
+#
 #     # Set working directory.
 #     WORKDIR /workspace
-# 
+#
 #     # Default command.
 #     CMD [ "bash" ]
 #     """
+
 
 def get_latex_container_image_name() -> str:
     """
@@ -110,7 +111,9 @@ def get_latex_container_image_name() -> str:
 
     E.g., `tmp.latex.amd64.12345678` or `tmp.latex.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(_CONTAINER_PREFIX, _DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        _CONTAINER_PREFIX, _DOCKERFILE
+    )
     return container_image
 
 

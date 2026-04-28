@@ -102,7 +102,9 @@ def get_pandoc_latex_container_image_name() -> str:
 
     E.g., `tmp.pandoc_latex.amd64.12345678` or `tmp.pandoc_latex.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(_PANDOC_LATEX_CONTAINER_PREFIX, _PANDOC_LATEX_DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        _PANDOC_LATEX_CONTAINER_PREFIX, _PANDOC_LATEX_DOCKERFILE
+    )
     return container_image
 
 
@@ -132,7 +134,9 @@ def get_pandoc_texlive_container_image_name() -> str:
 
     E.g., `tmp.pandoc_texlive.amd64.12345678` or `tmp.pandoc_texlive.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(_PANDOC_TEXLIVE_CONTAINER_PREFIX, _PANDOC_TEXLIVE_DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        _PANDOC_TEXLIVE_CONTAINER_PREFIX, _PANDOC_TEXLIVE_DOCKERFILE
+    )
     return container_image
 
 

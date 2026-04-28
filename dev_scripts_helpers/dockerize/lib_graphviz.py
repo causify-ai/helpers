@@ -30,7 +30,7 @@ FROM alpine:{_ALPINE_VERSION}
 
 RUN apk add --no-cache graphviz
 """
-    
+
 
 def get_graphviz_container_image_name() -> str:
     """
@@ -38,7 +38,9 @@ def get_graphviz_container_image_name() -> str:
 
     E.g., `tmp.graphviz.amd64.12345678` or `tmp.graphviz.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(_CONTAINER_PREFIX, _DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        _CONTAINER_PREFIX, _DOCKERFILE
+    )
     return container_image
 
 

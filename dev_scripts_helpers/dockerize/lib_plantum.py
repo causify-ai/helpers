@@ -39,7 +39,9 @@ def get_plantuml_container_image_name() -> str:
 
     E.g., `tmp.plantuml.amd64.12345678` or `tmp.plantuml.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(_CONTAINER_PREFIX, _DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        _CONTAINER_PREFIX, _DOCKERFILE
+    )
     return container_image
 
 

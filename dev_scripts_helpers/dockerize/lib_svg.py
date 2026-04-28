@@ -35,13 +35,16 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 """
 
+
 def get_svg_rsvg_convert_container_image_name() -> str:
     """
     Get the name of the SVG rsvg-convert container image.
 
     E.g., `tmp.svg_rsvg_convert.amd64.12345678` or `tmp.svg_rsvg_convert.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(_RSVG_CONVERT_CONTAINER_PREFIX, _RSVG_CONVERT_DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        _RSVG_CONVERT_CONTAINER_PREFIX, _RSVG_CONVERT_DOCKERFILE
+    )
     return container_image
 
 
@@ -74,7 +77,10 @@ def run_dockerized_svg_with_rsvg_convert(
     # Build the container with rsvg-convert.
     if force_rebuild:
         container_image = hdocker.build_container_image(
-            _RSVG_CONVERT_CONTAINER_PREFIX, _RSVG_CONVERT_DOCKERFILE, force_rebuild, use_sudo
+            _RSVG_CONVERT_CONTAINER_PREFIX,
+            _RSVG_CONVERT_DOCKERFILE,
+            force_rebuild,
+            use_sudo,
         )
     else:
         container_image = get_svg_rsvg_convert_container_image_name()
@@ -145,7 +151,9 @@ def get_svg_inkscape_container_image_name() -> str:
 
     E.g., `tmp.svg_inkscape.amd64.12345678` or `tmp.svg_inkscape.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(_INKSCAPE_CONTAINER_PREFIX, _INKSCAPE_DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        _INKSCAPE_CONTAINER_PREFIX, _INKSCAPE_DOCKERFILE
+    )
     return container_image
 
 
@@ -179,7 +187,10 @@ def run_dockerized_svg_with_inkscape(
     # Build the container with inkscape.
     if force_rebuild:
         container_image = hdocker.build_container_image(
-            _INKSCAPE_CONTAINER_PREFIX, _INKSCAPE_DOCKERFILE, force_rebuild, use_sudo
+            _INKSCAPE_CONTAINER_PREFIX,
+            _INKSCAPE_DOCKERFILE,
+            force_rebuild,
+            use_sudo,
         )
     else:
         container_image = get_svg_inkscape_container_image_name()

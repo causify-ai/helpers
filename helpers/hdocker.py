@@ -8,11 +8,9 @@ import copy
 import hashlib
 import logging
 import os
-import shutil
 import time
 from typing import List, Optional, Tuple
 
-import helpers.hcoverage as hcovera
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hgit as hgit
@@ -390,8 +388,10 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     #     )
     return docker_cmd
 
-    
-def get_container_image_name(image_name: str, dockerfile: str) -> Tuple[str, str]:
+
+def get_container_image_name(
+    image_name: str, dockerfile: str
+) -> Tuple[str, str]:
     """
     Get the name of the container image.
 

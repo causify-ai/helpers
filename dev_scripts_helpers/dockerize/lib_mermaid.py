@@ -24,6 +24,7 @@ _MERMAID_CLI_NPM_VERSION = "11.12.0"
 
 _MERMAID_CONTAINER_PREFIX = "tmp.mermaid"
 
+# TODO(ai_gp): Inline this.
 _puppeteer_cache_path = r"""
 const {join} = require('path');
 
@@ -36,7 +37,7 @@ module.exports = {
 };
 """
 
-_MERMAID_DOCKERFILE = rf"""
+_DOCKERFILE = rf"""
 # Use a Node.js image.
 FROM node:18-slim
 
@@ -65,7 +66,9 @@ def get_mermaid_container_image_name() -> str:
 
     E.g., `tmp.mermaid.amd64.12345678` or `tmp.mermaid.arm64.12345678`
     """
-    container_image, _ = hdocker.get_container_image_name(_MERMAID_CONTAINER_PREFIX, _MERMAID_DOCKERFILE)
+    container_image, _ = hdocker.get_container_image_name(
+        _MERMAID_CONTAINER_PREFIX, _DOCKERFILE
+    )
     return container_image
 
 
@@ -148,7 +151,10 @@ def run_dockerized_mermaid(
     # Build the container, if needed.
     if force_rebuild:
         container_image = hdocker.build_container_image(
-            _MERMAID_CONTAINER_PREFIX, _MERMAID_DOCKERFILE, force_rebuild, use_sudo
+            _MERMAID_CONTAINER_PREFIX,
+            _DOCKERFILE,
+            force_rebuild,
+            use_sudo,
         )
     else:
         container_image = get_mermaid_container_image_name()
@@ -196,7 +202,7 @@ def run_dockerized_mermaid(
         callee_mount_path,
         mount,
         container_image,
-        _MERMAID_DOCKERFILE,
+        _DOCKERFILE,
         mermaid_cmd,
         mode,
         override_entrypoint=True,
