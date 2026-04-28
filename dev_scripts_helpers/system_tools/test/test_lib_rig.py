@@ -1,6 +1,6 @@
 from typing import List, Optional, Type
 
-import dev_scripts_helpers.system_tools.lib_rig as lib_rig
+import dev_scripts_helpers.system_tools.lib_rig as dshstliri
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 
@@ -36,7 +36,7 @@ class TestRigScript(hunitest.TestCase):
             side_effect=side_effect
         ) as invocations:
             try:
-                exit_code = lib_rig.main(args)
+                exit_code = dshstliri.main(args)
             except SystemExit as e:
                 exit_code = e.code
         # Check outputs.
@@ -165,7 +165,7 @@ class TestRigScript(hunitest.TestCase):
         args = ["def", ".", ".py"]
         # Run test and expect assertion error.
         with self.assertRaises(AssertionError):
-            lib_rig.main(args)
+            dshstliri.main(args)
 
     def test10(self) -> None:
         """

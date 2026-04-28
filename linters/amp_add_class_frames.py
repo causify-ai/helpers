@@ -189,9 +189,7 @@ class _ClassFramer(liaction.Action):
         file_content = hio.from_file(file_name)
         updated_lines = update_class_frames(file_content)
         # Save the updated file with the added class frames.
-        hio.write_file_back(
-            file_name, file_content.split("\n"), updated_lines
-        )
+        hio.write_file_back(file_name, file_content.split("\n"), updated_lines)
         return []
 
 

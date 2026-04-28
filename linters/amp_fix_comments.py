@@ -26,7 +26,6 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction
 import linters.utils as liutils
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 

@@ -12,7 +12,6 @@ from typing import List, Optional, Tuple
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -210,8 +209,6 @@ def get_python_files_to_lint(dir_name: str) -> List[str]:
     ]
     _LOG.debug("after removing test: files=%s", len(not_test_files))
     return not_test_files
-
-
 
 
 # TODO(gp): Some of these functions can be centralized in helpers.

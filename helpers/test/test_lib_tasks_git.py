@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 import pytest
 
@@ -136,7 +137,9 @@ class TestFilterGitFilesByType(hunitest.TestCase):
     Test _filter_git_files_by_type() function.
     """
 
-    def helper(self, files: list[str], types: list[str], expected: list[str]) -> None:
+    def helper(
+        self, files: List[str], types: List[str], expected: List[str]
+    ) -> None:
         """
         Test helper for _filter_git_files_by_type.
 
@@ -214,10 +217,10 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         Test filtering with empty file list.
         """
         # Prepare inputs.
-        files: list[str] = []
+        files: List[str] = []
         types = ["py", "ipynb"]
         # Prepare outputs.
-        expected: list[str] = []
+        expected: List[str] = []
         # Run test.
         self.helper(files, types, expected)
 
@@ -229,7 +232,7 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         files = ["foo.py", "bar.ipynb", "baz.md"]
         types = ["txt"]
         # Prepare outputs.
-        expected: list[str] = []
+        expected: List[str] = []
         # Run test.
         self.helper(files, types, expected)
 

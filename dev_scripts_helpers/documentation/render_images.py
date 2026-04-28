@@ -303,6 +303,7 @@ def _render_image_code(
             return out_img_file_paths
         elif image_code_type == "plantuml":
             import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
+
             dshdlipl.run_dockerized_plantuml(
                 in_code_file_path,
                 abs_img_dir_path,
@@ -312,6 +313,7 @@ def _render_image_code(
             )
         elif image_code_type == "mermaid":
             import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
+
             dshdlime.run_dockerized_mermaid(
                 in_code_file_path,
                 abs_img_file_path,
@@ -321,6 +323,7 @@ def _render_image_code(
         elif image_code_type in ("tikz", "latex", "raw_latex"):
             cmd_opts: List[str] = ["-density 600", "-quality 95"]
             import dev_scripts_helpers.dockerize.lib_png as dshdlipn
+
             dshdlipn.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
@@ -331,6 +334,7 @@ def _render_image_code(
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
             import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
+
             dshdligr.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
@@ -340,6 +344,7 @@ def _render_image_code(
             )
         elif image_code_type == "svg":
             import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
+
             dshdlisv.run_dockerized_svg_with_rsvg_convert(
                 in_code_file_path,
                 abs_img_file_path,

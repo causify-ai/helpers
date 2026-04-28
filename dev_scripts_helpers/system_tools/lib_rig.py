@@ -152,7 +152,9 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     if len(parsed.positional) > 1:
         result.directory = parsed.positional[1]
     if len(parsed.positional) > 2:
-        result.extensions = [ext.strip() for ext in parsed.positional[2].split(",")]
+        result.extensions = [
+            ext.strip() for ext in parsed.positional[2].split(",")
+        ]
         # Assert that none of the extensions start with a dot
         for ext in result.extensions:
             hdbg.dassert(

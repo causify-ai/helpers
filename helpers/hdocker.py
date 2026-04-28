@@ -533,6 +533,53 @@ def get_host_git_root() -> str:
     return host_git_root_path
 
 
+def get_docker_mount_info(
+    is_caller_host: bool, use_sibling_container_for_callee: bool
+) -> Tuple[str, str, str]:
+    """
+    Get the Docker mount information for the current environment.
+
+    This function determines the appropriate source and target paths for
+    mounting a directory in a Docker container.
+
+    Same inputs as `convert_caller_to_callee_docker_path()`.
+
+    :return: A tuple containing
+        - caller_mount_path: the mount path on the caller filesystem, e.g.,
+            `/app` or `/Users/.../src/cmamp1`
+        - callee_mount_path: the mount path inside the called Docker container,
+            e.g., `/app`
+        - the mount string, e.g.,
+                `source={caller_mount_path},target={callee_mount_path}`
+                type=bind,source=/app,target=/app
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Compute the mount path on the caller filesystem.
+    if is_caller_host:
+        # On the host machine, the mount path is the Git root.
+        caller_mount_path = hgit.find_git_root()
+    else:
+        # Inside a Docker container, the mount path depends on the container
+        # style.
+        use_host_git_root = (
+            use_sibling_container_for_callee
+            and not hserver.is_csfy_dind_enabled()
+        )
+        if use_host_git_root:
+            # For sibling containers, we need to get the Git root on the host.
+            caller_mount_path = get_host_git_root()
+        else:
+            # For children containers, we need to get the local Git root on the
+            # host.
+            caller_mount_path = hgit.find_git_root()
+    # The target mount path is always `/app` inside the Docker container.
+    callee_mount_path = "/app"
+    # Build the Docker mount string.
+    mount = f"type=bind,source={caller_mount_path},target={callee_mount_path}"
+    _LOG.debug(hprint.to_str("caller_mount_path callee_mount_path mount"))
+    return caller_mount_path, callee_mount_path, mount
+
+
 def get_docker_mount_context() -> Tuple[bool, bool, str, str, str]:
     """
     Return Docker mount context for container operations.
@@ -573,8 +620,11 @@ def build_and_run_docker_cmd(
     if override_entrypoint:
         docker_cmd.append("--entrypoint ''")
     # Check that the container image exists.
-    hdbg.dassert(image_exists(container_image, use_sudo)[0],
-        f"Container image '%s' does not exist", container_image)
+    hdbg.dassert(
+        image_exists(container_image, use_sudo)[0],
+        "Container image '%s' does not exist",
+        container_image,
+    )
     docker_cmd.extend(
         [
             f"--workdir {callee_mount_path} --mount {mount}",
@@ -586,9 +636,7 @@ def build_and_run_docker_cmd(
     else:
         docker_cmd.append(tool_cmd)
     docker_cmd_str = " ".join(docker_cmd)
-    return process_docker_cmd(
-        docker_cmd_str, container_image, dockerfile, mode
-    )
+    return process_docker_cmd(docker_cmd_str, container_image, dockerfile, mode)
 
 
 # TODO(gp): Move to helpers.hdbg.
@@ -636,53 +684,6 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
         file_path,
         including_path,
     )
-
-
-def get_docker_mount_info(
-    is_caller_host: bool, use_sibling_container_for_callee: bool
-) -> Tuple[str, str, str]:
-    """
-    Get the Docker mount information for the current environment.
-
-    This function determines the appropriate source and target paths for
-    mounting a directory in a Docker container.
-
-    Same inputs as `convert_caller_to_callee_docker_path()`.
-
-    :return: A tuple containing
-        - caller_mount_path: the mount path on the caller filesystem, e.g.,
-            `/app` or `/Users/.../src/cmamp1`
-        - callee_mount_path: the mount path inside the called Docker container,
-            e.g., `/app`
-        - the mount string, e.g.,
-                `source={caller_mount_path},target={callee_mount_path}`
-                type=bind,source=/app,target=/app
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    # Compute the mount path on the caller filesystem.
-    if is_caller_host:
-        # On the host machine, the mount path is the Git root.
-        caller_mount_path = hgit.find_git_root()
-    else:
-        # Inside a Docker container, the mount path depends on the container
-        # style.
-        use_host_git_root = (
-            use_sibling_container_for_callee
-            and not hserver.is_csfy_dind_enabled()
-        )
-        if use_host_git_root:
-            # For sibling containers, we need to get the Git root on the host.
-            caller_mount_path = get_host_git_root()
-        else:
-            # For children containers, we need to get the local Git root on the
-            # host.
-            caller_mount_path = hgit.find_git_root()
-    # The target mount path is always `/app` inside the Docker container.
-    callee_mount_path = "/app"
-    # Build the Docker mount string.
-    mount = f"type=bind,source={caller_mount_path},target={callee_mount_path}"
-    _LOG.debug(hprint.to_str("caller_mount_path callee_mount_path mount"))
-    return caller_mount_path, callee_mount_path, mount
 
 
 def convert_caller_to_callee_docker_path(

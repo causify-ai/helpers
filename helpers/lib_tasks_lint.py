@@ -288,7 +288,7 @@ def lint(  # type: ignore
         + int(branch),
         1,
         msg="Specify exactly one among --files, --from_file, --dir-name, "
-            "--modified, --last-commit, --branch",
+        "--modified, --last-commit, --branch",
     )
     if len(files) > 0:
         lint_cmd_opts.append(f"--files {files}")
