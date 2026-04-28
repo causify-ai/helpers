@@ -1,6 +1,6 @@
 from typing import List, Optional, Type
 
-import helpers.hrig as hrig
+import dev_scripts_helpers.system_tools.lib_rig as lib_rig
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 
@@ -36,7 +36,7 @@ class TestRigScript(hunitest.TestCase):
             side_effect=side_effect
         ) as invocations:
             try:
-                exit_code = hrig.main(args)
+                exit_code = lib_rig.main(args)
             except SystemExit as e:
                 exit_code = e.code
         # Check outputs.
@@ -165,4 +165,39 @@ class TestRigScript(hunitest.TestCase):
         args = ["def", ".", ".py"]
         # Run test and expect assertion error.
         with self.assertRaises(AssertionError):
-            hrig.main(args)
+            lib_rig.main(args)
+
+    def test10(self) -> None:
+        """
+        Test --modified flag with pattern.
+        """
+        # This test verifies that --modified flag is parsed correctly,
+        # though we can't test the actual git integration without a real repo.
+        args = ["TODO", "--modified"]
+        expected_exit_code = 0
+        # Run test (may return 0 even if no files, since git cmd may not work in test)
+        self.helper(args, expected_exit_code=expected_exit_code)
+
+    def test11(self) -> None:
+        """
+        Test --branch flag with pattern.
+        """
+        args = ["TODO", "--branch"]
+        expected_exit_code = 0
+        self.helper(args, expected_exit_code=expected_exit_code)
+
+    def test12(self) -> None:
+        """
+        Test --all flag with pattern.
+        """
+        args = ["TODO", "--all"]
+        expected_exit_code = 0
+        self.helper(args, expected_exit_code=expected_exit_code)
+
+    def test13(self) -> None:
+        """
+        Test --last-commit flag with pattern.
+        """
+        args = ["TODO", "--last-commit"]
+        expected_exit_code = 0
+        self.helper(args, expected_exit_code=expected_exit_code)
