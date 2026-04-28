@@ -960,8 +960,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args)
     # Get list of input files using multi-file parsing.
     in_files = hparser.parse_multi_file_args(args)
-    # Handle output file for multi-file mode.
+    # Initialize output file.
     out_file = ""
+    # Handle output file for multi-file mode.
     if len(in_files) > 1:
         # Multi-file mode.
         hdbg.dassert_eq(

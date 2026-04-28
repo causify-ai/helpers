@@ -109,21 +109,24 @@ def run_dockerized_mermaid2(
     """
     dockerfile = rf"""
     # Use a Node.js image.
-    FROM node:18
+    FROM node:18-slim
 
     # Install packages needed for mermaid.
-    RUN apt-get update
-    RUN apt-get install -y nodejs npm
+    RUN apt-get update && \
+        apt-get install -y --no-install-recommends \
+            libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+            libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libgbm1 libasound2 && \
+        apt-get clean && rm -rf /var/lib/apt/lists/*
 
     RUN cat > .puppeteerrc.cjs <<EOL
     {puppeteer_cache_path}
     EOL
 
     RUN npx puppeteer browsers install chrome-headless-shell
-    RUN apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
 
     # Install mermaid.
-    RUN npm install -g mermaid @mermaid-js/mermaid-cli
+    RUN npm install -g mermaid @mermaid-js/mermaid-cli && npm cache clean --force
     """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo

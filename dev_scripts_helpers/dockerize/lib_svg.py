@@ -48,11 +48,12 @@ def run_dockerized_svg_with_rsvg_convert(
     # Build the container with rsvg-convert.
     container_image = "tmp.svg_rsvg_convert"
     dockerfile = r"""
-    FROM ubuntu:22.04
+    #FROM ubuntu:22.04
+    FROM debian:bookworm-slim
 
-    RUN apt-get update && apt-get install -y \
-        librsvg2-bin \
-        && rm -rf /var/lib/apt/lists/*
+    RUN apt-get update && \
+        apt-get install -y --no-install-recommends librsvg2-bin && \
+        apt-get clean && rm -rf /var/lib/apt/lists/*
     """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
@@ -134,11 +135,12 @@ def run_dockerized_svg_with_inkscape(
     # Build the container with inkscape.
     container_image = "tmp.svg_inkscape"
     dockerfile = r"""
-    FROM ubuntu:22.04
+    #FROM ubuntu:22.04
+    FROM debian:bookworm-slim
 
-    RUN apt-get update && apt-get install -y \
-        inkscape \
-        && rm -rf /var/lib/apt/lists/*
+    RUN apt-get update && \
+        apt-get install -y --no-install-recommends inkscape && \
+        apt-get clean && rm -rf /var/lib/apt/lists/*
     """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo

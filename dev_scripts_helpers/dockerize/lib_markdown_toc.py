@@ -38,10 +38,10 @@ def run_dockerized_markdown_toc(
     container_image = "tmp.markdown_toc"
     dockerfile = r"""
     # Use a Node.js image
-    FROM node:18
+    FROM node:18-slim
 
     # Install Prettier globally
-    RUN npm install -g markdown-toc
+    RUN npm install -g markdown-toc && npm cache clean --force
 
     # Set a working directory inside the container
     WORKDIR /app

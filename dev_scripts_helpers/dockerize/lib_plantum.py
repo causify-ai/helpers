@@ -44,8 +44,9 @@ def run_dockerized_plantuml(
     FROM debian:bullseye-slim
 
     # Install plantUML.
-    RUN apt-get update
-    RUN apt-get install -y --no-install-recommends plantuml
+    RUN apt-get update && \
+        apt-get install -y --no-install-recommends plantuml && \
+        apt-get clean && rm -rf /var/lib/apt/lists/*
     """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo

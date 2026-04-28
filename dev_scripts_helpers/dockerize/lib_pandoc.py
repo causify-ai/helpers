@@ -206,11 +206,8 @@ def run_dockerized_pandoc(
 
             ENV DEBIAN_FRONTEND=noninteractive
             RUN apt-get update && \
-                apt-get -y upgrade
-
-            RUN apt install -y sudo
-
-            RUN apt install -y pandoc
+                apt-get install -y --no-install-recommends pandoc && \
+                apt-get clean && rm -rf /var/lib/apt/lists/*
 
             # Create a font cache directory usable by non-root users.
             # These fonts don't work with latex and xelatex, and require lualatex.
