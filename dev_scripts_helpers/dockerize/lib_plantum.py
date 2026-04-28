@@ -13,7 +13,6 @@ import logging
 
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
-import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
@@ -67,12 +66,10 @@ def run_dockerized_plantuml(
     # Extract the destination extension from cmd_opts
     dst_ext = cmd_opts[0] if cmd_opts else "svg"
     # Build the container, if needed.
-    if force_rebuild:
-        container_image = hdocker.build_container_image(
-            _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
-        )
-    else:
-        container_image = get_plantuml_container_image_name()
+    container_image = hdocker.build_container_image(
+        _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+    )
+    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -80,7 +77,7 @@ def run_dockerized_plantuml(
         caller_mount_path,
         callee_mount_path,
         mount,
-    ) = hdocexec._get_docker_mount_context()
+    ) = hdocker.get_docker_mount_context()
     out_file_path = hdocker.convert_caller_to_callee_docker_path(
         out_file_path,
         caller_mount_path,
@@ -100,7 +97,7 @@ def run_dockerized_plantuml(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     plantuml_cmd = f"plantuml -t{dst_ext} -o {out_file_path} {in_file_path}"
-    ret = hdocexec._build_and_run_docker_cmd(
+    ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,

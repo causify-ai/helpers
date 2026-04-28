@@ -20,7 +20,6 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
@@ -257,32 +256,27 @@ def run_dockerized_pandoc(
         hio.create_dir(build_dir, incremental=True)
         cmd = f"cp -r {dir_name}/* tmp.docker_build/common/latex"
         hsystem.system(cmd)
-        # Build container.
-        if force_rebuild:
-            container_image = hdocker.build_container_image(
-                _PANDOC_LATEX_CONTAINER_PREFIX,
-                _PANDOC_LATEX_DOCKERFILE,
-                force_rebuild,
-                use_sudo,
-                incremental=True,
-            )
-        else:
-            container_image = get_pandoc_latex_container_image_name()
+        # Build the container, if needed.
+        container_image = hdocker.build_container_image(
+            _PANDOC_LATEX_CONTAINER_PREFIX,
+            _PANDOC_LATEX_DOCKERFILE,
+            force_rebuild,
+            use_sudo,
+            incremental=True,
+        )
         dockerfile = _PANDOC_LATEX_DOCKERFILE
     elif container_type == "pandoc_texlive":
-        # Build container.
-        if force_rebuild:
-            container_image = hdocker.build_container_image(
-                _PANDOC_TEXLIVE_CONTAINER_PREFIX,
-                _PANDOC_TEXLIVE_DOCKERFILE,
-                force_rebuild,
-                use_sudo,
-            )
-        else:
-            container_image = get_pandoc_texlive_container_image_name()
+        # Build the container, if needed.
+        container_image = hdocker.build_container_image(
+            _PANDOC_TEXLIVE_CONTAINER_PREFIX,
+            _PANDOC_TEXLIVE_DOCKERFILE,
+            force_rebuild,
+            use_sudo,
+        )
         dockerfile = _PANDOC_TEXLIVE_DOCKERFILE
     else:
         raise ValueError(f"Unknown container type '{container_type}'")
+    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -290,7 +284,7 @@ def run_dockerized_pandoc(
         caller_mount_path,
         callee_mount_path,
         mount,
-    ) = hdocexec._get_docker_mount_context()
+    ) = hdocker.get_docker_mount_context()
     # Convert command to arguments.
     param_dict = convert_pandoc_cmd_to_arguments(cmd)
     param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
@@ -335,7 +329,7 @@ def run_dockerized_pandoc(
     #     pandoc/core \
     #     input.md -o output.md \
     #     -s --toc
-    ret = hdocexec._build_and_run_docker_cmd(
+    ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,

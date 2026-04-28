@@ -21,7 +21,6 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
@@ -214,13 +213,11 @@ def run_dockerized_latex(
     Run `latex` in a Docker container.
     """
     _LOG.debug(hprint.func_signature_to_str())
-    # Get the container image.
-    if force_rebuild:
-        container_image = hdocker.build_container_image(
-            _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
-        )
-    else:
-        container_image = get_latex_container_image_name()
+    # Build the container, if needed.
+    container_image = hdocker.build_container_image(
+        _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+    )
+    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker.
     (
         is_caller_host,
@@ -228,7 +225,7 @@ def run_dockerized_latex(
         caller_mount_path,
         callee_mount_path,
         mount,
-    ) = hdocexec._get_docker_mount_context()
+    ) = hdocker.get_docker_mount_context()
     # Convert command to arguments.
     param_dict = convert_latex_cmd_to_arguments(cmd)
     param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
@@ -270,7 +267,7 @@ def run_dockerized_latex(
     latex_cmd = "pdflatex " + latex_cmd
     _LOG.debug(hprint.to_str("latex_cmd"))
     # Build Docker command.
-    ret = hdocexec._build_and_run_docker_cmd(
+    ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,

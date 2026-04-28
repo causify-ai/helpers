@@ -16,7 +16,6 @@ from typing import List
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hdockerized_executables as hdocexec
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 
 _LOG = logging.getLogger(__name__)
@@ -71,13 +70,11 @@ def run_dockerized_imagemagick(
     Run `ImageMagick` in a Docker container.
     """
     _LOG.debug(hprint.func_signature_to_str())
-    # Build the container.
-    if force_rebuild:
-        container_image = hdocker.build_container_image(
-            _IMAGEMAGICK_CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
-        )
-    else:
-        container_image = get_imagemagick_container_image_name()
+    # Build the container, if needed.
+    container_image = hdocker.build_container_image(
+        _IMAGEMAGICK_CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+    )
+    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -85,7 +82,7 @@ def run_dockerized_imagemagick(
         caller_mount_path,
         callee_mount_path,
         mount,
-    ) = hdocexec._get_docker_mount_context()
+    ) = hdocker.get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -107,7 +104,7 @@ def run_dockerized_imagemagick(
     # Build ImageMagick command.
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
-    ret = hdocexec._build_and_run_docker_cmd(
+    ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,

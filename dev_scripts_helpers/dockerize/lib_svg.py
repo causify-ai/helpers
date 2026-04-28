@@ -14,7 +14,6 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
-import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
@@ -74,16 +73,14 @@ def run_dockerized_svg_with_rsvg_convert(
         ["png", "pdf", "ps", "eps"],
         f"Unsupported output format: {output_format}",
     )
-    # Build the container with rsvg-convert.
-    if force_rebuild:
-        container_image = hdocker.build_container_image(
-            _RSVG_CONVERT_CONTAINER_PREFIX,
-            _RSVG_CONVERT_DOCKERFILE,
-            force_rebuild,
-            use_sudo,
-        )
-    else:
-        container_image = get_svg_rsvg_convert_container_image_name()
+    # Build the container, if needed.
+    container_image = hdocker.build_container_image(
+        _RSVG_CONVERT_CONTAINER_PREFIX,
+        _RSVG_CONVERT_DOCKERFILE,
+        force_rebuild,
+        use_sudo,
+    )
+    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -91,7 +88,7 @@ def run_dockerized_svg_with_rsvg_convert(
         caller_mount_path,
         callee_mount_path,
         mount,
-    ) = hdocexec._get_docker_mount_context()
+    ) = hdocker.get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -117,7 +114,7 @@ def run_dockerized_svg_with_rsvg_convert(
         f"-o {out_file_path} {in_file_path}"
     )
     # Build Docker command.
-    ret = hdocexec._build_and_run_docker_cmd(
+    ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,
@@ -184,16 +181,14 @@ def run_dockerized_svg_with_inkscape(
         ["png", "pdf", "ps", "eps", "svg", "emf", "wmf"],
         f"Unsupported output format: {output_format}",
     )
-    # Build the container with inkscape.
-    if force_rebuild:
-        container_image = hdocker.build_container_image(
-            _INKSCAPE_CONTAINER_PREFIX,
-            _INKSCAPE_DOCKERFILE,
-            force_rebuild,
-            use_sudo,
-        )
-    else:
-        container_image = get_svg_inkscape_container_image_name()
+    # Build the container, if needed.
+    container_image = hdocker.build_container_image(
+        _INKSCAPE_CONTAINER_PREFIX,
+        _INKSCAPE_DOCKERFILE,
+        force_rebuild,
+        use_sudo,
+    )
+    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -201,7 +196,7 @@ def run_dockerized_svg_with_inkscape(
         caller_mount_path,
         callee_mount_path,
         mount,
-    ) = hdocexec._get_docker_mount_context()
+    ) = hdocker.get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -227,7 +222,7 @@ def run_dockerized_svg_with_inkscape(
         f"--export-filename={out_file_path} --export-dpi=300"
     )
     # Build Docker command.
-    ret = hdocexec._build_and_run_docker_cmd(
+    ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,

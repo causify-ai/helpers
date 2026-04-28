@@ -4,10 +4,13 @@ Import as:
 import helpers.hdocker as hdocker
 """
 
+import argparse
 import copy
 import hashlib
 import logging
 import os
+import platform
+import subprocess
 import time
 from typing import List, Optional, Tuple
 
@@ -530,6 +533,64 @@ def get_host_git_root() -> str:
     return host_git_root_path
 
 
+def get_docker_mount_context() -> Tuple[bool, bool, str, str, str]:
+    """
+    Return Docker mount context for container operations.
+
+    :return: (is_caller_host, use_sibling_container_for_callee,
+              caller_mount_path, callee_mount_path, mount)
+    """
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    return (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    )
+
+
+def build_and_run_docker_cmd(
+    use_sudo: bool,
+    callee_mount_path: str,
+    mount: str,
+    container_image: str,
+    dockerfile: str,
+    tool_cmd: str,
+    mode: str,
+    *,
+    override_entrypoint: bool = False,
+    wrap_in_bash: bool = False,
+) -> str:
+    """
+    Build and execute a Docker command.
+    """
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    if override_entrypoint:
+        docker_cmd.append("--entrypoint ''")
+    # Check that the container image exists.
+    hdbg.dassert(image_exists(container_image, use_sudo)[0],
+        f"Container image '%s' does not exist", container_image)
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+        ]
+    )
+    if wrap_in_bash:
+        docker_cmd.append(f'bash -c "{tool_cmd}"')
+    else:
+        docker_cmd.append(tool_cmd)
+    docker_cmd_str = " ".join(docker_cmd)
+    return process_docker_cmd(
+        docker_cmd_str, container_image, dockerfile, mode
+    )
+
+
 # TODO(gp): Move to helpers.hdbg.
 def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     """
@@ -769,3 +830,36 @@ def convert_all_paths_from_caller_to_callee_docker_path(
             cmd_opts_out.append(cmd_opt_in)
     _LOG.debug(hprint.to_str("cmd_opts_out"))
     return cmd_opts_out
+
+
+# #############################################################################
+# CLI utilities
+# #############################################################################
+
+
+def add_open_arg(parser: argparse.ArgumentParser) -> None:
+    """
+    Add --open option to parser for opening output files on macOS.
+
+    :param parser: ArgumentParser instance to add the option to
+    """
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        default=False,
+        help="Open the output file on macOS",
+    )
+
+
+def open_file_on_macos(file_path: str) -> None:
+    """
+    Open a file on macOS using the 'open' command.
+
+    :param file_path: Path to the file to open
+    :raises subprocess.CalledProcessError: If open command fails
+    """
+    if platform.system() != "Darwin":
+        _LOG.warning("--open flag only works on macOS")
+        return
+    subprocess.run(["open", file_path], check=True)
+    _LOG.info("Opened file with macOS 'open' command: %s", file_path)

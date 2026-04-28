@@ -13,7 +13,6 @@ import logging
 
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
-import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
@@ -89,15 +88,13 @@ def run_dockerized_mermaid(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
-    if force_rebuild:
-        container_image = hdocker.build_container_image(
-            _MERMAID_CONTAINER_PREFIX,
-            _DOCKERFILE,
-            force_rebuild,
-            use_sudo,
-        )
-    else:
-        container_image = get_mermaid_container_image_name()
+    container_image = hdocker.build_container_image(
+        _MERMAID_CONTAINER_PREFIX,
+        _DOCKERFILE,
+        force_rebuild,
+        use_sudo,
+    )
+    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -105,7 +102,7 @@ def run_dockerized_mermaid(
         caller_mount_path,
         callee_mount_path,
         mount,
-    ) = hdocexec._get_docker_mount_context()
+    ) = hdocker.get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -137,7 +134,7 @@ def run_dockerized_mermaid(
         f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
         + f" -i {in_file_path} -o {out_file_path}"
     )
-    hdocexec._build_and_run_docker_cmd(
+    hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,

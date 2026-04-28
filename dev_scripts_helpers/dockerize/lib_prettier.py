@@ -18,7 +18,6 @@ import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
@@ -124,12 +123,10 @@ def run_dockerized_prettier(
     hdbg.dassert_in(file_type, ["md", "txt", "tex"])
     # Build the container, if needed.
     dockerfile = _get_prettier_dockerfile(file_type)
-    if force_rebuild:
-        container_image = hdocker.build_container_image(
-            f"tmp.prettier.{file_type}", dockerfile, force_rebuild, use_sudo
-        )
-    else:
-        container_image = get_prettier_container_image_name(file_type)
+    container_image = hdocker.build_container_image(
+        f"tmp.prettier.{file_type}", dockerfile, force_rebuild, use_sudo
+    )
+    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -137,7 +134,7 @@ def run_dockerized_prettier(
         caller_mount_path,
         callee_mount_path,
         mount,
-    ) = hdocexec._get_docker_mount_context()
+    ) = hdocker.get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -181,7 +178,7 @@ def run_dockerized_prettier(
     if out_file_path != in_file_path:
         bash_cmd += f" > {out_file_path}"
     # Build the Docker command.
-    ret = hdocexec._build_and_run_docker_cmd(
+    ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,
