@@ -20,7 +20,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_get_rendered_file_paths1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -315,19 +314,17 @@ class Test_render_image_code1(hunitest.TestCase):
     Test `_render_image_code()`.
     """
 
-    @pytest.mark.slow
-    def test_md1(self) -> None:
-        """
-        Check rendering of an image code in a Markdown file.
-        """
-        # Prepare inputs.
-        image_code = "digraph { A -> B }"
+    def helper(
+        self,
+        image_code: str,
+        image_code_type: str,
+        out_file_name: str,
+        dst_ext: str,
+        expected_path: str,
+    ) -> None:
         image_code_idx = 1
-        image_code_type = "graphviz"
-        template_out_file = os.path.join(self.get_scratch_space(), "test.md")
-        dst_ext = "png"
+        template_out_file = os.path.join(self.get_scratch_space(), out_file_name)
         dst_dir = os.path.join(self.get_scratch_space(), "figs")
-        # Run function.
         rel_img_paths = dshdreim._render_image_code(
             image_code,
             image_code_idx,
@@ -336,8 +333,21 @@ class Test_render_image_code1(hunitest.TestCase):
             dst_ext,
             dst_dir,
         )
-        # Check output.
-        self.assertEqual(rel_img_paths[0], "figs/test.1.png")
+        self.assertEqual(rel_img_paths[0], expected_path)
+
+    @pytest.mark.slow
+    def test_md1(self) -> None:
+        """
+        Check rendering of an image code in a Markdown file.
+        """
+        image_code = "digraph { A -> B }"
+        image_code_type = "graphviz"
+        out_file_name = "test.md"
+        dst_ext = "png"
+        expected_path = "figs/test.1.png"
+        self.helper(
+            image_code, image_code_type, out_file_name, dst_ext, expected_path
+        )
 
     @pytest.mark.superslow
     def test_md2(self) -> None:
@@ -345,51 +355,49 @@ class Test_render_image_code1(hunitest.TestCase):
         Check rendering of an image code in a Markdown file with a different
         image code type.
         """
-        # Prepare inputs.
         image_code = """
         graph TD
             B --> A
         """
-        image_code_idx = 1
         image_code_type = "mermaid"
-        template_out_file = os.path.join(self.get_scratch_space(), "test.md")
+        out_file_name = "test.md"
         dst_ext = "png"
-        dst_dir = os.path.join(self.get_scratch_space(), "figs")
-        # Run function.
-        rel_img_paths = dshdreim._render_image_code(
-            image_code,
-            image_code_idx,
-            image_code_type,
-            template_out_file,
-            dst_ext,
-            dst_dir,
+        expected_path = "figs/test.1.png"
+        self.helper(
+            image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
-        # Check output.
-        self.assertEqual(rel_img_paths[0], "figs/test.1.png")
 
     def test_md3(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different
         output file and extension.
         """
-        # Prepare inputs.
         image_code = "digraph { A -> B }"
-        image_code_idx = 1
         image_code_type = "graphviz"
-        template_out_file = os.path.join(self.get_scratch_space(), "test2.md")
+        out_file_name = "test2.md"
         dst_ext = "svg"
-        dst_dir = os.path.join(self.get_scratch_space(), "figs")
-        # Run function.
-        rel_img_paths = dshdreim._render_image_code(
-            image_code,
-            image_code_idx,
-            image_code_type,
-            template_out_file,
-            dst_ext,
-            dst_dir,
+        expected_path = "figs/test2.1.svg"
+        self.helper(
+            image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
-        # Check output.
-        self.assertEqual(rel_img_paths[0], "figs/test2.1.svg")
+
+    @pytest.mark.slow
+    def test_md4_svg(self) -> None:
+        """
+        Check rendering of SVG code to PNG.
+        """
+        image_code = r"""
+        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="40" fill="blue" />
+        </svg>
+        """
+        image_code_type = "svg"
+        out_file_name = "test_svg.md"
+        dst_ext = "png"
+        expected_path = "figs/test_svg.1.png"
+        self.helper(
+            image_code, image_code_type, out_file_name, dst_ext, expected_path
+        )
 
 
 # #############################################################################
@@ -402,115 +410,93 @@ class Test_insert_image_code1(hunitest.TestCase):
     Test _insert_image_code() for markdown files.
     """
 
+    def helper(
+        self,
+        rel_img_path: str,
+        user_img_size: str,
+        label: str,
+        caption: str,
+        expected: str,
+    ) -> None:
+        actual = dshdreim._insert_image_code(
+            ".md", rel_img_path, user_img_size, label=label, caption=caption
+        )
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
     def test_md1(self) -> None:
         """
         Test markdown output without label or caption.
         """
-        # Prepare inputs.
-        extension = ".md"
         rel_img_path = "figs/test.1.png"
         user_img_size = ""
         label = ""
         caption = ""
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = """
         <!--  render_images:begin -->
         ![](figs/test.1.png)
         <!--  render_images:end -->
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_md2(self) -> None:
         """
         Test markdown output with label only.
         """
-        # Prepare inputs.
-        extension = ".md"
         rel_img_path = "figs/test.1.png"
         user_img_size = ""
         label = "fig:test_diagram"
         caption = ""
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = """
         <!--  render_images:begin -->
         ![](figs/test.1.png){#fig:test_diagram}
         <!--  render_images:end -->
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_md3(self) -> None:
         """
         Test markdown output with caption only.
         """
-        # Prepare inputs.
-        extension = ".md"
         rel_img_path = "figs/test.1.png"
         user_img_size = ""
         label = ""
         caption = "Test diagram caption"
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = """
         <!--  render_images:begin -->
         ![Test diagram caption](figs/test.1.png)
         <!--  render_images:end -->
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_md4(self) -> None:
         """
         Test markdown output with both label and caption.
         """
-        # Prepare inputs.
-        extension = ".md"
         rel_img_path = "figs/test.1.png"
         user_img_size = ""
         label = "fig:test_diagram"
         caption = "Test diagram caption"
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = """
         <!--  render_images:begin -->
         ![Test diagram caption](figs/test.1.png){#fig:test_diagram}
         <!--  render_images:end -->
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_md5(self) -> None:
         """
         Test markdown output with user-specified size.
         """
-        # Prepare inputs.
-        extension = ".md"
         rel_img_path = "figs/test.1.png"
         user_img_size = "height=100%"
         label = "fig:test_diagram"
         caption = "Test diagram"
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = """
         <!--  render_images:begin -->
         ![Test diagram](figs/test.1.png){#fig:test_diagram height=100%}
         <!--  render_images:end -->
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
 
 # #############################################################################
@@ -523,21 +509,27 @@ class Test_insert_image_code2(hunitest.TestCase):
     Test _insert_image_code() for LaTeX files.
     """
 
+    def helper(
+        self,
+        rel_img_path: str,
+        user_img_size: str,
+        label: str,
+        caption: str,
+        expected: str,
+    ) -> None:
+        actual = dshdreim._insert_image_code(
+            ".tex", rel_img_path, user_img_size, label=label, caption=caption
+        )
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
     def test_tex1(self) -> None:
         """
         Test LaTeX output without label or caption.
         """
-        # Prepare inputs.
-        extension = ".tex"
         rel_img_path = "figs/test.1.png"
         user_img_size = ""
         label = ""
         caption = ""
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -545,23 +537,16 @@ class Test_insert_image_code2(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_tex2(self) -> None:
         """
         Test LaTeX output with label only.
         """
-        # Prepare inputs.
-        extension = ".tex"
         rel_img_path = "figs/test.1.png"
         user_img_size = ""
         label = "fig:test_diagram"
         caption = ""
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -570,23 +555,16 @@ class Test_insert_image_code2(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_tex3(self) -> None:
         """
         Test LaTeX output with caption only.
         """
-        # Prepare inputs.
-        extension = ".tex"
         rel_img_path = "figs/test.1.png"
         user_img_size = ""
         label = ""
         caption = "Test diagram caption"
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -595,23 +573,16 @@ class Test_insert_image_code2(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_tex4(self) -> None:
         """
         Test LaTeX output with both label and caption.
         """
-        # Prepare inputs.
-        extension = ".tex"
         rel_img_path = "figs/test.1.png"
         user_img_size = ""
         label = "fig:test_diagram"
         caption = "Test diagram caption"
-        # Run.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size, label=label, caption=caption
-        )
-        # Check output.
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -621,7 +592,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
 
 # #############################################################################
@@ -643,13 +614,13 @@ class Test_render_images1(hunitest.TestCase):
         :param file_ext: the extension of the input file
         """
         # Prepare inputs.
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split("\n")
+        txt_lines = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split("\n")
         out_file = os.path.join(self.get_scratch_space(), f"out.{file_ext}")
         dst_ext = "png"
         dst_dir = os.path.join(self.get_scratch_space(), "figs")
         # Render images.
         out_lines = dshdreim._render_images(
-            txt,
+            txt_lines,
             out_file,
             dst_ext,
             dst_dir,
@@ -1260,7 +1231,6 @@ class Test_render_images1(hunitest.TestCase):
 
 
 class Test_render_images2(hunitest.TestCase):
-
     def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.
@@ -1288,25 +1258,36 @@ class Test_render_images2(hunitest.TestCase):
         """
         Test running on a real Markdown file with plantUML code.
         """
-        self.helper("im_architecture.md")
+        file_name = "im_architecture.md"
+        self.helper(file_name)
 
     def test2(self) -> None:
         """
         Test running on a real Markdown file with mermaid code.
         """
-        self.helper("runnable_repo.md")
+        file_name = "runnable_repo.md"
+        self.helper(file_name)
 
     def test3(self) -> None:
         """
         Test running on a full LaTeX file with plantUML code.
         """
-        self.helper("sample_file_plantuml.tex")
+        file_name = "sample_file_plantuml.tex"
+        self.helper(file_name)
 
     def test4(self) -> None:
         """
         Test running on a full LaTeX file with mermaid code.
         """
-        self.helper("sample_file_mermaid.tex")
+        file_name = "sample_file_mermaid.tex"
+        self.helper(file_name)
+
+    def test5(self) -> None:
+        """
+        Test running on a Markdown file with SVG code.
+        """
+        file_name = "sample_file_svg.md"
+        self.helper(file_name)
 
 
 # #############################################################################
@@ -1322,15 +1303,14 @@ class Test_render_images_script1(hunitest.TestCase):
     different arguments and produces expected behavior.
     """
 
+    def _get_exec_path(self) -> str:
+        return hgit.find_file_in_git_tree("render_images.py", super_module=True)
+
     def test_script_help(self) -> None:
         """
         Test that the script can display help without errors.
         """
-        # Run the script with --help.
-        exec_path = hgit.find_file_in_git_tree(
-            "render_images.py", super_module=True
-        )
-        cmd = f"{exec_path} --help"
+        cmd = f"{self._get_exec_path()} --help"
         rc = hsystem.system(cmd)
         # Check that it succeeded.
         self.assertEqual(rc, 0)
@@ -1351,11 +1331,6 @@ class Test_render_images_script1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         hio.to_file(test_file, test_content)
-        # Run the script with dry_run.
-        exec_path = hgit.find_file_in_git_tree(
-            "render_images.py", super_module=True
-        )
-        cmd = f"{exec_path} -i {test_file} --action render --dry_run"
+        cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
         rc = hsystem.system(cmd)
-        # Check that it succeeded.
         self.assertEqual(rc, 0)

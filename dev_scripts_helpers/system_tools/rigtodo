@@ -1,0 +1,6 @@
+#!/bin/bash
+# """
+# Run rig with `TODO(ai_gp)` pattern.
+# """
+
+rig 'TODO\(ai_gp\)' "$@"
