@@ -17,6 +17,11 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_MERMAID_CLI_IMAGE_VERSION = "13.0.0"
+_MERMAID_NPM_VERSION = "11.14.0"
+_MERMAID_CLI_NPM_VERSION = "11.12.0"
+
 
 def run_dockerized_mermaid(
     in_file_path: str,
@@ -37,7 +42,7 @@ def run_dockerized_mermaid(
     _LOG.debug(hprint.func_signature_to_str())
     # Get the container image.
     _ = force_rebuild
-    container_image = "minlag/mermaid-cli"
+    container_image = f"minlag/mermaid-cli:{_MERMAID_CLI_IMAGE_VERSION}"
     dockerfile = ""
     # Convert files to Docker paths.
     (
@@ -126,7 +131,7 @@ def run_dockerized_mermaid2(
     RUN npx puppeteer browsers install chrome-headless-shell
 
     # Install mermaid.
-    RUN npm install -g mermaid @mermaid-js/mermaid-cli && npm cache clean --force
+    RUN npm install -g mermaid@{_MERMAID_NPM_VERSION} @mermaid-js/mermaid-cli@{_MERMAID_CLI_NPM_VERSION} && npm cache clean --force
     """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo

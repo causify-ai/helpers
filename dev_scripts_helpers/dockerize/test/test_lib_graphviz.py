@@ -3,6 +3,7 @@ import os
 import pytest
 
 import helpers.hdocker as hdocker
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
@@ -41,6 +42,23 @@ class Test_build_graphviz_container1(hunitest.TestCase):
             dshdligr.run_dockerized_graphviz,
             positional_args=[[]],
         )
+
+    def test2(self) -> None:
+        """
+        Test that the Graphviz version matches expected output.
+        """
+        use_sudo = hdocker.get_use_sudo()
+        docker_executable = hdocker.get_docker_executable(use_sudo)
+
+        # Run version command inside container.
+        cmd = (
+            f"{docker_executable} run --rm"
+            f' --entrypoint "" {image_name}'
+            " bash -c 'dot -V'"
+        )
+        _, output = hsystem.system_to_string(cmd)
+        # Freeze version output.
+        self.check_string(output)
 
 
 # #############################################################################

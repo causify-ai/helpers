@@ -19,11 +19,15 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_ALPINE_VERSION = "3.23"
+_TYPST_VERSION = "0.14.2"
+
 # Name and Dockerfile for the Typst container, exposed so tests can reference
 # them directly without duplicating the definition.
 TYPST_CONTAINER_IMAGE = "tmp.typst"
-TYPST_DOCKERFILE = r"""
-FROM alpine:latest
+TYPST_DOCKERFILE = rf"""
+FROM alpine:{_ALPINE_VERSION}
 
 # Install dependencies.
 RUN apk add --no-cache bash curl tar xz
@@ -39,10 +43,10 @@ RUN ARCH=$(uname -m) && \
         echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
     curl -fsSL \
-        "https://github.com/typst/typst/releases/latest/download/typst-${TYPST_ARCH}.tar.xz" \
+        "https://github.com/typst/typst/releases/download/v{_TYPST_VERSION}/typst-${{TYPST_ARCH}}.tar.xz" \
         -o /tmp/typst.tar.xz && \
     tar -xJf /tmp/typst.tar.xz -C /tmp && \
-    mv /tmp/typst-${TYPST_ARCH}/typst /usr/local/bin/typst && \
+    mv /tmp/typst-${{TYPST_ARCH}}/typst /usr/local/bin/typst && \
     rm -rf /tmp/typst* && \
     chmod +x /usr/local/bin/typst
 
@@ -58,13 +62,13 @@ RUN typst --version
 RUN apk add --no-cache ttf-dejavu && \
     BASE="https://raw.githubusercontent.com/google/fonts/main" && \
     mkdir -p /usr/share/fonts/lato && \
-    curl -fsSL "${BASE}/ofl/lato/Lato-Regular.ttf" \
+    curl -fsSL "${{BASE}}/ofl/lato/Lato-Regular.ttf" \
         -o /usr/share/fonts/lato/Lato-Regular.ttf && \
-    curl -fsSL "${BASE}/ofl/lato/Lato-Bold.ttf" \
+    curl -fsSL "${{BASE}}/ofl/lato/Lato-Bold.ttf" \
         -o /usr/share/fonts/lato/Lato-Bold.ttf && \
-    curl -fsSL "${BASE}/ofl/lato/Lato-Italic.ttf" \
+    curl -fsSL "${{BASE}}/ofl/lato/Lato-Italic.ttf" \
         -o /usr/share/fonts/lato/Lato-Italic.ttf && \
-    curl -fsSL "${BASE}/ofl/lato/Lato-BoldItalic.ttf" \
+    curl -fsSL "${{BASE}}/ofl/lato/Lato-BoldItalic.ttf" \
         -o /usr/share/fonts/lato/Lato-BoldItalic.ttf
 
 # Set working directory.

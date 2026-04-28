@@ -18,6 +18,29 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_ALPINE_VERSION = "3.23"
+
+# These containers don't work so we install it in a custom container.
+# _CONTAINER_PREFIX = "graphviz/graphviz"
+# _CONTAINER_PREFIX = "nshine/dot"
+_CONTAINER_PREFIX = "tmp.graphviz"
+_DOCKERFILE = rf"""
+FROM alpine:{_ALPINE_VERSION}
+
+RUN apk add --no-cache graphviz
+"""
+    
+
+def get_graphviz_container_image_name() -> str:
+    """
+    Get the name of the container image built in this module.
+
+    E.g., `tmp.graphviz.amd64.12345678` or `tmp.graphviz.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(_CONTAINER_PREFIX, _DOCKERFILE)
+    return container_image
+
 
 def run_dockerized_graphviz(
     in_file_path: str,
@@ -38,17 +61,8 @@ def run_dockerized_graphviz(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Get the container image.
-    # These containers don't work so we install it in a custom container.
-    # container_image = "graphviz/graphviz"
-    # container_image = "nshine/dot"
-    container_image = "tmp.graphviz"
-    dockerfile = r"""
-    FROM alpine:latest
-
-    RUN apk add --no-cache graphviz
-    """
     container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
+        _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
     (

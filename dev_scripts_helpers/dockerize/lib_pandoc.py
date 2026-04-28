@@ -24,6 +24,11 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_PANDOC_CORE_VERSION = "3.6"
+_PANDOC_LATEX_VERSION = "3.6"
+_TEXLIVE_VERSION = "2024"
+
 
 def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
@@ -120,7 +125,7 @@ def run_dockerized_pandoc(
     """
     _LOG.debug(hprint.func_signature_to_str())
     if container_type == "pandoc_only":
-        container_image = "pandoc/core"
+        container_image = f"pandoc/core:{_PANDOC_CORE_VERSION}"
         incremental = False
         dockerfile = ""
     else:
@@ -133,9 +138,9 @@ def run_dockerized_pandoc(
             cmd = f"cp -r {dir_name}/* tmp.docker_build/common/latex"
             hsystem.system(cmd)
             #
-            dockerfile = r"""
-            ARG pandoc_version=edge
-            FROM pandoc/core:${pandoc_version}-alpine
+            dockerfile = rf"""
+            ARG pandoc_version={_PANDOC_LATEX_VERSION}
+            FROM pandoc/core:${{pandoc_version}}-alpine
 
             # NOTE: to maintainers, please keep this listing alphabetical.
             RUN apk --no-cache add \
@@ -164,7 +169,7 @@ def run_dockerized_pandoc(
             ARG texlive_mirror_url=
 
             # Modify PATH environment variable, prepending TexLive bin directory
-            ENV PATH="${texlive_bin}/default:${PATH}"
+            ENV PATH="${{texlive_bin}}/default:${{PATH}}"
 
             # Ideally, the image would always install "linuxmusl" binaries. However,
             # those are not available for aarch64, so we install binaries that have
@@ -180,9 +185,9 @@ def run_dockerized_pandoc(
                         exit 1 \
                         ;; \
                 esac && \
-                mkdir -p ${texlive_bin} && \
-                ln -sf "${texlive_bin}/${TEXLIVE_ARCH}" "${texlive_bin}/default" && \
-                echo "binary_${TEXLIVE_ARCH} 1" >> /root/texlive.profile && \
+                mkdir -p ${{texlive_bin}} && \
+                ln -sf "${{texlive_bin}}/${{TEXLIVE_ARCH}}" "${{texlive_bin}}/default" && \
+                echo "binary_${{TEXLIVE_ARCH}} 1" >> /root/texlive.profile && \
                 ( \
                 [ -z "$texlive_version"    ] || printf '-t\n%s\n"' "$texlive_version"; \
                 [ -z "$texlive_mirror_url" ] || printf '-m\n%s\n' "$texlive_mirror_url" \
@@ -201,8 +206,8 @@ def run_dockerized_pandoc(
             incremental = True
         elif container_type == "pandoc_texlive":
             container_image = "tmp.pandoc_texlive"
-            dockerfile = r"""
-            FROM texlive/texlive:latest
+            dockerfile = rf"""
+            FROM texlive/texlive:{_TEXLIVE_VERSION}
 
             ENV DEBIAN_FRONTEND=noninteractive
             RUN apt-get update && \

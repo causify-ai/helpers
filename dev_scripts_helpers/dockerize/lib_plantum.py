@@ -17,6 +17,10 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_DEBIAN_BASE_VERSION = "bookworm-slim"
+_PLANTUML_VERSION = "1:1.2020.2+ds-3"
+
 
 def run_dockerized_plantuml(
     in_file_path: str,
@@ -39,13 +43,13 @@ def run_dockerized_plantuml(
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
     container_image = "tmp.plantuml"
-    dockerfile = r"""
+    dockerfile = rf"""
     # Use a lightweight base image.
-    FROM debian:bullseye-slim
+    FROM debian:{_DEBIAN_BASE_VERSION}
 
     # Install plantUML.
     RUN apt-get update && \
-        apt-get install -y --no-install-recommends plantuml && \
+        apt-get install -y --no-install-recommends plantuml={_PLANTUML_VERSION} && \
         apt-get clean && rm -rf /var/lib/apt/lists/*
     """
     container_image = hdocker.build_container_image(

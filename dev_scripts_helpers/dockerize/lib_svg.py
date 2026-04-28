@@ -18,6 +18,9 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_DEBIAN_BASE_VERSION = "bookworm-slim"
+
 
 def run_dockerized_svg_with_rsvg_convert(
     in_file_path: str,
@@ -47,9 +50,9 @@ def run_dockerized_svg_with_rsvg_convert(
     )
     # Build the container with rsvg-convert.
     container_image = "tmp.svg_rsvg_convert"
-    dockerfile = r"""
+    dockerfile = rf"""
     #FROM ubuntu:22.04
-    FROM debian:bookworm-slim
+    FROM {_DEBIAN_BASE_VERSION}
 
     RUN apt-get update && \
         apt-get install -y --no-install-recommends librsvg2-bin && \
@@ -134,9 +137,9 @@ def run_dockerized_svg_with_inkscape(
     )
     # Build the container with inkscape.
     container_image = "tmp.svg_inkscape"
-    dockerfile = r"""
+    dockerfile = rf"""
     #FROM ubuntu:22.04
-    FROM debian:bookworm-slim
+    FROM {_DEBIAN_BASE_VERSION}
 
     RUN apt-get update && \
         apt-get install -y --no-install-recommends inkscape && \

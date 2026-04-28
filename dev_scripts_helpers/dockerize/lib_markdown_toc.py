@@ -19,6 +19,9 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_MARKDOWN_TOC_VERSION = "1.2.0"
+
 
 def run_dockerized_markdown_toc(
     in_file_path: str,
@@ -36,12 +39,12 @@ def run_dockerized_markdown_toc(
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_image = "tmp.markdown_toc"
-    dockerfile = r"""
+    dockerfile = rf"""
     # Use a Node.js image
     FROM node:18-slim
 
-    # Install Prettier globally
-    RUN npm install -g markdown-toc && npm cache clean --force
+    # Install markdown-toc globally
+    RUN npm install -g markdown-toc@{_MARKDOWN_TOC_VERSION} && npm cache clean --force
 
     # Set a working directory inside the container
     WORKDIR /app

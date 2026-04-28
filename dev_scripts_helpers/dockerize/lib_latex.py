@@ -25,6 +25,9 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_TEXLIVE_FULL_IMAGE = "mfisherman/texlive-full:2024"
+
 
 def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
@@ -189,8 +192,8 @@ def run_dockerized_latex(
         CMD [ "bash" ]
         """
     if True:
-        dockerfile = r"""
-        FROM mfisherman/texlive-full
+        dockerfile = rf"""
+        FROM {_TEXLIVE_FULL_IMAGE}
 
         # Verify LaTeX is installed.
         RUN latex --version

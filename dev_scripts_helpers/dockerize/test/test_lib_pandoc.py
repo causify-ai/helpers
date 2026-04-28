@@ -6,6 +6,7 @@ import pytest
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
@@ -237,6 +238,24 @@ class Test_build_pandoc_container1(hunitest.TestCase):
             os.path.exists(output_file),
             msg=f"Output file {output_file} was not created",
         )
+
+    def test2(self) -> None:
+        """
+        Test that the Pandoc version matches expected output.
+        """
+        use_sudo = hdocker.get_use_sudo()
+        docker_executable = hdocker.get_docker_executable(use_sudo)
+        # Build the container.
+        image_name = 
+        # Run version command inside container.
+        cmd = (
+            f"{docker_executable} run --rm"
+            f' --entrypoint "" {image_name}'
+            " bash -c 'pandoc --version | head -1'"
+        )
+        _, output = hsystem.system_to_string(cmd)
+        # Freeze version output.
+        self.check_string(output)
 
 
 # #############################################################################

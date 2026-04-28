@@ -5,6 +5,7 @@ import pytest
 
 import helpers.hdocker as hdocker
 import helpers.hio as hio
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
@@ -53,6 +54,24 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
             os.path.exists(input_file),
             msg=f"Input file {input_file} should still exist",
         )
+
+    def test2(self) -> None:
+        """
+        Test that the markdown-toc version matches expected output.
+        """
+        use_sudo = hdocker.get_use_sudo()
+        docker_executable = hdocker.get_docker_executable(use_sudo)
+        # Build the container.
+        image_name =- dshdlmato
+        # Run version command inside container.
+        cmd = (
+            f"{docker_executable} run --rm"
+            f' --entrypoint "" {image_name}'
+            " bash -c 'markdown-toc --version'"
+        )
+        _, output = hsystem.system_to_string(cmd)
+        # Freeze version output.
+        self.check_string(output)
 
 
 # #############################################################################

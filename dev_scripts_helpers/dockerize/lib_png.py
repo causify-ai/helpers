@@ -21,6 +21,9 @@ import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_ALPINE_VERSION = "3.23"
+
 
 def run_dockerized_imagemagick(
     in_file_path: str,
@@ -37,8 +40,8 @@ def run_dockerized_imagemagick(
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container.
     container_image = "tmp.imagemagick"
-    dockerfile = r"""
-    FROM alpine:latest
+    dockerfile = rf"""
+    FROM alpine:{_ALPINE_VERSION}
 
     # Install Bash.
     RUN apk add --no-cache bash

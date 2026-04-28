@@ -61,6 +61,24 @@ class Test_build_typst_container1(hunitest.TestCase):
             msg=f"Expected 'typst' in version output, got: {output}",
         )
 
+    def test2(self) -> None:
+        """
+        Test that the Typst version matches expected output.
+        """
+        use_sudo = hdocker.get_use_sudo()
+        docker_executable = hdocker.get_docker_executable(use_sudo)
+        # Build the container.
+        image_name = 
+        # Run version command inside container.
+        cmd = (
+            f"{docker_executable} run --rm"
+            f' --entrypoint "" {image_name}'
+            " bash -c 'typst --version'"
+        )
+        _, output = hsystem.system_to_string(cmd)
+        # Freeze version output.
+        self.check_string(output)
+
 
 # #############################################################################
 # Test_run_dockerized_typst1

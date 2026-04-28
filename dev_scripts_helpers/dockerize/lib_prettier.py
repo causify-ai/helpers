@@ -22,6 +22,11 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
+# Version pins for tools
+_PRETTIER_VERSION = "3.8.3"
+_UNIFIED_LATEX_PRETTIER_VERSION = "1.7.1"
+_PRETTIER_PLUGIN_LATEX_VERSION = "2.0.1"
+
 
 def run_dockerized_prettier(
     in_file_path: str,
@@ -64,10 +69,10 @@ def run_dockerized_prettier(
     # TODO(gp): -> container_image_name
     container_image = f"tmp.prettier.{file_type}"
     if file_type in ("md", "txt"):
-        dockerfile = r"""
+        dockerfile = rf"""
         FROM node:20-slim
 
-        RUN npm install -g prettier
+        RUN npm install -g prettier@{_PRETTIER_VERSION}
 
         # Set a working directory inside the container.
         WORKDIR /app
@@ -76,15 +81,16 @@ def run_dockerized_prettier(
         ENTRYPOINT ["prettier"]
         """
     elif file_type == "tex":
-        # For Latex we need to pin down the dependencies since the latest
-        # version of prettier is not compatible with the latest version of
-        # prettier-plugin-latex.
-        dockerfile = r"""
+        # For Latex we pin dependencies to ensure compatibility between
+        # prettier, unified-latex-prettier, and prettier-plugin-latex.
+        # These versions are known to work together.
+        latex_prettier_version = "2.7.0"
+        dockerfile = rf"""
         FROM node:18-slim
 
-        RUN npm install -g prettier@2.7.0
-        RUN npm install -g @unified-latex/unified-latex-prettier@1.7.1
-        RUN npm install -g prettier-plugin-latex@2.0.1
+        RUN npm install -g prettier@{latex_prettier_version}
+        RUN npm install -g @unified-latex/unified-latex-prettier@{_UNIFIED_LATEX_PRETTIER_VERSION}
+        RUN npm install -g prettier-plugin-latex@{_PRETTIER_PLUGIN_LATEX_VERSION}
 
         # Set a working directory inside the container.
         WORKDIR /app
