@@ -53,7 +53,7 @@ class Test_build_png_container1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
         # Build the container.
-        image_name = 
+        image_name = dshdlipn.get_imagemagick_container_image_name()
         # Run version command inside container.
         cmd = (
             f"{docker_executable} run --rm"

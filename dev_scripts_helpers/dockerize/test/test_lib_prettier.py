@@ -45,7 +45,7 @@ class Test_build_prettier_container1(hunitest.TestCase):
             input_file_path,
             cmd_opts,
             output_file_path,
-            file_type=file_type,
+            file_type,
             mode="system",
             force_rebuild=True,
             use_sudo=use_sudo,
@@ -63,7 +63,8 @@ class Test_build_prettier_container1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
         # Build the container.
-        image_name = 
+        file_type = "md"
+        image_name = dshdlipr.get_prettier_container_image_name(file_type)
         # Run version command inside container.
         cmd = (
             f"{docker_executable} run --rm"
@@ -74,6 +75,24 @@ class Test_build_prettier_container1(hunitest.TestCase):
         # Freeze version output.
         self.check_string(output)
 
+    def test3(self) -> None:
+        """
+        Test that the Prettier version matches expected output.
+        """
+        use_sudo = hdocker.get_use_sudo()
+        docker_executable = hdocker.get_docker_executable(use_sudo)
+        # Build the container.
+        file_type = "tex"
+        image_name = dshdalipr.get_prettier_container_image_name(file_type)
+        # Run version command inside container.
+        cmd = (
+            f"{docker_executable} run --rm"
+            f' --entrypoint "" {image_name}'
+            " bash -c 'prettier --version'"
+        )
+        _, output = hsystem.system_to_string(cmd)
+        # Freeze version output.
+        self.check_string(output)
 
 # #############################################################################
 # Test_run_dockerized_prettier1
@@ -96,6 +115,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             "--prose-wrap always",
             "--tab-width 2",
         ]
+        file_type="md"
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run test.
@@ -103,7 +123,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             in_file_path,
             cmd_opts,
             out_file_path,
-            file_type="md",
+            file_type,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -120,12 +140,15 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         """
         # Prepare inputs.
         input_dir = self.get_input_dir()
-        output_dir = self.get_output_dir()
-        input_file_path = os.path.join(input_dir, "input.md")
-        output_file_path = os.path.join(output_dir, "output.md")
-        hio.create_dir(output_dir, incremental=True)
         hio.create_dir(input_dir, incremental=True)
+        input_file_path = os.path.join(input_dir, "input.md")
         hio.to_file(input_file_path, "# Test\n\nHello world")
+        #
+        output_dir = self.get_output_dir()
+        output_file_path = os.path.join(output_dir, "output.md")
+        #
+        file_type="md"
+        hio.create_dir(output_dir, incremental=True)
         cmd_opts = [
             "--parser",
             "markdown",
@@ -139,7 +162,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             input_file_path,
             cmd_opts,
             output_file_path,
-            file_type="md",
+            file_type=file_type,
             mode="system",
             force_rebuild=False,
             use_sudo=False,
@@ -191,6 +214,9 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         self.helper(txt, expected)
 
 
+# TODO(ai_gp): Ad the same test but for a txt file.
+
+
 # #############################################################################
 # Test_prettier_on_str
 # #############################################################################
@@ -209,6 +235,7 @@ class Test_prettier_on_str(hunitest.TestCase):
         ## Content
         """
         text = hprint.dedent(text)
+        file_type="md"
         cmd_opts = [
             "--parser",
             "markdown",
@@ -228,7 +255,7 @@ class Test_prettier_on_str(hunitest.TestCase):
         # Run test.
         actual = dshdlipr.prettier_on_str(
             text,
-            file_type="md",
+            file_type,
             cmd_opts=cmd_opts,
             mode="system",
             force_rebuild=False,

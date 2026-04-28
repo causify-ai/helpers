@@ -18,7 +18,7 @@ import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
-# Version pins for tools
+# Version pins for tools.
 _ALPINE_VERSION = "3.23"
 
 # These containers don't work so we install it in a custom container.

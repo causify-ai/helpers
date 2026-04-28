@@ -246,7 +246,8 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
         # Build the container.
-        image_name = 
+        container_type = "pandoc_texlive"
+        image_name = dshdlipa.get_pandoc_container_image_name(container_type)
         # Run version command inside container.
         cmd = (
             f"{docker_executable} run --rm"
@@ -334,9 +335,10 @@ class Test_run_dockerized_pandoc2(hunitest.TestCase):
         hio.create_dir(output_dir, incremental=True)
         cmd = f"pandoc {input_file} -o {output_file} --to=html --toc"
         # Run test.
+        container_type = "pandoc_texlive"
         dshdlipa.run_dockerized_pandoc(
             cmd,
-            container_type="pandoc_texlive",
+            container_type,
             force_rebuild=False,
             use_sudo=False,
         )

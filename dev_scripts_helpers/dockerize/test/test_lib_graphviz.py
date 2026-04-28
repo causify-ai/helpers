@@ -49,7 +49,8 @@ class Test_build_graphviz_container1(hunitest.TestCase):
         """
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
-
+        # Build the container.
+        image_name = dshdligr.get_graphviz_container_image_name()
         # Run version command inside container.
         cmd = (
             f"{docker_executable} run --rm"
