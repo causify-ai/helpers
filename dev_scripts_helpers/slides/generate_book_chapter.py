@@ -48,7 +48,7 @@ import helpers.hio as hio
 import helpers.hllm as hllm
 import helpers.hparser as hparser
 import dev_scripts_helpers.slides.slides_utils as dshsslut
-import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 

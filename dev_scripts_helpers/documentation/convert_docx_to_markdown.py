@@ -24,7 +24,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 
 _LOG = logging.getLogger(__name__)
 

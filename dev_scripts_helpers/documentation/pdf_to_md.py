@@ -27,7 +27,7 @@ Usage:
 Import as:
 
 import dev_scripts_helpers.documentation.pdf_to_md as dsdopema
-import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
+import dev_scripts_helpers.dockerize.lib_prettier as lib_prettier
 """
 
 import argparse

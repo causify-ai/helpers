@@ -41,11 +41,11 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 # TODO(ai_gp): Move close to the use if there is a single use of these libs.
-import dev_scripts_helpers.documentation.lib_graphviz as dshdligr
-import dev_scripts_helpers.documentation.lib_mermaid as dshdlime
-import dev_scripts_helpers.documentation.lib_plantum as dshdlipl
-import dev_scripts_helpers.documentation.lib_png as dshdlipn
-import dev_scripts_helpers.documentation.lib_svg as dshdlisv
+import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
+import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
+import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
+import dev_scripts_helpers.dockerize.lib_png as dshdlipn
+import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
 
 _LOG = logging.getLogger(__name__)
 

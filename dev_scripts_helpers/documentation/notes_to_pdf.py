@@ -33,8 +33,8 @@ import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.documentation.lib_latex as dshdlila
-import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.lib_latex as dshdlila
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 
 _LOG = logging.getLogger(__name__)
 

@@ -5,7 +5,7 @@ from typing import Optional
 import pytest
 
 import dev_scripts_helpers.documentation.lint_txt as dshdlitx
-import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
