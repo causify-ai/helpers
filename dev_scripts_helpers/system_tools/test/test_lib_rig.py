@@ -77,7 +77,7 @@ class TestRigScript(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test filter by file extension.
+        Test filter by file extension using third positional argument.
         """
         # Prepare inputs.
         args = ["class", ".", "py"]
@@ -124,3 +124,45 @@ class TestRigScript(hunitest.TestCase):
             expected_exit_code=expected_exit_code,
             side_effect=FileNotFoundError,
         )
+
+    def test7(self) -> None:
+        """
+        Test filter by multiple file extensions.
+        """
+        # Prepare inputs.
+        args = ["def", ".", "py,md"]
+        # Prepare outputs.
+        expected_cmd = "rg -g *.py -g *.md def . -n --no-heading --color=never"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test8(self) -> None:
+        """
+        Test filter with spaces in comma-separated extensions.
+        """
+        # Prepare inputs.
+        args = ["import", "src", "py, ipynb, md"]
+        # Prepare outputs.
+        expected_cmd = "rg -g *.py -g *.ipynb -g *.md import src -n --no-heading --color=never"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test9(self) -> None:
+        """
+        Test that extensions starting with dot raise assertion error.
+        """
+        # Prepare inputs.
+        args = ["def", ".", ".py"]
+        # Run test and expect assertion error.
+        with self.assertRaises(AssertionError):
+            hrig.main(args)

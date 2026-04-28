@@ -2,6 +2,19 @@
 Import as:
 
 import helpers.hrig as hrig
+
+Examples:
+# Search for pattern in current directory
+> rig.py TODO
+
+# Search in specific directory
+> rig.py import src
+
+# Filter by single file type
+> rig.py class . --file_types py
+
+# Filter by multiple file types
+> rig.py def . --file_types "py,md,ipynb"
 """
 
 import subprocess
@@ -31,7 +44,7 @@ def main(args: Optional[List[str]] = None) -> int:
         cmd = dshstliri._build_ripgrep_command(
             pattern=parsed.pattern,
             directory=parsed.directory,
-            extension=parsed.extension,
+            extensions=parsed.extensions,
             rg_opts=rg_opts,
         )
         subprocess.run(cmd)

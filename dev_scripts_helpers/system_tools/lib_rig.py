@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Ripgrep wrapper utility with file type filtering support.
+"""
 
 import argparse
 import logging
@@ -16,7 +19,7 @@ def _build_ripgrep_command(
     *,
     pattern: str,
     directory: str,
-    extension: Optional[str],
+    extensions: Optional[List[str]],
     rg_opts: List[str],
 ) -> List[str]:
     """
@@ -24,13 +27,14 @@ def _build_ripgrep_command(
 
     :param pattern: Search pattern (supports regex)
     :param directory: Directory to search in
-    :param extension: File extension filter (without dot), optional
+    :param extensions: File extensions to search (without dot), optional list
     :param rg_opts: Additional ripgrep options
     :return: Command list ready for subprocess
     """
     cmd = ["rg"]
-    if extension:
-        cmd.extend(["-g", f"*.{extension}"])
+    if extensions:
+        for ext in extensions:
+            cmd.extend(["-g", f"*.{ext}"])
     cmd.append(pattern)
     cmd.append(directory)
     cmd.extend(rg_opts)
@@ -51,7 +55,7 @@ def parse() -> argparse.ArgumentParser:
     Parse command-line arguments for rig utility.
 
     Supports:
-    - Search mode: pattern [directory] [extension] [rg_opts]
+    - Search mode: pattern [directory] [extensions]
     - Help mode: --help or -h
 
     :return: ArgumentParser instance
@@ -77,13 +81,19 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     result = argparse.Namespace()
     result.pattern = None
     result.directory = "."
-    result.extension = None
+    result.extensions = None
     if parsed.positional:
         result.pattern = parsed.positional[0]
     if len(parsed.positional) > 1:
         result.directory = parsed.positional[1]
     if len(parsed.positional) > 2:
-        result.extension = parsed.positional[2]
+        result.extensions = [ext.strip() for ext in parsed.positional[2].split(",")]
+        # Assert that none of the extensions start with a dot
+        for ext in result.extensions:
+            hdbg.dassert(
+                not ext.startswith("."),
+                f"Extension '{ext}' should not start with a dot",
+            )
     return result
 
 
@@ -112,7 +122,7 @@ def main(parser: argparse.ArgumentParser) -> int:
     cmd = _build_ripgrep_command(
         pattern=parsed.pattern,
         directory=parsed.directory,
-        extension=parsed.extension,
+        extensions=parsed.extensions,
         rg_opts=rg_opts,
     )
     _LOG.debug("> %s", cmd)

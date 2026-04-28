@@ -79,7 +79,9 @@ def get_prettier_container_image_name(file_type: str) -> str:
     """
     container_prefix = f"tmp.prettier.{file_type}"
     dockerfile = _get_prettier_dockerfile(file_type)
-    container_image, _ = hdocker.get_container_image_name(container_prefix, dockerfile)
+    container_image, _ = hdocker.get_container_image_name(
+        container_prefix, dockerfile
+    )
     return container_image
 
 
