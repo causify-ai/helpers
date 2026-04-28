@@ -33,6 +33,7 @@ import linters.action as liaction
 import linters.add_python_init_files as lapyinfi
 import linters.amp_add_class_frames as laadclfr
 import linters.amp_add_toc_to_notebook as laattono
+import linters.amp_actionlint as laactlin
 import linters.amp_autoflake as lampauto
 import linters.amp_black as lampblac
 import linters.amp_check_file_size as lachfisi
@@ -162,6 +163,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
 ]
 
 _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
+    (
+        "actionlint",
+        "Checks GitHub Actions workflow files with actionlint",
+        laactlin._Actionlint,  # pylint: disable=protected-access
+    ),
     (
         "check_file_size",
         "Checks if file size is too large",
