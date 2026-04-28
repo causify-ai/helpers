@@ -1,0 +1,1 @@
+pdfTeX 3.141592653-2.6-1.40.26 (TeX Live 2024/Alpine Linux)

@@ -61,20 +61,22 @@ import linters2.linter_utils as llinutil
 
 _LOG = logging.getLogger(__name__)
 
-_VALID_ACTIONS = [
-    "pre-commit",
-    "normalize_import",
+_VALID_ACTIONS = set([
     "add_class_frames",
-    "sync_jupytext",
-    "pyright",
     "coverage",
+    "fix_pyright",
+    "normalize_import",
+    "pre-commit",
+    "pyright",
+    "sync_jupytext",
 ]
 
+# They are executed in the order given by the list.
 _DEFAULT_ACTIONS = [
     "pre-commit",
     "normalize_import",
     "add_class_frames",
-]
+])
 
 _PYRIGHT_OPTIONS = ""
 
@@ -276,12 +278,14 @@ def _lint_markdown_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
+    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Markdown files using lint_txt.py.
 
     :param file_paths: Markdown files to lint
     :param abort_on_error: whether to abort on first error
+    :param actions: list of actions to perform (passed to lint_txt.py)
     :return: combined return code (OR of all command return codes)
     """
     if not file_paths:

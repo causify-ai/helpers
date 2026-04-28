@@ -17,13 +17,12 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 # Version pins for tools
-_DEBIAN_BASE_VERSION = "bookworm-slim"
 _PLANTUML_VERSION = "1:1.2020.2+ds-3"
 
 _CONTAINER_PREFIX = "tmp.plantuml"
 _DOCKERFILE = rf"""
 # Use a lightweight base image.
-FROM debian:{_DEBIAN_BASE_VERSION}
+FROM ubuntu:22.04
 
 # Install plantUML.
 RUN apt-get update && \

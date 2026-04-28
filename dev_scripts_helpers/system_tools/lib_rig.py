@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 """
 Ripgrep wrapper utility with file type filtering support.
+
+Provides a command-line interface for ripgrep (rg) with support for filtering
+by file extensions and searching only in modified, branched, or user-specified
+files.
 """
 
 import argparse
@@ -10,7 +14,6 @@ from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import helpers.hprint as hprint
 import helpers.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
@@ -37,6 +40,14 @@ def _build_ripgrep_command(
     cmd = ["rg"]
     if extensions:
         for ext in extensions:
+            # Ensure extensions don't have a dot prefix since ripgrep expects
+            # bare extension names (e.g., "py" not ".py") when using the
+            # `-g glob` filter.
+            hdbg.dassert(
+                not ext.startswith("."),
+                "Extension '%s' must not start with dot",
+                ext,
+            )
             cmd.extend(["-g", f"*.{ext}"])
     cmd.append(pattern)
     if files:
@@ -45,15 +56,6 @@ def _build_ripgrep_command(
         cmd.append(directory)
     cmd.extend(rg_opts)
     return cmd
-
-
-def _get_default_rg_opts() -> List[str]:
-    """
-    Get default ripgrep options.
-
-    :return: List of default options
-    """
-    return ["-n", "--no-heading", "--color=never"]
 
 
 def _get_files_to_search(
@@ -90,9 +92,12 @@ def _get_files_to_search(
 
 def parse() -> argparse.ArgumentParser:
     """
-    Parse command-line arguments for rig utility.
+    Create and return ArgumentParser for rig utility.
 
-    :return: ArgumentParser instance
+    Configures arguments for: search pattern, directory, file extensions,
+    file selection filters (modified, branch, last-commit, all), and verbosity.
+
+    :return: Configured ArgumentParser instance
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -127,6 +132,11 @@ def parse() -> argparse.ArgumentParser:
         type=str,
         help="Search in specific files (space-separated list)",
     )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Print the ripgrep command and exit without running it",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -147,6 +157,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     result.last_commit = parsed.last_commit
     result.all_files = parsed.all_files
     result.files_from_user = parsed.files
+    result.dry_run = parsed.dry_run
     if parsed.positional:
         result.pattern = parsed.positional[0]
     if len(parsed.positional) > 1:
@@ -155,11 +166,13 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
         result.extensions = [
             ext.strip() for ext in parsed.positional[2].split(",")
         ]
-        # Assert that none of the extensions start with a dot
+        # Ensure extensions don't have a dot prefix since ripgrep expects bare
+        # extension names (e.g., "py" not ".py") when using the `-g glob` filter.
         for ext in result.extensions:
             hdbg.dassert(
                 not ext.startswith("."),
-                f"Extension '{ext}' should not start with a dot",
+                "Extension '%s' must not start with dot",
+                ext,
             )
     return result
 
@@ -187,13 +200,21 @@ def main(
         report_command_line=False,
         log_filename="",
     )
-    _LOG.debug(hprint.func_signature_to_str())
     parsed = _parse_arguments(parsed)
     if not parsed.pattern:
         parser.print_help()
         return 0
-    rg_opts = _get_default_rg_opts()
-    # Get files if file selection options are specified.
+    # Default ripgrep options for consistent output formatting.
+    rg_opts = [
+        # Show line numbers.
+        "-n",
+        # Omit file headers.
+        "--no-heading",
+        # Plain output without ANSI colors.
+        "--color=never",
+    ]
+    # Retrieve filtered file list if user specified file selection criteria;
+    # otherwise search entire directory.
     files = _get_files_to_search(
         modified=parsed.modified,
         branch=parsed.branch,
@@ -208,7 +229,14 @@ def main(
         rg_opts=rg_opts,
         files=files,
     )
-    _LOG.debug("> %s", cmd)
+    # Log the command in shell format for easy copy-paste debugging.
     _LOG.debug("> %s", " ".join(cmd))
-    subprocess.run(cmd)
+    if parsed.dry_run:
+        # Print the command and exit without running it.
+        print(" ".join(cmd))
+        return 0
+    try:
+        subprocess.run(cmd)
+    except FileNotFoundError:
+        return 1
     return 0

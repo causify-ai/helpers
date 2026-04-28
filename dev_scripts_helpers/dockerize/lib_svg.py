@@ -17,17 +17,13 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Version pins for tools
-_DEBIAN_BASE_VERSION = "bookworm-slim"
-
 
 # #############################################################################
 
 
 _RSVG_CONVERT_CONTAINER_PREFIX = "tmp.svg_rsvg_convert"
 _RSVG_CONVERT_DOCKERFILE = rf"""
-#FROM ubuntu:22.04
-FROM {_DEBIAN_BASE_VERSION}
+FROM ubuntu:22.04
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends librsvg2-bin && \
@@ -133,8 +129,7 @@ def run_dockerized_svg_with_rsvg_convert(
 
 _INKSCAPE_CONTAINER_PREFIX = "tmp.svg_inkscape"
 _INKSCAPE_DOCKERFILE = rf"""
-#FROM ubuntu:22.04
-FROM {_DEBIAN_BASE_VERSION}
+FROM ubuntu:22.04
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends inkscape && \
