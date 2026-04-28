@@ -17,7 +17,6 @@ _LOG = logging.getLogger(__name__)
 
 
 def _build_ripgrep_command(
-    *,
     pattern: str,
     directory: str,
     extensions: Optional[List[str]],

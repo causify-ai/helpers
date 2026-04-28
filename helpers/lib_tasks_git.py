@@ -405,7 +405,7 @@ def git_files(  # type: ignore
     modified=False,
     branch=False,
     last_commit=False,
-    # TODO(ai_gp): file_types="" means every file, use this as default.
+    # TODO(ai_gp): file_types="" means every file and use this as default.
     file_types="py,ipynb,md",
     pbcopy=False,
     only_print_files=False,

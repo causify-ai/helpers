@@ -494,7 +494,9 @@ def _main(args: argparse.Namespace) -> int:
         selected_types.append("markdown")
     if "txt" in file_extensions:
         selected_types.append("text")
-    # TODO(ai_gp): Make sure that there are no file types not processed.
+    # TODO(ai_gp): Make sure that there are no file types not processed
+    # by making a copy of file_extensions to a set, removing elements
+    # from a set and then asserting that the file_extensions is empty
     print(hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
     all_files = python_files + jupyter_files + markdown_files
     breakdown = f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, Markdown: {len(markdown_files)}"

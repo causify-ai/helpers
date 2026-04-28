@@ -215,7 +215,9 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         self.helper(txt, expected)
 
 
-# TODO(ai_gp): Ad the same test but for a txt file.
+# TODO(ai_gp): Ad the same tests as Test_run_dockerized_prettier1 but for a txt file
+# and call it Test_run_dockerized_prettier_txt1
+# rename Test_run_dockerized_prettier1 -> Test_run_dockerized_prettier_md1
 
 
 # #############################################################################

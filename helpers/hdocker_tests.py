@@ -114,6 +114,7 @@ def run_all_tests(
 # #############################################################################
 
 
+# TODO(gp): Can this be used for run_dockerized_* tests?
 class DockerTestCase(hunitest.TestCase):
     """
     Base test class for Docker tests.
@@ -123,9 +124,6 @@ class DockerTestCase(hunitest.TestCase):
     """
 
     _test_file: str = ""
-
-    # TODO(ai_gp): Add test_docker_build_from_scratch marked as superslow
-    # to build the container from scratch.
 
     @pytest.mark.slow
     def test_docker_build(self) -> None:
