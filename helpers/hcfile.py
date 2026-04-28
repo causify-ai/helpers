@@ -36,7 +36,7 @@ def parse_cfile(cfile: str) -> List[Tuple[str, str, str]]:
         # ```
         # dev_scripts_helpers/llms/llm_prompts.py:106: in public function `test`:D404: ...
         # dev_scripts_helpers/llms/llm_prompts.py:110: error: Need type annotation for ...
-        # dev_scripts_helpers/llms/dockerized_llm_review.py:63:33: F821 undefined name '_extract_bullet_points' [flake8]
+        # dev_scripts_helpers/llms/llm_transform.py:63:33: F821 undefined name '_extract_bullet_points' [flake8]
         # ```
         # extracting the file name, line number, and transform.
         regex = r"^([^:]+):(\d+):(.*)$"

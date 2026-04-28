@@ -173,10 +173,6 @@ def code_apply_cfile() -> _PROMPT_OUT:
 # Fix code issues.
 
 
-# TODO(gp): The code fixes are superseded by the llm_review.py approach using
-# the guideline file.
-
-
 def code_fix_from_imports() -> _PROMPT_OUT:
     """
     Fix code to use imports instead of "from import" statements.

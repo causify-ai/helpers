@@ -38,6 +38,7 @@ def create_test_file(self_: Any, txt: str, extension: str) -> str:
 
 # TODO(gp): Consider adding these as TestCase.assert_file_exists similar to the
 # hdbg counterparts.
+# TODO(ai_gp): Inline this.
 def assert_output_file_exists(self_: Any, out_file_path: str) -> None:
     """
     Assert that a file exists at the given path.
