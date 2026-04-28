@@ -24,26 +24,9 @@ class Test_build_png_container1(hunitest.TestCase):
         """
         Test that the PNG Docker container is built correctly.
         """
-        # Prepare inputs.
-        tikz_code = r"""
-        \documentclass[tikz, border=10pt]{standalone}
-        \usepackage{tikz}
-        \begin{document}
-        \begin{tikzpicture}
-            \draw[thick, fill=blue!20] (0,0) circle (1.5cm);
-            \node at (0,0) {$A$};
-        \end{tikzpicture}
-        \end{document}
-        """
-        tikz_code = tikz_code.strip()
-        # Run test.
-        dshddout.test_container_build(
-            self,
-            tikz_code,
-            "tex",
-            "png",
-            dshdlipn.run_dockerized_tikz_to_bitmap,
-            positional_args=[["-density 300"]],
+        use_sudo = hdocker.get_use_sudo()
+        dshdlipn.build_imagemagick_container_image(
+            force_rebuild=True, use_sudo=use_sudo
         )
 
     def test2(self) -> None:

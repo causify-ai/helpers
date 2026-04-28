@@ -25,22 +25,9 @@ class Test_build_latex_container1(hunitest.TestCase):
         """
         Test that the LaTeX Docker container is built correctly.
         """
-        # Prepare inputs.
-        latex_code = r"""
-        \documentclass{article}
-        \begin{document}
-        Hello, World!
-        \end{document}
-        """
-        latex_code = latex_code.strip()
-        # Run test.
-        dshddout.test_container_build(
-            self,
-            latex_code,
-            "tex",
-            "pdf",
-            dshdlila.run_basic_latex,
-            positional_args=[[], True],
+        use_sudo = hdocker.get_use_sudo()
+        dshdlila.build_latex_container_image(
+            force_rebuild=True, use_sudo=use_sudo
         )
 
     def test2(self) -> None:

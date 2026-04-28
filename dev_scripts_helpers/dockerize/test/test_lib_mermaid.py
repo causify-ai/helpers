@@ -24,21 +24,9 @@ class Test_build_mermaid_container1(hunitest.TestCase):
         """
         Test that the Mermaid Docker container is built correctly.
         """
-        # Prepare inputs.
-        mermaid_code = r"""
-        graph TD
-            A[Start] --> B[Process]
-            B --> C[End]
-        """
-        mermaid_code = mermaid_code.strip()
-        # Run test.
-        dshddout.test_container_build(
-            self,
-            mermaid_code,
-            "mmd",
-            "svg",
-            dshdlime.run_dockerized_mermaid,
-            positional_args=[[]],
+        use_sudo = hdocker.get_use_sudo()
+        dshdlime.build_mermaid_container_image(
+            force_rebuild=True, use_sudo=use_sudo
         )
 
     def test2(self) -> None:

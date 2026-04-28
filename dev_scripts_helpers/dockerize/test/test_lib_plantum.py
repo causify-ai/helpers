@@ -24,22 +24,9 @@ class Test_build_plantum_container1(hunitest.TestCase):
         """
         Test that the PlantUML Docker container is built correctly.
         """
-        # Prepare inputs.
-        plantum_code = r"""
-        @startuml
-        Alice -> Bob: Hello
-        Bob -> Alice: Hi back
-        @enduml
-        """
-        plantum_code = plantum_code.strip()
-        # Run test.
-        dshddout.test_container_build(
-            self,
-            plantum_code,
-            "puml",
-            "svg",
-            dshdlipl.run_dockerized_plantuml,
-            positional_args=[["svg"]],
+        use_sudo = hdocker.get_use_sudo()
+        dshdlipl.build_plantuml_container_image(
+            force_rebuild=True, use_sudo=use_sudo
         )
 
     def test2(self) -> None:

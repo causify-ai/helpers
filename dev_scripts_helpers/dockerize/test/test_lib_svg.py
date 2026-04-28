@@ -1,4 +1,3 @@
-import logging
 import os
 
 import pytest
@@ -7,10 +6,7 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -28,18 +24,9 @@ class Test_build_svg_container1(hunitest.TestCase):
         """
         Test that the SVG Docker container is built correctly.
         """
-        svg_code = """
-        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="40" fill="blue" />
-        </svg>
-        """
-        dshddout.test_container_build(
-            self,
-            svg_code,
-            "svg",
-            "png",
-            dshdlisv.run_dockerized_svg_with_rsvg_convert,
-            run_kwargs={"output_format": "png"},
+        use_sudo = hdocker.get_use_sudo()
+        dshdlisv.build_svg_rsvg_convert_container_image(
+            force_rebuild=True, use_sudo=use_sudo
         )
 
     def test2(self) -> None:

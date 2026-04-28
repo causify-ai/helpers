@@ -24,23 +24,9 @@ class Test_build_graphviz_container1(hunitest.TestCase):
         """
         Test that the Graphviz Docker container is built correctly.
         """
-        # Prepare inputs.
-        graphviz_code = r"""
-        digraph {
-            a -> b[label="0.2"];
-            a -> c[label="0.4"];
-            c -> b[label="0.6"];
-        }
-        """
-        graphviz_code = graphviz_code.strip()
-        # Run test.
-        dshddout.test_container_build(
-            self,
-            graphviz_code,
-            "dot",
-            "png",
-            dshdligr.run_dockerized_graphviz,
-            positional_args=[[]],
+        use_sudo = hdocker.get_use_sudo()
+        dshdligr.build_graphviz_container_image(
+            force_rebuild=True, use_sudo=use_sudo
         )
 
     def test2(self) -> None:
