@@ -12,6 +12,7 @@ import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 import logging
 from typing import List
 
+import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
 
@@ -88,7 +89,7 @@ def run_dockerized_mermaid(
     :param use_sudo: whether to use sudo for Docker commands
     """
     _LOG.debug(hprint.func_signature_to_str())
-    hdbg.dassert_eq(cmd_opts, "")
+    hdbg.dassert_eq(cmd_opts, [])
     # Build the container, if needed.
     container_image = hdocker.build_container_image(
         _MERMAID_CONTAINER_PREFIX,
