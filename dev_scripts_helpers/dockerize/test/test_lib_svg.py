@@ -70,7 +70,6 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
         # Check that output file was created.
         self.assertTrue(os.path.exists(out_file))
 
-    @pytest.mark.slow
     def test_svg_to_png(self) -> None:
         """
         Test converting SVG to PNG using rsvg-convert.
@@ -84,7 +83,6 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
         output_format = "png"
         self._run_svg_conversion(svg_code, out_filename, output_format)
 
-    @pytest.mark.slow
     def test_svg_to_pdf(self) -> None:
         """
         Test converting SVG to PDF using rsvg-convert.
@@ -127,7 +125,6 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
         # Check that output file was created.
         self.assertTrue(os.path.exists(out_file))
 
-    @pytest.mark.slow
     def test_svg_to_png(self) -> None:
         """
         Test converting SVG to PNG using inkscape.
@@ -141,7 +138,6 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
         output_format = "png"
         self._run_svg_conversion(svg_code, out_filename, output_format)
 
-    @pytest.mark.slow
     def test_svg_to_pdf(self) -> None:
         """
         Test converting SVG to PDF using inkscape.

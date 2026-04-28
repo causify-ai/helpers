@@ -20,7 +20,7 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
     Test building the `markdown-toc` container.
     """
 
-    @pytest.mark.superslow
+    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the markdown-toc Docker container is built correctly.
@@ -86,7 +86,6 @@ class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
             actual, expected, dedent=True, remove_lead_trail_empty_lines=True
         )
 
-    @pytest.mark.superslow
     def test1(self) -> None:
         """
         Test running the `markdown-toc` command inside a Docker container.

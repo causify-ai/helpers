@@ -18,7 +18,7 @@ class Test_build_png_container1(hunitest.TestCase):
     Test building the `png` container for tikz to bitmap conversion.
     """
 
-    @pytest.mark.superslow
+    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the PNG Docker container is built correctly.
@@ -52,7 +52,6 @@ class Test_build_png_container1(hunitest.TestCase):
 
 
 class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
-    @pytest.mark.superslow
     def test1(self) -> None:
         """
         Run `tikz_to_bitmap` inside a Docker container.
@@ -104,7 +103,6 @@ class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
 
 class Test_run_dockerized_imagemagick1(hunitest.TestCase):
-    @pytest.mark.slow
     def test1(self) -> None:
         """
         Run `imagemagick` inside a Docker container.

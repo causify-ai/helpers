@@ -19,7 +19,7 @@ class Test_build_latex_container1(hunitest.TestCase):
     Test building the `latex` container.
     """
 
-    @pytest.mark.superslow
+    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the LaTeX Docker container is built correctly.
@@ -49,7 +49,6 @@ class Test_build_latex_container1(hunitest.TestCase):
 
 
 class Test_run_dockerized_latex1(hunitest.TestCase):
-    @pytest.mark.superslow
     def test1(self) -> None:
         """
         Run `latex` inside a Docker container.

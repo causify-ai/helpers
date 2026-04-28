@@ -202,12 +202,11 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_build_pandoc_container
+# Test_build_pandoc_container1
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_build_pandoc_container1
-class Test_build_pandoc_container(hunitest.TestCase):
+class Test_build_pandoc_container1(hunitest.TestCase):
     """
     Test building the `pandoc` container.
     """
@@ -298,13 +297,11 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_run_dockerized_pandoc
+# Test_run_dockerized_pandoc2
 # #############################################################################
 
 
-@pytest.mark.superslow("~457 seconds.")
-# TODO(ai_gp): -> Test_run_dockerized_pandoc2
-class Test_run_dockerized_pandoc(hunitest.TestCase):
+class Test_run_dockerized_pandoc2(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test Dockerized Pandoc reads an externally provided input file,

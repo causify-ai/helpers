@@ -12,11 +12,11 @@ import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 
 # #############################################################################
-# Test_build_prettier_container
+# Test_build_prettier_container1
 # #############################################################################
 
 
-class Test_build_prettier_container(hunitest.TestCase):
+class Test_build_prettier_container1(hunitest.TestCase):
     """
     Test building the `prettier` container.
     """
