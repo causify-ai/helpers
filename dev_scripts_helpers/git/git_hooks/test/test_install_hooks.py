@@ -109,3 +109,61 @@ class Test_git_hooks_utils1(hunitest.TestCase):
             val = m.group(1)
             _LOG.debug("  -> val=%s", val)
         self.assertEqual(bool(m), expected)
+
+
+class Test_install_hooks1(hunitest.TestCase):
+    def test_install1(self) -> None:
+        """
+        Install action links both git hook phases into the target hooks dir.
+        """
+        import unittest.mock as umock
+        import dev_scripts_helpers.git.git_hooks.install_hooks as dsgghinho
+
+        commands = []
+
+        def _system(cmd: str, *args, **kwargs):
+            commands.append(cmd)
+            return 0
+
+        with umock.patch("sys.argv", ["install_hooks.py", "--action", "install"]), \
+            umock.patch("helpers.hgit.find_helpers_root", return_value="/repo"), \
+            umock.patch("helpers.hdbg.dassert_dir_exists"), \
+            umock.patch("helpers.hdbg.dassert_file_exists"), \
+            umock.patch("helpers.hsystem.system_to_one_line", return_value=(0, "/repo/.git/hooks")), \
+            umock.patch("helpers.hsystem.system", side_effect=_system):
+            dsgghinho._main()
+        expected = [
+            "ln -sf /repo/dev_scripts_helpers/git/git_hooks/pre-commit.py /repo/.git/hooks/pre-commit",
+            "chmod +x /repo/dev_scripts_helpers/git/git_hooks/pre-commit.py",
+            "chmod +x /repo/.git/hooks/pre-commit",
+            "ln -sf /repo/dev_scripts_helpers/git/git_hooks/commit-msg.py /repo/.git/hooks/commit-msg",
+            "chmod +x /repo/dev_scripts_helpers/git/git_hooks/commit-msg.py",
+            "chmod +x /repo/.git/hooks/commit-msg",
+        ]
+        self.assertEqual(commands, expected)
+
+    def test_remove1(self) -> None:
+        """
+        Remove action unlinks installed hook files when they exist.
+        """
+        import unittest.mock as umock
+        import dev_scripts_helpers.git.git_hooks.install_hooks as dsgghinho
+
+        commands = []
+
+        def _system(cmd: str, *args, **kwargs):
+            commands.append(cmd)
+            return 0
+
+        with umock.patch("sys.argv", ["install_hooks.py", "--action", "remove"]), \
+            umock.patch("helpers.hgit.find_helpers_root", return_value="/repo"), \
+            umock.patch("helpers.hdbg.dassert_dir_exists"), \
+            umock.patch("helpers.hsystem.system_to_one_line", return_value=(0, "/repo/.git/hooks")), \
+            umock.patch("os.path.exists", return_value=True), \
+            umock.patch("helpers.hsystem.system", side_effect=_system):
+            dsgghinho._main()
+        expected = [
+            "unlink /repo/.git/hooks/pre-commit",
+            "unlink /repo/.git/hooks/commit-msg",
+        ]
+        self.assertEqual(commands, expected)
