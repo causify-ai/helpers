@@ -144,16 +144,27 @@ Are you sure you want to synchronize labels? [y/n] y
 
 ### Using Invoke
 
-TODO(\*): Update this section once the invoke target is implemented
+You can run the script through the `invoke` target where `$FILENAME` is the
+name of the YAML file containing the labels.
 
-- You can run the script using the `invoke` command where `$FILENAME` is the
-  name of the YAML file containing the labels:
+To synchronize a single repository:
 
 ```bash
-> i sync_gh_issue_labels \
-    --input_file $FILENAME \
-    --owner causify-ai \
+> i gh_sync_issue_labels \
+    --input-file $FILENAME \
+    --org-name causify-ai \
     --repo sports_analytics \
-    --token_env_var GITHUB_TOKEN  \
+    --token-env-var GITHUB_TOKEN \
+    --backup
+```
+
+To synchronize all repositories in an organization, omit `--repo`. The target
+uses `gh repo list $ORG` and runs the synchronization script once per repo:
+
+```bash
+> i gh_sync_issue_labels \
+    --input-file $FILENAME \
+    --org-name causify-ai \
+    --token-env-var GITHUB_TOKEN \
     --backup
 ```
