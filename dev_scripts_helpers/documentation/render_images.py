@@ -961,6 +961,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Get list of input files using multi-file parsing.
     in_files = hparser.parse_multi_file_args(args)
     # Handle output file for multi-file mode.
+    out_file = ""
     if len(in_files) > 1:
         # Multi-file mode.
         hdbg.dassert_eq(
@@ -984,7 +985,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         default_dst_dir = args.dst_dir
         _LOG.info("Using specified --dst_dir: %s", default_dst_dir)
     # Initialize variables for file processing.
-    out_file = ""
     dst_dir = ""
     # Process each file with progress bar.
     _LOG.info("Processing %s files", len(in_files))

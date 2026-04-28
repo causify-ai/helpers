@@ -67,6 +67,20 @@ def _run_docker_pytest_cmd(
     return rc
 
 
+def run_docker_cmd(script_dir: str, *, shell_cmd: str = "ls /git_root") -> None:
+    """
+    Run an arbitrary shell command inside Docker via docker_cmd.sh.
+
+    :param script_dir: directory containing docker_cmd.sh
+    :param shell_cmd: shell command to run inside the container
+    """
+    hdbg.dassert_path_exists(script_dir)
+    docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
+    hdbg.dassert_file_exists(docker_cmd_script)
+    cmd = f"cd {script_dir} && bash {docker_cmd_script} '{shell_cmd}'"
+    hsystem.system(cmd)
+
+
 def run_all_tests(
     test_dir: str, *, docker_cmd_script: str = "./docker_cmd.sh"
 ) -> int:
