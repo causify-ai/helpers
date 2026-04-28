@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import shlex
 from typing import Any, Dict, List, Optional, Tuple
 
 import invoke.exceptions as invexc
@@ -1242,3 +1243,58 @@ def gh_delete_workflow_runs(  # type: ignore
 # def gh_get_pr_title(pr_url: str) -> str:
 # > gh pr view https://github.com/causify-ai/helpers/pull/754 --json title -q .title
 # HelpersTask705_Extend_coverage_in_pytest_to_cover_when_we_run_through_system
+
+
+@task
+def gh_sync_issue_labels(  # type: ignore
+    ctx,
+    input_file="dev_scripts_helpers/github/labels/gh_issues_labels.yml",
+    org_name="",
+    repo="",
+    token_env_var="GITHUB_TOKEN",
+    dry_run=True,
+    backup=True,
+    prune=False,
+    no_interactive=True,
+):
+    """
+    Synchronize GitHub issue labels from a manifest to one or all org repos.
+
+    :param input_file: label manifest YAML file
+    :param org_name: GitHub org to list repos from, inferred from the current
+        repo if empty
+    :param repo: single repo to sync; if empty, sync all repos in `org_name`
+    :param token_env_var: environment variable containing the GitHub token
+    :param dry_run: if True, only print actions without mutating labels
+    :param backup: if True, backup current labels for every processed repo
+    :param prune: if True, delete labels missing from the manifest
+    :param no_interactive: if True, do not prompt before syncing labels
+    """
+    hlitauti.report_task(txt=hprint.to_str("input_file org_name repo"))
+    org_name = _get_org_name(org_name)
+    if repo:
+        repos = [repo]
+    else:
+        cmd = f"gh repo list {org_name} --limit 1000 --json name --jq '.[].name'"
+        _, output = hsystem.system_to_string(cmd)
+        repos = [line.strip() for line in output.splitlines() if line.strip()]
+    hdbg.dassert(repos, "No repos found to synchronize")
+    script = "./dev_scripts_helpers/github/sync_gh_issue_labels.py"
+    for repo_name in repos:
+        cmd_parts = [
+            script,
+            f"--input_file {shlex.quote(input_file)}",
+            f"--owner {shlex.quote(org_name)}",
+            f"--repo {shlex.quote(repo_name)}",
+            f"--token_env_var {shlex.quote(token_env_var)}",
+        ]
+        if dry_run:
+            cmd_parts.append("--dry_run")
+        if backup:
+            cmd_parts.append("--backup")
+        if prune:
+            cmd_parts.append("--prune")
+        if no_interactive:
+            cmd_parts.append("--no_interactive")
+        cmd = " ".join(cmd_parts)
+        hlitauti.run(ctx, cmd)
