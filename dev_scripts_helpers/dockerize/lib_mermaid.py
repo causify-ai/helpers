@@ -68,6 +68,29 @@ def get_mermaid_container_image_name() -> str:
     return container_image
 
 
+def build_mermaid_container_image(
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Build the Mermaid container image.
+
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    :return: the name of the built container image
+    """
+    container_image = hdocker.build_container_image(
+        _MERMAID_CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+    )
+    _LOG.debug("container_image=%s", container_image)
+    container_image2 = get_mermaid_container_image_name()
+    hdbg.dassert_eq(container_image, container_image2)
+    exists, _ = hdocker.image_exists(container_image, use_sudo)
+    hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
+    return container_image
+
+
 def run_dockerized_mermaid(
     in_file_path: str,
     cmd_opts: List[str],
@@ -91,13 +114,9 @@ def run_dockerized_mermaid(
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_eq(cmd_opts, [])
     # Build the container, if needed.
-    container_image = hdocker.build_container_image(
-        _MERMAID_CONTAINER_PREFIX,
-        _DOCKERFILE,
-        force_rebuild,
-        use_sudo,
+    container_image = build_mermaid_container_image(
+        force_rebuild=force_rebuild, use_sudo=use_sudo
     )
-    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,

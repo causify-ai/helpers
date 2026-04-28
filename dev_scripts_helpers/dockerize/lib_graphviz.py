@@ -12,6 +12,7 @@ import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
 import logging
 from typing import List
 
+import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
 
@@ -43,6 +44,29 @@ def get_graphviz_container_image_name() -> str:
     return container_image
 
 
+def build_graphviz_container_image(
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Build the Graphviz container image.
+
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    :return: the name of the built container image
+    """
+    container_image = hdocker.build_container_image(
+        _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+    )
+    _LOG.debug("container_image=%s", container_image)
+    container_image2 = get_graphviz_container_image_name()
+    hdbg.dassert_eq(container_image, container_image2)
+    exists, _ = hdocker.image_exists(container_image, use_sudo)
+    hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
+    return container_image
+
+
 def run_dockerized_graphviz(
     in_file_path: str,
     cmd_opts: List[str],
@@ -62,10 +86,9 @@ def run_dockerized_graphviz(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
-    container_image = hdocker.build_container_image(
-        _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+    container_image = build_graphviz_container_image(
+        force_rebuild=force_rebuild, use_sudo=use_sudo
     )
-    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,

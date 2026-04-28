@@ -84,6 +84,32 @@ def get_prettier_container_image_name(file_type: str) -> str:
     return container_image
 
 
+def build_prettier_container_image(
+    file_type: str,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Build the Prettier container image for a given file type.
+
+    :param file_type: type of file to format (e.g., "md", "tex", "txt")
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    :return: the name of the built container image
+    """
+    dockerfile = _get_prettier_dockerfile(file_type)
+    container_image = hdocker.build_container_image(
+        f"tmp.prettier.{file_type}", dockerfile, force_rebuild, use_sudo
+    )
+    _LOG.debug("container_image=%s", container_image)
+    container_image2 = get_prettier_container_image_name(file_type)
+    hdbg.dassert_eq(container_image, container_image2)
+    exists, _ = hdocker.image_exists(container_image, use_sudo)
+    hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
+    return container_image
+
+
 def run_dockerized_prettier(
     in_file_path: str,
     cmd_opts: List[str],
@@ -122,11 +148,10 @@ def run_dockerized_prettier(
     hdbg.dassert_isinstance(cmd_opts, list)
     hdbg.dassert_in(file_type, ["md", "txt", "tex"])
     # Build the container, if needed.
-    dockerfile = _get_prettier_dockerfile(file_type)
-    container_image = hdocker.build_container_image(
-        f"tmp.prettier.{file_type}", dockerfile, force_rebuild, use_sudo
+    container_image = build_prettier_container_image(
+        file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
     )
-    _LOG.debug("container_image=%s", container_image)
+    dockerfile = _get_prettier_dockerfile(file_type)
     # Convert files to Docker paths.
     (
         is_caller_host,

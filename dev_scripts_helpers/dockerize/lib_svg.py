@@ -43,6 +43,32 @@ def get_svg_rsvg_convert_container_image_name() -> str:
     return container_image
 
 
+def build_svg_rsvg_convert_container_image(
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Build the SVG rsvg-convert container image.
+
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    :return: the name of the built container image
+    """
+    container_image = hdocker.build_container_image(
+        _RSVG_CONVERT_CONTAINER_PREFIX,
+        _RSVG_CONVERT_DOCKERFILE,
+        force_rebuild,
+        use_sudo,
+    )
+    _LOG.debug("container_image=%s", container_image)
+    container_image2 = get_svg_rsvg_convert_container_image_name()
+    hdbg.dassert_eq(container_image, container_image2)
+    exists, _ = hdocker.image_exists(container_image, use_sudo)
+    hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
+    return container_image
+
+
 def run_dockerized_svg_with_rsvg_convert(
     in_file_path: str,
     out_file_path: str,
@@ -70,13 +96,9 @@ def run_dockerized_svg_with_rsvg_convert(
         f"Unsupported output format: {output_format}",
     )
     # Build the container, if needed.
-    container_image = hdocker.build_container_image(
-        _RSVG_CONVERT_CONTAINER_PREFIX,
-        _RSVG_CONVERT_DOCKERFILE,
-        force_rebuild,
-        use_sudo,
+    container_image = build_svg_rsvg_convert_container_image(
+        force_rebuild=force_rebuild, use_sudo=use_sudo
     )
-    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -149,6 +171,32 @@ def get_svg_inkscape_container_image_name() -> str:
     return container_image
 
 
+def build_svg_inkscape_container_image(
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Build the SVG inkscape container image.
+
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    :return: the name of the built container image
+    """
+    container_image = hdocker.build_container_image(
+        _INKSCAPE_CONTAINER_PREFIX,
+        _INKSCAPE_DOCKERFILE,
+        force_rebuild,
+        use_sudo,
+    )
+    _LOG.debug("container_image=%s", container_image)
+    container_image2 = get_svg_inkscape_container_image_name()
+    hdbg.dassert_eq(container_image, container_image2)
+    exists, _ = hdocker.image_exists(container_image, use_sudo)
+    hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
+    return container_image
+
+
 def run_dockerized_svg_with_inkscape(
     in_file_path: str,
     out_file_path: str,
@@ -177,13 +225,9 @@ def run_dockerized_svg_with_inkscape(
         f"Unsupported output format: {output_format}",
     )
     # Build the container, if needed.
-    container_image = hdocker.build_container_image(
-        _INKSCAPE_CONTAINER_PREFIX,
-        _INKSCAPE_DOCKERFILE,
-        force_rebuild,
-        use_sudo,
+    container_image = build_svg_inkscape_container_image(
+        force_rebuild=force_rebuild, use_sudo=use_sudo
     )
-    _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
     (
         is_caller_host,

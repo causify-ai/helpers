@@ -107,6 +107,33 @@ def get_pandoc_latex_container_image_name() -> str:
     return container_image
 
 
+def build_pandoc_latex_container_image(
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Build the Pandoc LaTeX container image.
+
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    :return: the name of the built container image
+    """
+    container_image = hdocker.build_container_image(
+        _PANDOC_LATEX_CONTAINER_PREFIX,
+        _PANDOC_LATEX_DOCKERFILE,
+        force_rebuild,
+        use_sudo,
+        incremental=True,
+    )
+    _LOG.debug("container_image=%s", container_image)
+    container_image2 = get_pandoc_latex_container_image_name()
+    hdbg.dassert_eq(container_image, container_image2)
+    exists, _ = hdocker.image_exists(container_image, use_sudo)
+    hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
+    return container_image
+
+
 # #############################################################################
 
 
@@ -136,6 +163,32 @@ def get_pandoc_texlive_container_image_name() -> str:
     container_image, _ = hdocker.get_container_image_name(
         _PANDOC_TEXLIVE_CONTAINER_PREFIX, _PANDOC_TEXLIVE_DOCKERFILE
     )
+    return container_image
+
+
+def build_pandoc_texlive_container_image(
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Build the Pandoc TexLive container image.
+
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    :return: the name of the built container image
+    """
+    container_image = hdocker.build_container_image(
+        _PANDOC_TEXLIVE_CONTAINER_PREFIX,
+        _PANDOC_TEXLIVE_DOCKERFILE,
+        force_rebuild,
+        use_sudo,
+    )
+    _LOG.debug("container_image=%s", container_image)
+    container_image2 = get_pandoc_texlive_container_image_name()
+    hdbg.dassert_eq(container_image, container_image2)
+    exists, _ = hdocker.image_exists(container_image, use_sudo)
+    hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
     return container_image
 
 
@@ -259,21 +312,14 @@ def run_dockerized_pandoc(
         cmd = f"cp -r {dir_name}/* tmp.docker_build/common/latex"
         hsystem.system(cmd)
         # Build the container, if needed.
-        container_image = hdocker.build_container_image(
-            _PANDOC_LATEX_CONTAINER_PREFIX,
-            _PANDOC_LATEX_DOCKERFILE,
-            force_rebuild,
-            use_sudo,
-            incremental=True,
+        container_image = build_pandoc_latex_container_image(
+            force_rebuild=force_rebuild, use_sudo=use_sudo
         )
         dockerfile = _PANDOC_LATEX_DOCKERFILE
     elif container_type == "pandoc_texlive":
         # Build the container, if needed.
-        container_image = hdocker.build_container_image(
-            _PANDOC_TEXLIVE_CONTAINER_PREFIX,
-            _PANDOC_TEXLIVE_DOCKERFILE,
-            force_rebuild,
-            use_sudo,
+        container_image = build_pandoc_texlive_container_image(
+            force_rebuild=force_rebuild, use_sudo=use_sudo
         )
         dockerfile = _PANDOC_TEXLIVE_DOCKERFILE
     else:
