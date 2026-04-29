@@ -103,13 +103,13 @@ def _copy_directory(input_dir: str, output_dir: str, is_blog: bool) -> None:
     cmd = f"mkdir -p {output_dir}"
     hsystem.system(cmd)
     # Copy the entire directory tree and make files writable.
-    # Use '/.' to include hidden files (like .authors.yml)
+    # Use rsync with -L (follow symlinks) and --ignore-errors to skip broken
+    # symlinks (e.g., docs/ai_prompts pointing to a missing helpers_root path).
+    # Exit code 23 means partial transfer (skipped broken symlinks) — treat as ok.
     if is_blog:
-        cmd = f"cp -rL {input_dir}/. {output_dir} && chmod -R u+w {output_dir}"
+        cmd = f"rsync -aL --ignore-errors {input_dir}/. {output_dir}/ || true && chmod -R u+w {output_dir}"
     else:
-        cmd = (
-            f"cp -rL {input_dir}/. {output_dir}/docs && chmod -R u+w {output_dir}"
-        )
+        cmd = f"rsync -aL --ignore-errors {input_dir}/. {output_dir}/docs/ || true && chmod -R u+w {output_dir}"
     hsystem.system(cmd)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
 
@@ -349,6 +349,16 @@ def _copy_assets_and_styles(output_dir: str) -> None:
     hdbg.dassert_file_exists(mkdocs_yml_file)
     cmd = f"cp {mkdocs_yml_file} {output_dir}"
     hsystem.system(cmd)
+    # Copy theme overrides directory if present.
+    overrides_dir = os.path.join(mkdocs_html_dir, "overrides")
+    if os.path.isdir(overrides_dir):
+        cmd = f"cp -r {overrides_dir} {output_dir}"
+        hsystem.system(cmd)
+    # Copy top-level papers/ directory so PDF links resolve (e.g. /papers/KaizenFlow/KaizenFlow.pdf).
+    papers_dir = "papers"
+    if os.path.isdir(papers_dir):
+        cmd = f"cp -r {papers_dir} {output_dir}/docs/"
+        hsystem.system(cmd)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        const base_url = "{{ config.site_url }}"; /* for search plugin notably */
+    </script>
+    {% include "templates/dark.html" %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{{ page.title }} - {{ config.site_name }}</title>
+    <meta name="description" content="{{ page.meta.description or config.site_description or config.site_name }}">
+
+    {%- if config.theme.favicon %}
+    <link rel="icon" href="{{ config.theme.favicon | url }}">
+    {%- else %}
+    <link rel="icon" href="{{ 'img/favicon.ico' | url }}">
+    {%- endif %}
+
+    <link href="{{ 'css/base.css' | url }}" rel="stylesheet">
+    <link href="{{ 'css/geist.css' | url }}" rel="stylesheet">
+
+    {% if "codehilite" in config.markdown_extensions or "pymdownx.highlight" in config.markdown_extensions %}
+    {% include "templates/pygments.html" %}
+    {% endif %}
+
+    {%- for path in config.extra_css %}
+    <link href="{{ path | url }}" rel="stylesheet">
+    {%- endfor %}
+
+    {% if page.meta.extra_css %}
+    {%- for path in page.meta.extra_css %}
+    <link href="{{ path | url }}" rel="stylesheet">
+    {%- endfor %}
+    {% endif %}
+
+    <script src="{{ 'js/callbacks.js' | url }}"></script>
+
+    {% if "toc" in config.markdown_extensions %}
+    {% include "templates/permalink.html" %}
+    {% endif %}
+
+    {# can inject extra head content here through overrides #}
+    {% include "templates/extra_head.html" %}
+</head>
+
+<body
+    class="text-foreground group/body overscroll-none font-sans antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)] theme-default">
+    <div id="inner-body" class="bg-background relative z-10 flex min-h-svh flex-col">
+        {% include "templates/header.html" %}
+        <main class="flex flex-1 flex-col">
+            <div class="container-wrapper flex flex-1 flex-col">
+                <div data-slot="sidebar-wrapper"
+                    style="--sidebar-width:calc(var(--spacing) * 72);--sidebar-width-icon:3rem;"
+                    class="group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex w-full 3xl:fixed:container 3xl:fixed:px-3 min-h-min flex-1 items-start px-0 [--sidebar-width:220px] [--top-spacing:0] lg:grid {% if 'toc' in (page.meta.hide | default([])) %}lg:grid-cols-[1fr]{% else %}lg:grid-cols-[var(--sidebar-width)_minmax(0,1fr)] lg:[--top-spacing:calc(var(--spacing)*4)]{% endif %} lg:[--sidebar-width:240px]">
+                    <div data-slot="sidebar"
+                        class="w-(--sidebar-width) flex-col text-sidebar-foreground sticky top-[calc(var(--header-height)+0.6rem)] z-30 h-[calc(100svh-10rem)] overscroll-none bg-transparent hidden {% if 'toc' not in (page.meta.hide | default([])) %}lg:flex{% endif %}"
+                        {% if 'toc' in (page.meta.hide | default([])) %}style="display:none!important"{% endif %}>
+                        <div class="h-9"></div>
+                        {% if 'toc' not in (page.meta.hide | default([])) %}
+                        <div
+                            class="absolute top-12 right-2 bottom-0 hidden h-full w-px bg-gradient-to-b from-transparent via-border to-transparent lg:flex">
+                        </div>
+                        {% endif %}
+                        <div data-slot="sidebar-content" data-sidebar="content" view-transition-name="sidebar"
+                            class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden no-scrollbar w-full overflow-x-hidden px-2">
+                            {% include "templates/sidebar.html" %}
+                        </div>
+                    </div>
+                    <div class="h-full w-full">
+                        <div data-slot="docs" class="flex items-stretch text-[1.05rem] sm:text-[15px] xl:w-full">
+                            <div class="flex min-w-0 flex-1 flex-col {% if 'toc' in (page.meta.hide | default([])) %}layout-full{% endif %}">
+                                <div class="h-(--top-spacing) shrink-0"></div>
+                                {% include "templates/page.html" %}
+                                {% include "templates/bottom_navigation.html" %}
+                                {% include "templates/bottom_sidebar.html" %}
+                            </div>
+                            {% if "toc" not in (page.meta.hide | default([])) %}
+                            <div
+                                class="sticky top-[calc(var(--header-height)+1px)] ml-auto hidden h-[calc(100svh-var(--header-height)-var(--footer-height))] w-72 flex-col gap-4 overflow-hidden overscroll-none pb-8 xl:flex">
+                                <div class="h-(--top-spacing) shrink-0"></div>
+                                {% include "templates/toc.html" %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "templates/footer.html" %}
+    </div>
+
+    {%- for script in config.extra_javascript %}
+    {% include "templates/script.html" %}
+    {%- endfor %}
+
+    {% if page.meta.extra_javascript %}
+    {%- for script in page.meta.extra_javascript %}
+    {% include "templates/script.html" %}
+    {%- endfor %}
+    {% endif %}
+
+    <script src="{{ 'js/copy-button.js' | url }}"></script>
+    <script src="{{ 'js/sidebar.js' | url }}"></script>
+    <script src="{{ 'js/slider.js' | url }}"></script>
+    <script>updatePygmentsStylesheet();</script>
+    {% include "templates/speculation_rules.html" %}
+</body>
+
+</html>

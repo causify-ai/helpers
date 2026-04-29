@@ -1,68 +1,53 @@
-.md-logo img {
-  height: auto;
-  width: 7.2rem;
-}
-
-.md-header__button.md-logo {
-  margin: .4rem;
-  padding: .6rem;
-}
-
 /* Top-level headers (H1) */
-.md-typeset h1 {
-  color: #0057b7;
-  /* Deep blue */
+h1 {
+  color: var(--primary);
   font-size: 2.2em;
-  /* Bigger than default */
   font-weight: 700;
-  /* Bold */
-  border-bottom: 3px solid #0057b7;
-  /* Add underline */
+  border-bottom: 3px solid var(--primary);
   padding-bottom: 0.3em;
-  /* Spacing below underline */
   margin-top: 1.2em;
-  /* Spacing above */
 }
 
 /* Second-level headers (H2) */
-.md-typeset h2 {
-  color: #0073e6;
-  /* Lighter blue */
+h2 {
+  color: var(--primary);
   font-size: 1.8em;
   font-weight: 600;
-  /* */
-  border-left: 4px solid #0073e6;
-  /* Fancy left border */
+  border-left: 4px solid var(--primary);
   padding-left: 0.5em;
-  /* Space for the border */
   margin-top: 1.2em;
+  opacity: 0.85;
 }
 
 /* Third-level headers (H3) */
-.md-typeset h3 {
-  color: #0096ff;
-  /* Even lighter blue */
+h3 {
+  color: var(--primary);
   font-size: 1.5em;
   font-weight: 600;
   margin-top: 1em;
+  opacity: 0.7;
 }
 
 /* Fourth-level headers (H4) */
-.md-typeset h4 {
-  color: #333;
-  /* Neutral gray */
+h4 {
+  color: var(--foreground);
   font-size: 1.3em;
   font-weight: 600;
-  /* */
   font-style: italic;
-  /* Just to show it's different */
   margin-top: 0.8em;
 }
 
 a:hover {
-  color: #e63946;
-  /* link color on hover */
+  color: var(--accent-foreground);
   font-weight: 600;
   text-decoration: underline;
-  /* underline all links */
+}
+
+/* Dark mode: slightly soften primary-colored borders */
+.dark h1 {
+  border-bottom-color: color-mix(in oklch, var(--primary) 70%, transparent);
+}
+
+.dark h2 {
+  border-left-color: color-mix(in oklch, var(--primary) 70%, transparent);
 }
