@@ -637,6 +637,8 @@ def docker_needs_sudo() -> bool:
     # Fargate through Airflow, since ECS Fargate does not support either DinD 
     # or sibling containers.
     # See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-security-considerations.html
+    # TODO(heanh): Check if we can use `is_inside_ecs_container()` to check if 
+    # we are inside Airflow.
     if not has_dind_support() and not use_docker_sibling_containers():
         return False
     # Another way to check is to see if your user is in the docker group:
