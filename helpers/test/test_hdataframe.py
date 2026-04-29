@@ -138,6 +138,19 @@ class TestFilterDataByMethod(hunitest.TestCase):
 
 
 class Test_apply_nan_mode(hunitest.TestCase):
+    @staticmethod
+    def _get_series_with_nans(seed: int) -> pd.Series:
+        date_range = {"start": "1/1/2010", "periods": 40, "freq": "M"}
+        series = hpandas.get_random_df(
+            num_cols=1,
+            seed=seed,
+            date_range_kwargs=date_range,
+        )[0]
+        series[:3] = np.nan
+        series[-3:] = np.nan
+        series[5:7] = np.nan
+        return series
+
     def test1(self) -> None:
         """
         Test for `mode=leave_unchanged`.
@@ -187,19 +200,6 @@ class Test_apply_nan_mode(hunitest.TestCase):
     def test6(self) -> None:
         series = pd.Series(dtype="float64")
         hdatafr.apply_nan_mode(series)
-
-    @staticmethod
-    def _get_series_with_nans(seed: int) -> pd.Series:
-        date_range = {"start": "1/1/2010", "periods": 40, "freq": "M"}
-        series = hpandas.get_random_df(
-            num_cols=1,
-            seed=seed,
-            date_range_kwargs=date_range,
-        )[0]
-        series[:3] = np.nan
-        series[-3:] = np.nan
-        series[5:7] = np.nan
-        return series
 
 
 # #############################################################################

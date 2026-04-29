@@ -21,7 +21,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_replace_shared_root_path1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test replacing shared root path.
@@ -83,7 +82,6 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 class Test_convert_to_docker_path1(hunitest.TestCase):
-
     @staticmethod
     def convert_caller_to_callee_docker_path(
         in_file_path: str,
@@ -207,7 +205,6 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
 
 
 class Test_is_path1(hunitest.TestCase):
-
     def helper(self, path: str, expected: bool) -> None:
         """
         Test helper for `is_path()` function.
@@ -348,7 +345,6 @@ class Test_is_path1(hunitest.TestCase):
 class Test_convert_all_paths_from_caller_to_callee_docker_path1(
     hunitest.TestCase
 ):
-
     def helper(
         self,
         cmd_opts: List[str],
@@ -577,7 +573,6 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
 
 
 class Test_get_docker_mount_info1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         With CSFY_ENABLE_DIND, sibling-style docker.sock must still bind the

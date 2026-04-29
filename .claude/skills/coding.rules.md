@@ -1,12 +1,48 @@
-This file contains all the conventions for Python coding rules.
+- This file contains all the conventions for Python coding rules.
+
+# Environment and Platform
 
 ## Only Linux and MacOS
 
 - Assume the script needs to run only on Linux and MacOS
 
+# Code Style and Structure
+
 ## Follow the Coding Style from the Template
 
-- Use the coding style in @docs/ai_templates/code_template.py
+- Use the coding style in `@.claude/templates/code_template.py`
+
+## Use * for Default Parameters
+
+- Use `*` to mark which parameters in functions should be default parameters
+
+## Type Hints: Use `typing` Module Style
+
+- Use type hints from the `typing` module instead of newer PEP 604 syntax
+- Use `Tuple`, `Dict`, `Optional` instead of `tuple`, `dict`, `|` union syntax
+  - **Good**: Use `typing` module
+    ```python
+    from typing import Dict, Tuple, Optional
+    
+    def process(data: Dict[str, str], item: Optional[str]) -> Tuple[str, int]:
+        ...
+    ```
+  - **Bad**: Use newer PEP 604 syntax
+    ```python
+    def process(data: dict[str, str], item: str | None) -> tuple[str, int]:
+        ...
+    ```
+
+## Mark Private Functions
+
+- If you create a new function which it is used only in the file make it private
+  by starting the name with `_`
+
+## Remove Empty Lines
+
+- Remove empty lines inside functions so that the code is compact
+
+# Error Handling and Assertions
 
 ## Use Assertions From `helpers/hdbg.py`
 
@@ -62,6 +98,11 @@ This file contains all the conventions for Python coding rules.
     )
     ```
 
+## Do not use try-except
+
+- Do not use try except to recover errors but let statements raise their own
+  errors
+
 ## Use `hsystem`
 
 - Use code in `helpers/hsystem.py` to call commands
@@ -79,7 +120,10 @@ This file contains all the conventions for Python coding rules.
     hsystem.system("which llm", suppress_output=True)
     ```
 
+# Documentation and Comments
+
 ## Use REST Style for Comments
+
 - Use REST comments in docstrings
 
 - If the comment is only one line, still convert it to
@@ -98,6 +142,92 @@ This file contains all the conventions for Python coding rules.
       pass
     ```
 
+- When there are multiple values for an input or an output variable
+  format them as a list:
+  - **Bad**
+    ```python
+    :param interpolate_colors: If True, evenly space selected colors across
+      all bold items; if False, use a predefined sequence for common counts
+      (1-4 items get fixed color sets, more items cycle through all_md_colors)
+    :param all_md_colors: List of available colors to cycle through (defaults
+      to the curated list from get_md_colors())
+    ```
+  - **Good**:
+    ```python
+    :param use_abbreviations:
+       - If True, use abbreviated color syntax (e.g., `\red{foo}`)
+       - If False, use full LaTeX syntax (e.g., `\textcolor{red}{foo}`)
+    :param all_md_colors: List of available colors to cycle through
+        - Default: curated list from `get_md_colors()`
+    ```
+
+- An example of a good full docstring comment is
+  ```python
+  r"""
+  Colorize bold markdown items `**text**` with color commands.
+
+  Scans the text line-by-line for bold markdown items and wraps each in a
+  color command (e.g., `**\red{text}**`). Skips code blocks and tables to
+  preserve their formatting. Bold items are colored sequentially using the
+  provided color list.
+
+  :param txt: Markdown text containing bold items to colorize
+  :param use_abbreviations:
+      - If True, use abbreviated color syntax (e.g., `\red{foo}`)
+      - If False, use full LaTeX syntax (e.g., `\textcolor{red}{foo}`)
+  :param interpolate_colors:
+      - If True, evenly space selected colors across all bold items
+      - If False, use a predefined sequence for common counts (1-4 items get
+        fixed color sets, more items cycle through all_md_colors)
+  :param all_md_colors: List of available colors to cycle through
+      - Default: curated list from `get_md_colors()`
+  :return: Markdown text with bold items wrapped in color commands
+  """
+  ```
+
+## Add Comments
+
+- Override any minimalist comment defaults, but add explanatory comments liberally
+
+- Use comments to separate logical chunks of code.
+- Explain the logic and intent of code sections, especially for:
+  - Complex algorithms or multi-step processes
+  - Conditional branches and why they're needed
+  - Non-obvious variable assignments or transformations
+  - Implementation choices and workarounds
+  - Algorithm steps in a sequence
+
+- Comments should explain the WHY and the algorithm flow, not just the WHAT
+  - **Bad**: (obvious from the code)
+    ```
+    # Iterate over lines
+    for line in lines:
+      ...
+    ```
+  - **Good**: (explains intent)
+    ```
+    # Process imports in two passes: first collect, then validate.
+    ```
+
+- Leave existing comments unless they are incorrect, even if they explain
+  WHAT code does and they are redundant
+
+- Prefer single-line comments over multi-line comment blocks when possible
+
+- Use periods at the end of all comments
+
+- In comments always use `: ` instead of ` - `
+  - **Bad**
+    ```
+    # Check outputs.` - Result verification
+    ```
+  - **Good**
+    ```
+    # Check outputs.`: Result verification
+    ```
+
+# Logging
+
 ## Use _LOG
 
 - Use `_LOG.info` instead of print, unless there is a comment explicitly saying
@@ -106,23 +236,7 @@ This file contains all the conventions for Python coding rules.
   issues
   - Always use lazy % formatting in logging functions
 
-## Do not use try-except
-- Do not use try except to recover errors but let statements raise their own
-  errors
-
-## Use * for Default Parameters
-- Use `*` to mark which parameters in functions should be default parameters
-
-## Mark Private Functions
-- If you create a new function which it is used only in the file make it private
-  by starting the name with `_`
-
-## Remove Empty Lines
-- Remove empty lines inside functions so that the code is compact
-
-## Add Comments
-- Use comments to separate chunks of code
-- Use periods at the end of all comments
+# Script Development
 
 ## Use Script Template
 
@@ -138,7 +252,8 @@ This file contains all the conventions for Python coding rules.
 
 ## Script Shebang and Dependencies
 
-- For scripts with external package dependencies, use the `uv run` shebang with inline script dependencies:
+- For scripts with external package dependencies, use the `uv run` shebang with
+  inline script dependencies:
   ```python
   #!/usr/bin/env -S uv run
 
@@ -162,6 +277,7 @@ This file contains all the conventions for Python coding rules.
   ```
 
 ## Use Action Idiom
+
 - When using `--action`
 
   ```python
@@ -182,23 +298,30 @@ This file contains all the conventions for Python coding rules.
 - Use only underscores as separators in command line arguments, not dashes
 - Good: `--cache_reset`, `--max_iterations`, `--output_dir`
 - Bad: `--cache-reset`, `--max-iterations`, `--output-dir`
-- This applies to both long-form argument names and the attribute names assigned by argparse (which converts `_` to `_` in the namespace)
+- This applies to both long-form argument names and the attribute names assigned
+  by argparse (which converts `_` to `_` in the namespace)
 
 ## Create Dirs
+
 - If directory doesn't exist create it using `hio.create_dir`
   - If a `--from_scratch` option is requested, create the directory from scratch
 
 ## Temporary files
+
 - When using temporary files use files named
   `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
   files
   - No need to clean up files
 
+# Code Quality and Performance
+
 ## Use Progress Bar
+
 - When there are expensive for loop, use a progress bar using `tqdm` to track
   the progress
 
 ## Explain Complex Regex
+
 - When using complex regex, use comments and `re.VERBOSE`
   - **Bad**
     ```python
@@ -223,4 +346,16 @@ This file contains all the conventions for Python coding rules.
     """
 
     pattern = re.compile(quote_pattern, re.VERBOSE)
+    ```
+
+## Use verbatim to refer to functions and values
+
+- When referring to variables and functions in code use verbatim
+  - **Bad**
+    ```python
+    # Create a curated list from get_md_colors().
+    ```
+  - **Good**
+    ```python
+    # Create a curated list from `get_md_colors()`.
     ```

@@ -304,6 +304,10 @@ class TestToPythonCode1(hunitest.TestCase):
     Test to_python_code() for different types.
     """
 
+    def _check(self, input_obj: Any, expected: str) -> None:
+        res = hplayba.to_python_code(input_obj)
+        self.assert_equal(res, expected)
+
     def test_float1(self) -> None:
         """
         Test float without first zero.
@@ -401,10 +405,6 @@ class TestToPythonCode1(hunitest.TestCase):
             "cconfig.Config.from_python(\"Config({'var1': 'val1', "
             "'var2': Config({'var3': 10, 'var4': 'val4'})})\")",
         )
-
-    def _check(self, input_obj: Any, expected: str) -> None:
-        res = hplayba.to_python_code(input_obj)
-        self.assert_equal(res, expected)
 
 
 # #############################################################################

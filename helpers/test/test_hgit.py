@@ -84,6 +84,16 @@ class Test_git_submodule2(hunitest.TestCase):
         actual = hgit.get_head_hash(dir_name)
         _LOG.debug("actual=%s", actual)
 
+    def _helper_group_hashes(
+        self,
+        head_hash: str,
+        remh_hash: str,
+        subm_hash: Optional[str],
+        expected: str,
+    ) -> None:
+        actual = hgit._group_hashes(head_hash, remh_hash, subm_hash)
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
     def test_group_hashes1(self) -> None:
         head_hash = "a2bfc704"
         remh_hash = "a2bfc704"
@@ -110,16 +120,6 @@ class Test_git_submodule2(hunitest.TestCase):
         expected = "head_hash = remh_hash = subm_hash = 7ea03eb6"
         #
         self._helper_group_hashes(head_hash, remh_hash, subm_hash, expected)
-
-    def _helper_group_hashes(
-        self,
-        head_hash: str,
-        remh_hash: str,
-        subm_hash: Optional[str],
-        expected: str,
-    ) -> None:
-        actual = hgit._group_hashes(head_hash, remh_hash, subm_hash)
-        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -800,9 +800,7 @@ class Test_find_git_root6(hunitest.TestCase):
         self.git_dir = os.path.join(self.main_repo_dir, ".git")
         hio.create_dir(self.git_dir, incremental=False)
         # Create worktree git metadata directory.
-        self.worktree_git_dir = os.path.join(
-            self.git_dir, "worktrees", "csfy2"
-        )
+        self.worktree_git_dir = os.path.join(self.git_dir, "worktrees", "csfy2")
         hio.create_dir(self.worktree_git_dir, incremental=False)
         # Create worktree directory.
         self.worktree_dir = os.path.join(temp_dir, "csfy2")

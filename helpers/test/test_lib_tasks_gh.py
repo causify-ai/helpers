@@ -120,7 +120,9 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
             {"login": "user3", "id": 103},
         ]
         # Call function.
-        result = hlitagh.gh_get_team_member_names("dev_team", org_name="test-org")
+        result = hlitagh.gh_get_team_member_names(
+            "dev_team", org_name="test-org"
+        )
         # Verify result.
         expected = ["user1", "user2", "user3"]
         self.assertEqual(result, expected)

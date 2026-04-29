@@ -338,7 +338,9 @@ def _freeze_rows_in_gsheet(
                 }
             }
         )
-        _LOG.debug("Adding bold formatting to %s frozen rows", num_rows_to_freeze)
+        _LOG.debug(
+            "Adding bold formatting to %s frozen rows", num_rows_to_freeze
+        )
     # Execute the batch update.
     freeze_request = {"requests": requests}
     response = (

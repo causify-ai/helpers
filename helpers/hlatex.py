@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import helpers.hlatex as hlatex
+"""
+
 import logging
 import re
 from typing import List, Optional

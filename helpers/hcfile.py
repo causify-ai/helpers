@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import helpers.hcfile as hcfile
+"""
+
 import logging
 import re
 from typing import List, Tuple

@@ -11,7 +11,6 @@ import helpers.hunit_test as hunitest
 
 
 class TestSlackNotifier(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that `SlackNotifier` initializes with provided bot token.

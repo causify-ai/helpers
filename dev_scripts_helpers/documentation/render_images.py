@@ -335,6 +335,14 @@ def _render_image_code(
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
+        elif image_code_type == "svg":
+            hdocexec.run_dockerized_svg_with_rsvg_convert(
+                in_code_file_path,
+                abs_img_file_path,
+                output_format="png",
+                force_rebuild=force_rebuild,
+                use_sudo=use_sudo,
+            )
         else:
             raise ValueError(f"Invalid type: {image_code_type}")
     # Remove the temp file.
@@ -594,13 +602,16 @@ def _render_images(
     metadata_caption = ""
     # Store the current metadata field being parsed (for multi-line values).
     current_metadata_field = ""
+    # Variables initialized for loop processing.
+    image_code_type = ""
+    rel_img_paths: List[str] = []
     comment = re.escape(comment_prefix)
     start_image_regex = re.compile(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
         ```                 # Opening backticks for code block
-        (plantuml|mermaid|tikz|graphviz|latex|raw_latex|image)  # Image code type
+        (plantuml|mermaid|tikz|graphviz|latex|raw_latex|svg|image)  # Image code type
         (\((.*)\))?         # Optional user-specified image name as (...)
         (\[(.*)\])?         # Optional user-specified image size as [...]
         \s*$                # Any trailing whitespace and end of the line
@@ -651,6 +662,7 @@ def _render_images(
                     "graphviz",
                     "latex",
                     "raw_latex",
+                    "svg",
                     "image",
                 ],
             )
@@ -943,6 +955,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Get list of input files using multi-file parsing.
     in_files = hparser.parse_multi_file_args(args)
     # Handle output file for multi-file mode.
+    out_file = ""
     if len(in_files) > 1:
         # Multi-file mode.
         hdbg.dassert_eq(
@@ -965,6 +978,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         default_dst_dir = args.dst_dir
         _LOG.info("Using specified --dst_dir: %s", default_dst_dir)
+    # Initialize variables for file processing.
+    dst_dir = ""
     # Process each file with progress bar.
     _LOG.info("Processing %s files", len(in_files))
     if len(in_files) > 1:

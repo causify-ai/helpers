@@ -359,4 +359,6 @@ class Test_impute_nans(hunitest.TestCase):
         # Call function to test.
         result_df = hpandas.impute_nans(df, "col1", "")
         # Check output - should be unchanged.
-        self.assertEqual(result_df["col1"].tolist(), ["value1", "value2", "value3"])
+        self.assertEqual(
+            result_df["col1"].tolist(), ["value1", "value2", "value3"]
+        )
