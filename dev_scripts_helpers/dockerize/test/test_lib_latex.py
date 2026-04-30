@@ -21,6 +21,7 @@ class Test_build_latex_container1(hunitest.TestCase):
     Test building the `latex` container.
     """
 
+    @pytest.mark.timeout(0)
     def test1(self) -> None:
         """
         Test that the LaTeX Docker container is built correctly.

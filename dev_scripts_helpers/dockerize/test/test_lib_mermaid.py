@@ -20,6 +20,7 @@ class Test_build_mermaid_container1(hunitest.TestCase):
     Test building the `mermaid` container.
     """
 
+    @pytest.mark.timeout(0)
     def test1(self) -> None:
         """
         Test that the Mermaid Docker container is built correctly.

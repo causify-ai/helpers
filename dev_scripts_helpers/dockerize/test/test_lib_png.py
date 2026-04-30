@@ -1,4 +1,5 @@
 import os
+import platform
 
 import pytest
 
@@ -46,10 +47,9 @@ class Test_build_png_container1(hunitest.TestCase):
         )
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
+        arch = platform.machine()
         expected = (
-            'WARNING: The convert command is deprecated in IMv7, use "magick"'
-            ' instead of "convert" or "magick convert"\n\n'
-            "Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897"
+            f"Version: ImageMagick 7.1.2-19 Q16-HDRI {arch} 23897"
             " https://imagemagick.org\n"
         )
         self.assert_equal(output, expected)
@@ -62,6 +62,7 @@ class Test_build_png_container1(hunitest.TestCase):
 
 @pytest.mark.slow
 class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
+    @pytest.mark.timeout(0)
     def test1(self) -> None:
         """
         Run `tikz_to_bitmap` inside a Docker container.

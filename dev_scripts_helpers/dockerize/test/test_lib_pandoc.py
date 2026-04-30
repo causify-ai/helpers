@@ -214,6 +214,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
     Test building the `pandoc` container.
     """
 
+    @pytest.mark.timeout(0)
     def test1(self) -> None:
         """
         Test that the Pandoc Docker container is built correctly.
@@ -310,6 +311,7 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
 
 @pytest.mark.slow
 class Test_run_dockerized_pandoc2(hunitest.TestCase):
+    @pytest.mark.timeout(0)
     def test1(self) -> None:
         """
         Test Dockerized Pandoc reads an externally provided input file,
