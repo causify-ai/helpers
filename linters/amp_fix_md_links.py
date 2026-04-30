@@ -19,7 +19,6 @@ import helpers.hparser as hparser
 import helpers.hstring as hstring
 import helpers.repo_config_utils as hrecouti
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -278,6 +277,7 @@ def _convert_html_link(html_link: str, line: str) -> str:
     """
     # Extract the link text and the link target.
     match = re.match(r'<a href="(.*?)">(.*?)</a>', html_link)
+    hdbg.dassert_is_not(match, None)
     link_target, original_text = match.groups()
     # Replace the HTML-style link with the Markdown-style link.
     converted_to_md_link = f"[{original_text}]({link_target})"
@@ -393,7 +393,7 @@ class _LinkFixer(liaction.Action):
         # Fix links in the file.
         lines, updated_lines, warnings = fix_links(file_name)
         # Save the updated file with the fixed links.
-        liutils.write_file_back(file_name, lines, updated_lines)
+        hio.write_file_back(file_name, lines, updated_lines)
         return warnings
 
 

@@ -161,6 +161,7 @@ def get_files_to_check(
     return file_paths
 
 
+# TODO(gp): Obsolete?
 def get_python_files_to_lint(dir_name: str) -> List[str]:
     """
     Get Python files for linter excluding jupytext and test Python files.
@@ -209,26 +210,6 @@ def get_python_files_to_lint(dir_name: str) -> List[str]:
     ]
     _LOG.debug("after removing test: files=%s", len(not_test_files))
     return not_test_files
-
-
-def write_file_back(
-    file_name: str, txt_old: List[str], txt_new: List[str]
-) -> None:
-    """
-    Compare old and new text and write file if contents differ.
-
-    :param file_name: Path to the file to write
-    :param txt_old: Original file content as list of strings
-    :param txt_new: New file content as list of strings
-    """
-    hdbg.dassert_list_of_strings(txt_old)
-    txt_as_str = "\n".join(txt_old)
-    #
-    hdbg.dassert_list_of_strings(txt_new)
-    txt_new_as_str = "\n".join(txt_new)
-    #
-    if txt_as_str != txt_new_as_str:
-        hio.to_file(file_name, txt_new_as_str)
 
 
 # TODO(saggese): Should this be moved to system interactions?

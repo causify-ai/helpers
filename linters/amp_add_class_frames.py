@@ -16,7 +16,6 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -72,6 +71,7 @@ def _check_above_initialization(
         # No lines to skip and no frame to remove since the class is
         # initialized on the first line of the file.
         return non_empty_lines_counter, empty_lines_counter, remove_old_frame
+    i = -1
     for i in range(line_num - 1, -1, -1):
         # Find the last empty line before the class initialization.
         if lines[i] == "":
@@ -84,6 +84,7 @@ def _check_above_initialization(
         # There are no empty lines and no frame between the first line of the
         # file and the class initialization.
         return non_empty_lines_counter, empty_lines_counter, remove_old_frame
+    j = -1
     for j in range(i - 1, -1, -1):
         # Find the last non-empty line before the last empty line; the frame
         # will be inserted after it.
@@ -190,9 +191,7 @@ class _ClassFramer(liaction.Action):
         file_content = hio.from_file(file_name)
         updated_lines = update_class_frames(file_content)
         # Save the updated file with the added class frames.
-        liutils.write_file_back(
-            file_name, file_content.split("\n"), updated_lines
-        )
+        hio.write_file_back(file_name, file_content.split("\n"), updated_lines)
         return []
 
 

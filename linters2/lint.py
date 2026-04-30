@@ -20,34 +20,41 @@ Examples:
 > lint.py --files foo.py bar.ipynb baz.md
 
 # Lint from a file list, Jupyter only
-> lint.py --from_file filelist.txt --no_keep_python_files --no_keep_markdown_files
+> lint.py --from_file filelist.txt --file_types "ipynb"
 
 # Lint last commit
 > lint.py --last_commit
 
 # Lint only Markdown files in modified files
-> lint.py --modified --no_keep_python_files --no_keep_jupyter_files --keep_markdown_files
+> lint.py --modified --file_types "md"
+
+# Lint Markdown and Text files
+> lint.py --modified --file_types "md,txt"
 
 # Run only specific actions on modified files (pre-commit and normalize_import)
 > lint.py --modified --action pre-commit normalize_import
 
 # Run only jupytext sync on Jupyter notebooks
-> lint.py --modified --no_keep_python_files --no_keep_markdown_files --action sync_jupytext
+> lint.py --modified --file_types "ipynb" --action sync_jupytext
 
 # Run add_class_frames only on Python files
-> lint.py --modified --no_keep_jupyter_files --no_keep_markdown_files --action add_class_frames
+> lint.py --modified --file_types "py" --action add_class_frames
 
 # Run pyright type-checker on modified Python files (including paired jupytext)
-> lint.py --modified --no_keep_jupyter_files --no_keep_markdown_files --action pyright
+> lint.py --modified --file_types "py" --action pyright
+
+# Run fix_pyright via Claude Code to fix pyright errors
+> lint.py --modified --file_types "py" --action fix_pyright
 
 # Run coverage for test files corresponding to modified Python files
-> lint.py --modified --no_keep_jupyter_files --no_keep_markdown_files --action coverage
+> lint.py --modified --file_types "py" --action coverage
 """
 
 import argparse
 import logging
+import subprocess
 import sys
-from typing import List
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -58,15 +65,19 @@ import linters2.linter_utils as llinutil
 
 _LOG = logging.getLogger(__name__)
 
-_VALID_ACTIONS = [
-    "pre-commit",
-    "normalize_import",
-    "add_class_frames",
-    "sync_jupytext",
-    "pyright",
-    "coverage",
-]
+_VALID_ACTIONS = set(
+    [
+        "add_class_frames",
+        "coverage",
+        "fix_pyright",
+        "normalize_import",
+        "pre-commit",
+        "pyright",
+        "sync_jupytext",
+    ]
+)
 
+# They are executed in the order given by the list.
 _DEFAULT_ACTIONS = [
     "pre-commit",
     "normalize_import",
@@ -126,6 +137,15 @@ def _run_linting_actions(
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
+    if "fix_pyright" in actions:
+        ccp_script = hsystem.find_file_in_repo("ccp")
+        prompt = f"/coding.fix_pyright {files_str}"
+        _LOG.debug("Running fix_pyright with prompt: %s", prompt)
+        result = subprocess.run(
+            [ccp_script, prompt],
+            capture_output=False,
+        )
+        ret |= result.returncode
     return ret
 
 
@@ -273,12 +293,14 @@ def _lint_markdown_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
+    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Markdown files using lint_txt.py.
 
     :param file_paths: Markdown files to lint
     :param abort_on_error: whether to abort on first error
+    :param actions: list of actions to perform (passed to lint_txt.py)
     :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
@@ -297,22 +319,15 @@ def _lint_markdown_files(
 
 def _filter_files_by_type(
     file_paths: List[str],
-    keep_python_files: bool,
-    keep_jupyter_files: bool,
-    keep_markdown_files: bool,
+    file_extensions: List[str],
     *,
     skip_dassert_exists: bool = False,
 ) -> tuple:
     """
-    Filter files by type (Python, Jupyter, Markdown).
-
-    If no type filters are provided (all False), returns all files grouped
-    by detected type.
+    Filter files by type (Python, Jupyter, Markdown, Text).
 
     :param file_paths: files to filter
-    :param keep_python_files: include Python files
-    :param keep_jupyter_files: include Jupyter notebooks
-    :param keep_markdown_files: include Markdown files
+    :param file_extensions: list of file extensions to include (e.g., ["py", "ipynb", "md", "txt"])
     :param skip_dassert_exists: skip file existence checks
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
@@ -322,6 +337,8 @@ def _filter_files_by_type(
     # Categorize all files by type.
     for f in file_paths:
         if llinutil.is_ipynb_file(f):
+            if "ipynb" not in file_extensions:
+                continue
             paired_python_file = llinutil.from_ipynb_to_python_file(f)
             if not skip_dassert_exists:
                 hdbg.dassert_file_exists(
@@ -332,21 +349,21 @@ def _filter_files_by_type(
                 )
             jupyter_files.append(f)
         elif llinutil.is_py_file(f):
+            if "py" not in file_extensions:
+                continue
             if not llinutil.is_paired_jupytext_file(f):
                 python_files.append(f)
         elif f.endswith(".md"):
+            if "md" not in file_extensions:
+                continue
+            markdown_files.append(f)
+        elif f.endswith(".txt"):
+            if "txt" not in file_extensions:
+                continue
             markdown_files.append(f)
         else:
             _LOG.warning("File type for '%s' not recognized", f)
-    # Select files based on types.
-    if not keep_python_files:
-        python_files = []
-    if not keep_jupyter_files:
-        jupyter_files = []
-    if not keep_markdown_files:
-        markdown_files = []
     return python_files, jupyter_files, markdown_files
-
 
 
 # #############################################################################
@@ -397,24 +414,14 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Lint files from last commit",
     )
-    # File type filters (can be combined).
-    hparser.add_bool_arg(
-        parser,
-        "keep_python_files",
-        default_value=True,
-        help_="Lint Python files (exclude paired jupytext)",
-    )
-    hparser.add_bool_arg(
-        parser,
-        "keep_jupyter_files",
-        default_value=True,
-        help_="Lint Jupyter notebooks (and sync with jupytext)",
-    )
-    hparser.add_bool_arg(
-        parser,
-        "keep_markdown_files",
-        default_value=False,
-        help_="Lint Markdown files",
+    # File type filters.
+    parser.add_argument(
+        "--file_types",
+        type=str,
+        default="py,ipynb",
+        help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')\n"
+        "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
+        "  Default: 'py,ipynb'",
     )
     # Other options.
     parser.add_argument(
@@ -478,6 +485,9 @@ def _main(args: argparse.Namespace) -> int:
         "Must specify one of: --modified, --branch, --dir, --files, "
         "--from_file, --last_commit",
     )
+    # Parse file_types into a list of extensions
+    file_extensions = [ext.strip() for ext in args.file_types.split(",")]
+    _LOG.info("File extensions to process: %s", file_extensions)
     # Get files based on selection mode.
     file_paths = llinutil.get_files_to_check(
         args.files,
@@ -491,18 +501,29 @@ def _main(args: argparse.Namespace) -> int:
     _LOG.info("Found %d files for linting", len(file_paths))
     python_files, jupyter_files, markdown_files = _filter_files_by_type(
         file_paths,
-        args.keep_python_files,
-        args.keep_jupyter_files,
-        args.keep_markdown_files,
+        file_extensions,
     )
-    # Report file types being selected
+    # Report file types being selected.
     selected_types = []
-    if args.keep_python_files:
+    unprocessed_types = set(file_extensions)
+    if "py" in file_extensions:
         selected_types.append("python")
-    if args.keep_jupyter_files:
+        unprocessed_types.discard("py")
+    if "ipynb" in file_extensions:
         selected_types.append("jupyter")
-    if args.keep_markdown_files:
+        unprocessed_types.discard("ipynb")
+    if "md" in file_extensions:
         selected_types.append("markdown")
+        unprocessed_types.discard("md")
+    if "txt" in file_extensions:
+        selected_types.append("text")
+        unprocessed_types.discard("txt")
+    # Ensure all requested file types are processed.
+    hdbg.dassert_eq(
+        len(unprocessed_types),
+        0,
+        msg=f"Unprocessed file types: {unprocessed_types}",
+    )
     print(hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
     all_files = python_files + jupyter_files + markdown_files
     breakdown = f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, Markdown: {len(markdown_files)}"

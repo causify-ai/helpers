@@ -12,7 +12,6 @@ from typing import List, Optional, Tuple
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -210,54 +209,6 @@ def get_python_files_to_lint(dir_name: str) -> List[str]:
     ]
     _LOG.debug("after removing test: files=%s", len(not_test_files))
     return not_test_files
-
-
-# TODO(ai_gp): should this be moved to helpers/hio.py?
-def write_file_back(
-    file_name: str, txt_old: List[str], txt_new: List[str]
-) -> None:
-    """
-    Write new text to file only if it differs from the old text.
-
-    :param file_name: Path to the file to write to
-    :param txt_old: Original text as a list of strings
-    :param txt_new: New text as a list of strings
-    """
-    # Process old text.
-    hdbg.dassert_list_of_strings(txt_old)
-    txt_as_str = "\n".join(txt_old)
-    # Process new text.
-    hdbg.dassert_list_of_strings(txt_new)
-    txt_new_as_str = "\n".join(txt_new)
-    # Write file back, if needed.
-    if txt_as_str != txt_new_as_str:
-        hio.to_file(file_name, txt_new_as_str)
-
-
-# TODO(ai_gp): should this be moved to helpers/hsystem.py?
-def tee(
-    cmd: str, executable: str, abort_on_error: bool
-) -> Tuple[int, List[str]]:
-    """
-    Execute command and return its exit code and output lines.
-
-    Captures output, removes empty lines, and optionally aborts on error.
-
-    :param cmd: Command string to execute
-    :param executable: Executable to use for running the command
-    :param abort_on_error: Whether to abort execution if command fails
-    :return: Tuple of (exit code, list of non-empty output lines)
-    """
-    _LOG.debug("cmd=%s executable=%s", cmd, executable)
-    rc, output = hsystem.system_to_string(cmd, abort_on_error=abort_on_error)
-    hdbg.dassert_isinstance(output, str)
-    output1 = output.split("\n")
-    _LOG.debug("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
-    #
-    output2 = hprint.remove_empty_lines(output1)
-    _LOG.debug("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
-    hdbg.dassert_list_of_strings(output2)
-    return rc, output2
 
 
 # TODO(gp): Some of these functions can be centralized in helpers.
@@ -463,22 +414,15 @@ def get_dirs_with_missing_init(
 
 def filter_files_by_type(
     file_paths: List[str],
-    keep_python_files: bool,
-    keep_jupyter_files: bool,
-    keep_markdown_files: bool,
+    file_extensions: List[str],
     *,
     skip_dassert_exists: bool = False,
 ) -> Tuple[List[str], List[str], List[str]]:
     """
-    Filter files by type (Python, Jupyter, Markdown).
-
-    If no type filters are provided (all False), returns all files grouped
-    by detected type.
+    Filter files by type (Python, Jupyter, Markdown, Text).
 
     :param file_paths: files to filter
-    :param keep_python_files: include Python files
-    :param keep_jupyter_files: include Jupyter notebooks
-    :param keep_markdown_files: include Markdown files
+    :param file_extensions: list of file extensions to include (e.g., ["py", "ipynb", "md", "txt"])
     :param skip_dassert_exists: skip file existence checks
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
@@ -488,6 +432,8 @@ def filter_files_by_type(
     # Categorize all files by type.
     for f in file_paths:
         if is_ipynb_file(f):
+            if "ipynb" not in file_extensions:
+                continue
             paired_python_file = from_ipynb_to_python_file(f)
             if not skip_dassert_exists:
                 hdbg.dassert_file_exists(
@@ -498,17 +444,18 @@ def filter_files_by_type(
                 )
             jupyter_files.append(f)
         elif is_py_file(f):
+            if "py" not in file_extensions:
+                continue
             if not is_paired_jupytext_file(f):
                 python_files.append(f)
         elif f.endswith(".md"):
+            if "md" not in file_extensions:
+                continue
+            markdown_files.append(f)
+        elif f.endswith(".txt"):
+            if "txt" not in file_extensions:
+                continue
             markdown_files.append(f)
         else:
             _LOG.warning("File type for '%s' not recognized", f)
-    # Select files based on types.
-    if not keep_python_files:
-        python_files = []
-    if not keep_jupyter_files:
-        jupyter_files = []
-    if not keep_markdown_files:
-        markdown_files = []
     return python_files, jupyter_files, markdown_files

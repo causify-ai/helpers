@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""
+Ripgrep wrapper utility with file type filtering support.
+
+Provides a command-line interface for ripgrep (rg) with support for filtering
+by file extensions and searching only in modified, branched, or user-specified
+files.
+"""
 
 import argparse
 import logging
@@ -7,54 +14,90 @@ from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import helpers.hprint as hprint
+import helpers.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 
 
 def _build_ripgrep_command(
-    *,
     pattern: str,
     directory: str,
-    extension: Optional[str],
+    extensions: Optional[List[str]],
     rg_opts: List[str],
+    *,
+    files: Optional[List[str]] = None,
 ) -> List[str]:
     """
     Build ripgrep command with given parameters.
 
     :param pattern: Search pattern (supports regex)
     :param directory: Directory to search in
-    :param extension: File extension filter (without dot), optional
+    :param extensions: File extensions to search (without dot), optional list
     :param rg_opts: Additional ripgrep options
+    :param files: Specific files to search in, optional list
     :return: Command list ready for subprocess
     """
     cmd = ["rg"]
-    if extension:
-        cmd.extend(["-g", f"*.{extension}"])
+    if extensions:
+        for ext in extensions:
+            # Ensure extensions don't have a dot prefix since ripgrep expects
+            # bare extension names (e.g., "py" not ".py") when using the
+            # `-g glob` filter.
+            hdbg.dassert(
+                not ext.startswith("."),
+                "Extension '%s' must not start with dot",
+                ext,
+            )
+            cmd.extend(["-g", f"*.{ext}"])
     cmd.append(pattern)
-    cmd.append(directory)
+    if files:
+        cmd.extend(files)
+    else:
+        cmd.append(directory)
     cmd.extend(rg_opts)
     return cmd
 
 
-def _get_default_rg_opts() -> List[str]:
+def _get_files_to_search(
+    *,
+    modified: bool,
+    branch: bool,
+    last_commit: bool,
+    all_files: bool,
+    files_from_user: Optional[str],
+) -> Optional[List[str]]:
     """
-    Get default ripgrep options.
+    Get list of files to search based on selection criteria.
 
-    :return: List of default options
+    :param modified: Return files modified in the client
+    :param branch: Return files modified with respect to the branch point
+    :param last_commit: Return files part of the previous commit
+    :param all_files: Return all repo files
+    :param files_from_user: Files passed by the user
+    :return: List of files to search, or None to search entire directory
     """
-    return ["-n", "--no-heading", "--color=never"]
+    if not any([modified, branch, last_commit, all_files, files_from_user]):
+        return None
+    files = hlitauti._get_files_to_process(
+        modified=modified,
+        branch=branch,
+        last_commit=last_commit,
+        all_=all_files,
+        files_from_user=files_from_user or "",
+        mutually_exclusive=True,
+        remove_dirs=True,
+    )
+    return files if files else None
 
 
 def parse() -> argparse.ArgumentParser:
     """
-    Parse command-line arguments for rig utility.
+    Create and return ArgumentParser for rig utility.
 
-    Supports:
-    - Search mode: pattern [directory] [extension] [rg_opts]
-    - Help mode: --help or -h
+    Configures arguments for: search pattern, directory, file extensions,
+    file selection filters (modified, branch, last-commit, all), and verbosity.
 
-    :return: ArgumentParser instance
+    :return: Configured ArgumentParser instance
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -62,6 +105,37 @@ def parse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "positional", nargs="*", help="Positional arguments for search"
+    )
+    parser.add_argument(
+        "--modified",
+        action="store_true",
+        help="Search only in files modified in the client (staged and unstaged)",
+    )
+    parser.add_argument(
+        "--branch",
+        action="store_true",
+        help="Search only in files modified with respect to the branch point",
+    )
+    parser.add_argument(
+        "--last-commit",
+        action="store_true",
+        help="Search only in files part of the previous commit",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        dest="all_files",
+        help="Search all repo files",
+    )
+    parser.add_argument(
+        "--files",
+        type=str,
+        help="Search in specific files (space-separated list)",
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Print the ripgrep command and exit without running it",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -77,45 +151,92 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     result = argparse.Namespace()
     result.pattern = None
     result.directory = "."
-    result.extension = None
+    result.extensions = None
+    result.modified = parsed.modified
+    result.branch = parsed.branch
+    result.last_commit = parsed.last_commit
+    result.all_files = parsed.all_files
+    result.files_from_user = parsed.files
+    result.dry_run = parsed.dry_run
     if parsed.positional:
         result.pattern = parsed.positional[0]
     if len(parsed.positional) > 1:
         result.directory = parsed.positional[1]
     if len(parsed.positional) > 2:
-        result.extension = parsed.positional[2]
+        result.extensions = [
+            ext.strip() for ext in parsed.positional[2].split(",")
+        ]
+        # Ensure extensions don't have a dot prefix since ripgrep expects bare
+        # extension names (e.g., "py" not ".py") when using the `-g glob` filter.
+        for ext in result.extensions:
+            hdbg.dassert(
+                not ext.startswith("."),
+                "Extension '%s' must not start with dot",
+                ext,
+            )
     return result
 
 
-def main(parser: argparse.ArgumentParser) -> int:
+def main(
+    args: Optional[List[str]] = None,
+    parser: Optional[argparse.ArgumentParser] = None,
+) -> int:
     """
     Main entry point for rig utility.
 
-    :param parser: ArgumentParser instance
+    :param args: Command-line arguments (defaults to sys.argv[1:])
+    :param parser: ArgumentParser instance (created if not provided)
     :return: Exit code (0 for success, 1 for error)
     """
-    parsed = parser.parse_args()
+    if parser is None:
+        parser = parse()
+    if args is not None:
+        parsed = parser.parse_args(args)
+    else:
+        parsed = parser.parse_args()
     hdbg.init_logger(
         verbosity=parsed.log_level,
         use_exec_path=True,
         report_command_line=False,
         log_filename="",
     )
-    _LOG.debug(hprint.func_signature_to_str())
     parsed = _parse_arguments(parsed)
     if not parsed.pattern:
         parser.print_help()
         return 0
-    # Validate that the directory exists.
-    hdbg.dassert_dir_exists(parsed.directory)
-    rg_opts = _get_default_rg_opts()
+    # Default ripgrep options for consistent output formatting.
+    rg_opts = [
+        # Show line numbers.
+        "-n",
+        # Omit file headers.
+        "--no-heading",
+        # Plain output without ANSI colors.
+        "--color=never",
+    ]
+    # Retrieve filtered file list if user specified file selection criteria;
+    # otherwise search entire directory.
+    files = _get_files_to_search(
+        modified=parsed.modified,
+        branch=parsed.branch,
+        last_commit=parsed.last_commit,
+        all_files=parsed.all_files,
+        files_from_user=parsed.files_from_user,
+    )
     cmd = _build_ripgrep_command(
         pattern=parsed.pattern,
         directory=parsed.directory,
-        extension=parsed.extension,
+        extensions=parsed.extensions,
         rg_opts=rg_opts,
+        files=files,
     )
-    _LOG.debug("> %s", cmd)
+    # Log the command in shell format for easy copy-paste debugging.
     _LOG.debug("> %s", " ".join(cmd))
-    subprocess.run(cmd)
+    if parsed.dry_run:
+        # Print the command and exit without running it.
+        print(" ".join(cmd))
+        return 0
+    try:
+        subprocess.run(cmd)
+    except FileNotFoundError:
+        return 1
     return 0

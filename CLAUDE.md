@@ -85,21 +85,6 @@ The repository uses `pyinvoke` for task automation with a modular task system:
   invoke run_coverage --suite superslow --generate-html-report
   ```
 
-### Linting and Code Quality
-
-- To lint code
-
-  ```bash
-  # Lint all modified files
-  invoke lint --modified
-
-  # Lint specific files
-  invoke lint --files "file1.py file2.py"
-
-  # Check Python files compilation
-  invoke lint_check_python_files --modified
-  ```
-
 ### Git and Branch Management
 
 - To use branch
@@ -164,6 +149,8 @@ import config_root.config.config_ as crococon
 - Test outcomes stored in `test/outcomes/` directories following module
   structure
 
-# Development Conventions and Rules
+# Important
 
-- Read and strictly follow `.claude/convention_rules.md`
+- You MUST read and strictly follow `.claude/convention_rules.md`
+
+- You MUST never commit changes without user permission

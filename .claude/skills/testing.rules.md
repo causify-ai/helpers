@@ -48,6 +48,66 @@
       # Test methods here
   ```
 
+## Consolidate Inputs and Outputs
+
+- Organize input variables in a consecutive block and organize output variables
+  in a consecutive block
+  - **Bad** (the input and output dirs are mixed)
+    ```
+    # Create input and output directories.
+    input_dir = self_.get_input_dir()
+    output_dir = self_.get_output_dir()
+    hio.create_dir(output_dir, incremental=True)
+    # Create input file with test content.
+    input_file = os.path.join(input_dir, f"test.{input_ext}")
+    input_content = hprint.dedent(input_content)
+    hio.to_file(input_file, input_content)
+    _LOG.debug("Created input file: %s", input_file)
+    # Create output file path.
+    output_file = os.path.join(output_dir, f"test_output.{output_ext}")
+    ```
+  - **Good**
+    ```
+    # Create inputs.
+    input_dir = self_.get_input_dir()
+    output_dir = self_.get_output_dir()
+    input_file = os.path.join(input_dir, f"test.{input_ext}")
+    input_content = hprint.dedent(input_content)
+    hio.to_file(input_file, input_content)
+    _LOG.debug("Created input file: %s", input_file)
+    # Create outputs.
+    hio.create_dir(output_dir, incremental=True)
+    output_file = os.path.join(output_dir, f"test_output.{output_ext}")
+    ```
+
+## Assign Variables and Then Call Functions
+
+- Don't just pass data to a function directly, but explain the data first
+  by assigning each value to a variable, and then pass the variables to the
+  function
+  - **Bad**
+    ```python
+    # Run test.
+    self.helper(".tex", "figs/diagram.png", "...", "fig:test_diagram",
+    "fig:test_diagram", "Test diagram showing communication")
+    ```
+
+  - **Good**
+    ```python
+    # Prepare inputs.
+    extension = ".tex"
+    rel_img_path = "figs/diagram.png"
+    user_img_size = ""
+    label = "fig:test_diagram"
+    caption = "Test diagram showing communication"
+    # Prepare outputs.
+    expected = r"""
+    ...
+    """
+    # Run test.
+    self.helper(extension, rel_img_path, user_img_size, expected, label, caption)
+    ```
+
 # Naming Conventions
 
 ## Naming Conventions for a Function

@@ -1,0 +1,122 @@
+from typing import List
+
+import pytest
+
+import helpers.hdocker as hdocker
+import helpers.hio as hio
+import helpers.hsystem as hsystem
+import helpers.hunit_test as hunitest
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
+
+
+# #############################################################################
+# Test_build_markdown_toc_container1
+# #############################################################################
+
+
+#@pytest.mark.slow
+class Test_build_markdown_toc_container1(hunitest.TestCase):
+    """
+    Test building the `markdown-toc` container.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the markdown-toc Docker container is built correctly.
+        """
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        dshdlmato.build_markdown_toc_container_image(
+            force_rebuild=force_rebuild, use_sudo=use_sudo
+        )
+
+    def test2(self) -> None:
+        """
+        Test that the markdown-toc version matches expected output.
+        """
+        use_sudo = hdocker.get_use_sudo()
+        docker_executable = hdocker.get_docker_executable(use_sudo)
+        # Build the container.
+        image_name = dshdlmato.get_markdown_toc_container_image_name()
+        # Run version command inside container.
+        cmd = (
+            f"{docker_executable} run --rm"
+            f' --entrypoint "" {image_name}'
+            " bash -c 'npm list -g markdown-toc'"
+        )
+        _, output = hsystem.system_to_string(cmd)
+        # Check version output.
+        expected = "/usr/local/lib\n`-- markdown-toc@1.2.0\n"
+        self.assert_equal(output, expected)
+
+
+# #############################################################################
+# Test_run_dockerized_markdown_toc1
+# #############################################################################
+
+
+#@pytest.mark.slow
+class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test running the `markdown-toc` command in a Docker container.
+
+        :param txt: Input markdown text
+        :param expected: Expected output after running markdown-toc
+        """
+        # Prepare inputs.
+        in_file_path = dshddout.create_test_file(self, txt, extension="md")
+        cmd_opts: List[str] = []
+        use_sudo = hdocker.get_use_sudo()
+        force_rebuild = False
+        # Run test.
+        dshdlmato.run_dockerized_markdown_toc(
+            in_file_path,
+            cmd_opts,
+            use_sudo=use_sudo,
+            force_rebuild=force_rebuild,
+        )
+        # Check outputs.
+        actual = hio.from_file(in_file_path)
+        self.assert_equal(
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+    def test1(self) -> None:
+        """
+        Test running the `markdown-toc` command inside a Docker container.
+        """
+        # Prepare inputs.
+        txt = """
+        <!-- toc -->
+
+        # Good
+        - Good time management
+          1. choose the right tasks
+            - Avoid non-essential tasks
+
+        ## Bad
+        -  Hello
+            - World
+        """
+        # Prepare outputs.
+        expected = r"""
+        <!-- toc -->
+
+        - [Good](#good)
+          * [Bad](#bad)
+
+        <!-- tocstop -->
+
+        # Good
+        - Good time management
+          1. choose the right tasks
+            - Avoid non-essential tasks
+
+        ## Bad
+        -  Hello
+            - World
+        """
+        # Run test.
+        self.helper(txt, expected)

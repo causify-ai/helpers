@@ -9,7 +9,6 @@ import re
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
@@ -35,7 +34,11 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
         f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
     container_type = "pandoc_only"
-    hdocexec.run_dockerized_pandoc(cmd, container_type)
+
+    # To minimze the dependency.
+    import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+
+    dshdlipa.run_dockerized_pandoc(cmd, container_type)
     # Read tmp file.
     res = hio.from_file(out_file_name)
     # Remove lines that contain \tightlist.
@@ -55,14 +58,14 @@ def markdown_list_to_latex(markdown: str) -> str:
     hdbg.dassert_isinstance(markdown, str)
     markdown = hprint.dedent(markdown)
     # Remove the first line if it's a title.
-    markdown = markdown.split("\n")
-    m = re.match(r"^(\*+ )(.*)", markdown[0])
+    markdown_lines = markdown.split("\n")
+    m = re.match(r"^(\*+ )(.*)", markdown_lines[0])
     if m:
         title = m.group(2)
-        markdown = markdown[1:]
+        markdown_lines = markdown_lines[1:]
     else:
         title = ""
-    markdown = "\n".join(markdown)
+    markdown = "\n".join(markdown_lines)
     # Convert.
     txt = convert_pandoc_md_to_latex(markdown)
     # Remove `\tightlist` and empty lines.
@@ -95,7 +98,10 @@ def format_latex(txt: str) -> str:
     :return: formatted LaTeX text
     """
     file_type = "tex"
-    txt = hdocexec.prettier_on_str(txt, file_type)
+    # To minimize the dependency.
+    import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
+
+    txt = dshdlipr.prettier_on_str(txt, file_type)
     return txt
 
 
