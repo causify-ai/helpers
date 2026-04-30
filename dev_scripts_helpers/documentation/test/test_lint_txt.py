@@ -2363,7 +2363,7 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
         in_file: str,
         type_: str,
         cmd_opts: str,
-    ) -> Optional[str]:
+    ) -> str:
         """
         Run lint_txt processing directly by calling the code.
 

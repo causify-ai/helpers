@@ -21,7 +21,7 @@ _LOG = logging.getLogger(__name__)
 _PLANTUML_VERSION = "1:1.2020.2+ds-3"
 
 _CONTAINER_PREFIX = "tmp.plantuml"
-_DOCKERFILE = rf"""
+_DOCKERFILE = r"""
 # Use a lightweight base image.
 FROM ubuntu:22.04
 

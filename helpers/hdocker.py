@@ -785,7 +785,7 @@ def convert_all_paths_from_caller_to_callee_docker_path(
     callee_mount_path: str,
     is_caller_host: bool,
     use_sibling_container_for_callee: bool,
-) -> str:
+) -> List[str]:
     """
     Convert all the paths from the caller to the callee Docker container path.
 

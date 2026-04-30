@@ -12,7 +12,7 @@ import subprocess
 import time
 from typing import Any, List
 
-from invoke import task
+from invoke.tasks import task
 
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem
@@ -389,7 +389,7 @@ def _filter_git_files_by_type(
     :param file_extensions: list of file extensions to include (e.g., ["py", "ipynb", "md"])
     :return: filtered list of files
     """
-    hdbg.dassert_is_instance(file_extensions, list)
+    hdbg.dassert_isinstance(file_extensions, list)
     filtered = []
     for f in file_paths:
         for ext in file_extensions:

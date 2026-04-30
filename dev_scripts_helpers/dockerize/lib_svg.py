@@ -22,7 +22,7 @@ _LOG = logging.getLogger(__name__)
 
 
 _RSVG_CONVERT_CONTAINER_PREFIX = "tmp.svg_rsvg_convert"
-_RSVG_CONVERT_DOCKERFILE = rf"""
+_RSVG_CONVERT_DOCKERFILE = r"""
 FROM ubuntu:22.04
 
 RUN apt-get update && \
@@ -150,7 +150,7 @@ def run_dockerized_svg_with_rsvg_convert(
 
 
 _INKSCAPE_CONTAINER_PREFIX = "tmp.svg_inkscape"
-_INKSCAPE_DOCKERFILE = rf"""
+_INKSCAPE_DOCKERFILE = r"""
 FROM ubuntu:22.04
 
 RUN apt-get update && \

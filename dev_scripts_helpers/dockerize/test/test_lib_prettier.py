@@ -71,6 +71,7 @@ class Test_build_prettier_container1(hunitest.TestCase):
 
     # TODO(gp): Extend for file_type = "txt"
 
+
 # #############################################################################
 # Test_run_dockerized_prettier_md1
 # #############################################################################

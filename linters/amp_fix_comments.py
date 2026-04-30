@@ -126,8 +126,7 @@ def _replace_comments_in_lines(
         2. removes the lines between the comment's start_line & end_line.
         3. adds the new multiline comment
     """
-    LineWithNumber = Tuple[int, str]
-    lines_with_numbers: List[LineWithNumber] = [
+    lines_with_numbers: List[Tuple[int, str]] = [
         (idx + 1, line) for idx, line in enumerate(lines)
     ]
 

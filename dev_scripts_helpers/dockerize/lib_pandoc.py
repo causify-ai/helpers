@@ -138,7 +138,9 @@ def build_pandoc_latex_container_image(
 
 # > docker buildx imagetools inspect texlive/texlive:latest| grep Digest
 # Digest:    sha256:bbbdba20464340437614083cd6c9ea5e656c5fc64ffab2d0de393526fa57e5c2
-_TEXLIVE_VERSION = "@sha256:bbbdba20464340437614083cd6c9ea5e656c5fc64ffab2d0de393526fa57e5c2"
+_TEXLIVE_VERSION = (
+    "@sha256:bbbdba20464340437614083cd6c9ea5e656c5fc64ffab2d0de393526fa57e5c2"
+)
 _PANDOC_TEXLIVE_CONTAINER_PREFIX = "tmp.pandoc_texlive"
 _PANDOC_TEXLIVE_DOCKERFILE = rf"""
 FROM texlive/texlive{_TEXLIVE_VERSION}

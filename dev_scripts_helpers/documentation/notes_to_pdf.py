@@ -78,7 +78,9 @@ def _system_to_string(
     return rc, txt
 
 
-def _mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Optional[List[str]]]:
+def _mark_action(
+    action: str, actions: Optional[List[str]]
+) -> Tuple[bool, Optional[List[str]]]:
     _report_phase(action)
     to_execute, actions = hparser.mark_action(action, actions)
     if not to_execute:

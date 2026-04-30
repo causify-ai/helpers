@@ -24,7 +24,7 @@ class Test_build_mermaid_container1(hunitest.TestCase):
         """
         Test that the Mermaid Docker container is built correctly.
         """
-        force_rebuilt = False
+        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         dshdlime.build_mermaid_container_image(
             force_rebuild=force_rebuild, use_sudo=use_sudo

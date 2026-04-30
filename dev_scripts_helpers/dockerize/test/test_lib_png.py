@@ -47,8 +47,8 @@ class Test_build_png_container1(hunitest.TestCase):
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
         expected = (
-            "WARNING: The convert command is deprecated in IMv7, use \"magick\""
-            " instead of \"convert\" or \"magick convert\"\n\n"
+            'WARNING: The convert command is deprecated in IMv7, use "magick"'
+            ' instead of "convert" or "magick convert"\n\n'
             "Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897"
             " https://imagemagick.org\n"
         )

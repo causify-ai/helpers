@@ -39,6 +39,7 @@ import fitz
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -321,7 +322,7 @@ def _pdf_to_markdown(
     markdown_content = "\n\n".join(md_lines)
     # Apply prettier formatting to the markdown.
     _LOG.info("Applying prettier formatting to markdown")
-    markdown_content = lib_prettier.prettier_on_str(
+    markdown_content = dshdlipr.prettier_on_str(
         markdown_content,
         file_type="md",
         print_width=80,

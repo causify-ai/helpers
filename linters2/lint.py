@@ -65,15 +65,17 @@ import linters2.linter_utils as llinutil
 
 _LOG = logging.getLogger(__name__)
 
-_VALID_ACTIONS = set([
-    "add_class_frames",
-    "coverage",
-    "fix_pyright",
-    "normalize_import",
-    "pre-commit",
-    "pyright",
-    "sync_jupytext",
-])
+_VALID_ACTIONS = set(
+    [
+        "add_class_frames",
+        "coverage",
+        "fix_pyright",
+        "normalize_import",
+        "pre-commit",
+        "pyright",
+        "sync_jupytext",
+    ]
+)
 
 # They are executed in the order given by the list.
 _DEFAULT_ACTIONS = [
