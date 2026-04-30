@@ -61,9 +61,16 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
     Test SVG conversion using rsvg-convert.
     """
 
-    def _run_svg_conversion(
+    def helper(
         self, svg_code: str, out_filename: str, output_format: str
     ) -> None:
+        """
+        Test SVG conversion.
+
+        :param svg_code: SVG code to convert
+        :param out_filename: Output file name
+        :param output_format: Output format (e.g., png, pdf)
+        """
         in_file = os.path.join(self.get_scratch_space(), "test.svg")
         out_file = os.path.join(self.get_scratch_space(), out_filename)
         hio.to_file(in_file, svg_code)
@@ -79,10 +86,11 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
         # Check that output file was created.
         self.assertTrue(os.path.exists(out_file))
 
-    def test_svg_to_png(self) -> None:
+    def test1(self) -> None:
         """
         Test converting SVG to PNG using rsvg-convert.
         """
+        # Prepare inputs.
         svg_code = r"""
         <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
           <circle cx="50" cy="50" r="40" fill="blue" />
@@ -90,12 +98,14 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
         """
         out_filename = "test_png.png"
         output_format = "png"
-        self._run_svg_conversion(svg_code, out_filename, output_format)
+        # Run test.
+        self.helper(svg_code, out_filename, output_format)
 
-    def test_svg_to_pdf(self) -> None:
+    def test2(self) -> None:
         """
         Test converting SVG to PDF using rsvg-convert.
         """
+        # Prepare inputs.
         svg_code = r"""
         <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
           <rect x="10" y="10" width="80" height="80" fill="red" />
@@ -103,7 +113,8 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
         """
         out_filename = "test_pdf.pdf"
         output_format = "pdf"
-        self._run_svg_conversion(svg_code, out_filename, output_format)
+        # Run test.
+        self.helper(svg_code, out_filename, output_format)
 
 
 # #############################################################################
@@ -117,9 +128,16 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
     Test SVG conversion using inkscape.
     """
 
-    def _run_svg_conversion(
+    def helper(
         self, svg_code: str, out_filename: str, output_format: str
     ) -> None:
+        """
+        Test SVG conversion.
+
+        :param svg_code: SVG code to convert
+        :param out_filename: Output file name
+        :param output_format: Output format (e.g., png, pdf)
+        """
         in_file = os.path.join(self.get_scratch_space(), "test.svg")
         out_file = os.path.join(self.get_scratch_space(), out_filename)
         hio.to_file(in_file, svg_code)
@@ -135,10 +153,11 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
         # Check that output file was created.
         self.assertTrue(os.path.exists(out_file))
 
-    def test_svg_to_png(self) -> None:
+    def test1(self) -> None:
         """
         Test converting SVG to PNG using inkscape.
         """
+        # Prepare inputs.
         svg_code = r"""
         <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
           <circle cx="50" cy="50" r="40" fill="green" />
@@ -146,12 +165,14 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
         """
         out_filename = "test_inkscape.png"
         output_format = "png"
-        self._run_svg_conversion(svg_code, out_filename, output_format)
+        # Run test.
+        self.helper(svg_code, out_filename, output_format)
 
-    def test_svg_to_pdf(self) -> None:
+    def test2(self) -> None:
         """
         Test converting SVG to PDF using inkscape.
         """
+        # Prepare inputs.
         svg_code = r"""
         <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
           <polygon points="50,10 90,90 10,90" fill="yellow" stroke="black"/>
@@ -159,4 +180,5 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
         """
         out_filename = "test_inkscape.pdf"
         output_format = "pdf"
-        self._run_svg_conversion(svg_code, out_filename, output_format)
+        # Run test.
+        self.helper(svg_code, out_filename, output_format)

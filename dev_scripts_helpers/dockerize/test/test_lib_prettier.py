@@ -23,7 +23,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
     Test building the `prettier` container for several file types.
     """
 
-    def _helper_check_version(self, file_type: str) -> None:
+    def helper_check_version(self, file_type: str) -> None:
         """
         Check that Prettier version command works in container.
 
@@ -32,7 +32,6 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
         # Prepare inputs.
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
-        assert 0, file_type
         image_name = dshdlipr.get_prettier_container_image_name(file_type)
         cmd = (
             f"{docker_executable} run --rm"
@@ -47,7 +46,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
 
     def test_md1(self) -> None:
         """
-        Test that the Prettier Docker container is built correctly.
+        Test building the Prettier Docker container for md file type.
         """
         file_type = "md"
         force_rebuild = False
@@ -58,14 +57,14 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
 
     def test_md2(self) -> None:
         """
-        Test that the Prettier version matches expected output for md file type.
+        Test the Prettier version matches expected output for md file type.
         """
         file_type = "md"
-        self._helper_check_version(file_type)
+        self.helper_check_version(file_type)
 
     def test_txt1(self) -> None:
         """
-        Test that the Prettier Docker container is built correctly.
+        Test building the Prettier Docker container for txt file type.
         """
         file_type = "txt"
         force_rebuild = False
@@ -76,14 +75,14 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
 
     def test_txt2(self) -> None:
         """
-        Test that the Prettier version matches expected output for md file type.
+        Test the Prettier version matches expected output for txt file type.
         """
         file_type = "txt"
-        self._helper_check_version(file_type)
+        self.helper_check_version(file_type)
 
     def test_tex1(self) -> None:
         """
-        Test that the Prettier Docker container is built correctly.
+        Test building the Prettier Docker container for tex file type.
         """
         file_type = "tex"
         force_rebuild = False
@@ -94,10 +93,10 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
 
     def test_tex2(self) -> None:
         """
-        Test that the Prettier version matches expected output for tex file type.
+        Test the Prettier version matches expected output for tex file type.
         """
         file_type = "tex"
-        self._helper_check_version(file_type)
+        self.helper_check_version(file_type)
 
 
 # #############################################################################
@@ -107,7 +106,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
 
 @pytest.mark.slow
 class Test_run_dockerized_prettier_md1(hunitest.TestCase):
-    def _helper(self, txt: str, expected: str) -> None:
+    def helper(self, txt: str, expected: str) -> None:
         """
         Test prettier formatting with custom options.
 
@@ -199,7 +198,7 @@ class Test_run_dockerized_prettier_md1(hunitest.TestCase):
             - C
         """
         # Run test.
-        self._helper(txt, expected)
+        self.helper(txt, expected)
 
     def test3(self) -> None:
         """
@@ -220,7 +219,7 @@ class Test_run_dockerized_prettier_md1(hunitest.TestCase):
            - avoid non-essential tasks
         """
         # Run test.
-        self._helper(txt, expected)
+        self.helper(txt, expected)
 
 
 # #############################################################################
@@ -230,7 +229,7 @@ class Test_run_dockerized_prettier_md1(hunitest.TestCase):
 
 @pytest.mark.slow
 class Test_run_dockerized_prettier_txt1(hunitest.TestCase):
-    def _helper(self, txt: str, expected: str) -> None:
+    def helper(self, txt: str, expected: str) -> None:
         """
         Test prettier formatting with custom options.
 
@@ -322,7 +321,7 @@ class Test_run_dockerized_prettier_txt1(hunitest.TestCase):
             - C
         """
         # Run test.
-        self._helper(txt, expected)
+        self.helper(txt, expected)
 
     def test3(self) -> None:
         """
@@ -343,7 +342,7 @@ class Test_run_dockerized_prettier_txt1(hunitest.TestCase):
            - avoid non-essential tasks
         """
         # Run test.
-        self._helper(txt, expected)
+        self.helper(txt, expected)
 
 
 # #############################################################################

@@ -318,13 +318,13 @@ class Test_run_dockerized_pandoc2(hunitest.TestCase):
         # Prepare inputs.
         input_dir = self.get_input_dir()
         input_file = os.path.join(input_dir, "input.md")
-        #
+        # Prepare outputs.
         output_dir = self.get_output_dir()
         output_file = os.path.join(output_dir, "sample.html")
         hio.create_dir(output_dir, incremental=True)
         cmd = f"pandoc {input_file} -o {output_file} --to=html --toc"
-        # Run test.
         container_type = "pandoc_texlive"
+        # Run test.
         dshdlipa.run_dockerized_pandoc(
             cmd,
             container_type,
