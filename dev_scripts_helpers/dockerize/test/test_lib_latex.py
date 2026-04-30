@@ -15,7 +15,7 @@ import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_build_latex_container1(hunitest.TestCase):
     """
     Test building the `latex` container.
@@ -58,7 +58,7 @@ class Test_build_latex_container1(hunitest.TestCase):
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_run_dockerized_latex1(hunitest.TestCase):
     def test1(self) -> None:
         """

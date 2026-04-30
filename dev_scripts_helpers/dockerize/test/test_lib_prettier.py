@@ -13,13 +13,14 @@ import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 
 # #############################################################################
-# Test_build_prettier_container1
+# Test_build_prettier_md_tex_container1
 # #############################################################################
 
 
-class Test_build_prettier_container1(hunitest.TestCase):
+@pytest.mark.slow
+class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
     """
-    Test building the `prettier` container.
+    Test building the `prettier` container for several file types.
     """
 
     def _helper_check_version(self, file_type: str) -> None:
@@ -31,6 +32,7 @@ class Test_build_prettier_container1(hunitest.TestCase):
         # Prepare inputs.
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
+        assert 0, file_type
         image_name = dshdlipr.get_prettier_container_image_name(file_type)
         cmd = (
             f"{docker_executable} run --rm"
@@ -43,7 +45,7 @@ class Test_build_prettier_container1(hunitest.TestCase):
         expected = "3.8.3\n"
         self.assert_equal(output, expected)
 
-    def test1(self) -> None:
+    def test_md1(self) -> None:
         """
         Test that the Prettier Docker container is built correctly.
         """
@@ -54,21 +56,48 @@ class Test_build_prettier_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
-    def test2(self) -> None:
+    def test_md2(self) -> None:
         """
         Test that the Prettier version matches expected output for md file type.
         """
         file_type = "md"
         self._helper_check_version(file_type)
 
-    def test3(self) -> None:
+    def test_txt1(self) -> None:
+        """
+        Test that the Prettier Docker container is built correctly.
+        """
+        file_type = "txt"
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        dshdlipr.build_prettier_container_image(
+            file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
+        )
+
+    def test_txt2(self) -> None:
+        """
+        Test that the Prettier version matches expected output for md file type.
+        """
+        file_type = "txt"
+        self._helper_check_version(file_type)
+
+    def test_tex1(self) -> None:
+        """
+        Test that the Prettier Docker container is built correctly.
+        """
+        file_type = "tex"
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        dshdlipr.build_prettier_container_image(
+            file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
+        )
+
+    def test_tex2(self) -> None:
         """
         Test that the Prettier version matches expected output for tex file type.
         """
         file_type = "tex"
         self._helper_check_version(file_type)
-
-    # TODO(gp): Extend for file_type = "txt"
 
 
 # #############################################################################
@@ -76,7 +105,7 @@ class Test_build_prettier_container1(hunitest.TestCase):
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_run_dockerized_prettier_md1(hunitest.TestCase):
     def _helper(self, txt: str, expected: str) -> None:
         """
@@ -199,6 +228,7 @@ class Test_run_dockerized_prettier_md1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow
 class Test_run_dockerized_prettier_txt1(hunitest.TestCase):
     def _helper(self, txt: str, expected: str) -> None:
         """
@@ -321,6 +351,7 @@ class Test_run_dockerized_prettier_txt1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow
 class Test_prettier_on_str(hunitest.TestCase):
     def test1(self) -> None:
         """

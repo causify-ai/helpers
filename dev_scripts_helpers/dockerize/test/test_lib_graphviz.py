@@ -14,7 +14,7 @@ import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_build_graphviz_container1(hunitest.TestCase):
     """
     Test building the `graphviz` container.
@@ -55,7 +55,7 @@ class Test_build_graphviz_container1(hunitest.TestCase):
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_run_dockerized_graphviz1(hunitest.TestCase):
     def test1(self) -> None:
         """

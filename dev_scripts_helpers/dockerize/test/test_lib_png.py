@@ -14,7 +14,7 @@ import dev_scripts_helpers.dockerize.lib_png as dshdlipn
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_build_png_container1(hunitest.TestCase):
     """
     Test building the `png` container for tikz to bitmap conversion.
@@ -60,7 +60,7 @@ class Test_build_png_container1(hunitest.TestCase):
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -112,6 +112,7 @@ class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow
 class Test_run_dockerized_imagemagick1(hunitest.TestCase):
     def test1(self) -> None:
         """

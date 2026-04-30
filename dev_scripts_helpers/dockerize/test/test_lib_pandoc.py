@@ -134,6 +134,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow
 class Test_run_dockerized_pandoc1(hunitest.TestCase):
     """
     Test running the `pandoc` command inside a Docker container.
@@ -207,7 +208,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_build_pandoc_container1(hunitest.TestCase):
     """
     Test building the `pandoc` container.
@@ -250,7 +251,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -307,6 +308,7 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow
 class Test_run_dockerized_pandoc2(hunitest.TestCase):
     def test1(self) -> None:
         """

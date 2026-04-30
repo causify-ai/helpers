@@ -14,7 +14,7 @@ import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_build_mermaid_container1(hunitest.TestCase):
     """
     Test building the `mermaid` container.
@@ -55,6 +55,7 @@ class Test_build_mermaid_container1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow
 class Test_run_dockerized_mermaid1(hunitest.TestCase):
     """
     Test running mermaid diagrams in a Docker container.

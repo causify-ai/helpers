@@ -14,7 +14,7 @@ import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_build_svg_container1(hunitest.TestCase):
     """
     Test building the `svg` container.
@@ -55,7 +55,7 @@ class Test_build_svg_container1(hunitest.TestCase):
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
     """
     Test SVG conversion using rsvg-convert.
@@ -111,7 +111,7 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
 # #############################################################################
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
     """
     Test SVG conversion using inkscape.
