@@ -1,4 +1,3 @@
-import os
 from typing import List
 
 import pytest
@@ -25,34 +24,11 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test that the markdown-toc Docker container is built correctly.
-
-        Note: markdown_toc modifies files in place, so it uses a custom test
-        instead of the generic helper.
         """
-        # Prepare inputs.
-        input_dir = self.get_input_dir()
-        input_file = os.path.join(input_dir, "test.md")
-        markdown_code = """
-        <!-- toc -->
-
-        # Section 1
-        ## Subsection 1.1
-        # Section 2
-        """
-        markdown_code = markdown_code.strip()
-        hio.to_file(input_file, markdown_code)
+        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        # Run test.
-        dshdlmato.run_dockerized_markdown_toc(
-            input_file,
-            [],
-            use_sudo=use_sudo,
-            force_rebuild=True,
-        )
-        # Check outputs.
-        self.assertTrue(
-            os.path.exists(input_file),
-            msg=f"Input file {input_file} should still exist",
+        dshdlmato.build_markdown_toc_container_image(
+            force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
     def test2(self) -> None:
@@ -70,8 +46,9 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
             " bash -c 'npm list -g markdown-toc'"
         )
         _, output = hsystem.system_to_string(cmd)
-        # Freeze version output.
-        self.check_string(output)
+        # Check version output.
+        expected = "/usr/local/lib\n`-- markdown-toc@1.2.0\n"
+        self.assert_equal(output, expected)
 
 
 # #############################################################################

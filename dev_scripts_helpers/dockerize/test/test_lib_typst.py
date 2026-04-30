@@ -23,42 +23,12 @@ class Test_build_typst_container1(hunitest.TestCase):
     @pytest.mark.slow
     def test1(self) -> None:
         """
-        Test that the Typst Docker container is built correctly and `typst
-        --version` runs inside it.
-
-        Set `DOCKER_FORCE_REBUILD=1` to rebuild from scratch, e.g.:
-        ```bash
-        > DOCKER_FORCE_REBUILD=1 pytest test_dockerized_typst.py::Test_run_dockerized_typst::test4
-        ```
+        Test that the Typst Docker container is built correctly.
         """
-        # Prepare inputs.
+        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        force_rebuild = True
-        docker_executable = hdocker.get_docker_executable(use_sudo)
-        # Run test.
-        image_name = hdocker.build_container_image(
-            dshdlity.TYPST_CONTAINER_IMAGE,
-            dshdlity.TYPST_DOCKERFILE,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-        exists, image_id = hdocker.image_exists(image_name, use_sudo)
-        cmd = (
-            f"{docker_executable} run --rm"
-            f' --entrypoint "" {image_name}'
-            " bash -c 'typst --version'"
-        )
-        _, output = hsystem.system_to_string(cmd)
-        # Check outputs.
-        self.assertTrue(
-            exists,
-            msg=f"Typst Docker image '{image_name}' was not found after build",
-        )
-        self.assertNotEqual(image_id, "", msg="Expected a non-empty image ID")
-        self.assertIn(
-            "typst",
-            output.lower(),
-            msg=f"Expected 'typst' in version output, got: {output}",
+        dshdlity.build_typst_container_image(
+            force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
     def test2(self) -> None:
@@ -76,8 +46,9 @@ class Test_build_typst_container1(hunitest.TestCase):
             " bash -c 'typst --version'"
         )
         _, output = hsystem.system_to_string(cmd)
-        # Freeze version output.
-        self.check_string(output)
+        # Check version output.
+        expected = "typst 0.14.2 (b33de9de)\n"
+        self.assert_equal(output, expected)
 
 
 # #############################################################################

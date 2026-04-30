@@ -24,9 +24,10 @@ class Test_build_mermaid_container1(hunitest.TestCase):
         """
         Test that the Mermaid Docker container is built correctly.
         """
+        force_rebuilt = False
         use_sudo = hdocker.get_use_sudo()
         dshdlime.build_mermaid_container_image(
-            force_rebuild=True, use_sudo=use_sudo
+            force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
     def test2(self) -> None:
@@ -44,8 +45,9 @@ class Test_build_mermaid_container1(hunitest.TestCase):
             " bash -c 'mmdc --version'"
         )
         _, output = hsystem.system_to_string(cmd)
-        # Freeze version output.
-        self.check_string(output)
+        # Check version output.
+        expected = "11.12.0\n"
+        self.assert_equal(output, expected)
 
 
 # #############################################################################

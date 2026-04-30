@@ -40,52 +40,36 @@ class Test_build_prettier_container1(hunitest.TestCase):
         # Run test.
         _, output = hsystem.system_to_string(cmd)
         # Check outputs.
-        self.check_string(output)
+        expected = "3.8.3\n"
+        self.assert_equal(output, expected)
 
     @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the Prettier Docker container is built correctly.
         """
-        # Prepare inputs.
-        use_sudo = hdocker.get_use_sudo()
         file_type = "md"
-        input_dir = self.get_input_dir()
-        output_dir = self.get_output_dir()
-        input_file_path = os.path.join(input_dir, "test.md")
-        hio.to_file(input_file_path, "# Test\n\nHello world")
-        # Prepare outputs.
-        hio.create_dir(output_dir, incremental=True)
-        output_file_path = os.path.join(output_dir, "test_output.md")
-        cmd_opts = ["--parser", "markdown", "--prose-wrap", "always"]
-        # Run test.
-        dshdlipr.run_dockerized_prettier(
-            input_file_path,
-            cmd_opts,
-            output_file_path,
-            file_type,
-            mode="system",
-            force_rebuild=True,
-            use_sudo=use_sudo,
-        )
-        # Check outputs.
-        self.assertTrue(
-            os.path.exists(output_file_path),
-            msg=f"Output file {output_file_path} was not created",
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        dshdlipr.build_prettier_container_image(
+            file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
     def test2(self) -> None:
         """
         Test that the Prettier version matches expected output for md file type.
         """
-        self._helper_check_version("md")
+        file_type = "md"
+        self._helper_check_version(file_type)
 
     def test3(self) -> None:
         """
         Test that the Prettier version matches expected output for tex file type.
         """
-        self._helper_check_version("tex")
+        file_type = "tex"
+        self._helper_check_version(file_type)
 
+    # TODO(gp): Extend for file_type = "txt"
 
 # #############################################################################
 # Test_run_dockerized_prettier_md1

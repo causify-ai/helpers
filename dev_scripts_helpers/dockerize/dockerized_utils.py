@@ -36,8 +36,6 @@ def create_test_file(self_: Any, txt: str, extension: str) -> str:
     return file_path
 
 
-# TODO(gp): Consider adding these as TestCase.assert_file_exists similar to the
-# hdbg counterparts.
 # TODO(ai_gp): Inline this.
 def assert_output_file_exists(self_: Any, out_file_path: str) -> None:
     """
@@ -50,99 +48,6 @@ def assert_output_file_exists(self_: Any, out_file_path: str) -> None:
         os.path.exists(out_file_path),
         msg=f"Output file {out_file_path} not found",
     )
-
-
-def test_container_build(
-    self_: Any,
-    input_content: str,
-    input_ext: str,
-    output_ext: str,
-    run_func: Callable[..., Any],
-    *,
-    positional_args: Any = None,
-    run_kwargs: Optional[Dict[str, Any]] = None,
-) -> None:
-    """
-    Reusable helper for testing container builds in dockerized tools.
-
-    Sets up input/output directories, creates input file with content, runs the
-    dockerized function with `force_rebuild=True`, and verifies output file
-    exists. This consolidates common test patterns across all containerized
-    build tests.
-
-    Supports different function signature patterns:
-
-    Pattern 1: Direct file paths
-        `run_dockerized_typst(in_file, out_file, ..., force_rebuild=, use_sudo=)`
-        Usage: test_container_build(..., run_func=run_dockerized_typst)
-
-    Pattern 2: Positional args between files
-        `run_dockerized_graphviz(in_file, cmd_opts, out_file, ..., force_rebuild=, use_sudo=)`
-        Usage: test_container_build(..., run_func=run_dockerized_graphviz,
-                                    positional_args=[[]])  # cmd_opts=[]
-
-    Pattern 3: Alternative file parameter names with kwargs
-        `run_dockerized_svg(in_file, out_file, *, output_format="png", ...)`
-        Usage: test_container_build(..., run_func=run_dockerized_svg,
-                                    run_kwargs={"output_format": "png"})
-
-    :param self_: test instance (needs `get_input_dir()`, `get_output_dir()`,
-        `assertTrue()`)
-    :param input_content: content to write to the input file
-    :param input_ext: file extension for input (e.g., 'md', 'typ', 'tex')
-    :param output_ext: file extension for output (e.g., 'pdf', 'html')
-    :param run_func: dockerized function to call (e.g.,
-        `run_dockerized_pandoc`, `run_dockerized_graphviz`)
-    :param positional_args: positional arguments to insert between input_file
-        and output_file (e.g., `[[]]` for cmd_opts=[] in graphviz)
-    :param run_kwargs: additional keyword arguments to pass to `run_func`
-    """
-    if positional_args is None:
-        positional_args = []
-    if run_kwargs is None:
-        run_kwargs = {}
-    # Create input and output directories.
-    input_dir = self_.get_input_dir()
-    output_dir = self_.get_output_dir()
-    hio.create_dir(output_dir, incremental=True)
-    # Create input file with test content.
-    input_file = os.path.join(input_dir, f"test.{input_ext}")
-    input_content = hprint.dedent(input_content)
-    hio.to_file(input_file, input_content)
-    _LOG.debug("Created input file: %s", input_file)
-    # Create output file path.
-    output_file = os.path.join(output_dir, f"test_output.{output_ext}")
-    # Get docker configuration and run the containerized function.
-    use_sudo = hdocker.get_use_sudo()
-    _LOG.debug(
-        "Running containerized function with input_file=%s, output_file=%s",
-        input_file,
-        output_file,
-    )
-    # Build the function call with positional args inserted between files.
-    if positional_args:
-        run_func(
-            input_file,
-            *positional_args,
-            output_file,
-            force_rebuild=True,
-            use_sudo=use_sudo,
-            **run_kwargs,
-        )
-    else:
-        run_func(
-            input_file,
-            output_file,
-            force_rebuild=True,
-            use_sudo=use_sudo,
-            **run_kwargs,
-        )
-    # Verify output file was created.
-    self_.assertTrue(
-        os.path.exists(output_file),
-        msg=f"Output file {output_file} was not created",
-    )
-    _LOG.debug("Output file verified: %s", output_file)
 
 
 def add_open_arg(parser: argparse.ArgumentParser) -> None:

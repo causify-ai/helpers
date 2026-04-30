@@ -24,9 +24,10 @@ class Test_build_plantum_container1(hunitest.TestCase):
         """
         Test that the PlantUML Docker container is built correctly.
         """
+        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         dshdlipl.build_plantuml_container_image(
-            force_rebuild=True, use_sudo=use_sudo
+            force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
     def test2(self) -> None:
@@ -44,8 +45,9 @@ class Test_build_plantum_container1(hunitest.TestCase):
             " bash -c 'plantuml -version 2>&1 | head -1'"
         )
         _, output = hsystem.system_to_string(cmd)
-        # Freeze version output.
-        self.check_string(output)
+        # Check version output.
+        expected = "PlantUML version 1.2024.6 (Sat Jul 06 09:14:38 GMT 2024)"
+        self.assert_equal(output, expected)
 
 
 # #############################################################################

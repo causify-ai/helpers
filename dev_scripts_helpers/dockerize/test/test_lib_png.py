@@ -24,9 +24,10 @@ class Test_build_png_container1(hunitest.TestCase):
         """
         Test that the PNG Docker container is built correctly.
         """
+        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         dshdlipn.build_imagemagick_container_image(
-            force_rebuild=True, use_sudo=use_sudo
+            force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
     def test2(self) -> None:
@@ -41,11 +42,17 @@ class Test_build_png_container1(hunitest.TestCase):
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'
-            " bash -c 'convert --version | head -1'"
+            " bash -c 'magick convert --version | head -1'"
         )
         _, output = hsystem.system_to_string(cmd)
-        # Freeze version output.
-        self.check_string(output)
+        # Check version output.
+        expected = (
+            "WARNING: The convert command is deprecated in IMv7, use \"magick\""
+            " instead of \"convert\" or \"magick convert\"\n\n"
+            "Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897"
+            " https://imagemagick.org\n"
+        )
+        self.assert_equal(output, expected)
 
 
 # #############################################################################

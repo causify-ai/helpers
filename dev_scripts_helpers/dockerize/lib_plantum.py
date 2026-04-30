@@ -27,7 +27,10 @@ FROM ubuntu:22.04
 
 # Install plantUML.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends plantuml={_PLANTUML_VERSION} && \
+    apt-get install -y --no-install-recommends default-jre wget && \
+    wget https://github.com/plantuml/plantuml/releases/download/v1.2024.6/plantuml.jar -O /usr/local/bin/plantuml.jar && \
+    printf '#!/bin/sh\nexec java -jar /usr/local/bin/plantuml.jar "$@"\n' > /usr/local/bin/plantuml && \
+    chmod +x /usr/local/bin/plantuml && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 """
 

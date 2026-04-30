@@ -25,9 +25,10 @@ class Test_build_latex_container1(hunitest.TestCase):
         """
         Test that the LaTeX Docker container is built correctly.
         """
+        force_rebuld = False
         use_sudo = hdocker.get_use_sudo()
         dshdlila.build_latex_container_image(
-            force_rebuild=True, use_sudo=use_sudo
+            force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
     def test2(self) -> None:
@@ -45,8 +46,9 @@ class Test_build_latex_container1(hunitest.TestCase):
             " bash -c 'latex --version | head -1'"
         )
         _, output = hsystem.system_to_string(cmd)
-        # Freeze version output.
-        self.check_string(output)
+        # Check version output.
+        expected = "pdfTeX 3.141592653-2.6-1.40.26 (TeX Live 2024/Alpine Linux)\n"
+        self.assert_equal(output, expected)
 
 
 # #############################################################################
