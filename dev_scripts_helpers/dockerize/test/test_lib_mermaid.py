@@ -14,12 +14,12 @@ import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 # #############################################################################
 
 
+#@pytest.mark.slow
 class Test_build_mermaid_container1(hunitest.TestCase):
     """
     Test building the `mermaid` container.
     """
 
-    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the Mermaid Docker container is built correctly.

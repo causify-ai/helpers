@@ -470,6 +470,11 @@ def build_container_image(
     #     _LOG.debug(
     #         "Coverage enabled - forcing rebuild of image: {image_name_out}"
     #     )
+    if bool(os.environ.get("CSFY_DOCKER_FORCE_REBUILD", False)):
+        _LOG.warning(
+            "CSFY_DOCKER_FORCE_REBUILD forcing to rebuild container without cache"
+        )
+        force_rebuild = True
     if force_rebuild:
         _LOG.warning(
             "Forcing to rebuild of container '%s' without cache",

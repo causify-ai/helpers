@@ -43,7 +43,6 @@ class Test_build_prettier_container1(hunitest.TestCase):
         expected = "3.8.3\n"
         self.assert_equal(output, expected)
 
-    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the Prettier Docker container is built correctly.
@@ -77,6 +76,7 @@ class Test_build_prettier_container1(hunitest.TestCase):
 # #############################################################################
 
 
+#@pytest.mark.slow
 class Test_run_dockerized_prettier_md1(hunitest.TestCase):
     def _helper(self, txt: str, expected: str) -> None:
         """

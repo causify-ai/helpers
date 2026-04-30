@@ -14,7 +14,7 @@ import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
 # #############################################################################
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 class Test_build_plantum_container1(hunitest.TestCase):
     """
     Test building the `plantum` container.
@@ -55,6 +55,7 @@ class Test_build_plantum_container1(hunitest.TestCase):
 # #############################################################################
 
 
+#@pytest.mark.slow
 class Test_run_dockerized_plantuml1(hunitest.TestCase):
     """
     Test running PlantUML diagrams in a Docker container.

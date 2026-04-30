@@ -15,12 +15,12 @@ import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 # #############################################################################
 
 
+#@pytest.mark.slow
 class Test_build_typst_container1(hunitest.TestCase):
     """
     Test building the `typst` container.
     """
 
-    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the Typst Docker container is built correctly.
@@ -56,6 +56,7 @@ class Test_build_typst_container1(hunitest.TestCase):
 # #############################################################################
 
 
+#@pytest.mark.slow
 class Test_run_dockerized_typst1(hunitest.TestCase):
     def test1(self) -> None:
         """

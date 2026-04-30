@@ -15,12 +15,12 @@ import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
 # #############################################################################
 
 
+#@pytest.mark.slow
 class Test_build_markdown_toc_container1(hunitest.TestCase):
     """
     Test building the `markdown-toc` container.
     """
 
-    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the markdown-toc Docker container is built correctly.
@@ -56,6 +56,7 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
 # #############################################################################
 
 
+#@pytest.mark.slow
 class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
         """
