@@ -1,4 +1,5 @@
 import os
+import platform
 from typing import List
 
 import pytest
@@ -38,10 +39,14 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             f' --entrypoint "" {image_name}'
             " bash -c 'prettier --version'"
         )
-        # Run test.
-        _, output = hsystem.system_to_string(cmd)
-        # Check outputs.
-        expected = "3.8.3\n"
+        # Check outputs using platform-specific expected values.
+        system = platform.system()
+        if system == "Darwin":
+            expected = "3.8.3\n"
+        elif system == "Linux":
+            expected = "3.8.3\n"
+        else:
+            raise ValueError(f"Invalid system '{system}'")
         self.assert_equal(output, expected)
 
     def test_md1(self) -> None:

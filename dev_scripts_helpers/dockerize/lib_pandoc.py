@@ -23,15 +23,13 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-# Version pins for tools
-_PANDOC_CORE_VERSION = "3.6"
-_PANDOC_LATEX_VERSION = "3.6"
+# Version pins for tools.
+_PANDOC_CORE_VERSION = "3.7"
 
 
 _PANDOC_LATEX_CONTAINER_PREFIX = "tmp.pandoc_latex"
 _PANDOC_LATEX_DOCKERFILE = rf"""
-ARG pandoc_version={_PANDOC_LATEX_VERSION}
-FROM pandoc/core:${{pandoc_version}}-alpine
+FROM pandoc/core:${_PANDOC_CORE_VERSION}-alpine
 
 # NOTE: to maintainers, please keep this listing alphabetical.
 RUN apk --no-cache add \
@@ -246,7 +244,8 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     args, unknown_args = parser.parse_known_args(cmd_list)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Filter out the option terminator if present.
-    # Remove the `--` option terminator to treat `--option-after-terminator` as a regular argument, not as an option.
+    # Remove the `--` option terminator to treat `--option-after-terminator` as
+    # a regular argument, not as an option.
     unknown_args = [arg for arg in unknown_args if arg != "--"]
     # Return all the arguments in a dictionary with names that match the
     # function signature of `run_dockerized_pandoc()`.

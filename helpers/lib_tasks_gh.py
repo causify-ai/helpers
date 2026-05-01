@@ -286,13 +286,13 @@ def gh_workflow_list(  # type: ignore
                         workflow,
                         branch_name,
                     )
-                    break
-                _LOG.debug(
-                    "Workflow=%s for branch %s is in progress, continue looking for a failed/successful run",
-                    workflow,
-                    branch_name,
-                )
-                # It's in progress.
+                else:
+                    _LOG.debug(
+                        "Workflow=%s for branch %s is in progress, skipping further checks",
+                        workflow,
+                        branch_name,
+                    )
+                break
             else:
                 raise ValueError(f"Invalid status='{status}'")
 
