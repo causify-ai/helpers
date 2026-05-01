@@ -19,7 +19,7 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 # _MERMAID_CONTAINER_PREFIX = "tmp.mermaid"
-# 
+#
 # _DOCKERFILE = rf"""
 # FROM minlag/mermaid-cli:11.12.0
 # """

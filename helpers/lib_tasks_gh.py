@@ -268,7 +268,10 @@ def gh_workflow_list(  # type: ignore
                 break
             if status in ("startup_failure", "cancelled", "skipped"):
                 _LOG.debug(
-                    "Workflow '%s' for '%s' has status '%s', skipping", workflow, branch_name, status
+                    "Workflow '%s' for '%s' has status '%s', skipping",
+                    workflow,
+                    branch_name,
+                    status,
                 )
                 break
             if status == "":

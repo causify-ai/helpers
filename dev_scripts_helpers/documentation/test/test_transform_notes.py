@@ -17,7 +17,6 @@ _LOG = logging.getLogger(__name__)
 @pytest.mark.superslow
 @pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_markdown_to_latex1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test a simple nested list with no frame title.

@@ -1174,7 +1174,9 @@ def _review_from_file_new(file: str) -> _PROMPT_OUT:
     # Extract headers from the markdown.
     max_level = 4
     reference_lines = reference_txt.split("\n")
-    header_list = hmarkdo.extract_headers_from_markdown(reference_lines, max_level)
+    header_list = hmarkdo.extract_headers_from_markdown(
+        reference_lines, max_level
+    )
     # reference_txt = hmarkdo.add_line_numbers(header_list)
     # print(reference_txt)
     guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
