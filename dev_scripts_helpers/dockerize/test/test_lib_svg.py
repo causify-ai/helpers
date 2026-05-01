@@ -4,6 +4,7 @@ import pytest
 
 import helpers.hdocker as hdocker
 import helpers.hio as hio
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
@@ -14,7 +15,8 @@ import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_build_svg_container1(hunitest.TestCase):
     """
     Test building the `svg` container.
@@ -55,7 +57,8 @@ class Test_build_svg_container1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
     """
     Test SVG conversion using rsvg-convert.
@@ -122,7 +125,8 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
     """
     Test SVG conversion using inkscape.

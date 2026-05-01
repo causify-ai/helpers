@@ -4,6 +4,7 @@ import platform
 import pytest
 
 import helpers.hdocker as hdocker
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
@@ -15,7 +16,8 @@ import dev_scripts_helpers.dockerize.lib_png as dshdlipn
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_build_png_container1(hunitest.TestCase):
     """
     Test building the `png` container for tikz to bitmap conversion.
@@ -43,7 +45,7 @@ class Test_build_png_container1(hunitest.TestCase):
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'
-            " bash -c 'magick convert --version | head -1'"
+            " bash -c 'magick --version | head -1'"
         )
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
@@ -60,7 +62,8 @@ class Test_build_png_container1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
     @pytest.mark.timeout(0)
     def test1(self) -> None:
@@ -113,7 +116,8 @@ class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_run_dockerized_imagemagick1(hunitest.TestCase):
     def test1(self) -> None:
         """

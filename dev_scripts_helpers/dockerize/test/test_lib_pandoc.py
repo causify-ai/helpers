@@ -6,6 +6,7 @@ import pytest
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
@@ -134,7 +135,8 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_run_dockerized_pandoc1(hunitest.TestCase):
     """
     Test running the `pandoc` command inside a Docker container.
@@ -208,7 +210,8 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_build_pandoc_container1(hunitest.TestCase):
     """
     Test building the `pandoc` container.
@@ -309,7 +312,8 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_run_dockerized_pandoc2(hunitest.TestCase):
     @pytest.mark.timeout(0)
     def test1(self) -> None:

@@ -3,6 +3,7 @@ import os
 import pytest
 
 import helpers.hdocker as hdocker
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
@@ -14,7 +15,8 @@ import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_build_graphviz_container1(hunitest.TestCase):
     """
     Test building the `graphviz` container.
@@ -55,7 +57,8 @@ class Test_build_graphviz_container1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_run_dockerized_graphviz1(hunitest.TestCase):
     def test1(self) -> None:
         """
