@@ -1,5 +1,4 @@
 import os
-import platform
 from typing import List
 
 import pytest
@@ -8,6 +7,7 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
@@ -25,11 +25,12 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
     Test building the `prettier` container for several file types.
     """
 
-    def helper_check_version(self, file_type: str) -> None:
+    def helper_check_version(self, file_type: str, expected: str) -> None:
         """
         Check that Prettier version command works in container.
 
         :param file_type: File type for container image
+        :param expected: Expected version string
         """
         # Prepare inputs.
         use_sudo = hdocker.get_use_sudo()
@@ -41,14 +42,6 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             " bash -c 'prettier --version'"
         )
         _, actual = hsystem.system_to_string(cmd)
-        # Check outputs using platform-specific expected values.
-        system = platform.system()
-        if system == "Darwin":
-            expected = "3.8.3\n"
-        elif system == "Linux":
-            expected = "3.8.3\n"
-        else:
-            raise ValueError(f"Invalid system '{system}'")
         self.assert_equal(actual, expected)
 
     def test_md1(self) -> None:
@@ -62,12 +55,20 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
-    def test_md2(self) -> None:
+    def test_md2(self, expected_version: str) -> None:
         """
         Test the Prettier version matches expected output for md file type.
         """
         file_type = "md"
-        self.helper_check_version(file_type)
+        # Check outputs using platform-specific expected values.
+        system = platform.system()
+        if system == "Darwin":
+            expected = "3.8.3\n"
+        elif system == "Linux":
+            expected = "3.8.3\n"
+        else:
+            raise ValueError(f"Invalid system '{system}'")
+        self.helper_check_version(file_type, expected_version)
 
     def test_txt1(self) -> None:
         """
@@ -80,12 +81,20 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
-    def test_txt2(self) -> None:
+    def test_txt2(self, expected_version: str) -> None:
         """
         Test the Prettier version matches expected output for txt file type.
         """
         file_type = "txt"
-        self.helper_check_version(file_type)
+        # Check outputs using platform-specific expected values.
+        system = platform.system()
+        if system == "Darwin":
+            expected = "3.8.3\n"
+        elif system == "Linux":
+            expected = "3.8.3\n"
+        else:
+            raise ValueError(f"Invalid system '{system}'")
+        self.helper_check_version(file_type, expected_version)
 
     def test_tex1(self) -> None:
         """
@@ -98,12 +107,20 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
-    def test_tex2(self) -> None:
+    def test_tex2(self, expected_version: str) -> None:
         """
         Test the Prettier version matches expected output for tex file type.
         """
         file_type = "tex"
-        self.helper_check_version(file_type)
+        # Check outputs using platform-specific expected values.
+        system = platform.system()
+        if system == "Darwin":
+            expected = "3.8.3\n"
+        elif system == "Linux":
+            expected = "3.8.3\n"
+        else:
+            raise ValueError(f"Invalid system '{system}'")
+        self.helper_check_version(file_type, expected_version)
 
 
 # #############################################################################
