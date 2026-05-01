@@ -1,15 +1,7 @@
-#!/usr/bin/env -S uv run
-
-# /// script
-# dependencies = []
-# ///
+#!/usr/bin/env python
 
 """
 Wrap pyright to output diagnostics in cfile-compatible format.
-
-Import as:
-
-import dev_scripts_helpers.pyright_cfile as dpycfile
 """
 
 import argparse
@@ -18,13 +10,13 @@ import logging
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
+import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-# Transform
 # #############################################################################
 
 
@@ -36,6 +28,7 @@ def _transform_pyright_output(json_output: str) -> str:
     :return: cfile-compatible formatted diagnostics
     """
     data = json.loads(json_output)
+    _LOG.debug("data=%s", data)
     lines: List[str] = []
     for diagnostic in data.get("generalDiagnostics", []):
         file_path = diagnostic.get("file", "")
@@ -58,9 +51,10 @@ def _parse() -> argparse.ArgumentParser:
     Parse command line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="Wrap pyright to output diagnostics in cfile format",
+        description=__doc__,
         add_help=False,
     )
+    hparser.add_verbosity_arg(parser, log_level="INFO")
     return parser
 
 
@@ -68,17 +62,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     Run pyright with --outputjson and transform output to cfile format.
     """
-    _, remaining = parser.parse_known_args()
+    args, remaining = parser.parse_known_args()
+    hparser.parse_verbosity_args(args)
+    #
     cmd_args = list(remaining)
     hdbg.dassert_isinstance(cmd_args, list, "Command arguments must be a list")
+    if "-h" in cmd_args or "--help" in cmd_args:
+        hsystem.system(f"pyright {' '.join(cmd_args)}")
+        return
     if "--outputjson" not in cmd_args:
         cmd_args.append("--outputjson")
-    cmd = f"pyright {' '.join(cmd_args)}"
-    _LOG.debug("Running command: %s", cmd)
-    _, output = hsystem.system_to_string(
-        cmd, suppress_output=False, abort_on_error=False
-    )
+    #
+    _LOG.debug("Running pyright")
+    cmd = f"pyright {' '.join(cmd_args)} > tmp.pyright.txt"
+    hsystem.system(cmd, abort_on_error=False)
+    #
+    _LOG.debug("Reading output from file 'tmp.pyright.txt'")
+    output = hio.from_file("tmp.pyright.txt")
+    _LOG.debug("Transforming output to cfile format")
     cfile_output = _transform_pyright_output(output)
+    _LOG.debug("Printing cfile output")
     if cfile_output:
         print(cfile_output)
 

@@ -1,8 +1,14 @@
 import json
+import logging
+import sys
 from typing import Any, Dict
+from unittest import mock
 
 import helpers.hunit_test as hunitest
+import helpers.hsystem as hsystem
 import linters2.pyright_cfile as lpycfile
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -112,3 +118,25 @@ class Test__transform_pyright_output(hunitest.TestCase):
         expected = "src/app.py:43:21: Expression is not defined"
         # Run test.
         self.helper(json_data, expected)
+
+
+# #############################################################################
+# Test_script_help_command
+# #############################################################################
+
+
+class Test_script_help_command(hunitest.TestCase):
+    """
+    Test the actual execution of pyright_cfile.py script with -h flag.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that pyright_cfile.py -h returns rc = 0.
+        """
+        # Prepare inputs.
+        cmd = "python linters2/pyright_cfile.py -h"
+        # Run test.
+        rc = hsystem.system(cmd, suppress_output=True, abort_on_error=False)
+        # Check outputs.
+        self.assertEqual(rc, 0)

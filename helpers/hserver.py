@@ -13,8 +13,6 @@ import shutil
 import subprocess
 from typing import Dict, List, Optional, Tuple
 
-import helpers.repo_config_utils as hrecouti
-
 # This module should depend only on:
 # - Python standard modules
 # See `helpers/dependencies.txt` for more details
@@ -842,6 +840,8 @@ def enable_privileged_mode() -> bool:
     """
     Return whether a host supports privileged mode for its containers.
     """
+    import helpers.repo_config_utils as hrecouti
+
     repo_name = hrecouti.get_repo_config().get_name()
     # TODO(gp): Remove this dependency from a repo.
     if repo_name in ("//dev_tools",):
@@ -1055,6 +1055,8 @@ def skip_submodules_test() -> bool:
 
     E.g. while running `i run_fast_tests`.
     """
+    import helpers.repo_config_utils as hrecouti
+
     repo_name = hrecouti.get_repo_config().get_name()
     # TODO(gp): Why do we want to skip running tests?
     # TODO(gp): Remove this dependency from a repo.
@@ -1079,6 +1081,8 @@ def is_AM_S3_available() -> bool:
 def is_CK_S3_available() -> bool:
     val = True
     if is_inside_ci():
+        import helpers.repo_config_utils as hrecouti
+
         repo_name = hrecouti.get_repo_config().get_name()
         # TODO(gp): Remove this dependency from a repo.
         if repo_name in ("//amp", "//dev_tools"):
