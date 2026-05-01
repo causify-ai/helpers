@@ -80,14 +80,14 @@ class Test_parse_cfile1(hunitest.TestCase):
         Test parsing a cfile with valid entries.
         """
         cfile_content = r"""
-        dev_scripts_helpers/llms/dockerized_llm_review.py:63:33: F821 undefined name '_extract_bullet_points' [flake8]
-        dev_scripts_helpers/llms/llm_transform.py:23: [C0301(line-too-long), ] Line too long (109/100) [pylint]
+        dev_scripts_helpers/llms/llm_transform.py:63:33: F821 undefined name '_extract_bullet_points' [flake8]
+        dev_scripts_helpers/llms/llm_cli.py:23: [C0301(line-too-long), ] Line too long (109/100) [pylint]
         helpers/hio.py: 'pandas' is imported multiple times [normalize_imports]
         helpers/hmarkdown.py:770:38: W605 invalid escape sequence '\S' [flake8]
         """
         expected = r"""
-        ('dev_scripts_helpers/llms/dockerized_llm_review.py', '63', "33: F821 undefined name '_extract_bullet_points' [flake8]")
-        ('dev_scripts_helpers/llms/llm_transform.py', '23', ' [C0301(line-too-long), ] Line too long (109/100) [pylint]')
+        ('dev_scripts_helpers/llms/llm_transform.py', '63', "33: F821 undefined name '_extract_bullet_points' [flake8]")
+        ('dev_scripts_helpers/llms/llm_cli.py', '23', ' [C0301(line-too-long), ] Line too long (109/100) [pylint]')
         ('helpers/hmarkdown.py', '770', "38: W605 invalid escape sequence '\\S' [flake8]")
         """
         self.helper(cfile_content, expected)

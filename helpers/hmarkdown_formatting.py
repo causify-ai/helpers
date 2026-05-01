@@ -9,9 +9,9 @@ import re
 from typing import List
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarslid
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -187,7 +187,7 @@ def prettier_markdown(txt: str) -> str:
     :return: formatted text
     """
     file_type = "md"
-    txt = hdocexec.prettier_on_str(txt, file_type)
+    txt = dshdlipr.prettier_on_str(txt, file_type)
     return txt
 
 
@@ -199,7 +199,7 @@ def format_markdown(txt: str) -> str:
     :return: formatted text
     """
     file_type = "md"
-    txt = hdocexec.prettier_on_str(txt, file_type)
+    txt = dshdlipr.prettier_on_str(txt, file_type)
     lines = txt.split("\n")
     clean_lines = remove_empty_lines_from_markdown(lines)
     txt = "\n".join(clean_lines)
@@ -519,7 +519,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     #
     file_type = "md"
     txt = "\n".join(lines)
-    txt = hdocexec.prettier_on_str(txt, file_type)
+    txt = dshdlipr.prettier_on_str(txt, file_type)
     #
     lines = txt.split("\n")
     lines = hmarslid.convert_markdown_to_slide(lines)

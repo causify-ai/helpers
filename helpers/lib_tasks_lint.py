@@ -9,7 +9,7 @@ import filecmp
 import logging
 import os
 
-from invoke import task
+from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
@@ -287,7 +287,8 @@ def lint(  # type: ignore
         + int(last_commit)
         + int(branch),
         1,
-        msg="Specify exactly one among --files, --from_file, --dir-name, --modified, --last-commit, --branch",
+        msg="Specify exactly one among --files, --from_file, --dir-name, "
+        "--modified, --last-commit, --branch",
     )
     if len(files) > 0:
         lint_cmd_opts.append(f"--files {files}")

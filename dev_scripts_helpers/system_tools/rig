@@ -22,5 +22,4 @@ rig - Utility for ripgrep searches and directory operations.
 import dev_scripts_helpers.system_tools.lib_rig as lib_rig
 
 if __name__ == "__main__":
-    parser = lib_rig.parse()
-    exit(lib_rig.main(parser))
+    exit(lib_rig.main())

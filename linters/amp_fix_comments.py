@@ -126,8 +126,7 @@ def _replace_comments_in_lines(
         2. removes the lines between the comment's start_line & end_line.
         3. adds the new multiline comment
     """
-    LineWithNumber = Tuple[int, str]
-    lines_with_numbers: List[LineWithNumber] = [
+    lines_with_numbers: List[Tuple[int, str]] = [
         (idx + 1, line) for idx, line in enumerate(lines)
     ]
 
@@ -243,7 +242,7 @@ class _FixComment(liaction.Action):
         lines = hio.from_file(file_name).split("\n")
         updated_lines = _reflow_comments_in_lines(lines)
         updated_lines = _fix_comment_style(updated_lines)
-        liutils.write_file_back(file_name, lines, updated_lines)
+        hio.write_file_back(file_name, lines, updated_lines)
         return []
 
 

@@ -23,6 +23,14 @@ description: Refactor unit test files by aligning strings, renaming methods, and
 - Avoid Replicated Assignment
   - See `@.claude/skills/testing.rules.md` section "Avoid Replicated Assignment"
 
+- Consolidate Inputs and Outputs
+  - See `@.claude/skills/testing.rules.md` section "Consolidate inputs and
+    outputs"
+
+- Assign Variables and Then Call Functions
+  - See `@.claude/skills/testing.rules.md` section "Assign Variables and Then
+    Call Functions"
+
 # Important
 
 - For all the code you must follow the instructions in

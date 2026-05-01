@@ -4,7 +4,6 @@
 # dependencies = ["beautifulsoup4", "lxml", "pandas", "requests", "tqdm", "pyyaml"]
 # ///
 
-
 """
 Extract article information from Hacker News submissions using the HN API.
 

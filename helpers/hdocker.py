@@ -4,15 +4,16 @@ Import as:
 import helpers.hdocker as hdocker
 """
 
+import argparse
 import copy
 import hashlib
 import logging
 import os
-import shutil
+import platform
+import subprocess
 import time
 from typing import List, Optional, Tuple
 
-import helpers.hcoverage as hcovera
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hgit as hgit
@@ -374,21 +375,61 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     # Handle coverage.
     # TODO(gp): Is this env var standard, or should it be
     # CSFY_COVERAGE_PROCESS_START?
-    if os.environ.get("COVERAGE_PROCESS_START"):
-        _LOG.debug("Enabling coverage")
-        host_cov_dir = os.path.abspath("coverage_data")
-        # TODO(gp): Use `hio.create_dir()` instead.
-        os.makedirs(host_cov_dir, exist_ok=True)
-        os.chmod(host_cov_dir, 0o777)
-        coverage_dir_container = "/app/coverage_data"
-        docker_cmd.extend(
-            [
-                f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
-                f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
-                f"-v {host_cov_dir}:{coverage_dir_container}",
-            ]
-        )
+    # if os.environ.get("COVERAGE_PROCESS_START"):
+    #     _LOG.debug("Enabling coverage")
+    #     host_cov_dir = os.path.abspath("coverage_data")
+    #     # TODO(gp): Use `hio.create_dir()` instead.
+    #     os.makedirs(host_cov_dir, exist_ok=True)
+    #     os.chmod(host_cov_dir, 0o777)
+    #     coverage_dir_container = "/app/coverage_data"
+    #     docker_cmd.extend(
+    #         [
+    #             f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
+    #             f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
+    #             f"-v {host_cov_dir}:{coverage_dir_container}",
+    #         ]
+    #     )
     return docker_cmd
+
+
+def get_container_image_name(
+    image_name: str, dockerfile: str
+) -> Tuple[str, str]:
+    """
+    Get the name of the container image.
+
+    :param image_name: Name of the Docker container to build.
+    :param dockerfile: Content of the Dockerfile for building the
+        container.
+    :return: Name of the container image.
+    """
+    _LOG.debug(hprint.func_signature_to_str("image_name dockerfile"))
+    hdbg.dassert_ne(image_name, "")
+    hdbg.dassert_ne(dockerfile, "")
+    dockerfile = hprint.dedent(dockerfile)
+    # if os.environ.get("COVERAGE_PROCESS_START"):
+    #     _LOG.debug("Enabling coverage")
+    #     # Check if this is a Python-based Dockerfile.
+    #     if any(
+    #         keyword in dockerfile.lower()
+    #         for keyword in ["python", "pip", "python3"]
+    #     ):
+    #         coverage_dockerfile = hcovera.generate_coverage_dockerfile()
+    #         _LOG.debug("Coverage Dockerfile content:\n%s", coverage_dockerfile)
+    #         dockerfile = dockerfile.strip() + "\n" + coverage_dockerfile
+    #         _LOG.debug("Coverage support added to Dockerfile")
+    #     else:
+    #         _LOG.warning(
+    #             "Skipping coverage addition - not a Python-based Dockerfile"
+    #         )
+    _LOG.debug("Final Dockerfile:\n%s", dockerfile)
+    # Get the current architecture.
+    current_arch = get_current_arch()
+    sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
+    short_hash = sha256_hash[:8]
+    # Build the name of the container image.
+    image_name_out = f"{image_name}.{current_arch}.{short_hash}"
+    return image_name_out, dockerfile
 
 
 def build_container_image(
@@ -416,40 +457,24 @@ def build_container_image(
     :raises AssertionError: If the container ID is not found.
     """
     _LOG.debug(hprint.func_signature_to_str("dockerfile"))
-    dockerfile = hprint.dedent(dockerfile)
-    if os.environ.get("COVERAGE_PROCESS_START"):
-        _LOG.debug("Enabling coverage")
-        # Check if this is a Python-based Dockerfile.
-        if any(
-            keyword in dockerfile.lower()
-            for keyword in ["python", "pip", "python3"]
-        ):
-            coverage_dockerfile = hcovera.generate_coverage_dockerfile()
-            _LOG.debug("Coverage Dockerfile content:\n%s", coverage_dockerfile)
-            dockerfile = dockerfile.strip() + "\n" + coverage_dockerfile
-            _LOG.debug("Coverage support added to Dockerfile")
-        else:
-            _LOG.warning(
-                "Skipping coverage addition - not a Python-based Dockerfile"
-            )
-    _LOG.debug("Final Dockerfile:\n%s", dockerfile)
-    # Get the current architecture.
-    current_arch = get_current_arch()
-    sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
-    short_hash = sha256_hash[:8]
-    # Build the name of the container image.
-    image_name_out = f"{image_name}.{current_arch}.{short_hash}"
+    #
+    image_name_out, dockerfile = get_container_image_name(image_name, dockerfile)
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
     coverage_enabled = os.environ.get("COVERAGE_PROCESS_START")
-    if coverage_enabled:
-        # Add coverage suffix to image name for tracking.
-        image_name_out += ".coverage"
-        # Force rebuild when coverage is enabled.
-        has_container = False
-        _LOG.debug(
-            "Coverage enabled - forcing rebuild of image: {image_name_out}"
+    # if coverage_enabled:
+    #     # Add coverage suffix to image name for tracking.
+    #     image_name_out += ".coverage"
+    #     # Force rebuild when coverage is enabled.
+    #     has_container = False
+    #     _LOG.debug(
+    #         "Coverage enabled - forcing rebuild of image: {image_name_out}"
+    #     )
+    if bool(os.environ.get("CSFY_DOCKER_FORCE_REBUILD", False)):
+        _LOG.warning(
+            "CSFY_DOCKER_FORCE_REBUILD forcing to rebuild container without cache"
         )
+        force_rebuild = True
     if force_rebuild:
         _LOG.warning(
             "Forcing to rebuild of container '%s' without cache",
@@ -458,29 +483,29 @@ def build_container_image(
         has_container = False
         use_cache = False
     _LOG.debug(hprint.to_str("has_container use_cache"))
-    # Always prepare coverage files when coverage is enabled, regardless of container existence.
-    if coverage_enabled:
-        # Create build context directory for coverage files.
-        build_context_dir = "tmp.docker_build"
-        hio.create_dir(build_context_dir, incremental=incremental)
-        # Always copy .coveragerc when coverage is enabled.
-        coveragerc_src = ".coveragerc"
-        coveragerc_dst = os.path.join(build_context_dir, ".coveragerc")
-        if os.path.exists(coveragerc_src):
-            shutil.copy2(coveragerc_src, coveragerc_dst)
-            _LOG.debug(
-                "Coverage enabled - copied {coveragerc_src} to {coveragerc_dst}"
-            )
-        else:
-            _LOG.warning(
-                "Coverage enabled but .coveragerc not found at {coveragerc_src}"
-            )
+    # # Always prepare coverage files when coverage is enabled, regardless of container existence.
+    # if coverage_enabled:
+    #     # Create build context directory for coverage files.
+    #     build_context_dir = "tmp.docker_build"
+    #     hio.create_dir(build_context_dir, incremental=incremental)
+    #     # Always copy .coveragerc when coverage is enabled.
+    #     coveragerc_src = ".coveragerc"
+    #     coveragerc_dst = os.path.join(build_context_dir, ".coveragerc")
+    #     if os.path.exists(coveragerc_src):
+    #         shutil.copy2(coveragerc_src, coveragerc_dst)
+    #         _LOG.debug(
+    #             "Coverage enabled - copied {coveragerc_src} to {coveragerc_dst}"
+    #         )
+    #     else:
+    #         _LOG.warning(
+    #             "Coverage enabled but .coveragerc not found at {coveragerc_src}"
+    #         )
     if not has_container:
         # Create a temporary Dockerfile.
         _LOG.warning("Building Docker container...")
+        build_context_dir = "tmp.docker_build"
         if not coverage_enabled:
             # Only create build context if not already created for coverage
-            build_context_dir = "tmp.docker_build"
             hio.create_dir(build_context_dir, incremental=incremental)
         temp_dockerfile = os.path.join(build_context_dir, "Dockerfile")
         hio.to_file(temp_dockerfile, dockerfile)
@@ -511,52 +536,6 @@ def get_host_git_root() -> str:
     hdbg.dassert_in("CSFY_HOST_GIT_ROOT_PATH", os.environ)
     host_git_root_path = os.environ["CSFY_HOST_GIT_ROOT_PATH"]
     return host_git_root_path
-
-
-# TODO(gp): Move to helpers.hdbg.
-def _dassert_valid_path(file_path: str, is_input: bool) -> None:
-    """
-    Assert that a file path is valid, based on it being input or output.
-
-    For input files, it ensures that the file or directory exists. For
-    output files, it ensures that the enclosing directory exists.
-
-    :param file_path: The file path to check.
-    :param is_input: Whether the file path is an input file.
-    """
-    if is_input:
-        # If it's an input file, then `file_path` must exist as a file or a dir.
-        hdbg.dassert_path_exists(file_path)
-    else:
-        # If it's an output, we might be writing a file that doesn't exist yet,
-        # but we assume that the including directory is already present.
-        dir_name = os.path.normpath(os.path.dirname(file_path))
-        hio.create_dir(dir_name, incremental=True)
-        hdbg.dassert(
-            os.path.exists(file_path) or os.path.exists(dir_name),
-            "Invalid path: '%s' and '%s' don't exist",
-            file_path,
-            dir_name,
-        )
-
-
-def _dassert_is_path_included(file_path: str, including_path: str) -> None:
-    """
-    Assert that a file path is included within another path.
-
-    This function checks if the given file path starts with the
-    specified including path. If not, it raises an assertion error.
-
-    :param file_path: The file path to check.
-    :param including_path: The path that should include the file path.
-    """
-    # TODO(gp): Maybe we need to normalize the paths.
-    hdbg.dassert(
-        file_path.startswith(including_path),
-        "'%s' needs to be underneath '%s'",
-        file_path,
-        including_path,
-    )
 
 
 def get_docker_mount_info(
@@ -604,6 +583,112 @@ def get_docker_mount_info(
     mount = f"type=bind,source={caller_mount_path},target={callee_mount_path}"
     _LOG.debug(hprint.to_str("caller_mount_path callee_mount_path mount"))
     return caller_mount_path, callee_mount_path, mount
+
+
+def get_docker_mount_context() -> Tuple[bool, bool, str, str, str]:
+    """
+    Return Docker mount context for container operations.
+
+    :return: (is_caller_host, use_sibling_container_for_callee,
+              caller_mount_path, callee_mount_path, mount)
+    """
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    return (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    )
+
+
+def build_and_run_docker_cmd(
+    use_sudo: bool,
+    callee_mount_path: str,
+    mount: str,
+    container_image: str,
+    dockerfile: str,
+    tool_cmd: str,
+    mode: str,
+    *,
+    override_entrypoint: bool = False,
+    wrap_in_bash: bool = False,
+) -> str:
+    """
+    Build and execute a Docker command.
+    """
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    if override_entrypoint:
+        docker_cmd.append("--entrypoint ''")
+    # Check that the container image exists.
+    hdbg.dassert(
+        image_exists(container_image, use_sudo)[0],
+        "Container image '%s' does not exist",
+        container_image,
+    )
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+        ]
+    )
+    if wrap_in_bash:
+        docker_cmd.append(f'bash -c "{tool_cmd}"')
+    else:
+        docker_cmd.append(tool_cmd)
+    docker_cmd_str = " ".join(docker_cmd)
+    return process_docker_cmd(docker_cmd_str, container_image, dockerfile, mode)
+
+
+# TODO(gp): Move to helpers.hdbg.
+def _dassert_valid_path(file_path: str, is_input: bool) -> None:
+    """
+    Assert that a file path is valid, based on it being input or output.
+
+    For input files, it ensures that the file or directory exists. For
+    output files, it ensures that the enclosing directory exists.
+
+    :param file_path: The file path to check.
+    :param is_input: Whether the file path is an input file.
+    """
+    if is_input:
+        # If it's an input file, then `file_path` must exist as a file or a dir.
+        hdbg.dassert_path_exists(file_path)
+    else:
+        # If it's an output, we might be writing a file that doesn't exist yet,
+        # but we assume that the including directory is already present.
+        dir_name = os.path.normpath(os.path.dirname(file_path))
+        hio.create_dir(dir_name, incremental=True)
+        hdbg.dassert(
+            os.path.exists(file_path) or os.path.exists(dir_name),
+            "Invalid path: '%s' and '%s' don't exist",
+            file_path,
+            dir_name,
+        )
+
+
+# TODO(gp): Move to helpers.hdbg.
+def _dassert_is_path_included(file_path: str, including_path: str) -> None:
+    """
+    Assert that a file path is included within another path.
+
+    This function checks if the given file path starts with the
+    specified including path. If not, it raises an assertion error.
+
+    :param file_path: The file path to check.
+    :param including_path: The path that should include the file path.
+    """
+    # TODO(gp): Maybe we need to normalize the paths.
+    hdbg.dassert(
+        file_path.startswith(including_path),
+        "'%s' needs to be underneath '%s'",
+        file_path,
+        including_path,
+    )
 
 
 def convert_caller_to_callee_docker_path(
@@ -705,7 +790,7 @@ def convert_all_paths_from_caller_to_callee_docker_path(
     callee_mount_path: str,
     is_caller_host: bool,
     use_sibling_container_for_callee: bool,
-) -> str:
+) -> List[str]:
     """
     Convert all the paths from the caller to the callee Docker container path.
 
@@ -751,3 +836,36 @@ def convert_all_paths_from_caller_to_callee_docker_path(
             cmd_opts_out.append(cmd_opt_in)
     _LOG.debug(hprint.to_str("cmd_opts_out"))
     return cmd_opts_out
+
+
+# #############################################################################
+# CLI utilities
+# #############################################################################
+
+
+def add_open_arg(parser: argparse.ArgumentParser) -> None:
+    """
+    Add --open option to parser for opening output files on macOS.
+
+    :param parser: ArgumentParser instance to add the option to
+    """
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        default=False,
+        help="Open the output file on macOS",
+    )
+
+
+def open_file_on_macos(file_path: str) -> None:
+    """
+    Open a file on macOS using the 'open' command.
+
+    :param file_path: Path to the file to open
+    :raises subprocess.CalledProcessError: If open command fails
+    """
+    if platform.system() != "Darwin":
+        _LOG.warning("--open flag only works on macOS")
+        return
+    subprocess.run(["open", file_path], check=True)
+    _LOG.info("Opened file with macOS 'open' command: %s", file_path)
