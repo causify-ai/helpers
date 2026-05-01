@@ -458,6 +458,30 @@ def _move_misplaced_images(output_dir: str, is_blog: bool) -> None:
     _LOG.info(f"Moved images from '{root_figs_dir}' to '{target_figs_dir}'")
 
 
+def _write_404_page(output_dir: str) -> None:
+    """
+    Write a 404.md page into the docs staging directory.
+
+    The file is generated rather than kept in the repo so it stays out of
+    version control while still being built into the site.
+
+    :param output_dir: destination directory path (e.g. ``tmp.mkdocs/``)
+    """
+    content = """\
+---
+title: 404 – Page Not Found
+hide:
+  - toc
+---
+# 404 – Page Not Found
+The page you're looking for doesn't exist or has been moved.
+[← Back to Home](/)
+"""
+    dest = os.path.join(output_dir, "docs", "404.md")
+    hio.to_file(dest, content)
+    _LOG.info("Written 404 page to '%s'", dest)
+
+
 def _copy_assets_and_styles(output_dir: str, mkdocs_dir: Optional[str] = None) -> None:
     """
     Copy assets and styles from the input directory to the output directory.
@@ -534,6 +558,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Copy assets and styles (only for documentation, not blogs).
     if not is_blog:
         _copy_assets_and_styles(output_dir, mkdocs_dir=args.mkdocs_dir)
+        _write_404_page(output_dir)
     _LOG.info(f"Mkdocs preprocessing ({mode}) completed successfully")
 
 
