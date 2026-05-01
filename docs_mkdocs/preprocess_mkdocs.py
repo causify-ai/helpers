@@ -33,6 +33,7 @@ import logging
 import os
 import re
 import sys
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -41,6 +42,23 @@ import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+# Directory names that are never descended into when discovering near-code docs.
+# Matched against each individual path component, not the full path.
+_PRUNE_DIRS = frozenset(
+    {
+        ".git",
+        ".claude",
+        ".venv",
+        "venv",
+        "node_modules",
+        "__pycache__",
+        "docs_mkdocs",  # MkDocs tooling — not publishable content.
+        "blog",  # Separate blog pipeline.
+        "test",
+        "outcomes",  # Test infrastructure.
+    }
+)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -80,6 +98,30 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip frontmatter validation (only for --blog mode)",
     )
+    parser.add_argument(
+        "--collect_from_repo",
+        action="store",
+        default=None,
+        metavar="PATH",
+        help=(
+            "If set, walk PATH (the repository root) and rsync every "
+            "near-code docs/ subdirectory into the staging docs dir. "
+            "Ignored in --blog mode. Example: --collect_from_repo ."
+        ),
+    )
+    parser.add_argument(
+        "--mkdocs_dir",
+        action="store",
+        default=None,
+        metavar="PATH",
+        help=(
+            "Directory containing mkdocs.yml, overrides/, and docs/ assets "
+            "to copy into the staging area. Defaults to the directory of "
+            "this script (helpers_root/docs_mkdocs/). Pass 'docs_mkdocs' "
+            "when running from the csfy repo root to use the root-level "
+            "config (site_url: https://docs.causify.ai)."
+        ),
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -103,15 +145,106 @@ def _copy_directory(input_dir: str, output_dir: str, is_blog: bool) -> None:
     cmd = f"mkdir -p {output_dir}"
     hsystem.system(cmd)
     # Copy the entire directory tree and make files writable.
-    # Use '/.' to include hidden files (like .authors.yml)
+    # Use rsync with -L (follow symlinks) and --ignore-errors to skip broken
+    # symlinks (e.g., docs/ai_prompts pointing to a missing helpers_root path).
+    # Exit code 23 means partial transfer (skipped broken symlinks) — treat as ok.
     if is_blog:
-        cmd = f"cp -rL {input_dir}/. {output_dir} && chmod -R u+w {output_dir}"
+        cmd = f"rsync -aL --ignore-errors {input_dir}/. {output_dir}/ || true && chmod -R u+w {output_dir}"
     else:
-        cmd = (
-            f"cp -rL {input_dir}/. {output_dir}/docs && chmod -R u+w {output_dir}"
-        )
+        cmd = f"rsync -aL --ignore-errors {input_dir}/. {output_dir}/docs/ || true && chmod -R u+w {output_dir}"
     hsystem.system(cmd)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
+
+
+def _collect_near_code_docs(
+    repo_root: str,
+    staging_docs_dir: str,
+    skip_doc_paths: Optional[List[str]] = None,
+) -> None:
+    """
+    Walk repo_root and rsync every near-code docs/ subdirectory that contains
+    at least one .md file into staging_docs_dir, mirroring the module path.
+
+    Each <repo_root>/<module_path>/docs/ is copied to
+    staging_docs_dir/<module_path>/.  For example with REPO_ROOT=csfy-master/:
+      helpers_root/docs/  ->  staging_docs_dir/helpers_root/
+      dataflow/docs/      ->  staging_docs_dir/dataflow/
+      infra/docs/         ->  staging_docs_dir/infra/
+
+    The top-level docs/ (module_rel == ".") is always skipped because it is
+    the primary --input_dir, already handled by _copy_directory().
+    Any path in skip_doc_paths is also skipped.
+    Dirs whose docs/ subtree contains no .md files are silently skipped,
+    which naturally filters Next.js route dirs (apps/causify/app/.../docs/)
+    and TypeScript type dirs (apps/causify/types/docs/) without hardcoded
+    path exceptions.
+
+    :param repo_root: path to the repository root to crawl
+    :param staging_docs_dir: output_dir/docs/ — the assembled staging dir
+    :param skip_doc_paths: paths of docs/ dirs to skip (e.g. the primary
+        --input_dir already copied by _copy_directory)
+    """
+    if skip_doc_paths is None:
+        skip_doc_paths = []
+    skip_abs = {os.path.abspath(p) for p in skip_doc_paths}
+    repo_root_abs = os.path.abspath(repo_root)
+    hdbg.dassert_dir_exists(repo_root_abs)
+    hio.create_dir(staging_docs_dir, incremental=True)
+    _LOG.info(
+        "Collecting near-code docs from '%s' into '%s'",
+        repo_root_abs,
+        staging_docs_dir,
+    )
+    collected = 0
+    for dirpath, dirnames, _ in os.walk(repo_root_abs, topdown=True):
+        # Prune in-place so os.walk never descends into excluded subtrees.
+        dirnames[:] = [
+            d
+            for d in sorted(dirnames)
+            if d not in _PRUNE_DIRS
+            and not d.startswith(".")
+            and not d.startswith("tmp.")
+        ]
+        if "docs" not in dirnames:
+            continue
+        docs_abs = os.path.abspath(os.path.join(dirpath, "docs"))
+        if docs_abs in skip_abs:
+            _LOG.debug("Skipping excluded docs dir: '%s'", docs_abs)
+            continue
+        module_rel = os.path.relpath(dirpath, repo_root_abs)
+        # Top-level docs/ is the primary --input_dir; _copy_directory handles it.
+        if module_rel == ".":
+            continue
+        # Skip dirs with no .md files (Next.js routes, TypeScript type dirs…).
+        md_files = [
+            f
+            for _, _, files in os.walk(docs_abs)
+            for f in files
+            if f.endswith(".md")
+        ]
+        if not md_files:
+            _LOG.debug("Skipping '%s': no .md files", docs_abs)
+            continue
+        # Flatten multi-component module paths so they land as top-level dirs
+        # in the staging docs tree. MkDocs auto-nav only creates a sidebar
+        # entry for a directory when it contains files directly (not just
+        # subdirs), so "apps/causify" → no nav entry, but "apps_causify" →
+        # nav entry with all files visible.
+        dest_name = module_rel
+        dest_dir = os.path.join(staging_docs_dir, dest_name)
+        hio.create_dir(dest_dir, incremental=True)
+        cmd = (
+            f"rsync -aL --ignore-errors {docs_abs}/. {dest_dir}/ "
+            f"|| true && chmod -R u+w {dest_dir}"
+        )
+        hsystem.system(cmd)
+        _LOG.info("Collected docs: '%s' -> '%s'", docs_abs, dest_dir)
+        collected += 1
+    _LOG.info(
+        "Collected %d near-code docs director%s",
+        collected,
+        "y" if collected == 1 else "ies",
+    )
 
 
 def _validate_frontmatter(file_path: str, content: str) -> None:
@@ -331,24 +464,66 @@ def _move_misplaced_images(output_dir: str, is_blog: bool) -> None:
     _LOG.info(f"Moved images from '{root_figs_dir}' to '{target_figs_dir}'")
 
 
-def _copy_assets_and_styles(output_dir: str) -> None:
+def _write_404_page(output_dir: str) -> None:
+    """
+    Write a 404.md page into the docs staging directory.
+
+    The file is generated rather than kept in the repo so it stays out of
+    version control while still being built into the site.
+
+    :param output_dir: destination directory path (e.g. ``tmp.mkdocs/``)
+    """
+    content = """\
+---
+title: 404 – Page Not Found
+hide:
+  - toc
+---
+# 404 – Page Not Found
+The page you're looking for doesn't exist or has been moved.
+[← Back to Home](/)
+"""
+    dest = os.path.join(output_dir, "docs", "404.md")
+    hio.to_file(dest, content)
+    _LOG.info("Written 404 page to '%s'", dest)
+
+
+def _copy_assets_and_styles(
+    output_dir: str, mkdocs_dir: Optional[str] = None
+) -> None:
     """
     Copy assets and styles from the input directory to the output directory.
     Only used for documentation (not blogs).
 
-    :param input_dir: Source directory path
     :param output_dir: destination directory path
+    :param mkdocs_dir: directory containing mkdocs.yml, overrides/, and
+        docs/ assets. Defaults to the directory of this script
+        (helpers_root/docs_mkdocs/). Pass the repo-root docs_mkdocs/
+        when deploying the full csfy docs site.
     """
-    # Find the assets and styles directories.
-    mkdocs_html_dir = "docs_mkdocs"
+    if mkdocs_dir is not None:
+        mkdocs_html_dir = os.path.abspath(mkdocs_dir)
+    else:
+        # Default: helpers_root/docs_mkdocs/ (location of this script).
+        mkdocs_html_dir = os.path.dirname(os.path.abspath(__file__))
     hdbg.dassert_dir_exists(mkdocs_html_dir)
     cmd = f"cp -r {mkdocs_html_dir}/docs/* {output_dir}/docs"
     hsystem.system(cmd)
     # Copy the mkdocs.yml file.
-    mkdocs_yml_file = os.path.join(mkdocs_html_dir, "mkdocs.yml")
+    mkdocs_yml_file = os.path.join(mkdocs_html_dir, "properdocs.yml")
     hdbg.dassert_file_exists(mkdocs_yml_file)
     cmd = f"cp {mkdocs_yml_file} {output_dir}"
     hsystem.system(cmd)
+    # Copy theme overrides directory if present.
+    overrides_dir = os.path.join(mkdocs_html_dir, "overrides")
+    if os.path.isdir(overrides_dir):
+        cmd = f"cp -r {overrides_dir} {output_dir}"
+        hsystem.system(cmd)
+    # Copy top-level papers/ directory so PDF links resolve (e.g. /papers/KaizenFlow/KaizenFlow.pdf).
+    papers_dir = "papers"
+    if os.path.isdir(papers_dir):
+        cmd = f"cp -r {papers_dir} {output_dir}/docs/"
+        hsystem.system(cmd)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -369,6 +544,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Copy all files from input to output directory.
     _copy_directory(input_dir, output_dir, is_blog)
+    # Collect near-code docs/ dirs from the repo tree (non-blog only).
+    if args.collect_from_repo and not is_blog:
+        staging_docs_dir = os.path.join(output_dir, "docs")
+        _collect_near_code_docs(
+            repo_root=args.collect_from_repo,
+            staging_docs_dir=staging_docs_dir,
+            skip_doc_paths=[os.path.abspath(input_dir)],
+        )
     # Process markdown files in place in the output directory.
     _process_markdown_files(
         output_dir,
@@ -382,7 +565,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _move_misplaced_images(output_dir, is_blog)
     # Copy assets and styles (only for documentation, not blogs).
     if not is_blog:
-        _copy_assets_and_styles(output_dir)
+        _copy_assets_and_styles(output_dir, mkdocs_dir=args.mkdocs_dir)
+        _write_404_page(output_dir)
     _LOG.info(f"Mkdocs preprocessing ({mode}) completed successfully")
 
 
