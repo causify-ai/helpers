@@ -1026,7 +1026,7 @@ def is_subdir(dir1: str, dir2: str) -> bool:
 
 
 def write_file_back(
-    file_name: str, txt_old: list[str], txt_new: list[str]
+    file_name: str, txt_old: List[str], txt_new: List[str]
 ) -> None:
     """
     Write new text to file only if it differs from the old text.
