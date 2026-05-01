@@ -1075,7 +1075,7 @@ def append_timestamp_tag(file_name: str, tag: str) -> str:
 
 def tee(
     cmd: str, executable: str, abort_on_error: bool
-) -> tuple[int, list[str]]:
+) -> Tuple[int, List[str]]:
     """
     Execute command and return its exit code and output lines.
 
