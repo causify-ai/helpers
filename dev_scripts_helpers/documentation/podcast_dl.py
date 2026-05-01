@@ -5,27 +5,32 @@
 # ///
 
 """
-Download podcast transcripts from various sources.
+Download and format podcast transcripts from various sources.
+
+Supports three actions:
+- download: fetch transcript from a podcast site
+- format: convert raw transcript to formatted markdown
+- download-and-format: download and format in one step (auto-derives URL)
 
 Examples:
 # Download a Lex Fridman episode
-> ./podcast_dl.py --type lexfriedman --title lars-brownworth --output_dir ./transcripts
+> ./podcast_dl.py --action download --type lexfriedman --title lars-brownworth --output_dir ./transcripts
 
-# Download a Dwarkesh episode
-> ./podcast_dl.py --type dwarkesh --title andrej-karpathy
+# Format a transcript
+> ./podcast_dl.py --action format --transcript podcast.txt --url https://example.com --output podcast.md
 
-# Download from PodcastTranscript.ai
-> ./podcast_dl.py --type podcasttranscript_ai --title andrej-karpathy-s-vision-of-software
-
-# Download from Podscripts
-> ./podcast_dl.py --type podscripts_co --title andrej-karpathy-on-code-agents-autoresearch-and-the-loopy-era-of-ai
+# Download and format in one step
+> ./podcast_dl.py --action download-and-format --type dwarkesh --title andrej-karpathy --output_dir ./transcripts
 """
+
+# TODO(ai_gp): Add a short description of the architecture of this
+# script
 
 import argparse
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -33,6 +38,7 @@ from bs4 import BeautifulSoup, Tag
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -441,6 +447,301 @@ class PodscriptsDownloader(PodcastDownloader):
 
 
 # #############################################################################
+# Transcript Formatting Constants
+# #############################################################################
+
+_SPEAKER_TIMESTAMP_PATTERN = r"^([A-Za-z\s\.]+)\((\d{2}):(\d{2}):(\d{2})\)"
+_SPEAKER_TIMESTAMP_ALT_PATTERN = r"([A-Z][a-z]+(?: [A-Z][a-z]+)*)(\d{2}):(\d{2}):(\d{2})"
+_CHAPTER_PATTERN = r"\(?(\d{1,2}):(\d{2})(?::\d{2})?\)?\s+(?:–|-)\s+([^0-9\(\)]*?)(?=\(?\d{1,2}:\d{2}|$)"
+
+
+# #############################################################################
+# Transcript Formatting Classes
+# #############################################################################
+
+
+class Chapter:
+    """
+    Represents a chapter in the transcript.
+    """
+
+    def __init__(self, *, timestamp: str, title: str) -> None:
+        """
+        Initialize a chapter.
+
+        :param timestamp: chapter time in HH:MM or H:MM format
+        :param title: chapter title
+        """
+        self.timestamp = timestamp
+        self.title = title
+        self.seconds = self._parse_timestamp(timestamp)
+
+    def _parse_timestamp(self, timestamp: str) -> int:
+        """
+        Convert timestamp string to seconds.
+
+        :param timestamp: time in H:MM or HH:MM format
+        :return: time in seconds
+        """
+        parts = timestamp.split(":")
+        hdbg.dassert_eq(
+            len(parts),
+            2,
+            "Invalid timestamp format: %s",
+            timestamp,
+        )
+        hours = int(parts[0])
+        minutes = int(parts[1])
+        return hours * 3600 + minutes * 60
+
+
+class DialogueLine:
+    """
+    Represents a single speaker's dialogue.
+    """
+
+    def __init__(
+        self, *, speaker: str, timestamp: str, text: str
+    ) -> None:
+        """
+        Initialize a dialogue line.
+
+        :param speaker: speaker name
+        :param timestamp: time in HH:MM:SS format
+        :param text: dialogue text
+        """
+        self.speaker = speaker
+        self.timestamp = timestamp
+        self.text = text
+        self.seconds = self._parse_timestamp(timestamp)
+
+    def _parse_timestamp(self, timestamp: str) -> int:
+        """
+        Convert HH:MM:SS to seconds.
+
+        :param timestamp: time in HH:MM:SS format
+        :return: time in seconds
+        """
+        parts = timestamp.split(":")
+        hdbg.dassert_eq(
+            len(parts),
+            3,
+            "Invalid timestamp format: %s",
+            timestamp,
+        )
+        hours = int(parts[0])
+        minutes = int(parts[1])
+        seconds = int(parts[2])
+        return hours * 3600 + minutes * 60 + seconds
+
+
+class TranscriptParser:
+    """
+    Parse podcast transcripts and extract structured content.
+    """
+
+    def __init__(self, *, transcript_text: str) -> None:
+        """
+        Initialize parser with transcript text.
+
+        :param transcript_text: the full transcript text
+        """
+        self.transcript_text = transcript_text
+        self.lines = transcript_text.split("\n")
+
+    def extract_title(self) -> str:
+        """
+        Extract episode title from transcript.
+
+        :return: episode title
+        """
+        full_text = " ".join(self.lines)
+        patterns = [
+            r'"([^"]+)".*?explains',
+            r"[—-]\s*([^\"]+?)\s*\"",
+            r"This is a transcript of.*?with\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, full_text)
+            if match:
+                title = match.group(1).strip()
+                if len(title) > 3:
+                    return title
+        for line in self.lines:
+            line = line.strip()
+            if line and not line.startswith(("The timestamps", "Playback", "×")):
+                return line
+        return "Podcast Transcript"
+
+    def extract_chapters(self) -> List[Chapter]:
+        """
+        Extract chapters from transcript TOC.
+
+        :return: list of Chapter objects
+        """
+        chapters = []
+        full_text = " ".join(self.lines)
+        toc_match = re.search(
+            r"(?:Table of Contents|Timestamps)(.*?)(?:Episode|Transcript|$)",
+            full_text,
+            re.IGNORECASE,
+        )
+        if toc_match:
+            toc_text = toc_match.group(1)
+        else:
+            toc_text = ""
+        for match in re.finditer(_CHAPTER_PATTERN, toc_text):
+            hours = match.group(1)
+            minutes = match.group(2)
+            title = match.group(3).strip()
+            timestamp = f"{hours}:{minutes}"
+            chapters.append(Chapter(timestamp=timestamp, title=title))
+        return chapters
+
+    def extract_dialogue(self) -> List[DialogueLine]:
+        """
+        Extract all dialogue lines from transcript.
+
+        :return: list of DialogueLine objects, sorted by timestamp
+        """
+        dialogue_lines = []
+        dialogue_lines.extend(self._extract_dialogue_line_format())
+        if not dialogue_lines:
+            dialogue_lines.extend(self._extract_dialogue_concat_format())
+        dialogue_lines.sort(key=lambda d: d.seconds)
+        return dialogue_lines
+
+    def _extract_dialogue_line_format(self) -> List[DialogueLine]:
+        """
+        Extract dialogue from line-separated format: Speaker(HH:MM:SS)text.
+
+        :return: list of DialogueLine objects
+        """
+        dialogue_lines = []
+        for line in self.lines:
+            line = line.strip()
+            if not line:
+                continue
+            match = re.match(_SPEAKER_TIMESTAMP_PATTERN, line)
+            if match:
+                speaker = match.group(1).strip()
+                hours = match.group(2)
+                minutes = match.group(3)
+                seconds = match.group(4)
+                timestamp = f"{hours}:{minutes}:{seconds}"
+                text_start = match.end()
+                text = line[text_start:].strip()
+                speaker_words = speaker.split()
+                if (
+                    text
+                    and len(speaker_words) == 2
+                    and all(w[0].isupper() for w in speaker_words)
+                ):
+                    dialogue_lines.append(
+                        DialogueLine(
+                            speaker=speaker,
+                            timestamp=timestamp,
+                            text=text,
+                        )
+                    )
+        return dialogue_lines
+
+    def _extract_dialogue_concat_format(self) -> List[DialogueLine]:
+        """
+        Extract dialogue from concatenated format: SpeakerHH:MM:SStext.
+
+        :return: list of DialogueLine objects
+        """
+        dialogue_lines = []
+        full_text = " ".join(self.lines)
+        matches = list(
+            re.finditer(_SPEAKER_TIMESTAMP_ALT_PATTERN, full_text)
+        )
+        for i, match in enumerate(matches):
+            speaker = match.group(1).strip()
+            hours = match.group(2)
+            minutes = match.group(3)
+            seconds = match.group(4)
+            timestamp = f"{hours}:{minutes}:{seconds}"
+            text_start = match.end()
+            if i + 1 < len(matches):
+                text_end = matches[i + 1].start()
+                text = full_text[text_start:text_end].strip()
+            else:
+                text = full_text[text_start:].strip()
+            if text:
+                dialogue_lines.append(
+                    DialogueLine(
+                        speaker=speaker,
+                        timestamp=timestamp,
+                        text=text,
+                    )
+                )
+        return dialogue_lines
+
+
+class MarkdownFormatter:
+    """
+    Format transcript data into markdown.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize the formatter.
+        """
+        self.speaker_abbrevs: Dict[str, str] = {}
+
+    def format(
+        self,
+        *,
+        title: str,
+        url: str,
+        chapters: List[Chapter],
+        dialogue: List[DialogueLine],
+    ) -> str:
+        """
+        Format transcript data into markdown.
+
+        :param title: episode title
+        :param url: original URL
+        :param chapters: list of chapters
+        :param dialogue: list of dialogue lines
+        :return: formatted markdown string
+        """
+        for line in dialogue:
+            self._add_speaker(line.speaker)
+        output = []
+        output.append(f"# {title}\n")
+        output.append(f"// Link: {url}\n")
+        chapter_idx = 0
+        for dialogue_line in dialogue:
+            if chapter_idx < len(chapters):
+                chapter = chapters[chapter_idx]
+                if dialogue_line.seconds >= chapter.seconds:
+                    output.append(
+                        f"\n## {chapter.title} ({chapter.timestamp})\n"
+                    )
+                    chapter_idx += 1
+            abbrev = self.speaker_abbrevs[dialogue_line.speaker]
+            output.append(f"{abbrev}: {dialogue_line.text}\n")
+        return "".join(output)
+
+    def _add_speaker(self, speaker: str) -> None:
+        """
+        Add speaker to abbreviation map.
+
+        :param speaker: full speaker name
+        """
+        if speaker in self.speaker_abbrevs:
+            return
+        parts = speaker.split()
+        abbrev = "".join(p[0] for p in parts).upper()
+        if not abbrev:
+            abbrev = speaker[:2].upper()
+        self.speaker_abbrevs[speaker] = abbrev
+
+
+# #############################################################################
 # Factory
 # #############################################################################
 
@@ -482,44 +783,171 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    ## TODO(ai_gp): Use Action Idiom
+- When using `--action`
+
+  ```python
+  actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+  hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+  ```
+
+    parser.add_argument(
+        "--action",
+        action="store",
+        required=True,
+        choices=["download", "format", "download-and-format"],
+        help="Action to perform: download, format, or download-and-format",
+    )
     parser.add_argument(
         "--type",
         action="store",
-        required=True,
+        default=None,
         choices=_VALID_TYPES,
-        help="The podcast source type",
+        help="The podcast source type (required for download/download-and-format)",
     )
     parser.add_argument(
         "--title",
         action="store",
-        required=True,
-        help="The podcast slug/identifier (e.g., lars-brownworth)",
+        default=None,
+        help="The podcast slug/identifier (required for download/download-and-format)",
+    )
+    parser.add_argument(
+        "--transcript",
+        action="store",
+        default=None,
+        help="Path to raw transcript file (required for format)",
+    )
+    parser.add_argument(
+        "--url",
+        action="store",
+        default=None,
+        help="Original podcast URL (required for format, auto-derived for download-and-format)",
+    )
+    parser.add_argument(
+        "--output",
+        action="store",
+        default=None,
+        help="Output markdown file path (required for format/download-and-format)",
     )
     parser.add_argument(
         "--output_dir",
         action="store",
         default=".",
-        help="Output directory for the transcript file",
+        help="Output directory for transcript files",
+    )
+    parser.add_argument(
+        "--run_lint",
+        action="store_true",
+        help="Run lint_txt.py on formatted output",
     )
     hparser.add_verbosity_arg(parser)
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Validate output directory.
+def _run_download(args: argparse.Namespace) -> None:
+    """
+    Download transcript action.
+    """
+    # TODO(ai_gp): Use dassert_is_not everywhere
+    hdbg.dassert_ne(args.type, None, "--type required for download action")
+    hdbg.dassert_ne(args.title, None, "--title required for download action")
     hio.create_dir(args.output_dir, incremental=True)
-    # Create downloader and fetch transcript.
     downloader = _get_downloader(args.type, slug=args.title)
     _LOG.info("Downloading transcript from: %s", args.type)
     transcript, output_filename = downloader.download()
-    # Write transcript to file.
     output_path = f"{args.output_dir}/{output_filename}"
     _LOG.info("Writing transcript to: %s", output_path)
     with open(output_path, "w") as f:
         f.write(transcript)
     _LOG.info("Transcript saved successfully")
+
+
+def _run_format(args: argparse.Namespace) -> None:
+    """
+    Format transcript action.
+    """
+    hdbg.dassert_ne(args.transcript, None, "--transcript required for format action")
+    hdbg.dassert_ne(args.url, None, "--url required for format action")
+    hdbg.dassert_ne(args.output, None, "--output required for format action")
+    _LOG.info("Reading transcript from: %s", args.transcript)
+    hdbg.dassert_file_exists(args.transcript)
+    # TODO(ai_gp): Use hio.from_file everywehre
+    with open(args.transcript, "r") as f:
+        transcript_text = f.read()
+    _LOG.info("Parsing transcript")
+    parser_obj = TranscriptParser(transcript_text=transcript_text)
+    title = parser_obj.extract_title()
+    _LOG.debug("Extracted title: %s", title)
+    chapters = parser_obj.extract_chapters()
+    _LOG.info("Extracted %d chapters", len(chapters))
+    dialogue = parser_obj.extract_dialogue()
+    _LOG.info("Extracted %d dialogue lines", len(dialogue))
+    _LOG.info("Formatting as markdown")
+    formatter = MarkdownFormatter()
+    markdown = formatter.format(
+        title=title, url=args.url, chapters=chapters, dialogue=dialogue
+    )
+    _LOG.info("Writing markdown to: %s", args.output)
+    with open(args.output, "w") as f:
+        f.write(markdown)
+    _LOG.info("Markdown file created successfully")
+    if args.run_lint:
+        _LOG.info("Running lint_txt.py on output")
+        cmd = f"lint_txt.py -i {args.output}"
+        hsystem.system(cmd)
+        _LOG.info("Linting complete")
+
+
+def _run_download_and_format(args: argparse.Namespace) -> None:
+    """
+    Download and format transcript action.
+    """
+    hdbg.dassert_ne(args.type, None, "--type required for download-and-format action")
+    hdbg.dassert_ne(args.title, None, "--title required for download-and-format action")
+    hdbg.dassert_ne(args.output, None, "--output required for download-and-format action")
+    hio.create_dir(args.output_dir, incremental=True)
+    downloader = _get_downloader(args.type, slug=args.title)
+    _LOG.info("Downloading transcript from: %s", args.type)
+    transcript, output_filename = downloader.download()
+    url = downloader._get_url()
+    raw_path = f"{args.output_dir}/{output_filename}"
+    _LOG.info("Writing raw transcript to: %s", raw_path)
+    with open(raw_path, "w") as f:
+        f.write(transcript)
+    _LOG.info("Parsing transcript")
+    parser_obj = TranscriptParser(transcript_text=transcript)
+    title = parser_obj.extract_title()
+    _LOG.debug("Extracted title: %s", title)
+    chapters = parser_obj.extract_chapters()
+    _LOG.info("Extracted %d chapters", len(chapters))
+    dialogue = parser_obj.extract_dialogue()
+    _LOG.info("Extracted %d dialogue lines", len(dialogue))
+    _LOG.info("Formatting as markdown")
+    formatter = MarkdownFormatter()
+    markdown = formatter.format(
+        title=title, url=url, chapters=chapters, dialogue=dialogue
+    )
+    _LOG.info("Writing markdown to: %s", args.output)
+    # TODOai_gp): to_file
+    with open(args.output, "w") as f:
+        f.write(markdown)
+    _LOG.info("Markdown file created successfully")
+    if args.run_lint:
+        _LOG.info("Running lint_txt.py on output")
+        cmd = f"lint_txt.py -i {args.output}"
+        hsystem.system(cmd)
+        _LOG.info("Linting complete")
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    if args.action == "download":
+        _run_download(args)
+    elif args.action == "format":
+        _run_format(args)
+    elif args.action == "download-and-format":
+        _run_download_and_format(args)
 
 
 if __name__ == "__main__":
