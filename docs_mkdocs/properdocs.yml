@@ -25,6 +25,7 @@ copyright: Copyright &copy; 2025 CAUSIFY.AI. All rights reserved.
 
 plugins:
   - shadcn/search
+  - awesome-pages
 
 markdown_extensions:
   - attr_list
@@ -81,3 +82,4 @@ extra_javascript:
   - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
   # Extra for `mermaid`.
   - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+  - javascripts/mermaid-init.js
