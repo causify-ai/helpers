@@ -62,7 +62,7 @@ def is_running_in_ipynb() -> bool:
 
         _ = get_ipython().config  # type: ignore
         res = True
-    except NameError:
+    except (NameError, AttributeError):
         res = False
     return res
 

@@ -110,37 +110,53 @@ def _run_linting_actions(
         actions = list(_DEFAULT_ACTIONS)
     ret = 0
     if "pre-commit" in actions:
+        print(hprint.frame("pre-commit", char1="-"))
+        cmd = f"pre-commit run --files {files_str}"
+        _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
-            f"pre-commit run --files {files_str}",
-            print_command=True,
+            cmd,
+            print_command=False,
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
     if "normalize_import" in actions:
+        print(hprint.frame("linters2/normalize_import.py", char1="-"))
+        cmd = f"linters2/normalize_import.py --no_report_command_line {files_str}"
+        _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
-            f"linters2/normalize_import.py {files_str}",
-            print_command=True,
+            cmd,
+            print_command=False,
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
     if "add_class_frames" in actions:
+        print(hprint.frame("Running linters2/add_class_frames.py", char1="-"))
+        cmd = f"linters2/add_class_frames.py --no_report_command_line {files_str}"
+        _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
-            f"linters2/add_class_frames.py {files_str}",
-            print_command=True,
+            cmd,
+            print_command=False,
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
     if "pyright" in actions:
-        ret |= hsystem.system(
+        print(hprint.frame("Running pyright", char1="-"))
+        _LOG.debug("> %s", cmd)
+        cmd = (
             f"pyright {_PYRIGHT_OPTIONS} {files_str} | jq -r '.generalDiagnostics[] | \"\\(.file):\\(.range.start.line + 1):\\(.range.start.character + 1): \\(.message)\"'",
-            print_command=True,
+        )
+        ret |= hsystem.system(
+            cmd,
+            print_command=False,
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
     if "fix_pyright" in actions:
+        print(hprint.frame("Running fix_pyright", char1="-"))
         ccp_script = hsystem.find_file_in_repo("ccp")
         prompt = f"/coding.fix_pyright {files_str}"
-        _LOG.debug("Running fix_pyright with prompt: %s", prompt)
+        cmd = " ".join([ccp_script, prompt])
+        _LOG.debug("> %s", cmd)
         result = subprocess.run(
             [ccp_script, prompt],
             capture_output=False,
