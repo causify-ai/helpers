@@ -309,6 +309,8 @@ class Test_remove_image_code1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_render_image_code1(hunitest.TestCase):
     """
     Test `_render_image_code()`.
@@ -349,7 +351,6 @@ class Test_render_image_code1(hunitest.TestCase):
             image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
 
-    @pytest.mark.superslow
     def test_md2(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different

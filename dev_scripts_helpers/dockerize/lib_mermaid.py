@@ -18,7 +18,13 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Version pins for tools
+# _MERMAID_CONTAINER_PREFIX = "tmp.mermaid"
+# 
+# _DOCKERFILE = rf"""
+# FROM minlag/mermaid-cli:11.12.0
+# """
+
+# Version pins for tools.
 _MERMAID_CLI_IMAGE_VERSION = "13.0.0"
 _MERMAID_NPM_VERSION = "11.14.0"
 _MERMAID_CLI_NPM_VERSION = "11.12.0"
@@ -29,9 +35,13 @@ _DOCKERFILE = rf"""
 # Use a Node.js image.
 FROM node:18-slim
 
-# Install packages needed for mermaid.
+# Install packages needed for mermaid and chromium browser.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        chromium \
+        fonts-liberation \
+        fonts-noto-cjk \
+        fonts-noto-cjk-extra \
         libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
         libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
         libxrandr2 libgbm1 libasound2 && \
@@ -46,10 +56,10 @@ const {{join}} = require('path');
 module.exports = {{
   // Changes the cache location for Puppeteer.
   cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
+  // Use system chromium instead of downloading pre-built binary
+  executablePath: '/usr/bin/chromium',
 }};
 EOL
-
-RUN npx puppeteer browsers install chrome-headless-shell
 
 # Install mermaid.
 RUN npm install -g mermaid@{_MERMAID_NPM_VERSION} @mermaid-js/mermaid-cli@{_MERMAID_CLI_NPM_VERSION} && npm cache clean --force
