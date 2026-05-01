@@ -45,13 +45,20 @@ _LOG = logging.getLogger(__name__)
 
 # Directory names that are never descended into when discovering near-code docs.
 # Matched against each individual path component, not the full path.
-_PRUNE_DIRS = frozenset({
-    ".git", ".claude", ".venv", "venv",
-    "node_modules", "__pycache__",
-    "docs_mkdocs",  # MkDocs tooling — not publishable content.
-    "blog",         # Separate blog pipeline.
-    "test", "outcomes",  # Test infrastructure.
-})
+_PRUNE_DIRS = frozenset(
+    {
+        ".git",
+        ".claude",
+        ".venv",
+        "venv",
+        "node_modules",
+        "__pycache__",
+        "docs_mkdocs",  # MkDocs tooling — not publishable content.
+        "blog",  # Separate blog pipeline.
+        "test",
+        "outcomes",  # Test infrastructure.
+    }
+)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -155,9 +162,8 @@ def _collect_near_code_docs(
     skip_doc_paths: Optional[List[str]] = None,
 ) -> None:
     """
-    Walk repo_root and rsync every near-code docs/ subdirectory that
-    contains at least one .md file into staging_docs_dir, mirroring the
-    module path.
+    Walk repo_root and rsync every near-code docs/ subdirectory that contains
+    at least one .md file into staging_docs_dir, mirroring the module path.
 
     Each <repo_root>/<module_path>/docs/ is copied to
     staging_docs_dir/<module_path>/.  For example with REPO_ROOT=csfy-master/:
@@ -193,7 +199,8 @@ def _collect_near_code_docs(
     for dirpath, dirnames, _ in os.walk(repo_root_abs, topdown=True):
         # Prune in-place so os.walk never descends into excluded subtrees.
         dirnames[:] = [
-            d for d in sorted(dirnames)
+            d
+            for d in sorted(dirnames)
             if d not in _PRUNE_DIRS
             and not d.startswith(".")
             and not d.startswith("tmp.")
@@ -432,7 +439,6 @@ def _process_markdown_files(
         raise RuntimeError(error_summary)
 
 
-
 def _move_misplaced_images(output_dir: str, is_blog: bool) -> None:
     """
     Move images that were created in ./figs/ to the correct location.
@@ -482,7 +488,9 @@ The page you're looking for doesn't exist or has been moved.
     _LOG.info("Written 404 page to '%s'", dest)
 
 
-def _copy_assets_and_styles(output_dir: str, mkdocs_dir: Optional[str] = None) -> None:
+def _copy_assets_and_styles(
+    output_dir: str, mkdocs_dir: Optional[str] = None
+) -> None:
     """
     Copy assets and styles from the input directory to the output directory.
     Only used for documentation (not blogs).
@@ -490,8 +498,8 @@ def _copy_assets_and_styles(output_dir: str, mkdocs_dir: Optional[str] = None) -
     :param output_dir: destination directory path
     :param mkdocs_dir: directory containing mkdocs.yml, overrides/, and
         docs/ assets. Defaults to the directory of this script
-        (helpers_root/docs_mkdocs/). Pass the repo-root docs_mkdocs/ when
-        deploying the full csfy docs site.
+        (helpers_root/docs_mkdocs/). Pass the repo-root docs_mkdocs/
+        when deploying the full csfy docs site.
     """
     if mkdocs_dir is not None:
         mkdocs_html_dir = os.path.abspath(mkdocs_dir)
