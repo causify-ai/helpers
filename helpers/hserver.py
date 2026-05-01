@@ -103,6 +103,16 @@ def get_dev_csfy_host_names() -> Tuple[str]:
     return list(host_names)
 
 
+# TODO(gp): -> is_inside_docker_container()
+def is_inside_docker() -> bool:
+    """
+    Return whether we are inside a container or not.
+    """
+    # From https://stackoverflow.com/questions/23513045
+    ret = os.path.exists("/.dockerenv")
+    return ret
+
+
 def _get_host_name() -> str:
     """
     Return the name of the host (not the machine) on which we are running.
@@ -228,16 +238,6 @@ def is_inside_ci() -> bool:
         ret = False
     else:
         ret = os.environ["CSFY_CI"] != ""
-    return ret
-
-
-# TODO(gp): -> is_inside_docker_container()
-def is_inside_docker() -> bool:
-    """
-    Return whether we are inside a container or not.
-    """
-    # From https://stackoverflow.com/questions/23513045
-    ret = os.path.exists("/.dockerenv")
     return ret
 
 
@@ -760,6 +760,13 @@ def get_docker_info() -> str:
     return txt
 
 
+def _is_mac_version_with_sibling_containers() -> bool:
+    if not is_host_mac():
+        return False
+    mac_version = get_host_mac_version()
+    return mac_version in ("Monterey", "Ventura", "Sequoia")
+
+
 # #############################################################################
 # Detect Docker functionalities, based on the set-up.
 # #############################################################################
@@ -863,7 +870,7 @@ def enable_privileged_mode() -> bool:
                 # Docker doesn't seem to support dind for these versions of macOS.
                 ret = False
             else:
-                raise ValueError(f"Invalid version='{version}'")
+                raise ValueError(f"Invalid version='{mac_version}'")
             # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
@@ -898,13 +905,6 @@ def has_docker_sudo() -> bool:
         only_warning = True
         _raise_invalid_host(only_warning)
     return ret
-
-
-def _is_mac_version_with_sibling_containers() -> bool:
-    if not is_host_mac():
-        return False
-    mac_version = get_host_mac_version()
-    return mac_version in ("Monterey", "Ventura", "Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support

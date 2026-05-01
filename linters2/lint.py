@@ -327,7 +327,8 @@ def _filter_files_by_type(
     Filter files by type (Python, Jupyter, Markdown, Text).
 
     :param file_paths: files to filter
-    :param file_extensions: list of file extensions to include (e.g., ["py", "ipynb", "md", "txt"])
+    :param file_extensions: list of file extensions to include (e.g., ["py",
+        "ipynb", "md", "txt"])
     :param skip_dassert_exists: skip file existence checks
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
@@ -362,7 +363,7 @@ def _filter_files_by_type(
                 continue
             markdown_files.append(f)
         else:
-            _LOG.warning("File type for '%s' not recognized", f)
+            _LOG.debug("File type for '%s' not recognized", f)
     return python_files, jupyter_files, markdown_files
 
 

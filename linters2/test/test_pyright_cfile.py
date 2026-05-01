@@ -1,12 +1,10 @@
 import json
 import logging
-import sys
 from typing import Any, Dict
-from unittest import mock
 
 import helpers.hunit_test as hunitest
 import helpers.hsystem as hsystem
-import linters2.pyright_cfile as lpycfile
+import linters2.pyright_cfile as lpyrcfil
 
 _LOG = logging.getLogger(__name__)
 
@@ -29,7 +27,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
         :param expected: Expected cfile-formatted output
         """
         json_str = json.dumps(json_data)
-        actual = lpycfile._transform_pyright_output(json_str)
+        actual = lpyrcfil._transform_pyright_output(json_str)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -71,10 +69,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
             ]
         }
         # Prepare outputs.
-        expected = (
-            "module.py:1:1: type mismatch\n"
-            "module.py:11:6: undefined name"
-        )
+        expected = "module.py:1:1: type mismatch\nmodule.py:11:6: undefined name"
         # Run test.
         self.helper(json_data, expected)
 

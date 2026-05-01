@@ -1113,7 +1113,6 @@ class Test_filter_files_by_type(hunitest.TestCase):
         file_paths = [py_file, txt_file]
         # Prepare outputs.
         extensions = ["txt"]
-        expected_md_files = [txt_file]
         # Run test.
         py_files, jupyter_files, md_files = llinutil.filter_files_by_type(
             file_paths, extensions, skip_dassert_exists=True

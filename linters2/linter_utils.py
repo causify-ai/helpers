@@ -92,7 +92,7 @@ def _filter_files(
         if is_valid:
             file_paths_to_keep.append(file_path)
         else:
-            _LOG.warning("Skipping %s", file_path)
+            _LOG.debug("Skipping '%s'", file_path)
     return file_paths_to_keep
 
 
