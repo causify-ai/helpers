@@ -27,6 +27,7 @@ Usage:
 Import as:
 
 import dev_scripts_helpers.documentation.pdf_to_md as dsdopema
+import dev_scripts_helpers.dockerize.lib_prettier as lib_prettier
 """
 
 import argparse
@@ -36,9 +37,9 @@ from pathlib import Path
 import fitz
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -74,11 +75,11 @@ def _extract_images_from_page(
         processed_xrefs.add(xref)
         try:
             # Extract image.
-            base_image = page.parent.extract_image(xref)
+            base_image = page.parent.extract_image(xref)  # type: ignore
             image_bytes = base_image["image"]
             image_ext = base_image["ext"]
             # Get image position on the page.
-            rects = page.get_image_rects(xref)
+            rects = page.get_image_rects(xref)  # type: ignore
             if rects:
                 # Use the first rectangle's y0 (top) coordinate.
                 y_pos = rects[0].y0
@@ -127,7 +128,7 @@ def _extract_images_from_page(
             rect = page.rect
             # Render page at 2x resolution for better quality.
             mat = fitz.Matrix(2, 2)
-            pix = page.get_pixmap(matrix=mat)
+            pix = page.get_pixmap(matrix=mat)  # type: ignore
             img_index = len(image_list) + 1
             image_filename = f"page_{page_num}_rendered_{img_index}.png"
             image_path = images_dir / image_filename
@@ -149,7 +150,7 @@ def _analyze_font_sizes(page: fitz.Page) -> dict:
     :param page: PyMuPDF page object
     :return: Dictionary with font size statistics
     """
-    text_dict = page.get_text("dict")
+    text_dict = page.get_text("dict")  # type: ignore
     font_sizes = []
     for block in text_dict.get("blocks", []):
         if block.get("type") == 0:
@@ -200,7 +201,7 @@ def _extract_text_with_formatting(
     :param font_thresholds: Dictionary with font size thresholds
     :return: List of tuples (y_position, markdown_type, content)
     """
-    text_dict = page.get_text("dict")
+    text_dict = page.get_text("dict")  # type: ignore
     text_items = []
     for block in text_dict.get("blocks", []):
         if block.get("type") != 0:
@@ -272,7 +273,7 @@ def _pdf_to_markdown(
     doc = fitz.open(pdf_path)
     md_lines = []
     total_images = 0
-    for page_num, page in enumerate(doc, start=1):
+    for page_num, page in enumerate(doc, start=1):  # type: ignore
         _LOG.info("=" * 60)
         _LOG.info("Processing page %d of %d", page_num, len(doc))
         # Analyze font sizes to determine heading thresholds.
@@ -321,7 +322,7 @@ def _pdf_to_markdown(
     markdown_content = "\n\n".join(md_lines)
     # Apply prettier formatting to the markdown.
     _LOG.info("Applying prettier formatting to markdown")
-    markdown_content = hdocexec.prettier_on_str(
+    markdown_content = dshdlipr.prettier_on_str(
         markdown_content,
         file_type="md",
         print_width=80,

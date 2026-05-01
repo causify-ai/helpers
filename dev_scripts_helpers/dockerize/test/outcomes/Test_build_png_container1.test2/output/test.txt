@@ -1,0 +1,3 @@
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897 https://imagemagick.org

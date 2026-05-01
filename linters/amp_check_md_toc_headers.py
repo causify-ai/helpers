@@ -19,7 +19,6 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hstring as hstring
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -139,7 +138,7 @@ class _TOCHeaderFixer(liaction.Action):
         # Fix headers in the file.
         lines, updated_lines, warnings = fix_md_toc_headers(file_name)
         # Save the updated file with the fixed headers.
-        liutils.write_file_back(file_name, lines, updated_lines)
+        hio.write_file_back(file_name, lines, updated_lines)
         return warnings
 
 

@@ -235,7 +235,7 @@ def gh_workflow_list(  # type: ignore
             if status == "success":
                 print(f"Workflow '{workflow}' for '{branch_name}' is ok")
                 break
-            if status in ("failure", "startup_failure", "cancelled", "skipped"):
+            if status == "failure":
                 _LOG.error(
                     "Workflow '%s' for '%s' is broken", workflow, branch_name
                 )
@@ -266,6 +266,14 @@ def gh_workflow_list(  # type: ignore
                     cmd += " -s"
                 hsystem.system(cmd, suppress_output=False, abort_on_error=False)
                 break
+            if status in ("startup_failure", "cancelled", "skipped"):
+                _LOG.debug(
+                    "Workflow '%s' for '%s' has status '%s', skipping",
+                    workflow,
+                    branch_name,
+                    status,
+                )
+                break
             if status == "":
                 if i == (len(status_column) - 1):
                     # If all the runs in the table are in progress, i.e. there is no
@@ -281,13 +289,13 @@ def gh_workflow_list(  # type: ignore
                         workflow,
                         branch_name,
                     )
-                    break
-                _LOG.debug(
-                    "Workflow=%s for branch %s is in progress, continue looking for a failed/successful run",
-                    workflow,
-                    branch_name,
-                )
-                # It's in progress.
+                else:
+                    _LOG.debug(
+                        "Workflow=%s for branch %s is in progress, skipping further checks",
+                        workflow,
+                        branch_name,
+                    )
+                break
             else:
                 raise ValueError(f"Invalid status='{status}'")
 

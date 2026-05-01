@@ -1071,3 +1071,27 @@ def append_timestamp_tag(file_name: str, tag: str) -> str:
     new_file_name = os.path.join(dir_name, "".join([name, tag_, extension]))
     _LOG.debug(hprint.to_str("file_name new_file_name"))
     return new_file_name
+
+
+def tee(
+    cmd: str, executable: str, abort_on_error: bool
+) -> tuple[int, list[str]]:
+    """
+    Execute command and return its exit code and output lines.
+
+    Captures output, removes empty lines, and optionally aborts on error.
+
+    :param cmd: Command string to execute
+    :param executable: Executable to use for running the command
+    :param abort_on_error: Whether to abort execution if command fails
+    :return: Tuple of (exit code, list of non-empty output lines)
+    """
+    _LOG.debug("cmd=%s executable=%s", cmd, executable)
+    rc, output = system_to_string(cmd, abort_on_error=abort_on_error)
+    hdbg.dassert_isinstance(output, str)
+    output1 = output.split("\n")
+    _LOG.debug("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
+    output2 = hprint.remove_empty_lines(output1)
+    _LOG.debug("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
+    hdbg.dassert_list_of_strings(output2)
+    return rc, output2

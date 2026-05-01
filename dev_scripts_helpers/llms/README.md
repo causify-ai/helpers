@@ -8,7 +8,6 @@
   * [`llm_transform.py`](#llm_transformpy)
     + [What It Does](#what-it-does-1)
     + [Examples](#examples-1)
-  * [`llm_review.py`](#llm_reviewpy)
     + [What It Does](#what-it-does-2)
     + [Examples](#examples-2)
   * [`llm_apply_cfile.py`](#llm_apply_cfilepy)
@@ -168,43 +167,6 @@ Key features:
   > llm_transform.py -i input.txt -o output.txt -p my_transform --compare
   ```
 
-## `llm_review.py`
-
-### What It Does
-
-- Automatically reviews code files using LLMs against configurable guidelines.
-- Can review specific files, directories, or git changesets (modified files,
-  last commit, branch changes).
-- Executes reviews in Docker containers and logs findings to a reviewer log
-  file.
-
-### Examples
-
-- Review specific files:
-  ```bash
-  > llm_review.py --files="dir1/file1.py dir2/file2.md dir3/file3.ipynb"
-  ```
-
-- Review all modified files in git:
-  ```bash
-  > llm_review.py --modified
-  ```
-
-- Review files from last commit:
-  ```bash
-  > llm_review.py --last_commit
-  ```
-
-- Review branch changes with custom guidelines:
-  ```bash
-  > llm_review.py --branch --guidelines_doc_filename custom_guidelines.md
-  ```
-
-- Review directory excluding specific files:
-  ```bash
-  > llm_review.py --dir_name src/ --skip_files test_*.py
-  ```
-
 ## `llm_apply_cfile.py`
 
 ### What It Does
@@ -320,10 +282,9 @@ Key features:
 
 ### What They Do
 
-- `dockerized_llm_transform.py`, `dockerized_llm_review.py`, and
-  `dockerized_llm_apply_cfile.py` are internal tools.
-- These are called automatically by their non-dockerized counterparts to execute
+- `dockerized_llm_transform.py` is an internal tool.
+- It is called automatically by its non-dockerized counterpart to execute
   transformations within Docker containers.
-- They ensure all dependencies (e.g., OpenAI API libraries) are available and
-  isolate the execution environment.
-- Users typically do not call these directly - use the main tools instead.
+- It ensures all dependencies (e.g., OpenAI API libraries) are available and
+  isolates the execution environment.
+- Users typically do not call this directly - use the main tool instead.

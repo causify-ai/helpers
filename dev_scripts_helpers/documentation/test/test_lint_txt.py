@@ -5,8 +5,8 @@ from typing import Optional
 import pytest
 
 import dev_scripts_helpers.documentation.lint_txt as dshdlitx
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -2070,7 +2070,7 @@ class Test_lint_txt2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self.get_text_problematic_for_prettier1()
-        actual = hdocexec.prettier_on_str(txt, file_type="txt")
+        actual = dshdlipr.prettier_on_str(txt, file_type="txt")
         expected = r"""
         - Python formatting
 
@@ -2224,7 +2224,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         type_: str,
         use_script: bool,
         cmd_opts: str,
-    ) -> Optional[str]:
+    ) -> str:
         """
         Run lint_txt processing directly by calling the code.
 
@@ -2253,10 +2253,9 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
             cmd.append(cmd_opts)
             cmd = " ".join(cmd)
             hsystem.system(cmd)
-            # Check the content of the file, if needed.
-            output_txt: Optional[str] = None
-            if os.path.exists(out_file):
-                output_txt = hio.from_file(out_file)
+            # Check the content of the file.
+            hdbg.dassert_file_exists(out_file)
+            output_txt = hio.from_file(out_file)
         else:
             hdbg.dassert_in(type_, ["md", "tex"])
             # Read input file.
@@ -2364,7 +2363,7 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
         in_file: str,
         type_: str,
         cmd_opts: str,
-    ) -> Optional[str]:
+    ) -> str:
         """
         Run lint_txt processing directly by calling the code.
 

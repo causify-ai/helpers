@@ -770,13 +770,13 @@ def serialize_custom_types_for_json_encoder(obj: Any) -> Any:
     import pandas as pd
 
     result = None
-    if isinstance(obj, pd.DataFrame):
+    if isinstance(obj, pd.DataFrame):  # type: ignore
         result = obj.to_dict("records")
-    elif isinstance(obj, pd.Series):
+    elif isinstance(obj, pd.Series):  # type: ignore
         result = obj.to_dict()
-    elif isinstance(obj, np.int64):
+    elif isinstance(obj, np.int64):  # type: ignore
         result = int(obj)
-    elif isinstance(obj, np.float64):
+    elif isinstance(obj, np.float64):  # type: ignore
         result = float(obj)
     elif isinstance(obj, uuid.UUID):
         result = str(obj)
@@ -847,7 +847,7 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
     # Convert text into Python data structures.
     data = {}
     if use_types:
-        import jsonpickle
+        import jsonpickle  # type: ignore
 
         data = jsonpickle.decode(txt_tmp)
     else:
@@ -856,7 +856,7 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
 
 
 # TODO(gp): -> pandas_helpers.py
-def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821
+def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821  # type: ignore
     """
     Load a dataframe from a json file.
 
@@ -1007,7 +1007,7 @@ def safe_rm_file(dir_path: str) -> None:
     _LOG.debug("Successfully removed directory: %s", dir_path)
 
 
-# TODO(ai): Add unit tests.
+# TODO(ai_gp): Add unit tests.
 def is_subdir(dir1: str, dir2: str) -> bool:
     """
     Check if `dir1` is a subdirectory of `dir2`.
@@ -1023,3 +1023,24 @@ def is_subdir(dir1: str, dir2: str) -> bool:
     common = os.path.commonpath([abs_dir1, abs_dir2])
     # It's a subdir if they share the same common path as the parent.
     return common == abs_dir2
+
+
+def write_file_back(
+    file_name: str, txt_old: list[str], txt_new: list[str]
+) -> None:
+    """
+    Write new text to file only if it differs from the old text.
+
+    :param file_name: Path to the file to write to
+    :param txt_old: Original text as a list of strings
+    :param txt_new: New text as a list of strings
+    """
+    # Process old text.
+    hdbg.dassert_list_of_strings(txt_old)
+    txt_as_str = "\n".join(txt_old)
+    # Process new text.
+    hdbg.dassert_list_of_strings(txt_new)
+    txt_new_as_str = "\n".join(txt_new)
+    # Write file back, if needed.
+    if txt_as_str != txt_new_as_str:
+        to_file(file_name, txt_new_as_str)

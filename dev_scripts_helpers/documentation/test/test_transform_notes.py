@@ -1,7 +1,10 @@
 import logging
 
+import pytest
+
 import helpers.hlatex as hlatex
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -12,7 +15,20 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_markdown_to_latex1(hunitest.TestCase):
+    def _check(self, markdown: str, expected: str) -> None:
+        """
+        Check the markdown to latex transformation.
+        """
+        # 1) Prepare inputs.
+        markdown = hprint.dedent(markdown)
+        # 2) Run tests.
+        actual = hlatex.markdown_list_to_latex(markdown)
+        # 3) Check.
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -134,15 +150,3 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         \end{frame}"""
         # Run the test.
         self._check(markdown, expected)
-
-    def _check(self, markdown: str, expected: str) -> None:
-        """
-        Check the markdown to latex transformation.
-        """
-        # 1) Prepare inputs.
-        markdown = hprint.dedent(markdown)
-        # 2) Run tests.
-        actual = hlatex.markdown_list_to_latex(markdown)
-        # 3) Check.
-        expected = hprint.dedent(expected)
-        self.assert_equal(actual, expected)

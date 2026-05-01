@@ -21,10 +21,10 @@ import os
 import shutil
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 
 _LOG = logging.getLogger(__name__)
 
@@ -144,7 +144,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         f"-f docx -t markdown_strict --output {md_file}"
     )
     container_type = "pandoc_only"
-    hdocexec.run_dockerized_pandoc(cmd, container_type)
+    dshdlipa.run_dockerized_pandoc(cmd, container_type)
     _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)
     _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)

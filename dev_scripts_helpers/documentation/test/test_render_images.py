@@ -8,6 +8,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -309,6 +310,8 @@ class Test_remove_image_code1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_render_image_code1(hunitest.TestCase):
     """
     Test `_render_image_code()`.
@@ -349,7 +352,6 @@ class Test_render_image_code1(hunitest.TestCase):
             image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
 
-    @pytest.mark.superslow
     def test_md2(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different
@@ -614,7 +616,9 @@ class Test_render_images1(hunitest.TestCase):
         :param file_ext: the extension of the input file
         """
         # Prepare inputs.
-        txt_lines = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split("\n")
+        txt_lines = hprint.dedent(
+            txt, remove_lead_trail_empty_lines_=True
+        ).split("\n")
         out_file = os.path.join(self.get_scratch_space(), f"out.{file_ext}")
         dst_ext = "png"
         dst_dir = os.path.join(self.get_scratch_space(), "figs")
