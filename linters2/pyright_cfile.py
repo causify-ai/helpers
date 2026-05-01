@@ -7,6 +7,7 @@ Wrap pyright to output diagnostics in cfile-compatible format.
 import argparse
 import json
 import logging
+import sys
 from typing import List
 
 import helpers.hdbg as hdbg
@@ -68,8 +69,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cmd_args = list(remaining)
     hdbg.dassert_isinstance(cmd_args, list, "Command arguments must be a list")
     if "-h" in cmd_args or "--help" in cmd_args:
-        hsystem.system(f"pyright {' '.join(cmd_args)}")
-        return
+        hsystem.system(f"pyright {' '.join(cmd_args)}", abort_on_error=False)
+        sys.exit(0)
     if "--outputjson" not in cmd_args:
         cmd_args.append("--outputjson")
     #
