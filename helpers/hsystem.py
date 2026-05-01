@@ -58,11 +58,9 @@ def get_timestamp() -> str:
 def is_running_in_ipynb() -> bool:
     # From https://stackoverflow.com/questions/15411967
     try:
-        from IPython import get_ipython
-
         _ = get_ipython().config  # type: ignore
         res = True
-    except (NameError, AttributeError):
+    except NameError:
         res = False
     return res
 
