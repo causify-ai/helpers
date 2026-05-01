@@ -84,7 +84,7 @@ _DEFAULT_ACTIONS = [
     "add_class_frames",
 ]
 
-_PYRIGHT_OPTIONS = ""
+_PYRIGHT_OPTIONS = "--outputjson"
 
 
 # #############################################################################
@@ -132,7 +132,7 @@ def _run_linting_actions(
         )
     if "pyright" in actions:
         ret |= hsystem.system(
-            f"pyright {_PYRIGHT_OPTIONS} {files_str}",
+            f"pyright {_PYRIGHT_OPTIONS} {files_str} | jq -r '.generalDiagnostics[] | \"\\(.file):\\(.range.start.line + 1):\\(.range.start.character + 1): \\(.message)\"'",
             print_command=True,
             abort_on_error=abort_on_error,
             suppress_output=False,

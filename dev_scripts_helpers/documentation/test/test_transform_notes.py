@@ -4,6 +4,7 @@ import pytest
 
 import helpers.hlatex as hlatex
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)

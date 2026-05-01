@@ -49,11 +49,13 @@ class Test_build_png_container1(hunitest.TestCase):
         )
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
-        arch = platform.machine()
-        expected = (
-            f"Version: ImageMagick 7.1.2-19 Q16-HDRI {arch} 23897"
-            " https://imagemagick.org\n"
-        )
+        system = platform.system()
+        if system == "Darwin":
+            expected = "Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897 https://imagemagick.org"
+        elif system == "Linux":
+            expected = "Version: ImageMagick 7.1.2-19 Q16-HDRI x86_64 23897 https://imagemagick.org"
+        else:
+            raise ValueError(f"Invalid system='{system}'")
         self.assert_equal(output, expected)
 
 

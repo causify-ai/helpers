@@ -40,6 +40,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             f' --entrypoint "" {image_name}'
             " bash -c 'prettier --version'"
         )
+        _, actual = hsystem.system_to_string(cmd)
         # Check outputs using platform-specific expected values.
         system = platform.system()
         if system == "Darwin":
@@ -48,7 +49,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             expected = "3.8.3\n"
         else:
             raise ValueError(f"Invalid system '{system}'")
-        self.assert_equal(output, expected)
+        self.assert_equal(actual, expected)
 
     def test_md1(self) -> None:
         """
