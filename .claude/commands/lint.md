@@ -1,5 +1,6 @@
 - Given a file passed on the command line, you must improve its appearance
-  without changing its behavior
+  without changing its behavior using the following rules based on the type
+  of file
 
 # Rules
 

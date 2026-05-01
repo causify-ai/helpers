@@ -7,7 +7,7 @@ import linters.amp_class_method_order as laclmeor
 
 import argparse
 import logging
-from typing import List, Union
+from typing import List, Union, cast
 
 import libcst as cst
 import libcst.codemod as codemod
@@ -16,7 +16,6 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -76,7 +75,7 @@ class _OrderMethods(codemod.ContextAwareTransformer):  # pylint: disable=too-man
     ) -> Union[cst.BaseStatement, cst.RemovalSentinel]:
         # There will be a bunch of nodes for whitespace, docstrings, arguments, etc. The
         # last node will always be the indented block.
-        indented_block: cst.IndentedBlock = updated_node.children[-1]
+        indented_block = cast(cst.IndentedBlock, updated_node.children[-1])
         exempt_elems = [
             (line_no, x)
             for line_no, x in enumerate(indented_block.body)
@@ -88,7 +87,8 @@ class _OrderMethods(codemod.ContextAwareTransformer):  # pylint: disable=too-man
             if isinstance(x, (cst.FunctionDef, cst.ClassDef))
         ]
         # Order the methods.
-        ordered_body = sorted(elems_to_sort, key=_sorting_key)
+        ordered_body: List[cst.BaseStatement] = []
+        ordered_body.extend(sorted(elems_to_sort, key=_sorting_key))
         for line_no, elem in exempt_elems:
             ordered_body.insert(line_no, elem)
         ordered_body_upd = []
@@ -147,7 +147,7 @@ class _ClassMethodOrder(liaction.Action):
         # Write result.
         txt_old = txt.splitlines()
         txt_new = txt_new.splitlines()
-        liutils.write_file_back(file_name, txt_old, txt_new)
+        hio.write_file_back(file_name, txt_old, txt_new)
         return []
 
 

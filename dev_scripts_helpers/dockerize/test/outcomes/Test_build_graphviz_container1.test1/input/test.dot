@@ -1,0 +1,5 @@
+digraph {
+            a -> b[label="0.2"];
+            a -> c[label="0.4"];
+            c -> b[label="0.6"];
+        }

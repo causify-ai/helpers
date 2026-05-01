@@ -12,7 +12,6 @@ import re
 from typing import Any, List, Optional
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
@@ -21,6 +20,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.htext_protect as htexprot
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -523,7 +523,7 @@ def _perform_actions(
     action = "prettier"
     if _to_execute_action(action, actions):
         txt = "\n".join(lines)
-        txt = hdocexec.prettier_on_str(txt, file_type=extension, **kwargs)
+        txt = dshdlipr.prettier_on_str(txt, file_type=extension, **kwargs)
         lines = txt.split("\n")
     # Post-process text.
     action = "postprocess"

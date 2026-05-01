@@ -1,14 +1,33 @@
 ---
-description: Move a file in git and use 
+description: Move a file or directory in the Git repo and update all references to it
 ---
 
-Given a file or a directory in the current repo, as a source and a destination
+- Given a source path `<src>` and destination path `<dst>` in the current Git
+  repository:
 
-- Make sure the enclosing directory exists
+# Validate inputs
+- Confirm `<src>` exists in the repository
+- Confirm `<dst>` does not already exist (to prevent accidental overwrites)
+- Ensure the parent directory of `<dst>` exists, creating it if necessary
 
-- Make sure that the destination doesn't exist already
+# Move the file or directory
+- Run `git mv <src> <dst>` to preserve Git history
 
-- Move it to the destination using `git mv`
+# Update all references
+- Search the entire repository for any occurrences of `<src>`
+- Replace each occurrence with `<dst>`
+- This includes source code imports, configuration files, documentation, and any
+  other plaintext files
+- Skip binary files and the `.git/` directory
 
-- Find and replace all the references to that file in the repo and update the
-  references to the destination
+# Summarize changes
+- Report the move that was performed
+- List every file that had references updated, with a count of replacements per
+  file
+- Flag any ambiguous matches that may need manual review
+
+# Ask for help if unsure how to do
+- If the task is not perfectly clear, you MUST not perform it, but ask for
+  clarifications
+  - When the task is complex, create a plan.md with 5 bullet points explaining
+    what the plan is

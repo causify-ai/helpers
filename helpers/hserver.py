@@ -13,8 +13,6 @@ import shutil
 import subprocess
 from typing import Dict, List, Optional, Tuple
 
-import helpers.repo_config_utils as hrecouti
-
 # This module should depend only on:
 # - Python standard modules
 # See `helpers/dependencies.txt` for more details
@@ -103,6 +101,16 @@ def get_dev_csfy_host_names() -> Tuple[str]:
     """
     host_names = ("dev1", "dev2", "dev3")
     return list(host_names)
+
+
+# TODO(gp): -> is_inside_docker_container()
+def is_inside_docker() -> bool:
+    """
+    Return whether we are inside a container or not.
+    """
+    # From https://stackoverflow.com/questions/23513045
+    ret = os.path.exists("/.dockerenv")
+    return ret
 
 
 def _get_host_name() -> str:
@@ -230,16 +238,6 @@ def is_inside_ci() -> bool:
         ret = False
     else:
         ret = os.environ["CSFY_CI"] != ""
-    return ret
-
-
-# TODO(gp): -> is_inside_docker_container()
-def is_inside_docker() -> bool:
-    """
-    Return whether we are inside a container or not.
-    """
-    # From https://stackoverflow.com/questions/23513045
-    ret = os.path.exists("/.dockerenv")
     return ret
 
 
@@ -633,6 +631,14 @@ def docker_needs_sudo() -> bool:
     """
     if not has_docker():
         return False
+    # This check is required to ensure it does not cause issues when running on ECS 
+    # Fargate through Airflow, since ECS Fargate does not support either DinD 
+    # or sibling containers.
+    # See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-security-considerations.html
+    # TODO(heanh): Check if we can use `is_inside_ecs_container()` to check if 
+    # we are inside Airflow.
+    if not has_dind_support() and not use_docker_sibling_containers():
+        return False
     # Another way to check is to see if your user is in the docker group:
     # > groups | grep docker
     rc = os.system("docker run hello-world 2>&1 >/dev/null")
@@ -762,6 +768,13 @@ def get_docker_info() -> str:
     return txt
 
 
+def _is_mac_version_with_sibling_containers() -> bool:
+    if not is_host_mac():
+        return False
+    mac_version = get_host_mac_version()
+    return mac_version in ("Monterey", "Ventura", "Sequoia")
+
+
 # #############################################################################
 # Detect Docker functionalities, based on the set-up.
 # #############################################################################
@@ -842,6 +855,8 @@ def enable_privileged_mode() -> bool:
     """
     Return whether a host supports privileged mode for its containers.
     """
+    import helpers.repo_config_utils as hrecouti
+
     repo_name = hrecouti.get_repo_config().get_name()
     # TODO(gp): Remove this dependency from a repo.
     if repo_name in ("//dev_tools",):
@@ -863,7 +878,7 @@ def enable_privileged_mode() -> bool:
                 # Docker doesn't seem to support dind for these versions of macOS.
                 ret = False
             else:
-                raise ValueError(f"Invalid version='{version}'")
+                raise ValueError(f"Invalid version='{mac_version}'")
             # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
@@ -898,13 +913,6 @@ def has_docker_sudo() -> bool:
         only_warning = True
         _raise_invalid_host(only_warning)
     return ret
-
-
-def _is_mac_version_with_sibling_containers() -> bool:
-    if not is_host_mac():
-        return False
-    mac_version = get_host_mac_version()
-    return mac_version in ("Monterey", "Ventura", "Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support
@@ -1055,6 +1063,8 @@ def skip_submodules_test() -> bool:
 
     E.g. while running `i run_fast_tests`.
     """
+    import helpers.repo_config_utils as hrecouti
+
     repo_name = hrecouti.get_repo_config().get_name()
     # TODO(gp): Why do we want to skip running tests?
     # TODO(gp): Remove this dependency from a repo.
@@ -1079,6 +1089,8 @@ def is_AM_S3_available() -> bool:
 def is_CK_S3_available() -> bool:
     val = True
     if is_inside_ci():
+        import helpers.repo_config_utils as hrecouti
+
         repo_name = hrecouti.get_repo_config().get_name()
         # TODO(gp): Remove this dependency from a repo.
         if repo_name in ("//amp", "//dev_tools"):

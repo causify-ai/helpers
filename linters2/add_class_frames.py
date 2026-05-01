@@ -16,7 +16,6 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -72,6 +71,7 @@ def _check_above_initialization(
         # No lines to skip and no frame to remove since the class is
         # initialized on the first line of the file.
         return non_empty_lines_counter, empty_lines_counter, remove_old_frame
+    i = -1
     for i in range(line_num - 1, -1, -1):
         if lines[i] == "":
             # Stop at the last empty line to separate decorators/comments from preceding code.
@@ -82,6 +82,7 @@ def _check_above_initialization(
         # There are no empty lines and no frame between the first line of the
         # file and the class initialization.
         return non_empty_lines_counter, empty_lines_counter, remove_old_frame
+    j = -1
     for j in range(i - 1, -1, -1):
         empty_lines_counter += 1
         if lines[j] != "":
@@ -281,9 +282,7 @@ class _ClassFramer(liaction.Action):
         file_content = hio.from_file(file_name)
         updated_lines = update_class_frames(file_content)
         # Save the updated file with the added class frames.
-        liutils.write_file_back(
-            file_name, file_content.split("\n"), updated_lines
-        )
+        hio.write_file_back(file_name, file_content.split("\n"), updated_lines)
         return []
 
 
@@ -299,21 +298,13 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         help="Files to process",
     )
-    parser.add_argument(
-        "--no_report_command_line",
-        action="store_false",
-        default=True,
-        help="Do not report the command line",
-    )
     hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(
-        verbosity=args.log_level, report_command_line=args.no_report_command_line
-    )
+    hparser.parse_verbosity_args(args)
     action = _ClassFramer()
     action.run(args.files)
 

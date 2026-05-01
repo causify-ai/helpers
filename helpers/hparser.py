@@ -69,6 +69,11 @@ def add_verbosity_arg(
         choices=["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help="Set the logging level",
     )
+    parser.add_argument(
+        "--no_report_command_line",
+        action="store_true",
+        help="Disable printing of executed commands",
+    )
     return parser
 
 
@@ -76,6 +81,11 @@ def add_verbosity_arg(
 def parse_verbosity_args(
     args: argparse.Namespace, *args_: Any, **kwargs: Any
 ) -> None:
+    if hasattr(args, "no_report_command_line") and args.no_report_command_line:
+        report_command_line = False
+    else:
+        report_command_line = True
+    kwargs["report_command_line"] = report_command_line
     # if args.log_level == "VERB_DEBUG":
     #    args.log_level = 5
     hdbg.init_logger(verbosity=args.log_level, *args_, **kwargs)

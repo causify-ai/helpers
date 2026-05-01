@@ -67,38 +67,6 @@ class TestDbHelper(hunitest.TestCase, abc.ABC):
     """
 
     @classmethod
-    @abc.abstractmethod
-    def _get_compose_file(cls) -> str:
-        """
-        Get path to Docker compose file.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    @abc.abstractmethod
-    def _get_service_name(cls) -> str:
-        """
-        Get service name.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    @abc.abstractmethod
-    def _get_db_env_path(cls) -> str:
-        """
-        Get path to env file that contains DB connection parameters.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    @abc.abstractmethod
-    def _create_docker_files(cls) -> str:
-        """
-        Create the compose and env file for the DB run.
-        """
-        raise NotImplementedError
-
-    @classmethod
     def setUpClass(cls) -> None:
         """
         Initialize the test database inside test container.
@@ -154,10 +122,11 @@ class TestDbHelper(hunitest.TestCase, abc.ABC):
                 # Remove the container, e.g., `compose-oms_postgres7482-1`.
                 service_name = cls._get_service_name()
                 container_name = f"compose-{service_name}-1"
-                hdocker.container_rm(container_name)
+                use_sudo = hdocker.get_use_sudo()
+                hdocker.container_rm(container_name, use_sudo)
                 # Remove the volume, e.g., `compose_oms_postgres7482_data`.
                 volume_name = f"compose_{service_name}_data"
-                hdocker.volume_rm(volume_name)
+                hdocker.volume_rm(volume_name, use_sudo)
             else:
                 # TODO(Grisha): use invoke task CMTask #547.
                 cmd = (
@@ -185,6 +154,38 @@ class TestDbHelper(hunitest.TestCase, abc.ABC):
 
         This function is specified by the unit test in a way that is
         unique to each test.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def _get_compose_file(cls) -> str:
+        """
+        Get path to Docker compose file.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def _get_service_name(cls) -> str:
+        """
+        Get service name.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def _get_db_env_path(cls) -> str:
+        """
+        Get path to env file that contains DB connection parameters.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def _create_docker_files(cls) -> str:
+        """
+        Create the compose and env file for the DB run.
         """
         raise NotImplementedError
 
