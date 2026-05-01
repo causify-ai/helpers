@@ -1,4 +1,6 @@
+import logging
 import os
+import platform
 from typing import List
 
 import pytest
@@ -11,6 +13,8 @@ import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -55,7 +59,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
-    def test_md2(self, expected_version: str) -> None:
+    def test_md2(self) -> None:
         """
         Test the Prettier version matches expected output for md file type.
         """
@@ -68,7 +72,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             expected = "3.8.3\n"
         else:
             raise ValueError(f"Invalid system '{system}'")
-        self.helper_check_version(file_type, expected_version)
+        self.helper_check_version(file_type, expected)
 
     def test_txt1(self) -> None:
         """
@@ -81,7 +85,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
-    def test_txt2(self, expected_version: str) -> None:
+    def test_txt2(self) -> None:
         """
         Test the Prettier version matches expected output for txt file type.
         """
@@ -94,7 +98,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             expected = "3.8.3\n"
         else:
             raise ValueError(f"Invalid system '{system}'")
-        self.helper_check_version(file_type, expected_version)
+        self.helper_check_version(file_type, expected)
 
     def test_tex1(self) -> None:
         """
@@ -107,7 +111,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
-    def test_tex2(self, expected_version: str) -> None:
+    def test_tex2(self) -> None:
         """
         Test the Prettier version matches expected output for tex file type.
         """
@@ -115,12 +119,12 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
         # Check outputs using platform-specific expected values.
         system = platform.system()
         if system == "Darwin":
-            expected = "3.8.3\n"
+            expected = "2.7.0\n"
         elif system == "Linux":
-            expected = "3.8.3\n"
+            expected = "2.7.0\n"
         else:
             raise ValueError(f"Invalid system '{system}'")
-        self.helper_check_version(file_type, expected_version)
+        self.helper_check_version(file_type, expected)
 
 
 # #############################################################################

@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.pyright_cfile as dpycfile
+import linters2.pyright_cfile as lpycfile
 
 
 # #############################################################################
@@ -23,7 +23,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
         :param expected: Expected cfile-formatted output
         """
         json_str = json.dumps(json_data)
-        actual = dpycfile._transform_pyright_output(json_str)
+        actual = lpycfile._transform_pyright_output(json_str)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
