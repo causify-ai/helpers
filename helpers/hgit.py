@@ -17,7 +17,6 @@ import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.repo_config_utils as hrecouti
 
 # This module can depend only on:
 # - Python standard modules
@@ -538,6 +537,8 @@ def _is_repo(repo_short_name: str) -> bool:
     :param repo_short_name: the short name of the repository to check (e.g., "helpers", "amp")
     :return: True if the current directory is in the specified repository
     """
+    import helpers.repo_config_utils as hrecouti
+
     curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     is_repo = bool(curr_repo_short_name == repo_short_name)
     return is_repo
@@ -1203,6 +1204,8 @@ def get_amp_abs_path() -> str:
     _LOG.debug("repo_sym_name=%s", repo_sym_name)
     #
     repo_sym_names = ["alphamatic/amp"]
+    import helpers.repo_config_utils as hrecouti
+
     extra_amp_repo_sym_name = (
         hrecouti.get_repo_config().get_extra_amp_repo_sym_name()
     )

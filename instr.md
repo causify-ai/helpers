@@ -1,14 +1,6 @@
 # Write code
 
-- In podcast_dl.py for --action use hparser.py code based on
-
-def add_action_arg(
-def actions_to_string(
-def select_actions(
-def mark_action(
-
-Make ./dev_scripts_helpers/documentation/podcast_dl_example.sh compatible with the new podcast_dl.py
-
+- In podcast_dl.py add a tqdm progress bar for all the parsing of the transcript
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
