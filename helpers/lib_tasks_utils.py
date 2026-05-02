@@ -241,7 +241,7 @@ def run(
     return res
 
 
-# TODO(gp): -> system_interaction.py ?
+# TODO(ai_gp): Use the one in ./helpers/hsystem.py
 def _to_pbcopy(txt: str, pbcopy: bool) -> None:
     """
     Save the content of txt in the system clipboard.

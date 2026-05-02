@@ -28,7 +28,7 @@ Given a document `<input>.<extension>` and an output file `<output>.md`
 2. If the file is PDF convert `<input>.pdf` to `tmp.md` in the current dir
 
   ```bash
-  > pdf_to_md.py --input <input>.pdf --output tmp.md
+  > convert_pdf_to_md.py --input <input>.pdf --output tmp.md
   ```
 
 3. If the file is already markdown, don't to anything but use the markdown file
