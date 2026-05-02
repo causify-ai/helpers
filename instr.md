@@ -1,6 +1,4 @@
-# Write code
-
-- In podcast_dl.py add a tqdm progress bar for all the parsing of the transcript
+- Split 
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
