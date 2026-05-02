@@ -1,3 +1,6 @@
+from typing import List
+
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.documentation.convert_table as dsconttbl
 
@@ -7,63 +10,120 @@ class Test_convert_table_parsing(hunitest.TestCase):
     Test table parsing functions.
     """
 
-    def test_parse_md_table_simple(self) -> None:
+    def helper_parse_md_table(
+        self, lines: List[str], expected_header: List[str], expected_rows: List[List[str]]
+    ) -> None:
+        """
+        Test helper for _parse_md_table.
+
+        :param lines: Input markdown table lines
+        :param expected_header: Expected header row
+        :param expected_rows: Expected data rows
+        """
+        # Run test.
+        header, rows = dsconttbl._parse_md_table(lines)
+        # Check outputs.
+        self.assertEqual(header, expected_header)
+        self.assertEqual(rows, expected_rows)
+
+    def helper_parse_delimited(
+        self, lines: List[str], delimiter: str, expected_header: List[str], expected_rows: List[List[str]]
+    ) -> None:
+        """
+        Test helper for _parse_delimited.
+
+        :param lines: Input delimited lines
+        :param delimiter: Delimiter character
+        :param expected_header: Expected header row
+        :param expected_rows: Expected data rows
+        """
+        # Run test.
+        header, rows = dsconttbl._parse_delimited(lines, delimiter)
+        # Check outputs.
+        self.assertEqual(header, expected_header)
+        self.assertEqual(rows, expected_rows)
+
+    def test1(self) -> None:
         """
         Test parsing a simple markdown table.
         """
-        lines = [
-            "| Name | Age | City |",
-            "|------|-----|------|",
-            "| Alice | 30 | NYC |",
-            "| Bob | 25 | LA |",
+        # Prepare inputs.
+        lines_text = """
+        | Name | Age | City |
+        |------|-----|------|
+        | Alice | 30 | NYC |
+        | Bob | 25 | LA |
+        """
+        lines = hprint.dedent(lines_text).strip().split('\n')
+        # Prepare outputs.
+        expected_header = ["Name", "Age", "City"]
+        expected_rows = [
+            ["Alice", "30", "NYC"],
+            ["Bob", "25", "LA"],
         ]
-        header, rows = dsconttbl._parse_md_table(lines)
-        assert header == ["Name", "Age", "City"]
-        assert len(rows) == 2
-        assert rows[0] == ["Alice", "30", "NYC"]
-        assert rows[1] == ["Bob", "25", "LA"]
+        # Run test.
+        self.helper_parse_md_table(lines, expected_header, expected_rows)
 
-    def test_parse_md_table_with_padding(self) -> None:
+    def test2(self) -> None:
         """
         Test parsing markdown table with extra padding.
         """
-        lines = [
-            "|  Name  |  Age  |  City  |",
-            "| ------ | ----- | ------ |",
-            "|  Alice | 30    |  NYC   |",
+        # Prepare inputs.
+        lines_text = """
+        |  Name  |  Age  |  City  |
+        | ------ | ----- | ------ |
+        |  Alice | 30    |  NYC   |
+        """
+        lines = hprint.dedent(lines_text).strip().split('\n')
+        # Prepare outputs.
+        expected_header = ["Name", "Age", "City"]
+        expected_rows = [
+            ["Alice", "30", "NYC"],
         ]
-        header, rows = dsconttbl._parse_md_table(lines)
-        assert header == ["Name", "Age", "City"]
-        assert rows[0] == ["Alice", "30", "NYC"]
+        # Run test.
+        self.helper_parse_md_table(lines, expected_header, expected_rows)
 
-    def test_parse_delimited_csv(self) -> None:
+    def test3(self) -> None:
         """
         Test parsing CSV format.
         """
-        lines = [
-            "Name,Age,City",
-            "Alice,30,NYC",
-            "Bob,25,LA",
+        # Prepare inputs.
+        csv_text = """
+        Name,Age,City
+        Alice,30,NYC
+        Bob,25,LA
+        """
+        lines = hprint.dedent(csv_text).strip().split('\n')
+        delimiter = ","
+        # Prepare outputs.
+        expected_header = ["Name", "Age", "City"]
+        expected_rows = [
+            ["Alice", "30", "NYC"],
+            ["Bob", "25", "LA"],
         ]
-        header, rows = dsconttbl._parse_delimited(lines, ",")
-        assert header == ["Name", "Age", "City"]
-        assert len(rows) == 2
-        assert rows[0] == ["Alice", "30", "NYC"]
-        assert rows[1] == ["Bob", "25", "LA"]
+        # Run test.
+        self.helper_parse_delimited(lines, delimiter, expected_header, expected_rows)
 
-    def test_parse_delimited_tsv(self) -> None:
+    def test4(self) -> None:
         """
         Test parsing TSV format.
         """
-        lines = [
-            "Name\tAge\tCity",
-            "Alice\t30\tNYC",
-            "Bob\t25\tLA",
+        # Prepare inputs.
+        tsv_text = """
+        Name\tAge\tCity
+        Alice\t30\tNYC
+        Bob\t25\tLA
+        """
+        lines = hprint.dedent(tsv_text).strip().split('\n')
+        delimiter = "\t"
+        # Prepare outputs.
+        expected_header = ["Name", "Age", "City"]
+        expected_rows = [
+            ["Alice", "30", "NYC"],
+            ["Bob", "25", "LA"],
         ]
-        header, rows = dsconttbl._parse_delimited(lines, "\t")
-        assert header == ["Name", "Age", "City"]
-        assert len(rows) == 2
-        assert rows[0] == ["Alice", "30", "NYC"]
+        # Run test.
+        self.helper_parse_delimited(lines, delimiter, expected_header, expected_rows)
 
 
 class Test_convert_table_formatting(hunitest.TestCase):
@@ -71,53 +131,79 @@ class Test_convert_table_formatting(hunitest.TestCase):
     Test table formatting functions.
     """
 
-    def test_format_as_md_simple(self) -> None:
+    def test1(self) -> None:
         """
         Test formatting table as markdown.
         """
+        # Prepare inputs.
         header = ["Name", "Age"]
         rows = [["Alice", "30"], ["Bob", "25"]]
+        # Prepare outputs.
+        expected = """
+        | Name   |   Age |
+        |:-------|------:|
+        | Alice  |    30 |
+        | Bob    |    25 |
+        """
+        # Run test.
         result = dsconttbl._format_as_md(header, rows)
-        expected_lines = [
-            "| Name  | Age |",
-            "| ----- | --- |",
-            "| Alice | 30  |",
-            "| Bob   | 25  |",
-        ]
-        expected = "\n".join(expected_lines)
-        assert result == expected
+        # Check outputs.
+        self.assert_equal(result, expected, dedent=True)
 
-    def test_format_as_md_column_width(self) -> None:
+    def test2(self) -> None:
         """
         Test markdown formatting with varying column widths.
         """
+        # Prepare inputs.
         header = ["Product", "Price"]
         rows = [["Apple", "1.50"], ["Banana", "0.75"]]
+        # Prepare outputs.
+        expected = """
+        | Product   |   Price |
+        |:----------|--------:|
+        | Apple     |    1.5  |
+        | Banana    |    0.75 |
+        """
+        # Run test.
         result = dsconttbl._format_as_md(header, rows)
-        lines = result.split("\n")
-        assert len(lines) == 4
-        assert "|" in lines[0]
-        assert "---" in lines[1]
+        # Check outputs.
+        self.assert_equal(result, expected, dedent=True)
 
-    def test_format_as_csv(self) -> None:
+    def test3(self) -> None:
         """
         Test formatting table as CSV.
         """
+        # Prepare inputs.
         header = ["Name", "Age", "City"]
         rows = [["Alice", "30", "NYC"], ["Bob", "25", "LA"]]
+        # Prepare outputs.
+        expected = """
+        Name,Age,City
+        Alice,30,NYC
+        Bob,25,LA
+        """
+        # Run test.
         result = dsconttbl._format_as_delimited(header, rows, ",")
-        expected = "Name,Age,City\nAlice,30,NYC\nBob,25,LA"
-        assert result == expected
+        # Check outputs.
+        self.assert_equal(result, expected, dedent=True)
 
-    def test_format_as_tsv(self) -> None:
+    def test4(self) -> None:
         """
         Test formatting table as TSV.
         """
+        # Prepare inputs.
         header = ["Product", "Price", "Qty"]
         rows = [["Apple", "1.50", "10"], ["Banana", "0.75", "20"]]
+        # Prepare outputs.
+        expected = """
+        Product	Price	Qty
+        Apple	1.50	10
+        Banana	0.75	20
+        """
+        # Run test.
         result = dsconttbl._format_as_delimited(header, rows, "\t")
-        expected = "Product\tPrice\tQty\nApple\t1.50\t10\nBanana\t0.75\t20"
-        assert result == expected
+        # Check outputs.
+        self.assert_equal(result, expected, dedent=True)
 
 
 class Test_convert_table_roundtrip(hunitest.TestCase):
@@ -125,36 +211,50 @@ class Test_convert_table_roundtrip(hunitest.TestCase):
     Test roundtrip conversions (format A -> format B -> format A).
     """
 
-    def test_csv_to_markdown_to_csv(self) -> None:
+    def test1(self) -> None:
         """
         Test CSV -> Markdown -> CSV roundtrip.
         """
-        csv_input = ["Name,Age,City", "Alice,30,NYC", "Bob,25,LA"]
+        # Prepare inputs.
+        csv_text = """
+        Name,Age,City
+        Alice,30,NYC
+        Bob,25,LA
+        """
+        csv_input = hprint.dedent(csv_text).strip().split('\n')
+        # Prepare outputs.
+        expected_text = csv_text
+        expected = hprint.dedent(expected_text).strip()
+        # Run test.
         header, rows = dsconttbl._parse_delimited(csv_input, ",")
         md_output = dsconttbl._format_as_md(header, rows)
         md_lines = md_output.split("\n")
         header2, rows2 = dsconttbl._parse_md_table(md_lines)
         csv_output = dsconttbl._format_as_delimited(header2, rows2, ",")
-        expected = "Name,Age,City\nAlice,30,NYC\nBob,25,LA"
-        assert csv_output == expected
+        # Check outputs.
+        self.assertEqual(csv_output, expected)
 
-    def test_markdown_to_csv_to_markdown(self) -> None:
+    def test2(self) -> None:
         """
         Test Markdown -> CSV -> Markdown roundtrip.
         """
-        md_input = [
-            "| Product | Price |",
-            "|---------|-------|",
-            "| Apple | 1.50 |",
-        ]
+        # Prepare inputs.
+        md_text = """
+        | Product | Price |
+        |---------|-------|
+        | Apple | 1.50 |
+        """
+        md_input = hprint.dedent(md_text).strip().split('\n')
+        # Run test.
         header, rows = dsconttbl._parse_md_table(md_input)
         csv_output = dsconttbl._format_as_delimited(header, rows, ",")
         csv_lines = csv_output.split("\n")
         header2, rows2 = dsconttbl._parse_delimited(csv_lines, ",")
         md_output = dsconttbl._format_as_md(header2, rows2)
-        assert "Product" in md_output
-        assert "Price" in md_output
-        assert "Apple" in md_output
+        # Check outputs.
+        self.assertIn("Product", md_output)
+        self.assertIn("Price", md_output)
+        self.assertIn("Apple", md_output)
 
 
 class Test_convert_table_edge_cases(hunitest.TestCase):
@@ -162,52 +262,94 @@ class Test_convert_table_edge_cases(hunitest.TestCase):
     Test edge cases and special characters.
     """
 
-    def test_parse_md_table_with_empty_cells(self) -> None:
+    def helper_detect_mode(self, filename: str, expected_mode: str) -> None:
+        """
+        Test helper for _detect_mode.
+
+        :param filename: Input filename
+        :param expected_mode: Expected detected mode
+        """
+        # Run test.
+        mode = dsconttbl._detect_mode(filename)
+        # Check outputs.
+        self.assertEqual(mode, expected_mode)
+
+    def test1(self) -> None:
         """
         Test parsing markdown table with empty cells.
         """
-        lines = [
-            "| Name | Note |",
-            "|------|------|",
-            "| Alice |  |",
-            "| Bob | Good |",
+        # Prepare inputs.
+        lines_text = """
+        | Name | Note |
+        |------|------|
+        | Alice |  |
+        | Bob | Good |
+        """
+        lines = hprint.dedent(lines_text).strip().split('\n')
+        # Prepare outputs.
+        expected_header = ["Name", "Note"]
+        expected_rows = [
+            ["Alice", ""],
+            ["Bob", "Good"],
         ]
+        # Run test.
         header, rows = dsconttbl._parse_md_table(lines)
-        assert header == ["Name", "Note"]
-        assert rows[0] == ["Alice", ""]
-        assert rows[1] == ["Bob", "Good"]
+        # Check outputs.
+        self.assertEqual(header, expected_header)
+        self.assertEqual(rows, expected_rows)
 
-    def test_parse_csv_with_quotes(self) -> None:
+    def test2(self) -> None:
         """
         Test parsing CSV with quoted fields.
         """
-        lines = [
-            'Name,City,Note',
-            'Alice,New York,"Has spaces"',
-            'Bob,Los Angeles,"A, with comma"',
+        # Prepare inputs.
+        csv_text = """
+        Name,City,Note
+        Alice,New York,"Has spaces"
+        Bob,Los Angeles,"A, with comma"
+        """
+        lines = hprint.dedent(csv_text).strip().split('\n')
+        # Prepare outputs.
+        expected_header = ["Name", "City", "Note"]
+        expected_rows = [
+            ["Alice", "New York", "Has spaces"],
+            ["Bob", "Los Angeles", "A, with comma"],
         ]
+        # Run test.
         header, rows = dsconttbl._parse_delimited(lines, ",")
-        assert header == ["Name", "City", "Note"]
-        assert rows[0] == ["Alice", "New York", "Has spaces"]
-        assert rows[1] == ["Bob", "Los Angeles", "A, with comma"]
+        # Check outputs.
+        self.assertEqual(header, expected_header)
+        self.assertEqual(rows, expected_rows)
 
-    def test_detect_mode_csv(self) -> None:
+    def test3(self) -> None:
         """
         Test format detection for CSV files.
         """
-        mode = dsconttbl._detect_mode("table.csv")
-        assert mode == "csv"
+        # Prepare inputs.
+        filename = "table.csv"
+        # Prepare outputs.
+        expected_mode = "csv"
+        # Run test.
+        self.helper_detect_mode(filename, expected_mode)
 
-    def test_detect_mode_tsv(self) -> None:
+    def test4(self) -> None:
         """
         Test format detection for TSV files.
         """
-        mode = dsconttbl._detect_mode("table.tsv")
-        assert mode == "tsv"
+        # Prepare inputs.
+        filename = "table.tsv"
+        # Prepare outputs.
+        expected_mode = "tsv"
+        # Run test.
+        self.helper_detect_mode(filename, expected_mode)
 
-    def test_detect_mode_md(self) -> None:
+    def test5(self) -> None:
         """
         Test format detection for Markdown files.
         """
-        mode = dsconttbl._detect_mode("table.md")
-        assert mode == "md"
+        # Prepare inputs.
+        filename = "table.md"
+        # Prepare outputs.
+        expected_mode = "md"
+        # Run test.
+        self.helper_detect_mode(filename, expected_mode)

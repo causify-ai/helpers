@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
+# /// script
+# dependencies = ["pandas"]
+# ///
 """
 Convert markdown tables, CSV, and TSV formats.
 
@@ -6,16 +9,16 @@ Supports file I/O and stdin/stdout with mode specification.
 
 Example:
 # CSV to markdown
-> python convert_table.py -i table.csv -o table.md
+> convert_table.py -i table.csv -o table.md
 
 # TSV to CSV
-> python convert_table.py -i table.tsv -o table.csv
+> convert_table.py -i table.tsv -o table.csv
 
 # stdin to stdout with mode flags
-> python convert_table.py -i - -o - --input_mode md --output_mode csv
+> convert_table.py -i - -o - --input_mode md --output_mode csv
 
 # Copy to clipboard
-> python convert_table.py -i table.csv --output_mode md --pbcopy
+> convert_table.py -i table.csv --output_mode md --pbcopy
 
 Import as:
 
@@ -26,6 +29,8 @@ import argparse
 import csv
 import io
 from typing import List, Tuple
+
+import pandas as pd
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -48,15 +53,11 @@ def _detect_mode(file_name: str) -> str:
     return res
 
 
-# TODO(ai_gp): Can we use pandas to parse a markdown file?
-# df = pd.read_csv(StringIO(md), sep="|", engine="python")
-# df = df.dropna(axis=1, how='all')  # remove empty columns
-# df.columns = df.columns.str.strip()
 def _parse_md_table(
     lines: List[str],
 ) -> Tuple[List[str], List[List[str]]]:
     """
-    Parse markdown table from lines.
+    Parse markdown table from lines using pandas.
 
     Expected format:
       | header1 | header2 |
@@ -67,45 +68,30 @@ def _parse_md_table(
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_lt(0, len(lines), "Input table is empty")
+    # Convert the markdown table into a CSV.
     start_idx = 0
-    found_header = False
+    sep_idx = None
     for i, line in enumerate(lines):
         if "|" in line and line.strip():
             start_idx = i
-            found_header = True
             break
-    hdbg.dassert(found_header, "No markdown table found in input")
-    # Parse header row.
-    header_line = lines[start_idx].strip()
-    header = [cell.strip() for cell in header_line.split("|")]
-    header = [cell for cell in header if cell]
-    # Skip separator row.
+    hdbg.dassert_lte(0, start_idx, "No markdown table found in input")
+    hdbg.dassert_lt(start_idx + 1, len(lines), "Markdown table has no separator row")
+    sep_line = lines[start_idx + 1].strip()
+    hdbg.dassert_in("|", sep_line, "Expected separator row")
+    hdbg.dassert_in("-", sep_line, "Expected separator row")
     sep_idx = start_idx + 1
-    hdbg.dassert_lt(
-        sep_idx, len(lines), "Markdown table has no separator row"
+    filtered_lines = [lines[start_idx]] + lines[sep_idx + 1:]
+    txt = "\n".join(filtered_lines)
+    # Parse.
+    df = pd.read_csv(
+        io.StringIO(txt), sep="|", engine="python", skipinitialspace=True
     )
-    sep_line = lines[sep_idx].strip()
-    hdbg.dassert_in(
-        "|", sep_line,
-        "Expected separator row at index %s, got '%s'",
-        sep_idx,
-        sep_line,
-    )
-    hdbg.dassert_in(
-        "-", sep_line,
-        "Expected separator row at index %s, got '%s'",
-        sep_idx,
-        sep_line,
-    )
-    # Parse data rows.
-    rows = []
-    for i in range(sep_idx + 1, len(lines)):
-        line = lines[i].strip()
-        if not line or "|" not in line:
-            break
-        cells = [cell.strip() for cell in line.split("|")[1:-1]]
-        if cells:
-            rows.append(cells)
+    df = df.dropna(axis=1, how="all")
+    df.columns = df.columns.str.strip()
+    header = list(df.columns)
+    df = df.fillna("").astype(str).applymap(str.strip)
+    rows = df.values.tolist()
     return header, rows
 
 
@@ -135,41 +121,25 @@ def _parse_delimited(
     return header, data_rows
 
 
-# TODO(ai_gp): Use print(df.to_markdown(index=False))
+# #############################################################################
+
+
 def _format_as_md(
     header: List[str], rows: List[List[str]]
 ) -> str:
     """
-    Format table as markdown.
+    Format table as markdown using pandas.
 
     :return: markdown table as string
     """
     hdbg.dassert_isinstance(header, list)
     hdbg.dassert_isinstance(rows, list)
     hdbg.dassert_lt(0, len(header), "Header is empty")
-    # Compute column widths.
-    widths = [len(h) for h in header]
-    for row in rows:
-        for i, cell in enumerate(row):
-            if i < len(widths):
-                widths[i] = max(widths[i], len(cell))
-    # Format header row.
-    header_cells = [h.ljust(w) for h, w in zip(header, widths)]
-    header_row = "| " + " | ".join(header_cells) + " |"
-    # Format separator row.
-    sep_cells = ["-" * w for w in widths]
-    sep_row = "| " + " | ".join(sep_cells) + " |"
-    # Format data rows.
-    data_rows = []
-    for row in rows:
-        cells = [
-            cell.ljust(widths[i]) if i < len(widths) else cell
-            for i, cell in enumerate(row)
-        ]
-        data_rows.append("| " + " | ".join(cells) + " |")
-    # Combine all rows.
-    all_rows = [header_row, sep_row] + data_rows
-    return "\n".join(all_rows)
+    df = pd.DataFrame(rows, columns=list(header))
+    result = df.to_markdown(index=False)
+    if result is None:
+        raise ValueError("Failed to format as markdown")
+    return result
 
 
 def _format_as_delimited(
