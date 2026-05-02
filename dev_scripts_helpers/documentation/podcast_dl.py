@@ -10,7 +10,7 @@ Download and format podcast transcripts from various sources.
 Supports three actions:
 - download: fetch transcript from a podcast site
 - format: convert raw transcript to formatted markdown
-- download-and-format: download and format in one step (auto-derives URL)
+- all: download and format in one step (auto-derives URL)
 
 Examples:
 # Download a Lex Fridman episode
@@ -20,11 +20,19 @@ Examples:
 > ./podcast_dl.py --action format --transcript podcast.txt --url https://example.com --output podcast.md
 
 # Download and format in one step
-> ./podcast_dl.py --action download-and-format --type dwarkesh --title andrej-karpathy --output_dir ./transcripts
+> ./podcast_dl.py --action all --type dwarkesh --title andrej-karpathy --output_dir ./transcripts
 """
 
-# TODO(ai_gp): Add a short description of the architecture of this
-# script
+# Architecture:
+# - `PodcastDownloader`: Abstract base class defining interface for downloading
+#   transcripts from different podcast sources
+#   - Concrete implementations (`LexFriedmanDownloader`, `DwarkeshDownloader`,
+#     etc.) extract transcript and metadata from site-specific HTML.
+# - `TranscriptParser`: Extracts structured content (title, chapters, dialogue)
+#   from raw transcript text using regex patterns.
+# - `MarkdownFormatter`: Converts parsed transcript data into formatted markdown
+#   with chapter sections and speaker abbreviations.
+# - `Factory`: Creates appropriate downloader instance based on podcast type.
 
 import argparse
 import logging
@@ -53,6 +61,9 @@ _VALID_TYPES = [
     "podscripts_co",
 ]
 
+_VALID_ACTIONS = ["download", "format", "all"]
+_DEFAULT_ACTIONS = ["all"]
+
 
 # #############################################################################
 # Base Downloader Class
@@ -69,6 +80,7 @@ class PodcastDownloader(ABC):
         Initialize the downloader with a podcast slug.
 
         :param slug: the podcast identifier/slug
+        :raises AssertionError: if slug is empty
         """
         hdbg.dassert_ne(slug, "", "Slug cannot be empty")
         self._slug = slug
@@ -140,18 +152,21 @@ class PodcastDownloader(ABC):
         """
         Create normalized output filename: YYYY-MM-DD_podcast-title_guest.txt.
 
+        Extracts a parseable date and slugifies podcast/guest names to create
+        consistent, filesystem-friendly filenames.
+
         :param date: the episode date (will be parsed for YYYY-MM-DD format)
         :param podcast_title: the podcast name
         :param guest_name: optional guest name
-        :return: normalized filename
+        :return: normalized filename (e.g., "2024-05-15_lex-fridman_andrej-karpathy.txt")
         """
-        # Extract YYYY-MM-DD format from date string.
+        # Extract YYYY-MM-DD format from date string; fall back if not found.
         date_match = re.search(r"\d{4}-\d{2}-\d{2}", date)
         if date_match:
             date_str = date_match.group()
         else:
             date_str = "unknown-date"
-        # Normalize podcast title to lowercase with hyphens.
+        # Normalize podcast title and guest name to lowercase slug format.
         podcast_normalized = self._slugify(podcast_title)
         if guest_name:
             guest_normalized = self._slugify(guest_name)
@@ -167,15 +182,18 @@ class PodcastDownloader(ABC):
         """
         Convert text to lowercase slug format (spaces to hyphens).
 
+        Creates filesystem-safe strings by lowercasing, converting whitespace
+        to hyphens, removing special characters, and cleaning up duplicates.
+
         :param text: the text to slugify
-        :return: slugified text
+        :return: slugified text (e.g., "Andrej Karpathy" -> "andrej-karpathy")
         """
-        # Convert to lowercase and replace spaces with hyphens.
+        # Convert to lowercase and normalize whitespace to single hyphens.
         text = text.lower()
         text = re.sub(r"\s+", "-", text)
-        # Remove non-alphanumeric chars except hyphens.
+        # Remove non-alphanumeric characters except hyphens.
         text = re.sub(r"[^a-z0-9-]", "", text)
-        # Remove consecutive hyphens.
+        # Collapse consecutive hyphens and strip leading/trailing hyphens.
         text = re.sub(r"-+", "-", text)
         text = text.strip("-")
         return text
@@ -247,7 +265,7 @@ class LexFriedmanDownloader(PodcastDownloader):
             date = str(date_tag.get("content", "unknown"))
         else:
             date = "unknown"
-        # Extract guest name from title (usually "Guest Name - Lex Fridman #...")
+        # Extract guest name from title (usually "Guest Name - Lex Fridman #...").
         guest_name = None
         if " - Lex" in title:
             guest_name = title.split(" - Lex")[0].strip()
@@ -553,9 +571,14 @@ class TranscriptParser:
         """
         Extract episode title from transcript.
 
+        Tries multiple strategies: pattern matching for common formats, then
+        falls back to the first non-empty, non-metadata line. Returns a generic
+        default if no title is found.
+
         :return: episode title
         """
         full_text = " ".join(self.lines)
+        # Try multiple regex patterns that commonly appear in transcripts.
         patterns = [
             r'"([^"]+)".*?explains',
             r"[—-]\s*([^\"]+?)\s*\"",
@@ -567,6 +590,7 @@ class TranscriptParser:
                 title = match.group(1).strip()
                 if len(title) > 3:
                     return title
+        # Fall back to the first non-metadata line in the transcript.
         for line in self.lines:
             line = line.strip()
             if line and not line.startswith(("The timestamps", "Playback", "×")):
@@ -575,12 +599,16 @@ class TranscriptParser:
 
     def extract_chapters(self) -> List[Chapter]:
         """
-        Extract chapters from transcript TOC.
+        Extract chapters from transcript table of contents.
 
-        :return: list of Chapter objects
+        Searches for a Table of Contents or Timestamps section, then parses
+        timestamps and chapter titles using the _CHAPTER_PATTERN regex.
+
+        :return: list of Chapter objects (empty list if no TOC found)
         """
         chapters = []
         full_text = " ".join(self.lines)
+        # Find the TOC/Timestamps section bounded by common headers.
         toc_match = re.search(
             r"(?:Table of Contents|Timestamps)(.*?)(?:Episode|Transcript|$)",
             full_text,
@@ -590,6 +618,7 @@ class TranscriptParser:
             toc_text = toc_match.group(1)
         else:
             toc_text = ""
+        # Parse chapter entries from the TOC using the chapter pattern.
         for match in re.finditer(_CHAPTER_PATTERN, toc_text):
             hours = match.group(1)
             minutes = match.group(2)
@@ -602,10 +631,15 @@ class TranscriptParser:
         """
         Extract all dialogue lines from transcript.
 
-        :return: list of DialogueLine objects, sorted by timestamp
+        Tries the line-separated format first, then falls back to concatenated
+        format if needed. Results are sorted by timestamp for proper playback order.
+
+        :return: list of DialogueLine objects, sorted by timestamp (seconds)
         """
         dialogue_lines = []
+        # Try parsing line-separated format (Speaker(HH:MM:SS)text).
         dialogue_lines.extend(self._extract_dialogue_line_format())
+        # Fall back to concatenated format if no lines were found.
         if not dialogue_lines:
             dialogue_lines.extend(self._extract_dialogue_concat_format())
         dialogue_lines.sort(key=lambda d: d.seconds)
@@ -614,6 +648,9 @@ class TranscriptParser:
     def _extract_dialogue_line_format(self) -> List[DialogueLine]:
         """
         Extract dialogue from line-separated format: Speaker(HH:MM:SS)text.
+
+        Matches lines with a speaker name, timestamp in parentheses, and dialogue
+        text. Validates that speakers have exactly two capitalized name parts.
 
         :return: list of DialogueLine objects
         """
@@ -631,6 +668,7 @@ class TranscriptParser:
                 timestamp = f"{hours}:{minutes}:{seconds}"
                 text_start = match.end()
                 text = line[text_start:].strip()
+                # Validate speaker name: exactly 2 words, each capitalized.
                 speaker_words = speaker.split()
                 if (
                     text
@@ -650,13 +688,18 @@ class TranscriptParser:
         """
         Extract dialogue from concatenated format: SpeakerHH:MM:SStext.
 
+        Matches speaker-timestamp pairs and extracts text between consecutive
+        matches. Used as a fallback when line-separated format is not found.
+
         :return: list of DialogueLine objects
         """
         dialogue_lines = []
         full_text = " ".join(self.lines)
+        # Find all speaker-timestamp matches in the concatenated text.
         matches = list(
             re.finditer(_SPEAKER_TIMESTAMP_ALT_PATTERN, full_text)
         )
+        # Extract dialogue text between each speaker marker and the next.
         for i, match in enumerate(matches):
             speaker = match.group(1).strip()
             hours = match.group(2)
@@ -702,17 +745,23 @@ class MarkdownFormatter:
         """
         Format transcript data into markdown.
 
+        Creates a markdown document with title, source URL, chapter headers
+        (inserted where dialogue timestamps align), and abbreviated speaker
+        dialogue lines.
+
         :param title: episode title
         :param url: original URL
-        :param chapters: list of chapters
-        :param dialogue: list of dialogue lines
+        :param chapters: list of chapters (sorted by timestamp)
+        :param dialogue: list of dialogue lines (sorted by timestamp)
         :return: formatted markdown string
         """
+        # Build speaker abbreviation map first.
         for line in dialogue:
             self._add_speaker(line.speaker)
         output = []
         output.append(f"# {title}\n")
         output.append(f"// Link: {url}\n")
+        # Insert chapter headers at appropriate dialogue positions.
         chapter_idx = 0
         for dialogue_line in dialogue:
             if chapter_idx < len(chapters):
@@ -779,37 +828,28 @@ def _get_downloader(
 
 
 def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command-line arguments.
+
+    :return: configured ArgumentParser with all action-specific options
+    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    ## TODO(ai_gp): Use Action Idiom
-- When using `--action`
-
-  ```python
-  actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-  hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-  ```
-
-    parser.add_argument(
-        "--action",
-        action="store",
-        required=True,
-        choices=["download", "format", "download-and-format"],
-        help="Action to perform: download, format, or download-and-format",
-    )
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
         "--type",
         action="store",
         default=None,
         choices=_VALID_TYPES,
-        help="The podcast source type (required for download/download-and-format)",
+        help="The podcast source type (required for download/all)",
     )
     parser.add_argument(
         "--title",
         action="store",
         default=None,
-        help="The podcast slug/identifier (required for download/download-and-format)",
+        help="The podcast slug/identifier (required for download/all)",
     )
     parser.add_argument(
         "--transcript",
@@ -821,13 +861,13 @@ def _parse() -> argparse.ArgumentParser:
         "--url",
         action="store",
         default=None,
-        help="Original podcast URL (required for format, auto-derived for download-and-format)",
+        help="Original podcast URL (required for format, auto-derived for all)",
     )
     parser.add_argument(
         "--output",
         action="store",
         default=None,
-        help="Output markdown file path (required for format/download-and-format)",
+        help="Output markdown file path (required for format/all)",
     )
     parser.add_argument(
         "--output_dir",
@@ -846,34 +886,56 @@ def _parse() -> argparse.ArgumentParser:
 
 def _run_download(args: argparse.Namespace) -> None:
     """
-    Download transcript action.
+    Download transcript from a podcast source and save to disk.
+
+    :param args: parsed command-line arguments with type, title, output_dir
+    :raises AssertionError: if required args (type, title) are missing
     """
-    # TODO(ai_gp): Use dassert_is_not everywhere
-    hdbg.dassert_ne(args.type, None, "--type required for download action")
-    hdbg.dassert_ne(args.title, None, "--title required for download action")
+    hdbg.dassert_is_not(
+        args.type,
+        None,
+        "--type is required for download action",
+    )
+    hdbg.dassert_is_not(
+        args.title,
+        None,
+        "--title is required for download action",
+    )
     hio.create_dir(args.output_dir, incremental=True)
     downloader = _get_downloader(args.type, slug=args.title)
     _LOG.info("Downloading transcript from: %s", args.type)
     transcript, output_filename = downloader.download()
     output_path = f"{args.output_dir}/{output_filename}"
     _LOG.info("Writing transcript to: %s", output_path)
-    with open(output_path, "w") as f:
-        f.write(transcript)
+    hio.to_file(output_path, transcript)
     _LOG.info("Transcript saved successfully")
 
 
 def _run_format(args: argparse.Namespace) -> None:
     """
-    Format transcript action.
+    Parse a raw transcript and format it as markdown with chapters and speakers.
+
+    :param args: parsed command-line arguments with transcript, url, output
+    :raises AssertionError: if required args (transcript, url, output) are missing
     """
-    hdbg.dassert_ne(args.transcript, None, "--transcript required for format action")
-    hdbg.dassert_ne(args.url, None, "--url required for format action")
-    hdbg.dassert_ne(args.output, None, "--output required for format action")
+    hdbg.dassert_is_not(
+        args.transcript,
+        None,
+        "--transcript is required for format action",
+    )
+    hdbg.dassert_is_not(
+        args.url,
+        None,
+        "--url is required for format action",
+    )
+    hdbg.dassert_is_not(
+        args.output,
+        None,
+        "--output is required for format action",
+    )
     _LOG.info("Reading transcript from: %s", args.transcript)
     hdbg.dassert_file_exists(args.transcript)
-    # TODO(ai_gp): Use hio.from_file everywehre
-    with open(args.transcript, "r") as f:
-        transcript_text = f.read()
+    transcript_text = hio.from_file(args.transcript)
     _LOG.info("Parsing transcript")
     parser_obj = TranscriptParser(transcript_text=transcript_text)
     title = parser_obj.extract_title()
@@ -888,8 +950,7 @@ def _run_format(args: argparse.Namespace) -> None:
         title=title, url=args.url, chapters=chapters, dialogue=dialogue
     )
     _LOG.info("Writing markdown to: %s", args.output)
-    with open(args.output, "w") as f:
-        f.write(markdown)
+    hio.to_file(args.output, markdown)
     _LOG.info("Markdown file created successfully")
     if args.run_lint:
         _LOG.info("Running lint_txt.py on output")
@@ -900,11 +961,29 @@ def _run_format(args: argparse.Namespace) -> None:
 
 def _run_download_and_format(args: argparse.Namespace) -> None:
     """
-    Download and format transcript action.
+    Download a podcast transcript and immediately format it as markdown.
+
+    Combines download and format actions in a single operation, deriving the URL
+    from the downloader instance. Saves both raw and formatted files to disk.
+
+    :param args: parsed command-line arguments with type, title, output, output_dir
+    :raises AssertionError: if required args (type, title, output) are missing
     """
-    hdbg.dassert_ne(args.type, None, "--type required for download-and-format action")
-    hdbg.dassert_ne(args.title, None, "--title required for download-and-format action")
-    hdbg.dassert_ne(args.output, None, "--output required for download-and-format action")
+    hdbg.dassert_is_not(
+        args.type,
+        None,
+        "--type is required for all action",
+    )
+    hdbg.dassert_is_not(
+        args.title,
+        None,
+        "--title is required for all action",
+    )
+    hdbg.dassert_is_not(
+        args.output,
+        None,
+        "--output is required for all action",
+    )
     hio.create_dir(args.output_dir, incremental=True)
     downloader = _get_downloader(args.type, slug=args.title)
     _LOG.info("Downloading transcript from: %s", args.type)
@@ -912,8 +991,7 @@ def _run_download_and_format(args: argparse.Namespace) -> None:
     url = downloader._get_url()
     raw_path = f"{args.output_dir}/{output_filename}"
     _LOG.info("Writing raw transcript to: %s", raw_path)
-    with open(raw_path, "w") as f:
-        f.write(transcript)
+    hio.to_file(raw_path, transcript)
     _LOG.info("Parsing transcript")
     parser_obj = TranscriptParser(transcript_text=transcript)
     title = parser_obj.extract_title()
@@ -928,9 +1006,7 @@ def _run_download_and_format(args: argparse.Namespace) -> None:
         title=title, url=url, chapters=chapters, dialogue=dialogue
     )
     _LOG.info("Writing markdown to: %s", args.output)
-    # TODOai_gp): to_file
-    with open(args.output, "w") as f:
-        f.write(markdown)
+    hio.to_file(args.output, markdown)
     _LOG.info("Markdown file created successfully")
     if args.run_lint:
         _LOG.info("Running lint_txt.py on output")
@@ -940,14 +1016,28 @@ def _run_download_and_format(args: argparse.Namespace) -> None:
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Main entry point: parse arguments, select actions, and execute.
+
+    :param parser: the configured ArgumentParser instance
+    """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    if args.action == "download":
-        _run_download(args)
-    elif args.action == "format":
-        _run_format(args)
-    elif args.action == "download-and-format":
-        _run_download_and_format(args)
+    # Select which action(s) to run; defaults to 'all' if none specified.
+    actions = hparser.select_actions(
+        args, _VALID_ACTIONS, _DEFAULT_ACTIONS
+    )
+    _LOG.info(
+        hparser.actions_to_string(actions, _VALID_ACTIONS, add_frame=True)
+    )
+    # Execute each selected action in sequence.
+    for action in actions:
+        if action == "download":
+            _run_download(args)
+        elif action == "format":
+            _run_format(args)
+        elif action == "all":
+            _run_download_and_format(args)
 
 
 if __name__ == "__main__":

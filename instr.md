@@ -1,21 +1,14 @@
 # Write code
 
-- Write a Python script podcast_dl.py (in the best dir) to download the
-  transcript from different websites
-- 
-  --type lexfriedman --title 
-  -> https://lexfridman.com/lars-brownworth-transcript
+- In podcast_dl.py for --action use hparser.py code based on
 
-- --type dwarkesh
-  https://www.dwarkesh.com/p/andrej-karpathy
+def add_action_arg(
+def actions_to_string(
+def select_actions(
+def mark_action(
 
-- --type podcasttranscript.ai
-  - https://podcasttranscript.ai/library/andrej-karpathy-s-vision-of-software-1-0-2-0-3-0
+Make ./dev_scripts_helpers/documentation/podcast_dl_example.sh compatible with the new podcast_dl.py
 
-- --type podscripts.co
-  https://podscripts.co/podcasts/no-priors-artificial-intelligence-technology-startups/andrej-karpathy-on-code-agents-autoresearch-and-the-loopy-era-of-ai
-
-The goal is to generate a file with the transcript --output file.txt
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
