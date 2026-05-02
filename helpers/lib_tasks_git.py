@@ -265,7 +265,7 @@ def git_patch_create(  # type: ignore
     in `_get_files_to_process()`.
 
     :param mode: what kind of patch to create
-        - "diff": (default) creates a patch with the diff of the files
+        - "diff": creates a patch with the diff of the files
         - "tar": creates a tar ball with all the files
     """
     hlitauti.report_task(
@@ -426,9 +426,9 @@ def git_files(  # type: ignore
 
     :param file_types: comma-separated list of file extensions to include
         - E.g., "py,ipynb,md"
-    :param only_print_files: only print files without logging headers/footers (default: False)
-    :param test_files: report test files corresponding to source files (default: False)
-    :param test_dir: report minimal set of directories containing the files (default: False)
+    :param only_print_files: only print files without logging headers/footers
+    :param test_files: report test files corresponding to source files
+    :param test_dir: report minimal set of directories containing the files
     """
     if not only_print_files:
         hlitauti.report_task()
@@ -574,7 +574,7 @@ def git_branch_create(  # type: ignore
         issue
     :param repo_short_name: name of the GitHub repo_short_name that the `issue_id`
         belongs to
-        - "current" (default): the current repo_short_name
+        - "current": the current repo_short_name
         - short name (e.g., "amp", "lm") of the branch
     :param suffix: suffix (e.g., "02") to add to the branch name when using issue_id
     :param only_branch_from_master: only allow to branch from master
@@ -777,7 +777,7 @@ def git_branch_next_name(ctx, branch_name=None, method="auto"):  # type: ignore
 
     :param branch_name: if `None` use the current branch name, otherwise specify it
     :param method: method to use ('auto', 'github_api', 'linear_scan')
-        - 'auto' (default): tries GitHub API first, falls back to linear scan
+        - 'auto': tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
 
@@ -1349,14 +1349,13 @@ def git_backup(
     repository and optionally its submodules.
 
     The zip file is created with a timestamp-based name in the specified
-    backup directory (default: $HOME/src/backups).
+    backup directory.
     Example: `modified_files.helpers_root.20251119_130034.zip`
 
-    :param file_mode: which files to include: "all" (default), "modified", or
+    :param file_mode: which files to include: "all", "modified", or
         "untracked"
-    :param backup_dir: directory where to save the zip file (default:
-        $HOME/src/backups)
-    :param include_subrepos: whether to include submodule files (default: True)
+    :param backup_dir: directory where to save the zip file
+    :param include_subrepos: whether to include submodule files
     :param dry_run: if True, only print the files that would be included
         without creating the zip
     """
