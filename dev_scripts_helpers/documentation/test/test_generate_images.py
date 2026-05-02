@@ -1,17 +1,10 @@
-import base64
-import logging
-import os
-
 import pytest
 
 pytest.importorskip("openai")
 
-import dev_scripts_helpers.generate_images as dscgenima
-import helpers.hio as hio
+import dev_scripts_helpers.documentation.generate_images as dscgenima
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
