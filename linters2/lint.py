@@ -171,19 +171,27 @@ def _run_coverage(
     Run pytest coverage for test files corresponding to source Python files.
 
     Maps each source file to its corresponding test file and runs:
+    ```
     > pytest --cov=. --cov-branch --cov-report term-missing --cov-report html
+    ```
+
+    Then generates a coverage report filtered to the modified source files:
+    ```
+    > coverage report --include='file1.py,file2.py,...'
+    ```
 
     :param file_paths: Source Python files to collect coverage for
     :param abort_on_error: whether to abort on first error
-    :return: return code from pytest
+    :return: return code from pytest and coverage report
     """
     if not file_paths:
         return 0
+    # Find the source files.
     source_files = [f for f in file_paths if not hunteuti.is_test_file(f)]
     if not source_files:
         _LOG.warning("No source files found (all files are test files)")
         return 0
-    _LOG.info("Collecting coverage for %d Python files", len(source_files))
+    # Find the test files corresponding to the source files.
     test_files = hunteuti.get_test_files_for_sources(source_files)
     for source_file in source_files:
         test_file = hunteuti.get_test_file_for_source(source_file)
@@ -194,6 +202,8 @@ def _run_coverage(
     if not test_files:
         _LOG.warning("No test files found for any of the source files")
         return 0
+    # Collect the coverage from the test files.
+    _LOG.info("Collecting coverage for %d Python files", len(source_files))
     test_files_str = " ".join(test_files)
     cmd = f"pytest --cov=. --cov-branch --cov-report term-missing --cov-report html {test_files_str}"
     ret = hsystem.system(
@@ -202,6 +212,18 @@ def _run_coverage(
         abort_on_error=abort_on_error,
         suppress_output=False,
     )
+    # Generate coverage report filtered to modified source files.
+    if ret == 0 or not abort_on_error:
+        print(hprint.frame("Coverage report for modified files", char1="-"))
+        source_files_str = ",".join(source_files)
+        coverage_cmd = f"coverage report --include='{source_files_str}'"
+        _LOG.debug("> %s", coverage_cmd)
+        ret |= hsystem.system(
+            coverage_cmd,
+            print_command=False,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
     return ret
 
 
