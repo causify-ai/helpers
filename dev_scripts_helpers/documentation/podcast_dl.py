@@ -40,8 +40,9 @@ Examples:
 
 # https://lexfridman.com/lars-brownworth-transcript
 # https://www.dwarkesh.com/p/andrej-karpathy
+# https://podscripts.co/podcasts/no-priors-artificial-intelligence-technology-startups/andrej-karpathy-on-code-agents-autoresearch-and-the-loopy-era-of-ai
+
 # https://podcasttranscript.ai/library/andrej-karpathy-s-vision-of-software
-# https://podscripts.co/podcasts/andrej-karpathy-on-code-agents-autoresearch-and-the-loopy-era-of-ai
 
 import argparse
 import logging
@@ -314,7 +315,7 @@ class DwarkeshDownloader(PodcastDownloader):
             hdbg.dfatal("Could not find transcript content in HTML")
         # Extract text, handling blockquotes and paragraphs.
         lines = []
-        for elem in content.find_all(["p", "blockquote", "div"]):
+        for elem in content.find_all(["p", "blockquote"]):
             text = elem.get_text(strip=True)
             if text and len(text) > 10:
                 lines.append(text)
@@ -434,21 +435,27 @@ class PodscriptsDownloader(PodcastDownloader):
         :return: transcript text
         """
         soup = BeautifulSoup(html, "html.parser")
-        # Find main transcript content.
+        # Find transcript container.
         content: Any = soup.find("div", class_=re.compile(
-            r"transcript|script|content", re.I
+            r"transcript", re.I
         ))
         if not content:
             content = soup.find("main")
         if not content:
             hdbg.dfatal("Could not find transcript content in HTML")
-        # Extract transcript lines.
+        # Extract from single-sentence divs (podscripts.co format).
         lines = []
-        for elem in content.find_all(["p", "div"]):
+        for elem in content.find_all("div", class_="single-sentence"):
             text = elem.get_text(strip=True)
             if text:
                 lines.append(text)
-        transcript = "\n\n".join(lines)
+        # If no single-sentence divs, fall back to paragraphs/divs.
+        if not lines:
+            for elem in content.find_all(["p", "div"]):
+                text = elem.get_text(strip=True)
+                if text and len(text) > 10:
+                    lines.append(text)
+        transcript = "\n".join(lines)
         return transcript
 
     def _extract_metadata(
@@ -670,6 +677,9 @@ class TranscriptParser:
         # Fall back to concatenated format if no lines were found.
         if not dialogue_lines:
             dialogue_lines.extend(self._extract_dialogue_concat_format())
+        # Fall back to podscripts format (Starting point is HH:MM:SS text).
+        if not dialogue_lines:
+            dialogue_lines.extend(self._extract_dialogue_podscripts_format())
         # Sort dialogue lines by timestamp with progress tracking.
         dialogue_lines = list(
             tqdm(
@@ -766,6 +776,49 @@ class TranscriptParser:
                 )
         return dialogue_lines
 
+    def _extract_dialogue_podscripts_format(self) -> List[DialogueLine]:
+        """
+        Extract dialogue from podscripts.co format: Starting point is HH:MM:SS text.
+
+        This format doesn't include speaker labels, so speakers are alternated
+        as Speaker1, Speaker2, etc. based on chronological order.
+
+        :return: list of DialogueLine objects
+        """
+        dialogue_lines = []
+        full_text = " ".join(self.lines)
+        # Match "Starting point is HH:MM:SS" followed by text.
+        pattern = r"Starting point is (\d{2}):(\d{2}):(\d{2})(.+?)(?=Starting point is|$)"
+        matches = list(
+            tqdm(
+                re.finditer(pattern, full_text, re.DOTALL),
+                desc="Extracting podscripts dialogue",
+                unit="match",
+            )
+        )
+        # Generate generic speakers (Speaker1, Speaker2) alternating.
+        speaker_names = ["Speaker1", "Speaker2"]
+        for i, match in enumerate(tqdm(
+            matches,
+            desc="Processing podscripts dialogue",
+            unit="match",
+        )):
+            hours = match.group(1)
+            minutes = match.group(2)
+            seconds = match.group(3)
+            timestamp = f"{hours}:{minutes}:{seconds}"
+            text = match.group(4).strip()
+            if text:
+                speaker = speaker_names[i % 2]
+                dialogue_lines.append(
+                    DialogueLine(
+                        speaker=speaker,
+                        timestamp=timestamp,
+                        text=text,
+                    )
+                )
+        return dialogue_lines
+
 
 class MarkdownFormatter:
     """
@@ -809,13 +862,16 @@ class MarkdownFormatter:
         # Insert chapter headers at appropriate dialogue positions.
         chapter_idx = 0
         for dialogue_line in dialogue:
-            if chapter_idx < len(chapters):
+            # Insert all chapters that should appear before this dialogue line.
+            while (
+                chapter_idx < len(chapters)
+                and dialogue_line.seconds >= chapters[chapter_idx].seconds
+            ):
                 chapter = chapters[chapter_idx]
-                if dialogue_line.seconds >= chapter.seconds:
-                    output.append(
-                        f"\n## {chapter.title} ({chapter.timestamp})\n"
-                    )
-                    chapter_idx += 1
+                output.append(
+                    f"\n## {chapter.title} ({chapter.timestamp})\n"
+                )
+                chapter_idx += 1
             abbrev = self.speaker_abbrevs[dialogue_line.speaker]
             output.append(f"- {abbrev}: {dialogue_line.text}\n")
         return "".join(output)
@@ -1014,12 +1070,15 @@ def _run_format(args: argparse.Namespace) -> None:
     _LOG.info("Parsing transcript")
     parser_obj = TranscriptParser(transcript_text=transcript_text)
     # Track overall parsing progress with a progress bar.
-    title = parser_obj.extract_title()
-    _LOG.debug("Extracted title: %s", title)
-    chapters = parser_obj.extract_chapters()
-    _LOG.info("Extracted %d chapters", len(chapters))
-    dialogue = parser_obj.extract_dialogue()
-    _LOG.info("Extracted %d dialogue lines", len(dialogue))
+    with tqdm(total=2, desc="Overall parsing", unit="step") as pbar:
+        chapters = parser_obj.extract_chapters()
+        _LOG.info("Extracted %d chapters", len(chapters))
+        pbar.update(1)
+        dialogue = parser_obj.extract_dialogue()
+        _LOG.info("Extracted %d dialogue lines", len(dialogue))
+        pbar.update(1)
+    # Use default title instead of parsing from transcript.
+    title = "Transcript"
     _LOG.info("Formatting as markdown")
     formatter = MarkdownFormatter()
     markdown = formatter.format(
