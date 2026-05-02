@@ -22,6 +22,7 @@ import helpers.hsystem as hsystem
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks_gh as hlitagh
 import helpers.lib_tasks_utils as hlitauti
 
@@ -408,6 +409,8 @@ def git_files(  # type: ignore
     file_types="",
     pbcopy=False,
     only_print_files=False,
+    test_files=False,
+    test_dir=False,
 ):
     """
     Report which files are changed in the current branch with respect to master.
@@ -418,10 +421,14 @@ def git_files(  # type: ignore
     > invoke git_files --modified
     > invoke git_files --branch --file_types "py,ipynb"
     > invoke git_files --last_commit --file_types "py"
+    > invoke git_files --modified --test_files
+    > invoke git_files --modified --test_dir
 
     :param file_types: comma-separated list of file extensions to include
         - E.g., "py,ipynb,md"
     :param only_print_files: only print files without logging headers/footers (default: False)
+    :param test_files: report test files corresponding to source files (default: False)
+    :param test_dir: report minimal set of directories containing the files (default: False)
     """
     if not only_print_files:
         hlitauti.report_task()
@@ -448,6 +455,11 @@ def git_files(  # type: ignore
     else:
         # file_types="" means every file, so don't filter.
         pass
+    # Optionally transform the file list based on test_files or test_dir flags.
+    if test_files:
+        files_as_list = hunteuti.get_test_files_for_sources(files_as_list)
+    elif test_dir:
+        files_as_list = hunteuti.get_parent_dirs(files_as_list)
     print("\n".join(sorted(files_as_list)))
     # Optionally copy the file list to clipboard for easy pasting.
     if not only_print_files:
