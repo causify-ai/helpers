@@ -2,7 +2,12 @@ from typing import List
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.convert_table as dsconttbl
+import dev_scripts_helpers.documentation.convert_table as dshdcota
+
+
+# #############################################################################
+# Test_convert_table_parsing
+# #############################################################################
 
 
 class Test_convert_table_parsing(hunitest.TestCase):
@@ -11,7 +16,10 @@ class Test_convert_table_parsing(hunitest.TestCase):
     """
 
     def helper_parse_md_table(
-        self, lines: List[str], expected_header: List[str], expected_rows: List[List[str]]
+        self,
+        lines: List[str],
+        expected_header: List[str],
+        expected_rows: List[List[str]],
     ) -> None:
         """
         Test helper for _parse_md_table.
@@ -21,13 +29,17 @@ class Test_convert_table_parsing(hunitest.TestCase):
         :param expected_rows: Expected data rows
         """
         # Run test.
-        header, rows = dsconttbl._parse_md_table(lines)
+        header, rows = dshdcota._parse_md_table(lines)
         # Check outputs.
         self.assertEqual(header, expected_header)
         self.assertEqual(rows, expected_rows)
 
     def helper_parse_delimited(
-        self, lines: List[str], delimiter: str, expected_header: List[str], expected_rows: List[List[str]]
+        self,
+        lines: List[str],
+        delimiter: str,
+        expected_header: List[str],
+        expected_rows: List[List[str]],
     ) -> None:
         """
         Test helper for _parse_delimited.
@@ -38,7 +50,7 @@ class Test_convert_table_parsing(hunitest.TestCase):
         :param expected_rows: Expected data rows
         """
         # Run test.
-        header, rows = dsconttbl._parse_delimited(lines, delimiter)
+        header, rows = dshdcota._parse_delimited(lines, delimiter)
         # Check outputs.
         self.assertEqual(header, expected_header)
         self.assertEqual(rows, expected_rows)
@@ -54,7 +66,7 @@ class Test_convert_table_parsing(hunitest.TestCase):
         | Alice | 30 | NYC |
         | Bob | 25 | LA |
         """
-        lines = hprint.dedent(lines_text).strip().split('\n')
+        lines = hprint.dedent(lines_text).strip().split("\n")
         # Prepare outputs.
         expected_header = ["Name", "Age", "City"]
         expected_rows = [
@@ -74,7 +86,7 @@ class Test_convert_table_parsing(hunitest.TestCase):
         | ------ | ----- | ------ |
         |  Alice | 30    |  NYC   |
         """
-        lines = hprint.dedent(lines_text).strip().split('\n')
+        lines = hprint.dedent(lines_text).strip().split("\n")
         # Prepare outputs.
         expected_header = ["Name", "Age", "City"]
         expected_rows = [
@@ -93,7 +105,7 @@ class Test_convert_table_parsing(hunitest.TestCase):
         Alice,30,NYC
         Bob,25,LA
         """
-        lines = hprint.dedent(csv_text).strip().split('\n')
+        lines = hprint.dedent(csv_text).strip().split("\n")
         delimiter = ","
         # Prepare outputs.
         expected_header = ["Name", "Age", "City"]
@@ -102,7 +114,9 @@ class Test_convert_table_parsing(hunitest.TestCase):
             ["Bob", "25", "LA"],
         ]
         # Run test.
-        self.helper_parse_delimited(lines, delimiter, expected_header, expected_rows)
+        self.helper_parse_delimited(
+            lines, delimiter, expected_header, expected_rows
+        )
 
     def test4(self) -> None:
         """
@@ -114,7 +128,7 @@ class Test_convert_table_parsing(hunitest.TestCase):
         Alice\t30\tNYC
         Bob\t25\tLA
         """
-        lines = hprint.dedent(tsv_text).strip().split('\n')
+        lines = hprint.dedent(tsv_text).strip().split("\n")
         delimiter = "\t"
         # Prepare outputs.
         expected_header = ["Name", "Age", "City"]
@@ -123,7 +137,14 @@ class Test_convert_table_parsing(hunitest.TestCase):
             ["Bob", "25", "LA"],
         ]
         # Run test.
-        self.helper_parse_delimited(lines, delimiter, expected_header, expected_rows)
+        self.helper_parse_delimited(
+            lines, delimiter, expected_header, expected_rows
+        )
+
+
+# #############################################################################
+# Test_convert_table_formatting
+# #############################################################################
 
 
 class Test_convert_table_formatting(hunitest.TestCase):
@@ -146,7 +167,7 @@ class Test_convert_table_formatting(hunitest.TestCase):
         | Bob    |    25 |
         """
         # Run test.
-        result = dsconttbl._format_as_md(header, rows)
+        result = dshdcota._format_as_md(header, rows)
         # Check outputs.
         self.assert_equal(result, expected, dedent=True)
 
@@ -165,7 +186,7 @@ class Test_convert_table_formatting(hunitest.TestCase):
         | Banana    |    0.75 |
         """
         # Run test.
-        result = dsconttbl._format_as_md(header, rows)
+        result = dshdcota._format_as_md(header, rows)
         # Check outputs.
         self.assert_equal(result, expected, dedent=True)
 
@@ -183,7 +204,7 @@ class Test_convert_table_formatting(hunitest.TestCase):
         Bob,25,LA
         """
         # Run test.
-        result = dsconttbl._format_as_delimited(header, rows, ",")
+        result = dshdcota._format_as_delimited(header, rows, ",")
         # Check outputs.
         self.assert_equal(result, expected, dedent=True)
 
@@ -201,9 +222,14 @@ class Test_convert_table_formatting(hunitest.TestCase):
         Banana	0.75	20
         """
         # Run test.
-        result = dsconttbl._format_as_delimited(header, rows, "\t")
+        result = dshdcota._format_as_delimited(header, rows, "\t")
         # Check outputs.
         self.assert_equal(result, expected, dedent=True)
+
+
+# #############################################################################
+# Test_convert_table_roundtrip
+# #############################################################################
 
 
 class Test_convert_table_roundtrip(hunitest.TestCase):
@@ -221,16 +247,16 @@ class Test_convert_table_roundtrip(hunitest.TestCase):
         Alice,30,NYC
         Bob,25,LA
         """
-        csv_input = hprint.dedent(csv_text).strip().split('\n')
+        csv_input = hprint.dedent(csv_text).strip().split("\n")
         # Prepare outputs.
         expected_text = csv_text
         expected = hprint.dedent(expected_text).strip()
         # Run test.
-        header, rows = dsconttbl._parse_delimited(csv_input, ",")
-        md_output = dsconttbl._format_as_md(header, rows)
+        header, rows = dshdcota._parse_delimited(csv_input, ",")
+        md_output = dshdcota._format_as_md(header, rows)
         md_lines = md_output.split("\n")
-        header2, rows2 = dsconttbl._parse_md_table(md_lines)
-        csv_output = dsconttbl._format_as_delimited(header2, rows2, ",")
+        header2, rows2 = dshdcota._parse_md_table(md_lines)
+        csv_output = dshdcota._format_as_delimited(header2, rows2, ",")
         # Check outputs.
         self.assertEqual(csv_output, expected)
 
@@ -244,17 +270,22 @@ class Test_convert_table_roundtrip(hunitest.TestCase):
         |---------|-------|
         | Apple | 1.50 |
         """
-        md_input = hprint.dedent(md_text).strip().split('\n')
+        md_input = hprint.dedent(md_text).strip().split("\n")
         # Run test.
-        header, rows = dsconttbl._parse_md_table(md_input)
-        csv_output = dsconttbl._format_as_delimited(header, rows, ",")
+        header, rows = dshdcota._parse_md_table(md_input)
+        csv_output = dshdcota._format_as_delimited(header, rows, ",")
         csv_lines = csv_output.split("\n")
-        header2, rows2 = dsconttbl._parse_delimited(csv_lines, ",")
-        md_output = dsconttbl._format_as_md(header2, rows2)
+        header2, rows2 = dshdcota._parse_delimited(csv_lines, ",")
+        md_output = dshdcota._format_as_md(header2, rows2)
         # Check outputs.
         self.assertIn("Product", md_output)
         self.assertIn("Price", md_output)
         self.assertIn("Apple", md_output)
+
+
+# #############################################################################
+# Test_convert_table_edge_cases
+# #############################################################################
 
 
 class Test_convert_table_edge_cases(hunitest.TestCase):
@@ -270,7 +301,7 @@ class Test_convert_table_edge_cases(hunitest.TestCase):
         :param expected_mode: Expected detected mode
         """
         # Run test.
-        mode = dsconttbl._detect_mode(filename)
+        mode = dshdcota._detect_mode(filename)
         # Check outputs.
         self.assertEqual(mode, expected_mode)
 
@@ -285,7 +316,7 @@ class Test_convert_table_edge_cases(hunitest.TestCase):
         | Alice |  |
         | Bob | Good |
         """
-        lines = hprint.dedent(lines_text).strip().split('\n')
+        lines = hprint.dedent(lines_text).strip().split("\n")
         # Prepare outputs.
         expected_header = ["Name", "Note"]
         expected_rows = [
@@ -293,7 +324,7 @@ class Test_convert_table_edge_cases(hunitest.TestCase):
             ["Bob", "Good"],
         ]
         # Run test.
-        header, rows = dsconttbl._parse_md_table(lines)
+        header, rows = dshdcota._parse_md_table(lines)
         # Check outputs.
         self.assertEqual(header, expected_header)
         self.assertEqual(rows, expected_rows)
@@ -308,7 +339,7 @@ class Test_convert_table_edge_cases(hunitest.TestCase):
         Alice,New York,"Has spaces"
         Bob,Los Angeles,"A, with comma"
         """
-        lines = hprint.dedent(csv_text).strip().split('\n')
+        lines = hprint.dedent(csv_text).strip().split("\n")
         # Prepare outputs.
         expected_header = ["Name", "City", "Note"]
         expected_rows = [
@@ -316,7 +347,7 @@ class Test_convert_table_edge_cases(hunitest.TestCase):
             ["Bob", "Los Angeles", "A, with comma"],
         ]
         # Run test.
-        header, rows = dsconttbl._parse_delimited(lines, ",")
+        header, rows = dshdcota._parse_delimited(lines, ",")
         # Check outputs.
         self.assertEqual(header, expected_header)
         self.assertEqual(rows, expected_rows)

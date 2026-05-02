@@ -87,7 +87,9 @@ def parse_command_line() -> None:
         verbosity = logging.INFO
     # Suppress command line logging if only_print_files is requested.
     report_command_line = "--only-print-files" not in sys.argv
-    hdbg.init_logger(verbosity=verbosity, report_command_line=report_command_line)
+    hdbg.init_logger(
+        verbosity=verbosity, report_command_line=report_command_line
+    )
 
 
 # NOTE: We need to use a `# type: ignore` for all the @task functions because

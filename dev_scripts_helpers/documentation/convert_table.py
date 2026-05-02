@@ -76,12 +76,14 @@ def _parse_md_table(
             start_idx = i
             break
     hdbg.dassert_lte(0, start_idx, "No markdown table found in input")
-    hdbg.dassert_lt(start_idx + 1, len(lines), "Markdown table has no separator row")
+    hdbg.dassert_lt(
+        start_idx + 1, len(lines), "Markdown table has no separator row"
+    )
     sep_line = lines[start_idx + 1].strip()
     hdbg.dassert_in("|", sep_line, "Expected separator row")
     hdbg.dassert_in("-", sep_line, "Expected separator row")
     sep_idx = start_idx + 1
-    filtered_lines = [lines[start_idx]] + lines[sep_idx + 1:]
+    filtered_lines = [lines[start_idx]] + lines[sep_idx + 1 :]
     txt = "\n".join(filtered_lines)
     # Parse.
     df = pd.read_csv(
@@ -124,9 +126,7 @@ def _parse_delimited(
 # #############################################################################
 
 
-def _format_as_md(
-    header: List[str], rows: List[List[str]]
-) -> str:
+def _format_as_md(header: List[str], rows: List[List[str]]) -> str:
     """
     Format table as markdown using pandas.
 

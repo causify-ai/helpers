@@ -84,7 +84,6 @@ _DEFAULT_ACTIONS = [
     "add_class_frames",
 ]
 
-_PYRIGHT_OPTIONS = "--outputjson"
 
 
 # #############################################################################

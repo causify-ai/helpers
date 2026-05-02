@@ -39,14 +39,16 @@ _LOG = logging.getLogger(__name__)
 # Pattern for speaker name and timestamp: "Speaker Name(HH:MM:SS)" or "Speaker NameHH:MM:SS"
 _SPEAKER_TIMESTAMP_PATTERN = r"^([A-Za-z\s\.]+)\((\d{2}):(\d{2}):(\d{2})\)"
 # Alternative pattern for formats without parentheses: "Speaker NameHH:MM:SS"
-_SPEAKER_TIMESTAMP_ALT_PATTERN = r"([A-Z][a-z]+(?: [A-Z][a-z]+)*)(\d{2}):(\d{2}):(\d{2})"
+_SPEAKER_TIMESTAMP_ALT_PATTERN = (
+    r"([A-Z][a-z]+(?: [A-Z][a-z]+)*)(\d{2}):(\d{2}):(\d{2})"
+)
 # Pattern for chapter in TOC: "H:MM – Chapter Title" or "(HH:MM:SS) – Chapter Title"
 # Handles both formats with and without parentheses and seconds
 _CHAPTER_PATTERN = r"\(?(\d{1,2}):(\d{2})(?::\d{2})?\)?\s+(?:–|-)\s+([^0-9\(\)]*?)(?=\(?\d{1,2}:\d{2}|$)"
 
 
 # #############################################################################
-# Data Classes
+# Chapter
 # #############################################################################
 
 
@@ -55,17 +57,7 @@ class Chapter:
     Represents a chapter in the transcript.
     """
 
-    def __init__(self, *, timestamp: str, title: str) -> None:
-        """
-        Initialize a chapter.
-
-        :param timestamp: chapter time in HH:MM or H:MM format
-        :param title: chapter title
-        """
-        self.timestamp = timestamp
-        self.title = title
-        self.seconds = self._parse_timestamp(timestamp)
-
+    # TODO(ai_gp): make it static
     def _parse_timestamp(self, timestamp: str) -> int:
         """
         Convert timestamp string to seconds.
@@ -84,27 +76,29 @@ class Chapter:
         minutes = int(parts[1])
         return hours * 3600 + minutes * 60
 
+    def __init__(self, *, timestamp: str, title: str) -> None:
+        """
+        Initialize a chapter.
+
+        :param timestamp: chapter time in HH:MM or H:MM format
+        :param title: chapter title
+        """
+        self.timestamp = timestamp
+        self.title = title
+        self.seconds = self._parse_timestamp(timestamp)
+
+
+# #############################################################################
+# DialogueLine
+# #############################################################################
+
 
 class DialogueLine:
     """
     Represents a single speaker's dialogue.
     """
 
-    def __init__(
-        self, *, speaker: str, timestamp: str, text: str
-    ) -> None:
-        """
-        Initialize a dialogue line.
-
-        :param speaker: speaker name
-        :param timestamp: time in HH:MM:SS format
-        :param text: dialogue text
-        """
-        self.speaker = speaker
-        self.timestamp = timestamp
-        self.text = text
-        self.seconds = self._parse_timestamp(timestamp)
-
+    # TODO(ai_gp): make it static
     def _parse_timestamp(self, timestamp: str) -> int:
         """
         Convert HH:MM:SS to seconds.
@@ -124,9 +118,22 @@ class DialogueLine:
         seconds = int(parts[2])
         return hours * 3600 + minutes * 60 + seconds
 
+    def __init__(self, *, speaker: str, timestamp: str, text: str) -> None:
+        """
+        Initialize a dialogue line.
+
+        :param speaker: speaker name
+        :param timestamp: time in HH:MM:SS format
+        :param text: dialogue text
+        """
+        self.speaker = speaker
+        self.timestamp = timestamp
+        self.text = text
+        self.seconds = self._parse_timestamp(timestamp)
+
 
 # #############################################################################
-# Parser
+# TranscriptParser
 # #############################################################################
 
 
@@ -201,24 +208,6 @@ class TranscriptParser:
             chapters.append(Chapter(timestamp=timestamp, title=title))
         return chapters
 
-    def extract_dialogue(self) -> List[DialogueLine]:
-        """
-        Extract all dialogue lines from transcript.
-
-        Handles both line-separated and concatenated formats with or without parentheses.
-
-        :return: list of DialogueLine objects, sorted by timestamp
-        """
-        dialogue_lines = []
-        # Try line-by-line parsing first (Lex Fridman format).
-        dialogue_lines.extend(self._extract_dialogue_line_format())
-        # If no dialogues found, try concatenated format (Dwarkesh format).
-        if not dialogue_lines:
-            dialogue_lines.extend(self._extract_dialogue_concat_format())
-        # Sort by timestamp.
-        dialogue_lines.sort(key=lambda d: d.seconds)
-        return dialogue_lines
-
     def _extract_dialogue_line_format(self) -> List[DialogueLine]:
         """
         Extract dialogue from line-separated format: Speaker(HH:MM:SS)text.
@@ -267,9 +256,7 @@ class TranscriptParser:
         # Join all text for concatenated format.
         full_text = " ".join(self.lines)
         # Find all matches of the pattern.
-        matches = list(
-            re.finditer(_SPEAKER_TIMESTAMP_ALT_PATTERN, full_text)
-        )
+        matches = list(re.finditer(_SPEAKER_TIMESTAMP_ALT_PATTERN, full_text))
         # Extract dialogue between consecutive matches.
         for i, match in enumerate(matches):
             speaker = match.group(1).strip()
@@ -295,9 +282,27 @@ class TranscriptParser:
                 )
         return dialogue_lines
 
+    def extract_dialogue(self) -> List[DialogueLine]:
+        """
+        Extract all dialogue lines from transcript.
+
+        Handles both line-separated and concatenated formats with or without parentheses.
+
+        :return: list of DialogueLine objects, sorted by timestamp
+        """
+        dialogue_lines = []
+        # Try line-by-line parsing first (Lex Fridman format).
+        dialogue_lines.extend(self._extract_dialogue_line_format())
+        # If no dialogues found, try concatenated format (Dwarkesh format).
+        if not dialogue_lines:
+            dialogue_lines.extend(self._extract_dialogue_concat_format())
+        # Sort by timestamp.
+        dialogue_lines.sort(key=lambda d: d.seconds)
+        return dialogue_lines
+
 
 # #############################################################################
-# Formatter
+# MarkdownFormatter
 # #############################################################################
 
 
@@ -311,6 +316,22 @@ class MarkdownFormatter:
         Initialize the formatter.
         """
         self.speaker_abbrevs: Dict[str, str] = {}
+
+    def _add_speaker(self, speaker: str) -> None:
+        """
+        Add speaker to abbreviation map.
+
+        :param speaker: full speaker name
+        """
+        if speaker in self.speaker_abbrevs:
+            return
+        # Create abbreviation from initials.
+        parts = speaker.split()
+        abbrev = "".join(p[0] for p in parts).upper()
+        # Fall back to first name if that doesn't work.
+        if not abbrev:
+            abbrev = speaker[:2].upper()
+        self.speaker_abbrevs[speaker] = abbrev
 
     def format(
         self,
@@ -353,22 +374,6 @@ class MarkdownFormatter:
             abbrev = self.speaker_abbrevs[dialogue_line.speaker]
             output.append(f"{abbrev}: {dialogue_line.text}\n")
         return "".join(output)
-
-    def _add_speaker(self, speaker: str) -> None:
-        """
-        Add speaker to abbreviation map.
-
-        :param speaker: full speaker name
-        """
-        if speaker in self.speaker_abbrevs:
-            return
-        # Create abbreviation from initials.
-        parts = speaker.split()
-        abbrev = "".join(p[0] for p in parts).upper()
-        # Fall back to first name if that doesn't work.
-        if not abbrev:
-            abbrev = speaker[:2].upper()
-        self.speaker_abbrevs[speaker] = abbrev
 
 
 # #############################################################################

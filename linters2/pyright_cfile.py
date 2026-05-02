@@ -53,7 +53,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        add_help=False,
+        add_help=True,
     )
     hparser.add_verbosity_arg(parser, log_level="INFO")
     return parser
