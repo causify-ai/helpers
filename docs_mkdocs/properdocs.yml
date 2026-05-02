@@ -1,0 +1,85 @@
+site_name: Causify Helpers Documentation
+site_url: https://causify-ai.github.io/helpers/
+theme:
+  name: shadcn
+  custom_dir: overrides
+  favicon: assets/favicon.ico
+  icon: assets/logo.png
+  pygments_style:
+    light: default
+    dark: monokai
+docs_dir: docs
+# Helps render images and other assets correctly.
+use_directory_urls: false
+
+extra:
+  social:
+    - icon: bootstrap/globe
+      link: https://causify.ai/
+    - icon: bootstrap/linkedin
+      link: https://www.linkedin.com/company/causify-ai/
+    - icon: bootstrap/github
+      link: https://github.com/causify-ai/
+  generator: false
+copyright: Copyright &copy; 2025 CAUSIFY.AI. All rights reserved.
+
+plugins:
+  - shadcn/search
+  - awesome-pages
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.blocks.caption
+  - pymdownx.details
+  - meta
+  - toc:
+      permalink: "#"
+      baselevel: 2
+      separator: "_"
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      use_pygments: true
+      css_class: codehilite
+      guess_lang: false
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.arithmatex:
+      generic: true
+  - mkdocs_graphviz:
+      # https://gitlab.com/rod2ik/mkdocs-graphviz
+      light_theme: 000000
+      dark_theme: FFFFFF
+      color: 789ABC
+      bgcolor: none
+      graph_color: 789ABC
+      graph_fontcolor: 789ABC
+      node_color: 789ABC
+      node_fontcolor: 789ABC
+      edge_color: 789ABC
+      edge_fontcolor: 789ABC
+      priority: 75
+
+extra_css:
+  - styles/styles.css
+  - https://unpkg.com/katex@0/dist/katex.min.css
+
+extra_javascript:
+  # Extra for `mkdocs_graphviz`.
+  - https://cdn.jsdelivr.net/gh/rod2ik/cdn@main/mkdocs/javascripts/mkdocs-graphviz.js
+  # Extra for `mathjax`.
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  # Extra for `katex`.
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+  # Extra for `mermaid`.
+  - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+  - javascripts/mermaid-init.js
