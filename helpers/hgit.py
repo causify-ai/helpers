@@ -101,9 +101,10 @@ def _get_branch_next_name_via_github_api(
     :return: next available branch name or None if GitHub API is not available
     """
     try:
-        # Query merged PRs and extract branch names matching pattern.
+        # Query all PRs (merged, closed, open) and extract branch names
+        # matching pattern.
         cmd = (
-            "gh pr list --state merged --json headRefName "
+            "gh pr list --state all --json headRefName "
             "| jq -r '.[].headRefName | select(test(\"^{branch}_[0-9]+$\"))' "
             "| sed 's/.*_//' | sort -rn | head -1"
         ).format(branch=re.escape(curr_branch_name))
@@ -112,14 +113,14 @@ def _get_branch_next_name_via_github_api(
         if ret != 0:
             _LOG.debug("GitHub API query failed, falling back to linear scan")
             return None
-        # Extract the highest number from merged branches.
+        # Extract the highest number from all branches.
         output = output.strip()
         if output:
             highest_num = int(output)
             next_num = highest_num + 1
             new_branch_name = f"{curr_branch_name}_{next_num}"
             _LOG.info(
-                "Found highest number '%s' in merged branches, next is '%s'",
+                "Found highest number '%s' in all branches, next is '%s'",
                 highest_num,
                 next_num,
             )
