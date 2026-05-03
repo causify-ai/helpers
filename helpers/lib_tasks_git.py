@@ -22,6 +22,7 @@ import helpers.hsystem as hsystem
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hunit_test_utils as hunittestu
 import helpers.lib_tasks_gh as hlitagh
 import helpers.lib_tasks_utils as hlitauti
 
@@ -377,34 +378,26 @@ def git_patch_create(  # type: ignore
 
 def _filter_git_files_by_type(
     file_paths: List[str],
-    keep_python: bool,
-    keep_jupyter: bool,
-    keep_markdown: bool,
+    file_types: List[str],
 ) -> List[str]:
     """
     Filter files by type for git_files task.
 
-    Unlike linters2 version, this returns a flat list (not a tuple)
-    and does not separate paired jupytext files.
+    Returns a flat list (not a tuple) and does not separate paired jupytext files.
 
     :param file_paths: files to filter
-    :param keep_python: include Python files
-    :param keep_jupyter: include Jupyter notebooks
-    :param keep_markdown: include Markdown files
+    :param file_types: list of file extensions to include (e.g., ["py", "ipynb", "md"])
+        If empty, all files are kept (no filtering)
     :return: filtered list of files
     """
+    if not file_types:
+        return file_paths
     filtered = []
     for f in file_paths:
-        is_py = f.endswith(".py")
-        is_ipynb = f.endswith(".ipynb")
-        is_md = f.endswith(".md")
-        if is_py and not keep_python:
-            continue
-        if is_ipynb and not keep_jupyter:
-            continue
-        if is_md and not keep_markdown:
-            continue
-        filtered.append(f)
+        for ext in file_types:
+            if f.endswith(f".{ext}"):
+                filtered.append(f)
+                break
     return filtered
 
 
@@ -412,23 +405,25 @@ def _filter_git_files_by_type(
 def git_files(  # type: ignore
     ctx,
     modified=False,
-    branch=False,
+    branch=True,
     last_commit=False,
-    keep_python=True,
-    keep_jupyter=True,
-    keep_markdown=True,
+    file_types="",
     pbcopy=False,
     only_print_files=False,
+    mode="files",
 ):
     """
     Report which files are changed in the current branch with respect to master.
 
     The params have the same meaning as in `_get_files_to_process()`.
 
-    :param keep_python: include Python files (default: True)
-    :param keep_jupyter: include Jupyter notebooks (default: True)
-    :param keep_markdown: include Markdown files (default: True)
+    :param file_types: Comma-separated list of file extensions to include
+        (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
     :param only_print_files: only print files without logging headers/footers (default: False)
+    :param mode: Output mode:
+        - "files": print the changed files
+        - "test_files": print test files associated with the changed source files
+        - "test_dirs": print test directories associated with the changed source files
     """
     if not only_print_files:
         hlitauti.report_task()
@@ -447,14 +442,31 @@ def git_files(  # type: ignore
         mutually_exclusive,
         remove_dirs,
     )
+    # Parse file_types string into a list.
+    file_types_list = [ext.strip() for ext in file_types.split(",") if ext.strip()]
     # Filter by file type.
     files_as_list = _filter_git_files_by_type(
-        files_as_list, keep_python, keep_jupyter, keep_markdown
+        files_as_list, file_types_list
     )
-    print("\n".join(sorted(files_as_list)))
+    # Handle different output modes.
+    hdbg.dassert_in(
+        mode,
+        ("files", "test_files", "test_dirs"),
+        "Invalid mode; must be one of: files, test_files, test_dirs",
+    )
+    if mode == "files":
+        output_list = sorted(files_as_list)
+    elif mode == "test_files":
+        test_files = hunittestu.get_test_files_for_sources(files_as_list)
+        output_list = sorted(test_files)
+    else:  # mode == "test_dirs"
+        test_files = hunittestu.get_test_files_for_sources(files_as_list)
+        test_dirs = hunittestu.get_parent_dirs(test_files)
+        output_list = sorted(test_dirs)
+    print("\n".join(output_list))
     # Optionally copy the file list to clipboard for easy pasting.
     if not only_print_files:
-        res = " ".join(files_as_list)
+        res = " ".join(output_list)
         hsystem.to_pbcopy(res, pbcopy)
 
 
@@ -878,7 +890,7 @@ def _git_diff_with_branch(
     """
     Diff files from this client against files in a branch using vimdiff.
 
-    Same parameters as `git_branch_diff_with`.
+    Same parameters as `git_branch_diff`.
     """
     _LOG.debug(
         hprint.to_str(
@@ -1114,7 +1126,7 @@ def _git_diff_with_branch_wrapper(
 
 
 @task
-def git_branch_diff_with(  # type: ignore
+def git_branch_diff(  # type: ignore
     ctx,
     target="base",
     hash_value="",
@@ -1136,7 +1148,7 @@ def git_branch_diff_with(  # type: ignore
 
     :param subdir: subdir to consider for diffing, instead of `.`
     :param target:
-        - `base`: diff with respect to the branching point
+        - `base`: (default) diff with respect to the branching point
         - `master`: diff with respect to `origin/master`
         - `head`: diff modified files
         - `hash`: diff with respect to hash specified in `hash`

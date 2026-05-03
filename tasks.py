@@ -74,7 +74,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     git_branch_copy,
     git_branch_create,
     git_branch_delete_merged,
-    git_branch_diff_with,
+    git_branch_diff,
     git_branch_files,
     git_branch_is_merged,
     git_branch_next_name,

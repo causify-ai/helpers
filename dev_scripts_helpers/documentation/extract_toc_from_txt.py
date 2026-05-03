@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""
+r"""
 Extract headers from Markdown, LaTeX, txt slide, or Jupyter notebook files and
 generate a Vim cfile.
 
@@ -9,7 +9,8 @@ The script:
   Jupyter notebook `.ipynb` file
 - Extracts headers up to a specified maximum level
   - Markdown: # (level 1), ## (level 2), ### (level 3), etc.
-  - LaTeX: \section{} (level 1), \subsection{} (level 2), \subsubsection{} (level 3)
+  - LaTeX: `\section{}` (level 1), `\subsection{}` (level 2),
+    `\subsubsection{}` (level 3)
   - Txt slides: # (level 1), ## (level 2), * (level 3)
   - Jupyter notebooks: # (level 1), ## (level 2), ### (level 3) from markdown cells
 - Prints a human-readable header map
@@ -114,14 +115,14 @@ def _extract_headers_from_latex(
     max_level: int,
     out_file_name: str,
 ) -> None:
-    """
+    r"""
     Extract headers from a LaTeX file.
 
     This function processes a LaTeX file to extract section headers
-    (\section{}, \subsection{}, \subsubsection{}) and generates output
-    in the requested format (cfile, headers, or list). It follows the
-    same pattern as _extract_headers_from_markdown() to ensure consistent
-    behavior across file types.
+    (`\section{}`, `\subsection{}`, `\subsubsection{}`) and generates output in
+    the requested format (cfile, headers, or list). It follows the same pattern
+    as _extract_headers_from_markdown() to ensure consistent behavior across
+    file types.
 
     :param input_file_name: path to the input LaTeX file
     :param lines: list of lines in the input LaTeX file
