@@ -1,12 +1,9 @@
 import json
-import logging
 from typing import Any, Dict
 
 import helpers.hunit_test as hunitest
 import helpers.hsystem as hsystem
 import linters2.pyright_cfile as lpyrcfil
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -111,6 +108,99 @@ class Test__transform_pyright_output(hunitest.TestCase):
         }
         # Prepare outputs.
         expected = "src/app.py:43:21: Expression is not defined"
+        # Run test.
+        self.helper(json_data, expected)
+
+    def test6(self) -> None:
+        """
+        Test message with newlines converted to commas.
+        """
+        # Prepare inputs.
+        json_data = {
+            "generalDiagnostics": [
+                {
+                    "file": "test.py",
+                    "message": "error line 1\nerror line 2",
+                    "range": {"start": {"line": 0, "character": 0}},
+                }
+            ]
+        }
+        # Prepare outputs.
+        expected = "test.py:1:1: error line 1, error line 2"
+        # Run test.
+        self.helper(json_data, expected)
+
+    def test7(self) -> None:
+        """
+        Test long message truncated to 100 characters with ellipsis.
+        """
+        # Prepare inputs.
+        long_msg = "a" * 105
+        json_data = {
+            "generalDiagnostics": [
+                {
+                    "file": "test.py",
+                    "message": long_msg,
+                    "range": {"start": {"line": 0, "character": 0}},
+                }
+            ]
+        }
+        # Prepare outputs.
+        expected = "test.py:1:1: " + "a" * 97 + "..."
+        # Run test.
+        self.helper(json_data, expected)
+
+    def test8(self) -> None:
+        """
+        Test message with newlines and long length.
+        """
+        # Prepare inputs.
+        msg = "error " + "line\n" * 20
+        json_data = {
+            "generalDiagnostics": [
+                {
+                    "file": "test.py",
+                    "message": msg,
+                    "range": {"start": {"line": 0, "character": 0}},
+                }
+            ]
+        }
+        # Prepare outputs.
+        expected = (
+            "test.py:1:1: "
+            "error line, line, line, line, line, line, line, line, "
+            "line, line, line, line, line, line, line, l..."
+        )
+        # Run test.
+        self.helper(json_data, expected)
+
+    def test9(self) -> None:
+        """
+        Test with real-world pyright message with indented newlines.
+        """
+        # Prepare inputs - real message from pyright with indented newlines
+        json_data = {
+            "generalDiagnostics": [
+                {
+                    "file": "convert_table.py",
+                    "message": (
+                        "Argument of type \"list[str]\" cannot be assigned to "
+                        "parameter \"columns\" of type \"Axes | None\"\n"
+                        "  Type \"list[str]\" is not assignable to type "
+                        "\"Axes | None\"\n"
+                        "    \"list[str]\" is not assignable to "
+                        "\"ExtensionArray\""
+                    ),
+                    "range": {"start": {"line": 137, "character": 36}},
+                }
+            ]
+        }
+        # Prepare outputs.
+        expected = (
+            "convert_table.py:138:37: "
+            "Argument of type \"list[str]\" cannot be assigned to "
+            "parameter \"columns\" of type \"Axes | None\",   T..."
+        )
         # Run test.
         self.helper(json_data, expected)
 
