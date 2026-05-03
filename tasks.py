@@ -132,7 +132,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
 # A lib contains dependencies that exist only in a Docker environment. Skipping the import
 # if needed in order not to break other invoke targets.
 try:
-    from oms.lib_tasks_binance import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
+    from oms.lib_tasks_binance import (  # isort: skip # noqa: F401  # pylint: disable=unused-import  # type: ignore[import-not-found]
         binance_display_open_positions,
         binance_flatten_account,
         binance_log_open_positions,

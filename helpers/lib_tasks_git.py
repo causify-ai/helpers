@@ -12,7 +12,7 @@ import subprocess
 import time
 from typing import Any, List
 
-from invoke import task
+from invoke.tasks import task
 
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem

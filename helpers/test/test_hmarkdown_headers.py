@@ -1,4 +1,3 @@
-import logging
 import os
 import pprint
 from typing import Any, List, Tuple, cast
@@ -8,8 +7,6 @@ import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
@@ -220,7 +217,7 @@ def _get_markdown_example4() -> str:
     return content
 
 
-def _get_markdown_example5() -> hmarkdo.HeaderList:
+def _get_markdown_example5() -> str:
     content = r"""
     # Models
     test
