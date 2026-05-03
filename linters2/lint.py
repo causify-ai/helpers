@@ -57,7 +57,7 @@ import argparse
 import logging
 import subprocess
 import sys
-from typing import List, Optional
+from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser

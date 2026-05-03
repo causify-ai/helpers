@@ -4,6 +4,7 @@ import os
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -70,9 +71,7 @@ class Test_find_header_line(hunitest.TestCase):
         ]
         # Run test and check output.
         with self.assertRaises(ValueError):
-            extract_text_from_txt._find_header_line(
-                "# Nonexistent", header_list
-            )
+            extract_text_from_txt._find_header_line("# Nonexistent", header_list)
 
     def test4(self) -> None:
         """
@@ -101,9 +100,47 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
     Test extract_text_from_txt script functionality.
     """
 
-    def _run_script(
-        self, input_file: str, args: str = ""
-    ) -> tuple:
+    def _create_test_input_file(self) -> None:
+        """
+        Create the test markdown input file dynamically.
+        """
+        content = """
+        # Introduction
+
+        This is the introduction section.
+
+        ## Background
+
+        Some background information.
+
+        ## Motivation
+
+        Why we are doing this.
+
+        # Methods
+
+        ## Data Collection
+
+        How we collected data.
+
+        ### Sampling Strategy
+
+        Details about sampling.
+
+        # Results
+
+        Our findings.
+        """
+        content = hprint.dedent(content)
+        in_file = os.path.join(self.get_input_dir(), "input.md")
+        hio.to_file(in_file, content)
+
+    def setUp(self) -> None:
+        """Create test input file."""
+        super().setUp()
+        self._create_test_input_file()
+
+    def _run_script(self, input_file: str, args: str = "") -> tuple:
         """
         Helper to run the script and return output file path and output.
 
@@ -112,9 +149,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         :return: tuple of (out_file, output_content)
         """
         in_file = os.path.join(self.get_input_dir(), input_file)
-        script_path = hgit.find_file_in_git_tree(
-            "extract_text_from_txt.py"
-        )
+        script_path = hgit.find_file_in_git_tree("extract_text_from_txt.py")
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         cmd = f"{script_path} -i {in_file} -o {out_file} {args}"
         result = hsystem.system(cmd)
@@ -171,9 +206,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), "input.md")
-        script_path = hgit.find_file_in_git_tree(
-            "extract_text_from_txt.py"
-        )
+        script_path = hgit.find_file_in_git_tree("extract_text_from_txt.py")
         cmd = f"{script_path} -i {in_file} --start '# Methods' --end '# Results' --dry_run"
         # Run test.
         _, output = hsystem.system_to_string(cmd)
@@ -187,9 +220,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), "input.md")
-        script_path = hgit.find_file_in_git_tree(
-            "extract_text_from_txt.py"
-        )
+        script_path = hgit.find_file_in_git_tree("extract_text_from_txt.py")
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         cmd = f"{script_path} -i {in_file} -o {out_file} --start '# Nonexistent'"
         # Run test and check output.

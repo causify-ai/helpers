@@ -85,7 +85,9 @@ def _extract_and_write_headers(
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
     hparser.to_file(output_content, out_file_name)
     # Sanity check the headers.
-    hmarkdo.sanity_check_header_list(header_list, warn_on_malformed=warn_on_malformed)
+    hmarkdo.sanity_check_header_list(
+        header_list, warn_on_malformed=warn_on_malformed
+    )
 
 
 def _extract_headers_from_markdown(
@@ -163,7 +165,7 @@ def _extract_headers_from_txtslides(
     mode: str,
     max_level: int,
     out_file_name: str,
-    warn_on_malformed: bool
+    warn_on_malformed: bool,
 ) -> None:
     """
     Extract headers from a txt slide file.
