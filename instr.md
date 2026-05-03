@@ -1,16 +1,19 @@
-Make the default mode for i git_files --branch
+Create a extract_text_from_txt.py to extract a chunk of a file 
 
-Add a switch to i git_files called --mode to print
+-i <file>
 
---mode "files" (default): print the files
+between an initial and final header which is specified as 
+--start <header> --end <header>
 
---mode "test_files": print the test associated to the tests
-Using
-./helpers/hunit_test_utils.py:534:def get_test_files_for_sources(files: List[str]) -> List[str]:
+where <header> is specified as a markdown headers "# XYZ", "## XYZ", "### ..."
 
---mode "test_dirs": print the test dirs associated to the tests
+Reuse the code from extract_toc_from_txt.py to extract the line number of the files
+including the start and end header and then simply extract the [start_line_num,
+end_line_num) and save it to 
 
-./helpers/hunit_test_utils.py:553:def get_parent_dirs(files: List[str]) -> List[str]:
+-o <file>
+
+Make a plan
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

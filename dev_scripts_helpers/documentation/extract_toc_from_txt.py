@@ -29,6 +29,9 @@ The script:
 # Extract headers up to level 3 from a Jupyter notebook and print to stdout:
 > extract_toc_from_txt.py -i notebook.ipynb -o - --mode headers --max-level 3
 
+# Extract headers from a txt file with potentially malformed index (emit warnings instead of errors):
+> extract_toc_from_txt.py -i document.txt -o - --warn_on_malformed
+
 # To use the generated cfile in Vim:
 - Open Vim and run `:cfile output.cfile`
   ```
@@ -56,6 +59,7 @@ def _extract_and_write_headers(
     header_list: List,
     mode: str,
     out_file_name: str,
+    warn_on_malformed: bool,
 ) -> None:
     """
     Write extracted headers to output file in the specified format.
@@ -69,6 +73,8 @@ def _extract_and_write_headers(
     :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
         Markdown headers, 'list' for indented list)
     :param out_file_name: path to the output file
+    :param warn_on_malformed: if True, emit warnings for malformed headers
+        instead of raising exceptions
     """
     # Print the headers.
     if mode == "cfile":
@@ -79,7 +85,13 @@ def _extract_and_write_headers(
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
     hparser.to_file(output_content, out_file_name)
     # Sanity check the headers.
-    hmarkdo.sanity_check_header_list(header_list)
+    if warn_on_malformed:
+        try:
+            hmarkdo.sanity_check_header_list(header_list)
+        except (ValueError, AssertionError) as e:
+            _LOG.warning(f"Malformed header structure: {e}")
+    else:
+        hmarkdo.sanity_check_header_list(header_list)
 
 
 def _extract_headers_from_markdown(
@@ -88,6 +100,7 @@ def _extract_headers_from_markdown(
     mode: str,
     max_level: int,
     out_file_name: str,
+    warn_on_malformed: bool = False,
 ) -> None:
     """
     Extract headers from a Markdown file.
@@ -97,6 +110,8 @@ def _extract_headers_from_markdown(
     :param mode: output mode
     :param max_level: maximum header levels to parse
     :param out_file_name: path to the output file
+    :param warn_on_malformed: if True, emit warnings for malformed headers
+        instead of raising exceptions
     """
     hdbg.dassert_isinstance(lines, list)
     # We don't want to sanity check since we want to show the headers, even
@@ -105,7 +120,9 @@ def _extract_headers_from_markdown(
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=max_level, sanity_check=sanity_check
     )
-    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
+    _extract_and_write_headers(
+        input_file_name, header_list, mode, out_file_name, warn_on_malformed
+    )
 
 
 def _extract_headers_from_latex(
@@ -114,6 +131,7 @@ def _extract_headers_from_latex(
     mode: str,
     max_level: int,
     out_file_name: str,
+    warn_on_malformed: bool,
 ) -> None:
     r"""
     Extract headers from a LaTeX file.
@@ -130,6 +148,8 @@ def _extract_headers_from_latex(
         Markdown headers, 'list' for indented list)
     :param max_level: maximum header levels to parse (1-3 for LaTeX)
     :param out_file_name: path to the output file
+    :param warn_on_malformed: if True, emit warnings for malformed headers
+        instead of raising exceptions
     """
     hdbg.dassert_isinstance(lines, list)
     # We don't want to sanity check since we want to show the headers, even
@@ -138,7 +158,9 @@ def _extract_headers_from_latex(
     header_list = hlatex.extract_headers_from_latex(
         lines, max_level=max_level, sanity_check=sanity_check
     )
-    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
+    _extract_and_write_headers(
+        input_file_name, header_list, mode, out_file_name, warn_on_malformed
+    )
 
 
 def _extract_headers_from_txtslides(
@@ -147,6 +169,7 @@ def _extract_headers_from_txtslides(
     mode: str,
     max_level: int,
     out_file_name: str,
+    warn_on_malformed: bool
 ) -> None:
     """
     Extract headers from a txt slide file.
@@ -163,6 +186,8 @@ def _extract_headers_from_txtslides(
         Markdown headers, 'list' for indented list)
     :param max_level: maximum header levels to parse (1-3 for txt slides)
     :param out_file_name: path to the output file
+    :param warn_on_malformed: if True, emit warnings for malformed headers
+        instead of raising exceptions
     """
     hdbg.dassert_isinstance(lines, list)
     # Use convert_slide_to_markdown to convert txt slide format to standard markdown format.
@@ -174,7 +199,9 @@ def _extract_headers_from_txtslides(
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=max_level, sanity_check=sanity_check
     )
-    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
+    _extract_and_write_headers(
+        input_file_name, header_list, mode, out_file_name, warn_on_malformed
+    )
 
 
 def _extract_headers_from_notebook(
@@ -183,6 +210,7 @@ def _extract_headers_from_notebook(
     mode: str,
     max_level: int,
     out_file_name: str,
+    warn_on_malformed: bool,
 ) -> None:
     """
     Extract headers from a Jupyter notebook file.
@@ -198,6 +226,8 @@ def _extract_headers_from_notebook(
         Markdown headers, 'list' for indented list)
     :param max_level: maximum header levels to parse (1-3)
     :param out_file_name: path to the output file
+    :param warn_on_malformed: if True, emit warnings for malformed headers
+        instead of raising exceptions
     """
     hdbg.dassert_isinstance(lines, list)
     # Join lines to parse as JSON.
@@ -225,7 +255,9 @@ def _extract_headers_from_notebook(
     header_list = hmarkdo.extract_headers_from_markdown(
         markdown_lines, max_level=max_level, sanity_check=sanity_check
     )
-    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
+    _extract_and_write_headers(
+        input_file_name, header_list, mode, out_file_name, warn_on_malformed
+    )
 
 
 # #############################################################################
@@ -253,6 +285,11 @@ def _parse() -> argparse.ArgumentParser:
         default=3,
         help="Maximum header levels to parse",
     )
+    parser.add_argument(
+        "--warn_on_malformed",
+        action="store_true",
+        help="Emit warnings for malformed headers instead of raising exceptions",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -267,21 +304,42 @@ def _main(parser: argparse.ArgumentParser) -> None:
     input_content = hparser.from_file(in_file_name)
     # Detect file type and dispatch to appropriate extraction function.
     _, ext = os.path.splitext(in_file_name)
+    warn_on_malformed = args.warn_on_malformed
     if ext == ".md":
         _extract_headers_from_markdown(
-            in_file_name, input_content, args.mode, args.max_level, out_file_name
+            in_file_name,
+            input_content,
+            args.mode,
+            args.max_level,
+            out_file_name,
+            warn_on_malformed,
         )
     elif ext == ".tex":
         _extract_headers_from_latex(
-            in_file_name, input_content, args.mode, args.max_level, out_file_name
+            in_file_name,
+            input_content,
+            args.mode,
+            args.max_level,
+            out_file_name,
+            warn_on_malformed,
         )
     elif ext == ".txt":
         _extract_headers_from_txtslides(
-            in_file_name, input_content, args.mode, args.max_level, out_file_name
+            in_file_name,
+            input_content,
+            args.mode,
+            args.max_level,
+            out_file_name,
+            warn_on_malformed,
         )
     elif ext == ".ipynb":
         _extract_headers_from_notebook(
-            in_file_name, input_content, args.mode, args.max_level, out_file_name
+            in_file_name,
+            input_content,
+            args.mode,
+            args.max_level,
+            out_file_name,
+            warn_on_malformed,
         )
     else:
         raise ValueError(f"Unsupported file type: {in_file_name}")

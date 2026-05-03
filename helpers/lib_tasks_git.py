@@ -22,7 +22,7 @@ import helpers.hsystem as hsystem
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hunit_test_utils as hunittestu
+import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks_gh as hlitagh
 import helpers.lib_tasks_utils as hlitauti
 
@@ -443,11 +443,11 @@ def git_files(  # type: ignore
         remove_dirs,
     )
     # Parse file_types string into a list.
-    file_types_list = [ext.strip() for ext in file_types.split(",") if ext.strip()]
+    file_types_list = [
+        ext.strip() for ext in file_types.split(",") if ext.strip()
+    ]
     # Filter by file type.
-    files_as_list = _filter_git_files_by_type(
-        files_as_list, file_types_list
-    )
+    files_as_list = _filter_git_files_by_type(files_as_list, file_types_list)
     # Handle different output modes.
     hdbg.dassert_in(
         mode,
@@ -457,15 +457,19 @@ def git_files(  # type: ignore
     if mode == "files":
         output_list = sorted(files_as_list)
     elif mode == "test_files":
-        test_files = hunittestu.get_test_files_for_sources(files_as_list)
+        test_files = hunteuti.get_test_files_for_sources(files_as_list)
         output_list = sorted(test_files)
     else:  # mode == "test_dirs"
-        test_files = hunittestu.get_test_files_for_sources(files_as_list)
-        test_dirs = hunittestu.get_parent_dirs(test_files)
+        test_files = hunteuti.get_test_files_for_sources(files_as_list)
+        test_dirs = hunteuti.get_parent_dirs(test_files)
         output_list = sorted(test_dirs)
+    # Print results in two formats: vertical (one per line) and horizontal
+    # (space-separated).
+    print(hprint.frame("Results", char1="="))
     print("\n".join(output_list))
-    # Optionally copy the file list to clipboard for easy pasting.
+    # Optionally display and copy the file list to clipboard for easy pasting.
     if not only_print_files:
+        print(hprint.frame("On one line", char1="="))
         res = " ".join(output_list)
         hsystem.to_pbcopy(res, pbcopy)
 
