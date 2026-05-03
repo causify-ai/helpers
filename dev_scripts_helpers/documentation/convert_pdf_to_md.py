@@ -14,19 +14,19 @@ Automatically installs dependencies via `uv` if missing.
 
 Usage:
 # Convert PDF to markdown with images.
-> pdf_to_md.py \
+> convert_pdf_to_md.py \
     --input document.pdf \
     --output output_dir
 
 # With verbose logging.
-> pdf_to_md.py \
+> convert_pdf_to_md.py \
     --input document.pdf \
     --output output_dir \
     -v DEBUG
 
 Import as:
 
-import dev_scripts_helpers.documentation.pdf_to_md as dsdopema
+import dev_scripts_helpers.documentation.convert_pdf_to_md as dsdopema
 import dev_scripts_helpers.dockerize.lib_prettier as lib_prettier
 """
 

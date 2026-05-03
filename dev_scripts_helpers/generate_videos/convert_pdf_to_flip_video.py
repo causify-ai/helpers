@@ -11,8 +11,8 @@ Requirements (macOS):
    pip install pdf2image moviepy pillow
 
 Usage:
-> pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
-> pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --style slide --transition 0.6
+> convert_pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
+> convert_pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --style slide --transition 0.6
 
 Notes:
 - "crossfade" dissolves between pages (implemented with ImageSequenceClip for MoviePy 2.x).

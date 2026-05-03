@@ -492,6 +492,25 @@ def check_env_to_str(
     self_.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
+def is_test_file(file_path: str) -> bool:
+    """
+    Check if a file is a test file.
+
+    A file is considered a test file if:
+    - It contains "/test/" in its path, OR
+    - Its basename starts with "test_", OR
+    - Its basename ends with "_test.py"
+
+    :param file_path: path to check
+    :return: True if file_path is a test file, False otherwise
+    """
+    return (
+        "/test/" in file_path
+        or file_path.split("/")[-1].startswith("test_")
+        or file_path.endswith("_test.py")
+    )
+
+
 def get_test_file_for_source(source_file: str) -> Optional[str]:
     """
     Map a source Python file to its corresponding test file.
@@ -502,19 +521,72 @@ def get_test_file_for_source(source_file: str) -> Optional[str]:
     :return: path to corresponding test file if it exists and source is not
              already a test file; None otherwise
     """
-    base_name = os.path.basename(source_file)
-    is_test = (
-        "test" in source_file.split("/")
-        and base_name.startswith("test_")
-        and source_file.endswith(".py")
-    )
-    if is_test:
+    if is_test_file(source_file):
         return None
+    base_name = os.path.basename(source_file)
     dir_name = os.path.dirname(source_file)
     test_file = os.path.join(dir_name, "test", f"test_{base_name}")
     if os.path.exists(test_file):
         return test_file
     return None
+
+
+def get_test_files_for_sources(files: List[str]) -> List[str]:
+    """
+    Map a list of source files to their corresponding test files.
+
+    Filters out test files from the input list, then maps each source file
+    to its corresponding test file using `get_test_file_for_source`.
+
+    :param files: list of file paths (may include both source and test files)
+    :return: list of test files that exist for the source files
+    """
+    source_files = [f for f in files if not is_test_file(f)]
+    test_files = []
+    for file_path in source_files:
+        test_file = get_test_file_for_source(file_path)
+        if test_file:
+            test_files.append(test_file)
+    return test_files
+
+
+def get_parent_dirs(files: List[str]) -> List[str]:
+    """
+    Get the minimal set of parent directories that contain all given files.
+
+    Extracts the parent directory of each file, removes duplicates, and then
+    removes any directory that is a subdirectory of another directory in the
+    set. Files at the root level (with empty parent dir) are assigned to ".".
+
+    Example:
+        Input: ["dev_scripts_helpers/scraping/process_hn_article.py",
+                "dev_scripts_helpers/scraping/test/__init__.py",
+                "helpers/hgit.py",
+                "helpers/lib_tasks_utils.py"]
+        Output: ["dev_scripts_helpers/scraping", "helpers"]
+
+    :param files: list of file paths
+    :return: list of minimal parent directories
+    """
+    if not files:
+        return []
+    dirs = set()
+    for file_path in files:
+        dir_path = os.path.dirname(file_path)
+        if not dir_path:
+            dir_path = "."
+        dirs.add(dir_path)
+    dirs = sorted(dirs)
+    minimal_dirs = []
+    for d in dirs:
+        is_subdir = False
+        for other_d in dirs:
+            if d != other_d and d.startswith(other_d + "/"):
+                is_subdir = True
+                break
+        if not is_subdir:
+            minimal_dirs.append(d)
+    return minimal_dirs
 
 
 # #############################################################################

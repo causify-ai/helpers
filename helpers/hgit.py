@@ -17,7 +17,6 @@ import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.repo_config_utils as hrecouti
 
 # This module can depend only on:
 # - Python standard modules
@@ -102,9 +101,10 @@ def _get_branch_next_name_via_github_api(
     :return: next available branch name or None if GitHub API is not available
     """
     try:
-        # Query merged PRs and extract branch names matching pattern.
+        # Query all PRs (merged, closed, open) and extract branch names
+        # matching pattern.
         cmd = (
-            "gh pr list --state merged --json headRefName "
+            "gh pr list --state all --json headRefName "
             "| jq -r '.[].headRefName | select(test(\"^{branch}_[0-9]+$\"))' "
             "| sed 's/.*_//' | sort -rn | head -1"
         ).format(branch=re.escape(curr_branch_name))
@@ -113,14 +113,14 @@ def _get_branch_next_name_via_github_api(
         if ret != 0:
             _LOG.debug("GitHub API query failed, falling back to linear scan")
             return None
-        # Extract the highest number from merged branches.
+        # Extract the highest number from all branches.
         output = output.strip()
         if output:
             highest_num = int(output)
             next_num = highest_num + 1
             new_branch_name = f"{curr_branch_name}_{next_num}"
             _LOG.info(
-                "Found highest number '%s' in merged branches, next is '%s'",
+                "Found highest number '%s' in all branches, next is '%s'",
                 highest_num,
                 next_num,
             )
@@ -538,6 +538,8 @@ def _is_repo(repo_short_name: str) -> bool:
     :param repo_short_name: the short name of the repository to check (e.g., "helpers", "amp")
     :return: True if the current directory is in the specified repository
     """
+    import helpers.repo_config_utils as hrecouti
+
     curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     is_repo = bool(curr_repo_short_name == repo_short_name)
     return is_repo
@@ -1203,6 +1205,8 @@ def get_amp_abs_path() -> str:
     _LOG.debug("repo_sym_name=%s", repo_sym_name)
     #
     repo_sym_names = ["alphamatic/amp"]
+    import helpers.repo_config_utils as hrecouti
+
     extra_amp_repo_sym_name = (
         hrecouti.get_repo_config().get_extra_amp_repo_sym_name()
     )
