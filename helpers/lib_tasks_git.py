@@ -398,7 +398,11 @@ def _filter_git_files_by_type(
         is_py = f.endswith(".py")
         is_ipynb = f.endswith(".ipynb")
         is_md = f.endswith(".md")
-        if (is_py and keep_python) or (is_ipynb and keep_jupyter) or (is_md and keep_markdown):
+        if (
+            (is_py and keep_python)
+            or (is_ipynb and keep_jupyter)
+            or (is_md and keep_markdown)
+        ):
             filtered.append(f)
     return filtered
 
