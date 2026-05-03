@@ -12,7 +12,7 @@ import subprocess
 import time
 from typing import Any, List
 
-from invoke.tasks import task
+from invoke import task
 
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem
@@ -22,7 +22,6 @@ import helpers.hsystem as hsystem
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks_gh as hlitagh
 import helpers.lib_tasks_utils as hlitauti
 
@@ -265,7 +264,7 @@ def git_patch_create(  # type: ignore
     in `_get_files_to_process()`.
 
     :param mode: what kind of patch to create
-        - "diff": creates a patch with the diff of the files
+        - "diff": (default) creates a patch with the diff of the files
         - "tar": creates a tar ball with all the files
     """
     hlitauti.report_task(
@@ -378,7 +377,9 @@ def git_patch_create(  # type: ignore
 
 def _filter_git_files_by_type(
     file_paths: List[str],
-    file_extensions: List[str],
+    keep_python: bool,
+    keep_jupyter: bool,
+    keep_markdown: bool,
 ) -> List[str]:
     """
     Filter files by type for git_files task.
@@ -387,16 +388,23 @@ def _filter_git_files_by_type(
     and does not separate paired jupytext files.
 
     :param file_paths: files to filter
-    :param file_extensions: list of file extensions to include (e.g., ["py", "ipynb", "md"])
+    :param keep_python: include Python files
+    :param keep_jupyter: include Jupyter notebooks
+    :param keep_markdown: include Markdown files
     :return: filtered list of files
     """
-    hdbg.dassert_isinstance(file_extensions, list)
     filtered = []
     for f in file_paths:
-        for ext in file_extensions:
-            if f.endswith(f".{ext}"):
-                filtered.append(f)
-                break
+        is_py = f.endswith(".py")
+        is_ipynb = f.endswith(".ipynb")
+        is_md = f.endswith(".md")
+        if is_py and not keep_python:
+            continue
+        if is_ipynb and not keep_jupyter:
+            continue
+        if is_md and not keep_markdown:
+            continue
+        filtered.append(f)
     return filtered
 
 
@@ -406,29 +414,21 @@ def git_files(  # type: ignore
     modified=False,
     branch=False,
     last_commit=False,
-    file_types="",
+    keep_python=True,
+    keep_jupyter=True,
+    keep_markdown=True,
     pbcopy=False,
     only_print_files=False,
-    test_files=False,
-    test_dir=False,
 ):
     """
     Report which files are changed in the current branch with respect to master.
 
     The params have the same meaning as in `_get_files_to_process()`.
 
-    Examples:
-    > invoke git_files --modified
-    > invoke git_files --branch --file_types "py,ipynb"
-    > invoke git_files --last_commit --file_types "py"
-    > invoke git_files --modified --test_files
-    > invoke git_files --modified --test_dir
-
-    :param file_types: comma-separated list of file extensions to include
-        - E.g., "py,ipynb,md"
-    :param only_print_files: only print files without logging headers/footers
-    :param test_files: report test files corresponding to source files
-    :param test_dir: report minimal set of directories containing the files
+    :param keep_python: include Python files (default: True)
+    :param keep_jupyter: include Jupyter notebooks (default: True)
+    :param keep_markdown: include Markdown files (default: True)
+    :param only_print_files: only print files without logging headers/footers (default: False)
     """
     if not only_print_files:
         hlitauti.report_task()
@@ -447,19 +447,10 @@ def git_files(  # type: ignore
         mutually_exclusive,
         remove_dirs,
     )
-    # Parse file_types into a list of extensions.
-    if file_types:
-        file_extensions = [ext.strip() for ext in file_types.split(",")]
-        # Filter by file type.
-        files_as_list = _filter_git_files_by_type(files_as_list, file_extensions)
-    else:
-        # file_types="" means every file, so don't filter.
-        pass
-    # Optionally transform the file list based on test_files or test_dir flags.
-    if test_files:
-        files_as_list = hunteuti.get_test_files_for_sources(files_as_list)
-    elif test_dir:
-        files_as_list = hunteuti.get_parent_dirs(files_as_list)
+    # Filter by file type.
+    files_as_list = _filter_git_files_by_type(
+        files_as_list, keep_python, keep_jupyter, keep_markdown
+    )
     print("\n".join(sorted(files_as_list)))
     # Optionally copy the file list to clipboard for easy pasting.
     if not only_print_files:
@@ -574,7 +565,7 @@ def git_branch_create(  # type: ignore
         issue
     :param repo_short_name: name of the GitHub repo_short_name that the `issue_id`
         belongs to
-        - "current": the current repo_short_name
+        - "current" (default): the current repo_short_name
         - short name (e.g., "amp", "lm") of the branch
     :param suffix: suffix (e.g., "02") to add to the branch name when using issue_id
     :param only_branch_from_master: only allow to branch from master
@@ -777,7 +768,7 @@ def git_branch_next_name(ctx, branch_name=None, method="auto"):  # type: ignore
 
     :param branch_name: if `None` use the current branch name, otherwise specify it
     :param method: method to use ('auto', 'github_api', 'linear_scan')
-        - 'auto': tries GitHub API first, falls back to linear scan
+        - 'auto' (default): tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
 
@@ -853,7 +844,7 @@ def git_branch_copy(  # type: ignore
         cmd = f"git checkout {new_branch_name}"
     else:
         # Create new branch from master as base.
-        cmd = f"git checkout master && invoke git_branch_create -b '{new_branch_name}'"
+        cmd = f"git checkout master && invoke git_branch_create --branch_name '{new_branch_name}'"
         if not check_branch_name:
             cmd += " --no-check-branch-name"
     hlitauti.run(ctx, cmd)
@@ -1349,13 +1340,14 @@ def git_backup(
     repository and optionally its submodules.
 
     The zip file is created with a timestamp-based name in the specified
-    backup directory.
+    backup directory (default: $HOME/src/backups).
     Example: `modified_files.helpers_root.20251119_130034.zip`
 
-    :param file_mode: which files to include: "all", "modified", or
+    :param file_mode: which files to include: "all" (default), "modified", or
         "untracked"
-    :param backup_dir: directory where to save the zip file
-    :param include_subrepos: whether to include submodule files
+    :param backup_dir: directory where to save the zip file (default:
+        $HOME/src/backups)
+    :param include_subrepos: whether to include submodule files (default: True)
     :param dry_run: if True, only print the files that would be included
         without creating the zip
     """
