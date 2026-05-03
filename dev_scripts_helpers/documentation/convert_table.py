@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run
 # /// script
-# dependencies = ["pandas"]
+# dependencies = ["pandas", "tabulate"]
 # ///
 """
 Convert markdown tables, CSV, and TSV formats.
@@ -135,7 +135,7 @@ def _format_as_md(header: List[str], rows: List[List[str]]) -> str:
     hdbg.dassert_isinstance(header, list)
     hdbg.dassert_isinstance(rows, list)
     hdbg.dassert_lt(0, len(header), "Header is empty")
-    df = pd.DataFrame(rows, columns=list(header))
+    df = pd.DataFrame(rows, columns=header)
     result = df.to_markdown(index=False)
     if result is None:
         raise ValueError("Failed to format as markdown")
