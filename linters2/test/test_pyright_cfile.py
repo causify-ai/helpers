@@ -184,12 +184,12 @@ class Test__transform_pyright_output(hunitest.TestCase):
                 {
                     "file": "convert_table.py",
                     "message": (
-                        "Argument of type \"list[str]\" cannot be assigned to "
-                        "parameter \"columns\" of type \"Axes | None\"\n"
-                        "  Type \"list[str]\" is not assignable to type "
-                        "\"Axes | None\"\n"
-                        "    \"list[str]\" is not assignable to "
-                        "\"ExtensionArray\""
+                        'Argument of type "list[str]" cannot be assigned to '
+                        'parameter "columns" of type "Axes | None"\n'
+                        '  Type "list[str]" is not assignable to type '
+                        '"Axes | None"\n'
+                        '    "list[str]" is not assignable to '
+                        '"ExtensionArray"'
                     ),
                     "range": {"start": {"line": 137, "character": 36}},
                 }
@@ -198,8 +198,8 @@ class Test__transform_pyright_output(hunitest.TestCase):
         # Prepare outputs.
         expected = (
             "convert_table.py:138:37: "
-            "Argument of type \"list[str]\" cannot be assigned to "
-            "parameter \"columns\" of type \"Axes | None\",   T..."
+            'Argument of type "list[str]" cannot be assigned to '
+            'parameter "columns" of type "Axes | None",   T...'
         )
         # Run test.
         self.helper(json_data, expected)

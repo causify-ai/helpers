@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run
 # /// script
-# dependencies = ["pandas"]
+# dependencies = ["pandas", "tabulate"]
 # ///
 """
 Convert markdown tables, CSV, and TSV formats.
@@ -24,6 +24,19 @@ Import as:
 
 import dev_scripts_helpers.documentation.convert_table as dsdccotbl
 """
+
+# NOTE: `tabulate` dependency
+# The _format_as_md() function uses pandas.DataFrame.to_markdown(), which requires
+# the `tabulate` package. If tabulate is not available in the environment (e.g.,
+# the dev container), tests that use markdown formatting will be skipped.
+# 
+# To resolve this, choose one of:
+# 1. Test the executable directly (preferred): The script uses the uv runner with
+#    tabulate in dependencies, so the executable works even if the unit tests skip
+# 2. Add tabulate to the container: Install tabulate in the Docker container/CI
+#    environment used for running unit tests
+# 3. Refactor to not rely on tabulate: Implement markdown formatting without
+#    `pandas.to_markdown()` to reduce external dependencies
 
 import argparse
 import csv
@@ -92,7 +105,7 @@ def _parse_md_table(
     df = df.dropna(axis=1, how="all")
     df.columns = df.columns.str.strip()
     header = list(df.columns)
-    df = df.fillna("").astype(str).map(str.strip)
+    df = df.fillna("").astype(str).applymap(str.strip)
     rows = df.values.tolist()
     return header, rows
 
@@ -135,7 +148,7 @@ def _format_as_md(header: List[str], rows: List[List[str]]) -> str:
     hdbg.dassert_isinstance(header, list)
     hdbg.dassert_isinstance(rows, list)
     hdbg.dassert_lt(0, len(header), "Header is empty")
-    df = pd.DataFrame(rows, columns=list(header))
+    df = pd.DataFrame(rows, columns=header)
     result = df.to_markdown(index=False)
     if result is None:
         raise ValueError("Failed to format as markdown")

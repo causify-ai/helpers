@@ -2,7 +2,7 @@ import pytest
 
 pytest.importorskip("openai")
 
-import dev_scripts_helpers.documentation.generate_images as dscgenima
+import dev_scripts_helpers.documentation.generate_images as dshdgeim
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -27,7 +27,7 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Prepare inputs.
         content = hprint.dedent(content)
         # Run test.
-        actual = dscgenima._parse_descriptions_with_names(content)
+        actual = dshdgeim._parse_descriptions_with_names(content)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -120,7 +120,7 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         content = hprint.dedent(content)
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            dscgenima._parse_descriptions_with_names(content)
+            dshdgeim._parse_descriptions_with_names(content)
         # Verify error message contains information about unprocessed lines.
         error_message = str(cm.exception)
         self.assertIn("Found lines that were not processed", error_message)
@@ -140,7 +140,10 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         """
         # Prepare outputs.
         expected = [
-            ("Prompt_A", "First paragraph.\n\nSecond paragraph after blank line."),
+            (
+                "Prompt_A",
+                "First paragraph.\n\nSecond paragraph after blank line.",
+            ),
             ("Prompt_B", "Another prompt."),
         ]
         # Run test.

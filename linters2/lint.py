@@ -85,7 +85,6 @@ _DEFAULT_ACTIONS = [
 ]
 
 
-
 # #############################################################################
 # Linting Functions
 # #############################################################################
@@ -120,7 +119,9 @@ def _run_linting_actions(
         )
     if "normalize_import" in actions:
         print(hprint.frame("linters2/normalize_import.py", char1="-"))
-        cmd = f"linters2/normalize_import.py --no_report_command_line {files_str}"
+        cmd = (
+            f"linters2/normalize_import.py --no_report_command_line {files_str}"
+        )
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
             cmd,
@@ -130,7 +131,9 @@ def _run_linting_actions(
         )
     if "add_class_frames" in actions:
         print(hprint.frame("Running linters2/add_class_frames.py", char1="-"))
-        cmd = f"linters2/add_class_frames.py --no_report_command_line {files_str}"
+        cmd = (
+            f"linters2/add_class_frames.py --no_report_command_line {files_str}"
+        )
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
             cmd,
