@@ -54,7 +54,8 @@ def _transform_pyright_output(json_output: str) -> str:
         start = range_info.get("start", {})
         line = start.get("line", 0) + 1
         character = start.get("character", 0) + 1
-        lines.append(f"{file_path}:{line}:{character}: {message}")
+        severity = diagnostic.get("severity", "information").lower()
+        lines.append(f"{file_path}:{line}:{character}: {severity}: {message}")
     # Parse and format summary.
     summary = data.get("summary", {})
     if summary:

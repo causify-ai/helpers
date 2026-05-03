@@ -137,7 +137,7 @@
 
 ## Code Formatting in Tests
 
-### Align Strings to the Code
+### Dedent Strings to the Code
 
 - Align multi-line strings with the indentation of surrounding code:
   - **Bad**: String starts at column 0

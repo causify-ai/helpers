@@ -13,7 +13,17 @@ end_line_num) and save it to
 
 -o <file>
 
-Make a plan and get the user to accept it
+In extract_text_from_txt.py
+
+if --start or --end are passed to None it means start or end of the file
+
+--start needs to be specified
+
+when --end is not specified the end_line_num is the one of the next header at the
+same level of the --start
+- E.g., --start "## Header", it means that --end is the next header of level <= 2
+
+Add unit tests to check these behaviors
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

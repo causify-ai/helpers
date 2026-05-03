@@ -263,14 +263,7 @@ def _lint_python_files(
         abort_on_error=abort_on_error,
         actions=actions,
     )
-    # Pyright and coverage run on all Python files including paired jupytext.
-    if "pyright" in actions:
-        files_str = " ".join(file_paths)
-        ret |= _run_linting_actions(
-            files_str,
-            abort_on_error=abort_on_error,
-            actions=["pyright"],
-        )
+    # Coverage runs on all Python files including paired jupytext.
     if "coverage" in actions:
         ret |= _run_coverage(
             file_paths,
