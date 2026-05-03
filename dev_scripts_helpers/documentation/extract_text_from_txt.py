@@ -237,7 +237,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     input_content = hparser.from_file(in_file_name)
     hdbg.dassert_isinstance(input_content, list)
     hdbg.dassert_ne(len(input_content), 0, "Input file is empty")
-    import os
     _, ext = os.path.splitext(in_file_name)
     if ext == ".md":
         extracted_lines = _extract_text_from_markdown(

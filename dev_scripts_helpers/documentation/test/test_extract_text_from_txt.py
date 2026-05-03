@@ -1,13 +1,13 @@
 import logging
 import os
+from typing import List
 
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-# TODO(ai_gp): Use the import
-import dev_scripts_helpers.documentation.extract_text_from_txt as extract_text_from_txt
+import dev_scripts_helpers.documentation.extract_text_from_txt as dshdetftx
 
 _LOG = logging.getLogger(__name__)
 
@@ -23,8 +23,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
     """
 
     @staticmethod
-    # TODO(ai_gp): Use List[str] types everywhere
-    def _to_lines(text: str) -> list[str]:
+    def _to_lines(text: str) -> List[str]:
         return hprint.dedent(text).strip().split("\n")
 
     def test1(self) -> None:
@@ -47,7 +46,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             """
         lines = self._to_lines(text)
         # Run test.
-        actual = extract_text_from_txt._extract_text_from_markdown(
+        actual = dshdetftx._extract_text_from_markdown(
             lines, "# Methods", "# Results"
         )
         # Check outputs.
@@ -79,9 +78,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             """
         lines = self._to_lines(text)
         # Run test.
-        actual = extract_text_from_txt._extract_text_from_markdown(
-            lines, "# Methods", None
-        )
+        actual = dshdetftx._extract_text_from_markdown(lines, "# Methods", None)
         # Check outputs.
         expected_text = """
             # Methods
@@ -111,7 +108,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             """
         lines = self._to_lines(text)
         # Run test: extract from ## Section 1.1 to ## Section 1.2 (next same level)
-        actual = extract_text_from_txt._extract_text_from_markdown(
+        actual = dshdetftx._extract_text_from_markdown(
             lines, "## Section 1.1", None
         )
         # Check outputs.
@@ -141,7 +138,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             """
         lines = self._to_lines(text)
         # Run test: extract from ## Section 1.1 with no explicit end
-        actual = extract_text_from_txt._extract_text_from_markdown(
+        actual = dshdetftx._extract_text_from_markdown(
             lines, "## Section 1.1", None
         )
         # Check outputs: should stop at next level 1 header
@@ -166,9 +163,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         lines = self._to_lines(text)
         # Run test and check output.
         with self.assertRaises(Exception):
-            extract_text_from_txt._extract_text_from_markdown(
-                lines, "# Nonexistent", None
-            )
+            dshdetftx._extract_text_from_markdown(lines, "# Nonexistent", None)
 
     def test6(self) -> None:
         """
@@ -183,7 +178,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         lines = self._to_lines(text)
         # Run test and check output.
         with self.assertRaises(Exception):
-            extract_text_from_txt._extract_text_from_markdown(
+            dshdetftx._extract_text_from_markdown(
                 lines, "# Introduction", "# Nonexistent"
             )
 
@@ -353,4 +348,6 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         Test error when no --start argument provided.
         """
         # Run test and check output.
-        self._assert_script_fails("", "Expected script to fail when --start is missing")
+        self._assert_script_fails(
+            "", "Expected script to fail when --start is missing"
+        )
