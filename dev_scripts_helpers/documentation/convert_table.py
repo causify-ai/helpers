@@ -92,7 +92,7 @@ def _parse_md_table(
     df = df.dropna(axis=1, how="all")
     df.columns = df.columns.str.strip()
     header = list(df.columns)
-    df = df.fillna("").astype(str).applymap(str.strip)
+    df = df.fillna("").astype(str).map(str.strip)
     rows = df.values.tolist()
     return header, rows
 
