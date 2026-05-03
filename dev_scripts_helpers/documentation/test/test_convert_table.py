@@ -1,8 +1,17 @@
 from typing import List
 
+import pytest
+
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.documentation.convert_table as dshdcota
+
+# Check if tabulate is available (required by _format_as_md which uses pandas.to_markdown)
+try:
+    import tabulate  # noqa: F401, pylint: disable=unused-import
+    _TABULATE_AVAILABLE = True
+except ImportError:
+    _TABULATE_AVAILABLE = False
 
 
 # #############################################################################
@@ -152,6 +161,12 @@ class Test_convert_table_formatting(hunitest.TestCase):
     Test table formatting functions.
     """
 
+    @pytest.mark.skipif(
+        not _TABULATE_AVAILABLE,
+        reason="Requires tabulate dependency for pandas.to_markdown(). "
+        "Either test the executable, add tabulate to the container, "
+        "or refactor code to not rely on tabulate.",
+    )
     def test1(self) -> None:
         """
         Test formatting table as markdown.
@@ -171,6 +186,12 @@ class Test_convert_table_formatting(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(result, expected, dedent=True)
 
+    @pytest.mark.skipif(
+        not _TABULATE_AVAILABLE,
+        reason="Requires tabulate dependency for pandas.to_markdown(). "
+        "Either test the executable, add tabulate to the container, "
+        "or refactor code to not rely on tabulate.",
+    )
     def test2(self) -> None:
         """
         Test markdown formatting with varying column widths.
@@ -237,6 +258,12 @@ class Test_convert_table_roundtrip(hunitest.TestCase):
     Test roundtrip conversions (format A -> format B -> format A).
     """
 
+    @pytest.mark.skipif(
+        not _TABULATE_AVAILABLE,
+        reason="Requires tabulate dependency for pandas.to_markdown(). "
+        "Either test the executable, add tabulate to the container, "
+        "or refactor code to not rely on tabulate.",
+    )
     def test1(self) -> None:
         """
         Test CSV -> Markdown -> CSV roundtrip.
@@ -260,6 +287,12 @@ class Test_convert_table_roundtrip(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(csv_output, expected)
 
+    @pytest.mark.skipif(
+        not _TABULATE_AVAILABLE,
+        reason="Requires tabulate dependency for pandas.to_markdown(). "
+        "Either test the executable, add tabulate to the container, "
+        "or refactor code to not rely on tabulate.",
+    )
     def test2(self) -> None:
         """
         Test Markdown -> CSV -> Markdown roundtrip.
