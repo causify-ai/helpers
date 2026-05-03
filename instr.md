@@ -13,7 +13,7 @@ end_line_num) and save it to
 
 -o <file>
 
-Make a plan
+Make a plan and get the user to accept it
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

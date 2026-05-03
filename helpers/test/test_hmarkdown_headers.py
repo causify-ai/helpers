@@ -99,6 +99,16 @@ def get_header_list5() -> hmarkdo.HeaderList:
     return header_list
 
 
+def get_header_list_with_duplicate_level1() -> hmarkdo.HeaderList:
+    data = [
+        (1, "Chapter 1"),
+        (2, "Section 1.1"),
+        (1, "Chapter 1"),
+    ]
+    header_list = _to_header_list(data)
+    return header_list
+
+
 def _get_markdown_example1() -> str:
     content = r"""
     # Header1
@@ -1241,6 +1251,35 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         header_list = get_header_list5()
         # Call function.
         hmarkdo.sanity_check_header_list(header_list)
+
+    def test_warn_on_malformed_valid(self) -> None:
+        """
+        Test that a valid header list passes with warn_on_malformed=True.
+        """
+        # Prepare inputs.
+        header_list = get_header_list1()
+        # Call function - should not raise or warn.
+        hmarkdo.sanity_check_header_list(header_list, warn_on_malformed=True)
+
+    def test_warn_on_malformed_level_jump(self) -> None:
+        """
+        Test that warn_on_malformed=True emits warning instead of raising
+        for level jumps.
+        """
+        # Prepare inputs.
+        header_list = get_header_list4()
+        # Call function - should not raise with warn_on_malformed=True.
+        hmarkdo.sanity_check_header_list(header_list, warn_on_malformed=True)
+
+    def test_warn_on_malformed_duplicate_headers(self) -> None:
+        """
+        Test that warn_on_malformed=True emits warning instead of raising
+        for duplicate level 1 headers.
+        """
+        # Prepare inputs.
+        header_list = get_header_list_with_duplicate_level1()
+        # Call function - should not raise with warn_on_malformed=True.
+        hmarkdo.sanity_check_header_list(header_list, warn_on_malformed=True)
 
 
 # #############################################################################

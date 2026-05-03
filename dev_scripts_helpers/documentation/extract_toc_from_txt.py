@@ -85,13 +85,7 @@ def _extract_and_write_headers(
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
     hparser.to_file(output_content, out_file_name)
     # Sanity check the headers.
-    if warn_on_malformed:
-        try:
-            hmarkdo.sanity_check_header_list(header_list)
-        except (ValueError, AssertionError) as e:
-            _LOG.warning(f"Malformed header structure: {e}")
-    else:
-        hmarkdo.sanity_check_header_list(header_list)
+    hmarkdo.sanity_check_header_list(header_list, warn_on_malformed=warn_on_malformed)
 
 
 def _extract_headers_from_markdown(
