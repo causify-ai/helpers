@@ -106,7 +106,7 @@ def integrate_create_branch(ctx, dir_basename, dry_run=False):  # type: ignore
     branch_name = f"AmpTask1786_Integrate_{date_as_str}"
     # query_yes_no("Are you sure you want to create the branch ")
     _LOG.info("Creating branch '%s'", branch_name)
-    cmd = f"invoke git_branch_create --branch_name '{branch_name}'"
+    cmd = f"invoke git_branch_create --branch-name '{branch_name}'"
     hlitauti.run(ctx, cmd, dry_run=dry_run)
 
 

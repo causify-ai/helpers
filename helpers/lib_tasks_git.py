@@ -578,7 +578,7 @@ def git_branch_create(  # type: ignore
         hdbg.dassert_eq(
             branch_name,
             "",
-            "Cannot specify both --issue and --branch_name; choose one",
+            "Cannot specify both --issue and --branch-name; choose one",
         )
         title, _ = hlitagh._get_gh_issue_title(issue_id, repo_short_name)
         branch_name = title
@@ -844,7 +844,7 @@ def git_branch_copy(  # type: ignore
         cmd = f"git checkout {new_branch_name}"
     else:
         # Create new branch from master as base.
-        cmd = f"git checkout master && invoke git_branch_create --branch_name '{new_branch_name}'"
+        cmd = f"git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'"
         if not check_branch_name:
             cmd += " --no-check-branch-name"
     hlitauti.run(ctx, cmd)
