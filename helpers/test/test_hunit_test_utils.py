@@ -345,3 +345,209 @@ class Test_get_test_file_for_source(hunitest.TestCase):
         """
         actual = hunteuti.get_test_file_for_source("helpers/test/test_hdbg.py")
         self.assertIsNone(actual)
+
+
+# #############################################################################
+# TestIsTestFile
+# #############################################################################
+
+
+class TestIsTestFile(hunitest.TestCase):
+    """
+    Test test file detection.
+    """
+
+    def test_path_with_test_dir(self) -> None:
+        """
+        Path containing /test/ is detected as test file.
+        """
+        actual = hunteuti.is_test_file("helpers/test/test_hdbg.py")
+        self.assertTrue(actual)
+
+    def test_path_with_test_prefix(self) -> None:
+        """
+        Basename starting with test_ is detected as test file.
+        """
+        actual = hunteuti.is_test_file("helpers/test_hdbg.py")
+        self.assertTrue(actual)
+
+    def test_path_with_test_suffix(self) -> None:
+        """
+        Basename ending with _test.py is detected as test file.
+        """
+        actual = hunteuti.is_test_file("helpers/hdbg_test.py")
+        self.assertTrue(actual)
+
+    def test_source_file(self) -> None:
+        """
+        Source file path is not detected as test file.
+        """
+        actual = hunteuti.is_test_file("helpers/hdbg.py")
+        self.assertFalse(actual)
+
+    def test_nested_path_with_test(self) -> None:
+        """
+        Path with /test/ anywhere is detected as test file.
+        """
+        actual = hunteuti.is_test_file(
+            "dev_scripts_helpers/scraping/test/__init__.py"
+        )
+        self.assertTrue(actual)
+
+
+# #############################################################################
+# TestGetTestFilesForSources
+# #############################################################################
+
+
+class TestGetTestFilesForSources(hunitest.TestCase):
+    """
+    Test mapping lists of source files to test files.
+    """
+
+    def test_mixed_files(self) -> None:
+        """
+        Mixed source and test files returns only matched test files.
+        """
+        files = [
+            "helpers/hdbg.py",
+            "helpers/test/test_hdbg.py",
+            "helpers/hio.py",
+        ]
+        actual = hunteuti.get_test_files_for_sources(files)
+        expected = [
+            "helpers/test/test_hdbg.py",
+            "helpers/test/test_hio.py",
+        ]
+        self.assertEqual(sorted(actual), sorted(expected))
+
+    def test_only_test_files(self) -> None:
+        """
+        Only test files as input returns empty list.
+        """
+        files = [
+            "helpers/test/test_hdbg.py",
+            "helpers/test/test_hio.py",
+        ]
+        actual = hunteuti.get_test_files_for_sources(files)
+        expected = []
+        self.assertEqual(actual, expected)
+
+    def test_only_source_files_with_tests(self) -> None:
+        """
+        Source files with existing tests return matching test files.
+        """
+        files = [
+            "helpers/hdbg.py",
+            "helpers/hio.py",
+        ]
+        actual = hunteuti.get_test_files_for_sources(files)
+        expected = [
+            "helpers/test/test_hdbg.py",
+            "helpers/test/test_hio.py",
+        ]
+        self.assertEqual(sorted(actual), sorted(expected))
+
+    def test_source_without_test(self) -> None:
+        """
+        Source file without test file is skipped.
+        """
+        files = ["tasks.py"]
+        actual = hunteuti.get_test_files_for_sources(files)
+        expected = []
+        self.assertEqual(actual, expected)
+
+    def test_empty_list(self) -> None:
+        """
+        Empty input returns empty list.
+        """
+        files = []
+        actual = hunteuti.get_test_files_for_sources(files)
+        expected = []
+        self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# TestGetParentDirs
+# #############################################################################
+
+
+class TestGetParentDirs(hunitest.TestCase):
+    """
+    Test extracting minimal parent directories from file list.
+    """
+
+    def test_single_file(self) -> None:
+        """
+        Single file returns its parent directory.
+        """
+        files = ["helpers/hdbg.py"]
+        actual = hunteuti.get_parent_dirs(files)
+        expected = ["helpers"]
+        self.assertEqual(actual, expected)
+
+    def test_files_in_same_dir(self) -> None:
+        """
+        Multiple files in same directory return that directory once.
+        """
+        files = [
+            "helpers/hdbg.py",
+            "helpers/hio.py",
+        ]
+        actual = hunteuti.get_parent_dirs(files)
+        expected = ["helpers"]
+        self.assertEqual(actual, expected)
+
+    def test_files_in_different_dirs(self) -> None:
+        """
+        Files in different directories return all distinct dirs.
+        """
+        files = [
+            "dev_scripts_helpers/scraping/process_hn_article.py",
+            "helpers/hgit.py",
+            "helpers/lib_tasks_utils.py",
+        ]
+        actual = hunteuti.get_parent_dirs(files)
+        expected = [
+            "dev_scripts_helpers/scraping",
+            "helpers",
+        ]
+        self.assertEqual(sorted(actual), sorted(expected))
+
+    def test_nested_dirs_dedup(self) -> None:
+        """
+        Nested directories are deduplicated to keep only parent.
+        """
+        files = [
+            "dev_scripts_helpers/scraping/process_hn_article.py",
+            "dev_scripts_helpers/scraping/test/__init__.py",
+            "helpers/hgit.py",
+            "helpers/lib_tasks_utils.py",
+        ]
+        actual = hunteuti.get_parent_dirs(files)
+        expected = [
+            "dev_scripts_helpers/scraping",
+            "helpers",
+        ]
+        self.assertEqual(sorted(actual), sorted(expected))
+
+    def test_empty_list(self) -> None:
+        """
+        Empty file list returns empty directory list.
+        """
+        files = []
+        actual = hunteuti.get_parent_dirs(files)
+        expected = []
+        self.assertEqual(actual, expected)
+
+    def test_root_level_files(self) -> None:
+        """
+        Files at root level are handled correctly.
+        """
+        files = [
+            "tasks.py",
+            "pyproject.toml",
+        ]
+        actual = hunteuti.get_parent_dirs(files)
+        expected = ["."]
+        self.assertEqual(actual, expected)

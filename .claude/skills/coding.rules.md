@@ -261,12 +261,14 @@
   # dependencies = ["pydeps", "networkx", "pyyaml", "graphviz"]
   # ///
   ```
-- List all external (non-stdlib, non-helpers) packages required by the script in the `dependencies` array
+- List all external (non-stdlib, non-helpers) packages required by the script in
+  the `dependencies` array
 - This allows scripts to be run directly without pre-installing packages: `./script.py`
 
 ## Use Standard Argument Helpers from `hparser`
 
-- Use `hparser` helper functions to add standard arguments instead of defining them manually
+- Use `hparser` helper functions to add standard arguments instead of defining
+  them manually
 - This ensures consistency across all scripts in the project
 
 - For verbosity/logging level:
@@ -278,7 +280,15 @@
 
 ## Use Action Idiom
 
-- When using `--action`
+- When using actions in a script use the functions in `helpers/hparser.py`
+  ```python
+  def add_action_arg(
+  def actions_to_string(
+  def select_actions(
+  def mark_action(
+  ```
+
+- E.g.,
 
   ```python
   actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)

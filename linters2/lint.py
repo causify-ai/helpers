@@ -84,8 +84,6 @@ _DEFAULT_ACTIONS = [
     "add_class_frames",
 ]
 
-_PYRIGHT_OPTIONS = "--outputjson"
-
 
 # #############################################################################
 # Linting Functions
@@ -121,7 +119,9 @@ def _run_linting_actions(
         )
     if "normalize_import" in actions:
         print(hprint.frame("linters2/normalize_import.py", char1="-"))
-        cmd = f"linters2/normalize_import.py --no_report_command_line {files_str}"
+        cmd = (
+            f"linters2/normalize_import.py --no_report_command_line {files_str}"
+        )
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
             cmd,
@@ -131,7 +131,9 @@ def _run_linting_actions(
         )
     if "add_class_frames" in actions:
         print(hprint.frame("Running linters2/add_class_frames.py", char1="-"))
-        cmd = f"linters2/add_class_frames.py --no_report_command_line {files_str}"
+        cmd = (
+            f"linters2/add_class_frames.py --no_report_command_line {files_str}"
+        )
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
             cmd,
@@ -141,10 +143,8 @@ def _run_linting_actions(
         )
     if "pyright" in actions:
         print(hprint.frame("Running pyright", char1="-"))
+        cmd = f"linters2/pyright_cfile.py {files_str}"
         _LOG.debug("> %s", cmd)
-        cmd = (
-            f"pyright {_PYRIGHT_OPTIONS} {files_str} | jq -r '.generalDiagnostics[] | \"\\(.file):\\(.range.start.line + 1):\\(.range.start.character + 1): \\(.message)\"'",
-        )
         ret |= hsystem.system(
             cmd,
             print_command=False,
@@ -165,15 +165,6 @@ def _run_linting_actions(
     return ret
 
 
-def _is_test_file(file_path: str) -> bool:
-    """Check if a file is a test file."""
-    return (
-        "/test/" in file_path
-        or file_path.split("/")[-1].startswith("test_")
-        or file_path.endswith("_test.py")
-    )
-
-
 def _run_coverage(
     file_paths: List[str],
     *,
@@ -183,31 +174,39 @@ def _run_coverage(
     Run pytest coverage for test files corresponding to source Python files.
 
     Maps each source file to its corresponding test file and runs:
+    ```
     > pytest --cov=. --cov-branch --cov-report term-missing --cov-report html
+    ```
+
+    Then generates a coverage report filtered to the modified source files:
+    ```
+    > coverage report --include='file1.py,file2.py,...'
+    ```
 
     :param file_paths: Source Python files to collect coverage for
     :param abort_on_error: whether to abort on first error
-    :return: return code from pytest
+    :return: return code from pytest and coverage report
     """
     if not file_paths:
         return 0
-    # Filter out test files (we only want source files)
-    source_files = [f for f in file_paths if not _is_test_file(f)]
+    # Find the source files.
+    source_files = [f for f in file_paths if not hunteuti.is_test_file(f)]
     if not source_files:
         _LOG.warning("No source files found (all files are test files)")
         return 0
-    _LOG.info("Collecting coverage for %d Python files", len(source_files))
-    test_files = []
-    for file_path in source_files:
-        test_file = hunteuti.get_test_file_for_source(file_path)
+    # Find the test files corresponding to the source files.
+    test_files = hunteuti.get_test_files_for_sources(source_files)
+    for source_file in source_files:
+        test_file = hunteuti.get_test_file_for_source(source_file)
         if test_file:
-            test_files.append(test_file)
-            _LOG.info("Source: %s -> Test: %s", file_path, test_file)
+            _LOG.info("Source: %s -> Test: %s", source_file, test_file)
         else:
-            _LOG.warning("No test file found for: %s", file_path)
+            _LOG.warning("No test file found for: %s", source_file)
     if not test_files:
         _LOG.warning("No test files found for any of the source files")
         return 0
+    # Collect the coverage from the test files.
+    _LOG.info("Collecting coverage for %d Python files", len(source_files))
     test_files_str = " ".join(test_files)
     cmd = f"pytest --cov=. --cov-branch --cov-report term-missing --cov-report html {test_files_str}"
     ret = hsystem.system(
@@ -216,6 +215,18 @@ def _run_coverage(
         abort_on_error=abort_on_error,
         suppress_output=False,
     )
+    # Generate coverage report filtered to modified source files.
+    if ret == 0 or not abort_on_error:
+        print(hprint.frame("Coverage report for modified files", char1="-"))
+        source_files_str = ",".join(source_files)
+        coverage_cmd = f"coverage report --include='{source_files_str}'"
+        _LOG.debug("> %s", coverage_cmd)
+        ret |= hsystem.system(
+            coverage_cmd,
+            print_command=False,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
     return ret
 
 

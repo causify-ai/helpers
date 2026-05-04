@@ -10,7 +10,7 @@
     + [`generate_slide_script.py`](#generate_slide_scriptpy)
     + [`generate_synthesia_videos.py`](#generate_synthesia_videospy)
     + [`get_synthesia_status.py`](#get_synthesia_statuspy)
-    + [`pdf_to_flip_video.py`](#pdf_to_flip_videopy)
+    + [`convert_pdf_to_flip_video.py`](#convert_pdf_to_flip_videopy)
     + [`stop_synthesia_videos.py`](#stop_synthesia_videospy)
   * [Synthesia Workflow](#synthesia-workflow)
 - [To Reorg](#to-reorg)
@@ -115,7 +115,7 @@ ID                                    Created              Updated              
 260927bd-aedf-4a62-8dd8-06abdd434900  2025-08-30 10:26:33  2025-08-30 10:30:16  Untitled                       complete  Yes
 ```
 
-### `pdf_to_flip_video.py`
+### `convert_pdf_to_flip_video.py`
 
 Creates a movie from a PDF that simulates turning pages. Supports different
 transition styles like crossfade and slide animations.
@@ -123,7 +123,7 @@ transition styles like crossfade and slide animations.
 Example:
 
 ```bash
-> pdf_to_flip_video.py file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
+> convert_pdf_to_flip_video.py file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
 ```
 
 ### `stop_synthesia_videos.py`
