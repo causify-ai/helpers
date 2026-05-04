@@ -541,7 +541,7 @@ def from_file(
     :return: contents of file as string
     """
     dassert_is_valid_file_name(file_name)
-    hdbg.dassert_path_exists(file_name)
+    hdbg.dassert_file_exists(file_name)
     data: str = ""
     if file_name.endswith((".gz", ".gzip")):
         # Open gzipped file.

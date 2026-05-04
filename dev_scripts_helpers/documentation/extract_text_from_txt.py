@@ -249,6 +249,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         raise ValueError(f"Unsupported file type: {in_file_name}")
     output_content = "\n".join(extracted_lines)
+    start_line_idx = next(
+        (i + 1 for i, line in enumerate(input_content) if line.lstrip() == args.start.lstrip()),
+        1
+    )
+    end_line_idx = start_line_idx + len(extracted_lines) - 1
+    line_numbers = f"\n\n[Lines: {start_line_idx}-{end_line_idx}]"
+    output_content += line_numbers
     hparser.to_file(output_content, out_file_name)
 
 
