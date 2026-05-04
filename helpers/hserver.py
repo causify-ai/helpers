@@ -188,12 +188,14 @@ _MAC_OS_VERSION_MAPPING = {
     "Monterey": "21.",
     "Ventura": "22.",
     "Sequoia": "24.",
+    # macOS 26 Tahoe uses Darwin 25.x (see `uname -r`).
+    "Tahoe": "25.",
 }
 
 
 def get_host_mac_version() -> str:
     """
-    Get the macOS version (e.g., "Catalina", "Monterey", "Ventura").
+    Get the macOS version (e.g., "Catalina", "Monterey", "Ventura", "Tahoe").
     """
     host_os_version = _get_host_os_version()
     for version, tag in _MAC_OS_VERSION_MAPPING.items():
@@ -324,6 +326,9 @@ def is_host_mac(*, version: Optional[str] = None) -> bool:
         # Darwin gpmac.local 24.4.0 Darwin Kernel Version 24.4.0:
         # root:xnu-11417.101.15~1/RELEASE_ARM64_T8112 arm64
         macos_tag = "24."
+    elif version == "Tahoe":
+        # Darwin … 25.1.0 Darwin Kernel Version 25.1.0: … /RELEASE_ARM64_… arm64
+        macos_tag = "25."
     else:
         raise ValueError(f"Invalid version='{version}'")
     _LOG.debug("macos_tag=%s", macos_tag)
@@ -772,7 +777,7 @@ def _is_mac_version_with_sibling_containers() -> bool:
     if not is_host_mac():
         return False
     mac_version = get_host_mac_version()
-    return mac_version in ("Monterey", "Ventura", "Sequoia")
+    return mac_version in ("Monterey", "Ventura", "Sequoia", "Tahoe")
 
 
 # #############################################################################
@@ -874,7 +879,7 @@ def enable_privileged_mode() -> bool:
             if mac_version == "Catalina":
                 # Docker for macOS Catalina supports dind.
                 ret = True
-            elif mac_version in ("Monterey", "Ventura", "Sequoia"):
+            elif mac_version in ("Monterey", "Ventura", "Sequoia", "Tahoe"):
                 # Docker doesn't seem to support dind for these versions of macOS.
                 ret = False
             else:
@@ -923,6 +928,8 @@ def use_docker_sibling_containers() -> bool:
     Using sibling containers requires that all Docker containers are in
     the same network so that they can communicate with each other.
     """
+    if is_dev_csfy() or _is_mac_version_with_sibling_containers():
+        return True
     return has_docker_sibling_containers_support()
     # if is_dev_csfy():
     #     val = True
