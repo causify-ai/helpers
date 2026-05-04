@@ -15,6 +15,22 @@ import helpers.old.user_credentials as holuscre
 
 _LOG = logging.getLogger(__name__)
 
+
+def _get_services_info() -> list:
+    # Server ports.
+    services = [
+        # service name, server public IP, local port, remote port.
+        ("MongoDb", hsystem.get_env_var("OLD_DEV_SERVER"), 27017, 27017),
+        ("Jenkins", hsystem.get_env_var("JENKINS_SERVER"), 8080, 8080),
+        # ("Reviewboard", hsystem.get_env_var("REVIEWBOARD_SERVER"), 8000, 8000),
+        # ("Doc server", hsystem.get_env_var("REVIEWBOARD_SERVER"), 8001, 80),
+        # Netdata to Jenkins and Dev server.
+        # ("Dev system performance", DEV_SERVER, 19999),
+        # ("Jenkins system performance", DEV_SERVER, 19999),
+    ]
+    return services
+
+
 # #############################################################################
 
 
@@ -72,21 +88,6 @@ def get_server_ip(service_name: str) -> str:  # pylint: disable=unused-argument
     server = parse_service(service)["server"]
     server = cast(str, server)
     return server
-
-
-def _get_services_info() -> list:
-    # Server ports.
-    services = [
-        # service name, server public IP, local port, remote port.
-        ("MongoDb", hsystem.get_env_var("OLD_DEV_SERVER"), 27017, 27017),
-        ("Jenkins", hsystem.get_env_var("JENKINS_SERVER"), 8080, 8080),
-        # ("Reviewboard", hsystem.get_env_var("REVIEWBOARD_SERVER"), 8000, 8000),
-        # ("Doc server", hsystem.get_env_var("REVIEWBOARD_SERVER"), 8001, 80),
-        # Netdata to Jenkins and Dev server.
-        # ("Dev system performance", DEV_SERVER, 19999),
-        # ("Jenkins system performance", DEV_SERVER, 19999),
-    ]
-    return services
 
 
 def _get_tunnel_info() -> Tuple[Any, str]:

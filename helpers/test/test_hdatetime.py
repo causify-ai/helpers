@@ -543,6 +543,11 @@ class Test_find_bar_timestamp1(hunitest.TestCase):
         self.assert_equal(actual, expected, fuzzy_match=True)
 
 
+# #############################################################################
+# Test_find_bar_timestamp2
+# #############################################################################
+
+
 class Test_find_bar_timestamp2(hunitest.TestCase):
     """
     Use mode="floor".
@@ -686,6 +691,11 @@ class Test_convert_timestamp_to_unix_epoch(hunitest.TestCase):
         actual = hdateti.convert_timestamp_to_unix_epoch(timestamp=timestamp)
         expected = 1631145600000
         self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+# Test_str_to_timestamp1
+# #############################################################################
 
 
 class Test_str_to_timestamp1(hunitest.TestCase):

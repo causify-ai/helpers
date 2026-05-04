@@ -4,7 +4,6 @@ import pytest
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -15,11 +14,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_convert_to_vim_cfile1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test converting a simple error message to vim cfile format.
@@ -49,11 +45,8 @@ class Test_convert_to_vim_cfile1(hunitest.TestCase):
 
 
 @pytest.mark.skip("Enable after HelpersTask760")
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_prompt_tags1(hunitest.TestCase):
+
     def test1(self) -> None:
         prompt_tags = dshlllpr.get_prompt_tags()
         _LOG.debug(hprint.to_str("prompt_tags"))
@@ -68,10 +61,6 @@ class Test_prompt_tags1(hunitest.TestCase):
 
 
 @pytest.mark.skip("Enable after HelpersTask760")
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_run_prompt1(hunitest.TestCase):
     # TODO(gp): Add one tests for each prompt.
 
@@ -94,14 +83,12 @@ class Test_run_prompt1(hunitest.TestCase):
         txt = """
         def transform(input: str, value: str, output: Optional[str] = None) -> str:
             print(f"input={input}, value={value}, output={output}")
-
         transform("input", "value")
         transform("input", "value", "output")
         """
         exp_output = """
         def transform(input: str, value: str, *, output: Optional[str] = None) -> str:
             print(f"input={input}, value={value}, output={output}")
-
         transform("input", "value")
         transform("input", "value", output="output")
         """

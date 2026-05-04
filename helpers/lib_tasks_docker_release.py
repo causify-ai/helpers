@@ -24,7 +24,6 @@ import helpers.hversion as hversio
 import helpers.lib_tasks_aws as hlitaaws
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_gh as hlitagh
-import helpers.lib_tasks_git as hlitagit
 import helpers.lib_tasks_pytest as hlitapyt
 import helpers.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
@@ -109,6 +108,26 @@ def _create_multiarch_builder(
         docker buildx use {platform_builder_name}
     """
     hlitauti.run(ctx, cmd)
+
+
+# #############################################################################
+# Local/Dev image flow
+# #############################################################################
+# - A "local" image (which is a release candidate for the DEV image) is built
+#   with:
+#   ```
+#   > i docker_build_local_image
+#   ```
+# - This creates a local image like `helpers:local.saggese-1.0.0`
+# - A qualification process (e.g., running all unit tests and the QA tests) is
+#   performed on the local image (e.g., locally or through GitHub actions)
+# - If the qualification process is passed, the image is released as `dev` on
+#   the registries
+
+
+# Use Docker buildkit or not.
+# DOCKER_BUILDKIT = 1
+DOCKER_BUILDKIT = 0
 
 
 def _build_multi_arch_image(
@@ -284,6 +303,69 @@ def _docker_tag_and_push_multi_arch_image(
     hlitauti.run(ctx, cmd)
 
 
+@task
+def docker_push_dev_image(  # type: ignore
+    ctx,
+    version,
+    base_image="",
+    container_dir_name=".",
+):
+    """
+    Push the "dev" image to ECR.
+
+    :param ctx: invoke context
+    :param version: version to tag the image and code with
+    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param container_dir_name: directory where the Dockerfile is located
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    #
+    dev_version = _get_dev_version(version, container_dir_name)
+    #
+    hlitadoc.docker_login(ctx)
+    # Push Docker versioned tag.
+    image_versioned_dev = hlitadoc.get_image(base_image, "dev", dev_version)
+    cmd = f"docker push {image_versioned_dev}"
+    hlitauti.run(ctx, cmd, pty=True)
+    # Push Docker tag.
+    latest_version = None
+    image_dev = hlitadoc.get_image(base_image, "dev", latest_version)
+    cmd = f"docker push {image_dev}"
+    hlitauti.run(ctx, cmd, pty=True)
+
+
+@task
+def docker_push_prod_image(  # type: ignore
+    ctx,
+    version,
+    base_image="",
+    container_dir_name=".",
+):
+    """
+    Push the "prod" image to ECR.
+
+    :param ctx: invoke context
+    :param version: version to tag the image and code with
+    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param container_dir_name: directory where the Dockerfile is located
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    prod_version = hlitadoc.resolve_version_value(
+        version, container_dir_name=container_dir_name
+    )
+    #
+    hlitadoc.docker_login(ctx)
+    # Push versioned tag.
+    image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
+    cmd = f"docker push {image_versioned_prod}"
+    hlitauti.run(ctx, cmd, pty=True)
+    #
+    latest_version = None
+    image_prod = hlitadoc.get_image(base_image, "prod", latest_version)
+    cmd = f"docker push {image_prod}"
+    hlitauti.run(ctx, cmd, pty=True)
+
+
 # TODO(gp): We moved away from versioning of the prod image because we release
 # continuously and so it's easier to track the hash.
 def _docker_rollback_image(
@@ -329,26 +411,6 @@ def _docker_rollback_image(
             raise ValueError(f"Invalid stage='{stage}' for rollback")
     else:
         _LOG.warning("Skipping pushing %s image to ECR, as requested", stage)
-
-
-# #############################################################################
-# Local/Dev image flow
-# #############################################################################
-# - A "local" image (which is a release candidate for the DEV image) is built
-#   with:
-#   ```
-#   > i docker_build_local_image
-#   ```
-# - This creates a local image like `helpers:local.saggese-1.0.0`
-# - A qualification process (e.g., running all unit tests and the QA tests) is
-#   performed on the local image (e.g., locally or through GitHub actions)
-# - If the qualification process is passed, the image is released as `dev` on
-#   the registries
-
-
-# Use Docker buildkit or not.
-# DOCKER_BUILDKIT = 1
-DOCKER_BUILDKIT = 0
 
 
 @task
@@ -503,37 +565,6 @@ def docker_tag_local_image_as_dev(  # type: ignore
     image_dev = hlitadoc.get_image(base_image, "dev", latest_version)
     cmd = f"docker tag {image_versioned_local} {image_dev}"
     hlitauti.run(ctx, cmd)
-
-
-@task
-def docker_push_dev_image(  # type: ignore
-    ctx,
-    version,
-    base_image="",
-    container_dir_name=".",
-):
-    """
-    Push the "dev" image to ECR.
-
-    :param ctx: invoke context
-    :param version: version to tag the image and code with
-    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
-    :param container_dir_name: directory where the Dockerfile is located
-    """
-    hlitauti.report_task(container_dir_name=container_dir_name)
-    #
-    dev_version = _get_dev_version(version, container_dir_name)
-    #
-    hlitadoc.docker_login(ctx)
-    # Push Docker versioned tag.
-    image_versioned_dev = hlitadoc.get_image(base_image, "dev", dev_version)
-    cmd = f"docker push {image_versioned_dev}"
-    hlitauti.run(ctx, cmd, pty=True)
-    # Push Docker tag.
-    latest_version = None
-    image_dev = hlitadoc.get_image(base_image, "dev", latest_version)
-    cmd = f"docker push {image_dev}"
-    hlitauti.run(ctx, cmd, pty=True)
 
 
 @task
@@ -960,38 +991,6 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
     )
 
 
-@task
-def docker_push_prod_image(  # type: ignore
-    ctx,
-    version,
-    base_image="",
-    container_dir_name=".",
-):
-    """
-    Push the "prod" image to ECR.
-
-    :param ctx: invoke context
-    :param version: version to tag the image and code with
-    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
-    :param container_dir_name: directory where the Dockerfile is located
-    """
-    hlitauti.report_task(container_dir_name=container_dir_name)
-    prod_version = hlitadoc.resolve_version_value(
-        version, container_dir_name=container_dir_name
-    )
-    #
-    hlitadoc.docker_login(ctx)
-    # Push versioned tag.
-    image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
-    cmd = f"docker push {image_versioned_prod}"
-    hlitauti.run(ctx, cmd, pty=True)
-    #
-    latest_version = None
-    image_prod = hlitadoc.get_image(base_image, "prod", latest_version)
-    cmd = f"docker push {image_prod}"
-    hlitauti.run(ctx, cmd, pty=True)
-
-
 # TODO(gp): Can we merge this with docker_push_prod_image?
 @task
 def docker_push_prod_candidate_image(  # type: ignore
@@ -1171,7 +1170,9 @@ def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
     """
     hlitauti.report_task()
     docker_release_dev_image(ctx, version, container_dir_name=container_dir_name)
-    docker_release_prod_image(ctx, version, container_dir_name=container_dir_name)
+    docker_release_prod_image(
+        ctx, version, container_dir_name=container_dir_name
+    )
     _LOG.info("==> SUCCESS <==")
 
 
@@ -1369,9 +1370,7 @@ def docker_release_preprod_task_definition(
 
 
 @task
-def docker_release_prod_task_definition(
-    ctx, region: str = hs3.AWS_US_REGION_1
-):  # type: ignore
+def docker_release_prod_task_definition(ctx, region: str = hs3.AWS_US_REGION_1):  # type: ignore
     """
     Release candidate image to prod ECS task definition.
 
@@ -1481,14 +1480,18 @@ def docker_update_prod_task_definition(
     # Compose new prod image url.
     new_prod_image_url = hlitadoc.get_image(base_image, stage, prod_version)
     version = None
-    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage, version)
+    new_prod_image_url_no_version = hlitadoc.get_image(
+        base_image, stage, version
+    )
     # Check if preprod tag exist in preprod task definition as precaution.
     preprod_task_definition_name = f"{task_definition}-preprod"
     preprod_image_url = haws.get_task_definition_image_url(
         preprod_task_definition_name
     )
     preprod_tag_from_image = preprod_image_url.split(":")[-1]
-    msg = f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
+    msg = (
+        f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
+    )
     hdbg.dassert_eq(preprod_tag_from_image, preprod_tag, msg=msg)
     # Pull preprod image for re-tag.
     hlitadoc.docker_login(ctx)
@@ -1812,7 +1815,7 @@ def docker_build_test_dev_image(  # type: ignore
     cmd = f"docker push {ghcr_image_versioned}"
     hlitauti.run(ctx, cmd, pty=True)
     _LOG.info("Pushed versioned GHCR dev image: %s", ghcr_image_versioned)
-    _LOG.info("==> SUCCESS <==" )
+    _LOG.info("==> SUCCESS <==")
 
 
 @task
@@ -1863,13 +1866,17 @@ def docker_tag_push_dev_image(
         target_base = hrecouti.get_repo_config().get_container_registry_url(
             registry
         )
-        target_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+        target_image_name = (
+            hrecouti.get_repo_config().get_docker_base_image_name()
+        )
         target_base_image = f"{target_base}/{target_image_name}"
         latest_version = None
         target_dev_image_latest = hlitadoc.get_image(
             target_base_image, stage, latest_version
         )
-        cmd = f"docker tag {source_dev_image_versioned} {target_dev_image_latest}"
+        cmd = (
+            f"docker tag {source_dev_image_versioned} {target_dev_image_latest}"
+        )
         hlitauti.run(ctx, cmd, dry_run=dry_run)
         cmd = f"docker push {target_dev_image_latest}"
         hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)

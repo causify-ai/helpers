@@ -129,7 +129,7 @@
 
   - Extraction and Conversion Tools
     - `convert_docx_to_markdown.py`: Converts DOCX to Markdown
-    - `pdf_to_md.py`: Converts PDF to Markdown
+    - `convert_pdf_to_md.py`: Converts PDF to Markdown
     - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt slides, and Jupyter notebook files for navigation
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
 
@@ -1137,7 +1137,7 @@ The supported File types and code blocks are:
   - Generate clickable links to `https://docs.google.com/document/d/{doc_id}`
   - Format as Markdown list
 
-## `pdf_to_md.py`
+## `convert_pdf_to_md.py`
 
 ### What It Does
 
@@ -1153,12 +1153,12 @@ The supported File types and code blocks are:
 
 - Convert PDF to Markdown with images
   ```bash
-  > uv run pdf_to_md.py --input document.pdf --output output_dir
+  > uv run convert_pdf_to_md.py --input document.pdf --output output_dir
   ```
 
 - With verbose logging
   ```bash
-  > uv run pdf_to_md.py --input paper.pdf --output paper_md -v DEBUG
+  > uv run convert_pdf_to_md.py --input paper.pdf --output paper_md -v DEBUG
   ```
 
 - The script will:

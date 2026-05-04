@@ -69,6 +69,11 @@ def add_verbosity_arg(
         choices=["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help="Set the logging level",
     )
+    parser.add_argument(
+        "--no_report_command_line",
+        action="store_true",
+        help="Disable printing of executed commands",
+    )
     return parser
 
 
@@ -76,9 +81,74 @@ def add_verbosity_arg(
 def parse_verbosity_args(
     args: argparse.Namespace, *args_: Any, **kwargs: Any
 ) -> None:
+    if hasattr(args, "no_report_command_line") and args.no_report_command_line:
+        report_command_line = False
+    else:
+        report_command_line = True
+    kwargs["report_command_line"] = report_command_line
     # if args.log_level == "VERB_DEBUG":
     #    args.log_level = 5
     hdbg.init_logger(verbosity=args.log_level, *args_, **kwargs)
+
+
+# #############################################################################
+# Command line for `@hcache_simple.simple_cache` functions.
+# #############################################################################
+
+
+# TODO(gp): Use the ones from hcache_simple.py for DRY.
+_CACHE_MODE_CHOICES = ("REFRESH_CACHE", "DISABLE_CACHE", "HIT_CACHE_OR_ABORT")
+
+
+def add_cache_control_arg(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    """
+    Add `--cache_mode` switch controlling every
+    `@hcache_simple.simple_cache`-decorated function in the process.
+
+    The resolved mode is applied globally via
+    `hcache_simple.set_global_cache_mode` in `parse_cache_control_args()`.
+    """
+    parser.add_argument(
+        "--cache_mode",
+        action="store",
+        default=None,
+        choices=list(_CACHE_MODE_CHOICES),
+        help=(
+            "Override cache behavior for all @simple_cache functions. "
+            "REFRESH_CACHE repopulates, DISABLE_CACHE bypasses, "
+            "HIT_CACHE_OR_ABORT raises on miss."
+        ),
+    )
+    parser.add_argument(
+        "--cache_debug",
+        action="store_true",
+        help=(
+            "Log at WARNING level for every @simple_cache call whether the "
+            "result was served from cache, computed on miss, or recomputed "
+            "because of `cache_mode`"
+        ),
+    )
+    return parser
+
+
+def parse_cache_control_args(args: argparse.Namespace) -> None:
+    """
+    Apply `--cache_mode`,  `--cache_debug` by setting the `hcache_simple`
+    process-wide globals.
+    """
+    # Import lazily to avoid a circular dependency at module load time.
+    import helpers.hcache_simple as hcacsimp
+
+    mode = getattr(args, "cache_mode", None)
+    if mode is not None:
+        _LOG.info("Setting global cache_mode=%s", mode)
+    hcacsimp.set_global_cache_mode(mode)
+    cache_debug = bool(getattr(args, "cache_debug", False))
+    if cache_debug:
+        _LOG.info("Enabling cache_debug logging")
+    hcacsimp.set_cache_debug(cache_debug)
 
 
 # #############################################################################
@@ -165,6 +235,31 @@ def parse_dst_dir_arg(args: argparse.Namespace) -> Tuple[str, bool]:
 # #############################################################################
 # Command line options related to selection actions.
 # #############################################################################
+
+# # Define valid and default actions.
+# valid_actions = ["download", "process", "upload", "cleanup"]
+# default_actions = ["download", "process"]
+# # Create parser and add action arguments.
+# parser = argparse.ArgumentParser(...
+# hparser.add_action_arg(parser, valid_actions, default_actions)
+# args = parser.parse_args()
+# # Select which actions to execute based on CLI arguments.
+# actions = hparser.select_actions(args, valid_actions, default_actions)
+# # Display the selected actions in a formatted table.
+# print(hparser.actions_to_string(actions, valid_actions, add_frame=True))
+# # mark_action() handles tracking which actions remain and logs skipped ones.
+# while actions:
+#     # Current action to check
+#     action = actions[0]
+#     # Determine if this action should execute and get remaining actions
+#     # to_execute: True if action is in the list, False otherwise
+#     # actions: updated list with current action removed if to_execute=True
+#     to_execute, actions = hparser.mark_action(action, actions)
+#     if to_execute:
+#         # Execute the action
+#         if action == "download":
+#             print("Downloading data...")
+#         elif action == "process":
 
 
 def add_action_arg(
@@ -321,8 +416,11 @@ def select_actions(
             )
             # Validate that skip_action is in the current action list.
             if skip_action not in actions:
-                _LOG.warning("Skipping action '%s' since it's already not in actions='%s'",
-                    skip_action, actions)
+                _LOG.warning(
+                    "Skipping action '%s' since it's already not in actions='%s'",
+                    skip_action,
+                    actions,
+                )
             actions = [a for a in actions if a != skip_action]
     # Add enabled actions on top of defaults.
     if has_enable and args.enable_action:
@@ -341,7 +439,9 @@ def select_actions(
     return actions
 
 
-def mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Optional[List[str]]]:
+def mark_action(
+    action: str, actions: Optional[List[str]]
+) -> Tuple[bool, Optional[List[str]]]:
     """
     Mark an action as to be executed or skipped.
 
@@ -813,7 +913,9 @@ def add_dockerized_script_arg(
 
 
 def add_llm_prompt_arg(
-    parser: argparse.ArgumentParser, *, default_prompt: str = "",
+    parser: argparse.ArgumentParser,
+    *,
+    default_prompt: str = "",
     is_required: bool = True,
 ) -> argparse.ArgumentParser:
     """
@@ -875,9 +977,13 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     :param limit_str: string in format "X:Y" where X and Y are integers >= 1
     :return: tuple in [start_index, end_index]
     """
-    hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
+    hdbg.dassert(
+        ":" in limit_str, "Limit format must be X:Y, got: %s", limit_str
+    )
     parts = limit_str.split(":")
-    hdbg.dassert_eq(len(parts), 2, "Limit format must be X:Y, got: %s", limit_str)
+    hdbg.dassert_eq(
+        len(parts), 2, "Limit format must be X:Y, got: %s", limit_str
+    )
     try:
         start = int(parts[0])
         end = int(parts[1])
@@ -891,7 +997,9 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     return start, end
 
 
-def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]]:
+def parse_limit_range_args(
+    args: argparse.Namespace,
+) -> Optional[Tuple[int, int]]:
     """
     Parse limit range from command line arguments and log the result.
 
@@ -903,7 +1011,9 @@ def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]
     limit_range = None
     if args.limit:
         limit_range = parse_limit_range(args.limit)
-        _LOG.warning("Using limit range: [%s:%s]", limit_range[0], limit_range[1])
+        _LOG.warning(
+            "Using limit range: [%s:%s]", limit_range[0], limit_range[1]
+        )
     return limit_range
 
 
@@ -1047,7 +1157,9 @@ def parse_multi_file_args(
             file_list = args.input
         else:
             # Backward compatibility: support single file via -i/--input from add_input_output_args.
-            _LOG.debug("Using -i/--input option (single file, backward compatibility)")
+            _LOG.debug(
+                "Using -i/--input option (single file, backward compatibility)"
+            )
             file_list = [args.input]
     else:
         # No file specified.

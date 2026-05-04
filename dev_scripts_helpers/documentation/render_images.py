@@ -35,7 +35,6 @@ from tqdm import tqdm
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -212,17 +211,17 @@ def _render_image_code(
         # \begin{document}
         start_tag = hprint.dedent(
             r"""
-        \documentclass{standalone}
-        \usepackage{tikz}
-        \usepackage{amsmath}
-        \usepackage{pgfplots}
-        \usepackage{mathrsfs} % For script font
-        \usepackage{xcolor}
-        \usetikzlibrary{positioning}
-        \pgfplotsset{compat=newest}
-        \begin{document}
-        \begin{tikzpicture}
-        """
+            \documentclass{standalone}
+            \usepackage{tikz}
+            \usepackage{amsmath}
+            \usepackage{pgfplots}
+            \usepackage{mathrsfs} % For script font
+            \usepackage{xcolor}
+            \usetikzlibrary{positioning}
+            \pgfplotsset{compat=newest}
+            \begin{document}
+            \begin{tikzpicture}
+            """
         )
         end_tag = hprint.dedent(
             r"""
@@ -234,13 +233,13 @@ def _render_image_code(
     elif image_code_type == "latex":
         start_tag = hprint.dedent(
             r"""
-        \documentclass[border=1pt]{standalone}  % No page, tight margins
-        \usepackage{tabularx}
-        \usepackage{enumitem}
-        \usepackage{booktabs}  % Optional: For nicer tables
-        %\begin{document}
+            \documentclass[border=1pt]{standalone}  % No page, tight margins
+            \usepackage{tabularx}
+            \usepackage{enumitem}
+            \usepackage{booktabs}  % Optional: For nicer tables
+            %\begin{document}
 
-        """
+            """
         )
         end_tag = hprint.dedent(
             r"""
@@ -303,23 +302,32 @@ def _render_image_code(
             os.remove(in_code_file_path)
             return out_img_file_paths
         elif image_code_type == "plantuml":
-            hdocexec.run_dockerized_plantuml(
+            import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
+
+            cmd_opts = []
+            dshdlipl.run_dockerized_plantuml(
                 in_code_file_path,
+                cmd_opts,
                 abs_img_dir_path,
-                dst_ext,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
-            hdocexec.run_dockerized_mermaid(
+            import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
+
+            cmd_opts = []
+            dshdlime.run_dockerized_mermaid(
                 in_code_file_path,
+                cmd_opts,
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
         elif image_code_type in ("tikz", "latex", "raw_latex"):
             cmd_opts: List[str] = ["-density 600", "-quality 95"]
-            hdocexec.run_dockerized_tikz_to_bitmap(
+            import dev_scripts_helpers.dockerize.lib_png as dshdlipn
+
+            dshdlipn.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
                 abs_img_file_path,
@@ -328,10 +336,22 @@ def _render_image_code(
             )
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
-            hdocexec.run_dockerized_graphviz(
+            import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
+
+            dshdligr.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
                 abs_img_file_path,
+                force_rebuild=force_rebuild,
+                use_sudo=use_sudo,
+            )
+        elif image_code_type == "svg":
+            import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
+
+            dshdlisv.run_dockerized_svg_with_rsvg_convert(
+                in_code_file_path,
+                abs_img_file_path,
+                output_format="png",
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
@@ -594,13 +614,16 @@ def _render_images(
     metadata_caption = ""
     # Store the current metadata field being parsed (for multi-line values).
     current_metadata_field = ""
+    # Variables initialized for loop processing.
+    image_code_type = ""
+    rel_img_paths: List[str] = []
     comment = re.escape(comment_prefix)
     start_image_regex = re.compile(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
         ```                 # Opening backticks for code block
-        (plantuml|mermaid|tikz|graphviz|latex|raw_latex|image)  # Image code type
+        (plantuml|mermaid|tikz|graphviz|latex|raw_latex|svg|image)  # Image code type
         (\((.*)\))?         # Optional user-specified image name as (...)
         (\[(.*)\])?         # Optional user-specified image size as [...]
         \s*$                # Any trailing whitespace and end of the line
@@ -651,6 +674,7 @@ def _render_images(
                     "graphviz",
                     "latex",
                     "raw_latex",
+                    "svg",
                     "image",
                 ],
             )
@@ -942,6 +966,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args)
     # Get list of input files using multi-file parsing.
     in_files = hparser.parse_multi_file_args(args)
+    # Initialize output file.
+    out_file = ""
     # Handle output file for multi-file mode.
     if len(in_files) > 1:
         # Multi-file mode.
@@ -965,6 +991,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         default_dst_dir = args.dst_dir
         _LOG.info("Using specified --dst_dir: %s", default_dst_dir)
+    # Initialize variables for file processing.
+    dst_dir = ""
     # Process each file with progress bar.
     _LOG.info("Processing %s files", len(in_files))
     if len(in_files) > 1:

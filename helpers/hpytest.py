@@ -104,6 +104,12 @@ class JUnitReporter:
             "total_tests": 0,
         }
 
+    def _load(self) -> None:
+        """
+        Load the JUnit XML file.
+        """
+        self.xml_data = junitparser.JUnitXml.fromfile(self.xml_file)
+
     def parse(self):
         """
         Parse the JUnit XML file.
@@ -128,15 +134,21 @@ class JUnitReporter:
             print(hprint.color_highlight(f"Error parsing XML file: {e}", "red"))
             sys.exit(1)
 
-    def print_summary(self):
-        self._print_detailed_results()
-        self._print_final_summary()
-
-    def _load(self) -> None:
+    def _get_colored_status(self, case: junitparser.TestCase) -> str:
         """
-        Load the JUnit XML file.
+        Get the colored status representation of test case.
         """
-        self.xml_data = junitparser.JUnitXml.fromfile(self.xml_file)
+        if not case.result or len(case.result) == 0:
+            return hprint.color_highlight("PASSED", "green")
+        result_type = case.result[0].__class__.__name__
+        if result_type == "Failure":
+            return hprint.color_highlight("FAILED", "red")
+        elif result_type == "Error":
+            return hprint.color_highlight("ERROR", "red")
+        elif result_type == "Skipped":
+            return hprint.color_highlight("SKIPPED", "yellow")
+        else:
+            return hprint.color_highlight("PASSED", "green")
 
     def _print_detailed_results(self):
         print(hprint.color_highlight("=" * 70, "bold"))
@@ -249,18 +261,6 @@ class JUnitReporter:
         )
         print(hprint.color_highlight(f"Result: {status_indicator}", "INFO"))
 
-    def _get_colored_status(self, case: junitparser.TestCase) -> str:
-        """
-        Get the colored status representation of test case.
-        """
-        if not case.result or len(case.result) == 0:
-            return hprint.color_highlight("PASSED", "green")
-        result_type = case.result[0].__class__.__name__
-        if result_type == "Failure":
-            return hprint.color_highlight("FAILED", "red")
-        elif result_type == "Error":
-            return hprint.color_highlight("ERROR", "red")
-        elif result_type == "Skipped":
-            return hprint.color_highlight("SKIPPED", "yellow")
-        else:
-            return hprint.color_highlight("PASSED", "green")
+    def print_summary(self):
+        self._print_detailed_results()
+        self._print_final_summary()

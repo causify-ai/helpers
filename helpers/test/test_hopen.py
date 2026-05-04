@@ -12,6 +12,11 @@ _LOG = logging.getLogger(__name__)
 #  test other systems.
 
 
+# #############################################################################
+# Test_open_unknown
+# #############################################################################
+
+
 class Test_open_unknown(hunitest.TestCase):
     """
     Test unknown extension and unknown systems.
@@ -34,6 +39,11 @@ class Test_open_unknown(hunitest.TestCase):
             hopen._cmd_open_html("b.html", "UnknownOS")
         # Check error text.
         self.assertIn("UnknownOS", str(cm.exception))
+
+
+# #############################################################################
+# Test_open_html
+# #############################################################################
 
 
 @pytest.mark.skip(reason="See cryptomtc/cmamp#321")
@@ -62,6 +72,11 @@ class Test_open_html(hunitest.TestCase):
         """
         cmd = hopen._cmd_open_html("c.html", "Darwin")
         self.check_string(str(cmd))
+
+
+# #############################################################################
+# Test_open_pdf
+# #############################################################################
 
 
 class Test_open_pdf(hunitest.TestCase):

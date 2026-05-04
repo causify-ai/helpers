@@ -12,7 +12,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class TestVersioning1(hunitest.TestCase):
-
     def test_get_changelog_version1(self) -> None:
         """
         Test `cmamp` version.

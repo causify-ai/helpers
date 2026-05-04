@@ -78,9 +78,11 @@ _CUSTOM_SHORT_IMPORTS = {
     # "core.config_builders": "ccbuild",
 }
 
+
 # #############################################################################
 # LongToShortImportGenerator
 # #############################################################################
+
 
 class LongToShortImportGenerator:
     """
@@ -517,9 +519,11 @@ class LongToShortImportGenerator:
         hdbg.dassert_eq(0, len(collisions))
         return long_import_to_short
 
+
 # #############################################################################
 # CodeImportNormalizer
 # #############################################################################
+
 
 class CodeImportNormalizer:
     """
@@ -786,9 +790,11 @@ class CodeImportNormalizer:
         hio.to_file(file_path, code)
         return warnings
 
+
 # #############################################################################
 # ImportDocstringGenerator
 # #############################################################################
+
 
 class ImportDocstringGenerator:
     """
@@ -965,9 +971,11 @@ class ImportDocstringGenerator:
         new_code = self._process_code(code, long_import, short_import)
         return new_code
 
+
 # #############################################################################
 # _NormalizeImports
 # #############################################################################
+
 
 class _NormalizeImports(liaction.Action):
     """
@@ -1071,21 +1079,13 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "files", nargs="+", action="store", type=str, help="Files to process"
     )
-    parser.add_argument(
-        "--no_report_command_line",
-        action="store_false",
-        default=True,
-        help="Do not report the command line",
-    )
     hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(
-        verbosity=args.log_level, report_command_line=args.no_report_command_line
-    )
+    hparser.parse_verbosity_args(args)
     # Get the root of the Git repo.
     root_dir = hgit.get_client_root(super_module=False)
     _LOG.debug("root_dir = '%s'", root_dir)

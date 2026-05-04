@@ -192,7 +192,9 @@ def _get_efs_mount_config_template(environment: str) -> Dict[str, Any]:
         f"{s3_bucket}/{environment}/templates/efs/efs_mount_config_template.json"
     )
     hs3.dassert_is_s3_path(s3_path)
-    efs_config = hs3.from_file(s3_path, aws_profile=haws.AWS_PROFILE[environment])
+    efs_config = hs3.from_file(
+        s3_path, aws_profile=haws.AWS_PROFILE[environment]
+    )
     efs_config = json.loads(efs_config)
     return efs_config
 
@@ -216,9 +218,9 @@ def _set_task_definition_config(
     # We use single container inside our task definition and
     # the convention is to set the same name as the task
     # definition itself.
-    task_definition_config["containerDefinitions"][0][
-        "name"
-    ] = task_definition_name
+    task_definition_config["containerDefinitions"][0]["name"] = (
+        task_definition_name
+    )
     # Set placeholder image URL.
     # Get the base registry URL in the base region.
     base_registry_url = hrecouti.get_repo_config().get_container_registry_url()
@@ -253,9 +255,9 @@ def _set_task_definition_config(
     # Configure access to EFS.
     efs_config = _get_efs_mount_config_template(environment)
     task_definition_config["volumes"] = efs_config[region]["volumes"]
-    task_definition_config["containerDefinitions"][0]["mountPoints"] = efs_config[
-        region
-    ]["mountPoints"]
+    task_definition_config["containerDefinitions"][0]["mountPoints"] = (
+        efs_config[region]["mountPoints"]
+    )
     return task_definition_config
 
 
@@ -295,7 +297,9 @@ def _register_task_definition(
         placementConstraints=task_definition_config.get(
             "placementConstraints", []
         ),
-        requiresCompatibilities=task_definition_config["requiresCompatibilities"],
+        requiresCompatibilities=task_definition_config[
+            "requiresCompatibilities"
+        ],
         cpu=task_definition_config["cpu"],
         memory=task_definition_config["memory"],
     )

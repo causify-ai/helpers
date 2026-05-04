@@ -28,3 +28,7 @@ description: Use this idiom for controlling logging in Jupyter notebooks
       causalml_logger: logging.Logger = logging.getLogger("causalml")
       hnotebo.set_logger_to_print(causalml_logger)
   ```
+
+# Important: Follow Conventions
+
+- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`

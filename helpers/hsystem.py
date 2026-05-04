@@ -127,6 +127,7 @@ def get_env_var(env_var_name: str) -> str:
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
 def _system(
     cmd: str,
+    print_command: bool,
     abort_on_error: bool,
     suppress_error: Optional[Any],
     suppress_output: Union[bool, str],
@@ -206,12 +207,8 @@ def _system(
     try:
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
-        # We want to print the command line even if this module logging is disabled.
-        # print("  ==> cmd=" + cmd)
-        # TODO(gp): This seems not working properly and getting the logging
-        # verbosity stuck.
-        # with hloggin.set_level(_LOG, logging.DEBUG):
-        #     _LOG.debug("> %s", cmd)
+        if print_command:
+            _LOG.info("> %s", cmd)
         with subprocess.Popen(
             cmd,
             shell=True,
@@ -289,6 +286,7 @@ def _system(
 def system(
     cmd: str,
     *,
+    print_command: bool = False,
     abort_on_error: bool = True,
     suppress_error: Optional[Any] = None,
     suppress_output: Union[str, bool] = "ON_DEBUG_LEVEL",
@@ -304,6 +302,7 @@ def system(
     Execute a shell command, without capturing its output.
 
     :param cmd: string with command to execute
+    :param print_command: whether to print the command using `_LOG.info()`
     :param abort_on_error: whether we should assert in case of error or not
     :param suppress_error: set of error codes to suppress
     :param suppress_output: whether to print the output or not
@@ -328,6 +327,7 @@ def system(
     cmd = hprint.dedent(cmd)
     rc, _ = _system(
         cmd,
+        print_command=print_command,
         abort_on_error=abort_on_error,
         suppress_error=suppress_error,
         suppress_output=suppress_output,
@@ -357,7 +357,10 @@ def system(
 
 def system_to_string(
     cmd: str,
+    *,
+    print_command: bool = False,
     abort_on_error: bool = True,
+    suppress_output: Union[bool, str] = "ON_DEBUG_LEVEL",
     wrapper: Optional[Any] = None,
     dry_run: bool = False,
     log_level: Union[int, str] = logging.DEBUG,
@@ -369,9 +372,10 @@ def system_to_string(
     """
     rc, output = _system(
         cmd,
+        print_command=print_command,
         abort_on_error=abort_on_error,
         suppress_error=None,
-        suppress_output="ON_DEBUG_LEVEL",
+        suppress_output=suppress_output,
         # If we want to see the output the system call must be blocking.
         blocking=True,
         wrapper=wrapper,
@@ -435,12 +439,12 @@ def system_to_one_line(cmd: str, *args: Any, **kwargs: Any) -> Tuple[int, str]:
 
 
 def to_normal_paths(files: List[str]) -> List[str]:
-    files: List[str] = list(map(os.path.normpath, files))  # type: ignore
+    files = list(map(os.path.normpath, files))
     return files
 
 
 def to_absolute_paths(files: List[str]) -> List[str]:
-    files: List[str] = list(map(os.path.abspath, files))  # type: ignore
+    files = list(map(os.path.abspath, files))
     return files
 
 
@@ -1067,3 +1071,27 @@ def append_timestamp_tag(file_name: str, tag: str) -> str:
     new_file_name = os.path.join(dir_name, "".join([name, tag_, extension]))
     _LOG.debug(hprint.to_str("file_name new_file_name"))
     return new_file_name
+
+
+def tee(
+    cmd: str, executable: str, abort_on_error: bool
+) -> Tuple[int, List[str]]:
+    """
+    Execute command and return its exit code and output lines.
+
+    Captures output, removes empty lines, and optionally aborts on error.
+
+    :param cmd: Command string to execute
+    :param executable: Executable to use for running the command
+    :param abort_on_error: Whether to abort execution if command fails
+    :return: Tuple of (exit code, list of non-empty output lines)
+    """
+    _LOG.debug("cmd=%s executable=%s", cmd, executable)
+    rc, output = system_to_string(cmd, abort_on_error=abort_on_error)
+    hdbg.dassert_isinstance(output, str)
+    output1 = output.split("\n")
+    _LOG.debug("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
+    output2 = hprint.remove_empty_lines(output1)
+    _LOG.debug("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
+    hdbg.dassert_list_of_strings(output2)
+    return rc, output2

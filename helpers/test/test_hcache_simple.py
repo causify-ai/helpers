@@ -152,6 +152,7 @@ class _BaseCacheTest(hunitest.TestCase):
         _LOG.debug("tear_down_test")
 
 
+
 # #############################################################################
 # Test_get_cache
 # #############################################################################
@@ -763,6 +764,7 @@ class Test_cache_property_to_str(_BaseCacheTest):
         self.assertIn("write_through: True", result)
 
 
+
 # #############################################################################
 # Test_reset_mem_cache_all
 # #############################################################################
@@ -1053,6 +1055,7 @@ class Test__get_cache_file_name(_BaseCacheTest):
         self.assertIn(func_name, actual)
 
 
+
 # #############################################################################
 # Test__save_cache_dict_to_disk
 # #############################################################################
@@ -1077,6 +1080,7 @@ class Test__save_cache_dict_to_disk(_BaseCacheTest):
         self.assertIn("Invalid cache type", str(cm.exception))
 
 
+
 # #############################################################################
 # Test_get_disk_cache_invalid
 # #############################################################################
@@ -1097,7 +1101,6 @@ class Test_get_disk_cache_invalid(_BaseCacheTest):
         with self.assertRaises(ValueError) as cm:
             hcacsimp.get_disk_cache("_cached_json_double")
         self.assertIn("Invalid cache type", str(cm.exception))
-
 
 @hcacsimp.simple_cache(cache_type="json")
 def _cache_mode_function(x: int) -> int:

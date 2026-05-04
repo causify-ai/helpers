@@ -113,6 +113,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Open the URL in default web browser",
     )
     parser.add_argument(
+        # TODO(ai_gp): --pbcopy
         "--copy",
         action="store_true",
         help="Copy the URL to system clipboard",

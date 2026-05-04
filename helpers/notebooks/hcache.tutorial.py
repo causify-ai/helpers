@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.7
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -26,7 +26,6 @@ import joblib
 
 import helpers.hcache as hcache
 import helpers.hdbg as hdbg
-import helpers.hprint as hprint
 import helpers.hs3 as hs3
 
 hnotebook.config_notebook()

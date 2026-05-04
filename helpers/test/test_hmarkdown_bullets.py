@@ -124,7 +124,6 @@ class Test_remove_bullets(hunitest.TestCase):
 
 
 class Test_bold_first_level_bullets1(hunitest.TestCase):
-
     def helper(self, text: str, expected: str) -> None:
         """
         Helper to test bold_first_level_bullets function.
@@ -238,7 +237,6 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
 
 
 class Test_colorize_bold_text1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test basic case with single bold text.
@@ -676,7 +674,9 @@ class Test_process_lines1(hunitest.TestCase):
             _LOG.debug(hprint.to_str("line"))
             out.append(f"{i}:{line}")
         actual = "\n".join(out)
-        self.check_string(actual, dedent=True, remove_lead_trail_empty_lines=True)
+        self.check_string(
+            actual, dedent=True, remove_lead_trail_empty_lines=True
+        )
 
 
 # #############################################################################
@@ -685,7 +685,6 @@ class Test_process_lines1(hunitest.TestCase):
 
 
 class Test_process_code_block1(hunitest.TestCase):
-
     def helper(self, txt: str) -> str:
         out: List[str] = []
         in_code_block = False
@@ -712,4 +711,6 @@ class Test_process_code_block1(hunitest.TestCase):
         # Run function.
         actual = self.helper(txt_in)
         # Check output.
-        self.check_string(actual, dedent=True, remove_lead_trail_empty_lines=True)
+        self.check_string(
+            actual, dedent=True, remove_lead_trail_empty_lines=True
+        )

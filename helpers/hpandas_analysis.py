@@ -100,7 +100,9 @@ def _get_eigvals_eigvecs(
             idx = eigval.argsort()[::-1]
             eigval = eigval[idx]
             eigvec = eigvec[:, idx]
-            _LOG.debug("After sorting:\neigval=\n%s\neigvec=\n%s", eigval, eigvec)
+            _LOG.debug(
+                "After sorting:\neigval=\n%s\neigvec=\n%s", eigval, eigvec
+            )
     #
     if (eigval == 0).all():
         eigvec = np.nan * eigvec
@@ -144,15 +146,11 @@ def rolling_pca_over_time(
     eigval_df = eigval_df.multiply(1 / eigval_df.sum(axis=1), axis="index")
     #
     # pylint ref: github.com/PyCQA/pylint/issues/3139
-    eigvec = eigvec.reshape(
-        (-1, eigvec.shape[-1])
-    )  # pylint: disable=unsubscriptable-object
+    eigvec = eigvec.reshape((-1, eigvec.shape[-1]))  # pylint: disable=unsubscriptable-object
     idx = pd.MultiIndex.from_product(
         [timestamps, df.columns], names=["datetime", None]
     )
-    eigvec_df = pd.DataFrame(
-        eigvec, index=idx, columns=range(df.shape[1])
-    )  # pylint: disable=unsubscriptable-object
+    eigvec_df = pd.DataFrame(eigvec, index=idx, columns=range(df.shape[1]))  # pylint: disable=unsubscriptable-object
     hdbg.dassert_eq(
         len(eigvec_df.index.get_level_values(0).unique()), len(timestamps)
     )
@@ -234,7 +232,9 @@ def plot_time_distributions(
         # Count.
         count = pd.Series(vals).value_counts(sort=False)
         # Compute the labels.
-        yticks = ["%02d:%02d" % (bins[k] / 60, bins[k] % 60) for k in count.index]
+        yticks = [
+            "%02d:%02d" % (bins[k] / 60, bins[k] % 60) for k in count.index
+        ]
     elif mode == "weekday":
         data = [dt.date().weekday() for dt in dts]
         bins = np.arange(0, 7 + 1)
@@ -484,7 +484,9 @@ def ols_regress(
                         height=jointplot_height,
                     )
             else:
-                _LOG.warning("Skipping plots since there are too many predictors")
+                _LOG.warning(
+                    "Skipping plots since there are too many predictors"
+                )
     if print_model_stats:
         return None
     return regr_res

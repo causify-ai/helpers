@@ -8,7 +8,6 @@ import helpers.hlint as hlint
 
 import logging
 
-import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 

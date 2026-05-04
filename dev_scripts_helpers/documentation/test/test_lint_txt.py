@@ -1,16 +1,16 @@
 import logging
 import os
+import sys
 from typing import Optional
 
 import pytest
 
 import dev_scripts_helpers.documentation.lint_txt as dshdlitx
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -32,7 +32,8 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
         Test helper for _remove_code_block_extra_indentation.
 
         :param txt: Input text to process
-        :param expected: Expected output after removing extra indentation
+        :param expected: Expected output after removing extra
+            indentation
         """
         # Prepare inputs.
         lines = txt.split("\n")
@@ -177,6 +178,7 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    @pytest.mark.superslow("~95 seconds.")
     def test7(self) -> None:
         """
         Test code block with correct indentation already present.
@@ -194,6 +196,7 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    @pytest.mark.superslow("~25 seconds.")
     def test8(self) -> None:
         """
         Test that code blocks without extra indentation are unchanged.
@@ -828,7 +831,8 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         Test helper for _convert_asterisk_bullets_to_dashes.
 
         :param txt: Input text to process
-        :param expected: Expected output after converting asterisk bullets
+        :param expected: Expected output after converting asterisk
+            bullets
         """
         # Prepare inputs.
         lines = txt.split("\n")
@@ -1031,6 +1035,634 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         self.helper(txt, expected)
 
 
+# #############################################################################
+# Test_remove_trailing_periods
+# #############################################################################
+
+
+class Test_remove_trailing_periods(hunitest.TestCase):
+    """
+    Test the _remove_trailing_periods function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _remove_trailing_periods.
+
+        :param txt: Input text to process
+        :param expected: Expected output after removing trailing periods
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._remove_trailing_periods(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test removing period from simple bullet point.
+        """
+        # Prepare inputs.
+        txt = """
+        - Bullet point with period.
+        """
+        # Prepare outputs.
+        expected = """
+        - Bullet point with period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test removing periods from multiple bullet points.
+        """
+        # Prepare inputs.
+        txt = """
+        - First item with period.
+        - Second item with period.
+        - Third item with period.
+        """
+        # Prepare outputs.
+        expected = """
+        - First item with period
+        - Second item with period
+        - Third item with period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test removing period from header.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Header with period.
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Header with period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test removing periods from multiple headers at different levels.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Header.
+        ## Subheader.
+        ### Sub-subheader.
+        #### Deep header.
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Header
+        ## Subheader
+        ### Sub-subheader
+        #### Deep header
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test removing period from numbered list items.
+        """
+        # Prepare inputs.
+        txt = """
+        1. First numbered item with period.
+        2. Second numbered item with period.
+        3. Third numbered item with period.
+        """
+        # Prepare outputs.
+        expected = """
+        1. First numbered item with period
+        2. Second numbered item with period
+        3. Third numbered item with period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test removing period from numbered list with closing parenthesis.
+        """
+        # Prepare inputs.
+        txt = """
+        1) Item with closing parenthesis.
+        2) Another item with closing parenthesis.
+        """
+        # Prepare outputs.
+        expected = """
+        1) Item with closing parenthesis
+        2) Another item with closing parenthesis
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test that regular text trailing periods are removed.
+        """
+        # Prepare inputs.
+        txt = """
+        Regular text with a period. More text here.
+        Another line with a period.
+        """
+        # Prepare outputs.
+        expected = """
+        Regular text with a period. More text here
+        Another line with a period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test mixed bullet points, headers, and regular text.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Section.
+        - Bullet point with period.
+        Regular text with period.
+        1. Numbered item.
+        More regular text.
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Section
+        - Bullet point with period
+        Regular text with period
+        1. Numbered item
+        More regular text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test nested bullet points with indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Main bullet.
+          - Nested bullet.
+            - Deep nested bullet.
+        - Another main bullet.
+        """
+        # Prepare outputs.
+        expected = """
+        - Main bullet
+          - Nested bullet
+            - Deep nested bullet
+        - Another main bullet
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test that bullet points without periods are unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        - Bullet point without period
+        - Another without period
+        - Yet another without
+        """
+        # Prepare outputs.
+        expected = """
+        - Bullet point without period
+        - Another without period
+        - Yet another without
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test11(self) -> None:
+        """
+        Test with trailing spaces after period.
+        """
+        # Prepare inputs.
+        txt = """
+        - Bullet point with period and trailing space.
+        # Header with trailing space.
+        """
+        # Prepare outputs.
+        expected = """
+        - Bullet point with period and trailing space
+        # Header with trailing space
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test12(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test13(self) -> None:
+        """
+        Test that periods in URLs are preserved (in regular text).
+        """
+        # Prepare inputs.
+        txt = """
+        - Visit example.com for more info.
+        - Check https://example.com/path.html.
+        """
+        # Prepare outputs.
+        expected = """
+        - Visit example.com for more info
+        - Check https://example.com/path.html
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test14(self) -> None:
+        """
+        Test multiple periods at the end (edge case).
+        """
+        # Prepare inputs.
+        txt = """
+        - Bullet with multiple periods...
+        # Header with multiple periods...
+        """
+        # Prepare outputs.
+        expected = """
+        - Bullet with multiple periods
+        # Header with multiple periods
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test15(self) -> None:
+        """
+        Test combination of all patterns: headers, bullets, and numbered lists.
+        """
+        # Prepare inputs.
+        txt = """
+        # Feature List.
+        ## Implementation Steps.
+        1. First step in process.
+        2. Second step in process.
+           - Sub-item for step 2.
+           - Another sub-item.
+        ## Results.
+        - Positive result.
+        - Negative result.
+        Regular conclusion text.
+        """
+        # Prepare outputs.
+        expected = """
+        # Feature List
+        ## Implementation Steps
+        1. First step in process
+        2. Second step in process
+           - Sub-item for step 2
+           - Another sub-item
+        ## Results
+        - Positive result
+        - Negative result
+        Regular conclusion text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test16(self) -> None:
+        """
+        Test removing periods from regular text lines (user's example case).
+        """
+        # Prepare inputs.
+        txt = """
+        Some applications of decision-making include:
+        Decision-making applications (medical diagnosis, terrorism detection).
+        Another example with more details.
+        """
+        # Prepare outputs.
+        expected = """
+        Some applications of decision-making include:
+        Decision-making applications (medical diagnosis, terrorism detection)
+        Another example with more details
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_remove_markdown_formatting
+# #############################################################################
+
+
+class Test_remove_markdown_formatting(hunitest.TestCase):
+    """
+    Test the _remove_markdown_formatting function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _remove_markdown_formatting.
+
+        :param txt: Input text to process
+        :param expected: Expected output after removing markdown formatting
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._remove_markdown_formatting(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test removing bold formatting with double asterisks.
+        """
+        # Prepare inputs.
+        txt = """
+        This is **bold text** in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is bold text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test removing bold formatting with double underscores.
+        """
+        # Prepare inputs.
+        txt = """
+        This is __bold text__ in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is bold text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test removing italic formatting with single asterisks.
+        """
+        # Prepare inputs.
+        txt = """
+        This is *italic text* in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is italic text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test removing italic formatting with single underscores.
+        """
+        # Prepare inputs.
+        txt = """
+        This is _italic text_ in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is italic text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test removing strikethrough formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        This is ~~strikethrough text~~ in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is strikethrough text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test removing inline code formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        Use the `function_name()` to do something.
+        """
+        # Prepare outputs.
+        expected = """
+        Use the function_name() to do something.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test removing link formatting, keeping the text.
+        """
+        # Prepare inputs.
+        txt = """
+        Visit [Google](https://google.com) for more info.
+        """
+        # Prepare outputs.
+        expected = """
+        Visit Google for more info.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test removing image formatting, keeping the alt text.
+        """
+        # Prepare inputs.
+        txt = """
+        ![alt text](image.png) is shown above.
+        """
+        # Prepare outputs.
+        expected = """
+        alt text is shown above.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test removing header formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Header
+        ## Subheader
+        ### Sub-subheader
+        """
+        # Prepare outputs.
+        expected = """
+        Main Header
+        Subheader
+        Sub-subheader
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test mixed markdown formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        The **bold** and *italic* text with a [link](http://example.com).
+        # Header with **bold**.
+        """
+        # Prepare outputs.
+        expected = """
+        The bold and italic text with a link.
+        Header with bold.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test11(self) -> None:
+        """
+        Test that code blocks are preserved.
+        """
+        # Prepare inputs.
+        txt = """
+        Here is a code example:
+        ```python
+        result = **bold** and *italic*
+        # This is a comment with [link](url)
+        ```
+        After the code block.
+        """
+        # Prepare outputs.
+        expected = """
+        Here is a code example:
+        ```python
+        result = **bold** and *italic*
+        # This is a comment with [link](url)
+        ```
+        After the code block.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test12(self) -> None:
+        """
+        Test multiple formatting types on single line.
+        """
+        # Prepare inputs.
+        txt = """
+        **Bold**, *italic*, ~~strikethrough~~, and `code` together.
+        """
+        # Prepare outputs.
+        expected = """
+        Bold, italic, strikethrough, and code together.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test13(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test14(self) -> None:
+        """
+        Test text without any markdown formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        This is plain text without any markdown formatting.
+        It has multiple lines and sentences.
+        """
+        # Prepare outputs.
+        expected = """
+        This is plain text without any markdown formatting.
+        It has multiple lines and sentences.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test15(self) -> None:
+        """
+        Test nested code blocks with different languages.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before code.
+        ```javascript
+        const x = **bold** and *italic*;
+        ```
+        ```python
+        def function(**kwargs):
+            pass
+        ```
+        Text after code.
+        """
+        # Prepare outputs.
+        expected = """
+        Text before code.
+        ```javascript
+        const x = **bold** and *italic*;
+        ```
+        ```python
+        def function(**kwargs):
+            pass
+        ```
+        Text after code.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test16(self) -> None:
+        """
+        Test variable names with underscores are preserved.
+        """
+        # Prepare inputs.
+        txt = """
+        The variable _my_variable should not be modified.
+        Use _some_function() for processing.
+        """
+        # Prepare outputs.
+        expected = """
+        The variable _my_variable should not be modified.
+        Use _some_function() for processing.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
 def _get_text1() -> str:
     """
     Get sample text containing mathematical equations in LaTeX format.
@@ -1071,9 +1703,10 @@ class Test_capitalize_header(hunitest.TestCase):
     """
     Test the capitalize_header function handling of apostrophes.
 
-    The capitalize_header function should properly handle words with apostrophes,
-    like "won't" -> "Won't" (not "Won'T"). This tests the fix for the bug where
-    Python's str.title() capitalizes letters after apostrophes.
+    The capitalize_header function should properly handle words with
+    apostrophes, like "won't" -> "Won't" (not "Won'T"). This tests the
+    fix for the bug where Python's str.title() capitalizes letters after
+    apostrophes.
     """
 
     def helper(self, input_lines: str, expected: str) -> None:
@@ -1081,7 +1714,8 @@ class Test_capitalize_header(hunitest.TestCase):
         Test helper for capitalize_header.
 
         :param input_lines: Input markdown lines to process
-        :param expected: Expected output after capitalize_header processing
+        :param expected: Expected output after capitalize_header
+            processing
         """
         import helpers.hmarkdown_headers as hmarhead
 
@@ -1191,10 +1825,6 @@ class Test_capitalize_header(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_lint_txt1(hunitest.TestCase):
     """
     Test the text preprocessing functionality.
@@ -1293,10 +1923,6 @@ class Test_lint_txt1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_lint_txt2(hunitest.TestCase):
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
@@ -1320,8 +1946,8 @@ class Test_lint_txt2(hunitest.TestCase):
         the expected output.
 
         :param txt: The text to be processed.
-        :param expected: The expected output after processing the text. If
-            None, no comparison is made.
+        :param expected: The expected output after processing the text.
+            If None, no comparison is made.
         :param file_name: The name of the file to be used for
             processing.
         :return: The processed text.
@@ -1343,14 +1969,14 @@ class Test_lint_txt2(hunitest.TestCase):
 
     # //////////////////////////////////////////////////////////////////////////
 
-    def test_process1(self) -> None:
+    def test1(self) -> None:
         txt = _get_text1()
         expected = None
         file_name = "test.txt"
         actual = self.helper(txt, expected, file_name)
         self.check_string(actual)
 
-    def test_process2(self) -> None:
+    def test2(self) -> None:
         """
         Run the text linter on a txt file.
         """
@@ -1361,7 +1987,7 @@ class Test_lint_txt2(hunitest.TestCase):
             -   avoid non-essential tasks
         """
         expected = r"""
-        * Good Time Management
+        - Good time management
 
         1. Choose the right tasks
            - Avoid non-essential tasks
@@ -1369,7 +1995,9 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
-    def test_process3(self) -> None:
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.superslow
+    def test3(self) -> None:
         """
         Run the text linter on a md file.
         """
@@ -1403,7 +2031,8 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
-    def test_process4(self) -> None:
+    @pytest.mark.superslow
+    def test4(self) -> None:
         """
         Check that no replacement happens inside a ``` block.
         """
@@ -1438,12 +2067,12 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
-    def test_process_prettier_bug1(self) -> None:
+    def test5(self) -> None:
         """
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self.get_text_problematic_for_prettier1()
-        actual = hdocexec.prettier_on_str(txt, file_type="txt")
+        actual = dshdlipr.prettier_on_str(txt, file_type="txt")
         expected = r"""
         - Python formatting
 
@@ -1459,7 +2088,9 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
-    def test_process5(self) -> None:
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.superslow
+    def test6(self) -> None:
         """
         Run the text linter on a txt file.
         """
@@ -1477,7 +2108,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
-    def test_process6(self) -> None:
+    def test7(self) -> None:
         """
         Run the text linter on a txt file.
         """
@@ -1490,17 +2121,19 @@ class Test_lint_txt2(hunitest.TestCase):
            ```
         """
         expected = r"""
-        * `str.format`
+        - str.format
         - Python 3 allows to format multiple values, e.g.,
           ```python
-             key = 'my_var'
+          key = 'my_var'
            value = 1.234
           ```
         """
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
-    def test7(self) -> None:
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.superslow
+    def test8(self) -> None:
         """
         Test that YAML front matter is preserved in markdown files.
         """
@@ -1536,9 +2169,12 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
-    def test8(self) -> None:
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.superslow
+    def test9(self) -> None:
         """
-        Test that page separators are removed but YAML front matter is preserved.
+        Test that page separators are removed but YAML front matter is
+        preserved.
         """
         txt = r"""
         ---
@@ -1582,10 +2218,6 @@ class Test_lint_txt2(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_lint_txt_cmd_line1(hunitest.TestCase):
     """
     Test the lint_txt.py command-line script with different file types.
@@ -1597,13 +2229,13 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         type_: str,
         use_script: bool,
         cmd_opts: str,
-    ) -> Optional[str]:
+    ) -> str:
         """
         Run lint_txt processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
-        :param type_: The output format, either 'md' or 'tex'.
-        :param use_script
+        :param type_: The output format, either 'md' or 'tex'. :param
+            use_script
         :param cmd_opts: Additional command-line options to pass to the
             script.
         :return: The processed text content.
@@ -1626,10 +2258,9 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
             cmd.append(cmd_opts)
             cmd = " ".join(cmd)
             hsystem.system(cmd)
-            # Check the content of the file, if needed.
-            output_txt: Optional[str] = None
-            if os.path.exists(out_file):
-                output_txt = hio.from_file(out_file)
+            # Check the content of the file.
+            hdbg.dassert_file_exists(out_file)
+            output_txt = hio.from_file(out_file)
         else:
             hdbg.dassert_in(type_, ["md", "tex"])
             # Read input file.
@@ -1650,7 +2281,9 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    def test_md1(self) -> None:
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.superslow
+    def test1(self) -> None:
         """
         Run lint_to_txt.py on a markdown file by calling the function directly.
         """
@@ -1664,27 +2297,28 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         # Check.
         self.check_string(output_txt)
 
-    def test_md2(self) -> None:
+    def test2(self) -> None:
         """
         Run lint_to_txt.py on a markdown file using the command-line script.
 
-        This test uses the same input file as test_md1 and should produce
-        the same output. It uses test_method_name to reuse the golden
-        outcome from test_md1.
+        This test uses the same input file as test1 and should
+        produce the same output. It uses test_method_name to reuse the
+        golden outcome from test1.
         """
         # Prepare inputs.
         in_file = os.path.join(
-            self.get_input_dir(test_method_name="test_md1"), "text.md"
+            self.get_input_dir(test_method_name="test1"), "text.md"
         )
         type_ = "md"
         use_script = True
         cmd_opts = ""
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
-        # Check using the same golden outcome as test_md1.
-        self.check_string(output_txt, test_method_name="test_md1")
+        # Check using the same golden outcome as test1.
+        self.check_string(output_txt, test_method_name="test1")
 
-    def test_tex1(self) -> None:
+    @pytest.mark.slow
+    def test3(self) -> None:
         """
         Run lint_to_txt.py on a latex file by calling the function directly.
         """
@@ -1698,25 +2332,26 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         # Check.
         self.check_string(output_txt)
 
-    def test_tex2(self) -> None:
+    @pytest.mark.slow
+    def test4(self) -> None:
         """
         Run lint_to_txt.py on a latex file using the command-line script.
 
-        This test uses the same input file as test_tex1 and should produce
-        the same output. It uses test_method_name to reuse the golden
-        outcome from test_tex1.
+        This test uses the same input file as test3 and should
+        produce the same output. It uses test_method_name to reuse the
+        golden outcome from test3.
         """
         # Prepare inputs.
         in_file = os.path.join(
-            self.get_input_dir(test_method_name="test_tex1"), "text.tex"
+            self.get_input_dir(test_method_name="test4"), "text.tex"
         )
         type_ = "tex"
         use_script = True
         cmd_opts = "--print-width 80"
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
-        # Check using the same golden outcome as test_tex1.
-        self.check_string(output_txt, test_method_name="test_tex1")
+        # Check using the same golden outcome as test3.
+        self.check_string(output_txt, test_method_name="test4")
 
 
 # #############################################################################
@@ -1724,10 +2359,6 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_lint_txt_idempotency(hunitest.TestCase):
     """
     Test that lint_txt.py does not modify already formatted files.
@@ -1738,7 +2369,7 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
         in_file: str,
         type_: str,
         cmd_opts: str,
-    ) -> Optional[str]:
+    ) -> str:
         """
         Run lint_txt processing directly by calling the code.
 
@@ -1765,12 +2396,12 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
         output_txt = "\n".join(out_lines)
         return output_txt
 
-    def test_idempotency_directory(self) -> None:
+    def test1(self) -> None:
         """
         Test idempotency for all markdown files in the input directory.
 
-        This test verifies that running lint_txt twice on each file in the
-        input directory produces identical output.
+        This test verifies that running lint_txt twice on each file in
+        the input directory produces identical output.
         """
         # Prepare inputs.
         input_dir = self.get_input_dir()

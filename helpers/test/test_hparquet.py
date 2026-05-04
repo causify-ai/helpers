@@ -604,30 +604,6 @@ class TestPartitionedParquet1(hunitest.TestCase):
         self.assert_equal(df_as_str, expected, fuzzy_match=True)
         self.assert_equal(df_as_str, expected, fuzzy_match=True)
 
-    def test_write_and_read_mixed_units_partition_dataset_1(self) -> None:
-        """
-        Write two DataFrames with different time units to a partitioned Parquet
-        dataset and read it back.
-
-        The combination `ns` and `us` should not raise an error.
-        See CmampTask7331 for details.
-        """
-        self._run_write_and_read_mixed_units_partitioned_dataset("ns", "us")
-
-    @pytest.mark.skip(
-        reason="Since names and order the files is not guaranteed, the test is "
-        "flaky, decided to skip it for now.",
-    )
-    def test_write_and_read_mixed_units_partition_dataset_2(self) -> None:
-        """
-        Write two DataFrames with different time units to a partitioned Parquet
-        dataset and read it back.
-
-        The combination `ms` and `us` should raise an error.
-        """
-        with self.assertRaises(pyarrow.lib.ArrowInvalid):
-            self._run_write_and_read_mixed_units_partitioned_dataset("ms", "us")
-
     def _run_write_and_read_mixed_units_partitioned_dataset(
         self, first_unit: str, second_unit: str
     ) -> None:
@@ -657,6 +633,30 @@ class TestPartitionedParquet1(hunitest.TestCase):
         hparque.to_partitioned_parquet(second_df, partition_columns, dst_dir)
         # Read it back.
         _ = hparque.from_parquet(dst_dir)
+
+    def test_write_and_read_mixed_units_partition_dataset_1(self) -> None:
+        """
+        Write two DataFrames with different time units to a partitioned Parquet
+        dataset and read it back.
+
+        The combination `ns` and `us` should not raise an error.
+        See CmampTask7331 for details.
+        """
+        self._run_write_and_read_mixed_units_partitioned_dataset("ns", "us")
+
+    @pytest.mark.skip(
+        reason="Since names and order the files is not guaranteed, the test is "
+        "flaky, decided to skip it for now.",
+    )
+    def test_write_and_read_mixed_units_partition_dataset_2(self) -> None:
+        """
+        Write two DataFrames with different time units to a partitioned Parquet
+        dataset and read it back.
+
+        The combination `ms` and `us` should raise an error.
+        """
+        with self.assertRaises(pyarrow.lib.ArrowInvalid):
+            self._run_write_and_read_mixed_units_partitioned_dataset("ms", "us")
 
 
 # #############################################################################
@@ -1164,32 +1164,6 @@ class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
 
 
 class TestListAndMergePqFilesMixedUnits(hunitest.TestCase):
-    def test_parquet_files_with_mixed_time_units_1(self) -> None:
-        """
-        Test merging Parquet files with the `ns` and `us`.
-        """
-        first_unit = "ns"
-        second_unit = "us"
-        self._list_and_merge_mixed_units_pq_files(first_unit, second_unit)
-
-    # TODO(Nina): @Samarth fix the test.
-    @pytest.mark.skip(reason="Broken.")
-    def test_parquet_files_with_mixed_time_units_2(self) -> None:
-        """
-        Test merging Parquet files with the `ms` and `ns`.
-
-        It should raise an error. See CmampTask7331 for details.
-
-        The test will not raise an asserion when the time units is `ms` and
-        `us`. The reason is that we do not lose data when converting from
-        the first time unit, which is `ms`, to the second time unit, which
-        is `us`, transitioning from low resolution to high resolution.
-        """
-        first_unit = "us"
-        second_unit = "ms"
-        with self.assertRaises(pyarrow.lib.ArrowInvalid):
-            self._list_and_merge_mixed_units_pq_files(first_unit, second_unit)
-
     def _list_and_merge_mixed_units_pq_files(
         self, first_unit: str, second_unit: str
     ) -> None:
@@ -1224,6 +1198,32 @@ class TestListAndMergePqFilesMixedUnits(hunitest.TestCase):
         hparque.list_and_merge_pq_files(dst_dir, file_name="tmp.merged.parquet")
         # Read it back.
         _ = hparque.from_parquet(merged_file_name)
+
+    def test_parquet_files_with_mixed_time_units_1(self) -> None:
+        """
+        Test merging Parquet files with the `ns` and `us`.
+        """
+        first_unit = "ns"
+        second_unit = "us"
+        self._list_and_merge_mixed_units_pq_files(first_unit, second_unit)
+
+    # TODO(Nina): @Samarth fix the test.
+    @pytest.mark.skip(reason="Broken.")
+    def test_parquet_files_with_mixed_time_units_2(self) -> None:
+        """
+        Test merging Parquet files with the `ms` and `ns`.
+
+        It should raise an error. See CmampTask7331 for details.
+
+        The test will not raise an asserion when the time units is `ms` and
+        `us`. The reason is that we do not lose data when converting from
+        the first time unit, which is `ms`, to the second time unit, which
+        is `us`, transitioning from low resolution to high resolution.
+        """
+        first_unit = "us"
+        second_unit = "ms"
+        with self.assertRaises(pyarrow.lib.ArrowInvalid):
+            self._list_and_merge_mixed_units_pq_files(first_unit, second_unit)
 
 
 # #############################################################################
@@ -1406,13 +1406,6 @@ class TestPartitionedParquet2(hunitest.TestCase):
     timestamp formats.
     """
 
-    def test1(self) -> None:
-        """
-        Test writing and reading a partitioned Parquet dataset with mixed
-        timestamp formats.
-        """
-        self._run_write_and_read_mixed_timestamp_partitioned_dataset()
-
     def _get_test_df(self) -> pd.DataFrame:
         """
         Create a DataFrame with timestamps.
@@ -1466,3 +1459,10 @@ class TestPartitionedParquet2(hunitest.TestCase):
         2024-05-20 00:00:00+00:00  2024-06-04 20:38:43.467599+00:00   263   240  BTC_USDT
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test1(self) -> None:
+        """
+        Test writing and reading a partitioned Parquet dataset with mixed
+        timestamp formats.
+        """
+        self._run_write_and_read_mixed_timestamp_partitioned_dataset()

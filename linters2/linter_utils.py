@@ -1,7 +1,7 @@
 """
 Import as:
 
-import linters.utils as liutils
+import linters2.linter_utils as llinutil
 """
 
 import logging
@@ -12,7 +12,6 @@ from typing import List, Optional, Tuple
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -30,6 +29,35 @@ FILES_TO_EXCLUDE = [
     "setup.py",
     "tasks.py",
 ]
+
+
+# #############################################################################
+
+
+# TODO(gp): Move in a more general file: probably system_interaction.
+def _is_under_dir(file_name: str, dir_name: str) -> bool:
+    """
+    Return whether a file is under the given directory.
+    """
+    subdir_names = file_name.split("/")
+    return dir_name in subdir_names
+
+
+def is_under_test_dir(file_name: str) -> bool:
+    """
+    Return whether a file is under a test directory (which is called "test").
+    """
+    return _is_under_dir(file_name, "test")
+
+
+def is_test_input_output_file(file_name: str) -> bool:
+    """
+    Return whether a file is used as input or output in a unit test.
+    """
+    ret = is_under_test_dir(file_name)
+    ret &= file_name.endswith(".txt")
+    ret &= not _is_under_dir(file_name, "tmp.scratch")
+    return ret
 
 
 def _filter_files(
@@ -64,7 +92,7 @@ def _filter_files(
         if is_valid:
             file_paths_to_keep.append(file_path)
         else:
-            _LOG.warning("Skipping %s", file_path)
+            _LOG.debug("Skipping '%s'", file_path)
     return file_paths_to_keep
 
 
@@ -97,9 +125,9 @@ def get_files_to_check(
         file_paths = files
     elif from_file:
         # Get the files from a file.
-        file_paths = hio.from_file(from_file)
-        file_paths = file_paths.replace("\n", " ")
-        file_paths = file_paths.split(" ")
+        file_paths_str = hio.from_file(from_file)
+        file_paths_str = file_paths_str.replace("\n", " ")
+        file_paths = file_paths_str.split(" ")
         _LOG.info("Read %d files from '%s'", len(file_paths), from_file)
         hdbg.dassert_list_of_strings(file_paths)
     elif modified:
@@ -132,6 +160,7 @@ def get_files_to_check(
     return file_paths
 
 
+# TODO(gp): This seems obsolete given the code in linters2/lint.py
 def get_python_files_to_lint(dir_name: str) -> List[str]:
     """
     Get Python files for linter excluding jupytext and test Python files.
@@ -182,77 +211,12 @@ def get_python_files_to_lint(dir_name: str) -> List[str]:
     return not_test_files
 
 
-def write_file_back(
-    file_name: str, txt_old: List[str], txt_new: List[str]
-) -> None:
-    """
-    Compare old text and new text and, if different, write into file.
-    """
-    hdbg.dassert_list_of_strings(txt_old)
-    txt_as_str = "\n".join(txt_old)
-    #
-    hdbg.dassert_list_of_strings(txt_new)
-    txt_new_as_str = "\n".join(txt_new)
-    #
-    if txt_as_str != txt_new_as_str:
-        hio.to_file(file_name, txt_new_as_str)
-
-
-# TODO(saggese): should this be moved to system interactions?
-def tee(
-    cmd: str, executable: str, abort_on_error: bool
-) -> Tuple[int, List[str]]:
-    """
-    Execute command "cmd", capturing its output and removing empty lines.
-
-    :return: list of strings
-    """
-    _LOG.debug("cmd=%s executable=%s", cmd, executable)
-    rc, output = hsystem.system_to_string(cmd, abort_on_error=abort_on_error)
-    hdbg.dassert_isinstance(output, str)
-    output1 = output.split("\n")
-    _LOG.debug("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
-    #
-    output2 = hprint.remove_empty_lines(output1)
-    _LOG.debug("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
-    hdbg.dassert_list_of_strings(output2)
-    return rc, output2
-
-
-# #############################################################################
-
-
-# TODO(gp): Move in a more general file: probably system_interaction.
-def _is_under_dir(file_name: str, dir_name: str) -> bool:
-    """
-    Return whether a file is under the given directory.
-    """
-    subdir_names = file_name.split("/")
-    return dir_name in subdir_names
-
-
+# TODO(gp): Some of these functions can be centralized in helpers.
 def is_under_tmp_scratch_dir(file_name: str) -> bool:
     """
     Return whether a file is under the temporary scratch directory.
     """
     return _is_under_dir(file_name, "tmp.scratch")
-
-
-def is_under_test_dir(file_name: str) -> bool:
-    """
-    Return whether a file is under a test directory (which is called "test").
-    """
-    return _is_under_dir(file_name, "test")
-
-
-def is_test_input_output_file(file_name: str) -> bool:
-    """
-    Return whether a file is used as input or output in a unit test.
-    """
-    ret = is_under_test_dir(file_name)
-    ret &= file_name.endswith(".txt")
-    ret &= not _is_under_dir(file_name, "tmp.scratch")
-    return ret
 
 
 def is_test_code(file_name: str) -> bool:
@@ -280,20 +244,40 @@ def is_ipynb_file(file_name: str) -> bool:
 
 
 def from_python_to_ipynb_file(file_name: str) -> str:
-    hdbg.dassert(is_py_file(file_name))
+    """
+    Convert Python file path to its paired Jupyter notebook path.
+
+    :param file_name: Path to a .py file
+    :return: Corresponding .ipynb file path
+    """
+    hdbg.dassert(
+        is_py_file(file_name),
+        "File '%s' must be a Python file to convert to notebook",
+        file_name,
+    )
     ret = file_name.replace(".py", ".ipynb")
     return ret
 
 
 def from_ipynb_to_python_file(file_name: str) -> str:
-    hdbg.dassert(is_ipynb_file(file_name))
+    """
+    Convert Jupyter notebook path to its paired Python file path.
+
+    :param file_name: Path to a .ipynb file
+    :return: Corresponding .py file path
+    """
+    hdbg.dassert(
+        is_ipynb_file(file_name),
+        "File '%s' must be a Jupyter notebook to convert to Python",
+        file_name,
+    )
     ret = file_name.replace(".ipynb", ".py")
     return ret
 
 
 def is_paired_jupytext_file(file_name: str) -> bool:
     """
-    Return whether a file is a paired jupytext file.
+    Return whether a py or ipynb file is a paired jupytext file.
     """
     is_paired = (
         is_py_file(file_name)
@@ -307,6 +291,12 @@ def is_paired_jupytext_file(file_name: str) -> bool:
 
 
 def is_init_py(file_name: str) -> bool:
+    """
+    Check if the file is a Python package initialization file.
+
+    :param file_name: Path to the file to check
+    :return: True if the file is named __init__.py
+    """
     return os.path.basename(file_name) == "__init__.py"
 
 
@@ -346,13 +336,16 @@ def parse_comment(
     line: str, regex: str = r"(^\s*)#\s*(.*)\s*"
 ) -> Optional[re.Match]:
     """
-    Parse a line and return a comment if there's one.
+    Parse a line and return a regex match for the comment part.
 
-    Seperator lines and shebang return None.
+    Separator lines and shebangs are skipped and return None.
+
+    :param line: The line to parse
+    :param regex: Regular expression to match comment syntax
+    :return: Regex match object if comment found, None for separators or shebangs
     """
     if is_separator(line) or is_shebang(line):
         return None
-
     return re.search(regex, line)
 
 
@@ -417,3 +410,52 @@ def get_dirs_with_missing_init(
             dirs_missing_init.append(root)
     dirs_missing_init = sorted(dirs_missing_init)
     return dirs_missing_init
+
+
+def filter_files_by_type(
+    file_paths: List[str],
+    file_extensions: List[str],
+    *,
+    skip_dassert_exists: bool = False,
+) -> Tuple[List[str], List[str], List[str]]:
+    """
+    Filter files by type (Python, Jupyter, Markdown, Text).
+
+    :param file_paths: files to filter
+    :param file_extensions: list of file extensions to include (e.g., ["py", "ipynb", "md", "txt"])
+    :param skip_dassert_exists: skip file existence checks
+    :return: tuple of (python_files, jupyter_files, markdown_files)
+    """
+    python_files = []
+    jupyter_files = []
+    markdown_files = []
+    # Categorize all files by type.
+    for f in file_paths:
+        if is_ipynb_file(f):
+            if "ipynb" not in file_extensions:
+                continue
+            paired_python_file = from_ipynb_to_python_file(f)
+            if not skip_dassert_exists:
+                hdbg.dassert_file_exists(
+                    paired_python_file,
+                    "Paired Jupyter notebook file '%s' not found for Python file '%s'",
+                    f,
+                    paired_python_file,
+                )
+            jupyter_files.append(f)
+        elif is_py_file(f):
+            if "py" not in file_extensions:
+                continue
+            if not is_paired_jupytext_file(f):
+                python_files.append(f)
+        elif f.endswith(".md"):
+            if "md" not in file_extensions:
+                continue
+            markdown_files.append(f)
+        elif f.endswith(".txt"):
+            if "txt" not in file_extensions:
+                continue
+            markdown_files.append(f)
+        else:
+            _LOG.warning("File type for '%s' not recognized", f)
+    return python_files, jupyter_files, markdown_files

@@ -9,6 +9,11 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# TestRandomSeedContext
+# #############################################################################
+
+
 class TestRandomSeedContext(hunitest.TestCase):
     def test_example1(self) -> None:
         """
@@ -53,7 +58,22 @@ class TestRandomSeedContext(hunitest.TestCase):
         self.assertEqual(str(vals2a), str(vals2b))
 
 
+# #############################################################################
+# TestFloorWithPrecision
+# #############################################################################
+
+
 class TestFloorWithPrecision(hunitest.TestCase):
+    def _test_floor_with_precision(
+        self,
+        value: float,
+        precision: int,
+        expected: str,
+    ) -> None:
+        """ """
+        actual = hnumpy.floor_with_precision(value, precision)
+        self.assert_equal(str(actual), expected)
+
     def test_floor_with_precision1(self) -> None:
         """
         Test for negative float values as input.
@@ -112,15 +132,10 @@ class TestFloorWithPrecision(hunitest.TestCase):
         expected_as_str = "4289734.12345"
         self._test_floor_with_precision(4289734.1234599999, 5, expected_as_str)
 
-    def _test_floor_with_precision(
-        self,
-        value: float,
-        precision: int,
-        expected: str,
-    ) -> None:
-        """ """
-        actual = hnumpy.floor_with_precision(value, precision)
-        self.assert_equal(str(actual), expected)
+
+# #############################################################################
+# Test_OrderedDict_repr_str
+# #############################################################################
 
 
 class Test_OrderedDict_repr_str(hunitest.TestCase):

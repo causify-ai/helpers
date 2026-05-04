@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.1
+#       jupytext_version: 1.17.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -185,6 +185,13 @@ print(f"Force refresh: {result}")
 # Report on cache miss.
 result = data_processor("world", report_on_cache_miss=True)
 print(f"With report: {result}")
+
+# %%
+# Abort on cache miss - raises ValueError if not cached.
+try:
+    result = data_processor("new_value", abort_on_cache_miss=True)
+except ValueError as e:
+    print(f"Cache miss error: {e}")
 
 # %% [markdown]
 # <a name='5.-configurable-cache-locations'></a>

@@ -141,6 +141,30 @@ class TextPurifier:
         _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
         return txt
 
+    def _apply_regex_replacements(
+        self, txt: str, regex_patterns: List[Tuple[str, str]]
+    ) -> str:
+        """
+        Apply a series of regex replacements to text.
+
+        :param txt: input text to process
+        :param regex_patterns: list of (pattern, replacement) tuples to
+            apply in order
+        :return: text with all regex replacements applied
+        """
+        # Apply regex replacements in order.
+        txt_out = txt
+        for regex_pattern, replacement in regex_patterns:
+            txt_out = re.sub(regex_pattern, replacement, txt_out)
+            _LOG.debug(
+                "Applying %s -> %s: before=%s, after=%s",
+                regex_pattern,
+                replacement,
+                txt,
+                txt_out,
+            )
+        return txt_out
+
     def purify_amp_references(self, txt: str) -> str:
         """
         Remove references to amp from text by applying a series of regex
@@ -415,30 +439,6 @@ class TextPurifier:
         # Apply amp reference purification to file paths.
         file_names = list(map(self.purify_amp_references, file_names))
         return file_names
-
-    def _apply_regex_replacements(
-        self, txt: str, regex_patterns: List[Tuple[str, str]]
-    ) -> str:
-        """
-        Apply a series of regex replacements to text.
-
-        :param txt: input text to process
-        :param regex_patterns: list of (pattern, replacement) tuples to
-            apply in order
-        :return: text with all regex replacements applied
-        """
-        # Apply regex replacements in order.
-        txt_out = txt
-        for regex_pattern, replacement in regex_patterns:
-            txt_out = re.sub(regex_pattern, replacement, txt_out)
-            _LOG.debug(
-                "Applying %s -> %s: before=%s, after=%s",
-                regex_pattern,
-                replacement,
-                txt,
-                txt_out,
-            )
-        return txt_out
 
 
 def purify_text(txt: str) -> str:

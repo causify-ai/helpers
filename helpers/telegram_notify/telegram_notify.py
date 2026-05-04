@@ -21,41 +21,6 @@ import helpers.telegram_notify.config as htenocon
 
 _LOG = logging.getLogger(__name__)
 
-# #############################################################################
-# TelegramNotebookNotify.
-# #############################################################################
-
-
-class TelegramNotebookNotify:
-    """
-    Sends notifications.
-    """
-
-    def __init__(self) -> None:
-        self.launcher_name = _get_launcher_name()
-        self.token, self.chat_id = htenocon.get_info()
-
-    @staticmethod
-    def send(
-        text: str, token: Optional[str], chat_id: Optional[str]
-    ) -> Optional[bytes]:
-        if chat_id is None or token is None:
-            _LOG.warning(
-                "Not sending notifications. To send notifications, both "
-                "`chat_id` and `token` need to be specified. Go to README.md"
-                "for more information."
-            )
-            return None
-        payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
-        return requests.post(
-            f"https://api.telegram.org/bot{token}/sendMessage",
-            data=payload,
-        ).content
-
-    def notify(self, message: str) -> None:
-        msg = f"<pre>{self.launcher_name}</pre>: {message}"
-        self.send(msg, self.token, self.chat_id)
-
 
 def _get_launcher_name() -> str:
     """
@@ -94,6 +59,47 @@ def _get_launcher_name() -> str:
     return launcher
 
 
+# #############################################################################
+# TelegramNotebookNotify
+# #############################################################################
+
+
+class TelegramNotebookNotify:
+    """
+    Sends notifications.
+    """
+
+    def __init__(self) -> None:
+        self.launcher_name = _get_launcher_name()
+        self.token, self.chat_id = htenocon.get_info()
+
+    @staticmethod
+    def send(
+        text: str, token: Optional[str], chat_id: Optional[str]
+    ) -> Optional[bytes]:
+        if chat_id is None or token is None:
+            _LOG.warning(
+                "Not sending notifications. To send notifications, both "
+                "`chat_id` and `token` need to be specified. Go to README.md"
+                "for more information."
+            )
+            return None
+        payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
+        return requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            data=payload,
+        ).content
+
+    def notify(self, message: str) -> None:
+        msg = f"<pre>{self.launcher_name}</pre>: {message}"
+        self.send(msg, self.token, self.chat_id)
+
+
+# #############################################################################
+# _RequestsHandler
+# #############################################################################
+
+
 class _RequestsHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> bytes:  # type: ignore
         token, chat_id = htenocon.get_info()
@@ -103,6 +109,11 @@ class _RequestsHandler(logging.Handler):
             f"https://api.telegram.org/bot{token}/sendMessage",
             data=payload,
         ).content
+
+
+# #############################################################################
+# _LogFormatter
+# #############################################################################
 
 
 class _LogFormatter(logging.Formatter):
@@ -124,7 +135,7 @@ def init_tglogger(log_level: int = logging.DEBUG) -> None:
 
 
 # #############################################################################
-# TelegramNotify.
+# TelegramNotify
 # #############################################################################
 
 

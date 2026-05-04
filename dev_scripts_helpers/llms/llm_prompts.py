@@ -173,10 +173,6 @@ def code_apply_cfile() -> _PROMPT_OUT:
 # Fix code issues.
 
 
-# TODO(gp): The code fixes are superseded by the llm_review.py approach using
-# the guideline file.
-
-
 def code_fix_from_imports() -> _PROMPT_OUT:
     """
     Fix code to use imports instead of "from import" statements.
@@ -595,10 +591,10 @@ def code_transform_remove_redundancy() -> _PROMPT_OUT:
 
 def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     """
-    Apply the style to the code using template code in `docs/ai_templates/code_template.py`.
+    Apply the style to the code using template code in `.claude/templates/code_template.py`.
     """
     system = _CODING_CONTEXT
-    file_name = "docs/ai_templates/code_template.py"
+    file_name = ".claude/templates/code_template.py"
     file_name = os.path.join(hgit.find_helpers_root(), file_name)
     file_content = hio.from_file(file_name)
     system += rf"""
@@ -1177,7 +1173,10 @@ def _review_from_file_new(file: str) -> _PROMPT_OUT:
     reference_txt = hmarkdo.remove_table_of_contents(reference_txt)
     # Extract headers from the markdown.
     max_level = 4
-    header_list = hmarkdo.extract_headers_from_markdown(reference_txt, max_level)
+    reference_lines = reference_txt.split("\n")
+    header_list = hmarkdo.extract_headers_from_markdown(
+        reference_lines, max_level
+    )
     # reference_txt = hmarkdo.add_line_numbers(header_list)
     # print(reference_txt)
     guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
@@ -1188,7 +1187,7 @@ def _review_from_file_new(file: str) -> _PROMPT_OUT:
     for guideline in selected_guidelines:
         print(guideline)
         rules = hmarkdo.extract_rules_from_section(
-            reference_txt, guideline.line_number
+            reference_lines, guideline.line_number
         )
         print(rules)
     # assert 0

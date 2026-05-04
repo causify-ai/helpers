@@ -23,7 +23,7 @@ from typing import (
     cast,
 )
 
-import async_solipsism
+import async_solipsism  # type: ignore[import-not-found]
 import numpy as np
 import pandas as pd
 
@@ -38,8 +38,9 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
-# Wrappers around `asyncio` to switch among true and simulated real-time loops.
+# _EventLoop
 # #############################################################################
 
 
@@ -100,7 +101,8 @@ def solipsism_context() -> Iterator:
 
 
 async def gather_coroutines_with_wall_clock(
-    event_loop: asyncio.AbstractEventLoop, *coroutines: List[Coroutine]
+    event_loop: asyncio.AbstractEventLoop,
+    *coroutines: Callable[[Any], Coroutine[Any, Any, Any]],
 ) -> List[Any]:
     """
     Inject a wall clock associated to `event_loop` in all the coroutines and
@@ -111,9 +113,9 @@ async def gather_coroutines_with_wall_clock(
     )
     # Construct the coroutines here by passing the `get_wall_clock_time()`
     # function.
-    coroutines = [coro(get_wall_clock_time) for coro in coroutines]
+    coros_list = [coro(get_wall_clock_time) for coro in coroutines]
     #
-    result: List[Any] = await asyncio.gather(*coroutines)
+    result: List[Any] = await asyncio.gather(*coros_list)
     return result
 
 
@@ -160,7 +162,7 @@ PollOutput = Tuple[bool, Any]
 # A polling function accepts any inputs and returns a `PollOutput` in terms of
 # (success, result). Typically polling functions don't accept any inputs and are
 # built through lambdas and closures.
-PollingFunction = Callable[[Any], PollOutput]
+PollingFunction = Callable[[], PollOutput]
 
 
 def _get_max_num_iterations(
@@ -181,7 +183,7 @@ def _poll_iterate(
     timeout_in_secs: float,
     get_wall_clock_time: hdateti.GetWallClockTime,
     num_iter: int,
-    max_num_iter,
+    max_num_iter: int,
     tag: str,
 ) -> Tuple[int, PollOutput]:
     """
@@ -222,7 +224,7 @@ def _poll_iterate(
     return num_iter, (success, value)
 
 
-# TODO(gp): -> async_poll
+# TODO(ai_gp): -> async_poll
 async def poll(
     polling_func: PollingFunction,
     sleep_in_secs: float,
@@ -301,7 +303,7 @@ def sync_poll(
 def get_poll_kwargs(
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
-    # TODO(gp): Avoid using defaults.
+    # TODO(ai_gp): Avoid using defaults.
     sleep_in_secs: float = 1.0,
     timeout_in_secs: float = 10.0,
 ) -> Dict[str, Any]:
@@ -382,7 +384,7 @@ def get_seconds_to_align_to_grid(
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
     add_buffer_in_secs: int = 0,
-) -> Tuple[pd.Timestamp, int]:
+) -> Tuple[pd.Timestamp, float]:
     """
     Given the current time return the amount of seconds to wait to align on a
     grid with period `bar_duration_in_secs`.

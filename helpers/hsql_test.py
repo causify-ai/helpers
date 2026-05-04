@@ -27,12 +27,9 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(Grisha): Why does it require `ck_infra`?
-@pytest.mark.requires_ck_infra
 @pytest.mark.requires_docker_in_docker
 @pytest.mark.skipif(
-    not hserver.has_dind_support()
-    and not hserver.use_docker_sibling_containers(),
+    not hserver.can_run_docker_from_docker(),
     reason="Need docker children / sibling support",
 )
 class TestDbHelper(hunitest.TestCase, abc.ABC):
@@ -125,10 +122,11 @@ class TestDbHelper(hunitest.TestCase, abc.ABC):
                 # Remove the container, e.g., `compose-oms_postgres7482-1`.
                 service_name = cls._get_service_name()
                 container_name = f"compose-{service_name}-1"
-                hdocker.container_rm(container_name)
+                use_sudo = hdocker.get_use_sudo()
+                hdocker.container_rm(container_name, use_sudo)
                 # Remove the volume, e.g., `compose_oms_postgres7482_data`.
                 volume_name = f"compose_{service_name}_data"
-                hdocker.volume_rm(volume_name)
+                hdocker.volume_rm(volume_name, use_sudo)
             else:
                 # TODO(Grisha): use invoke task CMTask #547.
                 cmd = (
@@ -214,7 +212,6 @@ class TestImOmsDbHelper(TestDbHelper, abc.ABC):
         idx = cls.get_id()
         host_port = 5432 + idx
         txt = f"""version: '3.5'
-
 services:
   # Docker container running Postgres DB.
   {service_name}:

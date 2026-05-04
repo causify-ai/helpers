@@ -12,6 +12,11 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_rename_file_if_exists
+# #############################################################################
+
+
 class Test_rename_file_if_exists(hunitest.TestCase):
     """
     Test that the function renames existing files correctly.
@@ -71,6 +76,11 @@ class Test_rename_file_if_exists(hunitest.TestCase):
             self.check_file(file_to_rename, before_extension, expected_file_name)
 
 
+# #############################################################################
+# Test_find_all_files1
+# #############################################################################
+
+
 class Test_find_all_files1(hunitest.TestCase):
     def test1(self) -> None:
         dir_name = hgit.get_client_root(super_module=False)
@@ -96,6 +106,11 @@ class Test_find_all_files1(hunitest.TestCase):
         self.assertGreater(len(py_files), len(not_paired_py_files))
 
 
+# #############################################################################
+# Test_change_filename_extension1
+# #############################################################################
+
+
 class Test_change_filename_extension1(hunitest.TestCase):
     def test1(self) -> None:
         file_name = "./core/dataflow_model/notebooks/Master_experiment_runner.py"
@@ -104,6 +119,11 @@ class Test_change_filename_extension1(hunitest.TestCase):
             "./core/dataflow_model/notebooks/Master_experiment_runner.ipynb"
         )
         self.assert_equal(actual, expected)
+
+
+# #############################################################################
+# Test_load_df_from_json
+# #############################################################################
 
 
 class Test_load_df_from_json(hunitest.TestCase):

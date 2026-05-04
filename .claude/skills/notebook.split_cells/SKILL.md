@@ -72,3 +72,7 @@ description: Split Jupyter notebook cells so each cell contains only one concept
     print(f"\nMutual Information I(Weather; Activity) = {mi:.4f} bits")
     print(f"This means knowing the weather reduces uncertainty about activity by {mi:.4f} bits")
     ```
+
+# Important
+
+- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`

@@ -57,6 +57,19 @@ class S3Mock_TestCase(hunitest.TestCase):
         # Run after each test.
         self.tear_down_test()
 
+    def _mock_get_s3fs(
+        self, aws_profile: Union[str, hs3.S3FileSystem]
+    ) -> hs3.S3FileSystem:
+        """
+        Mock implementation of `get_s3fs` to use the mocked environment
+        variables from `moto`.
+        """
+        from s3fs import S3FileSystem
+
+        hdbg.dassert_isinstance(aws_profile, (str, S3FileSystem))
+        aws_profile = S3FileSystem(anon=False)
+        return aws_profile
+
     def set_up_test(self) -> None:
         # Getting necessary secret before boto3 is mocked.
         if self.binance_secret is None:
@@ -96,16 +109,3 @@ class S3Mock_TestCase(hunitest.TestCase):
         # Stop moto.
         self.mock_aws_credentials_patch.stop()
         self.mock_s3.stop()
-
-    def _mock_get_s3fs(
-        self, aws_profile: Union[str, hs3.S3FileSystem]
-    ) -> hs3.S3FileSystem:
-        """
-        Mock implementation of `get_s3fs` to use the mocked environment
-        variables from `moto`.
-        """
-        from s3fs import S3FileSystem
-
-        hdbg.dassert_isinstance(aws_profile, (str, S3FileSystem))
-        aws_profile = S3FileSystem(anon=False)
-        return aws_profile

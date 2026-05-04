@@ -37,18 +37,18 @@ import argparse
 import logging
 import os
 import re
-from typing import List, Optional
+from typing import List, Optional, cast
 
-import pdf2image
+import pdf2image  # type: ignore
 import tqdm
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hllm as hllm
 import helpers.hparser as hparser
 import dev_scripts_helpers.slides.slides_utils as dshsslut
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -182,7 +182,7 @@ def _generate_slide_commentary(
         cache_mode="NORMAL",
         temperature=0.1,
     )
-    return response
+    return str(response)
 
 
 def _generate_book_chapter(
@@ -195,7 +195,7 @@ def _generate_book_chapter(
     image_width: str = "80%",
     add_new_page: bool = False,
 ) -> None:
-    """
+    r"""
     Generate book chapter from markdown slides and PNG directory or PDF file.
 
     :param input_file: path to input markdown file with slides
@@ -204,7 +204,7 @@ def _generate_book_chapter(
     :param input_pdf_file: PDF file to extract PNG images from
     :param dpi: DPI resolution for PDF extraction
     :param image_width: width of images in output (e.g., "80%", "50%")
-    :param add_new_page: if True, add \\newpage commands before each slide
+    :param add_new_page: if True, add `\newpage` commands before each slide
     """
     hdbg.dassert_file_exists(input_file)
     # Validate that exactly one of input_png_dir or input_pdf_file is provided.
@@ -237,7 +237,8 @@ def _generate_book_chapter(
         _LOG.info("Extracting PNG files from PDF to: %s", input_png_dir)
         _extract_png_from_pdf(input_pdf_file, input_png_dir, dpi=dpi)
     else:
-        hdbg.dassert_dir_exists(input_png_dir)
+        hdbg.dassert_is_not(input_png_dir, None)
+        hdbg.dassert_dir_exists(cast(str, input_png_dir))
     _LOG.info("Reading slides from: %s", input_file)
     # Extract title from markdown file for YAML preamble.
     title = _extract_title_from_markdown(input_file)
@@ -246,7 +247,7 @@ def _generate_book_chapter(
     num_slides = len(slides)
     _LOG.info("Found %d slides in markdown file", num_slides)
     # Get PNG files from directory.
-    png_files = _get_png_files_from_directory(input_png_dir)
+    png_files = _get_png_files_from_directory(cast(str, input_png_dir))
     num_pngs = len(png_files)
     _LOG.info("Found %d PNG files in directory", num_pngs)
     # Check that slide count matches PNG count.
@@ -324,7 +325,7 @@ def _generate_book_chapter(
     full_output = "\n".join(output_parts)
     # Format output with prettier.
     _LOG.info("Formatting output with prettier")
-    full_output = hdocexec.prettier_on_str(full_output, "md")
+    full_output = dshdlipr.prettier_on_str(full_output, "md")
     # Write output file.
     output_file = os.path.join(output_dir, f"{base_name}.book_chapter.txt")
     _LOG.info("Writing output to: %s", output_file)

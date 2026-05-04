@@ -55,6 +55,11 @@ def _reset_add_function(func: Callable) -> None:
 # #############################################################################
 
 
+# #############################################################################
+# _ResetGlobalCacheHelper
+# #############################################################################
+
+
 class _ResetGlobalCacheHelper(hunitest.TestCase):
     """
     Create a global cache for each test method and resets it at every test
@@ -70,6 +75,13 @@ class _ResetGlobalCacheHelper(hunitest.TestCase):
         # Run after each test.
         self.tear_down_test()
 
+    def _remove_all_caches(self) -> None:
+        """
+        Clean and remove all the caches for this test.
+        """
+        cache_type = "all"
+        hcache.clear_global_cache(cache_type, tag=self.cache_tag, destroy=True)
+
     def set_up_test(self) -> None:
         # Create a tag like "TestCacheFeatures::test_without_caching1".
         self.cache_tag = f"{self.__class__.__name__}::{self._testMethodName}"
@@ -79,13 +91,6 @@ class _ResetGlobalCacheHelper(hunitest.TestCase):
     def tear_down_test(self) -> None:
         # Clean and remove all the caches after the test method is run.
         self._remove_all_caches()
-
-    def _remove_all_caches(self) -> None:
-        """
-        Clean and remove all the caches for this test.
-        """
-        cache_type = "all"
-        hcache.clear_global_cache(cache_type, tag=self.cache_tag, destroy=True)
 
     def _get_f_cf_functions(
         self, **cached_kwargs: Any
@@ -158,6 +163,11 @@ class _ResetGlobalCacheHelper(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestCacheFunctions
+# #############################################################################
+
+
 class TestCacheFunctions(hunitest.TestCase):
     def test_get_cache_name1(self) -> None:
         """
@@ -170,6 +180,11 @@ class TestCacheFunctions(hunitest.TestCase):
         self.assertIn(cache_tag, disk_cache_name)
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestGlobalCache1
 # #############################################################################
 
 
@@ -446,6 +461,11 @@ class TestGlobalCache1(_ResetGlobalCacheHelper):
 # #############################################################################
 
 
+# #############################################################################
+# _ResetFunctionSpecificCacheHelper
+# #############################################################################
+
+
 class _ResetFunctionSpecificCacheHelper(_ResetGlobalCacheHelper):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
@@ -462,6 +482,11 @@ class _ResetFunctionSpecificCacheHelper(_ResetGlobalCacheHelper):
         self.disk_cache_dir = tempfile.mkdtemp()
         # Clear global cache.
         hcache.clear_global_cache("all", tag=self.cache_tag)
+
+
+# #############################################################################
+# TestFunctionSpecificCache1
+# #############################################################################
 
 
 class TestFunctionSpecificCache1(_ResetFunctionSpecificCacheHelper):
@@ -540,27 +565,12 @@ class TestFunctionSpecificCache1(_ResetFunctionSpecificCacheHelper):
 # #############################################################################
 
 
+# #############################################################################
+# TestCachePerformance
+# #############################################################################
+
+
 class TestCachePerformance(_ResetGlobalCacheHelper):
-    def test_performance_dataframe(self) -> None:
-        """
-        Test performance of the cache over pandas DataFrame.
-        """
-        # Create a somewhat big DataFrame with random data.
-        df = pd.DataFrame(
-            np.random.randint(0, 100, size=(100, 4)), columns=list("ABCD")
-        )
-        print("testing pandas dataframe, with sample size", df.shape)
-        self._test_performance(df)
-
-    def test_performance_series(self) -> None:
-        """
-        Test performance of the cache over pandas Series.
-        """
-        # Create a somewhat big DataFrame with random data.
-        s = pd.Series(np.random.randint(0, 100, size=100))
-        print("testing pandas series, with sample size", s.shape)
-        self._test_performance(s)
-
     @staticmethod
     # pylint: disable=unused-argument
     def _computation(*args: Any) -> None:
@@ -623,7 +633,32 @@ class TestCachePerformance(_ResetGlobalCacheHelper):
         print(f"hot disk cache run time={disk_cache_ct}")
         print(f"hot disk cache benefit={no_cache_ct - disk_cache_ct}")
 
+    def test_performance_dataframe(self) -> None:
+        """
+        Test performance of the cache over pandas DataFrame.
+        """
+        # Create a somewhat big DataFrame with random data.
+        df = pd.DataFrame(
+            np.random.randint(0, 100, size=(100, 4)), columns=list("ABCD")
+        )
+        print("testing pandas dataframe, with sample size", df.shape)
+        self._test_performance(df)
 
+    def test_performance_series(self) -> None:
+        """
+        Test performance of the cache over pandas Series.
+        """
+        # Create a somewhat big DataFrame with random data.
+        s = pd.Series(np.random.randint(0, 100, size=100))
+        print("testing pandas series, with sample size", s.shape)
+        self._test_performance(s)
+
+
+# #############################################################################
+
+
+# #############################################################################
+# TestCacheDecorator
 # #############################################################################
 
 
@@ -669,6 +704,11 @@ class TestCacheDecorator(_ResetGlobalCacheHelper):
         )
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestAmpTask1407
 # #############################################################################
 
 
@@ -736,6 +776,11 @@ class TestAmpTask1407(_ResetGlobalCacheHelper):
 # #############################################################################
 
 
+# #############################################################################
+# TestCachingOnS3
+# #############################################################################
+
+
 class TestCachingOnS3(_ResetFunctionSpecificCacheHelper):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
@@ -799,16 +844,12 @@ class TestCachingOnS3(_ResetFunctionSpecificCacheHelper):
 # #############################################################################
 
 
+# #############################################################################
+# TestCacheEnableReadOnly1
+# #############################################################################
+
+
 class TestCacheEnableReadOnly1(_ResetGlobalCacheHelper):
-    def test_mem_cache1(self) -> None:
-        self._helper(cache_from="mem", use_mem_cache=True, use_disk_cache=False)
-
-    def test_disk_cache1(self) -> None:
-        self._helper(cache_from="disk", use_mem_cache=False, use_disk_cache=True)
-
-    def test_mem_disk_cache1(self) -> None:
-        self._helper(cache_from="mem", use_mem_cache=True, use_disk_cache=True)
-
     def _helper(self, cache_from: str, **kwargs: Any) -> None:
         """
         Test that when enabling read-only mode we get an assertion only if the
@@ -844,7 +885,21 @@ class TestCacheEnableReadOnly1(_ResetGlobalCacheHelper):
         # Now this doesn't assert even if it's not in the cache.
         self._execute_and_check_state(f, cf, 4, 4, exp_cf_state="no_cache")
 
+    def test_mem_cache1(self) -> None:
+        self._helper(cache_from="mem", use_mem_cache=True, use_disk_cache=False)
 
+    def test_disk_cache1(self) -> None:
+        self._helper(cache_from="disk", use_mem_cache=False, use_disk_cache=True)
+
+    def test_mem_disk_cache1(self) -> None:
+        self._helper(cache_from="mem", use_mem_cache=True, use_disk_cache=True)
+
+
+# #############################################################################
+
+
+# #############################################################################
+# TestCacheUpdateFunction1
 # #############################################################################
 
 
@@ -899,16 +954,12 @@ class TestCacheUpdateFunction1(_ResetGlobalCacheHelper):
 # #############################################################################
 
 
+# #############################################################################
+# TestCacheEnableCheckOnlyIfPresent1
+# #############################################################################
+
+
 class TestCacheEnableCheckOnlyIfPresent1(_ResetGlobalCacheHelper):
-    def test_mem_cache1(self) -> None:
-        self._helper(cache_from="mem", use_mem_cache=True, use_disk_cache=False)
-
-    def test_disk_cache1(self) -> None:
-        self._helper(cache_from="disk", use_mem_cache=False, use_disk_cache=True)
-
-    def test_mem_disk_cache1(self) -> None:
-        self._helper(cache_from="mem", use_mem_cache=True, use_disk_cache=True)
-
     def _helper(self, cache_from: str, **kwargs: Any) -> None:
         # Both memory and disk cache enabled.
         f, cf = self._get_f_cf_functions(**kwargs)
@@ -939,6 +990,13 @@ class TestCacheEnableCheckOnlyIfPresent1(_ResetGlobalCacheHelper):
         _LOG.debug("\n%s", hprint.frame("Execute the 5th time"))
         self._execute_and_check_state(f, cf, 2, 2, exp_cf_state=cache_from)
 
+    # TODO(gp): Add a test for verbose mode in __call__
+    # TODO(gp): get_function_cache_info
+    def test_mem_cache1(self) -> None:
+        self._helper(cache_from="mem", use_mem_cache=True, use_disk_cache=False)
 
-# TODO(gp): Add a test for verbose mode in __call__
-# TODO(gp): get_function_cache_info
+    def test_disk_cache1(self) -> None:
+        self._helper(cache_from="disk", use_mem_cache=False, use_disk_cache=True)
+
+    def test_mem_disk_cache1(self) -> None:
+        self._helper(cache_from="mem", use_mem_cache=True, use_disk_cache=True)

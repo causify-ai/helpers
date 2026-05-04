@@ -1,4 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "pyyaml",
+# ]
+# ///
 
 """
 See instructions at
@@ -12,7 +18,6 @@ import re
 from typing import Any, List, Optional
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
@@ -21,6 +26,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.htext_protect as htexprot
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -255,6 +261,86 @@ def _check_links(in_file_name: str) -> None:
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
+def _remove_trailing_periods(lines: List[str]) -> List[str]:
+    """
+    Remove trailing periods from all lines.
+
+    Periods are removed from the end of any line that ends with one or more
+    periods (e.g., "text.", "text..."). Trailing whitespace after the periods
+    is also removed.
+
+    This improves consistency in markdown and text formatting where periods
+    at the end of list items and standalone lines are often not needed.
+
+    :param lines: The lines to be processed.
+    :return: The lines with trailing periods removed.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for line in lines:
+        # Remove trailing periods (one or more) from any line.
+        line = re.sub(r"\.+\s*$", "", line)
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
+def _remove_markdown_formatting(lines: List[str]) -> List[str]:
+    """
+    Remove markdown formatting from text while preserving content.
+
+    Removes the following markdown syntax:
+    - Bold formatting: **text** or __text__ -> text
+    - Italic formatting: *text* or _text_ -> text (outside of code blocks)
+    - Strikethrough: ~~text~~ -> text
+    - Inline code: `text` -> text
+    - Links: [text](url) -> text
+    - Images: ![alt](url) -> alt
+    - Headers: # text -> text
+
+    Code blocks (triple backticks) and their content are preserved unchanged.
+
+    :param lines: The lines to be processed.
+    :return: The lines with markdown formatting removed.
+    """
+    _LOG.debug("lines=%s", lines)
+    txt = "\n".join(lines)
+    in_code_block = False
+    lines_new: List[str] = []
+    # Process line by line to preserve code blocks.
+    for line in txt.split("\n"):
+        # Check for code block markers.
+        if re.match(r"^\s*```", line):
+            in_code_block = not in_code_block
+            lines_new.append(line)
+            continue
+        # Skip markdown removal inside code blocks.
+        if in_code_block:
+            lines_new.append(line)
+            continue
+        # Remove markdown formatting from non-code-block lines.
+        # Remove bold: **text** or __text__ -> text.
+        line = re.sub(r"\*\*(.+?)\*\*", r"\1", line)
+        line = re.sub(r"__(.+?)__", r"\1", line)
+        # Remove italic: *text* or _text_ -> text (but not _variable_).
+        line = re.sub(r"\*(.+?)\*", r"\1", line)
+        line = re.sub(r"(?<!\w)_(.+?)_(?!\w)", r"\1", line)
+        # Remove strikethrough: ~~text~~ -> text.
+        line = re.sub(r"~~(.+?)~~", r"\1", line)
+        # Remove inline code: `text` -> text.
+        line = re.sub(r"`(.+?)`", r"\1", line)
+        # Remove images before links: ![alt](url) -> alt.
+        # Must be done before link removal to avoid orphaned ! characters.
+        line = re.sub(r"!\[(.+?)\]\(.+?\)", r"\1", line)
+        # Remove links: [text](url) -> text.
+        line = re.sub(r"\[(.+?)\]\(.+?\)", r"\1", line)
+        # Remove headers: # text -> text.
+        line = re.sub(r"^(#+)\s+(.*)$", r"\2", line)
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     """
     Remove extra indentation from code block lines.
@@ -274,7 +360,6 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     in_code_block = False
     base_indent = 0
     first_code_line = True
-    #
     for line in lines:
         # Handle case where code and opening delimiter are on same line
         # due to inline placeholder restoration (prettier put them together).
@@ -326,9 +411,7 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
             first_code_line = False
         elif in_code_block and line.strip():
             first_code_line = False
-
         lines_new.append(line)
-    #
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
@@ -367,7 +450,9 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
             if in_triple_tick_block:
                 tag = m.group(1)
                 if not tag:
-                    print(f"{in_file_name}:{i + 1}: Missing syntax tag in ```")
+                    _LOG.warning(
+                        "%s:%d: Missing syntax tag in ```", in_file_name, i + 1
+                    )
         if not in_triple_tick_block:
             # Upper case for `- hello`.
             m = re.match(r"(\s*-\s+)(\S)(.*)", line)
@@ -377,10 +462,9 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
             m = re.match(r"(\s*\d+[\)\.]\s+)(\S)(.*)", line)
             if m:
                 line = m.group(1) + m.group(2).upper() + m.group(3)
-        #
         lines_new.append(line)
     if in_triple_tick_block:
-        print(f"{in_file_name}:{1}: A ``` block was not ending")
+        _LOG.error("%s: A ``` block was not ending", in_file_name)
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
@@ -445,7 +529,7 @@ def _perform_actions(
     action = "prettier"
     if _to_execute_action(action, actions):
         txt = "\n".join(lines)
-        txt = hdocexec.prettier_on_str(txt, file_type=extension, **kwargs)
+        txt = dshdlipr.prettier_on_str(txt, file_type=extension, **kwargs)
         lines = txt.split("\n")
     # Post-process text.
     action = "postprocess"
@@ -467,6 +551,14 @@ def _perform_actions(
     action = "convert_asterisk_bullets_to_dashes"
     if _to_execute_action(action, actions):
         lines = _convert_asterisk_bullets_to_dashes(lines)
+    # Remove trailing periods.
+    action = "remove_trailing_periods"
+    if _to_execute_action(action, actions):
+        lines = _remove_trailing_periods(lines)
+    # Remove markdown formatting.
+    action = "remove_markdown_formatting"
+    if _to_execute_action(action, actions):
+        lines = _remove_markdown_formatting(lines)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -531,6 +623,12 @@ _VALID_ACTIONS = [
     "add_blank_lines_between_headers",
     # _convert_asterisk_bullets_to_dashes(): convert `* ` bullets to `- `.
     "convert_asterisk_bullets_to_dashes",
+    # _remove_trailing_periods(): remove trailing periods from bullet points,
+    # headers, and numbered lists.
+    "remove_trailing_periods",
+    # _remove_markdown_formatting(): remove markdown syntax from text (bold,
+    # italic, links, images, etc.).
+    "remove_markdown_formatting",
     #
     "frame_chapters",
     "capitalize_header",
@@ -541,12 +639,18 @@ _VALID_ACTIONS = [
 ]
 
 
-# By default, exclude refresh_toc and check_links actions. Users can
-# explicitly enable them via --action.
+# By default, exclude refresh_toc, check_links, and remove_markdown_formatting
+# actions. Users can explicitly enable them via --action.
 _DEFAULT_ACTIONS = [
     action
     for action in _VALID_ACTIONS
-    if action not in ["frame_chapters", "refresh_toc", "check_links"]
+    if action
+    not in [
+        "frame_chapters",
+        "refresh_toc",
+        "check_links",
+        "remove_markdown_formatting",
+    ]
 ]
 
 
@@ -555,7 +659,21 @@ def _parser() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser)
+    hparser.add_input_output_args(parser, in_required=False, out_required=False)
+    parser.add_argument(
+        "--files",
+        action="store",
+        type=str,
+        default=None,
+        help="Space or comma-separated list of files to process",
+    )
+    parser.add_argument(
+        "--from_file",
+        action="store",
+        type=str,
+        default=None,
+        help="Path to a file containing a list of files to process (one per line)",
+    )
     parser.add_argument(
         "--type",
         action="store",
@@ -599,26 +717,48 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
-    #
-    in_file_name, out_file_name = hparser.parse_input_output_args(
-        args, clear_screen=False
-    )
+def _get_files_from_args(args: argparse.Namespace) -> Optional[List[str]]:
+    """
+    Parse files from --files or --from_file arguments.
+
+    :param args: Parsed arguments.
+    :return: List of files to process, or None if neither option is provided.
+    """
+    if args.files:
+        # Support both space and comma-separated lists.
+        files = args.files.replace(",", " ").split()
+        return files
+    elif args.from_file:
+        # Read files from the specified file.
+        if not os.path.exists(args.from_file):
+            _LOG.error("File not found: %s", args.from_file)
+            raise FileNotFoundError(f"File not found: {args.from_file}")
+        with open(args.from_file, "r") as f:
+            files = [line.strip() for line in f if line.strip()]
+        return files
+    return None
+
+
+def _process_single_file(
+    in_file_name: str,
+    out_file_name: str,
+    args: argparse.Namespace,
+    actions: Optional[List[str]],
+) -> None:
+    """
+    Process a single file.
+
+    :param in_file_name: Input file name.
+    :param out_file_name: Output file name.
+    :param args: Parsed arguments.
+    :param actions: List of actions to perform.
+    """
     # If the input is stdin, then user needs to specify the type.
     if in_file_name == "-":
         hdbg.dassert_ne(args.type, "")
     # Read input.
     lines = hparser.from_file(in_file_name)
     _LOG.debug("in_file_name=%s", in_file_name)
-    # Print actions.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    add_frame = True
-    actions_as_str = hparser.actions_to_string(
-        actions, _VALID_ACTIONS, add_frame
-    )
-    _LOG.info("\n%s", actions_as_str)
     # Process.
     out_lines = _perform_actions(
         lines,
@@ -630,6 +770,35 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Write output.
     hparser.to_file(out_lines, out_file_name)
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hparser.init_logger_for_input_output_transform(args)
+    # Print actions (once for all files).
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    add_frame = True
+    actions_as_str = hparser.actions_to_string(
+        actions, _VALID_ACTIONS, add_frame
+    )
+    _LOG.info("\n%s", actions_as_str)
+    # Check if processing multiple files or a single file.
+    files = _get_files_from_args(args)
+    if files:
+        # Process multiple files.
+        _LOG.info("Processing %d file(s)", len(files))
+        for file_path in files:
+            if not os.path.exists(file_path):
+                _LOG.error("File not found: %s", file_path)
+                continue
+            _LOG.info("Processing: %s", file_path)
+            _process_single_file(file_path, file_path, args, actions)
+    else:
+        # Process single file (original behavior).
+        in_file_name, out_file_name = hparser.parse_input_output_args(
+            args, clear_screen=False
+        )
+        _process_single_file(in_file_name, out_file_name, args, actions)
 
 
 if __name__ == "__main__":

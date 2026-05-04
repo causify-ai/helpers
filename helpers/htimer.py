@@ -45,17 +45,6 @@ class Timer:
         else:
             self._start = None
 
-    def __repr__(self) -> str:
-        """
-        Return string with the intervals measured so far.
-        """
-        measured_time = self._total_elapsed
-        if self.is_started() and not self.is_stopped():
-            # Timer still running.
-            measured_time += time.time() - cast(float, self._start)
-        ret = "%.3f secs" % measured_time
-        return ret
-
     def stop(self) -> None:
         """
         Stop the timer and accumulate the interval.
@@ -121,6 +110,17 @@ class Timer:
         hdbg.dassert(self.is_stopped())
         hdbg.dassert_lte(0.0, timer.get_total_elapsed())
         self._total_elapsed += timer.get_total_elapsed()
+
+    def __repr__(self) -> str:
+        """
+        Return string with the intervals measured so far.
+        """
+        measured_time = self._total_elapsed
+        if self.is_started() and not self.is_stopped():
+            # Timer still running.
+            measured_time += time.time() - cast(float, self._start)
+        ret = "%.3f secs" % measured_time
+        return ret
 
 
 # #############################################################################
@@ -189,6 +189,10 @@ class TimedScope:
         self._memento: Optional[_TimerMemento] = None
         self.elapsed_time = None
 
+    def get_result(self) -> str:
+        msg: str = f"{self._message} done (%.3f s)" % self.elapsed_time
+        return msg
+
     def __enter__(self) -> "TimedScope":
         self._memento = dtimer_start(self._log_level, self._message)
         return self
@@ -197,10 +201,6 @@ class TimedScope:
         if self._memento is not None:
             msg, self.elapsed_time = dtimer_stop(self._memento)
             _ = msg
-
-    def get_result(self) -> str:
-        msg: str = f"{self._message} done (%.3f s)" % self.elapsed_time
-        return msg
 
 
 # #############################################################################

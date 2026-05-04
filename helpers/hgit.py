@@ -11,13 +11,12 @@ import os
 import random
 import re
 import string
-from typing import List, Optional, Tuple
+from typing import cast, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.repo_config_utils as hrecouti
 
 # This module can depend only on:
 # - Python standard modules
@@ -71,9 +70,12 @@ def extract_gh_issue_number_from_branch(branch_name: str) -> Optional[int]:
 
 def get_branch_name(dir_name: str = ".") -> str:
     """
-    Return the name of the Git branch including a certain dir.
+    Return the name of the Git branch in a directory.
 
     E.g., `master` or `AmpTask672_Add_script_to_check_and_merge_PR`
+
+    :param dir_name: directory containing the git repository
+    :return: the name of the current branch
     """
     hdbg.dassert_path_exists(dir_name)
     # > git rev-parse --abbrev-ref HEAD
@@ -84,24 +86,168 @@ def get_branch_name(dir_name: str = ".") -> str:
     return output
 
 
-def get_branch_next_name(
-    dir_name: str = ".",
+def _get_branch_next_name_via_github_api(
+    curr_branch_name: str,
     *,
-    curr_branch_name: Optional[str] = None,
+    max_num_ids: int = 100,
+) -> Optional[str]:
+    """
+    Find the next available branch name using GitHub API (fast method).
+
+    Uses `gh pr list` to query merged branches and extract the highest number.
+
+    :param curr_branch_name: current branch name (e.g., "gp_scratch")
+    :param max_num_ids: maximum number of IDs to check
+    :return: next available branch name or None if GitHub API is not available
+    """
+    try:
+        # Query all PRs (merged, closed, open) and extract branch names
+        # matching pattern.
+        cmd = (
+            "gh pr list --state all --json headRefName "
+            "| jq -r '.[].headRefName | select(test(\"^{branch}_[0-9]+$\"))' "
+            "| sed 's/.*_//' | sort -rn | head -1"
+        ).format(branch=re.escape(curr_branch_name))
+        _LOG.debug("Running GitHub API query: %s", cmd)
+        ret, output = hsystem.system_to_one_line(cmd, suppress_output=True)
+        if ret != 0:
+            _LOG.debug("GitHub API query failed, falling back to linear scan")
+            return None
+        # Extract the highest number from all branches.
+        output = output.strip()
+        if output:
+            highest_num = int(output)
+            next_num = highest_num + 1
+            new_branch_name = f"{curr_branch_name}_{next_num}"
+            _LOG.info(
+                "Found highest number '%s' in all branches, next is '%s'",
+                highest_num,
+                next_num,
+            )
+            return new_branch_name
+        # No existing numbered branches found.
+        _LOG.debug("No existing numbered branches found, starting at 1")
+        return f"{curr_branch_name}_1"
+    except Exception as e:
+        _LOG.debug(
+            "Error querying GitHub API: %s, falling back to linear scan",
+            e,
+        )
+        return None
+
+
+@functools.lru_cache()
+def _get_gh_pr_list() -> str:
+    """
+    Get a cached list of all pull requests from GitHub (merged and open).
+
+    Results are cached via functools.lru_cache to avoid repeated GitHub API calls.
+
+    :return: raw output from `gh pr list` command
+    """
+    cmd = "gh pr list -s all --limit 1000"
+    rc, txt = hsystem.system_to_string(cmd)
+    _ = rc
+    return txt
+
+
+def does_branch_exist(
+    branch_name: str,
+    mode: str,
+    *,
+    dir_name: str = ".",
+) -> bool:
+    """
+    Check if a branch with the given name exists in local git or on GitHub.
+
+    Supports checking in local git repository or on GitHub via the `gh` CLI.
+
+    :param branch_name: the name of the branch to check
+    :param mode: where to check ("all" checks all, "git_local", "git_remote", "github")
+    :param dir_name: directory containing the git repository
+    :return: True if the branch exists in the specified location
+    """
+    _LOG.debug(hprint.to_str("branch_name mode dir_name"))
+    # Handle the "all" case by recursion on all the possible modes.
+    if mode == "all":
+        exists = False
+        for mode_tmp in ("git_local", "git_remote", "github"):
+            exists_tmp = does_branch_exist(
+                branch_name, mode_tmp, dir_name=dir_name
+            )
+            exists = exists or exists_tmp
+        return exists
+    #
+    hdbg.dassert_in(mode, ("git_local", "git_remote", "github"))
+    exists = False
+    if mode in ("git_local", "git_remote"):
+        # From https://stackoverflow.com/questions/35941566
+        cmd = f"cd {dir_name} && git fetch --prune"
+        hsystem.system(cmd, abort_on_error=False)
+        # From https://stackoverflow.com/questions/5167957
+        # > git rev-parse --verify LimeTask197_Get_familiar_with_CF2
+        # f03bfa0b4577c2524afd6a1f24d06013f8aa9f1a
+        # > git rev-parse --verify I_dont_exist
+        # fatal: Needed a single revision
+        git_branch_name = branch_name
+        if mode == "git_remote":
+            git_branch_name = f"origin/{git_branch_name}"
+        cmd = f"cd {dir_name} && git rev-parse --verify {git_branch_name}"
+        rc = hsystem.system(cmd, abort_on_error=False)
+        exists = rc == 0
+        _LOG.debug("branch_name='%s' on git: exists=%s", branch_name, exists)
+    # Check on GitHub.
+    if mode == "github":
+        txt = _get_gh_pr_list()
+        # ```
+        # > gh pr list -s all --limit 10000 | grep AmpTask2163
+        # 347     AmpTask2163_Implement_tiled_backtesting_1  AmpTask2163 ... MERGED
+        # ```
+        # The text is separated by tabs.
+        #
+        # If there are no issues on the GitHub repo, just return.
+        # ```
+        # > gh pr list -s all --limit 1000
+        # no pull requests match your search in causify-ai/sports_analytics
+        # ```
+        if txt == "":
+            return False
+        for line in txt.split("\n"):
+            # number, GH branch name, Git branch name, status.
+            fields = line.split("\t")
+            # fields=['179',
+            #   'CmTask2914: Add end-to-end unit test for prod reconcile',
+            #   'CmTask2914_Add_end_to_end_unit_test_around_the_prod_reconciliation',
+            #   'DRAFT', '2022-09-27 19:56:50 +0000 UTC']
+            hdbg.dassert_lte(4, len(fields), "fields=%s", fields)
+            number, gh_branch_name, git_branch_name = fields[:3]
+            _ = number, gh_branch_name
+            if branch_name == git_branch_name:
+                exists = True
+                _LOG.debug(
+                    "branch_name='%s' on github: exists=%s", branch_name, exists
+                )
+    return exists
+
+
+def _get_branch_next_name_linear_scan(
+    dir_name: str,
+    curr_branch_name: str,
+    *,
+    max_num_ids: int = 100,
     log_verb: int = logging.DEBUG,
 ) -> str:
     """
-    Return a name derived from the branch so that the branch doesn't exist.
+    Find the next available branch name using linear scanning (fallback method).
 
-    E.g., `AmpTask1903_Implemented_system_Portfolio` ->
-    `AmpTask1903_Implemented_system_Portfolio_3`
+    Tries branch names sequentially until finding one that doesn't exist.
+
+    :param dir_name: directory containing the git repository
+    :param curr_branch_name: current branch name (e.g., "gp_scratch")
+    :param max_num_ids: maximum number of IDs to check
+    :param log_verb: logging verbosity level
+    :return: next available branch name
     """
-    if curr_branch_name is None:
-        curr_branch_name = get_branch_name(dir_name=dir_name)
-    hdbg.dassert_ne(curr_branch_name, "master")
-    _LOG.log(log_verb, "curr_branch_name='%s'", curr_branch_name)
-    #
-    max_num_ids = 100
     for i in range(1, max_num_ids):
         new_branch_name = f"{curr_branch_name}_{i}"
         _LOG.info("Trying branch name '%s' ...", new_branch_name)
@@ -112,25 +258,122 @@ def get_branch_next_name(
             _LOG.log(log_verb, "new_branch_name='%s'", new_branch_name)
             return new_branch_name
     raise ValueError(
-        f"Can't find the next branch name for '{curr_branch_name}' within %s ids",
-        max_num_ids,
+        f"Can't find the next branch name for '{curr_branch_name}' "
+        f"within {max_num_ids} ids"
     )
+
+
+def get_branch_next_name(
+    dir_name: str = ".",
+    *,
+    curr_branch_name: Optional[str] = None,
+    log_verb: int = logging.DEBUG,
+    method: str = "auto",
+) -> str:
+    """
+    Return a name derived from the branch so that the branch doesn't exist.
+
+    E.g., `AmpTask1903_Implemented_system_Portfolio` ->
+    `AmpTask1903_Implemented_system_Portfolio_3`
+
+    :param dir_name: directory containing the git repository
+    :param curr_branch_name: branch name to use (if None, gets current branch)
+    :param log_verb: logging verbosity level
+    :param method: method to use ('auto' tries fast first, 'github_api', 'linear_scan')
+    :return: next available branch name
+    """
+    if curr_branch_name is None:
+        curr_branch_name = get_branch_name(dir_name=dir_name)
+    hdbg.dassert_ne(
+        curr_branch_name, "master", "Cannot get next name for 'master' branch"
+    )
+    _LOG.log(log_verb, "curr_branch_name='%s'", curr_branch_name)
+    max_num_ids = 100
+    hdbg.dassert_in(
+        method, ["auto", "github_api", "linear_scan"], "Invalid method specified"
+    )
+    # Try GitHub API method first (faster) if requested or on auto mode.
+    next_name: Optional[str] = None
+    if method in ("auto", "github_api"):
+        next_name = _get_branch_next_name_via_github_api(
+            curr_branch_name,
+            max_num_ids=max_num_ids,
+        )
+        if next_name is None and method == "github_api":
+            raise ValueError("GitHub API method requested but failed")
+        # Fall back to linear scanning if GitHub API failed in auto mode.
+        if next_name is None and method == "auto":
+            _LOG.warning("GitHub API method failed, falling back to linear scan")
+            next_name = _get_branch_next_name_linear_scan(
+                dir_name,
+                curr_branch_name,
+                max_num_ids=max_num_ids,
+                log_verb=log_verb,
+            )
+    else:
+        # Fall back to linear scanning method when explicitly requested.
+        next_name = _get_branch_next_name_linear_scan(
+            dir_name,
+            curr_branch_name,
+            max_num_ids=max_num_ids,
+            log_verb=log_verb,
+        )
+    hdbg.dassert_ne(next_name, None)
+    return cast(str, next_name)
 
 
 def get_branch_hash(dir_name: str = ".") -> str:
     """
-    Return the hash of the commit right before the branch in `dir_name` was
-    created.
+    Return the hash of the commit right before the branch was created.
+
+    This finds the merge-base between the current branch and master, which is
+    the commit where the branch was created.
+
+    :param dir_name: directory containing the git repository
+    :return: the hash of the commit where the branch diverged from master
     """
     curr_branch_name = get_branch_name(dir_name=dir_name)
-    hdbg.dassert_ne(curr_branch_name, "master")
+    hdbg.dassert_ne(
+        curr_branch_name, "master", "Cannot get branch hash for 'master' branch"
+    )
     _LOG.debug("curr_branch_name=%s", curr_branch_name)
-    #
     cmd = f"cd {dir_name} && git merge-base master {curr_branch_name}"
     _, hash_ = hsystem.system_to_string(cmd)
     hash_ = hash_.rstrip("\n").lstrip("\n")
-    hdbg.dassert_eq(len(hash_.split("\n")), 1)
+    hdbg.dassert_eq(
+        len(hash_.split("\n")), 1, "Expected single hash line from merge-base"
+    )
     return hash_
+
+
+# #############################################################################
+
+
+@functools.lru_cache()
+def is_inside_submodule(git_dir: str = ".") -> bool:
+    """
+    Return whether a dir is inside a Git submodule or a Git supermodule.
+
+    We determine this by checking if the current Git repo is included inside another Git repo.
+
+    :param git_dir: directory to check
+    :return: True if the directory is inside a submodule
+    """
+    cmd = []
+    # Go to the directory.
+    cmd.append(f"cd {git_dir}")
+    # > cd im/
+    # > git rev-parse --show-toplevel
+    # /Users/saggese/src/.../amp
+    cmd.append('cd "$(git rev-parse --show-toplevel)/.."')
+    # > git rev-parse --is-inside-work-tree
+    # true
+    cmd.append("(git rev-parse --is-inside-work-tree | grep -q true)")
+    # Execute the command chain and check the return code.
+    cmd_as_str = " && ".join(cmd)
+    rc = hsystem.system(cmd_as_str, abort_on_error=False)
+    ret: bool = rc == 0
+    return ret
 
 
 # #############################################################################
@@ -263,11 +506,14 @@ def find_git_root(path: str = ".") -> str:
 # helpers_root/helpers/hsystem.py:757:def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
 def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     """
-    Find the file under a directory.
+    Find a file within a directory hierarchy, excluding version control and cache dirs.
+
+    Searches for the file starting from a directory, skipping .git and .mypy_cache
+    to avoid expensive traversals.
 
     :param file_name: the name of the file to find
-    :param dir_path: the directory to start the search from
-    :return: the absolute path to the file
+    :param dir_path: the directory to start the search from (defaults to git root)
+    :return: the first absolute path to the file found
     """
     if dir_path is None:
         dir_path = find_git_root()
@@ -283,6 +529,32 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     return res
 
 
+def _is_repo(repo_short_name: str) -> bool:
+    """
+    Check if the current directory is in a repository with the given short name.
+
+    Uses repo config to determine the repository type without relying on directory names.
+
+    :param repo_short_name: the short name of the repository to check (e.g., "helpers", "amp")
+    :return: True if the current directory is in the specified repository
+    """
+    import helpers.repo_config_utils as hrecouti
+
+    curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
+    is_repo = bool(curr_repo_short_name == repo_short_name)
+    return is_repo
+
+
+def is_helpers() -> bool:
+    """
+    Return whether we are inside `helpers` repo.
+
+    Either as super module, or a sub module depending on a current
+    working directory.
+    """
+    return _is_repo("helpers")
+
+
 def find_helpers_root(dir_path: str = ".") -> str:
     """
     Find the root directory of the `helpers` repository.
@@ -291,23 +563,27 @@ def find_helpers_root(dir_path: str = ".") -> str:
     repository is returned. Otherwise, the function searches for the `helpers_root`
     directory starting from the root of the repository.
 
-    :return: The absolute path to the `helpers_root` directory.
+    :param dir_path: starting directory for the search
+    :return: absolute path to the `helpers_root` directory
     """
     with hsystem.cd(dir_path):
         git_root = find_git_root()
         if is_helpers():
-            # If we are in `//helpers`, then the helpers root is the root of the
-            # repo.
+            # If we are in `helpers` repo as supermodule, its root is the helpers_root.
             cmd = "git rev-parse --show-toplevel"
             _, helpers_root = hsystem.system_to_one_line(cmd)
         else:
-            # We need to search for the `helpers_root` dir starting from the root
-            # of the repo.
+            # Search for the `helpers_root` directory from the root of the supermodule.
             helpers_root = find_file("helpers_root", dir_path=git_root)
         helpers_root = os.path.abspath(helpers_root)
-        # Make sure the dir and that `helpers` subdir exists.
-        hdbg.dassert_dir_exists(helpers_root)
-        hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
+        # Verify that the directory and `helpers` subdirectory exist.
+        hdbg.dassert_dir_exists(
+            helpers_root, "helpers_root directory must exist"
+        )
+        hdbg.dassert_dir_exists(
+            os.path.join(helpers_root, "helpers"),
+            "helpers subdirectory must exist within helpers_root",
+        )
     return helpers_root
 
 
@@ -318,19 +594,20 @@ def resolve_git_client_dir(git_client_name: str) -> str:
     """
     Resolve the absolute path of the Git client directory.
 
+    Supports both relative names (assumed to be in ~/src/) and absolute paths.
+
     :param git_client_name: the name of the Git client (e.g., "helpers1"
         or "/Users/saggese/src/helpers1")
     :return: the absolute path of the Git client directory
     """
     if not os.path.isabs(git_client_name):
-        # If the Git client name is not absolute, assume it's in the home
-        # directory (e.g., 'helpers1' -> '/Users/saggese/src/helpers1').
+        # Relative names are resolved relative to ~/src/ directory for convenience.
         git_client_dir = os.path.join(os.environ["HOME"], "src", git_client_name)
     else:
-        # If the Git client name is absolute, use it as is.
+        # Absolute paths are used as-is.
         git_client_dir = git_client_name
     _LOG.debug(hprint.to_str("git_client_dir"))
-    hdbg.dassert_dir_exists(git_client_dir)
+    hdbg.dassert_dir_exists(git_client_dir, "Git client directory must exist")
     return git_client_dir
 
 
@@ -391,15 +668,13 @@ def project_file_name_in_git_client(
 
 def get_project_dirname(only_index: bool = False) -> str:
     """
-    Return the name of the project name (e.g., `/Users/saggese/src/amp1` ->
-    `amp1`).
+    Return the name of the project directory (e.g., `/Users/saggese/src/amp1` -> `amp1`).
 
-    NOTE: this works properly only outside Docker, e.g., when calling from
-    `invoke`. Inside Docker the result might be incorrect since the Git client
-    is mapped on `/app`.
+    NOTE: This works properly only outside Docker. Inside Docker the Git client is
+    mapped to `/app`, so the result might be incorrect.
 
-    :param only_index: return only the index of the client if possible, e.g.,
-        E.g., for `/Users/saggese/src/amp1` it returns the string `1`
+    :param only_index: if True, return only the numeric suffix (e.g., "1" from "amp1")
+    :return: the directory name or numeric index suffix
     """
     # git_dir = get_client_root(super_module=True)
     git_dir = find_git_root()
@@ -416,54 +691,6 @@ def get_project_dirname(only_index: bool = False) -> str:
         ret = last_char
     _LOG.debug("ret=%s", ret)
     return ret
-
-
-# #############################################################################
-
-
-@functools.lru_cache()
-def is_inside_submodule(git_dir: str = ".") -> bool:
-    """
-    Return whether a dir is inside a Git submodule or a Git supermodule.
-
-    We determine this checking if the current Git repo is included
-    inside another Git repo.
-    """
-    cmd = []
-    # - Find the git root of the current directory
-    # - Check if the dir one level up is a valid Git repo
-    # Go to the dir.
-    cmd.append(f"cd {git_dir}")
-    # > cd im/
-    # > git rev-parse --show-toplevel
-    # /Users/saggese/src/.../amp
-    cmd.append('cd "$(git rev-parse --show-toplevel)/.."')
-    # > git rev-parse --is-inside-work-tree
-    # true
-    cmd.append("(git rev-parse --is-inside-work-tree | grep -q true)")
-    cmd_as_str = " && ".join(cmd)
-    rc = hsystem.system(cmd_as_str, abort_on_error=False)
-    ret: bool = rc == 0
-    return ret
-
-
-def _is_repo(repo_short_name: str) -> bool:
-    """
-    Return whether we are inside the module `repo_short_name`.
-    """
-    curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
-    is_repo = bool(curr_repo_short_name == repo_short_name)
-    return is_repo
-
-
-def is_helpers() -> bool:
-    """
-    Return whether we are inside `helpers` repo.
-
-    Either as super module, or a sub module depending on a current
-    working directory.
-    """
-    return _is_repo("helpers")
 
 
 def is_amp() -> bool:
@@ -547,19 +774,25 @@ def is_lime() -> bool:
 
 def _get_submodule_hash(dir_name: str) -> str:
     """
-    Report the Git hash that a submodule (e.g., amp) is at from the point of
-    view of a supermodule.
+    Report the Git hash that a submodule is at from the supermodule perspective.
 
+    Uses git ls-tree to get the submodule commit hash from the parent repository.
     > git ls-tree master | grep <dir_name>
+    160000 commit 0011776388b4c0582161eb2749b665fc45b87e7e  amp
+
+    :param dir_name: the name of the submodule directory
+    :return: the git commit hash of the submodule
     """
     hdbg.dassert_path_exists(dir_name)
+    # Use git ls-tree to get the submodule entry which includes its hash.
     cmd = f"git ls-tree master | grep {dir_name}"
     data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
     _, output = data
-    # 160000 commit 0011776388b4c0582161eb2749b665fc45b87e7e  amp
     _LOG.debug("output=%s", output)
+    # Parse the output; format is: "160000 commit <hash>  <dir_name>".
     data: List[str] = output.split()
     _LOG.debug("data=%s", data)
+    # Extract the hash from the third field (index 2).
     git_hash = data[2]
     return git_hash
 
@@ -567,13 +800,16 @@ def _get_submodule_hash(dir_name: str) -> str:
 @functools.lru_cache()
 def get_path_from_supermodule() -> Tuple[str, str]:
     """
-    Return the path to the Git repo including the Git submodule for a
-    submodule, and return empty for a supermodule. See AmpTask1017.
+    Return the path to the Git repo including the Git submodule for a submodule.
 
+    Returns the superproject path and submodule path, or empty for a supermodule.
     E.g.,
     - for amp included in another repo returns 'amp'
     - for amp without supermodule returns ''
+
+    :return: tuple of (superproject_path, submodule_path)
     """
+    # Get the superproject working tree path.
     cmd = "git rev-parse --show-superproject-working-tree"
     # > cd /Users/saggese/src/.../lm/amp
     # > git rev-parse --show-superproject-working-tree
@@ -584,7 +820,7 @@ def get_path_from_supermodule() -> Tuple[str, str]:
     # (No result)
     superproject_path: str = hsystem.system_to_one_line(cmd)[1]
     _LOG.debug("superproject_path='%s'", superproject_path)
-    #
+    # Query the .gitmodules file to get the path for the current submodule.
     cmd = (
         f"git config --file {superproject_path}/.gitmodules --get-regexp path"
         '| grep $(basename "$(pwd)")'
@@ -600,19 +836,28 @@ def get_path_from_supermodule() -> Tuple[str, str]:
 @functools.lru_cache()
 def get_submodule_paths() -> List[str]:
     """
-    Return the path of the submodules in this repo, e.g., `["amp"]` or `[]`.
+    Return the path of the submodules in this repo.
+
+    :return: list of submodule paths, e.g., ["amp"] or []
     """
+    # Query .gitmodules to get submodule paths.
     # > git config --file .gitmodules --get-regexp path
     # submodule.amp.path amp
     cmd = "git config --file .gitmodules --get-regexp path | awk '{ print $2 }'"
     _, txt = hsystem.system_to_string(cmd)
     _LOG.debug("txt=%s", txt)
+    # Convert the output string to a list of paths.
     files: List[str] = hsystem.text_to_list(txt)
     _LOG.debug("files=%s", files)
     return files
 
 
 def has_submodules() -> bool:
+    """
+    Return whether the repository has any submodules configured.
+
+    :return: True if the repository contains submodules
+    """
     return len(get_submodule_paths()) > 0
 
 
@@ -620,7 +865,16 @@ def has_submodules() -> bool:
 
 
 def _get_hash(git_hash: str, short_hash: bool, num_digits: int = 8) -> str:
+    """
+    Return the git hash, optionally shortened.
+
+    :param git_hash: the full git hash
+    :param short_hash: if True, return only the first num_digits characters
+    :param num_digits: number of digits for short hash
+    :return: the git hash or shortened version
+    """
     hdbg.dassert_lte(1, num_digits)
+    # Return shortened hash if requested, otherwise return full hash.
     if short_hash:
         ret = git_hash[:num_digits]
     else:
@@ -630,23 +884,30 @@ def _get_hash(git_hash: str, short_hash: bool, num_digits: int = 8) -> str:
 
 def _group_hashes(head_hash: str, remh_hash: str, subm_hash: str) -> str:
     """
-    head_hash: a
-    remh_hash: b
-    subm_hash: c
+    Group multiple hashes and display which ones are equal.
+
+    Transform three hashes into a string that shows which ones are identical.
+    For example, if head_hash == remh_hash, display "head_hash = remh_hash = <hash>".
+
+    :param head_hash: the head hash
+    :param remh_hash: the remote head hash
+    :param subm_hash: the submodule hash
+    :return: formatted string showing hash equality
     """
+    # Build a mapping from hash names to their values.
     map_ = collections.OrderedDict()
     map_["head_hash"] = head_hash
     map_["remh_hash"] = remh_hash
     if subm_hash:
         map_["subm_hash"] = subm_hash
-    #
+    # Invert the mapping to group identical hashes together.
     inv_map = collections.OrderedDict()
     for k, v in map_.items():
         if v not in inv_map:
             inv_map[v] = [k]
         else:
             inv_map[v].append(k)
-    #
+    # Format the output so equal hashes are grouped together.
     txt = []
     for k, v in inv_map.items():
         # Transform:
@@ -656,36 +917,6 @@ def _group_hashes(head_hash: str, remh_hash: str, subm_hash: str) -> str:
         txt.append(f"{' = '.join(v)} = {k}")
     txt = "\n".join(txt)
     return txt
-
-
-def report_submodule_status(dir_names: List[str], short_hash: bool) -> str:
-    """
-    Return a string representing the status of the repos in `dir_names`.
-    """
-    txt = []
-    for dir_name in dir_names:
-        txt.append(f"dir_name='{dir_name}'")
-        txt.append(f"  is_inside_submodule: {is_inside_submodule(dir_name)}")
-        #
-        branch_name = get_branch_name(dir_name)
-        if branch_name != "master":
-            branch_name = f"!!! {branch_name} !!!"
-        txt.append(f"  branch: {branch_name}")
-        #
-        head_hash = get_head_hash(dir_name)
-        head_hash = _get_hash(head_hash, short_hash)
-        txt.append(f"  head_hash: {head_hash}")
-        #
-        remh_hash = get_remote_head_hash(dir_name)
-        remh_hash = _get_hash(remh_hash, short_hash)
-        txt.append(f"  remh_hash: {remh_hash}")
-        #
-        if dir_name != ".":
-            subm_hash = _get_submodule_hash(dir_name)
-            subm_hash = _get_hash(subm_hash, short_hash)
-            txt.append(f"  subm_hash: {subm_hash}")
-    txt_as_str = "\n".join(txt)
-    return txt_as_str
 
 
 # #############################################################################
@@ -738,38 +969,132 @@ def get_repo_full_name_from_dirname(
     dir_name: str, include_host_name: bool
 ) -> str:
     """
-    Return the full name of the repo in `git_dir`.
+    Return the full name of the repo in a directory.
 
-    E.g., "alphamatic/amp", "github.com/alphamatic/amp".
+    E.g., "alphamatic/amp" or "github.com/alphamatic/amp" (if hostname included).
 
-    This function relies on `git remote` to gather the required information.
+    This function relies on `git remote` to extract the origin URL.
 
-    :param include_hostname: prepend also the GitHub hostname, e.g., returning
-        "github.com/alphamatic/amp"
-    :return: the full name of the repo in `git_dir`
+    :param dir_name: directory containing the git repository
+    :param include_host_name: if True, prepend the GitHub hostname (e.g.,
+        "github.com/alphamatic/amp")
+    :return: the full name of the repo
         - E.g., "alphamatic/amp", "github.com/alphamatic/amp".
     """
     hdbg.dassert_path_exists(dir_name)
-    #
     cmd = f"cd {dir_name}; (git remote -v | grep origin | grep fetch)"
     _, output = hsystem.system_to_string(cmd)
     # > git remote -v
     # origin  git@github.com:alphamatic/amp (fetch)
     # origin  git@github.com:alphamatic/amp (push)
-    # TODO(gp): Make it more robust, by checking both fetch and push.
-    #  "origin  git@github.com:alphamatic/amp (fetch)"
     data: List[str] = output.split()
     _LOG.debug("data=%s", data)
-    hdbg.dassert_eq(len(data), 3, "data='%s'", str(data))
-    # Extract the middle string, e.g., "git@github.com:alphamatic/amp"
+    hdbg.dassert_eq(len(data), 3, "Expected 3 fields from git remote output")
+    # Extract the origin URL (second field).
     repo_name = data[1]
-    # Parse the string.
+    # Parse SSH/HTTPS URL into host and org/repo parts.
     host_name, repo_name = _parse_github_repo_name(repo_name)
     if include_host_name:
         res = f"{host_name}/{repo_name}"
     else:
         res = repo_name
     return res
+
+
+# #############################################################################
+# Git hash
+# #############################################################################
+
+
+def get_head_hash(dir_name: str = ".", short_hash: bool = False) -> str:
+    """
+    Return the git commit hash of a repository with submodule/random suffix.
+
+    Gets the HEAD commit hash and appends either the amp submodule hash (if present)
+    or a random suffix to make the hash unique across different module configurations.
+
+    ```
+    > git rev-parse HEAD
+    4759b3685f903e6c669096e960b248ec31c63b69
+    ```
+
+    :param dir_name: directory containing the git repository
+    :param short_hash: if True, return abbreviated hash (useful when combined with suffix)
+    :return: the commit hash with submodule/random suffix (e.g., "4759b36-abc123")
+    """
+    hdbg.dassert_path_exists(dir_name)
+    # Get the commit hash, optionally abbreviated to 7 characters.
+    opts = "--short " if short_hash else " "
+    cmd = f"cd {dir_name} && git rev-parse {opts}HEAD"
+    data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
+    _, output = data
+    # Check whether we are building an orange image. If the condition
+    # is True, add './amp' hash to the tag as well.
+    if is_amp_present(dir_name=dir_name):
+        amp_hash = get_head_hash(os.path.join(dir_name, "amp"), short_hash=True)
+        output = output + "-" + amp_hash
+    else:
+        # Use random suffix when no submodule exists (needed for Docker image tags).
+        random_string = "".join(
+            random.choices(string.ascii_lowercase + string.digits, k=3)
+        )
+        output = output + "-" + random_string
+    return output
+
+
+def get_remote_head_hash(dir_name: str) -> str:
+    """
+    Return the commit hash that the remote repository's HEAD points to.
+
+    Queries the remote origin to get the current HEAD hash without fetching.
+
+    :param dir_name: directory containing the git repository
+    :return: the remote HEAD commit hash
+    """
+    hdbg.dassert_path_exists(dir_name)
+    sym_name = get_repo_full_name_from_dirname(dir_name, include_host_name=False)
+    cmd = f"git ls-remote git@github.com:{sym_name} HEAD 2>/dev/null"
+    data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
+    _, output = data
+    # > git ls-remote git@github.com:alphamatic/amp HEAD 2>/dev/null
+    # 921676624f6a5f3f36ab507baed1b886227ac2e6        HEAD
+    return output
+
+
+def report_submodule_status(dir_names: List[str], short_hash: bool) -> str:
+    """
+    Return a formatted string reporting the status of git repositories.
+
+    Reports whether each directory is a submodule, current branch, and commit hashes
+    (local, remote, and submodule hash if applicable).
+
+    :param dir_names: list of directory paths to report on
+    :param short_hash: if True, truncate hashes to 8 characters
+    :return: formatted string with status information for each directory
+    """
+    txt = []
+    for dir_name in dir_names:
+        txt.append(f"dir_name='{dir_name}'")
+        txt.append(f"  is_inside_submodule: {is_inside_submodule(dir_name)}")
+        # Get branch name, highlighting if not on master (likely indicates incomplete work).
+        branch_name = get_branch_name(dir_name)
+        if branch_name != "master":
+            branch_name = f"!!! {branch_name} !!!"
+        txt.append(f"  branch: {branch_name}")
+        # Get local and remote commit hashes.
+        head_hash = get_head_hash(dir_name)
+        head_hash = _get_hash(head_hash, short_hash)
+        txt.append(f"  head_hash: {head_hash}")
+        remh_hash = get_remote_head_hash(dir_name)
+        remh_hash = _get_hash(remh_hash, short_hash)
+        txt.append(f"  remh_hash: {remh_hash}")
+        # Get submodule hash if this is not the root directory.
+        if dir_name != ".":
+            subm_hash = _get_submodule_hash(dir_name)
+            subm_hash = _get_hash(subm_hash, short_hash)
+            txt.append(f"  subm_hash: {subm_hash}")
+    txt_as_str = "\n".join(txt)
+    return txt_as_str
 
 
 def get_repo_full_name_from_client(super_module: bool) -> str:
@@ -787,7 +1112,11 @@ def get_repo_full_name_from_client(super_module: bool) -> str:
 
 def is_cwd_git_repo() -> bool:
     """
-    Return whether the current working directory is a Git repo root.
+    Return whether the current directory is a git repository root.
+
+    Checks for the presence of a .git file or directory in the current location.
+
+    :return: True if .git exists in the current directory
     """
     return os.path.exists(".git")
 
@@ -876,6 +1205,8 @@ def get_amp_abs_path() -> str:
     _LOG.debug("repo_sym_name=%s", repo_sym_name)
     #
     repo_sym_names = ["alphamatic/amp"]
+    import helpers.repo_config_utils as hrecouti
+
     extra_amp_repo_sym_name = (
         hrecouti.get_repo_config().get_extra_amp_repo_sym_name()
     )
@@ -965,40 +1296,14 @@ def find_docker_file(
     return file_names
 
 
-# #############################################################################
-# Git hash
-# #############################################################################
-
-
-def get_head_hash(dir_name: str = ".", short_hash: bool = False) -> str:
-    """
-    Report the hash that a Git repo is synced at.
-
-    ```
-    > git rev-parse HEAD
-    4759b3685f903e6c669096e960b248ec31c63b69
-    ```
-    """
-    hdbg.dassert_path_exists(dir_name)
-    opts = "--short " if short_hash else " "
-    cmd = f"cd {dir_name} && git rev-parse {opts}HEAD"
-    data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
-    _, output = data
-    # Check whether we are building an orange image. If the condition
-    # is True, add './amp' hash to the tag as well.
-    if is_amp_present(dir_name=dir_name):
-        amp_hash = get_head_hash(os.path.join(dir_name, "amp"), short_hash=True)
-        output = output + "-" + amp_hash
-    else:
-        random_string = "".join(
-            random.choices(string.ascii_lowercase + string.digits, k=3)
-        )
-        output = output + "-" + random_string
-    return output
-
-
 # TODO(gp): Use get_head_hash() and remove this.
 def get_current_commit_hash(dir_name: str = ".") -> str:
+    """
+    Return the full SHA-1 hash of the current HEAD commit.
+
+    :param dir_name: directory containing the git repository
+    :return: the full commit hash (e.g., "0011776388b4c0582161eb2749b665fc45b87e7e")
+    """
     hdbg.dassert_path_exists(dir_name)
     cmd = f"cd {dir_name} && git rev-parse HEAD"
     data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
@@ -1006,20 +1311,6 @@ def get_current_commit_hash(dir_name: str = ".") -> str:
     # 0011776388b4c0582161eb2749b665fc45b87e7e
     _LOG.debug("sha=%s", sha)
     return sha
-
-
-def get_remote_head_hash(dir_name: str) -> str:
-    """
-    Report the hash that the remote Git repo is at.
-    """
-    hdbg.dassert_path_exists(dir_name)
-    sym_name = get_repo_full_name_from_dirname(dir_name, include_host_name=False)
-    cmd = f"git ls-remote git@github.com:{sym_name} HEAD 2>/dev/null"
-    data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
-    _, output = data
-    # > git ls-remote git@github.com:alphamatic/amp HEAD 2>/dev/null
-    # 921676624f6a5f3f36ab507baed1b886227ac2e6        HEAD
-    return output
 
 
 # #############################################################################
@@ -1080,7 +1371,7 @@ def get_previous_committed_files(
     """
     cmd = []
     cmd.append('git show --pretty="" --name-only')
-    cmd.append(f"$(git log --author $(git config user.name) -{num_commits}")
+    cmd.append(f'$(git log --author "$(git config user.name)" -{num_commits}')
     cmd.append(r"""| \grep "^commit " | perl -pe 's/commit (.*)/$1/')""")
     cmd_as_str = " ".join(cmd)
     files: List[str] = hsystem.system_to_files(
@@ -1156,10 +1447,7 @@ def get_modified_and_untracked_files(
     # - git status --porcelain -u: Get status in machine-readable format with untracked files
     #   This includes both cached (staged) and modified files
     #   Status codes: ?? = untracked, M/A/R/C/D = modified/added/renamed/copied/deleted
-    cmd = (
-        f"cd {repo_path} && "
-        "git status --porcelain -u"
-    )
+    cmd = f"cd {repo_path} && git status --porcelain -u"
     _, output = hsystem.system_to_string(cmd, abort_on_error=False)
     # Get submodule paths to exclude.
     submodule_cmd = (
@@ -1207,9 +1495,7 @@ def get_modified_and_untracked_files(
         if os.path.exists(file_path) and os.path.isfile(file_path):
             files.append(file_name)
         else:
-            _LOG.debug(
-                "Skipping non-existent or non-file: %s", file_path
-            )
+            _LOG.debug("Skipping non-existent or non-file: %s", file_path)
     return files
 
 
@@ -1258,7 +1544,11 @@ def get_summary_files_in_branch(
 @functools.lru_cache()
 def get_git_name() -> str:
     """
-    Return the git user name.
+    Return the configured git user name from git config.
+
+    Caches the result to avoid repeated config lookups.
+
+    :return: the configured git user name (e.g., from user.name setting)
     """
     cmd = "git config --get user.name"
     # For some reason data is annotated as Any by mypy, instead of
@@ -1270,11 +1560,14 @@ def get_git_name() -> str:
 
 def git_log(num_commits: int = 5, my_commits: bool = False) -> str:
     """
-    Return the output of a pimped version of git log.
+    Return a formatted git log with graph, timestamps, and author information.
+
+    Uses a custom pretty format to display commits in a user-friendly layout
+    with graph visualization, relative time, and author name.
 
     :param num_commits: number of commits to report
-    :param my_commits: True to report only the current user commits
-    :return: string
+    :param my_commits: if True, filter to only commits by the current git user
+    :return: formatted git log output
     """
     cmd = []
     cmd.append("git log --date=local --oneline --graph --date-order --decorate")
@@ -1296,11 +1589,23 @@ def git_log(num_commits: int = 5, my_commits: bool = False) -> str:
 def git_stash_push(
     prefix: str, msg: Optional[str] = None, log_level: int = logging.DEBUG
 ) -> Tuple[str, bool]:
+    """
+    Stash current changes with a timestamped, labeled message.
+
+    Creates a unique stash name from prefix, username, server, and timestamp to
+    enable tracking of which changes were stashed when and by whom.
+
+    :param prefix: prefix for the stash tag (e.g., "backup", "work")
+    :param msg: optional message to append to the stash description
+    :param log_level: logging level for system output
+    :return: tuple of (stash_tag, was_stashed) indicating success
+    """
     import helpers.hdatetime as hdateti
 
     user_name = hsystem.get_user_name()
     server_name = hsystem.get_server_name()
     timestamp = hdateti.get_current_timestamp_as_string("naive_ET")
+    # Build unique tag from context to identify who stashed what when.
     tag = f"{user_name}-{server_name}-{timestamp}"
     tag = prefix + "." + tag
     _LOG.debug("tag='%s'", tag)
@@ -1311,7 +1616,7 @@ def git_stash_push(
         push_msg += ": " + msg
     cmd += f" -m '{push_msg}'"
     hsystem.system(cmd, suppress_output=False, log_level=log_level)
-    # Check if we actually stashed anything.
+    # Verify that something was actually stashed (git stash push is silent on no-op).
     cmd = rf"git stash list | \grep '{tag}' | wc -l"
     _, output = hsystem.system_to_string(cmd)
     was_stashed = int(output) > 0
@@ -1323,10 +1628,19 @@ def git_stash_push(
 
 
 def git_stash_apply(mode: str, log_level: int = logging.DEBUG) -> None:
+    """
+    Apply or pop the most recent git stash.
+
+    Displays the stash list before applying to help the user verify they're applying
+    the correct stash.
+
+    :param mode: "apply" to keep the stash or "pop" to remove after applying
+    :param log_level: logging level for system output
+    """
     _LOG.debug("# Checking stash head ...")
     cmd = "git stash list | head -3"
     hsystem.system(cmd, suppress_output=False, log_level=log_level)
-    #
+    # Restore the stashed changes, either keeping or removing the stash.
     _LOG.debug("# Restoring local changes...")
     if mode == "pop":
         cmd = "git stash pop --quiet"
@@ -1341,7 +1655,13 @@ def git_stash_apply(mode: str, log_level: int = logging.DEBUG) -> None:
 #  stemming from the super-module / sub-module repo.
 def _get_git_cmd(super_module: bool) -> str:
     """
-    Build the first part of a Git command line.
+    Build a git command prefix with explicit repository and working tree paths.
+
+    Useful for running git commands from outside the repository or when working
+    with specific submodules/supermodules.
+
+    :param super_module: if True, use supermodule root; else use current module root
+    :return: git command prefix (e.g., "git --git-dir=... --work-tree=...")
     """
     cmd = []
     cmd.append("git")
@@ -1349,7 +1669,7 @@ def _get_git_cmd(super_module: bool) -> str:
     # Set the path to the repository (".git" directory), avoiding Git to search for
     # it (from https://git-scm.com/docs/git)
     cmd.append(f"--git-dir='{client_root}/.git'")
-    # Set the path to the working tree.
+    # Explicitly specify working tree location.
     cmd.append(f"--work-tree='{client_root}'")
     cmd = " ".join(cmd)
     return cmd
@@ -1359,7 +1679,13 @@ def git_tag(
     tag_name: str, super_module: bool = True, log_level: int = logging.DEBUG
 ) -> None:
     """
-    Tag the Git tree with `tag_name` without pushing the tag to the remote.
+    Create a git tag on the current commit (locally, not pushed).
+
+    Overwrites existing tags with the same name (using -f flag).
+
+    :param tag_name: the name of the tag to create
+    :param super_module: if True, tag the supermodule; else tag the current module
+    :param log_level: logging level for system output
     """
     _LOG.debug("# Tagging current commit ...")
     git_cmd = _get_git_cmd(super_module)
@@ -1374,7 +1700,12 @@ def git_push_tag(
     log_level: int = logging.DEBUG,
 ) -> None:
     """
-    Push the tag `tag_name` to the given remote.
+    Push a git tag to the remote repository.
+
+    :param tag_name: the name of the tag to push
+    :param remote: the remote name to push to (default: origin)
+    :param super_module: if True, tag the supermodule; else tag the current module
+    :param log_level: logging level for system output
     """
     _LOG.debug("# Pushing current commit ...")
     git_cmd = _get_git_cmd(super_module)
@@ -1386,18 +1717,19 @@ def git_describe(
     match: Optional[str] = None, log_level: int = logging.DEBUG
 ) -> str:
     """
-    Return the closest tag in the repo, e.g., 1.0.0.
+    Return the most recent git tag, or abbreviated commit hash if no tags exist.
 
-    If there is no tag, this will return short commit hash.
+    Useful for version identification and release tracking.
 
-    :param match: e.g., `cmamp-*`, only consider tags matching the given
-        glob pattern
+    :param match: optional glob pattern to filter tags (e.g., "cmamp-*")
+    :param log_level: logging level for system output
+    :return: the closest tag (e.g., "1.0.0") or short commit hash
     """
     _LOG.debug("# Looking for version ...")
     cmd = "git describe --tags --always --abbrev=0"
     if match is not None:
-        hdbg.dassert_isinstance(match, str)
-        hdbg.dassert_ne(match, "")
+        hdbg.dassert_isinstance(match, str, "match pattern must be a string")
+        hdbg.dassert_ne(match, "", "match pattern cannot be empty")
         cmd = f"{cmd} --match '{match}'"
     num, tag = hsystem.system_to_one_line(cmd, log_level=log_level)
     _ = num
@@ -1408,11 +1740,12 @@ def git_add_update(
     file_list: Optional[List[str]] = None, log_level: int = logging.DEBUG
 ) -> None:
     """
-    Add list of files to hgit.
+    Add files to the git staging area.
 
-    If `file_list` is not specified, it adds all modified files.
+    If no file list is provided, adds all modified and deleted files (git add -u).
 
-    :param file_list: list of files to `git add`
+    :param file_list: list of specific files to add; if None, add all modified files
+    :param log_level: logging level for system output
     """
     _LOG.debug("# Adding all changed files to staging ...")
     cmd = f"git add {' '.join(file_list) if file_list is not None else '-u'}"
@@ -1421,10 +1754,11 @@ def git_add_update(
 
 def fetch_origin_master_if_needed() -> None:
     """
-    If inside CI system, force fetching `master` branch from Git repo.
+    Fetch the master branch from origin if running in a CI environment.
 
-    When testing a branch, `master` is not always fetched, but it might
-    be needed by tests.
+    In CI, master may not be fetched when testing a branch, but it's often needed
+    for tests that compare against baseline or merge behavior. This ensures master
+    is available if needed.
     """
     if hserver.is_inside_ci():
         _LOG.warning("Running inside CI so fetching master")
@@ -1452,19 +1786,23 @@ def is_client_clean(
     abort_if_not_clean: bool = False,
 ) -> bool:
     """
-    Return whether there are files modified, added, or removed in `dir_name`.
+    Return whether there are files modified, added, or removed in a directory.
 
+    Ignores submodule changes (amp, helpers_root) to focus on actual code changes.
+
+    :param dir_name: directory containing the git repository
     :param abort_if_not_clean: if True and the client is not clean,
-        abort reporting the files modified
+        abort with a detailed message showing the modified files
+    :return: True if no files are modified (excluding submodules)
     """
     _LOG.debug(hprint.to_str("abort_if_not_clean"))
     files = get_modified_files(dir_name)
-    # Remove "amp" from files.
+    # Exclude submodule directories from consideration since their changes
+    # are tracked separately and don't affect code cleanliness.
     if "amp" in files:
         _LOG.warning("Skipping 'amp' in modified files")
         files = [f for f in files if "amp" != f]
     elif "helpers_root" in files:
-        # Remove "helpers_root" from files.
         _LOG.warning("Skipping 'helpers_root' in modified files")
         files = [f for f in files if "helpers_root" != f]
     # A Git client is clean iff there are no files in the index.
@@ -1476,86 +1814,6 @@ def is_client_clean(
     return is_clean
 
 
-@functools.lru_cache()
-def _get_gh_pr_list() -> str:
-    cmd = "gh pr list -s all --limit 1000"
-    rc, txt = hsystem.system_to_string(cmd)
-    _ = rc
-    return txt
-
-
-def does_branch_exist(
-    branch_name: str,
-    mode: str,
-    *,
-    dir_name: str = ".",
-) -> bool:
-    """
-    Check if a branch with the given name exists in Git or GitHub.
-    """
-    _LOG.debug(hprint.to_str("branch_name mode dir_name"))
-    # Handle the "all" case by recursion on all the possible modes.
-    if mode == "all":
-        exists = False
-        for mode_tmp in ("git_local", "git_remote", "github"):
-            exists_tmp = does_branch_exist(
-                branch_name, mode_tmp, dir_name=dir_name
-            )
-            exists = exists or exists_tmp
-        return exists
-    #
-    hdbg.dassert_in(mode, ("git_local", "git_remote", "github"))
-    exists = False
-    if mode in ("git_local", "git_remote"):
-        # From https://stackoverflow.com/questions/35941566
-        cmd = f"cd {dir_name} && git fetch --prune"
-        hsystem.system(cmd, abort_on_error=False)
-        # From https://stackoverflow.com/questions/5167957
-        # > git rev-parse --verify LimeTask197_Get_familiar_with_CF2
-        # f03bfa0b4577c2524afd6a1f24d06013f8aa9f1a
-        # > git rev-parse --verify I_dont_exist
-        # fatal: Needed a single revision
-        git_branch_name = branch_name
-        if mode == "git_remote":
-            git_branch_name = f"origin/{git_branch_name}"
-        cmd = f"cd {dir_name} && git rev-parse --verify {git_branch_name}"
-        rc = hsystem.system(cmd, abort_on_error=False)
-        exists = rc == 0
-        _LOG.debug("branch_name='%s' on git: exists=%s", branch_name, exists)
-    # Check on GitHub.
-    if mode == "github":
-        txt = _get_gh_pr_list()
-        # ```
-        # > gh pr list -s all --limit 10000 | grep AmpTask2163
-        # 347     AmpTask2163_Implement_tiled_backtesting_1  AmpTask2163 ... MERGED
-        # ```
-        # The text is separated by tabs.
-        #
-        # If there are no issues on the GitHub repo, just return.
-        # ```
-        # > gh pr list -s all --limit 1000
-        # no pull requests match your search in causify-ai/sports_analytics
-        # ```
-        if txt == "":
-            return False
-        for line in txt.split("\n"):
-            # number, GH branch name, Git branch name, status.
-            fields = line.split("\t")
-            # fields=['179',
-            #   'CmTask2914: Add end-to-end unit test for prod reconcile',
-            #   'CmTask2914_Add_end_to_end_unit_test_around_the_prod_reconciliation',
-            #   'DRAFT', '2022-09-27 19:56:50 +0000 UTC']
-            hdbg.dassert_lte(4, len(fields), "fields=%s", fields)
-            number, gh_branch_name, git_branch_name = fields[:3]
-            _ = number, gh_branch_name
-            if branch_name == git_branch_name:
-                exists = True
-                _LOG.debug(
-                    "branch_name='%s' on github: exists=%s", branch_name, exists
-                )
-    return exists
-
-
 def delete_branches(
     dir_name: str,
     mode: str,
@@ -1564,14 +1822,19 @@ def delete_branches(
     abort_on_error: bool = True,
 ) -> None:
     """
-    Delete local or remote branches.
+    Delete local or remote git branches.
 
-    :param mode: local or remote
-    :param branches: list of branches to delete
-    :param confirm_delete: ask the user to confirm before deleting, or
-        just do it
+    Optionally prompts the user for confirmation before performing deletion.
+
+    :param dir_name: directory containing the git repository
+    :param mode: "local" for local branches or "remote" for remote branches
+    :param branches: list of branch names to delete
+    :param confirm_delete: if True, prompt user for confirmation before deletion
+    :param abort_on_error: if True, abort on any deletion error
     """
-    hdbg.dassert_isinstance(branches, list)
+    hdbg.dassert_isinstance(
+        branches, list, "branches must be a list, got type %s", type(branches)
+    )
     delete_cmd = f"cd {dir_name} && "
     if mode == "local":
         delete_cmd += "git branch -d"
@@ -1579,7 +1842,7 @@ def delete_branches(
         delete_cmd += "git push origin --delete"
     else:
         raise ValueError(f"Invalid mode='{mode}'")
-    # Ask whether to continue.
+    # Prompt for confirmation to prevent accidental deletion of important branches.
     if confirm_delete:
         branches_as_str = " ".join(branches)
         msg = (

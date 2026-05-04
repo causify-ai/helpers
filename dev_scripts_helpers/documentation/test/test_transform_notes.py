@@ -10,15 +10,13 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-
 # #############################################################################
 # Test_markdown_to_latex1
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
+
+@pytest.mark.superslow
+@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
 class Test_markdown_to_latex1(hunitest.TestCase):
     def _check(self, markdown: str, expected: str) -> None:
         """

@@ -17,7 +17,6 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hstring as hstring
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -104,9 +103,7 @@ class _RemoveEmptyLines(liaction.Action):
         file_content = hio.from_file(file_name)
         updated_lines = _remove_empty_lines(file_content)
         # Save the updated file with cleaned functions.
-        liutils.write_file_back(
-            file_name, file_content.split("\n"), updated_lines
-        )
+        hio.write_file_back(file_name, file_content.split("\n"), updated_lines)
         return []
 
 

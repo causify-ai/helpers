@@ -12,13 +12,18 @@ This module tests LaTeX text processing utilities including:
 import logging
 
 import helpers.hlatex as hlatex
-import helpers.hmarkdown_headers as hmarkdo
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+
+
+# #############################################################################
+# Test_remove_latex_formatting1
 # #############################################################################
 
 
@@ -511,7 +516,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         actual = hlatex.extract_headers_from_latex(
             lines_list, max_level, sanity_check=False
         )
-        actual_str = hmarkdo.header_list_to_str(actual)
+        actual_str = hmarhead.header_list_to_str(actual)
         # Prepare outputs.
         expected = hprint.dedent(expected)
         # Check outputs.

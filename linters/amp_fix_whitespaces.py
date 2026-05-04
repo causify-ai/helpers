@@ -12,7 +12,6 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
@@ -98,7 +97,7 @@ class _FixWhitespaces(liaction.Action):
             updated_lines.append(line)
         updated_lines = _format_end_of_file(updated_lines)
         # Write the updated file back.
-        liutils.write_file_back(file_name, lines, updated_lines)
+        hio.write_file_back(file_name, lines, updated_lines)
         return []
 
 

@@ -32,6 +32,35 @@ FILES_TO_EXCLUDE = [
 ]
 
 
+# #############################################################################
+
+
+# TODO(gp): Move in a more general file: probably system_interaction.
+def _is_under_dir(file_name: str, dir_name: str) -> bool:
+    """
+    Return whether a file is under the given directory.
+    """
+    subdir_names = file_name.split("/")
+    return dir_name in subdir_names
+
+
+def is_under_test_dir(file_name: str) -> bool:
+    """
+    Return whether a file is under a test directory (which is called "test").
+    """
+    return _is_under_dir(file_name, "test")
+
+
+def is_test_input_output_file(file_name: str) -> bool:
+    """
+    Return whether a file is used as input or output in a unit test.
+    """
+    ret = is_under_test_dir(file_name)
+    ret &= file_name.endswith(".txt")
+    ret &= not _is_under_dir(file_name, "tmp.scratch")
+    return ret
+
+
 def _filter_files(
     file_paths: List[str], file_paths_to_skip: List[str]
 ) -> List[str]:
@@ -97,9 +126,9 @@ def get_files_to_check(
         file_paths = files
     elif from_file:
         # Get the files from a file.
-        file_paths = hio.from_file(from_file)
-        file_paths = file_paths.replace("\n", " ")
-        file_paths = file_paths.split(" ")
+        file_content = hio.from_file(from_file)
+        file_content = file_content.replace("\n", " ")
+        file_paths = file_content.split(" ")
         _LOG.info("Read %d files from '%s'", len(file_paths), from_file)
         hdbg.dassert_list_of_strings(file_paths)
     elif modified:
@@ -132,6 +161,7 @@ def get_files_to_check(
     return file_paths
 
 
+# TODO(gp): Obsolete?
 def get_python_files_to_lint(dir_name: str) -> List[str]:
     """
     Get Python files for linter excluding jupytext and test Python files.
@@ -182,23 +212,7 @@ def get_python_files_to_lint(dir_name: str) -> List[str]:
     return not_test_files
 
 
-def write_file_back(
-    file_name: str, txt_old: List[str], txt_new: List[str]
-) -> None:
-    """
-    Compare old text and new text and, if different, write into file.
-    """
-    hdbg.dassert_list_of_strings(txt_old)
-    txt_as_str = "\n".join(txt_old)
-    #
-    hdbg.dassert_list_of_strings(txt_new)
-    txt_new_as_str = "\n".join(txt_new)
-    #
-    if txt_as_str != txt_new_as_str:
-        hio.to_file(file_name, txt_new_as_str)
-
-
-# TODO(saggese): should this be moved to system interactions?
+# TODO(saggese): Should this be moved to system interactions?
 def tee(
     cmd: str, executable: str, abort_on_error: bool
 ) -> Tuple[int, List[str]]:
@@ -219,40 +233,11 @@ def tee(
     return rc, output2
 
 
-# #############################################################################
-
-
-# TODO(gp): Move in a more general file: probably system_interaction.
-def _is_under_dir(file_name: str, dir_name: str) -> bool:
-    """
-    Return whether a file is under the given directory.
-    """
-    subdir_names = file_name.split("/")
-    return dir_name in subdir_names
-
-
 def is_under_tmp_scratch_dir(file_name: str) -> bool:
     """
     Return whether a file is under the temporary scratch directory.
     """
     return _is_under_dir(file_name, "tmp.scratch")
-
-
-def is_under_test_dir(file_name: str) -> bool:
-    """
-    Return whether a file is under a test directory (which is called "test").
-    """
-    return _is_under_dir(file_name, "test")
-
-
-def is_test_input_output_file(file_name: str) -> bool:
-    """
-    Return whether a file is used as input or output in a unit test.
-    """
-    ret = is_under_test_dir(file_name)
-    ret &= file_name.endswith(".txt")
-    ret &= not _is_under_dir(file_name, "tmp.scratch")
-    return ret
 
 
 def is_test_code(file_name: str) -> bool:

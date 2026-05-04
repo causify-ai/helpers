@@ -23,8 +23,8 @@ Produce in a file explanation.md an explanation that helps a reader quickly
 understand the key ideas and intuition behind each section while maintaining the
 original document structure.
 
-Then run
+Then run the command:
 
-```
+```bash
 > lint_txt.py -i explanation.md
 ```

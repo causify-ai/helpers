@@ -341,6 +341,7 @@ class LLMClient:
 
         self.provider_name = provider_name
         self.model = model
+        self.client = None
 
     def get_default_model(self) -> Tuple[str, str]:
         """
@@ -465,15 +466,25 @@ def get_completion(
     update_llm_cache = get_update_llm_cache()
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
+    # Initialize LLM client.
+    # Skip client creation for HIT_CACHE_OR_ABORT mode since:
+    # - If cache hits, we never use the client
+    # - If cache misses, we abort before calling the function
     llm_client = LLMClient(model=model)
-    llm_client.create_client()
-    if use_responses_api and llm_client.provider_name != "openai":
-        raise ValueError(
-            "Responses API is only supported for the 'openai' provider."
-        )
+    if cache_mode != "HIT_CACHE_OR_ABORT":
+        llm_client.create_client()
+        if use_responses_api and llm_client.provider_name != "openai":
+            raise ValueError(
+                "Responses API is only supported for the 'openai' provider."
+            )
     if report_progress and return_raw:
         raise ValueError(
             "Streaming mode is only supported while returning text content."
+        )
+    if report_progress and cache_mode == "HIT_CACHE_OR_ABORT":
+        raise ValueError(
+            "Streaming mode (report_progress=True) is not supported with "
+            "cache_mode='HIT_CACHE_OR_ABORT'."
         )
     # Construct messages in OpenAI API request format.
     _LOG.info("LLM API call ... ")
@@ -578,19 +589,30 @@ def get_structured_completion(
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
     # Initialize LLM client.
-    llm_client = LLMClient(model=model)
-    llm_client.create_client()
-    if llm_client.provider_name != "openai":
-        raise ValueError(
-            "`get_structured_completion()` currently only supports the "
-            "'openai' provider (Responses API + Structured Outputs). "
-            f"Got provider_name='{llm_client.provider_name}'."
-        )
+    # Skip client creation for HIT_CACHE_OR_ABORT mode since:
+    # - If cache hits, we never use the client
+    # - If cache misses, we abort before calling the function
+    if cache_mode == "HIT_CACHE_OR_ABORT":
+        # Don't create the client; pass None since it won't be used.
+        llm_client = LLMClient(model=model)
+        client = None
+        model_to_use = llm_client.model
+    else:
+        llm_client = LLMClient(model=model)
+        llm_client.create_client()
+        if llm_client.provider_name != "openai":
+            raise ValueError(
+                "`get_structured_completion()` currently only supports the "
+                "'openai' provider (Responses API + Structured Outputs). "
+                f"Got provider_name='{llm_client.provider_name}'."
+            )
+        client = llm_client.client
+        model_to_use = llm_client.model
     # Retrieve a structured response.
     parsed_output: T = _call_structured_api_sync(
         cache_mode=cache_mode,
-        client=llm_client.client,
-        model=llm_client.model,
+        client=client,
+        model=model_to_use,
         user_prompt=user_prompt,
         system_prompt=system_prompt,
         temperature=temperature,
