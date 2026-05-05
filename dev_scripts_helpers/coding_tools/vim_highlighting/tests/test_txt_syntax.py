@@ -29,7 +29,10 @@ class TestTxtSyntaxHighlighting(hunitest.TestCase):
         hdbg.dassert_file_exists(test_file_path)
         hdbg.dassert_file_exists(vimrc_path)
         # Run vim to export syntax information.
-        cmd = f"vim -u {shlex.quote(vimrc_path)} -c ExportSyntax -c qa! {shlex.quote(test_file_path)}"
+        test_dir_tmp = shlex.quote(test_dir)
+        vimrc_path_tmp = shlex.quote(vimrc_path)
+        test_file_path_tmp = shlex.quote(test_file_path)
+        cmd = f"cd {test_dir_tmp} && vim -u {vimrc_path_tmp} -c ExportSyntax -c qa! {test_file_path_tmp}"
         # Run vim with output suppressed.
         subprocess.run(
             cmd, shell=True, capture_output=True, check=False, timeout=10
@@ -65,5 +68,4 @@ class TestTxtSyntaxHighlighting(hunitest.TestCase):
         # Run test.
         actual = self.helper(test_file, vimrc_file)
         # Check outputs using golden file testing.
-        # TODO(ai_gp): Remove tag
-        self.check_string(actual, tag="txt_syntax_output")
+        self.check_string(actual)
