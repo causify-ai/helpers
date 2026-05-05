@@ -11,15 +11,22 @@ The script:
 - If `--start` header is not found, raises an error
 - Outputs the extracted text to a file or stdout
 
+Headers can be specified in two ways:
+- Full format: "## Section 1" (includes the # symbols)
+- Partial match: "Section 1" (just the title, matches if unique)
+
 Examples:
-# Extract text between two headers
+# Extract text between two headers (full format)
 > extract_text_from_txt.py -i input.md --start "## Section 1" --end "## Section 2" -o output.txt
+
+# Extract text using partial header match
+> extract_text_from_txt.py -i input.md --start "Section 1" --end "Section 2" -o output.txt
 
 # Extract text from "## Section 1" until the next level-2 header
 > extract_text_from_txt.py -i input.md --start "## Section 1" -o output.txt
 
 # Extract text and print to stdout
-> extract_text_from_txt.py -i input.md --start "# Chapter 1" --end "# Chapter 2" -o -
+> extract_text_from_txt.py -i input.md --start "Chapter 1" --end "Chapter 2" -o -
 """
 
 import argparse
@@ -69,20 +76,79 @@ def _find_header_by_title(
     return None
 
 
+def _find_header_by_partial_title(
+    header_list: hmarhead.HeaderList, partial_title: str
+) -> Optional[hmarhead.HeaderInfo]:
+    """
+    Find a header by partial title match.
+
+    The partial_title matches if any header's title starts with it (case-sensitive).
+    Raises an error if multiple headers match.
+
+    :param header_list: list of HeaderInfo objects
+    :param partial_title: partial title to match (must be unique)
+    :return: HeaderInfo if found, None otherwise
+    """
+    matches = []
+    for header_info in header_list:
+        if header_info.description.startswith(partial_title):
+            matches.append(header_info)
+    if len(matches) == 0:
+        return None
+    if len(matches) > 1:
+        matching_titles = [h.description for h in matches]
+        raise ValueError(
+            f"Partial title '{partial_title}' matches multiple headers: {matching_titles}. "
+            "Please provide a more specific match."
+        )
+    return matches[0]
+
+
+def _find_header_from_input(
+    header_list: hmarhead.HeaderList,
+    header_input: str,
+) -> Tuple[hmarhead.HeaderInfo, int]:
+    """
+    Find a header from user input that can be either a full header string or partial title.
+
+    :param header_list: list of HeaderInfo objects
+    :param header_input: either "## Title" (full header) or "Title" (partial match)
+    :return: tuple of (HeaderInfo, level) where level is from the input if it was a full header
+    :raises: ValueError if input is ambiguous or header not found
+    """
+    if header_input.lstrip().startswith("#"):
+        # Full header format like "## Title"
+        level, title = _parse_header_string(header_input)
+        header_info = _find_header_by_title(header_list, title)
+        if header_info is None:
+            raise ValueError(f"Header not found: '{header_input}'")
+        if header_info.level != level:
+            raise ValueError(
+                f"Header level mismatch for '{title}': expected level {level}, got {header_info.level}"
+            )
+        return header_info, level
+    else:
+        # Partial title match
+        header_info = _find_header_by_partial_title(header_list, header_input)
+        if header_info is None:
+            raise ValueError(f"No header matches: '{header_input}'")
+        return header_info, header_info.level
+
+
 def _find_end_line(
     header_list: hmarhead.HeaderList,
     start_header_info: hmarhead.HeaderInfo,
-    end_header_title: Optional[str],
+    end_header_input: Optional[str],
 ) -> Optional[int]:
     """
     Find the line number where the text extraction should end.
 
-    If end_header_title is provided, find that header. Otherwise, find the
+    If end_header_input is provided, find that header. Otherwise, find the
     next header at the same or higher level (fewer or equal # symbols).
 
     :param header_list: list of HeaderInfo objects
     :param start_header_info: the start header
-    :param end_header_title: title of end header (None to auto-detect)
+    :param end_header_input: header input (full format or partial match) or None to auto-detect
     :return: line number where extraction ends (exclusive)
     """
     hdbg.dassert_isinstance(header_list, list)
@@ -93,14 +159,8 @@ def _find_end_line(
             start_idx = i
             break
     hdbg.dassert_is_not(start_idx, None, "Start header not found in header list")
-    if end_header_title is not None:
-        end_header_info = _find_header_by_title(header_list, end_header_title)
-        hdbg.dassert_is_not(
-            end_header_info,
-            None,
-            "End header not found: '%s'",
-            end_header_title,
-        )
+    if end_header_input is not None:
+        end_header_info, _ = _find_header_from_input(header_list, end_header_input)
         return end_header_info.line_number - 1
     for i in range(start_idx + 1, len(header_list)):
         candidate_header = header_list[i]
@@ -118,36 +178,17 @@ def _extract_text_from_markdown(
     Extract text from Markdown lines between two headers.
 
     :param lines: list of lines in the input file
-    :param start_header_str: starting header string (e.g., "## Section 1")
-    :param end_header_str: ending header string (optional)
+    :param start_header_str: starting header (e.g., "## Section 1" or "Section 1")
+    :param end_header_str: ending header (optional, same formats accepted)
     :return: extracted lines
     """
     hdbg.dassert_isinstance(lines, list)
-    start_level, start_title = _parse_header_string(start_header_str)
     sanity_check = False
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=10, sanity_check=sanity_check
     )
-    start_header_info = _find_header_by_title(header_list, start_title)
-    hdbg.dassert_is_not(
-        start_header_info,
-        None,
-        "Start header not found: '%s'",
-        start_header_str,
-    )
-    hdbg.dassert_eq(
-        start_header_info.level,
-        start_level,
-        "Header level mismatch for '%s': expected level %d, got %d",
-        start_title,
-        start_level,
-        start_header_info.level,
-    )
-    end_header_title = None
-    if end_header_str is not None:
-        end_level, end_title = _parse_header_string(end_header_str)
-        end_header_title = end_title
-    end_line = _find_end_line(header_list, start_header_info, end_header_title)
+    start_header_info, _ = _find_header_from_input(header_list, start_header_str)
+    end_line = _find_end_line(header_list, start_header_info, end_header_str)
     start_idx = start_header_info.line_number - 1
     if end_line is None:
         end_idx = len(lines)
@@ -166,8 +207,8 @@ def _extract_text_from_txtslides(
     Extract text from txt slide lines between two headers.
 
     :param lines: list of lines in the input file
-    :param start_header_str: starting header string
-    :param end_header_str: ending header string (optional)
+    :param start_header_str: starting header (e.g., "## Section 1" or "Section 1")
+    :param end_header_str: ending header (optional, same formats accepted)
     :return: extracted lines
     """
     hdbg.dassert_isinstance(lines, list)
@@ -176,27 +217,8 @@ def _extract_text_from_txtslides(
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=10, sanity_check=sanity_check
     )
-    start_level, start_title = _parse_header_string(start_header_str)
-    start_header_info = _find_header_by_title(header_list, start_title)
-    hdbg.dassert_is_not(
-        start_header_info,
-        None,
-        "Start header not found: '%s'",
-        start_header_str,
-    )
-    hdbg.dassert_eq(
-        start_header_info.level,
-        start_level,
-        "Header level mismatch for '%s': expected level %d, got %d",
-        start_title,
-        start_level,
-        start_header_info.level,
-    )
-    end_header_title = None
-    if end_header_str is not None:
-        end_level, end_title = _parse_header_string(end_header_str)
-        end_header_title = end_title
-    end_line = _find_end_line(header_list, start_header_info, end_header_title)
+    start_header_info, _ = _find_header_from_input(header_list, start_header_str)
+    end_line = _find_end_line(header_list, start_header_info, end_header_str)
     start_idx = start_header_info.line_number - 1
     if end_line is None:
         end_idx = len(lines)
@@ -217,13 +239,13 @@ def _parse() -> argparse.ArgumentParser:
         "--start",
         type=str,
         required=True,
-        help="Starting header (e.g., '## Section 1')",
+        help="Starting header: either full format (e.g., '## Section 1') or partial match (e.g., 'Section 1'). Partial match must be unique.",
     )
     parser.add_argument(
         "--end",
         type=str,
         default=None,
-        help="Ending header (e.g., '## Section 2'). If not provided, extracts until the next header at the same or higher level",
+        help="Ending header: either full format (e.g., '## Section 2') or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. Partial match must be unique.",
     )
     hparser.add_verbosity_arg(parser)
     return parser
