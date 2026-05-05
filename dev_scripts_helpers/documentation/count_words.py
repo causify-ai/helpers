@@ -60,7 +60,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     reading_hours = reading_minutes / 60
     # Print results.
     _LOG.info("Word count: %d", word_count)
-    _LOG.info("Estimated reading time: %.1f minutes (%.2f hours)", reading_minutes, reading_hours)
+    _LOG.info(
+        "Estimated reading time: %.1f minutes (%.2f hours)",
+        reading_minutes,
+        reading_hours,
+    )
 
 
 if __name__ == "__main__":
