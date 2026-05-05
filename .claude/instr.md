@@ -12,4 +12,4 @@
   `@.claude/skills/coding.rules.md`
 
 - Generate unit tests for the new code following the instructions in
-  `@.claude/skills/testing.format.md`
+  `@.claude/skills/testing.rules.md`

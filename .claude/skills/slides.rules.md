@@ -1,6 +1,11 @@
 - This document consolidates formatting rules and conventions for creating
   professional lecture slides for graduate-level courses
 
+# Rules
+- **Definition**
+- **Question**
+- **Remark**
+
 # Basic Formatting
 
 ## General Formatting Rules

@@ -14,7 +14,8 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Bash(git commit:*)",
-      "WebFetch(domain:*)"
+      "WebFetch(domain:*)",
+      "Bash(./helpers_root/dev_scripts_helpers/coding_tools/vim_highlighting/run_syntax_test.sh)"
     ],
     "deny": []
   },
