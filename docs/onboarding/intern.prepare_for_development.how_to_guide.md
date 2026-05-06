@@ -44,7 +44,7 @@ Happy coding!
 ## Coding style
 
 - Adopt the coding style outlined
-  [here](/docs/coding/all.coding_style.how_to_guide.md)
+  [here](/docs/code_guidelines/all.coding_style.how_to_guide.md)
 - Internalize the guidelines to maintain code consistency
 
 ## Linter
@@ -61,7 +61,7 @@ Happy coding!
   ```
 
 - More information about Linter can be found
-  [here](/docs/coding/all.submit_code_for_review.how_to_guide.md#run-linter)
+  [here](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md#run-linter)
 
 ## Writing and contributing code
 

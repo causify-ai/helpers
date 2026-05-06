@@ -17,6 +17,8 @@
     + [Create the Tmux Links](#create-the-tmux-links)
   * [Copy and Customize Files in `Devops`](#copy-and-customize-files-in-devops)
   * [Create Symbolic Links](#create-symbolic-links)
+    + [Create Standard Configuration File Links](#create-standard-configuration-file-links)
+    + [Create Custom Symbolic Links](#create-custom-symbolic-links)
   * [5) Build Container and Running Tests](#5-build-container-and-running-tests)
     + [Build a Container for a Super-Repo](#build-a-container-for-a-super-repo)
     + [Check If the Regressions Are Passing](#check-if-the-regressions-are-passing)
@@ -228,12 +230,12 @@
 ### Test the Thin Environment
 
 - Follow
-  [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#set-up-the-thin-environment)
+  [the on-boarding guide](/docs/onboarding/all.development_setup.how_to_guide.md#set-up-the-thin-environment)
 
 ### Create the Tmux Links
 
 - Follow
-  [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#create-a-tmux-session)
+  [the on-boarding guide](/docs/onboarding/all.development_setup.how_to_guide.md#create-a-tmux-session)
 
 ## Copy and Customize Files in `Devops`
 
@@ -317,10 +319,10 @@
   ```
 
 - Refer to
-  [Managing common files](/docs/tools/dev_system/dev_system/all.runnable_repo.reference.md#managing-common-files)
+  [Managing common files](/docs/tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
   for explanation
 - Refer to
-  [Managing symbolic links between directories](/docs/tools/dev_system/dev_system/all.replace_common_files_with_script_links.md)
+  [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.md)
   for how to use the commands
 
 ## 5) Build Container and Running Tests
@@ -350,7 +352,7 @@
 ### Check If the Regressions Are Passing
 
 - Follow
-  [the on-boarding doc](/docs/onboarding/ck.development_setup.how_to_guide.md#begin-working)
+  [the on-boarding doc](/docs/onboarding/all.development_setup.how_to_guide.md#begin-working)
   to confirm that everything is set up properly
 
 - File a PR with the new files and merge the PR into `master`

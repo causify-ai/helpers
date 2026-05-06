@@ -25,7 +25,7 @@
 
 - Create a custom script that adds a TOC to a notebook by parsing its contents
 - The script:
-  [/dev_scripts/notebooks/add_toc_to_notebook.py](/dev_scripts/notebooks/add_toc_to_notebook.py)
+  [/dev_scripts_helpers/notebooks/add_toc_to_notebook.py](/dev_scripts_helpers/notebooks/add_toc_to_notebook.py)
 
 ### How it works
 

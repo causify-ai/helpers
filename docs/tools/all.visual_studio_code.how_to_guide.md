@@ -1,14 +1,16 @@
 <!-- toc -->
 
+- [Visual Studio Code](#visual-studio-code)
+  * [Installation of VSCode](#installation-of-vscode)
+    + [Windows, Linux, Mac](#windows-linux-mac)
+    + [Connect to dev server](#connect-to-dev-server)
+  * [How to run a VSCode debugger within a remote container](#how-to-run-a-vscode-debugger-within-a-remote-container)
+    + [Prerequisites](#prerequisites)
+    + [Tips](#tips)
+    + [Steps](#steps)
+  * [How to access the Jupyter server running on the remote server through your local machine](#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
 - [Connecting via VNC](#connecting-via-vnc)
   * [Installing VNC](#installing-vnc)
-- [Installation of VSCode](#installation-of-vs-code)
-  * [Windows, Linux, Mac](#windows-linux-mac)
-- [How to run a VSCode debugger within a remote container](#how-to-run-a-vscode-debugger-within-a-remote-container)
-  * [Prerequisites](#prerequisites)
-  * [Tips](#tips)
-  * [Steps](#steps)
-- [How to access the Jupyter server running on the remote server through your local machine](#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
 
 <!-- tocstop -->
 

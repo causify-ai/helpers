@@ -20,7 +20,7 @@ A notebook can be run in two ways:
 
 ## Running a notebook using a Python script
 
-Use [`run_notebook.py`](/dev_scripts/notebooks/run_notebook.py) to run the
+Use [`run_notebook.py`](/dev_scripts_helpers/notebooks/run_notebook.py) to run the
 notebook via script.
 
 Here is an example of the run command inside the dev container, `cmamp`

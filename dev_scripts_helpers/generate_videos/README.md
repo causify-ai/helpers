@@ -14,6 +14,15 @@
     + [`stop_synthesia_videos.py`](#stop_synthesia_videospy)
   * [Synthesia Workflow](#synthesia-workflow)
 - [To Reorg](#to-reorg)
+- [Generate images from prompt](#generate-images-from-prompt)
+- [Create videos from storyboards](#create-videos-from-storyboards)
+- [Create video lessons with picture-in-picture](#create-video-lessons-with-picture-in-picture)
+- [Create videos of GP talking (Synthesia)](#create-videos-of-gp-talking-synthesia)
+- [Create voice of GP talking (ElevenLabs)](#create-voice-of-gp-talking-elevenlabs)
+- [Create map of Google maps](#create-map-of-google-maps)
+- [Process slides](#process-slides)
+- [Create narration from slides](#create-narration-from-slides)
+- [Lint slides](#lint-slides)
 
 <!-- tocstop -->
 
