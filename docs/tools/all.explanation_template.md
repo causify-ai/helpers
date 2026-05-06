@@ -1,12 +1,12 @@
 <!-- toc -->
 
 - [Introduction / Motivation](#introduction--motivation)
-- [Core Concepts](#core-concepts)
-- [How It Works](#how-it-works)
-- [Design Rationale](#design-rationale)
-- [Tradeoffs And Alternatives](#tradeoffs-and-alternatives)
-  * [Current Approach](#current-approach)
-  * [Alternative Approach](#alternative-approach)
+  * [Core Concepts](#core-concepts)
+  * [How It Works](#how-it-works)
+  * [Design Rationale](#design-rationale)
+  * [Tradeoffs And Alternatives](#tradeoffs-and-alternatives)
+    + [Current Approach](#current-approach)
+    + [Alternative Approach](#alternative-approach)
 
 <!-- tocstop -->
 

@@ -1,15 +1,15 @@
 <!-- toc -->
 
 - [What It Does](#what-it-does)
-- [Assumptions / Requirements](#assumptions--requirements)
-- [Instructions](#instructions)
-  * [Step 1: Fetch Input](#step-1-fetch-input)
-  * [Example: Download Markdown input file](#example-download-markdown-input-file)
-  * [Step 2: Describe Action](#step-2-describe-action)
-  * [Step 3: Review Output](#step-3-review-output)
-  * [Preview the output file](#preview-the-output-file)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
+  * [Assumptions / Requirements](#assumptions--requirements)
+  * [Instructions](#instructions)
+    + [Step 1: Fetch Input](#step-1-fetch-input)
+    + [Example: Download Markdown input file](#example-download-markdown-input-file)
+    + [Step 2: Describe Action](#step-2-describe-action)
+    + [Step 3: Review Output](#step-3-review-output)
+    + [Preview the output file](#preview-the-output-file)
+  * [Examples](#examples)
+  * [Troubleshooting](#troubleshooting)
 
 <!-- tocstop -->
 

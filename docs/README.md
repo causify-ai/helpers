@@ -3,7 +3,12 @@
 <!-- toc -->
 
 - [Readme](#readme)
+  * [How to organize the docs](#how-to-organize-the-docs)
+    + [Dir vs no-dirs](#dir-vs-no-dirs)
+    + [Tracking reviews and improvements](#tracking-reviews-and-improvements)
+    + [How to search the documentation](#how-to-search-the-documentation)
   * [File description](#file-description)
+  * [Dir structure](#dir-structure)
 
 <!-- tocstop -->
 

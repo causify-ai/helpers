@@ -11,6 +11,7 @@
   * [setenv](#setenv)
   * [devops](#devops)
   * [Managing common files](#managing-common-files)
+    + [Automated linking for standard configuration files](#automated-linking-for-standard-configuration-files)
   * [Managing repo configurations](#managing-repo-configurations)
   * [Building a Docker container](#building-a-docker-container)
     + [Building `dev` container](#building-dev-container)
@@ -281,7 +282,7 @@ graph TD
   ```
 
 - For more complex scenarios requiring custom source and destination directories,
-  use [`create_links.py`](/helpers/create_links.py) as described in
+  use [`create_links.py`](/dev_scripts_helpers/system_tools/create_links.py) as described in
   [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.md)
 
 ## Managing repo configurations

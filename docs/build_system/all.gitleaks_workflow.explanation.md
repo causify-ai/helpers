@@ -1,3 +1,5 @@
+
+
 <!-- toc -->
 
 - [Gitleaks Integration in GitHub Actions](#gitleaks-integration-in-github-actions)

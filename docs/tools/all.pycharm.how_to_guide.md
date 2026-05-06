@@ -5,7 +5,6 @@
 <!-- toc -->
 
 - [Current situation](#current-situation)
-- [Current situation](#current-situation-1)
 - [How to run our cmamp container directly from PyCharm](#how-to-run-our-cmamp-container-directly-from-pycharm)
 - [How to review a PR inside Pycharm](#how-to-review-a-pr-inside-pycharm)
 - [How to edit remote code](#how-to-edit-remote-code)

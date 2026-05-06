@@ -1,11 +1,11 @@
 <!-- toc -->
 
 - [Connecting Google Sheets to Pandas](#connecting-google-sheets-to-pandas)
-  * [Installing libraries](#installing-libraries)
-  * [Check installation](#check-installation)
+  * [Installation](#installation)
   * [Authentication](#authentication)
-    + [In short](#in-short)
-- [Testing gspread-pandas](#testing-gspread-pandas)
+    + [Official reference](#official-reference)
+    + [Authentication in short](#authentication-in-short)
+  * [Testing gspread-pandas](#testing-gspread-pandas)
 
 <!-- tocstop -->
 

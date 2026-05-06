@@ -13,7 +13,7 @@
 
 - Use bullet lists to organize the whole Markdown for consistency with other
   docs. See
-  [all.coding_style.how_to_guide.md](/docs/coding/all.coding_style.how_to_guide.md)
+  [all.coding_style.how_to_guide.md](/docs/code_guidelines/all.coding_style.how_to_guide.md)
   or any other published Markdown format as reference
 - Add missing "```" around code blocks. These could be missing in the original
   Google doc. Also adjust code block indentations if needed
