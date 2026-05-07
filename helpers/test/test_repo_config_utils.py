@@ -266,37 +266,37 @@ class Test__read_yaml_file(hunitest.TestCase):
           dir_suffix: helpers
         """
         expected = {
+            "repo_info": {
+                "repo_name": "helpers",
+                "github_repo_account": "causify-ai",
+                "github_host_name": "github.com",
+                "invalid_words": None,
+                "issue_prefix": "HelpersTask",
+                "enable_git_commit_hook": True,
+            },
+            "docker_info": {
+                "docker_image_name": "helpers",
+                "use_sibling_container_in_unit_tests": True,
+                "release_team": "dev_system",
+            },
+            "s3_bucket_info": {
+                "unit_test_bucket_name": "s3://cryptokaizen-unit-test",
+                "html_bucket_name": "s3://cryptokaizen-html",
+                "html_ip": "http://172.30.2.44",
+                "shared_configs_bucket_name": {
+                    "prod": None,
+                    "preprod": None,
+                    "test": None,
+                },
+            },
             "container_registry_info": {
                 "ecr": "623860924167.dkr.ecr.eu-north-1.amazonaws.com",
                 "ghcr": "ghcr.io/causify-ai",
             },
-            "docker_info": {
-                "docker_image_name": "helpers",
-                "release_team": "dev_system",
-                "use_sibling_container_in_unit_tests": True,
-            },
-            "repo_info": {
-                "enable_git_commit_hook": True,
-                "github_host_name": "github.com",
-                "github_repo_account": "causify-ai",
-                "invalid_words": None,
-                "issue_prefix": "HelpersTask",
-                "repo_name": "helpers",
-            },
             "runnable_dir_info": {
-                "dir_suffix": "helpers",
                 "use_helpers_as_nested_module": False,
                 "venv_tag": "helpers",
-            },
-            "s3_bucket_info": {
-                "html_bucket_name": "s3://cryptokaizen-html",
-                "html_ip": "http://172.30.2.44",
-                "shared_configs_bucket_name": {
-                    "preprod": None,
-                    "prod": None,
-                    "test": None,
-                },
-                "unit_test_bucket_name": "s3://cryptokaizen-unit-test",
+                "dir_suffix": "helpers",
             },
         }
         self._helper(yaml_txt, expected, "repo_config")

@@ -1,19 +1,12 @@
 import asyncio
 import logging
-import os
 from typing import Optional
 
 import pytest
 
+import helpers.hserver as hserver
 
-def _is_inside_docker() -> bool:
-    """
-    Return whether we are inside a container or not.
-    """
-    return os.path.exists("/.dockerenv")
-
-
-if not _is_inside_docker():
+if not hserver.is_inside_docker():
     pytest.skip("Skipping: tests require dev container", allow_module_level=True)
 
 

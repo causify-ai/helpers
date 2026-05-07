@@ -48,13 +48,21 @@ def _find_test_files(
     _LOG.debug("Found %d files: %s", len(file_names), str(file_names))
     hdbg.dassert_no_duplicates(file_names)
     # Test files should always under a dir called `test`.
+    filtered_file_names = []
     for file_name in file_names:
         if "/old/" in file_name:
             continue
         if "/compute/" in file_name:
             continue
+        if "/research/" in file_name:
+            continue
+        if "/site-packages/" in file_name:
+            continue
+        if "/venv/" in file_name:
+            continue
+        dir_name_parent = os.path.basename(os.path.dirname(file_name))
         hdbg.dassert_eq(
-            os.path.basename(os.path.dirname(file_name)),
+            dir_name_parent,
             "test",
             "Test file '%s' needs to be under a `test` dir ",
             file_name,
@@ -65,6 +73,8 @@ def _find_test_files(
             "Test file '%s' should not be under a `notebook` dir",
             file_name,
         )
+        filtered_file_names.append(file_name)
+    file_names = filtered_file_names
     # Make path relatives, if needed.
     if use_absolute_path:
         file_names = [os.path.abspath(file_name) for file_name in file_names]

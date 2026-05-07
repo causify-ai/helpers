@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts_helpers.coding_tools.vim_highlighting.tests.test_txt_syntax as dshctvhttts
+import dev_scripts_helpers.coding_tools.vim_highlighting.test.test_txt_syntax as dshctvhtts
 """
 
 import logging
@@ -9,8 +9,11 @@ import os
 import shlex
 import subprocess
 
+import pytest
+
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)  # noqa: F841
@@ -21,6 +24,7 @@ _LOG = logging.getLogger(__name__)  # noqa: F841
 # #############################################################################
 
 
+@pytest.mark.skipif(not hserver.is_host_gp_mac(), reason="Tests only run on GP's Mac")
 class TestTxtSyntaxHighlighting(hunitest.TestCase):
     """
     Test Vim syntax highlighting for txt files.
