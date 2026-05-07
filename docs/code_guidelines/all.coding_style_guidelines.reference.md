@@ -593,6 +593,16 @@
 - If a unit test is renamed or removed in a PR, the corresponding files in the
   `outcomes` dir should also be renamed or removed
 
+### Further Reading
+
+- Full how-to guides and architecture diagrams for the unit test framework:
+  - [How to Write Unit Tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+    — naming conventions, golden file testing, mocking, setup/teardown patterns
+  - [How to Run Unit Tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+    — invoke commands, coverage, CI/GH Actions
+  - [Unit Test Framework Architecture](/docs/tools/unit_test/all.unit_test_framework.explanation.md)
+    — design decisions, class hierarchy, golden file design, module map
+
 # Notebooks
 
 ## General

@@ -1,5 +1,21 @@
 <!-- toc -->
 
+- [Dockerized Executable Flow](#dockerized-executable-flow)
+  * [The concept of "dockerized" executables](#the-concept-of-dockerized-executables)
+  * [Templates](#templates)
+  * [Examples of Dockerized Executables](#examples-of-dockerized-executables)
+  * [Directory and Module Structure](#directory-and-module-structure)
+    + [Core Infrastructure Modules](#core-infrastructure-modules)
+    + [Script Architecture Pattern](#script-architecture-pattern)
+    + [File Naming Conventions](#file-naming-conventions)
+  * [Running a Dockerized executable](#running-a-dockerized-executable)
+    + [Children- vs Sibling-container](#children--vs-sibling-container)
+    + [Bind Mounting a Directory for Dockerized Executables](#bind-mounting-a-directory-for-dockerized-executables)
+  * [Testing a dockerized executable](#testing-a-dockerized-executable)
+  * [Examples](#examples)
+    + [Example 1: Notebook Image Extraction](#example-1-notebook-image-extraction)
+    + [Example 2: llm_transform](#example-2-llm_transform)
+
 <!-- tocstop -->
 
 # Dockerized Executable Flow
@@ -45,7 +61,7 @@
 - Examples of dockerized Python scripts are:
   - [`/dev_scripts_helpers/llms/llm_transform.py`](/dev_scripts_helpers/llms/llm_transform.py)
     - Run a Python script using `helpers` in a container with `openai` packages
-  - [`/dev_scripts_helpers/documentation/dockerized_prettier.py`](/dev_scripts_helpers/documentation/dockerized_prettier.py)
+  - [`/dev_scripts_helpers/dockerize/dockerized_prettier.py`](/dev_scripts_helpers/dockerize/dockerized_prettier.py)
     - Run `prettier` in a container
   - [`/dev_scripts_helpers/documentation/convert_docx_to_markdown.py`](/dev_scripts_helpers/documentation/convert_docx_to_markdown.py)
     - Run `pandoc` in a container
@@ -69,7 +85,7 @@
   ```
 
 - Examples of dockerized shell scripts are:
-  - [`/dev_scripts_helpers/documentation/lint_latex.sh`](/dev_scripts_helpers/documentation/lint_latex.sh)
+  - [`/dev_scripts_helpers/documentation/OLD/lint_latex.sh`](/dev_scripts_helpers/documentation/OLD/lint_latex.sh)
   - [`/dev_scripts_helpers/documentation/latexdockercmd.sh`](/dev_scripts_helpers/documentation/latexdockercmd.sh)
   - [`/dev_scripts_helpers/documentation/run_latex.sh`](/dev_scripts_helpers/documentation/run_latex.sh)
   - TODO(gp): Convert the scripts in Python and remove these

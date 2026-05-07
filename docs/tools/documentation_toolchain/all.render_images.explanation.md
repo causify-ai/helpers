@@ -2,6 +2,7 @@
 
 - [`render_images.py` tool](#render_imagespy-tool)
   * [How to use](#how-to-use)
+    + [Processing Multiple Files](#processing-multiple-files)
 
 <!-- tocstop -->
 

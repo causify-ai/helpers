@@ -215,7 +215,7 @@
 ### Write beautiful code, even in notebooks
 
 - Follow the conventions and suggestions for
-  [Python code style](/docs/coding/all.coding_style.how_to_guide.md)
+  [Python code style](/docs/code_guidelines/all.coding_style.how_to_guide.md)
 - When prototyping with a notebook, the code can be of lower quality than code
   in a final library, but still needs to be readable and robust
 - In our opinion it's just better to always do write robust and readable code:

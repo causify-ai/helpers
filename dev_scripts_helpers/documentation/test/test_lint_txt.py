@@ -1969,6 +1969,7 @@ class Test_lint_txt2(hunitest.TestCase):
 
     # //////////////////////////////////////////////////////////////////////////
 
+    @pytest.mark.slow
     def test1(self) -> None:
         txt = _get_text1()
         expected = None
@@ -1976,6 +1977,7 @@ class Test_lint_txt2(hunitest.TestCase):
         actual = self.helper(txt, expected, file_name)
         self.check_string(actual)
 
+    @pytest.mark.slow
     def test2(self) -> None:
         """
         Run the text linter on a txt file.
@@ -2067,6 +2069,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.slow
     def test5(self) -> None:
         """
         For some reason prettier replaces - with * when there are 2 empty lines.

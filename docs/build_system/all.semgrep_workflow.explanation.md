@@ -1,15 +1,16 @@
 <!-- toc -->
 
-- [Overview](#overview)
-- [Features](#features)
-- [Setup](#setup)
-- [Exclusions](#exclusions)
-  * [`.semgrepignore` File](#semgrepignore-file)
-  * [Ignoring Specific Lines](#ignoring-specific-lines)
-- [Notifications](#notifications)
-- [Running Semgrep Locally](#running-semgrep-locally)
-- [Additional Resources](#additional-resources)
-- [Conclusion](#conclusion)
+- [Semgrep Integration in GitHub Actions](#semgrep-integration-in-github-actions)
+  * [Overview](#overview)
+  * [Features](#features)
+  * [Setup](#setup)
+  * [Exclusions](#exclusions)
+    + [`.semgrepignore` File](#semgrepignore-file)
+    + [Ignoring Specific Lines](#ignoring-specific-lines)
+  * [Notifications](#notifications)
+  * [Running Semgrep Locally](#running-semgrep-locally)
+  * [Additional Resources](#additional-resources)
+  * [Conclusion](#conclusion)
 
 <!-- tocstop -->
 

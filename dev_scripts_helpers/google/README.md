@@ -9,6 +9,16 @@
   * [`from_gsheet.py`](#from_gsheetpy)
     + [What It Does](#what-it-does-1)
     + [Examples](#examples-1)
+- [Google Drive Tools](#google-drive-tools)
+  * [Structure of the Dir](#structure-of-the-dir)
+  * [Description of Files](#description-of-files-1)
+  * [Description of Executables](#description-of-executables-1)
+    + [`create_google_drive_map.py`](#create_google_drive_mappy)
+      - [What It Does](#what-it-does-2)
+      - [Examples](#examples-2)
+    + [`to_local_dir.py`](#to_local_dirpy)
+      - [What It Does](#what-it-does-3)
+      - [Examples](#examples-3)
 
 <!-- tocstop -->
 
