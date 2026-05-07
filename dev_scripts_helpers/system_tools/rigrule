@@ -3,4 +3,4 @@
 # Run rig looking for rules.
 # """
 
-rig "^##" .claude/skills md | \grep rules
+rig "^#" .claude/skills md | \grep rules

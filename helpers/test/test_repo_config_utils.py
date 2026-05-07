@@ -1,5 +1,6 @@
 import logging
 import os
+import pprint
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -287,30 +288,27 @@ class Test__read_yaml_file(hunitest.TestCase):
         """
         yaml_txt = hprint.dedent(yaml_txt)
         hio.to_file(file_name, yaml_txt)
-        # Prepare outputs.
-        expected_repo_name = "helpers"
-        expected_docker_image = "helpers"
-        expected_bucket_name = "s3://cryptokaizen-unit-test"
-        expected_ecr = "623860924167.dkr.ecr.eu-north-1.amazonaws.com"
         # Run test.
         actual = hrecouti._read_yaml_file(file_name)
         # Check outputs.
-        self.assertEqual(
-            actual["repo_info"]["repo_name"],
-            expected_repo_name,
-        )
-        self.assertEqual(
-            actual["docker_info"]["docker_image_name"],
-            expected_docker_image,
-        )
-        self.assertEqual(
-            actual["s3_bucket_info"]["unit_test_bucket_name"],
-            expected_bucket_name,
-        )
-        self.assertEqual(
-            actual["container_registry_info"]["ecr"],
-            expected_ecr,
-        )
-        self.assertFalse(
-            actual["runnable_dir_info"]["use_helpers_as_nested_module"]
-        )
+        expected = {'container_registry_info': {'ecr': '623860924167.dkr.ecr.eu-north-1.amazonaws.com',
+                                     'ghcr': 'ghcr.io/causify-ai'},
+         'docker_info': {'docker_image_name': 'helpers',
+                         'release_team': 'dev_system',
+                         'use_sibling_container_in_unit_tests': True},
+         'repo_info': {'enable_git_commit_hook': True,
+                       'github_host_name': 'github.com',
+                       'github_repo_account': 'causify-ai',
+                       'invalid_words': None,
+                       'issue_prefix': 'HelpersTask',
+                       'repo_name': 'helpers'},
+         'runnable_dir_info': {'dir_suffix': 'helpers',
+                               'use_helpers_as_nested_module': False,
+                               'venv_tag': 'helpers'},
+         's3_bucket_info': {'html_bucket_name': 's3://cryptokaizen-html',
+                            'html_ip': 'http://172.30.2.44',
+                            'shared_configs_bucket_name': {'preprod': None,
+                                                           'prod': None,
+                                                           'test': None},
+                            'unit_test_bucket_name': 's3://cryptokaizen-unit-test'}}
+        self.assert_equal(str(actual_str), str(expected))
