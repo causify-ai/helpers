@@ -405,7 +405,7 @@ def _filter_git_files_by_type(
 def git_files(  # type: ignore
     ctx,
     modified=False,
-    branch=True,
+    branch=False,
     last_commit=False,
     file_types="",
     pbcopy=False,
@@ -428,6 +428,9 @@ def git_files(  # type: ignore
     if not only_print_files:
         hlitauti.report_task()
     _ = ctx
+    # If no filter option is specified, default to branch=True.
+    if not (modified or last_commit):
+        branch = True
     all_ = False
     files = ""
     # Use mutually_exclusive=True to enforce exactly one filter mode.
