@@ -26,8 +26,8 @@
         [the must-read list](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.dev_must_read_checklist.reference.md)
   - [ ] [General rules of collaboration](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md)
   - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.coding_style.how_to_guide.md)
-  - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
-  - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+  - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
+  - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
   - [ ] [Creating a Jupyter Notebook](https://github.com/causify-ai/helpers/blob/master/docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md)
   - [ ] [What to do before opening a PR](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md)
   - [ ] [Code review process](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.code_review.how_to_guide.md)
@@ -107,7 +107,7 @@
   - We provide our Linter and our AI code-styler / reviewer (once available) to
     help with formatting and style fixes
 - All code needs to be unit tested according to our
-  [standards and infrastructure](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+  [standards and infrastructure](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
 - The project needs to be documented in the way we
   [document software](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
 - To get used to our process, for the first couple of PRs post the

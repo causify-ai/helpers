@@ -1,16 +1,24 @@
 ---
-description: Remove mocking approach from unit tests
+description: Removes or reduces mocking in unit tests by redesigning for testability. Use when tests over-mock internal code, when the user wants to reduce test fragility from mocks, or when a test is difficult to maintain due to excessive patching. When mocking IS appropriate, see `@.claude/skills/testing.mocking/SKILL.md`.
 ---
 
-# Goal
+# Step 1: Diagnose
+- Read the test file and list every mock (`@umock.patch`, `umock.Mock()`,
+  `umock.MagicMock()`)
+- For each mock, classify it:
+  - **External** (3rd-party library, AWS/S3, database, GitHub API) → keep; see
+    `@.claude/skills/testing.mocking/SKILL.md` for the correct pattern
+  - **Internal** (code inside this repo) → refactor using the strategies below
+- Only proceed with the strategies below for mocks classified as **internal**
 
-- When the user passes a test file, apply the following transformations to
-  remove mocking from unit testing code without changing behavior
-- Mocking often signals that your design could be more modular
+# Goal
+- Apply the following transformations to remove internal mocking from unit
+  testing code without changing observable behavior
+- Mocking internal code often signals that your design could be more modular
   - Avoiding mocking in Python unit tests means designing code so dependencies
     are easy to control naturally, rather than being intercepted artificially
 
-- Avoid mocking using the strategies below
+- Avoid internal mocking using the strategies below
 
 ## Prefer Pure Functions
 - Functions that depend only on inputs and return outputs are trivial to test
@@ -115,8 +123,17 @@ description: Remove mocking approach from unit tests
 - Sometimes the best way to avoid mocking is not to unit test in isolation, but
   to test a small system working together
 
+# Verify
+- Run the refactored test file to confirm all tests still pass:
+  ```bash
+  pytest <test_file> -v
+  ```
+- Fix any failures before reporting done
+
 # Important
 - All invariants and conventions for unit tests are documented in
   `@.claude/skills/testing.rules.md`
+- For mocking that remains necessary, follow
+  `@.claude/skills/testing.mocking/SKILL.md`
 - For all code you must follow the instructions in
   `@.claude/skills/coding.rules.md`

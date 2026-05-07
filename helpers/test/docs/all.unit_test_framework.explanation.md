@@ -1,5 +1,4 @@
 # Unit Test Framework
-
 <!-- toc -->
 
 - [Summary](#summary)
@@ -21,13 +20,12 @@
 <!-- tocstop -->
 
 ## Summary
-
 - This document explains the **design decisions** behind our unit testing
   framework
 - It answers the "why" questions; the "how-to" questions are covered in the
   companion guides:
-  - [`all.write_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
-  - [`all.run_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+  - [`all.write_unit_tests.how_to_guide.md`](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
+  - [`all.run_unit_tests.how_to_guide.md`](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
 - Our framework is built on top of the standard `unittest`/`pytest` stack and
   adds three main capabilities:
   1. **Reproducibility**: fixed random seeds, pandas display defaults, and timer
@@ -37,12 +35,9 @@
   3. **Standard directory layout**: every test class gets its own
      `input/`, `output/`, and `scratch/` directories derived from its name
 
----
 
 ## Module Map
-
 The framework spans the following files:
-
 ```mermaid
 graph TD
     conftest["conftest.py\n(registers CLI flags,\ntranslates to global state)"] -->|set_update_tests\nset_incremental_tests| hunit["helpers/hunit_test.py\n(TestCase class)"]
@@ -62,8 +57,7 @@ graph TD
 | `helpers/hmoto.py` | `S3Mock_TestCase` — base class for tests that mock AWS S3 via `moto` |
 | `conftest.py` | Wires pytest command-line flags into global variables in `hunit_test.py` |
 
-### `conftest.py` role
-
+### `conftest.py` Role
 - `conftest.py` uses two standard pytest hooks to connect CLI flags to our
   framework:
   1. `pytest_addoption` — registers custom options:
@@ -80,12 +74,10 @@ graph TD
   while keeping the actual behaviour in the library (`hunit_test.py`), so
   library code can read the flags without importing pytest directly
 
----
 
 ## Why We Extend `unittest.TestCase`
 
-### Reproducibility by default
-
+### Reproducibility by Default
 - Floating-point operations, pandas display options, and matplotlib state vary
   across machines and library versions
 - Our `TestCase.setUp()` runs before every test and:
@@ -98,8 +90,7 @@ graph TD
 - These resets happen without any user action — a test that inherits from
   `hunitest.TestCase` gets reproducibility for free
 
-### Golden file testing
-
+### Golden File Testing
 - Instead of writing `self.assertEqual(actual, expected_string)` with long
   inline expected strings that make code hard to read, we store the expected
   output in a file on disk
@@ -108,18 +99,15 @@ graph TD
   diffable failures
 - See [Golden File Testing Design](#golden-file-testing-design) below for details
 
-### Consistent directory layout
-
+### Consistent Directory Layout
 - Every test has predictable directories derived from its class and method name:
   - `outcomes/TestFoo1.test_bar/input/` — static fixtures checked into git
   - `outcomes/TestFoo1.test_bar/output/` — golden files checked into git
   - `scratch/TestFoo1.test_bar/` — ephemeral artefacts deleted after the test
 - This means anyone can find a test's data without reading the test code
 
----
 
 ## Why `set_up_test` Instead of `setUp`
-
 - The standard `unittest.TestCase` provides `setUp()` / `tearDown()` hooks
 - When pytest runs `unittest` tests, it wraps them in a compatibility layer; if
   both our base `TestCase.setUp()` and a subclass `setUp()` call `super()`, the
@@ -130,7 +118,6 @@ graph TD
   - These are called from a `@pytest.fixture(autouse=True)` named
     `setup_teardown_test`, which guarantees teardown runs even if the test
     fails:
-
   ```python
   @pytest.fixture(autouse=True)
   def setup_teardown_test(self):
@@ -146,12 +133,10 @@ graph TD
   we add a numeric suffix: `set_up_test2()` in the child calls `set_up_test()`
   from the parent, avoiding fixture name collisions
 
----
 
 ## Golden File Testing Design
 
-### Why files on disk instead of inline expected strings
-
+### Why Files on Disk Instead of Inline Expected Strings
 | Inline expected string | Golden file |
 |------------------------|-------------|
 | Inline in test code — hard to read for large outputs | Stored as `output/test.txt` — easy to open and inspect |
@@ -163,8 +148,7 @@ graph TD
   DataFrame, a config object, or a multi-line report — things where a typo in
   the inline expected string is easy to miss
 
-### How `--update_outcomes` works end-to-end
-
+### How `--update_outcomes` Works End-to-end
 1. Developer changes code that affects a test's output
 2. Running `pytest` without flags → test fails with a diff
 3. Developer confirms the new output is correct
@@ -173,7 +157,6 @@ graph TD
 6. In `check_string()`: the actual output is written to `output/test.txt` and
    the file is staged via `git add`
 7. Developer commits the updated golden file as part of the PR
-
 ```mermaid
 flowchart TD
     A[test calls check_string] --> B{_UPDATE_TESTS?}
@@ -191,10 +174,8 @@ flowchart TD
     K -- mismatch --> M[FAIL: show sdiff + vimdiff script]
 ```
 
----
 
 ## Test Speed Tiers
-
 - Tests are classified by expected execution time using pytest markers
 
 | Tier | Marker | Timeout | When to run |
@@ -211,16 +192,13 @@ flowchart TD
   - `@pytest.mark.requires_ck_aws` — needs AWS connection
   - `@pytest.mark.requires_docker_in_docker` — needs Docker-in-Docker
 
----
 
 ## Development Tools
 
 ### `UnitTestRenamer`
-
 - When a test class or method is renamed, both the Python source and the
   corresponding `outcomes/` directories on disk must be updated in sync
 - `hunit_test_utils.UnitTestRenamer` automates this refactoring
-
   ```python
   import helpers.hunit_test_utils as hunteuti
 
@@ -231,7 +209,6 @@ flowchart TD
   )
   renamer.run()
   ```
-
   - Renames occurrences of `TestFooBar1` to `TestBazQux1` in every Python
     source file under `root_dir`
   - Renames the `outcomes/TestFooBar1.*/` directories to match the new name
@@ -241,13 +218,11 @@ flowchart TD
 - The class enforces that both names start with `Test` and are different; if
   either constraint is violated it raises an assertion error early
 
----
 
 ## Further Reading
-
-- [`all.write_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+- [`all.write_unit_tests.how_to_guide.md`](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
   — how to write tests, naming conventions, mocking guidelines
-- [`all.run_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+- [`all.run_unit_tests.how_to_guide.md`](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
   — how to run tests, coverage, GH Actions
 - [`helpers/hunit_test.py`](/helpers/hunit_test.py) — `TestCase` source
 - [`helpers/hunit_test_utils.py`](/helpers/hunit_test_utils.py) —

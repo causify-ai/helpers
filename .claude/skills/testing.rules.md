@@ -1,9 +1,13 @@
-- This file contains all the conventions and rules to write unit tests
+- This file contains structural conventions for writing unit tests
+- Related rule files:
+  - `@.claude/skills/testing.design/SKILL.md` — design principles, data rules, code hygiene
+  - `@.claude/skills/testing.mocking/SKILL.md` — mocking philosophy and patching patterns
+  - `@.claude/skills/testing.speed/SKILL.md` — speed tiers and environment-conditional skipping
+  - `@.claude/skills/testing.assertions/SKILL.md` — DataFrame/Series assertions, repr/str, QA testing
 
 # Test Coverage
 
 ## What to Test
-
 - For each function, generate tests for:
   - Happy path (normal, expected input)
   - Edge cases (boundary conditions)
@@ -13,16 +17,13 @@
 # File and Test Structure
 
 ## File Structure
-
 - For a source file `<module_name>.py`, the corresponding test file is
   `test/test_<module_name>.py`
 
 ## Unit Test Code Structure
-
 - Always derive testing classes from `hunitest.TestCase`
 
 - Use this exact structure:
-
   ```python
   import logging
 
@@ -49,11 +50,10 @@
   ```
 
 ## Consolidate Inputs and Outputs
-
 - Organize input variables in a consecutive block and organize output variables
   in a consecutive block
   - **Bad** (the input and output dirs are mixed)
-    ```
+    ```python
     # Create input and output directories.
     input_dir = self_.get_input_dir()
     output_dir = self_.get_output_dir()
@@ -67,7 +67,7 @@
     output_file = os.path.join(output_dir, f"test_output.{output_ext}")
     ```
   - **Good**
-    ```
+    ```python
     # Create inputs.
     input_dir = self_.get_input_dir()
     output_dir = self_.get_output_dir()
@@ -81,7 +81,6 @@
     ```
 
 ## Assign Variables and Then Call Functions
-
 - Don't just pass data to a function directly, but explain the data first
   by assigning each value to a variable, and then pass the variables to the
   function
@@ -91,7 +90,6 @@
     self.helper(".tex", "figs/diagram.png", "...", "fig:test_diagram",
     "fig:test_diagram", "Test diagram showing communication")
     ```
-
   - **Good**
     ```python
     # Prepare inputs.
@@ -111,34 +109,68 @@
 # Naming Conventions
 
 ## Naming Conventions for a Function
-
 - For testing a function `<FunctionName>` use `Test_<FunctionName>` (separated by
   underscore since the function name starts with lower case), e.g.,
   - `parse_limit_range()` -> `class Test_parse_limit_range(hunitest.TestCase):`
   - `apply_limit_range()` -> `class Test_apply_limit_range(hunitest.TestCase):`
 
 ## Naming Conventions for a Class
-
 - For testing a class `<ClassName>` use `Test<ClassName>` (no underscore since
   the class name starts with capital case), e.g.,
   - `Config` -> `class TestConfig(hunitest.TestCase):`
   - `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
 
-## Test Method Names
+## Naming Conventions for a Method
+- To test `method_a()` of class `FooBar`: class `TestFooBar`, method `test_method_a`
+- To test protected `_gozilla()` of `FooBar`: method `test__gozilla` (double
+  underscore — distinguishes from testing public `FooBar.gozilla()`)
 
-- For test method names always number the method tests, as `test1`, `test2`
-  since the explanation of what they do is in the docstring
-  - **Good**
-    - `test1`
-    - `test2`
-  - **Bad**
-    - `test_preserve_yaml_frontmatter`
-    - `test_page_separator_removal_with_frontmatter`
+## Always Use the `1` Suffix
+- Always add a `1` suffix to test class names (`TestFooBar1`) and number test
+  methods (`test1`, `test2`), even when there is only one class/method
+- Rationale: makes adding a second class/method later free — no renaming of
+  classes or golden files
+- Numbering also signals "simplest case first, more complex cases later"
+
+## Test Method Names
+- Always number test methods (`test1`, `test2`, ...): the docstring explains
+  what each tests
+  - **Good**: `test1`, `test2`
+  - **Bad**: `test_preserve_yaml_frontmatter`
+
+## File Placement
+- Test file for `foo/bar/module.py` goes in `foo/bar/test/test_module.py`
+- Start with one file per directory (`test_<dirname>.py`); split into
+  per-module files only when the single file grows too large
+
+## Hierarchical `TestCase` Pattern
+- When tested classes have inheritance, mirror that hierarchy in test classes:
+  - Parent `SomeClientTestCase(hunitest.TestCase)` with private `_test...` helpers
+  - Child `TestSomeClient(SomeClientTestCase)` with public `test...` methods that
+    delegate to the parent helpers
+- Use a `# #####...` separator comment to group each chunk of test logic
+
+## `setUpClass` / `tearDownClass`
+- Use only when setup is truly expensive and must run once per class (e.g.,
+  opening a DB connection, loading a large shared fixture):
+  ```python
+  @classmethod
+  def setUpClass(cls):
+      ...
+
+  @classmethod
+  def tearDownClass(cls):
+      ...
+  ```
+- For per-method setup prefer `set_up_test()` / `tear_down_test()` instead
+
+## Update Test Tags
+- To add a new tag: open `pytest.ini`, add a line in the `markers` section in
+  alphabetical order: `<tag_name>: <short description>`
 
 ## Code Formatting in Tests
 
 ### Align Strings to the Code
-
 - Align multi-line strings with the indentation of surrounding code:
   - **Bad**: String starts at column 0
     ```python
@@ -162,7 +194,6 @@
     ```
 
 ## Avoid Replicated Assignment
-
 - If a variable `var` and `expected` need to always be the same (e.g., to show
   that a variable doesn't change), instead of replicating the assignment, assign
   `expected = var`:
@@ -210,14 +241,12 @@
 
 # Test Method Conventions
 
-## Use Three Sections in Testing Methods
-
-- Every test method must have three sections with standard comments:
+## Use Four Sections in Testing Methods
+- Every test method must have four sections with standard comments:
   - `# Prepare inputs.`: Input data setup
   - `# Prepare outputs.`: Expected output setup
   - `# Run test.`: Test execution
   - `# Check outputs.`: Result verification
-
   ```python
   def test_something(self) -> None:
       """
@@ -225,6 +254,8 @@
       """
       # Prepare inputs.
       <setup test data>
+      # Prepare outputs.
+      <set up expected values>
       # Run test.
       <call function under test>
       # Check outputs.
@@ -254,7 +285,6 @@
     ```
 
 ## Use Helper Methods When You Have Repetitive Tests
-
 - If you write two or more test methods that call the same function with only
   different input values and expected outputs, create a helper method
   - **Good** (`test1` and `test2` share code in `helper`)
@@ -300,7 +330,6 @@
     ```
 
 ## Assertion Patterns
-
 - Use `self.assertEqual()` to compare simple values (e.g., floats, ints)
   ```python
   # Check outputs.
@@ -340,7 +369,6 @@
   ```
 
 ## Testing Exceptions
-
 - Full exception testing with message verification:
   ```python
   def test1(self) -> None:
@@ -387,7 +415,6 @@
   ```
 
 ## Use Golden File Testing for Large Outputs
-
 - Always use `self.assert_equal()` to do a comparison of actual with the expected
   value hard wired in the code
 - The only exception is when output is large (e.g., longer than 20 lines) or
@@ -410,7 +437,6 @@
   ```
 
 ## Input Data Patterns
-
 - Always use multiline text aligned to the variable of the string and then call
   `hpring.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
   - **Good**
@@ -449,7 +475,6 @@ line3
   ```
 
 ## Setup and Teardown
-
 - Use this idiom when multiple test methods need the same setup/teardown code:
   ```python
   class TestClassName(hunitest.TestCase):
@@ -482,7 +507,48 @@ line3
 
       def test_method1(self) -> None:
           """
-          Test description.i
+          Test description.
           """
           # Use self.test_data here.
   ```
+
+## Nested Setup and Teardown
+- Never override `setUp()` or `tearDown()` in child classes
+- Each level in the inheritance chain gets a numbered suffix:
+  - Parent: `set_up_test()` / `tear_down_test()`
+  - Child: `set_up_test2()` / `tear_down_test2()` — must call the parent
+    methods at the start/end respectively
+  - Further levels: `set_up_test3()`, etc
+  ```python
+  class TestParent(hunitest.TestCase):
+      @pytest.fixture(autouse=True)
+      def setup_teardown_test(self):
+          self.set_up_test()
+          yield
+          self.tear_down_test()
+
+      def set_up_test(self) -> None:
+          ...
+
+      def tear_down_test(self) -> None:
+          ...
+
+  class TestChild(TestParent):
+      @pytest.fixture(autouse=True)
+      def setup_teardown_test(self):
+          self.set_up_test2()
+          yield
+          self.tear_down_test2()
+
+      def set_up_test2(self) -> None:
+          self.set_up_test()  # Call parent first.
+          ...
+
+      def tear_down_test2(self) -> None:
+          ...
+          self.tear_down_test()  # Call parent last.
+  ```
+
+## Do Not Use `hdbg.dassert` in Tests
+- `dassert`s guard code invariants and must be removable without changing
+  observable behavior — they cannot substitute for test assertions
