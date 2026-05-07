@@ -47,6 +47,7 @@ _DEFAULT_ACTIONS = None
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",
+    "validate_slide_names",
 ]
 
 # #############################################################################
@@ -269,6 +270,21 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
     # Return the body lines (excluding the header line itself).
     result = lines[header_line_idx + 1 : end_idx]
     return result
+
+
+def _validate_slide_names(lines: List[str]) -> None:
+    """
+    Validate that all slides (lines starting with '*') have non-whitespace titles.
+
+    :param lines: list of lines to validate
+    """
+    header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
+    for header_info in header_list:
+        hdbg.dassert(
+            header_info.description.strip(),
+            "Slide at line %d has no title (only whitespace)",
+            header_info.line_number,
+        )
 
 
 # TODO(gp): Use hmarkdown.process_lines().
@@ -588,6 +604,10 @@ def _preprocess_lines(
     elif toc_type == "remove_headers":
         # Remove headers smaller than level 4 so that we leave only the `*`.
         out = _remove_headers(out, max_level=4)
+    # Validate slide names.
+    to_execute, actions = hparser.mark_action("validate_slide_names", actions)
+    if to_execute:
+        _validate_slide_names(out)
     hdbg.dassert_isinstance(out, list)
     return out
 

@@ -1700,3 +1700,99 @@ class Test_preprocess_lines_navigation(hunitest.TestCase):
         )
         # Navigation processing should add slides
         self.assertGreaterEqual(len(actual), len(lines))
+
+
+# #############################################################################
+
+
+class Test_validate_slide_names(hunitest.TestCase):
+    """
+    Test the `_validate_slide_names()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test slides with valid titles.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1 Title",
+            "Some content",
+            "* Slide 2 Title",
+            "More content",
+        ]
+        # Run test.
+        dshdprno._validate_slide_names(lines)
+
+    def test2(self) -> None:
+        """
+        Test slide with whitespace-only title.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1 Title",
+            "*   ",
+            "Some content",
+        ]
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            dshdprno._validate_slide_names(lines)
+        # Check that line number 2 is in the error message.
+        self.assertIn("line 2", str(cm.exception))
+
+    def test3(self) -> None:
+        """
+        Test multiple invalid slides.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Valid Slide",
+            "*   ",
+            "Content",
+            "*    ",
+            "More content",
+        ]
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            dshdprno._validate_slide_names(lines)
+        # Check that the first invalid slide (line 2) is reported.
+        self.assertIn("line 2", str(cm.exception))
+
+    def test4(self) -> None:
+        """
+        Test multiple slides with first one invalid.
+        """
+        # Prepare inputs.
+        lines = [
+            "*   ",
+            "Content",
+            "* Valid Slide",
+            "More content",
+        ]
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            dshdprno._validate_slide_names(lines)
+        # Check that line number 1 is in the error message.
+        self.assertIn("line 1", str(cm.exception))
+
+    def test5(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        lines: list = []
+        # Run test.
+        dshdprno._validate_slide_names(lines)
+
+    def test6(self) -> None:
+        """
+        Test no slides in input.
+        """
+        # Prepare inputs.
+        lines = [
+            "Some content",
+            "More content",
+            "No slides here",
+        ]
+        # Run test.
+        dshdprno._validate_slide_names(lines)
