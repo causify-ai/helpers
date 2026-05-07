@@ -107,7 +107,7 @@ def test_function_call1(self, mock_get_secret: umock.MagicMock):
 
 ## Path Patch with Multiple Return Values
 ```python
-@umock.patch("helpers.hsecret.get_secret")
+@umock.patch("helpers.hsecrets.get_secret")
 def test_function_call1(self, mock_get_secret: umock.MagicMock):
     mock_get_secret.side_effect = ["dummy", Exception]
 ```
@@ -116,19 +116,19 @@ def test_function_call1(self, mock_get_secret: umock.MagicMock):
 ## Three Ways to Apply `patch`
 - **Decorator** (preferred for simple cases):
   ```python
-  @umock.patch("helpers.hsecret.get_secret")
+  @umock.patch("helpers.hsecrets.get_secret")
   def test_function_call1(self, mock_get_secret: umock.MagicMock):
       pass
   ```
 - **Manual start/stop** (needed when patch spans class-level setup):
   ```python
-  patch = umock.patch("helpers.hsecret.get_secret")
+  patch = umock.patch("helpers.hsecrets.get_secret")
   mock = patch.start()   # returns the MagicMock
   patch.stop()           # must be called explicitly
   ```
 - **Context manager** (useful when multiple decorators get hard to read):
   ```python
-  with umock.patch("helpers.hsecret.get_secret") as mock:
+  with umock.patch("helpers.hsecrets.get_secret") as mock:
       pass
   ```
 

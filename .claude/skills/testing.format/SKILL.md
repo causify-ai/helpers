@@ -13,7 +13,7 @@ description: Writes new Python unit tests or updates existing test files. Use wh
 ## Step 2: Write Tests
 - Follow all conventions in `@.claude/skills/testing.rules.md`
 - Use project test infrastructure (dirs, golden files, test-mode utilities) from
-  `@.claude/skills/testing.framework/SKILL.md`
+  `@.claude/skills/testing.rules.md`
 - Apply design principles from `@.claude/skills/testing.design/SKILL.md`
 - Classify each test by expected duration using
   `@.claude/skills/testing.speed/SKILL.md`

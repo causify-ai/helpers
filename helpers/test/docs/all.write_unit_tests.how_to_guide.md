@@ -95,8 +95,10 @@
   [`testing.rules.md — File Placement`](/.claude/skills/testing.rules.md#file-placement)
 
 #### Our Framework to Test Using Input / Output Data
-- See directory helpers, `check_string`, and test-mode utilities in
-  [`testing.framework`](/.claude/skills/testing.framework/SKILL.md)
+- See directory helpers and test-mode utilities in
+  [`testing.rules.md`](/.claude/skills/testing.rules.md)
+- See `check_string` and other assertion helpers in
+  [`testing.assertions`](/.claude/skills/testing.assertions/SKILL.md)
 
 #### Framework Architecture Diagrams
 

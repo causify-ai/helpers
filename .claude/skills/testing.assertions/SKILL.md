@@ -1,9 +1,35 @@
 ---
-description: Reference rules for DataFrame/Series assertions, repr/str testing, and QA testing patterns. Load when writing assertions for pandas objects, testing __repr__/__str__, or testing Docker/invoke behavior from the host.
+description: Reference rules for assertions in this repo. Load when writing any assertion — golden file testing (check_string), DataFrame/Series checks, repr/str testing, or QA testing.
 ---
 
-- This file contains rules for DataFrame/Series assertions, repr/str testing,
-  and QA testing
+- This file contains rules for assertions in this repo
+
+# Golden File Testing
+
+## `check_string`
+- Compares actual output against a frozen reference file in
+  `outcomes/<TestClass.test_method>/output/test.txt`
+- On first run (no golden file), it creates the file — review and commit it
+- On subsequent runs, it diffs against the frozen file and fails if different
+  ```python
+  import helpers.hunit_test as hunitest
+
+  class TestMyModule1(hunitest.TestCase):
+      def test_format1(self) -> None:
+          actual = my_function(input_data)
+          self.check_string(actual)
+  ```
+- Pass `purify_text=True` to strip machine-specific noise (absolute paths,
+  usernames, git refs) before freezing:
+  ```python
+  self.check_string(actual, purify_text=True)
+  ```
+- Use `assert_equal` instead when the expected value is short enough to inline:
+  ```python
+  self.assert_equal(actual, expected)
+  # With fuzzy whitespace matching:
+  self.assert_equal(actual, expected, fuzzy_match=True)
+  ```
 
 # DataFrame and Series Assertions
 
@@ -57,6 +83,8 @@ description: Reference rules for DataFrame/Series assertions, repr/str testing, 
   self.check_dataframe(actual_df)
   # Multiple DFs in one test — use a tag to distinguish golden files.
   self.check_dataframe(actual_df, tag="prices_df")
+  # Tighten or relax the numerical tolerance (default is 0.05).
+  self.check_dataframe(actual_df, err_threshold=0.01)
   ```
 
 # Repr / Str Testing
@@ -107,3 +135,22 @@ description: Reference rules for DataFrame/Series assertions, repr/str testing, 
 
 - Add `@pytest.mark.no_container` in `pytest.ini` if the test must be excluded
   from the default in-Docker test run
+
+# Environment Assertions
+
+## check_env_to_str
+- Use `hunteuti.check_env_to_str` to assert the environment variable snapshot
+  matches an expected string; strips machine-specific values automatically via
+  `purify_text=True` and `fuzzy_match=True`
+  ```python
+  import helpers.hunit_test_utils as hunteuti
+
+  class TestEnv1(hunitest.TestCase):
+      def test_env1(self) -> None:
+          expected = r"""
+          ...
+          """
+          hunteuti.check_env_to_str(self, expected)
+  ```
+- Pass `skip_secrets_vars=True` to also strip AWS credential and GitHub token
+  lines from the comparison

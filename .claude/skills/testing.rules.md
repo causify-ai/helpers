@@ -143,6 +143,38 @@
 - Start with one file per directory (`test_<dirname>.py`); split into
   per-module files only when the single file grows too large
 
+## Directory Helpers
+- All path methods derive from `hunitest.TestCase` — paths are scoped to the
+  running test class and method automatically
+
+  | Method | Returns |
+  | :----- | :------ |
+  | `get_input_dir()` | Local path for static test fixtures checked into git |
+  | `get_output_dir()` | Local path for golden files (managed by `check_string`) |
+  | `get_scratch_space()` | Local ephemeral dir, deleted after the test |
+  | `get_s3_scratch_dir()` | S3 path for large temporary data, unique per user/server/test |
+  | `get_s3_input_dir()` | S3 path for input fixtures stored in the repo's S3 bucket |
+
+- `get_s3_scratch_dir()` builds a path like:
+  ```text
+  s3://alphamatic-data/tmp/cache.unit_test/<user>.<server>.<project>.<TestClass.test_method>
+  ```
+- `get_s3_input_dir()` mirrors `get_input_dir()` but on S3; useful when
+  fixtures are too large to commit to git
+
+## Directory Structure
+```text
+module/test/
+├── outcomes/
+│   └── TestFooBar1.test_method_a/
+│       ├── input/              <- get_input_dir()  [static fixtures]
+│       └── output/
+│           └── test.txt        <- check_string() golden file
+├── tmp.scratch/
+│   └── TestFooBar1.test_method_a/  <- get_scratch_space() [deleted after test]
+└── test_foo.py
+```
+
 ## Hierarchical `TestCase` Pattern
 - When tested classes have inheritance, mirror that hierarchy in test classes:
   - Parent `SomeClientTestCase(hunitest.TestCase)` with private `_test...` helpers
@@ -415,30 +447,14 @@
   ```
 
 ## Use Golden File Testing for Large Outputs
-- Always use `self.assert_equal()` to do a comparison of actual with the expected
-  value hard wired in the code
-- The only exception is when output is large (e.g., longer than 20 lines) or
-  changes frequently use `self.check_string()` instead of `self.assert_equal`
-  - E.g.,
-    ```python
-    def test_large_output(self) -> None:
-        """Test description."""
-        # Prepare inputs.
-        input_data = <value>
-        # Run test.
-        actual = function_under_test(input_data)
-        # Check outputs.
-        self.check_string(actual)
-    ```
-
-- With fuzzy matching:
-  ```python
-  self.check_string(actual, fuzzy_match=True)
-  ```
+- Use `self.assert_equal()` for short expected values inlined in the test
+- Use `self.check_string()` when output is large (longer than ~20 lines) or
+  changes frequently — see `@.claude/skills/testing.assertions/SKILL.md` for
+  full usage and options
 
 ## Input Data Patterns
 - Always use multiline text aligned to the variable of the string and then call
-  `hpring.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
+  `hprint.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
   - **Good**
     ```python
     # Prepare inputs.
@@ -453,23 +469,20 @@
     ```python
     # Prepare inputs.
     text = """
-line1
-line2
-line3
+    line1
+    line2
+    line3
     """
     ```
 
 - Use scratch space for file testing:
   ```python
-  # Prepare inputs.
   scratch_dir = self.get_scratch_space()
   test_file = os.path.join(scratch_dir, "test.txt")
   hio.to_file(test_file, "content")
   ```
-
-- Use input directory for large test data:
+- Use input directory for large static fixtures:
   ```python
-  # Prepare inputs.
   input_file = os.path.join(self.get_input_dir(), "test_data.json")
   data = hio.from_json(input_file)
   ```
@@ -550,5 +563,23 @@ line3
   ```
 
 ## Do Not Use `hdbg.dassert` in Tests
-- `dassert`s guard code invariants and must be removable without changing
+- `dassert` calls guard code invariants and must be removable without changing
   observable behavior — they cannot substitute for test assertions
+
+# Test-mode Utilities
+- Use inside production code that must behave differently during tests
+
+  | Function | Purpose |
+  | :------- | :------ |
+  | `hunitest.in_unit_test_mode()` | `True` when running under pytest; skip expensive side effects |
+  | `hunitest.pytest_print(txt)` | Write to stdout bypassing pytest's capture |
+  | `hunitest.pytest_warning(txt, prefix="")` | Like `pytest_print` with a yellow `WARNING:` label |
+
+  ```python
+  import helpers.hunit_test as hunitest
+
+  def expensive_side_effect() -> None:
+      if hunitest.in_unit_test_mode():
+          return  # Skip in tests.
+      ...
+  ```

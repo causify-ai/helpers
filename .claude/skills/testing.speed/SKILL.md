@@ -62,3 +62,36 @@ description: Reference rules for test speed classification and environment-condi
           # Only runs in the helpers repo.
           ...
   ```
+
+# Infrastructure Markers
+
+## Pytest Markers for Infrastructure Requirements
+- Use these decorators when a test needs specific infrastructure that is not
+  always available; the test is skipped automatically when the requirement is
+  not met
+
+  | Marker | Skips unless |
+  | :----- | :----------- |
+  | `@pytest.mark.requires_ck_infra` | Running inside CK infrastructure |
+  | `@pytest.mark.requires_ck_aws` | CK AWS connection is available |
+  | `@pytest.mark.requires_docker_in_docker` | Docker-in-Docker is available (sibling/child containers) |
+  | `@pytest.mark.no_container` | Running outside a container (invoke target tests on the host) |
+
+  ```python
+  import pytest
+  import helpers.hunit_test as hunitest
+
+  @pytest.mark.requires_ck_infra
+  class TestNeedsInfra1(hunitest.TestCase):
+      def test_fetch1(self) -> None:
+          # Skipped unless running inside CK infrastructure.
+          ...
+
+  class TestMixed1(hunitest.TestCase):
+      @pytest.mark.requires_ck_aws
+      def test_s3_upload1(self) -> None:
+          # Skipped unless CK AWS connection is available.
+          ...
+  ```
+
+- Markers can be applied at class level (all methods inherit) or method level
