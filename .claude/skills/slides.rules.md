@@ -4,7 +4,15 @@
 # Rules
 - **Definition**
 - **Question**
-- **Remark**
+- **Solution**
+- **Remark**: A simple but useful fact
+- **Proposition**: A result worth stating, but not as central as a theorem
+- **Lemma**: stepping stone used to prove a bigger result
+- **Claim**: A smaller assertion inside a proof or argument
+- **Intuition**: Explains the "why it makes sense"
+- **Example**: Concrete illustration
+- **Counterexample**: Shows what doesn't work
+- **Interpretation**: What the result means in context
 
 # Basic Formatting
 

@@ -107,3 +107,56 @@ def filter_by_slides(lines: List[str], filter_by_slides: str) -> List[str]:
     txt = lines[start_line - 1 : end_line - 1]
     hdbg.dassert_isinstance(txt, list)
     return txt
+
+
+def filter_by_name(
+    lines: List[str], filter_by_name: str, *, num_slides: int = 5
+) -> List[str]:
+    """
+    Find a slide by partial name match and return the slide and next N slides.
+
+    :param lines: list of lines to be processed
+    :param filter_by_name: partial name of the slide to find (case-sensitive)
+    :param num_slides: number of slides to keep (including matched slide)
+    :return: filtered lines containing the matched slide and next (num_slides - 1) slides
+    :raises ValueError: if no slides match or multiple slides match the name
+    """
+    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(filter_by_name, str)
+    hdbg.dassert_lt(0, num_slides)
+    slides_info, last_line_number = extract_slides_from_markdown(lines)
+    _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
+    # Find slides with matching names.
+    matching_slides = [
+        (i, slide) for i, slide in enumerate(slides_info)
+        if filter_by_name in slide.description
+    ]
+    hdbg.dassert(
+        matching_slides,
+        f"No slides found matching '{filter_by_name}'. "
+        f"Available slides: {[s.description for s in slides_info]}",
+    )
+    hdbg.dassert_eq(
+        len(matching_slides),
+        1,
+        msg=f"Multiple slides match '{filter_by_name}': {[s.description for _, s in matching_slides]}. "
+        f"Please be more specific.",
+    )
+    start_slide_idx = matching_slides[0][0]
+    end_slide_idx = min(start_slide_idx + num_slides, len(slides_info))
+    _LOG.debug("start_slide_idx=%s, end_slide_idx=%s", start_slide_idx, end_slide_idx)
+    start_line = slides_info[start_slide_idx].line_number
+    if end_slide_idx == len(slides_info):
+        end_line = last_line_number
+    else:
+        end_line = slides_info[end_slide_idx].line_number
+    _LOG.warning(
+        "filter_by_name='%s' num_slides=%s -> lines=[%s:%s]",
+        filter_by_name,
+        num_slides,
+        start_line,
+        end_line,
+    )
+    txt = lines[start_line - 1 : end_line - 1]
+    hdbg.dassert_isinstance(txt, list)
+    return txt

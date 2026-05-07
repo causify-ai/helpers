@@ -601,11 +601,12 @@ def _run_all(args: argparse.Namespace) -> None:
     hdbg.dassert_lte(
         int(args.filter_by_header is not None)
         + int(args.filter_by_lines is not None)
-        + int(args.filter_by_slides is not None),
+        + int(args.filter_by_slides is not None)
+        + int(args.filter_by_name is not None),
         1,
-        "You can specify at most one between --filter_by_header, --filter_by_lines, --filter_by_slides",
+        "You can specify at most one between --filter_by_header, --filter_by_lines, --filter_by_slides, --filter_by_name",
     )
-    if args.filter_by_header or args.filter_by_lines or args.filter_by_slides:
+    if args.filter_by_header or args.filter_by_lines or args.filter_by_slides or args.filter_by_name:
         text = hio.from_file(file_name)
         text = text.split("\n")
         filtered_text: List[str] = []
@@ -618,6 +619,9 @@ def _run_all(args: argparse.Namespace) -> None:
         if args.filter_by_slides:
             filtered_text = hmarkdo.filter_by_slides(text, args.filter_by_slides)
             file_name = f"{prefix}.filter_by_slides.txt"
+        if args.filter_by_name:
+            filtered_text = hmarkdo.filter_by_name(text, args.filter_by_name, args.num_slides)
+            file_name = f"{prefix}.filter_by_name.txt"
         filtered_text_str = "\n".join(filtered_text)
         hio.to_file(file_name, filtered_text_str)
     # - Preprocess_notes
@@ -739,6 +743,18 @@ def _parse() -> argparse.ArgumentParser:
         "--filter_by_slides",
         action="store",
         help="Filter by slides (e.g., `0:10`, `1:None`, `None:10`)",
+    )
+    parser.add_argument(
+        "--filter_by_name",
+        action="store",
+        help="Filter by slide name (partial match, case-sensitive)",
+    )
+    parser.add_argument(
+        "--num_slides",
+        action="store",
+        type=int,
+        default=5,
+        help="Number of slides to keep when using --filter_by_name (default: 5)",
     )
     # TODO(gp): -> out_action_script
     parser.add_argument(

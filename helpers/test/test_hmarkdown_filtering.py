@@ -447,3 +447,236 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         # Run test.
         with self.assertRaises(ValueError):
             hmarfilt._parse_range("1:2:3", 10)
+
+
+# #############################################################################
+# Test_filter_by_name1
+# #############################################################################
+
+
+class Test_filter_by_name1(hunitest.TestCase):
+    def test_basic_name_filtering(self) -> None:
+        """
+        Test basic slide name filtering functionality.
+        """
+        # Prepare inputs.
+        test_content = """
+        * Introduction
+        Content for introduction.
+
+        * Main Topic
+        Content for main topic.
+
+        * Conclusion
+        Content for conclusion.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test.
+        result_lines = hmarfilt.filter_by_name(lines, "Main Topic", num_slides=1)
+        result_content = "\n".join(result_lines)
+        # Check outputs.
+        expected = """
+        * Main Topic
+        Content for main topic.
+
+        """
+        self.assert_equal(result_content, expected, dedent=True)
+
+    def test_partial_name_matching(self) -> None:
+        """
+        Test partial name matching (case-sensitive).
+        """
+        # Prepare inputs.
+        test_content = """
+        * Introduction
+        Content 1.
+
+        * Advanced Topics
+        Content 2.
+
+        * Conclusion
+        Content 3.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test (matches "Advanced Topics" with "Topics").
+        result_lines = hmarfilt.filter_by_name(lines, "Topics", num_slides=1)
+        result_content = "\n".join(result_lines)
+        # Check outputs.
+        expected = """
+        * Advanced Topics
+        Content 2.
+
+        """
+        self.assert_equal(result_content, expected, dedent=True)
+
+    def test_multiple_slides_after_match(self) -> None:
+        """
+        Test keeping multiple slides after match (including matched slide).
+        """
+        # Prepare inputs.
+        test_content = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+        Content 2.
+
+        * Slide 3
+        Content 3.
+
+        * Slide 4
+        Content 4.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test (keep matched slide + 2 more = 3 total).
+        result_lines = hmarfilt.filter_by_name(lines, "Slide 2", num_slides=3)
+        result_content = "\n".join(result_lines)
+        # Check outputs.
+        expected = """
+        * Slide 2
+        Content 2.
+
+        * Slide 3
+        Content 3.
+
+        * Slide 4
+
+        """
+        self.assert_equal(result_content, expected, dedent=True)
+
+    def test_no_matching_slides(self) -> None:
+        """
+        Test error when no slides match the name.
+        """
+        # Prepare inputs.
+        test_content = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+        Content 2.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test.
+        with self.assertRaises(AssertionError) as cm:
+            hmarfilt.filter_by_name(lines, "NonExistent", num_slides=1)
+        # Check outputs.
+        self.assertIn("No slides found matching", str(cm.exception))
+
+    def test_multiple_matching_slides(self) -> None:
+        """
+        Test error when multiple slides match the name.
+        """
+        # Prepare inputs.
+        test_content = """
+        * Introduction Topic
+        Content 1.
+
+        * Main Topic
+        Content 2.
+
+        * Conclusion
+        Content 3.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test (both "Introduction Topic" and "Main Topic" contain "Topic").
+        with self.assertRaises(AssertionError) as cm:
+            hmarfilt.filter_by_name(lines, "Topic", num_slides=1)
+        # Check outputs.
+        self.assertIn("Multiple slides match", str(cm.exception))
+
+    def test_case_sensitive_matching(self) -> None:
+        """
+        Test that matching is case-sensitive.
+        """
+        # Prepare inputs.
+        test_content = """
+        * Introduction
+        Content 1.
+
+        * Advanced Topics
+        Content 2.
+
+        * Conclusion
+        Content 3.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test (lowercase "advanced" should NOT match "Advanced Topics").
+        with self.assertRaises(AssertionError):
+            hmarfilt.filter_by_name(lines, "advanced", num_slides=1)
+
+    def test_match_at_end_of_slides(self) -> None:
+        """
+        Test matching slide at the end (no slides after it).
+        """
+        # Prepare inputs.
+        test_content = """
+        * Slide 1
+        Content 1.
+
+        * Last Slide
+        Content last.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test (request 5 slides but only 1 available).
+        result_lines = hmarfilt.filter_by_name(lines, "Last Slide", num_slides=5)
+        result_content = "\n".join(result_lines)
+        # Check outputs.
+        self.assertIn("Last Slide", result_content)
+        self.assertNotIn("Slide 1", result_content)
+
+    def test_num_slides_default(self) -> None:
+        """
+        Test default num_slides value (should be 5).
+        """
+        # Prepare inputs.
+        test_content = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+        Content 2.
+
+        * Slide 3
+        Content 3.
+
+        * Slide 4
+        Content 4.
+
+        * Slide 5
+        Content 5.
+
+        * Slide 6
+        Content 6.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test (default num_slides=5).
+        result_lines = hmarfilt.filter_by_name(lines, "Slide 1")
+        result_content = "\n".join(result_lines)
+        # Check outputs.
+        expected = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+        Content 2.
+
+        * Slide 3
+        Content 3.
+
+        * Slide 4
+        Content 4.
+
+        * Slide 5
+        Content 5.
+
+        """
+        self.assert_equal(result_content, expected, dedent=True)
