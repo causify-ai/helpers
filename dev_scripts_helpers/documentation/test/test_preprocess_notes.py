@@ -1710,6 +1710,29 @@ class Test_validate_slide_names(hunitest.TestCase):
     Test the `_validate_slide_names()` function.
     """
 
+    def helper_valid(self, lines: list) -> None:
+        """
+        Helper method to test valid slide names.
+
+        :param lines: list of lines to validate
+        """
+        # Run test.
+        dshdprno._validate_slide_names(lines)
+
+    def helper_invalid(self, lines: list, expected_line_num: int) -> None:
+        """
+        Helper method to test invalid slide names.
+
+        :param lines: list of lines to validate
+        :param expected_line_num: expected line number of the invalid slide
+        """
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            dshdprno._validate_slide_names(lines)
+        # Check that the expected line number is in the error message.
+        expected_substr = f"line {expected_line_num}"
+        self.assertIn(expected_substr, str(cm.exception))
+
     def test1(self) -> None:
         """
         Test slides with valid titles.
@@ -1722,7 +1745,7 @@ class Test_validate_slide_names(hunitest.TestCase):
             "More content",
         ]
         # Run test.
-        dshdprno._validate_slide_names(lines)
+        self.helper_valid(lines)
 
     def test2(self) -> None:
         """
@@ -1734,11 +1757,9 @@ class Test_validate_slide_names(hunitest.TestCase):
             "*   ",
             "Some content",
         ]
-        # Run test and check output.
-        with self.assertRaises(AssertionError) as cm:
-            dshdprno._validate_slide_names(lines)
-        # Check that line number 2 is in the error message.
-        self.assertIn("line 2", str(cm.exception))
+        expected_line_num = 2
+        # Run test.
+        self.helper_invalid(lines, expected_line_num)
 
     def test3(self) -> None:
         """
@@ -1752,11 +1773,9 @@ class Test_validate_slide_names(hunitest.TestCase):
             "*    ",
             "More content",
         ]
-        # Run test and check output.
-        with self.assertRaises(AssertionError) as cm:
-            dshdprno._validate_slide_names(lines)
-        # Check that the first invalid slide (line 2) is reported.
-        self.assertIn("line 2", str(cm.exception))
+        expected_line_num = 2
+        # Run test.
+        self.helper_invalid(lines, expected_line_num)
 
     def test4(self) -> None:
         """
@@ -1769,11 +1788,9 @@ class Test_validate_slide_names(hunitest.TestCase):
             "* Valid Slide",
             "More content",
         ]
-        # Run test and check output.
-        with self.assertRaises(AssertionError) as cm:
-            dshdprno._validate_slide_names(lines)
-        # Check that line number 1 is in the error message.
-        self.assertIn("line 1", str(cm.exception))
+        expected_line_num = 1
+        # Run test.
+        self.helper_invalid(lines, expected_line_num)
 
     def test5(self) -> None:
         """
@@ -1782,7 +1799,7 @@ class Test_validate_slide_names(hunitest.TestCase):
         # Prepare inputs.
         lines: list = []
         # Run test.
-        dshdprno._validate_slide_names(lines)
+        self.helper_valid(lines)
 
     def test6(self) -> None:
         """
@@ -1795,4 +1812,4 @@ class Test_validate_slide_names(hunitest.TestCase):
             "No slides here",
         ]
         # Run test.
-        dshdprno._validate_slide_names(lines)
+        self.helper_valid(lines)
