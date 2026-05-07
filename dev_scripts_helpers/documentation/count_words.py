@@ -4,8 +4,8 @@
 Count words in a file and estimate reading time.
 
 Examples:
-    python count_words.py -i input.txt
-    python count_words.py -i document.md
+> count_words.py -i input.txt
+> count_words.py -i document.md
 """
 
 import argparse

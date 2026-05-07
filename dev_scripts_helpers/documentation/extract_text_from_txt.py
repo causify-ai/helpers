@@ -49,12 +49,12 @@ def _parse_header_string(header_str: str) -> Tuple[int, str]:
     :param header_str: header string like "## Section Title"
     :return: tuple of (level, title)
     """
-    hdbg.dassert_isinstance(header_str, str)
+    hdbg.dassert_isinstance(header_str, str, "header_str must be a string")
     hdbg.dassert_ne(header_str, "", "Header string cannot be empty")
     is_header_, level, title = hmarhead.is_header(header_str)
     hdbg.dassert(
         is_header_,
-        "Invalid header format: '%s'. Expected format like '# Title', '## Subtitle', etc.",
+        "Invalid header format '%s'; expected format like '# Title' or '## Subtitle'",
         header_str,
     )
     return level, title
@@ -95,12 +95,13 @@ def _find_header_by_partial_title(
             matches.append(header_info)
     if len(matches) == 0:
         return None
-    if len(matches) > 1:
-        matching_titles = [h.description for h in matches]
-        raise ValueError(
-            f"Partial title '{partial_title}' matches multiple headers: {matching_titles}. "
-            "Please provide a more specific match."
-        )
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Partial title '%s' matches multiple headers: %s. Please provide a more specific match.",
+        partial_title,
+        [h.description for h in matches],
+    )
     return matches[0]
 
 
@@ -120,18 +121,20 @@ def _find_header_from_input(
         # Full header format like "## Title"
         level, title = _parse_header_string(header_input)
         header_info = _find_header_by_title(header_list, title)
-        if header_info is None:
-            raise ValueError(f"Header not found: '{header_input}'")
-        if header_info.level != level:
-            raise ValueError(
-                f"Header level mismatch for '{title}': expected level {level}, got {header_info.level}"
-            )
+        hdbg.dassert_is_not(header_info, None, "Header not found: '%s'", header_input)
+        hdbg.dassert_eq(
+            header_info.level,
+            level,
+            "Header level mismatch for '%s': expected level %s, got %s",
+            title,
+            level,
+            header_info.level,
+        )
         return header_info, level
     else:
         # Partial title match
         header_info = _find_header_by_partial_title(header_list, header_input)
-        if header_info is None:
-            raise ValueError(f"No header matches: '{header_input}'")
+        hdbg.dassert_is_not(header_info, None, "No header matches: '%s'", header_input)
         return header_info, header_info.level
 
 
@@ -151,19 +154,26 @@ def _find_end_line(
     :param end_header_input: header input (full format or partial match) or None to auto-detect
     :return: line number where extraction ends (exclusive)
     """
-    hdbg.dassert_isinstance(header_list, list)
-    hdbg.dassert_isinstance(start_header_info, hmarhead.HeaderInfo)
+    hdbg.dassert_isinstance(header_list, list, "header_list must be a list")
+    hdbg.dassert_isinstance(
+        start_header_info,
+        hmarhead.HeaderInfo,
+        "start_header_info must be a HeaderInfo object",
+    )
+    # Find the index of the start header in the list for iterating from that point.
     start_idx = None
     for i, header_info in enumerate(header_list):
         if header_info.line_number == start_header_info.line_number:
             start_idx = i
             break
     hdbg.dassert_is_not(start_idx, None, "Start header not found in header list")
+    # If an explicit end header is provided, use it directly.
     if end_header_input is not None:
         end_header_info, _ = _find_header_from_input(
             header_list, end_header_input
         )
         return end_header_info.line_number - 1
+    # Search for the next header at the same or higher level (fewer # symbols).
     for i in range(start_idx + 1, len(header_list)):
         candidate_header = header_list[i]
         if candidate_header.level <= start_header_info.level:
@@ -184,7 +194,7 @@ def _extract_text_from_markdown(
     :param end_header_str: ending header (optional, same formats accepted)
     :return: extracted lines
     """
-    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(lines, list, "lines must be a list of strings")
     sanity_check = False
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=10, sanity_check=sanity_check
@@ -197,6 +207,9 @@ def _extract_text_from_markdown(
     else:
         end_idx = end_line
     extracted_lines = lines[start_idx:end_idx]
+    # Strip trailing blank lines from extracted content.
+    while extracted_lines and extracted_lines[-1].strip() == "":
+        extracted_lines.pop()
     return extracted_lines
 
 
@@ -213,7 +226,7 @@ def _extract_text_from_txtslides(
     :param end_header_str: ending header (optional, same formats accepted)
     :return: extracted lines
     """
-    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(lines, list, "lines must be a list of strings")
     lines = hmarkdo.convert_slide_to_markdown(lines, level=3)
     sanity_check = False
     header_list = hmarkdo.extract_headers_from_markdown(
@@ -227,10 +240,18 @@ def _extract_text_from_txtslides(
     else:
         end_idx = end_line
     extracted_lines = lines[start_idx:end_idx]
+    # Strip trailing blank lines from extracted content.
+    while extracted_lines and extracted_lines[-1].strip() == "":
+        extracted_lines.pop()
     return extracted_lines
 
 
 def _parse() -> argparse.ArgumentParser:
+    """
+    Create and return the argument parser for the script.
+
+    :return: ArgumentParser configured with input, output, start, and end arguments
+    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -254,12 +275,19 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Parse arguments and extract text from the input file between specified headers.
+
+    :param parser: ArgumentParser with configured arguments
+    """
     args = parser.parse_args()
     verbose = False
     hparser.init_logger_for_input_output_transform(args, verbose=verbose)
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     input_content = hparser.from_file(in_file_name)
-    hdbg.dassert_isinstance(input_content, list)
+    hdbg.dassert_isinstance(
+        input_content, list, "input_content must be a list of lines"
+    )
     hdbg.dassert_ne(len(input_content), 0, "Input file is empty")
     _, ext = os.path.splitext(in_file_name)
     if ext == ".md":
@@ -282,8 +310,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         1,
     )
     end_line_idx = start_line_idx + len(extracted_lines) - 1
-    line_numbers = f"\n\n[Lines: {start_line_idx}-{end_line_idx}]"
-    output_content += line_numbers
+    _LOG.info(f"Extracted lines {start_line_idx}-{end_line_idx}")
     hparser.to_file(output_content, out_file_name)
 
 

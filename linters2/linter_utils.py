@@ -117,8 +117,8 @@ def get_files_to_check(
         commit
     :param branch: process the files modified in the current branch
         with respect to the specified branch (e.g. "master")
-        - if provided as a string, use that branch
-        - if None, skip this option
+        - If provided as a string, use that branch
+        - If None, skip this option
     :return: paths of the files to process
     """
     file_paths: List[str] = []
