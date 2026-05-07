@@ -606,7 +606,12 @@ def _run_all(args: argparse.Namespace) -> None:
         1,
         "You can specify at most one between --filter_by_header, --filter_by_lines, --filter_by_slides, --filter_by_name",
     )
-    if args.filter_by_header or args.filter_by_lines or args.filter_by_slides or args.filter_by_name:
+    if (
+        args.filter_by_header
+        or args.filter_by_lines
+        or args.filter_by_slides
+        or args.filter_by_name
+    ):
         text = hio.from_file(file_name)
         text = text.split("\n")
         filtered_text: List[str] = []
@@ -620,7 +625,9 @@ def _run_all(args: argparse.Namespace) -> None:
             filtered_text = hmarkdo.filter_by_slides(text, args.filter_by_slides)
             file_name = f"{prefix}.filter_by_slides.txt"
         if args.filter_by_name:
-            filtered_text = hmarkdo.filter_by_name(text, args.filter_by_name, args.num_slides)
+            filtered_text = hmarkdo.filter_by_name(
+                text, args.filter_by_name, args.num_slides
+            )
             file_name = f"{prefix}.filter_by_name.txt"
         filtered_text_str = "\n".join(filtered_text)
         hio.to_file(file_name, filtered_text_str)

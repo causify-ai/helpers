@@ -522,7 +522,9 @@ class Test_filter_by_name1(hunitest.TestCase):
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
         # Run test.
-        result_lines = hmarfilt.filter_by_name(lines, filter_name, num_slides=num_slides)
+        result_lines = hmarfilt.filter_by_name(
+            lines, filter_name, num_slides=num_slides
+        )
         result_content = "\n".join(result_lines)
         # Check outputs.
         self.assert_equal(result_content, expected, dedent=True)

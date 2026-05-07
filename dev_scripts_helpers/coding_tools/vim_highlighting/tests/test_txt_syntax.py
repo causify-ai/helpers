@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import dev_scripts_helpers.coding_tools.vim_highlighting.tests.test_txt_syntax as dshctvhttts
+"""
+
 import logging
 import os
 import shlex
@@ -8,6 +14,11 @@ import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)  # noqa: F841
+
+
+# #############################################################################
+# TestTxtSyntaxHighlighting
+# #############################################################################
 
 
 class TestTxtSyntaxHighlighting(hunitest.TestCase):
@@ -52,7 +63,9 @@ class TestTxtSyntaxHighlighting(hunitest.TestCase):
         # Run test.
         actual = self.helper(test_file, vimrc_file)
         # Check outputs.
-        hdbg.dassert_lt(0, len(actual), "Syntax highlighting output should not be empty")
+        hdbg.dassert_lt(
+            0, len(actual), "Syntax highlighting output should not be empty"
+        )
         # Verify the output contains expected syntax group markers.
         self.assertIn("txtHeader1", actual)
         self.assertIn("txtHeader2", actual)

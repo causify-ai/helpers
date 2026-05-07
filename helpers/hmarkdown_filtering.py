@@ -128,7 +128,8 @@ def filter_by_name(
     _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
     # Find slides with matching names.
     matching_slides = [
-        (i, slide) for i, slide in enumerate(slides_info)
+        (i, slide)
+        for i, slide in enumerate(slides_info)
         if filter_by_name in slide.description
     ]
     hdbg.dassert(
@@ -144,7 +145,9 @@ def filter_by_name(
     )
     start_slide_idx = matching_slides[0][0]
     end_slide_idx = min(start_slide_idx + num_slides, len(slides_info))
-    _LOG.debug("start_slide_idx=%s, end_slide_idx=%s", start_slide_idx, end_slide_idx)
+    _LOG.debug(
+        "start_slide_idx=%s, end_slide_idx=%s", start_slide_idx, end_slide_idx
+    )
     start_line = slides_info[start_slide_idx].line_number
     if end_slide_idx == len(slides_info):
         end_line = last_line_number
