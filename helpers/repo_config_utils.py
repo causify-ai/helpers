@@ -10,6 +10,9 @@ from typing import Any, Dict, List, Optional, Union
 
 _LOG = logging.getLogger(__name__)
 
+# Simple YAML parser when `yaml` package is not available (e.g., when
+# bootstrapping the system through thin environment).
+
 def _parse_value(value_str: str) -> Any:
     """Parse a YAML value string."""
     value_str = value_str.strip()
@@ -80,6 +83,8 @@ def _parse_yaml_lines(lines: List[str], start_idx: int = 0,
                         i = next_i - 1
                     else:
                         result[key] = None
+                else:
+                    result[key] = None
             i += 1
         else:
             i += 1
@@ -220,7 +225,7 @@ class RepoConfig:
         try:
             try:
                 import yaml
-                with open(file_path, "r") as f:
+                with open(file_name, "r") as f:
                     data = yaml.safe_load(f)
             except ImportError:
                 data = _read_yaml_file(file_name)
