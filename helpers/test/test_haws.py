@@ -4,6 +4,7 @@ from typing import Optional
 
 import boto3
 import pytest
+
 from botocore.client import BaseClient
 from moto import mock_aws
 
@@ -16,6 +17,7 @@ import helpers.hunit_test as hunitest
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Haws_test_case(hunitest.TestCase):
     @pytest.fixture(autouse=True, scope="class")
     def aws_credentials(self) -> None:

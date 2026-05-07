@@ -46,6 +46,7 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class _DockerFlowTestHelper(hunitest.TestCase):
     """
     Helper test class to perform common setup, teardown logic and assertion

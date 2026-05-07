@@ -2,6 +2,8 @@ import asyncio
 import logging
 from typing import Optional
 
+import pytest
+
 import helpers.hasyncio as hasynci
 import helpers.hdatetime as hdateti
 import helpers.hunit_test as hunitest
@@ -14,6 +16,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_hasyncio1(hunitest.TestCase):
     """
     Execute a workload using different time semantics:

@@ -20,6 +20,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestJsonRoundtrip1(hunitest.TestCase):
     """
     Test roundtrip conversion through jsonpickle for different types.
@@ -57,6 +58,7 @@ class TestJsonRoundtrip1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestPlaybackInputOutput1(hunitest.TestCase):
     """
     Freeze the output of Playback.
@@ -299,6 +301,7 @@ class TestPlaybackInputOutput1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestToPythonCode1(hunitest.TestCase):
     """
     Test to_python_code() for different types.
@@ -412,6 +415,7 @@ class TestToPythonCode1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestPlaybackFilePath1(hunitest.TestCase):
     """
     Test file mode correctness.
@@ -434,6 +438,7 @@ class TestPlaybackFilePath1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestPlaybackFileMode1(hunitest.TestCase):
     """
     Test file mode correctness.
