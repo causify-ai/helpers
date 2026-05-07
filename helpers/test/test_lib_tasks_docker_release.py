@@ -3,9 +3,22 @@ import os
 import unittest.mock as umock
 from typing import Generator, List
 
+import pytest
+
+
+def _is_inside_docker() -> bool:
+    """
+    Return whether we are inside a container or not.
+    """
+    return os.path.exists("/.dockerenv")
+
+
+if not _is_inside_docker():
+    pytest.skip("Skipping: tests require dev container", allow_module_level=True)
+
+
 import boto3
 import moto
-import pytest
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
@@ -46,6 +59,7 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class _DockerFlowTestHelper(hunitest.TestCase):
     """
     Helper test class to perform common setup, teardown logic and assertion

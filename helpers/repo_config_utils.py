@@ -8,9 +8,109 @@ import logging
 import os
 from typing import Any, Dict, List, Optional, Union
 
-import yaml
-
 _LOG = logging.getLogger(__name__)
+
+# Simple YAML parser when `yaml` package is not available (e.g., when
+# bootstrapping the system through thin environment).
+
+def _parse_value(value_str: str) -> Any:
+    """Parse a YAML value string."""
+    value_str = value_str.strip()
+    if value_str.lower() in ("true", "yes"):
+        return True
+    if value_str.lower() in ("false", "no"):
+        return False
+    if value_str.lower() in ("null", "none", "~"):
+        return None
+    try:
+        if "." in value_str:
+            return float(value_str)
+        return int(value_str)
+    except ValueError:
+        return value_str
+
+def _get_indent_level(line: str) -> int:
+    """Get the indentation level of a line."""
+    return len(line) - len(line.lstrip())
+
+def _parse_yaml_lines(lines: List[str], start_idx: int = 0,
+                      parent_indent: int = -2) -> tuple:
+    """Recursively parse YAML lines into a dictionary."""
+    result = {}
+    current_list = None
+    current_key = None
+    i = start_idx
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        if not stripped or stripped.startswith("#"):
+            i += 1
+            continue
+
+        indent = _get_indent_level(line)
+
+        if indent <= parent_indent:
+            return result, i
+
+        if stripped.startswith("- "):
+            if current_list is None:
+                current_list = []
+                if current_key:
+                    result[current_key] = current_list
+            item_value = stripped[2:].strip()
+            current_list.append(_parse_value(item_value))
+            i += 1
+        elif ":" in stripped:
+            colon_idx = stripped.index(":")
+            key = stripped[:colon_idx].strip()
+            value_part = stripped[colon_idx + 1:].strip()
+            current_list = None
+            current_key = key
+
+            if value_part:
+                result[key] = _parse_value(value_part)
+            else:
+                next_i = i + 1
+                if next_i < len(lines):
+                    next_indent = _get_indent_level(lines[next_i])
+                    if next_indent > indent:
+                        sub_dict, next_i = _parse_yaml_lines(
+                            lines, next_i, indent
+                        )
+                        result[key] = sub_dict
+                        i = next_i - 1
+                    else:
+                        result[key] = None
+                else:
+                    result[key] = None
+            i += 1
+        else:
+            i += 1
+
+    return result, len(lines)
+
+
+
+def _read_yaml_file(file_path: str) -> Dict[str, Any]:
+    """
+    Read and parse a YAML file without external dependencies.
+
+    Supports the basic YAML structure needed for repo_config.yaml:
+    - Nested dictionaries (keys with : values)
+    - Strings, numbers, booleans, None
+    - Lists (items starting with -)
+
+    :param file_path: path to the YAML file
+    :return: parsed YAML as a dictionary
+    """
+
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+
+    data, _ = _parse_yaml_lines(lines)
+    return data
 
 # #############################################################################
 
@@ -123,14 +223,17 @@ class RepoConfig:
         assert os.path.exists(file_name), f"File '{file_name}' doesn't exist"
         _LOG.debug("Reading file_name='%s'", file_name)
         try:
-            with open(file_name, "r") as file:
-                # Use `safe_load()` to avoid executing arbitrary code.
-                data = yaml.safe_load(file)
-                assert isinstance(data, dict), (
-                    "data=\n%s\nis not a dict but %s",
-                    str(data),
-                    type(data),
-                )
+            try:
+                import yaml
+                with open(file_name, "r") as f:
+                    data = yaml.safe_load(f)
+            except ImportError:
+                data = _read_yaml_file(file_name)
+            assert isinstance(data, dict), (
+                "data=\n%s\nis not a dict but %s",
+                str(data),
+                type(data),
+            )
         except Exception as e:
             raise ValueError(f"Error reading YAML file {file_name}: {e}")
         return cls(data)

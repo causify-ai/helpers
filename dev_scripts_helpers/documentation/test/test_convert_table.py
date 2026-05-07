@@ -9,6 +9,7 @@ import dev_scripts_helpers.documentation.convert_table as dshdcota
 # Check if tabulate is available (required by _format_as_md which uses pandas.to_markdown)
 try:
     import tabulate  # noqa: F401, pylint: disable=unused-import
+
     _TABULATE_AVAILABLE = True
 except ImportError:
     _TABULATE_AVAILABLE = False

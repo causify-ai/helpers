@@ -29,7 +29,7 @@ import dev_scripts_helpers.documentation.convert_table as dsdccotbl
 # The _format_as_md() function uses pandas.DataFrame.to_markdown(), which requires
 # the `tabulate` package. If tabulate is not available in the environment (e.g.,
 # the dev container), tests that use markdown formatting will be skipped.
-# 
+#
 # To resolve this, choose one of:
 # 1. Test the executable directly (preferred): The script uses the uv runner with
 #    tabulate in dependencies, so the executable works even if the unit tests skip

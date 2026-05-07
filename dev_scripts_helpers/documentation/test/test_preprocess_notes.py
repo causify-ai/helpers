@@ -201,9 +201,7 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
     Test backtick colorization as part of the full preprocessing pipeline.
     """
 
-    def helper(
-        self, txt_in: str, type_: str, expected: str
-    ) -> None:
+    def helper(self, txt_in: str, type_: str, expected: str) -> None:
         """
         Test helper for _transform_lines with backtick colorization.
 
@@ -213,7 +211,9 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in_lines = txt_in.split("\n")
-        txt_in_lines = hprint.dedent(txt_in_lines, remove_lead_trail_empty_lines_=True)
+        txt_in_lines = hprint.dedent(
+            txt_in_lines, remove_lead_trail_empty_lines_=True
+        )
         # Execute function.
         actual = dshdprno._transform_lines(txt_in_lines, type_, is_qa=False)
         actual = "\n".join(actual)
@@ -362,7 +362,10 @@ class Test_remove_headers1(hunitest.TestCase):
     """
 
     def helper(
-        self, lines_in: Sequence[str], expected: Sequence[str], max_level: int = 999
+        self,
+        lines_in: Sequence[str],
+        expected: Sequence[str],
+        max_level: int = 999,
     ) -> None:
         """
         Helper method to test the _remove_headers function.
@@ -780,7 +783,10 @@ class Test_extract_section(hunitest.TestCase):
     """
 
     def helper(
-        self, lines: Sequence[str], section_name: str, expected: Sequence[str] | None
+        self,
+        lines: Sequence[str],
+        section_name: str,
+        expected: Sequence[str] | None,
     ) -> None:
         """
         Test helper for _extract_section.
@@ -930,9 +936,7 @@ class Test_expand_includes(hunitest.TestCase):
             content_str = "\n".join(content_dedented)
             hio.to_file(file_path, content_str)
 
-    def _run_in_temp_dir(
-        self, func, temp_dir: str
-    ) -> None:
+    def _run_in_temp_dir(self, func, temp_dir: str) -> None:
         """
         Run a function in a temporary directory.
 
@@ -1009,7 +1013,7 @@ class Test_expand_includes(hunitest.TestCase):
         # Prepare inputs.
         lines = [
             '// include:file1.md "Section A"',
-            'Text between',
+            "Text between",
             '// include:file2.md "Section Y"',
         ]
         expected = ["Content A", "Text between", "Content Y"]
@@ -1382,9 +1386,7 @@ class Test_transform_lines_slides(hunitest.TestCase):
         :param expected: expected output lines
         :param actions: optional actions to perform
         """
-        actual = dshdprno._transform_lines(
-            lines, type_, is_qa, actions=actions
-        )
+        actual = dshdprno._transform_lines(lines, type_, is_qa, actions=actions)
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -1695,8 +1697,360 @@ class Test_preprocess_lines_navigation(hunitest.TestCase):
             "## Section 1.1",
             "Content here",
         ]
-        actual = dshdprno._preprocess_lines(
-            lines, "slides", "navigation", False
-        )
+        actual = dshdprno._preprocess_lines(lines, "slides", "navigation", False)
         # Navigation processing should add slides
         self.assertGreaterEqual(len(actual), len(lines))
+
+
+# #############################################################################
+# Test_validate_slide_names
+# #############################################################################
+
+
+class Test_validate_slide_names(hunitest.TestCase):
+    """
+    Test the `_validate_slide_names()` function.
+    """
+
+    def helper_valid(self, lines: list) -> None:
+        """
+        Helper method to test valid slide names.
+
+        :param lines: list of lines to validate
+        """
+        # Run test.
+        dshdprno._validate_slide_names(lines)
+
+    def helper_invalid(self, lines: list, expected_line_num: int) -> None:
+        """
+        Helper method to test invalid slide names.
+
+        :param lines: list of lines to validate
+        :param expected_line_num: expected line number of the invalid slide
+        """
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            dshdprno._validate_slide_names(lines)
+        # Check that the expected line number is in the error message.
+        expected_substr = f"line {expected_line_num}"
+        self.assertIn(expected_substr, str(cm.exception))
+
+    def test1(self) -> None:
+        """
+        Test slides with valid titles.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1 Title",
+            "Some content",
+            "* Slide 2 Title",
+            "More content",
+        ]
+        # Run test.
+        self.helper_valid(lines)
+
+    def test2(self) -> None:
+        """
+        Test slide with whitespace-only title.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1 Title",
+            "*   ",
+            "Some content",
+        ]
+        expected_line_num = 2
+        # Run test.
+        self.helper_invalid(lines, expected_line_num)
+
+    def test3(self) -> None:
+        """
+        Test multiple invalid slides.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Valid Slide",
+            "*   ",
+            "Content",
+            "*    ",
+            "More content",
+        ]
+        expected_line_num = 2
+        # Run test.
+        self.helper_invalid(lines, expected_line_num)
+
+    def test4(self) -> None:
+        """
+        Test multiple slides with first one invalid.
+        """
+        # Prepare inputs.
+        lines = [
+            "*   ",
+            "Content",
+            "* Valid Slide",
+            "More content",
+        ]
+        expected_line_num = 1
+        # Run test.
+        self.helper_invalid(lines, expected_line_num)
+
+    def test5(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        lines: list = []
+        # Run test.
+        self.helper_valid(lines)
+
+    def test6(self) -> None:
+        """
+        Test no slides in input.
+        """
+        # Prepare inputs.
+        lines = [
+            "Some content",
+            "More content",
+            "No slides here",
+        ]
+        # Run test.
+        self.helper_valid(lines)
+
+
+# #############################################################################
+# Test_assert_no_existing_counters
+# #############################################################################
+
+
+class Test_assert_no_existing_counters(hunitest.TestCase):
+    """
+    Test the `_assert_no_existing_counters()` function.
+    """
+
+    def helper_valid(self, lines: list) -> None:
+        """
+        Helper method to test valid slides without counters.
+
+        :param lines: list of lines to validate
+        """
+        # Run test.
+        dshdprno._assert_no_existing_counters(lines)
+
+    def helper_invalid(self, lines: list) -> None:
+        """
+        Helper method to test slides with existing counters.
+
+        :param lines: list of lines to validate
+        """
+        # Run test and check output.
+        with self.assertRaises(AssertionError):
+            dshdprno._assert_no_existing_counters(lines)
+
+    def test1(self) -> None:
+        """
+        Test slides without counter format.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1",
+            "* Slide 2",
+        ]
+        # Run test.
+        self.helper_valid(lines)
+
+    def test2(self) -> None:
+        """
+        Test slide with existing counter format.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1",
+            "* Slide 2 (1/2)",
+        ]
+        # Run test.
+        self.helper_invalid(lines)
+
+
+# #############################################################################
+# Test_add_duplicate_slide_counters
+# #############################################################################
+
+
+class Test_add_duplicate_slide_counters(hunitest.TestCase):
+    """
+    Test the `_add_duplicate_slide_counters()` function.
+    """
+
+    def helper(self, lines: list, expected: list) -> None:
+        """
+        Helper method to test counter addition.
+
+        :param lines: input lines
+        :param expected: expected output lines
+        """
+        # Run test.
+        actual = dshdprno._add_duplicate_slide_counters(lines)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test1(self) -> None:
+        """
+        Test no duplicates.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1",
+            "Content",
+            "* Slide 2",
+            "Content",
+        ]
+        # Expected: no changes.
+        expected = lines
+        # Run test.
+        self.helper(lines, expected)
+
+    def test2(self) -> None:
+        """
+        Test two slides with same name.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Demo",
+            "Content 1",
+            "* Demo",
+            "Content 2",
+        ]
+        # Expected: counters added.
+        expected = [
+            "* Demo (1/2)",
+            "Content 1",
+            "* Demo (2/2)",
+            "Content 2",
+        ]
+        # Run test.
+        self.helper(lines, expected)
+
+    def test3(self) -> None:
+        """
+        Test three slides with same name (non-consecutive).
+        """
+        # Prepare inputs.
+        lines = [
+            "* Example",
+            "Content 1",
+            "* Other",
+            "Content",
+            "* Example",
+            "Content 2",
+            "* Example",
+            "Content 3",
+        ]
+        # Expected: all Example slides get counters.
+        expected = [
+            "* Example (1/3)",
+            "Content 1",
+            "* Other",
+            "Content",
+            "* Example (2/3)",
+            "Content 2",
+            "* Example (3/3)",
+            "Content 3",
+        ]
+        # Run test.
+        self.helper(lines, expected)
+
+    def test4(self) -> None:
+        """
+        Test mixed duplicates and unique.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Unique",
+            "* Dup",
+            "* Other",
+            "* Dup",
+        ]
+        # Expected: only Dup gets counters.
+        expected = [
+            "* Unique",
+            "* Dup (1/2)",
+            "* Other",
+            "* Dup (2/2)",
+        ]
+        # Run test.
+        self.helper(lines, expected)
+
+    def test5(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        lines: list = []
+        # Expected: no changes.
+        expected = lines
+        # Run test.
+        self.helper(lines, expected)
+
+
+# #############################################################################
+# Test_validate_unique_slide_names
+# #############################################################################
+
+
+class Test_validate_unique_slide_names(hunitest.TestCase):
+    """
+    Test the `_validate_unique_slide_names()` function.
+    """
+
+    def helper_valid(self, lines: list) -> None:
+        """
+        Helper method to test valid unique names.
+
+        :param lines: list of lines to validate
+        """
+        # Run test.
+        dshdprno._validate_unique_slide_names(lines)
+
+    def helper_invalid(self, lines: list) -> None:
+        """
+        Helper method to test invalid duplicate names.
+
+        :param lines: list of lines to validate
+        """
+        # Run test and check output.
+        with self.assertRaises(AssertionError):
+            dshdprno._validate_unique_slide_names(lines)
+
+    def test1(self) -> None:
+        """
+        Test all unique slide names.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1",
+            "* Slide 2",
+            "* Slide 3 (1/2)",
+        ]
+        # Run test.
+        self.helper_valid(lines)
+
+    def test2(self) -> None:
+        """
+        Test duplicate slide names.
+        """
+        # Prepare inputs.
+        lines = [
+            "* Slide 1",
+            "* Slide 1",
+        ]
+        # Run test.
+        self.helper_invalid(lines)
+
+    def test3(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        lines: list = []
+        # Run test.
+        self.helper_valid(lines)

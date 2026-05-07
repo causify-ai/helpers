@@ -1,35 +1,27 @@
 ---
-description: Refactor unit test files by aligning strings, renaming methods, and factoring out common test code
+description: Apply the conventions usually not followed in the unit test
 ---
 
-- When the user passes a test file, apply the following transformations to the
-  code, making sure that there is no change in behavior. All invariants and
-  conventions are documented in `@.claude/skills/testing.rules.md`.
+- When the user passes a test file `<file>`
+  - Apply the following transformations to the code, making sure that there is no
+    change in behavior
+
+- All invariants and conventions are documented in
+  `@.claude/skills/testing.rules.md`
 
 ## Key Transformations
 
-- Align Strings to the Code
-  - See `@.claude/skills/testing.rules.md` section "Code Formatting in Tests" → "Align Strings to the Code"
+- See `@.claude/skills/testing.rules.md`
+    "## Dedent Strings to the Code"
+    "## Test Method Names"
+    "## Use Helper Methods When You Have Repetitive Tests"
+    - Aggressively factor out common code in helper methods so that each test
+      method sets the inputs and expected value, then calls the helper function.
+    "## Avoid Replicated Assignment"
+    "## Consolidate inputs and outputs"
+    "## Assign Variables and Then Call Functions"
 
-- Rename Test Methods as `test1`, `test2`, ...
-  - See `@.claude/skills/testing.rules.md` section "Test Method Names"
-
-- Factor Out Common Code
-  - See `@.claude/skills/testing.rules.md` section "Use Helper Methods When You
-    Have Repetitive Tests"
-  - Aggressively factor out common code in helper methods so that each test
-    method sets the inputs and expected value, then calls the helper function.
-
-- Avoid Replicated Assignment
-  - See `@.claude/skills/testing.rules.md` section "Avoid Replicated Assignment"
-
-- Consolidate Inputs and Outputs
-  - See `@.claude/skills/testing.rules.md` section "Consolidate inputs and
-    outputs"
-
-- Assign Variables and Then Call Functions
-  - See `@.claude/skills/testing.rules.md` section "Assign Variables and Then
-    Call Functions"
+- Run the skill `/coding.factor_common_code` on the file
 
 # Important
 
