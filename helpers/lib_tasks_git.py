@@ -887,8 +887,8 @@ def _git_diff_with_branch(
     subdir: str,
     #
     diff_type: str,
-    keep_extensions: str,
-    skip_extensions: str,
+    file_types: str,
+    skip_file_types: str,
     file_name: str,
     #
     only_print_files: bool,
@@ -901,7 +901,7 @@ def _git_diff_with_branch(
     """
     _LOG.debug(
         hprint.to_str(
-            "hash_ tag dir_name diff_type subdir keep_extensions skip_extensions"
+            "hash_ tag dir_name diff_type subdir file_types skip_file_types"
             " file_name only_print_files dry_run"
         )
     )
@@ -943,10 +943,10 @@ def _git_diff_with_branch(
         _LOG.info("After filtering by file_name: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Keep only files with specified extensions (useful for focusing on code vs docs).
-    if keep_extensions:
-        _LOG.debug("# Filter by keep_extensions")
+    if file_types:
+        _LOG.debug("# Filter by file_types")
         _LOG.debug("Before filtering files=%s", len(files))
-        extensions_lst = keep_extensions.split(",")
+        extensions_lst = file_types.split(",")
         _LOG.warning(
             "Keeping files with %d extensions: %s",
             len(extensions_lst),
@@ -957,13 +957,13 @@ def _git_diff_with_branch(
             if any(f.endswith(ext) for ext in extensions_lst):
                 files_tmp.append(f)
         files = files_tmp
-        _LOG.info("After filtering by keep_extensions: files=%s", len(files))
+        _LOG.info("After filtering by file_types: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Exclude files with specified extensions (useful for skipping config or build files).
-    if skip_extensions:
-        _LOG.debug("# Filter by skip_extensions")
+    if skip_file_types:
+        _LOG.debug("# Filter by skip_file_types")
         _LOG.debug("Before filtering files=%s", len(files))
-        extensions_lst = skip_extensions.split(",")
+        extensions_lst = skip_file_types.split(",")
         _LOG.warning(
             "Skipping files with %d extensions: %s",
             len(extensions_lst),
@@ -974,7 +974,7 @@ def _git_diff_with_branch(
             if not any(f.endswith(ext) for ext in extensions_lst):
                 files_tmp.append(f)
         files = files_tmp
-        _LOG.info("After filtering by skip_extensions: files=%s", len(files))
+        _LOG.info("After filtering by skip_file_types: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Limit diff to files within a specific subdirectory.
     if subdir != "":
@@ -1057,8 +1057,8 @@ def _git_diff_with_branch_wrapper(
     include_submodules: bool,
     #
     diff_type: str,
-    keep_extensions: str,
-    skip_extensions: str,
+    file_types: str,
+    skip_file_types: str,
     python: bool,
     file_name: str,
     #
@@ -1084,21 +1084,21 @@ def _git_diff_with_branch_wrapper(
             "Cannot specify diff_type with python mode",
         )
         hdbg.dassert_eq(
-            keep_extensions,
+            file_types,
             "",
-            "Cannot specify keep_extensions with python mode",
+            "Cannot specify file_types with python mode",
         )
         hdbg.dassert_eq(
-            skip_extensions,
+            skip_file_types,
             "",
-            "Cannot specify skip_extensions with python mode",
+            "Cannot specify skip_file_types with python mode",
         )
         hdbg.dassert_eq(
             file_name,
             "",
             "Cannot specify file_name with python mode",
         )
-        keep_extensions = "py"
+        file_types = "py"
     # Diff files in the main repository.
     _git_diff_with_branch(
         ctx,
@@ -1107,8 +1107,8 @@ def _git_diff_with_branch_wrapper(
         dir_name,
         subdir,
         diff_type,
-        keep_extensions,
-        skip_extensions,
+        file_types,
+        skip_file_types,
         file_name,
         only_print_files,
         dry_run,
@@ -1124,8 +1124,8 @@ def _git_diff_with_branch_wrapper(
                     dir_name,
                     subdir,
                     diff_type,
-                    keep_extensions,
-                    skip_extensions,
+                    file_types,
+                    skip_file_types,
                     file_name,
                     only_print_files,
                     dry_run,
@@ -1142,8 +1142,8 @@ def git_branch_diff(  # type: ignore
     include_submodules=False,
     # What files to diff.
     diff_type="",
-    keep_extensions="",
-    skip_extensions="",
+    file_types="",
+    skip_file_types="",
     python=False,
     file_name="",
     # What actions.
@@ -1162,9 +1162,9 @@ def git_branch_diff(  # type: ignore
     :param hash_value: the hash to use with target="hash"
     :param include_submodules: run recursively on all submodules
     :param diff_type: files to diff using git `--diff-filter` options
-    :param keep_extensions: a comma-separated list of extensions to check, e.g.,
+    :param file_types: a comma-separated list of extensions to check, e.g.,
         'csv,py'. An empty string means keep all the extensions
-    :param skip_extensions: a comma-separated list of extensions to skip, e.g.,
+    :param skip_file_types: a comma-separated list of extensions to skip, e.g.,
         'txt'. An empty string means do not skip any extension
     :param only_print_files: print files to diff and exit
     :param dry_run: execute diffing script or not
@@ -1220,8 +1220,8 @@ def git_branch_diff(  # type: ignore
         include_submodules,
         #
         diff_type,
-        keep_extensions,
-        skip_extensions,
+        file_types,
+        skip_file_types,
         python,
         file_name,
         #

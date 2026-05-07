@@ -103,59 +103,6 @@
 - Do not use try except to recover errors but let statements raise their own
   errors
 
-## Use `hsystem`
-
-- Use code in `helpers/hsystem.py` to call commands
-- Do not try to catching error, but let the exception propagate
-  - **Bad**
-    ```python
-    try:
-        hsystem.system("which llm", suppress_output=True)
-        _LOG.debug("llm command found")
-    except Exception as e:
-        hdbg.dfatal(f"llm command not found: {e}")
-    ```
-  - **Good**
-    ```python
-    hsystem.system("which llm", suppress_output=True)
-    ```
-
-## How to Build Command Lines
-
-- When building command lines use one command line option per line
-  and f-strings
-
-  - **Bad**
-    ```python
-    cmd_parts = [
-        "notes_to_pdf.py",
-        "--input",
-        input_file,
-        "--output",
-        output_file,
-        "--type",
-        "slides",
-        "--toc_type",
-        "navigation",
-        "--skip_action",
-        "cleanup_after",
-        "--skip_action",
-        "open",
-    ]
-    ```
-  - **Good**
-    ```python
-    cmd_parts = [
-        "notes_to_pdf.py",
-        f"--input={input_file}",
-        f"--output={output_file}",
-        "--type=slides",
-        "--toc_type=navigation",
-        "--skip_action=cleanup_after",
-        "--skip_action=open",
-    ]
-    ```
-
 # Documentation and Comments
 
 ## Use REST Style for Comments
@@ -404,4 +351,59 @@
   - **Good**
     ```python
     # Create a curated list from `get_md_colors()`.
+    ```
+
+# Executing System Calls
+
+## Use `hsystem`
+
+- Use code in `helpers/hsystem.py` to call commands
+- Do not try to catching error, but let the exception propagate
+  - **Bad**
+    ```python
+    try:
+        hsystem.system("which llm", suppress_output=True)
+        _LOG.debug("llm command found")
+    except Exception as e:
+        hdbg.dfatal(f"llm command not found: {e}")
+    ```
+  - **Good**
+    ```python
+    hsystem.system("which llm", suppress_output=True)
+    ```
+
+## How to Build Command Lines
+
+- When building command lines use one command line option per line
+  and f-strings
+
+  - **Bad**
+    ```python
+    cmd_parts = [
+        "notes_to_pdf.py",
+        "--input",
+        input_file,
+        "--output",
+        output_file,
+        "--type",
+        "slides",
+        "--toc_type",
+        "navigation",
+        "--skip_action",
+        "cleanup_after",
+        "--skip_action",
+        "open",
+    ]
+    ```
+  - **Good**
+    ```python
+    cmd_parts = [
+        "notes_to_pdf.py",
+        f"--input={input_file}",
+        f"--output={output_file}",
+        "--type=slides",
+        "--toc_type=navigation",
+        "--skip_action=cleanup_after",
+        "--skip_action=open",
+    ]
     ```
