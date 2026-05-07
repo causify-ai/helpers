@@ -1,4 +1,4 @@
-# Unit Test Framework — Architecture Explanation
+# Unit Test Framework
 
 <!-- toc -->
 
