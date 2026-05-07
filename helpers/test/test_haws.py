@@ -2,8 +2,21 @@ import os
 import unittest.mock as umock
 from typing import Optional
 
-import boto3
 import pytest
+
+
+def _is_inside_docker() -> bool:
+    """
+    Return whether we are inside a container or not.
+    """
+    return os.path.exists("/.dockerenv")
+
+
+if not _is_inside_docker():
+    pytest.skip("Skipping: tests require dev container", allow_module_level=True)
+
+
+import boto3
 
 from botocore.client import BaseClient
 from moto import mock_aws

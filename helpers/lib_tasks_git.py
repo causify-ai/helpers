@@ -410,6 +410,7 @@ def git_files(  # type: ignore
     file_types="",
     pbcopy=False,
     only_print_files=False,
+    on_one_line=False,
     mode="files",
 ):
     """
@@ -420,6 +421,7 @@ def git_files(  # type: ignore
     :param file_types: Comma-separated list of file extensions to include
         (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
     :param only_print_files: only print files without logging headers/footers (default: False)
+    :param on_one_line: show results only in "On one line" format (default: False)
     :param mode: Output mode:
         - "files": print the changed files
         - "test_files": print test files associated with the changed source files
@@ -466,15 +468,19 @@ def git_files(  # type: ignore
         test_files = hunteuti.get_test_files_for_sources(files_as_list)
         test_dirs = hunteuti.get_parent_dirs(test_files)
         output_list = sorted(test_dirs)
-    # Print results in two formats: vertical (one per line) and horizontal
-    # (space-separated).
-    print(hprint.frame("Results", char1="="))
-    print("\n".join(output_list))
-    # Optionally display and copy the file list to clipboard for easy pasting.
-    if not only_print_files:
-        print(hprint.frame("On one line", char1="="))
-        res = " ".join(output_list)
+    # Print results in one of two formats: vertical or space-separated.
+    res = " ".join(output_list)
+    if on_one_line:
+        # Show "On one line" format (space-separated).
+        if not only_print_files:
+            print(hprint.frame("On one line", char1="="))
+        print(res)
         hsystem.to_pbcopy(res, pbcopy)
+    else:
+        # Show "Results" format (vertical).
+        if not only_print_files:
+            print(hprint.frame("Results", char1="="))
+        print("\n".join(output_list))
 
 
 @task

@@ -6,6 +6,18 @@ from typing import Any, Optional
 import pandas as pd
 import pytest
 
+
+def _is_inside_docker() -> bool:
+    """
+    Return whether we are inside a container or not.
+    """
+    return os.path.exists("/.dockerenv")
+
+
+if not _is_inside_docker():
+    pytest.skip("Skipping: tests require dev container", allow_module_level=True)
+
+
 import config_root.config as cconfig
 import helpers.hio as hio
 import helpers.hplayback as hplayba
