@@ -2,26 +2,31 @@
 
 <!-- toc -->
 
-  * [Run Unit Tests](#run-unit-tests)
-    + [Test Lists](#test-lists)
-    + [Using `invoke`](#using-invoke)
-    + [Timeout](#timeout)
-    + [Rerunning Timed Out Tests](#rerunning-timed-out-tests)
-    + [Compute Test Coverage](#compute-test-coverage)
+  - [Run Unit Tests](#run-unit-tests)
+    - [Quick Start](#quick-start)
+    - [Test Execution Pipeline](#test-execution-pipeline)
+    - [Test Lists](#test-lists)
+    - [Using `invoke`](#using-invoke)
+    - [Timeout](#timeout)
+    - [Rerunning Timed Out Tests](#rerunning-timed-out-tests)
+    - [Compute Test Coverage](#compute-test-coverage)
       - [An Example Coverage Session](#an-example-coverage-session)
       - [An Example with Customized `Pytest-Cov` Html Run](#an-example-with-customized-pytest-cov-html-run)
       - [Generate Coverage Report with `invoke`](#generate-coverage-report-with-invoke)
       - [Publishing HTML Report on S3](#publishing-html-report-on-s3)
-  * [Running `pytest` Directly](#running-pytest-directly)
-    + [Basic Rules](#basic-rules)
-  * [Usage and Invocations Reference](#usage-and-invocations-reference)
-    + [Custom `pytest` Options Behaviors](#custom-pytest-options-behaviors)
-    + [Debugging Notebooks](#debugging-notebooks)
-  * [Running Tests on GH Actions](#running-tests-on-gh-actions)
-    + [How to Run a Single Test on GH Action](#how-to-run-a-single-test-on-gh-action)
+      - [Run coverage for an entire test suite](#run-coverage-for-an-entire-test-suite)
+  - [Running `pytest` Directly](#running-pytest-directly)
+    - [Basic Rules](#basic-rules)
+  - [Usage and Invocations Reference](#usage-and-invocations-reference)
+    - [Custom `pytest` Options Behaviors](#custom-pytest-options-behaviors)
+    - [Cleaning pytest artifacts](#cleaning-pytest-artifacts)
+    - [JUnit XML reporting](#junit-xml-reporting)
+    - [Debugging Notebooks](#debugging-notebooks)
+  - [Running Tests on GH Actions](#running-tests-on-gh-actions)
+    - [How to Run a Single Test on GH Action](#how-to-run-a-single-test-on-gh-action)
 - [`pytest_log`](#pytest_log)
-  * [`invoke traceback`](#invoke-traceback)
-  * [`invoke pytest_failed`](#invoke-pytest_failed)
+  - [`invoke traceback`](#invoke-traceback)
+  - [`invoke pytest_failed`](#invoke-pytest_failed)
 
 <!-- tocstop -->
 
@@ -30,6 +35,47 @@
 - We use `pytest` and `unittest` as testing framework
 - Before any PR (and ideally after a few commits), we want to run all the unit
   tests to make sure we didn't introduce any new bugs
+
+### Quick Start
+
+- Run all fast tests (< 5 s each) — do this before every PR:
+  ```bash
+  i run_fast_tests
+  ```
+- Run a single test class or method:
+  ```bash
+  pytest helpers/test/test_hunit_test.py::TestCheckString1 -v
+  pytest helpers/test/test_hunit_test.py::TestCheckString1::test_check_string1 -v
+  ```
+- Update golden outcome files after an intentional output change:
+  ```bash
+  i run_fast_tests --pytest-opts="--update_outcomes"
+  ```
+- Re-run only the tests that failed in the previous run:
+  ```bash
+  i pytest_failed
+  ```
+- Save test output to a log file for later inspection (written to
+  `tmp.pytest.log` in the repo root):
+  ```bash
+  i run_fast_tests --tee-to-file
+  ```
+
+### Test Execution Pipeline
+
+- The standard test run goes through three layers: your shell command, a Docker
+  container, and pytest with our custom `hunitest.TestCase`
+
+```mermaid
+flowchart LR
+    Dev[Developer] -->|i run_fast_tests| Invoke[invoke task]
+    Invoke -->|docker exec| Docker[Docker container]
+    Docker -->|pytest -m 'not slow'| Pytest[pytest runner]
+    Pytest --> TC[hunitest.TestCase]
+    TC --> Gold{Golden files\nin outcomes/}
+    Gold -- match --> OK[PASS]
+    Gold -- mismatch --> FAIL[FAIL + vimdiff script]
+```
 
 ### Test Lists
 
@@ -553,6 +599,17 @@
   - E.g.
     [http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/](http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/)
 
+#### Run coverage for an entire test suite
+
+- Use `invoke run_coverage` with `--suite` to run coverage across all tests in a
+  tier and optionally generate an HTML report:
+
+  ```bash
+  > i run_coverage --suite fast --generate-html-report
+  > i run_coverage --suite slow --generate-html-report
+  > i run_coverage --suite superslow --generate-html-report
+  ```
+
 ## Running `pytest` Directly
 
 ### Basic Rules
@@ -627,6 +684,57 @@
     ```bash
     > pytest --incremental
     ```
+
+- **Update LLM cache**
+  - Regenerate the shared LLM response cache used by tests that call language
+    model APIs; without this flag the cached responses are replayed
+
+    ```bash
+    > pytest --update_llm_cache
+    ```
+
+- **Set log verbosity**
+  - Fine-grained control over the Python logging level during a test run
+    (distinct from `--dbg`, which sets the internal TRACE level)
+
+    ```bash
+    > pytest --dbg_verbosity DEBUG     # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    > pytest --dbg_verbosity WARNING
+    ```
+
+  - Implicitly adds `-s` so that log output is not captured by pytest
+
+### Cleaning pytest artifacts
+
+- `helpers.hpytest.pytest_clean(dir_name, preview=False)` removes
+  `.pytest_cache/`, `__pycache__/`, and `*.pyc` files under `dir_name`
+
+  ```python
+  import helpers.hpytest as hpytest
+
+  # Preview what would be deleted, then delete for real.
+  hpytest.pytest_clean(".", preview=True)
+  hpytest.pytest_clean(".")
+  ```
+
+- Useful in CI scripts or local cleanup after long test runs
+
+### JUnit XML reporting
+
+- `helpers.hpytest.JUnitReporter` parses JUnit XML produced by
+  `pytest --junitxml=results.xml` and prints a colored summary
+
+  ```python
+  import helpers.hpytest as hpytest
+
+  reporter = hpytest.JUnitReporter("results.xml")
+  reporter.parse()
+  reporter.print_summary()
+  ```
+
+  - Output includes pass/fail/skip counts, total time, and per-test status
+    with colour highlighting
+  - Useful in CI scripts to surface failures without reading raw XML
 
 ### Debugging Notebooks
 
