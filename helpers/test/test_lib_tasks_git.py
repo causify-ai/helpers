@@ -133,24 +133,18 @@ class TestFilterGitFilesByType(hunitest.TestCase):
     def helper(
         self,
         files: List[str],
-        keep_python: bool,
-        keep_jupyter: bool,
-        keep_markdown: bool,
+        file_types: List[str],
         expected: List[str],
     ) -> None:
         """
         Test helper for _filter_git_files_by_type.
 
         :param files: List of files to filter
-        :param keep_python: include Python files
-        :param keep_jupyter: include Jupyter notebooks
-        :param keep_markdown: include Markdown files
+        :param file_types: List of file extensions to include (e.g., ["py", "ipynb", "md"])
         :param expected: Expected filtered result
         """
         # Run test.
-        result = hlitagit._filter_git_files_by_type(
-            files, keep_python, keep_jupyter, keep_markdown
-        )
+        result = hlitagit._filter_git_files_by_type(files, file_types)
         # Check outputs.
         self.assertEqual(result, expected)
 
@@ -160,13 +154,11 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         """
         # Prepare inputs.
         files = ["foo.py", "bar.ipynb", "baz.md"]
-        keep_python = True
-        keep_jupyter = False
-        keep_markdown = False
+        file_types = ["py"]
         # Prepare outputs.
         expected = ["foo.py"]
         # Run test.
-        self.helper(files, keep_python, keep_jupyter, keep_markdown, expected)
+        self.helper(files, file_types, expected)
 
     def test2(self) -> None:
         """
@@ -174,13 +166,11 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         """
         # Prepare inputs.
         files = ["foo.py", "bar.ipynb", "baz.md"]
-        keep_python = False
-        keep_jupyter = True
-        keep_markdown = False
+        file_types = ["ipynb"]
         # Prepare outputs.
         expected = ["bar.ipynb"]
         # Run test.
-        self.helper(files, keep_python, keep_jupyter, keep_markdown, expected)
+        self.helper(files, file_types, expected)
 
     def test3(self) -> None:
         """
@@ -188,13 +178,11 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         """
         # Prepare inputs.
         files = ["foo.py", "bar.ipynb", "baz.md"]
-        keep_python = False
-        keep_jupyter = False
-        keep_markdown = True
+        file_types = ["md"]
         # Prepare outputs.
         expected = ["baz.md"]
         # Run test.
-        self.helper(files, keep_python, keep_jupyter, keep_markdown, expected)
+        self.helper(files, file_types, expected)
 
     def test4(self) -> None:
         """
@@ -202,13 +190,11 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         """
         # Prepare inputs.
         files = ["foo.py", "bar.ipynb", "baz.md", "qux.txt"]
-        keep_python = True
-        keep_jupyter = False
-        keep_markdown = True
+        file_types = ["py", "md"]
         # Prepare outputs.
         expected = ["foo.py", "baz.md"]
         # Run test.
-        self.helper(files, keep_python, keep_jupyter, keep_markdown, expected)
+        self.helper(files, file_types, expected)
 
     def test5(self) -> None:
         """
@@ -216,13 +202,11 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         """
         # Prepare inputs.
         files = ["foo.py", "bar.ipynb", "baz.md"]
-        keep_python = True
-        keep_jupyter = True
-        keep_markdown = True
+        file_types = ["py", "ipynb", "md"]
         # Prepare outputs.
         expected = files
         # Run test.
-        self.helper(files, keep_python, keep_jupyter, keep_markdown, expected)
+        self.helper(files, file_types, expected)
 
     def test6(self) -> None:
         """
@@ -230,13 +214,11 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         """
         # Prepare inputs.
         files: List[str] = []
-        keep_python = True
-        keep_jupyter = True
-        keep_markdown = False
+        file_types = ["py", "ipynb"]
         # Prepare outputs.
         expected: List[str] = []
         # Run test.
-        self.helper(files, keep_python, keep_jupyter, keep_markdown, expected)
+        self.helper(files, file_types, expected)
 
     def test7(self) -> None:
         """
@@ -244,13 +226,11 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         """
         # Prepare inputs.
         files = ["foo.py", "bar.ipynb", "baz.md"]
-        keep_python = False
-        keep_jupyter = False
-        keep_markdown = False
+        file_types: List[str] = []
         # Prepare outputs.
-        expected: List[str] = []
+        expected = files
         # Run test.
-        self.helper(files, keep_python, keep_jupyter, keep_markdown, expected)
+        self.helper(files, file_types, expected)
 
     def test8(self) -> None:
         """
@@ -258,10 +238,8 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         """
         # Prepare inputs.
         files = ["c.py", "a.ipynb", "b.md", "d.py"]
-        keep_python = True
-        keep_jupyter = False
-        keep_markdown = True
+        file_types = ["py", "md"]
         # Prepare outputs.
         expected = ["c.py", "b.md", "d.py"]
         # Run test.
-        self.helper(files, keep_python, keep_jupyter, keep_markdown, expected)
+        self.helper(files, file_types, expected)

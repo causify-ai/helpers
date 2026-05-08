@@ -443,7 +443,9 @@ def header_list_to_str(header_list: HeaderList) -> str:
     return "\n".join([str(header) for header in header_list])
 
 
-def sanity_check_header_list(header_list: HeaderList) -> None:
+def sanity_check_header_list(
+    header_list: HeaderList, *, warn_on_malformed: bool = False
+) -> None:
     """
     Check that the header list is valid.
 
@@ -474,6 +476,8 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
          ```
 
     :param header_list: list of headers to validate
+    :param warn_on_malformed: if True, emit warnings for malformed headers
+        instead of raising exceptions
     """
     # 1) The first header should be level 1.
     if header_list and header_list[0].level > 1:
@@ -487,7 +491,7 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
     level_1_headers = [
         header.description for header in header_list if header.level == 1
     ]
-    hdbg.dassert_no_duplicates(level_1_headers)
+    hdbg.dassert_no_duplicates(level_1_headers, only_warning=warn_on_malformed)
     # 3) Check that consecutive elements in the header list only increase by at
     #    most one level at a time (even if it can decrease by multiple levels).
     if len(header_list) > 1:
@@ -502,7 +506,10 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
                 msg.append(f"  {header_list[i - 1]}")
                 msg.append(f"  {header_list[i]}")
                 msg = "\n".join(msg)
-                raise ValueError(msg)
+                if warn_on_malformed:
+                    _LOG.warning(f"Malformed header structure: {msg}")
+                else:
+                    raise ValueError(msg)
 
 
 # TODO(gp): Move sanity check outside?

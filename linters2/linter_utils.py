@@ -103,7 +103,7 @@ def get_files_to_check(
     dir_name: Optional[str],
     modified: bool,
     last_commit: bool,
-    branch: bool,
+    branch: Optional[str],
 ) -> List[str]:
     """
     Get the files to be processed by Linter/Reviewer.
@@ -116,7 +116,9 @@ def get_files_to_check(
     :param last_commit: process the files modified in the previous
         commit
     :param branch: process the files modified in the current branch
-        w.r.t. master
+        with respect to the specified branch (e.g. "master")
+        - If provided as a string, use that branch
+        - If None, skip this option
     :return: paths of the files to process
     """
     file_paths: List[str] = []
@@ -138,7 +140,7 @@ def get_files_to_check(
         file_paths = hgit.get_previous_committed_files()
     elif branch:
         # Get all the files modified in the branch.
-        file_paths = hgit.get_modified_files_in_branch(dst_branch="master")
+        file_paths = hgit.get_modified_files_in_branch(dst_branch=branch)
     elif dir_name:
         # Get the files in a specified dir.
         if dir_name == "$GIT_ROOT":

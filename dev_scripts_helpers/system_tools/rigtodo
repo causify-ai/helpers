@@ -3,4 +3,4 @@
 # Run rig looking for `TODO` for `ai_gp` pattern.
 # """
 
-rig 'TODO\(ai_gp\)' "$@"
+rig 'TODO\(ai_gp\)' "$@" | grep -v cfile

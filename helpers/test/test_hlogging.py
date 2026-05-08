@@ -2,6 +2,14 @@ import asyncio
 import logging
 from typing import Optional
 
+import pytest
+
+import helpers.hserver as hserver
+
+if not hserver.is_inside_docker():
+    pytest.skip("Skipping: tests require dev container", allow_module_level=True)
+
+
 import helpers.hasyncio as hasynci
 import helpers.hdatetime as hdateti
 import helpers.hlogging as hloggin
@@ -12,19 +20,14 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_logging1
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_logging1(hunitest.TestCase):
     def test_logging_levels1(self) -> None:
         hloggin.test_logger()
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -32,6 +35,7 @@ class Test_logging1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_hlogging_asyncio1(hunitest.TestCase):
     @staticmethod
     async def workload(get_wall_clock_time: hdateti.GetWallClockTime) -> None:

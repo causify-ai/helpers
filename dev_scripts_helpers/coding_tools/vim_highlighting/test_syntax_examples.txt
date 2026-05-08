@@ -1,0 +1,50 @@
+# Test file for txt_syntax highlighting
+
+## Test 1: Double dollar math $$ ... $$
+$$AmountSold = \alpha + \beta_1 IsOnSales + \beta_2 BusinessSize + \varepsilon$$
+
+This should be highlighted green: $$Y = X + \epsilon$$
+
+## Test 2: Single dollar math $ ... $
+Simple inline math: $T_i = 1$ if unit $i$ receives treatment.
+
+Multiple variables: $X$, $Y$, $Z$ in the same line.
+
+## Test 3: Bullet points
+* Sales example
+* Another bullet point
+
+## Test 4: Comments (should be Label color)
+// This is a comment
+// Another comment line
+
+## Test 5: Image syntax with pandoc attributes
+![](path/to/image.jpg)
+
+![](path/to/image.jpg){width=1.5cm}
+
+## Test 6: Markdown image in indented column
+:::: {.column width=75%}
+![](msml610/lectures_source/figures/UMD_Logo.png)
+::::
+
+## Test 7: LaTeX commands (should not break highlighting)
+\begingroup \large
+Text here
+\endgroup
+
+## Test 8: Complex mixed content
+- **Treatment $T$**: The indicator variable
+- **Outcome $Y$**: The response variable
+- Sometimes $T$ is denoted with $D$
+
+## Test 9: Backtick code fence
+```python
+def hello():
+    return "world"
+```
+
+## Test 10: Italic and bold
+*italic text* and **bold text**
+
+_underscore italic_ and __underscore bold__

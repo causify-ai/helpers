@@ -58,7 +58,6 @@ class Test_filter_by_header1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs.
         with self.assertRaises(ValueError):
             hmarfilt.filter_by_header(lines, "NonExistent")
@@ -70,51 +69,76 @@ class Test_filter_by_header1(hunitest.TestCase):
 
 
 class Test_parse_range1(hunitest.TestCase):
+    def helper(
+        self, range_str: str, max_value: int, exp_start: int, exp_end: int
+    ) -> None:
+        """
+        Test helper for _parse_range.
+
+        :param range_str: range string to parse
+        :param max_value: maximum value for end bounds
+        :param exp_start: expected start value
+        :param exp_end: expected end value
+        """
+        # Run test.
+        start, end = hmarfilt._parse_range(range_str, max_value)
+        # Check outputs.
+        self.assertEqual(start, exp_start)
+        self.assertEqual(end, exp_end)
+
     def test_numeric_range(self) -> None:
         """
         Test parsing numeric range (0-indexed).
         """
+        # Prepare inputs.
+        range_str = "0:10"
+        max_value = 20
+        exp_start = 0
+        exp_end = 10
         # Run test.
-        start, end = hmarfilt._parse_range("0:10", 20)
-        # Check outputs.
-        self.assertEqual(start, 0)
-        self.assertEqual(end, 10)
+        self.helper(range_str, max_value, exp_start, exp_end)
 
     def test_none_start(self) -> None:
         """
         Test range with None start (defaults to 0).
         """
+        # Prepare inputs.
+        range_str = "None:10"
+        max_value = 20
+        exp_start = 0
+        exp_end = 10
         # Run test.
-        start, end = hmarfilt._parse_range("None:10", 20)
-        # Check outputs.
-        self.assertEqual(start, 0)
-        self.assertEqual(end, 10)
+        self.helper(range_str, max_value, exp_start, exp_end)
 
     def test_none_end(self) -> None:
         """
         Test range with None end (defaults to max_value).
         """
+        # Prepare inputs.
+        range_str = "0:None"
+        max_value = 20
+        exp_start = 0
+        exp_end = 20
         # Run test.
-        start, end = hmarfilt._parse_range("0:None", 20)
-        # Check outputs.
-        self.assertEqual(start, 0)
-        self.assertEqual(end, 20)
+        self.helper(range_str, max_value, exp_start, exp_end)
 
     def test_both_none(self) -> None:
         """
         Test range with both None (0:max_value).
         """
+        # Prepare inputs.
+        range_str = "None:None"
+        max_value = 20
+        exp_start = 0
+        exp_end = 20
         # Run test.
-        start, end = hmarfilt._parse_range("None:None", 20)
-        # Check outputs.
-        self.assertEqual(start, 0)
-        self.assertEqual(end, 20)
+        self.helper(range_str, max_value, exp_start, exp_end)
 
     def test_invalid_range(self) -> None:
         """
         Test invalid range format.
         """
-        # Run test.
+        # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("invalid", 20)
 
@@ -122,11 +146,13 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test case insensitive None parsing.
         """
+        # Prepare inputs.
+        range_str = "NONE:none"
+        max_value = 20
+        exp_start = 0
+        exp_end = 20
         # Run test.
-        start, end = hmarfilt._parse_range("NONE:none", 20)
-        # Check outputs.
-        self.assertEqual(start, 0)
-        self.assertEqual(end, 20)
+        self.helper(range_str, max_value, exp_start, exp_end)
 
 
 # #############################################################################
@@ -135,6 +161,23 @@ class Test_parse_range1(hunitest.TestCase):
 
 
 class Test_filter_by_lines1(hunitest.TestCase):
+    def helper(self, test_content: str, filter_str: str, expected: str) -> None:
+        """
+        Test helper for filter_by_lines.
+
+        :param test_content: multiline test content
+        :param filter_str: range filter string (e.g., "1:3")
+        :param expected: expected filtered output
+        """
+        # Prepare inputs.
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test.
+        result_lines = hmarfilt.filter_by_lines(lines, filter_str)
+        result_content = "\n".join(result_lines)
+        # Check outputs.
+        self.assertEqual(result_content, expected)
+
     def test_basic_line_filtering(self) -> None:
         """
         Test basic line filtering functionality (0-indexed).
@@ -147,14 +190,10 @@ class Test_filter_by_lines1(hunitest.TestCase):
         Line 4
         Line 5
         """
-        test_content = hprint.dedent(test_content)
-        lines = test_content.split("\n")
-        # Run test (indices 1:3 = Line 2 and Line 3).
-        result_lines = hmarfilt.filter_by_lines(lines, "1:3")
-        result_content = "\n".join(result_lines)
-        # Check outputs.
+        filter_str = "1:3"
         expected = "Line 2\nLine 3"
-        self.assertEqual(result_content, expected)
+        # Run test.
+        self.helper(test_content, filter_str, expected)
 
     def test_line_filtering_with_none(self) -> None:
         """
@@ -168,14 +207,10 @@ class Test_filter_by_lines1(hunitest.TestCase):
         Line 4
         Line 5
         """
-        test_content = hprint.dedent(test_content)
-        lines = test_content.split("\n")
-        # Run test (None:2 = indices 0:2 = Line 1 and Line 2).
-        result_lines = hmarfilt.filter_by_lines(lines, "None:2")
-        result_content = "\n".join(result_lines)
-        # Check outputs.
+        filter_str = "None:2"
         expected = "Line 1\nLine 2"
-        self.assertEqual(result_content, expected)
+        # Run test.
+        self.helper(test_content, filter_str, expected)
 
     def test_line_filtering_to_end(self) -> None:
         """
@@ -187,14 +222,10 @@ class Test_filter_by_lines1(hunitest.TestCase):
         Line 2
         Line 3
         """
-        test_content = hprint.dedent(test_content)
-        lines = test_content.split("\n")
-        # Run test (1:None = indices 1:3 = Line 2 and Line 3).
-        result_lines = hmarfilt.filter_by_lines(lines, "1:None")
-        result_content = "\n".join(result_lines)
-        # Check outputs.
+        filter_str = "1:None"
         expected = "Line 2\nLine 3"
-        self.assertEqual(result_content, expected)
+        # Run test.
+        self.helper(test_content, filter_str, expected)
 
     def test_invalid_range_order(self) -> None:
         """
@@ -203,7 +234,6 @@ class Test_filter_by_lines1(hunitest.TestCase):
         # Prepare inputs.
         test_content = "Line 1\nLine 2\nLine 3"
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_lines(lines, "2:1")
@@ -215,6 +245,23 @@ class Test_filter_by_lines1(hunitest.TestCase):
 
 
 class Test_filter_by_slides1(hunitest.TestCase):
+    def helper(self, test_content: str, filter_str: str, expected: str) -> None:
+        """
+        Test helper for filter_by_slides.
+
+        :param test_content: multiline test content
+        :param filter_str: range filter string (e.g., "0:1")
+        :param expected: expected filtered output
+        """
+        # Prepare inputs.
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test.
+        result_lines = hmarfilt.filter_by_slides(lines, filter_str)
+        result_content = "\n".join(result_lines)
+        # Check outputs.
+        self.assert_equal(result_content, expected, dedent=True)
+
     def test_basic_slide_filtering(self) -> None:
         """
         Test basic slide filtering functionality.
@@ -235,14 +282,14 @@ class Test_filter_by_slides1(hunitest.TestCase):
         * Slide 3
         Content for slide 3.
         """
-        test_content = hprint.dedent(test_content)
-        lines = test_content.split("\n")
+        filter_str = "0:1"
+        expected = """
+        * Slide 1
+        Content for slide 1.
+
+        """
         # Run test.
-        result_lines = hmarfilt.filter_by_slides(lines, "0:1")
-        result_content = "\n".join(result_lines)
-        # Check outputs.
-        self.assertIn("Slide 1", result_content)
-        self.assertNotIn("Slide 2", result_content)
+        self.helper(test_content, filter_str, expected)
 
     def test_slide_filtering_with_none_end(self) -> None:
         """
@@ -256,14 +303,16 @@ class Test_filter_by_slides1(hunitest.TestCase):
         * Slide 2
         Content 2.
         """
-        test_content = hprint.dedent(test_content)
-        lines = test_content.split("\n")
+        filter_str = "0:None"
+        expected = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+
+        """
         # Run test.
-        result_lines = hmarfilt.filter_by_slides(lines, "0:None")
-        result_content = "\n".join(result_lines)
-        # Check outputs.
-        self.assertIn("Slide 1", result_content)
-        self.assertIn("Slide 2", result_content)
+        self.helper(test_content, filter_str, expected)
 
     def test_slide_filtering_invalid_range(self) -> None:
         """
@@ -276,7 +325,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(lines, "1:0")
@@ -292,7 +340,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(lines, "0:5")
@@ -308,7 +355,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs (should fail validation since there are no slides).
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(lines, "0:1")
@@ -323,14 +369,13 @@ class Test_filter_by_slides1(hunitest.TestCase):
         This is the only content.
         Additional content after the slide.
         """
-        test_content = hprint.dedent(test_content)
-        lines = test_content.split("\n")
-        # Run test (0:1 = only slide at index 0).
-        result_lines = hmarfilt.filter_by_slides(lines, "0:1")
-        result_content = "\n".join(result_lines)
-        # Check outputs.
-        self.assertIn("Only Slide", result_content)
-        self.assertIn("This is the only content.", result_content)
+        filter_str = "0:1"
+        expected = """
+        * Only Slide
+        This is the only content.
+        """
+        # Run test.
+        self.helper(test_content, filter_str, expected)
 
     def test_slide_end_boundary(self) -> None:
         """
@@ -344,14 +389,16 @@ class Test_filter_by_slides1(hunitest.TestCase):
         * Slide 2
         Content 2.
         """
-        test_content = hprint.dedent(test_content)
-        lines = test_content.split("\n")
-        # Run test (0:2 = slides 0 and 1).
-        result_lines = hmarfilt.filter_by_slides(lines, "0:2")
-        result_content = "\n".join(result_lines)
-        # Check outputs.
-        self.assertIn("Slide 1", result_content)
-        self.assertIn("Slide 2", result_content)
+        filter_str = "0:2"
+        expected = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+
+        """
+        # Run test.
+        self.helper(test_content, filter_str, expected)
 
 
 # #############################################################################
@@ -391,14 +438,12 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         """
         Test edge cases for range parsing (0-indexed).
         """
-        # Run test.
+        # Test case: 0:0 range.
         start, end = hmarfilt._parse_range("0:0", 1)
-        # Check outputs.
         self.assertEqual(start, 0)
         self.assertEqual(end, 0)
-        # Run test.
+        # Test case: None:None range.
         start, end = hmarfilt._parse_range("None:None", 1000)
-        # Check outputs.
         self.assertEqual(start, 0)
         self.assertEqual(end, 1000)
 
@@ -409,7 +454,7 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         # Prepare inputs.
         test_content = "Single line content"
         lines = test_content.split("\n")
-        # Run test (0:0 = empty range).
+        # Run test.
         result_lines = hmarfilt.filter_by_lines(lines, "0:0")
         result_content = "\n".join(result_lines)
         # Check outputs.
@@ -427,23 +472,266 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test (0:2 = indices 0 and 1 = Line 1 and Line 2).
+        expected = "Line 1\nLine 2"
+        # Run test.
         result_lines = hmarfilt.filter_by_lines(lines, "0:2")
         result_content = "\n".join(result_lines)
         # Check outputs.
-        expected = "Line 1\nLine 2"
         self.assertEqual(result_content, expected)
 
     def test_parse_range_invalid_formats(self) -> None:
         """
         Test various invalid range formats.
         """
-        # Run test.
+        # Test case: single value format.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("5", 10)
-        # Run test.
+        # Test case: empty string.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("", 10)
-        # Run test.
+        # Test case: too many colons.
         with self.assertRaises(ValueError):
             hmarfilt._parse_range("1:2:3", 10)
+
+
+# #############################################################################
+# Test_filter_by_name1
+# #############################################################################
+
+
+class Test_filter_by_name1(hunitest.TestCase):
+    def helper(
+        self, test_content: str, filter_name: str, num_slides: int, expected: str
+    ) -> None:
+        """
+        Test helper for filter_by_name.
+
+        :param test_content: multiline test content
+        :param filter_name: slide name to filter by
+        :param num_slides: number of slides to keep
+        :param expected: expected filtered output
+        """
+        # Prepare inputs.
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test.
+        result_lines = hmarfilt.filter_by_name(
+            lines, filter_name, num_slides=num_slides
+        )
+        result_content = "\n".join(result_lines)
+        # Check outputs.
+        self.assert_equal(result_content, expected, dedent=True)
+
+    def test_basic_name_filtering(self) -> None:
+        """
+        Test basic slide name filtering functionality.
+        """
+        # Prepare inputs.
+        test_content = """
+        * Introduction
+        Content for introduction.
+
+        * Main Topic
+        Content for main topic.
+
+        * Conclusion
+        Content for conclusion.
+        """
+        filter_name = "Main Topic"
+        num_slides = 1
+        expected = """
+        * Main Topic
+        Content for main topic.
+
+        """
+        # Run test.
+        self.helper(test_content, filter_name, num_slides, expected)
+
+    def test_partial_name_matching(self) -> None:
+        """
+        Test partial name matching (case-sensitive).
+        """
+        # Prepare inputs.
+        test_content = """
+        * Introduction
+        Content 1.
+
+        * Advanced Topics
+        Content 2.
+
+        * Conclusion
+        Content 3.
+        """
+        filter_name = "Topics"
+        num_slides = 1
+        expected = """
+        * Advanced Topics
+        Content 2.
+
+        """
+        # Run test.
+        self.helper(test_content, filter_name, num_slides, expected)
+
+    def test_multiple_slides_after_match(self) -> None:
+        """
+        Test keeping multiple slides after match (including matched slide).
+        """
+        # Prepare inputs.
+        test_content = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+        Content 2.
+
+        * Slide 3
+        Content 3.
+
+        * Slide 4
+        Content 4.
+        """
+        filter_name = "Slide 2"
+        num_slides = 3
+        expected = """
+        * Slide 2
+        Content 2.
+
+        * Slide 3
+        Content 3.
+
+        * Slide 4
+
+        """
+        # Run test.
+        self.helper(test_content, filter_name, num_slides, expected)
+
+    def test_no_matching_slides(self) -> None:
+        """
+        Test error when no slides match the name.
+        """
+        # Prepare inputs.
+        test_content = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+        Content 2.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test.
+        with self.assertRaises(AssertionError) as cm:
+            hmarfilt.filter_by_name(lines, "NonExistent", num_slides=1)
+        # Check outputs.
+        self.assertIn("No slides found matching", str(cm.exception))
+
+    def test_multiple_matching_slides(self) -> None:
+        """
+        Test error when multiple slides match the name.
+        """
+        # Prepare inputs.
+        test_content = """
+        * Introduction Topic
+        Content 1.
+
+        * Main Topic
+        Content 2.
+
+        * Conclusion
+        Content 3.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test (both "Introduction Topic" and "Main Topic" contain "Topic").
+        with self.assertRaises(AssertionError) as cm:
+            hmarfilt.filter_by_name(lines, "Topic", num_slides=1)
+        # Check outputs.
+        self.assertIn("Multiple slides match", str(cm.exception))
+
+    def test_case_sensitive_matching(self) -> None:
+        """
+        Test that matching is case-sensitive.
+        """
+        # Prepare inputs.
+        test_content = """
+        * Introduction
+        Content 1.
+
+        * Advanced Topics
+        Content 2.
+
+        * Conclusion
+        Content 3.
+        """
+        test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
+        # Run test (lowercase "advanced" should NOT match "Advanced Topics").
+        with self.assertRaises(AssertionError):
+            hmarfilt.filter_by_name(lines, "advanced", num_slides=1)
+
+    def test_match_at_end_of_slides(self) -> None:
+        """
+        Test matching slide at the end (no slides after it).
+        """
+        # Prepare inputs.
+        test_content = """
+        * Slide 1
+        Content 1.
+
+        * Last Slide
+        Content last.
+        """
+        filter_name = "Last Slide"
+        num_slides = 5
+        expected = """
+        * Last Slide
+
+        """
+        # Run test.
+        self.helper(test_content, filter_name, num_slides, expected)
+
+    def test_num_slides_default(self) -> None:
+        """
+        Test default num_slides value (should be 5).
+        """
+        # Prepare inputs.
+        test_content = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+        Content 2.
+
+        * Slide 3
+        Content 3.
+
+        * Slide 4
+        Content 4.
+
+        * Slide 5
+        Content 5.
+
+        * Slide 6
+        Content 6.
+        """
+        filter_name = "Slide 1"
+        num_slides = 5
+        expected = """
+        * Slide 1
+        Content 1.
+
+        * Slide 2
+        Content 2.
+
+        * Slide 3
+        Content 3.
+
+        * Slide 4
+        Content 4.
+
+        * Slide 5
+        Content 5.
+
+        """
+        # Run test.
+        self.helper(test_content, filter_name, num_slides, expected)
