@@ -1532,6 +1532,35 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
             hsystem.system(f"tmux rename-window '{old_pane_title}'")
 
 
+# #############################################################################
+
+
+def _has_ug_write_perms(file_path: str) -> bool:
+    """
+    Check if file has write permissions for user and group.
+    """
+    try:
+        st_mode = os.stat(file_path).st_mode
+        user_write = st_mode & stat.S_IWUSR
+        group_write = st_mode & stat.S_IWGRP
+        return bool(user_write and group_write)
+    except OSError:
+        return False
+
+
+def _fix_file_perms(file_path: str) -> bool:
+    """
+    Apply chmod ug+w to a file.
+    """
+    try:
+        cmd = f"chmod ug+w '{file_path}'"
+        hsystem.system(cmd, abort_on_error=False)
+        return True
+    except Exception as e:
+        _LOG.warning("Failed to fix permissions for %s: %s", file_path, e)
+        return False
+
+
 @task
 def git_fix_perms(ctx, check=True, fix=False, dir_name="."):  # type: ignore
     """
@@ -1545,59 +1574,28 @@ def git_fix_perms(ctx, check=True, fix=False, dir_name="."):  # type: ignore
     """
     _ = ctx
     hlitauti.report_task(txt=hprint.to_str("check fix dir_name"))
-
-    def _has_ug_write_perms(file_path: str) -> bool:
-        """
-        Check if file has write permissions for user and group.
-        """
-        try:
-            st_mode = os.stat(file_path).st_mode
-            user_write = st_mode & stat.S_IWUSR
-            group_write = st_mode & stat.S_IWGRP
-            return bool(user_write and group_write)
-        except OSError:
-            return False
-
-    def _fix_file_perms(file_path: str) -> bool:
-        """
-        Apply chmod ug+w to a file.
-        """
-        try:
-            cmd = f"chmod ug+w '{file_path}'"
-            hsystem.system(cmd, abort_on_error=False)
-            return True
-        except Exception as e:
-            _LOG.warning("Failed to fix permissions for %s: %s", file_path, e)
-            return False
-
-    # Collect all files and directories
     _LOG.info("Scanning directory: %s", dir_name)
     files_to_fix = []
     files_checked = 0
-
     for dirpath, dirnames, filenames in os.walk(dir_name, topdown=True):
         # Skip .git directories for efficiency
         if ".git" in dirnames:
             dirnames.remove(".git")
-
-        # Check files
+        # Check files.
         for filename in filenames:
             file_path = os.path.join(dirpath, filename)
             files_checked += 1
             if not _has_ug_write_perms(file_path):
                 files_to_fix.append(file_path)
-
-        # Check directories
+        # Check directories.
         for dirname in dirnames:
             dir_path = os.path.join(dirpath, dirname)
             files_checked += 1
             if not _has_ug_write_perms(dir_path):
                 files_to_fix.append(dir_path)
-
-    # Report findings
+    # Report findings.
     _LOG.info("Checked %d files/directories", files_checked)
     _LOG.info("Found %d with wrong permissions", len(files_to_fix))
-
     if files_to_fix:
         if check:
             print(
@@ -1610,7 +1608,6 @@ def git_fix_perms(ctx, check=True, fix=False, dir_name="."):  # type: ignore
                 print(file_path)
             if len(files_to_fix) > 50:
                 print(f"... and {len(files_to_fix) - 50} more")
-
         if fix:
             _LOG.info("Fixing %d files/directories", len(files_to_fix))
             fixed_count = 0
