@@ -824,6 +824,7 @@ def git_branch_copy(  # type: ignore
     skip_git_merge_master=False,
     use_patch=False,
     check_branch_name=True,
+    method="auto",
 ):
     """
     Create a new branch with the same content of the current branch.
@@ -833,6 +834,10 @@ def git_branch_copy(  # type: ignore
     :param use_patch: apply patching instead of merging
     :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
+    :param method: method to use for generating branch name ('auto', 'github_api', 'linear_scan')
+        - 'auto' (default): tries GitHub API first, falls back to linear scan
+        - 'github_api': use only GitHub API method (fast)
+        - 'linear_scan': use only linear scan method (always works)
     """
     # Patch-based copying is not yet implemented.
     hdbg.dassert(
@@ -860,7 +865,7 @@ def git_branch_copy(  # type: ignore
         pass
     # Generate unique branch name if not provided.
     if new_branch_name is None or new_branch_name == "":
-        new_branch_name = hgit.get_branch_next_name()
+        new_branch_name = hgit.get_branch_next_name(method=method)
     _LOG.info("new_branch_name='%s'", new_branch_name)
     hdbg.dassert_ne(
         new_branch_name,

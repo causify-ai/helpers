@@ -101,13 +101,13 @@
   > git push
 
   # Check the diff between your branch and master.
-  > i git_branch_diff_with -t base --only-print-files
+  > i git_branch_diff -t base --only-print-files
   ```
 
 - The output looks like:
 
   ```bash
-  INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_diff_with -t base --only-print-files'
+  INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_diff -t base --only-print-files'
   04:58:35 - INFO  lib_tasks_git.py _git_diff_with_branch:726
   ###############################################################################
   # files=3
