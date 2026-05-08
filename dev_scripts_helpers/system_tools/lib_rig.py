@@ -137,6 +137,12 @@ def parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Print the ripgrep command and exit without running it",
     )
+    parser.add_argument(
+        "--rg_opts",
+        type=str,
+        default="",
+        help="Additional ripgrep options (e.g., '-S -i' for smart case and ignore case)",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -158,6 +164,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     result.all_files = parsed.all_files
     result.files_from_user = parsed.files
     result.dry_run = parsed.dry_run
+    result.rg_opts = parsed.rg_opts
     if parsed.positional:
         result.pattern = parsed.positional[0]
     if len(parsed.positional) > 1:
@@ -213,6 +220,9 @@ def main(
         # Plain output without ANSI colors.
         "--color=never",
     ]
+    # Append user-provided ripgrep options if any.
+    if parsed.rg_opts:
+        rg_opts.extend(parsed.rg_opts.split())
     # Retrieve filtered file list if user specified file selection criteria;
     # otherwise search entire directory.
     files = _get_files_to_search(

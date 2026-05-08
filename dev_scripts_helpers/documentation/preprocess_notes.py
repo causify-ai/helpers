@@ -23,7 +23,7 @@ import argparse
 import logging
 import os
 import re
-from typing import List, Optional, Tuple, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -47,6 +47,9 @@ _DEFAULT_ACTIONS = None
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",
+    "validate_slide_names",
+    "add_duplicate_counters",
+    "validate_unique_slide_names",
 ]
 
 # #############################################################################
@@ -167,6 +170,41 @@ def _process_question_to_slides(
     return do_continue, line
 
 
+def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
+    r"""
+    Extract the body content under a level-1 header with the given title.
+
+    Finds the header `# <title>` and returns the lines immediately following it
+    up to (but not including) the next level-1 header. The header line itself is
+    excluded from the result.
+
+    :param lines: list of lines to search
+    :param title: the header title to find (exact match)
+    :return: list of body lines, or None if header not found
+    """
+    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(title, str)
+    # Find the line with `# <title>` (level-1 header).
+    header_line_idx = None
+    header_pattern = rf"^#\s+{re.escape(title)}\s*$"
+    for i, line in enumerate(lines):
+        if re.match(header_pattern, line):
+            header_line_idx = i
+            break
+    if header_line_idx is None:
+        return None
+    # Find the next level-1 header (or end of file).
+    end_idx = len(lines)
+    for i in range(header_line_idx + 1, len(lines)):
+        is_header, level, _ = hmarkdo.is_header(lines[i])
+        if is_header and level == 1:
+            end_idx = i
+            break
+    # Return the body lines (excluding the header line itself).
+    result = lines[header_line_idx + 1 : end_idx]
+    return result
+
+
 def _expand_includes(lines: List[str]) -> List[str]:
     r"""
     Expand `// include:<FILE> "<TITLE>"` directives by inlining file sections.
@@ -236,39 +274,98 @@ def _expand_includes(lines: List[str]) -> List[str]:
     return out
 
 
-def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
-    r"""
-    Extract the body content under a level-1 header with the given title.
-
-    Finds the header `# <title>` and returns the lines immediately following it
-    up to (but not including) the next level-1 header. The header line itself is
-    excluded from the result.
-
-    :param lines: list of lines to search
-    :param title: the header title to find (exact match)
-    :return: list of body lines, or None if header not found
+def _validate_slide_names(lines: List[str]) -> None:
     """
-    hdbg.dassert_isinstance(lines, list)
-    hdbg.dassert_isinstance(title, str)
-    # Find the line with `# <title>` (level-1 header).
-    header_line_idx = None
-    header_pattern = rf"^#\s+{re.escape(title)}\s*$"
-    for i, line in enumerate(lines):
-        if re.match(header_pattern, line):
-            header_line_idx = i
-            break
-    if header_line_idx is None:
-        return None
-    # Find the next level-1 header (or end of file).
-    end_idx = len(lines)
-    for i in range(header_line_idx + 1, len(lines)):
-        is_header, level, _ = hmarkdo.is_header(lines[i])
-        if is_header and level == 1:
-            end_idx = i
-            break
-    # Return the body lines (excluding the header line itself).
-    result = lines[header_line_idx + 1 : end_idx]
-    return result
+    Validate that all slides (lines starting with '*') have non-whitespace titles.
+
+    :param lines: list of lines to validate
+    """
+    header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
+    for header_info in header_list:
+        hdbg.dassert(
+            header_info.description.strip(),
+            "Slide at line %d has no title (only whitespace)",
+            header_info.line_number,
+        )
+
+
+def _assert_no_existing_counters(lines: List[str]) -> None:
+    """
+    Assert that no slides already have counter-like format.
+
+    Prevents conflicts with automatically-added counters.
+
+    :param lines: list of lines to check
+    """
+    header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
+    counter_pattern = r"\(\d+/\d+\)\s*$"
+    for header_info in header_list:
+        hdbg.dassert(
+            not re.search(counter_pattern, header_info.description),
+            "Slide at line %d already has counter format (x/y): '%s'",
+            header_info.line_number,
+            header_info.description,
+        )
+
+
+def _add_duplicate_slide_counters(lines: List[str]) -> List[str]:
+    """
+    Add counters (x/y) to slides with duplicate names.
+
+    For slides with identical titles, appends counter in format:
+    "Original Title (1/n)", "Original Title (2/n)", etc.
+
+    :param lines: list of lines to process
+    :return: list of lines with counters added to duplicate slide names
+    """
+    header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
+    # Count occurrences of each slide name.
+    name_counts: Dict[str, int] = {}
+    for header_info in header_list:
+        name = header_info.description
+        name_counts[name] = name_counts.get(name, 0) + 1
+    # Build a mapping from line number to new title.
+    line_updates: Dict[int, str] = {}
+    name_indices: dict[str, int] = {}
+    for header_info in header_list:
+        name = header_info.description
+        count = name_counts[name]
+        if count > 1:
+            # This name appears multiple times, add counter.
+            name_indices[name] = name_indices.get(name, 0) + 1
+            new_name = f"{name} ({name_indices[name]}/{count})"
+            line_updates[header_info.line_number] = new_name
+    # Apply updates to the lines.
+    out: List[str] = []
+    for i, line in enumerate(lines, start=1):
+        if i in line_updates:
+            # Replace the slide title with the new title (with counter).
+            new_title = line_updates[i]
+            line = f"* {new_title}"
+        out.append(line)
+    return out
+
+
+def _validate_unique_slide_names(lines: List[str]) -> None:
+    """
+    Validate that all slides have unique titles.
+
+    :param lines: list of lines to validate
+    """
+    header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
+    seen_names: Dict[str, int] = {}
+    for header_info in header_list:
+        name = header_info.description
+        # TODO(ai_gp): dassert_not_in(...)
+        if name in seen_names:
+            hdbg.dassert(
+                False,
+                "Duplicate slide name found: '%s' at lines %d and %d",
+                name,
+                seen_names[name],
+                header_info.line_number,
+            )
+        seen_names[name] = header_info.line_number
 
 
 # TODO(gp): Use hmarkdown.process_lines().
@@ -588,6 +685,21 @@ def _preprocess_lines(
     elif toc_type == "remove_headers":
         # Remove headers smaller than level 4 so that we leave only the `*`.
         out = _remove_headers(out, max_level=4)
+    # Validate slide names.
+    to_execute, actions = hparser.mark_action("validate_slide_names", actions)
+    if to_execute:
+        _validate_slide_names(out)
+    # Add duplicate slide counters.
+    to_execute, actions = hparser.mark_action("add_duplicate_counters", actions)
+    if to_execute:
+        _assert_no_existing_counters(out)
+        out = _add_duplicate_slide_counters(out)
+    # Validate unique slide names.
+    to_execute, actions = hparser.mark_action(
+        "validate_unique_slide_names", actions
+    )
+    if to_execute:
+        _validate_unique_slide_names(out)
     hdbg.dassert_isinstance(out, list)
     return out
 

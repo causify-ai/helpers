@@ -42,7 +42,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
             ]
         }
         # Prepare outputs.
-        expected = "test.py:6:11: unused variable 'x'"
+        expected = "test.py:6:11: information: unused variable 'x'"
         # Run test.
         self.helper(json_data, expected)
 
@@ -66,7 +66,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
             ]
         }
         # Prepare outputs.
-        expected = "module.py:1:1: type mismatch\nmodule.py:11:6: undefined name"
+        expected = "module.py:1:1: information: type mismatch\nmodule.py:11:6: information: undefined name"
         # Run test.
         self.helper(json_data, expected)
 
@@ -107,7 +107,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
             ]
         }
         # Prepare outputs.
-        expected = "src/app.py:43:21: Expression is not defined"
+        expected = "src/app.py:43:21: information: Expression is not defined"
         # Run test.
         self.helper(json_data, expected)
 
@@ -126,7 +126,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
             ]
         }
         # Prepare outputs.
-        expected = "test.py:1:1: error line 1, error line 2"
+        expected = "test.py:1:1: information: error line 1, error line 2"
         # Run test.
         self.helper(json_data, expected)
 
@@ -146,7 +146,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
             ]
         }
         # Prepare outputs.
-        expected = "test.py:1:1: " + "a" * 97 + "..."
+        expected = "test.py:1:1: information: " + "a" * 97 + "..."
         # Run test.
         self.helper(json_data, expected)
 
@@ -167,7 +167,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
         }
         # Prepare outputs.
         expected = (
-            "test.py:1:1: "
+            "test.py:1:1: information: "
             "error line, line, line, line, line, line, line, line, "
             "line, line, line, line, line, line, line, l..."
         )
@@ -197,7 +197,7 @@ class Test__transform_pyright_output(hunitest.TestCase):
         }
         # Prepare outputs.
         expected = (
-            "convert_table.py:138:37: "
+            "convert_table.py:138:37: information: "
             'Argument of type "list[str]" cannot be assigned to '
             'parameter "columns" of type "Axes | None",   T...'
         )
