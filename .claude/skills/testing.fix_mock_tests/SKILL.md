@@ -124,9 +124,10 @@ description: Removes or reduces mocking in unit tests by redesigning for testabi
   to test a small system working together
 
 # Verify
-- Run the refactored test file to confirm all tests still pass:
+- Run the refactored test file inside a Docker container to confirm all tests
+  still pass:
   ```bash
-  pytest <test_file> -v
+  invoke docker_cmd --cmd "pytest <test_file> -v"
   ```
 - Fix any failures before reporting done
 

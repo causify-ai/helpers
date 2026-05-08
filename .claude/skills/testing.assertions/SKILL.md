@@ -8,7 +8,7 @@ description: Reference rules for assertions in this repo. Load when writing any 
 
 ## `check_string`
 - Compares actual output against a frozen reference file in
-  `outcomes/<TestClass.test_method>/output/test.txt`
+  `outcomes/<TestClass.test_method>/output/<test_name>.txt`
 - On first run (no golden file), it creates the file — review and commit it
 - On subsequent runs, it diffs against the frozen file and fails if different
   ```python
@@ -24,7 +24,9 @@ description: Reference rules for assertions in this repo. Load when writing any 
   ```python
   self.check_string(actual, purify_text=True)
   ```
-- Use `assert_equal` instead when the expected value is short enough to inline:
+
+## `assert_equal`
+- Use when the expected value is short enough to inline (no golden file needed):
   ```python
   self.assert_equal(actual, expected)
   # With fuzzy whitespace matching:
@@ -92,8 +94,8 @@ description: Reference rules for assertions in this repo. Load when writing any 
 ## Obj_to_str_TestCase Mixin
 - Use `hunteuti.Obj_to_str_TestCase` to standardise tests for objects that
   implement `__repr__`, `__str__`, or `to_config_str()`
-- `hunitest.TestCase` **must come first** in the MRO so that `assert_equal`
-  and `check_string` resolve correctly
+- `hunitest.TestCase` **must come first** in the MRO so that `assert_equal` and
+  `check_string` resolve correctly
   ```python
   import helpers.hunit_test_utils as hunteuti
 
