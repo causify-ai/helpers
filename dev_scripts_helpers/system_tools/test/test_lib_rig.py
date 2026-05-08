@@ -201,3 +201,19 @@ class TestRigScript(hunitest.TestCase):
         args = ["TODO", "--last-commit"]
         expected_exit_code = 0
         self.helper(args, expected_exit_code=expected_exit_code)
+
+    def test14(self) -> None:
+        """
+        Test --rg_opts flag to pass additional ripgrep options.
+        """
+        # Prepare inputs.
+        args = ["TODO", ".", "--rg_opts", "-S -i"]
+        # Prepare outputs.
+        expected_cmd = "rg TODO . -n --no-heading --color=never -S -i"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )

@@ -1,5 +1,6 @@
 # Run Unit Tests
 <!-- toc -->
+
   - [Run Unit Tests](#run-unit-tests)
     - [Quick Start](#quick-start)
     - [Test Execution Pipeline](#test-execution-pipeline)
@@ -34,6 +35,7 @@
   tests to make sure we didn't introduce any new bugs
 
 ### Quick Start
+
 - Run all fast tests (< 5 s each) — do this before every PR:
   ```bash
   i run_fast_tests
@@ -58,8 +60,10 @@
   ```
 
 ### Test Execution Pipeline
+
 - The standard test run goes through three layers: your shell command, a Docker
   container, and pytest with our custom `hunitest.TestCase`
+
 ```mermaid
 flowchart LR
     Dev[Developer] -->|i run_fast_tests| Invoke[invoke task]
@@ -567,8 +571,11 @@ flowchart LR
     [http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/](http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/)
 
 #### Run Coverage for an Entire Test Suite
+
 - Use `invoke run_coverage` with `--suite` to run coverage across all tests in a
   tier and optionally generate an HTML report:
+
+
   ```bash
   > i run_coverage --suite fast --generate-html-report
   > i run_coverage --suite slow --generate-html-report

@@ -2,15 +2,15 @@
 description: Refactors unit test files to align with project conventions. Use when test files have inconsistent string alignment, non-standard method names, repeated code that should be factored out, or mixed input/output organization.
 ---
 
-- When the user passes a test file, apply the following transformations to the
-  code, making sure that there is no change in behavior. All invariants and
-  conventions are documented in `@.claude/skills/testing.rules.md`
+- When the user passes a test file `<file>`, apply the following transformations
+  to the code, making sure that there is no change in behavior
+- All invariants and conventions are documented in `@.claude/skills/testing.rules.md`
 
 ## Key Transformations
-- Align Strings to the Code
-  - See `@.claude/skills/testing.rules.md` section "Code Formatting in Tests" → "Align Strings to the Code"
+- Dedent Strings to the Code
+  - See `@.claude/skills/testing.rules.md` section "Code Formatting in Tests" → "Dedent Strings to the Code"
 
-- Rename Test Methods as `test1`, `test2`, 
+- Rename Test Methods as `test1`, `test2`, ...
   - See `@.claude/skills/testing.rules.md` section "Test Method Names"
 
 - Factor Out Common Code
@@ -29,6 +29,8 @@ description: Refactors unit test files to align with project conventions. Use wh
 - Assign Variables and Then Call Functions
   - See `@.claude/skills/testing.rules.md` section "Assign Variables and Then
     Call Functions"
+
+- Run the skill `/coding.factor_common_code` on the file
 
 # Verify
 - Run the refactored test file to confirm no tests broke:

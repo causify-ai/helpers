@@ -61,7 +61,7 @@
   - `hdbg.dassert_dir_exists(path)` - Check directory existence
 
 - Example: Use `dassert_in()` instead of generic `dassert()`
-  - Good: Check if value is in container
+  - **Good**: Check if value is in container
     ```python
     hdbg.dassert_in(
         ext,
@@ -70,7 +70,7 @@
         ", ".join(_FORMAT_MAP.keys()),
     )
     ```
-  - Bad: Generic assertion with membership check
+  - **Bad**: Generic assertion with membership check
     ```python
     hdbg.dassert(
         ext in _FORMAT_MAP,
@@ -80,7 +80,7 @@
     ```
 
 - Pass parameters using lazy formatting (not f-strings)
-  - Good
+  - **Good**
     ```python
     hdbg.dassert_ne(
         name,
@@ -89,7 +89,7 @@
         name,
     )
     ```
-  - Bad
+  - **Bad**
     ```python
     hdbg.dassert_ne(
         name,
@@ -102,23 +102,6 @@
 
 - Do not use try except to recover errors but let statements raise their own
   errors
-
-## Use `hsystem`
-
-- Use code in `helpers/hsystem.py` to call commands
-- Do not try to catching error, but let the exception propagate
-  - Bad
-    ```python
-    try:
-        hsystem.system("which llm", suppress_output=True)
-        _LOG.debug("llm command found")
-    except Exception as e:
-        hdbg.dfatal(f"llm command not found: {e}")
-    ```
-  - Good
-    ```python
-    hsystem.system("which llm", suppress_output=True)
-    ```
 
 # Documentation and Comments
 
@@ -306,8 +289,8 @@
 ## Command Line Argument Naming
 
 - Use only underscores as separators in command line arguments, not dashes
-- Good: `--cache_reset`, `--max_iterations`, `--output_dir`
-- Bad: `--cache-reset`, `--max-iterations`, `--output-dir`
+- **Good**: `--cache_reset`, `--max_iterations`, `--output_dir`
+- **Bad**: `--cache-reset`, `--max-iterations`, `--output-dir`
 - This applies to both long-form argument names and the attribute names assigned
   by argparse (which converts `_` to `_` in the namespace)
 
@@ -368,4 +351,59 @@
   - **Good**
     ```python
     # Create a curated list from `get_md_colors()`.
+    ```
+
+# Executing System Calls
+
+## Use `hsystem`
+
+- Use code in `helpers/hsystem.py` to call commands
+- Do not try to catching error, but let the exception propagate
+  - **Bad**
+    ```python
+    try:
+        hsystem.system("which llm", suppress_output=True)
+        _LOG.debug("llm command found")
+    except Exception as e:
+        hdbg.dfatal(f"llm command not found: {e}")
+    ```
+  - **Good**
+    ```python
+    hsystem.system("which llm", suppress_output=True)
+    ```
+
+## How to Build Command Lines
+
+- When building command lines use one command line option per line
+  and f-strings
+
+  - **Bad**
+    ```python
+    cmd_parts = [
+        "notes_to_pdf.py",
+        "--input",
+        input_file,
+        "--output",
+        output_file,
+        "--type",
+        "slides",
+        "--toc_type",
+        "navigation",
+        "--skip_action",
+        "cleanup_after",
+        "--skip_action",
+        "open",
+    ]
+    ```
+  - **Good**
+    ```python
+    cmd_parts = [
+        "notes_to_pdf.py",
+        f"--input={input_file}",
+        f"--output={output_file}",
+        "--type=slides",
+        "--toc_type=navigation",
+        "--skip_action=cleanup_after",
+        "--skip_action=open",
+    ]
     ```
