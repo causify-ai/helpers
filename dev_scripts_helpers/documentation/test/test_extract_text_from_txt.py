@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List
+from typing import List, Optional
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -26,12 +26,38 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
     def _to_lines(text: str) -> List[str]:
         return hprint.dedent(text).strip().split("\n")
 
+    def helper(
+        self,
+        document_text: str,
+        start_header: str,
+        end_header: Optional[str],
+        expected_text: str,
+    ) -> None:
+        """
+        Test helper for _extract_text_from_markdown.
+
+        :param document_text: Full document text to extract from
+        :param start_header: Starting header (full or partial)
+        :param end_header: Ending header (full or partial) or None
+        :param expected_text: Expected extracted text
+        """
+        # Prepare inputs.
+        lines = self._to_lines(document_text)
+        # Prepare outputs.
+        expected = self._to_lines(expected_text)
+        # Run test.
+        actual = dshdetftx._extract_text_from_markdown(
+            lines, start_header, end_header
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test extracting text between two headers.
         """
         # Prepare inputs.
-        text = """
+        document_text = """
             # Introduction
 
             This is the introduction.
@@ -44,26 +70,22 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
 
             Our findings.
             """
-        lines = self._to_lines(text)
-        # Run test.
-        actual = dshdetftx._extract_text_from_markdown(
-            lines, "# Methods", "# Results"
-        )
-        # Check outputs.
+        start_header = "# Methods"
+        end_header = "# Results"
         expected_text = """
             # Methods
 
             This is the methods section.
             """
-        expected = self._to_lines(expected_text)
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
 
     def test2(self) -> None:
         """
         Test extracting from header to next same-level header (implicit end).
         """
         # Prepare inputs.
-        text = """
+        document_text = """
             # Introduction
 
             Intro text.
@@ -76,24 +98,22 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
 
             Results text.
             """
-        lines = self._to_lines(text)
-        # Run test.
-        actual = dshdetftx._extract_text_from_markdown(lines, "# Methods", None)
-        # Check outputs.
+        start_header = "# Methods"
+        end_header = None
         expected_text = """
             # Methods
 
             Methods text.
             """
-        expected = self._to_lines(expected_text)
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
 
     def test3(self) -> None:
         """
         Test extracting with nested headers (## under #).
         """
         # Prepare inputs.
-        text = """
+        document_text = """
             # Chapter 1
 
             ## Section 1.1
@@ -106,26 +126,22 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
 
             # Chapter 2
             """
-        lines = self._to_lines(text)
-        # Run test: extract from ## Section 1.1 to ## Section 1.2 (next same level)
-        actual = dshdetftx._extract_text_from_markdown(
-            lines, "## Section 1.1", None
-        )
-        # Check outputs.
+        start_header = "## Section 1.1"
+        end_header = None
         expected_text = """
             ## Section 1.1
 
             Content 1.1
             """
-        expected = self._to_lines(expected_text)
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
 
     def test4(self) -> None:
         """
         Test extracting until end of file when no next same-level header.
         """
         # Prepare inputs.
-        text = """
+        document_text = """
             # Chapter 1
 
             ## Section 1.1
@@ -136,51 +152,61 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
 
             Content of chapter 2
             """
-        lines = self._to_lines(text)
-        # Run test: extract from ## Section 1.1 with no explicit end
-        actual = dshdetftx._extract_text_from_markdown(
-            lines, "## Section 1.1", None
-        )
-        # Check outputs: should stop at next level 1 header
+        start_header = "## Section 1.1"
+        end_header = None
         expected_text = """
             ## Section 1.1
 
             Content 1.1
             """
-        expected = self._to_lines(expected_text)
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def helper_error(
+        self, document_text: str, start_header: str, end_header: Optional[str]
+    ) -> None:
+        """
+        Test helper for _extract_text_from_markdown error cases.
+
+        :param document_text: Full document text to extract from
+        :param start_header: Starting header (full or partial)
+        :param end_header: Ending header (full or partial) or None
+        """
+        # Prepare inputs.
+        lines = self._to_lines(document_text)
+        # Run test and check output.
+        with self.assertRaises(Exception):
+            dshdetftx._extract_text_from_markdown(lines, start_header, end_header)
 
     def test5(self) -> None:
         """
         Test error when start header not found.
         """
         # Prepare inputs.
-        text = """
+        document_text = """
             # Introduction
 
             Text
             """
-        lines = self._to_lines(text)
-        # Run test and check output.
-        with self.assertRaises(Exception):
-            dshdetftx._extract_text_from_markdown(lines, "# Nonexistent", None)
+        start_header = "# Nonexistent"
+        end_header = None
+        # Run test.
+        self.helper_error(document_text, start_header, end_header)
 
     def test6(self) -> None:
         """
         Test error when end header not found.
         """
         # Prepare inputs.
-        text = """
+        document_text = """
             # Introduction
 
             Text
             """
-        lines = self._to_lines(text)
-        # Run test and check output.
-        with self.assertRaises(Exception):
-            dshdetftx._extract_text_from_markdown(
-                lines, "# Introduction", "# Nonexistent"
-            )
+        start_header = "# Introduction"
+        end_header = "# Nonexistent"
+        # Run test.
+        self.helper_error(document_text, start_header, end_header)
 
 
 # #############################################################################
@@ -245,9 +271,11 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         """
         in_file = os.path.join(self.get_input_dir(), input_file)
         script_path = hgit.find_file_in_git_tree("extract_text_from_txt.py")
+        #
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         cmd = f"{script_path} -i {in_file} -o {out_file} {args}"
         hsystem.system(cmd)
+        #
         actual = hio.from_file(out_file)
         return actual
 
@@ -264,16 +292,27 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         except Exception as e:
             _LOG.info(f"Got expected error: {e}")
 
+    def helper(self, args: str, expected_output: str) -> None:
+        """
+        Test helper for script execution.
+
+        :param args: Command line arguments for the script
+        :param expected_output: Expected output content
+        """
+        # Run test.
+        actual = self._run_script("input.md", args)
+        # Prepare outputs.
+        expected = hprint.dedent(expected_output)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test extracting text between two headers.
         """
         # Prepare inputs.
         args = "--start '# Methods' --end '# Results'"
-        # Run test.
-        actual = self._run_script("input.md", args)
-        # Check outputs.
-        expected = """
+        expected_output = """
         # Methods
 
         ## Data Collection
@@ -284,8 +323,8 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
 
         Details about sampling.
         """
-        expected = hprint.dedent(expected)
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(args, expected_output)
 
     def test2(self) -> None:
         """
@@ -293,16 +332,13 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         """
         # Prepare inputs.
         args = "--start '## Background' --end '## Motivation'"
-        # Run test.
-        actual = self._run_script("input.md", args)
-        # Check outputs.
-        expected = """
+        expected_output = """
         ## Background
 
         Some background information.
         """
-        expected = hprint.dedent(expected)
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(args, expected_output)
 
     def test3(self) -> None:
         """
@@ -310,16 +346,13 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         """
         # Prepare inputs.
         args = "--start '# Results'"
-        # Run test.
-        actual = self._run_script("input.md", args)
-        # Check outputs.
-        expected = """
+        expected_output = """
         # Results
 
         Our findings.
         """
-        expected = hprint.dedent(expected)
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(args, expected_output)
 
     def test4(self) -> None:
         """

@@ -3,9 +3,7 @@
 """
 Clean up HTML markup in markdown files.
 
-Import as:
-
-python clean_markdown.py --input INPUT --output OUTPUT
+> clean_markdown.py --input INPUT --output OUTPUT
 """
 
 import argparse

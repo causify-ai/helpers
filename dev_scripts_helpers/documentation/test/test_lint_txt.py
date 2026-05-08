@@ -2111,6 +2111,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.slow
     def test7(self) -> None:
         """
         Run the text linter on a txt file.

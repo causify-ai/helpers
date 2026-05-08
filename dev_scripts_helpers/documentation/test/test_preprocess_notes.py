@@ -2,7 +2,7 @@ import glob
 import logging
 import os
 from collections.abc import Sequence
-from typing import cast
+from typing import Dict, List, Optional, cast
 
 import pytest
 
@@ -365,6 +365,7 @@ class Test_remove_headers1(hunitest.TestCase):
         self,
         lines_in: Sequence[str],
         expected: Sequence[str],
+        *,
         max_level: int = 999,
     ) -> None:
         """
@@ -552,104 +553,6 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes_end_to_end2
-# #############################################################################
-
-
-class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
-    """
-    Test `preprocess_notes.py` by calling the library function directly.
-
-    # To update the outcomes:
-    > cd /Users/saggese/src/umd_msml6101
-    > cp -r lectures_source/Lesson*.txt ./helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2/input/
-
-    # To compare inputs and outputs:
-    > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
-    """
-
-    @pytest.mark.skip(
-        reason="Requires external input files to be manually copied"
-    )
-    def test_run_all1(self) -> None:
-        input_dir = self.get_input_dir()
-        _LOG.debug("input_dir=%s", input_dir)
-        # Find all the files in the `test/input` directory.
-        files = glob.glob(os.path.join(input_dir, "*.txt"))
-        _LOG.debug("Found %s files", len(files))
-        hdbg.dassert_lt(0, len(files))
-        for file in files:
-            # Read the file.
-            text = hio.from_file(file)
-            # Run the function.
-            # > preprocess_notes.py \
-            #     --input lectures_source/Lesson02-Techniques.txt \
-            #     --output tmp.notes_to_pdf.preprocess_notes.txt \
-            #     --type slides \
-            #     --toc_type navigation
-            lines = text.split("\n")
-            type_ = "slides"
-            toc_type = "navigation"
-            is_qa = False
-            actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
-            # Check.
-            actual = "\n".join(actual)
-            tag = os.path.basename(file)
-            tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
-            hdbg.dassert_is_not(tag, None)
-            self.check_string(actual, tag=cast(str, tag))
-
-
-# #############################################################################
-# Test_preprocess_notes_end_to_end3
-# #############################################################################
-
-
-class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
-    """
-    Test `preprocess_notes.py` by calling the library function directly.
-
-    # To update the outcomes:
-    > cd /Users/saggese/src/umd_msml6101
-    > cp -r lectures_source/Lesson*.txt ./helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2/input/
-
-    # To compare inputs and outputs:
-    > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
-    """
-
-    @pytest.mark.skip(
-        reason="Requires external input files to be manually copied"
-    )
-    def test_run_all1(self) -> None:
-        input_dir = self.get_input_dir()
-        _LOG.debug("input_dir=%s", input_dir)
-        # Find all the files in the `test/input` directory.
-        files = glob.glob(os.path.join(input_dir, "*.txt"))
-        _LOG.debug("Found %s files", len(files))
-        hdbg.dassert_lt(0, len(files))
-        for file in files:
-            # Read the file.
-            text = hio.from_file(file)
-            # Run the function.
-            # > preprocess_notes.py \
-            #     --input lectures_source/Lesson02-Techniques.txt \
-            #     --output tmp.notes_to_pdf.preprocess_notes.txt \
-            #     --type slides \
-            #     --toc_type navigation
-            lines = text.split("\n")
-            type_ = "slides"
-            toc_type = "navigation"
-            is_qa = False
-            actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
-            # Check.
-            actual = "\n".join(actual)
-            tag = os.path.basename(file)
-            tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
-            hdbg.dassert_is_not(tag, None)
-            self.check_string(actual, tag=cast(str, tag))
-
-
-# #############################################################################
 # Test_preprocess_notes_executable1
 # #############################################################################
 
@@ -786,7 +689,7 @@ class Test_extract_section(hunitest.TestCase):
         self,
         lines: Sequence[str],
         section_name: str,
-        expected: Sequence[str] | None,
+        expected: Optional[Sequence[str]],
     ) -> None:
         """
         Test helper for _extract_section.
@@ -920,7 +823,7 @@ class Test_expand_includes(hunitest.TestCase):
     """
 
     def _create_temp_files(
-        self, files_to_create: dict[str, str], temp_dir: str
+        self, files_to_create: Dict[str, str], temp_dir: str
     ) -> None:
         """
         Create temporary files in a directory.
@@ -955,7 +858,7 @@ class Test_expand_includes(hunitest.TestCase):
         lines: Sequence[str],
         expected: Sequence[str],
         *,
-        files_to_create: dict[str, str] | None = None,
+        files_to_create: Optional[Dict[str, str]] = None,
     ) -> None:
         """
         Test helper for _expand_includes.
@@ -1370,12 +1273,12 @@ class Test_transform_lines_slides(hunitest.TestCase):
 
     def helper(
         self,
-        lines: list[str],
+        lines: List[str],
         type_: str,
         is_qa: bool,
-        expected: list[str],
+        expected: List[str],
         *,
-        actions: list[str] | None = None,
+        actions: Optional[List[str]] = None,
     ) -> None:
         """
         Helper method to test _transform_lines function.
@@ -1449,7 +1352,7 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
 
     def helper(
         self,
-        lines: list[str],
+        lines: List[str],
         type_: str,
         toc_type: str,
         is_qa: bool,
@@ -1512,10 +1415,10 @@ class Test_transform_lines_qa(hunitest.TestCase):
 
     def helper(
         self,
-        lines: list[str],
+        lines: List[str],
         type_: str,
         is_qa: bool,
-        expected: list[str],
+        expected: List[str],
     ) -> None:
         """
         Helper method to test _transform_lines function for QA.
@@ -1634,7 +1537,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
     """
 
     def helper(
-        self, lines: list[str], max_level: int, expected_contains: str
+        self, lines: List[str], max_level: int, expected_contains: str
     ) -> None:
         """
         Helper method to test _add_navigation_slides function.
@@ -1712,7 +1615,7 @@ class Test_validate_slide_names(hunitest.TestCase):
     Test the `_validate_slide_names()` function.
     """
 
-    def helper_valid(self, lines: list) -> None:
+    def helper_valid(self, lines: List[str]) -> None:
         """
         Helper method to test valid slide names.
 
@@ -1721,7 +1624,7 @@ class Test_validate_slide_names(hunitest.TestCase):
         # Run test.
         dshdprno._validate_slide_names(lines)
 
-    def helper_invalid(self, lines: list, expected_line_num: int) -> None:
+    def helper_invalid(self, lines: List[str], expected_line_num: int) -> None:
         """
         Helper method to test invalid slide names.
 
@@ -1799,7 +1702,7 @@ class Test_validate_slide_names(hunitest.TestCase):
         Test empty input.
         """
         # Prepare inputs.
-        lines: list = []
+        lines: List[str] = []
         # Run test.
         self.helper_valid(lines)
 
@@ -1827,7 +1730,7 @@ class Test_assert_no_existing_counters(hunitest.TestCase):
     Test the `_assert_no_existing_counters()` function.
     """
 
-    def helper_valid(self, lines: list) -> None:
+    def helper_valid(self, lines: List[str]) -> None:
         """
         Helper method to test valid slides without counters.
 
@@ -1836,7 +1739,7 @@ class Test_assert_no_existing_counters(hunitest.TestCase):
         # Run test.
         dshdprno._assert_no_existing_counters(lines)
 
-    def helper_invalid(self, lines: list) -> None:
+    def helper_invalid(self, lines: List[str]) -> None:
         """
         Helper method to test slides with existing counters.
 
@@ -1881,7 +1784,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
     Test the `_add_duplicate_slide_counters()` function.
     """
 
-    def helper(self, lines: list, expected: list) -> None:
+    def helper(self, lines: List[str], expected: List[str]) -> None:
         """
         Helper method to test counter addition.
 
@@ -1985,7 +1888,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
         Test empty input.
         """
         # Prepare inputs.
-        lines: list = []
+        lines: List[str] = []
         # Expected: no changes.
         expected = lines
         # Run test.
@@ -2002,7 +1905,7 @@ class Test_validate_unique_slide_names(hunitest.TestCase):
     Test the `_validate_unique_slide_names()` function.
     """
 
-    def helper_valid(self, lines: list) -> None:
+    def helper_valid(self, lines: List[str]) -> None:
         """
         Helper method to test valid unique names.
 
@@ -2011,7 +1914,7 @@ class Test_validate_unique_slide_names(hunitest.TestCase):
         # Run test.
         dshdprno._validate_unique_slide_names(lines)
 
-    def helper_invalid(self, lines: list) -> None:
+    def helper_invalid(self, lines: List[str]) -> None:
         """
         Helper method to test invalid duplicate names.
 

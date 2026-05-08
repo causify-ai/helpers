@@ -58,7 +58,6 @@ class Test_filter_by_header1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs.
         with self.assertRaises(ValueError):
             hmarfilt.filter_by_header(lines, "NonExistent")
@@ -139,7 +138,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test invalid range format.
         """
-        # Run test.
+        # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("invalid", 20)
 
@@ -235,7 +234,6 @@ class Test_filter_by_lines1(hunitest.TestCase):
         # Prepare inputs.
         test_content = "Line 1\nLine 2\nLine 3"
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_lines(lines, "2:1")
@@ -327,7 +325,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(lines, "1:0")
@@ -343,7 +340,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(lines, "0:5")
@@ -359,7 +355,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test.
         # Check outputs (should fail validation since there are no slides).
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(lines, "0:1")
@@ -443,14 +438,12 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         """
         Test edge cases for range parsing (0-indexed).
         """
-        # Run test.
+        # Test case: 0:0 range.
         start, end = hmarfilt._parse_range("0:0", 1)
-        # Check outputs.
         self.assertEqual(start, 0)
         self.assertEqual(end, 0)
-        # Run test.
+        # Test case: None:None range.
         start, end = hmarfilt._parse_range("None:None", 1000)
-        # Check outputs.
         self.assertEqual(start, 0)
         self.assertEqual(end, 1000)
 
@@ -461,7 +454,7 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         # Prepare inputs.
         test_content = "Single line content"
         lines = test_content.split("\n")
-        # Run test (0:0 = empty range).
+        # Run test.
         result_lines = hmarfilt.filter_by_lines(lines, "0:0")
         result_content = "\n".join(result_lines)
         # Check outputs.
@@ -479,24 +472,24 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         """
         test_content = hprint.dedent(test_content)
         lines = test_content.split("\n")
-        # Run test (0:2 = indices 0 and 1 = Line 1 and Line 2).
+        expected = "Line 1\nLine 2"
+        # Run test.
         result_lines = hmarfilt.filter_by_lines(lines, "0:2")
         result_content = "\n".join(result_lines)
         # Check outputs.
-        expected = "Line 1\nLine 2"
         self.assertEqual(result_content, expected)
 
     def test_parse_range_invalid_formats(self) -> None:
         """
         Test various invalid range formats.
         """
-        # Run test.
+        # Test case: single value format.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("5", 10)
-        # Run test.
+        # Test case: empty string.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("", 10)
-        # Run test.
+        # Test case: too many colons.
         with self.assertRaises(ValueError):
             hmarfilt._parse_range("1:2:3", 10)
 

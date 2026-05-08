@@ -13,8 +13,11 @@ _LOG = logging.getLogger(__name__)
 # Simple YAML parser when `yaml` package is not available (e.g., when
 # bootstrapping the system through thin environment).
 
+
 def _parse_value(value_str: str) -> Any:
-    """Parse a YAML value string."""
+    """
+    Parse a YAML value string.
+    """
     value_str = value_str.strip()
     if value_str.lower() in ("true", "yes"):
         return True
@@ -29,13 +32,20 @@ def _parse_value(value_str: str) -> Any:
     except ValueError:
         return value_str
 
+
 def _get_indent_level(line: str) -> int:
-    """Get the indentation level of a line."""
+    """
+    Get the indentation level of a line.
+    """
     return len(line) - len(line.lstrip())
 
-def _parse_yaml_lines(lines: List[str], start_idx: int = 0,
-                      parent_indent: int = -2) -> tuple:
-    """Recursively parse YAML lines into a dictionary."""
+
+def _parse_yaml_lines(
+    lines: List[str], start_idx: int = 0, parent_indent: int = -2
+) -> tuple:
+    """
+    Recursively parse YAML lines into a dictionary.
+    """
     result = {}
     current_list = None
     current_key = None
@@ -65,7 +75,7 @@ def _parse_yaml_lines(lines: List[str], start_idx: int = 0,
         elif ":" in stripped:
             colon_idx = stripped.index(":")
             key = stripped[:colon_idx].strip()
-            value_part = stripped[colon_idx + 1:].strip()
+            value_part = stripped[colon_idx + 1 :].strip()
             current_list = None
             current_key = key
 
@@ -92,7 +102,6 @@ def _parse_yaml_lines(lines: List[str], start_idx: int = 0,
     return result, len(lines)
 
 
-
 def _read_yaml_file(file_path: str) -> Dict[str, Any]:
     """
     Read and parse a YAML file without external dependencies.
@@ -105,18 +114,13 @@ def _read_yaml_file(file_path: str) -> Dict[str, Any]:
     :param file_path: path to the YAML file
     :return: parsed YAML as a dictionary
     """
-
     with open(file_path, "r") as f:
         lines = f.readlines()
-
     data, _ = _parse_yaml_lines(lines)
     return data
 
-# #############################################################################
 
 # Copied from hprint to avoid import cycles.
-
-
 # TODO(gp): It should use *.
 def indent(txt: str, num_spaces: int = 2) -> str:
     """
@@ -132,9 +136,6 @@ def indent(txt: str, num_spaces: int = 2) -> str:
         txt_out.append(spaces + curr_line)
     res = "\n".join(txt_out)
     return res
-
-
-# End copy.
 
 
 # #############################################################################
@@ -204,13 +205,13 @@ def _get_env_var(
 
 
 class RepoConfig:
-    def __init__(self, data: Dict) -> None:
+    def __init__(self, data: Dict[str, Any]) -> None:
         """
         Set the data to be used by the module.
         """
         self._data = data
 
-    def set_repo_config_data(self, data: Dict) -> None:
+    def set_repo_config_data(self, data: Dict[str, Any]) -> None:
         self._data = data
 
     @classmethod
@@ -225,6 +226,7 @@ class RepoConfig:
         try:
             try:
                 import yaml
+
                 with open(file_name, "r") as f:
                     data = yaml.safe_load(f)
             except ImportError:

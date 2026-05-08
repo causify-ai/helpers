@@ -8,7 +8,6 @@
       "WebFetch(domain:github.com)",
       "Bash(python -m mypy:*)",
       "Bash(python:*)",
-      "Bash(invoke git_branch_create -i 903)",
       "Bash(gh pr create:*)",
       "Bash(gh pr view:*)",
       "Bash(git add:*)",
