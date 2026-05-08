@@ -326,7 +326,7 @@ def _add_duplicate_slide_counters(lines: List[str]) -> List[str]:
         name_counts[name] = name_counts.get(name, 0) + 1
     # Build a mapping from line number to new title.
     line_updates: Dict[int, str] = {}
-    name_indices: dict[str, int] = {}
+    name_indices: Dict[str, int] = {}
     for header_info in header_list:
         name = header_info.description
         count = name_counts[name]
