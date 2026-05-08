@@ -5,6 +5,7 @@ import helpers.hmkdocs as hmkdocs
 """
 
 import re
+from typing import Match
 
 import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
@@ -135,7 +136,7 @@ def rewrite_absolute_doc_links(txt: str) -> str:
     :return: Text with absolute /docs/ links rewritten
     """
 
-    def _replace(m: re.Match) -> str:
+    def _replace(m: Match) -> str:
         path = m.group(1)
         # Strip /docs/ prefix and convert .md → .html.
         path = re.sub(r"^/docs/", "/", path)

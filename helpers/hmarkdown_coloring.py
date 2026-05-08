@@ -8,7 +8,7 @@ import helpers.hmarkdown_coloring as hmarcolo
 
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Match, Optional
 
 import helpers.hdbg as hdbg
 from helpers.hmarkdown_fenced_blocks import (
@@ -122,7 +122,7 @@ def process_color_commands(in_line: str) -> str:
             re.VERBOSE,
         )
 
-        def _replacement(match: re.Match, latex_color: str) -> str:
+        def _replacement(match: Match, latex_color: str) -> str:
             """
             Replace a color command with LaTeX \textcolor directive.
             """
@@ -252,7 +252,7 @@ def colorize_bullet_points_in_slide(
     txt_out = []
     for line in lines:
 
-        def color_replacer(match: re.Match[str]) -> str:
+        def color_replacer(match: Match[str]) -> str:
             """
             Replace strings like "**foo**" with strings like "**\red{foo}**".
             """
