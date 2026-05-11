@@ -153,14 +153,15 @@
 
 Use these commands consistently across all slides:
 
-- `$\Pr(...)$` - Probability
-- `$\EE[...]$` - Expectation (mean)
-- `$\VV[...]$` - Variance
-- `$\mathcal{X}$` - Sets or spaces (use calligraphic)
-- `\defeq` - "Defined as"
-- `\iff` - "If and only if"
-- `\perp` - Independence (perpendicular symbol)
-- `\vx`, `\vy` - Vectors (if defined in preamble)
+- `$\Pr(...)$`: Probability
+- `$\Pr(... | ...)$`: Conditional probability (do not use `\mid`)
+- `$\EE[...]$`: Expectation (mean)
+- `$\VV[...]$`: Variance
+- `$\mathcal{X}$`: Sets or spaces (use calligraphic)
+- `\defeq`: "Defined as"
+- `\iff`: "If and only if"
+- `\perp`: Independence (perpendicular symbol)
+- `\vx`, `\vy`: Vectors (if defined in preamble)
 
 # Visual Elements and Diagrams
 
