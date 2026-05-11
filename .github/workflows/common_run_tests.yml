@@ -36,7 +36,7 @@ jobs:
       # Pass AWS credentials via GH secrets. This is needed to pull the Docker
       # image and in case the tests need to access AWS resources.
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v6.1.1
         with:
           role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
           role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
@@ -61,7 +61,7 @@ jobs:
       # Check out the code from GitHub so that we can run the action inside
       # the Docker container.
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6.0.2
         with:
           submodules: recursive
           fetch-depth: 0

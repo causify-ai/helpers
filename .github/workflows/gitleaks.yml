@@ -3,7 +3,7 @@ name: Gitleaks Scan
 on:
   # Run on every PR to master that is ready to review.
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, draft]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - master
 

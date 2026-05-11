@@ -48,7 +48,7 @@ jobs:
       # Check out the code from GitHub so that we can run the action inside
       # the Docker container.
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6.0.2
         with:
           # The `lint` invoke target needs to have the full history of commits
           # in order to compare the current branch with the master branch.

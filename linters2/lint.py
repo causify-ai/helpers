@@ -34,6 +34,9 @@ Examples:
 # Lint Markdown and Text files
 > lint.py --modified --file_types "md,txt"
 
+# Lint GitHub workflow files with pre-commit hooks, including actionlint
+> lint.py --modified --file_types "yml,yaml"
+
 # Run only specific actions on modified files (pre-commit and normalize_import)
 > lint.py --modified --action pre-commit normalize_import
 
@@ -338,6 +341,13 @@ def _lint_markdown_files(
     return ret
 
 
+def _is_yaml_file(file_name: str) -> bool:
+    """
+    Return whether a file is a YAML file.
+    """
+    return file_name.endswith((".yml", ".yaml"))
+
+
 def _filter_files_by_type(
     file_paths: List[str],
     file_extensions: List[str],
@@ -349,13 +359,15 @@ def _filter_files_by_type(
 
     :param file_paths: files to filter
     :param file_extensions: list of file extensions to include (e.g., ["py",
-        "ipynb", "md", "txt"])
+        "ipynb", "md", "txt", "yml", "yaml"])
     :param skip_dassert_exists: skip file existence checks
-    :return: tuple of (python_files, jupyter_files, markdown_files)
+    :return: tuple of (python_files, jupyter_files, markdown_files,
+        yaml_files)
     """
     python_files = []
     jupyter_files = []
     markdown_files = []
+    yaml_files = []
     # Categorize all files by type.
     for f in file_paths:
         if llinutil.is_ipynb_file(f):
@@ -383,9 +395,50 @@ def _filter_files_by_type(
             if "txt" not in file_extensions:
                 continue
             markdown_files.append(f)
+        elif _is_yaml_file(f):
+            if not any(ext in file_extensions for ext in ["yml", "yaml"]):
+                continue
+            yaml_files.append(f)
         else:
             _LOG.debug("File type for '%s' not recognized", f)
-    return python_files, jupyter_files, markdown_files
+    return python_files, jupyter_files, markdown_files, yaml_files
+
+
+def _lint_yaml_files(
+    file_paths: List[str],
+    *,
+    abort_on_error: bool = True,
+    actions: List[str] | None = None,
+) -> int:
+    """
+    Lint YAML files using pre-commit hooks.
+
+    The repo's pre-commit config includes generic YAML checks plus actionlint
+    for GitHub workflows. YAML files intentionally skip Python-specific actions
+    such as import normalization and class-frame insertion.
+
+    :param file_paths: YAML files to lint
+    :param abort_on_error: whether to abort on first error
+    :param actions: list of actions to perform; only pre-commit applies
+    :return: combined return code
+    """
+    if not file_paths:
+        return 0
+    if actions is not None and "pre-commit" not in actions:
+        _LOG.info("Skipping YAML files since pre-commit was not requested")
+        return 0
+    _LOG.info("Linting %d YAML files with pre-commit", len(file_paths))
+    files_str = " ".join(file_paths)
+    print(hprint.frame("pre-commit", char1="="))
+    cmd = f"pre-commit run --files {files_str} --color always"
+    _LOG.debug("> %s", cmd)
+    ret = hsystem.system(
+        cmd,
+        print_command=False,
+        abort_on_error=abort_on_error,
+        suppress_output=False,
+    )
+    return ret
 
 
 # #############################################################################
@@ -442,10 +495,10 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--file_types",
         type=str,
-        default="py,ipynb",
-        help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')\n"
-        "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
-        "  Default: 'py,ipynb'",
+        default="py,ipynb,yml,yaml",
+        help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt,yml,yaml')\n"
+        "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text), yml/yaml (YAML)\n"
+        "  Default: 'py,ipynb,yml,yaml'",
     )
     # Other options.
     parser.add_argument(
@@ -522,7 +575,12 @@ def _main(args: argparse.Namespace) -> int:
         args.branch,
     )
     _LOG.info("Found %d files for linting", len(file_paths))
-    python_files, jupyter_files, markdown_files = _filter_files_by_type(
+    (
+        python_files,
+        jupyter_files,
+        markdown_files,
+        yaml_files,
+    ) = _filter_files_by_type(
         file_paths,
         file_extensions,
     )
@@ -541,6 +599,10 @@ def _main(args: argparse.Namespace) -> int:
     if "txt" in file_extensions:
         selected_types.append("text")
         unprocessed_types.discard("txt")
+    if "yml" in file_extensions or "yaml" in file_extensions:
+        selected_types.append("yaml")
+        unprocessed_types.discard("yml")
+        unprocessed_types.discard("yaml")
     # Ensure all requested file types are processed.
     hdbg.dassert_eq(
         len(unprocessed_types),
@@ -548,8 +610,11 @@ def _main(args: argparse.Namespace) -> int:
         msg=f"Unprocessed file types: {unprocessed_types}",
     )
     print(hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
-    all_files = python_files + jupyter_files + markdown_files
-    breakdown = f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, Markdown: {len(markdown_files)}"
+    all_files = python_files + jupyter_files + markdown_files + yaml_files
+    breakdown = (
+        f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, "
+        f"Markdown: {len(markdown_files)}, YAML: {len(yaml_files)}"
+    )
     print(
         hprint.frame(
             f"Selected {len(all_files)} files for linting ({breakdown})"
@@ -567,6 +632,10 @@ def _main(args: argparse.Namespace) -> int:
     if markdown_files:
         print(f"\n# Markdown files ({len(markdown_files)})")
         for f in markdown_files:
+            print(f"  {f}")
+    if yaml_files:
+        print(f"\n# YAML files ({len(yaml_files)})")
+        for f in yaml_files:
             print(f"  {f}")
     # If dry_run, print files and exit.
     if args.dry_run:
@@ -594,7 +663,14 @@ def _main(args: argparse.Namespace) -> int:
             markdown_files,
             abort_on_error=args.abort_on_error,
         )
-    if not (python_files or jupyter_files or markdown_files):
+    if yaml_files:
+        print(hprint.frame("Processing YAML files"))
+        ret |= _lint_yaml_files(
+            yaml_files,
+            abort_on_error=args.abort_on_error,
+            actions=args.action,
+        )
+    if not (python_files or jupyter_files or markdown_files or yaml_files):
         _LOG.warning("No files matched the selection and type filters")
     return ret
 

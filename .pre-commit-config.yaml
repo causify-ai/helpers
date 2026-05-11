@@ -57,6 +57,11 @@ repos:
     - id: jupytext
       args: ["--sync"]
 
+- repo: https://github.com/rhysd/actionlint
+  rev: v1.7.12
+  hooks:
+    - id: actionlint
+
 #  - repo: local
 #    hooks:
 #      - id: fixit-lint

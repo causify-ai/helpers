@@ -41,14 +41,17 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["baz.md"],
             paths["qux.txt"],
         ]
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
-            file_paths,
-            ["py", "ipynb"],
-            skip_dassert_exists=True,
+        py_files, ipynb_files, md_files, yaml_files = (
+            lilint._filter_files_by_type(
+                file_paths,
+                ["py", "ipynb"],
+                skip_dassert_exists=True,
+            )
         )
         self.assertEqual(py_files, [paths["foo.py"]])
         self.assertEqual(ipynb_files, [paths["bar.ipynb"]])
         self.assertEqual(md_files, [])
+        self.assertEqual(yaml_files, [])
 
     def test2(self) -> None:
         """
@@ -60,14 +63,17 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
-            file_paths,
-            ["py"],
-            skip_dassert_exists=True,
+        py_files, ipynb_files, md_files, yaml_files = (
+            lilint._filter_files_by_type(
+                file_paths,
+                ["py"],
+                skip_dassert_exists=True,
+            )
         )
         self.assertEqual(py_files, [paths["foo.py"]])
         self.assertEqual(ipynb_files, [])
         self.assertEqual(md_files, [])
+        self.assertEqual(yaml_files, [])
 
     def test3(self) -> None:
         """
@@ -79,14 +85,17 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
-            file_paths,
-            ["ipynb"],
-            skip_dassert_exists=True,
+        py_files, ipynb_files, md_files, yaml_files = (
+            lilint._filter_files_by_type(
+                file_paths,
+                ["ipynb"],
+                skip_dassert_exists=True,
+            )
         )
         self.assertEqual(py_files, [])
         self.assertEqual(ipynb_files, [paths["bar.ipynb"]])
         self.assertEqual(md_files, [])
+        self.assertEqual(yaml_files, [])
 
     def test4(self) -> None:
         """
@@ -98,16 +107,46 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
-            file_paths,
-            ["md"],
-            skip_dassert_exists=True,
+        py_files, ipynb_files, md_files, yaml_files = (
+            lilint._filter_files_by_type(
+                file_paths,
+                ["md"],
+                skip_dassert_exists=True,
+            )
         )
         self.assertEqual(py_files, [])
         self.assertEqual(ipynb_files, [])
         self.assertEqual(md_files, [paths["baz.md"]])
+        self.assertEqual(yaml_files, [])
 
     def test5(self) -> None:
+        """
+        yml/yaml extensions - only YAML files included.
+        """
+        paths = self._create_files(
+            ["foo.py", "workflow.yml", "workflow.yaml", "readme.md"]
+        )
+        file_paths = [
+            paths["foo.py"],
+            paths["workflow.yml"],
+            paths["workflow.yaml"],
+            paths["readme.md"],
+        ]
+        py_files, ipynb_files, md_files, yaml_files = (
+            lilint._filter_files_by_type(
+                file_paths,
+                ["yml", "yaml"],
+                skip_dassert_exists=True,
+            )
+        )
+        self.assertEqual(py_files, [])
+        self.assertEqual(ipynb_files, [])
+        self.assertEqual(md_files, [])
+        self.assertEqual(
+            yaml_files, [paths["workflow.yml"], paths["workflow.yaml"]]
+        )
+
+    def test6(self) -> None:
         """
         Paired jupytext .py files are excluded from Python files.
         """
@@ -122,14 +161,17 @@ class Test_filter_files_by_type(hunitest.TestCase):
         hio.to_file(notebook_ipynb, "")
         file_paths = [standalone_py, paired_py, notebook_ipynb]
         file_types = ["py", "ipynb"]
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
-            file_paths,
-            file_types,
-            skip_dassert_exists=True,
+        py_files, ipynb_files, md_files, yaml_files = (
+            lilint._filter_files_by_type(
+                file_paths,
+                file_types,
+                skip_dassert_exists=True,
+            )
         )
         self.assertEqual(py_files, [standalone_py])
         self.assertEqual(ipynb_files, [notebook_ipynb])
         self.assertEqual(md_files, [])
+        self.assertEqual(yaml_files, [])
 
 
 # #############################################################################
@@ -256,7 +298,7 @@ class Test_lint_python_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test1(self, mock_system: umock.MagicMock) -> None:
         """
-        Empty file list — returns 0 immediately, no calls.
+        Empty file list - returns 0 immediately, no calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -466,3 +508,71 @@ class Test_lint_markdown_files(hunitest.TestCase):
         self.assertIn("--files", cmd)
         self.assertIn("doc.md", cmd)
         self.assertIn("readme.md", cmd)
+
+
+# #############################################################################
+# Test_lint_yaml_files
+# #############################################################################
+
+
+class Test_lint_yaml_files(hunitest.TestCase):
+    """
+    Test _lint_yaml_files YAML file linting.
+    """
+
+    @umock.patch("helpers.hsystem.system")
+    def test1(self, mock_system: umock.MagicMock) -> None:
+        """
+        Empty file list — returns 0 immediately, no calls.
+        """
+        # Prepare inputs.
+        mock_system.return_value = 0
+        file_paths = []
+        # Run test.
+        ret = lilint._lint_yaml_files(
+            file_paths,
+            abort_on_error=True,
+            actions=None,
+        )
+        # Check outputs.
+        self.assertEqual(ret, 0)
+        self.assertEqual(mock_system.call_count, 0)
+
+    @umock.patch("helpers.hsystem.system")
+    def test2(self, mock_system: umock.MagicMock) -> None:
+        """
+        YAML files run through pre-commit only.
+        """
+        # Prepare inputs.
+        mock_system.return_value = 0
+        file_paths = [".github/workflows/linter.yml"]
+        # Run test.
+        ret = lilint._lint_yaml_files(
+            file_paths,
+            abort_on_error=True,
+            actions=None,
+        )
+        # Check outputs.
+        self.assertEqual(ret, 0)
+        self.assertEqual(mock_system.call_count, 1)
+        cmd = mock_system.call_args_list[0][0][0]
+        self.assertIn("pre-commit run --files", cmd)
+        self.assertIn(".github/workflows/linter.yml", cmd)
+
+    @umock.patch("helpers.hsystem.system")
+    def test3(self, mock_system: umock.MagicMock) -> None:
+        """
+        YAML files are skipped when only Python-specific actions are selected.
+        """
+        # Prepare inputs.
+        mock_system.return_value = 0
+        file_paths = [".github/workflows/linter.yml"]
+        # Run test.
+        ret = lilint._lint_yaml_files(
+            file_paths,
+            abort_on_error=True,
+            actions=["normalize_import"],
+        )
+        # Check outputs.
+        self.assertEqual(ret, 0)
+        self.assertEqual(mock_system.call_count, 0)
