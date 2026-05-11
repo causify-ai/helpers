@@ -379,9 +379,9 @@ module/test/
     ```python
     # Prepare inputs.
     text = """
-line1
-line2
-line3
+    line1
+    line2
+    line3
     """
     ```
 
@@ -582,79 +582,6 @@ line3
 - Use `self.check_string()` when output is large (longer than ~20 lines) or
   changes frequently — see `@.claude/skills/testing.assertions/SKILL.md` for
   full usage and options
-
-## Input Data Patterns
-- Always use multiline text aligned to the variable of the string and then call
-  `hprint.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
-  - **Good**
-    ```python
-    # Prepare inputs.
-    text = """
-    line1
-    line2
-    line3
-    """
-    text = hprint.dedent(text)
-    ```
-  - **Bad**
-    ```python
-    # Prepare inputs.
-    text = """
-    line1
-    line2
-    line3
-    """
-    ```
-
-- Use scratch space for file testing:
-  ```python
-  scratch_dir = self.get_scratch_space()
-  test_file = os.path.join(scratch_dir, "test.txt")
-  hio.to_file(test_file, "content")
-  ```
-- Use input directory for large static fixtures:
-  ```python
-  input_file = os.path.join(self.get_input_dir(), "test_data.json")
-  data = hio.from_json(input_file)
-  ```
-
-## Setup and Teardown
-- Use this idiom when multiple test methods need the same setup/teardown code:
-  ```python
-  class TestClassName(hunitest.TestCase):
-      """
-      Test description.
-      """
-
-      @pytest.fixture(autouse=True)
-      def setup_teardown_test(self):
-          """
-          Setup and teardown for each test.
-          """
-          # Run before each test.
-          self.set_up_test()
-          yield
-          # Run after each test.
-          self.tear_down_test()
-
-      def set_up_test(self) -> None:
-          """
-          Setup code that runs before each test.
-          """
-          self.test_data = <initialize>
-
-      def tear_down_test(self) -> None:
-          """
-          Cleanup code that runs after each test.
-          """
-          <cleanup>
-
-      def test_method1(self) -> None:
-          """
-          Test description.
-          """
-          # Use self.test_data here.
-  ```
 
 ## Nested Setup and Teardown
 - Never override `setUp()` or `tearDown()` in child classes

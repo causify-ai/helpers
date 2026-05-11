@@ -26,12 +26,9 @@ description: Reference rules for assertions in this repo. Load when writing any 
   ```
 
 ## `assert_equal`
-- Use when the expected value is short enough to inline (no golden file needed):
-  ```python
-  self.assert_equal(actual, expected)
-  # With fuzzy whitespace matching:
-  self.assert_equal(actual, expected, fuzzy_match=True)
-  ```
+- See the "Assertion Patterns" section in `@.claude/skills/testing.rules.md`
+  for full usage (`assertEqual`, `assert_equal`, `fuzzy_match`, `purify_text`,
+  `dedent` options)
 
 # DataFrame and Series Assertions
 
