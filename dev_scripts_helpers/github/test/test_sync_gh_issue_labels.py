@@ -8,6 +8,7 @@ import dev_scripts_helpers.github.dockerized_sync_gh_issue_labels as dshgdsgil
 import dev_scripts_helpers.github.sync_gh_issue_labels as dshgsgila
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
+import helpers.lib_tasks_gh as hlitagh
 
 _LOG = logging.getLogger(__name__)
 
@@ -85,4 +86,43 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
         self.assertTrue(
             os.path.exists(backup_file_path),
             msg="Backup file was not created.",
+        )
+
+
+# #############################################################################
+# Test_sync_gh_issue_labels_invoke_target1
+# #############################################################################
+
+
+class Test_sync_gh_issue_labels_invoke_target1(hunitest.TestCase):
+    def test_parse_repo_names(self) -> None:
+        """
+        Check that the invoke target accepts comma/space-separated repos.
+        """
+        repo_names = hlitagh._parse_gh_repo_names(
+            "helpers,tutorials causify-ai/cmamp"
+        )
+
+        self.assertEqual(repo_names, ["helpers", "tutorials", "cmamp"])
+
+    @umock.patch("helpers.lib_tasks_gh.hsystem.system_to_string")
+    def test_get_all_repos(self, mock_system_to_string: umock.Mock) -> None:
+        """
+        Check that the all-repos mode uses the GitHub CLI output.
+        """
+        mock_system_to_string.return_value = (
+            0,
+            '[{"name": "tutorials"}, {"name": "helpers"}]',
+        )
+
+        repo_names = hlitagh._get_gh_issue_label_repos(
+            "causify-ai",
+            "",
+            True,
+            50,
+        )
+
+        self.assertEqual(repo_names, ["helpers", "tutorials"])
+        mock_system_to_string.assert_called_once_with(
+            "gh repo list causify-ai --json name --limit 50"
         )

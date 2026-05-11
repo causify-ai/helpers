@@ -16,6 +16,7 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
+import dev_scripts_helpers.github.sync_gh_issue_labels as dshgsgila
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -508,6 +509,102 @@ def gh_issue_create(  # type: ignore
     issue_id = int(match.group(1))
     _LOG.info("Created issue #%s", issue_id)
     return issue_id
+
+
+def _parse_gh_repo_names(repo: str) -> List[str]:
+    """
+    Return repo names from a comma/space-separated argument.
+    """
+    repos = [repo_name.strip() for repo_name in re.split(r"[,\s]+", repo)]
+    repos = [repo_name.split("/")[-1] for repo_name in repos if repo_name]
+    return repos
+
+
+def _get_gh_issue_label_repos(
+    owner: str,
+    repo: str,
+    all_repos: bool,
+    repo_limit: int,
+) -> List[str]:
+    """
+    Resolve the target repos for GitHub issue label synchronization.
+    """
+    hdbg.dassert(owner, "GitHub owner/organization must be specified")
+    if all_repos:
+        hdbg.dassert(
+            not repo,
+            "Specify either --repo or --all-repos, but not both",
+        )
+        hdbg.dassert_lte(1, repo_limit)
+        cmd = f"gh repo list {owner} --json name --limit {repo_limit}"
+        _, txt = hsystem.system_to_string(cmd)
+        repos = json.loads(txt)
+        repo_names = sorted(repo["name"] for repo in repos)
+    else:
+        repo_names = _parse_gh_repo_names(repo)
+    hdbg.dassert(repo_names, "No GitHub repositories were selected")
+    return repo_names
+
+
+@task
+def sync_gh_issue_labels(  # type: ignore
+    ctx,
+    input_file,
+    owner="causify-ai",
+    repo="",
+    all_repos=False,
+    repo_limit=1000,
+    token_env_var="GITHUB_TOKEN",
+    prune=False,
+    dry_run=False,
+    backup=True,
+    no_interactive=False,
+    dockerized_force_rebuild=False,
+    dockerized_use_sudo=False,
+):
+    """
+    Synchronize GitHub issue labels for one or more repos.
+
+    ```bash
+    > invoke sync_gh_issue_labels \
+        --input-file dev_scripts_helpers/github/labels/gh_issues_labels.yml \
+        --owner causify-ai \
+        --repo helpers,tutorials \
+        --token-env-var GITHUB_TOKEN \
+        --backup \
+        --dry-run
+
+    > invoke sync_gh_issue_labels \
+        --input-file dev_scripts_helpers/github/labels/gh_issues_labels.yml \
+        --owner causify-ai \
+        --all-repos \
+        --token-env-var GITHUB_TOKEN \
+        --backup \
+        --dry-run
+    ```
+    """
+    _ = ctx
+    hlitauti.report_task(txt=hprint.to_str("input_file owner repo all_repos"))
+    repo_names = _get_gh_issue_label_repos(
+        owner,
+        repo,
+        all_repos,
+        int(repo_limit),
+    )
+    for repo_name in repo_names:
+        _LOG.info("Synchronizing GitHub issue labels for %s/%s", owner, repo_name)
+        dshgsgila._run_dockerized_sync_gh_issue_labels(
+            input_file,
+            owner,
+            repo_name,
+            token_env_var,
+            prune=prune,
+            dry_run=dry_run,
+            backup=backup,
+            no_interactive=no_interactive,
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
+        )
 
 
 # #############################################################################

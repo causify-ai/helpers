@@ -144,16 +144,40 @@ Are you sure you want to synchronize labels? [y/n] y
 
 ### Using Invoke
 
-TODO(\*): Update this section once the invoke target is implemented
-
-- You can run the script using the `invoke` command where `$FILENAME` is the
-  name of the YAML file containing the labels:
+- You can run the script through the `sync_gh_issue_labels` invoke target where
+  `$FILENAME` is the YAML file containing the labels:
 
 ```bash
 > i sync_gh_issue_labels \
-    --input_file $FILENAME \
+    --input-file $FILENAME \
     --owner causify-ai \
     --repo sports_analytics \
-    --token_env_var GITHUB_TOKEN  \
+    --token-env-var GITHUB_TOKEN  \
     --backup
+```
+
+- You can pass multiple repositories as a comma-separated list:
+
+```bash
+> i sync_gh_issue_labels \
+    --input-file $FILENAME \
+    --owner causify-ai \
+    --repo helpers,tutorials \
+    --token-env-var GITHUB_TOKEN \
+    --backup \
+    --dry-run
+```
+
+- To synchronize every repository in an organization, use `--all-repos`.
+  This requires the GitHub CLI to be authenticated and able to list the
+  organization's repositories:
+
+```bash
+> i sync_gh_issue_labels \
+    --input-file $FILENAME \
+    --owner causify-ai \
+    --all-repos \
+    --token-env-var GITHUB_TOKEN \
+    --backup \
+    --dry-run
 ```

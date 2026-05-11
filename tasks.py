@@ -69,6 +69,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     gh_watch,
     gh_workflow_list,
     gh_workflow_run,
+    sync_gh_issue_labels,
     git_add_all_untracked,
     git_backup,
     git_branch_copy,
