@@ -4,6 +4,7 @@
   * [Overview](#overview)
   * [Pre-commit hook](#pre-commit-hook)
   * [Commit-msg hook](#commit-msg-hook)
+  * [Testing](#testing)
 
 <!-- tocstop -->
 
@@ -34,3 +35,20 @@
 - It checks that commit messages follow required conventions
 - It also adds the pre-commit checks that were run and passed to the commit
   messages
+
+## Testing
+
+- Git hook tests live under `dev_scripts_helpers/git/git_hooks/test`
+- Run the focused hook test suite with:
+
+  ```bash
+  python -m unittest dev_scripts_helpers.git.git_hooks.test.test_git_hooks_bounty
+  ```
+
+- The bounty coverage includes:
+  - Unit tests for branch, author, file size, Python compile, and gitleaks
+    checks
+  - Commit message validation tests for valid and invalid messages
+  - Hook installer tests for install and remove operations
+  - A POSIX-only end-to-end install/remove test that verifies hook links are
+    created and removed
