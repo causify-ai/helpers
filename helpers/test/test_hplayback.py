@@ -6,6 +6,12 @@ from typing import Any, Optional
 import pandas as pd
 import pytest
 
+import helpers.hserver as hserver
+
+if not hserver.is_inside_docker():
+    pytest.skip("Skipping: tests require dev container", allow_module_level=True)
+
+
 import config_root.config as cconfig
 import helpers.hio as hio
 import helpers.hplayback as hplayba
@@ -20,6 +26,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestJsonRoundtrip1(hunitest.TestCase):
     """
     Test roundtrip conversion through jsonpickle for different types.
@@ -57,6 +64,7 @@ class TestJsonRoundtrip1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestPlaybackInputOutput1(hunitest.TestCase):
     """
     Freeze the output of Playback.
@@ -299,6 +307,7 @@ class TestPlaybackInputOutput1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestToPythonCode1(hunitest.TestCase):
     """
     Test to_python_code() for different types.
@@ -412,6 +421,7 @@ class TestToPythonCode1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestPlaybackFilePath1(hunitest.TestCase):
     """
     Test file mode correctness.
@@ -434,6 +444,7 @@ class TestPlaybackFilePath1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestPlaybackFileMode1(hunitest.TestCase):
     """
     Test file mode correctness.

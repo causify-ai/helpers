@@ -2,8 +2,16 @@ import os
 import unittest.mock as umock
 from typing import Optional
 
-import boto3
 import pytest
+
+import helpers.hserver as hserver
+
+if not hserver.is_inside_docker():
+    pytest.skip("Skipping: tests require dev container", allow_module_level=True)
+
+
+import boto3
+
 from botocore.client import BaseClient
 from moto import mock_aws
 
@@ -16,6 +24,7 @@ import helpers.hunit_test as hunitest
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Haws_test_case(hunitest.TestCase):
     @pytest.fixture(autouse=True, scope="class")
     def aws_credentials(self) -> None:

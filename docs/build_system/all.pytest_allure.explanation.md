@@ -1,15 +1,16 @@
 <!-- toc -->
 
-- [Overview](#overview)
-- [Core Features](#core-features)
-  * [Rich and Interactive Reports](#rich-and-interactive-reports)
-  * [Annotations and Labels](#annotations-and-labels)
-  * [Test History and Trends](#test-history-and-trends)
-- [Key Components](#key-components)
-  * [Pytest Plugin for the Allure Output Generation](#pytest-plugin-for-the-allure-output-generation)
-  * [Allure Reporting Tool](#allure-reporting-tool)
-- [How It Works](#how-it-works)
-- [Historical Trends](#historical-trends)
+- [Pytest Allure - Explanation](#pytest-allure---explanation)
+  * [Overview](#overview)
+  * [Core Features](#core-features)
+    + [Rich and Interactive Reports](#rich-and-interactive-reports)
+    + [Annotations and Labels](#annotations-and-labels)
+    + [Test History and Trends](#test-history-and-trends)
+  * [Key Components](#key-components)
+    + [Pytest Plugin for the Allure Output Generation](#pytest-plugin-for-the-allure-output-generation)
+    + [Allure Reporting Tool](#allure-reporting-tool)
+  * [How It Works](#how-it-works)
+  * [Historical Trends](#historical-trends)
 
 <!-- tocstop -->
 

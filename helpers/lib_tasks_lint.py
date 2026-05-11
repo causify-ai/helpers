@@ -9,7 +9,7 @@ import filecmp
 import logging
 import os
 
-from invoke.tasks import task
+from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
@@ -287,8 +287,7 @@ def lint(  # type: ignore
         + int(last_commit)
         + int(branch),
         1,
-        msg="Specify exactly one among --files, --from_file, --dir-name, "
-        "--modified, --last-commit, --branch",
+        msg="Specify exactly one among --files, --from_file, --dir-name, --modified, --last-commit, --branch",
     )
     if len(files) > 0:
         lint_cmd_opts.append(f"--files {files}")
@@ -359,7 +358,7 @@ def lint_create_branch(ctx, dry_run=False):  # type: ignore
     branch_name = f"AmpTask1955_Lint_{date_as_str}"
     # query_yes_no("Are you sure you want to create the branch '{branch_name}'")
     _LOG.info("Creating branch '%s'", branch_name)
-    cmd = f"invoke git_branch_create -b '{branch_name}'"
+    cmd = f"invoke git_branch_create --branch-name '{branch_name}'"
     hlitauti.run(ctx, cmd, dry_run=dry_run)
 
 

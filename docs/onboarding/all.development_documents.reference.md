@@ -15,7 +15,7 @@
 
 ## On-boarding
 
-- [Signing up for KaizenFlow](/docs/onboarding/kaizenflow.signing_up.how_to_guide.md)
+- [Signing up for KaizenFlow](/docs/onboarding/intern.signing_up.how_to_guide.md)
 
 ## How to start developing
 
@@ -23,28 +23,28 @@ This contains the absolute minimal amount of info to start developing
 
 - [General Rules of Collaboration](/docs/work_organization/all.team_collaboration.how_to_guide.md)
 
-- [Quick start for developing](/docs/onboarding/kaizenflow.prepare_for_development.how_to_guide.md)
+- [Quick start for developing](/docs/onboarding/intern.prepare_for_development.how_to_guide.md)
 
 - [Set up the development environment](/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
 
-- [How to organize your work](/docs/work_organization/kaizenflow.organize_your_work.how_to_guide.md)
+- [How to organize your work](/docs/work_organization/all.organize_your_work.how_to_guide.md)
 
-- [First Review Process](/docs/coding/all.submit_code_for_review.how_to_guide.md)
+- [First Review Process](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md)
 
-- [KaizenFlow Python coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
+- [KaizenFlow Python coding style guide](/docs/code_guidelines/all.coding_style.how_to_guide.md)
 
-- [Jupyter notebook best practices](/docs/coding/all.jupyter_notebook.how_to_guide.md)
+- [Jupyter notebook best practices](/docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md)
 
-- [Writing unit tests](/docs/coding/all.write_unit_tests.how_to_guide.md)
+- [Writing unit tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
 
-- [Running unit tests](/docs/coding/all.run_unit_tests.how_to_guide.md)
+- [Running unit tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
 
 ## Project management
 
 - [Contributor Feedback](/docs/work_organization/all.contributor_feedback.how_to_guide.md)
   - How we give feedback to contributors
 
-- [Code review](/docs/coding/all.code_review.how_to_guide.md)
+- [Code review](/docs/code_guidelines/all.code_review.how_to_guide.md)
   - PR review workflow from the code author and code reviewer points of view
 
 - [Development workflow](/docs/onboarding/all.development.how_to_guide.md)
@@ -61,10 +61,10 @@ This contains the absolute minimal amount of info to start developing
   - How to write guidelines, format documentation, convert Gdocs to markdown
     files and vice versa
 
-- [Imports and packages](/docs/coding/all.imports_and_packages.how_to_guide.md)
+- [Imports and packages](/docs/tools/all.imports_and_packages.how_to_guide.md)
   - How to import code, use packages, and resolve circular dependencies
 
-- [How to integrate repos](/docs/coding/all.integrate_repos.how_to_guide.md)
+- [How to integrate repos](/docs/tools/all.integrate_repos.how_to_guide.md)
   - Detailed instruction on how to integrate repos
 
 ## Learn how to become efficient at developing
@@ -75,7 +75,7 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Reading List](/docs/general_background/all.reading_list.reference.md)
 
-- [Design Philosophy](/docs/coding/all.code_design.how_to_guide.md)
+- [Design Philosophy](/docs/code_guidelines/all.code_design.how_to_guide.md)
 
 - [Codebase Clean-up](/docs/tools/all.codebase_clean_up.how_to_guide.md)
 
@@ -85,17 +85,17 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Buildmeister process](/docs/work_organization/all.buildmeister.how_to_guide.md)
 
-- [Profiling](/docs/coding/all.profiling.how_to_guide.md)
+- [Profiling](/docs/tools/all.profiling.how_to_guide.md)
 
 - [Visual Studio Code](/docs/tools/all.visual_studio_code.how_to_guide.md)
 
-- [Gsheet into pandas](/docs/coding/all.gsheet_into_pandas.how_to_guide.md)
+- [Gsheet into pandas](/docs/tools/notebooks/all.gsheet_into_pandas.how_to_guide.md)
 
 - [Email](/docs/onboarding/all.organize_email.how_to_guide.md)
 
 - [Glossary](/docs/general_background/all.glossary.reference.md)
 
-- [Type Hints](/docs/coding/all.type_hints.how_to_guide.md)
+- [Type Hints](/docs/code_guidelines/all.type_hints.how_to_guide.md)
 
 - [PyCharm](/docs/tools/all.pycharm.how_to_guide.md)
 

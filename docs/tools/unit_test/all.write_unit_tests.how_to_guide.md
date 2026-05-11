@@ -3,60 +3,70 @@
 <!-- toc -->
 
 - [Guidelines about writing unit tests](#guidelines-about-writing-unit-tests)
-  * [What is a unit test?](#what-is-a-unit-test)
-  * [Why is unit testing important?](#why-is-unit-testing-important)
-  * [The Pragmatic Programming and unit testing](#the-pragmatic-programming-and-unit-testing)
-  * [Unit testing tips](#unit-testing-tips)
-    + [Test one thing](#test-one-thing)
-    + [Keep tests self-contained](#keep-tests-self-contained)
-    + [Only specify data related to what is being tested](#only-specify-data-related-to-what-is-being-tested)
-    + [Test realistic corner cases](#test-realistic-corner-cases)
-    + [Test a typical scenario](#test-a-typical-scenario)
-    + [Test executable scripts end-to-end](#test-executable-scripts-end-to-end)
-    + [Test from the outside-in](#test-from-the-outside-in)
-  * [Conventions](#conventions)
-    + [Naming and placement conventions](#naming-and-placement-conventions)
-    + [Keep testing code in sync with tested code](#keep-testing-code-in-sync-with-tested-code)
-    + [Test code is not second-class citizen](#test-code-is-not-second-class-citizen)
-    + [Testing code layout](#testing-code-layout)
-    + [Our framework to test using input / output data](#our-framework-to-test-using-input--output-data)
-    + [Use text and not pickle files as input/outputs](#use-text-and-not-pickle-files-as-inputoutputs)
-    + [Small testing data is best](#small-testing-data-is-best)
-    + [`check_string` vs `self.assertEqual`](#check_string-vs-selfassertequal)
-    + [Use `self.assert_equal()`](#use-selfassert_equal)
-    + [How to split unit test code in files](#how-to-split-unit-test-code-in-files)
-    + [Template for unit test](#template-for-unit-test)
-    + [Use consistent comments in test methods](#use-consistent-comments-in-test-methods)
-    + [Hierarchical `TestCase` approach](#hierarchical-testcase-approach)
-    + [Use the appropriate `self.assert*`](#use-the-appropriate-selfassert)
-    + [Do not use `hdbg.dassert` in testing](#do-not-use-hdbgdassert-in-testing)
-    + [Always explain `self.assertRaises`](#always-explain-selfassertraises)
-    + [Test from the outside-in](#test-from-the-outside-in-1)
-    + [We don't need to test all the assertions](#we-dont-need-to-test-all-the-assertions)
-    + [Use strings to compare output instead of data structures](#use-strings-to-compare-output-instead-of-data-structures)
-    + [Use `self.check_string()` for things that we care about not changing (or are too big to have as strings in the code)](#use-selfcheck_string-for-things-that-we-care-about-not-changing-or-are-too-big-to-have-as-strings-in-the-code)
-    + [Each test method should test a single test case](#each-test-method-should-test-a-single-test-case)
-    + [Each test should be crystal clear on how it is different from the others](#each-test-should-be-crystal-clear-on-how-it-is-different-from-the-others)
-    + [In general, you want to budget the time to write unit tests](#in-general-you-want-to-budget-the-time-to-write-unit-tests)
-    + [Write a template of unit tests and ask for a review if you are not sure how what to test](#write-a-template-of-unit-tests-and-ask-for-a-review-if-you-are-not-sure-how-what-to-test)
-    + [Interesting testing functions](#interesting-testing-functions)
-    + [Use set_up_test / tear_down_test](#use-set_up_test--tear_down_test)
-    + [Nested set_up_test / tear_down_test](#nested-set_up_test--tear_down_test)
-    + [Use setUpClass / tearDownClass](#use-setupclass--teardownclass)
+  - [What is a unit test?](#what-is-a-unit-test)
+  - [Why is unit testing important?](#why-is-unit-testing-important)
+  - [The Pragmatic Programming and unit testing](#the-pragmatic-programming-and-unit-testing)
+  - [Unit testing tips](#unit-testing-tips)
+    - [Test one thing](#test-one-thing)
+    - [Keep tests self-contained](#keep-tests-self-contained)
+    - [Only specify data related to what is being tested](#only-specify-data-related-to-what-is-being-tested)
+    - [Test realistic corner cases](#test-realistic-corner-cases)
+    - [Test a typical scenario](#test-a-typical-scenario)
+    - [Test executable scripts end-to-end](#test-executable-scripts-end-to-end)
+    - [Test from the outside-in](#test-from-the-outside-in)
+  - [Conventions](#conventions)
+    - [Naming and placement conventions](#naming-and-placement-conventions)
+    - [Keep testing code in sync with tested code](#keep-testing-code-in-sync-with-tested-code)
+    - [Test code is not second-class citizen](#test-code-is-not-second-class-citizen)
+    - [Testing code layout](#testing-code-layout)
+    - [Our framework to test using input / output data](#our-framework-to-test-using-input--output-data)
+    - [Framework architecture diagrams](#framework-architecture-diagrams)
+      - [`hunitest.TestCase` class hierarchy](#hunitesttestcase-class-hierarchy)
+      - [Test lifecycle](#test-lifecycle)
+      - [Golden file flow (`check_string`)](#golden-file-flow-check_string)
+    - [DataFrame and Series assertion helpers](#dataframe-and-series-assertion-helpers)
+    - [Use text and not pickle files as input/outputs](#use-text-and-not-pickle-files-as-inputoutputs)
+    - [Small testing data is best](#small-testing-data-is-best)
+    - [`check_string` vs `self.assertEqual`](#check_string-vs-selfassertequal)
+    - [Use `self.assert_equal()`](#use-selfassert_equal)
+    - [How to split unit test code in files](#how-to-split-unit-test-code-in-files)
+    - [Template for unit test](#template-for-unit-test)
+    - [Use consistent comments in test methods](#use-consistent-comments-in-test-methods)
+    - [Hierarchical `TestCase` approach](#hierarchical-testcase-approach)
+    - [Use the appropriate `self.assert*`](#use-the-appropriate-selfassert)
+    - [Do not use `hdbg.dassert` in testing](#do-not-use-hdbgdassert-in-testing)
+    - [Always explain `self.assertRaises`](#always-explain-selfassertraises)
+    - [Test from the outside-in](#test-from-the-outside-in-1)
+    - [We don't need to test all the assertions](#we-dont-need-to-test-all-the-assertions)
+    - [Use strings to compare output instead of data structures](#use-strings-to-compare-output-instead-of-data-structures)
+    - [Use `self.check_string()` for things that we care about not changing (or are too big to have as strings in the code)](#use-selfcheck_string-for-things-that-we-care-about-not-changing-or-are-too-big-to-have-as-strings-in-the-code)
+    - [Each test method should test a single test case](#each-test-method-should-test-a-single-test-case)
+    - [Each test should be crystal clear on how it is different from the others](#each-test-should-be-crystal-clear-on-how-it-is-different-from-the-others)
+    - [In general, you want to budget the time to write unit tests](#in-general-you-want-to-budget-the-time-to-write-unit-tests)
+    - [Write a template of unit tests and ask for a review if you are not sure how what to test](#write-a-template-of-unit-tests-and-ask-for-a-review-if-you-are-not-sure-how-what-to-test)
+    - [Interesting testing functions](#interesting-testing-functions)
+    - [Use set_up_test / tear_down_test](#use-set_up_test--tear_down_test)
+    - [Nested set_up_test / tear_down_test](#nested-set_up_test--tear_down_test)
+    - [Use setUpClass / tearDownClass](#use-setupclass--teardownclass)
+- [Environment-conditional test skipping](#environment-conditional-test-skipping)
 - [Update test tags](#update-test-tags)
 - [Mocking](#mocking)
-  * [Refs](#refs)
-  * [Our Philosophy about mocking](#our-philosophy-about-mocking)
-    + [Mock only external dependencies](#mock-only-external-dependencies)
-    + [Do not mock internal dependencies](#do-not-mock-internal-dependencies)
-    + [Testing end-to-end](#testing-end-to-end)
-  * [Object patch with return value](#object-patch-with-return-value)
-  * [Path patch with multiple return values](#path-patch-with-multiple-return-values)
-  * [Ways of calling `patch` and `patch.object`](#ways-of-calling-patch-and-patchobject)
-  * [Mock object state after test run](#mock-object-state-after-test-run)
-  * [Mock common external calls in `hunitest.TestCase` class](#mock-common-external-calls-in-hunitesttestcase-class)
-  * [Mocks with specs](#mocks-with-specs)
-  * [Caveats](#caveats)
+  - [Refs](#refs)
+  - [Our Philosophy about mocking](#our-philosophy-about-mocking)
+    - [Mock only external dependencies](#mock-only-external-dependencies)
+    - [Do not mock internal dependencies](#do-not-mock-internal-dependencies)
+    - [Testing end-to-end](#testing-end-to-end)
+  - [Object patch with return value](#object-patch-with-return-value)
+  - [Path patch with multiple return values](#path-patch-with-multiple-return-values)
+  - [Ways of calling `patch` and `patch.object`](#ways-of-calling-patch-and-patchobject)
+  - [Mock object state after test run](#mock-object-state-after-test-run)
+  - [Mock common external calls in `hunitest.TestCase` class](#mock-common-external-calls-in-hunitesttestcase-class)
+  - [Mocks with specs](#mocks-with-specs)
+  - [Caveats](#caveats)
+  - [Mocking AWS / S3](#mocking-aws--s3)
+  - [Capturing system calls](#capturing-system-calls)
+- [Helper base classes for testing `__repr__` / `__str__`](#helper-base-classes-for-testing-__repr__--__str__)
+- [QA Testing outside Docker](#qa-testing-outside-docker)
 
 <!-- tocstop -->
 
@@ -262,19 +272,196 @@
 - [`/helpers/hunit_test.py`](/helpers/hunit_test.py) has some utilities to
   easily create input and output dirs storing data for unit tests
 - `hunitest.TestCase` has various methods to help you create dirs
-  - `get_input_dir()`: return the name of the dir used to store the inputs
-  - `get_scratch_space()`: return the name of a scratch dir to keep artifacts of
-    the test
-  - `get_output_dir()`: probably not interesting for the user
 
-- The directory structure enforced by the out `TestCase` is like:
+  | Method | Returns |
+  |--------|---------|
+  | `get_input_dir()` | Local path for static test fixtures checked into git |
+  | `get_scratch_space()` | Local ephemeral dir deleted after the test |
+  | `get_output_dir()` | Local path for golden files (managed by `check_string`) |
+  | `get_s3_scratch_dir()` | S3 path for scratch data, unique per user/server/test |
+  | `get_s3_input_dir()` | S3 path for input fixtures stored in the repo's S3 bucket |
 
-  ```bash
-  > tree -d edg/form_8/test/
-  edg/form_8/test/
-  Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ TestExtractTables1.test1
-      Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ input
-      Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ output
+- `get_s3_scratch_dir()` builds a path like:
+  ```
+  s3://alphamatic-data/tmp/cache.unit_test/<user>.<server>.<project>.<TestClass.test_method>
+  ```
+  Use it when a test writes large temporary data to S3 that must not persist
+  between runs
+
+- `get_s3_input_dir()` mirrors `get_input_dir()` but on S3, using the
+  `unit_test_bucket_path` from `repo_config.yaml`; useful when fixtures are
+  too large to commit to git
+
+- `check_string()` accepts a `purify_text=True` keyword argument that strips
+  machine-specific noise (absolute paths, usernames, git client refs) via
+  `helpers.hunit_test_purification.TextPurifier` before comparing against the
+  golden file — use it whenever the output contains environment-specific strings
+  that must not be frozen verbatim
+
+- Three module-level helpers in `hunit_test` are useful inside production code
+  that needs to behave differently during tests:
+
+  | Function | Purpose |
+  |----------|---------|
+  | `hunitest.in_unit_test_mode()` | Returns `True` when the process is running under pytest; use it to skip expensive side effects in test runs |
+  | `hunitest.pytest_print(txt)` | Writes `txt` to stdout bypassing pytest's output capture (equivalent to `capsys.disabled()`) |
+  | `hunitest.pytest_warning(txt, prefix="")` | Like `pytest_print` but prepends a yellow `WARNING:` label |
+
+  ```python
+  import helpers.hunit_test as hunitest
+
+  def expensive_side_effect():
+      if hunitest.in_unit_test_mode():
+          return  # Skip in tests.
+      ...
+  ```
+
+- The directory structure enforced by our `TestCase` is like:
+
+  ```
+  module/test/
+  ├── outcomes/
+  │   └── TestFooBar1.test_method_a/
+  │       ├── input/              <- get_input_dir()  [static fixtures]
+  │       └── output/
+  │           └── test.txt        <- check_string() golden file
+  ├── scratch/
+  │   └── TestFooBar1.test_method_a/  <- get_scratch_space() [deleted after test]
+  └── test_foo.py                 <- test file
+  ```
+
+#### Framework architecture diagrams
+
+##### `hunitest.TestCase` class hierarchy
+
+```mermaid
+classDiagram
+    class TestCase {
+        <<unittest.TestCase>>
+        +setUp()
+        +tearDown()
+        +assertEqual()
+        +assertRaises()
+    }
+    class hunitest_TestCase {
+        <<hunit_test.TestCase>>
+        +setUp()
+        +tearDown()
+        +get_input_dir() str
+        +get_output_dir() str
+        +get_scratch_space() str
+        +assert_equal(actual, expected)
+        +check_string(actual)
+        +check_dataframe(df)
+        +assert_dfs_close(actual, expected)
+    }
+    class UserTestCase {
+        <<user defined>>
+        +set_up_test()
+        +tear_down_test()
+        +test_method1()
+        +test_method2()
+    }
+    TestCase <|-- hunitest_TestCase : extends
+    hunitest_TestCase <|-- UserTestCase : extends
+```
+
+##### Test lifecycle
+
+- Each test method goes through a fixed lifecycle managed jointly by
+  `unittest`/`pytest` and our framework
+
+```mermaid
+sequenceDiagram
+    participant pytest
+    participant TC as hunitest.TestCase
+    participant Fixture as @pytest.fixture
+    participant Test as test_method()
+
+    pytest->>TC: setUp() [auto]
+    Note over TC: reset random seed, pandas options, timer
+    pytest->>Fixture: setup_teardown_test()
+    Fixture->>TC: set_up_test() [user code]
+    Fixture->>Test: run test body
+    Test->>TC: check_string(actual) or assert_equal(actual, expected)
+    Fixture->>TC: tear_down_test() [user code]
+    pytest->>TC: tearDown() [auto]
+    Note over TC: stop timer, restore pandas options, delete scratch dir
+```
+
+##### Golden file flow (`check_string`)
+
+- `check_string()` compares actual output against a frozen reference file stored
+  in `outcomes/<TestClass.test_method>/output/test.txt`
+- See the full decision flowchart in
+  [Unit Test Framework Architecture — Golden File Testing Design](/docs/tools/unit_test/all.unit_test_framework.explanation.md#golden-file-testing-design)
+
+#### DataFrame and Series assertion helpers
+
+- `hunitest.TestCase` provides two structured assertion helpers for pandas
+  objects that validate shape, columns, and unique values before falling through
+  to the full string comparison
+
+- `check_df_output(actual_df, expected_length, expected_column_names, expected_column_unique_values, expected_signature)`:
+
+  ```python
+  self.check_df_output(
+      actual_df,
+      expected_length=10,
+      expected_column_names=["open", "high", "low", "close", "volume"],
+      expected_column_unique_values={"exchange_id": ["binance"]},
+      expected_signature=r"""
+  # df=
+  # index=[2024-01-01, 2024-01-10]
+  # columns=open,high,low,close,volume,exchange_id
+  # shape=(10, 6)
+  """,
+  )
+  ```
+
+  - Pass `None` for any parameter to skip that check
+  - Pass `"__CHECK_STRING__"` as `expected_signature` to delegate to
+    `self.check_string()` (golden file mode)
+
+- `check_srs_output(actual_srs, expected_length, expected_unique_values, expected_signature)`:
+
+  ```python
+  self.check_srs_output(
+      actual_srs,
+      expected_length=5,
+      expected_unique_values=["BTC", "ETH"],
+      expected_signature=r"""
+  0    BTC
+  1    ETH
+  dtype: object
+  """,
+  )
+  ```
+
+  - Same `None` / `"__CHECK_STRING__"` convention as `check_df_output`
+
+- `assert_dfs_close(actual_df, expected_df, **kwargs)` — assert two DataFrames
+  have identical indexes and columns, and that all numeric values are close
+  (uses `numpy.allclose` to check and `np.testing.assert_allclose` to report
+  failures); passes `**kwargs` through to `np.testing.assert_allclose` for
+  tolerances:
+
+  ```python
+  self.assert_dfs_close(actual_df, expected_df, rtol=1e-5)
+  ```
+
+  Prefer this over `assert_equal(df_to_str(a), df_to_str(b))` when
+  floating-point round-off is possible
+
+- `check_dataframe(actual_df, *, err_threshold=0.05, tag="test_df")` — golden
+  file testing for DataFrames; works like `check_string()` but serialises the
+  DataFrame to a CSV file (via `pandas.to_csv`) and compares element-wise
+  within the given `err_threshold`:
+
+  ```python
+  self.check_dataframe(actual_df)
+  # or with a custom tag when testing multiple DFs in one test:
+  self.check_dataframe(actual_df, tag="prices_df")
   ```
 
 #### Use text and not pickle files as input/outputs
@@ -920,6 +1107,43 @@ self.assert_equal(act, exp, fuzzy_match=True)
 - For more information, see
   [official unittest docs](https://docs.python.org/3/library/unittest.html)
 
+## Environment-conditional test skipping
+
+- Sometimes a test is only valid in a specific environment (CI, macOS, a
+  specific repo). Rather than relying on `pytest.mark.skipif` with hand-rolled
+  predicates, use the helpers in
+  [`/helpers/hunit_test_utils.py`](/helpers/hunit_test_utils.py)
+
+  | Function | Skips unless… |
+  |----------|--------------|
+  | `hunteuti.execute_only_on_ci()` | Running inside CI (GitHub Actions) |
+  | `hunteuti.execute_only_on_mac(version=None)` | Running on macOS (optional version check) |
+  | `hunteuti.execute_only_on_dev_csfy()` | Running on the CSFY dev machine |
+  | `hunteuti.execute_only_in_target_repo(target_name)` | Running in a repo whose short name matches `target_name` |
+
+- Call the function at the top of the test method — it calls `pytest.skip()`
+  internally, so the rest of the method is not executed:
+
+  ```python
+  import helpers.hunit_test_utils as hunteuti
+
+  class TestFoo1(hunitest.TestCase):
+      def test_ci_only1(self) -> None:
+          hunteuti.execute_only_on_ci()
+          # Only runs in CI.
+          ...
+
+      def test_mac_only1(self) -> None:
+          hunteuti.execute_only_on_mac()
+          # Only runs on macOS.
+          ...
+
+      def test_helpers_repo1(self) -> None:
+          hunteuti.execute_only_in_target_repo("helpers")
+          # Only runs when the short repo name is "helpers".
+          ...
+  ```
+
 ## Update test tags
 
 - In the root of each repo there is a `pytest.ini` file with the list of tests'
@@ -991,8 +1215,8 @@ self.assert_equal(act, exp, fuzzy_match=True)
     # Don't add unused fields.
     mock_label.color = "f29513"
     mock_label.description = "Something is not working"
-    mock_label.created_at = "2024Ã¢ÂÂ01Ã¢ÂÂ01"
-    mock_label.updated_at = "2024Ã¢ÂÂ01Ã¢ÂÂ02"
+    mock_label.created_at = "2024-01-01"
+    mock_label.updated_at = "2024-01-02"
     ....
 
     def test_process_labels(mock_repo):
@@ -1257,3 +1481,123 @@ datetime_patch = umock.patch.object(imvcdeexut, "datetime", spec=imvcdeexut.date
 
 - Patching `__abstractmethods__` function of an abstract class enables us to
   instantiate and test abstract class as any regular class
+
+### Mocking AWS / S3
+
+- Use `hmoto.S3Mock_TestCase` (from
+  [`/helpers/hmoto.py`](/helpers/hmoto.py)) to replace real AWS S3 calls with
+  an in-process mock backed by the `moto` library
+- **`moto` must be imported before `boto3`** — `hmoto.py` enforces this by
+  calling `pytest.importorskip("moto")` before importing `boto3`
+- The base class starts and stops the S3 mock around every test method, creates
+  a fresh `mock_bucket` bucket in `set_up_test()`, and tears it all down in
+  `tear_down_test()`
+
+  ```python
+  import helpers.hmoto as hmoto
+
+  class TestMyS3Feature1(hmoto.S3Mock_TestCase):
+      def test_upload1(self) -> None:
+          # boto3 calls inside here hit the mock, not real AWS.
+          import boto3
+          client = boto3.client("s3")
+          client.put_object(
+              Bucket=self.bucket_name, Key="data.csv", Body=b"a,b\n1,2\n"
+          )
+          response = client.get_object(Bucket=self.bucket_name, Key="data.csv")
+          actual = response["Body"].read().decode()
+          self.assert_equal(actual, "a,b\n1,2\n")
+  ```
+
+- `S3Mock_TestCase` is decorated with `@pytest.mark.requires_aws` and
+  `@pytest.mark.requires_ck_infra`; mark your subclass accordingly or rely on
+  the inherited markers
+
+### Capturing system calls
+
+- `hunteuti.capture_system_calls()` is a context manager that intercepts
+  `subprocess.run()` and `helpers.hsystem._system()` without actually running
+  any shell command
+- Each intercepted call is recorded as a dict with `function`, `args`, and
+  `kwargs` keys
+
+  ```python
+  import helpers.hunit_test_utils as hunteuti
+
+  class TestRunner1(hunitest.TestCase):
+      def test_no_real_shell1(self) -> None:
+          with hunteuti.capture_system_calls() as calls:
+              # Any code that internally calls subprocess.run is intercepted.
+              my_function_that_runs_shell_commands()
+          self.assert_equal(str(len(calls)), "1")
+          self.assert_equal(calls[0]["function"], "subprocess.run")
+  ```
+
+- Pass `side_effect` to simulate failures:
+
+  ```python
+  with hunteuti.capture_system_calls(side_effect=RuntimeError) as calls:
+      with self.assertRaises(RuntimeError):
+          my_function()
+  ```
+
+## Helper base classes for testing `__repr__` / `__str__`
+
+- `hunteuti.Obj_to_str_TestCase` (from
+  [`/helpers/hunit_test_utils.py`](/helpers/hunit_test_utils.py)) is an
+  abstract mixin that standardises tests for objects that implement
+  `__repr__`, `__str__`, or `to_config_str()`
+- Mix it into any `hunitest.TestCase` subclass — `hunitest.TestCase` must come
+  first in the MRO so that `assert_equal` and `check_string` resolve correctly:
+
+  ```python
+  import helpers.hunit_test_utils as hunteuti
+
+  class TestMyClass1(hunitest.TestCase, hunteuti.Obj_to_str_TestCase):
+      def test_repr1(self) -> None:
+          obj = MyClass(value=42)
+          self.run_test_repr(obj, expected_str="MyClass(value=42)")
+
+      def test_str1(self) -> None:
+          obj = MyClass(value=42)
+          self.run_test_str(obj, expected_str="value=42")
+
+      def test_config_str1(self) -> None:
+          obj = MyClass(value=42)
+          self.run_test_to_config_str(obj, expected_str="value: 42")
+  ```
+
+  | Method | Calls |
+  |--------|-------|
+  | `run_test_repr(obj, expected_str)` | `obj.__repr__()` |
+  | `run_test_str(obj, expected_str)` | `obj.__str__()` |
+  | `run_test_to_config_str(obj, expected_str)` | `obj.to_config_str()` |
+
+- All three methods use `purify_text=True` and `fuzzy_match=True` internally
+
+## QA Testing outside Docker
+
+- `hunitest.QaTestCase` (from
+  [`/helpers/hunit_test.py`](/helpers/hunit_test.py)) is an abstract base
+  class for tests that validate dev/prod container behaviour from the
+  **host machine** (not inside Docker)
+- It inherits from `hunitest.TestCase` and carries two class-level markers:
+  - `@pytest.mark.qa`
+  - `@pytest.mark.skipif(hserver.is_inside_docker(), ...)` — test is skipped
+    automatically when run inside a container
+
+  ```python
+  import helpers.hunit_test as hunitest
+
+  class TestInvokeTask1(hunitest.QaTestCase):
+      def test_docker_bash1(self) -> None:
+          # This test only runs on the host, never inside a container.
+          import helpers.hsystem as hsystem
+          rc, _ = hsystem.system("invoke docker_bash --cmd 'echo hello'")
+          self.assert_equal(str(rc), "0")
+  ```
+
+- Use `QaTestCase` for invoke-task smoke tests, Docker image validation, or
+  any test that must be isolated from the container environment
+- Mark such tests with `@pytest.mark.no_container` in `pytest.ini` if they
+  should be excluded from the default in-Docker test run

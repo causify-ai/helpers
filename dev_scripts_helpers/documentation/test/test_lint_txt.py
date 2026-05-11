@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from typing import Optional
 
 import pytest
@@ -1968,6 +1969,7 @@ class Test_lint_txt2(hunitest.TestCase):
 
     # //////////////////////////////////////////////////////////////////////////
 
+    @pytest.mark.slow
     def test1(self) -> None:
         txt = _get_text1()
         expected = None
@@ -1975,6 +1977,7 @@ class Test_lint_txt2(hunitest.TestCase):
         actual = self.helper(txt, expected, file_name)
         self.check_string(actual)
 
+    @pytest.mark.slow
     def test2(self) -> None:
         """
         Run the text linter on a txt file.
@@ -1994,6 +1997,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test3(self) -> None:
         """
@@ -2065,6 +2069,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.slow
     def test5(self) -> None:
         """
         For some reason prettier replaces - with * when there are 2 empty lines.
@@ -2086,6 +2091,7 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test6(self) -> None:
         """
@@ -2105,6 +2111,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.slow
     def test7(self) -> None:
         """
         Run the text linter on a txt file.
@@ -2128,6 +2135,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test8(self) -> None:
         """
@@ -2165,6 +2173,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test9(self) -> None:
         """
@@ -2276,6 +2285,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test1(self) -> None:
         """

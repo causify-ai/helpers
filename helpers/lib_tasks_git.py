@@ -22,6 +22,7 @@ import helpers.hsystem as hsystem
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks_gh as hlitagh
 import helpers.lib_tasks_utils as hlitauti
 
@@ -377,22 +378,23 @@ def git_patch_create(  # type: ignore
 
 def _filter_git_files_by_type(
     file_paths: List[str],
-    file_extensions: List[str],
+    file_types: List[str],
 ) -> List[str]:
     """
     Filter files by type for git_files task.
 
-    Unlike linters2 version, this returns a flat list (not a tuple)
-    and does not separate paired jupytext files.
+    Returns a flat list (not a tuple) and does not separate paired jupytext files.
 
     :param file_paths: files to filter
-    :param file_extensions: list of file extensions to include (e.g., ["py", "ipynb", "md"])
+    :param file_types: list of file extensions to include (e.g., ["py", "ipynb", "md"])
+        If empty, all files are kept (no filtering)
     :return: filtered list of files
     """
-    hdbg.dassert_isinstance(file_extensions, list)
+    if not file_types:
+        return file_paths
     filtered = []
     for f in file_paths:
-        for ext in file_extensions:
+        for ext in file_types:
             if f.endswith(f".{ext}"):
                 filtered.append(f)
                 break
@@ -408,24 +410,29 @@ def git_files(  # type: ignore
     file_types="",
     pbcopy=False,
     only_print_files=False,
+    on_one_line=False,
+    mode="files",
 ):
     """
     Report which files are changed in the current branch with respect to master.
 
     The params have the same meaning as in `_get_files_to_process()`.
 
-    Examples:
-    > invoke git_files --modified
-    > invoke git_files --branch --file_types "py,ipynb"
-    > invoke git_files --last_commit --file_types "py"
-
-    :param file_types: comma-separated list of file extensions to include
-        - E.g., "py,ipynb,md"
+    :param file_types: Comma-separated list of file extensions to include
+        (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
     :param only_print_files: only print files without logging headers/footers (default: False)
+    :param on_one_line: show results only in "On one line" format (default: False)
+    :param mode: Output mode:
+        - "files": print the changed files
+        - "test_files": print test files associated with the changed source files
+        - "test_dirs": print test directories associated with the changed source files
     """
     if not only_print_files:
         hlitauti.report_task()
     _ = ctx
+    # If no filter option is specified, default to branch=True.
+    if not (modified or last_commit):
+        branch = True
     all_ = False
     files = ""
     # Use mutually_exclusive=True to enforce exactly one filter mode.
@@ -440,19 +447,40 @@ def git_files(  # type: ignore
         mutually_exclusive,
         remove_dirs,
     )
-    # Parse file_types into a list of extensions.
-    if file_types:
-        file_extensions = [ext.strip() for ext in file_types.split(",")]
-        # Filter by file type.
-        files_as_list = _filter_git_files_by_type(files_as_list, file_extensions)
-    else:
-        # file_types="" means every file, so don't filter.
-        pass
-    print("\n".join(sorted(files_as_list)))
-    # Optionally copy the file list to clipboard for easy pasting.
-    if not only_print_files:
-        res = " ".join(files_as_list)
+    # Parse file_types string into a list.
+    file_types_list = [
+        ext.strip() for ext in file_types.split(",") if ext.strip()
+    ]
+    # Filter by file type.
+    files_as_list = _filter_git_files_by_type(files_as_list, file_types_list)
+    # Handle different output modes.
+    hdbg.dassert_in(
+        mode,
+        ("files", "test_files", "test_dirs"),
+        "Invalid mode; must be one of: files, test_files, test_dirs",
+    )
+    if mode == "files":
+        output_list = sorted(files_as_list)
+    elif mode == "test_files":
+        test_files = hunteuti.get_test_files_for_sources(files_as_list)
+        output_list = sorted(test_files)
+    else:  # mode == "test_dirs"
+        test_files = hunteuti.get_test_files_for_sources(files_as_list)
+        test_dirs = hunteuti.get_parent_dirs(test_files)
+        output_list = sorted(test_dirs)
+    # Print results in one of two formats: vertical or space-separated.
+    res = " ".join(output_list)
+    if on_one_line:
+        # Show "On one line" format (space-separated).
+        if not only_print_files:
+            print(hprint.frame("On one line", char1="="))
+        print(res)
         hsystem.to_pbcopy(res, pbcopy)
+    else:
+        # Show "Results" format (vertical).
+        if not only_print_files:
+            print(hprint.frame("Results", char1="="))
+        print("\n".join(output_list))
 
 
 @task
@@ -575,7 +603,7 @@ def git_branch_create(  # type: ignore
         hdbg.dassert_eq(
             branch_name,
             "",
-            "Cannot specify both --issue and --branch_name; choose one",
+            "Cannot specify both --issue and --branch-name; choose one",
         )
         title, _ = hlitagh._get_gh_issue_title(issue_id, repo_short_name)
         branch_name = title
@@ -841,7 +869,7 @@ def git_branch_copy(  # type: ignore
         cmd = f"git checkout {new_branch_name}"
     else:
         # Create new branch from master as base.
-        cmd = f"git checkout master && invoke git_branch_create -b '{new_branch_name}'"
+        cmd = f"git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'"
         if not check_branch_name:
             cmd += " --no-check-branch-name"
     hlitauti.run(ctx, cmd)
@@ -865,8 +893,8 @@ def _git_diff_with_branch(
     subdir: str,
     #
     diff_type: str,
-    keep_extensions: str,
-    skip_extensions: str,
+    file_types: str,
+    skip_file_types: str,
     file_name: str,
     #
     only_print_files: bool,
@@ -875,11 +903,11 @@ def _git_diff_with_branch(
     """
     Diff files from this client against files in a branch using vimdiff.
 
-    Same parameters as `git_branch_diff_with`.
+    Same parameters as `git_branch_diff`.
     """
     _LOG.debug(
         hprint.to_str(
-            "hash_ tag dir_name diff_type subdir keep_extensions skip_extensions"
+            "hash_ tag dir_name diff_type subdir file_types skip_file_types"
             " file_name only_print_files dry_run"
         )
     )
@@ -921,10 +949,10 @@ def _git_diff_with_branch(
         _LOG.info("After filtering by file_name: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Keep only files with specified extensions (useful for focusing on code vs docs).
-    if keep_extensions:
-        _LOG.debug("# Filter by keep_extensions")
+    if file_types:
+        _LOG.debug("# Filter by file_types")
         _LOG.debug("Before filtering files=%s", len(files))
-        extensions_lst = keep_extensions.split(",")
+        extensions_lst = file_types.split(",")
         _LOG.warning(
             "Keeping files with %d extensions: %s",
             len(extensions_lst),
@@ -935,13 +963,13 @@ def _git_diff_with_branch(
             if any(f.endswith(ext) for ext in extensions_lst):
                 files_tmp.append(f)
         files = files_tmp
-        _LOG.info("After filtering by keep_extensions: files=%s", len(files))
+        _LOG.info("After filtering by file_types: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Exclude files with specified extensions (useful for skipping config or build files).
-    if skip_extensions:
-        _LOG.debug("# Filter by skip_extensions")
+    if skip_file_types:
+        _LOG.debug("# Filter by skip_file_types")
         _LOG.debug("Before filtering files=%s", len(files))
-        extensions_lst = skip_extensions.split(",")
+        extensions_lst = skip_file_types.split(",")
         _LOG.warning(
             "Skipping files with %d extensions: %s",
             len(extensions_lst),
@@ -952,7 +980,7 @@ def _git_diff_with_branch(
             if not any(f.endswith(ext) for ext in extensions_lst):
                 files_tmp.append(f)
         files = files_tmp
-        _LOG.info("After filtering by skip_extensions: files=%s", len(files))
+        _LOG.info("After filtering by skip_file_types: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Limit diff to files within a specific subdirectory.
     if subdir != "":
@@ -1035,8 +1063,8 @@ def _git_diff_with_branch_wrapper(
     include_submodules: bool,
     #
     diff_type: str,
-    keep_extensions: str,
-    skip_extensions: str,
+    file_types: str,
+    skip_file_types: str,
     python: bool,
     file_name: str,
     #
@@ -1062,21 +1090,21 @@ def _git_diff_with_branch_wrapper(
             "Cannot specify diff_type with python mode",
         )
         hdbg.dassert_eq(
-            keep_extensions,
+            file_types,
             "",
-            "Cannot specify keep_extensions with python mode",
+            "Cannot specify file_types with python mode",
         )
         hdbg.dassert_eq(
-            skip_extensions,
+            skip_file_types,
             "",
-            "Cannot specify skip_extensions with python mode",
+            "Cannot specify skip_file_types with python mode",
         )
         hdbg.dassert_eq(
             file_name,
             "",
             "Cannot specify file_name with python mode",
         )
-        keep_extensions = "py"
+        file_types = "py"
     # Diff files in the main repository.
     _git_diff_with_branch(
         ctx,
@@ -1085,8 +1113,8 @@ def _git_diff_with_branch_wrapper(
         dir_name,
         subdir,
         diff_type,
-        keep_extensions,
-        skip_extensions,
+        file_types,
+        skip_file_types,
         file_name,
         only_print_files,
         dry_run,
@@ -1102,8 +1130,8 @@ def _git_diff_with_branch_wrapper(
                     dir_name,
                     subdir,
                     diff_type,
-                    keep_extensions,
-                    skip_extensions,
+                    file_types,
+                    skip_file_types,
                     file_name,
                     only_print_files,
                     dry_run,
@@ -1111,7 +1139,7 @@ def _git_diff_with_branch_wrapper(
 
 
 @task
-def git_branch_diff_with(  # type: ignore
+def git_branch_diff(  # type: ignore
     ctx,
     target="base",
     hash_value="",
@@ -1120,8 +1148,8 @@ def git_branch_diff_with(  # type: ignore
     include_submodules=False,
     # What files to diff.
     diff_type="",
-    keep_extensions="",
-    skip_extensions="",
+    file_types="",
+    skip_file_types="",
     python=False,
     file_name="",
     # What actions.
@@ -1133,16 +1161,16 @@ def git_branch_diff_with(  # type: ignore
 
     :param subdir: subdir to consider for diffing, instead of `.`
     :param target:
-        - `base`: diff with respect to the branching point
+        - `base`: (default) diff with respect to the branching point
         - `master`: diff with respect to `origin/master`
         - `head`: diff modified files
         - `hash`: diff with respect to hash specified in `hash`
     :param hash_value: the hash to use with target="hash"
     :param include_submodules: run recursively on all submodules
     :param diff_type: files to diff using git `--diff-filter` options
-    :param keep_extensions: a comma-separated list of extensions to check, e.g.,
+    :param file_types: a comma-separated list of extensions to check, e.g.,
         'csv,py'. An empty string means keep all the extensions
-    :param skip_extensions: a comma-separated list of extensions to skip, e.g.,
+    :param skip_file_types: a comma-separated list of extensions to skip, e.g.,
         'txt'. An empty string means do not skip any extension
     :param only_print_files: print files to diff and exit
     :param dry_run: execute diffing script or not
@@ -1198,8 +1226,8 @@ def git_branch_diff_with(  # type: ignore
         include_submodules,
         #
         diff_type,
-        keep_extensions,
-        skip_extensions,
+        file_types,
+        skip_file_types,
         python,
         file_name,
         #

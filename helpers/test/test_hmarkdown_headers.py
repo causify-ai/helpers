@@ -1,4 +1,3 @@
-import logging
 import os
 import pprint
 from typing import Any, List, Tuple, cast
@@ -8,8 +7,6 @@ import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
@@ -94,6 +91,16 @@ def get_header_list5() -> hmarkdo.HeaderList:
         (2, "Section 1.1"),
         (3, "Subsection 1.1.1"),
         (1, "Chapter 2"),
+    ]
+    header_list = _to_header_list(data)
+    return header_list
+
+
+def get_header_list_with_duplicate_level1() -> hmarkdo.HeaderList:
+    data = [
+        (1, "Chapter 1"),
+        (2, "Section 1.1"),
+        (1, "Chapter 1"),
     ]
     header_list = _to_header_list(data)
     return header_list
@@ -210,7 +217,7 @@ def _get_markdown_example4() -> str:
     return content
 
 
-def _get_markdown_example5() -> hmarkdo.HeaderList:
+def _get_markdown_example5() -> str:
     content = r"""
     # Models
     test
@@ -302,7 +309,7 @@ def _test_full_navigation_flow(self_: Any, txt: str) -> None:
         #
         res_tmp = hmarkdo.selected_navigation_to_str(tree, level, description)
         res.append(res_tmp)
-    # Check.
+    # Check outputs.
     actual = "\n".join(res)
     self_.check_string(actual)
 
@@ -658,15 +665,18 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         self.helper(content, "Header1", expected)
 
     def test5(self) -> None:
+        """
+        Test that extracting a non-existent header raises ValueError.
+        """
         # Prepare inputs.
         content = _get_markdown_no_header_example1()
-        # Call tested function.
+        # Prepare outputs.
+        expected = r"Header 'Header4' not found"
+        # Run test and check output.
         with self.assertRaises(ValueError) as fail:
             lines = content.split("\n")
             hmarkdo.extract_section_from_markdown(lines, "Header4")
-        # Check output.
         actual = str(fail.exception)
-        expected = r"Header 'Header4' not found"
         self.assert_equal(actual, expected)
 
 
@@ -720,16 +730,20 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         self.helper(content, max_level, expected)
 
     def test3(self) -> None:
+        """
+        Test extracting headers from content with no headers returns empty list.
+        """
         # Prepare inputs.
         content = r"""
         This is some content without any headers.
         """
         content = hprint.dedent(content)
-        # Call function.
+        # Prepare outputs.
+        expected: List[str] = []
+        # Run test.
         lines = content.split("\n")
         actual = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        # Check output.
-        expected: List[str] = []
+        # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
 
@@ -775,13 +789,17 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         self.helper(content, expected)
 
     def test3(self) -> None:
+        """
+        Test extracting slides from content with no headers returns empty list.
+        """
         # Prepare inputs.
         content = _get_markdown_no_header_example1()
-        # Call function.
+        # Prepare outputs.
+        expected = r"""([], 1)"""
+        # Run test.
         lines = content.split("\n")
         actual = hmarkdo.extract_slides_from_markdown(lines)
-        # Check output.
-        expected = r"""([], 1)"""
+        # Check outputs.
         self.assert_equal(str(actual), expected)
 
 
@@ -897,20 +915,19 @@ class Test_modify_header_level1(hunitest.TestCase):
         :param level: level adjustment to apply
         :param expected_lines: list of expected output lines
         """
-        # Prepare inputs.
-        input_text = "\n".join(input_lines)
-        # Call tested function.
+        # Prepare outputs.
+        expected = "\n".join(expected_lines)
+        # Run test.
         actual_lines = hmarkdo.modify_header_level(input_lines, level)
         actual = "\n".join(actual_lines)
-        # Check output.
-        expected = "\n".join(expected_lines)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
         Test the inputs to increase headings.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = [
             "# Chapter 1",
             "## Section 1.1",
@@ -918,24 +935,26 @@ class Test_modify_header_level1(hunitest.TestCase):
             "#### Sub-subsection 1.1.1.1",
         ]
         level = 1
+        # Prepare outputs.
         expected_lines = [
             "## Chapter 1",
             "### Section 1.1",
             "#### Subsection 1.1.1",
             "##### Sub-subsection 1.1.1.1",
         ]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test2(self) -> None:
         """
         Test inputs to increase headings with level 5 becoming level 6.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = ["# Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
         level = 1
+        # Prepare outputs.
         expected_lines = ["## Chapter 1", "###### Sub-sub-subsection 1.1.1.1.1"]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test3(self) -> None:
@@ -943,29 +962,31 @@ class Test_modify_header_level1(hunitest.TestCase):
         Test inputs to increase headings including a paragraph which remains
         unchanged.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = ["# Chapter 1", "Paragraph 1"]
         level = 1
+        # Prepare outputs.
         expected_lines = ["## Chapter 1", "Paragraph 1"]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test4(self) -> None:
         """
         Test inputs of paragraphs which remain unchanged.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = ["Paragraph 1", "Paragraph 2"]
         level = 1
+        # Prepare outputs.
         expected_lines = ["Paragraph 1", "Paragraph 2"]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test5(self) -> None:
         """
         Test to increase headings with mixed levels.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = [
             "# Chapter 1",
             "##### Sub-sub-subsection 1.1.1.1.1",
@@ -974,6 +995,7 @@ class Test_modify_header_level1(hunitest.TestCase):
             "# Chapter 3",
         ]
         level = 1
+        # Prepare outputs.
         expected_lines = [
             "## Chapter 1",
             "###### Sub-sub-subsection 1.1.1.1.1",
@@ -981,14 +1003,14 @@ class Test_modify_header_level1(hunitest.TestCase):
             "#### Subsection 2.1",
             "## Chapter 3",
         ]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test6(self) -> None:
         """
         Test the inputs to decrease headings.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = [
             "## Section 1.1",
             "### Subsection 1.1.1",
@@ -996,96 +1018,102 @@ class Test_modify_header_level1(hunitest.TestCase):
             "##### Sub-sub-subsection 1.1.1.1.1",
         ]
         level = -1
+        # Prepare outputs.
         expected_lines = [
             "# Section 1.1",
             "## Subsection 1.1.1",
             "### Sub-subsection 1.1.1.1",
             "#### Sub-sub-subsection 1.1.1.1.1",
         ]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test7(self) -> None:
         """
         Test inputs to decrease headings by one level.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = [
             "## Chapter 1",
             "##### Sub-subsection 1.1.1.1",
         ]
         level = -1
+        # Prepare outputs.
         expected_lines = [
             "# Chapter 1",
             "#### Sub-subsection 1.1.1.1",
         ]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test8(self) -> None:
         """
         Test inputs of paragraphs which remain unchanged.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
         level = -1
+        # Prepare outputs.
         expected_lines = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test9(self) -> None:
         """
         Test increasing headers by 2 levels.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = [
             "# Chapter 1",
             "## Section 1.1",
             "### Subsection 1.1.1",
         ]
         level = 2
+        # Prepare outputs.
         expected_lines = [
             "### Chapter 1",
             "#### Section 1.1",
             "##### Subsection 1.1.1",
         ]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test10(self) -> None:
         """
         Test decreasing headers by 2 levels.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = [
             "### Chapter 1",
             "#### Section 1.1",
             "##### Subsection 1.1.1",
         ]
         level = -2
+        # Prepare outputs.
         expected_lines = [
             "# Chapter 1",  # 3-2=1
             "## Section 1.1",  # 4-2=2
             "### Subsection 1.1.1",  # 5-2=3
         ]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
     def test11(self) -> None:
         """
         Test increasing headers by 2 levels.
         """
-        # Prepare inputs and outputs.
+        # Prepare inputs.
         input_lines = [
             "### Level 3",
             "#### Level 4",
         ]
         level = 2
+        # Prepare outputs.
         expected_lines = [
             "##### Level 3",  # 3+2=5
             "###### Level 4",  # 4+2=6
         ]
-        # Call the helper.
+        # Run test.
         self.helper(input_lines, level, expected_lines)
 
 
@@ -1095,6 +1123,10 @@ class Test_modify_header_level1(hunitest.TestCase):
 
 
 class Test_format_headers1(hunitest.TestCase):
+    """
+    Test format_headers function.
+    """
+
     def helper(
         self, input_text: List[str], expected: List[str], max_lev: int
     ) -> None:
@@ -1109,11 +1141,13 @@ class Test_format_headers1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        # Call tested function.
+        # Prepare outputs.
+        expected_output = "\n".join(expected)
+        # Run test.
         hmarkdo.format_headers(input_text, write_file, max_lev=max_lev)
-        # Check output.
+        # Check outputs.
         actual = hio.from_file(write_file)
-        self.assertEqual(actual, "\n".join(expected))
+        self.assertEqual(actual, expected_output)
 
     def test1(self) -> None:
         """
@@ -1209,13 +1243,17 @@ class Test_format_headers1(hunitest.TestCase):
 
 
 class Test_sanity_check_header_list1(hunitest.TestCase):
+    """
+    Test sanity_check_header_list function.
+    """
+
     def test1(self) -> None:
         """
         Test that the header list with valid level increase is accepted.
         """
         # Prepare inputs.
         header_list = get_header_list1()
-        # Call function.
+        # Run test.
         hmarkdo.sanity_check_header_list(header_list)
 
     def test2(self) -> None:
@@ -1225,10 +1263,9 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         """
         # Prepare inputs.
         header_list = get_header_list4()
-        # Call function.
+        # Run test and check output.
         with self.assertRaises(ValueError) as err:
             hmarkdo.sanity_check_header_list(header_list)
-        # Check output.
         actual = str(err.exception)
         self.check_string(actual)
 
@@ -1239,8 +1276,37 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         """
         # Prepare inputs.
         header_list = get_header_list5()
-        # Call function.
+        # Run test.
         hmarkdo.sanity_check_header_list(header_list)
+
+    def test4(self) -> None:
+        """
+        Test that a valid header list passes with warn_on_malformed=True.
+        """
+        # Prepare inputs.
+        header_list = get_header_list1()
+        # Run test.
+        hmarkdo.sanity_check_header_list(header_list, warn_on_malformed=True)
+
+    def test5(self) -> None:
+        """
+        Test that warn_on_malformed=True emits warning instead of raising
+        for level jumps.
+        """
+        # Prepare inputs.
+        header_list = get_header_list4()
+        # Run test.
+        hmarkdo.sanity_check_header_list(header_list, warn_on_malformed=True)
+
+    def test6(self) -> None:
+        """
+        Test that warn_on_malformed=True emits warning instead of raising
+        for duplicate level 1 headers.
+        """
+        # Prepare inputs.
+        header_list = get_header_list_with_duplicate_level1()
+        # Run test.
+        hmarkdo.sanity_check_header_list(header_list, warn_on_malformed=True)
 
 
 # #############################################################################

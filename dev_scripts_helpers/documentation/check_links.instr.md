@@ -21,7 +21,7 @@ https://github.com/gpsaggese/umd_classes/blob/master/class_project/DATA605/Sprin
 
 ## Step 2
 
-- Ignore everything in the table of content between the following tags 
+- Ignore everything in the table of content between the following tags
 
 <!-- toc -->
 

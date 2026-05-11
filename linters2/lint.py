@@ -7,11 +7,14 @@ then applies appropriate linting tools per file type.
 
 Examples:
 
-# Lint all modified files (default: Python and Jupyter)
+# Lint files in current branch vs master (default)
+> lint.py
+
+# Lint all modified files (Python and Jupyter)
 > lint.py --modified
 
-# Lint all files in branch vs master
-> lint.py --branch
+# Lint all files in branch vs a different base
+> lint.py --branch develop
 
 # Lint a specific directory
 > lint.py --dir ./tutorials
@@ -54,7 +57,7 @@ import argparse
 import logging
 import subprocess
 import sys
-from typing import List, Optional
+from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -84,8 +87,6 @@ _DEFAULT_ACTIONS = [
     "add_class_frames",
 ]
 
-_PYRIGHT_OPTIONS = "--outputjson"
-
 
 # #############################################################################
 # Linting Functions
@@ -110,8 +111,8 @@ def _run_linting_actions(
         actions = list(_DEFAULT_ACTIONS)
     ret = 0
     if "pre-commit" in actions:
-        print(hprint.frame("pre-commit", char1="-"))
-        cmd = f"pre-commit run --files {files_str}"
+        print(hprint.frame("pre-commit", char1="="))
+        cmd = f"pre-commit run --files {files_str} --color always"
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
             cmd,
@@ -120,8 +121,10 @@ def _run_linting_actions(
             suppress_output=False,
         )
     if "normalize_import" in actions:
-        print(hprint.frame("linters2/normalize_import.py", char1="-"))
-        cmd = f"linters2/normalize_import.py --no_report_command_line {files_str}"
+        print(hprint.frame("linters2/normalize_import.py", char1="="))
+        cmd = (
+            f"linters2/normalize_import.py --no_report_command_line {files_str}"
+        )
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
             cmd,
@@ -130,8 +133,10 @@ def _run_linting_actions(
             suppress_output=False,
         )
     if "add_class_frames" in actions:
-        print(hprint.frame("Running linters2/add_class_frames.py", char1="-"))
-        cmd = f"linters2/add_class_frames.py --no_report_command_line {files_str}"
+        print(hprint.frame("Running linters2/add_class_frames.py", char1="="))
+        cmd = (
+            f"linters2/add_class_frames.py --no_report_command_line {files_str}"
+        )
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
             cmd,
@@ -140,11 +145,9 @@ def _run_linting_actions(
             suppress_output=False,
         )
     if "pyright" in actions:
-        print(hprint.frame("Running pyright", char1="-"))
+        print(hprint.frame("Running pyright", char1="="))
+        cmd = f"linters2/pyright_cfile.py {files_str}"
         _LOG.debug("> %s", cmd)
-        cmd = (
-            f"pyright {_PYRIGHT_OPTIONS} {files_str} | jq -r '.generalDiagnostics[] | \"\\(.file):\\(.range.start.line + 1):\\(.range.start.character + 1): \\(.message)\"'",
-        )
         ret |= hsystem.system(
             cmd,
             print_command=False,
@@ -152,7 +155,7 @@ def _run_linting_actions(
             suppress_output=False,
         )
     if "fix_pyright" in actions:
-        print(hprint.frame("Running fix_pyright", char1="-"))
+        print(hprint.frame("Running fix_pyright", char1="="))
         ccp_script = hsystem.find_file_in_repo("ccp")
         prompt = f"/coding.fix_pyright {files_str}"
         cmd = " ".join([ccp_script, prompt])
@@ -165,15 +168,6 @@ def _run_linting_actions(
     return ret
 
 
-def _is_test_file(file_path: str) -> bool:
-    """Check if a file is a test file."""
-    return (
-        "/test/" in file_path
-        or file_path.split("/")[-1].startswith("test_")
-        or file_path.endswith("_test.py")
-    )
-
-
 def _run_coverage(
     file_paths: List[str],
     *,
@@ -183,31 +177,39 @@ def _run_coverage(
     Run pytest coverage for test files corresponding to source Python files.
 
     Maps each source file to its corresponding test file and runs:
+    ```
     > pytest --cov=. --cov-branch --cov-report term-missing --cov-report html
+    ```
+
+    Then generates a coverage report filtered to the modified source files:
+    ```
+    > coverage report --include='file1.py,file2.py,...'
+    ```
 
     :param file_paths: Source Python files to collect coverage for
     :param abort_on_error: whether to abort on first error
-    :return: return code from pytest
+    :return: return code from pytest and coverage report
     """
     if not file_paths:
         return 0
-    # Filter out test files (we only want source files)
-    source_files = [f for f in file_paths if not _is_test_file(f)]
+    # Find the source files.
+    source_files = [f for f in file_paths if not hunteuti.is_test_file(f)]
     if not source_files:
         _LOG.warning("No source files found (all files are test files)")
         return 0
-    _LOG.info("Collecting coverage for %d Python files", len(source_files))
-    test_files = []
-    for file_path in source_files:
-        test_file = hunteuti.get_test_file_for_source(file_path)
+    # Find the test files corresponding to the source files.
+    test_files = hunteuti.get_test_files_for_sources(source_files)
+    for source_file in source_files:
+        test_file = hunteuti.get_test_file_for_source(source_file)
         if test_file:
-            test_files.append(test_file)
-            _LOG.info("Source: %s -> Test: %s", file_path, test_file)
+            _LOG.info("Source: %s -> Test: %s", source_file, test_file)
         else:
-            _LOG.warning("No test file found for: %s", file_path)
+            _LOG.warning("No test file found for: %s", source_file)
     if not test_files:
         _LOG.warning("No test files found for any of the source files")
         return 0
+    # Collect the coverage from the test files.
+    _LOG.info("Collecting coverage for %d Python files", len(source_files))
     test_files_str = " ".join(test_files)
     cmd = f"pytest --cov=. --cov-branch --cov-report term-missing --cov-report html {test_files_str}"
     ret = hsystem.system(
@@ -216,6 +218,18 @@ def _run_coverage(
         abort_on_error=abort_on_error,
         suppress_output=False,
     )
+    # Generate coverage report filtered to modified source files.
+    if ret == 0 or not abort_on_error:
+        print(hprint.frame("Coverage report for modified files", char1="="))
+        source_files_str = ",".join(source_files)
+        coverage_cmd = f"coverage report --include='{source_files_str}'"
+        _LOG.debug("> %s", coverage_cmd)
+        ret |= hsystem.system(
+            coverage_cmd,
+            print_command=False,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
     return ret
 
 
@@ -249,14 +263,7 @@ def _lint_python_files(
         abort_on_error=abort_on_error,
         actions=actions,
     )
-    # Pyright and coverage run on all Python files including paired jupytext.
-    if "pyright" in actions:
-        files_str = " ".join(file_paths)
-        ret |= _run_linting_actions(
-            files_str,
-            abort_on_error=abort_on_error,
-            actions=["pyright"],
-        )
+    # Coverage runs on all Python files including paired jupytext.
     if "coverage" in actions:
         ret |= _run_coverage(
             file_paths,
@@ -309,14 +316,12 @@ def _lint_markdown_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
-    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Markdown files using lint_txt.py.
 
     :param file_paths: Markdown files to lint
     :param abort_on_error: whether to abort on first error
-    :param actions: list of actions to perform (passed to lint_txt.py)
     :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
@@ -405,8 +410,10 @@ def _parse() -> argparse.ArgumentParser:
     )
     file_selection.add_argument(
         "--branch",
-        action="store_true",
-        help="Lint files modified in current branch vs master",
+        nargs="?",
+        const="master",
+        type=str,
+        help="Lint files modified in current branch vs a base branch (default: master)",
     )
     file_selection.add_argument(
         "-d",
@@ -497,11 +504,10 @@ def _main(args: argparse.Namespace) -> int:
             args.last_commit,
         ]
     )
-    hdbg.dassert(
-        has_selection,
-        "Must specify one of: --modified, --branch, --dir, --files, "
-        "--from_file, --last_commit",
-    )
+    # Default to --branch if no option is specified
+    if not has_selection:
+        args.branch = "master"
+        has_selection = True
     # Parse file_types into a list of extensions
     file_extensions = [ext.strip() for ext in args.file_types.split(",")]
     _LOG.info("File extensions to process: %s", file_extensions)

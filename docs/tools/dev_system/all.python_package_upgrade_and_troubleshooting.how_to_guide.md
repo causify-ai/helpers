@@ -30,7 +30,7 @@
   [/devops/docker_build/pyproject.toml](devops/docker_build/pyproject.toml)
 - After the upgrade, the first step is to build the local image
 - The build command is described in the
-  [/docs/work_tools/all.docker.how_to_guide.md#multi-architecture-build](/docs/work_tools/all.docker.how_to_guide.md#multi-architecture-build)
+  [/docs/tools/dev_system/all.devops_docker.how_to_guide.md#multi-architecture-build](/docs/tools/dev_system/all.devops_docker.how_to_guide.md#multi-architecture-build)
 
 ## Run the tests
 
@@ -85,9 +85,9 @@ i.e. on the current one and the target one.
 ## Image Release
 
 - Run release command described in the
-  [/docs/work_tools/all.docker.how_to_guide.md#command-to-run-the-release-flow](/docs/work_tools/all.docker.how_to_guide.md#command-to-run-the-release-flow)
+  [/docs/tools/dev_system/all.devops_docker.how_to_guide.md#command-to-run-the-release-flow](/docs/tools/dev_system/all.devops_docker.how_to_guide.md#command-to-run-the-release-flow)
 - Follow the post-release check-list in the
-  [/docs/work_tools/all.docker.how_to_guide.md#post-release-check-list](/docs/work_tools/all.docker.how_to_guide.md#post-release-check-list)
+  [/docs/tools/dev_system/all.devops_docker.how_to_guide.md#post-release-check-list](/docs/tools/dev_system/all.devops_docker.how_to_guide.md#post-release-check-list)
 
 ## Merge Base PR
 

@@ -1,10 +1,10 @@
 <!-- toc -->
 
 - [Introduction](#introduction)
-- [What You'll Build](#what-youll-build)
-- [Before You Begin](#before-you-begin)
-- [Using the Script](#using-the-script)
-- [Output](#output)
+  * [What You'll Build](#what-youll-build)
+  * [Before You Begin](#before-you-begin)
+  * [Using the Script](#using-the-script)
+  * [Output](#output)
 
 <!-- tocstop -->
 

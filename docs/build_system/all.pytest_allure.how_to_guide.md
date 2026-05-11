@@ -1,11 +1,12 @@
 <!-- toc -->
 
-- [How to Run the Flow End-To-End Via GH Actions](#how-to-run-the-flow-end-to-end-via-gh-actions)
-- [How to Generate Allure-Pytest Results](#how-to-generate-allure-pytest-results)
-- [How to Backup the Allure Results](#how-to-backup-the-allure-results)
-- [How to Generate Allure Html-Report](#how-to-generate-allure-html-report)
-  * [Keep the History of Test Runs](#keep-the-history-of-test-runs)
-- [How to Publish the Allure-Html Report](#how-to-publish-the-allure-html-report)
+- [Pytest Allure](#pytest-allure)
+  * [How to Run the Flow End-To-End Via GH Actions](#how-to-run-the-flow-end-to-end-via-gh-actions)
+  * [How to Generate Allure-Pytest Results](#how-to-generate-allure-pytest-results)
+  * [How to Backup the Allure Results](#how-to-backup-the-allure-results)
+  * [How to Generate Allure Html-Report](#how-to-generate-allure-html-report)
+    + [Keep the History of Test Runs](#keep-the-history-of-test-runs)
+  * [How to Publish the Allure-Html Report](#how-to-publish-the-allure-html-report)
 
 <!-- tocstop -->
 
