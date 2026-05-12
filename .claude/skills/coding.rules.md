@@ -621,16 +621,58 @@
     pattern = re.compile(quote_pattern, re.VERBOSE)
     ```
 
-## Use verbatim to refer to functions and values
+## Use verbatim to refer to Python Objects
 
-- When referring to variables and functions in code use verbatim
+- When referring to Python objects (e.g., variables, classes, and functions) in
+  comments and docstrings use verbatim included in backticks
+  - For functions also include a call, e.g., `func()`
+
+- Example (variable in comment):
   - **Bad**
     ```python
-    # Create a curated list from get_md_colors().
+    # Increment the variable num_counter.
     ```
   - **Good**
     ```python
+    # Increment the variable `num_counter`
+    ```
+
+- Example (function in comment):
+  - **Bad**
+    ```
+    # Create a curated list from get_md_colors.
+    ```
+  - **Good**
+    ```
     # Create a curated list from `get_md_colors()`.
+    ```
+
+- Example (variable in docstring):
+  - **Bad**
+    ```python
+    """
+    Increment the variable num_counter.
+    """
+    ```
+  - **Good**
+    ```python
+    """
+    Increment the variable `num_counter`.
+    """
+    ```
+
+- Example (function in docstring):
+  - **Bad**
+    ```
+    """
+    Test helper for standardize_filename().
+    """
+    ```
+  - **Good**
+    ```
+    """
+    Test helper for `standardize_filename()`.
+    """
     ```
 
 # Executing System Calls

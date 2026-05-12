@@ -9,12 +9,12 @@ import dev_scripts_helpers.documentation.documentation_utils as dshdocut
 
 class Test_remove_span_with_multiple_attributes(hunitest.TestCase):
     """
-    Test the remove_span_with_multiple_attributes function.
+    Test the `remove_span_with_multiple_attributes()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for remove_span_with_multiple_attributes.
+        Test helper for `remove_span_with_multiple_attributes()`.
 
         :param content: Input markdown content
         :param expected: Expected output after removing spans
@@ -42,7 +42,7 @@ class Test_remove_span_with_multiple_attributes(hunitest.TestCase):
         """
         # Prepare inputs.
         content = 'Text with <span class="single">content</span> here'
-        # Prepare outputs: single-attribute span is not removed by this function.
+        # Prepare outputs: single-attribute span is not removed by `remove_span_with_multiple_attributes()`.
         expected = content
         # Run test.
         self.helper(content, expected)
@@ -66,12 +66,12 @@ class Test_remove_span_with_multiple_attributes(hunitest.TestCase):
 
 class Test_remove_label_span_tags(hunitest.TestCase):
     """
-    Test the remove_label_span_tags function.
+    Test the `remove_label_span_tags()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for remove_label_span_tags.
+        Test helper for `remove_label_span_tags()`.
 
         :param content: Input markdown content
         :param expected: Expected output
@@ -122,12 +122,12 @@ class Test_remove_label_span_tags(hunitest.TestCase):
 
 class Test_remove_keep_together_span_tags(hunitest.TestCase):
     """
-    Test the remove_keep_together_span_tags function.
+    Test the `remove_keep_together_span_tags()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for remove_keep_together_span_tags.
+        Test helper for `remove_keep_together_span_tags()`.
 
         :param content: Input markdown content
         :param expected: Expected output
@@ -178,12 +178,12 @@ class Test_remove_keep_together_span_tags(hunitest.TestCase):
 
 class Test_remove_html_link_span_tags(hunitest.TestCase):
     """
-    Test the remove_html_link_span_tags function.
+    Test the `remove_html_link_span_tags()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for remove_html_link_span_tags.
+        Test helper for `remove_html_link_span_tags()`.
 
         :param content: Input markdown content
         :param expected: Expected output
@@ -234,12 +234,12 @@ class Test_remove_html_link_span_tags(hunitest.TestCase):
 
 class Test_remove_pre_span_tags(hunitest.TestCase):
     """
-    Test the remove_pre_span_tags function.
+    Test the `remove_pre_span_tags()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for remove_pre_span_tags.
+        Test helper for `remove_pre_span_tags()`.
 
         :param content: Input markdown content
         :param expected: Expected output
@@ -290,12 +290,12 @@ class Test_remove_pre_span_tags(hunitest.TestCase):
 
 class Test_remove_anchor_tags(hunitest.TestCase):
     """
-    Test the remove_anchor_tags function.
+    Test the `remove_anchor_tags()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for remove_anchor_tags.
+        Test helper for `remove_anchor_tags()`.
 
         :param content: Input markdown content
         :param expected: Expected output
@@ -346,12 +346,12 @@ class Test_remove_anchor_tags(hunitest.TestCase):
 
 class Test_remove_backticks_in_math(hunitest.TestCase):
     """
-    Test the remove_backticks_in_math function.
+    Test the `remove_backticks_in_math()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for remove_backticks_in_math.
+        Test helper for `remove_backticks_in_math()`.
 
         :param content: Input markdown content
         :param expected: Expected output
@@ -402,12 +402,12 @@ class Test_remove_backticks_in_math(hunitest.TestCase):
 
 class Test_remove_junk(hunitest.TestCase):
     """
-    Test the remove_junk function.
+    Test the `remove_junk()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for remove_junk.
+        Test helper for `remove_junk()`.
 
         :param content: Input markdown content
         :param expected: Expected output after all removals
@@ -458,12 +458,12 @@ class Test_remove_junk(hunitest.TestCase):
 
 class Test_standardize_filename(hunitest.TestCase):
     """
-    Test the standardize_filename function.
+    Test the `standardize_filename()` function.
     """
 
     def helper(self, filename: str, expected: str) -> None:
         """
-        Test helper for standardize_filename.
+        Test helper for `standardize_filename()`.
 
         :param filename: Input filename to standardize
         :param expected: Expected standardized filename
