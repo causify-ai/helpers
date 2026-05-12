@@ -74,7 +74,9 @@ def _colorize_backticks(in_line: str, *, color: str = "blue") -> str:
     pattern = r"(?<!`)`(?!`)([^`]+?)(?<!`)`(?!`)"
 
     def replace_func(m: Match) -> str:
-        """Replace function that escapes underscores in the matched text."""
+        """
+        Replace function that escapes underscores in the matched text.
+        """
         matched_text = m.group(1)
         # Escape underscores for LaTeX.
         escaped_text = matched_text.replace("_", r"\_")
