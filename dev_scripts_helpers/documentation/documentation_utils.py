@@ -1,0 +1,275 @@
+"""
+Import as:
+
+import dev_scripts_helpers.documentation.documentation_utils as dshdocut
+"""
+
+import logging
+import re
+from typing import List
+
+_LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Remove functions for cleaning markdown
+# #############################################################################
+
+
+def remove_span_with_multiple_attributes(content: str) -> str:
+    """
+    Remove span tags that have multiple attributes (completely remove the tag).
+
+    Matches span tags with 2 or more attribute assignments (indicated by `=`).
+    This pattern identifies spans like:
+    `<span id="foo" class="bar">content</span>`
+
+    :param content: the markdown content
+    :return: content with multi-attribute span tags removed
+    """
+    # Pattern matches span tags with at least 2 attributes.
+    pattern = r"<span\s+[^>]*=[^>]*\s+[^>]*=[^>]*>.*?</span>"
+    content = re.sub(pattern, "", content, flags=re.DOTALL)
+    return content
+
+
+def remove_label_span_tags(content: str) -> str:
+    """
+    Remove only class="label" span tags but keep their content.
+
+    Matches span tags with only `class="label"` attribute and replaces them
+    with their content (e.g., `<span class="label">Part I. </span>` becomes
+    `Part I. `).
+
+    :param content: the markdown content
+    :return: content with class="label" span tags removed but content kept
+    """
+    # Pattern matches span tags with only class="label" attribute.
+    # Handles both single and double quotes.
+    pattern = r'<span\s+class=["\']label["\']>([^<]*)</span>'
+    content = re.sub(pattern, r"\1", content)
+    return content
+
+
+def remove_keep_together_span_tags(content: str) -> str:
+    """
+    Remove only class="keep-together" span tags but keep their content.
+
+    Matches span tags with only `class="keep-together"` attribute and
+    replaces them with their content (e.g.,
+    `<span class="keep-together">causation</span>` becomes `causation`).
+
+    :param content: the markdown content
+    :return: content with class="keep-together" span tags removed but content
+        kept
+    """
+    # Pattern matches span tags with only class="keep-together" attribute.
+    # Handles both single and double quotes.
+    pattern = r'<span\s+class=["\']keep-together["\']>([^<]*)</span>'
+    content = re.sub(pattern, r"\1", content)
+    return content
+
+
+def remove_html_link_span_tags(content: str) -> str:
+    """
+    Remove span tags with id attributes containing .html pattern (chapter links).
+
+    These are anchor/link spans like `<span id="ch12.html"></span>` that are
+    used for cross-references and should be completely removed.
+
+    :param content: the markdown content
+    :return: content with HTML link span tags removed
+    """
+    # Pattern matches span tags with id attribute containing .html pattern.
+    # Handles both single and double quotes. The id value can contain any
+    # characters except the closing quote (e.g., ch12.html or
+    # part03.html_part-3).
+    # Matches: <span id="...html..."></span> or <span id='...html...'></span>
+    pattern = r'<span\s+id=(?:"[^"]*\.html[^"]*"|\'[^\']*\.html[^\']*\')[^>]*>\s*</span>'
+    content = re.sub(pattern, "", content, flags=re.DOTALL)
+    return content
+
+
+def remove_pre_span_tags(content: str) -> str:
+    """
+    Remove only class="pre" span tags but keep their content.
+
+    Matches span tags with only `class="pre"` attribute and replaces them
+    with their content (e.g., `<span class="pre">`is_on_sale`</span>` becomes
+    `` `is_on_sale` ``).
+
+    :param content: the markdown content
+    :return: content with class="pre" span tags removed but content kept
+    """
+    # Pattern matches span tags with only class="pre" attribute.
+    # Handles both single and double quotes.
+    pattern = r'<span\s+class=["\']pre["\']>([^<]*)</span>'
+    content = re.sub(pattern, r"\1", content)
+    return content
+
+
+def remove_anchor_tags(content: str) -> str:
+    """
+    Remove anchor tags but keep their content.
+
+    Matches anchor tags like `<a href="#part03.html_part-3" data-type="xref">
+    Part III</a>` and replaces them with just the content (`Part III`).
+
+    :param content: the markdown content
+    :return: content with anchor tags removed but content kept
+    """
+    # Pattern matches anchor tags with any attributes and captures the content.
+    pattern = r"<a\s+[^>]*>([^<]*)</a>"
+    content = re.sub(pattern, r"\1", content)
+    return content
+
+
+def remove_backticks_in_math(content: str) -> str:
+    """
+    Remove backticks from LaTeX math expressions.
+
+    Matches LaTeX math delimited by `$` with backticks inside
+    (e.g., `$`Y(1)`$`) and removes the backticks (e.g., `$Y(1)$`).
+
+    :param content: the markdown content
+    :return: content with backticks removed from LaTeX math
+    """
+    # Pattern matches $`...`$ and removes the backticks.
+    pattern = r"\$`([^`]*)`\$"
+    content = re.sub(pattern, r"$\1$", content)
+    return content
+
+
+# #############################################################################
+# Combined cleanup function
+# #############################################################################
+
+
+def remove_junk(content: str) -> str:
+    """
+    Remove all HTML markup junk from markdown content.
+
+    Applies all removal functions in sequence to clean up HTML-generated
+    markdown, removing various span tags, anchor tags, and fixing math
+    expressions.
+
+    :param content: the markdown content
+    :return: cleaned markdown content
+    """
+    # Remove span tags with multiple attributes (completely remove them).
+    _LOG.info("Removing span tags with multiple attributes")
+    content = remove_span_with_multiple_attributes(content)
+    # Remove only class="label" span tags but keep their content.
+    _LOG.info("Removing class='label' span tags (keeping content)")
+    content = remove_label_span_tags(content)
+    # Remove only class="keep-together" span tags but keep their content.
+    _LOG.info("Removing class='keep-together' span tags (keeping content)")
+    content = remove_keep_together_span_tags(content)
+    # Remove HTML link span tags (e.g., <span id="ch12.html"></span>).
+    _LOG.info("Removing HTML link span tags")
+    content = remove_html_link_span_tags(content)
+    # Remove only class="pre" span tags but keep their content.
+    _LOG.info("Removing class='pre' span tags (keeping content)")
+    content = remove_pre_span_tags(content)
+    # Remove anchor tags but keep their content.
+    _LOG.info("Removing anchor tags (keeping content)")
+    content = remove_anchor_tags(content)
+    # Remove backticks from LaTeX math expressions.
+    _LOG.info("Removing backticks from LaTeX math expressions")
+    content = remove_backticks_in_math(content)
+    return content
+
+
+# #############################################################################
+# Filename standardization
+# #############################################################################
+
+
+def standardize_filename(filename: str) -> str:
+    """
+    Convert a file name (book or paper) into a standard format.
+
+    Transforms filenames like:
+    `Ajay Agrawal, Joshua Gans, Avi Goldfarb - Prediction Machines_ The
+    Simple Economics of Artificial Intelligence (2018, Harvard Business
+    Review Press) - libgen.li.epub`
+
+    Into standardized format:
+    `2018.Agrawal_et_al.Prediction_Machines_The_Simple_Economics_of_Artificial_Intelligence.epub`
+
+    Format: `<Year>.<LastName_of_FirstAuthor>[_et_al].<Title>.<ext>`
+
+    Rules:
+    - Year is extracted from pattern `(YYYY,` or from the end if available
+    - Authors are extracted as `Author1, Author2, ... - Title` pattern
+    - If multiple authors, append `_et_al`
+    - Title is cleaned by replacing spaces, dots, slashes, backslashes with
+      underscores and removing other special characters
+    - The file extension is preserved
+
+    :param filename: The filename to standardize
+    :return: Standardized filename
+    """
+    # Extract file extension.
+    if "." in filename:
+        base_name = ".".join(filename.split(".")[:-1])
+        ext = "." + filename.split(".")[-1]
+    else:
+        base_name = filename
+        ext = ""
+    _LOG.debug("Extracted extension: %s", ext)
+    # Extract year from pattern (YYYY, or similar).
+    year_match = re.search(r"\(\s*(\d{4})\s*,", base_name)
+    if year_match:
+        year = year_match.group(1)
+        _LOG.debug("Extracted year: %s", year)
+    else:
+        year = ""
+    # Extract authors and title.
+    # Pattern: Authors - Title (Year, Publisher) - Source
+    author_title_match = re.match(r"^(.+?)\s*-\s*(.+?)(?:\s*\(\d{4}|$)", base_name)
+    if author_title_match:
+        authors_str = author_title_match.group(1).strip()
+        title_str = author_title_match.group(2).strip()
+        _LOG.debug("Extracted authors: %s", authors_str)
+        _LOG.debug("Extracted title: %s", title_str)
+    else:
+        authors_str = ""
+        title_str = base_name
+    # Process authors.
+    if authors_str:
+        author_list = [a.strip() for a in authors_str.split(",")]
+        first_author = author_list[0]
+        # Extract last name (last word).
+        first_author_parts = first_author.split()
+        last_name = first_author_parts[-1] if first_author_parts else ""
+        # Check if multiple authors.
+        if len(author_list) > 1:
+            author_part = f"{last_name}_et_al"
+        else:
+            author_part = last_name
+        _LOG.debug("Processed author part: %s", author_part)
+    else:
+        author_part = ""
+    # Clean title: replace unfriendly characters with underscore.
+    clean_title = title_str
+    # Replace spaces, dots, slashes, backslashes with underscore.
+    clean_title = re.sub(r"[\s._/\\]+", "_", clean_title)
+    # Remove other special characters (keep only alphanumeric and underscore).
+    clean_title = re.sub(r"[^a-zA-Z0-9_]", "", clean_title)
+    # Remove multiple consecutive underscores.
+    clean_title = re.sub(r"_+", "_", clean_title)
+    # Remove leading/trailing underscores.
+    clean_title = clean_title.strip("_")
+    _LOG.debug("Cleaned title: %s", clean_title)
+    # Build standardized filename.
+    parts: List[str] = []
+    if year:
+        parts.append(year)
+    if author_part:
+        parts.append(author_part)
+    if clean_title:
+        parts.append(clean_title)
+    standardized = ".".join(parts) + ext
+    _LOG.info("Standardized filename: %s", standardized)
+    return standardized

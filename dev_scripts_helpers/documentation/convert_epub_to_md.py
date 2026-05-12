@@ -22,9 +22,14 @@ from pathlib import Path
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+import dev_scripts_helpers.documentation.documentation_utils as dshdocut
 
 _LOG = logging.getLogger(__name__)
+
+_VALID_ACTIONS = ["remove_junk", "lint"]
+_DEFAULT_ACTIONS = ["remove_junk", "lint"]
 
 
 def _move_media(images_dir: str) -> None:
@@ -107,6 +112,7 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         help="The output directory for markdown and images",
     )
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -153,6 +159,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Conversion completed successfully")
     _LOG.info("Markdown file: %s", md_file)
     _LOG.info("Images saved to: %s", images_dir)
+    # Select and execute actions.
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # Remove junk from markdown.
+    to_execute, actions = hparser.mark_action("remove_junk", actions)
+    if to_execute:
+        _LOG.info("Removing junk from markdown...")
+        content = hio.from_file(md_file)
+        content = dshdocut.remove_junk(content)
+        hio.to_file(md_file, content)
+        _LOG.info("Junk removed successfully")
+    # Lint the markdown file.
+    to_execute, actions = hparser.mark_action("lint", actions)
+    if to_execute:
+        _LOG.info("Linting markdown file...")
+        lint_cmd = f"lint_txt.py --input={md_file}"
+        hsystem.system(lint_cmd)
 
 
 if __name__ == "__main__":

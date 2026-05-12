@@ -1,14 +1,36 @@
-- Write a Python script to convert epub to markdown 
-  ./dev_scripts_helpers/documentation/convert_epub_to_md.py
+Step 1
+Factor out the functions with `remove_*` in
+./dev_scripts_helpers/documentation/clean_markdown.py to
+./dev_scripts_helpers/documentation/documentation_utils.py
 
-- The interface is similar to ./dev_scripts_helpers/documentation/convert_pdf_to_md.py
+Step 2
+Create a function `remove_junk` that calls in order all the `remove_*` functions
+like in _main of ./dev_scripts_helpers/documentation/clean_markdown.py
 
-- Use a logic similar to 
-pandoc <input> \
-  --to=gfm \
-  --wrap=none \
-  --extract-media=images \
-  -o <output>.md
+Step 3
+Add a function to ./dev_scripts_helpers/documentation/documentation_utils.py
+
+- Convert the name of a file (book or paper) into a standard format without
+  characters that are unfriendly for Linux (e.g., spaces, `.` `/`, `\`) converting
+  them into underscore
+- Separate Year, Author and
+  ```
+  <Year>.<Last_name_of_first_author>_[et_al].<Title>
+  ```
+- If there are more than one author use `et al`
+
+- Example
+  - **Before**
+    - Ajay Agrawal, Joshua Gans, Avi Goldfarb - Prediction Machines_ The Simple Economics of Artificial Intelligence (2018, Harvard Business Review Press) - libgen.li.epub
+  - **After**
+    2018.Agrawal_et_al.Prediction_Machines_The_Simple_Economics_of_Artificial_Intelligence.epub
+
+Step 4
+Add dev_scripts_helpers/documentation/convert_epub_to_md.py
+Add an --action remove_junk to call `remove_junk`
+
+Step 5
+Add an --action lint to lint the file
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
