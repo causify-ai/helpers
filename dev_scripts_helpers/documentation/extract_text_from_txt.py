@@ -132,7 +132,9 @@ def _find_header_from_input(
         # Full header format like "## Title"
         level, title = _parse_header_string(header_input)
         header_info = _find_header_by_title(header_list, title)
-        hdbg.dassert_is_not(header_info, None, "Header not found: '%s'", header_input)
+        hdbg.dassert_is_not(
+            header_info, None, "Header not found: '%s'", header_input
+        )
         hdbg.dassert_eq(
             header_info.level,
             level,
@@ -145,7 +147,9 @@ def _find_header_from_input(
     else:
         # Partial title match
         header_info = _find_header_by_partial_title(header_list, header_input)
-        hdbg.dassert_is_not(header_info, None, "No header matches: '%s'", header_input)
+        hdbg.dassert_is_not(
+            header_info, None, "No header matches: '%s'", header_input
+        )
         return header_info, header_info.level
 
 

@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.1
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -343,7 +343,9 @@ result1 = api_call("python", session_id="abc")
 elapsed1 = time.time() - start_time
 print(f"Result: {result1} (time: {elapsed1:.3f}s)")
 # Same query, different session_id - should hit cache.
-print("\nCalling with query='python', session_id='xyz' (different session_id)...")
+print(
+    "\nCalling with query='python', session_id='xyz' (different session_id)..."
+)
 start_time = time.time()
 result2 = api_call("python", session_id="xyz")
 elapsed2 = time.time() - start_time

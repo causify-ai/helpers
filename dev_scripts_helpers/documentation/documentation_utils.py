@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts_helpers.documentation.documentation_utils as dshdocut
+import dev_scripts_helpers.documentation.documentation_utils as dshddout
 """
 
 import logging
@@ -227,7 +227,9 @@ def standardize_filename(filename: str) -> str:
         year = ""
     # Extract authors and title.
     # Pattern: Authors - Title (Year, Publisher) - Source
-    author_title_match = re.match(r"^(.+?)\s*-\s*(.+?)(?:\s*\(\d{4}|$)", base_name)
+    author_title_match = re.match(
+        r"^(.+?)\s*-\s*(.+?)(?:\s*\(\d{4}|$)", base_name
+    )
     if author_title_match:
         authors_str = author_title_match.group(1).strip()
         title_str = author_title_match.group(2).strip()

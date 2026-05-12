@@ -1,10 +1,8 @@
-import glob
 import logging
 import os
 from collections.abc import Sequence
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional
 
-import pytest
 
 import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
 import helpers.hdbg as hdbg

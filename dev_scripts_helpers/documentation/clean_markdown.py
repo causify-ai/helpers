@@ -12,7 +12,7 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
-import dev_scripts_helpers.documentation.documentation_utils as dshdocut
+import dev_scripts_helpers.documentation.documentation_utils as dshddout
 
 _LOG = logging.getLogger(__name__)
 
@@ -42,8 +42,6 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-
-
 def _main(parser: argparse.ArgumentParser) -> None:
     """
     Main function to clean markdown files.
@@ -54,7 +52,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Reading input file: %s", args.input)
     content = hio.from_file(args.input)
     # Remove all junk from markdown.
-    content = dshdocut.remove_junk(content)
+    content = dshddout.remove_junk(content)
     # Write output file.
     _LOG.info("Writing output file: %s", args.output)
     hio.to_file(args.output, content)

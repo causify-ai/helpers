@@ -24,7 +24,7 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
-import dev_scripts_helpers.documentation.documentation_utils as dshdocut
+import dev_scripts_helpers.documentation.documentation_utils as dshddout
 
 _LOG = logging.getLogger(__name__)
 
@@ -166,7 +166,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if to_execute:
         _LOG.info("Removing junk from markdown...")
         content = hio.from_file(md_file)
-        content = dshdocut.remove_junk(content)
+        content = dshddout.remove_junk(content)
         hio.to_file(md_file, content)
         _LOG.info("Junk removed successfully")
     # Lint the markdown file.

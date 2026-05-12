@@ -25,7 +25,9 @@ _LOG = logging.getLogger(__name__)  # noqa: F841
 # #############################################################################
 
 
-@pytest.mark.skipif(not hserver.is_host_gp_mac(), reason="Tests only run on GP's Mac")
+@pytest.mark.skipif(
+    not hserver.is_host_gp_mac(), reason="Tests only run on GP's Mac"
+)
 class TestTxtSyntaxHighlighting(hunitest.TestCase):
     """
     Test Vim syntax highlighting for txt files.

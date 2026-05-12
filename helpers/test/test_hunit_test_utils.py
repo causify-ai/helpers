@@ -1,6 +1,7 @@
 import os
 
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -17,33 +18,24 @@ class TestUnitTestRenamer(hunitest.TestCase):
     """
 
 
-# #############################################################################
-# TestCases
-# #############################################################################
-
-
     @staticmethod
     def helper() -> str:
         """
         Create file content.
         """
         content = """
-class TestCases(hunitest.TestCase):
-    def test_assert_equal1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        class TestCases(hunitest.TestCase):
+            def test_assert_equal1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
 
-    def test_check_string1(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
+            def test_check_string1(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
         """
+        content = hprint.dedent(content)
         return content
-
-
-# #############################################################################
-# TestNewCase
-# #############################################################################
 
 
     def test_rename_class1(self) -> None:
@@ -55,16 +47,17 @@ class TestCases(hunitest.TestCase):
         renamer = hunteuti.UnitTestRenamer("TestCases", "TestNewCase", root_dir)
         actual, _ = renamer._rename_class(content)
         expected = """
-class TestNewCase(hunitest.TestCase):
-    def test_assert_equal1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        class TestNewCase(hunitest.TestCase):
+            def test_assert_equal1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
 
-    def test_check_string1(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
+            def test_check_string1(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
         """
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
     def test_rename_class2(self) -> None:
@@ -101,32 +94,33 @@ class TestPytestRenameMethod(hunitest.TestCase):
         Create file content.
         """
         content = """
-class TestCases(hunitest.TestCase):
-    def test1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        class TestCases(hunitest.TestCase):
+            def test1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
 
-    def test10(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
-
-
-# #############################################################################
-# TestOtherCases
-# #############################################################################
+            def test10(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
 
 
-class TestOtherCases(hunitest.TestCase):
-    def test1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        # #############################################################################
+        # TestOtherCases
+        # #############################################################################
 
-    def test10(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
+
+        class TestOtherCases(hunitest.TestCase):
+            def test1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
+
+            def test10(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
         """
+        content = hprint.dedent(content)
         return content
 
 
@@ -146,32 +140,33 @@ class TestOtherCases(hunitest.TestCase):
         )
         actual, _ = renamer._rename_method(content)
         expected = """
-class TestCases(hunitest.TestCase):
-    def test_new(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        class TestCases(hunitest.TestCase):
+            def test_new(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
 
-    def test10(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
-
-
-# #############################################################################
-# TestOtherCases
-# #############################################################################
+            def test10(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
 
 
-class TestOtherCases(hunitest.TestCase):
-    def test1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        # #############################################################################
+        # TestOtherCases
+        # #############################################################################
 
-    def test10(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
+
+        class TestOtherCases(hunitest.TestCase):
+            def test1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
+
+            def test10(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
         """
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
     def test_rename_method2(self) -> None:

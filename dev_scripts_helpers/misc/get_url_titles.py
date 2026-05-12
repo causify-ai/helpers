@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import dev_scripts_helpers.misc.get_url_titles as dshmgurti
+"""
+
 import time
 from html.parser import HTMLParser
 from typing import List, Optional, Tuple
