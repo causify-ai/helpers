@@ -19,10 +19,13 @@ plan-then-implement approach
   Target files: <files>
   Test files: <test_files>
   ```
-- Determine which speed suite the target tests belong to (fast/slow/superslow)
-  using `@.claude/skills/testing.speed/SKILL.md`, then run:
+- Run the following command and record the results:
   ```bash
-  invoke run_coverage --suite fast --generate-html-report
+  # Using invoke (preferred):
+  > i run_coverage --suite fast --generate-html-report
+  # Or directly with pytest:
+  > pytest --cov=<pkg> --cov-report=term-missing --cov-report=html <test_file>
+  ```
 
 - Summarize which lines and branches are not covered.
 
