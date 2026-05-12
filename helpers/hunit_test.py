@@ -1520,7 +1520,7 @@ class TestCase(unittest.TestCase):
                 _LOG.warning("Can't find golden outcome file '%s'", file_name)
                 if action_on_missing_golden == "assert":
                     # Save the result to a temporary file and assert.
-                    file_name += ".tmp"
+                    #file_name += ".tmp"
                     hio.to_file(file_name, actual, use_gzip=use_gzip)
                     msg = (
                         "The golden outcome doesn't exist: saved the actual "
@@ -1716,7 +1716,7 @@ class TestCase(unittest.TestCase):
                 _LOG.warning("Can't find golden outcome file '%s'", file_name)
                 if action_on_missing_golden == "assert":
                     # Save the result to a temporary file and assert.
-                    file_name += ".tmp"
+                    #file_name += ".tmp"
                     hio.create_enclosing_dir(file_name)
                     actual.to_csv(file_name)
                     msg = (

@@ -86,62 +86,95 @@
   operation_b(...)
   ```
 
-### Example
-- **Bad**
-  ```python
-  # Build propensity score model.
-  ps_model = LogisticRegression(penalty=None)
-  ps_model.fit(train[X], train[T])
-  # Compute propensity scores once.
-  propensity_scores = ps_model.predict_proba(train[X])
-  # Split treatment groups.
-  train_t0 = train.query(f"{T} == 0")
-  train_t1 = train.query(f"{T} == 1")
-  # Extract corresponding sample weights.
-  w_t0 = 1 / propensity_scores[train[T] == 0, 0]
-  w_t1 = 1 / propensity_scores[train[T] == 1, 1]
-  # Outcome models.
-  m0 = LGBMRegressor()
-  m1 = LGBMRegressor()
-  m0.fit(
-      train_t0[X],
-      train_t0[y],
-      sample_weight=w_t0,
-  )
-  m1.fit(
-      train_t1[X],
-      train_t1[y],
-      sample_weight=w_t1,
-  )
-  ```
-- **Good**
-  ```python
-  # Build propensity score model.
-  ps_model = LogisticRegression(penalty=None)
-  ps_model.fit(train[X], train[T])
-  # Compute propensity scores.
-  propensity_scores = ps_model.predict_proba(train[X])
-  # Outcome models.
-  m0 = LGBMRegressor()
-  # Split treatment groups.
-  train_t0 = train.query(f"{T} == 0")
-  # Extract corresponding sample weights.
-  w_t0 = 1 / propensity_scores[train[T] == 0, 0]
-  m0.fit(
-      train_t0[X],
-      train_t0[y],
-      sample_weight=w_t0,
-  )
-  # Same for other outcome.
-  m1 = LGBMRegressor()
-  train_t1 = train.query(f"{T} == 1")
-  w_t1 = 1 / propensity_scores[train[T] == 1, 1]
-  m1.fit(
-      train_t1[X],
-      train_t1[y],
-      sample_weight=w_t1,
-  )
-  ```
+- Example
+  - **Bad**
+    ```python
+    # Build propensity score model.
+    ps_model = LogisticRegression(penalty=None)
+    ps_model.fit(train[X], train[T])
+    # Compute propensity scores once.
+    propensity_scores = ps_model.predict_proba(train[X])
+    # Split treatment groups.
+    train_t0 = train.query(f"{T} == 0")
+    train_t1 = train.query(f"{T} == 1")
+    # Extract corresponding sample weights.
+    w_t0 = 1 / propensity_scores[train[T] == 0, 0]
+    w_t1 = 1 / propensity_scores[train[T] == 1, 1]
+    # Outcome models.
+    m0 = LGBMRegressor()
+    m1 = LGBMRegressor()
+    m0.fit(
+        train_t0[X],
+        train_t0[y],
+        sample_weight=w_t0,
+    )
+    m1.fit(
+        train_t1[X],
+        train_t1[y],
+        sample_weight=w_t1,
+    )
+    ```
+  - **Good**
+    ```python
+    # Build propensity score model.
+    ps_model = LogisticRegression(penalty=None)
+    ps_model.fit(train[X], train[T])
+    # Compute propensity scores.
+    propensity_scores = ps_model.predict_proba(train[X])
+    # Outcome models.
+    m0 = LGBMRegressor()
+    # Split treatment groups.
+    train_t0 = train.query(f"{T} == 0")
+    # Extract corresponding sample weights.
+    w_t0 = 1 / propensity_scores[train[T] == 0, 0]
+    m0.fit(
+        train_t0[X],
+        train_t0[y],
+        sample_weight=w_t0,
+    )
+    # Same for other outcome.
+    m1 = LGBMRegressor()
+    train_t1 = train.query(f"{T} == 1")
+    w_t1 = 1 / propensity_scores[train[T] == 1, 1]
+    m1.fit(
+        train_t1[X],
+        train_t1[y],
+        sample_weight=w_t1,
+    )
+    ```
+
+## Decompose Dense Method Chain in Assignments
+
+- Decomposing a dense method chain (e.g., from `pandas`) into linear intermediate
+  assignments to improve readability, debuggability, and explainability
+  - Unrolling a method chain into explicit transformation stages
+  - Making implicit dataframe transformations explicit
+  - Converting a compact fluent pipeline into self-documenting procedural steps
+  - Introducing narrative structure into transformations
+
+- Example
+  - **Bad**
+    ```python
+    test_cf = (
+        test
+        .drop(columns=[T])
+        .assign(key=1)
+        .merge(t_grid)
+        .assign(**{y_hat_col: lambda d: s_learner.predict(d[X + [T]])})
+    )
+    ```
+  - **Good**
+    ```python
+    # Remove original treatment values to create a clean base for counterfactuals.
+    test_cf = test.drop(columns=[T])
+    # Add merge key to enable cross-product with treatment grid.
+    test_cf = test_cf.assign(key=1)
+    # Create counterfactual dataset by merging each test row with all treatment
+    # values.
+    test_cf = test_cf.merge(t_grid)
+    # Generate predictions for each (features, treatment) combination.
+    test_cf = test_cf.assign(**{y_hat_col: lambda d: s_learner.predict(d[X + [T]])})
+    ```
 
 # Error Handling and Assertions
 
