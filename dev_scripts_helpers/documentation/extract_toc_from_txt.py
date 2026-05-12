@@ -187,7 +187,7 @@ def _extract_headers_from_txtslides(
     """
     hdbg.dassert_isinstance(lines, list)
     # Use convert_slide_to_markdown to convert txt slide format to standard markdown format.
-    lines = hmarkdo.convert_slide_to_markdown(lines, level=3)
+    lines = hmarkdo.convert_slide_to_markdown(lines)
     # Use standard markdown header extraction.
     # We don't want to sanity check since we want to show the headers, even
     # if malformed.

@@ -128,7 +128,7 @@
     - `update_md.py`: Multi-action LLM tool for markdown files (summarize, update content, apply style)
 
   - Extraction and Conversion Tools
-    - `convert_docx_to_markdown.py`: Converts DOCX to Markdown
+    - `convert_docx_to_md.py`: Converts DOCX to Markdown
     - `convert_pdf_to_md.py`: Converts PDF to Markdown
     - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt slides, and Jupyter notebook files for navigation
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
@@ -905,7 +905,7 @@ The supported File types and code blocks are:
   - Skip actual API calls and image downloads
   - Useful for testing and validating input before spending API credits
 
-## `convert_docx_to_markdown.py`
+## `convert_docx_to_md.py`
 
 ### What It Does
 
@@ -923,7 +923,7 @@ The supported File types and code blocks are:
   ```bash
   > IN_FILE="/Users/saggese/Downloads/Document.docx"
   > OUT_FILE="paper/paper.md"
-  > convert_docx_to_markdown.py --input $IN_FILE --output $OUT_FILE
+  > convert_docx_to_md.py --input $IN_FILE --output $OUT_FILE
   ```
 - The script will:
   - Create a `paper_figs/` directory for extracted images

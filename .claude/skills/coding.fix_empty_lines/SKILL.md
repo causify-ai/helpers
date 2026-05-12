@@ -3,8 +3,12 @@ description: Remove empty lines in Python functions.
 model: haiku
 ---
 
-Given one or more Python files `<files>` remove the empty lines in the functions,
-without changing the behavior of the code.
+- Given one or more Python files `<files>` replace the empty lines in the
+  functions of `<files>` with comments describing the next block of code
 
-Add comments using the style from `.claude/skills/coding.rules.md` to separate
-chunks of code, when necessary.
+- After this skill, Python functions should have no empty line
+
+- Write comments using the style from `.claude/skills/coding.rules.md`
+  `# Documentation and Comments`
+
+- Do not change the behavior of the code

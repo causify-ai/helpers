@@ -3,6 +3,10 @@ description: Summarize a markdown text
 model: haiku
 ---
 
+# Read Content
+
+- Read the first file passed by the user `<input>`
+
 # Summarize Content in Bullet Points
 
 - Write a summary in bullet points using the rules in
@@ -30,8 +34,8 @@ model: haiku
 
 # Write Output
 
-- Write the result in the file `<output>` called `summary.md` in the current
-  directory
+- Write the result in the passed file `<output>`
+  - If not specified use `summary.md` in the current directory as `<output>`
 - Print on screen the path of the file as
   ```
   # Summary file: <output>

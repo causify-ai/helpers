@@ -18,7 +18,7 @@ import logging
 import os
 import re
 import sys
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Match, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -568,7 +568,7 @@ class CodeImportNormalizer:
                 for matched_string in re.finditer(str_pattern, line):
                     strings_spans.append(matched_string.span())
 
-            def _replace(matchobj: re.Match) -> str:
+            def _replace(matchobj: Match) -> str:
                 for string_span in strings_spans:
                     if (
                         matchobj.start() >= string_span[0]
