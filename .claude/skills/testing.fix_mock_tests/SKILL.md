@@ -115,12 +115,6 @@ description: Remove mocking approach from unit tests
 - Sometimes the best way to avoid mocking is not to unit test in isolation, but
   to test a small system working together
 
-# Verify
-- Run the refactored tests inside a Docker container to confirm nothing broke:
-  ```bash
-  > invoke docker_cmd --cmd "pytest <test_file> -v"
-  ```
-
 # Important
 - All invariants and conventions for unit tests are documented in
   `@.claude/skills/testing.rules.md`
