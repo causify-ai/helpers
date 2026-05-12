@@ -153,7 +153,7 @@
   - `docs/tools/thin_environment/`
     - Documentation of lightweight Python environments for GitHub and CI/CD
       pipelines.
-  - `docs/tools/unit_test/`
+  - `helpers/test/docs/`
     - Unit testing practices: writing, structuring, and executing tests
       effectively.
 - `docs/work_organization/`

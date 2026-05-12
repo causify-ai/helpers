@@ -33,8 +33,8 @@
     - How can we avoid the problem next time, through process and automation?
 - Refer to `.github` dir in the repo for update schedule of GH actions
 - Additional information about tests:
-  - [write tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md.figs)
-  - [run tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md.figs)
+  - [write tests](/helpers/test/docs/all.write_unit_tests.how_to_guide.md.figs)
+  - [run tests](/helpers/test/docs/all.run_unit_tests.how_to_guide.md.figs)
 
 ## Notification System
 

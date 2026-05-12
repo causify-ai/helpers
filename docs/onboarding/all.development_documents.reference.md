@@ -35,9 +35,9 @@ This contains the absolute minimal amount of info to start developing
 
 - [Jupyter notebook best practices](/docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md)
 
-- [Writing unit tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+- [Writing unit tests](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
 
-- [Running unit tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+- [Running unit tests](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
 
 ## Project management
 
