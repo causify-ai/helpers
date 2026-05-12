@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
 """
-Convert EPUB file to markdown using Dockerized `pandoc` and save images in a
-directory.
+Convert EPUB file to markdown using Dockerized `pandoc` and save images.
+The script optionally removes junk content and lints the output.
 
 Usage:
-
 > convert_epub_to_md.py --input document.epub --output output_dir
 
 The output will contain:
@@ -108,9 +107,9 @@ def _parse() -> argparse.ArgumentParser:
         "--output",
         "-o",
         action="store",
-        required=True,
+        required=False,
         type=str,
-        help="The output directory for markdown and images",
+        help="Output markdown file (default: replace .epub with .md in input filename)",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
@@ -128,14 +127,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Validate input file.
     epub_file = args.input
     hdbg.dassert_file_exists(epub_file, "EPUB file does not exist")
-    # Prepare output directory structure.
-    output_dir = Path(args.output)
-    hio.create_dir(str(output_dir), incremental=True)
-    images_dir = str(output_dir / "images")
+    # Determine output markdown file path.
+    if args.output:
+        # Use provided output directory
+        output_dir = Path(args.output)
+        hio.create_dir(str(output_dir), incremental=True)
+        md_filename = Path(epub_file).stem + ".md"
+        md_file = str(output_dir / md_filename)
+        images_dir = str(output_dir / "images")
+    else:
+        # Use same name as input, replacing .epub with .md
+        md_file = str(Path(epub_file).with_suffix(".md"))
+        hdbg.dassert(
+            not os.path.exists(md_file),
+            f"Output file already exists: {md_file}",
+        )
+        images_dir = str(Path(md_file).parent / f"{Path(md_file).stem}_images")
     hio.create_dir(images_dir, incremental=True)
-    # Generate output markdown filename.
-    md_filename = Path(epub_file).stem + ".md"
-    md_file = str(output_dir / md_filename)
     _LOG.info("Converting EPUB: %s", epub_file)
     _LOG.info("Output markdown: %s", md_file)
     _LOG.info("Images directory: %s", images_dir)

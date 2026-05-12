@@ -33,6 +33,28 @@
         ...
     ```
 
+## Use `os` and `os.path` for Path Operations
+
+- Use `os` and `os.path` for path operations instead of `pathlib.Path`
+
+- **Bad**: Using `pathlib`
+  ```python
+  from pathlib import Path
+  
+  file_path = Path("/tmp/data.txt")
+  if file_path.exists():
+      content = file_path.read_text()
+  ```
+- **Good**: Using `os` and `os.path`
+  ```python
+  import os
+  
+  file_path = "/tmp/data.txt"
+  if os.path.exists(file_path):
+      with open(file_path, "r") as f:
+          content = f.read()
+  ```
+
 ## Mark Private Functions
 
 - Functions that are used only in one file, must be private and their name must
