@@ -95,9 +95,9 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Run test.
         self.helper(
             import_name,
-            package_name,
-            expected_installed,
-            expected_calls,
+            package_name=package_name,
+            expected_installed=expected_installed,
+            expected_calls=expected_calls,
         )
 
     def test2(self) -> None:
@@ -112,9 +112,9 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Run test.
         self.helper(
             import_name,
-            package_name,
-            expected_installed,
-            expected_calls,
+            package_name=package_name,
+            expected_installed=expected_installed,
+            expected_calls=expected_calls,
         )
 
     def test3(self) -> None:
@@ -129,9 +129,9 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Run test.
         self.helper(
             import_name,
-            package_name,
-            expected_installed,
-            expected_calls,
+            package_name=package_name,
+            expected_installed=expected_installed,
+            expected_calls=expected_calls,
         )
 
     def test4(self) -> None:
@@ -146,9 +146,9 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Run test.
         self.helper(
             import_name,
-            package_name,
-            expected_installed,
-            expected_calls,
+            package_name=package_name,
+            expected_installed=expected_installed,
+            expected_calls=expected_calls,
         )
 
     def test5(self) -> None:
@@ -167,9 +167,9 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Run test.
         self.helper(
             import_name,
-            package_name,
-            expected_installed,
-            expected_calls,
+            package_name=package_name,
+            expected_installed=expected_installed,
+            expected_calls=expected_calls,
         )
 
     def test6(self) -> None:
@@ -187,9 +187,9 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Run test.
         self.helper(
             import_name,
-            package_name,
-            expected_installed,
-            expected_calls,
+            package_name=package_name,
+            expected_installed=expected_installed,
+            expected_calls=expected_calls,
         )
 
     def test7(self) -> None:
@@ -207,9 +207,9 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Run test.
         self.helper(
             import_name,
-            package_name,
-            expected_installed,
-            expected_calls,
+            package_name=package_name,
+            expected_installed=expected_installed,
+            expected_calls=expected_calls,
         )
 
     def test8(self) -> None:
@@ -227,9 +227,9 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Run test.
         self.helper(
             import_name,
-            package_name,
-            expected_installed,
-            expected_calls,
+            package_name=package_name,
+            expected_installed=expected_installed,
+            expected_calls=expected_calls,
         )
 
     def test9(self) -> None:
