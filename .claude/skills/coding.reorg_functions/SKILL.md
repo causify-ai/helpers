@@ -7,7 +7,6 @@ description: Reorganize the Python functions in a file
 Reorganize the Python functions in the user-provided file according to the
 following rules.
 
-
 ## Organize functions into logical layers
 
 - Group related functions into sections separated by headers in the following format:
@@ -29,7 +28,7 @@ following rules.
 ## Order layers by abstraction level
 
 - Arrange layers from lower-level/simple functionality to higher-level/complex
-  functionality.
+  functionality
 
 - General rule:
   - Fundamental utilities first
@@ -60,9 +59,13 @@ following rules.
 
 - Only do this for functions that are not part of the module's public interface
 
+## Keep Related Functions Together
+- Keep related helper functions physically close together
+  - E.g., if there is a public or private function used only in one place in a
+    file, move that function close to where it is used
+
 ## Additional Guidance
 
-- Keep related helper functions physically close together
 - Avoid circular ordering where possible
 - Preserve existing comments and docstrings
 - Keep public entry points easy to locate near the end of the file

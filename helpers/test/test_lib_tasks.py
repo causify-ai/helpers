@@ -515,7 +515,6 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
 # TODO(gp): Add tests for:
 # - print_tasks
 # - git_files
-# - git_last_commit_files
 # - check_python_files
 # - docker_stats
 # - traceback (with checked in file)

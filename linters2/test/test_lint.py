@@ -1,5 +1,6 @@
 import os
 import unittest.mock as umock
+from typing import Dict, List
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -16,7 +17,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
     Test _filter_files_by_type file categorization logic.
     """
 
-    def _create_files(self, names: list[str]) -> dict[str, str]:
+    def _create_files(self, names: List[str]) -> Dict[str, str]:
         """
         Create empty files in scratch dir.
 

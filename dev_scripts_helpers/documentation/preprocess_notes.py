@@ -23,7 +23,7 @@ import argparse
 import logging
 import os
 import re
-from typing import Dict, List, Optional, Tuple, cast
+from typing import Dict, List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -73,8 +73,10 @@ def _colorize_backticks(in_line: str, *, color: str = "blue") -> str:
     # This matches backtick-wrapped text that doesn't contain triple backticks.
     pattern = r"(?<!`)`(?!`)([^`]+?)(?<!`)`(?!`)"
 
-    def replace_func(m: re.Match) -> str:
-        """Replace function that escapes underscores in the matched text."""
+    def replace_func(m: Match) -> str:
+        """
+        Replace function that escapes underscores in the matched text.
+        """
         matched_text = m.group(1)
         # Escape underscores for LaTeX.
         escaped_text = matched_text.replace("_", r"\_")
@@ -326,7 +328,7 @@ def _add_duplicate_slide_counters(lines: List[str]) -> List[str]:
         name_counts[name] = name_counts.get(name, 0) + 1
     # Build a mapping from line number to new title.
     line_updates: Dict[int, str] = {}
-    name_indices: dict[str, int] = {}
+    name_indices: Dict[str, int] = {}
     for header_info in header_list:
         name = header_info.description
         count = name_counts[name]

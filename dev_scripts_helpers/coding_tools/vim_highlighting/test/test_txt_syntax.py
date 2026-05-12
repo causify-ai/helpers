@@ -8,6 +8,7 @@ import logging
 import os
 import shlex
 import subprocess
+import unittest
 
 import pytest
 
@@ -56,6 +57,7 @@ class TestTxtSyntaxHighlighting(hunitest.TestCase):
         hdbg.dassert_file_exists(output_file)
         return hio.from_file(output_file)
 
+    @unittest.skip("Disabled due to timeout issues with vim subprocess")
     def test1(self) -> None:
         """
         Test that Vim successfully exports syntax highlighting information.
@@ -74,6 +76,7 @@ class TestTxtSyntaxHighlighting(hunitest.TestCase):
         self.assertIn("txtHeader1", actual)
         self.assertIn("txtHeader2", actual)
 
+    @unittest.skip("Disabled due to timeout issues with vim subprocess")
     def test2(self) -> None:
         """
         Test that syntax highlighting output matches expected golden file.

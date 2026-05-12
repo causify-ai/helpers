@@ -2,18 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
-      "Bash(invoke --list)",
       "Bash(grep:*)",
-      "Bash(ls:*)",
-      "WebFetch(domain:github.com)",
-      "Bash(python -m mypy:*)",
-      "Bash(python:*)",
-      "Bash(gh pr create:*)",
-      "Bash(gh pr view:*)",
-      "Bash(git add:*)",
-      "Bash(git push:*)",
-      "Bash(git commit:*)",
-      "WebFetch(domain:*)"
+      "Bash(ls:*)"
     ],
     "deny": []
   },

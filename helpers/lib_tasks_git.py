@@ -12,6 +12,7 @@ import subprocess
 import time
 from typing import Any, List
 
+import tqdm
 from invoke.tasks import task
 
 import helpers.hdbg as hdbg
@@ -71,11 +72,10 @@ def _add_write_perm_to_symlink(dir: str) -> None:
                 path,
                 mode | _SYMLINK_WRITE_BITS,
             )
-        except OSError:
-            hdbg.dassert(
-                False,
-                "Failed to add write permissions to symlink; manual intervention may be needed",
-            )
+        except OSError as e:
+            raise ValueError(
+                f"Failed to add write permissions to symlink '{path}': {e}; manual intervention may be needed"
+            ) from e
 
 
 def _remove_write_perm_from_symlink(dir: str) -> None:
@@ -95,11 +95,10 @@ def _remove_write_perm_from_symlink(dir: str) -> None:
                 path,
                 mode & ~_SYMLINK_WRITE_BITS,
             )
-        except OSError:
-            hdbg.dassert(
-                False,
-                "Failed to remove write permissions from symlink; manual intervention may be needed",
-            )
+        except OSError as e:
+            raise ValueError(
+                f"Failed to remove write permissions from symlink '{path}': {e}; manual intervention may be needed"
+            ) from e
 
 
 def run_git_recursively(ctx: Any, cmd_: str) -> None:
@@ -114,6 +113,36 @@ def run_git_recursively(ctx: Any, cmd_: str) -> None:
     # Run the same command on all submodules.
     cmd = f"git submodule foreach '{cmd_}'"
     hlitauti.run(ctx, cmd)
+
+
+@task
+def git_set_symlink_perms(ctx, dir_name="."):  # type: ignore
+    """
+    Add write permissions for all on each symlink in a directory.
+
+    Makes all symlinks writable by all users (chmod a+w on the symlink inode,
+    not the target).
+
+    :param dir_name: directory to process (default: ".")
+    """
+    _ = ctx
+    hlitauti.report_task(txt=hprint.to_str("dir_name"))
+    _add_write_perm_to_symlink(dir_name)
+
+
+@task
+def git_reset_symlink_perms(ctx, dir_name="."):  # type: ignore
+    """
+    Remove write permissions for all on each symlink in a directory.
+
+    Makes all symlinks read-only by removing write bits from the symlink inode
+    (not the target).
+
+    :param dir_name: directory to process (default: ".")
+    """
+    _ = ctx
+    hlitauti.report_task(txt=hprint.to_str("dir_name"))
+    _remove_write_perm_from_symlink(dir_name)
 
 
 @task
@@ -484,26 +513,6 @@ def git_files(  # type: ignore
 
 
 @task
-def git_last_commit_files(ctx, pbcopy=True):  # type: ignore
-    """
-    Print the status of the files in the previous commit.
-
-    :param pbcopy: save the result into the system clipboard (only on
-        macOS)
-    """
-    # Display the raw git log output for the latest commit.
-    cmd = 'git log -1 --name-status --pretty=""'
-    hlitauti.run(ctx, cmd)
-    # Parse the files that were actually committed (filtering out deletions if needed).
-    files = hgit.get_previous_committed_files(".")
-    txt = "\n".join(files)
-    print(f"\n# The files modified are:\n{txt}")
-    # Optionally copy the file list to clipboard for easy pasting into commands.
-    res = " ".join(files)
-    hsystem.to_pbcopy(res, pbcopy)
-
-
-@task
 def git_roll_amp_forward(ctx):  # type: ignore
     """
     Update amp submodule pointer to the latest master commit.
@@ -815,6 +824,7 @@ def git_branch_copy(  # type: ignore
     skip_git_merge_master=False,
     use_patch=False,
     check_branch_name=True,
+    method="auto",
 ):
     """
     Create a new branch with the same content of the current branch.
@@ -824,6 +834,10 @@ def git_branch_copy(  # type: ignore
     :param use_patch: apply patching instead of merging
     :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
+    :param method: method to use for generating branch name ('auto', 'github_api', 'linear_scan')
+        - 'auto' (default): tries GitHub API first, falls back to linear scan
+        - 'github_api': use only GitHub API method (fast)
+        - 'linear_scan': use only linear scan method (always works)
     """
     # Patch-based copying is not yet implemented.
     hdbg.dassert(
@@ -851,7 +865,7 @@ def git_branch_copy(  # type: ignore
         pass
     # Generate unique branch name if not provided.
     if new_branch_name is None or new_branch_name == "":
-        new_branch_name = hgit.get_branch_next_name()
+        new_branch_name = hgit.get_branch_next_name(method=method)
     _LOG.info("new_branch_name='%s'", new_branch_name)
     hdbg.dassert_ne(
         new_branch_name,
@@ -1072,10 +1086,12 @@ def _git_diff_with_branch_wrapper(
     dry_run: bool,
 ) -> None:
     """
-    Wrapper for _git_diff_with_branch that handles Python-specific filtering and submodules.
+    Wrapper for _git_diff_with_branch that handles Python-specific filtering
+    and submodules.
 
-    Applies Python-specific extension filter if requested, then delegates to _git_diff_with_branch.
-    If include_submodules is True, also runs the diff for the amp submodule if present.
+    Applies Python-specific extension filter if requested, then delegates to
+    _git_diff_with_branch. If include_submodules is True, also runs the diff
+    for the amp submodule if present.
 
     Parameters are the same as _git_diff_with_branch with the addition of:
     :param include_submodules: if True, also diff the amp submodule
@@ -1519,6 +1535,93 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
         if old_pane_title is not None:
             _LOG.info("Restoring window name: %s", old_pane_title)
             hsystem.system(f"tmux rename-window '{old_pane_title}'")
+
+
+# #############################################################################
+
+
+def _has_ug_write_perms(file_path: str) -> bool:
+    """
+    Check if file has write permissions for user and group.
+    """
+    try:
+        st_mode = os.stat(file_path).st_mode
+        user_write = st_mode & stat.S_IWUSR
+        group_write = st_mode & stat.S_IWGRP
+        return bool(user_write and group_write)
+    except OSError:
+        return False
+
+
+def _fix_file_perms(file_path: str) -> bool:
+    """
+    Apply chmod ug+w to a file.
+    """
+    try:
+        cmd = f"chmod ug+w '{file_path}'"
+        hsystem.system(cmd, abort_on_error=False)
+        return True
+    except Exception as e:
+        _LOG.warning("Failed to fix permissions for %s: %s", file_path, e)
+        return False
+
+
+@task
+def git_fix_perms(ctx, check=True, fix=False, dir_name="."):  # type: ignore
+    """
+    Fix file and directory permissions to be writable by owner and group.
+
+    Makes all files and directories readable and writable by owner and group (chmod ug+w).
+
+    :param check: if True (default), only report files with wrong permissions
+    :param fix: if True, apply chmod ug+w to fix permissions
+    :param dir_name: directory to process (default: ".")
+    """
+    _ = ctx
+    hlitauti.report_task(txt=hprint.to_str("check fix dir_name"))
+    _LOG.info("Scanning directory: %s", dir_name)
+    files_to_fix = []
+    files_checked = 0
+    for dirpath, dirnames, filenames in os.walk(dir_name, topdown=True):
+        # Skip .git directories for efficiency
+        if ".git" in dirnames:
+            dirnames.remove(".git")
+        # Check files.
+        for filename in filenames:
+            file_path = os.path.join(dirpath, filename)
+            files_checked += 1
+            if not _has_ug_write_perms(file_path):
+                files_to_fix.append(file_path)
+        # Check directories.
+        for dirname in dirnames:
+            dir_path = os.path.join(dirpath, dirname)
+            files_checked += 1
+            if not _has_ug_write_perms(dir_path):
+                files_to_fix.append(dir_path)
+    # Report findings.
+    _LOG.info("Checked %d files/directories", files_checked)
+    _LOG.info("Found %d with wrong permissions", len(files_to_fix))
+    if files_to_fix:
+        if check:
+            print(
+                hprint.frame(
+                    f"Files/dirs with wrong permissions (chmod ug+w needed): "
+                    f"{len(files_to_fix)}"
+                )
+            )
+            for file_path in sorted(files_to_fix)[:50]:
+                print(file_path)
+            if len(files_to_fix) > 50:
+                print(f"... and {len(files_to_fix) - 50} more")
+        if fix:
+            _LOG.info("Fixing %d files/directories", len(files_to_fix))
+            fixed_count = 0
+            for file_path in tqdm.tqdm(files_to_fix):
+                if _fix_file_perms(file_path):
+                    fixed_count += 1
+            _LOG.info("Fixed %d files/directories", fixed_count)
+    else:
+        print("All files/directories have correct permissions (ug+w)")
 
 
 # TODO(gp): Add the following scripts:
