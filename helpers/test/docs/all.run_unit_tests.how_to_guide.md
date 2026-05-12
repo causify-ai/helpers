@@ -1,4 +1,5 @@
 # Run Unit Tests
+
 <!-- toc -->
 
   - [Run Unit Tests](#run-unit-tests)
@@ -30,6 +31,7 @@
 <!-- tocstop -->
 
 ## Run Unit Tests
+
 - We use `pytest` and `unittest` as testing framework
 - Before any PR (and ideally after a few commits), we want to run all the unit
   tests to make sure we didn't introduce any new bugs
@@ -76,6 +78,7 @@ flowchart LR
 ```
 
 ### Test Lists
+
 - We have different test set lists:
   - `fast`
     - Tests that are quick to execute (typically less than 5 secs per test
@@ -94,10 +97,12 @@ flowchart LR
       - Anything above 5-15 mins is problematic
 
 ### Using `invoke`
+
 - [`invoke`](https://www.pyinvoke.org/) is a task execution framework which
   allows to execute some typical workflows in a simple way
 - In our config script `invoke` is aliased to `i` to reduce typing
 - E.g., we use it to run the test suites:
+
   ```bash
   # Run only fast tests.
   > i run_fast_tests
@@ -108,6 +113,7 @@ flowchart LR
   ```
 
 - To see the options use `--help` option, e.g. `i --help run_fast_tests`:
+
   ```bash
   Usage: inv[oke] [--core-opts] run_fast_tests [--options] [other tasks here ...]
 
@@ -135,20 +141,21 @@ flowchart LR
   - To select a specific stage for Docker image use the `--stage` option. E.g.,
     this might be useful when a user wants to run regressions on the local
     Docker image to verify that nothing is broken before promoting it to `dev`
-    image
+    image.
+
     ```bash
     > i run_fast_tests --stage local
     ```
   - To run the tests on the specific version of a Docker image, use the
-    `--version` option
-    - E.g., this might be useful when releasing a new version of an image
+    `--version` option.
+    - E.g., this might be useful when releasing a new version of an image.
       ```bash
       > i run_fast_tests --stage local --version 1.0.4
       ```
 
 - Specifying `pytest` options
   - With the option `--pytest-opts` it is possible to pass any `pytest` option
-    to `invoke`
+    to `invoke`.
 
 - **Running in debug mode**
   - If a user wants to run the tests in debug mode to show the output
@@ -160,19 +167,19 @@ flowchart LR
 
 - **Save test output to a file**
   - To save the output of `pytest` to `tmp.pytest.log` use the `--tee-to-file`
-    option
+    option.
     ```bash
     > i run_fast_tests --tee-to-file
     ```
 
 - **Show the tests but do not run**
-  - To list, but not run, the tests that will be executed, use `--collect-only`
+  - To list, but not run, the tests that will be executed, use `--collect-only`.
     ```bash
     > i run_fast_tests --collect-only
     ```
 
 - **Skip submodules**
-  - To skip running tests in submodules, use the `--skip-submodules` option
+  - To skip running tests in submodules, use the `--skip-submodules` option.
   - This option is useful in repos with Git submodules so that you can run only
     the tests specific to the repo, skipping the tests in the submodule
     - E.g., to run only the tests in `cmamp` but not in `helpers` (which is a
@@ -184,11 +191,13 @@ flowchart LR
 
 - **Compute test coverage**
   - Use the `--coverage` option
+
     ```bash
     > i run_fast_tests --coverage
     ```
 
 ### Timeout
+
 - We use the [`pytest-timeout`](https://pypi.org/project/pytest-timeout/)
   package to limit durations of fast, slow, and superslow tests
 - The timeout restricts the running time of the test methods, including
@@ -196,11 +205,12 @@ flowchart LR
   beginning/end of the methods
 
 ### Rerunning Timed Out Tests
+
 - Running tests can take different amounts of time depending on workload and
   machine
 - Because of this, we rerun failing tests using
   [`pytest-rerunfailures`](https://pypi.org/project/pytest-rerunfailures/)
-- `pytest-rerunfailures` is not completely compatible with `pytest-timeout`
+- `pytest-rerunfailures` is not completely compatible with `pytest-timeout`.
   This is why we have to add the `-o timeout_func_only=true` flag to
   `pytest-timeout`. See
   [https://github.com/pytest-dev/pytest-rerunfailures/issues/99](https://github.com/pytest-dev/pytest-rerunfailures/issues/99)
@@ -214,10 +224,12 @@ flowchart LR
   [#693 (comment)](https://github.com/cryptokaizen/cmamp/issues/693#issuecomment-989456031)
 
 ### Compute Test Coverage
+
 - The documentation for the Python package `coverage` is
-  [here](https://coverage.readthedocs.io/en/latest/cmd.html#reporting)
+  [here](https://coverage.readthedocs.io/en/latest/cmd.html#reporting).
 
 - Run a set of unit tests enabling coverage:
+
   ```bash
   # Run the coverage for a single test:
   > i run_fast_tests --coverage -p oms/test/test_broker.py::TestSimulatedBroker1
@@ -227,6 +239,7 @@ flowchart LR
   ```
 
 - This generates and runs a pytest command inside Docker like:
+
   ```bash
   docker> pytest -m "not slow and not superslow" oms/test/test_broker.py::TestSimulatedBroker1 --cov=. --cov-branch --cov-report term-missing --cov-report html
   ```
@@ -239,6 +252,7 @@ flowchart LR
 - You can post-process the coverage report in different ways using the command
   `coverage` inside a docker container, since the code was run (as always)
   inside the Docker container that contains all the dependencies
+
   ```bash
   > coverage -h
 
@@ -303,6 +317,7 @@ flowchart LR
 
 - Report the coverage for all the files under `oms` using the workload above
   (i.e., the fast tests under `oms/test/test_broker.py::TestSimulatedBroker1`)
+
   ```bash
   > i docker_bash
   docker> coverage report --include="oms/*"
@@ -342,6 +357,7 @@ flowchart LR
   ```
 
 - To exclude the test files, which could inflate the coverage
+
   ```bash
   > coverage report --include="oms/*" --omit="*/test_*.py"
 
@@ -376,7 +392,8 @@ flowchart LR
 - The `htmlcov` is re-written with every coverage run with the
   `--cov-report html` option
   - If you move out `index.html` from `htmlcov` dir some html features (e.g.,
-    filtering) will not work
+    filtering) will not work.
+
   ```bash
   # On macOS:
   > open htmlcov/index.html
@@ -389,10 +406,12 @@ flowchart LR
   <img src="../../code_guidelines/figs/unit_tests/image_2.png">
 
 #### An Example Coverage Session
+
 - You want to measure the unit test coverage of `oms` component from both `fast`
   and `slow` test suites
 
 - Start by running the fast tests for the `oms` dir
+
   ```bash
   > i run_fast_tests --coverage -p oms
   collected 66 items / 7 deselected / 59 selected
@@ -400,6 +419,7 @@ flowchart LR
   ```
 
 - Compute the coverage for the module sorting by coverage
+
   ```bash
   docker> coverage report --include="oms/*" --omit="*/test_*.py" --sort=cover
 
@@ -433,6 +453,7 @@ flowchart LR
   not covered
 
 - Generate the same report in a browsable format:
+
   ```bash
   docker> rm -rf htmlcov; coverage html --include="oms/*" --omit="*/test_*.py"
   # Wrote HTML report to `htmlcov/index.html`
@@ -444,6 +465,7 @@ flowchart LR
     track it
 
 - Now, we run the coverage for the slow tests
+
   ```bash
   # Save the coverage from the fast tests run
   > cp .coverage .coverage_fast_tests
@@ -482,6 +504,7 @@ flowchart LR
   ```
 
 - We see that the coverage from the slow tests is only 23% for 7 tests
+
   ```bash
   docker> coverage combine .coverage_fast_tests .coverage_slow_tests
   Combined data file .coverage_fast_tests
@@ -489,11 +512,13 @@ flowchart LR
   ```
 
 #### An Example with Customized `Pytest-Cov` Html Run
+
 - You want to measure unit test coverage specifically for one test in
   `datapull/common/data/transform/` and to save generated `htmlcov` in the same
-  directory
+  directory.
 
 - Run the command in the container:
+
   ```bash
   > i docket_bash
   docker> pytest --cov-report term-missing
@@ -515,8 +540,10 @@ flowchart LR
   ```
 
 #### Generate Coverage Report with `invoke`
+
 - You can compute test coverage for a specified directory and generate text and
   HTML reports automatically using `invoke task run_coverage_report`
+
   ```bash
   > i --help run_coverage_report
   INFO: > cmd='/data/grisha/src/venv/amp.client_venv/bin/invoke --help run_coverage_report'
@@ -541,6 +568,7 @@ flowchart LR
 
 - Compute coverage for `market_data` dir, generate text and HTML reports and
   publish HTML report on S3
+
   ```bash
   > i run_coverage_report --target-dir market_data
   ...
@@ -560,6 +588,7 @@ flowchart LR
   ```
 
 #### Publishing HTML Report on S3
+
 - To make a dir with the report unique, you decorate the dir with a linux user
   and a Git branch name, e.g.,
   `html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project`
@@ -567,14 +596,13 @@ flowchart LR
 - After publishing the report, you can open the report via a local web browser
   - See the details in
     [htmlcov server](https://github.com/causify-ai/cmamp/blob/master/docs/infra/ck.use_htmlcov_server.how_to_guide.md)
-  - E.g
+  - E.g.
     [http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/](http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/)
 
-#### Run Coverage for an Entire Test Suite
+#### Run coverage for an entire test suite
 
 - Use `invoke run_coverage` with `--suite` to run coverage across all tests in a
   tier and optionally generate an HTML report:
-
 
   ```bash
   > i run_coverage --suite fast --generate-html-report
@@ -585,6 +613,7 @@ flowchart LR
 ## Running `pytest` Directly
 
 ### Basic Rules
+
 - Always run `pytest` from the Docker container to ensure consistency in our
   environments
   ```bash
@@ -594,8 +623,10 @@ flowchart LR
   ```
 
 ## Usage and Invocations Reference
+
 - See [`pytest` documentation](http://doc.pytest.org/en/latest/usage.html)
 - Some examples of useful command lines:
+
   ```bash
   # Stop at first failure
   > pytest -x
@@ -627,8 +658,10 @@ flowchart LR
   ```
 
 ### Custom `pytest` Options Behaviors
+
 - **Enable logging**
   - To enable logging of `_LOG.debug` for a single test run:
+
     ```bash
     # Enable debug info
     > pytest oms/test/test_broker.py::TestSimulatedBroker1 -s --dbg
@@ -637,6 +670,7 @@ flowchart LR
 - **Update golden outcomes**
   - This switch allows to overwrite the golden outcomes that are used as
     reference in the unit tests to detect failures
+
     ```bash
     > pytest --update_outcomes
     ```
@@ -646,6 +680,7 @@ flowchart LR
     clean up phase
   - It is used to rerun tests from the middle when they are very long and one
     wants to debug them
+
     ```bash
     > pytest --incremental
     ```
@@ -653,6 +688,7 @@ flowchart LR
 - **Update LLM cache**
   - Regenerate the shared LLM response cache used by tests that call language
     model APIs; without this flag the cached responses are replayed
+
     ```bash
     > pytest --update_llm_cache
     ```
@@ -660,15 +696,19 @@ flowchart LR
 - **Set log verbosity**
   - Fine-grained control over the Python logging level during a test run
     (distinct from `--dbg`, which sets the internal TRACE level)
+
     ```bash
     > pytest --dbg_verbosity DEBUG     # DEBUG, INFO, WARNING, ERROR, CRITICAL
     > pytest --dbg_verbosity WARNING
     ```
+
   - Implicitly adds `-s` so that log output is not captured by pytest
 
-### Cleaning Pytest Artifacts
+### Cleaning pytest artifacts
+
 - `helpers.hpytest.pytest_clean(dir_name, preview=False)` removes
   `.pytest_cache/`, `__pycache__/`, and `*.pyc` files under `dir_name`
+
   ```python
   import helpers.hpytest as hpytest
 
@@ -679,9 +719,11 @@ flowchart LR
 
 - Useful in CI scripts or local cleanup after long test runs
 
-### JUnit XML Reporting
+### JUnit XML reporting
+
 - `helpers.hpytest.JUnitReporter` parses JUnit XML produced by
   `pytest --junitxml=results.xml` and prints a colored summary
+
   ```python
   import helpers.hpytest as hpytest
 
@@ -689,11 +731,13 @@ flowchart LR
   reporter.parse()
   reporter.print_summary()
   ```
+
   - Output includes pass/fail/skip counts, total time, and per-test status
     with colour highlighting
   - Useful in CI scripts to surface failures without reading raw XML
 
 ### Debugging Notebooks
+
 1. Run a failing test with `-s --dbg` to get detailed logs
    - E.g., `> pytest core/plotting/test/test_gallery_notebook.py -s --dbg`
 2. From the logs take a `run_notebook.py` script command that was run by the
@@ -710,19 +754,22 @@ flowchart LR
      <img width="756" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/43a2854e-ae4e-450d-95fd-f16df0a53c79">
 
 ## Running Tests on GH Actions
+
 - The official documentation is
   [https://docs.github.com/en/actions](https://docs.github.com/en/actions)
 
 ### How to Run a Single Test on GH Action
-- Unfortunately, there is no way to log in and run interactively on GH machines
-  This is a feature requested but not implemented by GH yet
+
+- Unfortunately, there is no way to log in and run interactively on GH machines.
+  This is a feature requested but not implemented by GH yet.
 
 - All the code to run GH Actions is in the `.github` directory in `lemonade` and
-  `amp`
+  `amp`.
 
 - E.g., to run a single test in the fast test target, instead of the entire
   regression suite
   - You can modify `.github/workflows/fast_tests.yml`, by replacing
+
     ```bash
     # run: invoke run_fast_tests
     run: invoke run_fast_tests --pytest-opts="helpers/test/test_git.py::Test_git_modified_files1::test_get_modified_files_in_branch1 -s --dbg"
@@ -739,6 +786,7 @@ flowchart LR
     move along with the usual PR flow
 
 # `pytest_log`
+
 - A wrapper script around pytest that captures output to a log file while also
   displaying it in real-time
 - Conceptually executes `pytest $* 2>&1 | tee $file_name` and preserves the
@@ -747,6 +795,7 @@ flowchart LR
   to `tmp.pytest_script.txt`
 
 ## `invoke traceback`
+
 - `invoke traceback` parses the pytest traceback and opens it with vim for
   navigation
 
@@ -767,6 +816,7 @@ flowchart LR
   ```
 
 ## `invoke pytest_failed`
+
 - `invoke pytest_failed` extracts failed test names from the pytest output and
   creates a reproduction script `tmp.pytest_failed.sh` with a pytest_log command
   to re-run just the failed tests

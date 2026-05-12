@@ -37,13 +37,11 @@
   3. **Standard directory layout**: every test class gets its own
      `input/`, `output/`, and `scratch/` directories derived from its name
 
-
 ---
 
 ## Module Map
 
 The framework spans the following files:
-
 
 ```mermaid
 graph TD
@@ -64,7 +62,7 @@ graph TD
 | `helpers/hmoto.py` | `S3Mock_TestCase` — base class for tests that mock AWS S3 via `moto` |
 | `conftest.py` | Wires pytest command-line flags into global variables in `hunit_test.py` |
 
-### `conftest.py` Role
+### `conftest.py` role
 
 - `conftest.py` uses two standard pytest hooks to connect CLI flags to our
   framework:
@@ -82,12 +80,11 @@ graph TD
   while keeping the actual behaviour in the library (`hunit_test.py`), so
   library code can read the flags without importing pytest directly
 
-
 ---
 
 ## Why We Extend `unittest.TestCase`
 
-### Reproducibility by Default
+### Reproducibility by default
 
 - Floating-point operations, pandas display options, and matplotlib state vary
   across machines and library versions
@@ -101,7 +98,7 @@ graph TD
 - These resets happen without any user action — a test that inherits from
   `hunitest.TestCase` gets reproducibility for free
 
-### Golden File Testing
+### Golden file testing
 
 - Instead of writing `self.assertEqual(actual, expected_string)` with long
   inline expected strings that make code hard to read, we store the expected
@@ -111,14 +108,13 @@ graph TD
   diffable failures
 - See [Golden File Testing Design](#golden-file-testing-design) below for details
 
-### Consistent Directory Layout
+### Consistent directory layout
 
 - Every test has predictable directories derived from its class and method name:
   - `outcomes/TestFoo1.test_bar/input/` — static fixtures checked into git
   - `outcomes/TestFoo1.test_bar/output/` — golden files checked into git
   - `scratch/TestFoo1.test_bar/` — ephemeral artefacts deleted after the test
 - This means anyone can find a test's data without reading the test code
-
 
 ---
 
@@ -150,12 +146,11 @@ graph TD
   we add a numeric suffix: `set_up_test2()` in the child calls `set_up_test()`
   from the parent, avoiding fixture name collisions
 
-
 ---
 
 ## Golden File Testing Design
 
-### Why Files on Disk Instead of Inline Expected Strings
+### Why files on disk instead of inline expected strings
 
 | Inline expected string | Golden file |
 |------------------------|-------------|
@@ -168,7 +163,7 @@ graph TD
   DataFrame, a config object, or a multi-line report — things where a typo in
   the inline expected string is easy to miss
 
-### How `--update_outcomes` Works End-to-end
+### How `--update_outcomes` works end-to-end
 
 1. Developer changes code that affects a test's output
 2. Running `pytest` without flags → test fails with a diff
@@ -196,7 +191,6 @@ flowchart TD
     K -- mismatch --> M[FAIL: show sdiff + vimdiff script]
 ```
 
-
 ---
 
 ## Test Speed Tiers
@@ -217,7 +211,6 @@ flowchart TD
   - `@pytest.mark.requires_ck_aws` — needs AWS connection
   - `@pytest.mark.requires_docker_in_docker` — needs Docker-in-Docker
 
-
 ---
 
 ## Development Tools
@@ -227,7 +220,6 @@ flowchart TD
 - When a test class or method is renamed, both the Python source and the
   corresponding `outcomes/` directories on disk must be updated in sync
 - `hunit_test_utils.UnitTestRenamer` automates this refactoring
-
 
   ```python
   import helpers.hunit_test_utils as hunteuti
@@ -248,7 +240,6 @@ flowchart TD
 
 - The class enforces that both names start with `Test` and are different; if
   either constraint is violated it raises an assertion error early
-
 
 ---
 
