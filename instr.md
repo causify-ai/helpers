@@ -1,7 +1,14 @@
-- Write a Python script XYZ ... that ...
+- Write a Python script to convert epub to markdown 
+  ./dev_scripts_helpers/documentation/convert_epub_to_md.py
 
-- The interface is like:
-  ...
+- The interface is similar to ./dev_scripts_helpers/documentation/convert_pdf_to_md.py
+
+- Use a logic similar to 
+pandoc <input> \
+  --to=gfm \
+  --wrap=none \
+  --extract-media=images \
+  -o <output>.md
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
