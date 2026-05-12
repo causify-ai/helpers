@@ -26,8 +26,8 @@
   framework
 - It answers the "why" questions; the "how-to" questions are covered in the
   companion guides:
-  - [`all.write_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
-  - [`all.run_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+  - [`all.write_unit_tests.how_to_guide.md`](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
+  - [`all.run_unit_tests.how_to_guide.md`](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
 - Our framework is built on top of the standard `unittest`/`pytest` stack and
   adds three main capabilities:
   1. **Reproducibility**: fixed random seeds, pandas display defaults, and timer
@@ -245,9 +245,9 @@ flowchart TD
 
 ## Further Reading
 
-- [`all.write_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+- [`all.write_unit_tests.how_to_guide.md`](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
   — how to write tests, naming conventions, mocking guidelines
-- [`all.run_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+- [`all.run_unit_tests.how_to_guide.md`](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
   — how to run tests, coverage, GH Actions
 - [`helpers/hunit_test.py`](/helpers/hunit_test.py) — `TestCase` source
 - [`helpers/hunit_test_utils.py`](/helpers/hunit_test_utils.py) —

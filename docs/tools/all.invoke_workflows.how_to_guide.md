@@ -366,7 +366,7 @@ TODO(gp): Describe
   [https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a](https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a)
 
 - More details on running unit tests with `invoke` is
-  [/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+  [/helpers/test/docs/all.run_unit_tests.how_to_guide.md](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
 
 #### Run with Coverage
 

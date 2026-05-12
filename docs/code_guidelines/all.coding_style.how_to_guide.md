@@ -2081,7 +2081,7 @@
   > pytest datetime_utils_test.py -x -s
   ```
 - For more information on our testing conventions and guidelines, see
-  [`/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md`](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+  [`/helpers/test/docs/all.write_unit_tests.how_to_guide.md`](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
 
 ### Refactoring
 

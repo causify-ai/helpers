@@ -394,7 +394,7 @@ sequenceDiagram
 - `check_string()` compares actual output against a frozen reference file stored
   in `outcomes/<TestClass.test_method>/output/test.txt`
 - See the full decision flowchart in
-  [Unit Test Framework Architecture — Golden File Testing Design](/docs/tools/unit_test/all.unit_test_framework.explanation.md#golden-file-testing-design)
+  [Unit Test Framework Architecture — Golden File Testing Design](/helpers/test/docs/all.unit_test_framework.explanation.md#golden-file-testing-design)
 
 #### DataFrame and Series assertion helpers
 
