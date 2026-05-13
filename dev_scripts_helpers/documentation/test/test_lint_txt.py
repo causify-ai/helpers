@@ -2441,3 +2441,92 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
             output_txt_2 = "\n".join(output_lines)
             # Check that both runs produce identical output (idempotency).
             self.assert_equal(output_txt_1, output_txt_2)
+
+
+# #############################################################################
+# Test__convert_dash_separators_to_colons
+# #############################################################################
+
+
+class Test__convert_dash_separators_to_colons(hunitest.TestCase):
+    """
+    Test the `_convert_dash_separators_to_colons()` function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for `_convert_dash_separators_to_colons()`.
+
+        :param txt: Input text to process
+        :param expected: Expected output after converting dash
+            separators to colons
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._convert_dash_separators_to_colons(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test conversion in numbered list items with bold label.
+        """
+        # Prepare inputs.
+        txt = """
+        1. **Summary** - One paragraph describing the directory's purpose
+        2. **Structure** - List subdirectories and their roles
+        """
+        # Prepare outputs.
+        expected = """
+        1. **Summary**: One paragraph describing the directory's purpose
+        2. **Structure**: List subdirectories and their roles
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test conversion in bullet points.
+        """
+        # Prepare inputs.
+        txt = """
+        - `filename.py` - description of the file
+        - `other.py` - another description
+        """
+        # Prepare outputs.
+        expected = """
+        - `filename.py`: description of the file
+        - `other.py`: another description
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test that lines inside code blocks are unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        ```
+        - item - not converted
+        ```
+        """
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
