@@ -284,6 +284,185 @@ class Test_remove_pre_span_tags(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_remove_bold_span_tags
+# #############################################################################
+
+
+class Test_remove_bold_span_tags(hunitest.TestCase):
+    """
+    Test the `remove_bold_span_tags()` function.
+    """
+
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Test helper for `remove_bold_span_tags()`.
+
+        :param content: Input markdown content
+        :param expected: Expected output
+        """
+        # Run test.
+        actual = dshddout.remove_bold_span_tags(content)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test conversion of bold span with double quotes.
+        """
+        # Prepare inputs.
+        content = 'Text <span class="b">HBR Press Quantity Sales Discounts</span> more'
+        # Prepare outputs.
+        expected = "Text **HBR Press Quantity Sales Discounts** more"
+        # Run test.
+        self.helper(content, expected)
+
+    def test2(self) -> None:
+        """
+        Test conversion of bold span with single quotes.
+        """
+        # Prepare inputs.
+        content = "Start <span class='b'>bold text</span> end"
+        # Prepare outputs.
+        expected = "Start **bold text** end"
+        # Run test.
+        self.helper(content, expected)
+
+    def test3(self) -> None:
+        """
+        Test that other class spans are not converted.
+        """
+        # Prepare inputs.
+        content = 'Text <span class="other">not bold</span> here'
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+
+# #############################################################################
+# Test_remove_italic_span_tags
+# #############################################################################
+
+
+class Test_remove_italic_span_tags(hunitest.TestCase):
+    """
+    Test the `remove_italic_span_tags()` function.
+    """
+
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Test helper for `remove_italic_span_tags()`.
+
+        :param content: Input markdown content
+        :param expected: Expected output
+        """
+        # Run test.
+        actual = dshddout.remove_italic_span_tags(content)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test conversion of italic span with double quotes.
+        """
+        # Prepare inputs.
+        content = 'Text <span class="i">What Technology Wants</span> continues'
+        # Prepare outputs.
+        expected = "Text _What Technology Wants_ continues"
+        # Run test.
+        self.helper(content, expected)
+
+    def test2(self) -> None:
+        """
+        Test conversion of italic span with single quotes.
+        """
+        # Prepare inputs.
+        content = "Begin <span class='i'>italic text</span> end"
+        # Prepare outputs.
+        expected = "Begin _italic text_ end"
+        # Run test.
+        self.helper(content, expected)
+
+    def test3(self) -> None:
+        """
+        Test that other class spans are not converted.
+        """
+        # Prepare inputs.
+        content = 'Text <span class="other">not italic</span> here'
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+
+# #############################################################################
+# Test_remove_section_divs
+# #############################################################################
+
+
+class Test_remove_section_divs(hunitest.TestCase):
+    """
+    Test the `remove_section_divs()` function.
+    """
+
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Test helper for `remove_section_divs()`.
+
+        :param content: Input markdown content
+        :param expected: Expected output
+        """
+        # Run test.
+        actual = dshddout.remove_section_divs(content)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test removal of section2 div with double quotes.
+        """
+        # Prepare inputs.
+        content = 'Before <div class="section2">section content</div> after'
+        # Prepare outputs.
+        expected = "Before section content after"
+        # Run test.
+        self.helper(content, expected)
+
+    def test2(self) -> None:
+        """
+        Test removal of section2 div with single quotes.
+        """
+        # Prepare inputs.
+        content = "Start <div class='section2'>div content</div> end"
+        # Prepare outputs.
+        expected = "Start div content end"
+        # Run test.
+        self.helper(content, expected)
+
+    def test3(self) -> None:
+        """
+        Test that other class divs are not removed.
+        """
+        # Prepare inputs.
+        content = '<div class="other">not section2</div> here'
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test4(self) -> None:
+        """
+        Test removal of section2 div with nested HTML tags.
+        """
+        # Prepare inputs.
+        content = 'Start <div class="section2"><p>Paragraph content</p></div> end'
+        # Prepare outputs.
+        expected = "Start <p>Paragraph content</p> end"
+        # Run test.
+        self.helper(content, expected)
+
+
+# #############################################################################
 # Test_remove_anchor_tags
 # #############################################################################
 
@@ -335,6 +514,17 @@ class Test_remove_anchor_tags(hunitest.TestCase):
         content = '<a href="#1">First</a> and <a href="#2">Second</a> links'
         # Prepare outputs.
         expected = "First and Second links"
+        # Run test.
+        self.helper(content, expected)
+
+    def test4(self) -> None:
+        """
+        Test anchor tag with nested HTML tags (e.g., superscript for footnotes).
+        """
+        # Prepare inputs.
+        content = 'Text <a href="#notes.html_ch2en1" id="ch002.html_ch2n1"><sup>1</sup></a> here'
+        # Prepare outputs.
+        expected = "Text <sup>1</sup> here"
         # Run test.
         self.helper(content, expected)
 
@@ -447,6 +637,17 @@ class Test_remove_junk(hunitest.TestCase):
         content = "Clean markdown text without any HTML tags"
         # Prepare outputs.
         expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test4(self) -> None:
+        """
+        Test removal of bold and italic span tags with formatting conversion.
+        """
+        # Prepare inputs.
+        content = 'Check <span class="b">HBR Press Quantity Sales Discounts</span> and <span class="i">What Technology Wants</span> here'
+        # Prepare outputs.
+        expected = "Check **HBR Press Quantity Sales Discounts** and _What Technology Wants_ here"
         # Run test.
         self.helper(content, expected)
 

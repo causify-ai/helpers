@@ -108,18 +108,74 @@ def remove_pre_span_tags(content: str) -> str:
     return content
 
 
+def remove_bold_span_tags(content: str) -> str:
+    """
+    Convert class="b" span tags to markdown bold formatting.
+
+    Matches span tags with only `class="b"` attribute and replaces them
+    with markdown bold syntax (e.g., `<span class="b">text</span>` becomes
+    `**text**`).
+
+    :param content: the markdown content
+    :return: content with class="b" span tags converted to markdown bold
+    """
+    # Pattern matches span tags with only class="b" attribute.
+    # Handles both single and double quotes.
+    pattern = r'<span\s+class=["\']b["\']>([^<]*)</span>'
+    content = re.sub(pattern, r"**\1**", content)
+    return content
+
+
+def remove_italic_span_tags(content: str) -> str:
+    """
+    Convert class="i" span tags to markdown italic formatting.
+
+    Matches span tags with only `class="i"` attribute and replaces them
+    with markdown italic syntax (e.g., `<span class="i">text</span>` becomes
+    `_text_`).
+
+    :param content: the markdown content
+    :return: content with class="i" span tags converted to markdown italic
+    """
+    # Pattern matches span tags with only class="i" attribute.
+    # Handles both single and double quotes.
+    pattern = r'<span\s+class=["\']i["\']>([^<]*)</span>'
+    content = re.sub(pattern, r"_\1_", content)
+    return content
+
+
+def remove_section_divs(content: str) -> str:
+    """
+    Remove div tags with class="section2" but keep their content.
+
+    Matches div tags with `class="section2"` attribute and replaces them
+    with their content (e.g., `<div class="section2">content</div>` becomes
+    `content`). Handles nested HTML tags within the div.
+
+    :param content: the markdown content
+    :return: content with section2 div tags removed but content kept
+    """
+    # Pattern matches div tags with class="section2" attribute.
+    # Handles both single and double quotes and nested HTML tags.
+    pattern = r'<div\s+class=["\']section2["\']>([\s\S]*?)</div>'
+    content = re.sub(pattern, r"\1", content)
+    return content
+
+
 def remove_anchor_tags(content: str) -> str:
     """
     Remove anchor tags but keep their content.
 
     Matches anchor tags like `<a href="#part03.html_part-3" data-type="xref">
     Part III</a>` and replaces them with just the content (`Part III`).
+    Handles nested HTML tags like `<a href="#notes.html_ch2en1"><sup>1</sup></a>`.
 
     :param content: the markdown content
     :return: content with anchor tags removed but content kept
     """
     # Pattern matches anchor tags with any attributes and captures the content.
-    pattern = r"<a\s+[^>]*>([^<]*)</a>"
+    # Uses [\s\S]*? to match any character including nested HTML tags.
+    pattern = r"<a\s+[^>]*>([\s\S]*?)</a>"
     content = re.sub(pattern, r"\1", content)
     return content
 
@@ -171,6 +227,15 @@ def remove_junk(content: str) -> str:
     # Remove only class="pre" span tags but keep their content.
     _LOG.info("Removing class='pre' span tags (keeping content)")
     content = remove_pre_span_tags(content)
+    # Convert class="b" span tags to markdown bold.
+    _LOG.info("Converting class='b' span tags to markdown bold")
+    content = remove_bold_span_tags(content)
+    # Convert class="i" span tags to markdown italic.
+    _LOG.info("Converting class='i' span tags to markdown italic")
+    content = remove_italic_span_tags(content)
+    # Remove div tags with class="section2" but keep their content.
+    _LOG.info("Removing class='section2' div tags (keeping content)")
+    content = remove_section_divs(content)
     # Remove anchor tags but keep their content.
     _LOG.info("Removing anchor tags (keeping content)")
     content = remove_anchor_tags(content)
