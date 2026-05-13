@@ -240,30 +240,6 @@ def _convert_asterisk_bullets_to_dashes(lines: List[str]) -> List[str]:
     return lines_new
 
 
-def _convert_dash_separators_to_colons(lines: List[str]) -> List[str]:
-    r"""
-    Convert ` - ` separator into `: ` in all lines outside code blocks.
-
-    E.g.:
-    - `1. **Summary** - Description` -> `1. **Summary**: Description`
-    - `- `filename` - description` -> `- `filename`: description`
-
-    :param lines: The lines to be processed.
-    :return: The lines with ` - ` separators replaced by `: `.
-    """
-    _LOG.debug("lines=%s", lines)
-    lines_new: List[str] = []
-    in_code_block = False
-    for line in lines:
-        if re.match(r"^\s*```", line):
-            in_code_block = not in_code_block
-        if not in_code_block:
-            line = line.replace(" - ", ": ")
-        lines_new.append(line)
-    hdbg.dassert_isinstance(lines_new, list)
-    return lines_new
-
-
 def _check_links(in_file_name: str) -> None:
     """
     Check if all URLs in the file are reachable by calling check_links.py.
@@ -575,10 +551,6 @@ def _perform_actions(
     action = "convert_asterisk_bullets_to_dashes"
     if _to_execute_action(action, actions):
         lines = _convert_asterisk_bullets_to_dashes(lines)
-    # Convert dash separators to colons.
-    action = "convert_dash_separators_to_colons"
-    if _to_execute_action(action, actions):
-        lines = _convert_dash_separators_to_colons(lines)
     # Remove trailing periods.
     action = "remove_trailing_periods"
     if _to_execute_action(action, actions):
@@ -651,8 +623,6 @@ _VALID_ACTIONS = [
     "add_blank_lines_between_headers",
     # _convert_asterisk_bullets_to_dashes(): convert `* ` bullets to `- `.
     "convert_asterisk_bullets_to_dashes",
-    # _convert_dash_separators_to_colons(): convert ` - ` separator to `: `.
-    "convert_dash_separators_to_colons",
     # _remove_trailing_periods(): remove trailing periods from bullet points,
     # headers, and numbered lists.
     "remove_trailing_periods",
