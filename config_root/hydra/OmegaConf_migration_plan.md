@@ -192,7 +192,7 @@ config = omcfg.OmegaConf.create(dict_)  # OmegaConf, but still in Python
 
 **Trade-off:** Still writing config in Python instead of YAML, but this is intentional for maintainability at our current scale.
 
-## Recommended Shared Library
+### Recommended Shared Library
 
 To support OmegaConf usage across the platform, we provide a reusable resolver and helper library at `helpers_root/config_root/hydra/resolvers.py`:
 
@@ -307,7 +307,7 @@ def use_config():
     # resolved.model.weights = pd.Series([0.5, 0.3, 0.2], index=["a", "b", "c"])
 ```
 
-## Long-Term Vision: Three Phases
+### Long-Term Vision: Three Phases
 
 The current approach (Phase 0) is pragmatic, but Hydra's true power emerges through three evolutionary phases.
 
@@ -319,7 +319,7 @@ With Hydra's capabilities it is natural to move configuration to YAML files inst
 
 TODO(Grisha): think this through more carefully.
 
-### Phase 1: The YAML Migration 
+#### Phase 1: The YAML Migration 
 
 **Goal:** Move static configuration out of Python into YAML files.
 
@@ -371,7 +371,7 @@ def main(config: omcfg.DictConfig):
 5. **Environment-specific configs:** dev.yaml, prod.yaml, backtest.yaml
 
 
-### Phase 2: Modular Node Composition 
+#### Phase 2: Modular Node Composition 
 
 **Goal:** Break configs into reusable component libraries.
 
@@ -457,7 +457,7 @@ python main.py --multirun \
   predict=static_weights,xgboost_model
 ```
 
-### Phase 3: Data-Driven Topology 
+#### Phase 3: Data-Driven Topology 
 
 **Goal:** Move DAG topology (node order, connections) into configuration.
 
@@ -578,3 +578,437 @@ python main.py --multirun pipeline=branching_dag,branching_dag_no_alpha2
 4. We may need to re-encrypt some models in the `orange` repo
 5. Update `DagBuilders` in `lemonade`
 6. Make sure all the tests pass
+
+## Porting System Classes to OmegaConf
+
+System classes follow similar patterns to DagBuilders but manage entire ML systems composed of multiple components (MarketData, DAG, Portfolio, Broker, DagRunner). However, Systems introduce critical architectural challenges that require paradigm shifts.
+
+### Removing Config-Specific Patterns
+
+#### 1. Compound Key Access
+
+**Current Config pattern:**
+```python
+# Compound tuple keys for nested access
+system.config["market_data_config", "asset_ids"] = [101, 102]
+system.config["dag_config", "resample", "transformer_kwargs", "rule"] = "5T"
+
+# Reading compound keys
+asset_ids = system.config["market_data_config", "asset_ids"]
+rule = system.config["dag_config", "resample", "transformer_kwargs", "rule"]
+```
+
+**Problem:** OmegaConf doesn't support tuple-based compound keys. This is a Config-specific feature for navigating nested dictionaries.
+
+**OmegaConf replacement:**
+```python
+# Dot notation (preferred - clean and Pythonic)
+system.config.market_data_config.asset_ids = [101, 102]
+system.config.dag_config.resample.transformer_kwargs.rule = "5T"
+
+# Reading with dot notation
+asset_ids = system.config.market_data_config.asset_ids
+rule = system.config.dag_config.resample.transformer_kwargs.rule
+
+# Or bracket notation (when keys have special characters or are dynamic)
+system.config["market_data_config"]["asset_ids"] = [101, 102]
+asset_ids = system.config["market_data_config"]["asset_ids"]
+```
+
+#### 2. Removing `get_and_mark_as_used()`
+
+**Current Config pattern:**
+```python
+class DagBuilder:
+    def get_trading_period(
+        self, config: cconfig.Config, mark_key_as_used: bool
+    ) -> str:
+        # Get value and mark it as "used"
+        key = ("dag_config", "resample", "transformer_kwargs", "rule")
+        val: str = config.get_and_mark_as_used(
+            key, mark_key_as_used=mark_key_as_used
+        )
+        return val
+
+```
+
+**Problem:** OmegaConf doesn't have built-in usage tracking. The `.get_and_mark_as_used()` method and `mark_key_as_used` pattern are Config-specific.
+
+**Remove usage tracking (simplest)**
+```python
+class DagBuilder:
+    def get_trading_period(self, config: omcfg.DictConfig) -> str:
+        # Direct access without tracking
+        val: str = config.dag_config.resample.transformer_kwargs.rule
+        return val
+```
+
+**Pros:**
+- Simplest migration
+- OmegaConf provides missing key errors by default
+- Structured configs provide type validation
+
+**Cons:**
+- Lose ability to detect unused keys
+- No explicit validation that all config was consumed
+
+### Rethinking "Example" Functions
+
+The codebase contains many "example" functions like `get_Mock1_NonTime_ForecastSystem_for_simulation_example1()` and `get_Mock1_HistoricalDag_example1()`. Their purpose is to **hard-wire specific parameter values** for common use cases (tests, simulations, specific configurations).
+
+TODO(Grisha): check if this would work.
+
+**Current pattern:**
+```python
+def get_Mock1_NonTime_ForecastSystem_for_simulation_example1(
+    backtest_config: str,
+) -> dtfsys.NonTime_ForecastSystem:
+    # 1. Instantiate System (gets base config template)
+    system = dasmmfosy.Mock1_NonTime_ForecastSystem()
+
+    # 2. Hard-wire specific params for this "example"
+    system.config["backtest_config", "freq_as_pd_str"] = "M"
+    system.config["backtest_config", "lookback_as_pd_str"] = "10D"
+
+    # 3. Build complex objects in Python
+    vendor = "mock1"
+    universe = ivcu.get_vendor_universe(vendor, mode="trade", version="v1")
+    df = cofinanc.get_MarketData_df6(universe)
+    system.config["market_data_config", "im_client_ctor"] = icdc.get_DataFrameClient_example1
+    system.config["market_data_config", "im_client_config"] = cconfig.Config().from_dict({"df": df})
+
+    return system
+```
+
+**Key insight:** Example functions are essentially **config overlays** - they take a base template and add/override specific values for a particular use case.
+
+**Problem:** With Hydra/OmegaConf, these functions become redundant because we have better, more declarative patterns available.
+
+#### Alternative Approaches
+
+**Option 1: YAML Config Files (Most Hydra-native)**
+
+Move pure configuration to YAML files:
+
+```yaml
+# conf/systems/mock1_simulation_example1.yaml
+backtest_config:
+  freq_as_pd_str: M
+  lookback_as_pd_str: 10D
+
+market_data_config:
+  vendor: mock1
+  mode: trade
+  universe_version: v1
+```
+
+```python
+# Simple factory using YAML overlay
+def get_system_from_yaml(config_name: str) -> System:
+    system = Mock1_NonTime_ForecastSystem()
+
+    # Load overlay and merge with base template
+    overlay = OmegaConf.load(f"conf/systems/{config_name}.yaml")
+    system.config = OmegaConf.merge(system.config, overlay)
+
+    # Python code only for non-serializable objects
+    df = cofinanc.get_MarketData_df6(universe)
+    system.config.market_data_config.im_client_config = OmegaConf.create({"df": df})
+
+    return system
+
+# Usage
+system = get_system_from_yaml("mock1_simulation_example1")
+```
+
+**Or with Hydra's @hydra.main:**
+```python
+@hydra.main(config_path="conf/systems", config_name="mock1_simulation_example1")
+def main(cfg: DictConfig):
+    system = Mock1_NonTime_ForecastSystem()
+    system.set_config(cfg)
+    # Run system...
+```
+
+**Pros:**
+- Declarative, easy to read/diff in version control
+- CLI overrides: `python main.py backtest_config.freq_as_pd_str=Y`
+- Hydra composition: Mix-and-match configs via defaults list
+- No Python code to maintain for pure config
+
+**Cons:**
+- Can't handle Python objects (DataFrame, etc.) directly
+- Requires keeping Python layer for object construction
+
+**Option 2: Enrich `_get_system_config_template()` with Defaults**
+
+Put reasonable defaults directly in the System template:
+
+```python
+class Mock1_NonTime_ForecastSystem:
+    def _get_system_config_template(self) -> DictConfig:
+        """Return config with sensible defaults for typical usage."""
+        dag_builder = Mock1_DagBuilder()
+        dag_config = dag_builder.get_config_template()
+
+        dict_ = {
+            # Backtest defaults
+            "backtest_config": {
+                "freq_as_pd_str": "M",
+                "lookback_as_pd_str": "10D",
+            },
+
+            # Market data defaults
+            "market_data_config": {
+                "vendor": "mock1",
+                "mode": "trade",
+                "universe_version": "v1",
+            },
+
+            "dag_config": dag_config,
+        }
+
+        return OmegaConf.create(dict_)
+```
+
+**Usage:**
+```python
+# Just instantiate - already has good defaults
+system = Mock1_NonTime_ForecastSystem()
+
+# Override as needed
+system.config.backtest_config.freq_as_pd_str = "Y"
+```
+
+**Pros:**
+- Single source of truth
+- No separate example functions
+- Still overridable in Python or via Hydra
+
+**Cons:**
+- Mixes "template" with "concrete values"
+- Multiple examples require multiple System classes or separate overlays
+
+**Option 3: Config Builder Functions (Hybrid)**
+
+Keep Python functions but return config overlays:
+
+```python
+def get_mock1_simulation_config() -> DictConfig:
+    """Return config overlay for simulation example."""
+    return OmegaConf.create({
+        "backtest_config": {
+            "freq_as_pd_str": "M",
+            "lookback_as_pd_str": "10D",
+        },
+        "market_data_config": {
+            "vendor": "mock1",
+            "mode": "trade",
+        },
+    })
+
+def get_mock1_realtime_config() -> DictConfig:
+    """Return config overlay for realtime example."""
+    return OmegaConf.create({
+        "dag_runner_config": {
+            "rt_timeout_in_secs_or_time": 600,
+            "bar_duration_in_secs": 300,
+        },
+    })
+```
+
+**Usage:**
+```python
+system = Mock1_NonTime_ForecastSystem()
+overlay = get_mock1_simulation_config()
+system.config = OmegaConf.merge(system.config, overlay)
+```
+
+**Pros:**
+- Can use Python logic to generate config
+- Easy to handle Python objects (DataFrames, etc.)
+- Composable (can merge multiple overlays)
+- Test-friendly
+
+**Cons:**
+- Still Python code (not as declarative as YAML)
+- Need to maintain separate builder functions
+
+#### Recommended Migration Path
+
+**Phase 0 (Current migration):**
+Keep example functions but migrate to OmegaConf patterns:
+
+```python
+def get_Mock1_NonTime_ForecastSystem_for_simulation_example1() -> System:
+    system = Mock1_NonTime_ForecastSystem()
+
+    # Use dot notation instead of compound keys
+    system.config.backtest_config.freq_as_pd_str = "M"
+    system.config.backtest_config.lookback_as_pd_str = "10D"
+
+    # Python objects still in Python
+    df = cofinanc.get_MarketData_df6(universe)
+    system.config.market_data_config.im_client_config = OmegaConf.create({"df": df})
+
+    return system
+```
+
+**Phase 1 (YAML migration):**
+Extract pure config to YAML, keep Python only for objects:
+
+```yaml
+# conf/systems/mock1_simulation_example1.yaml
+backtest_config:
+  freq_as_pd_str: M
+  lookback_as_pd_str: 10D
+market_data_config:
+  vendor: mock1
+  mode: trade
+  universe_version: v1
+```
+
+```python
+def get_Mock1_NonTime_ForecastSystem_for_simulation_example1() -> System:
+    system = Mock1_NonTime_ForecastSystem()
+
+    # Load and merge YAML overlay
+    overlay = OmegaConf.load("conf/systems/mock1_simulation_example1.yaml")
+    system.config = OmegaConf.merge(system.config, overlay)
+
+    # Python only for non-serializable objects
+    df = cofinanc.get_MarketData_df6(universe)
+    system.config.market_data_config.im_client_config = OmegaConf.create({"df": df})
+
+    return system
+```
+
+**Phase 2 (Full Hydra composition):**
+Eliminate example functions entirely, use pure Hydra:
+
+```bash
+# CLI replaces example functions
+python run_system.py \
+  system=mock1_nontime \
+  +backtest=simulation_example1 \
+  +market_data=mock1_v1
+
+# Or multi-run for parameter sweeps
+python run_system.py --multirun \
+  system=mock1_nontime \
+  +backtest=simulation_example1,simulation_example2 \
+  backtest_config.freq_as_pd_str=M,Y
+```
+
+```yaml
+# conf/backtest/simulation_example1.yaml
+backtest_config:
+  freq_as_pd_str: M
+  lookback_as_pd_str: 10D
+
+# conf/market_data/mock1_v1.yaml
+market_data_config:
+  vendor: mock1
+  mode: trade
+  universe_version: v1
+```
+
+#### Component Examples (DAG, MarketData, etc.)
+
+Same pattern applies to component builders:
+
+**Current:**
+```python
+def get_Mock1_HistoricalDag_example1(
+    system: dtfsys.System, timestamp_column_name: str
+) -> dtfcore.DAG:
+    dag_builder = system.config["dag_builder_object"]
+    # Maybe hard-wire some dag_config params
+    dag = dag_builder.get_dag(system.config["dag_config"])
+    return dag
+```
+
+**Phase 0 migration:**
+```python
+def get_Mock1_HistoricalDag_example1(
+    system: dtfsys.System, timestamp_column_name: str
+) -> dtfcore.DAG:
+    # Update config as overlay
+    system.config.dag_config.some_node.timestamp_col = timestamp_column_name
+
+    # Recreate builder from class name or config
+    dag_builder = Mock1_DagBuilder()
+    dag = dag_builder.get_dag(system.config.dag_config)
+    return dag
+```
+
+**Phase 1 migration:**
+```yaml
+# conf/dags/mock1_historical_example1.yaml
+some_node:
+  timestamp_col: end_datetime
+  other_param: hardcoded_value
+```
+
+```python
+def get_Mock1_HistoricalDag_example1(system: dtfsys.System) -> dtfcore.DAG:
+    # Load dag-specific overlay
+    overlay = OmegaConf.load("conf/dags/mock1_historical_example1.yaml")
+    dag_config = OmegaConf.merge(system.config.dag_config, overlay)
+
+    dag_builder = Mock1_DagBuilder()
+    dag = dag_builder.get_dag(dag_config)
+    return dag
+```
+
+#### Key Principles
+
+1. **Example functions = config overlays**: They add/override config values on top of base template
+2. **Phase 0**: Keep functions, make them OmegaConf-compatible
+3. **Phase 1**: Extract pure config to YAML, keep Python for objects
+4. **Phase 2**: Eliminate functions, use Hydra composition exclusively
+5. **Gradual migration**: Each phase delivers value, can stop at any point
+
+This approach makes configurations:
+- **More discoverable**: YAML files in conf/ directory vs scattered Python functions
+- **More composable**: Mix-and-match via Hydra defaults
+- **More maintainable**: Change configs without touching code
+- **More flexible**: CLI overrides for any parameter
+
+### Config as Blueprint vs State Container
+
+**Critical Issue:** The current System implementation uses `Config` as both:
+1. A configuration blueprint (parameters, settings)
+2. A state container (storing built Python objects)
+
+**Why this breaks with OmegaConf:**
+
+```python
+# Current pattern.
+system = System()
+system.config["dag_runner_object"] = dag_runner  # Live Python object.
+system.config["market_object"] = market_data    # Live Python object.
+
+# Try to serialize...
+OmegaConf.to_yaml(system.config)  
+system.config.save_to_file("config.yaml") 
+```
+
+OmegaConf is designed for **serializable data only** (strings, ints, lists, dicts). When you store live Python objects in the config and try to serialize to YAML, the serializer fails.
+
+**The Solution: Separate Blueprint from State**
+
+```python
+class System:
+    def __init__(self):
+        # Pure configuration blueprint (serializable)
+        self._config: DictConfig = self._get_system_config_template()
+
+        # Live object cache (NOT serializable, but that's OK)
+        self._object_cache: Dict[str, Any] = {}
+```
+
+**Key Principle:**
+- `self._config` = Pure data blueprint, always serializable
+- `self._object_cache` = Live Python objects (MarketData, DAG, Portfolio, DagRunner)
+
