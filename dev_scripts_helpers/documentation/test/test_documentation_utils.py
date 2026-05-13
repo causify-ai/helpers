@@ -396,30 +396,158 @@ class Test_remove_italic_span_tags(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_remove_section_divs
+# Test_convert_section_div_headers
 # #############################################################################
 
 
-class Test_remove_section_divs(hunitest.TestCase):
+class Test_convert_section_div_headers(hunitest.TestCase):
     """
-    Test the `remove_section_divs()` function.
+    Test the `convert_section_div_headers()` function.
     """
 
     def helper(self, content: str, expected: str) -> None:
         """
-        Test helper for `remove_section_divs()`.
+        Test helper for `convert_section_div_headers()`.
 
         :param content: Input markdown content
         :param expected: Expected output
         """
         # Run test.
-        actual = dshddout.remove_section_divs(content)
+        actual = dshddout.convert_section_div_headers(content)
         # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
-        Test removal of section2 div with double quotes.
+        Test section2 div promotes `# Title` to `## Title`.
+        """
+        # Prepare inputs.
+        content = '<div class="section2">\n\n# The Magic of Prediction\n'
+        # Prepare outputs.
+        expected = '<div class="section2">\n\n## The Magic of Prediction\n'
+        # Run test.
+        self.helper(content, expected)
+
+    def test2(self) -> None:
+        """
+        Test section3 div promotes `# Title` to `### Title`.
+        """
+        # Prepare inputs.
+        content = '<div class="section3">\n\n# The Magic of Prediction\n'
+        # Prepare outputs.
+        expected = '<div class="section3">\n\n### The Magic of Prediction\n'
+        # Run test.
+        self.helper(content, expected)
+
+    def test3(self) -> None:
+        """
+        Test section4 div promotes `# Title` to `#### Title`.
+        """
+        # Prepare inputs.
+        content = '<div class="section4">\n\n# Sub Section\n'
+        # Prepare outputs.
+        expected = '<div class="section4">\n\n#### Sub Section\n'
+        # Run test.
+        self.helper(content, expected)
+
+    def test4(self) -> None:
+        """
+        Test single-quoted class attribute is matched.
+        """
+        # Prepare inputs.
+        content = "<div class='section2'>\n\n# Title\n"
+        # Prepare outputs.
+        expected = "<div class='section2'>\n\n## Title\n"
+        # Run test.
+        self.helper(content, expected)
+
+    def test5(self) -> None:
+        """
+        Test section div with additional attributes is matched.
+        """
+        # Prepare inputs.
+        content = '<div id="x" class="section2">\n\n# Title\n'
+        # Prepare outputs.
+        expected = '<div id="x" class="section2">\n\n## Title\n'
+        # Run test.
+        self.helper(content, expected)
+
+    def test6(self) -> None:
+        """
+        Test non-section divs (e.g., chapter) are not affected.
+        """
+        # Prepare inputs.
+        content = '<div class="chapter">\n\n# Chapter 1\n'
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test7(self) -> None:
+        """
+        Test multiple section divs with different levels are converted.
+        """
+        # Prepare inputs.
+        content = (
+            '<div class="section2">\n\n# First\n\n'
+            '<div class="section3">\n\n# Second\n'
+        )
+        # Prepare outputs.
+        expected = (
+            '<div class="section2">\n\n## First\n\n'
+            '<div class="section3">\n\n### Second\n'
+        )
+        # Run test.
+        self.helper(content, expected)
+
+    def test8(self) -> None:
+        """
+        Test content without section divs is unchanged.
+        """
+        # Prepare inputs.
+        content = "Plain content\n\n# Title\n"
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test9(self) -> None:
+        """
+        Test a `#` not preceded by a section div is unchanged.
+        """
+        # Prepare inputs.
+        content = '<div class="section2">\n\nSome text first\n\n# Title\n'
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+
+# #############################################################################
+# Test_remove_div_tags
+# #############################################################################
+
+
+class Test_remove_div_tags(hunitest.TestCase):
+    """
+    Test the `remove_div_tags()` function.
+    """
+
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Test helper for `remove_div_tags()`.
+
+        :param content: Input markdown content
+        :param expected: Expected output
+        """
+        # Run test.
+        actual = dshddout.remove_div_tags(content)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test removal of div with class attribute.
         """
         # Prepare inputs.
         content = 'Before <div class="section2">section content</div> after'
@@ -430,7 +558,7 @@ class Test_remove_section_divs(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test removal of section2 div with single quotes.
+        Test removal of div with single-quoted attribute.
         """
         # Prepare inputs.
         content = "Start <div class='section2'>div content</div> end"
@@ -441,23 +569,89 @@ class Test_remove_section_divs(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test that other class divs are not removed.
+        Test removal of div with id attribute.
         """
         # Prepare inputs.
-        content = '<div class="other">not section2</div> here'
+        content = 'Text <div id="ch001.html_ch001">chapter</div> end'
         # Prepare outputs.
-        expected = content
+        expected = "Text chapter end"
         # Run test.
         self.helper(content, expected)
 
     def test4(self) -> None:
         """
-        Test removal of section2 div with nested HTML tags.
+        Test removal of div with both id and class attributes.
         """
         # Prepare inputs.
-        content = 'Start <div class="section2"><p>Paragraph content</p></div> end'
+        content = 'X <div id="copy001.html" class="copyrights">body</div> Y'
         # Prepare outputs.
-        expected = "Start <p>Paragraph content</p> end"
+        expected = "X body Y"
+        # Run test.
+        self.helper(content, expected)
+
+    def test5(self) -> None:
+        """
+        Test removal of div with style attribute.
+        """
+        # Prepare inputs.
+        content = '<div class="titlepage" style="margin-top: 0em;">page</div>'
+        # Prepare outputs.
+        expected = "page"
+        # Run test.
+        self.helper(content, expected)
+
+    def test6(self) -> None:
+        """
+        Test removal of div with no attributes.
+        """
+        # Prepare inputs.
+        content = "Before <div>plain</div> after"
+        # Prepare outputs.
+        expected = "Before plain after"
+        # Run test.
+        self.helper(content, expected)
+
+    def test7(self) -> None:
+        """
+        Test removal of nested divs preserves inner content.
+        """
+        # Prepare inputs.
+        content = '<div class="outer"><div class="inner">deep</div></div>'
+        # Prepare outputs.
+        expected = "deep"
+        # Run test.
+        self.helper(content, expected)
+
+    def test8(self) -> None:
+        """
+        Test removal of div with nested non-div HTML tags.
+        """
+        # Prepare inputs.
+        content = 'Start <div class="section2"><p>para</p></div> end'
+        # Prepare outputs.
+        expected = "Start <p>para</p> end"
+        # Run test.
+        self.helper(content, expected)
+
+    def test9(self) -> None:
+        """
+        Test that content without divs is unchanged.
+        """
+        # Prepare inputs.
+        content = "Plain markdown without any div tags"
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test10(self) -> None:
+        """
+        Test removal of div tags spanning multiple lines.
+        """
+        # Prepare inputs.
+        content = '<div class="chapter">\n\nParagraph.\n\n</div>'
+        # Prepare outputs.
+        expected = "\n\nParagraph.\n\n"
         # Run test.
         self.helper(content, expected)
 
@@ -586,6 +780,239 @@ class Test_remove_backticks_in_math(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_collapse_blank_lines
+# #############################################################################
+
+
+class Test_collapse_blank_lines(hunitest.TestCase):
+    """
+    Test the `collapse_blank_lines()` function.
+    """
+
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Test helper for `collapse_blank_lines()`.
+
+        :param content: Input markdown content
+        :param expected: Expected output
+        """
+        # Run test.
+        actual = dshddout.collapse_blank_lines(content)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test single blank line is preserved.
+        """
+        # Prepare inputs.
+        content = "line1\n\nline2"
+        # Prepare outputs.
+        expected = "line1\n\nline2"
+        # Run test.
+        self.helper(content, expected)
+
+    def test2(self) -> None:
+        """
+        Test two consecutive blank lines collapse to one.
+        """
+        # Prepare inputs.
+        content = "line1\n\n\nline2"
+        # Prepare outputs.
+        expected = "line1\n\nline2"
+        # Run test.
+        self.helper(content, expected)
+
+    def test3(self) -> None:
+        """
+        Test many consecutive blank lines collapse to one.
+        """
+        # Prepare inputs.
+        content = "line1\n\n\n\n\n\nline2"
+        # Prepare outputs.
+        expected = "line1\n\nline2"
+        # Run test.
+        self.helper(content, expected)
+
+    def test4(self) -> None:
+        """
+        Test blank lines containing only spaces are also collapsed.
+        """
+        # Prepare inputs.
+        content = "line1\n   \n\t\n  \nline2"
+        # Prepare outputs.
+        expected = "line1\n\nline2"
+        # Run test.
+        self.helper(content, expected)
+
+    def test5(self) -> None:
+        """
+        Test content without blank lines is unchanged.
+        """
+        # Prepare inputs.
+        content = "line1\nline2\nline3"
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test6(self) -> None:
+        """
+        Test multiple separate runs of blank lines are each collapsed.
+        """
+        # Prepare inputs.
+        content = "a\n\n\nb\n\n\n\nc"
+        # Prepare outputs.
+        expected = "a\n\nb\n\nc"
+        # Run test.
+        self.helper(content, expected)
+
+    def test7(self) -> None:
+        """
+        Test leading blank lines are collapsed.
+        """
+        # Prepare inputs.
+        content = "\n\n\nfirst line"
+        # Prepare outputs.
+        expected = "\n\nfirst line"
+        # Run test.
+        self.helper(content, expected)
+
+
+# #############################################################################
+# Test_merge_consecutive_same_level_headers
+# #############################################################################
+
+
+class Test_merge_consecutive_same_level_headers(hunitest.TestCase):
+    """
+    Test the `merge_consecutive_same_level_headers()` function.
+    """
+
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Test helper for `merge_consecutive_same_level_headers()`.
+
+        :param content: Input markdown content
+        :param expected: Expected output
+        """
+        # Run test.
+        actual = dshddout.merge_consecutive_same_level_headers(content)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test three consecutive level-1 headers separated by blank lines.
+        """
+        # Prepare inputs.
+        content = "# 1\n\n# Introduction\n\n# _Machine Intelligence_"
+        # Prepare outputs.
+        expected = "# 1 Introduction _Machine Intelligence_"
+        # Run test.
+        self.helper(content, expected)
+
+    def test2(self) -> None:
+        """
+        Test two consecutive level-2 headers separated by a blank line.
+        """
+        # Prepare inputs.
+        content = "## Part\n\n## One"
+        # Prepare outputs.
+        expected = "## Part One"
+        # Run test.
+        self.helper(content, expected)
+
+    def test3(self) -> None:
+        """
+        Test headers at different levels are left untouched.
+        """
+        # Prepare inputs.
+        content = "# A\n\n## B\n\n# C"
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test4(self) -> None:
+        """
+        Test a solitary header is preserved exactly as written.
+        """
+        # Prepare inputs.
+        content = "# Only one header"
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test5(self) -> None:
+        """
+        Test non-blank content between headers prevents merging.
+        """
+        # Prepare inputs.
+        content = "# A\n\nSome paragraph text\n\n# B"
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+    def test6(self) -> None:
+        """
+        Test merging preserves following content and its surrounding blank line.
+        """
+        # Prepare inputs.
+        content = "# A\n\n# B\n\nbody text"
+        # Prepare outputs.
+        expected = "# A B\n\nbody text"
+        # Run test.
+        self.helper(content, expected)
+
+    def test7(self) -> None:
+        """
+        Test directly adjacent same-level headers (no blank lines) merge.
+        """
+        # Prepare inputs.
+        content = "# A\n# B"
+        # Prepare outputs.
+        expected = "# A B"
+        # Run test.
+        self.helper(content, expected)
+
+    def test8(self) -> None:
+        """
+        Test multiple blank lines between same-level headers still merge.
+        """
+        # Prepare inputs.
+        content = "# A\n\n\n\n# B"
+        # Prepare outputs.
+        expected = "# A B"
+        # Run test.
+        self.helper(content, expected)
+
+    def test9(self) -> None:
+        """
+        Test two independent runs of same-level headers each merge separately.
+        """
+        # Prepare inputs.
+        content = "# A\n\n# B\n\nbody\n\n## X\n\n## Y"
+        # Prepare outputs.
+        expected = "# A B\n\nbody\n\n## X Y"
+        # Run test.
+        self.helper(content, expected)
+
+    def test10(self) -> None:
+        """
+        Test content without any headers is unchanged.
+        """
+        # Prepare inputs.
+        content = "Just some\nplain text\nover multiple lines."
+        # Prepare outputs.
+        expected = content
+        # Run test.
+        self.helper(content, expected)
+
+
+# #############################################################################
 # Test_remove_junk
 # #############################################################################
 
@@ -648,6 +1075,28 @@ class Test_remove_junk(hunitest.TestCase):
         content = 'Check <span class="b">HBR Press Quantity Sales Discounts</span> and <span class="i">What Technology Wants</span> here'
         # Prepare outputs.
         expected = "Check **HBR Press Quantity Sales Discounts** and _What Technology Wants_ here"
+        # Run test.
+        self.helper(content, expected)
+
+    def test5(self) -> None:
+        """
+        Test section div promotes header level and div is then removed.
+        """
+        # Prepare inputs.
+        content = '<div class="section2">\n\n# KEY POINTS\n\nbody\n\n</div>'
+        # Prepare outputs.
+        expected = "\n\n## KEY POINTS\n\nbody\n\n"
+        # Run test.
+        self.helper(content, expected)
+
+    def test6(self) -> None:
+        """
+        Test section3 div promotes header to level 3 and div is removed.
+        """
+        # Prepare inputs.
+        content = '<div class="section3">\n\n# Subsection\n\n</div>'
+        # Prepare outputs.
+        expected = "\n\n### Subsection\n\n"
         # Run test.
         self.helper(content, expected)
 

@@ -313,6 +313,28 @@
     )
     ```
 
+## Use `raise` Instead of `hdbg.dassert(False, ...)`
+
+- When unconditionally raising an error, use `raise` with an appropriate exception
+  instead of `hdbg.dassert(False, ...)`
+
+- Example: Use `raise` for unconditional errors
+  - **Bad**: Using `dassert(False, ...)` for unconditional errors
+    ```python
+    hdbg.dassert(
+        False,
+        "Output directory already contains chapter files: %s (use --overwrite to replace)",
+        output_dir,
+    )
+    ```
+  - **Good**: Use `raise` with appropriate exception
+    ```python
+    raise ValueError(
+        f"Output directory already contains chapter files: {output_dir} "
+        "(use --overwrite to replace)"
+    )
+    ```
+
 ## Do not use try-except
 
 - Do not use try except to recover errors but let statements raise their own

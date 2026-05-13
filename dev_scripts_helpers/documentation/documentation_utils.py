@@ -144,21 +144,61 @@ def remove_italic_span_tags(content: str) -> str:
     return content
 
 
-def remove_section_divs(content: str) -> str:
+def convert_section_div_headers(content: str) -> str:
     """
-    Remove div tags with class="section2" but keep their content.
+    Convert level-1 headers inside `<div class="sectionN">` to level N.
 
-    Matches div tags with `class="section2"` attribute and replaces them
-    with their content (e.g., `<div class="section2">content</div>` becomes
-    `content`). Handles nested HTML tags within the div.
+    Detects an opening `<div class="sectionN">` tag (with any extra
+    attributes) followed by a level-1 markdown header (`# Title`) and rewrites
+    the header to have N `#` characters (e.g., `<div class="section2">` plus
+    `# Title` becomes `<div class="section2">` plus `## Title`). The div tag
+    is left untouched so a later pass (e.g., `remove_div_tags()`) can strip
+    it.
 
     :param content: the markdown content
-    :return: content with section2 div tags removed but content kept
+    :return: content with section headers promoted to the right level
     """
-    # Pattern matches div tags with class="section2" attribute.
-    # Handles both single and double quotes and nested HTML tags.
-    pattern = r'<div\s+class=["\']section2["\']>([\s\S]*?)</div>'
-    content = re.sub(pattern, r"\1", content)
+    # Pattern parts:
+    # - `<div\b[^>]*\bclass=["\']section(\d+)["\'][^>]*>`: section div opening
+    #   tag, capturing the section level digits.
+    # - `(\s*\n)`: any whitespace and at least one newline, so the `#` lands at
+    #   the start of a following line (typically after a blank line).
+    # - `#(\s+)`: a level-1 header marker `#` followed by at least one space.
+    pattern = r'(<div\b[^>]*\bclass=["\']section(\d+)["\'][^>]*>)(\s*\n)#(\s+)'
+
+    def _replace(match) -> str:
+        # Reconstruct the match with `#` repeated `section_level` times to
+        # promote the header to the right level.
+        div_tag = match.group(1)
+        section_level = int(match.group(2))
+        whitespace = match.group(3)
+        space_after = match.group(4)
+        header_prefix = "#" * section_level
+        return f"{div_tag}{whitespace}{header_prefix}{space_after}"
+
+    content = re.sub(pattern, _replace, content)
+    return content
+
+
+def remove_div_tags(content: str) -> str:
+    """
+    Remove all div tags but keep their content.
+
+    Strips opening div tags with any attributes (e.g., `<div class="foo">`,
+    `<div id="bar">`, `<div class="x" style="y:z;">`) and closing `</div>`
+    tags, preserving the content between them. Each tag is removed
+    independently, which correctly handles nested divs without needing a
+    balanced matcher.
+
+    :param content: the markdown content
+    :return: content with all div tags stripped but content kept
+    """
+    # Match any opening `<div ...>` tag with optional attributes.
+    pattern_open = r"<div\b[^>]*>"
+    content = re.sub(pattern_open, "", content)
+    # Match closing `</div>` tags.
+    pattern_close = r"</div>"
+    content = re.sub(pattern_close, "", content)
     return content
 
 
@@ -193,6 +233,98 @@ def remove_backticks_in_math(content: str) -> str:
     # Pattern matches $`...`$ and removes the backticks.
     pattern = r"\$`([^`]*)`\$"
     content = re.sub(pattern, r"$\1$", content)
+    return content
+
+
+def merge_consecutive_same_level_headers(content: str) -> str:
+    """
+    Merge runs of same-level markdown headers into a single header line.
+
+    Consecutive markdown headers at the same level (e.g., three lines each
+    starting with `# `), separated only by blank lines or directly
+    adjacent, are combined into one header line whose text is the
+    space-joined concatenation of the individual header texts. For
+    example:
+
+        # 1
+
+        # Introduction
+
+        # _Machine Intelligence_
+
+    becomes
+
+        # 1 Introduction _Machine Intelligence_
+
+    Headers at different levels, or sequences interrupted by any
+    non-blank, non-header content, are left untouched. A solitary header
+    (no neighbor at the same level) is emitted exactly as written.
+
+    :param content: the markdown content
+    :return: content with runs of same-level headers merged
+    """
+    # A markdown header is 1+ `#` characters, then whitespace, then
+    # non-empty text. The capture groups extract the leading `#`s and the
+    # stripped header text (no leading/trailing whitespace).
+    header_re = re.compile(r"^(#+)\s+(.*\S)\s*$")
+    lines = content.split("\n")
+    result: List[str] = []
+    i = 0
+    n = len(lines)
+    while i < n:
+        match = header_re.match(lines[i])
+        # Non-header line: emit as-is and advance.
+        if not match:
+            result.append(lines[i])
+            i += 1
+            continue
+        # Found a header. Scan forward for same-level neighbors, skipping
+        # blank lines. Stop at any non-blank, non-matching content.
+        hashes = match.group(1)
+        texts = [match.group(2)]
+        last_header_pos = i
+        j = i + 1
+        while j < n:
+            if lines[j].strip() == "":
+                j += 1
+                continue
+            next_match = header_re.match(lines[j])
+            if next_match and next_match.group(1) == hashes:
+                texts.append(next_match.group(2))
+                last_header_pos = j
+                j += 1
+                continue
+            break
+        # Single header: preserve the original line untouched so we don't
+        # accidentally normalize whitespace on lines that aren't merged.
+        if len(texts) == 1:
+            result.append(lines[i])
+            i += 1
+        # Run of same-level headers: emit one merged header. Subsequent
+        # blank lines after the last merged header (at indices >
+        # `last_header_pos`) will be processed normally on the next pass.
+        else:
+            merged_line = f"{hashes} {' '.join(texts)}"
+            result.append(merged_line)
+            i = last_header_pos + 1
+    return "\n".join(result)
+
+
+def collapse_blank_lines(content: str) -> str:
+    """
+    Collapse two or more consecutive blank lines into a single blank line.
+
+    A blank line is one that is empty or contains only whitespace. Runs of
+    such lines are reduced to a single empty line. Leading/trailing
+    whitespace on non-blank lines is preserved.
+
+    :param content: the markdown content
+    :return: content with runs of blank lines collapsed to one
+    """
+    # Match 2+ consecutive blank lines (each possibly containing only
+    # whitespace) and replace with a single newline-separated blank line.
+    pattern = r"(?:[ \t]*\n){2,}"
+    content = re.sub(pattern, "\n\n", content)
     return content
 
 
@@ -233,15 +365,30 @@ def remove_junk(content: str) -> str:
     # Convert class="i" span tags to markdown italic.
     _LOG.info("Converting class='i' span tags to markdown italic")
     content = remove_italic_span_tags(content)
-    # Remove div tags with class="section2" but keep their content.
-    _LOG.info("Removing class='section2' div tags (keeping content)")
-    content = remove_section_divs(content)
+    # Convert headers inside section divs to the appropriate header level.
+    # Must run before `remove_div_tags()` so the section level can be read
+    # from the div tag.
+    _LOG.info("Converting section div headers to the right level")
+    content = convert_section_div_headers(content)
+    # Remove all div tags but keep their content.
+    _LOG.info("Removing div tags (keeping content)")
+    content = remove_div_tags(content)
     # Remove anchor tags but keep their content.
     _LOG.info("Removing anchor tags (keeping content)")
     content = remove_anchor_tags(content)
     # Remove backticks from LaTeX math expressions.
     _LOG.info("Removing backticks from LaTeX math expressions")
     content = remove_backticks_in_math(content)
+    # Collapse runs of blank lines into a single blank line.
+    _LOG.info("Collapsing consecutive blank lines")
+    content = collapse_blank_lines(content)
+    # Merge consecutive same-level headers (e.g., `# 1` / `# Introduction`
+    # / `# _Machine Intelligence_` becomes `# 1 Introduction _Machine
+    # Intelligence_`). Run after `collapse_blank_lines()` so multiple
+    # blank lines between headers are normalized to single blanks before
+    # merging.
+    _LOG.info("Merging consecutive same-level headers")
+    content = merge_consecutive_same_level_headers(content)
     return content
 
 
