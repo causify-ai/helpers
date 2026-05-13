@@ -120,48 +120,59 @@
 - Short Classification of Tools
 
   - Core Documentation Tools
-    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides with automatic PDF compression
-    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
+    - `clean_markdown.py`: Cleans up HTML markup in Markdown files
     - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes
+    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides with automatic PDF compression
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
+    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
     - `transform_notes.py`: Applies transformations (TOC, headers, lists)
     - `update_md.py`: Multi-action LLM tool for markdown files (summarize, update content, apply style)
 
   - Extraction and Conversion Tools
     - `convert_docx_to_md.py`: Converts DOCX to Markdown
+    - `convert_epub_to_md.py`: Converts EPUB to Markdown
     - `convert_pdf_to_md.py`: Converts PDF to Markdown
-    - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt slides, and Jupyter notebook files for navigation
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
+    - `extract_text_from_txt.py`: Extracts text content from various document formats
+    - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt slides, and Jupyter notebook files for navigation
+    - `split_text_in_chapters.py`: Splits Markdown files into individual chapters
 
   - Dockerized Tools
-    - `dockerized_tikz_to_bitmap.py`: TikZ to PNG conversion  
     - `dockerized_graphviz.py`: Graphviz DOT to PNG  
     - `dockerized_latex.py`: LaTeX compilation  
     - `dockerized_mermaid.py`: Mermaid diagram rendering  
     - `dockerized_pandoc.py`: Pandoc conversions  
     - `dockerized_prettier.py`: Prettier formatting
+    - `dockerized_svg_with_inkscape.py`: SVG conversion using Inkscape
+    - `dockerized_svg_with_rsvg_convert.py`: SVG conversion using rsvg-convert
+    - `dockerized_tikz_to_bitmap.py`: TikZ to PNG conversion  
 
   - Utility and Processing Tools
-    - `run_pandoc.py`: Runs Pandoc conversions
-    - `replace_latex.py`: Batch LaTeX transformations
-    - `check_links.py`: Validates URL reachability
     - `check_ai_slop.py`: Detects and fixes AI-generated content using Undetectable.ai API
+    - `check_links.py`: Validates URL reachability
     - `concatenate_pdfs.py`: Merges multiple PDF files into a single PDF
+    - `convert_png_dir_to_movie.py`: Creates MP4 videos or GIFs from PNG image sequences
+    - `convert_table.py`: Converts between table formats (CSV, TSV, Markdown)
+    - `count_words.py`: Counts words and estimates reading time
+    - `replace_latex.py`: Batch LaTeX transformations
+    - `run_pandoc.py`: Runs Pandoc conversions
 
   - Generation and Publishing Tools
+    - `create_google_drive_map.py`: Creates directory structure summaries
+    - `generate_images.py`: Generates images with DALL-E
+    - `generate_latex_sty.py`: Generates LaTeX style files
     - `generate_readme_index.py`: Generates README index
     - `generate_script_catalog.py`: Creates script catalog
-    - `generate_latex_sty.py`: Generates LaTeX style files
-    - `generate_images.py`: Generates images with DALL-E
     - `publish_notes.py`: Publishes notes to remote server
-    - `create_google_drive_map.py`: Creates directory structure summaries
 
   - Shell Script Utilities
+    - `epub_to_md.sh`: Converts EPUB to Markdown (shell wrapper)
+    - `latexdockercmd.sh`: LaTeX Docker command utility
     - `open_md_in_browser.sh`: Renders Markdown to HTML and opens in browser
     - `open_md_on_github.sh`: Opens a file in GitHub web interface
-    - `run_latex.sh`: Dockerized LaTeX compilation with PDF viewer
+    - `open_md.sh`: Opens Markdown files (general utility)
     - `replace_latex.sh`: Shell wrapper for LaTeX batch transformations
-    - `latexdockercmd.sh`: LaTeX Docker command utility  
+    - `run_latex.sh`: Dockerized LaTeX compilation with PDF viewer
 
 # Description of executables
 
@@ -394,6 +405,163 @@ The supported File types and code blocks are:
 - Use in vim for inline formatting
   ```verbatim
   :%!lint_txt.py
+  ```
+
+## `clean_markdown.py`
+
+### What It Does
+
+- Clean up HTML markup in Markdown files
+- Removes unwanted HTML tags and formatting artifacts
+- Processes the file and outputs cleaned Markdown
+
+### Examples
+
+- Clean a markdown file
+  ```bash
+  > clean_markdown.py --input input.md --output output.md
+  ```
+
+## `split_text_in_chapters.py`
+
+### What It Does
+
+- Split a Markdown file into individual chapters based on level-1 headers
+- Each chapter is saved to a separate file in the output directory
+- Filenames are derived from chapter titles with special characters removed
+- Optional automatic numbering of chapter files
+
+### Examples
+
+- Split into chapters with default naming
+  ```bash
+  > split_text_in_chapters.py -i book.md -o book_chapters
+  ```
+
+- Split with automatic chapter numbering
+  ```bash
+  > split_text_in_chapters.py -i book.md -o book_chapters --add_numbers
+  ```
+
+- Overwrite existing output directory
+  ```bash
+  > split_text_in_chapters.py -i book.md -o book_chapters --overwrite
+  ```
+
+## `convert_table.py`
+
+### What It Does
+
+- Convert between table formats: Markdown, CSV, and TSV
+- Supports file I/O and stdin/stdout pipelines
+- Automatically detects or specifies input/output format
+- Can copy output to clipboard with `--pbcopy` flag
+
+### Examples
+
+- Convert CSV to Markdown table
+  ```bash
+  > convert_table.py -i table.csv -o table.md
+  ```
+
+- Convert TSV to CSV
+  ```bash
+  > convert_table.py -i table.tsv -o table.csv
+  ```
+
+- Use stdin and stdout with format flags
+  ```bash
+  > convert_table.py -i - -o - --input_mode md --output_mode csv
+  ```
+
+- Copy Markdown table to clipboard
+  ```bash
+  > convert_table.py -i table.csv --output_mode md --pbcopy
+  ```
+
+## `count_words.py`
+
+### What It Does
+
+- Count words in a text file
+- Calculates reading time based on words per minute
+- Useful for estimating document length and reading duration
+
+### Examples
+
+- Count words in a file
+  ```bash
+  > count_words.py input.txt
+  ```
+
+## `extract_text_from_txt.py`
+
+### What It Does
+
+- Extract text content from various document formats
+- Processes Markdown, LaTeX, and other text-based formats
+- Cleans and structures extracted text
+
+### Examples
+
+- Extract text from a document
+  ```bash
+  > extract_text_from_txt.py -i document.md -o output.txt
+  ```
+
+## `convert_png_dir_to_movie.py`
+
+### What It Does
+
+- Convert a directory of PNG images into an MP4 video or GIF
+- Creates animation from sequential image frames
+- Supports custom output format and framerate configuration
+
+### Examples
+
+- Create an MP4 video with default output file (video.mp4 in input_dir)
+  ```bash
+  > convert_png_dir_to_movie.py --input_dir ./frames
+  ```
+
+- Create an MP4 video with custom output
+  ```bash
+  > convert_png_dir_to_movie.py --input_dir ./frames --output output.mp4
+  ```
+
+- Create a GIF from frames in a directory
+  ```bash
+  > convert_png_dir_to_movie.py --input_dir ./frames --output animation.gif
+  ```
+
+## `dockerized_svg_with_inkscape.py`
+
+### What It Does
+
+- Convert SVG files using Inkscape in a Dockerized environment
+- Exports SVG to various formats (PNG, PDF, etc.)
+- Provides consistent rendering across systems
+
+### Examples
+
+- Convert SVG to PNG using Inkscape
+  ```bash
+  > dockerized_svg_with_inkscape.py -i diagram.svg -o diagram.png
+  ```
+
+## `dockerized_svg_with_rsvg_convert.py`
+
+### What It Does
+
+- Convert SVG files using rsvg-convert in a Dockerized environment
+- Renders SVG to bitmap formats efficiently
+- Alternative to Inkscape for SVG conversion
+
+### Examples
+
+- Convert SVG to PNG using rsvg-convert
+  ```bash
+  > dockerized_svg_with_rsvg_convert.py -i diagram.svg -o diagram.png
   ```
 
 ## `check_ai_slop.py`
