@@ -1,614 +1,535 @@
-"""
-Unit tests for `split_text_in_chapters.py`.
-"""
-
 import logging
 import os
-import shutil
-import tempfile
-from typing import Generator
+from typing import List, Tuple
 
-import pytest
-
+import dev_scripts_helpers.documentation.split_text_in_chapters as dshdsptc
+import helpers.hgit as hgit
+import helpers.hio as hio
+import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.split_text_in_chapters as dsdstc
 
 _LOG = logging.getLogger(__name__)
 
 
-class TestExtractChapters(hunitest.TestCase):
+# #############################################################################
+# Test_extract_chapters
+# #############################################################################
+
+
+class Test_extract_chapters(hunitest.TestCase):
     """
-    Test chapter extraction from markdown content.
+    Test `_extract_chapters()` from `split_text_in_chapters.py`.
     """
 
     def test1(self) -> None:
         """
-        Extract basic chapters with multiple level-1 headers.
+        Test extracting a single chapter with content.
         """
         # Prepare inputs.
-        content = """# Chapter 1
-This is chapter 1.
-
-# Chapter 2
-This is chapter 2.
-
-# Chapter 3
-This is chapter 3."""
+        content = """
+        # Chapter One
+        Some content here.
+        More text.
+        """
+        content = hprint.dedent(content)
+        # Prepare outputs.
+        expected: List[Tuple[str, str]] = [
+            (
+                "Chapter One",
+                "# Chapter One\nSome content here.\nMore text.",
+            ),
+        ]
         # Run test.
-        chapters = dsdstc._extract_chapters(content)
+        actual = dshdsptc._extract_chapters(content)
         # Check outputs.
-        self.assertEqual(len(chapters), 3)
-        self.assertEqual(chapters[0][0], "Chapter 1")
-        self.assertIn("This is chapter 1", chapters[0][1])
-        self.assertEqual(chapters[1][0], "Chapter 2")
-        self.assertIn("This is chapter 2", chapters[1][1])
-        self.assertEqual(chapters[2][0], "Chapter 3")
-        self.assertIn("This is chapter 3", chapters[2][1])
+        self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
         """
-        Chapter content includes both the header and body.
+        Test extracting multiple chapters separated by level-1 headers.
         """
         # Prepare inputs.
-        content = """# Introduction
-Some intro text.
-More intro text.
-
-# Main Content
-Main content here."""
+        content = """
+        # Chapter One
+        Content of chapter one.
+        # Chapter Two
+        Content of chapter two.
+        # Chapter Three
+        Content of chapter three.
+        """
+        content = hprint.dedent(content)
+        # Prepare outputs.
+        expected: List[Tuple[str, str]] = [
+            ("Chapter One", "# Chapter One\nContent of chapter one."),
+            ("Chapter Two", "# Chapter Two\nContent of chapter two."),
+            (
+                "Chapter Three",
+                "# Chapter Three\nContent of chapter three.",
+            ),
+        ]
         # Run test.
-        chapters = dsdstc._extract_chapters(content)
+        actual = dshdsptc._extract_chapters(content)
         # Check outputs.
-        self.assertEqual(len(chapters), 2)
-        self.assertIn("# Introduction", chapters[0][1])
-        self.assertIn("Some intro text", chapters[0][1])
+        self.assert_equal(str(actual), str(expected))
 
     def test3(self) -> None:
         """
-        Extract with a single chapter.
+        Test that empty content produces no chapters.
         """
         # Prepare inputs.
-        content = """# Only Chapter
-This is the only chapter."""
+        content = ""
+        # Prepare outputs.
+        expected: List[Tuple[str, str]] = []
         # Run test.
-        chapters = dsdstc._extract_chapters(content)
+        actual = dshdsptc._extract_chapters(content)
         # Check outputs.
-        self.assertEqual(len(chapters), 1)
-        self.assertEqual(chapters[0][0], "Only Chapter")
+        self.assert_equal(str(actual), str(expected))
 
     def test4(self) -> None:
         """
-        Level-2 and level-3 headers are treated as content.
+        Test that content with no level-1 headers produces no chapters.
         """
         # Prepare inputs.
-        content = """# Chapter 1
-## Section 1.1
-Content here.
-### Subsection 1.1.1
-More content.
-
-# Chapter 2
-Content of chapter 2."""
+        content = """
+        Some text without a header.
+        ## Level 2 header
+        ### Level 3 header
+        """
+        content = hprint.dedent(content)
+        # Prepare outputs.
+        expected: List[Tuple[str, str]] = []
         # Run test.
-        chapters = dsdstc._extract_chapters(content)
+        actual = dshdsptc._extract_chapters(content)
         # Check outputs.
-        self.assertEqual(len(chapters), 2)
-        self.assertIn("## Section 1.1", chapters[0][1])
-        self.assertIn("### Subsection 1.1.1", chapters[0][1])
+        self.assert_equal(str(actual), str(expected))
 
     def test5(self) -> None:
         """
-        Handle chapters with no content between headers.
+        Test that level-2 headers do not start new chapters.
         """
         # Prepare inputs.
-        content = """# Chapter 1
-# Chapter 2
-Content of chapter 2."""
+        content = """
+        # Chapter One
+        ## Subsection
+        Subsection content.
+        # Chapter Two
+        ## Another Subsection
+        """
+        content = hprint.dedent(content)
+        # Prepare outputs.
+        expected: List[Tuple[str, str]] = [
+            (
+                "Chapter One",
+                "# Chapter One\n## Subsection\nSubsection content.",
+            ),
+            ("Chapter Two", "# Chapter Two\n## Another Subsection"),
+        ]
         # Run test.
-        chapters = dsdstc._extract_chapters(content)
+        actual = dshdsptc._extract_chapters(content)
         # Check outputs.
-        self.assertEqual(len(chapters), 2)
-        self.assertEqual(chapters[0][0], "Chapter 1")
-        self.assertEqual(chapters[1][0], "Chapter 2")
+        self.assert_equal(str(actual), str(expected))
 
     def test6(self) -> None:
         """
-        Content with no level-1 headers.
+        Test that text before the first level-1 header is ignored.
         """
         # Prepare inputs.
-        content = """Just some content.
-With no headers.
-## Only level 2 headers."""
+        content = """
+        Preamble text not in any chapter.
+        # Chapter One
+        Chapter content.
+        """
+        content = hprint.dedent(content)
+        # Prepare outputs.
+        expected: List[Tuple[str, str]] = [
+            ("Chapter One", "# Chapter One\nChapter content."),
+        ]
         # Run test.
-        chapters = dsdstc._extract_chapters(content)
+        actual = dshdsptc._extract_chapters(content)
         # Check outputs.
-        self.assertEqual(len(chapters), 0)
-
-    def test7(self) -> None:
-        """
-        Code blocks with `#` lines are treated as chapter headers.
-
-        Note: This is a limitation of the simple regex-based approach.
-        The code block contains "# This is not a header" which matches the
-        level-1 header pattern and creates a new chapter.
-        """
-        # Prepare inputs.
-        content = """# Chapter 1
-```
-# This is not a header
-It's in a code block.
-```
-
-# Chapter 2
-More content."""
-        # Run test.
-        chapters = dsdstc._extract_chapters(content)
-        # Check outputs.
-        self.assertEqual(len(chapters), 3)
-
-    def test8(self) -> None:
-        """
-        Chapter titles containing special characters.
-        """
-        # Prepare inputs.
-        content = """# Chapter 1: Introduction (Part A)
-Content.
-
-# Chapter 2 - The Beginning
-More content."""
-        # Run test.
-        chapters = dsdstc._extract_chapters(content)
-        # Check outputs.
-        self.assertEqual(len(chapters), 2)
-        self.assertEqual(chapters[0][0], "Chapter 1: Introduction (Part A)")
-        self.assertEqual(chapters[1][0], "Chapter 2 - The Beginning")
+        self.assert_equal(str(actual), str(expected))
 
 
-class TestSanitizeChapterTitle(hunitest.TestCase):
+# #############################################################################
+# Test_sanitize_chapter_title
+# #############################################################################
+
+
+class Test_sanitize_chapter_title(hunitest.TestCase):
     """
-    Test chapter title sanitization for filenames.
+    Test `_sanitize_chapter_title()` from `split_text_in_chapters.py`.
     """
 
     def test1(self) -> None:
         """
-        Basic title without special characters.
+        Test that spaces in title become underscores.
+        """
+        # Prepare inputs.
+        title = "Chapter One"
+        # Prepare outputs.
+        expected = "Chapter_One"
+        # Run test.
+        actual = dshdsptc._sanitize_chapter_title(title)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a title with no special characters is unchanged.
         """
         # Prepare inputs.
         title = "Introduction"
         # Prepare outputs.
         expected = "Introduction"
         # Run test.
-        result = dsdstc._sanitize_chapter_title(title)
+        actual = dshdsptc._sanitize_chapter_title(title)
         # Check outputs.
-        self.assertEqual(result, expected)
-
-    def test2(self) -> None:
-        """
-        Title with spaces converted to underscores.
-        """
-        # Prepare inputs.
-        title = "Machine Intelligence"
-        # Prepare outputs.
-        expected = "Machine_Intelligence"
-        # Run test.
-        result = dsdstc._sanitize_chapter_title(title)
-        # Check outputs.
-        self.assertEqual(result, expected)
+        self.assert_equal(actual, expected)
 
     def test3(self) -> None:
         """
-        Title starting with a number.
+        Test that single quotes are replaced with underscores.
         """
         # Prepare inputs.
-        title = "1 Introduction"
+        title = "It's a test"
         # Prepare outputs.
-        expected = "1_Introduction"
+        expected = "It_s_a_test"
         # Run test.
-        result = dsdstc._sanitize_chapter_title(title)
+        actual = dshdsptc._sanitize_chapter_title(title)
         # Check outputs.
-        self.assertEqual(result, expected)
+        self.assert_equal(actual, expected)
 
     def test4(self) -> None:
         """
-        Title with punctuation marks (colons, parentheses).
-
-        The `purify_file_name()` function preserves colons and parentheses,
-        only removing spaces and certain quote characters.
+        Test that backticks are replaced with underscores.
         """
         # Prepare inputs.
-        title = "Chapter 1: Introduction (Part A)"
+        title = "Quote `code`"
+        # Prepare outputs.
+        expected = "Quote__code_"
         # Run test.
-        result = dsdstc._sanitize_chapter_title(title)
+        actual = dshdsptc._sanitize_chapter_title(title)
         # Check outputs.
-        self.assertIn("_", result)
-        self.assertIn(":", result)
-        self.assertIn("(", result)
-        self.assertIn(")", result)
+        self.assert_equal(actual, expected)
 
     def test5(self) -> None:
         """
-        Title with dashes.
+        Test that a whitespace-only title raises an `AssertionError`.
         """
         # Prepare inputs.
-        title = "Cheap Changes Everything"
-        # Prepare outputs.
-        expected = "Cheap_Changes_Everything"
-        # Run test.
-        result = dsdstc._sanitize_chapter_title(title)
-        # Check outputs.
-        self.assertEqual(result, expected)
-
-    def test6(self) -> None:
-        """
-        Empty or whitespace-only titles raise an assertion error.
-        """
-        # Prepare inputs.
-        empty_title = ""
-        whitespace_title = "   "
+        title = "   "
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dsdstc._sanitize_chapter_title(empty_title)
-        with self.assertRaises(AssertionError):
-            dsdstc._sanitize_chapter_title(whitespace_title)
-
-    def test7(self) -> None:
-        """
-        Title with single and double quotes.
-        """
-        # Prepare inputs.
-        title = 'Machine "Magic" Prediction'
-        # Run test.
-        result = dsdstc._sanitize_chapter_title(title)
-        # Check outputs.
-        self.assertNotIn('"', result)
-        self.assertNotIn("'", result)
+            dshdsptc._sanitize_chapter_title(title)
 
 
-class TestValidateChapters(hunitest.TestCase):
+# #############################################################################
+# Test_validate_chapters
+# #############################################################################
+
+
+class Test_validate_chapters(hunitest.TestCase):
     """
-    Test chapter validation.
+    Test `_validate_chapters()` from `split_text_in_chapters.py`.
     """
 
     def test1(self) -> None:
         """
-        Validation of valid chapters.
+        Test that a list of chapters with unique sanitized names passes.
         """
         # Prepare inputs.
-        chapters = [
-            ("Chapter 1", "Content 1"),
-            ("Chapter 2", "Content 2"),
+        chapters: List[Tuple[str, str]] = [
+            ("Chapter One", "# Chapter One\nContent."),
+            ("Chapter Two", "# Chapter Two\nContent."),
         ]
-        # Run test and check output.
-        dsdstc._validate_chapters(chapters)
+        # Run test (no exception expected).
+        dshdsptc._validate_chapters(chapters)
 
     def test2(self) -> None:
         """
-        Empty chapter title raises error.
+        Test that an empty list of chapters is accepted.
         """
         # Prepare inputs.
-        chapters = [("", "Content")]
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            dsdstc._validate_chapters(chapters)
+        chapters: List[Tuple[str, str]] = []
+        # Run test (no exception expected).
+        dshdsptc._validate_chapters(chapters)
 
     def test3(self) -> None:
         """
-        Whitespace-only chapter title raises error.
+        Test that an empty chapter title raises an `AssertionError`.
         """
         # Prepare inputs.
-        chapters = [("   ", "Content")]
+        chapters: List[Tuple[str, str]] = [
+            ("", "Content."),
+        ]
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dsdstc._validate_chapters(chapters)
+            dshdsptc._validate_chapters(chapters)
 
     def test4(self) -> None:
         """
-        Duplicate sanitized filenames raise error.
+        Test that duplicate sanitized names raise `ValueError`.
         """
         # Prepare inputs.
-        chapters = [
-            ("Chapter 1", "Content 1"),
-            ("Chapter 1", "Different content"),
+        # Both titles sanitize to the same filename `Chapter_One`.
+        chapters: List[Tuple[str, str]] = [
+            ("Chapter One", "# Chapter One\nContent."),
+            ("Chapter_One", "# Chapter_One\nContent."),
         ]
         # Run test and check output.
-        with self.assertRaises(ValueError):
-            dsdstc._validate_chapters(chapters)
-
-    def test5(self) -> None:
-        """
-        Different titles sanitizing to same filename raise error.
-        """
-        # Prepare inputs.
-        chapters = [
-            ("Chapter One", "Content 1"),
-            ("Chapter_One", "Content 2"),
-        ]
-        # Run test and check output.
-        with self.assertRaises(ValueError):
-            dsdstc._validate_chapters(chapters)
-
-    def test6(self) -> None:
-        """
-        Empty chapter list validation.
-        """
-        # Prepare inputs.
-        chapters: list = []
-        # Run test and check output.
-        dsdstc._validate_chapters(chapters)
+        with self.assertRaises(ValueError) as cm:
+            dshdsptc._validate_chapters(chapters)
+        self.assertIn("Duplicate chapter filename", str(cm.exception))
 
 
-class TestCheckOutputFilesExist(hunitest.TestCase):
+# #############################################################################
+# Test_check_output_files_exist
+# #############################################################################
+
+
+class Test_check_output_files_exist(hunitest.TestCase):
     """
-    Test checking for existing output files.
+    Test `_check_output_files_exist()` from `split_text_in_chapters.py`.
     """
-
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self) -> Generator[None, None, None]:
-        """
-        Setup and teardown for each test.
-        """
-        self.set_up_test()
-        yield
-        self.tear_down_test()
-
-    def set_up_test(self) -> None:
-        """
-        Setup code that runs before each test.
-        """
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tear_down_test(self) -> None:
-        """
-        Cleanup code that runs after each test.
-        """
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
 
     def test1(self) -> None:
         """
-        No output files exist.
+        Test that an empty output directory returns False.
         """
         # Prepare inputs.
-        chapters = [
-            ("Chapter 1", "Content 1"),
-            ("Chapter 2", "Content 2"),
+        chapters: List[Tuple[str, str]] = [
+            ("Chapter One", "Content."),
+            ("Chapter Two", "Content."),
         ]
-        add_numbers = False
+        output_dir = self.get_scratch_space()
         # Run test.
-        exists = dsdstc._check_output_files_exist(chapters, self.temp_dir, add_numbers)
+        actual = dshdsptc._check_output_files_exist(
+            chapters, output_dir, add_numbers=False
+        )
         # Check outputs.
-        self.assertFalse(exists)
+        expected = False
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
-        Detection of existing files without chapter numbers.
+        Test that an existing chapter file returns True.
         """
         # Prepare inputs.
-        chapters = [
-            ("Chapter 1", "Content 1"),
-            ("Chapter 2", "Content 2"),
+        chapters: List[Tuple[str, str]] = [
+            ("Chapter One", "Content."),
         ]
-        output_file = os.path.join(self.temp_dir, "Chapter_1.md")
-        add_numbers = False
-        os.makedirs(self.temp_dir, exist_ok=True)
-        with open(output_file, "w") as f:
-            f.write("existing content")
+        output_dir = self.get_scratch_space()
+        # Create a pre-existing file matching the sanitized chapter name.
+        hio.to_file(os.path.join(output_dir, "Chapter_One.md"), "exists")
         # Run test.
-        exists = dsdstc._check_output_files_exist(chapters, self.temp_dir, add_numbers)
+        actual = dshdsptc._check_output_files_exist(
+            chapters, output_dir, add_numbers=False
+        )
         # Check outputs.
-        self.assertTrue(exists)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test3(self) -> None:
         """
-        Detection of existing files with chapter numbers.
+        Test that file existence is checked with numbered prefix.
         """
         # Prepare inputs.
-        chapters = [
-            ("Chapter 1", "Content 1"),
-            ("Chapter 2", "Content 2"),
+        chapters: List[Tuple[str, str]] = [
+            ("Chapter One", "Content."),
         ]
-        output_file = os.path.join(self.temp_dir, "1_Chapter_1.md")
-        add_numbers = True
-        os.makedirs(self.temp_dir, exist_ok=True)
-        with open(output_file, "w") as f:
-            f.write("existing content")
+        output_dir = self.get_scratch_space()
+        # Create a pre-existing file with the numbered prefix.
+        hio.to_file(os.path.join(output_dir, "1_Chapter_One.md"), "exists")
         # Run test.
-        exists = dsdstc._check_output_files_exist(chapters, self.temp_dir, add_numbers)
+        actual = dshdsptc._check_output_files_exist(
+            chapters, output_dir, add_numbers=True
+        )
         # Check outputs.
-        self.assertTrue(exists)
-
-    def test4(self) -> None:
-        """
-        Output directory doesn't exist yet.
-        """
-        # Prepare inputs.
-        chapters = [("Chapter 1", "Content 1")]
-        non_existent_dir = os.path.join(self.temp_dir, "does_not_exist")
-        add_numbers = False
-        # Run test.
-        exists = dsdstc._check_output_files_exist(chapters, non_existent_dir, add_numbers)
-        # Check outputs.
-        self.assertFalse(exists)
+        expected = True
+        self.assertEqual(actual, expected)
 
 
-class TestWriteChapters(hunitest.TestCase):
+# #############################################################################
+# Test_write_chapters
+# #############################################################################
+
+
+class Test_write_chapters(hunitest.TestCase):
     """
-    Test chapter writing functionality.
+    Test `_write_chapters()` from `split_text_in_chapters.py`.
     """
-
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self) -> Generator[None, None, None]:
-        """
-        Setup and teardown for each test.
-        """
-        self.set_up_test()
-        yield
-        self.tear_down_test()
-
-    def set_up_test(self) -> None:
-        """
-        Setup code that runs before each test.
-        """
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tear_down_test(self) -> None:
-        """
-        Cleanup code that runs after each test.
-        """
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
 
     def test1(self) -> None:
         """
-        Basic chapter file writing.
+        Test writing chapters without number prefixes.
         """
         # Prepare inputs.
-        chapters = [
-            ("Chapter 1", "# Chapter 1\nContent 1"),
-            ("Chapter 2", "# Chapter 2\nContent 2"),
+        chapters: List[Tuple[str, str]] = [
+            ("Chapter One", "# Chapter One\nContent one."),
+            ("Chapter Two", "# Chapter Two\nContent two."),
         ]
-        add_numbers = False
+        output_dir = os.path.join(self.get_scratch_space(), "output")
         # Run test.
-        dsdstc._write_chapters(chapters, self.temp_dir, add_numbers=add_numbers)
+        dshdsptc._write_chapters(chapters, output_dir, add_numbers=False)
         # Check outputs.
-        files = os.listdir(self.temp_dir)
-        self.assertEqual(len(files), 2)
-        self.assertIn("Chapter_1.md", files)
-        self.assertIn("Chapter_2.md", files)
-        with open(os.path.join(self.temp_dir, "Chapter_1.md"), "r") as f:
-            content = f.read()
-        self.assertEqual(content, "# Chapter 1\nContent 1")
+        actual_files = sorted(os.listdir(output_dir))
+        expected_files = ["Chapter_One.md", "Chapter_Two.md"]
+        self.assert_equal(str(actual_files), str(expected_files))
+        # Verify the content of the first chapter file matches input.
+        actual_content = hio.from_file(
+            os.path.join(output_dir, "Chapter_One.md")
+        )
+        expected_content = "# Chapter One\nContent one."
+        self.assert_equal(actual_content, expected_content)
 
     def test2(self) -> None:
         """
-        Chapter file writing with chapter numbers.
+        Test writing chapters with number prefixes.
         """
         # Prepare inputs.
-        chapters = [
-            ("Introduction", "# Introduction\nIntro content"),
-            ("Main Content", "# Main Content\nMain content"),
+        chapters: List[Tuple[str, str]] = [
+            ("Chapter One", "# Chapter One\nContent one."),
+            ("Chapter Two", "# Chapter Two\nContent two."),
         ]
-        add_numbers = True
+        output_dir = os.path.join(self.get_scratch_space(), "output")
         # Run test.
-        dsdstc._write_chapters(chapters, self.temp_dir, add_numbers=add_numbers)
+        dshdsptc._write_chapters(chapters, output_dir, add_numbers=True)
         # Check outputs.
-        files = sorted(os.listdir(self.temp_dir))
-        self.assertEqual(len(files), 2)
-        self.assertIn("1_Introduction.md", files)
-        self.assertIn("2_Main_Content.md", files)
+        actual_files = sorted(os.listdir(output_dir))
+        expected_files = ["1_Chapter_One.md", "2_Chapter_Two.md"]
+        self.assert_equal(str(actual_files), str(expected_files))
 
     def test3(self) -> None:
         """
-        Output directory is created if it doesn't exist.
+        Test writing a single chapter creates the output directory.
         """
         # Prepare inputs.
-        output_dir = os.path.join(self.temp_dir, "nonexistent", "subdir")
-        chapters = [("Chapter 1", "# Chapter 1\nContent")]
-        add_numbers = False
-        # Run test.
-        dsdstc._write_chapters(chapters, output_dir, add_numbers=add_numbers)
-        # Check outputs.
-        self.assertTrue(os.path.isdir(output_dir))
-        files = os.listdir(output_dir)
-        self.assertEqual(len(files), 1)
-
-    def test4(self) -> None:
-        """
-        Chapter writing with special character titles.
-        """
-        # Prepare inputs.
-        chapters = [
-            ("Chapter 1: Introduction", "# Chapter 1: Introduction\nContent"),
+        chapters: List[Tuple[str, str]] = [
+            ("Solo Chapter", "# Solo Chapter\nOnly content."),
         ]
-        add_numbers = False
+        # The nested output directory does not exist yet.
+        output_dir = os.path.join(self.get_scratch_space(), "nested", "output")
         # Run test.
-        dsdstc._write_chapters(chapters, self.temp_dir, add_numbers=add_numbers)
+        dshdsptc._write_chapters(chapters, output_dir, add_numbers=False)
         # Check outputs.
-        files = os.listdir(self.temp_dir)
-        self.assertEqual(len(files), 1)
-        self.assertTrue(any(f.startswith("Chapter_1") for f in files))
+        actual_files = sorted(os.listdir(output_dir))
+        expected_files = ["Solo_Chapter.md"]
+        self.assert_equal(str(actual_files), str(expected_files))
 
 
-class TestIntegration(hunitest.TestCase):
+# #############################################################################
+# Test_split_text_in_chapters_script
+# #############################################################################
+
+
+class Test_split_text_in_chapters_script(hunitest.TestCase):
     """
-    Integration tests for the full chapter splitting workflow.
+    Test the script end-to-end via the command line.
     """
 
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self) -> Generator[None, None, None]:
+    def _run_script(
+        self,
+        input_content: str,
+        *,
+        add_numbers: bool = False,
+        overwrite: bool = False,
+    ) -> str:
         """
-        Setup and teardown for each test.
-        """
-        self.set_up_test()
-        yield
-        self.tear_down_test()
+        Run the script with the given content and return the output directory.
 
-    def set_up_test(self) -> None:
+        :param input_content: markdown content to use as input
+        :param add_numbers: whether to add chapter number prefix to filenames
+        :param overwrite: whether to allow overwriting existing chapter files
+        :return: path to the output directory created by the script
         """
-        Setup code that runs before each test.
-        """
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tear_down_test(self) -> None:
-        """
-        Cleanup code that runs after each test.
-        """
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.md")
+        hio.to_file(input_file, input_content)
+        output_dir = os.path.join(scratch_dir, "chapters")
+        # Build command to call the script.
+        script_path = hgit.find_file_in_git_tree("split_text_in_chapters.py")
+        cmd_parts = [
+            script_path,
+            f"--input={input_file}",
+            f"--output={output_dir}",
+        ]
+        if add_numbers:
+            cmd_parts.append("--add_numbers")
+        if overwrite:
+            cmd_parts.append("--overwrite")
+        cmd = " ".join(cmd_parts)
+        # Run the script.
+        hsystem.system(cmd)
+        return output_dir
 
     def test1(self) -> None:
         """
-        Complete workflow: extract, validate, and write chapters.
+        Test end-to-end script execution without number prefixes.
         """
         # Prepare inputs.
-        input_file = os.path.join(self.temp_dir, "book.md")
-        content = """# Introduction
-This is the introduction chapter.
-
-# The Main Content
-This is the main content.
-With multiple lines.
-
-# Conclusion
-Final thoughts."""
-        with open(input_file, "w") as f:
-            f.write(content)
+        content = """
+        # Introduction
+        Welcome to the book.
+        # Chapter One
+        First chapter content.
+        # Chapter Two
+        Second chapter content.
+        """
+        content = hprint.dedent(content)
         # Run test.
-        with open(input_file, "r") as f:
-            content = f.read()
-        chapters = dsdstc._extract_chapters(content)
-        dsdstc._validate_chapters(chapters)
-        output_dir = os.path.join(self.temp_dir, "output")
-        dsdstc._write_chapters(chapters, output_dir, add_numbers=True)
+        output_dir = self._run_script(content)
         # Check outputs.
-        files = sorted(os.listdir(output_dir))
-        self.assertEqual(len(files), 3)
-        self.assertIn("1_Introduction.md", files)
-        self.assertIn("2_The_Main_Content.md", files)
-        self.assertIn("3_Conclusion.md", files)
+        actual_files = sorted(os.listdir(output_dir))
+        expected_files = [
+            "Chapter_One.md",
+            "Chapter_Two.md",
+            "Introduction.md",
+        ]
+        self.assert_equal(str(actual_files), str(expected_files))
 
     def test2(self) -> None:
         """
-        All output filenames are unique.
+        Test end-to-end script execution with `--add_numbers`.
         """
         # Prepare inputs.
-        input_content = """# Cheap Changes Everything
-Content.
-
-# Prediction Machine Magic
-Content.
-
-# Introduction Machine Intelligence
-Content.
-
-# The Beginning
-Content."""
+        content = """
+        # Introduction
+        Welcome.
+        # Chapter One
+        Content.
+        """
+        content = hprint.dedent(content)
         # Run test.
-        chapters = dsdstc._extract_chapters(input_content)
-        self.assertEqual(len(chapters), 4)
-        dsdstc._validate_chapters(chapters)
-        output_dir = os.path.join(self.temp_dir, "output")
-        dsdstc._write_chapters(chapters, output_dir, add_numbers=False)
+        output_dir = self._run_script(content, add_numbers=True)
         # Check outputs.
-        files = os.listdir(output_dir)
-        self.assertEqual(len(files), len(set(files)))
+        actual_files = sorted(os.listdir(output_dir))
+        expected_files = ["1_Introduction.md", "2_Chapter_One.md"]
+        self.assert_equal(str(actual_files), str(expected_files))
+
+    def test3(self) -> None:
+        """
+        Test that `--overwrite` replaces existing chapter files.
+        """
+        # Prepare inputs.
+        content = """
+        # Chapter One
+        First version.
+        """
+        content = hprint.dedent(content)
+        # Run the script once to populate the output directory.
+        output_dir = self._run_script(content)
+        # Re-run with new content and `--overwrite=True` to replace files.
+        new_content = """
+        # Chapter One
+        Updated version.
+        """
+        new_content = hprint.dedent(new_content)
+        self._run_script(new_content, overwrite=True)
+        # Check outputs.
+        actual_content = hio.from_file(
+            os.path.join(output_dir, "Chapter_One.md")
+        )
+        expected_content = "# Chapter One\nUpdated version."
+        self.assert_equal(actual_content, expected_content)
