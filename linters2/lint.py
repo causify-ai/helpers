@@ -318,7 +318,7 @@ def _lint_markdown_files(
     abort_on_error: bool = True,
 ) -> int:
     """
-    Lint Markdown files using lint_txt.py.
+    Lint Markdown files.
 
     :param file_paths: Markdown files to lint
     :param abort_on_error: whether to abort on first error

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.1
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -454,15 +454,18 @@ with hydra.initialize(version_base=None, config_path=config_path):
 class ModelConfig:
     name: str = "base_model"
 
+
 @dataclasses.dataclass
 class LinearModelConfig(ModelConfig):
     name: str = "Linear Regression"
     learning_rate: float = 0.01
 
+
 @dataclasses.dataclass
 class XGBoostModelConfig(ModelConfig):
     name: str = "XGBoost"
     n_estimators: int = 100
+
 
 @dataclasses.dataclass
 class PipelineConfig:

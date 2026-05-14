@@ -1,6 +1,26 @@
 #!/bin/bash
 # """
-# Run rig looking for rules.
+# Run rig looking for rules in .claude/skills skill files.
+#
+# Usage:
+#   rigrule [PATTERN]
+#
+# If PATTERN is provided, grep -i for it in the output.
+# If no PATTERN is provided, show all headers.
+#
+# # Show all skill headers
+# > rigrule
+# # Show headers containing 'rules' (case-insensitive)
+# > rigrule rules
+# # Show headers containing 'fix' (case-insensitive)
+# > rigrule fix                
 # """
 
-rig "^#" .claude/skills md | \grep rules
+PATTERN="${1:-}"
+OUTPUT=$(rig "^#" .claude/skills md)
+
+if [ -z "$PATTERN" ]; then
+  echo "$OUTPUT"
+else
+  echo "$OUTPUT" | grep -i "$PATTERN"
+fi

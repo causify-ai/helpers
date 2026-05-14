@@ -23,6 +23,7 @@ import re
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hlint as hlint
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -311,9 +312,7 @@ def _generate_script(
     _LOG.info("Executing: %s", cmd_str)
     hsystem.system(cmd_str, suppress_output=False)
     # Step 3: Lint the output.
-    cmd_str = f"lint_txt.py -i {output_path} --use_dockerized_prettier"
-    _LOG.info("Executing: %s", cmd_str)
-    hsystem.system(cmd_str, suppress_output=False)
+    hlint.lint_file(output_path)
 
 
 def _slide_reduce(
