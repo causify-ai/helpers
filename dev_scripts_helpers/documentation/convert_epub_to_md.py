@@ -18,9 +18,9 @@ import os
 import shutil
 
 import helpers.hdbg as hdbg
+import helpers.hlint as hlint
 import helpers.hio as hio
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import dev_scripts_helpers.documentation.documentation_utils as dshddout
 
@@ -204,8 +204,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     to_execute, actions = hparser.mark_action("lint", actions)
     if to_execute:
         _LOG.info("Linting markdown file...")
-        lint_cmd = f"lint_txt.py --input={md_file}"
-        hsystem.system(lint_cmd)
+        hlint.lint_file(md_file)
 
 
 if __name__ == "__main__":
