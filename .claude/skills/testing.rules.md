@@ -39,7 +39,8 @@
 
 ## Directory Structure
 - Golden files: `test/outcomes/<TestClass.test_method>/output/test.txt`
-- Ephemeral scratch: `test/scratch/<TestClass.test_method>/` — deleted after each test
+- Ephemeral scratch: `test/scratch/<TestClass.test_method>/` — automatically deleted
+  by `hunitest.TestCase.tearDown()`; do not delete it explicitly in test code
 
 ## Directory Helpers
 - All path helpers are methods on `hunitest.TestCase`; paths are scoped to the
@@ -49,7 +50,7 @@
   |--------|---------|
   | `get_input_dir()` | Local path for static fixtures checked into git |
   | `get_output_dir()` | Local path for golden files (managed by `check_string`) |
-  | `get_scratch_space()` | Local ephemeral dir, deleted after the test |
+  | `get_scratch_space()` | Local ephemeral dir, auto-deleted after the test by `tearDown()` |
   | `get_s3_scratch_dir()` | S3 path for large temporary data, unique per user/server/test |
   | `get_s3_input_dir()` | S3 path for fixtures too large to commit to git |
 
