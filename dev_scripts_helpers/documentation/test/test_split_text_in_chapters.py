@@ -2,7 +2,7 @@ import logging
 import os
 from typing import List, Tuple
 
-import dev_scripts_helpers.documentation.split_text_in_chapters as dshdsptc
+import dev_scripts_helpers.documentation.extract_chapters_from_text as dshdsptc
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -19,7 +19,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_extract_chapters(hunitest.TestCase):
     """
-    Test `_extract_chapters()` from `split_text_in_chapters.py`.
+    Test `_extract_chapters()` from `extract_chapters_from_text.py`.
     """
 
     def test1(self) -> None:
@@ -158,7 +158,7 @@ class Test_extract_chapters(hunitest.TestCase):
 
 class Test_sanitize_chapter_title(hunitest.TestCase):
     """
-    Test `_sanitize_chapter_title()` from `split_text_in_chapters.py`.
+    Test `_sanitize_chapter_title()` from `extract_chapters_from_text.py`.
     """
 
     def test1(self) -> None:
@@ -231,7 +231,7 @@ class Test_sanitize_chapter_title(hunitest.TestCase):
 
 class Test_validate_chapters(hunitest.TestCase):
     """
-    Test `_validate_chapters()` from `split_text_in_chapters.py`.
+    Test `_validate_chapters()` from `extract_chapters_from_text.py`.
     """
 
     def test1(self) -> None:
@@ -290,7 +290,7 @@ class Test_validate_chapters(hunitest.TestCase):
 
 class Test_check_output_files_exist(hunitest.TestCase):
     """
-    Test `_check_output_files_exist()` from `split_text_in_chapters.py`.
+    Test `_check_output_files_exist()` from `extract_chapters_from_text.py`.
     """
 
     def test1(self) -> None:
@@ -357,7 +357,7 @@ class Test_check_output_files_exist(hunitest.TestCase):
 
 class Test_write_chapters(hunitest.TestCase):
     """
-    Test `_write_chapters()` from `split_text_in_chapters.py`.
+    Test `_write_chapters()` from `extract_chapters_from_text.py`.
     """
 
     def test1(self) -> None:
@@ -419,11 +419,11 @@ class Test_write_chapters(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_split_text_in_chapters_script
+# Test_extract_chapters_from_text_script
 # #############################################################################
 
 
-class Test_split_text_in_chapters_script(hunitest.TestCase):
+class Test_extract_chapters_from_text_script(hunitest.TestCase):
     """
     Test the script end-to-end via the command line.
     """
@@ -449,7 +449,7 @@ class Test_split_text_in_chapters_script(hunitest.TestCase):
         hio.to_file(input_file, input_content)
         output_dir = os.path.join(scratch_dir, "chapters")
         # Build command to call the script.
-        script_path = hgit.find_file_in_git_tree("split_text_in_chapters.py")
+        script_path = hgit.find_file_in_git_tree("extract_chapters_from_text.py")
         cmd_parts = [
             script_path,
             f"--input={input_file}",

@@ -7,9 +7,9 @@ Each chapter is saved to a separate file in the output directory with a
 filename derived from the chapter title (with special characters removed).
 
 Usage:
-> split_text_in_chapters.py -i book.md -o book_chapters
-> split_text_in_chapters.py -i book.md -o book_chapters --add_numbers
-> split_text_in_chapters.py -i book.md -o book_chapters --overwrite
+> extract_chapters_from_text.py -i book.md -o book_chapters
+> extract_chapters_from_text.py -i book.md -o book_chapters --add_numbers
+> extract_chapters_from_text.py -i book.md -o book_chapters --overwrite
 """
 
 import argparse

@@ -1,26 +1,17 @@
-Add a phase in lint_txt.py to convert ` - ` as separators into `: `
+Create a script dev_scripts_helpers/documentation/summarize_chapters.py
 
-- E.g., convert
-1. **Summary** - One paragraph describing the directory's purpose
-2. **Structure of the Dir** - List subdirectories and their roles
-3. **Description of Files** - Alphabetical list of all files with 1-2 line descriptions
-4. **Description of Executables** - Detailed docs for each script/tool
+--input "file1.md file2.md ..."
+--llm_opts 
 
-into
+summarize all the files passed in input by calling ./helpers/hllm_cli.py like in
+./dev_scripts_helpers/slides/process_slides.py (using the options llm_opts)
 
-1. **Summary**: One paragraph describing the directory's purpose
-2. **Structure of the Dir**: List subdirectories and their roles
-3. **Description of Files**: Alphabetical list of all files with 1-2 line descriptions
-4. **Description of Executables**: Detailed docs for each script/tool
+If a single file is passed in --input, then --output can represent the output
+file
+If multiple files are passed in output, each input file is transformed as the
+input files adding a `.summary` (e.g., `chapter1.md` -> `chapter.summary.md`)
 
-- Convert
-  ```
-  - Format: `- <filename>` - description (1-2 lines max)
-  ```
-  into
-  ```
-  - Format: `- <filename>`: description (1-2 lines max)
-  ```
+
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

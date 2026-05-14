@@ -525,6 +525,11 @@ def add_input_output_args(
     """
     Add options to parse input and output file name, and handle stdin / stdout.
 
+    Supports three methods for specifying input files:
+    - `-i/--input`: single input file or `-` for stdin
+    - `--files`: space or comma-separated list of files
+    - `--from_file`: file containing one file per line
+
     :param in_default: default file to be used for input
         - If `None`, it must be specified by the user
     :param in_required: whether the input file is required
@@ -550,7 +555,43 @@ def add_input_output_args(
         default=out_default,
         help="Output file or `-` for stdout",
     )
+    parser.add_argument(
+        "--files",
+        action="store",
+        type=str,
+        default=None,
+        help="Space or comma-separated list of files to process",
+    )
+    parser.add_argument(
+        "--from_file",
+        action="store",
+        type=str,
+        default=None,
+        help="Path to a file containing a list of files to process (one per line)",
+    )
     return parser
+
+
+def parse_input_output_files(args: argparse.Namespace) -> Optional[List[str]]:
+    """
+    Parse files from --files or --from_file arguments.
+
+    :param args: Parsed arguments.
+    :return: List of files to process, or None if neither option is provided.
+    """
+    if args.files:
+        # Support both space and comma-separated lists.
+        files = args.files.replace(",", " ").split()
+        return files
+    elif args.from_file:
+        # Read files from the specified file.
+        if not os.path.exists(args.from_file):
+            _LOG.error("File not found: %s", args.from_file)
+            raise FileNotFoundError(f"File not found: {args.from_file}")
+        with open(args.from_file, "r") as f:
+            files = [line.strip() for line in f if line.strip()]
+        return files
+    return None
 
 
 def parse_input_output_args(
@@ -558,6 +599,12 @@ def parse_input_output_args(
 ) -> Tuple[str, str]:
     """
     Parse input and output file name, handling stdin / stdout.
+
+    If --files or --from_file is specified, use the first file as input
+    and the output file remains as specified.
+
+    If a single file is passed in -i/--input, then --output represents
+    the output file.
 
     :return input and output file name.
     """
@@ -1174,3 +1221,111 @@ def parse_multi_file_args(
         hdbg.dassert_path_exists(file_path)
     _LOG.info("Found %s file(s) to process", len(file_list))
     return file_list
+
+
+# #############################################################################
+# Command line options for LLM CLI scripts.
+# #############################################################################
+
+
+def add_llm_args(
+    parser: argparse.ArgumentParser,
+    *,
+    input_required: bool = True,
+    output_required: bool = False,
+    system_prompt_required: bool = False,
+    model_default: str = "gpt-4o-mini",
+    include_model: bool = True,
+    include_llm_executable: bool = True,
+) -> argparse.ArgumentParser:
+    """
+    Add comprehensive LLM-related command line arguments for LLM CLI scripts.
+
+    This helper function consolidates commonly used arguments for scripts that
+    process text with LLM transformations (e.g., llm_cli.py, ai_review.py).
+
+    :param input_required: whether input is required
+    :param output_required: whether output is required
+    :param system_prompt_required: whether system prompt is required
+    :param model_default: default LLM model name
+    :param include_model: whether to include --model argument
+    :param include_llm_executable: whether to include --use_llm_executable flag
+    :return: parser with LLM arguments added
+    """
+    # Input/Output options with mutually exclusive input sources.
+    input_group = parser.add_mutually_exclusive_group(required=input_required)
+    input_group.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        dest="input",
+        help="Path to the input file containing text to process, or '-' for stdin",
+    )
+    input_group.add_argument(
+        "--input_text",
+        type=str,
+        help="Text input to process directly from command line",
+    )
+    # Output option.
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        dest="output",
+        required=output_required,
+        default=None,
+        help="Path to the output file where result will be saved (use '-' to "
+        "print to screen). If not specified, writes in-place to the input file",
+    )
+    # System prompt options (mutually exclusive).
+    system_prompt_group = parser.add_mutually_exclusive_group(
+        required=system_prompt_required
+    )
+    system_prompt_group.add_argument(
+        "-p",
+        "--system_prompt",
+        type=str,
+        default=None,
+        dest="system_prompt",
+        help="Optional system prompt to guide the LLM's behavior",
+    )
+    system_prompt_group.add_argument(
+        "-pf",
+        "--system_prompt_file",
+        type=str,
+        default=None,
+        dest="system_prompt_file",
+        help="Optional path to file containing system prompt to guide the LLM's behavior",
+    )
+    # Model selection.
+    if include_model:
+        parser.add_argument(
+            "--model",
+            type=str,
+            default=model_default,
+            help=f"Optional model name to use (e.g., 'gpt-4', 'claude-3-opus'). "
+            f"Default: {model_default}",
+        )
+    # LLM executable option.
+    if include_llm_executable:
+        parser.add_argument(
+            "--use_llm_executable",
+            action="store_true",
+            default=False,
+            help="Use the llm CLI executable instead of the Python library",
+        )
+    # Progress bar options.
+    parser.add_argument(
+        "-b",
+        "--progress_bar",
+        action="store_true",
+        default=False,
+        help="Enable progress bar with automatic estimation (input length * 1.0)",
+    )
+    parser.add_argument(
+        "--expected_num_chars",
+        type=int,
+        default=None,
+        help="Expected number of characters in output (enables progress bar with explicit size)",
+    )
+    return parser

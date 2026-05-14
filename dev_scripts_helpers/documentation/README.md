@@ -137,7 +137,7 @@
       formats
     - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt
       slides, and Jupyter notebook files for navigation
-    - `split_text_in_chapters.py`: Splits Markdown files into individual
+    - `extract_chapters_from_text.py`: Splits Markdown files into individual
       chapters
   - Dockerized Tools
     - `dockerized_graphviz.py`: Graphviz DOT to PNG
@@ -399,7 +399,7 @@ The supported File types and code blocks are:
   > clean_markdown.py --input input.md --output output.md
   ```
 
-## `split_text_in_chapters.py`
+## `extract_chapters_from_text.py`
 
 ### What It Does
 - Split a Markdown file into individual chapters based on level-1 headers
@@ -410,17 +410,17 @@ The supported File types and code blocks are:
 ### Examples
 - Split into chapters with default naming
   ```bash
-  > split_text_in_chapters.py -i book.md -o book_chapters
+  > extract_chapters_from_text.py -i book.md -o book_chapters
   ```
 
 - Split with automatic chapter numbering
   ```bash
-  > split_text_in_chapters.py -i book.md -o book_chapters --add_numbers
+  > extract_chapters_from_text.py -i book.md -o book_chapters --add_numbers
   ```
 
 - Overwrite existing output directory
   ```bash
-  > split_text_in_chapters.py -i book.md -o book_chapters --overwrite
+  > extract_chapters_from_text.py -i book.md -o book_chapters --overwrite
   ```
 
 ## `convert_table.py`
