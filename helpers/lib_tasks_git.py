@@ -185,7 +185,7 @@ def git_merge_master(
     abort_if_not_ff=False,
     abort_if_not_clean=True,
     skip_fetch=False,
-    auto_merge=False,  # type: ignore
+    auto_merge=True,  # type: ignore
 ):
     """
     Merge `origin/master` into the current branch.
