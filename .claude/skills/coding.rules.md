@@ -550,6 +550,22 @@
   the `dependencies` array
 - This allows scripts to be run directly without pre-installing packages: `./script.py`
 
+## Make Scripts Executable
+
+- When creating a Python script, run `chmod +x` on it to make it executable
+- In the README and comments, always refer to scripts as `./script.py` or
+  `script.py`, never as `python script.py`
+  - **Bad**: Documentation refers to the script as needing Python
+    ```
+    # Run the script: python standardize_book_filename.py
+    # Usage: python convert_epub_to_md.py input.epub output.md
+    ```
+  - **Good**: Documentation refers to the script as executable
+    ```
+    # Run the script: ./standardize_book_filename.py
+    # Usage: ./convert_epub_to_md.py input.epub output.md
+    ```
+
 ## Use Standard Argument Helpers from `hparser`
 
 - Use `hparser` helper functions to add standard arguments instead of defining

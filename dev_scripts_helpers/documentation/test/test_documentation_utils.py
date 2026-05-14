@@ -1104,24 +1104,24 @@ class Test_remove_junk(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_standardize_filename
+# Test_standardize_book_filename
 # #############################################################################
 
 
-class Test_standardize_filename(hunitest.TestCase):
+class Test_standardize_book_filename(hunitest.TestCase):
     """
-    Test the `standardize_filename()` function.
+    Test the `standardize_book_filename()` function.
     """
 
     def helper(self, filename: str, expected: str) -> None:
         """
-        Test helper for `standardize_filename()`.
+        Test helper for `standardize_book_filename()`.
 
         :param filename: Input filename to standardize
         :param expected: Expected standardized filename
         """
         # Run test.
-        actual = dshddout.standardize_filename(filename)
+        actual = dshddout.standardize_book_filename(filename)
         # Check outputs.
         self.assert_equal(actual, expected)
 
