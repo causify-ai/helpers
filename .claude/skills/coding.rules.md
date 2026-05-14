@@ -473,10 +473,10 @@
 - Make sure all the functions have a REST comments in docstrings
   - Add docstrings to functions and file that are missing
 
-## Comments
+## Update Comments That Are Out of Sync With The Code
 
 - Update and clarify the comments that are not in sync with the code, explaining
-  the logic ("why") rather than what is done ("what" and "how")
+  the logic ("why") and what is done ("what" and "how")
   - **Bad** (redundant/obvious)
     ```python
     # Loop through each user.
@@ -492,8 +492,8 @@
 
 - Use periods at the end of all comments
 
-- Make sure that there are comments in large chunks of code explaining the "why"
-  of each chunk of code
+- Make sure that there are comments in large chunks of code explaining the "why",
+  "what", "how" of each chunk of code
 
 - Do not use empty lines within functions but use comments to separate chunks of
   code
@@ -516,7 +516,6 @@
     # submodule.amp.path amp
     ```
 
-## Leave Some Comments Untouched
 - Do not remove TODOs or other comment code, unless you are sure they are
   redundant, wrong, or and useless
   - Example to keep:

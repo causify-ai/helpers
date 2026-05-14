@@ -747,7 +747,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("\n%s", actions_as_str)
     # Check if processing multiple files or a single file.
-    files = _get_files_from_args(args)
+    files = hparser.parse_input_output_files(args)
     if files:
         # Process multiple files.
         _LOG.info("Processing %d file(s)", len(files))

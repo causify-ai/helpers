@@ -22,6 +22,8 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Verbosity
+# #############################################################################
 
 
 def add_bool_arg(
@@ -49,9 +51,6 @@ def add_bool_arg(
     group.add_argument("--no_" + name, dest=name, action="store_false")
     parser.set_defaults(**{name: default_value})
     return parser
-
-
-# #############################################################################
 
 
 def add_verbosity_arg(
@@ -156,6 +155,11 @@ def parse_cache_control_args(args: argparse.Namespace) -> None:
 # #############################################################################
 
 
+# TODO(ai_gp): Merge this in the input_output_args functions. Use only --dst_dir
+# and remove --clean_dst_dir, rename --no_confirm to overwrite, and assert if a
+# destination file exists and --overwrite is not set, with a logic similar to
+# ./dev_scripts_helpers/documentation/convert_epub_to_md.py and
+# ./dev_scripts_helpers/documentation/extract_chapters_from_text.py
 def add_dst_dir_arg(
     parser: argparse.ArgumentParser,
     dst_dir_required: bool,
@@ -527,7 +531,7 @@ def add_input_output_args(
 
     Supports three methods for specifying input files:
     - `-i/--input`: single input file or `-` for stdin
-    - `--files`: space or comma-separated list of files
+    - `--input_files`: space or comma-separated list of files
     - `--from_file`: file containing one file per line
 
     :param in_default: default file to be used for input
@@ -556,7 +560,7 @@ def add_input_output_args(
         help="Output file or `-` for stdout",
     )
     parser.add_argument(
-        "--files",
+        "--input_files",
         action="store",
         type=str,
         default=None,
@@ -574,14 +578,14 @@ def add_input_output_args(
 
 def parse_input_output_files(args: argparse.Namespace) -> Optional[List[str]]:
     """
-    Parse files from --files or --from_file arguments.
+    Parse files from --input_files or --from_file arguments.
 
     :param args: Parsed arguments.
     :return: List of files to process, or None if neither option is provided.
     """
-    if args.files:
+    if args.input_files:
         # Support both space and comma-separated lists.
-        files = args.files.replace(",", " ").split()
+        files = args.input_files.replace(",", " ").split()
         return files
     elif args.from_file:
         # Read files from the specified file.
@@ -621,7 +625,6 @@ def parse_input_output_args(
             os.system("clear")
         _LOG.info(hprint.to_str("in_file_name"))
         _LOG.info(hprint.to_str("out_file_name"))
-
     return in_file_name, out_file_name
 
 
@@ -1122,6 +1125,7 @@ def apply_limit_range(
 # #############################################################################
 
 
+# TODO(ai_gp): Merge with input_output_args
 def add_multi_file_args(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:

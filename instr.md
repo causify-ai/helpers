@@ -1,7 +1,5 @@
 Create a script dev_scripts_helpers/documentation/summarize_chapters.py
 
---input "file1.md file2.md ..."
---llm_opts 
 
 summarize all the files passed in input by calling ./helpers/hllm_cli.py like in
 ./dev_scripts_helpers/slides/process_slides.py (using the options llm_opts)

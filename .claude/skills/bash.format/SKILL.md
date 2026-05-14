@@ -32,4 +32,4 @@ description: Format a bash file according to conventions
 - If nothing is returned do not write anything
 
 ## Add Comments
-- Make sure that each block of the script is commented.
+- Make sure that each block of the script is commented
