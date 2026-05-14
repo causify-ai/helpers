@@ -3,7 +3,10 @@
     "allow": [
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(python *)",
+      "Bash(awk *')",
+      "Bash(bash ./tmp.pytest_repro.*.sh)"
     ],
     "deny": []
   },

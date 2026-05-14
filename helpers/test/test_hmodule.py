@@ -56,16 +56,22 @@ class Test_install_module_if_not_present(hunitest.TestCase):
             expected_installed = []
         if expected_calls is None:
             expected_calls = []
+
         # Mock `has_module` to track which modules are "already installed".
         def mock_has_module(module: str) -> bool:
             return module in expected_installed
+
         # Mock `_system_to_string` to track pip install calls.
         system_calls: List[str] = []
+
         def mock_system_to_string(cmd: str) -> Tuple[int, str]:
             system_calls.append(cmd)
             return (0, "")
+
         # Run test.
-        with mock.patch.object(hmodule, "has_module", side_effect=mock_has_module):
+        with mock.patch.object(
+            hmodule, "has_module", side_effect=mock_has_module
+        ):
             with mock.patch.object(
                 hmodule,
                 "_system_to_string",

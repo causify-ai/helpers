@@ -1,6 +1,7 @@
 import os
 
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -16,66 +17,62 @@ class TestUnitTestRenamer(hunitest.TestCase):
     Test class renaming functionality.
     """
 
-
-# #############################################################################
-# TestCases
-# #############################################################################
-
-
     @staticmethod
     def helper() -> str:
         """
         Create file content.
         """
         content = """
-class TestCases(hunitest.TestCase):
-    def test_assert_equal1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        class TestCases(hunitest.TestCase):
+            def test_assert_equal1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
 
-    def test_check_string1(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
+            def test_check_string1(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
         """
+        content = hprint.dedent(content)
         return content
 
-
-# #############################################################################
-# TestNewCase
-# #############################################################################
-
-
-    def test_rename_class1(self) -> None:
+    def test1(self) -> None:
         """
         Test renaming of existing class.
         """
+        # Prepare inputs.
         content = self.helper()
         root_dir = os.getcwd()
+        # Run test.
         renamer = hunteuti.UnitTestRenamer("TestCases", "TestNewCase", root_dir)
         actual, _ = renamer._rename_class(content)
+        # Prepare outputs.
         expected = """
-class TestNewCase(hunitest.TestCase):
-    def test_assert_equal1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        class TestNewCase(hunitest.TestCase):
+            def test_assert_equal1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
 
-    def test_check_string1(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
+            def test_check_string1(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
         """
+        expected = hprint.dedent(expected)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
-    def test_rename_class2(self) -> None:
+    def test2(self) -> None:
         """
         Test renaming of non existing class.
         """
+        # Prepare inputs.
         content = self.helper()
         root_dir = os.getcwd()
+        # Run test.
         renamer = hunteuti.UnitTestRenamer("TestCase", "TestNewCase", root_dir)
         actual, _ = renamer._rename_class(content)
-        # Check if the content of the file was not changed.
+        # Check outputs.
         self.assert_equal(actual, content)
 
 
@@ -89,110 +86,108 @@ class TestPytestRenameMethod(hunitest.TestCase):
     Test method renaming functionality.
     """
 
-
-# #############################################################################
-# TestCases
-# #############################################################################
-
-
     @staticmethod
     def helper() -> str:
         """
         Create file content.
         """
         content = """
-class TestCases(hunitest.TestCase):
-    def test1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        class TestCases(hunitest.TestCase):
+            def test1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
 
-    def test10(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
-
-
-# #############################################################################
-# TestOtherCases
-# #############################################################################
+            def test10(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
 
 
-class TestOtherCases(hunitest.TestCase):
-    def test1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        # #############################################################################
+        # TestOtherCases
+        # #############################################################################
 
-    def test10(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
+
+        class TestOtherCases(hunitest.TestCase):
+            def test1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
+
+            def test10(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
         """
+        content = hprint.dedent(content)
         return content
 
-
-# #############################################################################
-# TestCases
-# #############################################################################
-
-
-    def test_rename_method1(self) -> None:
+    def test1(self) -> None:
         """
         Test renaming of existing method.
         """
+        # Prepare inputs.
         content = self.helper()
         root_dir = os.getcwd()
+        # Run test.
         renamer = hunteuti.UnitTestRenamer(
             "TestCases.test1", "TestCases.test_new", root_dir
         )
         actual, _ = renamer._rename_method(content)
+        # Prepare outputs.
         expected = """
-class TestCases(hunitest.TestCase):
-    def test_new(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        class TestCases(hunitest.TestCase):
+            def test_new(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
 
-    def test10(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
-
-
-# #############################################################################
-# TestOtherCases
-# #############################################################################
+            def test10(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
 
 
-class TestOtherCases(hunitest.TestCase):
-    def test1(self) -> None:
-        actual = "hello world"
-        expected = actual
-        self.assert_equal(actual, expected)
+        # #############################################################################
+        # TestOtherCases
+        # #############################################################################
 
-    def test10(self) -> None:
-        actual = "hello world"
-        self.check_string(actual)
+
+        class TestOtherCases(hunitest.TestCase):
+            def test1(self) -> None:
+                actual = "hello world"
+                expected = actual
+                self.assert_equal(actual, expected)
+
+            def test10(self) -> None:
+                actual = "hello world"
+                self.check_string(actual)
         """
+        expected = hprint.dedent(expected)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
-    def test_rename_method2(self) -> None:
+    def test2(self) -> None:
         """
         Test renaming of non existing method.
         """
+        # Prepare inputs.
         content = self.helper()
         root_dir = os.getcwd()
+        # Run test.
         renamer = hunteuti.UnitTestRenamer(
             "TestOtherCases.test5", "TestOtherCases.test6", root_dir
         )
         actual, _ = renamer._rename_method(content)
-        # Check if the content of the file was not changed.
+        # Check outputs.
         self.assert_equal(actual, content)
 
-    def test_rename_method3(self) -> None:
+    def test3(self) -> None:
         """
         Test renaming of invalid method names.
         """
-        self.helper()
+        # Prepare inputs.
         root_dir = os.getcwd()
+        self.helper()
+        # Run test and check output.
         with self.assertRaises(AssertionError):
             hunteuti.UnitTestRenamer(
                 "TestCases.test10", "TestOtherCases.test6", root_dir
@@ -239,23 +234,21 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         cmd = f"git reset {toy_test}/ && rm -rf {toy_test}/"
         hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
-    def test_rename_class_outcomes(self) -> None:
+    def test1(self) -> None:
         """
         Rename outcome directory.
         """
+        # Prepare inputs.
         toy_test = "toyCmTask1279." + self._testMethodName
-        # Create outcomes directory.
         test_path = os.path.join(toy_test, "test")
-        # Create the toy outcomes.
         self.helper(toy_test)
         root_dir = os.getcwd()
+        # Run test.
         renamer = hunteuti.UnitTestRenamer(
             "TestCase", "TestRenamedCase", root_dir
         )
-        renamer.rename_outcomes(
-            test_path,
-        )
-        # Check if the dirs were renamed.
+        renamer.rename_outcomes(test_path)
+        # Prepare outputs.
         outcomes_path = os.path.join(test_path, "outcomes")
         outcomes_dirs = os.listdir(outcomes_path)
         actual = sorted(
@@ -272,28 +265,27 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
             "TestRenamedCase.test_rename",
             "TestRenamedCase.test_rename3",
         ]
+        # Check outputs.
         self.assertEqual(actual, expected)
         self._clean_up(toy_test)
 
-    def test_rename_method_outcomes(self) -> None:
+    def test2(self) -> None:
         """
         Rename outcome directory.
         """
+        # Prepare inputs.
         toy_test = "toyCmTask1279." + self._testMethodName
-        # Create outcomes directory.
         test_path = os.path.join(toy_test, "test")
-        # Create the toy outcomes.
         self.helper(toy_test)
         root_dir = os.getcwd()
+        # Run test.
         renamer = hunteuti.UnitTestRenamer(
             "TestCase.test_rename",
             "TestCase.test_method_renamed",
             root_dir,
         )
-        renamer.rename_outcomes(
-            test_path,
-        )
-        # Check if the dirs were renamed.
+        renamer.rename_outcomes(test_path)
+        # Prepare outputs.
         outcomes_path = os.path.join(test_path, "outcomes")
         outcomes_dirs = os.listdir(outcomes_path)
         actual = sorted(
@@ -310,6 +302,7 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
             "TestCases.test_rename2",
             "TestRename.test_rename1",
         ]
+        # Check outputs.
         self.assertEqual(actual, expected)
         self._clean_up(toy_test)
 
@@ -328,22 +321,35 @@ class Test_get_test_file_for_source(hunitest.TestCase):
         """
         Source file with existing test file returns the test path.
         """
-        actual = hunteuti.get_test_file_for_source("helpers/hdbg.py")
+        # Prepare inputs.
+        file_path = "helpers/hdbg.py"
+        # Prepare outputs.
         expected = "helpers/test/test_hdbg.py"
+        # Run test.
+        actual = hunteuti.get_test_file_for_source(file_path)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
         Source file without test file returns None.
         """
-        actual = hunteuti.get_test_file_for_source("tasks.py")
+        # Prepare inputs.
+        file_path = "tasks.py"
+        # Run test.
+        actual = hunteuti.get_test_file_for_source(file_path)
+        # Check outputs.
         self.assertIsNone(actual)
 
     def test3(self) -> None:
         """
         Test file as input returns None.
         """
-        actual = hunteuti.get_test_file_for_source("helpers/test/test_hdbg.py")
+        # Prepare inputs.
+        file_path = "helpers/test/test_hdbg.py"
+        # Run test.
+        actual = hunteuti.get_test_file_for_source(file_path)
+        # Check outputs.
         self.assertIsNone(actual)
 
 
@@ -357,41 +363,59 @@ class TestIsTestFile(hunitest.TestCase):
     Test test file detection.
     """
 
-    def test_path_with_test_dir(self) -> None:
+    def test1(self) -> None:
         """
         Path containing /test/ is detected as test file.
         """
-        actual = hunteuti.is_test_file("helpers/test/test_hdbg.py")
+        # Prepare inputs.
+        file_path = "helpers/test/test_hdbg.py"
+        # Run test.
+        actual = hunteuti.is_test_file(file_path)
+        # Check outputs.
         self.assertTrue(actual)
 
-    def test_path_with_test_prefix(self) -> None:
+    def test2(self) -> None:
         """
         Basename starting with test_ is detected as test file.
         """
-        actual = hunteuti.is_test_file("helpers/test_hdbg.py")
+        # Prepare inputs.
+        file_path = "helpers/test_hdbg.py"
+        # Run test.
+        actual = hunteuti.is_test_file(file_path)
+        # Check outputs.
         self.assertTrue(actual)
 
-    def test_path_with_test_suffix(self) -> None:
+    def test3(self) -> None:
         """
         Basename ending with _test.py is detected as test file.
         """
-        actual = hunteuti.is_test_file("helpers/hdbg_test.py")
+        # Prepare inputs.
+        file_path = "helpers/hdbg_test.py"
+        # Run test.
+        actual = hunteuti.is_test_file(file_path)
+        # Check outputs.
         self.assertTrue(actual)
 
-    def test_source_file(self) -> None:
+    def test4(self) -> None:
         """
         Source file path is not detected as test file.
         """
-        actual = hunteuti.is_test_file("helpers/hdbg.py")
+        # Prepare inputs.
+        file_path = "helpers/hdbg.py"
+        # Run test.
+        actual = hunteuti.is_test_file(file_path)
+        # Check outputs.
         self.assertFalse(actual)
 
-    def test_nested_path_with_test(self) -> None:
+    def test5(self) -> None:
         """
         Path with /test/ anywhere is detected as test file.
         """
-        actual = hunteuti.is_test_file(
-            "dev_scripts_helpers/scraping/test/__init__.py"
-        )
+        # Prepare inputs.
+        file_path = "dev_scripts_helpers/scraping/test/__init__.py"
+        # Run test.
+        actual = hunteuti.is_test_file(file_path)
+        # Check outputs.
         self.assertTrue(actual)
 
 
@@ -405,65 +429,85 @@ class TestGetTestFilesForSources(hunitest.TestCase):
     Test mapping lists of source files to test files.
     """
 
-    def test_mixed_files(self) -> None:
+    def test1(self) -> None:
         """
         Mixed source and test files returns only matched test files.
         """
+        # Prepare inputs.
         files = [
             "helpers/hdbg.py",
             "helpers/test/test_hdbg.py",
             "helpers/hio.py",
         ]
-        actual = hunteuti.get_test_files_for_sources(files)
+        # Prepare outputs.
         expected = [
             "helpers/test/test_hdbg.py",
             "helpers/test/test_hio.py",
         ]
+        # Run test.
+        actual = hunteuti.get_test_files_for_sources(files)
+        # Check outputs.
         self.assertEqual(sorted(actual), sorted(expected))
 
-    def test_only_test_files(self) -> None:
+    def test2(self) -> None:
         """
         Only test files as input returns empty list.
         """
+        # Prepare inputs.
         files = [
             "helpers/test/test_hdbg.py",
             "helpers/test/test_hio.py",
         ]
-        actual = hunteuti.get_test_files_for_sources(files)
+        # Prepare outputs.
         expected = []
+        # Run test.
+        actual = hunteuti.get_test_files_for_sources(files)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
-    def test_only_source_files_with_tests(self) -> None:
+    def test3(self) -> None:
         """
         Source files with existing tests return matching test files.
         """
+        # Prepare inputs.
         files = [
             "helpers/hdbg.py",
             "helpers/hio.py",
         ]
-        actual = hunteuti.get_test_files_for_sources(files)
+        # Prepare outputs.
         expected = [
             "helpers/test/test_hdbg.py",
             "helpers/test/test_hio.py",
         ]
+        # Run test.
+        actual = hunteuti.get_test_files_for_sources(files)
+        # Check outputs.
         self.assertEqual(sorted(actual), sorted(expected))
 
-    def test_source_without_test(self) -> None:
+    def test4(self) -> None:
         """
         Source file without test file is skipped.
         """
+        # Prepare inputs.
         files = ["tasks.py"]
-        actual = hunteuti.get_test_files_for_sources(files)
+        # Prepare outputs.
         expected = []
+        # Run test.
+        actual = hunteuti.get_test_files_for_sources(files)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
-    def test_empty_list(self) -> None:
+    def test5(self) -> None:
         """
         Empty input returns empty list.
         """
+        # Prepare inputs.
         files = []
-        actual = hunteuti.get_test_files_for_sources(files)
+        # Prepare outputs.
         expected = []
+        # Run test.
+        actual = hunteuti.get_test_files_for_sources(files)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
 
@@ -477,77 +521,101 @@ class TestGetParentDirs(hunitest.TestCase):
     Test extracting minimal parent directories from file list.
     """
 
-    def test_single_file(self) -> None:
+    def test1(self) -> None:
         """
         Single file returns its parent directory.
         """
+        # Prepare inputs.
         files = ["helpers/hdbg.py"]
-        actual = hunteuti.get_parent_dirs(files)
+        # Prepare outputs.
         expected = ["helpers"]
+        # Run test.
+        actual = hunteuti.get_parent_dirs(files)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
-    def test_files_in_same_dir(self) -> None:
+    def test2(self) -> None:
         """
         Multiple files in same directory return that directory once.
         """
+        # Prepare inputs.
         files = [
             "helpers/hdbg.py",
             "helpers/hio.py",
         ]
-        actual = hunteuti.get_parent_dirs(files)
+        # Prepare outputs.
         expected = ["helpers"]
+        # Run test.
+        actual = hunteuti.get_parent_dirs(files)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
-    def test_files_in_different_dirs(self) -> None:
+    def test3(self) -> None:
         """
         Files in different directories return all distinct dirs.
         """
+        # Prepare inputs.
         files = [
             "dev_scripts_helpers/scraping/process_hn_article.py",
             "helpers/hgit.py",
             "helpers/lib_tasks_utils.py",
         ]
-        actual = hunteuti.get_parent_dirs(files)
+        # Prepare outputs.
         expected = [
             "dev_scripts_helpers/scraping",
             "helpers",
         ]
+        # Run test.
+        actual = hunteuti.get_parent_dirs(files)
+        # Check outputs.
         self.assertEqual(sorted(actual), sorted(expected))
 
-    def test_nested_dirs_dedup(self) -> None:
+    def test4(self) -> None:
         """
         Nested directories are deduplicated to keep only parent.
         """
+        # Prepare inputs.
         files = [
             "dev_scripts_helpers/scraping/process_hn_article.py",
             "dev_scripts_helpers/scraping/test/__init__.py",
             "helpers/hgit.py",
             "helpers/lib_tasks_utils.py",
         ]
-        actual = hunteuti.get_parent_dirs(files)
+        # Prepare outputs.
         expected = [
             "dev_scripts_helpers/scraping",
             "helpers",
         ]
+        # Run test.
+        actual = hunteuti.get_parent_dirs(files)
+        # Check outputs.
         self.assertEqual(sorted(actual), sorted(expected))
 
-    def test_empty_list(self) -> None:
+    def test5(self) -> None:
         """
         Empty file list returns empty directory list.
         """
+        # Prepare inputs.
         files = []
-        actual = hunteuti.get_parent_dirs(files)
+        # Prepare outputs.
         expected = []
+        # Run test.
+        actual = hunteuti.get_parent_dirs(files)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
-    def test_root_level_files(self) -> None:
+    def test6(self) -> None:
         """
         Files at root level are handled correctly.
         """
+        # Prepare inputs.
         files = [
             "tasks.py",
             "pyproject.toml",
         ]
-        actual = hunteuti.get_parent_dirs(files)
+        # Prepare outputs.
         expected = ["."]
+        # Run test.
+        actual = hunteuti.get_parent_dirs(files)
+        # Check outputs.
         self.assertEqual(actual, expected)
