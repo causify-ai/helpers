@@ -135,9 +135,9 @@
     - `test_preserve_yaml_frontmatter`
     - `test_page_separator_removal_with_frontmatter`
 
-## Code Formatting in Tests
+# Code Formatting in Tests
 
-### Dedent Strings to the Code
+## Dedent Strings to the Code
 
 - Align multi-line strings with the indentation of surrounding code:
   - **Bad**: String starts at column 0
@@ -159,6 +159,28 @@
         Content for file2
         """
         content = hprint.dedent(content)
+    ```
+
+## String Formatting for Assertions
+
+- Use multi-line strings with `hprint.dedent()` for values instead of escaped
+  newline strings to improve readability:
+  - **Bad**: Escaped newlines
+    ```python
+    text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
+    ```
+  - **Good**: Multi-line strings are human-readable
+    ```python
+    text = """
+    # Chapter 1
+
+
+    ## Section 1.1
+    Content 1.1
+    ## Section 1.2
+    Content 1.2
+    """
+    text = hprint.dedent(text)
     ```
 
 ## Avoid Replicated Assignment
