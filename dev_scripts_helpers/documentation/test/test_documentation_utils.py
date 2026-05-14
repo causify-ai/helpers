@@ -1130,7 +1130,7 @@ class Test_standardize_book_filename(hunitest.TestCase):
         Test standardization of book filename with multiple authors.
         """
         # Prepare inputs.
-        filename = "Ajay Agrawal, Joshua Gans, Avi Goldfarb - Prediction Machines_ The Simple Economics of Artificial Intelligence (2018, Harvard Business Review Press) - libgen.li.epub"
+        filename = "Ajay Agrawal, Joshua Gans, Avi Goldfarb - Prediction Machines_ The Simple Economics of Artificial Intelligence (2018, Harvard Business Review Press) - .li.epub"
         # Prepare outputs.
         expected = "2018.Agrawal_et_al.Prediction_Machines_The_Simple_Economics_of_Artificial_Intelligence.epub"
         # Run test.

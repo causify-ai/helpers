@@ -146,6 +146,11 @@ class TestPytestRenameMethod(hunitest.TestCase):
                 self.check_string(actual)
 
 
+        # #############################################################################
+        # TestOtherCases
+        # #############################################################################
+
+
         class TestOtherCases(hunitest.TestCase):
             def test1(self) -> None:
                 actual = "hello world"

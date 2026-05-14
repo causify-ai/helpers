@@ -556,8 +556,8 @@ class TestCheckString1(hunitest.TestCase):
             outcome_updated, file_exists, is_equal = self.check_string(
                 actual, abort_on_error=False, action_on_missing_golden="assert"
             )
-            hdbg.dassert_file_exists(file_name + ".tmp")
-            new_golden = hio.from_file(file_name + ".tmp")
+            hdbg.dassert_file_exists(file_name)
+            new_golden = hio.from_file(file_name)
         finally:
             # Clean up.
             hio.delete_file(file_name)
@@ -840,9 +840,8 @@ class TestCheckDataFrame1(hunitest.TestCase):
             outcome_updated, file_exists, is_equal = self.check_dataframe(
                 actual, abort_on_error=False, action_on_missing_golden="assert"
             )
-            hdbg.dassert_file_exists(file_name + ".tmp")
-            new_golden = pd.read_csv(file_name + ".tmp", index_col=0)
-            hdbg.dassert_path_not_exists(file_name)
+            hdbg.dassert_file_exists(file_name)
+            new_golden = pd.read_csv(file_name, index_col=0)
         finally:
             # Clean up.
             hio.delete_file(file_name)
