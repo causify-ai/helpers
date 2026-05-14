@@ -30,19 +30,25 @@ class Test_parse_limit_range(hunitest.TestCase):
         """
         Test parsing valid range format.
         """
-        self.helper("1:5", (1, 5))
+        limit_str = "1:5"
+        expected = (1, 5)
+        self.helper(limit_str, expected)
 
     def test2(self) -> None:
         """
         Test parsing range with same start and end.
         """
-        self.helper("3:3", (3, 3))
+        limit_str = "3:3"
+        expected = (3, 3)
+        self.helper(limit_str, expected)
 
     def test3(self) -> None:
         """
         Test parsing range with larger numbers.
         """
-        self.helper("10:100", (10, 100))
+        limit_str = "10:100"
+        expected = (10, 100)
+        self.helper(limit_str, expected)
 
     def test4(self) -> None:
         """
@@ -224,8 +230,11 @@ class Test_add_multi_file_args(hunitest.TestCase):
         """
         Test that correct arguments are added to parser.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
+        # Run function.
         hparser.add_multi_file_args(parser)
+        # Check that the arguments were added.
         namespace = parser.parse_args([])
         self.assertTrue(hasattr(namespace, "files"))
         self.assertTrue(hasattr(namespace, "from_files"))
@@ -255,12 +264,14 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
+        # Create test files.
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         file3 = f"{scratch_dir}/file3.txt"
         self._create_test_file(file1)
         self._create_test_file(file2)
         self._create_test_file(file3)
+        # Create namespace with files argument.
         args = argparse.Namespace()
         args.files = f"{file1},{file2},{file3}"
         args.from_files = None
@@ -277,15 +288,18 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
+        # Create test files.
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         file3 = f"{scratch_dir}/file3.txt"
         self._create_test_file(file1)
         self._create_test_file(file2)
         self._create_test_file(file3)
+        # Create file list.
         list_file = f"{scratch_dir}/list.txt"
         content = f"{file1}\n{file2}\n{file3}\n"
         self._create_test_file(list_file, content)
+        # Create namespace with from_files argument.
         args = argparse.Namespace()
         args.files = None
         args.from_files = list_file
@@ -302,10 +316,12 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
+        # Create test files.
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         self._create_test_file(file1)
         self._create_test_file(file2)
+        # Create file list with empty lines and comments.
         list_file = f"{scratch_dir}/list.txt"
         content = f"""
         # This is a comment
@@ -316,6 +332,7 @@ class Test_parse_multi_file_args(hunitest.TestCase):
 
         """
         self._create_test_file(list_file, content)
+        # Create namespace with from_files argument.
         args = argparse.Namespace()
         args.files = None
         args.from_files = list_file
@@ -332,10 +349,12 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
+        # Create test files.
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         self._create_test_file(file1)
         self._create_test_file(file2)
+        # Create namespace with input argument.
         args = argparse.Namespace()
         args.files = None
         args.from_files = None
@@ -352,8 +371,10 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
+        # Create test file.
         file1 = f"{scratch_dir}/file1.txt"
         self._create_test_file(file1)
+        # Create namespace with input argument (single file, not list).
         args = argparse.Namespace()
         args.files = None
         args.from_files = None
@@ -583,25 +604,37 @@ class Test_parse_input_output_args(hunitest.TestCase):
         """
         Test parsing with only input specified (output defaults to input).
         """
-        self.helper(["-i", "input.txt"], "input.txt", "input.txt")
+        args_list = ["-i", "input.txt"]
+        expected_in = "input.txt"
+        expected_out = "input.txt"
+        self.helper(args_list, expected_in, expected_out)
 
     def test2(self) -> None:
         """
         Test parsing with both input and output specified.
         """
-        self.helper(["-i", "input.txt", "-o", "output.txt"], "input.txt", "output.txt")
+        args_list = ["-i", "input.txt", "-o", "output.txt"]
+        expected_in = "input.txt"
+        expected_out = "output.txt"
+        self.helper(args_list, expected_in, expected_out)
 
     def test3(self) -> None:
         """
         Test parsing with stdin as input.
         """
-        self.helper(["-i", "-", "-o", "output.txt"], "-", "output.txt")
+        args_list = ["-i", "-", "-o", "output.txt"]
+        expected_in = "-"
+        expected_out = "output.txt"
+        self.helper(args_list, expected_in, expected_out)
 
     def test4(self) -> None:
         """
         Test parsing with stdout as output.
         """
-        self.helper(["-i", "input.txt", "-o", "-"], "input.txt", "-")
+        args_list = ["-i", "input.txt", "-o", "-"]
+        expected_in = "input.txt"
+        expected_out = "-"
+        self.helper(args_list, expected_in, expected_out)
 
 
 # #############################################################################
@@ -632,19 +665,25 @@ class Test_from_file(hunitest.TestCase):
         """
         Test reading content from a file.
         """
-        self.helper("line1\nline2\nline3", ["line1", "line2", "line3"])
+        content = "line1\nline2\nline3"
+        expected = ["line1", "line2", "line3"]
+        self.helper(content, expected)
 
     def test2(self) -> None:
         """
         Test reading an empty file.
         """
-        self.helper("", [""])
+        content = ""
+        expected = [""]
+        self.helper(content, expected)
 
     def test3(self) -> None:
         """
         Test reading file with trailing newline.
         """
-        self.helper("line1\nline2\n", ["line1", "line2", ""])
+        content = "line1\nline2\n"
+        expected = ["line1", "line2", ""]
+        self.helper(content, expected)
 
 
 # #############################################################################
@@ -675,23 +714,25 @@ class Test_to_file(hunitest.TestCase):
         """
         Test writing a string to a file.
         """
-        content = "line1\nline2\nline3"
-        self.helper(content, content)
+        input_data = "line1\nline2\nline3"
+        expected_content = "line1\nline2\nline3"
+        self.helper(input_data, expected_content)
 
     def test2(self) -> None:
         """
         Test writing a list of strings to a file.
         """
-        lines = ["line1", "line2", "line3"]
-        expected = "line1\nline2\nline3"
-        self.helper(lines, expected)
+        input_data = ["line1", "line2", "line3"]
+        expected_content = "line1\nline2\nline3"
+        self.helper(input_data, expected_content)
 
     def test3(self) -> None:
         """
         Test writing an empty list to a file.
         """
-        lines: list = []
-        self.helper(lines, "")
+        input_data: list = []
+        expected_content = ""
+        self.helper(input_data, expected_content)
 
     def test4(self) -> None:
         """
