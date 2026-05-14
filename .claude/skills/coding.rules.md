@@ -342,11 +342,9 @@
 
 # Comments
 
-## Use REST Style for Docstrings
+## Use Docstrings on Three Lines
 
-- Use REST comments in docstrings
-
-- If the comment is only one line, still convert it to three lines
+- If the docstring is only one line, convert it to three lines
   - **Bad**
     ```python
     def reset(self) -> None:
@@ -361,6 +359,10 @@
       """
       pass
     ```
+
+## Use REST Style for Docstrings
+
+- Always use REST style for docstrings
 
 - When there are multiple values for an input or an output variable format them
   as a list:
@@ -381,7 +383,7 @@
         - Default: curated list from `get_md_colors()`
     ```
 
-- An example of a good full docstring comment is
+- An example of a good docstring comment is
   ```python
   r"""
   Colorize bold markdown items `**text**` with color commands.
@@ -447,28 +449,28 @@
     # Check outputs.`: Result verification
     ```
 
-## Docstrings
+## Update Docstrings If Out-of-sync
 
 - Update the docstring to functions and file that are not in sync with the code
   - **Bad**:
-  ```python
-  def calculate_total(items):
-      """
-      Calculate something.
-      """
-      return sum(item.price for item in items if item.active)
-  ```
+    ```python
+    def calculate_total(items):
+        """
+        Calculate something.
+        """
+        return sum(item.price for item in items if item.active)
+    ```
   - **Good**
-  ```python
-  def calculate_total(items):
-      """
-      Calculate sum of prices for all active items.
-      
-      :param items: List of Item objects with price and active attributes
-      :return: Total price as float
-      """
-      return sum(item.price for item in items if item.active)
-  ```
+    ```python
+    def calculate_total(items):
+        """
+        Calculate sum of prices for all active items.
+        
+        :param items: List of Item objects with price and active attributes
+        :return: Total price as float
+        """
+        return sum(item.price for item in items if item.active)
+    ```
 
 - Make sure all the functions have a REST comments in docstrings
   - Add docstrings to functions and file that are missing

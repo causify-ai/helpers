@@ -17,6 +17,7 @@ import logging
 import os
 import re
 import shutil
+import unicodedata
 from typing import Dict, List, Tuple
 
 import helpers.hdbg as hdbg
@@ -76,8 +77,12 @@ def _sanitize_chapter_title(title: str) -> str:
         "",
         "Chapter title cannot be empty or all spaces",
     )
+    # Normalize Unicode characters: NFKD converts curly quotes, etc. to ASCII
+    # equivalents, then remove any remaining non-ASCII characters.
+    normalized = unicodedata.normalize("NFKD", title)
+    normalized = normalized.encode("ascii", "ignore").decode("ascii")
     # Replace spaces with underscores for better readability.
-    sanitized = title.replace(" ", "_")
+    sanitized = normalized.replace(" ", "_")
     # Use purify_file_name to remove other non-friendly characters.
     sanitized = hio.purify_file_name(sanitized)
     # Remove the directory part if present (purify_file_name returns basename).

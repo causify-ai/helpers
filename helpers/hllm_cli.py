@@ -4,6 +4,8 @@ Import as:
 import helpers.hllm_cli as hllmcli
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import shlex
@@ -12,7 +14,7 @@ import sys
 import importlib
 import pprint
 import time
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 try:
     import llm
@@ -22,8 +24,10 @@ try:
 except ImportError:
     _LLM_AVAILABLE = False
 
-import pandas as pd
 from tqdm import tqdm
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
@@ -730,6 +734,8 @@ def apply_llm_prompt_to_df(
     :param testing_functor: optional functor to use for testing
     :return: tuple of (dataframe with results, statistics dict)
     """
+    import pandas as pd
+
     start_time = time.time()
     hdbg.dassert_isinstance(prompt, str)
     hdbg.dassert_ne(prompt, "", "Prompt cannot be empty")

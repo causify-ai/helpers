@@ -148,94 +148,6 @@ def parse_cache_control_args(args: argparse.Namespace) -> None:
     if cache_debug:
         _LOG.info("Enabling cache_debug logging")
     hcacsimp.set_cache_debug(cache_debug)
-
-
-# #############################################################################
-# Command line options for handling the destination dir.
-# #############################################################################
-
-
-# TODO(ai_gp): Merge this in the input_output_args functions. Use only --dst_dir
-# and remove --clean_dst_dir, rename --no_confirm to overwrite, and assert if a
-# destination file exists and --overwrite is not set, with a logic similar to
-# ./dev_scripts_helpers/documentation/convert_epub_to_md.py and
-# ./dev_scripts_helpers/documentation/extract_chapters_from_text.py
-def add_dst_dir_arg(
-    parser: argparse.ArgumentParser,
-    dst_dir_required: bool,
-    dst_dir_default: Optional[str] = None,
-) -> argparse.ArgumentParser:
-    """
-    Add command line options related to destination dir.
-
-    E.g., `--dst_dir`, `--clean_dst_dir`
-    """
-    # TODO(gp): Add unit test to check this.
-    # A required dst_dir implies no default dst_dir.
-    hdbg.dassert_imply(
-        dst_dir_required,
-        not dst_dir_default,
-        "Since dst_dir_required='%s', you need to specify a default "
-        "destination dir, instead of dst_dir_default='%s'",
-        dst_dir_required,
-        dst_dir_default,
-    )
-    # If dst_dir is not required, then a default dst_dir must be specified.
-    hdbg.dassert_imply(
-        not dst_dir_required,
-        dst_dir_default,
-        "Since dst_dir_required='%s', you can't specify a default "
-        "destination dir, dst_dir_default='%s'",
-        dst_dir_required,
-        dst_dir_default,
-    )
-    parser.add_argument(
-        "--dst_dir",
-        action="store",
-        default=dst_dir_default,
-        required=dst_dir_required,
-        help="Directory storing the results",
-    )
-    parser.add_argument(
-        "--clean_dst_dir",
-        action="store_true",
-        help="Delete the destination dir before running",
-    )
-    parser.add_argument(
-        "--no_confirm",
-        action="store_true",
-        help="Do not confirm before deleting dst dir",
-    )
-    return parser
-
-
-def parse_dst_dir_arg(args: argparse.Namespace) -> Tuple[str, bool]:
-    """
-    Process the command line options related to destination dir.
-
-    :return: a tuple (dst_dir, clean_dst_dir)
-        - dst_dir: the destination dir
-        - clean_dst_dir: whether to clean the destination dir or not
-    """
-    dst_dir = args.dst_dir
-    _LOG.debug("dst_dir=%s", dst_dir)
-    # TODO(Dan): Fix `clean_dst_dir` usage since it is always `False` now.
-    clean_dst_dir = False
-    if args.clean_dst_dir:
-        _LOG.info("Cleaning dst_dir='%s'", dst_dir)
-        if os.path.exists(dst_dir):
-            _LOG.warning("Dir '%s' already exists", dst_dir)
-            if not args.no_confirm:
-                hsystem.query_yes_no(
-                    f"Do you want to delete the dir '{dst_dir}'",
-                    abort_on_no=True,
-                )
-            hio.create_dir(dst_dir, incremental=False)
-    hio.create_dir(dst_dir, incremental=True)
-    _LOG.debug("clean_dst_dir=%s", clean_dst_dir)
-    return dst_dir, clean_dst_dir
-
-
 # #############################################################################
 # Command line options related to selection actions.
 # #############################################################################
@@ -376,7 +288,8 @@ def select_actions(
         not (args.action and args.skip_action),
         "You can't specify together --action and --skip_action",
     )
-    # TODO(ai_gp): Is this still needed?
+    # TODO(ai_gp): Try to remove this.
+    # Needed because add_action_arg() is optional and might not be called.
     # Check for enable_action attribute (added for backward compatibility).
     has_enable = hasattr(args, "enable_action")
     if has_enable:
@@ -742,6 +655,77 @@ def adapt_input_output_args_for_dockerized_scripts(
     return tmp_in_file_name, tmp_out_file_name
 
 
+# TODO(ai_gp): Merge this in the input_output_args functions.
+def add_dst_dir_arg(
+    parser: argparse.ArgumentParser,
+    dst_dir_required: bool,
+    dst_dir_default: Optional[str] = None,
+) -> argparse.ArgumentParser:
+    """
+    Add command line options related to destination directory.
+
+    Adds `--dst_dir` and `--overwrite` flags. If the destination directory
+    already exists and `--overwrite` is not specified, an error is raised.
+
+    E.g., `--dst_dir`, `--overwrite`
+    """
+    # A required dst_dir implies no default dst_dir.
+    hdbg.dassert_imply(
+        dst_dir_required,
+        not dst_dir_default,
+        "Since dst_dir_required='%s', you need to specify a default "
+        "destination dir, instead of dst_dir_default='%s'",
+        dst_dir_required,
+        dst_dir_default,
+    )
+    # If dst_dir is not required, then a default dst_dir must be specified.
+    hdbg.dassert_imply(
+        not dst_dir_required,
+        dst_dir_default,
+        "Since dst_dir_required='%s', you can't specify a default "
+        "destination dir, dst_dir_default='%s'",
+        dst_dir_required,
+        dst_dir_default,
+    )
+    parser.add_argument(
+        "--dst_dir",
+        action="store",
+        default=dst_dir_default,
+        required=dst_dir_required,
+        help="Directory storing the results",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Delete existing destination directory if it already exists",
+    )
+    return parser
+
+
+def parse_dst_dir_arg(args: argparse.Namespace) -> str:
+    """
+    Process the command line options related to destination directory.
+
+    If the destination directory already exists and `--overwrite` is not set,
+    raises an error. If `--overwrite` is set and the directory exists, it is
+    removed before creating a fresh one.
+
+    :return: the destination directory path
+    """
+    dst_dir = args.dst_dir
+    _LOG.debug("dst_dir=%s", dst_dir)
+    if os.path.exists(dst_dir):
+        if not args.overwrite:
+            raise ValueError(
+                f"Output directory already exists: {dst_dir} "
+                "(use --overwrite to replace)"
+            )
+        _LOG.info("Removing existing dst_dir='%s'", dst_dir)
+        hio.delete_dir(dst_dir)
+    hio.create_dir(dst_dir, incremental=True)
+    return dst_dir
+
+
 # #############################################################################
 # Command line options for parallel processing.
 # #############################################################################
@@ -958,43 +942,6 @@ def add_dockerized_script_arg(
         "--dockerized_use_sudo",
         action="store_true",
         help="Use sudo inside the container",
-    )
-    return parser
-
-
-def add_llm_prompt_arg(
-    parser: argparse.ArgumentParser,
-    *,
-    default_prompt: str = "",
-    is_required: bool = True,
-) -> argparse.ArgumentParser:
-    """
-    Add common command line arguments for `*llm_transform.py` scripts.
-
-    :param default_prompt: default prompt to use
-    :param is_required: whether the prompt is required
-    :return: parser with the option added
-    """
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Print before/after the transform",
-    )
-    if default_prompt != "":
-        is_required = False
-    parser.add_argument(
-        "-p",
-        "--prompt",
-        required=is_required,
-        type=str,
-        help="Prompt to apply",
-        default=default_prompt,
-    )
-    parser.add_argument(
-        "-f",
-        "--fast_model",
-        action="store_true",
-        help="Use a fast LLM model vs a high-quality one",
     )
     return parser
 
@@ -1230,6 +1177,44 @@ def parse_multi_file_args(
 # #############################################################################
 # Command line options for LLM CLI scripts.
 # #############################################################################
+
+
+# TODO(ai_gp): Replace this with the more general parsing logic below.
+def add_llm_prompt_arg(
+    parser: argparse.ArgumentParser,
+    *,
+    default_prompt: str = "",
+    is_required: bool = True,
+) -> argparse.ArgumentParser:
+    """
+    Add common command line arguments for `*llm_transform.py` scripts.
+
+    :param default_prompt: default prompt to use
+    :param is_required: whether the prompt is required
+    :return: parser with the option added
+    """
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print before/after the transform",
+    )
+    if default_prompt != "":
+        is_required = False
+    parser.add_argument(
+        "-p",
+        "--prompt",
+        required=is_required,
+        type=str,
+        help="Prompt to apply",
+        default=default_prompt,
+    )
+    parser.add_argument(
+        "-f",
+        "--fast_model",
+        action="store_true",
+        help="Use a fast LLM model vs a high-quality one",
+    )
+    return parser
 
 
 def add_llm_args(
