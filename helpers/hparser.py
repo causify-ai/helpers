@@ -474,10 +474,9 @@ def add_input_output_args(
     )
     parser.add_argument(
         "--input_files",
-        action="store",
-        type=str,
+        nargs="+",
         default=None,
-        help="Space or comma-separated list of files to process",
+        help="One or more files (space-separated, shell globs supported) or comma-separated list",
     )
     parser.add_argument(
         "--from_file",
@@ -493,12 +492,19 @@ def parse_input_output_files(args: argparse.Namespace) -> Optional[List[str]]:
     """
     Parse files from --input_files or --from_file arguments.
 
+    Supports shell glob expansion (e.g., `--input_files books/chapters/*`)
+    and comma-separated lists for backward compatibility (e.g.,
+    `--input_files "a.md,b.md,c.md"`).
+
     :param args: Parsed arguments.
     :return: List of files to process, or None if neither option is provided.
     """
     if args.input_files:
-        # Support both space and comma-separated lists.
-        files = args.input_files.replace(",", " ").split()
+        # nargs='+' gives a list; flatten any comma-separated tokens for
+        # backward compatibility with the old "--input_files=a.md,b.md" style.
+        files = []
+        for token in args.input_files:
+            files.extend(token.replace(",", " ").split())
         return files
     elif args.from_file:
         # Read files from the specified file.

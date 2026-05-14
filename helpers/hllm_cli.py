@@ -18,11 +18,17 @@ from typing import Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 try:
     import llm
-    import tokencost
 
     _LLM_AVAILABLE = True
 except ImportError:
     _LLM_AVAILABLE = False
+
+try:
+    import tokencost
+
+    _TOKENCOST_AVAILABLE = True
+except ImportError:
+    _TOKENCOST_AVAILABLE = False
 
 from tqdm import tqdm
 
@@ -174,15 +180,18 @@ def _calculate_cost_from_usage(
     :param model: model name for cost calculation
     :return: total cost in dollars
     """
-    input_tokens = usage.input
-    output_tokens = usage.output
-    prompt_cost = tokencost.calculate_cost_by_tokens(
-        num_tokens=input_tokens, model=model, token_type="input"
-    )
-    completion_cost = tokencost.calculate_cost_by_tokens(
-        num_tokens=output_tokens, model=model, token_type="output"
-    )
-    cost = float(prompt_cost + completion_cost)
+    if _TOKENCOST_AVAILABLE:
+        input_tokens = usage.input
+        output_tokens = usage.output
+        prompt_cost = tokencost.calculate_cost_by_tokens(
+            num_tokens=input_tokens, model=model, token_type="input"
+        )
+        completion_cost = tokencost.calculate_cost_by_tokens(
+            num_tokens=output_tokens, model=model, token_type="output"
+        )
+        cost = float(prompt_cost + completion_cost)
+    else:
+        cost = 0.0
     return cost
 
 
@@ -476,9 +485,12 @@ def _calculate_llm_cost(
     :param model: the model name used
     :return: total cost in dollars
     """
-    prompt_cost = tokencost.calculate_prompt_cost(prompt, model)
-    completion_cost = tokencost.calculate_completion_cost(completion, model)
-    total_cost = prompt_cost + completion_cost
+    if _TOKENCOST_AVAILABLE:
+        prompt_cost = tokencost.calculate_prompt_cost(prompt, model)
+        completion_cost = tokencost.calculate_completion_cost(completion, model)
+        total_cost = prompt_cost + completion_cost
+    else:
+        total_cost = 0.0
     # Convert to float to ensure consistent type.
     return float(total_cost)
 

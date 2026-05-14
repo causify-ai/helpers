@@ -461,8 +461,8 @@ class Test_add_input_output_args(hunitest.TestCase):
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         # Run test.
         args = parser.parse_args(["--input_files", "file1.txt,file2.txt"])
-        # Check outputs.
-        self.assertEqual(args.input_files, "file1.txt,file2.txt")
+        # Check outputs. With nargs='+', input_files is now a list.
+        self.assertEqual(args.input_files, ["file1.txt,file2.txt"])
 
     def test4(self) -> None:
         """
@@ -613,6 +613,24 @@ class Test_parse_input_output_files(hunitest.TestCase):
         # Run test and check outputs.
         with self.assertRaises(FileNotFoundError):
             hparser.parse_input_output_files(args)
+
+    def test9(self) -> None:
+        """
+        Test parsing multiple files passed as separate arguments (shell glob expansion).
+        """
+        # Prepare inputs. This simulates shell expansion: `--input_files *.md`
+        # becomes multiple arguments: `--input_files file1.md file2.md file3.md`
+        parser = argparse.ArgumentParser()
+        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        args = parser.parse_args(
+            ["--input_files", "file1.md", "file2.md", "file3.md"]
+        )
+        # Prepare outputs.
+        expected = ["file1.md", "file2.md", "file3.md"]
+        # Run test.
+        result = hparser.parse_input_output_files(args)
+        # Check outputs.
+        self.assertEqual(result, expected)
 
 
 # #############################################################################

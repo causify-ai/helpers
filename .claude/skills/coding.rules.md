@@ -411,6 +411,8 @@
 
 - Override any minimalist comment defaults, but add explanatory comments
   liberally
+  - Leave existing comments unless they are incorrect, even if they explain
+    WHAT code does and they are redundant
 
 - Use comments to separate logical chunks of code
 - Explain the logic and intent of code sections, especially for:
@@ -422,18 +424,15 @@
 
 - Comments should explain the WHY and the algorithm flow, not just the WHAT
   - **Bad**: (obvious from the code)
-    ```
+    ```python
     # Iterate over lines
     for line in lines:
       ...
     ```
   - **Good**: (explains intent)
-    ```
+    ```python
     # Process imports in two passes: first collect, then validate.
     ```
-
-- Leave existing comments unless they are incorrect, even if they explain
-  WHAT code does and they are redundant
 
 - Prefer single-line comments over multi-line comment blocks when possible
 
@@ -448,6 +447,9 @@
     ```
     # Check outputs.`: Result verification
     ```
+
+- Do not use empty lines within functions but use comments to separate chunks of
+  code
 
 ## Update Docstrings If Out-of-sync
 
@@ -474,31 +476,6 @@
 
 - Make sure all the functions have a REST comments in docstrings
   - Add docstrings to functions and file that are missing
-
-## Update Comments That Are Out of Sync With The Code
-
-- Update and clarify the comments that are not in sync with the code, explaining
-  the logic ("why") and what is done ("what" and "how")
-  - **Bad** (redundant/obvious)
-    ```python
-    # Loop through each user.
-    for user in users:
-        # Add one to the counter.
-        count += 1
-    ```
-  - **Good**
-    ```python
-    # Prioritize active users first, then sort by registration date for fairness.
-    users_sorted = sorted(users, key=lambda u: (not u.active, u.registered_at))
-    ```
-
-- Use periods at the end of all comments
-
-- Make sure that there are comments in large chunks of code explaining the "why",
-  "what", "how" of each chunk of code
-
-- Do not use empty lines within functions but use comments to separate chunks of
-  code
 
 ## Leave Existing Comments Untouched
 
