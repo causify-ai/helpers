@@ -176,7 +176,9 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         lines = self._to_lines(document_text)
         # Run test and check output.
         with self.assertRaises(Exception):
-            dshdetftx._extract_text_from_markdown(lines, start_header, end_header)
+            dshdetftx._extract_text_from_markdown(
+                lines, start_header, end_header
+            )
 
     def test5(self) -> None:
         """

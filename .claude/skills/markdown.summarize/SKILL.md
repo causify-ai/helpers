@@ -1,11 +1,11 @@
 ---
-description: Summarize a markdown text
+description: Summarize a markdown text, keeping the same header structure
 model: haiku
 ---
 
 # Read Content
 
-- Read the first file passed by the user `<input>`
+- Read the first file `<input>` passed by the user 
 
 # Summarize Content in Bullet Points
 

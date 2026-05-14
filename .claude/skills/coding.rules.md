@@ -33,6 +33,28 @@
         ...
     ```
 
+## Use `os` and `os.path` for Path Operations
+
+- Use `os` and `os.path` for path operations instead of `pathlib.Path`
+
+- **Bad**: Using `pathlib`
+  ```python
+  from pathlib import Path
+  
+  file_path = Path("/tmp/data.txt")
+  if file_path.exists():
+      content = file_path.read_text()
+  ```
+- **Good**: Using `os` and `os.path`
+  ```python
+  import os
+  
+  file_path = "/tmp/data.txt"
+  if os.path.exists(file_path):
+      with open(file_path, "r") as f:
+          content = f.read()
+  ```
+
 ## Mark Private Functions
 
 - Functions that are used only in one file, must be private and their name must
@@ -86,62 +108,95 @@
   operation_b(...)
   ```
 
-### Example
-- **Bad**
-  ```python
-  # Build propensity score model.
-  ps_model = LogisticRegression(penalty=None)
-  ps_model.fit(train[X], train[T])
-  # Compute propensity scores once.
-  propensity_scores = ps_model.predict_proba(train[X])
-  # Split treatment groups.
-  train_t0 = train.query(f"{T} == 0")
-  train_t1 = train.query(f"{T} == 1")
-  # Extract corresponding sample weights.
-  w_t0 = 1 / propensity_scores[train[T] == 0, 0]
-  w_t1 = 1 / propensity_scores[train[T] == 1, 1]
-  # Outcome models.
-  m0 = LGBMRegressor()
-  m1 = LGBMRegressor()
-  m0.fit(
-      train_t0[X],
-      train_t0[y],
-      sample_weight=w_t0,
-  )
-  m1.fit(
-      train_t1[X],
-      train_t1[y],
-      sample_weight=w_t1,
-  )
-  ```
-- **Good**
-  ```python
-  # Build propensity score model.
-  ps_model = LogisticRegression(penalty=None)
-  ps_model.fit(train[X], train[T])
-  # Compute propensity scores.
-  propensity_scores = ps_model.predict_proba(train[X])
-  # Outcome models.
-  m0 = LGBMRegressor()
-  # Split treatment groups.
-  train_t0 = train.query(f"{T} == 0")
-  # Extract corresponding sample weights.
-  w_t0 = 1 / propensity_scores[train[T] == 0, 0]
-  m0.fit(
-      train_t0[X],
-      train_t0[y],
-      sample_weight=w_t0,
-  )
-  # Same for other outcome.
-  m1 = LGBMRegressor()
-  train_t1 = train.query(f"{T} == 1")
-  w_t1 = 1 / propensity_scores[train[T] == 1, 1]
-  m1.fit(
-      train_t1[X],
-      train_t1[y],
-      sample_weight=w_t1,
-  )
-  ```
+- Example
+  - **Bad**
+    ```python
+    # Build propensity score model.
+    ps_model = LogisticRegression(penalty=None)
+    ps_model.fit(train[X], train[T])
+    # Compute propensity scores once.
+    propensity_scores = ps_model.predict_proba(train[X])
+    # Split treatment groups.
+    train_t0 = train.query(f"{T} == 0")
+    train_t1 = train.query(f"{T} == 1")
+    # Extract corresponding sample weights.
+    w_t0 = 1 / propensity_scores[train[T] == 0, 0]
+    w_t1 = 1 / propensity_scores[train[T] == 1, 1]
+    # Outcome models.
+    m0 = LGBMRegressor()
+    m1 = LGBMRegressor()
+    m0.fit(
+        train_t0[X],
+        train_t0[y],
+        sample_weight=w_t0,
+    )
+    m1.fit(
+        train_t1[X],
+        train_t1[y],
+        sample_weight=w_t1,
+    )
+    ```
+  - **Good**
+    ```python
+    # Build propensity score model.
+    ps_model = LogisticRegression(penalty=None)
+    ps_model.fit(train[X], train[T])
+    # Compute propensity scores.
+    propensity_scores = ps_model.predict_proba(train[X])
+    # Outcome models.
+    m0 = LGBMRegressor()
+    # Split treatment groups.
+    train_t0 = train.query(f"{T} == 0")
+    # Extract corresponding sample weights.
+    w_t0 = 1 / propensity_scores[train[T] == 0, 0]
+    m0.fit(
+        train_t0[X],
+        train_t0[y],
+        sample_weight=w_t0,
+    )
+    # Same for other outcome.
+    m1 = LGBMRegressor()
+    train_t1 = train.query(f"{T} == 1")
+    w_t1 = 1 / propensity_scores[train[T] == 1, 1]
+    m1.fit(
+        train_t1[X],
+        train_t1[y],
+        sample_weight=w_t1,
+    )
+    ```
+
+## Decompose Dense Method Chain in Assignments
+
+- Decomposing a dense method chain (e.g., from `pandas`) into linear intermediate
+  assignments to improve readability, debuggability, and explainability
+  - Unrolling a method chain into explicit transformation stages
+  - Making implicit dataframe transformations explicit
+  - Converting a compact fluent pipeline into self-documenting procedural steps
+  - Introducing narrative structure into transformations
+
+- Example
+  - **Bad**
+    ```python
+    test_cf = (
+        test
+        .drop(columns=[T])
+        .assign(key=1)
+        .merge(t_grid)
+        .assign(**{y_hat_col: lambda d: s_learner.predict(d[X + [T]])})
+    )
+    ```
+  - **Good**
+    ```python
+    # Remove original treatment values to create a clean base for counterfactuals.
+    test_cf = test.drop(columns=[T])
+    # Add merge key to enable cross-product with treatment grid.
+    test_cf = test_cf.assign(key=1)
+    # Create counterfactual dataset by merging each test row with all treatment
+    # values.
+    test_cf = test_cf.merge(t_grid)
+    # Generate predictions for each (features, treatment) combination.
+    test_cf = test_cf.assign(**{y_hat_col: lambda d: s_learner.predict(d[X + [T]])})
+    ```
 
 # Error Handling and Assertions
 
@@ -258,6 +313,28 @@
     )
     ```
 
+## Use `raise` Instead of `hdbg.dassert(False, ...)`
+
+- When unconditionally raising an error, use `raise` with an appropriate exception
+  instead of `hdbg.dassert(False, ...)`
+
+- Example: Use `raise` for unconditional errors
+  - **Bad**: Using `dassert(False, ...)` for unconditional errors
+    ```python
+    hdbg.dassert(
+        False,
+        "Output directory already contains chapter files: %s (use --overwrite to replace)",
+        output_dir,
+    )
+    ```
+  - **Good**: Use `raise` with appropriate exception
+    ```python
+    raise ValueError(
+        f"Output directory already contains chapter files: {output_dir} "
+        "(use --overwrite to replace)"
+    )
+    ```
+
 ## Do not use try-except
 
 - Do not use try except to recover errors but let statements raise their own
@@ -265,11 +342,9 @@
 
 # Comments
 
-## Use REST Style for Docstrings
+## Use Docstrings on Three Lines
 
-- Use REST comments in docstrings
-
-- If the comment is only one line, still convert it to three lines
+- If the docstring is only one line, convert it to three lines
   - **Bad**
     ```python
     def reset(self) -> None:
@@ -284,6 +359,10 @@
       """
       pass
     ```
+
+## Use REST Style for Docstrings
+
+- Always use REST style for docstrings
 
 - When there are multiple values for an input or an output variable format them
   as a list:
@@ -304,7 +383,7 @@
         - Default: curated list from `get_md_colors()`
     ```
 
-- An example of a good full docstring comment is
+- An example of a good docstring comment is
   ```python
   r"""
   Colorize bold markdown items `**text**` with color commands.
@@ -332,6 +411,8 @@
 
 - Override any minimalist comment defaults, but add explanatory comments
   liberally
+  - Leave existing comments unless they are incorrect, even if they explain
+    WHAT code does and they are redundant
 
 - Use comments to separate logical chunks of code
 - Explain the logic and intent of code sections, especially for:
@@ -343,18 +424,15 @@
 
 - Comments should explain the WHY and the algorithm flow, not just the WHAT
   - **Bad**: (obvious from the code)
-    ```
+    ```python
     # Iterate over lines
     for line in lines:
       ...
     ```
   - **Good**: (explains intent)
-    ```
+    ```python
     # Process imports in two passes: first collect, then validate.
     ```
-
-- Leave existing comments unless they are incorrect, even if they explain
-  WHAT code does and they are redundant
 
 - Prefer single-line comments over multi-line comment blocks when possible
 
@@ -370,56 +448,34 @@
     # Check outputs.`: Result verification
     ```
 
-## Docstrings
+- Do not use empty lines within functions but use comments to separate chunks of
+  code
+
+## Update Docstrings If Out-of-sync
 
 - Update the docstring to functions and file that are not in sync with the code
   - **Bad**:
-  ```python
-  def calculate_total(items):
-      """
-      Calculate something.
-      """
-      return sum(item.price for item in items if item.active)
-  ```
+    ```python
+    def calculate_total(items):
+        """
+        Calculate something.
+        """
+        return sum(item.price for item in items if item.active)
+    ```
   - **Good**
-  ```python
-  def calculate_total(items):
-      """
-      Calculate sum of prices for all active items.
-      
-      :param items: List of Item objects with price and active attributes
-      :return: Total price as float
-      """
-      return sum(item.price for item in items if item.active)
-  ```
+    ```python
+    def calculate_total(items):
+        """
+        Calculate sum of prices for all active items.
+        
+        :param items: List of Item objects with price and active attributes
+        :return: Total price as float
+        """
+        return sum(item.price for item in items if item.active)
+    ```
 
 - Make sure all the functions have a REST comments in docstrings
   - Add docstrings to functions and file that are missing
-
-## Comments
-
-- Update and clarify the comments that are not in sync with the code, explaining
-  the logic ("why") rather than what is done ("what" and "how")
-  - **Bad** (redundant/obvious)
-    ```python
-    # Loop through each user.
-    for user in users:
-        # Add one to the counter.
-        count += 1
-    ```
-  - **Good**
-    ```python
-    # Prioritize active users first, then sort by registration date for fairness.
-    users_sorted = sorted(users, key=lambda u: (not u.active, u.registered_at))
-    ```
-
-- Use periods at the end of all comments
-
-- Make sure that there are comments in large chunks of code explaining the "why"
-  of each chunk of code
-
-- Do not use empty lines within functions but use comments to separate chunks of
-  code
 
 ## Leave Existing Comments Untouched
 
@@ -439,7 +495,6 @@
     # submodule.amp.path amp
     ```
 
-## Leave Some Comments Untouched
 - Do not remove TODOs or other comment code, unless you are sure they are
   redundant, wrong, or and useless
   - Example to keep:
@@ -588,16 +643,58 @@
     pattern = re.compile(quote_pattern, re.VERBOSE)
     ```
 
-## Use verbatim to refer to functions and values
+## Use verbatim to refer to Python Objects
 
-- When referring to variables and functions in code use verbatim
+- When referring to Python objects (e.g., variables, classes, and functions) in
+  comments and docstrings use verbatim included in backticks
+  - For functions also include a call, e.g., `func()`
+
+- Example (variable in comment):
   - **Bad**
     ```python
-    # Create a curated list from get_md_colors().
+    # Increment the variable num_counter.
     ```
   - **Good**
     ```python
+    # Increment the variable `num_counter`
+    ```
+
+- Example (function in comment):
+  - **Bad**
+    ```
+    # Create a curated list from get_md_colors.
+    ```
+  - **Good**
+    ```
     # Create a curated list from `get_md_colors()`.
+    ```
+
+- Example (variable in docstring):
+  - **Bad**
+    ```python
+    """
+    Increment the variable num_counter.
+    """
+    ```
+  - **Good**
+    ```python
+    """
+    Increment the variable `num_counter`.
+    """
+    ```
+
+- Example (function in docstring):
+  - **Bad**
+    ```
+    """
+    Test helper for standardize_filename().
+    """
+    ```
+  - **Good**
+    ```
+    """
+    Test helper for `standardize_filename()`.
+    """
     ```
 
 # Executing System Calls
