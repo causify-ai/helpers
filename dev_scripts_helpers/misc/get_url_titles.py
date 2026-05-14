@@ -1,6 +1,6 @@
 import time
 from html.parser import HTMLParser
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import requests
 from bs4 import BeautifulSoup
@@ -29,7 +29,7 @@ class TitleParser(HTMLParser):
         self.title: Optional[str] = None
 
     def handle_starttag(
-        self, tag: str, attrs: list[tuple[str, Optional[str]]]
+        self, tag: str, attrs: List[Tuple[str, Optional[str]]]
     ) -> None:
         if tag.lower() == "title":
             self.in_title = True
@@ -68,7 +68,7 @@ https://news.ycombinator.com/item?id=30371723
 https://news.ycombinator.com/item?id=26953352
 https://news.ycombinator.com/item?id=23209142
     """
-    url_list: list[str] = files.split("\n")
+    url_list: List[str] = files.split("\n")
 
     for url in url_list:
         # title = get_page_title(url)

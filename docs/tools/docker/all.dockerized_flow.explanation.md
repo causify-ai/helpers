@@ -63,7 +63,7 @@
     - Run a Python script using `helpers` in a container with `openai` packages
   - [`/dev_scripts_helpers/dockerize/dockerized_prettier.py`](/dev_scripts_helpers/dockerize/dockerized_prettier.py)
     - Run `prettier` in a container
-  - [`/dev_scripts_helpers/documentation/convert_docx_to_markdown.py`](/dev_scripts_helpers/documentation/convert_docx_to_markdown.py)
+  - [`/dev_scripts_helpers/documentation/convert_docx_to_md.py`](/dev_scripts_helpers/documentation/convert_docx_to_md.py)
     - Run `pandoc` in a container
 
 - You can find all the Python dockerized executable with:

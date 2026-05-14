@@ -162,7 +162,7 @@
   last_integration_hash='813c7e763'
 
   # Diff the changes in each side from the integration point:
-  > i git_branch_diff_with -t hash -h 813c7e763 -f ...
+  > i git_branch_diff -t hash -h 813c7e763 -f ...
   > git difftool 813c7e763 ...
   ```
 
@@ -223,17 +223,17 @@
 
   ```bash
   > cd amp1
-  > i git_branch_diff_with -t base --keep-extensions py
+  > i git_branch_diff -t base --keep-extensions py
   > cd cmamp1
-  > i git_branch_diff_with -t base --keep-extensions py
+  > i git_branch_diff -t base --keep-extensions py
   ```
 
 - Quickly scan all the changes in the branch compared to the base:
   ```
   > cd amp1
-  > i git_branch_diff_with -t base
+  > i git_branch_diff -t base
   > cd cmamp1
-  > i git_branch_diff_with -t base
+  > i git_branch_diff -t base
   ```
 
 ### Run tests

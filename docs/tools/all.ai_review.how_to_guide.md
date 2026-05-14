@@ -185,7 +185,7 @@
 - Check which files are modified
 
   ```bash
-  > invoke git_branch_diff_with -t base --only-print-files
+  > invoke git_branch_diff -t base --only-print-files
   ```
 
 - Run `ai_review.py` on each file to generate a list of comments on the code
