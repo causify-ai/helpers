@@ -232,10 +232,10 @@ class Test_add_multi_file_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        # Run function.
+        # Run test.
         hparser.add_multi_file_args(parser)
-        # Check that the arguments were added.
         namespace = parser.parse_args([])
+        # Check outputs.
         self.assertTrue(hasattr(namespace, "files"))
         self.assertTrue(hasattr(namespace, "from_files"))
         self.assertTrue(hasattr(namespace, "input"))
@@ -428,9 +428,12 @@ class Test_add_input_output_args(hunitest.TestCase):
         """
         Test adding input/output arguments with defaults.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
+        # Run test.
         hparser.add_input_output_args(parser)
         args = parser.parse_args(["-i", "input.txt"])
+        # Check outputs.
         self.assertEqual(args.input, "input.txt")
         self.assertIsNone(args.output)
         self.assertIsNone(args.input_files)
@@ -440,9 +443,12 @@ class Test_add_input_output_args(hunitest.TestCase):
         """
         Test parsing both input and output arguments.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        # Run test.
         args = parser.parse_args(["-i", "input.txt", "-o", "output.txt"])
+        # Check outputs.
         self.assertEqual(args.input, "input.txt")
         self.assertEqual(args.output, "output.txt")
 
@@ -450,18 +456,24 @@ class Test_add_input_output_args(hunitest.TestCase):
         """
         Test parsing --input_files argument.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        # Run test.
         args = parser.parse_args(["--input_files", "file1.txt,file2.txt"])
+        # Check outputs.
         self.assertEqual(args.input_files, "file1.txt,file2.txt")
 
     def test4(self) -> None:
         """
         Test parsing --from_file argument.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        # Run test.
         args = parser.parse_args(["--from_file", "files.txt"])
+        # Check outputs.
         self.assertEqual(args.from_file, "files.txt")
 
 
@@ -479,59 +491,78 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         Test that None is returned when neither option is provided.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         args = parser.parse_args(["-i", "input.txt"])
+        # Run test.
         result = hparser.parse_input_output_files(args)
+        # Check outputs.
         self.assertIsNone(result)
 
     def test2(self) -> None:
         """
         Test parsing comma-separated file list.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         args = parser.parse_args(["--input_files", "file1.txt,file2.txt,file3.txt"])
-        result = hparser.parse_input_output_files(args)
+        # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
+        # Run test.
+        result = hparser.parse_input_output_files(args)
+        # Check outputs.
         self.assertEqual(result, expected)
 
     def test3(self) -> None:
         """
         Test parsing space-separated file list.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         args = parser.parse_args(["--input_files", "file1.txt file2.txt file3.txt"])
-        result = hparser.parse_input_output_files(args)
+        # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
+        # Run test.
+        result = hparser.parse_input_output_files(args)
+        # Check outputs.
         self.assertEqual(result, expected)
 
     def test4(self) -> None:
         """
         Test parsing mixed comma and space separators.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         args = parser.parse_args(["--input_files", "file1.txt,file2.txt file3.txt"])
-        result = hparser.parse_input_output_files(args)
+        # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
+        # Run test.
+        result = hparser.parse_input_output_files(args)
+        # Check outputs.
         self.assertEqual(result, expected)
 
     def test5(self) -> None:
         """
         Test parsing single file from --input_files.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         args = parser.parse_args(["--input_files", "single.txt"])
+        # Run test.
         result = hparser.parse_input_output_files(args)
+        # Check outputs.
         self.assertEqual(result, ["single.txt"])
 
     def test6(self) -> None:
         """
         Test parsing files from --from_file.
         """
+        # Prepare inputs.
         out_dir = self.get_scratch_space()
         file_list_path = os.path.join(out_dir, "files.txt")
         with open(file_list_path, "w") as f:
@@ -541,14 +572,18 @@ class Test_parse_input_output_files(hunitest.TestCase):
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         args = parser.parse_args(["--from_file", file_list_path])
-        result = hparser.parse_input_output_files(args)
+        # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
+        # Run test.
+        result = hparser.parse_input_output_files(args)
+        # Check outputs.
         self.assertEqual(result, expected)
 
     def test7(self) -> None:
         """
         Test parsing files from --from_file with empty lines.
         """
+        # Prepare inputs.
         out_dir = self.get_scratch_space()
         file_list_path = os.path.join(out_dir, "files.txt")
         with open(file_list_path, "w") as f:
@@ -560,17 +595,22 @@ class Test_parse_input_output_files(hunitest.TestCase):
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         args = parser.parse_args(["--from_file", file_list_path])
-        result = hparser.parse_input_output_files(args)
+        # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
+        # Run test.
+        result = hparser.parse_input_output_files(args)
+        # Check outputs.
         self.assertEqual(result, expected)
 
     def test8(self) -> None:
         """
         Test that FileNotFoundError is raised for non-existent file.
         """
+        # Prepare inputs.
         parser = argparse.ArgumentParser()
         hparser.add_input_output_args(parser, in_required=False, out_required=False)
         args = parser.parse_args(["--from_file", "/nonexistent/path/files.txt"])
+        # Run test and check outputs.
         with self.assertRaises(FileNotFoundError):
             hparser.parse_input_output_files(args)
 
