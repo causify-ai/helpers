@@ -5,9 +5,14 @@
       "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(python *)",
-      "Bash(awk *')"
+      "Bash(bash ./tmp.pytest_repro.*.sh)",
+      "WebFetch(domain:*)",
+      "Bash(gh pr view:*)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
   },
   "hooks": {
     "Notification": [
