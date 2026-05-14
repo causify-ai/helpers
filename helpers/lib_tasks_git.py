@@ -856,7 +856,7 @@ def git_branch_copy(  # type: ignore
     )
     # Sync with master first to ensure new branch includes latest changes (if requested).
     if not skip_git_merge_master:
-        cmd = "invoke git_merge_master --abort-if-not-ff"
+        cmd = "invoke git_merge_master --abort-if-not-ff --no-auto-merge"
         hlitauti.run(ctx, cmd)
     else:
         _LOG.warning("Skipping git_merge_master as requested")
