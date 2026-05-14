@@ -8,8 +8,10 @@ import helpers.hlint as hlint
 
 import logging
 
+import helpers.hdbg as hdbg
+import helpers.hgit as hgit
+import helpers.hsystem as hsystem
 import helpers.hparser as hparser
-import dev_scripts_helpers.documentation.lint_txt as lintxt
 
 _LOG = logging.getLogger(__name__)
 
@@ -24,10 +26,17 @@ def lint_file(file_path: str) -> None:
     :param file_path: path to the file to lint
     """
     _LOG.info("Linting file: %s", file_path)
-    # Read the file.
-    lines = hparser.from_file(file_path)
-    # Perform linting actions.
-    out_lines = lintxt._perform_actions(lines, file_path)
-    # Write the file back.
-    hparser.to_file(out_lines, file_path)
+    if True:
+        # Find the lint_txt.py script.
+        script_path = hgit.find_file_in_git_tree("lint_txt.py")
+        hdbg.dassert_file_exists(script_path)
+        _LOG.debug("Found lint_txt.py at: %s", script_path)
+        # Build command to call the lint_txt.py script.
+        cmd = f"{script_path} --in_file {file_path}"
+        hsystem.system(cmd, abort_on_error=True, suppress_output=False)
+    else:
+        # Direct library call.
+        lines = hparser.from_file(file_path)
+        out_lines = dshdlitx._perform_actions(lines, file_path)
+        hparser.to_file(out_lines, file_path)
     _LOG.info("File linted successfully: %s", file_path)
