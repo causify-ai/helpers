@@ -1,11 +1,11 @@
 import logging
 import os
-import subprocess
-import sys
 from typing import List, Optional, Tuple
 
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 import dev_scripts_helpers.documentation.summarize_md as dshdsumd
@@ -435,18 +435,11 @@ class Test_summarize_md_with_test_flag(hunitest.TestCase):
         input_file = os.path.join(scratch_dir, "input.md")
         output_file = os.path.join(scratch_dir, "output.md")
         hio.to_file(input_file, input_md)
+        # Find the script in the git tree.
+        script_path = hgit.find_file_in_git_tree("summarize_md.py")
         # Run the script with --test flag.
-        cmd = [
-            sys.executable,
-            "dev_scripts_helpers/documentation/summarize_md.py",
-            "-i", input_file,
-            "-o", output_file,
-            "--md_level", str(md_level),
-            "--test",
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
-        # Verify script executed successfully.
-        self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
+        cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test"
+        hsystem.system(cmd)
         # Read and verify output.
         actual_output = hio.from_file(output_file)
         self.assert_equal(actual_output, expected_output)
@@ -463,13 +456,12 @@ class Test_summarize_md_with_test_flag(hunitest.TestCase):
         """
         input_md = hprint.dedent(input_md)
         # Prepare outputs.
-        expected_output = """
+        expected_output = hprint.dedent("""
         # Introduction
 
         SHA1: d2c8641d89ca8b43807392b0a77398410448acbf
-
-        """
-        expected_output = hprint.dedent(expected_output)
+        """)
+        expected_output += "\n\n\n"
         # Run test.
         self.helper(input_md, expected_output)
 
@@ -489,17 +481,17 @@ class Test_summarize_md_with_test_flag(hunitest.TestCase):
         """
         input_md = hprint.dedent(input_md)
         # Prepare outputs.
-        expected_output = """
+        expected_output = hprint.dedent("""
         # Chapter 1
 
         SHA1: 74c7a2c6bbfea12d7c601a48c36d9aad7a9e3c7a
 
+
         # Chapter 2
 
         SHA1: 8f635be771fecdb7321b0f88c04609a8fe79dec8
-
-        """
-        expected_output = hprint.dedent(expected_output)
+        """)
+        expected_output += "\n\n\n"
         # Run test.
         self.helper(input_md, expected_output)
 
@@ -527,17 +519,17 @@ class Test_summarize_md_with_test_flag(hunitest.TestCase):
         """
         input_md = hprint.dedent(input_md)
         # Prepare outputs.
-        expected_output = """
+        expected_output = hprint.dedent("""
         # Chapter 1
 
         SHA1: 92992a38d4c0056a87e0a303b7d62cada1da1784
 
+
         # Chapter 2
 
         SHA1: e0431757296c5f62cf74ac911fc8fed8abb37ec0
-
-        """
-        expected_output = hprint.dedent(expected_output)
+        """)
+        expected_output += "\n\n\n"
         # Run test.
         self.helper(input_md, expected_output)
 
@@ -559,18 +551,18 @@ class Test_summarize_md_with_test_flag(hunitest.TestCase):
         """
         input_md = hprint.dedent(input_md)
         # Prepare outputs (should process level-2 headers).
-        expected_output = """
+        expected_output = hprint.dedent("""
         # Chapter 1
 
         ## Section 1.1
 
-        SHA1: 6d5f8c1a2e9b3c7f0e4a1d5c9b6e2f8a3d7c0e5
+        SHA1: f4191b95a8f8f799ee0a8c458e0538234217ab18
+
 
         ## Section 1.2
 
-        SHA1: 1c9e4f5d2a8b6c0f3e7a1d2c5b9f8e4a7c0d3f6
-
-        """
-        expected_output = hprint.dedent(expected_output)
+        SHA1: 91c1f10d6d9e5e36cd4949c4b39bef86d8d138c0
+        """)
+        expected_output += "\n\n\n"
         # Run test.
         self.helper(input_md, expected_output, md_level=2)
