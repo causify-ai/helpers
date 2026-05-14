@@ -2,7 +2,7 @@ import logging
 import os
 from typing import List, Tuple
 
-import dev_scripts_helpers.documentation.extract_chapters_from_text as dshdsptc
+import dev_scripts_helpers.documentation.extract_chapters_from_text as dshdecfte
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -41,7 +41,7 @@ class Test_extract_chapters(hunitest.TestCase):
             ),
         ]
         # Run test.
-        actual = dshdsptc._extract_chapters(content)
+        actual = dshdecfte._extract_chapters(content)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -69,7 +69,7 @@ class Test_extract_chapters(hunitest.TestCase):
             ),
         ]
         # Run test.
-        actual = dshdsptc._extract_chapters(content)
+        actual = dshdecfte._extract_chapters(content)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -82,7 +82,7 @@ class Test_extract_chapters(hunitest.TestCase):
         # Prepare outputs.
         expected: List[Tuple[str, str]] = []
         # Run test.
-        actual = dshdsptc._extract_chapters(content)
+        actual = dshdecfte._extract_chapters(content)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -100,7 +100,7 @@ class Test_extract_chapters(hunitest.TestCase):
         # Prepare outputs.
         expected: List[Tuple[str, str]] = []
         # Run test.
-        actual = dshdsptc._extract_chapters(content)
+        actual = dshdecfte._extract_chapters(content)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -126,7 +126,7 @@ class Test_extract_chapters(hunitest.TestCase):
             ("Chapter Two", "# Chapter Two\n## Another Subsection"),
         ]
         # Run test.
-        actual = dshdsptc._extract_chapters(content)
+        actual = dshdecfte._extract_chapters(content)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -146,7 +146,7 @@ class Test_extract_chapters(hunitest.TestCase):
             ("Chapter One", "# Chapter One\nChapter content."),
         ]
         # Run test.
-        actual = dshdsptc._extract_chapters(content)
+        actual = dshdecfte._extract_chapters(content)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -170,7 +170,7 @@ class Test_sanitize_chapter_title(hunitest.TestCase):
         # Prepare outputs.
         expected = "Chapter_One"
         # Run test.
-        actual = dshdsptc._sanitize_chapter_title(title)
+        actual = dshdecfte._sanitize_chapter_title(title)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -183,7 +183,7 @@ class Test_sanitize_chapter_title(hunitest.TestCase):
         # Prepare outputs.
         expected = "Introduction"
         # Run test.
-        actual = dshdsptc._sanitize_chapter_title(title)
+        actual = dshdecfte._sanitize_chapter_title(title)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -196,7 +196,7 @@ class Test_sanitize_chapter_title(hunitest.TestCase):
         # Prepare outputs.
         expected = "It_s_a_test"
         # Run test.
-        actual = dshdsptc._sanitize_chapter_title(title)
+        actual = dshdecfte._sanitize_chapter_title(title)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -209,7 +209,7 @@ class Test_sanitize_chapter_title(hunitest.TestCase):
         # Prepare outputs.
         expected = "Quote__code_"
         # Run test.
-        actual = dshdsptc._sanitize_chapter_title(title)
+        actual = dshdecfte._sanitize_chapter_title(title)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -221,7 +221,7 @@ class Test_sanitize_chapter_title(hunitest.TestCase):
         title = "   "
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dshdsptc._sanitize_chapter_title(title)
+            dshdecfte._sanitize_chapter_title(title)
 
 
 # #############################################################################
@@ -244,7 +244,7 @@ class Test_validate_chapters(hunitest.TestCase):
             ("Chapter Two", "# Chapter Two\nContent."),
         ]
         # Run test (no exception expected).
-        dshdsptc._validate_chapters(chapters)
+        dshdecfte._validate_chapters(chapters)
 
     def test2(self) -> None:
         """
@@ -253,7 +253,7 @@ class Test_validate_chapters(hunitest.TestCase):
         # Prepare inputs.
         chapters: List[Tuple[str, str]] = []
         # Run test (no exception expected).
-        dshdsptc._validate_chapters(chapters)
+        dshdecfte._validate_chapters(chapters)
 
     def test3(self) -> None:
         """
@@ -265,7 +265,7 @@ class Test_validate_chapters(hunitest.TestCase):
         ]
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dshdsptc._validate_chapters(chapters)
+            dshdecfte._validate_chapters(chapters)
 
     def test4(self) -> None:
         """
@@ -279,7 +279,7 @@ class Test_validate_chapters(hunitest.TestCase):
         ]
         # Run test and check output.
         with self.assertRaises(ValueError) as cm:
-            dshdsptc._validate_chapters(chapters)
+            dshdecfte._validate_chapters(chapters)
         self.assertIn("Duplicate chapter filename", str(cm.exception))
 
 
@@ -304,7 +304,7 @@ class Test_check_output_files_exist(hunitest.TestCase):
         ]
         output_dir = self.get_scratch_space()
         # Run test.
-        actual = dshdsptc._check_output_files_exist(
+        actual = dshdecfte._check_output_files_exist(
             chapters, output_dir, add_numbers=False
         )
         # Check outputs.
@@ -323,7 +323,7 @@ class Test_check_output_files_exist(hunitest.TestCase):
         # Create a pre-existing file matching the sanitized chapter name.
         hio.to_file(os.path.join(output_dir, "Chapter_One.md"), "exists")
         # Run test.
-        actual = dshdsptc._check_output_files_exist(
+        actual = dshdecfte._check_output_files_exist(
             chapters, output_dir, add_numbers=False
         )
         # Check outputs.
@@ -342,7 +342,7 @@ class Test_check_output_files_exist(hunitest.TestCase):
         # Create a pre-existing file with the numbered prefix.
         hio.to_file(os.path.join(output_dir, "1_Chapter_One.md"), "exists")
         # Run test.
-        actual = dshdsptc._check_output_files_exist(
+        actual = dshdecfte._check_output_files_exist(
             chapters, output_dir, add_numbers=True
         )
         # Check outputs.
@@ -371,7 +371,7 @@ class Test_write_chapters(hunitest.TestCase):
         ]
         output_dir = os.path.join(self.get_scratch_space(), "output")
         # Run test.
-        dshdsptc._write_chapters(chapters, output_dir, add_numbers=False)
+        dshdecfte._write_chapters(chapters, output_dir, add_numbers=False)
         # Check outputs.
         actual_files = sorted(os.listdir(output_dir))
         expected_files = ["Chapter_One.md", "Chapter_Two.md"]
@@ -394,7 +394,7 @@ class Test_write_chapters(hunitest.TestCase):
         ]
         output_dir = os.path.join(self.get_scratch_space(), "output")
         # Run test.
-        dshdsptc._write_chapters(chapters, output_dir, add_numbers=True)
+        dshdecfte._write_chapters(chapters, output_dir, add_numbers=True)
         # Check outputs.
         actual_files = sorted(os.listdir(output_dir))
         expected_files = ["1_Chapter_One.md", "2_Chapter_Two.md"]
@@ -411,7 +411,7 @@ class Test_write_chapters(hunitest.TestCase):
         # The nested output directory does not exist yet.
         output_dir = os.path.join(self.get_scratch_space(), "nested", "output")
         # Run test.
-        dshdsptc._write_chapters(chapters, output_dir, add_numbers=False)
+        dshdecfte._write_chapters(chapters, output_dir, add_numbers=False)
         # Check outputs.
         actual_files = sorted(os.listdir(output_dir))
         expected_files = ["Solo_Chapter.md"]

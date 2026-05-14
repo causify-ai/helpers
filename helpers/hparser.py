@@ -148,6 +148,8 @@ def parse_cache_control_args(args: argparse.Namespace) -> None:
     if cache_debug:
         _LOG.info("Enabling cache_debug logging")
     hcacsimp.set_cache_debug(cache_debug)
+
+
 # #############################################################################
 # Command line options related to selection actions.
 # #############################################################################

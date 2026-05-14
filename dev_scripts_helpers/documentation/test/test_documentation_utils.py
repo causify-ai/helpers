@@ -310,7 +310,9 @@ class Test_remove_bold_span_tags(hunitest.TestCase):
         Test conversion of bold span with double quotes.
         """
         # Prepare inputs.
-        content = 'Text <span class="b">HBR Press Quantity Sales Discounts</span> more'
+        content = (
+            'Text <span class="b">HBR Press Quantity Sales Discounts</span> more'
+        )
         # Prepare outputs.
         expected = "Text **HBR Press Quantity Sales Discounts** more"
         # Run test.

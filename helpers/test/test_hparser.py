@@ -445,7 +445,9 @@ class Test_add_input_output_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         # Run test.
         args = parser.parse_args(["-i", "input.txt", "-o", "output.txt"])
         # Check outputs.
@@ -458,7 +460,9 @@ class Test_add_input_output_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         # Run test.
         args = parser.parse_args(["--input_files", "file1.txt,file2.txt"])
         # Check outputs. With nargs='+', input_files is now a list.
@@ -470,7 +474,9 @@ class Test_add_input_output_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         # Run test.
         args = parser.parse_args(["--from_file", "files.txt"])
         # Check outputs.
@@ -493,7 +499,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         args = parser.parse_args(["-i", "input.txt"])
         # Run test.
         result = hparser.parse_input_output_files(args)
@@ -506,8 +514,12 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
-        args = parser.parse_args(["--input_files", "file1.txt,file2.txt,file3.txt"])
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
+        args = parser.parse_args(
+            ["--input_files", "file1.txt,file2.txt,file3.txt"]
+        )
         # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
         # Run test.
@@ -521,8 +533,12 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
-        args = parser.parse_args(["--input_files", "file1.txt file2.txt file3.txt"])
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
+        args = parser.parse_args(
+            ["--input_files", "file1.txt file2.txt file3.txt"]
+        )
         # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
         # Run test.
@@ -536,8 +552,12 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
-        args = parser.parse_args(["--input_files", "file1.txt,file2.txt file3.txt"])
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
+        args = parser.parse_args(
+            ["--input_files", "file1.txt,file2.txt file3.txt"]
+        )
         # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
         # Run test.
@@ -551,7 +571,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         args = parser.parse_args(["--input_files", "single.txt"])
         # Run test.
         result = hparser.parse_input_output_files(args)
@@ -570,7 +592,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
             f.write("file2.txt\n")
             f.write("file3.txt\n")
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         args = parser.parse_args(["--from_file", file_list_path])
         # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
@@ -593,7 +617,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
             f.write("  \n")
             f.write("file3.txt\n")
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         args = parser.parse_args(["--from_file", file_list_path])
         # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
@@ -608,7 +634,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         args = parser.parse_args(["--from_file", "/nonexistent/path/files.txt"])
         # Run test and check outputs.
         with self.assertRaises(FileNotFoundError):
@@ -621,7 +649,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
         # Prepare inputs. This simulates shell expansion: `--input_files *.md`
         # becomes multiple arguments: `--input_files file1.md file2.md file3.md`
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         args = parser.parse_args(
             ["--input_files", "file1.md", "file2.md", "file3.md"]
         )
@@ -652,7 +682,9 @@ class Test_parse_input_output_args(hunitest.TestCase):
         :param expected_out: Expected output file
         """
         parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        hparser.add_input_output_args(
+            parser, in_required=False, out_required=False
+        )
         args = parser.parse_args(args_list)
         in_file, out_file = hparser.parse_input_output_args(args)
         self.assertEqual(in_file, expected_in)

@@ -10,7 +10,7 @@ from typing import List, Tuple
 
 import pytest
 
-import dev_scripts_helpers.documentation.summarize_chapters as dshdssc
+import dev_scripts_helpers.documentation.summarize_chapters as dshdsuch
 import helpers.hunit_test as hunitest
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -18,6 +18,11 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test__get_output_path
+# #############################################################################
 
 
 class Test__get_output_path(hunitest.TestCase):
@@ -33,7 +38,7 @@ class Test__get_output_path(hunitest.TestCase):
         :param expected: Expected output path
         """
         # Run test.
-        actual = dshdssc._get_output_path(input_file)
+        actual = dshdsuch._get_output_path(input_file)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -71,6 +76,11 @@ class Test__get_output_path(hunitest.TestCase):
         self.helper(input_file, expected)
 
 
+# #############################################################################
+# Test_summarize_file
+# #############################################################################
+
+
 # TODO(ai_gp): Create a test list for LLM.
 @pytest.mark.skip(reason="Requires LLM credentials and external API")
 class Test_summarize_file(hunitest.TestCase):
@@ -105,14 +115,17 @@ class Test_summarize_file(hunitest.TestCase):
         input_content = hprint.dedent(input_content)
         hio.to_file(input_file, input_content)
         # Run test.
-        dshdssc._summarize_file(
-            input_file, output_file, model="gpt-4o-mini"
-        )
+        dshdsuch._summarize_file(input_file, output_file, model="gpt-4o-mini")
         # Check outputs.
         self.assertTrue(os.path.exists(output_file))
         result = hio.from_file(output_file)
         self.assertIn("# 1.", result)
         self.assertIn("-", result)
+
+
+# #############################################################################
+# Test_summarize_chapters_script
+# #############################################################################
 
 
 @pytest.mark.skip(reason="Requires LLM credentials and external API")

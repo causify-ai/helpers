@@ -239,7 +239,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _validate_chapters(chapters)
     output_dir = args.output
     # Check for existing output files.
-    files_exist = _check_output_files_exist(chapters, output_dir, args.add_numbers)
+    files_exist = _check_output_files_exist(
+        chapters, output_dir, args.add_numbers
+    )
     if files_exist and not args.overwrite:
         raise ValueError(
             f"Output directory already contains chapter files: {output_dir} "
