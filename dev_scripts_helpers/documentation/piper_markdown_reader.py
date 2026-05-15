@@ -216,7 +216,7 @@ def _generate_audio(
     voice: str,
     speed: float,
     output_file: str,
-) -> bool:
+) -> None:
     """
     Generate audio from text using Piper TTS.
 
@@ -224,57 +224,37 @@ def _generate_audio(
     :param voice: voice identifier
     :param speed: speech speed
     :param output_file: path to output audio file
-    :return: True if successful, False otherwise
     """
-    try:
-        _LOG.debug("Starting audio generation: voice=%s, speed=%.2f", voice, speed)
-        voice_path = _get_voice_path(voice)
-        if not os.path.exists(voice_path):
-            voices_dir = os.path.dirname(voice_path)
-            _LOG.error(
-                "Voice model '%s' not found at %s",
-                voice,
-                voice_path,
-            )
-            _LOG.error(
-                "Download voice models to %s",
-                voices_dir,
-            )
-            return False
-        _LOG.debug("Voice model found: %s", voice_path)
-        cmd = [
-            "piper",
-            "--model",
-            voice_path,
-            "--output_file",
-            output_file,
-        ]
-        _LOG.debug("Running piper command: %s", " ".join(cmd[:4]))
-        process = subprocess.Popen(
-            cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        _LOG.debug("Sending %d characters to piper...", len(text))
-        _, stderr = process.communicate(input=text, timeout=300)
-        _LOG.debug("Piper process completed with return code: %d", process.returncode)
-        if process.returncode != 0:
-            _LOG.error("Piper failed: %s", stderr)
-            return False
-        file_size = os.path.getsize(output_file)
-        _LOG.info("Generated audio file: %s (%d bytes)", output_file, file_size)
-        return True
-    except subprocess.TimeoutExpired:
-        _LOG.error("Piper process timed out")
-        return False
-    except FileNotFoundError:
-        _LOG.error("Piper command not found. Install with: pip install piper-tts")
-        return False
-    except Exception as e:
-        _LOG.error("Failed to generate audio: %s", e)
-        return False
+    _LOG.debug("Starting audio generation: voice=%s, speed=%.2f", voice, speed)
+    voice_path = _get_voice_path(voice)
+    hdbg.dassert_file_exists(voice_path, "Voice model must exist")
+    _LOG.debug("Voice model found: %s", voice_path)
+    cmd = [
+        "piper",
+        "--model",
+        voice_path,
+        "--output_file",
+        output_file,
+    ]
+    _LOG.debug("Running piper command: %s", " ".join(cmd[:4]))
+    process = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    _LOG.debug("Sending %d characters to piper...", len(text))
+    _, stderr = process.communicate(input=text, timeout=300)
+    _LOG.debug("Piper process completed with return code: %d", process.returncode)
+    hdbg.dassert_eq(
+        process.returncode,
+        0,
+        "Piper command failed: %s",
+        stderr,
+    )
+    file_size = os.path.getsize(output_file)
+    _LOG.info("Generated audio file: %s (%d bytes)", output_file, file_size)
 
 
 def _apply_speed_with_ffmpeg(
@@ -282,52 +262,43 @@ def _apply_speed_with_ffmpeg(
     *,
     output_file: str,
     speed: float,
-) -> bool:
+) -> None:
     """
     Apply speed adjustment to audio using ffmpeg atempo filter.
 
     :param input_file: path to input audio file
     :param output_file: path to output audio file
     :param speed: speed multiplier (1.0 = normal, 2.0 = 2x faster, 0.5 = 2x slower)
-    :return: True if successful, False otherwise
     """
-    try:
-        if speed == 1.0:
-            _LOG.debug("Speed is 1.0, skipping ffmpeg adjustment")
-            return True
-        _LOG.debug("Applying speed adjustment with ffmpeg: speed=%.2f", speed)
-        cmd = [
-            "ffmpeg",
-            "-i", input_file,
-            "-filter:a", f"atempo={speed}",
-            "-acodec", "pcm_s16le",
-            "-y",
-            output_file,
-        ]
-        _LOG.debug("Running ffmpeg command: %s", " ".join(cmd))
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        _, stderr = process.communicate(timeout=300)
-        _LOG.debug("ffmpeg process completed with return code: %d", process.returncode)
-        if process.returncode != 0:
-            _LOG.error("ffmpeg speed adjustment failed: %s", stderr)
-            return False
-        file_size = os.path.getsize(output_file)
-        _LOG.info("Speed adjustment applied: %s at %.2fx (%d bytes)", output_file, speed, file_size)
-        return True
-    except FileNotFoundError:
-        _LOG.error("ffmpeg command not found. Install with: brew install ffmpeg")
-        return False
-    except subprocess.TimeoutExpired:
-        _LOG.error("ffmpeg process timed out")
-        return False
-    except Exception as e:
-        _LOG.error("Failed to apply speed adjustment: %s", e)
-        return False
+    if speed == 1.0:
+        _LOG.debug("Speed is 1.0, skipping ffmpeg adjustment")
+        return
+    _LOG.debug("Applying speed adjustment with ffmpeg: speed=%.2f", speed)
+    cmd = [
+        "ffmpeg",
+        "-i", input_file,
+        "-filter:a", f"atempo={speed}",
+        "-acodec", "pcm_s16le",
+        "-y",
+        output_file,
+    ]
+    _LOG.debug("Running ffmpeg command: %s", " ".join(cmd))
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    _, stderr = process.communicate(timeout=300)
+    _LOG.debug("ffmpeg process completed with return code: %d", process.returncode)
+    hdbg.dassert_eq(
+        process.returncode,
+        0,
+        "ffmpeg speed adjustment failed: %s",
+        stderr,
+    )
+    file_size = os.path.getsize(output_file)
+    _LOG.info("Speed adjustment applied: %s at %.2fx (%d bytes)", output_file, speed, file_size)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -379,26 +350,16 @@ def _play_audio_with_controls(
     audio_files: List[str],
     *,
     chunks: List[str],
-    initial_speed: float,
 ) -> None:
     """
     Play audio files in sequence with keyboard controls.
 
     :param audio_files: list of paths to audio files
     :param chunks: list of chunk text contents (formatted before cleaning)
-    :param initial_speed: initial speech speed for display
     """
     _LOG.debug("Starting audio playback initialization for %d files", len(audio_files))
-    try:
-        import pygame
-    except ImportError:
-        _LOG.error("Pygame package not found. Install with: pip install pygame")
-        return
-    try:
-        from pynput import keyboard
-    except ImportError:
-        _LOG.error("pynput package not found. Install with: pip install pynput")
-        return
+    import pygame
+    from pynput import keyboard
     _LOG.debug("Required packages imported successfully")
     for audio_file in audio_files:
         hdbg.dassert_file_exists(audio_file, "Audio file must exist")
@@ -431,12 +392,8 @@ def _play_audio_with_controls(
         if playback_state["stopped"]:
             break
         print(chunk)
-        try:
-            sound = pygame.mixer.Sound(audio_file)
-            _LOG.debug("Sound loaded successfully")
-        except Exception as e:
-            _LOG.error("Failed to load audio file %s: %s", audio_file, e)
-            continue
+        sound = pygame.mixer.Sound(audio_file)
+        _LOG.debug("Sound loaded successfully")
         channel = sound.play()
         while channel.get_busy() and not playback_state["stopped"]:
             if playback_state["paused"]:
@@ -508,27 +465,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 continue
             if not os.path.exists(base_audio_file):
                 _LOG.info("Generating audio file: %s", base_audio_file)
-                success = _generate_audio(
+                _generate_audio(
                     chunk,
                     voice=args.voice,
                     speed=1.0,
                     output_file=base_audio_file,
                 )
-                if not success:
-                    _LOG.error("Failed to generate audio for chunk %d", i)
-                    sys.exit(1)
             else:
                 _LOG.info("Audio file already exists (cached): %s", base_audio_file)
             if args.speed != 1.0:
                 _LOG.info("Applying speed adjustment: %.2f", args.speed)
-                success = _apply_speed_with_ffmpeg(
+                _apply_speed_with_ffmpeg(
                     base_audio_file,
                     output_file=final_audio_file,
                     speed=args.speed,
                 )
-                if not success:
-                    _LOG.error("Failed to apply speed adjustment to chunk %d", i)
-                    sys.exit(1)
                 audio_files.append(final_audio_file)
             else:
                 audio_files.append(base_audio_file)
@@ -540,7 +491,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         if not args.no_play and audio_files:
             _LOG.debug("Starting audio playback of %d chunks", len(audio_files))
-            _play_audio_with_controls(audio_files, chunks=chunk_originals, initial_speed=args.speed)
+            _play_audio_with_controls(audio_files, chunks=chunk_originals)
             _LOG.debug("Playback complete")
         if args.no_play:
             _LOG.info("Audio files saved:")
