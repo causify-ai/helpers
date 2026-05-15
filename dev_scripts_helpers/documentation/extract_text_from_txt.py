@@ -45,7 +45,7 @@ import logging
 import os
 
 import helpers.hdbg as hdbg
-import helpers.hmarkdown_select as hmarsel
+import helpers.hmarkdown_select as hmarsele
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -85,8 +85,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_ne(len(input_content), 0, "Input file is empty")
     _, ext = os.path.splitext(in_file_name)
     is_slide_format = ext == ".txt"
-    extracted_lines = hmarsel.extract_text_from_markdown_lines(
-        input_content, args.md_start, args.md_end, is_slide_format=is_slide_format
+    extracted_lines = hmarsele.extract_text_from_markdown_lines(
+        input_content,
+        args.md_start,
+        args.md_end,
+        is_slide_format=is_slide_format,
     )
     output_content = "\n".join(extracted_lines)
     start_line_idx = next(

@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hmarkdown_select as hmarsel
+import helpers.hmarkdown_select as hmarsele
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
@@ -46,7 +46,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         # Prepare outputs.
         expected = self._to_lines(expected_text)
         # Run test.
-        actual = hmarsel.extract_text_from_markdown_lines(
+        actual = hmarsele.extract_text_from_markdown_lines(
             lines, start_header, end_header, is_slide_format=False
         )
         # Check outputs.
@@ -176,7 +176,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         lines = self._to_lines(document_text)
         # Run test and check output.
         with self.assertRaises(Exception):
-            hmarsel.extract_text_from_markdown_lines(
+            hmarsele.extract_text_from_markdown_lines(
                 lines, start_header, end_header, is_slide_format=False
             )
 
@@ -422,7 +422,7 @@ class Test__extract_text_from_txtslides(hunitest.TestCase):
         # Prepare outputs.
         expected = self._to_lines(expected_text)
         # Run test.
-        actual = hmarsel.extract_text_from_markdown_lines(
+        actual = hmarsele.extract_text_from_markdown_lines(
             lines, start_header, end_header, is_slide_format=True
         )
         # Check outputs.

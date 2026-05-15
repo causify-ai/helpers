@@ -47,7 +47,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_headers as hmarhead
-import helpers.hmarkdown_select as hmarsel
+import helpers.hmarkdown_select as hmarsele
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -149,18 +149,26 @@ def _get_target_headers(
         header_list = [
             hmarhead.HeaderInfo(h[0], h[1], h[2] + 1) for h in target_headers
         ]
-        match = hmarsel.find_header_by_partial_title(header_list, md_start)
-        hdbg.dassert_is_not(match, None, "No header matches --md_start: '%s'", md_start)
-        start_idx = next(i for i, h in enumerate(target_headers) if h[1] == match.description)
+        match = hmarsele.find_header_by_partial_title(header_list, md_start)
+        hdbg.dassert_is_not(
+            match, None, "No header matches --md_start: '%s'", md_start
+        )
+        start_idx = next(
+            i for i, h in enumerate(target_headers) if h[1] == match.description
+        )
         target_headers = target_headers[start_idx:]
     # Apply end boundary if specified: find matching header and slice up to there.
     if md_end is not None:
         header_list = [
             hmarhead.HeaderInfo(h[0], h[1], h[2] + 1) for h in target_headers
         ]
-        match = hmarsel.find_header_by_partial_title(header_list, md_end)
-        hdbg.dassert_is_not(match, None, "No header matches --md_end: '%s'", md_end)
-        end_idx = next(i for i, h in enumerate(target_headers) if h[1] == match.description)
+        match = hmarsele.find_header_by_partial_title(header_list, md_end)
+        hdbg.dassert_is_not(
+            match, None, "No header matches --md_end: '%s'", md_end
+        )
+        end_idx = next(
+            i for i, h in enumerate(target_headers) if h[1] == match.description
+        )
         target_headers = target_headers[: end_idx + 1]
     return target_headers
 
@@ -358,7 +366,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("Extracted %d headers from input file", len(all_headers))
     # Filter headers to the target level and optional range.
     target_headers = _get_target_headers(
-        all_headers, md_level=args.md_level, md_start=args.md_start, md_end=args.md_end
+        all_headers,
+        md_level=args.md_level,
+        md_start=args.md_start,
+        md_end=args.md_end,
     )
     _LOG.info(
         "Processing %d headers at level %d", len(target_headers), args.md_level
