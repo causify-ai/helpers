@@ -155,8 +155,9 @@ def _apply_llm_via_executable(
         proc.wait()
         if proc.returncode != 0:
             error_msg = proc.stderr.read() if proc.stderr else ""
-            hdbg.dfatal(
-                f"llm command failed with return code: {proc.returncode} error: {error_msg}"
+            raise RuntimeError(
+                "llm command failed with return code: %s error: %s"
+                % (proc.returncode, error_msg)
             )
         response = "".join(response_parts)
     else:
@@ -318,7 +319,7 @@ def apply_llm(
         hdbg.dassert_ne(model, "", "Model cannot be empty string")
     if expected_num_chars is not None:
         hdbg.dassert_isinstance(expected_num_chars, int)
-        hdbg.dassert_lt(0, expected_num_chars)
+        hdbg.dassert_lt(0, expected_num_chars, "Expected number of characters must be positive")
     _LOG.debug("Applying LLM to input text")
     _LOG.debug("use_llm_executable=%s", use_llm_executable)
     # Route to appropriate implementation.
@@ -412,8 +413,8 @@ def _validate_batch_inputs(
     :param input_list: List of inputs to validate
     :raises: Assertion errors if validation fails
     """
-    hdbg.dassert_isinstance(prompt, str)
-    hdbg.dassert_isinstance(input_list, list)
+    hdbg.dassert_isinstance(prompt, str, "Prompt must be a string")
+    hdbg.dassert_isinstance(input_list, list, "Input list must be a list")
     hdbg.dassert_lt(0, len(input_list), "Input list cannot be empty")
     for idx, input_str in enumerate(input_list):
         hdbg.dassert_isinstance(
@@ -444,11 +445,11 @@ def _llm(
     :param model: model name to use
     :return: tuple of (LLM response as string, cost in dollars)
     """
-    hdbg.dassert_isinstance(system_prompt, str)
+    hdbg.dassert_isinstance(system_prompt, str, "System prompt must be a string")
     _LOG.trace("system_prompt=\n%s", system_prompt)
-    hdbg.dassert_isinstance(input_str, str)
+    hdbg.dassert_isinstance(input_str, str, "Input string must be a string")
     _LOG.trace("input_str=\n%s", input_str)
-    hdbg.dassert_isinstance(model, str)
+    hdbg.dassert_isinstance(model, str, "Model must be a string")
     hdbg.dassert_ne(model, "", "Model cannot be empty")
     llm_model = llm.get_model(model)
     _LOG.debug("model=%s", llm_model.model_id)
@@ -698,7 +699,9 @@ def apply_llm_batch_combined(
                 _LOG.debug("Successfully parsed JSON response")
                 if progress_bar_object is not None:
                     progress_bar_object.update(len(input_list))
-                    progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
+                    progress_bar_object.set_postfix_str(
+                        f"Cost: ${total_cost:.4f}"
+                    )
                 _LOG.debug(
                     "Total cost for batch with combined prompt: $%.6f",
                     total_cost,
@@ -712,8 +715,9 @@ def apply_llm_batch_combined(
                     e,
                 )
                 if retry_num == max_retries - 1:
-                    hdbg.dfatal(
-                        "Failed to parse JSON after %d retries", max_retries
+                    raise ValueError(
+                        "Failed to parse JSON after %d retries: %s"
+                        % (max_retries, str(e))
                     )
                 # Add instruction to retry.
                 combined_prompt += "\n\nPrevious response had invalid JSON format. Please return ONLY a valid JSON object."

@@ -15,6 +15,7 @@ Examples:
 """
 
 import argparse
+import logging
 from typing import cast, Dict, List, Tuple
 
 from tabulate import tabulate
@@ -22,6 +23,8 @@ from tabulate import tabulate
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+
+_LOG = logging.getLogger(__name__)
 
 WORDS_PER_MINUTE = 150
 
@@ -95,8 +98,9 @@ def _format_reading_time(*, words: int) -> str:
     return f"{hours:.2f}h"
 
 
-def _build_table_data(*, file_counts: Dict[str, int], total_words: int
-                     ) -> Tuple[List[List[str]], List[str]]:
+def _build_table_data(
+    *, file_counts: Dict[str, int], total_words: int
+) -> Tuple[List[List[str]], List[str]]:
     """
     Build table data with file counts and reading times.
 
@@ -121,9 +125,10 @@ def _print_table(*, file_counts: Dict[str, int], total_words: int) -> None:
     :param file_counts: Mapping of file path to word count
     :param total_words: Total number of words across all files
     """
-    hdbg.dassert(file_counts, "No files to display")
-    rows, headers = _build_table_data(file_counts=file_counts,
-                                       total_words=total_words)
+    hdbg.dassert_ne(len(file_counts), 0, "File counts dict must not be empty")
+    rows, headers = _build_table_data(
+        file_counts=file_counts, total_words=total_words
+    )
     table_str = tabulate(rows, headers=headers, tablefmt="simple")
     print(table_str)
 
@@ -137,14 +142,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     files_to_process: List[str]
     if args.input_files:
         result = hparser.parse_input_output_files(args)
-        hdbg.dassert(result is not None,
-                     "parse_input_output_files returned None")
+        hdbg.dassert_ne(result, None, "parse_input_output_files returned None")
         files_to_process = cast(List[str], result)
     elif args.input_file:
         files_to_process = [args.input_file]
     else:
         parser.error("Either --input_file or --input_files must be specified")
-    hdbg.dassert(files_to_process, "No files to process")
+    hdbg.dassert_ne(len(files_to_process), 0, "No files to process")
     total_words, file_counts = _count_words(file_paths=files_to_process)
     _print_table(file_counts=file_counts, total_words=total_words)
 
