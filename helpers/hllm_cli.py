@@ -85,7 +85,7 @@ def shutup_llm_logging() -> None:
     """
     # OpenAI client logging.
     logging.getLogger("openai").setLevel(logging.WARNING)
-    # Common HTTP logging sources
+    # Common HTTP logging sources.
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -104,10 +104,10 @@ def _check_llm_executable() -> bool:
     """
     try:
         hsystem.system("which llm", suppress_output=True)
-        _LOG.debug("llm command found")
+        _LOG.debug("llm command found.")
         return True
     except Exception:
-        _LOG.debug("llm command not found")
+        _LOG.debug("llm command not found.")
         return False
 
 
@@ -258,6 +258,30 @@ def _apply_llm_via_library(
 # #############################################################################
 # Main functions
 # #############################################################################
+
+# Overview of `apply_llm*` functions:
+# - `apply_llm()`
+#   - Core function for processing a single input string with an LLM.
+#   - Returns the response and cost
+#   - Can use CLI executable or library backend.
+# - `apply_llm_with_files()`
+#   - Convenience wrapper around `apply_llm()` that reads from an input file,
+#     processes it, and writes the result to an output file.
+# - `apply_llm_batch_individual()`
+#   - Process multiple inputs by making individual LLM calls for each input
+#     with the same system prompt. Each call is independent.
+# - `apply_llm_batch_with_shared_prompt()`
+#   - Process multiple inputs by maintaining a single conversation context
+#     across all inputs (more efficient for related queries).
+# - `apply_llm_batch_combined()`
+#   - Process multiple inputs by combining them into a single LLM call
+#     expecting structured JSON output
+#   - Most efficient but requires careful prompt engineering for proper JSON
+#     formatting.
+# - `apply_llm_prompt_to_df()`
+#   - Apply an LLM to process rows from a pandas dataframe, with results stored
+#     in a target column.
+#   - Supports all three batch modes and incremental progress saving.
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -415,19 +439,15 @@ def _llm(
     """
     Apply LLM using the llm Python library.
 
+    :param system_prompt: system prompt to guide the LLM's behavior
     :param input_str: the input text to process
-    :param system_prompt: optional system prompt to use
-    :param model: optional model name to use
-    :param expected_num_chars: optional expected number of characters in
-        output (used for progress bar)
-    :return: LLM response as string
+    :param model: model name to use
+    :return: tuple of (LLM response as string, cost in dollars)
     """
     hdbg.dassert_isinstance(system_prompt, str)
     _LOG.trace("system_prompt=\n%s", system_prompt)
-    #
     hdbg.dassert_isinstance(input_str, str)
     _LOG.trace("input_str=\n%s", input_str)
-    #
     hdbg.dassert_isinstance(model, str)
     hdbg.dassert_ne(model, "", "Model cannot be empty")
     llm_model = llm.get_model(model)
@@ -506,7 +526,14 @@ def apply_llm_batch_individual(
     progress_bar_object: Optional[tqdm] = None,
 ) -> Tuple[List[str], float]:
     """
-    Apply an LLM to process a batch of inputs one at the time.
+    Apply an LLM to process a batch of inputs one at a time.
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input strings to process
+    :param model: model name to use
+    :param testing_functor: optional testing function to use instead of LLM
+    :param progress_bar_object: optional progress bar object to update
+    :return: tuple of (list of responses, total cost in dollars)
     """
     _validate_batch_inputs(prompt, input_list)
     _LOG.debug("Processing batch of %d inputs individually", len(input_list))
@@ -540,6 +567,13 @@ def apply_llm_batch_with_shared_prompt(
 ) -> Tuple[List[str], float]:
     """
     Apply an LLM to process a batch of input texts using the same system prompt.
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input strings to process
+    :param model: model name to use
+    :param testing_functor: optional testing function to use instead of LLM
+    :param progress_bar_object: optional progress bar object to update
+    :return: tuple of (list of responses, total cost in dollars)
     """
     _validate_batch_inputs(prompt, input_list)
     _LOG.debug("Processing batch of %d inputs", len(input_list))
@@ -698,7 +732,15 @@ def apply_llm_batch_combined(
 
 # TODO(gp): Move it somewhere else.
 def get_tqdm_progress_bar() -> tqdm:
-    # Use appropriate tqdm for notebook or terminal
+    """
+    Get the appropriate tqdm progress bar class for the current environment.
+
+    Detects whether running in a Jupyter notebook or terminal and returns
+    the corresponding `tqdm` class (`tqdm.notebook.tqdm` or `tqdm`).
+
+    :return: tqdm class appropriate for the current environment
+    """
+    # Use appropriate tqdm for notebook or terminal.
     try:
         from IPython import get_ipython
 
