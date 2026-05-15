@@ -8,9 +8,9 @@
 Read a markdown file and play it using Piper text-to-speech with playback controls.
 
 Examples:
-  ./piper_markdown_reader.py --input README.md
-  ./piper_markdown_reader.py --input README.md --speed 1.5 --voice en_US-joe-medium
-  ./piper_markdown_reader.py --input README.md --speed 0.8 --voice en_US-amy-medium
+> ./piper_markdown_reader.py --input README.md
+> ./piper_markdown_reader.py --input README.md --speed 1.5 --voice en_US-joe-medium
+> ./piper_markdown_reader.py --input README.md --speed 0.8 --voice en_US-amy-medium
 """
 
 import argparse
@@ -34,7 +34,7 @@ _DEFAULT_VOICE = "en_US-joe-medium"
 _DEFAULT_MAX_LENGTH = 0
 
 # #############################################################################
-# Helper functions
+# File I/O and Text Parsing
 # #############################################################################
 
 
@@ -65,6 +65,7 @@ def _split_by_first_level_bullets(text: str) -> List[str]:
     lines = text.split("\n")
     sections = []
     current_section = []
+    # Start new section at each first-level bullet point.
     for line in lines:
         if line.startswith("- ") or line.startswith("* "):
             if current_section:
@@ -79,45 +80,9 @@ def _split_by_first_level_bullets(text: str) -> List[str]:
     return sections
 
 
-def _chunk_text_by_length(text: str, *, max_length: int) -> List[str]:
-    """
-    Chunk text by maximum length, respecting sentence boundaries.
-
-    :param text: text to chunk
-    :param max_length: maximum length per chunk
-    :return: list of text chunks
-    """
-    _LOG.debug("Length-based chunking: max_length=%d", max_length)
-    if max_length <= 0:
-        return [text]
-    chunks = []
-    current_chunk = ""
-    sentences = text.split(". ")
-    for sentence in sentences:
-        sentence = sentence.strip()
-        if not sentence:
-            continue
-        if len(sentence) > max_length:
-            if current_chunk:
-                chunks.append(current_chunk + ".")
-                current_chunk = ""
-            while len(sentence) > max_length:
-                chunks.append(sentence[:max_length])
-                sentence = sentence[max_length:].strip()
-            current_chunk = sentence
-        elif len(current_chunk) + len(sentence) + 2 <= max_length:
-            if current_chunk:
-                current_chunk += ". " + sentence
-            else:
-                current_chunk = sentence
-        else:
-            if current_chunk:
-                chunks.append(current_chunk + ".")
-            current_chunk = sentence
-    if current_chunk:
-        chunks.append(current_chunk)
-    _LOG.debug("Created %d length-based chunks", len(chunks))
-    return chunks
+# #############################################################################
+# Text Processing and Transformation
+# #############################################################################
 
 
 def _format_markdown(text: str) -> str:
@@ -131,6 +96,7 @@ def _format_markdown(text: str) -> str:
     import re
 
     lines = []
+    # Convert markdown to spoken text: headers become chapter announcements, bullets get periods.
     for line in text.split("\n"):
         line = line.strip()
         if line.startswith("### "):
@@ -162,6 +128,7 @@ def _clean_text(text: str) -> str:
     import re
 
     lines = []
+    # Remove markdown formatting markers: bold, italic, code, headers.
     for line in text.split("\n"):
         line = line.strip()
         if line.startswith("#"):
@@ -180,6 +147,53 @@ def _clean_text(text: str) -> str:
         len(cleaned),
     )
     return cleaned
+
+
+def _chunk_text_by_length(text: str, *, max_length: int) -> List[str]:
+    """
+    Chunk text by maximum length, respecting sentence boundaries.
+
+    :param text: text to chunk
+    :param max_length: maximum length per chunk
+    :return: list of text chunks
+    """
+    _LOG.debug("Length-based chunking: max_length=%d", max_length)
+    if max_length <= 0:
+        return [text]
+    chunks = []
+    current_chunk = ""
+    sentences = text.split(". ")
+    # Greedily pack sentences, breaking long ones and splitting chunks when next would exceed max.
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        if len(sentence) > max_length:
+            if current_chunk:
+                chunks.append(current_chunk + ".")
+                current_chunk = ""
+            while len(sentence) > max_length:
+                chunks.append(sentence[:max_length])
+                sentence = sentence[max_length:].strip()
+            current_chunk = sentence
+        elif len(current_chunk) + len(sentence) + 2 <= max_length:
+            if current_chunk:
+                current_chunk += ". " + sentence
+            else:
+                current_chunk = sentence
+        else:
+            if current_chunk:
+                chunks.append(current_chunk + ".")
+            current_chunk = sentence
+    if current_chunk:
+        chunks.append(current_chunk)
+    _LOG.debug("Created %d length-based chunks", len(chunks))
+    return chunks
+
+
+# #############################################################################
+# Audio Generation Utilities
+# #############################################################################
 
 
 def _get_chunk_filename(
@@ -328,6 +342,11 @@ def _apply_speed_with_ffmpeg(
     )
 
 
+# #############################################################################
+# Chunk Processing and Orchestration
+# #############################################################################
+
+
 def _process_sections_to_chunks(
     sections: List[str],
     *,
@@ -342,6 +361,7 @@ def _process_sections_to_chunks(
     """
     chunks = []
     chunk_originals = []
+    # Transform sections through pipeline: format, clean, split by length. Track cleaned and original.
     for section_idx, section in enumerate(sections, 1):
         section = section.strip()
         if not section:
@@ -402,12 +422,14 @@ def _process_chunk_audio(
     final_audio_file = _get_chunk_filename(
         chunk, chunk_idx=chunk_idx, speed=speed
     )
+    # Return if speed-adjusted file already cached.
     if os.path.exists(final_audio_file):
         _LOG.info(
             "Speed-adjusted audio file already exists (cached): %s",
             final_audio_file,
         )
         return final_audio_file
+    # Generate base audio if needed, apply speed adjustment, cache both.
     if not os.path.exists(base_audio_file):
         _LOG.info("Generating audio file: %s", base_audio_file)
         _generate_audio(
@@ -427,6 +449,11 @@ def _process_chunk_audio(
         )
         return final_audio_file
     return base_audio_file
+
+
+# #############################################################################
+# Playback and Output
+# #############################################################################
 
 
 def _play_audio_with_controls(
@@ -476,6 +503,7 @@ def _play_audio_with_controls(
     listener.start()
     _LOG.debug("Keyboard listener started")
     os.system("clear" if os.name != "nt" else "cls")
+    # Play chunks in sequence with keyboard pause/stop, poll at 100ms intervals.
     for audio_file, chunk in zip(audio_files, chunks):
         if playback_state["stopped"]:
             break
@@ -515,6 +543,11 @@ def _handle_final_output(
         _LOG.info("Audio files saved:")
         for audio_file in audio_files:
             _LOG.info("  %s", audio_file)
+
+
+# #############################################################################
+# CLI and Entry Point
+# #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -594,6 +627,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         sections,
         max_length=args.max_length,
     )
+    # Generate or retrieve cached audio for each chunk with speed adjustment.
     audio_files = []
     for i, chunk in enumerate(chunks, 1):
         audio_file = _process_chunk_audio(
