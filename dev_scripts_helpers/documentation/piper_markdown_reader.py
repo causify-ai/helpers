@@ -178,19 +178,23 @@ def _clean_text(text: str) -> str:
     return cleaned
 
 
-def _get_chunk_filename(chunk: str, *, chunk_idx: int) -> str:
+def _get_chunk_filename(chunk: str, *, chunk_idx: int, speed: float = 1.0) -> str:
     """
     Generate output filename for a chunk based on its SHA1 hash.
 
-    Format: tmp.piper.chunk<idx>.<sha1_hash>.wav
+    Format: tmp.piper.chunk<idx>[.speed_X.X].<sha1_hash>.wav
 
     :param chunk: chunk text content
     :param chunk_idx: chunk index (1-based)
+    :param speed: speech speed (1.0 = no speed suffix)
     :return: filename for the chunk audio file
     """
     sha1_hash = hashlib.sha1(chunk.encode()).hexdigest()
-    filename = f"tmp.piper.chunk{chunk_idx}.{sha1_hash}.wav"
-    _LOG.debug("Chunk %d hash: %s, filename: %s", chunk_idx, sha1_hash, filename)
+    if speed != 1.0:
+        filename = f"tmp.piper.chunk{chunk_idx}.speed_{speed:.1f}.{sha1_hash}.wav"
+    else:
+        filename = f"tmp.piper.chunk{chunk_idx}.{sha1_hash}.wav"
+    _LOG.debug("Chunk %d hash: %s, speed: %.2f, filename: %s", chunk_idx, sha1_hash, speed, filename)
     return filename
 
 
@@ -275,14 +279,16 @@ def _generate_audio(
 
 
 def _apply_speed_with_ffmpeg(
-    audio_file: str,
+    input_file: str,
     *,
+    output_file: str,
     speed: float,
 ) -> bool:
     """
     Apply speed adjustment to audio using ffmpeg atempo filter.
 
-    :param audio_file: path to audio file to adjust
+    :param input_file: path to input audio file
+    :param output_file: path to output audio file
     :param speed: speed multiplier (1.0 = normal, 2.0 = 2x faster, 0.5 = 2x slower)
     :return: True if successful, False otherwise
     """
@@ -291,15 +297,15 @@ def _apply_speed_with_ffmpeg(
             _LOG.debug("Speed is 1.0, skipping ffmpeg adjustment")
             return True
         _LOG.debug("Applying speed adjustment with ffmpeg: speed=%.2f", speed)
-        temp_file = audio_file + ".tmp"
         cmd = [
             "ffmpeg",
-            "-i", audio_file,
+            "-i", input_file,
             "-filter:a", f"atempo={speed}",
+            "-acodec", "pcm_s16le",
             "-y",
-            temp_file,
+            output_file,
         ]
-        _LOG.debug("Running ffmpeg: atempo=%.2f", speed)
+        _LOG.debug("Running ffmpeg command: %s", " ".join(cmd))
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -311,10 +317,8 @@ def _apply_speed_with_ffmpeg(
         if process.returncode != 0:
             _LOG.error("ffmpeg speed adjustment failed: %s", stderr)
             return False
-        import shutil
-        shutil.move(temp_file, audio_file)
-        file_size = os.path.getsize(audio_file)
-        _LOG.info("Speed adjustment applied: %s at %.2fx (%d bytes)", audio_file, speed, file_size)
+        file_size = os.path.getsize(output_file)
+        _LOG.info("Speed adjustment applied: %s at %.2fx (%d bytes)", output_file, speed, file_size)
         return True
     except FileNotFoundError:
         _LOG.error("ffmpeg command not found. Install with: brew install ffmpeg")
@@ -504,26 +508,38 @@ def _main(parser: argparse.ArgumentParser) -> None:
         for i, chunk in enumerate(chunks, 1):
             _LOG.info("Processing chunk %d of %d (%d characters)", i, len(chunks), len(chunk))
             _LOG.info("Chunk %d content:\n%s\n---", i, chunk)
-            audio_file = _get_chunk_filename(chunk, chunk_idx=i)
-            if os.path.exists(audio_file):
-                _LOG.info("Audio file already exists (cached): %s", audio_file)
-            else:
-                _LOG.info("Generating audio file: %s", audio_file)
+            base_audio_file = _get_chunk_filename(chunk, chunk_idx=i, speed=1.0)
+            final_audio_file = _get_chunk_filename(chunk, chunk_idx=i, speed=args.speed)
+            if os.path.exists(final_audio_file):
+                _LOG.info("Speed-adjusted audio file already exists (cached): %s", final_audio_file)
+                audio_files.append(final_audio_file)
+                continue
+            if not os.path.exists(base_audio_file):
+                _LOG.info("Generating audio file: %s", base_audio_file)
                 success = _generate_audio(
                     chunk,
                     voice=args.voice,
                     speed=1.0,
-                    output_file=audio_file,
+                    output_file=base_audio_file,
                 )
                 if not success:
                     _LOG.error("Failed to generate audio for chunk %d", i)
                     sys.exit(1)
-                if args.speed != 1.0:
-                    success = _apply_speed_with_ffmpeg(audio_file, speed=args.speed)
-                    if not success:
-                        _LOG.error("Failed to apply speed adjustment to chunk %d", i)
-                        sys.exit(1)
-            audio_files.append(audio_file)
+            else:
+                _LOG.info("Audio file already exists (cached): %s", base_audio_file)
+            if args.speed != 1.0:
+                _LOG.info("Applying speed adjustment: %.2f", args.speed)
+                success = _apply_speed_with_ffmpeg(
+                    base_audio_file,
+                    output_file=final_audio_file,
+                    speed=args.speed,
+                )
+                if not success:
+                    _LOG.error("Failed to apply speed adjustment to chunk %d", i)
+                    sys.exit(1)
+                audio_files.append(final_audio_file)
+            else:
+                audio_files.append(base_audio_file)
         _LOG.info(
             "Generated audio with voice='%s' and speed=%.2f (%d chunks)",
             args.voice,
