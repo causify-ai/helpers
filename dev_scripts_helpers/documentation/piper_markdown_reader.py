@@ -163,7 +163,8 @@ def _chunk_text_by_length(text: str, *, max_length: int) -> List[str]:
     chunks = []
     current_chunk = ""
     sentences = text.split(". ")
-    # Greedily pack sentences, breaking long ones and splitting chunks when next would exceed max.
+    # Greedily pack sentences: fit as many as possible per chunk, but break
+    # sentences longer than max_length.
     for sentence in sentences:
         sentence = sentence.strip()
         if not sentence:
@@ -361,7 +362,11 @@ def _process_sections_to_chunks(
     """
     chunks = []
     chunk_originals = []
-    # Transform sections through pipeline: format, clean, split by length. Track cleaned and original.
+    # Each section flows through:
+    # - format markdown syntax
+    # - strip formatting
+    # - split by max_length.
+    # Store cleaned chunks and unmodified original sections for later display.
     for section_idx, section in enumerate(sections, 1):
         section = section.strip()
         if not section:
@@ -422,14 +427,15 @@ def _process_chunk_audio(
     final_audio_file = _get_chunk_filename(
         chunk, chunk_idx=chunk_idx, speed=speed
     )
-    # Return if speed-adjusted file already cached.
+    # Cache strategy: store base audio (speed=1.0) once, then apply speed via
+    # ffmpeg (cheaper than re-synthesizing).
+    # This saves TTS calls when speed changes but content stays the same.
     if os.path.exists(final_audio_file):
         _LOG.info(
             "Speed-adjusted audio file already exists (cached): %s",
             final_audio_file,
         )
         return final_audio_file
-    # Generate base audio if needed, apply speed adjustment, cache both.
     if not os.path.exists(base_audio_file):
         _LOG.info("Generating audio file: %s", base_audio_file)
         _generate_audio(
@@ -503,7 +509,9 @@ def _play_audio_with_controls(
     listener.start()
     _LOG.debug("Keyboard listener started")
     os.system("clear" if os.name != "nt" else "cls")
-    # Play chunks in sequence with keyboard pause/stop, poll at 100ms intervals.
+    # Play sequentially, polling at 100ms to check pause/stop state while audio
+    # plays. Pygame mixer pause/unpause affects all channels, synchronized with
+    # keyboard input.
     for audio_file, chunk in zip(audio_files, chunks):
         if playback_state["stopped"]:
             break
@@ -627,7 +635,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         sections,
         max_length=args.max_length,
     )
-    # Generate or retrieve cached audio for each chunk with speed adjustment.
+    # Pipeline:
+    # - read
+    # - split by bullets
+    # - format/clean/length-chunk
+    # - synthesize with cache
+    # - play.
     audio_files = []
     for i, chunk in enumerate(chunks, 1):
         audio_file = _process_chunk_audio(
