@@ -11,6 +11,7 @@ Examples:
 > ./piper_markdown_reader.py --input README.md
 > ./piper_markdown_reader.py --input README.md --speed 1.5 --voice en_US-joe-medium
 > ./piper_markdown_reader.py --input README.md --speed 0.8 --voice en_US-amy-medium
+> ./piper_markdown_reader.py --input README.md --md_start "Section 5" --md_end "END" --dry_run
 """
 
 import argparse
@@ -18,10 +19,14 @@ import hashlib
 import logging
 import os
 import subprocess
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
+import helpers.hio as hio
+import helpers.hmarkdown_select as hmarsele
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -30,8 +35,11 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 _DEFAULT_SPEED = 1.0
-_DEFAULT_VOICE = "en_US-joe-medium"
+#_DEFAULT_VOICE = "en_US-joe-medium"
+_DEFAULT_VOICE = "en_US-amy-medium"
 _DEFAULT_MAX_LENGTH = 0
+_TMP_EXTRACT_FILE = "tmp.piper_markdown_reader.extract.md"
+_WORDS_PER_MINUTE = 150
 
 # #############################################################################
 # File I/O and Text Parsing
@@ -49,6 +57,37 @@ def _read_markdown_file(file_path: str) -> str:
     with open(file_path, "r") as f:
         content = f.read()
     return content
+
+
+def _extract_markdown_section(
+    file_path: str,
+    md_start: str,
+    md_end: Optional[str],
+) -> str:
+    """
+    Extract a markdown section, write to tmp file, run lint_txt.py.
+
+    Extracts lines between md_start and md_end headers, writes them to
+    `tmp.piper_markdown_reader.extract.md`, runs `lint_txt.py -w 1000`
+    to unroll bullet list breaks, and returns the processed content.
+
+    :param file_path: path to markdown input file
+    :param md_start: starting header (full "## Title" or partial "Title")
+    :param md_end: ending header or None to auto-detect next same-level, or "END" to extract to end of file
+    :return: processed content of the extracted section
+    """
+    lines = hparser.from_file(file_path)
+    extracted_lines = hmarsele.extract_text_from_markdown_lines(
+        lines, md_start, md_end
+    )
+    extracted_content = "\n".join(extracted_lines)
+    hio.to_file(_TMP_EXTRACT_FILE, extracted_content)
+    _LOG.info("Extracted section written to %s", _TMP_EXTRACT_FILE)
+    lint_script = hgit.find_file_in_git_tree("lint_txt.py")
+    cmd = f"{lint_script} -i {_TMP_EXTRACT_FILE} -w 1000"
+    hsystem.system(cmd)
+    processed_content = hio.from_file(_TMP_EXTRACT_FILE)
+    return processed_content
 
 
 def _split_by_first_level_bullets(text: str) -> List[str]:
@@ -147,6 +186,32 @@ def _clean_text(text: str) -> str:
         len(cleaned),
     )
     return cleaned
+
+
+def _count_words(text: str) -> int:
+    """
+    Count the number of words in text.
+
+    :param text: text to count words from
+    :return: number of words
+    """
+    words = text.split()
+    return len(words)
+
+
+def _format_reading_time(*, words: int, speed: float = 1.0) -> str:
+    """
+    Format word count as readable time, adjusted for speed.
+
+    :param words: number of words
+    :param speed: speech speed multiplier (1.0 = normal, 1.5 = 1.5x faster)
+    :return: formatted time string (e.g., "32.8m" or "7.17h")
+    """
+    minutes = (words / _WORDS_PER_MINUTE) / speed
+    if minutes < 60:
+        return f"{minutes:.1f}m"
+    hours = minutes / 60
+    return f"{hours:.2f}h"
 
 
 def _chunk_text_by_length(text: str, *, max_length: int) -> List[str]:
@@ -593,6 +658,11 @@ def _parse() -> argparse.ArgumentParser:
         help="Generate audio file without playing it",
     )
     parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Print chunks without generating audio",
+    )
+    parser.add_argument(
         "--max_length",
         action="store",
         type=int,
@@ -600,6 +670,15 @@ def _parse() -> argparse.ArgumentParser:
         help="Maximum text length per chunk (0 = no chunking)",
     )
     hparser.add_verbosity_arg(parser)
+    hparser.add_md_start_end_args(parser, start_required=False)
+    # Update --md_end help to document the special "END" value
+    for action in parser._actions:
+        if action.dest == "md_end":
+            action.help = (
+                "Ending header (e.g., '## Section 2' or 'Section 2'). "
+                "If omitted with --md_start, stops at next same-level header. "
+                "Use special value 'END' to extract to end of file."
+            )
     return parser
 
 
@@ -612,11 +691,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.debug(
-        "Arguments parsed: input=%s, speed=%.2f, voice=%s, no_play=%s, max_length=%d",
+        "Arguments parsed: input=%s, speed=%.2f, voice=%s, no_play=%s, dry_run=%s, max_length=%d",
         args.input,
         args.speed,
         args.voice,
         args.no_play,
+        args.dry_run,
         args.max_length,
     )
     hdbg.dassert(
@@ -624,8 +704,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Input file path is required",
     )
     _LOG.debug("Validations passed")
-    content = _read_markdown_file(args.input)
-    _LOG.info("Read markdown file: %s", args.input)
+    if args.md_start:
+        content = _extract_markdown_section(args.input, args.md_start, args.md_end)
+        _LOG.info(
+            "Extracted section '%s' from %s", args.md_start, args.input
+        )
+    else:
+        content = _read_markdown_file(args.input)
+        _LOG.info("Read markdown file: %s", args.input)
     _LOG.debug("Content length: %d characters", len(content))
     sections = _split_by_first_level_bullets(content)
     _LOG.info(
@@ -635,6 +721,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
         sections,
         max_length=args.max_length,
     )
+    # Calculate reading time estimate
+    total_words = sum(_count_words(chunk) for chunk in chunks)
+    reading_time = _format_reading_time(words=total_words, speed=args.speed)
+    _LOG.info(
+        "Reading time estimate: %s (%d words at %.1fx speed)",
+        reading_time,
+        total_words,
+        args.speed,
+    )
+    if args.dry_run:
+        _LOG.info("Dry-run mode: printing chunks without audio generation")
+        print(f"Found {len(chunks)} chunks")
+        print(f"Reading time estimate: {reading_time} ({total_words} words at {args.speed:.1f}x speed)")
+        print("=" * 80)
+        for i, chunk in enumerate(chunks, 1):
+            print(f"\nChunk {i}:\n{chunk}\n")
+            print("-" * 80)
+        _LOG.info("Dry-run complete: %d chunks, reading time: %s", len(chunks), reading_time)
+        return
     # Pipeline:
     # - read
     # - split by bullets

@@ -561,4 +561,3 @@ line3
   ```python
   self.check_string(actual, fuzzy_match=True)
   ```
-

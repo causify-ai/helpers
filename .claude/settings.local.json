@@ -7,7 +7,8 @@
       "Bash(python *)",
       "Bash(bash ./tmp.pytest_repro.*.sh)",
       "WebFetch(domain:*)",
-      "Bash(gh pr view:*)"
+      "Bash(gh pr view:*)",
+      "Bash(python3 *)"
     ],
     "deny": [
       "Bash(git commit:*)",

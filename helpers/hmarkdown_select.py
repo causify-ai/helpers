@@ -84,36 +84,29 @@ def find_header_from_input(
     header_input: str,
 ) -> Tuple[hmarhead.HeaderInfo, int]:
     """
-    Find a header from user input that can be either a full header string or partial title.
+    Find a header from user input using partial title matching.
+
+    Supports both "## Title" (full header format) and "Title" (partial match).
+    Both formats will use partial matching, so "2 Cheap" and "# 2 Cheap" both work.
 
     :param header_list: list of HeaderInfo objects
     :param header_input: either "## Title" (full header) or "Title" (partial match)
-    :return: tuple of (HeaderInfo, level) where level is from the input if it was a full header
-    :raises: ValueError if input is ambiguous or header not found
+    :return: tuple of (HeaderInfo, level)
+    :raises: AssertionError if input is ambiguous or header not found
     """
+    # Extract title from input, removing # symbols if present
     if header_input.lstrip().startswith("#"):
-        # Full header format like "## Title"
-        level, title = parse_header_string(header_input)
-        header_info = find_header_by_title(header_list, title)
-        hdbg.dassert_is_not(
-            header_info, None, "Header not found: '%s'", header_input
-        )
-        hdbg.dassert_eq(
-            header_info.level,
-            level,
-            "Header level mismatch for '%s': expected level %s, got %s",
-            title,
-            level,
-            header_info.level,
-        )
-        return header_info, level
+        # Full header format like "## Title" - extract the title part
+        _, title = parse_header_string(header_input)
     else:
-        # Partial title match
-        header_info = find_header_by_partial_title(header_list, header_input)
-        hdbg.dassert_is_not(
-            header_info, None, "No header matches: '%s'", header_input
-        )
-        return header_info, header_info.level
+        # Already just a title
+        title = header_input
+    # Always use partial matching for flexibility
+    header_info = find_header_by_partial_title(header_list, title.strip())
+    hdbg.dassert_is_not(
+        header_info, None, "No header matches: '%s'", header_input
+    )
+    return header_info, header_info.level
 
 
 def find_end_line(
@@ -177,9 +170,12 @@ def extract_text_from_markdown_lines(
     - Full format: "## Section 1" (includes the # symbols)
     - Partial match: "Section 1" (just the title, matches if unique)
 
+    Special values for end_header_str:
+    - "END": Extract from start_header to the end of the file
+
     :param lines: list of lines in the input file
     :param start_header_str: starting header (e.g., "## Section 1" or "Section 1")
-    :param end_header_str: ending header (optional, same formats accepted)
+    :param end_header_str: ending header (optional, same formats accepted), or "END" for end of file
     :param is_slide_format: whether the input is in slide format (*.txt)
     :return: extracted lines with trailing blank lines removed
     """
@@ -192,7 +188,7 @@ def extract_text_from_markdown_lines(
         start_header_str_converted = hmarslid.convert_slide_to_markdown(
             [start_header_str]
         )[0]
-        if end_header_str is not None:
+        if end_header_str is not None and end_header_str != "END":
             end_header_str_converted = hmarslid.convert_slide_to_markdown(
                 [end_header_str]
             )[0]
@@ -204,9 +200,13 @@ def extract_text_from_markdown_lines(
     start_header_info, _ = find_header_from_input(
         header_list, start_header_str_converted
     )
-    end_line = find_end_line(
-        header_list, start_header_info, end_header_str_converted
-    )
+    # Handle special "END" value to extract to end of file
+    if end_header_str == "END":
+        end_line = None
+    else:
+        end_line = find_end_line(
+            header_list, start_header_info, end_header_str_converted
+        )
     start_idx = start_header_info.line_number - 1
     if end_line is None:
         end_idx = len(lines_converted)
