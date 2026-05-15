@@ -379,7 +379,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     total_cost = 0.0
     written_headers: Dict[Tuple[int, str], bool] = {}
     # Summarize each target header section.
-    for header in tqdm(target_headers, desc="Summarizing sections"):
+    pbar = tqdm(target_headers, desc="Summarizing sections")
+    for header in pbar:
         # Get parent headers and write them if not already written.
         parent_headers = _get_parent_headers(
             header, all_headers, md_level=args.md_level
@@ -401,6 +402,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                             test_mode=args.test,
                         )
                         total_cost += intro_cost
+                        pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
                         f.write(intro_summary)
                         f.write("\n\n")
             # Write the target header itself.
@@ -422,6 +424,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             test_mode=args.test,
         )
         total_cost += cost
+        pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
         # Append summary to output file.
         with open(out_file_name, "a") as f:
             f.write(summary)

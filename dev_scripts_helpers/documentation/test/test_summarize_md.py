@@ -10,6 +10,31 @@ import helpers.hunit_test as hunitest
 import dev_scripts_helpers.documentation.summarize_md as dshdsumd
 
 
+def _run_summarize_md_test(
+    self,
+    input_md: str,
+    expected_output: str,
+    md_level: int,
+) -> None:
+    """
+    Run summarize_md.py script and verify output.
+
+    :param self: Test case instance with get_scratch_space() and assert_equal()
+    :param input_md: Input markdown content
+    :param expected_output: Expected output from script
+    :param md_level: Header level to process
+    """
+    scratch_dir = self.get_scratch_space()
+    input_file = os.path.join(scratch_dir, "input.md")
+    output_file = os.path.join(scratch_dir, "output.md")
+    hio.to_file(input_file, input_md)
+    script_path = hgit.find_file_in_git_tree("summarize_md.py")
+    cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test"
+    hsystem.system(cmd)
+    actual_output = hio.from_file(output_file)
+    self.assert_equal(actual_output, expected_output)
+
+
 # #############################################################################
 # Test_compute_sha1_digest
 # #############################################################################
@@ -20,17 +45,26 @@ class Test_compute_sha1_digest(hunitest.TestCase):
     Test _compute_sha1_digest function.
     """
 
+    def helper(self, text: str, expected_digest: str) -> None:
+        """
+        Test helper for _compute_sha1_digest.
+
+        :param text: Input text to digest
+        :param expected_digest: Expected SHA1 digest
+        """
+        actual = dshdsumd._compute_sha1_digest(text)
+        self.assertEqual(actual, expected_digest)
+
     def test1(self) -> None:
         """
         Test computing digest of simple text.
         """
         # Prepare inputs.
         text = "Hello, World!"
-        # Run test.
-        actual = dshdsumd._compute_sha1_digest(text)
-        # Check outputs.
+        # Prepare outputs.
         expected = "0a0a9f2a6772942557ab5355d76af442f8f65e01"
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(text, expected)
 
     def test2(self) -> None:
         """
@@ -38,11 +72,10 @@ class Test_compute_sha1_digest(hunitest.TestCase):
         """
         # Prepare inputs.
         text = ""
-        # Run test.
-        actual = dshdsumd._compute_sha1_digest(text)
-        # Check outputs.
+        # Prepare outputs.
         expected = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(text, expected)
 
     def test3(self) -> None:
         """
@@ -101,6 +134,7 @@ class Test_get_target_headers(hunitest.TestCase):
         self,
         all_headers: List[Tuple[int, str, int]],
         md_level: int,
+        *,
         start: Optional[str] = None,
         end: Optional[str] = None,
         expected_count: Optional[int] = None,
@@ -405,7 +439,7 @@ class Test_extract_section(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_summarize_md_with_test_flag
+# Test_summarize_md_py1
 # #############################################################################
 
 
@@ -413,33 +447,6 @@ class Test_summarize_md_py1(hunitest.TestCase):
     """
     End-to-end tests for summarize_md.py with --test flag.
     """
-
-    def helper(
-        self,
-        input_md: str,
-        expected_output: str,
-        md_level: int = 1,
-    ) -> None:
-        """
-        Test helper for summarize_md.py with --test flag.
-
-        :param input_md: Input markdown content
-        :param expected_output: Expected output from script
-        :param md_level: Header level to process
-        """
-        # Create input and output files.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.md")
-        output_file = os.path.join(scratch_dir, "output.md")
-        hio.to_file(input_file, input_md)
-        # Find the script in the git tree.
-        script_path = hgit.find_file_in_git_tree("summarize_md.py")
-        # Run the script with --test flag.
-        cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test"
-        hsystem.system(cmd)
-        # Read and verify output.
-        actual_output = hio.from_file(output_file)
-        self.assert_equal(actual_output, expected_output)
 
     def test1(self) -> None:
         """
@@ -460,7 +467,7 @@ class Test_summarize_md_py1(hunitest.TestCase):
         """)
         expected_output += "\n\n\n"
         # Run test.
-        self.helper(input_md, expected_output)
+        _run_summarize_md_test(self, input_md, expected_output)
 
     def test2(self) -> None:
         """
@@ -490,7 +497,7 @@ class Test_summarize_md_py1(hunitest.TestCase):
         """)
         expected_output += "\n\n\n"
         # Run test.
-        self.helper(input_md, expected_output)
+        _run_summarize_md_test(self, input_md, expected_output)
 
     def test3(self) -> None:
         """
@@ -528,7 +535,7 @@ class Test_summarize_md_py1(hunitest.TestCase):
         """)
         expected_output += "\n\n\n"
         # Run test.
-        self.helper(input_md, expected_output)
+        _run_summarize_md_test(self, input_md, expected_output)
 
     def test4(self) -> None:
         """
@@ -562,11 +569,11 @@ class Test_summarize_md_py1(hunitest.TestCase):
         """)
         expected_output += "\n\n\n"
         # Run test.
-        self.helper(input_md, expected_output, md_level=2)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=2)
 
 
 # #############################################################################
-# Test_summarize_md_intro_text_e2e
+# Test_summarize_md_py2
 # #############################################################################
 
 
@@ -576,30 +583,7 @@ class Test_summarize_md_py2(hunitest.TestCase):
     Tests introductory content between headers is properly summarized.
     """
 
-    def helper(
-        self,
-        input_md: str,
-        expected_output: str,
-        md_level: int = 2,
-    ) -> None:
-        """
-        Test helper for summarize_md.py with intro text.
-
-        :param input_md: Input markdown content
-        :param expected_output: Expected output from script
-        :param md_level: Header level to process
-        """
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.md")
-        output_file = os.path.join(scratch_dir, "output.md")
-        hio.to_file(input_file, input_md)
-        script_path = hgit.find_file_in_git_tree("summarize_md.py")
-        cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test"
-        hsystem.system(cmd)
-        actual_output = hio.from_file(output_file)
-        self.assert_equal(actual_output, expected_output)
-
-    def test_intro_text_between_level1_and_level2(self) -> None:
+    def test1(self) -> None:
         """
         Test intro text between level-1 and first level-2 header is digested.
         """
@@ -639,9 +623,9 @@ class Test_summarize_md_py2(hunitest.TestCase):
         SHA1: 91c1f10d6d9e5e36cd4949c4b39bef86d8d138c0
         """)
         expected_output += "\n\n\n"
-        self.helper(input_md, expected_output, md_level=2)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=2)
 
-    def test_multiple_chapters_with_intro_text(self) -> None:
+    def test2(self) -> None:
         """
         Test multiple chapters each with intro text and sections.
         """
@@ -686,9 +670,9 @@ class Test_summarize_md_py2(hunitest.TestCase):
         SHA1: d3d90ab03fa51c1bce835a9d923ce27ec1a7eb38
         """)
         expected_output += "\n\n\n"
-        self.helper(input_md, expected_output, md_level=2)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=2)
 
-    def test_chapter_with_no_intro_text(self) -> None:
+    def test3(self) -> None:
         """
         Test chapter with no intro text (section comes right after header).
         """
@@ -718,9 +702,9 @@ class Test_summarize_md_py2(hunitest.TestCase):
         SHA1: 91c1f10d6d9e5e36cd4949c4b39bef86d8d138c0
         """)
         expected_output += "\n\n\n"
-        self.helper(input_md, expected_output, md_level=2)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=2)
 
-    def test_intro_text_with_empty_lines(self) -> None:
+    def test4(self) -> None:
         """
         Test intro text with empty lines is properly cleaned and digested.
         """
@@ -749,40 +733,21 @@ class Test_summarize_md_py2(hunitest.TestCase):
         SHA1: 7f25ffa8e635f3aa77b14cbc9d26dfe73641a221
         """)
         expected_output += "\n\n\n"
-        self.helper(input_md, expected_output, md_level=2)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=2)
 
 
 # #############################################################################
-# Test_summarize_md_prediction_machines_structure
+# Test_summarize_md_py3
 # #############################################################################
 
 
 class Test_summarize_md_py3(hunitest.TestCase):
+    """
+    End-to-end tests for complex markdown structures.
+    Tests numbered chapters, KEY POINTS sections, and deeply nested headers.
+    """
 
-    def helper(
-        self,
-        input_md: str,
-        expected_output: str,
-        md_level: int = 2,
-    ) -> None:
-        """
-        Test helper for prediction_machines-like structure.
-
-        :param input_md: Input markdown content
-        :param expected_output: Expected output from script
-        :param md_level: Header level to process
-        """
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.md")
-        output_file = os.path.join(scratch_dir, "output.md")
-        hio.to_file(input_file, input_md)
-        script_path = hgit.find_file_in_git_tree("summarize_md.py")
-        cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test"
-        hsystem.system(cmd)
-        actual_output = hio.from_file(output_file)
-        self.assert_equal(actual_output, expected_output)
-
-    def test_structure_with_numbered_chapters_and_key_points(self) -> None:
+    def test1(self) -> None:
         """
         Test structure similar to prediction_machines with numbered chapters.
         """
@@ -834,9 +799,9 @@ class Test_summarize_md_py3(hunitest.TestCase):
         SHA1: 6c45666378e200fb3c53577ea12882ea35d7919d
         """)
         expected_output += "\n\n\n"
-        self.helper(input_md, expected_output, md_level=2)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=2)
 
-    def test_multiple_sections_with_key_points(self) -> None:
+    def test2(self) -> None:
         """
         Test chapter with multiple sections and KEY POINTS section.
         """
@@ -888,9 +853,9 @@ class Test_summarize_md_py3(hunitest.TestCase):
         SHA1: 3960b1496909e819509c8dc6e0cdc2109c4adaa3
         """)
         expected_output += "\n\n\n"
-        self.helper(input_md, expected_output, md_level=2)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=2)
 
-    def test_deeply_nested_with_level3_headers(self) -> None:
+    def test3(self) -> None:
         """
         Test that level-3 headers are included in level-2 section digests.
         """
@@ -916,17 +881,20 @@ class Test_summarize_md_py3(hunitest.TestCase):
         Section 1.2 content.
         """
         input_md = hprint.dedent(input_md)
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.md")
-        output_file = os.path.join(scratch_dir, "output.md")
-        hio.to_file(input_file, input_md)
-        script_path = hgit.find_file_in_git_tree("summarize_md.py")
-        cmd = f"{script_path} -i {input_file} -o {output_file} --md_level 2 --test"
-        hsystem.system(cmd)
-        actual_output = hio.from_file(output_file)
-        # Verify structure is present
-        self.assertIn("# Chapter 1", actual_output)
-        self.assertIn("## Section 1.1", actual_output)
-        # Verify level-3 headers are included in the digest computation
-        # (they should be in the section content)
-        self.assertIn("### Subsection 1.1.1", actual_output)
+        expected_output = hprint.dedent("""
+        # Chapter 1
+
+        SHA1: 8440ce0297a6edbda832f8a7cb330c3f4184a3fc
+
+
+        ## Section 1.1
+
+        SHA1: 7b719f2a08cb410a01a0a2e4b81af531bde6f046
+
+
+        ## Section 1.2
+
+        SHA1: 937a5f1dde998663d8abd3279cd0e6e3b27aa31f
+        """)
+        expected_output += "\n\n\n"
+        _run_summarize_md_test(self, input_md, expected_output, md_level=2)
