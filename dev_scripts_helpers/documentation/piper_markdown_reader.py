@@ -19,7 +19,7 @@ import logging
 import os
 import subprocess
 import sys
-from typing import Dict
+from typing import Any, Dict, List
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -32,7 +32,6 @@ _LOG = logging.getLogger(__name__)
 
 _DEFAULT_SPEED = 1.0
 _DEFAULT_VOICE = "en_US-joe-medium"
-_SPEED_STEP = 0.1
 _DEFAULT_MAX_LENGTH = 0
 
 # #############################################################################
@@ -53,7 +52,7 @@ def _read_markdown_file(file_path: str) -> str:
     return content
 
 
-def _split_by_first_level_bullets(text: str) -> list:
+def _split_by_first_level_bullets(text: str) -> List[str]:
     """
     Split text into sections at first-level bullet points.
 
@@ -81,7 +80,7 @@ def _split_by_first_level_bullets(text: str) -> list:
     return sections
 
 
-def _chunk_text_by_length(text: str, *, max_length: int) -> list:
+def _chunk_text_by_length(text: str, *, max_length: int) -> List[str]:
     """
     Chunk text by maximum length, respecting sentence boundaries.
 
@@ -361,12 +360,12 @@ def _parse() -> argparse.ArgumentParser:
         help=f"Piper voice identifier (default: {_DEFAULT_VOICE})",
     )
     parser.add_argument(
-        "--no-play",
+        "--no_play",
         action="store_true",
         help="Generate audio file without playing it",
     )
     parser.add_argument(
-        "--max-length",
+        "--max_length",
         action="store",
         type=int,
         default=_DEFAULT_MAX_LENGTH,
@@ -377,9 +376,9 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _play_audio_with_controls(
-    audio_files: list,
+    audio_files: List[str],
     *,
-    chunks: list,
+    chunks: List[str],
     initial_speed: float,
 ) -> None:
     """
@@ -407,8 +406,7 @@ def _play_audio_with_controls(
     pygame.mixer.init()
     _LOG.debug("Pygame mixer initialized")
     playback_state: Dict[str, bool] = {"paused": False, "stopped": False}
-    current_speed = [initial_speed]
-    def _on_press(key) -> None:
+    def _on_press(key: Any) -> None:
         try:
             if hasattr(key, "char"):
                 char = getattr(key, "char", None)
@@ -421,12 +419,6 @@ def _play_audio_with_controls(
                 elif char == "s":
                     playback_state["stopped"] = True
                     _LOG.info("Playback stopped")
-                elif char == "+":
-                    current_speed[0] += _SPEED_STEP
-                    _LOG.info("Speed increased to %.2f", current_speed[0])
-                elif char == "-":
-                    current_speed[0] -= _SPEED_STEP
-                    _LOG.info("Speed decreased to %.2f", current_speed[0])
         except (AttributeError, TypeError):
             pass
     _LOG.debug("Keyboard listener setup complete")
