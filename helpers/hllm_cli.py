@@ -552,6 +552,7 @@ def apply_llm_batch_individual(
         responses.append(response)
         if progress_bar_object is not None:
             progress_bar_object.update(1)
+            progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
     _LOG.debug("Batch processing completed")
     _LOG.debug("Total cost for batch with individual prompt: $%.6f", total_cost)
     return responses, total_cost
@@ -596,6 +597,7 @@ def apply_llm_batch_with_shared_prompt(
             responses.append(response)
             if progress_bar_object is not None:
                 progress_bar_object.update(1)
+                progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
     else:
         for input_str in input_list:
             response = testing_functor(input_str)
@@ -696,6 +698,7 @@ def apply_llm_batch_combined(
                 _LOG.debug("Successfully parsed JSON response")
                 if progress_bar_object is not None:
                     progress_bar_object.update(len(input_list))
+                    progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
                 _LOG.debug(
                     "Total cost for batch with combined prompt: $%.6f",
                     total_cost,
@@ -849,6 +852,7 @@ def apply_llm_prompt_to_df(
                 df.at[idx, target_col] = ""
                 num_skipped += 1
                 progress_bar_object.update(1)
+                progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
         # Call LLM only if there are valid items in this batch.
         if batch_items:
             _LOG.debug(
@@ -875,6 +879,7 @@ def apply_llm_prompt_to_df(
             )
             # Update total_cost.
             total_cost += batch_cost
+            progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
             # Store results back into dataframe.
             for idx, response in zip(batch_indices, batch_responses):
                 df.at[idx, target_col] = response
