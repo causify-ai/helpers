@@ -8,7 +8,7 @@
 
 # Code Style and Structure
 
-## Follow the Coding Style from the Template
+## Follow the Coding Style From the Template
 
 - Use the coding style in `@.claude/templates/code_template.py`
 
@@ -16,7 +16,7 @@
 
 - Use `*` to mark which parameters in functions should be default parameters
 
-## Use `typing` Module Style for type hints
+## Use `typing` Module Style for Type Hints
 
 - Use type hints from the `typing` module instead of newer PEP 604 syntax
 - Use `Tuple`, `Dict`, `Optional` instead of `tuple`, `dict`, `|` union syntax
@@ -335,7 +335,7 @@
     )
     ```
 
-## Do not use try-except
+## Do Not Use `try-except`
 
 - Do not use try except to recover errors but let statements raise their own
   errors
@@ -566,7 +566,7 @@
     # Usage: ./convert_epub_to_md.py input.epub output.md
     ```
 
-## Use Standard Argument Helpers from `hparser`
+## Use Standard Argument Helpers From `hparser`
 
 - Use `hparser` helper functions to add standard arguments instead of defining
   them manually
@@ -617,7 +617,7 @@
 - If directory doesn't exist create it using `hio.create_dir`
   - If a `--from_scratch` option is requested, create the directory from scratch
 
-## Temporary files
+## Temporary Files
 
 - When using temporary files use files named
   `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
@@ -659,7 +659,7 @@
     pattern = re.compile(quote_pattern, re.VERBOSE)
     ```
 
-## Use verbatim to refer to Python Objects
+## Use Verbatim to Refer to Python Objects
 
 - When referring to Python objects (e.g., variables, classes, and functions) in
   comments and docstrings use verbatim included in backticks

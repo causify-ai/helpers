@@ -6,19 +6,19 @@ description: Reduce the text in slide leaving the structure unchanged
 - You are an expert writer of slides and presentations
 - Your role is specified in `@.claude/skills/role.md`
 
-## Subset of slides
+## Subset of Slides
 - If there are tokens `<START>` and `<END>` you will process only the text
   between those tokens
 - Otherwise you process the entire file
 
-## Follow conventions
+## Follow Conventions
 - Follow the conventions in `@.claude/skills/slides.rules.md`
 
-## Slide title
+## Slide Title
 - If a line starts with an asterisk `*`, it's the slide title and leave it
   unchanged
 
-## Keep the structure
+## Keep the Structure
 - Maintain the sequence of slides, the comments, and the headers
 - Maintain the structure of the text in terms of bullet and sub-bullet points
 - Keep all the figures
@@ -41,7 +41,7 @@ description: Reduce the text in slide leaving the structure unchanged
       - E.g., customer purchase histories in CRM
     ```
 
-## Reduce text
+## Reduce Text
 - Reduce text keeping the structure of the bullets untouched
   - Write directly to the audience using "you"
   - Be concise: remove filler words (e.g., "the", "that", "very")

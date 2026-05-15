@@ -112,7 +112,7 @@ Skills should be organized with clear sections:
 - Prefer measurable criteria
 - Keep formatting consistent across skills
 
-## Add examples
+## Add Examples
 - Skills should contain positive and negative examples
   ````
   - **Good**
@@ -123,6 +123,7 @@ Skills should be organized with clear sections:
     ```
     ...
     ```
+
   ````
 - Use realistic, concrete cases
 
@@ -163,6 +164,7 @@ Skills should be organized with clear sections:
     ```language
     code here
     ```
+
   ```
 
 - Provide reasoning for each example to help users understand the principle
@@ -234,7 +236,7 @@ Skills should be organized with clear sections:
   - Step-by-step instructions for a particular action
   - Implementation guidance for achieving a specific output
 
-## Keep Rules organized in the Rule File
+## Keep Rules Organized in the Rule File
 - In the `<RULE_FILE>` `<topic>.rules.md` keep group related rules (with header
   of level 2 ##) into logical sections (with header of level 1 #)
   ```

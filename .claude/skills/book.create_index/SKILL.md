@@ -6,13 +6,13 @@ description: Create a markdown file from a PDF book together with its table of c
 
 $DST_DIR=/Users/saggese/src/notes1/books
 
-## Step 1: Convert to Markdown, if needed
+## Step 1: Convert to Markdown, If Needed
 
 - If the file is still a PDF use the script
   > convert_pdf_to_md.py
   to convert it into markdown and save it to $DST_DIR
 
-## Step 2: Create index
+## Step 2: Create Index
 
 - Given the markdown file $DST_DIR/XYZ.md
 

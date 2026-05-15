@@ -401,7 +401,7 @@ line3
 
 # Checking Test Outputs
 
-## Use an expected output
+## Use an Expected Output
 
 - Instead of using assertions use an expected output
   - **Bad**

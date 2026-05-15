@@ -18,7 +18,7 @@ description: Enrich a slide with references to academic papers and books
     - Include working URLs for each reference when possible
     - Prefer recent references rather than old
 
-# Output format
+# Output Format
 - Add a comment before each line `//`
 - Print the references for books and articles
 - Use the format:

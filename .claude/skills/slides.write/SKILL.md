@@ -27,7 +27,7 @@ artificial intelligence
 - For all formatting rules, templates, and structural guidelines, see
   `@.claude/skills/slides.rules.md`
 
-# Save result
+# Save Result
 - Do not print anything on the screen
 - Save the result in a output file `<output_file>` like `<file>.slides.md`
   - E.g., For `books/facure/text_7.md` use `books/facure/text_7.slides.md`

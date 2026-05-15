@@ -21,6 +21,6 @@
 - For writing markdown text you MUST follow instructions in
   `@.claude/skills/markdown.rules.md`
 
-## Do not commit code
+## Do Not Commit Code
 
 - NEVER commit code to git without being explicitly asked to do it

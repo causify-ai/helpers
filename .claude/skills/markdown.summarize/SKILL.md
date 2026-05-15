@@ -41,7 +41,7 @@ model: haiku
   # Summary file: <output>
   ```
 
-# Run lint
+# Run Lint
 - Run
   ```
   > $(find /Users/saggese/src/notes1 -name "lint_txt.py") -i <output>

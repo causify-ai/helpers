@@ -467,7 +467,7 @@ class Test_summarize_md_py1(hunitest.TestCase):
         """)
         expected_output += "\n\n\n"
         # Run test.
-        _run_summarize_md_test(self, input_md, expected_output)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=1)
 
     def test2(self) -> None:
         """
@@ -497,7 +497,7 @@ class Test_summarize_md_py1(hunitest.TestCase):
         """)
         expected_output += "\n\n\n"
         # Run test.
-        _run_summarize_md_test(self, input_md, expected_output)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=1)
 
     def test3(self) -> None:
         """
@@ -535,7 +535,7 @@ class Test_summarize_md_py1(hunitest.TestCase):
         """)
         expected_output += "\n\n\n"
         # Run test.
-        _run_summarize_md_test(self, input_md, expected_output)
+        _run_summarize_md_test(self, input_md, expected_output, md_level=1)
 
     def test4(self) -> None:
         """

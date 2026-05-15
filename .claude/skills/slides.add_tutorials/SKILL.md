@@ -5,10 +5,10 @@ description: Add a tutorial for lecture slides
 # Role
 - Your role is specified in `@.claude/skills/role.md`
 
-# Step 1: Read file
+# Step 1: Read File
 - Read the passed file `<FILE>`
 
-# Step 2: Come Up With Libraries
+# Step 2: Come Up with Libraries
 - Come up with 2 or 3 Python library that can be used to implement in Python
   some of the concepts and analysis explained in the slides
 - Ignore general purpose libraries (such as pandas, numpy), but focus on specific
@@ -34,7 +34,7 @@ description: Add a tutorial for lecture slides
   // - Visualize and compare algorithm results
   ```
 
-# Step 4: Suggest Tutorial Steps For Each Slide
+# Step 4: Suggest Tutorial Steps for Each Slide
 - Suggest steps for the tutorial that can help the understanding of the content
   in each slide
 - Add comments in the `<FILE>` describing what can be done with the packages from
