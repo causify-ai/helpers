@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["markdown-it-py", "tqdm"]
+# dependencies = ["llm", "tokencost", "markdown-it-py", "tqdm"]
 # ///
 
 r"""
@@ -193,6 +193,37 @@ def _get_parent_headers(
     return parents
 
 
+def _extract_intro_text(
+    parent_header: Tuple[int, str, int],
+    header: Tuple[int, str, int],
+    lines: List[str],
+) -> str:
+    """
+    Extract introductory text between a parent header and the first child header.
+
+    Extracts content that appears after the parent header and before the given child header.
+
+    :param parent_header: The (level, title, line_number) tuple for the parent header
+    :param header: The (level, title, line_number) tuple for the child header
+    :param lines: All markdown lines (0-indexed)
+    :return: Introductory text (empty string if no intro text found)
+    """
+    # Start from the line after the parent header
+    start_idx = parent_header[2] + 1
+    # End at the child header
+    end_idx = header[2]
+    if start_idx >= end_idx:
+        return ""
+    intro_lines = lines[start_idx:end_idx]
+    # Remove leading and trailing empty lines
+    while intro_lines and intro_lines[0].strip() == "":
+        intro_lines.pop(0)
+    while intro_lines and intro_lines[-1].strip() == "":
+        intro_lines.pop()
+    intro_text = "\n".join(intro_lines)
+    return intro_text.strip()
+
+
 def _extract_section(
     header: Tuple[int, str, int],
     all_headers: List[Tuple[int, str, int]],
@@ -239,6 +270,36 @@ def _extract_section(
     return section_text
 
 
+def _summarize_text(
+    text: str,
+    system_prompt: str,
+    model: str,
+    *,
+    test_mode: bool,
+) -> Tuple[str, float]:
+    """
+    Compute summary via LLM or SHA1 digest.
+
+    :param text: Text to summarize
+    :param system_prompt: System prompt for LLM
+    :param model: LLM model name
+    :param test_mode: If True, compute SHA1 digest; otherwise use LLM
+    :return: Tuple of (summary_text, cost) where cost is 0 in test mode
+    """
+    if test_mode:
+        digest = _compute_sha1_digest(text)
+        summary, cost = f"SHA1: {digest}\n", 0.0
+    else:
+        summary, cost = hllmcli.apply_llm(
+            input_str=text,
+            system_prompt=system_prompt,
+            model=model,
+            use_llm_executable=False,
+        )
+        _LOG.debug("LLM cost: $%.6f", cost)
+    return summary, cost
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -268,11 +329,6 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         default="gpt-4o-mini",
         help="LLM model to use (default: gpt-4o-mini)",
-    )
-    parser.add_argument(
-        "--use_llm_executable",
-        action="store_true",
-        help="Use llm CLI executable instead of Python library",
     )
     parser.add_argument(
         "--dry_run",
@@ -335,6 +391,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     f.write("#" * parent[0] + " " + parent[1])
                     f.write("\n\n")
                     written_headers[parent_key] = True
+                    # Extract intro text between parent and first child.
+                    intro_text = _extract_intro_text(parent, header, lines)
+                    if intro_text:
+                        intro_summary, intro_cost = _summarize_text(
+                            intro_text,
+                            system_prompt,
+                            args.model,
+                            test_mode=args.test,
+                        )
+                        total_cost += intro_cost
+                        f.write(intro_summary)
+                        f.write("\n\n")
             # Write the target header itself.
             header_key = (header[0], header[1])
             f.write("#" * header[0] + " " + header[1])
@@ -347,19 +415,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "Extracted section for header: %s",
             header[1],
         )
-        # Compute section summary (digest in test mode, LLM in normal mode).
-        if args.test:
-            digest = _compute_sha1_digest(section_text)
-            summary = f"SHA1: {digest}\n"
-        else:
-            summary, cost = hllmcli.apply_llm(
-                input_str=section_text,
-                system_prompt=system_prompt,
-                model=args.model,
-                use_llm_executable=args.use_llm_executable,
-            )
-            total_cost += cost
-            _LOG.debug("LLM cost: $%.6f", cost)
+        summary, cost = _summarize_text(
+            section_text,
+            system_prompt,
+            args.model,
+            test_mode=args.test,
+        )
+        total_cost += cost
         # Append summary to output file.
         with open(out_file_name, "a") as f:
             f.write(summary)

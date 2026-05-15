@@ -311,6 +311,11 @@ def apply_llm(
             expected_num_chars=expected_num_chars,
         )
     else:
+        # Check that llm library is available.
+        hdbg.dassert(
+            _LLM_AVAILABLE,
+            "llm library not found"
+        )
         response, cost = _apply_llm_via_library(
             input_str,
             system_prompt=system_prompt,

@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import List, Optional, Tuple
 
@@ -9,8 +8,6 @@ import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 import dev_scripts_helpers.documentation.summarize_md as dshdsumd
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -412,7 +409,7 @@ class Test_extract_section(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_summarize_md_with_test_flag(hunitest.TestCase):
+class Test_summarize_md_py1(hunitest.TestCase):
     """
     End-to-end tests for summarize_md.py with --test flag.
     """
@@ -566,3 +563,370 @@ class Test_summarize_md_with_test_flag(hunitest.TestCase):
         expected_output += "\n\n\n"
         # Run test.
         self.helper(input_md, expected_output, md_level=2)
+
+
+# #############################################################################
+# Test_summarize_md_intro_text_e2e
+# #############################################################################
+
+
+class Test_summarize_md_py2(hunitest.TestCase):
+    """
+    End-to-end tests for intro text handling with --test flag.
+    Tests introductory content between headers is properly summarized.
+    """
+
+    def helper(
+        self,
+        input_md: str,
+        expected_output: str,
+        md_level: int = 2,
+    ) -> None:
+        """
+        Test helper for summarize_md.py with intro text.
+
+        :param input_md: Input markdown content
+        :param expected_output: Expected output from script
+        :param md_level: Header level to process
+        """
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.md")
+        output_file = os.path.join(scratch_dir, "output.md")
+        hio.to_file(input_file, input_md)
+        script_path = hgit.find_file_in_git_tree("summarize_md.py")
+        cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test"
+        hsystem.system(cmd)
+        actual_output = hio.from_file(output_file)
+        self.assert_equal(actual_output, expected_output)
+
+    def test_intro_text_between_level1_and_level2(self) -> None:
+        """
+        Test intro text between level-1 and first level-2 header is digested.
+        """
+        input_md = """
+        # Chapter 1
+
+        This is intro text for chapter 1.
+        It spans multiple lines.
+        And should be summarized.
+
+        ## Section 1.1
+
+        Content of section 1.1.
+
+        ## Section 1.2
+
+        Content of section 1.2.
+        """
+        input_md = hprint.dedent(input_md)
+        # When processing level 2:
+        # - Writes "# Chapter 1"
+        # - Digests the intro text
+        # - Then processes level-2 sections
+        expected_output = hprint.dedent("""
+        # Chapter 1
+
+        SHA1: d26404705e7e72e7008d7e2642a247a9b3c472a8
+
+
+        ## Section 1.1
+
+        SHA1: f4191b95a8f8f799ee0a8c458e0538234217ab18
+
+
+        ## Section 1.2
+
+        SHA1: 91c1f10d6d9e5e36cd4949c4b39bef86d8d138c0
+        """)
+        expected_output += "\n\n\n"
+        self.helper(input_md, expected_output, md_level=2)
+
+    def test_multiple_chapters_with_intro_text(self) -> None:
+        """
+        Test multiple chapters each with intro text and sections.
+        """
+        input_md = """
+        # Chapter 1
+
+        Chapter 1 introduction text.
+
+        ## Section 1.1
+
+        Section 1.1 content.
+
+        # Chapter 2
+
+        Chapter 2 introduction text.
+
+        ## Section 2.1
+
+        Section 2.1 content.
+        """
+        input_md = hprint.dedent(input_md)
+        # Each chapter intro text should be digested once,
+        # then sections are processed
+        expected_output = hprint.dedent("""
+        # Chapter 1
+
+        SHA1: 2d6d7de5765be418c0017d5174b585513524f8cc
+
+
+        ## Section 1.1
+
+        SHA1: c73efb3b75447b12aca56d7ee6b90cdc44553c3c
+
+
+        # Chapter 2
+
+        SHA1: a129523267e7d498f9f243d7d03a849fad250f74
+
+
+        ## Section 2.1
+
+        SHA1: d3d90ab03fa51c1bce835a9d923ce27ec1a7eb38
+        """)
+        expected_output += "\n\n\n"
+        self.helper(input_md, expected_output, md_level=2)
+
+    def test_chapter_with_no_intro_text(self) -> None:
+        """
+        Test chapter with no intro text (section comes right after header).
+        """
+        input_md = """
+        # Chapter 1
+
+        ## Section 1.1
+
+        Content of section 1.1.
+
+        ## Section 1.2
+
+        Content of section 1.2.
+        """
+        input_md = hprint.dedent(input_md)
+        # No intro text, so only chapter header and sections are processed
+        expected_output = hprint.dedent("""
+        # Chapter 1
+
+        ## Section 1.1
+
+        SHA1: f4191b95a8f8f799ee0a8c458e0538234217ab18
+
+
+        ## Section 1.2
+
+        SHA1: 91c1f10d6d9e5e36cd4949c4b39bef86d8d138c0
+        """)
+        expected_output += "\n\n\n"
+        self.helper(input_md, expected_output, md_level=2)
+
+    def test_intro_text_with_empty_lines(self) -> None:
+        """
+        Test intro text with empty lines is properly cleaned and digested.
+        """
+        input_md = """
+        # Chapter 1
+
+
+        Some intro text after empty lines.
+
+        And more text.
+
+
+        ## Section 1.1
+
+        Section content.
+        """
+        input_md = hprint.dedent(input_md)
+        expected_output = hprint.dedent("""
+        # Chapter 1
+
+        SHA1: 2d03205058a673bcd07f39fe2fc918194a3a7ade
+
+
+        ## Section 1.1
+
+        SHA1: 7f25ffa8e635f3aa77b14cbc9d26dfe73641a221
+        """)
+        expected_output += "\n\n\n"
+        self.helper(input_md, expected_output, md_level=2)
+
+
+# #############################################################################
+# Test_summarize_md_prediction_machines_structure
+# #############################################################################
+
+
+class Test_summarize_md_py3(hunitest.TestCase):
+
+    def helper(
+        self,
+        input_md: str,
+        expected_output: str,
+        md_level: int = 2,
+    ) -> None:
+        """
+        Test helper for prediction_machines-like structure.
+
+        :param input_md: Input markdown content
+        :param expected_output: Expected output from script
+        :param md_level: Header level to process
+        """
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.md")
+        output_file = os.path.join(scratch_dir, "output.md")
+        hio.to_file(input_file, input_md)
+        script_path = hgit.find_file_in_git_tree("summarize_md.py")
+        cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test"
+        hsystem.system(cmd)
+        actual_output = hio.from_file(output_file)
+        self.assert_equal(actual_output, expected_output)
+
+    def test_structure_with_numbered_chapters_and_key_points(self) -> None:
+        """
+        Test structure similar to prediction_machines with numbered chapters.
+        """
+        input_md = """
+        # 1 Introduction
+
+        Introduction text that will be summarized.
+
+        ## KEY POINTS
+
+        Some key points.
+
+        # 2 Main Content
+
+        Content intro text.
+
+        ## First Section
+
+        First section content.
+
+        ## Second Section
+
+        Second section content.
+        """
+        input_md = hprint.dedent(input_md)
+        expected_output = hprint.dedent("""
+        # 1 Introduction
+
+        SHA1: e9ccdd9eaaa952a5a179edc5a17d7cc1c83fc83f
+
+
+        ## KEY POINTS
+
+        SHA1: ed315a7876b711e899ab8eb396815f5d1e0e3c96
+
+
+        # 2 Main Content
+
+        SHA1: f473f9e0a3fc76761463c167f51be105224e49ff
+
+
+        ## First Section
+
+        SHA1: fd7a577029429066bb098ff8037dfcbfc634241a
+
+
+        ## Second Section
+
+        SHA1: 6c45666378e200fb3c53577ea12882ea35d7919d
+        """)
+        expected_output += "\n\n\n"
+        self.helper(input_md, expected_output, md_level=2)
+
+    def test_multiple_sections_with_key_points(self) -> None:
+        """
+        Test chapter with multiple sections and KEY POINTS section.
+        """
+        input_md = """
+        # 3 Chapter Three
+
+        Chapter intro explaining the chapter theme.
+
+        ## Topic One
+
+        Content about topic one.
+
+        ## Topic Two
+
+        Content about topic two.
+
+        ## Topic Three
+
+        Content about topic three.
+
+        ## KEY POINTS
+
+        Summary of key points.
+        """
+        input_md = hprint.dedent(input_md)
+        expected_output = hprint.dedent("""
+        # 3 Chapter Three
+
+        SHA1: 5a0f26f035c37e68c553182c3077b017ac87dc67
+
+
+        ## Topic One
+
+        SHA1: 931e4afc80b14288fcf9ee2a59ec0cec97557fe4
+
+
+        ## Topic Two
+
+        SHA1: c2ab7f2ab43653f794dfe5ac6b47b39930932d65
+
+
+        ## Topic Three
+
+        SHA1: edd406b239587b4ed704130a3eec00ef0fa36565
+
+
+        ## KEY POINTS
+
+        SHA1: 3960b1496909e819509c8dc6e0cdc2109c4adaa3
+        """)
+        expected_output += "\n\n\n"
+        self.helper(input_md, expected_output, md_level=2)
+
+    def test_deeply_nested_with_level3_headers(self) -> None:
+        """
+        Test that level-3 headers are included in level-2 section digests.
+        """
+        input_md = """
+        # Chapter 1
+
+        Chapter intro.
+
+        ## Section 1.1
+
+        Section intro.
+
+        ### Subsection 1.1.1
+
+        Subsection content.
+
+        ### Subsection 1.1.2
+
+        Another subsection.
+
+        ## Section 1.2
+
+        Section 1.2 content.
+        """
+        input_md = hprint.dedent(input_md)
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.md")
+        output_file = os.path.join(scratch_dir, "output.md")
+        hio.to_file(input_file, input_md)
+        script_path = hgit.find_file_in_git_tree("summarize_md.py")
+        cmd = f"{script_path} -i {input_file} -o {output_file} --md_level 2 --test"
+        hsystem.system(cmd)
+        actual_output = hio.from_file(output_file)
+        # Verify structure is present
+        self.assertIn("# Chapter 1", actual_output)
+        self.assertIn("## Section 1.1", actual_output)
+        # Verify level-3 headers are included in the digest computation
+        # (they should be in the section content)
+        self.assertIn("### Subsection 1.1.1", actual_output)
