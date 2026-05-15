@@ -4,10 +4,10 @@ from typing import List, Optional
 
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown_select as hmarsel
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.extract_text_from_txt as dshdetftx
 
 _LOG = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         expected_text: str,
     ) -> None:
         """
-        Test helper for _extract_text_from_markdown.
+        Test helper for extract_text_from_markdown_lines.
 
         :param document_text: Full document text to extract from
         :param start_header: Starting header (full or partial)
@@ -46,8 +46,8 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         # Prepare outputs.
         expected = self._to_lines(expected_text)
         # Run test.
-        actual = dshdetftx._extract_text_from_markdown(
-            lines, start_header, end_header
+        actual = hmarsel.extract_text_from_markdown_lines(
+            lines, start_header, end_header, is_slide_format=False
         )
         # Check outputs.
         self.assertEqual(actual, expected)
@@ -166,7 +166,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         self, document_text: str, start_header: str, end_header: Optional[str]
     ) -> None:
         """
-        Test helper for _extract_text_from_markdown error cases.
+        Test helper for extract_text_from_markdown_lines error cases.
 
         :param document_text: Full document text to extract from
         :param start_header: Starting header (full or partial)
@@ -176,8 +176,8 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         lines = self._to_lines(document_text)
         # Run test and check output.
         with self.assertRaises(Exception):
-            dshdetftx._extract_text_from_markdown(
-                lines, start_header, end_header
+            hmarsel.extract_text_from_markdown_lines(
+                lines, start_header, end_header, is_slide_format=False
             )
 
     def test5(self) -> None:
@@ -313,7 +313,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         Test extracting text between two headers.
         """
         # Prepare inputs.
-        args = "--start '# Methods' --end '# Results'"
+        args = "--md_start '# Methods' --md_end '# Results'"
         expected_output = """
         # Methods
 
@@ -333,7 +333,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         Test extracting from header to next same-level header (implicit end).
         """
         # Prepare inputs.
-        args = "--start '## Background' --end '## Motivation'"
+        args = "--md_start '## Background' --md_end '## Motivation'"
         expected_output = """
         ## Background
 
@@ -347,7 +347,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         Test extracting from a header to next same-level (no explicit end).
         """
         # Prepare inputs.
-        args = "--start '# Results'"
+        args = "--md_start '# Results'"
         expected_output = """
         # Results
 
@@ -361,7 +361,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         Test error when end header not found.
         """
         # Prepare inputs.
-        args = "--start '## Data Collection' --end '## Results'"
+        args = "--md_start '## Data Collection' --md_end '## Results'"
         # Run test and check output.
         self._assert_script_fails(
             args, "Expected script to fail when end header not found"
@@ -372,7 +372,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         Test error when start header not found.
         """
         # Prepare inputs.
-        args = "--start '# Nonexistent'"
+        args = "--md_start '# Nonexistent'"
         # Run test and check output.
         self._assert_script_fails(
             args, "Expected script to fail when start header not found"
@@ -380,11 +380,11 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
 
     def test6(self) -> None:
         """
-        Test error when no --start argument provided.
+        Test error when no --md_start argument provided.
         """
         # Run test and check output.
         self._assert_script_fails(
-            "", "Expected script to fail when --start is missing"
+            "", "Expected script to fail when --md_start is missing"
         )
 
 
@@ -410,7 +410,7 @@ class Test__extract_text_from_txtslides(hunitest.TestCase):
         expected_text: str,
     ) -> None:
         """
-        Test helper for _extract_text_from_txtslides.
+        Test helper for extract_text_from_markdown_lines with slide format.
 
         :param document_text: Full document text with slide notation
         :param start_header: Starting header/slide (e.g., "* Title" or "##### Title")
@@ -422,8 +422,8 @@ class Test__extract_text_from_txtslides(hunitest.TestCase):
         # Prepare outputs.
         expected = self._to_lines(expected_text)
         # Run test.
-        actual = dshdetftx._extract_text_from_txtslides(
-            lines, start_header, end_header
+        actual = hmarsel.extract_text_from_markdown_lines(
+            lines, start_header, end_header, is_slide_format=True
         )
         # Check outputs.
         self.assertEqual(actual, expected)

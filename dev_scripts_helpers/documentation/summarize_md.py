@@ -25,7 +25,7 @@ Examples:
 > ./summarize_md.py -i book.md -o book.digest.md --md_level 1 --test
 
 # Summarize level-2 sections in a range
-> ./summarize_md.py -i book.md -o out.md --md_level 2 --start "Chapter 1" --end "Chapter 2"
+> ./summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
 
 # Dry run: test with the first section only
 > ./summarize_md.py -i book.md -o out.md --md_level 1 --dry_run
@@ -46,6 +46,8 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
+import helpers.hmarkdown_headers as hmarhead
+import helpers.hmarkdown_select as hmarsel
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -120,8 +122,8 @@ def _get_target_headers(
     all_headers: List[Tuple[int, str, int]],
     *,
     md_level: int,
-    start: Optional[str],
-    end: Optional[str],
+    md_start: Optional[str],
+    md_end: Optional[str],
 ) -> List[Tuple[int, str, int]]:
     """
     Filter headers by level and optional start/end boundaries.
@@ -131,8 +133,8 @@ def _get_target_headers(
 
     :param all_headers: List of (level, title, line_number) tuples
     :param md_level: Header level to select (1=H1, 2=H2, etc.)
-    :param start: Optional header prefix to start from; None means start from beginning
-    :param end: Optional header prefix to end at; None means continue to end
+    :param md_start: Optional header prefix to start from; None means start from beginning
+    :param md_end: Optional header prefix to end at; None means continue to end
     :return: Filtered list of headers at the specified level within the range
     """
     target_headers = [h for h in all_headers if h[0] == md_level]
@@ -143,22 +145,22 @@ def _get_target_headers(
         sorted(set(h[0] for h in all_headers)),
     )
     # Apply start boundary if specified: find matching header and slice from there.
-    if start is not None:
-        start_idx = -1
-        for i, h in enumerate(target_headers):
-            if h[1].startswith(start):
-                start_idx = i
-                break
-        hdbg.dassert_ne(start_idx, -1, "No header matches --start: '%s'", start)
+    if md_start is not None:
+        header_list = [
+            hmarhead.HeaderInfo(h[0], h[1], h[2] + 1) for h in target_headers
+        ]
+        match = hmarsel.find_header_by_partial_title(header_list, md_start)
+        hdbg.dassert_is_not(match, None, "No header matches --md_start: '%s'", md_start)
+        start_idx = next(i for i, h in enumerate(target_headers) if h[1] == match.description)
         target_headers = target_headers[start_idx:]
     # Apply end boundary if specified: find matching header and slice up to there.
-    if end is not None:
-        end_idx = -1
-        for i, h in enumerate(target_headers):
-            if h[1].startswith(end):
-                end_idx = i
-                break
-        hdbg.dassert_ne(end_idx, -1, "No header matches --end: '%s'", end)
+    if md_end is not None:
+        header_list = [
+            hmarhead.HeaderInfo(h[0], h[1], h[2] + 1) for h in target_headers
+        ]
+        match = hmarsel.find_header_by_partial_title(header_list, md_end)
+        hdbg.dassert_is_not(match, None, "No header matches --md_end: '%s'", md_end)
+        end_idx = next(i for i, h in enumerate(target_headers) if h[1] == match.description)
         target_headers = target_headers[: end_idx + 1]
     return target_headers
 
@@ -312,18 +314,7 @@ def _parse() -> argparse.ArgumentParser:
         default=1,
         help="Header level to summarize (1=H1, 2=H2, etc.; default: 1)",
     )
-    parser.add_argument(
-        "--start",
-        type=str,
-        default=None,
-        help="Start from this header (partial match on header title)",
-    )
-    parser.add_argument(
-        "--end",
-        type=str,
-        default=None,
-        help="End after this header (partial match on header title)",
-    )
+    hparser.add_md_start_end_args(parser, start_required=False)
     parser.add_argument(
         "--model",
         type=str,
@@ -367,7 +358,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("Extracted %d headers from input file", len(all_headers))
     # Filter headers to the target level and optional range.
     target_headers = _get_target_headers(
-        all_headers, md_level=args.md_level, start=args.start, end=args.end
+        all_headers, md_level=args.md_level, md_start=args.md_start, md_end=args.md_end
     )
     _LOG.info(
         "Processing %d headers at level %d", len(target_headers), args.md_level

@@ -1326,3 +1326,43 @@ def add_llm_args(
         help="Expected number of characters in output (enables progress bar with explicit size)",
     )
     return parser
+
+
+# #############################################################################
+# Command line for markdown extraction and selection
+# #############################################################################
+
+
+def add_md_start_end_args(
+    parser: argparse.ArgumentParser,
+    *,
+    start_required: bool = True,
+    end_required: bool = False,
+) -> argparse.ArgumentParser:
+	"""
+	Add options for markdown header range selection via --md_start and --md_end.
+
+	Both arguments accept header specifications in two formats:
+	- Full format: "## Section Title" (includes the # symbols)
+	- Partial match: "Section Title" (just the title, matches if unique)
+
+	:param parser: ArgumentParser to add arguments to
+	:param start_required: whether the start header is required (default: True)
+	:param end_required: whether the end header is required (default: False)
+	:return: ArgumentParser with the new arguments added
+	"""
+	parser.add_argument(
+		"--md_start",
+		type=str,
+		required=start_required,
+		default=None,
+		help="Starting header: either full format (e.g., '## Section 1') or partial match (e.g., 'Section 1'). Partial match must be unique.",
+	)
+	parser.add_argument(
+		"--md_end",
+		type=str,
+		required=end_required,
+		default=None,
+		help="Ending header: either full format (e.g., '## Section 2') or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. Partial match must be unique.",
+	)
+	return parser
