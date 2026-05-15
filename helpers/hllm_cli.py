@@ -319,7 +319,11 @@ def apply_llm(
         hdbg.dassert_ne(model, "", "Model cannot be empty string")
     if expected_num_chars is not None:
         hdbg.dassert_isinstance(expected_num_chars, int)
-        hdbg.dassert_lt(0, expected_num_chars, "Expected number of characters must be positive")
+        hdbg.dassert_lt(
+            0,
+            expected_num_chars,
+            "Expected number of characters must be positive",
+        )
     _LOG.debug("Applying LLM to input text")
     _LOG.debug("use_llm_executable=%s", use_llm_executable)
     # Route to appropriate implementation.
