@@ -9,6 +9,7 @@ import contextlib
 import glob
 import logging
 import os
+import pprint
 import re
 from typing import Any, Dict, Generator, List, Optional, Tuple
 import unittest.mock as mock
@@ -40,7 +41,7 @@ def get_test_directories(root_dir: str) -> List[str]:
         # Iterate over the paths to find the test directories.
         if path.endswith("/test"):
             paths.append(path)
-    hdbg.dassert_lte(1, len(paths))
+    hdbg.dassert_lte(1, len(paths), "At least one test directory must exist")
     return paths
 
 
@@ -599,34 +600,39 @@ def capture_system_calls(
     side_effect: Optional[Any] = None,
 ) -> Generator[List[Dict[str, Any]], None, None]:
     """
-    Context manager that captures all system calls to `subprocess.run()` and
-    `hsystem._system()`, returning them as a list of invocations.
+    Context manager that captures all system calls to `subprocess.run()`,
+    `hsystem.system()`, and `hsystem.system_to_string()`, returning them as a
+    list of invocations.
 
     Each invocation is a dict with 'function', 'args', and 'kwargs' keys.
+
+    Example:
+    ```python
+    with capture_system_calls() as invocations:
+        my_function()
+    # Check captured calls.
+    assert len(invocations) == 1
+    assert invocations[0]['function'] == 'subprocess.run'
+    ```
 
     :param side_effect: Exception or return value to use for mocked calls
     :return: List of invocations, each as {'function': str, 'args': tuple,
              'kwargs': dict}
-
-    Example:
-        ```
-        with capture_system_calls() as invocations:
-            my_function()
-        # Check captured calls.
-        assert len(invocations) == 1
-        assert invocations[0]['function'] == 'subprocess.run'
-        ```
     """
     invocations: List[Dict[str, Any]] = []
 
-    def mock_subprocess_run(*args: Any, **kwargs: Any) -> Any:
+    def _mock_invocation(
+        function_name: str, *args: Any, **kwargs: Any
+    ) -> None:
         invocations.append(
             {
-                "function": "subprocess.run",
+                "function": function_name,
                 "args": args,
                 "kwargs": kwargs,
             }
         )
+
+    def _handle_side_effect() -> None:
         if side_effect is not None:
             if isinstance(side_effect, type) and issubclass(
                 side_effect, BaseException
@@ -634,25 +640,50 @@ def capture_system_calls(
                 raise side_effect()
             elif isinstance(side_effect, BaseException):
                 raise side_effect
+
+    def mock_subprocess_run(*args: Any, **kwargs: Any) -> Any:
+        _mock_invocation("subprocess.run", *args, **kwargs)
+        _handle_side_effect()
         return None
 
-    def mock_hsystem(*args: Any, **kwargs: Any) -> Any:
-        invocations.append(
-            {
-                "function": "hsystem._system",
-                "args": args,
-                "kwargs": kwargs,
-            }
-        )
-        if side_effect is not None:
-            if isinstance(side_effect, type) and issubclass(
-                side_effect, BaseException
-            ):
-                raise side_effect()
-            elif isinstance(side_effect, BaseException):
-                raise side_effect
-        return (0, "")  # Return code and output
+    def mock_hsystem_system(*args: Any, **kwargs: Any) -> Any:
+        _mock_invocation("hsystem.system", *args, **kwargs)
+        _handle_side_effect()
+        return 0
+
+    def mock_hsystem_system_to_string(
+        *args: Any, **kwargs: Any
+    ) -> Tuple[int, str]:
+        _mock_invocation("hsystem.system_to_string", *args, **kwargs)
+        _handle_side_effect()
+        return (0, "")
 
     with mock.patch("subprocess.run", side_effect=mock_subprocess_run):
-        with mock.patch("helpers.hsystem._system", side_effect=mock_hsystem):
-            yield invocations
+        with mock.patch("helpers.hsystem.system", side_effect=mock_hsystem_system):
+            with mock.patch(
+                "helpers.hsystem.system_to_string",
+                side_effect=mock_hsystem_system_to_string,
+            ):
+                yield invocations
+
+
+def assert_invocations(
+    self_: Any,
+    captured_invocations: List[Dict[str, Any]],
+    expected_str: str,
+) -> None:
+    """
+    Compare captured system call invocations with expected string representation.
+
+    Formats both the actual captured invocations and expected string using
+    `pprint.pformat` for consistent comparison, then asserts equality using
+    the test case's `assert_equal()` method.
+
+    :param self_: Test case instance that provides `assert_equal()` method
+    :param captured_invocations: List of captured invocations from
+        `capture_system_calls()`
+    :param expected_str: Expected string representation of invocations
+    """
+    actual_str = pprint.pformat(captured_invocations)
+    hdbg.dassert_isinstance(actual_str, str)
+    self_.assert_equal(actual_str, expected_str)

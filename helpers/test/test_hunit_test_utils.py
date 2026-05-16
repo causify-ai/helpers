@@ -1,10 +1,15 @@
+import logging
 import os
+import pprint
+import subprocess
 
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -358,7 +363,7 @@ class Test_get_test_file_for_source(hunitest.TestCase):
 # #############################################################################
 
 
-class TestIsTestFile(hunitest.TestCase):
+class Test_is_test_file(hunitest.TestCase):
     """
     Test test file detection.
     """
@@ -369,10 +374,12 @@ class TestIsTestFile(hunitest.TestCase):
         """
         # Prepare inputs.
         file_path = "helpers/test/test_hdbg.py"
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = hunteuti.is_test_file(file_path)
         # Check outputs.
-        self.assertTrue(actual)
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
@@ -380,10 +387,12 @@ class TestIsTestFile(hunitest.TestCase):
         """
         # Prepare inputs.
         file_path = "helpers/test_hdbg.py"
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = hunteuti.is_test_file(file_path)
         # Check outputs.
-        self.assertTrue(actual)
+        self.assertEqual(actual, expected)
 
     def test3(self) -> None:
         """
@@ -391,10 +400,12 @@ class TestIsTestFile(hunitest.TestCase):
         """
         # Prepare inputs.
         file_path = "helpers/hdbg_test.py"
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = hunteuti.is_test_file(file_path)
         # Check outputs.
-        self.assertTrue(actual)
+        self.assertEqual(actual, expected)
 
     def test4(self) -> None:
         """
@@ -402,10 +413,12 @@ class TestIsTestFile(hunitest.TestCase):
         """
         # Prepare inputs.
         file_path = "helpers/hdbg.py"
+        # Prepare outputs.
+        expected = False
         # Run test.
         actual = hunteuti.is_test_file(file_path)
         # Check outputs.
-        self.assertFalse(actual)
+        self.assertEqual(actual, expected)
 
     def test5(self) -> None:
         """
@@ -413,10 +426,12 @@ class TestIsTestFile(hunitest.TestCase):
         """
         # Prepare inputs.
         file_path = "dev_scripts_helpers/scraping/test/__init__.py"
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = hunteuti.is_test_file(file_path)
         # Check outputs.
-        self.assertTrue(actual)
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -424,7 +439,7 @@ class TestIsTestFile(hunitest.TestCase):
 # #############################################################################
 
 
-class TestGetTestFilesForSources(hunitest.TestCase):
+class Test_get_test_files_for_sources(hunitest.TestCase):
     """
     Test mapping lists of source files to test files.
     """
@@ -516,7 +531,7 @@ class TestGetTestFilesForSources(hunitest.TestCase):
 # #############################################################################
 
 
-class TestGetParentDirs(hunitest.TestCase):
+class Test_get_parent_dirs(hunitest.TestCase):
     """
     Test extracting minimal parent directories from file list.
     """
@@ -619,3 +634,146 @@ class TestGetParentDirs(hunitest.TestCase):
         actual = hunteuti.get_parent_dirs(files)
         # Check outputs.
         self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# TestCaptureSystemCalls
+# #############################################################################
+
+
+class Test_capture_system_calls(hunitest.TestCase):
+    """
+    Test system call capture functionality.
+    """
+
+    def test1(self) -> None:
+        """
+        Capture single subprocess.run() call.
+        """
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            subprocess.run(["echo", "hello"], check=False)
+        # Check outputs.
+        actual = pprint.pformat(invocations)
+        expected = """
+        [{'args': (['echo', 'hello'],),
+          'function': 'subprocess.run',
+          'kwargs': {'check': False}}]
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Capture hsystem.system() call.
+        """
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system("echo hello", suppress_output=True)
+        # Check outputs.
+        actual = pprint.pformat(invocations)
+        expected = """
+        [{'args': ('echo hello',),
+          'function': 'hsystem.system',
+          'kwargs': {'suppress_output': True}}]
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Capture hsystem.system_to_string() call.
+        """
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system_to_string("echo test", suppress_output=True)
+        # Check outputs.
+        actual = pprint.pformat(invocations)
+        expected = """
+        [{'args': ('echo test',),
+          'function': 'hsystem.system_to_string',
+          'kwargs': {'suppress_output': True}}]
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Capture multiple system calls.
+        """
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system("echo hello", suppress_output=True)
+            hsystem.system_to_string("echo world", suppress_output=True)
+        # Check outputs.
+        actual = pprint.pformat(invocations)
+        expected = """
+        [{'args': ('echo hello',),
+          'function': 'hsystem.system',
+          'kwargs': {'suppress_output': True}},
+         {'args': ('echo world',),
+          'function': 'hsystem.system_to_string',
+          'kwargs': {'suppress_output': True}}]
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Capture with side_effect exception.
+        """
+        # Prepare outputs.
+        expected_exception = RuntimeError
+        # Run test and check output.
+        with self.assertRaises(expected_exception):
+            with hunteuti.capture_system_calls(
+                side_effect=RuntimeError("Test error")
+            ):
+                hsystem.system("echo test", suppress_output=True)
+
+    def test6(self) -> None:
+        """
+        Compare captured invocations with expected string representation.
+        """
+        # Prepare outputs.
+        expected_invocations_str = (
+            "[{'args': ('echo test',),\n"
+            "  'function': 'hsystem.system',\n"
+            "  'kwargs': {'suppress_output': True}}]"
+        )
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system("echo test", suppress_output=True)
+        # Check outputs.
+        hunteuti.assert_invocations(self, invocations, expected_invocations_str)
+
+    def test7(self) -> None:
+        """
+        Assert invocations with multiple calls.
+        """
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system("echo hello", suppress_output=True)
+            hsystem.system("echo world", suppress_output=True)
+        # Check outputs.
+        expected_invocations_str = (
+            "[{'args': ('echo hello',),\n"
+            "  'function': 'hsystem.system',\n"
+            "  'kwargs': {'suppress_output': True}},\n"
+            " {'args': ('echo world',),\n"
+            "  'function': 'hsystem.system',\n"
+            "  'kwargs': {'suppress_output': True}}]"
+        )
+        hunteuti.assert_invocations(self, invocations, expected_invocations_str)
+
+    def test8(self) -> None:
+        """
+        Assert empty invocations list.
+        """
+        # Prepare outputs.
+        expected_num_invocations = 0
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            pass
+        # Check outputs.
+        self.assertEqual(len(invocations), expected_num_invocations)
