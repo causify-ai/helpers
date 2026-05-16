@@ -108,6 +108,11 @@ def _parse() -> argparse.ArgumentParser:
         help="Output markdown file (default: replace .epub with .md in input filename)",
     )
     parser.add_argument(
+        "--skip_figures",
+        action="store_true",
+        help="Skip processing figures and images when converting to markdown",
+    )
+    parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Delete target files if they already exist",
@@ -155,14 +160,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 shutil.rmtree(images_dir)
                 _LOG.info("Deleted existing images directory: %s", images_dir)
         else:
-            # TODO(ai_gp): Use raise
-            hdbg.dassert(
-                False,
-                "Output file already exists: %s (use --overwrite to replace)",
-                md_file,
+            raise ValueError(
+                f"Output file already exists: {md_file} (use --overwrite to replace)"
             )
-    hio.create_dir(images_dir, incremental=True)
-    # Select and print actions to execute.
+    if not skip_figures:
+        hio.create_dir(images_dir, incremental=True)
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
     actions_as_str = hparser.actions_to_string(
@@ -171,26 +173,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("\n%s", actions_as_str)
     _LOG.info("Converting EPUB: %s", epub_file)
     _LOG.info("Output markdown: %s", md_file)
-    _LOG.info("Images directory: %s", images_dir)
-    # Build pandoc command for EPUB to GFM conversion using GitHub Flavored
-    # Markdown format.
+    if not skip_figures:
+        _LOG.info("Images directory: %s", images_dir)
+    extract_media_part = f"--extract-media={images_dir}" if not skip_figures else ""
     cmd = (
         f"pandoc {epub_file} "
         f"--to=gfm "
         f"--wrap=none "
-        f"--extract-media={images_dir} "
+        f"{extract_media_part} "
         f"-o {md_file}"
-    )
+    ).strip()
     container_type = "pandoc_only"
     _LOG.info("Running pandoc conversion...")
     dshdlipa.run_dockerized_pandoc(cmd, container_type)
-    # Move extracted media files to images directory.
-    _move_media(images_dir)
-    # Fix image path references in the markdown.
-    _fix_image_paths(md_file, images_dir_name)
+    if not skip_figures:
+        _move_media(images_dir)
+        _fix_image_paths(md_file, images_dir_name)
     _LOG.info("Conversion completed successfully")
     _LOG.info("Markdown file: %s", md_file)
-    _LOG.info("Images saved to: %s", images_dir)
+    if not skip_figures:
+        _LOG.info("Images saved to: %s", images_dir)
     # Execute selected actions.
     # Remove junk from markdown.
     to_execute, actions = hparser.mark_action("remove_junk", actions)
