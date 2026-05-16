@@ -18,6 +18,7 @@ directory.
 import argparse
 import logging
 import os
+import re
 import shutil
 
 import helpers.hdbg as hdbg
@@ -153,7 +154,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     docx_basename = os.path.basename(docx_file)
     md_filename = os.path.splitext(docx_basename)[0] + ".md"
     md_file = os.path.join(output_dir, md_filename)
-    md_file_figs = md_file.replace(".md", "_figs")
+    md_file_figs = md_file.replace(".md", ".figs")
     if os.path.exists(md_file) or os.path.exists(md_file_figs):
         if overwrite:
             if os.path.exists(md_file):
@@ -163,10 +164,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 shutil.rmtree(md_file_figs)
                 _LOG.info("Deleted existing figures directory: %s", md_file_figs)
         else:
-            hdbg.dassert(
-                False,
-                "Output file already exists: %s (use --overwrite to replace)",
-                md_file,
+            raise ValueError(
+                f"Output file already exists: {md_file} (use --overwrite to replace)"
             )
     if not skip_figures:
         hio.create_dir(md_file_figs, incremental=False)
@@ -180,6 +179,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if not skip_figures:
         _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)
+    if skip_figures:
+        # Comment out image references since figures are skipped.
+        _LOG.info("Commenting out image references...")
+        content = hio.from_file(md_file)
+        content = re.sub(r"(!\[[^\]]*\]\([^)]*\))", r"<!-- \1 -->", content)
+        hio.to_file(md_file, content)
     _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)
 
 

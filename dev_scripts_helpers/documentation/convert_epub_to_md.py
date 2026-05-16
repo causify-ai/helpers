@@ -9,12 +9,13 @@ Usage:
 
 The output will contain:
 - document.md: The converted markdown file
-- document.md.figs/: Directory containing extracted images from the EPUB
+- document.figs/: Directory containing extracted images from the EPUB
 """
 
 import argparse
 import logging
 import os
+import re
 import shutil
 
 import helpers.hdbg as hdbg
@@ -145,11 +146,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Use same name as input, replacing .epub with .md.
     else:
         md_file = os.path.splitext(epub_file)[0] + ".md"
-    # Images directory uses markdown filename with .figs extension.
+    # Images directory uses markdown stem (without extension) with .figs extension.
     md_dir = os.path.dirname(md_file)
     md_basename = os.path.basename(md_file)
-    images_dir = os.path.join(md_dir, f"{md_basename}.figs")
-    images_dir_name = f"{md_basename}.figs"
+    md_stem = os.path.splitext(md_basename)[0]
+    images_dir = os.path.join(md_dir, f"{md_stem}.figs")
+    images_dir_name = f"{md_stem}.figs"
+    skip_figures = args.skip_figures
     # Check for existing files.
     if os.path.exists(md_file) or os.path.exists(images_dir):
         if args.overwrite:
@@ -189,6 +192,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if not skip_figures:
         _move_media(images_dir)
         _fix_image_paths(md_file, images_dir_name)
+    else:
+        # Comment out image references since figures are skipped.
+        _LOG.info("Commenting out image references...")
+        content = hio.from_file(md_file)
+        content = re.sub(r"(!\[[^\]]*\]\([^)]*\))", r"<!-- \1 -->", content)
+        hio.to_file(md_file, content)
     _LOG.info("Conversion completed successfully")
     _LOG.info("Markdown file: %s", md_file)
     if not skip_figures:

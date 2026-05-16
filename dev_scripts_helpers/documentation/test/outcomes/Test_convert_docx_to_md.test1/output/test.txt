@@ -1,0 +1,3 @@
+This is a sample DOCX document.
+
+It contains basic text content for testing conversion to Markdown.
