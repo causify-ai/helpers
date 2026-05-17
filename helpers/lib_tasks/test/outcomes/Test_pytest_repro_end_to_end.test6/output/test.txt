@@ -1,5 +1,5 @@
-HH:MM:SS - INFO  lib_tasks_pytest.py pytest_repro:{LINE_NUM}                  Reading file_name='$GIT_ROOT/helpers/test/outcomes/Test_pytest_repro_end_to_end.test6/input/log.txt'
-HH:MM:SS - INFO  lib_tasks_pytest.py pytest_repro:{LINE_NUM}                  Reading failed tests from file '$GIT_ROOT/helpers/test/outcomes/Test_pytest_repro_end_to_end.test6/input/log.txt'
+HH:MM:SS - INFO  lib_tasks_pytest.py pytest_repro:{LINE_NUM}                  Reading file_name='$GIT_ROOT/helpers/lib_tasks/test/outcomes/Test_pytest_repro_end_to_end.test6/input/log.txt'
+HH:MM:SS - INFO  lib_tasks_pytest.py pytest_repro:{LINE_NUM}                  Reading failed tests from file '$GIT_ROOT/helpers/lib_tasks/test/outcomes/Test_pytest_repro_end_to_end.test6/input/log.txt'
 HH:MM:SS - INFO  lib_tasks_pytest.py pytest_repro:{LINE_NUM}                  Found 2 failed pytest 'tests' target(s); to reproduce run:
 pytest dataflow_lime/pipelines/E8/test/test_E8d_configs.py::Test_get_configs_from_command_line1::test1
 pytest dataflow_lime/pipelines/E8/test/test_E8d_prod_models.py::Test_TiledBacktest_E8d::test_end_to_end_slow1
@@ -38,4 +38,4 @@ The golden outcome doesn't exist: saved the actual output in '$GIT_ROOT/dataflow
 ################################################################################
 
 # To run the tests:
-> $GIT_ROOT/helpers/test/outcomes/Test_pytest_repro_end_to_end.test6/tmp.scratch/tmp.pytest_repro.sh
+> $GIT_ROOT/helpers/lib_tasks/test/outcomes/Test_pytest_repro_end_to_end.test6/tmp.scratch/tmp.pytest_repro.sh
