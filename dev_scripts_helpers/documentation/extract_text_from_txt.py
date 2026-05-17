@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 
 r"""
-Extract text from a file between two markdown headers.
+Extract text from a file between two markdown headers or slides.
 
 The script:
 - Processes the input Markdown `.md` or txt slide `.txt` file
-- Extracts text between specified start and end headers
+- Extracts text between specified start and end headers/slides
 - If `--end` is not provided, extracts until the next header at the same or
   higher level (fewer # symbols)
 - If `--start` header is not found, raises an error
 - Outputs the extracted text to a file or stdout
 
-Headers can be specified in two ways:
+For `.txt` slide files, headers can be specified as:
+- Slides: "* Slide Title" (shorthand for `##### Slide Title`)
+- Full header format: "##### Section 1" (includes the # symbols)
+- Partial match: "Section 1" (just the title, matches if unique)
+
+For `.md` files, headers can be specified as:
 - Full format: "## Section 1" (includes the # symbols)
 - Partial match: "Section 1" (just the title, matches if unique)
 
@@ -27,6 +32,12 @@ Examples:
 
 # Extract text and print to stdout
 > extract_text_from_txt.py -i input.md --start "Chapter 1" --end "Chapter 2" -o -
+
+# Extract text between slides in a .txt file (using slide notation)
+> extract_text_from_txt.py -i input.txt --start "* Slide 1" --end "* Slide 2" -o output.txt
+
+# Extract text from a slide until next same-level slide (no explicit end)
+> extract_text_from_txt.py -i input.txt --start "* Introduction" -o output.txt
 """
 
 import argparse
@@ -121,7 +132,9 @@ def _find_header_from_input(
         # Full header format like "## Title"
         level, title = _parse_header_string(header_input)
         header_info = _find_header_by_title(header_list, title)
-        hdbg.dassert_is_not(header_info, None, "Header not found: '%s'", header_input)
+        hdbg.dassert_is_not(
+            header_info, None, "Header not found: '%s'", header_input
+        )
         hdbg.dassert_eq(
             header_info.level,
             level,
@@ -134,7 +147,9 @@ def _find_header_from_input(
     else:
         # Partial title match
         header_info = _find_header_by_partial_title(header_list, header_input)
-        hdbg.dassert_is_not(header_info, None, "No header matches: '%s'", header_input)
+        hdbg.dassert_is_not(
+            header_info, None, "No header matches: '%s'", header_input
+        )
         return header_info, header_info.level
 
 
@@ -219,15 +234,25 @@ def _extract_text_from_txtslides(
     end_header_str: Optional[str],
 ) -> List[str]:
     """
-    Extract text from txt slide lines between two headers.
+    Extract text from txt slide lines between two headers/slides.
+
+    Slides (`* Title`) are automatically converted to headers (`##### Title`) for
+    consistent processing. Users can pass either format: `* Slide Title` or
+    `##### Slide Title` or just the title for partial match.
 
     :param lines: list of lines in the input file
-    :param start_header_str: starting header (e.g., "## Section 1" or "Section 1")
-    :param end_header_str: ending header (optional, same formats accepted)
+    :param start_header_str: starting header/slide (e.g., "* Slide 1", "##### Section 1", or "Section 1")
+    :param end_header_str: ending header/slide (optional, same formats accepted)
     :return: extracted lines
     """
     hdbg.dassert_isinstance(lines, list, "lines must be a list of strings")
-    lines = hmarkdo.convert_slide_to_markdown(lines, level=3)
+    # Convert slide notation ('* Title') to header notation so the same header
+    # search logic works for both inputs.
+    start_header_str = hmarkdo.convert_slide_to_markdown([start_header_str])[0]
+    if end_header_str is not None:
+        end_header_str = hmarkdo.convert_slide_to_markdown([end_header_str])[0]
+    # Convert all lines from slide to markdown format.
+    lines = hmarkdo.convert_slide_to_markdown(lines)
     sanity_check = False
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=10, sanity_check=sanity_check
@@ -262,13 +287,13 @@ def _parse() -> argparse.ArgumentParser:
         "--start",
         type=str,
         required=True,
-        help="Starting header: either full format (e.g., '## Section 1') or partial match (e.g., 'Section 1'). Partial match must be unique.",
+        help="Starting header/slide: either full format (e.g., '## Section 1' or '* Slide Title'), or partial match (e.g., 'Section 1'). For .txt slides, can use '* Slide Title' notation. Partial match must be unique.",
     )
     parser.add_argument(
         "--end",
         type=str,
         default=None,
-        help="Ending header: either full format (e.g., '## Section 2') or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. Partial match must be unique.",
+        help="Ending header/slide: either full format (e.g., '## Section 2' or '* Slide Title'), or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. For .txt slides, can use '* Slide Title' notation. Partial match must be unique.",
     )
     hparser.add_verbosity_arg(parser)
     return parser

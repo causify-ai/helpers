@@ -57,7 +57,7 @@ import argparse
 import logging
 import subprocess
 import sys
-from typing import List
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -97,7 +97,7 @@ def _run_linting_actions(
     files_str: str,
     *,
     abort_on_error: bool = True,
-    actions: List[str] | None = None,
+    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Run common linting actions (pre-commit, normalize_import, add_class_frames).
@@ -237,7 +237,7 @@ def _lint_python_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
-    actions: List[str] | None = None,
+    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Python files using specified actions.
@@ -276,7 +276,7 @@ def _lint_jupyter_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
-    actions: List[str] | None = None,
+    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Jupyter notebooks with specified actions.
@@ -318,7 +318,7 @@ def _lint_markdown_files(
     abort_on_error: bool = True,
 ) -> int:
     """
-    Lint Markdown files using lint_txt.py.
+    Lint Markdown files.
 
     :param file_paths: Markdown files to lint
     :param abort_on_error: whether to abort on first error

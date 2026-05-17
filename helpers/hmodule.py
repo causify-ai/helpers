@@ -8,7 +8,7 @@ import logging
 import os
 import subprocess
 import textwrap
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 import helpers.hserver as hserver
@@ -70,52 +70,79 @@ def has_module(module: str) -> bool:
 
 
 def install_module_if_not_present(
-    import_name: str,
+    import_name: Union[str, List[str]],
     *,
-    package_name: Optional[str] = None,
+    package_name: Union[Optional[str], List[str], None] = None,
     use_sudo: bool = True,
     use_activate: bool = False,
     venv_path: Optional[str] = None,
     quiet: bool = True,
 ) -> None:
-    """
+    r"""
     Install a Python module if it is not already installed.
 
-    :param import_name: name used to import the module (e.g., "openai")
-    :param package_name: name of the package on PyPI (if different from `import_name`)
+    :param import_name:
+        - If str: name used to import the module (e.g., "openai")
+        - If List[str]: list of module names to check and install
+    :param package_name:
+        - If None: use `import_name` as the package name
+        - If str: name of the package on PyPI (used when `import_name` is str)
+        - If List[str]: list of package names corresponding to `import_name` list
+        (must have same length as `import_name` if `import_name` is a list)
     :param use_sudo: whether to use sudo to install the module
-    :param use_activate: whether to use the activate script to install the module
+    :param use_activate:
+        whether to use the activate script to install the module
         (e.g., "source /venv/bin/activate; pip install --quiet --upgrade openai")
     :param venv_path: path to the virtual environment
-        E.g., /Users/saggese/src/venv/client_venv.helpers
+        (e.g., /Users/saggese/src/venv/client_venv.helpers)
     :param quiet: whether to install the module quietly
     """
-    _has_module = has_module(import_name)
-    if _has_module:
-        print(f"Module '{import_name}' is already installed.")
-        return
-    print(f"Installing module '{import_name}'...")
-    # Sometime the package name is different from the import name.
-    # E.g., we import using `import dash_bootstrap_components` but the package
-    # name is `dash-bootstrap-components`.
+    # Normalize inputs to lists for uniform processing.
+    if isinstance(import_name, str):
+        import_names = [import_name]
+    else:
+        import_names = import_name
+    #
     if package_name is None:
-        package_name = import_name
-    # Sometime the package name is different from the import name.
-    # E.g., we import using `import dash_bootstrap_components` but the package
-    # name is `dash-bootstrap-components`.
-    if quiet:
-        quiet_flag = "--quiet"
+        package_names = import_names
+    elif isinstance(package_name, str):
+        package_names = [package_name]
     else:
-        quiet_flag = ""
-    if venv_path is None:
-        venv_path = "/venv"
-    venv_path = os.path.join(venv_path, "bin/activate")
-    hdbg.dassert_file_exists(venv_path, "Can't find venv_path='{venv_path}'")
-    if use_activate:
-        cmd = f'/bin/bash -c "(source {venv_path}; pip install {quiet_flag} --upgrade {package_name})"'
-    else:
-        cmd = f"pip install {quiet_flag} {package_name}"
-    if use_sudo:
-        cmd = f"sudo {cmd}"
-    _, output = _system_to_string(cmd)
-    print(output)
+        package_names = package_name
+    # Validate that lists have matching lengths.
+    hdbg.dassert_eq(
+        len(import_names),
+        len(package_names),
+        "import_name and package_name lists must have the same length",
+    )
+    # Install each module.
+    for import_n, package_n in zip(import_names, package_names):
+        _has_module = has_module(import_n)
+        if _has_module:
+            print(f"Module '{import_n}' is already installed.")
+            continue
+        print(f"Installing module '{import_n}'...")
+        # Sometime the package name is different from the import name.
+        # E.g., we import using `import dash_bootstrap_components` but the
+        # package name is `dash-bootstrap-components`.
+        if quiet:
+            quiet_flag = "--quiet"
+        else:
+            quiet_flag = ""
+        _venv_path = venv_path
+        if _venv_path is None:
+            _venv_path = "/venv"
+        _venv_path = os.path.join(_venv_path, "bin/activate")
+        hdbg.dassert_file_exists(
+            _venv_path,
+            "Can't find venv_path='%s'",
+            _venv_path,
+        )
+        if use_activate:
+            cmd = f'/bin/bash -c "(source {_venv_path}; pip install {quiet_flag} --upgrade {package_n})"'
+        else:
+            cmd = f"pip install {quiet_flag} {package_n}"
+        if use_sudo:
+            cmd = f"sudo {cmd}"
+        _, output = _system_to_string(cmd)
+        print(output)

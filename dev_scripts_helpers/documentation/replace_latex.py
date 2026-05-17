@@ -19,6 +19,7 @@ import documentation_devto.scripts.replace_latex as ddscrela
 import argparse
 import logging
 import re
+from typing import Match
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -77,7 +78,7 @@ def _standard_cleanup(in_file: str, aggressive: bool) -> None:
                     "\\b" + s.capitalize() + "\\b", d.capitalize(), line
                 )
 
-            def _repl_func(m: re.Match) -> str:
+            def _repl_func(m: Match) -> str:
                 ret: str = m.group(1) + m.group(2).upper() + m.group(3)
                 return ret
 

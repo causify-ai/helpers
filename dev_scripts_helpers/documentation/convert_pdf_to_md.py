@@ -4,7 +4,7 @@
 # dependencies = ["pymupdf", "pyyaml"]
 # ///
 
-"""
+r"""
 Convert a PDF to Markdown using PyMuPDF (fitz).
 
 The script extracts text and images from a PDF file and converts them to
@@ -23,11 +23,6 @@ Usage:
     --input document.pdf \
     --output output_dir \
     -v DEBUG
-
-Import as:
-
-import dev_scripts_helpers.documentation.convert_pdf_to_md as dsdopema
-import dev_scripts_helpers.dockerize.lib_prettier as lib_prettier
 """
 
 import argparse

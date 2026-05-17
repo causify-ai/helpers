@@ -171,6 +171,9 @@ def _exec_cmd_by_chunks(
         hsystem.system(cmd, abort_on_error=abort_on_error)
 
 
+# #############################################################################
+
+
 def _print_problems(dir_name: str = ".") -> None:
     """
     Do `ls -l` on files that are not owned by the current user and its group.

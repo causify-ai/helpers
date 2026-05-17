@@ -596,11 +596,11 @@
 ### Further Reading
 
 - Full how-to guides and architecture diagrams for the unit test framework:
-  - [How to Write Unit Tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+  - [How to Write Unit Tests](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
     — naming conventions, golden file testing, mocking, setup/teardown patterns
-  - [How to Run Unit Tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+  - [How to Run Unit Tests](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
     — invoke commands, coverage, CI/GH Actions
-  - [Unit Test Framework Architecture](/docs/tools/unit_test/all.unit_test_framework.explanation.md)
+  - [Unit Test Framework Architecture](/helpers/test/docs/all.unit_test_framework.explanation.md)
     — design decisions, class hierarchy, golden file design, module map
 
 # Notebooks

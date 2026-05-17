@@ -90,17 +90,20 @@ def _get_files_to_search(
     return files if files else None
 
 
-def parse() -> argparse.ArgumentParser:
+def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     """
     Create and return ArgumentParser for rig utility.
 
     Configures arguments for: search pattern, directory, file extensions,
     file selection filters (modified, branch, last-commit, all), and verbosity.
 
+    :param description: Custom description for help output (defaults to module docstring)
     :return: Configured ArgumentParser instance
     """
+    if description is None:
+        description = __doc__
     parser = argparse.ArgumentParser(
-        description=__doc__,
+        description=description,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
@@ -187,16 +190,18 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
 def main(
     args: Optional[List[str]] = None,
     parser: Optional[argparse.ArgumentParser] = None,
+    description: Optional[str] = None,
 ) -> int:
     """
     Main entry point for rig utility.
 
     :param args: Command-line arguments (defaults to sys.argv[1:])
     :param parser: ArgumentParser instance (created if not provided)
+    :param description: Custom description for help output
     :return: Exit code (0 for success, 1 for error)
     """
     if parser is None:
-        parser = parse()
+        parser = parse(description=description)
     if args is not None:
         parsed = parser.parse_args(args)
     else:

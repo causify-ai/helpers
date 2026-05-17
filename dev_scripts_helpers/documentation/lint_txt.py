@@ -661,20 +661,6 @@ def _parser() -> argparse.ArgumentParser:
     )
     hparser.add_input_output_args(parser, in_required=False, out_required=False)
     parser.add_argument(
-        "--files",
-        action="store",
-        type=str,
-        default=None,
-        help="Space or comma-separated list of files to process",
-    )
-    parser.add_argument(
-        "--from_file",
-        action="store",
-        type=str,
-        default=None,
-        help="Path to a file containing a list of files to process (one per line)",
-    )
-    parser.add_argument(
         "--type",
         action="store",
         type=str,
@@ -715,28 +701,6 @@ def _parser() -> argparse.ArgumentParser:
     hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
-
-
-def _get_files_from_args(args: argparse.Namespace) -> Optional[List[str]]:
-    """
-    Parse files from --files or --from_file arguments.
-
-    :param args: Parsed arguments.
-    :return: List of files to process, or None if neither option is provided.
-    """
-    if args.files:
-        # Support both space and comma-separated lists.
-        files = args.files.replace(",", " ").split()
-        return files
-    elif args.from_file:
-        # Read files from the specified file.
-        if not os.path.exists(args.from_file):
-            _LOG.error("File not found: %s", args.from_file)
-            raise FileNotFoundError(f"File not found: {args.from_file}")
-        with open(args.from_file, "r") as f:
-            files = [line.strip() for line in f if line.strip()]
-        return files
-    return None
 
 
 def _process_single_file(
@@ -783,7 +747,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("\n%s", actions_as_str)
     # Check if processing multiple files or a single file.
-    files = _get_files_from_args(args)
+    files = hparser.parse_input_output_files(args)
     if files:
         # Process multiple files.
         _LOG.info("Processing %d file(s)", len(files))

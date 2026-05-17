@@ -1,43 +1,44 @@
 # Summary
-
 - This document provides a comprehensive guide to the documentation toolchain
-  that converts raw notes, slides, and LaTeX into polished PDFs, slide decks, and
-  HTML
+  that converts raw notes, slides, and LaTeX into polished PDFs, slide decks,
+  and HTML
 - The toolchain supports multiple documentation workflows including standard
   LaTeX, Causify markdown extensions, notes format, slides, books, and Jupyter
   books
-- The document catalogs over 30 specialized tools organized into categories: core
-  documentation tools, extraction and conversion tools, dockerized tools, utility
-  and processing tools, generation and publishing tools, and shell script utilities
+- The document catalogs over 30 specialized tools organized into categories:
+  core documentation tools, extraction and conversion tools, dockerized tools,
+  utility and processing tools, generation and publishing tools, and shell
+  script utilities
 - Each tool is documented with its purpose, usage examples, and integration with
   the broader documentation ecosystem
 - The toolchain emphasizes automation, consistency, and ease of use through
   command-line interfaces and editor integration
 
 # Structure of the Dir
-
 - `OLD/`
   - Archived legacy scripts and tools no longer in active use
 - `test/`
   - Unit tests for documentation processing scripts and utilities
 
 # Description of Files
-
 - `check_links.instr.md`
-  - Instructions and examples for using the check_links.py script to validate URLs
+  - Instructions and examples for using the check_links.py script to validate
+    URLs
 - `create_google_drive_map.md`
-  - Documentation explaining how to generate directory structure summaries with LLM analysis
+  - Documentation explaining how to generate directory structure summaries with
+    LLM analysis
 - `generate_all_projects.md`
   - Guide for generating documentation across multiple project repositories
 - `latex_abbrevs.sty`
-  - LaTeX style file with custom abbreviation macros for vectors, matrices, and mathcal notation
+  - LaTeX style file with custom abbreviation macros for vectors, matrices, and
+    mathcal notation
 - `pandoc.latex`
-  - Custom Pandoc LaTeX template for document conversion with styling configurations
+  - Custom Pandoc LaTeX template for document conversion with styling
+    configurations
 
 # Documentation Toolchain
-
 - This is a high‑level guide to the workflows that turn raw notes, slides, Latex
-  into polished PDFs, slide decks, etc.
+  into polished PDFs, slide decks, etc
 
 - There are several documentation workflows available:
   - **latex**
@@ -78,7 +79,6 @@
   - **jupyter books**
 
 ## Causify Extended Markdown
-
 - We refer to it to "Causify markdown" as some extension we use on top of
   `Pandoc` markdown
 - The goal is invariants in formatting that we enforce so that the code looks
@@ -116,81 +116,90 @@
   - [`//helpers/dev_scripts_helpers/documentation/preprocess_notes.py`]
 
 ## List of Tools
-
 - Short Classification of Tools
-
   - Core Documentation Tools
-    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides with automatic PDF compression
-    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
+    - `clean_markdown.py`: Cleans up HTML markup in Markdown files
     - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes
+    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides with
+      automatic PDF compression
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
+    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ,
+      Graphviz)
     - `transform_notes.py`: Applies transformations (TOC, headers, lists)
-    - `update_md.py`: Multi-action LLM tool for markdown files (summarize, update content, apply style)
-
+    - `update_md.py`: Multi-action LLM tool for markdown files (summarize,
+      update content, apply style)
   - Extraction and Conversion Tools
-    - `convert_docx_to_markdown.py`: Converts DOCX to Markdown
+    - `convert_docx_to_md.py`: Converts DOCX to Markdown
+    - `convert_epub_to_md.py`: Converts EPUB to Markdown
     - `convert_pdf_to_md.py`: Converts PDF to Markdown
-    - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt slides, and Jupyter notebook files for navigation
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
-
+    - `extract_text_from_txt.py`: Extracts text content from various document
+      formats
+    - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt
+      slides, and Jupyter notebook files for navigation
+    - `extract_chapters_from_text.py`: Splits Markdown files into individual
+      chapters
   - Dockerized Tools
-    - `dockerized_tikz_to_bitmap.py`: TikZ to PNG conversion  
-    - `dockerized_graphviz.py`: Graphviz DOT to PNG  
-    - `dockerized_latex.py`: LaTeX compilation  
-    - `dockerized_mermaid.py`: Mermaid diagram rendering  
-    - `dockerized_pandoc.py`: Pandoc conversions  
+    - `dockerized_graphviz.py`: Graphviz DOT to PNG
+    - `dockerized_latex.py`: LaTeX compilation
+    - `dockerized_mermaid.py`: Mermaid diagram rendering
+    - `dockerized_pandoc.py`: Pandoc conversions
     - `dockerized_prettier.py`: Prettier formatting
-
+    - `dockerized_svg_with_inkscape.py`: SVG conversion using Inkscape
+    - `dockerized_svg_with_rsvg_convert.py`: SVG conversion using rsvg-convert
+    - `dockerized_tikz_to_bitmap.py`: TikZ to PNG conversion
   - Utility and Processing Tools
-    - `run_pandoc.py`: Runs Pandoc conversions
-    - `replace_latex.py`: Batch LaTeX transformations
+    - `check_ai_slop.py`: Detects and fixes AI-generated content using
+      Undetectable.ai API
     - `check_links.py`: Validates URL reachability
-    - `check_ai_slop.py`: Detects and fixes AI-generated content using Undetectable.ai API
     - `concatenate_pdfs.py`: Merges multiple PDF files into a single PDF
-
+    - `convert_png_dir_to_movie.py`: Creates MP4 videos or GIFs from PNG image
+      sequences
+    - `convert_table.py`: Converts between table formats (CSV, TSV, Markdown)
+    - `count_words.py`: Counts words and estimates reading time
+    - `replace_latex.py`: Batch LaTeX transformations
+    - `run_pandoc.py`: Runs Pandoc conversions
   - Generation and Publishing Tools
+    - `create_google_drive_map.py`: Creates directory structure summaries
+    - `generate_images.py`: Generates images with DALL-E
+    - `generate_latex_sty.py`: Generates LaTeX style files
     - `generate_readme_index.py`: Generates README index
     - `generate_script_catalog.py`: Creates script catalog
-    - `generate_latex_sty.py`: Generates LaTeX style files
-    - `generate_images.py`: Generates images with DALL-E
     - `publish_notes.py`: Publishes notes to remote server
-    - `create_google_drive_map.py`: Creates directory structure summaries
-
   - Shell Script Utilities
+    - `epub_to_md.sh`: Converts EPUB to Markdown (shell wrapper)
+    - `latexdockercmd.sh`: LaTeX Docker command utility
     - `open_md_in_browser.sh`: Renders Markdown to HTML and opens in browser
     - `open_md_on_github.sh`: Opens a file in GitHub web interface
-    - `run_latex.sh`: Dockerized LaTeX compilation with PDF viewer
+    - `open_md.sh`: Opens Markdown files (general utility)
     - `replace_latex.sh`: Shell wrapper for LaTeX batch transformations
-    - `latexdockercmd.sh`: LaTeX Docker command utility  
+    - `run_latex.sh`: Dockerized LaTeX compilation with PDF viewer
 
-# Description of executables
+# Description of Executables
 
 ## `notes_to_pdf.py`
 
 ### What It Does
-
 - Convert plain‑text notes into polished **PDF**, **HTML**, or **Beamer slides**
   with a single command, including automatic PDF compression:
-
   ```bash
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
   ```
 
-- For PDF files, automatically compresses the output using ghostscript with `/printer` quality
-  setting to reduce file size while maintaining readability
+- For PDF files, automatically compresses the output using ghostscript with
+  `/printer` quality setting to reduce file size while maintaining readability
 
 ### Examples
-
 - Compile to **Beamer slides**
-  ```
+  ```bash
   > notes_to_pdf.py -i lesson.txt -o lesson.pdf --type slides
   ```
 - Produce a **stand‑alone HTML** page
-  ```
+  ```bash
   > notes_to_pdf.py -i cheatsheet.txt -o cheatsheet.html --type html
   ```
 - Build a **PDF article** (LaTeX)
-  ```
+  ```bash
   > notes_to_pdf.py -i paper.txt -o paper.pdf --type pdf
   ```
 - Skip PDF compression (for larger file sizes but faster processing)
@@ -199,16 +208,15 @@
   ```
 
 - Skip the final viewer **open** step
-  ```
+  ```bash
   > ... --skip_action open`
   ```
 
 - **Tip**: Run with `--preview_actions` to print the exact steps without
-  executing them.
+  executing them
 
 - Slides with navigation breadcrumbs, keeping intermediate files for inspection
-  // TODO(indro): `--toc_type navigation` fails because of the preprocess step.
-
+  // TODO(indro): `--toc_type navigation` fails because of the preprocess step
   ```bash
   > notes_to_pdf.py \
       --input lectures_source/Lesson5-Theory_Statistical_learning.txt \
@@ -221,7 +229,6 @@
 
 - Focus on a subsection, compiling only from line 362 to EOF for a fast
   iteration when debugging slides
-
   ```bash
   > notes_to_pdf.py \
       --input Lesson8-Reasoning_over_time.txt \
@@ -239,7 +246,6 @@
 ## `render_images.py`
 
 ### What It Does
-
 - This script auto renders figures by:
   - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, LaTeX)
   - Generating AI images from text prompts using OpenAI's DALL-E API
@@ -270,28 +276,24 @@ The supported File types and code blocks are:
   - Output embeds as: `\includegraphics{...}`
 
 ### Examples
-
 - Render to a new file
-
   ```bash
   > render_images.py -i lesson.md -o lesson.rendered.md --action render --dst_dir ./lesson.md.figs --run_dockerized
   ```
 
 - Render in‑place (Markdown or LaTeX)
-
   ```bash
   > render_images.py -i lesson.md --action render --run_dockerized
   ```
+
   Note: When `--dst_dir` is not specified, defaults to `<input_file>.figs`
 
 - Specify custom output directory for rendered images
-
   ```bash
   > render_images.py -i lesson.md --action render --dst_dir /custom/path/images
   ```
 
 - HTML preview of already‑rendered images
-
   ```bash
   > render_images.py -i lesson.md --action open --run_dockerized
   ```
@@ -307,19 +309,17 @@ The supported File types and code blocks are:
   ```
 
 - Render multiple files using comma-separated list
-
   ```bash
   > render_images.py --files="file1.md,file2.md,file3.md" --action render
   ```
 
 - Render multiple files from a file list
-
   ```bash
   > render_images.py --from_files="files_to_render.txt" --action render
   ```
 
   Where `files_to_render.txt` contains:
-  ```
+  ```text
   # List of files to render
   docs/chapter1.md
   docs/chapter2.md
@@ -327,7 +327,6 @@ The supported File types and code blocks are:
   ```
 
 - Render multiple files using repeated argument
-
   ```bash
   > render_images.py --input file1.md --input file2.md --input file3.md --action render
   ```
@@ -343,7 +342,6 @@ The supported File types and code blocks are:
 ## `lint_notes.py`
 
 ### What It Does
-
 - Tidy up notes in different formats (selected with the file extension or
   `--type`):
   - Markdown
@@ -356,28 +354,21 @@ The supported File types and code blocks are:
   - Running Prettier
   - Fixing bullet/heading quirks
 
-- The actions are:
-    "preprocess",
-    "prettier",
-    "postprocess",
-    "frame_chapters",
-    "refresh_toc",
+- The actions are: "preprocess", "prettier", "postprocess", "frame_chapters",
+  "refresh_toc"
 
 ### Examples
-
 - Basic usage
-
   ```bash
   > lint_txt.py -i input.md -o output.md
   ```
 
 - Process specific actions only
-  ```
+  ```bash
   > lint_txt.py -i input.md -o output.md --action preprocess,prettier
   ```
 
 - Prettify with Dockerized Prettier and TOC rebuild
-
   ```bash
   > lint_txt.py -i Lesson10.md \
       --use_dockerized_prettier \
@@ -385,21 +376,160 @@ The supported File types and code blocks are:
   ```
 
 - Custom print width and selective actions
-
   ```bash
   > lint_txt.py -i draft.txt -o tidy.txt -w 100 \
       --action preprocess,prettier,postprocess
   ```
 
 - Use in vim for inline formatting
-  ```verbatim
+  ```vim
   :%!lint_txt.py
+  ```
+
+## `clean_markdown.py`
+
+### What It Does
+- Clean up HTML markup in Markdown files
+- Removes unwanted HTML tags and formatting artifacts
+- Processes the file and outputs cleaned Markdown
+
+### Examples
+- Clean a markdown file
+  ```bash
+  > clean_markdown.py --input input.md --output output.md
+  ```
+
+## `extract_chapters_from_text.py`
+
+### What It Does
+- Split a Markdown file into individual chapters based on level-1 headers
+- Each chapter is saved to a separate file in the output directory
+- Filenames are derived from chapter titles with special characters removed
+- Optional automatic numbering of chapter files
+
+### Examples
+- Split into chapters with default naming
+  ```bash
+  > extract_chapters_from_text.py -i book.md -o book_chapters
+  ```
+
+- Split with automatic chapter numbering
+  ```bash
+  > extract_chapters_from_text.py -i book.md -o book_chapters --add_numbers
+  ```
+
+- Overwrite existing output directory
+  ```bash
+  > extract_chapters_from_text.py -i book.md -o book_chapters --overwrite
+  ```
+
+## `convert_table.py`
+
+### What It Does
+- Convert between table formats: Markdown, CSV, and TSV
+- Supports file I/O and stdin/stdout pipelines
+- Automatically detects or specifies input/output format
+- Can copy output to clipboard with `--pbcopy` flag
+
+### Examples
+- Convert CSV to Markdown table
+  ```bash
+  > convert_table.py -i table.csv -o table.md
+  ```
+
+- Convert TSV to CSV
+  ```bash
+  > convert_table.py -i table.tsv -o table.csv
+  ```
+
+- Use stdin and stdout with format flags
+  ```bash
+  > convert_table.py -i - -o - --input_mode md --output_mode csv
+  ```
+
+- Copy Markdown table to clipboard
+  ```bash
+  > convert_table.py -i table.csv --output_mode md --pbcopy
+  ```
+
+## `count_words.py`
+
+### What It Does
+- Count words in a text file
+- Calculates reading time based on words per minute
+- Useful for estimating document length and reading duration
+
+### Examples
+- Count words in a file
+  ```bash
+  > count_words.py input.txt
+  ```
+
+## `extract_text_from_txt.py`
+
+### What It Does
+- Extract text content from various document formats
+- Processes Markdown, LaTeX, and other text-based formats
+- Cleans and structures extracted text
+
+### Examples
+- Extract text from a document
+  ```bash
+  > extract_text_from_txt.py -i document.md -o output.txt
+  ```
+
+## `convert_png_dir_to_movie.py`
+
+### What It Does
+- Convert a directory of PNG images into an MP4 video or GIF
+- Creates animation from sequential image frames
+- Supports custom output format and framerate configuration
+
+### Examples
+- Create an MP4 video with default output file (video.mp4 in input_dir)
+  ```bash
+  > convert_png_dir_to_movie.py --input_dir ./frames
+  ```
+
+- Create an MP4 video with custom output
+  ```bash
+  > convert_png_dir_to_movie.py --input_dir ./frames --output output.mp4
+  ```
+
+- Create a GIF from frames in a directory
+  ```bash
+  > convert_png_dir_to_movie.py --input_dir ./frames --output animation.gif
+  ```
+
+## `dockerized_svg_with_inkscape.py`
+
+### What It Does
+- Convert SVG files using Inkscape in a Dockerized environment
+- Exports SVG to various formats (PNG, PDF, etc.)
+- Provides consistent rendering across systems
+
+### Examples
+- Convert SVG to PNG using Inkscape
+  ```bash
+  > dockerized_svg_with_inkscape.py -i diagram.svg -o diagram.png
+  ```
+
+## `dockerized_svg_with_rsvg_convert.py`
+
+### What It Does
+- Convert SVG files using rsvg-convert in a Dockerized environment
+- Renders SVG to bitmap formats efficiently
+- Alternative to Inkscape for SVG conversion
+
+### Examples
+- Convert SVG to PNG using rsvg-convert
+  ```bash
+  > dockerized_svg_with_rsvg_convert.py -i diagram.svg -o diagram.png
   ```
 
 ## `check_ai_slop.py`
 
 ### What It Does
-
 - Detect and remove AI slop using the Undetectable.ai REST API
 - Provides two main actions:
   - **detect**: Analyze text to determine if it was AI-generated (score 1-100)
@@ -408,7 +538,6 @@ The supported File types and code blocks are:
 - Supports customization of readability level and content purpose
 
 ### Examples
-
 - Detect AI content in a file
   ```bash
   > check_ai_slop.py -i input.txt --action detect
@@ -432,16 +561,15 @@ The supported File types and code blocks are:
 ## `concatenate_pdfs.py`
 
 ### What It Does
-
 - Merges multiple PDF files into a single output PDF file
 - Accepts file paths or glob patterns (e.g., `*.pdf`, `Lesson*.pdf`)
 - Automatically sorts input files alphabetically before concatenation
-- Supports dry-run mode to preview which files will be merged without actually merging them
+- Supports dry-run mode to preview which files will be merged without actually
+  merging them
 - Creates output directory if it doesn't exist
 - Reports file sizes and number of pages processed
 
 ### Examples
-
 - Concatenate all PDF files in current directory
   ```bash
   > concatenate_pdfs.py --input_files "*.pdf" --output_file combined.pdf
@@ -470,39 +598,35 @@ The supported File types and code blocks are:
 ## `run_pandoc.py`
 
 ### What It Does
-
-- Reads **Markdown** from _stdin_ or `--input` file.
-- Dispatches to a named **action** (currently only `convert_md_to_latex`).
-- Pushes the Pandoc output to _stdout_ or the `--output` file.
+- Reads **Markdown** from _stdin_ or `--input` file
+- Dispatches to a named **action** (currently only `convert_md_to_latex`)
+- Pushes the Pandoc output to _stdout_ or the `--output` file
 
 ### Examples
-
 - Convert a Markdown file to LaTeX
   ```bash
   > run_pandoc.py -i note.md -o note.tex
   ```
 - Same, but stream from `stdin` to `stdout`
-  ```
+  ```bash
   > cat note.md | run_pandoc.py -i - -o -
   ```
 - Inside Vim (visual range)
-  ```
+  ```vim
   :<,'>!run_pandoc.py -i - -o - -v CRITICAL
   ```
 
 - **Tip:** pass `-v CRITICAL` to silence helper logging when piping into
-  editors.
+  editors
 
 ## `transform_notes.py`
 
 ### What It Does
-
-- Accepts a **text/Markdown** stream (file or `-`).
-- Applies a named **action** (`-a/--action`).
-- Writes the result to the given output (in‑place, file, or `-`).
+- Accepts a **text/Markdown** stream (file or `-`)
+- Applies a named **action** (`-a/--action`)
+- Writes the result to the given output (in‑place, file, or `-`)
 
 ### Examples
-
 - Run `-a list` to print a list of the valid
   - `toc`
     - Generate a bullet TOC (top-level by default)
@@ -521,33 +645,33 @@ The supported File types and code blocks are:
     - Additional Information: See `-a list` for more details
 
 - Re‑flow & clean a file in place
-
   ```bash
   > transform_notes.py -a md_format -i notes/lecture.txt
   ```
 
 - Generate a 2‑level TOC to STDOUT
-
   ```bash
   > transform_notes.py -a toc -i notes/lecture.md -o - -l 2
   ```
 
 - Tidy ChatGPT‑generated Markdown (visual mode in Vim)
-  ```
+  ```vim
   :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
   ```
 
 ## `update_md.py`
 
 ### What It Does
-
 - Multi-action LLM tool for processing markdown files with four main actions:
-  - **summarize**: Generate and add/update a `# Summary` section with 3-5 bullet points
+  - **summarize**: Generate and add/update a `# Summary` section with 3-5 bullet
+    points
   - **update_content**: Refresh content to match current code using LLM analysis
-  - **apply_style**: Apply formatting rules from `docs/ai_coding/ai.md_instructions.md`
+  - **apply_style**: Apply formatting rules from
+    `docs/ai_coding/ai.md_instructions.md`
   - **lint**: Run lint_txt.py to format the file
 - Intelligently places summaries:
-  - After `<!-- tocstop -->` tag if present (ideal for files with table of contents)
+  - After `<!-- tocstop -->` tag if present (ideal for files with table of
+    contents)
   - Otherwise, replaces existing `# Summary` section if found
   - Otherwise, adds at the beginning of the file
 - Automatically runs `lint_txt.py` after each action for proper formatting
@@ -557,7 +681,6 @@ The supported File types and code blocks are:
 - Supports both Python library and CLI executable modes
 
 ### Examples
-
 - Summarize a markdown file
   ```bash
   > update_md.py --input file.md --action summarize
@@ -606,12 +729,12 @@ The supported File types and code blocks are:
 ## `extract_toc_from_txt.py`
 
 ### What It Does
-
-- Extract headers from **Markdown** `.md`, **LaTeX** `.tex`, **txt slide** `.txt`, or **Jupyter notebook** `.ipynb` documents and
-  generate:
+- Extract headers from **Markdown** `.md`, **LaTeX** `.tex`, **txt slide**
+  `.txt`, or **Jupyter notebook** `.ipynb` documents and generate:
   - A **plain list** of headers
   - A **nested header map**
-  - A **Vim quick‑fix** (`cfile`) that lets you jump between sections with `:cnext`
+  - A **Vim quick‑fix** (`cfile`) that lets you jump between sections with
+    `:cnext`
 - Automatically detects file type based on extension
 - For Markdown: extracts `#`, `##`, `###` headers
 - For LaTeX: extracts `\section{}`, `\subsection{}`, `\subsubsection{}` commands
@@ -619,9 +742,7 @@ The supported File types and code blocks are:
 - For Jupyter notebooks: extracts markdown headers from markdown cells
 
 ### Examples
-
 - Extract headers from Markdown file (levels 1‑3) to `stdout`
-
   ```bash
   > extract_toc_from_txt.py -i README.md -o - --mode list --max-level 3
   ```
@@ -643,13 +764,11 @@ The supported File types and code blocks are:
   ```
 
 ## `dockerized_tikz_to_bitmap.py`
-
-- Convert a `.tex` file containing TikZ code into a `.png` image using a Dockerized toolchain consisting of pdflatex and ImageMagick.
+- Convert a `.tex` file containing TikZ code into a `.png` image using a
+  Dockerized toolchain consisting of pdflatex and ImageMagick
 
 ### Examples
-
 - Plain 300 DPI conversion
-
   ```bash
   > dockerized_tikz_to_bitmap.py -i figure.tikz -o figure.png
   ```
@@ -663,19 +782,16 @@ The supported File types and code blocks are:
 ## `dockerized_graphviz.py`
 
 ### What It Does
-
 - Converts a Graphviz `.dot` file into a `.png` image using a Dockerized
-  container.
-
+  container
   ```bash
   > dockerized_graphviz.py --input input.dot --output output.png
   ```
 
 - This script serves as a thin wrapper around Dockerized Graphviz for consistent
-  rendering across systems.
+  rendering across systems
 
 ### Examples
-
 - Convert DOT to PNG
   ```bash
   > dockerized_graphviz.py -i diagram.dot -o diagram.png
@@ -692,10 +808,9 @@ The supported File types and code blocks are:
 ## `dockerized_latex.py`
 
 ### What It Does
-
 - Compiles a LaTeX `.tex` file into a PDF using `pdflatex` inside a Docker
-  container.
-- Automatically rebuilds the Docker image if needed.
+  container
+- Automatically rebuilds the Docker image if needed
 - Supports optional rerun of LaTeX for proper references or table of contents
   generation
   ```bash
@@ -703,7 +818,6 @@ The supported File types and code blocks are:
   ```
 
 ### Examples
-
 - Compile `.tex` to `.pdf`
   ```bash
   > dockerized_latex.py -i report.tex -o report.pdf
@@ -724,15 +838,12 @@ The supported File types and code blocks are:
 ## `dockerized_mermaid.py`
 
 ### What It Does
-
 - Renders Mermaid `.mmd` or `.md` diagrams into image files using a Dockerized
-  container.
+  container
 - Automatically sets output to match input name if `--output` is omitted
 
 ### Examples
-
 - Basic Mermaid diagram rendering
-
   ```bash
   > dockerized_mermaid.py --input flowchart.mmd --output flowchart.png
   ```
@@ -760,19 +871,16 @@ The supported File types and code blocks are:
 ## `dockerized_pandoc.py`
 
 ### What It Does
-
 - Converts documents using `pandoc` inside a Docker container
-- Supports output to Beamer slides, PDFs, and more with custom CLI flags.
-
+- Supports output to Beamer slides, PDFs, and more with custom CLI flags
 ```bash
 > dockerized_pandoc.py --input notes.md --output slides.pdf -- docker_args...
 ```
 
 - Internally builds a Docker container and passes the full `pandoc` command
-  string.
+  string
 
 ### Examples
-
 - Convert Markdown to PDF
   ```bash
   > dockerized_pandoc.py --input notes.md --output notes.pdf --container_type pandoc_latex
@@ -793,51 +901,48 @@ The supported File types and code blocks are:
 ## `dockerized_prettier.py`
 
 ### What It Does
-
 - Formats text files (`.md`, `.txt`, `.tex`, etc.) using Prettier within a
   Docker container
-- Avoids environment-specific issues and ensures consistent formatting.
-- Supports full Prettier CLI flexibility via passthrough of additional options.
+- Avoids environment-specific issues and ensures consistent formatting
+- Supports full Prettier CLI flexibility via passthrough of additional options
 
   > ```bash
   > dockerized_prettier.py --parser markdown --write test.md
   > ```
 
 ### Examples
-
 - Format a Markdown file
-  ```
+  ```bash
   > dockerized_prettier.py --parser markdown --write test.md
   ```
 - Use `sudo` for Docker execution
-  ```
+  ```bash
   > dockerized_prettier.py --use_sudo --parser markdown --write test.md
   ```
 - Rebuild the Docker image
-  ```
+  ```bash
   > dockerized_prettier.py --dockerized_force_rebuild --parser markdown --write test.md
   ```
 - Change indentation and wrap style
-  ```
+  ```bash
   dockerized_prettier.py --parser markdown --tab-width 4 --prose-wrap always --write test.md
   ```
 
 ## `generate_images.py`
 
 ### What It Does
-
-- Generate multiple images using OpenAI's DALL-E API from prompts.
-- This script generates images (default: 5) from one or more prompts using OpenAI's image generation API.
-- Supports both standard and HD quality modes.
-- Accepts prompts either from command line or from a file.
+- Generate multiple images using OpenAI's DALL-E API from prompts
+- This script generates images (default: 5) from one or more prompts using
+  OpenAI's image generation API
+- Supports both standard and HD quality modes
+- Accepts prompts either from command line or from a file
 - Supports two file formats:
   - **Single description**: entire file content is treated as one prompt
   - **Multiple descriptions**: numbered format with multiple prompts
-- Shows progress bar when generating multiple images.
-- Reports the number of descriptions found when processing multiple prompts.
+- Shows progress bar when generating multiple images
+- Reports the number of descriptions found when processing multiple prompts
 
 ### Examples
-
 - Generate standard quality images using command line prompt
   ```bash
   > generate_images.py "A sunset over mountains" --dst_dir ./images --low_res
@@ -859,7 +964,7 @@ The supported File types and code blocks are:
   ```
 
   Where `descr.txt` contains:
-  ```
+  ```text
   A beautiful sunset over mountains with vibrant colors
   ```
 
@@ -869,7 +974,7 @@ The supported File types and code blocks are:
   ```
 
   Where `descriptions.txt` contains:
-  ```
+  ```text
   1. **Description of the image 1**
      A digital painting illustrating a futuristic cityscape where data streams
      flow like rivers through the streets.
@@ -885,7 +990,7 @@ The supported File types and code blocks are:
   - Print "Found 3 descriptions in input file"
   - Generate 2 images for each description (6 images total)
   - Show progress bar for all 6 images
-  - Save images as `desc_01_image_01_hd.png`, `desc_01_image_02_hd.png`, etc.
+  - Save images as `desc_01_image_01_hd.png`, `desc_01_image_02_hd.png`, etc
 
 - Generate low-res images using prompt from file
   ```bash
@@ -905,10 +1010,9 @@ The supported File types and code blocks are:
   - Skip actual API calls and image downloads
   - Useful for testing and validating input before spending API credits
 
-## `convert_docx_to_markdown.py`
+## `convert_docx_to_md.py`
 
 ### What It Does
-
 - Convert Microsoft Word `.docx` files to Markdown using Dockerized Pandoc
 - Extracts embedded media (images) from the document into a separate folder
 - Applies cleanup transformations to fix common Google Docs artifacts, e.g.,
@@ -918,12 +1022,11 @@ The supported File types and code blocks are:
   - Converts HTML entities to markdown equivalents
 
 ### Examples
-
 - Basic conversion from DOCX to Markdown
   ```bash
   > IN_FILE="/Users/saggese/Downloads/Document.docx"
   > OUT_FILE="paper/paper.md"
-  > convert_docx_to_markdown.py --input $IN_FILE --output $OUT_FILE
+  > convert_docx_to_md.py --input $IN_FILE --output $OUT_FILE
   ```
 - The script will:
   - Create a `paper_figs/` directory for extracted images
@@ -934,7 +1037,6 @@ The supported File types and code blocks are:
 ## `check_links.py`
 
 ### What It Does
-
 - Check if all URL links in a file are reachable via HTTP/HTTPS
 - Extracts URLs from Markdown files in various formats:
   - `[text](https://example.com)` (Markdown links)
@@ -945,7 +1047,6 @@ The supported File types and code blocks are:
 - Skips image files (`.png`, `.jpg`, `.jpeg`) and email addresses
 
 ### Examples
-
 - Check links in a Markdown file
   ```bash
   > check_links.py --in_file README.md
@@ -970,7 +1071,6 @@ The supported File types and code blocks are:
 ## `generate_readme_index.py`
 
 ### What It Does
-
 - Generate or refresh a Markdown index in a README file
 - Scans a directory for all Markdown files and creates an organized index
 - Generates two-line summaries for each file using LLM or placeholders
@@ -980,7 +1080,6 @@ The supported File types and code blocks are:
 - Each entry includes file name, relative path, and summary
 
 ### Examples
-
 - Generate new README index with placeholder summaries
   ```bash
   > generate_readme_index.py --index_mode generate --dir_path /path/to/docs
@@ -1004,7 +1103,6 @@ The supported File types and code blocks are:
 ## `generate_script_catalog.py`
 
 ### What It Does
-
 - Generate a Markdown catalog of all executable scripts in a repository
 - Extracts docstrings from Python scripts and shell scripts
 - Organizes scripts by directory
@@ -1014,7 +1112,6 @@ The supported File types and code blocks are:
   - Usage examples (from docstring)
 
 ### Examples
-
 - Generate catalog for current directory
   ```bash
   > generate_script_catalog.py
@@ -1038,7 +1135,6 @@ The supported File types and code blocks are:
 ## `publish_notes.py`
 
 ### What It Does
-
 - Publish notes to a remote documentation server via SSH
 - Converts notes to PDF or HTML format using `notes_to_pdf.py`
 - Uploads generated files to a remote server
@@ -1046,7 +1142,6 @@ The supported File types and code blocks are:
 - Manages remote documentation directory (list, clean, publish)
 
 ### Examples
-
 - Publish all notes
   ```bash
   > publish_notes.py publish
@@ -1070,7 +1165,6 @@ The supported File types and code blocks are:
 ## `replace_latex.py`
 
 ### What It Does
-
 - One-off script for batch LaTeX text transformations
 - Applies standard cleanup rules to LaTeX/Markdown files:
   - Normalize terminology (e.g., "gaussian" → "Gaussian", "iid" → "IID")
@@ -1081,7 +1175,6 @@ The supported File types and code blocks are:
 - Supports aggressive mode for more transformations
 
 ### Examples
-
 - Apply replacements to a file
   ```bash
   > replace_latex.py -a replace --file notes/finance.portfolio_theory.txt
@@ -1105,7 +1198,6 @@ The supported File types and code blocks are:
 ## `extract_gdoc_map.py`
 
 ### What It Does
-
 - Extract Google Doc links from `.gdoc` files in a directory
 - `.gdoc` files are JSON files containing Google Doc IDs
 - Scans directory recursively for all `.gdoc` files
@@ -1115,7 +1207,6 @@ The supported File types and code blocks are:
   - `full_path`: Full path in link text
 
 ### Examples
-
 - Extract links from directory with default style
   ```bash
   > extract_gdoc_map.py --input_dir "/path/to/google/drive"
@@ -1140,7 +1231,6 @@ The supported File types and code blocks are:
 ## `convert_pdf_to_md.py`
 
 ### What It Does
-
 - Convert PDF files to Markdown using PyMuPDF (fitz)
 - Extracts text with formatting information to identify headers
 - Extracts embedded images and vector graphics
@@ -1150,7 +1240,6 @@ The supported File types and code blocks are:
 - Requires `uv` for dependency management (automatically installs PyMuPDF)
 
 ### Examples
-
 - Convert PDF to Markdown with images
   ```bash
   > uv run convert_pdf_to_md.py --input document.pdf --output output_dir
@@ -1170,7 +1259,6 @@ The supported File types and code blocks are:
 ## `preprocess_notes.py`
 
 ### What It Does
-
 - Convert Causify-extended notes format into standard Pandoc Markdown
 - Prepares notes for conversion with `notes_to_pdf.py`
 - Applies comprehensive transformations:
@@ -1184,7 +1272,6 @@ The supported File types and code blocks are:
 - Optional Q&A formatting mode
 
 ### Examples
-
 - Preprocess notes for PDF generation
   ```bash
   > preprocess_notes.py --input notes.txt --output notes_processed.md --type pdf
@@ -1208,7 +1295,6 @@ The supported File types and code blocks are:
 ## `create_google_drive_map.py`
 
 ### What It Does
-
 - Generate directory structure summaries using `tree` command and LLM analysis
 - Creates comprehensive documentation of Google Drive or filesystem hierarchies
 - Workflow:
@@ -1220,7 +1306,6 @@ The supported File types and code blocks are:
 - Can process directories in parallel
 
 ### Examples
-
 - Basic usage: run tree and LLM on all directories
   ```bash
   > create_google_drive_map.py --in_dir /path/to/google_drive
@@ -1264,7 +1349,6 @@ The supported File types and code blocks are:
 ## `generate_latex_sty.py`
 
 ### What It Does
-
 - One-off utility script for generating LaTeX style abbreviations
 - Creates LaTeX `\newcommand` macros for:
   - Vector notation (e.g., `\va` → `\vv{a}`, `\vvv` → `\vv{v}`)
@@ -1275,7 +1359,6 @@ The supported File types and code blocks are:
 - Primarily used for initial setup and style file generation
 
 ### Examples
-
 - Generate LaTeX abbreviation style file
   ```python
   python generate_latex_sty.py
@@ -1286,19 +1369,19 @@ The supported File types and code blocks are:
 - The script provides these generation functions:
   - `generate_latex()`: Creates LaTeX style file with abbreviations
   - `generate_vim_spell_check()`: Creates vim spell-check file
-  - `generate_perl1()`, `generate_perl2()`, `generate_perl3()`: Generate Perl conversion scripts
+  - `generate_perl1()`, `generate_perl2()`, `generate_perl3()`: Generate Perl
+    conversion scripts
   - `generate_mathcal()`: Generates mathcal notation macros
 
 ## `open_md_in_browser.sh`
 
 ### What It Does
-
-- Renders a Markdown file to HTML using Pandoc and opens it in the default browser
+- Renders a Markdown file to HTML using Pandoc and opens it in the default
+  browser
 - Useful for quickly previewing Markdown files with proper formatting
 - Creates a temporary HTML file (`tmp.rendered_md.html`)
 
 ### Examples
-
 - Preview a Markdown file
   ```bash
   > open_md_in_browser.sh README.md
@@ -1307,14 +1390,12 @@ The supported File types and code blocks are:
 ## `open_md_on_github.sh`
 
 ### What It Does
-
 - Opens a file from the current repository in the GitHub web interface
 - Automatically determines the repository URL and current branch
 - Constructs and opens the GitHub URL for the specified file
 - Useful for quickly navigating to a file on GitHub
 
 ### Examples
-
 - Open a file on GitHub
   ```bash
   > open_md_on_github.sh docs/README.md
@@ -1323,7 +1404,6 @@ The supported File types and code blocks are:
 ## `run_latex.sh`
 
 ### What It Does
-
 - Dockerized LaTeX compilation script
 - Compiles a LaTeX `.tex` file to PDF using Docker
 - Runs `pdflatex` twice to resolve references
@@ -1331,7 +1411,6 @@ The supported File types and code blocks are:
 - Uses `blang/latex:ubuntu` Docker image
 
 ### Examples
-
 - Compile a LaTeX file to PDF
   ```bash
   > run_latex.sh paper.tex
@@ -1340,13 +1419,11 @@ The supported File types and code blocks are:
 ## `replace_latex.sh`
 
 ### What It Does
-
 - Shell wrapper for batch LaTeX text transformations
 - Applies standard cleanup and formatting rules to LaTeX files
 - Works in conjunction with `replace_latex.py`
 
 ### Examples
-
 - Apply transformations to a LaTeX file
   ```bash
   > replace_latex.sh document.tex
@@ -1355,7 +1432,6 @@ The supported File types and code blocks are:
 ## `latexdockercmd.sh`
 
 ### What It Does
-
 - Utility script for running LaTeX commands in Docker
 - Provides Docker-based LaTeX compilation functionality
 - Used as a helper by other LaTeX-related scripts
@@ -1363,14 +1439,12 @@ The supported File types and code blocks are:
 # Useful Tools
 
 ## Mermaid
-
 - To render on-line: [https://mermaid.live](https://mermaid.live)
 
 - Resources:
   - [https://mermaid.js.org/syntax/examples.html](https://mermaid.js.org/syntax/examples.html)
 
 ## Graphviz
-
 - To render on-line:
   [https://dreampuf.github.io/GraphvizOnline](https://dreampuf.github.io/GraphvizOnline)
 
@@ -1378,16 +1452,13 @@ The supported File types and code blocks are:
   - [https://graphviz.org/gallery/](https://graphviz.org/gallery/)
 
 ## Markdown
-
 - To render on-line:
   [https://markdownlivepreview.com/](https://markdownlivepreview.com/)
 
 ## Pandoc
-
 - To render on-line: [https://pandoc.org/try/](https://pandoc.org/try/)
 
 ## Tikz
-
 - To render on-line use Overleaf
 
 ## Resources
