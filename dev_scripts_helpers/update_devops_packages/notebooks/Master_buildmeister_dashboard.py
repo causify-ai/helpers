@@ -90,9 +90,9 @@ hlitagh.render_repo_workflow_status_table(workflow_df, status_color_mapping)
 # # Allure reports
 
 # %% [markdown]
-# - fast tests: http://172.30.2.44/allure_reports/cmamp/fast/latest/index.html
-# - slow tests: http://172.30.2.44/allure_reports/cmamp/slow/latest/index.html
-# - superslow tests: http://172.30.2.44/allure_reports/cmamp/superslow/latest/index.html
+# - fast tests: http://172.30.2.44/allure_reports/csfy/fast/latest/index.html
+# - slow tests: http://172.30.2.44/allure_reports/csfy/slow/latest/index.html
+# - superslow tests: http://172.30.2.44/allure_reports/csfy/superslow/latest/index.html
 
 # %% [markdown]
 # <a name='number-of-open-pull-requests'></a>
