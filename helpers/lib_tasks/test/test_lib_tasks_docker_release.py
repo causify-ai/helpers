@@ -71,16 +71,16 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         self.system_patcher = umock.patch("helpers.hsystem.system")
         self.mock_system = self.system_patcher.start()
         # Mock run.
-        self.run_patcher = umock.patch("helpers.lib_tasks_utils.run")
+        self.run_patcher = umock.patch("helpers.lib_tasks.lib_tasks_utils.run")
         self.mock_run = self.run_patcher.start()
         # Mock version validation.
         self.version_patcher = umock.patch(
-            "helpers.lib_tasks_docker.dassert_is_subsequent_version"
+            "helpers.lib_tasks.lib_tasks_docker.dassert_is_subsequent_version"
         )
         self.mock_version = self.version_patcher.start()
         # Mock docker login.
         self.docker_login_patcher = umock.patch(
-            "helpers.lib_tasks_docker.docker_login"
+            "helpers.lib_tasks.lib_tasks_docker.docker_login"
         )
         self.mock_docker_login = self.docker_login_patcher.start()
         # Mock environment variable.
@@ -88,7 +88,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
             "os.environ", {"CSFY_ECR_BASE_PATH": "test.ecr.path"}
         )
         self.get_default_param_patcher = umock.patch(
-            "helpers.lib_tasks_utils.get_default_param",
+            "helpers.lib_tasks.lib_tasks_utils.get_default_param",
             side_effect=lambda param: {
                 "CSFY_ECR_BASE_PATH": "test.ecr.path",
                 "BASE_IMAGE": "test-image",
@@ -934,7 +934,7 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         self.patchers["git_hash"] = self.git_hash_patcher
         # Mock workspace size check.
         self.workspace_check_patcher = umock.patch(
-            "helpers.lib_tasks_docker_release._check_workspace_dir_sizes"
+            "helpers.lib_tasks.lib_tasks_docker_release._check_workspace_dir_sizes"
         )
         self.mock_workspace_check = self.workspace_check_patcher.start()
         self.patchers["workspace_check"] = self.workspace_check_patcher
@@ -946,13 +946,13 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         self.patchers["file_exists"] = self.file_exists_patcher
         # Mock `docker_build_prod_image()`.
         self.build_prod_patcher = umock.patch(
-            "helpers.lib_tasks_docker_release.docker_build_prod_image"
+            "helpers.lib_tasks.lib_tasks_docker_release.docker_build_prod_image"
         )
         self.mock_build_prod = self.build_prod_patcher.start()
         self.patchers["build_prod"] = self.build_prod_patcher
         # Mock `docker_push_prod_candidate_image()`.
         self.push_prod_patcher = umock.patch(
-            "helpers.lib_tasks_docker_release.docker_push_prod_candidate_image"
+            "helpers.lib_tasks.lib_tasks_docker_release.docker_push_prod_candidate_image"
         )
         self.mock_push_prod = self.push_prod_patcher.start()
         self.patchers["push_prod"] = self.push_prod_patcher
@@ -1373,14 +1373,14 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         self.mock_get_container_registry_url.return_value = "ghcr.io/causify-ai"
         # Mock GitHub operations.
         self.gh_get_team_member_names_patcher = umock.patch(
-            "helpers.lib_tasks_gh.gh_get_team_member_names"
+            "helpers.lib_tasks.lib_tasks_gh.gh_get_team_member_names"
         )
         self.mock_gh_get_team_member_names = (
             self.gh_get_team_member_names_patcher.start()
         )
         self.mock_gh_get_team_member_names.return_value = ["user1", "user2"]
         self.gh_create_pr_patcher = umock.patch(
-            "helpers.lib_tasks_gh.gh_create_pr"
+            "helpers.lib_tasks.lib_tasks_gh.gh_create_pr"
         )
         self.mock_gh_create_pr = self.gh_create_pr_patcher.start()
         # Mock file operations.
@@ -1430,7 +1430,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         }.get(fmt, "2025-10-23")
         # Mock Docker image operations.
         self.get_image_patcher = umock.patch(
-            "helpers.lib_tasks_docker.get_image"
+            "helpers.lib_tasks.lib_tasks_docker.get_image"
         )
         self.mock_get_image = self.get_image_patcher.start()
         self.mock_get_image.return_value = (
@@ -1438,7 +1438,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         )
         # Mock _run_tests to prevent actual test execution.
         self.run_tests_patcher = umock.patch(
-            "helpers.lib_tasks_docker_release._run_tests"
+            "helpers.lib_tasks.lib_tasks_docker_release._run_tests"
         )
         self.mock_run_tests = self.run_tests_patcher.start()
         # Mock is_inside_ci to control CI-specific behavior.
