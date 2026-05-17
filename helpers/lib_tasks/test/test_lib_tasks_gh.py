@@ -6,7 +6,7 @@ import pytest
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks_gh as hlitagh
+import helpers.lib_tasks.lib_tasks_gh as hlitagh
 
 _LOG = logging.getLogger(__name__)
 

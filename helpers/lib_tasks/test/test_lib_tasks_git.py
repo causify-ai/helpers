@@ -4,8 +4,8 @@ import pytest
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks_git as hlitagit
-import helpers.test.test_lib_tasks as httestlib
+import helpers.lib_tasks.lib_tasks_git as hlitagit
+import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 # pylint: disable=protected-access
 

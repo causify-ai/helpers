@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks_print as hlitapri
+import helpers.lib_tasks.lib_tasks_print as hlitapri
 """
 
 import logging
@@ -16,7 +16,7 @@ import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 

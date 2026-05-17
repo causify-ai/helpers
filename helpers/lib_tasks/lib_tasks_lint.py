@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks_lint as hlitalin
+import helpers.lib_tasks.lib_tasks_lint as hlitalin
 """
 
 import datetime
@@ -19,8 +19,8 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.lib_tasks_docker as hlitadoc
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 """
 
 import datetime

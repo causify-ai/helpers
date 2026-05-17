@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks.lib_tasks_docker as hlitadoc
 """
 
 import functools
@@ -29,7 +29,7 @@ import helpers.hsecrets as hsecret
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)

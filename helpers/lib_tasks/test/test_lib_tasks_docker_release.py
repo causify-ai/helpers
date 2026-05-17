@@ -16,9 +16,9 @@ import moto
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks_docker as hlitadoc
-import helpers.lib_tasks_docker_release as hltadore
-import helpers.test.test_lib_tasks as httestlib
+import helpers.lib_tasks.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks.lib_tasks_docker_release as hltadore
+import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
 

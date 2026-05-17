@@ -13,8 +13,8 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks_pytest as hlitapyt
-import helpers.test.test_lib_tasks as httestlib
+import helpers.lib_tasks.lib_tasks_pytest as hlitapyt
+import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
 

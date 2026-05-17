@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks_pytest as hlitapyt
+import helpers.lib_tasks.lib_tasks_pytest as hlitapyt
 """
 
 import json
@@ -25,9 +25,9 @@ import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htraceback as htraceb
-import helpers.lib_tasks_docker as hlitadoc
-import helpers.lib_tasks_lint as hlitalin
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks.lib_tasks_lint as hlitalin
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)

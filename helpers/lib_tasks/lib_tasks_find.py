@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks_find as hlitafin
+import helpers.lib_tasks.lib_tasks_find as hlitafin
 """
 
 import functools
@@ -20,7 +20,7 @@ import helpers.hio as hio
 import helpers.hlist as hlist
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 

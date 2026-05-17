@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks_perms as hlitaper
+import helpers.lib_tasks.lib_tasks_perms as hlitaper
 """
 
 import grp
@@ -21,7 +21,7 @@ import helpers.hintrospection as hintros
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 

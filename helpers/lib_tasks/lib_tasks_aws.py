@@ -3,7 +3,7 @@ Tasks related to `im` project.
 
 Import as:
 
-import helpers.lib_tasks_aws as hlitaaws
+import helpers.lib_tasks.lib_tasks_aws as hlitaaws
 """
 
 import copy
@@ -22,7 +22,7 @@ import helpers.hio as hio
 import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)

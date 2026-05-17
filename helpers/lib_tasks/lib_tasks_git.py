@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks_git as hlitagit
+import helpers.lib_tasks.lib_tasks_git as hlitagit
 """
 
 import logging
@@ -23,8 +23,8 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test_utils as hunteuti
-import helpers.lib_tasks_gh as hlitagh
-import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_gh as hlitagh
+import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 

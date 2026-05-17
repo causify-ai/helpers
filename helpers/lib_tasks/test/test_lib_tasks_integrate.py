@@ -1,5 +1,5 @@
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks_integrate as hlitaint
+import helpers.lib_tasks.lib_tasks_integrate as hlitaint
 
 
 # #############################################################################

@@ -10,8 +10,8 @@ import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_purification as huntepur
-import helpers.lib_tasks_docker as hlitadoc
-import helpers.test.test_lib_tasks as httestlib
+import helpers.lib_tasks.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
 
