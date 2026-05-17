@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["piper-tts", "pygame", "pynput"]
+# dependencies = ["piper-tts", "pygame", "pynput", "tqdm"]
 # ///
 
 """
@@ -19,7 +19,10 @@ import hashlib
 import logging
 import os
 import subprocess
+import time
 from typing import Any, Dict, List, Optional, Tuple
+
+from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -82,10 +85,12 @@ def _extract_markdown_section(
     )
     extracted_content = "\n".join(extracted_lines)
     hio.to_file(_TMP_EXTRACT_FILE, extracted_content)
-    _LOG.info("Extracted section written to %s", _TMP_EXTRACT_FILE)
+    _LOG.info("Extracted section written to '%s'", _TMP_EXTRACT_FILE)
+    _LOG.info("Linting ...")
     lint_script = hgit.find_file_in_git_tree("lint_txt.py")
     cmd = f"{lint_script} -i {_TMP_EXTRACT_FILE} -w 1000"
     hsystem.system(cmd)
+    _LOG.info("Linting ... done")
     processed_content = hio.from_file(_TMP_EXTRACT_FILE)
     return processed_content
 
@@ -135,15 +140,16 @@ def _format_markdown(text: str) -> str:
     import re
 
     lines = []
-    # Convert markdown to spoken text: headers become chapter announcements, bullets get periods.
+    # Convert markdown to spoken text: headers become chapter announcements,
+    # bullets get periods.
     for line in text.split("\n"):
         line = line.strip()
         if line.startswith("### "):
-            line = "Sub sub chapter " + line[4:].strip() + "."
+            line = line[4:].strip() + "."
         elif line.startswith("## "):
-            line = "Subchapter " + line[3:].strip() + "."
+            line = line[3:].strip() + "."
         elif line.startswith("# "):
-            line = "Chapter " + line[2:].strip() + "."
+            line = line[2:].strip() + "."
         elif line.startswith("- ") or line.startswith("* "):
             bullet_text = re.sub(r"^[-*]\s+", "", line)
             line = bullet_text + "."
@@ -351,7 +357,7 @@ def _generate_audio(
         stderr,
     )
     file_size = os.path.getsize(output_file)
-    _LOG.info("Generated audio file: %s (%d bytes)", output_file, file_size)
+    _LOG.debug("Generated audio file: %s (%d bytes)", output_file, file_size)
 
 
 def _apply_speed_with_ffmpeg(
@@ -359,6 +365,7 @@ def _apply_speed_with_ffmpeg(
     *,
     output_file: str,
     speed: float,
+    progress_bar: Optional[Any] = None,
 ) -> None:
     """
     Apply speed adjustment to audio using ffmpeg atempo filter.
@@ -366,6 +373,7 @@ def _apply_speed_with_ffmpeg(
     :param input_file: path to input audio file
     :param output_file: path to output audio file
     :param speed: speed multiplier (1.0 = normal, 2.0 = 2x faster, 0.5 = 2x slower)
+    :param progress_bar: optional tqdm progress bar to update
     """
     if speed == 1.0:
         _LOG.debug("Speed is 1.0, skipping ffmpeg adjustment")
@@ -390,6 +398,8 @@ def _apply_speed_with_ffmpeg(
         text=True,
     )
     _, stderr = process.communicate(timeout=300)
+    if progress_bar:
+        progress_bar.update(1)
     _LOG.debug(
         "ffmpeg process completed with return code: %d", process.returncode
     )
@@ -400,7 +410,7 @@ def _apply_speed_with_ffmpeg(
         stderr,
     )
     file_size = os.path.getsize(output_file)
-    _LOG.info(
+    _LOG.debug(
         "Speed adjustment applied: %s at %.2fx (%d bytes)",
         output_file,
         speed,
@@ -471,6 +481,7 @@ def _process_chunk_audio(
     *,
     voice: str,
     speed: float,
+    progress_bar: Optional[Any] = None,
 ) -> str:
     """
     Generate audio for a chunk with speed adjustment and caching.
@@ -479,15 +490,16 @@ def _process_chunk_audio(
     :param chunk: chunk text content
     :param voice: voice identifier
     :param speed: speech speed
+    :param progress_bar: optional tqdm progress bar to update
     :return: path to final audio file
     """
-    _LOG.info(
+    _LOG.debug(
         "Processing chunk %d of %d (%d characters)",
         chunk_idx,
         chunk_idx,
         len(chunk),
     )
-    _LOG.info("Chunk %d content:\n%s\n---", chunk_idx, chunk)
+    _LOG.debug("Chunk %d content:\n%s\n---", chunk_idx, chunk)
     base_audio_file = _get_chunk_filename(chunk, chunk_idx=chunk_idx, speed=1.0)
     final_audio_file = _get_chunk_filename(
         chunk, chunk_idx=chunk_idx, speed=speed
@@ -496,13 +508,15 @@ def _process_chunk_audio(
     # ffmpeg (cheaper than re-synthesizing).
     # This saves TTS calls when speed changes but content stays the same.
     if os.path.exists(final_audio_file):
-        _LOG.info(
+        _LOG.debug(
             "Speed-adjusted audio file already exists (cached): %s",
             final_audio_file,
         )
+        if progress_bar:
+            progress_bar.update(2 if speed != 1.0 else 1)
         return final_audio_file
     if not os.path.exists(base_audio_file):
-        _LOG.info("Generating audio file: %s", base_audio_file)
+        _LOG.debug("Generating audio file: %s", base_audio_file)
         _generate_audio(
             chunk,
             voice=voice,
@@ -510,15 +524,20 @@ def _process_chunk_audio(
             output_file=base_audio_file,
         )
     else:
-        _LOG.info("Audio file already exists (cached): %s", base_audio_file)
+        _LOG.debug("Audio file already exists (cached): %s", base_audio_file)
+    if progress_bar:
+        progress_bar.update(1)
     if speed != 1.0:
-        _LOG.info("Applying speed adjustment: %.2f", speed)
+        _LOG.debug("Applying speed adjustment: %.2f", speed)
         _apply_speed_with_ffmpeg(
             base_audio_file,
             output_file=final_audio_file,
             speed=speed,
+            progress_bar=progress_bar,
         )
         return final_audio_file
+    if progress_bar:
+        progress_bar.update(1)
     return base_audio_file
 
 
@@ -574,12 +593,16 @@ def _play_audio_with_controls(
     listener.start()
     _LOG.debug("Keyboard listener started")
     os.system("clear" if os.name != "nt" else "cls")
+    total_chunks = len(audio_files)
     # Play sequentially, polling at 100ms to check pause/stop state while audio
     # plays. Pygame mixer pause/unpause affects all channels, synchronized with
     # keyboard input.
-    for audio_file, chunk in zip(audio_files, chunks):
+    for chunk_idx, (audio_file, chunk) in enumerate(zip(audio_files, chunks), 1):
         if playback_state["stopped"]:
             break
+        if (chunk_idx - 1) % 10 == 0 and chunk_idx > 1:
+            os.system("clear" if os.name != "nt" else "cls")
+        print(f"{chunk_idx}/{total_chunks}")
         print(chunk)
         sound = pygame.mixer.Sound(audio_file)
         _LOG.debug("Sound loaded successfully")
@@ -724,21 +747,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Calculate reading time estimate
     total_words = sum(_count_words(chunk) for chunk in chunks)
     reading_time = _format_reading_time(words=total_words, speed=args.speed)
+    reading_time_normal = _format_reading_time(words=total_words, speed=1.0)
+    conversion_start_time = time.time()
     _LOG.info(
-        "Reading time estimate: %s (%d words at %.1fx speed)",
-        reading_time,
+        "=== CONVERSION START ===: %d chunks, %d words, reading time: %s (normal speed: %s)",
+        len(chunks),
         total_words,
-        args.speed,
+        reading_time,
+        reading_time_normal,
     )
     if args.dry_run:
         _LOG.info("Dry-run mode: printing chunks without audio generation")
-        print(f"Found {len(chunks)} chunks")
-        print(f"Reading time estimate: {reading_time} ({total_words} words at {args.speed:.1f}x speed)")
-        print("=" * 80)
         for i, chunk in enumerate(chunks, 1):
-            print(f"\nChunk {i}:\n{chunk}\n")
-            print("-" * 80)
-        _LOG.info("Dry-run complete: %d chunks, reading time: %s", len(chunks), reading_time)
+            _LOG.debug("Chunk %d:\n%s", i, chunk)
+        conversion_elapsed = time.time() - conversion_start_time
+        _LOG.info(
+            "=== CONVERSION END ===: %d chunks processed in %.2f seconds",
+            len(chunks),
+            conversion_elapsed,
+        )
         return
     # Pipeline:
     # - read
@@ -747,20 +774,28 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # - synthesize with cache
     # - play.
     audio_files = []
-    for i, chunk in enumerate(chunks, 1):
-        audio_file = _process_chunk_audio(
-            i,
-            chunk,
-            voice=args.voice,
-            speed=args.speed,
-        )
-        audio_files.append(audio_file)
-    _LOG.info(
-        "Generated audio with voice='%s' and speed=%.2f (%d chunks)",
+    total_work = len(chunks) * (2 if args.speed != 1.0 else 1)
+    with tqdm(total=total_work, desc="Processing chunks", unit="step") as progress_bar:
+        for i in range(len(chunks)):
+            chunk = chunks[i]
+            audio_file = _process_chunk_audio(
+                i + 1,
+                chunk,
+                voice=args.voice,
+                speed=args.speed,
+                progress_bar=progress_bar,
+            )
+            audio_files.append(audio_file)
+    conversion_elapsed = time.time() - conversion_start_time
+    _LOG.debug(
+        "=== CONVERSION END ===: Generated audio with voice='%s' and speed=%.2f (%d chunks in %.2f seconds)",
         args.voice,
         args.speed,
         len(chunks),
+        conversion_elapsed,
     )
+    if not args.no_play and audio_files:
+        input("Are you ready to start? Press Enter to continue...")
     _handle_final_output(audio_files, chunk_originals, no_play=args.no_play)
 
 
