@@ -427,6 +427,26 @@ class Test_reassemble_from_items(hunitest.TestCase):
     Tests for `reassemble_from_items()` function.
     """
 
+    # TODO(ai_gp): Use this helper for all the tests in this class, without
+    # changing its interface.
+    def helper(
+        self,
+        lines: str,
+    ) -> None:
+        """
+        Test helper to verify items match expected string representation.
+
+        Converts SlideItem list into a formatted string and compares with
+        expected output for golden file testing.
+
+        :param lines: Markdown lines to parse
+        :param expected_string: Expected string representation of items
+        """
+        split_lines = hprint.dedent(lines).splitlines()
+        items = list(_iterate_slide_lines(split_lines))
+        actual_string = reassemble_from_items(items)
+        self.assertEqual(actual_string, lines)
+
     def _make_item(
         self,
         item_type: str,
