@@ -185,7 +185,6 @@ def gh_workflow_list(  # type: ignore
     report_only_status=True,
     show_stack_trace=False,
     print_table=True,
-    create_mock=False,
 ):
     """
     Report the status of the GH workflows.
@@ -200,44 +199,12 @@ def gh_workflow_list(  # type: ignore
     :param show_stack_trace: in case of error run `pytest_repro` reporting also
         the stack trace
     :param print_table: if True, print the table with the status of the workflows
-    :param create_mock: if True, record live calls to `_gh_run_and_get_json`
-        into the fixture file used by unit tests. Run this once with real GH
-        access and commit the resulting fixture
     """
     hlitauti.report_task(
-        txt=hprint.to_str("filter_by_branch filter_by_completed create_mock")
+        txt=hprint.to_str("filter_by_branch filter_by_completed")
     )
     # Login.
     gh_login(ctx)
-    # Enable recording so subsequent calls to `_gh_run_and_get_json` are
-    # captured. The helper functions exercised below feed the fixture used
-    # by `MockDict` in unit tests.
-    if create_mock:
-        # Start from a clean fixture so we capture only the calls from this
-        # run and avoid mixing stale records with the current ones.
-        if os.path.exists(_GH_FIXTURE_FILE):
-            os.remove(_GH_FIXTURE_FILE)
-        hplayba.enable_recording(_gh_run_and_get_json)
-        # Exercise the helper functions we want to mock in unit tests so each
-        # one appears in the fixture.
-        repo_full_name = hgit.get_repo_full_name_from_dirname(
-            ".", include_host_name=False
-        )
-        _LOG.info("Recording fixture for repo '%s'", repo_full_name)
-        gh_get_open_prs(repo_full_name)
-        gh_get_workflow_type_names(repo_full_name)
-        workflows = gh_get_workflows(repo_full_name)
-        # Pull details for one workflow so `gh_get_workflow_details` is also
-        # in the fixture.
-        if workflows:
-            gh_get_workflow_details(
-                repo_full_name,
-                workflows[0]["id"],
-                ["conclusion", "status", "url", "workflowName"],
-                1,
-            )
-        hplayba.disable_recording(_gh_run_and_get_json)
-        _LOG.info("Fixture written to '%s'", _GH_FIXTURE_FILE)
     # Get the table.
     table = _get_workflow_table()
     # Filter table based on the branch.
@@ -741,7 +708,7 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
     hs3.copy_file_to_s3(local_html_file, s3_build_path_folder, aws_profile)
 
 
-@hplayba.record(_GH_FIXTURE_FILE, active=False)
+@hplayba.record(_GH_FIXTURE_FILE)
 def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
     """
     Run a `gh` command and remove colors when running inside a notebook.
@@ -1289,6 +1256,39 @@ def gh_delete_workflow_runs(  # type: ignore
         failed_count,
         len(run_ids),
     )
+
+
+# #############################################################################
+
+
+@task
+def gh_create_mock_fixture(ctx):  # type: ignore
+    """
+    Record live calls to `_gh_run_and_get_json` into the test fixture.
+
+    Run this once with real GH access. The resulting fixture is consumed by
+    unit tests via `hplayba.MockDict`, so unit tests do not hit GitHub.
+    """
+    hlitauti.report_task()
+    gh_login(ctx)
+    repo_full_name = hgit.get_repo_full_name_from_dirname(
+        ".", include_host_name=False
+    )
+    _LOG.info("Recording fixture for repo '%s'", repo_full_name)
+    with hplayba.recording(_gh_run_and_get_json):
+        # Each call below adds one record to the fixture. Keep this in sync
+        # with the helpers that unit tests need to mock.
+        gh_get_open_prs(repo_full_name)
+        gh_get_workflow_type_names(repo_full_name)
+        workflows = gh_get_workflows(repo_full_name)
+        if workflows:
+            gh_get_workflow_details(
+                repo_full_name,
+                workflows[0]["id"],
+                ["conclusion", "status", "url", "workflowName"],
+                1,
+            )
+    _LOG.info("Fixture written to '%s'", _GH_FIXTURE_FILE)
 
 
 # #############################################################################

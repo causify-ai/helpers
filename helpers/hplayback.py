@@ -7,13 +7,14 @@ Import as:
 import helpers.hplayback as hplayba
 """
 
+import contextlib
 import functools
 import inspect
 import json
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
 import jsonpickle  # type: ignore
 import jsonpickle.ext.pandas as jepand  # type: ignore
@@ -501,220 +502,124 @@ def playback(func: Callable) -> Callable:
 # #############################################################################
 # Record / replay system.
 # #############################################################################
-
-# A record describes a single function call captured by the `@record` decorator.
-# It contains:
-# - `args`: positional arguments of the call.
-# - `kwargs`: keyword arguments of the call.
-# - `result`: value returned by the call.
-_RecordType = Dict[str, Any]
-
-# Per-process set of fully qualified function names with active recording.
-# A function decorated with `@record` only writes records when its qualified
-# name appears in this set.
-if "_RECORDING_ACTIVE" not in globals():
-    _RECORDING_ACTIVE: Set[str] = set()
+# Capture `(args, kwargs, result)` tuples from a real call into a JSON fixture,
+# then replay them in tests via `MockDict` or `MockSequence` without contacting
+# the original backend. Separate from the `Playback` class above, which
+# generates unit-test *source code* from a single call.
 
 
-def _get_record_func_name(func: Callable) -> str:
+def _save_records(
+    file_path: str, records: List[Dict[str, Any]]
+) -> None:
     """
-    Return the qualified name used to track recording state for `func`.
+    Write `records` to `file_path` as JSON via `jsonpickle`.
 
-    :param func: function decorated with `@record`
-    :return: fully qualified function name as stored on the wrapper
-    """
-    hdbg.dassert(
-        hasattr(func, "__record_func_name__"),
-        "Function '%s' is not decorated with @record",
-        getattr(func, "__qualname__", func),
-    )
-    return getattr(func, "__record_func_name__")
-
-
-def enable_recording(func: Callable) -> None:
-    """
-    Enable recording for a function decorated with `@record`.
-
-    :param func: function decorated with `@record`
-    """
-    name = _get_record_func_name(func)
-    _LOG.debug("Enabling recording for '%s'", name)
-    _RECORDING_ACTIVE.add(name)
-
-
-def disable_recording(func: Callable) -> None:
-    """
-    Disable recording for a function decorated with `@record`.
-
-    :param func: function decorated with `@record`
-    """
-    name = _get_record_func_name(func)
-    _LOG.debug("Disabling recording for '%s'", name)
-    _RECORDING_ACTIVE.discard(name)
-
-
-def is_recording_active(func: Callable) -> bool:
-    """
-    Return whether recording is active for a `@record`-decorated function.
-
-    :param func: function decorated with `@record`
-    :return: True if recording is active for `func`
-    """
-    name = _get_record_func_name(func)
-    return name in _RECORDING_ACTIVE
-
-
-def _save_records(file_path: str, records: List[_RecordType]) -> None:
-    """
-    Save a list of records to disk as a JSON file via `jsonpickle`.
-
-    The outer file is JSON so that simple records (e.g., string args and
-    list-of-dict results) remain human readable, while `jsonpickle` falls back
-    to its own JSON-compatible encoding for objects that plain JSON cannot
-    serialize (e.g., `DataFrame`, `Config`).
+    Simple types stay human-readable; `jsonpickle` handles complex objects
+    (`DataFrame`, `Config`, ...) automatically.
 
     :param file_path: path to the output file
     :param records: list of records to save
     """
     hio.create_enclosing_dir(file_path, incremental=True)
-    # `jsonpickle.encode` forwards `indent` to the underlying JSON encoder,
-    # giving us a multi-line, easy-to-inspect file.
     encoded = jsonpickle.encode(records, indent=2)
     hio.to_file(file_path, encoded)
 
 
-def _load_records(file_path: str) -> List[_RecordType]:
+def _load_records(file_path: str) -> List[Dict[str, Any]]:
     """
-    Load a list of records previously saved by `_save_records`.
+    Read records previously written by `_save_records`.
 
     :param file_path: path to the fixture file
     :return: list of records
     """
     hdbg.dassert_file_exists(file_path)
-    text = hio.from_file(file_path)
-    records = jsonpickle.decode(text)
+    records = jsonpickle.decode(hio.from_file(file_path))
     hdbg.dassert_isinstance(records, list)
     return records
 
 
-def _append_record(
-    file_path: str, args: Tuple[Any, ...], kwargs: Dict[str, Any], result: Any
-) -> None:
+def record(file_path: str) -> Callable:
     """
-    Append a single call record to `file_path`, creating it if needed.
+    Decorate a function so it can be recorded into `file_path`.
 
-    :param file_path: path to the fixture file
-    :param args: positional arguments of the recorded call
-    :param kwargs: keyword arguments of the recorded call
-    :param result: return value of the recorded call
-    """
-    # Reload-modify-write to keep the on-disk fixture consistent across crashes.
-    if os.path.exists(file_path):
-        records = _load_records(file_path)
-    else:
-        records = []
-    record_entry: _RecordType = {
-        "args": list(args),
-        "kwargs": dict(kwargs),
-        "result": result,
-    }
-    records.append(record_entry)
-    _save_records(file_path, records)
+    The decorator is inert by default and adds no recording overhead beyond
+    one attribute check per call. Turn recording on with `recording()`.
 
-
-def _make_lookup_key(args: Tuple[Any, ...], kwargs: Dict[str, Any]) -> str:
-    """
-    Build a stable string key for a `(args, kwargs)` pair.
-
-    Used by `MockDict` to index recorded calls regardless of order.
-
-    :param args: positional arguments
-    :param kwargs: keyword arguments
-    :return: deterministic JSON string identifying the call
-    """
-    payload = {"args": list(args), "kwargs": kwargs}
-    # `jsonpickle.encode` handles arbitrary Python objects, falling back to its
-    # own encoding for types that plain JSON cannot serialize.
-    key = jsonpickle.encode(payload)
-    return key
-
-
-def record(file_path: str, *, active: bool = False) -> Callable:
-    """
-    Decorator that records function calls to a fixture file.
-
-    When recording is active, the decorator captures `(args, kwargs, result)`
-    for each call into the JSON file at `file_path`. When recording is
-    inactive, the wrapped function behaves exactly like the original.
-
-    :param file_path: path to the fixture file
-    :param active:
-        - If True, recording is enabled by default
-        - If False, recording is off until `enable_recording()` is called
+    :param file_path: path to the fixture file written when recording stops
     :return: decorator that wraps the target function
     """
 
     def decorator(func: Callable) -> Callable:
-        func_name = f"{func.__module__}.{func.__qualname__}"
-        if active:
-            _RECORDING_ACTIVE.add(func_name)
 
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             result = func(*args, **kwargs)
-            # Recording state is consulted at call time so that downstream
-            # code (e.g., a CLI flag) can toggle it without re-importing.
-            if func_name in _RECORDING_ACTIVE:
-                _LOG.debug(
-                    "Recording call to '%s' (file='%s')", func_name, file_path
+            if wrapper._record_active:  # type: ignore[attr-defined]
+                wrapper._record_buffer.append(  # type: ignore[attr-defined]
+                    {
+                        "args": list(args),
+                        "kwargs": dict(kwargs),
+                        "result": result,
+                    }
                 )
-                _append_record(file_path, args, kwargs, result)
             return result
 
-        # Expose metadata so `enable_recording`/`disable_recording` can find
-        # the right global state entry from just the wrapped function.
-        wrapper.__record_file_path__ = file_path  # type: ignore[attr-defined]
-        wrapper.__record_func_name__ = func_name  # type: ignore[attr-defined]
+        # Per-function state lives on the wrapper, so each decorated function
+        # owns its on/off flag and its buffer with no cross-talk and no need
+        # for a separate registry.
+        wrapper._record_file_path = file_path  # type: ignore[attr-defined]
+        wrapper._record_active = False  # type: ignore[attr-defined]
+        wrapper._record_buffer = []  # type: ignore[attr-defined]
         return wrapper
 
     return decorator
 
 
-# #############################################################################
-# _BaseMock
-# #############################################################################
-
-
-class _BaseMock:
+@contextlib.contextmanager
+def recording(func: Callable) -> Iterator[None]:
     """
-    Base class for record/replay mocks.
+    Capture calls to `func` inside the block, then write the fixture.
 
-    Subclasses implement `__call__` to define how a recorded fixture is
-    consumed (e.g., by lookup or by sequence).
+    On entry, drops any previously buffered records and flips recording on.
+    On exit, flushes the buffer to `func`'s fixture file and flips recording
+    off, even if the block raises.
+
+    :param func: function decorated with `@record`
     """
+    hdbg.dassert(
+        hasattr(func, "_record_buffer"),
+        "%s is not decorated with @record",
+        getattr(func, "__qualname__", func),
+    )
+    func._record_buffer = []  # type: ignore[attr-defined]
+    func._record_active = True  # type: ignore[attr-defined]
+    try:
+        yield
+    finally:
+        func._record_active = False  # type: ignore[attr-defined]
+        if func._record_buffer:  # type: ignore[attr-defined]
+            _save_records(
+                func._record_file_path,  # type: ignore[attr-defined]
+                func._record_buffer,  # type: ignore[attr-defined]
+            )
 
-    def __init__(self, file_path: str) -> None:
-        """
-        Load records from `file_path`.
 
-        :param file_path: path to a fixture file produced by `@record`
-        """
-        hdbg.dassert_file_exists(file_path)
-        self._file_path = file_path
-        self._records: List[_RecordType] = _load_records(file_path)
+def _make_lookup_key(
+    args: Tuple[Any, ...], kwargs: Dict[str, Any]
+) -> str:
+    """
+    Build a deterministic JSON key for `(args, kwargs)`.
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError
+    `default=str` falls back to `str()` for types `json.dumps` cannot
+    serialize natively. For recorded GH commands (plain strings) this is
+    exact; for richer args, equality is by string representation.
 
-    def patch(self, target: str) -> Any:
-        """
-        Return a `unittest.mock.patch` that replaces `target` with this mock.
-
-        :param target: dotted path to the function to replace
-            (e.g., `"helpers.lib_tasks_gh._gh_run_and_get_json"`)
-        :return: patch object usable as a context manager or decorator
-        """
-        return umock.patch(target, side_effect=self)
+    :param args: positional arguments
+    :param kwargs: keyword arguments
+    :return: stable JSON string identifying the call
+    """
+    payload = {"args": list(args), "kwargs": kwargs}
+    return json.dumps(payload, sort_keys=True, default=str)
 
 
 # #############################################################################
@@ -722,26 +627,26 @@ class _BaseMock:
 # #############################################################################
 
 
-class MockDict(_BaseMock):
+class MockDict:
     """
-    Replay recorded calls as an order-independent dictionary lookup.
+    Replay recorded calls as an order-independent `(args, kwargs) -> result`
+    map.
 
-    The same `(args, kwargs)` always returns the same `result`, regardless of
-    when the function is called. Use this when the function under test is a
-    pure mapping from inputs to outputs.
+    Use when the function under test is a pure mapping from inputs to outputs.
     """
 
     def __init__(self, file_path: str) -> None:
         """
-        Build an in-memory lookup from the records in `file_path`.
+        Build the lookup table from the records in `file_path`.
 
-        :param file_path: path to a fixture file produced by `@record`
+        :param file_path: fixture file produced by `@record` + `recording()`
         """
-        super().__init__(file_path)
+        self._file_path = file_path
+        records = _load_records(file_path)
         self._lookup: Dict[str, Any] = {}
-        for rec in self._records:
+        for rec in records:
             key = _make_lookup_key(tuple(rec["args"]), rec["kwargs"])
-            # If the same call appears more than once, later entries win.
+            # Last entry wins when a call repeats.
             self._lookup[key] = rec["result"]
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
@@ -750,18 +655,27 @@ class MockDict(_BaseMock):
 
         :param args: positional arguments of the replayed call
         :param kwargs: keyword arguments of the replayed call
-        :return: previously recorded result
+        :return: result captured for the matching call
         """
         key = _make_lookup_key(args, kwargs)
         hdbg.dassert_in(
             key,
             self._lookup,
-            "No recorded call matches args=%s kwargs=%s in fixture '%s'",
+            "No recorded call for args=%s kwargs=%s in '%s'",
             args,
             kwargs,
             self._file_path,
         )
         return self._lookup[key]
+
+    def patch(self, target: str) -> Any:
+        """
+        Patch `target` with this mock as `side_effect`.
+
+        :param target: dotted path of the function to replace
+        :return: `unittest.mock` patch object
+        """
+        return umock.patch(target, side_effect=self)
 
 
 # #############################################################################
@@ -769,54 +683,51 @@ class MockDict(_BaseMock):
 # #############################################################################
 
 
-class MockSequence(_BaseMock):
+class MockSequence:
     """
-    Replay recorded calls in the exact order they were captured.
+    Replay recorded calls in capture order, asserting args at each step.
 
-    Each call asserts that the actual `(args, kwargs)` matches the expected
-    `(args, kwargs)` at the current position. Use this when call order
-    matters or when the same function is expected to be called multiple
-    times with different inputs.
+    Use when call order matters or when the same function is called multiple
+    times with distinct inputs.
     """
 
     def __init__(self, file_path: str) -> None:
         """
-        Initialize the sequence cursor at the beginning of the fixture.
+        Load the sequence from `file_path` and place the cursor at the start.
 
-        :param file_path: path to a fixture file produced by `@record`
+        :param file_path: fixture file produced by `@record` + `recording()`
         """
-        super().__init__(file_path)
+        self._file_path = file_path
+        self._records = _load_records(file_path)
         self._idx = 0
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """
-        Return the recorded result for the next call, after verifying args.
+        Verify `(args, kwargs)` matches the next recorded call and return its
+        result.
 
         :param args: positional arguments of the replayed call
         :param kwargs: keyword arguments of the replayed call
-        :return: recorded result at the current sequence position
+        :return: result captured at the current cursor position
         """
         hdbg.dassert_lt(
             self._idx,
             len(self._records),
-            "Sequence exhausted after %d call(s) in fixture '%s'",
+            "Sequence exhausted after %d call(s) in '%s'",
             len(self._records),
             self._file_path,
         )
         rec = self._records[self._idx]
-        # Verify the call matches what was recorded at this position.
-        expected_args = list(rec["args"])
-        expected_kwargs = rec["kwargs"]
         hdbg.dassert_eq(
             list(args),
-            expected_args,
-            "Sequence call %d: positional args do not match",
+            list(rec["args"]),
+            "Sequence call %d: positional args mismatch",
             self._idx,
         )
         hdbg.dassert_eq(
             kwargs,
-            expected_kwargs,
-            "Sequence call %d: keyword args do not match",
+            rec["kwargs"],
+            "Sequence call %d: keyword args mismatch",
             self._idx,
         )
         result = rec["result"]
@@ -825,6 +736,15 @@ class MockSequence(_BaseMock):
 
     def reset(self) -> None:
         """
-        Reset the sequence cursor to the beginning.
+        Move the cursor back to the start of the sequence.
         """
         self._idx = 0
+
+    def patch(self, target: str) -> Any:
+        """
+        Patch `target` with this mock as `side_effect`.
+
+        :param target: dotted path of the function to replace
+        :return: `unittest.mock` patch object
+        """
+        return umock.patch(target, side_effect=self)

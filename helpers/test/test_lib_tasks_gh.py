@@ -138,126 +138,107 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
 
 
 # #############################################################################
-# _MockDictTestHelper
+# TestGhHelpersWithMockDict1
 # #############################################################################
 
 
-class _MockDictTestHelper(hunitest.TestCase):
+class TestGhHelpersWithMockDict1(hunitest.TestCase):
     """
-    Base class that writes a `MockDict` fixture into a scratch directory.
+    Test the `gh_get_*` helpers via `MockDict`-replayed `_gh_run_and_get_json`.
 
-    Each fixture is self-contained: the test writes the records it needs and
-    then patches `_gh_run_and_get_json` to replay them. This lets unit tests
-    cover the helper functions without requiring real GitHub access or the
-    production fixture file produced by `invoke gh_workflow_list --create_mock`.
+    Each test writes a self-contained fixture and patches the wrapped
+    `_gh_run_and_get_json`, so the helpers can be exercised offline. The
+    `helper()` below absorbs the boilerplate.
     """
 
-    def _write_fixture(
-        self, records: List[Dict[str, Any]]
-    ) -> hplayba.MockDict:
+    def helper(
+        self,
+        cmd: str,
+        raw_result: Any,
+        helper_fn: Any,
+        helper_args: tuple,
+        helper_kwargs: Dict[str, Any],
+        expected: Any,
+    ) -> None:
         """
-        Save `records` to a fixture file and return a `MockDict` for it.
+        Replay one recorded call through a `gh_get_*` helper.
 
-        :param records: list of `{args, kwargs, result}` dicts
-        :return: `MockDict` instance ready to patch
-            `_gh_run_and_get_json`
+        :param cmd: command string the helper is expected to issue
+        :param raw_result: value `_gh_run_and_get_json` would return
+        :param helper_fn: helper to call (e.g., `hlitagh.gh_get_workflows`)
+        :param helper_args: positional args for `helper_fn`
+        :param helper_kwargs: keyword args for `helper_fn`
+        :param expected: value the helper should return after its
+            post-processing
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        fixture_path = os.path.join(scratch_dir, "fixture.json")
-        # Run test.
+        fixture_path = os.path.join(self.get_scratch_space(), "fixture.json")
+        records = [{"args": [cmd], "kwargs": {}, "result": raw_result}]
         hplayba._save_records(fixture_path, records)
-        return hplayba.MockDict(fixture_path)
-
-
-# #############################################################################
-# Test_gh_get_workflows1
-# #############################################################################
-
-
-class Test_gh_get_workflows1(_MockDictTestHelper):
-    """
-    Test `gh_get_workflows` via `MockDict`-replayed `_gh_run_and_get_json`.
-    """
+        mock_dict = hplayba.MockDict(fixture_path)
+        # Run test.
+        with mock_dict.patch("helpers.lib_tasks_gh._gh_run_and_get_json"):
+            actual = helper_fn(*helper_args, **helper_kwargs)
+        # Check outputs.
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
-        Test that workflows are returned sorted by name with string ids.
+        Test that `gh_get_workflows` sorts by name and stringifies ids.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
         cmd = f"gh workflow list --json id,name --repo {repo_name}"
-        records = [
-            {
-                "args": [cmd],
-                "kwargs": {},
-                "result": [
-                    {"id": 200, "name": "Slow tests"},
-                    {"id": 100, "name": "Fast tests"},
-                ],
-            }
+        raw = [
+            {"id": 200, "name": "Slow tests"},
+            {"id": 100, "name": "Fast tests"},
         ]
-        mock_dict = self._write_fixture(records)
-        # Run test.
-        with mock_dict.patch("helpers.lib_tasks_gh._gh_run_and_get_json"):
-            actual = hlitagh.gh_get_workflows(repo_name)
         # Prepare outputs.
         expected = [
             {"id": "100", "name": "Fast tests"},
             {"id": "200", "name": "Slow tests"},
         ]
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(
+            cmd, raw, hlitagh.gh_get_workflows, (repo_name,), {}, expected
+        )
 
     def test2(self) -> None:
         """
-        Test that `sort=False` preserves the order returned by GitHub.
+        Test that `gh_get_workflows(sort=False)` preserves GitHub's order.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
         cmd = f"gh workflow list --json id,name --repo {repo_name}"
-        records = [
-            {
-                "args": [cmd],
-                "kwargs": {},
-                "result": [
-                    {"id": 200, "name": "Slow tests"},
-                    {"id": 100, "name": "Fast tests"},
-                ],
-            }
+        raw = [
+            {"id": 200, "name": "Slow tests"},
+            {"id": 100, "name": "Fast tests"},
         ]
-        mock_dict = self._write_fixture(records)
-        # Run test.
-        with mock_dict.patch("helpers.lib_tasks_gh._gh_run_and_get_json"):
-            actual = hlitagh.gh_get_workflows(repo_name, sort=False)
         # Prepare outputs.
         expected = [
             {"id": "200", "name": "Slow tests"},
             {"id": "100", "name": "Fast tests"},
         ]
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(
+            cmd,
+            raw,
+            hlitagh.gh_get_workflows,
+            (repo_name,),
+            {"sort": False},
+            expected,
+        )
 
-
-# #############################################################################
-# Test_gh_get_workflow_details1
-# #############################################################################
-
-
-class Test_gh_get_workflow_details1(_MockDictTestHelper):
-    """
-    Test `gh_get_workflow_details` via `MockDict`.
-    """
-
-    def test1(self) -> None:
+    def test3(self) -> None:
         """
-        Test that the recorded workflow status is returned unchanged.
+        Test that `gh_get_workflow_details` returns the recorded payload.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
         workflow_id = "12345"
         fields = ["conclusion", "status", "url", "workflowName"]
         limit = 1
+        # The command format is copied verbatim from `gh_get_workflow_details`.
         cmd = f"""
     gh run list \\
         --json {",".join(fields)} \\
@@ -266,7 +247,7 @@ class Test_gh_get_workflow_details1(_MockDictTestHelper):
         --limit {limit} \\
         --workflow "{workflow_id}"
     """
-        recorded = [
+        raw = [
             {
                 "conclusion": "success",
                 "status": "completed",
@@ -274,79 +255,52 @@ class Test_gh_get_workflow_details1(_MockDictTestHelper):
                 "workflowName": "Fast tests",
             }
         ]
-        records = [{"args": [cmd], "kwargs": {}, "result": recorded}]
-        mock_dict = self._write_fixture(records)
+        # Prepare outputs.
+        expected = raw
         # Run test.
-        with mock_dict.patch("helpers.lib_tasks_gh._gh_run_and_get_json"):
-            actual = hlitagh.gh_get_workflow_details(
-                repo_name, workflow_id, fields, limit
-            )
-        # Check outputs.
-        self.assertEqual(actual, recorded)
+        self.helper(
+            cmd,
+            raw,
+            hlitagh.gh_get_workflow_details,
+            (repo_name, workflow_id, fields, limit),
+            {},
+            expected,
+        )
 
-
-# #############################################################################
-# Test_gh_get_open_prs1
-# #############################################################################
-
-
-class Test_gh_get_open_prs1(_MockDictTestHelper):
-    """
-    Test `gh_get_open_prs` via `MockDict`.
-    """
-
-    def test1(self) -> None:
+    def test4(self) -> None:
         """
-        Test that the recorded list of open PRs is returned unchanged.
+        Test that `gh_get_open_prs` returns the recorded payload.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
         cmd = f"gh pr list --state 'open' --json id --repo {repo_name}"
-        recorded = [{"id": "PR_kwDO_a"}, {"id": "PR_kwDO_b"}]
-        records = [{"args": [cmd], "kwargs": {}, "result": recorded}]
-        mock_dict = self._write_fixture(records)
+        raw = [{"id": "PR_kwDO_a"}, {"id": "PR_kwDO_b"}]
+        # Prepare outputs.
+        expected = raw
         # Run test.
-        with mock_dict.patch("helpers.lib_tasks_gh._gh_run_and_get_json"):
-            actual = hlitagh.gh_get_open_prs(repo_name)
-        # Check outputs.
-        self.assertEqual(actual, recorded)
+        self.helper(
+            cmd, raw, hlitagh.gh_get_open_prs, (repo_name,), {}, expected
+        )
 
-
-# #############################################################################
-# Test_gh_get_workflow_type_names1
-# #############################################################################
-
-
-class Test_gh_get_workflow_type_names1(_MockDictTestHelper):
-    """
-    Test `gh_get_workflow_type_names` via `MockDict`.
-    """
-
-    def test1(self) -> None:
+    def test5(self) -> None:
         """
-        Test that workflow names are returned sorted.
+        Test that `gh_get_workflow_type_names` returns sorted names.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
         cmd = f"gh workflow list --json name --repo {repo_name}"
-        records = [
-            {
-                "args": [cmd],
-                "kwargs": {},
-                "result": [
-                    {"name": "Slow tests"},
-                    {"name": "Fast tests"},
-                ],
-            }
-        ]
-        mock_dict = self._write_fixture(records)
-        # Run test.
-        with mock_dict.patch("helpers.lib_tasks_gh._gh_run_and_get_json"):
-            actual = hlitagh.gh_get_workflow_type_names(repo_name)
+        raw = [{"name": "Slow tests"}, {"name": "Fast tests"}]
         # Prepare outputs.
         expected = ["Fast tests", "Slow tests"]
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(
+            cmd,
+            raw,
+            hlitagh.gh_get_workflow_type_names,
+            (repo_name,),
+            {},
+            expected,
+        )
 
 
 # #############################################################################
@@ -360,33 +314,40 @@ class Test_gh_get_overall_build_status_for_repo1(hunitest.TestCase):
     directly from a DataFrame and does not call `_gh_run_and_get_json`.
     """
 
+    def helper(self, conclusions: List[str], expected: str) -> None:
+        """
+        Build a one-column status DataFrame and check the overall status.
+
+        :param conclusions: per-workflow `conclusion` values
+        :param expected: overall status string returned by the helper
+        """
+        # Prepare inputs.
+        repo_df = pd.DataFrame({"conclusion": conclusions})
+        # Run test.
+        actual = hlitagh.gh_get_overall_build_status_for_repo(
+            repo_df, use_colors=False
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test that an all-success table reports "Success".
         """
         # Prepare inputs.
-        repo_df = pd.DataFrame({"conclusion": ["success", "success"]})
-        # Run test.
-        actual = hlitagh.gh_get_overall_build_status_for_repo(
-            repo_df, use_colors=False
-        )
+        conclusions = ["success", "success"]
         # Prepare outputs.
         expected = "Success"
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(conclusions, expected)
 
     def test2(self) -> None:
         """
-        Test that any failure in the table flips the overall status to
-        "Failed".
+        Test that any failure flips the overall status to "Failed".
         """
         # Prepare inputs.
-        repo_df = pd.DataFrame({"conclusion": ["success", "failure"]})
-        # Run test.
-        actual = hlitagh.gh_get_overall_build_status_for_repo(
-            repo_df, use_colors=False
-        )
+        conclusions = ["success", "failure"]
         # Prepare outputs.
         expected = "Failed"
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(conclusions, expected)
