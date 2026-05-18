@@ -15,8 +15,6 @@
 - **Concrete examples**: Always include practical examples labeled
 - **Reference context**: Connect new concepts to previously introduced material
 
-# Design and Content Guidelines
-
 ## Engagement Strategies
 - **Open with motivation**: "Why does this matter?"
 - **Use questions**: Mark rhetorical questions with `**Question**:`
@@ -30,56 +28,7 @@
 - Use diagrams instead of long text descriptions
 - Break complex topics across multiple slides
 
-# Basic Formatting
-
-## General Formatting Rules
-
-- Don't use emoji
-- Don't use page separators
-- Don't use unicode characters but use LaTeX symbols if needed
-  - Instead of → use `$\to$`
-
-## Slide Structure
-
-- Each slide should start with:
-  ```
-  * Slide title
-  ```
-- Each slide contains bullet points arranged in a hierarchical structure
-  - Every line starts with a bullet point
-  - Do not use period at the end of a phrase
-- Use italic and add quotes for questions:
-  ```
-  - E.g., _"If we lower prices by 10%, will revenue increase?"_
-  ```
-
-## Spacing and Breaks
-
-- Use comments (`//`) for internal notes (not rendered in output)
-- Do NOT use page separators (`---` markdown syntax)
-
-## Symbols and Characters
-
-- Do NOT use non-ASCII characters, but use LaTeX instead:
-
-- ε → `$\varepsilon$`
-- → → `$\to$`
-- ∝ → `$\propto$`
-- ≈ → `$\approx$`
-- ∩ → `$\cap$`
-- ∪ → `$\cup$`
-
-## Font Sizing
-
-- Group all font size changes with LaTeX:
-  ```markdown
-  \begingroup \large
-  Large text here
-  \endgroup
-  ```
-- Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
-
-# Document Structure and Organization
+# Document Organization
 
 ## Section Structure
 
@@ -106,7 +55,7 @@
       - Further nesting (4-space indent)
   ```
 
-# Content and Styling
+# Slide Organization
 
 ## Text Formatting
 
@@ -162,6 +111,53 @@ Use these commands consistently across all slides:
 - `\iff`: "If and only if"
 - `\perp`: Independence (perpendicular symbol)
 - `\vx`, `\vy`: Vectors (if defined in preamble)
+
+### Spacing and Breaks
+
+- Use comments (`//`) for internal notes (not rendered in output)
+- Do NOT use page separators (`---` markdown syntax)
+
+### Symbols and Characters
+
+- Do NOT use non-ASCII characters, but use LaTeX instead:
+
+- ε → `$\varepsilon$`
+- → → `$\to$`
+- ∝ → `$\propto$`
+- ≈ → `$\approx$`
+- ∩ → `$\cap$`
+- ∪ → `$\cup$`
+
+### Font Sizing
+
+- Group all font size changes with LaTeX:
+  ```markdown
+  \begingroup \large
+  Large text here
+  \endgroup
+  ```
+- Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
+
+## General Formatting Rules
+
+- Don't use emoji
+- Don't use page separators
+- Don't use unicode characters but use LaTeX symbols if needed
+  - Instead of → use `$\to$`
+
+## Slide Structure
+
+- Each slide should start with:
+  ```markdown
+  * Slide title
+  ```
+- Each slide contains bullet points arranged in a hierarchical structure
+  - Every line starts with a bullet point
+  - Do not use period at the end of a phrase
+- Use italic and add quotes for questions:
+  ```markdown
+  - E.g., _"If we lower prices by 10%, will revenue increase?"_
+  ```
 
 # Visual Elements and Diagrams
 
