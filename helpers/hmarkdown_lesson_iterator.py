@@ -177,7 +177,7 @@ def read_lesson_file(file_path: str) -> Generator[SlideItem, None, None]:
 
 
 def reassemble_from_items(
-    items: List[Dict[str, Any]],
+    items: List[SlideItem],
     *,
     original_content: str = "",
 ) -> str:

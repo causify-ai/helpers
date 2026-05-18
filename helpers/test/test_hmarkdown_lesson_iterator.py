@@ -9,28 +9,26 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 from helpers.hmarkdown_lesson_iterator import (
-    _iterate_lesson_lines,
+    _iterate_slide_lines,
+    SlideItem,
     read_lesson_file,
     reassemble_from_items,
-)
-
-# TODO(ai_gp): Use SlideItem everywhere 
+) 
 
 # #############################################################################
-# Test_iterate_lesson_lines
+# Test_iterate_slide_lines
 # #############################################################################
 
 
-class Test_iterate_lesson_lines(hunitest.TestCase):
+class Test_iterate_slide_lines(hunitest.TestCase):
     """
-    Tests for `_iterate_lesson_lines()` function.
+    Tests for `_iterate_slide_lines()` function.
     """
 
     # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
     def _check_single_item_type(
         self,
-        # TODO(ai_gp): Use List[SlideItem] everywhere 
-        items: List,
+        items: List[SlideItem],
         expected_type: str,
         *,
         expected_line_number: int = 1,
@@ -52,7 +50,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
 
     # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
     def _check_items_with_line_numbers(
-        self, items: List, *, expected_specs: List[tuple]
+        self, items: List[SlideItem], *, expected_specs: List[tuple]
     ) -> None:
         """
         Test helper to verify items have expected types and line numbers.
@@ -67,7 +65,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
 
     # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
     def _check_types_list(
-        self, items: List, *, expected_types: List[str]
+        self, items: List[SlideItem], *, expected_types: List[str]
     ) -> None:
         """
         Test helper to verify items' types match expected list.
@@ -85,7 +83,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         # Prepare inputs.
         lines: List[str] = []
         # Run test.
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         # Check outputs.
         self.assertEqual(items, [])
 
@@ -101,7 +99,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             * First Slide
             Content of the slide
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_single_item_type(
             items, expected_type="slide", expected_content=expected_content
         )
@@ -119,7 +117,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         ]
         expected_specs = [("slide", 1), ("slide", 3)]
         # Run test.
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         # Check outputs.
         self._check_items_with_line_numbers(items, expected_specs=expected_specs)
 
@@ -135,7 +133,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             # Main Title
             Some content
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_single_item_type(
             items, expected_type="header", expected_content=expected_content
         )
@@ -152,7 +150,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             ### Sub-subtitle
             """).splitlines()
         expected_specs = [("header", 1), ("header", 3), ("header", 5)]
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_items_with_line_numbers(items, expected_specs=expected_specs)
 
     def test6(self) -> None:
@@ -166,7 +164,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             -->
             More content
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_single_item_type(
             items, expected_type="comment", expected_line_number=2
         )
@@ -183,7 +181,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             */
             More content
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_single_item_type(
             items, expected_type="comment", expected_line_number=2
         )
@@ -197,7 +195,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             <!-- Single line comment -->
             Content after
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_single_item_type(
             items, expected_type="comment", expected_line_number=2
         )
@@ -217,7 +215,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             More content
             """).splitlines()
         expected_types = ["header", "slide", "comment", "slide", "header"]
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_types_list(items, expected_types=expected_types)
 
     def test10(self) -> None:
@@ -230,7 +228,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             // Single line comment
             Content line 2
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_single_item_type(items, expected_type="slide")
         self.assertIn("// Single line comment", items[0]["content"])
 
@@ -243,7 +241,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             %% This is a comment
             Regular content
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_single_item_type(items, expected_type="slide")
 
     def test12(self) -> None:
@@ -260,7 +258,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             More content
             """).splitlines()
         )
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self.assertEqual(len(items), 1)
         self.assertIn("#" * 80, items[0]["content"])
 
@@ -275,7 +273,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             Content 2
             * Slide 3
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         line_numbers = [item["line_number"] for item in items]
         self.assertEqual(line_numbers, [1, 3, 5])
 
@@ -290,7 +288,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             * Slide 2
             Content 2
             """).splitlines()
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self.assertEqual(len(items), 2)
         self.assertEqual(items[0]["type"], "slide")
         self.assertEqual(items[1]["type"], "slide")
@@ -311,7 +309,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             Definition of ML
             """).splitlines()
         expected_types = ["header", "slide", "comment", "slide", "header"]
-        items = list(_iterate_lesson_lines(lines))
+        items = list(_iterate_slide_lines(lines))
         self._check_types_list(items, expected_types=expected_types)
 
 
@@ -389,7 +387,7 @@ class TestReassembleFromItems(hunitest.TestCase):
         Test reassembly of empty item list.
         """
         # Prepare inputs.
-        items: List = []
+        items: List[SlideItem] = []
         # Run test.
         result = reassemble_from_items(items)
         # Check outputs.
