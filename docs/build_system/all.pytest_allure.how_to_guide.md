@@ -14,7 +14,7 @@
 
 ## How to Run the Flow End-To-End Via GH Actions
 
-Considering that we run the tests on the `cmamp` repo with the fast `tests`
+Considering that we run the tests on the `csfy` repo with the fast `tests`
 group
 
 **Important note**: Unlike usual test run, we don't stop the execution on
@@ -22,7 +22,7 @@ failure. For this we use the `continue-on-error: true` in the GitHub action
 step.
 
 Here is the link to the
-[GitHub action file](../.github/workflows/DISABLED.allure.fast_test.yml).
+[GitHub action file](/.github/workflows/allure.fast_test.yml).
 
 ## How to Generate Allure-Pytest Results
 
@@ -41,14 +41,14 @@ To backup the Allure results, copy the `allure_results` directory to a AWS S3
 bucket, e.g.,
 
 ```bash
-aws s3 cp allure_results s3://cryptokaizen-unit-test/allure_test/cmamp/fast/results.20231120_102030 --recursive
+aws s3 cp allure_results s3://cryptokaizen-unit-test/allure_test/csfy/fast/results.20231120_102030 --recursive
 ```
 
 where:
 
 - `allure_results` is the directory where the Allure results are stored
 - `20231120_102030` is the date and time with the mask `%Y%m%d_%H%M%S`
-- `cmamp` is the name of the GitHub repo
+- `csfy` is the name of the GitHub repo
 - `fast` is the name of the tests group
 
 ## How to Generate Allure Html-Report
@@ -94,7 +94,7 @@ TODO(Vlad): Come up with a clean-up strategy for the S3 bucket.
 To copy the history subdirectory from the previous run to the `allure_results`:
 
 ```bash
-aws s3 cp s3://cryptokaizen-html/allure_reports/cmamp/fast/report.20231120_102030/history allure_results/history --recursive
+aws s3 cp s3://cryptokaizen-html/allure_reports/csfy/fast/report.20231120_102030/history allure_results/history --recursive
 ```
 
 ## How to Publish the Allure-Html Report
@@ -103,15 +103,15 @@ To publish the Allure report, copy the `allure_report` directory to a AWS S3
 bucket, e.g.,
 
 ```bash
-aws s3 cp allure_report s3://cryptokaizen-html/allure_reports/cmamp/fast/report.20231120_102030 --recursive
+aws s3 cp allure_report s3://cryptokaizen-html/allure_reports/csfy/fast/report.20231120_102030 --recursive
 ```
 
 where:
 
 - `allure_report` is the directory where the Allure HTML-report will be stored
 - `20231120_102030` is the date and time with the mask `%Y%m%d_%H%M%S`
-- `cmamp` is the name of the GitHub repo
+- `csfy` is the name of the GitHub repo
 - `fast` is the name of the tests group
 
 For e.g., to access the HTML-report open this link on a browser:
-[http://172.30.2.44/allure_reports/cmamp/fast/report.20231120_102030](http://172.30.2.44/allure_reports/cmamp/fast/report.20231120_102030)
+[http://172.30.2.44/allure_reports/csfy/fast/report.20231120_102030/index.html](http://172.30.2.44/allure_reports/csfy/fast/report.20231120_102030/index.html)
