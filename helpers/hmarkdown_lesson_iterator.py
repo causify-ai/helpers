@@ -20,8 +20,7 @@ _LOG = logging.getLogger(__name__)
 SlideItem = Dict[str, Any]
 
 
-# TODO(ai_gp): -> format_items_as_string
-def _format_items_as_string(items: List[SlideItem]) -> str:
+def format_items_as_string(items: List[SlideItem]) -> str:
     """
     Format SlideItem list as a human-readable string.
 

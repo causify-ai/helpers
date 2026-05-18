@@ -6,14 +6,9 @@ import os
 from typing import List
 
 import helpers.hio as hio
+import helpers.hmarkdown_lesson_iterator as hmarkdown_lesson_iterator
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-from helpers.hmarkdown_lesson_iterator import (
-    _format_items_as_string,
-    _iterate_slide_lines,
-    read_lesson_file,
-    reassemble_from_items,
-)
 
 
 # #############################################################################
@@ -23,7 +18,7 @@ from helpers.hmarkdown_lesson_iterator import (
 
 class Test_iterate_slide_lines(hunitest.TestCase):
     """
-    Tests for `_iterate_slide_lines()` function.
+    Tests for `hmarkdown_lesson_iterator._iterate_slide_lines()` function.
     """
 
     def helper(
@@ -41,8 +36,8 @@ class Test_iterate_slide_lines(hunitest.TestCase):
         :param expected_string: Expected string representation of items
         """
         split_lines = hprint.dedent(lines).splitlines()
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = _format_items_as_string(items)
+        items = list(hmarkdown_lesson_iterator._iterate_slide_lines(split_lines))
+        actual_string = hmarkdown_lesson_iterator.format_items_as_string(items)
         expected_string = hprint.dedent(expected_string)
         self.assertEqual(actual_string, expected_string)
 
@@ -365,7 +360,7 @@ class Test_iterate_slide_lines(hunitest.TestCase):
 
 class Test_read_lesson_file(hunitest.TestCase):
     """
-    Tests for `read_lesson_file()` function with actual files.
+    Tests for `hmarkdown_lesson_iterator.read_lesson_file()` function with actual files.
     """
 
     def _check_file_content(
@@ -381,7 +376,7 @@ class Test_read_lesson_file(hunitest.TestCase):
         input_dir = self.get_input_dir()
         lesson_file = os.path.join(input_dir, "test_lesson.txt")
         hio.to_file(lesson_file, content)
-        items = list(read_lesson_file(lesson_file))
+        items = list(hmarkdown_lesson_iterator.read_lesson_file(lesson_file))
         self.assertEqual(len(items), expected_count)
         actual_types = [item["type"] for item in items]
         self.assertEqual(actual_types, expected_types)
@@ -424,7 +419,7 @@ class Test_read_lesson_file(hunitest.TestCase):
 
 class Test_reassemble_from_items(hunitest.TestCase):
     """
-    Tests for `reassemble_from_items()` function.
+    Tests for `hmarkdown_lesson_iterator.reassemble_from_items()` function.
     """
 
     def helper(
@@ -441,8 +436,8 @@ class Test_reassemble_from_items(hunitest.TestCase):
         :param expected_string: Expected string representation of items
         """
         split_lines = hprint.dedent(lines).splitlines()
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
+        items = list(hmarkdown_lesson_iterator._iterate_slide_lines(split_lines))
+        actual_string = hmarkdown_lesson_iterator.reassemble_from_items(items)
         self.assertEqual(actual_string, lines)
 
     def test1(self) -> None:
@@ -542,8 +537,8 @@ class Test_reassemble_from_items(hunitest.TestCase):
             "More",
         ]
         # Run test.
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
+        items = list(hmarkdown_lesson_iterator._iterate_slide_lines(split_lines))
+        actual_string = hmarkdown_lesson_iterator.reassemble_from_items(items)
         # Check outputs.
         expected = "* Slide 1\nContent\n   \n* Slide 2\nMore"
         self.assertEqual(actual_string, expected)
@@ -608,8 +603,8 @@ class Test_reassemble_from_items(hunitest.TestCase):
             "* Slide 2",
         ]
         # Run test.
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
+        items = list(hmarkdown_lesson_iterator._iterate_slide_lines(split_lines))
+        actual_string = hmarkdown_lesson_iterator.reassemble_from_items(items)
         # Check outputs.
         expected = "* Slide 1\n \nContent\n  \nMore content\n   \n* Slide 2"
         self.assertEqual(actual_string, expected)
