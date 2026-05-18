@@ -6,7 +6,7 @@ import os
 from typing import List
 
 import helpers.hio as hio
-import helpers.hmarkdown_lesson_iterator as hmarkdown_lesson_iterator
+import helpers.hmarkdown_lesson_iterator as hmaleite
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -36,8 +36,8 @@ class Test_iterate_slide_lines(hunitest.TestCase):
         :param expected_string: Expected string representation of items
         """
         split_lines = hprint.dedent(lines).splitlines()
-        items = list(hmarkdown_lesson_iterator._iterate_slide_lines(split_lines))
-        actual_string = hmarkdown_lesson_iterator.format_items_as_string(items)
+        items = list(hmaleite._iterate_slide_lines(split_lines))
+        actual_string = hmaleite.format_items_as_string(items)
         expected_string = hprint.dedent(expected_string)
         self.assertEqual(actual_string, expected_string)
 
@@ -376,7 +376,7 @@ class Test_read_lesson_file(hunitest.TestCase):
         input_dir = self.get_input_dir()
         lesson_file = os.path.join(input_dir, "test_lesson.txt")
         hio.to_file(lesson_file, content)
-        items = list(hmarkdown_lesson_iterator.read_lesson_file(lesson_file))
+        items = list(hmaleite.read_lesson_file(lesson_file))
         self.assertEqual(len(items), expected_count)
         actual_types = [item["type"] for item in items]
         self.assertEqual(actual_types, expected_types)
@@ -436,8 +436,8 @@ class Test_reassemble_from_items(hunitest.TestCase):
         :param expected_string: Expected string representation of items
         """
         split_lines = hprint.dedent(lines).splitlines()
-        items = list(hmarkdown_lesson_iterator._iterate_slide_lines(split_lines))
-        actual_string = hmarkdown_lesson_iterator.reassemble_from_items(items)
+        items = list(hmaleite._iterate_slide_lines(split_lines))
+        actual_string = hmaleite.reassemble_from_items(items)
         self.assertEqual(actual_string, lines)
 
     def test1(self) -> None:
@@ -537,8 +537,8 @@ class Test_reassemble_from_items(hunitest.TestCase):
             "More",
         ]
         # Run test.
-        items = list(hmarkdown_lesson_iterator._iterate_slide_lines(split_lines))
-        actual_string = hmarkdown_lesson_iterator.reassemble_from_items(items)
+        items = list(hmaleite._iterate_slide_lines(split_lines))
+        actual_string = hmaleite.reassemble_from_items(items)
         # Check outputs.
         expected = "* Slide 1\nContent\n   \n* Slide 2\nMore"
         self.assertEqual(actual_string, expected)
@@ -548,7 +548,11 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with trailing spaces on lines.
         """
         # Prepare inputs.
-        lines = "* Slide 1  \nContent with trailing spaces  \n* Slide 2"
+        lines = hprint.dedent("""
+            * Slide 1
+            Content with trailing spaces
+            * Slide 2
+            """)
         # Run test.
         self.helper(lines)
 
@@ -557,7 +561,12 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with leading spaces in content.
         """
         # Prepare inputs.
-        lines = "* Slide 1\n   Indented content\n      More indented\n* Slide 2"
+        lines = hprint.dedent("""
+            * Slide 1
+               Indented content
+                  More indented
+            * Slide 2
+            """)
         # Run test.
         self.helper(lines)
 
@@ -566,7 +575,15 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with multiple consecutive empty lines.
         """
         # Prepare inputs.
-        lines = "* Slide 1\nContent\n\n\n\n* Slide 2\nMore"
+        lines = hprint.dedent("""
+            * Slide 1
+            Content
+
+
+
+            * Slide 2
+            More
+            """)
         # Run test.
         self.helper(lines)
 
@@ -575,7 +592,13 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with tabs and spaces mixed.
         """
         # Prepare inputs.
-        lines = "* Slide 1\n\tTabbed content\n  Spaced content\n\t  Mixed indent\n* Slide 2"
+        lines = hprint.dedent("""
+            * Slide 1
+            \tTabbed content
+              Spaced content
+            \t  Mixed indent
+            * Slide 2
+            """)
         # Run test.
         self.helper(lines)
 
@@ -584,7 +607,11 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with header lines containing multiple spaces.
         """
         # Prepare inputs.
-        lines = "# Title   with    multiple    spaces\nContent\n## Subtitle  with  spaces"
+        lines = hprint.dedent("""
+            # Title   with    multiple    spaces
+            Content
+            ## Subtitle  with  spaces
+            """)
         # Run test.
         self.helper(lines)
 
@@ -603,8 +630,8 @@ class Test_reassemble_from_items(hunitest.TestCase):
             "* Slide 2",
         ]
         # Run test.
-        items = list(hmarkdown_lesson_iterator._iterate_slide_lines(split_lines))
-        actual_string = hmarkdown_lesson_iterator.reassemble_from_items(items)
+        items = list(hmaleite._iterate_slide_lines(split_lines))
+        actual_string = hmaleite.reassemble_from_items(items)
         # Check outputs.
         expected = "* Slide 1\n \nContent\n  \nMore content\n   \n* Slide 2"
         self.assertEqual(actual_string, expected)
@@ -614,7 +641,13 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with code block indentation.
         """
         # Prepare inputs.
-        lines = "* Slide 1\nCode example:\n    def hello():\n        return 'world'\n* Slide 2"
+        lines = hprint.dedent("""
+            * Slide 1
+            Code example:
+                def hello():
+                    return 'world'
+            * Slide 2
+            """)
         # Run test.
         self.helper(lines)
 
@@ -623,7 +656,12 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with trailing spaces at end of lines.
         """
         # Prepare inputs.
-        lines = "* Slide 1\nText line      \nAnother line  \n* Slide 2"
+        lines = hprint.dedent("""
+            * Slide 1
+            Text line
+            Another line
+            * Slide 2
+            """)
         # Run test.
         self.helper(lines)
 
@@ -632,10 +670,12 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with special characters and spacing.
         """
         # Prepare inputs.
-        lines = (
-            "* Slide 1\nContent with special chars: !@#$%^&*()\n"
-            "  Spaced special: {a: 1, b: 2}\n* Slide 2"
-        )
+        lines = hprint.dedent("""
+            * Slide 1
+            Content with special chars: !@#$%^&*()
+              Spaced special: {a: 1, b: 2}
+            * Slide 2
+            """)
         # Run test.
         self.helper(lines)
 
@@ -644,8 +684,12 @@ class Test_reassemble_from_items(hunitest.TestCase):
         Test reassembly with nested bullet points.
         """
         # Prepare inputs.
-        lines = (
-            "* Slide 1\n  - Item 1\n  - Item 2\n    - Nested item\n* Slide 2"
-        )
+        lines = hprint.dedent("""
+            * Slide 1
+              - Item 1
+              - Item 2
+                - Nested item
+            * Slide 2
+            """)
         # Run test.
         self.helper(lines)

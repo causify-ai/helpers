@@ -41,6 +41,7 @@ def format_items_as_string(items: List[SlideItem]) -> str:
     return "\n".join(lines)
 
 
+# TODO(ai_gp): -> iterate_slide_lines
 def _iterate_slide_lines(
     lines: List[str],
 ) -> Generator[SlideItem, None, None]:
