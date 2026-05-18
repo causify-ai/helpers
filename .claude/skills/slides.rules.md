@@ -57,12 +57,12 @@
 
 # Slide Organization
 
-## Text Formatting
+## Use Bold for Slide Sections
 
-- **Bold**: Use a description of the section like in the following
-  - **Definition**
-  - **Question**
-  - **Solution**
+- Use bold for each section like in the following
+  - **Definition**: A definition of a concept
+  - **Question**: A question to introduce a problem
+  - **Solution**: A solution to a previously introduced problem
   - **Remark**: A simple but useful fact
   - **Proposition**: A result worth stating, but not as central as a theorem
   - **Lemma**: stepping stone used to prove a bigger result
@@ -71,9 +71,13 @@
   - **Example**: Concrete illustration
   - **Counterexample**: Shows what doesn't work
   - **Interpretation**: What the result means in context
+
+## Use Italic
 - _Italic_ (`_text_`): Use for quoted statements, key terms, definitions, and
   important concepts
-- Inline code (`` `code` ``): Use for technical terms, function names, variable names
+
+## Use Inline Verbatim
+- Inline verbatim (`` `code` ``): Use for technical terms, function names, variable names
 
 ## Mathematical Notation
 

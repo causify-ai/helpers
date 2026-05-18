@@ -1,16 +1,17 @@
 ---
-description: Implement Jupyter notebook from a script description
+description: Implement Jupyter notebook from an outline description
 ---
 
 - Given the passed description for a Jupyter notebook in the format described in
-  `@.claude/skills/notebook.script.create/SKILL.md` implement the cells
-  requested by the user
+  `.claude/skills/notebook.outline.create/SKILL.md` implement the cells requested
+  by the user
 
 # Conventions
 
-- Always use the conventions in `@.claude/skills/notebook.format/SKILL.md`
+- You must always follow the rules and conventions in
+  `.claude/skills/notebook.rules.md`
 
-# Save Code to the `*_utils.py`
+# Save Code to the corresponding library `*_utils.py`
 
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
   `*_utils.py` file containing the code corresponding to that notebook
@@ -30,23 +31,8 @@ description: Implement Jupyter notebook from a script description
 
 # Format of Interactive Cells
 
-- Each cell description of the Jupyter notebook has the format
-  ```markdown
-  ## Cell i: Visual Bin.
-  - Purpose: Give a concrete visual of the "unknown" population
-  - Visualization:
-    - Draw a 2D bin filled with red and green marbles
-    - Show bin with marbles colored proportionally to mu
-    - ...
-  - Interactive widget:
-    - Slider for mu (true proportion of red marbles, 0-1)
-    - ...
-  - Comment box: ...
-  ```
-- Each cell description corresponds to a markdown cell and an interactive cell
-  - The markdown cell contains the Header and the Purpose
-  - The interactive cell contains the Visualization, Interactive widget, Comment
-    box
+- The format is described in `.claude/skills/notebook.outline.create/SKILL.md`
+  `# Format of Interactive Cell`
 
 # Complex Interactive Widgets
 
@@ -72,7 +58,3 @@ description: Implement Jupyter notebook from a script description
   fit in which case it must change so that the xlim or ylim doubles or it's
   reduced in half, so that the xlim / ylim can be stable when changing the
   widget controls
-
-# Important
-
-- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`
