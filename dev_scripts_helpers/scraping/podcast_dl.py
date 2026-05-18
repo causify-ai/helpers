@@ -56,9 +56,9 @@ from bs4 import BeautifulSoup, Tag
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hlint as hlint
 import helpers.hio as hio
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -1090,7 +1090,7 @@ def _run_format(args: argparse.Namespace) -> None:
 
 def _run_lint(args: argparse.Namespace) -> None:
     """
-    Run lint_txt.py on formatted markdown from 02.format.txt and save to 03.lint.txt.
+    Lint formatted markdown from 02.format.txt and save to 03.lint.txt.
 
     :param args: parsed command-line arguments with output
     :raises AssertionError: if required arg (output) is missing
@@ -1105,8 +1105,9 @@ def _run_lint(args: argparse.Namespace) -> None:
     hdbg.dassert_file_exists(format_file)
     lint_file = _get_step_file(args.output, 3, "lint")
     _LOG.info("Linting markdown file: %s", format_file)
-    cmd = f"lint_txt.py -i {format_file} -o {lint_file}"
-    hsystem.system(cmd)
+    # Copy to lint file and apply linting.
+    hio.to_file(lint_file, hio.from_file(format_file))
+    hlint.lint_file(lint_file)
     _LOG.info("Lint step completed successfully")
 
 

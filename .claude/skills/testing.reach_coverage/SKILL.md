@@ -20,8 +20,11 @@ plan-then-implement approach
   Test files: <test_files>
   ```
 - Run the following command and record the results:
-  ```
-  > pytest --cov=yourpkg --cov-report=term-missing --cov-report=html
+  ```bash
+  # Using invoke (preferred):
+  > i run_coverage --suite fast --generate-html-report
+  # Or directly with pytest inside Docker:
+  > pytest --cov=<pkg> --cov-report=term-missing --cov-report=html <test_file>
   ```
 
 - Summarize which lines and branches are not covered.

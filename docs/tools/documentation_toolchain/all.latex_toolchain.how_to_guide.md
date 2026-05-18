@@ -34,7 +34,7 @@
 ```
 
 - In the directory `//helpers/dev_scripts_helpers/documentation`
-  - `convert_docx_to_markdown.py`
+  - `convert_docx_to_md.py`
     - Convert Docx file to markdown using Dockerized `pandoc` and save the figs
       in a directory
   - `dockerized_pandoc.py`

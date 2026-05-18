@@ -176,7 +176,9 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         lines = self._to_lines(document_text)
         # Run test and check output.
         with self.assertRaises(Exception):
-            dshdetftx._extract_text_from_markdown(lines, start_header, end_header)
+            dshdetftx._extract_text_from_markdown(
+                lines, start_header, end_header
+            )
 
     def test5(self) -> None:
         """
@@ -384,3 +386,128 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         self._assert_script_fails(
             "", "Expected script to fail when --start is missing"
         )
+
+
+# #############################################################################
+# Test__extract_text_from_txtslides
+# #############################################################################
+
+
+class Test__extract_text_from_txtslides(hunitest.TestCase):
+    """
+    Test _extract_text_from_txtslides function with slide notation.
+    """
+
+    @staticmethod
+    def _to_lines(text: str) -> List[str]:
+        return hprint.dedent(text).strip().split("\n")
+
+    def helper(
+        self,
+        document_text: str,
+        start_header: str,
+        end_header: Optional[str],
+        expected_text: str,
+    ) -> None:
+        """
+        Test helper for _extract_text_from_txtslides.
+
+        :param document_text: Full document text with slide notation
+        :param start_header: Starting header/slide (e.g., "* Title" or "##### Title")
+        :param end_header: Ending header/slide (optional)
+        :param expected_text: Expected extracted text
+        """
+        # Prepare inputs.
+        lines = self._to_lines(document_text)
+        # Prepare outputs.
+        expected = self._to_lines(expected_text)
+        # Run test.
+        actual = dshdetftx._extract_text_from_txtslides(
+            lines, start_header, end_header
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test extracting from slide using * notation, no explicit end.
+        """
+        # Prepare inputs.
+        document_text = """
+            * Introduction
+
+            This is the introduction slide.
+
+            * Methods
+
+            This is the methods slide.
+
+            * Results
+
+            Our findings.
+            """
+        start_header = "* Methods"
+        end_header = None
+        expected_text = """
+            ##### Methods
+
+            This is the methods slide.
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def test2(self) -> None:
+        """
+        Test extracting between two slides using * notation.
+        """
+        # Prepare inputs.
+        document_text = """
+            * Introduction
+
+            Intro text.
+
+            * Methods
+
+            Methods text.
+
+            * Results
+
+            Results text.
+            """
+        start_header = "* Methods"
+        end_header = "* Results"
+        expected_text = """
+            ##### Methods
+
+            Methods text.
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def test3(self) -> None:
+        """
+        Test extracting from slide using * notation to header using # notation.
+        """
+        # Prepare inputs.
+        document_text = """
+            * Slide 1
+
+            Content of slide 1.
+
+            ##### Subsection 1.1
+
+            Content 1.1
+
+            * Slide 2
+
+            Content of slide 2.
+            """
+        start_header = "* Slide 1"
+        end_header = "##### Subsection 1.1"
+        expected_text = """
+            ##### Slide 1
+
+            Content of slide 1.
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)

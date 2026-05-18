@@ -86,10 +86,12 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         import helpers.henv as henv
 
         _WARNING = "\033[33mWARNING\033[0m"
-        try:
-            print(henv.get_system_signature()[0])
-        except Exception:
-            print(f"\n{_WARNING}: Can't print system_signature")
+        # Skip expensive system signature during collection-only mode
+        if not config.option.collectonly:
+            try:
+                print(henv.get_system_signature()[0])
+            except Exception:
+                print(f"\n{_WARNING}: Can't print system_signature")
         if config.getoption("--update_outcomes"):
             print(f"\n{_WARNING}: Updating test outcomes")
             hut.set_update_tests(True)
@@ -133,9 +135,10 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
                 if skip_mark:
                     # Remove the skip marker so pytest won't skip it
                     item.own_markers = [
-                        mark for mark in item.iter_markers() if mark.name != "skip"
+                        mark
+                        for mark in item.iter_markers()
+                        if mark.name != "skip"
                     ]
-
 
     def pytest_ignore_collect(
         collection_path: pathlib.Path, path: Any, config: Any

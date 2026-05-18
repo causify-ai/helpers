@@ -7,7 +7,7 @@ import helpers.hmarkdown_headers as hmarhead
 import dataclasses
 import logging
 import re
-from typing import List, Optional, Tuple, cast
+from typing import List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -247,7 +247,7 @@ def capitalize_header(lines: List[str]) -> List[str]:
             )
             """
 
-            def replace_quoted(match: re.Match) -> str:
+            def replace_quoted(match: Match) -> str:
                 quoted_strings.append(match.group(0))
                 placeholder = f"__QUOTED_{len(quoted_strings) - 1}__"
                 placeholders.append(placeholder)
