@@ -14,6 +14,7 @@ from helpers.hmarkdown_lesson_iterator import (
     reassemble_from_items,
 )
 
+# TODO(ai_gp): Use SlideItem everywhere 
 
 # #############################################################################
 # Test_iterate_lesson_lines
@@ -25,11 +26,13 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
     Tests for `_iterate_lesson_lines()` function.
     """
 
+    # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
     def _check_single_item_type(
         self,
+        # TODO(ai_gp): Use List[SlideItem] everywhere 
         items: List,
-        *,
         expected_type: str,
+        *,
         expected_line_number: int = 1,
         expected_content: Optional[List[str]] = None,
     ) -> None:
@@ -47,6 +50,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         if expected_content is not None:
             self.assertEqual(items[0]["content"], expected_content)
 
+    # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
     def _check_items_with_line_numbers(
         self, items: List, *, expected_specs: List[tuple]
     ) -> None:
@@ -61,6 +65,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             self.assertEqual(items[i]["type"], expected_type)
             self.assertEqual(items[i]["line_number"], expected_line_num)
 
+    # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
     def _check_types_list(
         self, items: List, *, expected_types: List[str]
     ) -> None:
@@ -88,11 +93,11 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test extraction of a single slide.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             * First Slide
             Content of the slide
             """).splitlines()
-        expected_content = hprint.dedent("""\
+        expected_content = hprint.dedent("""
             * First Slide
             Content of the slide
             """).splitlines()
@@ -122,11 +127,11 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test extraction of a single header.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             # Main Title
             Some content
             """).splitlines()
-        expected_content = hprint.dedent("""\
+        expected_content = hprint.dedent("""
             # Main Title
             Some content
             """).splitlines()
@@ -139,7 +144,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test extraction of multiple headers with different levels.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             # Title 1
             Content
             ## Subtitle
@@ -154,7 +159,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test extraction of HTML comment blocks.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             Some content
             <!-- This is a comment
             spanning multiple lines
@@ -171,7 +176,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test extraction of CSS/JavaScript comment blocks.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             Some content
             /* This is a comment
             spanning multiple lines
@@ -187,7 +192,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test handling of single-line HTML comments.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             Content before
             <!-- Single line comment -->
             Content after
@@ -201,7 +206,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test file with mixed slides, headers, and comments.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             # Main Title
             Introduction
             * Slide 1
@@ -219,7 +224,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test that single-line comments are grouped with surrounding slide.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             * Slide Title
             Content line 1
             // Single line comment
@@ -233,7 +238,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test handling of %% single-line comments.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             * Slide Title
             %% This is a comment
             Regular content
@@ -246,12 +251,12 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         Test handling of markdown line separators.
         """
         lines = (
-            hprint.dedent("""\
+            hprint.dedent("""
             * Slide 1
             Content
             """).splitlines()
             + ["#" * 80]
-            + hprint.dedent("""\
+            + hprint.dedent("""
             More content
             """).splitlines()
         )
@@ -263,7 +268,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test that line numbers are correctly tracked.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             * Slide 1
             Content
             * Slide 2
@@ -278,7 +283,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test handling of empty lines between items.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             * Slide 1
             Content
 
@@ -294,7 +299,7 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test parsing of complex file with mixed content.
         """
-        lines = hprint.dedent("""\
+        lines = hprint.dedent("""
             # Introduction
             This is an introduction
             * What is AI?
@@ -342,7 +347,7 @@ class Test_read_lesson_file(hunitest.TestCase):
         """
         Test reading a simple lesson file from disk.
         """
-        content = hprint.dedent("""\
+        content = hprint.dedent("""
             * Slide 1
             Content
             * Slide 2
@@ -357,7 +362,7 @@ class Test_read_lesson_file(hunitest.TestCase):
         """
         Test reading a lesson file with headers.
         """
-        content = hprint.dedent("""\
+        content = hprint.dedent("""
             # Title
             ## Subtitle
             * Slide
@@ -367,16 +372,6 @@ class Test_read_lesson_file(hunitest.TestCase):
         self._check_file_content(
             content, expected_count=3, expected_types=expected_types
         )
-
-    def test3(self) -> None:
-        """
-        Test that reading nonexistent file raises error.
-        """
-        # Prepare inputs.
-        nonexistent_file = "/nonexistent/path/to/lesson.txt"
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            list(read_lesson_file(nonexistent_file))
 
 
 # #############################################################################

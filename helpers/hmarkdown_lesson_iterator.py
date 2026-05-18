@@ -13,20 +13,29 @@ from helpers.hmarkdown_headers import is_markdown_line_separator
 
 _LOG = logging.getLogger(__name__)
 
+# Represent an atom from parsing a slide file:
+# - `type`: 'slide', 'header', or 'comment'
+# - `content`: list of lines for the item
+# - `line_number`: starting line number (1-indexed)
+SlideItem = Dict[str, Any]
 
-def _iterate_lesson_lines(
+
+def _iterate_slide_lines(
     lines: List[str],
-) -> Generator[Dict[str, Any], None, None]:
+) -> Generator[SlideItem, None, None]:
     """
-    Iterate through lesson lines and yield structured items.
+    Iterate through slide lines and yield structured items.
 
-    Processes lines to identify slides (starting with `*`), headers (starting
-    with `#`), and comment blocks (<!-- --> or /* */). Single-line comments
-    (// and %%) are grouped with surrounding slide/header content. Yields
-    dictionaries for each item found with type, content, and line_number.
+    Processes lines to identify
+    - slides (starting with `*`)
+    - headers (starting with `#`)
+    - comment blocks (<!-- --> or /* */)
 
-    :param lines: content of the lesson file as list of strings
-    :return: generator yielding dicts with type, content, and line_number keys
+    - Single-line comments (// and %%) are grouped with surrounding
+      slide/header content
+
+    :param lines: content of the slide file as list of strings
+    :return: generator yielding dicts with:
         - `type`: 'slide', 'header', or 'comment'
         - `content`: list of lines for the item
         - `line_number`: starting line number (1-indexed)
@@ -146,7 +155,7 @@ def _iterate_lesson_lines(
     )
 
 
-def read_lesson_file(file_path: str) -> Generator[Dict[str, Any], None, None]:
+def read_lesson_file(file_path: str) -> Generator[SlideItem, None, None]:
     """
     Read a Markdown lesson file and yield structured items.
 
@@ -156,7 +165,7 @@ def read_lesson_file(file_path: str) -> Generator[Dict[str, Any], None, None]:
     as separate items.
 
     :param file_path: path to the lesson file to parse
-    :return: generator yielding dicts with keys: type, content, line_number
+    :return: generator yielding SlideItem dicts with keys:
         - `type`: 'slide', 'header', or 'comment'
         - `content`: list of lines for the item
         - `line_number`: starting line number (1-indexed)
@@ -164,7 +173,7 @@ def read_lesson_file(file_path: str) -> Generator[Dict[str, Any], None, None]:
     hdbg.dassert_file_exists(file_path, "Lesson file must exist")
     with open(file_path, "r") as f:
         lines = f.readlines()
-    yield from _iterate_lesson_lines(lines)
+    yield from _iterate_slide_lines(lines)
 
 
 def reassemble_from_items(
