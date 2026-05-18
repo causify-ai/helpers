@@ -11,10 +11,10 @@ import helpers.hunit_test as hunitest
 from helpers.hmarkdown_lesson_iterator import (
     _format_items_as_string,
     _iterate_slide_lines,
-    SlideItem,
     read_lesson_file,
     reassemble_from_items,
 )
+
 
 # #############################################################################
 # Test_iterate_slide_lines
@@ -418,7 +418,7 @@ class Test_read_lesson_file(hunitest.TestCase):
 
 
 # #############################################################################
-# TestReassembleFromItems
+# Test_reassemble_from_items
 # #############################################################################
 
 
@@ -533,6 +533,7 @@ class Test_reassemble_from_items(hunitest.TestCase):
         """
         Test reassembly with lines containing only spaces.
         """
+        # Prepare inputs.
         split_lines = [
             "* Slide 1",
             "Content",
@@ -540,92 +541,63 @@ class Test_reassemble_from_items(hunitest.TestCase):
             "* Slide 2",
             "More",
         ]
+        # Run test.
         items = list(_iterate_slide_lines(split_lines))
         actual_string = reassemble_from_items(items)
+        # Check outputs.
         expected = "* Slide 1\nContent\n   \n* Slide 2\nMore"
         self.assertEqual(actual_string, expected)
 
     def test9(self) -> None:
         """
-        Test reassembly with trailing spaces on content lines.
+        Test reassembly with trailing spaces on lines.
         """
-        split_lines = [
-            "* Slide 1  ",
-            "Content with trailing spaces  ",
-            "* Slide 2",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "* Slide 1  \nContent with trailing spaces  \n* Slide 2"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = "* Slide 1  \nContent with trailing spaces  \n* Slide 2"
+        # Run test.
+        self.helper(lines)
 
     def test10(self) -> None:
         """
         Test reassembly with leading spaces in content.
         """
-        split_lines = [
-            "* Slide 1",
-            "   Indented content",
-            "      More indented",
-            "* Slide 2",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "* Slide 1\n   Indented content\n      More indented\n* Slide 2"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = "* Slide 1\n   Indented content\n      More indented\n* Slide 2"
+        # Run test.
+        self.helper(lines)
 
     def test11(self) -> None:
         """
         Test reassembly with multiple consecutive empty lines.
         """
-        split_lines = [
-            "* Slide 1",
-            "Content",
-            "",
-            "",
-            "",
-            "* Slide 2",
-            "More",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "* Slide 1\nContent\n\n\n\n* Slide 2\nMore"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = "* Slide 1\nContent\n\n\n\n* Slide 2\nMore"
+        # Run test.
+        self.helper(lines)
 
     def test12(self) -> None:
         """
         Test reassembly with tabs and spaces mixed.
         """
-        split_lines = [
-            "* Slide 1",
-            "\tTabbed content",
-            "  Spaced content",
-            "\t  Mixed indent",
-            "* Slide 2",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "* Slide 1\n\tTabbed content\n  Spaced content\n\t  Mixed indent\n* Slide 2"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = "* Slide 1\n\tTabbed content\n  Spaced content\n\t  Mixed indent\n* Slide 2"
+        # Run test.
+        self.helper(lines)
 
     def test13(self) -> None:
         """
         Test reassembly with header lines containing multiple spaces.
         """
-        split_lines = [
-            "# Title   with    multiple    spaces",
-            "Content",
-            "## Subtitle  with  spaces",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "# Title   with    multiple    spaces\nContent\n## Subtitle  with  spaces"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = "# Title   with    multiple    spaces\nContent\n## Subtitle  with  spaces"
+        # Run test.
+        self.helper(lines)
 
     def test14(self) -> None:
         """
-        Test reassembly with lines containing only spaces at various positions.
+        Test reassembly with lines containing varying spaces.
         """
+        # Prepare inputs.
         split_lines = [
             "* Slide 1",
             " ",
@@ -635,8 +607,10 @@ class Test_reassemble_from_items(hunitest.TestCase):
             "   ",
             "* Slide 2",
         ]
+        # Run test.
         items = list(_iterate_slide_lines(split_lines))
         actual_string = reassemble_from_items(items)
+        # Check outputs.
         expected = "* Slide 1\n \nContent\n  \nMore content\n   \n* Slide 2"
         self.assertEqual(actual_string, expected)
 
@@ -644,60 +618,39 @@ class Test_reassemble_from_items(hunitest.TestCase):
         """
         Test reassembly with code block indentation.
         """
-        split_lines = [
-            "* Slide 1",
-            "Code example:",
-            "    def hello():",
-            "        return 'world'",
-            "* Slide 2",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "* Slide 1\nCode example:\n    def hello():\n        return 'world'\n* Slide 2"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = "* Slide 1\nCode example:\n    def hello():\n        return 'world'\n* Slide 2"
+        # Run test.
+        self.helper(lines)
 
     def test16(self) -> None:
         """
-        Test reassembly with lines ending with multiple spaces before newline.
+        Test reassembly with trailing spaces at end of lines.
         """
-        split_lines = [
-            "* Slide 1",
-            "Text line      ",
-            "Another line  ",
-            "* Slide 2",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "* Slide 1\nText line      \nAnother line  \n* Slide 2"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = "* Slide 1\nText line      \nAnother line  \n* Slide 2"
+        # Run test.
+        self.helper(lines)
 
     def test17(self) -> None:
         """
-        Test reassembly with special characters and spaces.
+        Test reassembly with special characters and spacing.
         """
-        split_lines = [
-            "* Slide 1",
-            "Content with special chars: !@#$%^&*()",
-            "  Spaced special: {a: 1, b: 2}",
-            "* Slide 2",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "* Slide 1\nContent with special chars: !@#$%^&*()\n  Spaced special: {a: 1, b: 2}\n* Slide 2"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = (
+            "* Slide 1\nContent with special chars: !@#$%^&*()\n"
+            "  Spaced special: {a: 1, b: 2}\n* Slide 2"
+        )
+        # Run test.
+        self.helper(lines)
 
     def test18(self) -> None:
         """
-        Test reassembly with bullet points and various spacing.
+        Test reassembly with nested bullet points.
         """
-        split_lines = [
-            "* Slide 1",
-            "  - Item 1",
-            "  - Item 2",
-            "    - Nested item",
-            "* Slide 2",
-        ]
-        items = list(_iterate_slide_lines(split_lines))
-        actual_string = reassemble_from_items(items)
-        expected = "* Slide 1\n  - Item 1\n  - Item 2\n    - Nested item\n* Slide 2"
-        self.assertEqual(actual_string, expected)
+        # Prepare inputs.
+        lines = (
+            "* Slide 1\n  - Item 1\n  - Item 2\n    - Nested item\n* Slide 2"
+        )
+        # Run test.
+        self.helper(lines)

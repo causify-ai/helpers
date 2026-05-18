@@ -20,25 +20,26 @@ _LOG = logging.getLogger(__name__)
 SlideItem = Dict[str, Any]
 
 
+# TODO(ai_gp): -> format_items_as_string
 def _format_items_as_string(items: List[SlideItem]) -> str:
-	"""
-	Format SlideItem list as a human-readable string.
+    """
+    Format SlideItem list as a human-readable string.
 
-	:param items: List of SlideItem dicts to format
-	:return: Formatted string representation
-	"""
-	lines = []
-	for item in items:
-		item_type = item["type"]
-		line_number = item["line_number"]
-		content = item["content"]
-		lines.append(f"type={item_type}, line_number={line_number}:")
-		for content_line in content:
-			if content_line:
-				lines.append(f"  {content_line}")
-			else:
-				lines.append("")
-	return "\n".join(lines)
+    :param items: List of SlideItem dicts to format
+    :return: Formatted string representation
+    """
+    lines = []
+    for item in items:
+        item_type = item["type"]
+        line_number = item["line_number"]
+        content = item["content"]
+        lines.append(f"type={item_type}, line_number={line_number}:")
+        for content_line in content:
+            if content_line:
+                lines.append(f"  {content_line}")
+            else:
+                lines.append("")
+    return "\n".join(lines)
 
 
 def _iterate_slide_lines(
@@ -199,8 +200,6 @@ def read_lesson_file(file_path: str) -> Generator[SlideItem, None, None]:
 
 def reassemble_from_items(
     items: List[SlideItem],
-    *,
-    original_content: str = "",
 ) -> str:
     """
     Reassemble markdown content from parsed items.
@@ -218,13 +217,4 @@ def reassemble_from_items(
         all_lines.extend(item["content"])
     # Join with newlines to recreate original file.
     result = "\n".join(all_lines)
-    # Preserve trailing newlines to match original.
-    original_trailing_newlines = len(original_content) - len(
-        original_content.rstrip("\n")
-    )
-    reassembled_trailing_newlines = len(result) - len(result.rstrip("\n"))
-    if original_trailing_newlines > reassembled_trailing_newlines:
-        result += "\n" * (
-            original_trailing_newlines - reassembled_trailing_newlines
-        )
     return result
