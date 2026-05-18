@@ -25,7 +25,43 @@ class Test_iterate_slide_lines(hunitest.TestCase):
     Tests for `_iterate_slide_lines()` function.
     """
 
-    # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
+    def _check_slide_items(
+        self,
+        items: List[SlideItem],
+        *,
+        expected_string: str,
+    ) -> None:
+        """
+        Test helper to verify items match expected string representation.
+
+        Converts SlideItem list into a formatted string and compares with
+        expected output for golden file testing.
+
+        :param items: List of items to check
+        :param expected_string: Expected string representation of items
+        """
+        actual_string = self._format_items_as_string(items)
+        self.assertEqual(actual_string, expected_string)
+
+    def _format_items_as_string(self, items: List[SlideItem]) -> str:
+        """
+        Format SlideItem list as a human-readable string.
+
+        :param items: List of SlideItem dicts to format
+        :return: Formatted string representation
+        """
+        lines = []
+        for item in items:
+            item_type = item["type"]
+            line_number = item["line_number"]
+            content = item["content"]
+            lines.append(f"type={item_type}, line_number={line_number}:")
+            for content_line in content:
+                lines.append(f"  {content_line}")
+        return "\n".join(lines)
+
+    # TODO(ai_gp): Delete this function and replace the calls to this function with calls to
+    # _check_slide_items
     def _check_single_item_type(
         self,
         items: List[SlideItem],
@@ -48,7 +84,8 @@ class Test_iterate_slide_lines(hunitest.TestCase):
         if expected_content is not None:
             self.assertEqual(items[0]["content"], expected_content)
 
-    # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
+    # TODO(ai_gp): Delete this function and replace the calls to this function with calls to
+    # _check_slide_items
     def _check_items_with_line_numbers(
         self, items: List[SlideItem], *, expected_specs: List[tuple]
     ) -> None:
@@ -63,7 +100,8 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             self.assertEqual(items[i]["type"], expected_type)
             self.assertEqual(items[i]["line_number"], expected_line_num)
 
-    # TODO(ai_gp): Pass an expected string and compare with self.assert_equal
+    # TODO(ai_gp): Delete this function and replace the calls to this function with calls to
+    # _check_slide_items
     def _check_types_list(
         self, items: List[SlideItem], *, expected_types: List[str]
     ) -> None:
