@@ -1,7 +1,7 @@
 import datetime
 import logging
 import os
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import pandas as pd
 import pytest
@@ -515,3 +515,347 @@ class TestPlaybackFileMode1(hunitest.TestCase):
         """
         max_tests = 2
         self.check_string(self.helper(max_tests))
+
+
+# #############################################################################
+# Test_record_replay_storage1
+# #############################################################################
+
+
+class Test_record_replay_storage1(hunitest.TestCase):
+    """
+    Test the storage layer used by `@record` and the mock classes.
+    """
+
+    def test1(self) -> None:
+        """
+        Test round-trip of records with simple types.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [
+            {"args": ["cmd1"], "kwargs": {}, "result": [{"id": "1"}]},
+            {"args": ["cmd2"], "kwargs": {"limit": 5}, "result": [{"id": "2"}]},
+        ]
+        # Run test.
+        hplayba._save_records(file_path, records)
+        actual = hplayba._load_records(file_path)
+        # Check outputs.
+        self.assert_equal(str(actual), str(records))
+
+    def test2(self) -> None:
+        """
+        Test that the saved fixture file is human-readable JSON for simple
+        types.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [
+            {"args": ["echo hi"], "kwargs": {}, "result": [{"id": "abc"}]},
+        ]
+        # Run test.
+        hplayba._save_records(file_path, records)
+        actual = hio.from_file(file_path)
+        # Check outputs.
+        # The saved file must contain the args/result inline as readable JSON.
+        self.assertIn("echo hi", actual)
+        self.assertIn("abc", actual)
+
+    def test3(self) -> None:
+        """
+        Test that `_append_record` builds the file incrementally.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        # Run test.
+        hplayba._append_record(file_path, ("cmd1",), {}, [{"id": "1"}])
+        hplayba._append_record(file_path, ("cmd2",), {}, [{"id": "2"}])
+        actual = hplayba._load_records(file_path)
+        # Check outputs.
+        expected = [
+            {"args": ["cmd1"], "kwargs": {}, "result": [{"id": "1"}]},
+            {"args": ["cmd2"], "kwargs": {}, "result": [{"id": "2"}]},
+        ]
+        self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+# Test_record1
+# #############################################################################
+
+
+class Test_record1(hunitest.TestCase):
+    """
+    Test the `record` decorator.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the decorator is a no-op when recording is inactive.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+
+        @hplayba.record(file_path, active=False)
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        # Run test.
+        actual = add(2, 3)
+        # Check outputs.
+        self.assertEqual(actual, 5)
+        # No file should have been written.
+        self.assertFalse(os.path.exists(file_path))
+
+    def test2(self) -> None:
+        """
+        Test that the decorator records calls when active.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+
+        @hplayba.record(file_path, active=True)
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        # Run test.
+        add(2, 3)
+        add(10, 20)
+        actual = hplayba._load_records(file_path)
+        # Check outputs.
+        expected = [
+            {"args": [2, 3], "kwargs": {}, "result": 5},
+            {"args": [10, 20], "kwargs": {}, "result": 30},
+        ]
+        self.assert_equal(str(actual), str(expected))
+        # Cleanup recording state to avoid leaking into other tests.
+        hplayba.disable_recording(add)
+
+    def test3(self) -> None:
+        """
+        Test toggling recording with `enable_recording`/`disable_recording`.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+
+        @hplayba.record(file_path, active=False)
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        # Run test.
+        # Call once with recording off: no file.
+        add(1, 1)
+        self.assertFalse(os.path.exists(file_path))
+        # Enable recording, call again: file is written.
+        hplayba.enable_recording(add)
+        add(2, 3)
+        # Disable recording, call again: file is not extended.
+        hplayba.disable_recording(add)
+        add(5, 5)
+        actual = hplayba._load_records(file_path)
+        # Check outputs.
+        expected = [{"args": [2, 3], "kwargs": {}, "result": 5}]
+        self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+# TestMockDict1
+# #############################################################################
+
+
+class TestMockDict1(hunitest.TestCase):
+    """
+    Test `MockDict` for order-independent replay.
+    """
+
+    def _write_fixture(
+        self, file_path: str, records: List[Any]
+    ) -> None:
+        """
+        Save `records` to `file_path` for use by the test.
+        """
+        hplayba._save_records(file_path, records)
+
+    def test1(self) -> None:
+        """
+        Test lookup of a recorded call.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [
+            {"args": ["cmd1"], "kwargs": {}, "result": [{"id": "1"}]},
+            {"args": ["cmd2"], "kwargs": {}, "result": [{"id": "2"}]},
+        ]
+        self._write_fixture(file_path, records)
+        # Run test.
+        mock_dict = hplayba.MockDict(file_path)
+        actual1 = mock_dict("cmd1")
+        actual2 = mock_dict("cmd2")
+        # Check outputs.
+        self.assertEqual(actual1, [{"id": "1"}])
+        self.assertEqual(actual2, [{"id": "2"}])
+
+    def test2(self) -> None:
+        """
+        Test that calls can be replayed in any order.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [
+            {"args": ["A"], "kwargs": {}, "result": 1},
+            {"args": ["B"], "kwargs": {}, "result": 2},
+        ]
+        self._write_fixture(file_path, records)
+        # Run test.
+        mock_dict = hplayba.MockDict(file_path)
+        # Call in the reverse order.
+        actual_b = mock_dict("B")
+        actual_a = mock_dict("A")
+        # Check outputs.
+        self.assertEqual(actual_a, 1)
+        self.assertEqual(actual_b, 2)
+
+    def test3(self) -> None:
+        """
+        Test that missing keys raise an assertion error.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [{"args": ["cmd1"], "kwargs": {}, "result": "ok"}]
+        self._write_fixture(file_path, records)
+        # Run test and check output.
+        mock_dict = hplayba.MockDict(file_path)
+        with self.assertRaises(AssertionError):
+            mock_dict("missing_cmd")
+
+    def test4(self) -> None:
+        """
+        Test patching a target function via `MockDict.patch`.
+        """
+        # Prepare inputs.
+        import helpers.test.test_hplayback as test_mod
+
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [{"args": ["abc"], "kwargs": {}, "result": "RESULT"}]
+        self._write_fixture(file_path, records)
+        # Run test.
+        mock_dict = hplayba.MockDict(file_path)
+        with mock_dict.patch(
+            "helpers.test.test_hplayback._sample_for_mock"
+        ):
+            actual = test_mod._sample_for_mock("abc")
+        # Check outputs.
+        self.assertEqual(actual, "RESULT")
+
+
+# #############################################################################
+# TestMockSequence1
+# #############################################################################
+
+
+class TestMockSequence1(hunitest.TestCase):
+    """
+    Test `MockSequence` for ordered replay.
+    """
+
+    def _write_fixture(
+        self, file_path: str, records: List[Any]
+    ) -> None:
+        """
+        Save `records` to `file_path` for use by the test.
+        """
+        hplayba._save_records(file_path, records)
+
+    def test1(self) -> None:
+        """
+        Test that results are returned in the recorded order.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [
+            {"args": ["A"], "kwargs": {}, "result": 1},
+            {"args": ["B"], "kwargs": {}, "result": 2},
+            {"args": ["C"], "kwargs": {}, "result": 3},
+        ]
+        self._write_fixture(file_path, records)
+        # Run test.
+        mock_seq = hplayba.MockSequence(file_path)
+        actual_a = mock_seq("A")
+        actual_b = mock_seq("B")
+        actual_c = mock_seq("C")
+        # Check outputs.
+        self.assertEqual(actual_a, 1)
+        self.assertEqual(actual_b, 2)
+        self.assertEqual(actual_c, 3)
+
+    def test2(self) -> None:
+        """
+        Test that out-of-order calls raise an assertion error.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [
+            {"args": ["A"], "kwargs": {}, "result": 1},
+            {"args": ["B"], "kwargs": {}, "result": 2},
+        ]
+        self._write_fixture(file_path, records)
+        # Run test and check output.
+        mock_seq = hplayba.MockSequence(file_path)
+        with self.assertRaises(AssertionError):
+            mock_seq("B")
+
+    def test3(self) -> None:
+        """
+        Test that exhausting the sequence raises an assertion error.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [{"args": ["A"], "kwargs": {}, "result": 1}]
+        self._write_fixture(file_path, records)
+        # Run test.
+        mock_seq = hplayba.MockSequence(file_path)
+        mock_seq("A")
+        # Check outputs.
+        with self.assertRaises(AssertionError):
+            mock_seq("A")
+
+    def test4(self) -> None:
+        """
+        Test that `reset()` restarts the sequence.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "records.json")
+        records = [{"args": ["A"], "kwargs": {}, "result": 1}]
+        self._write_fixture(file_path, records)
+        # Run test.
+        mock_seq = hplayba.MockSequence(file_path)
+        first_call = mock_seq("A")
+        mock_seq.reset()
+        second_call = mock_seq("A")
+        # Check outputs.
+        self.assertEqual(first_call, 1)
+        self.assertEqual(second_call, 1)
+
+
+def _sample_for_mock(cmd: str) -> str:
+    """
+    Sample function used to test `MockDict.patch` and `MockSequence.patch`.
+
+    :param cmd: dummy command string
+    :return: a fixed string when not patched
+    """
+    return "ORIGINAL"
