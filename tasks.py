@@ -156,7 +156,7 @@ try:
 except ImportError:
     pass
 try:
-    from helpers.lib_tasks_gh import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
+    from helpers.lib_tasks.lib_tasks_gh import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
         gh_publish_buildmeister_dashboard_to_s3,
     )
 except ImportError:

@@ -49,7 +49,7 @@ import pandas as pd
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hprint as hprint
-import helpers.lib_tasks_gh as hlitagh
+import helpers.lib_tasks.lib_tasks_gh as hlitagh
 
 # %%
 hdbg.init_logger(verbosity=logging.INFO)
