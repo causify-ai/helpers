@@ -7,11 +7,11 @@ description: Apply the conventions usually not followed in the unit test
     change in behavior
 
 - All invariants and conventions are documented in
-  `@.claude/skills/testing.rules.md`
+  `.claude/skills/testing.rules.md`
 
 ## Key Transformations
 
-- See `@.claude/skills/testing.rules.md`
+- See `.claude/skills/testing.rules.md`
     "## Dedent Strings to the Code"
     "## Test Method Names"
     "## Use Helper Methods When You Have Repetitive Tests"
@@ -26,4 +26,4 @@ description: Apply the conventions usually not followed in the unit test
 # Important
 
 - For all the code you must follow the instructions in
-  `@.claude/skills/coding.rules.md`
+  `.claude/skills/coding.rules.md`
