@@ -17,6 +17,11 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_convert_pdf_to_md
+# #############################################################################
+
+
 @pytest.mark.slow
 class Test_convert_pdf_to_md(hunitest.TestCase):
     """
@@ -34,10 +39,7 @@ class Test_convert_pdf_to_md(hunitest.TestCase):
         out_dir = self.get_scratch_space()
         # Run test.
         cmd = (
-            f"{script_path}"
-            f" --input {pdf_file}"
-            f" --output {out_dir}"
-            f" --skip_figures"
+            f"{script_path} --input {pdf_file} --output {out_dir} --skip_figures"
         )
         hsystem.system(cmd)
         # Check outputs.

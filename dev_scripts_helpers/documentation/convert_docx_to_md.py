@@ -169,7 +169,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
     if not skip_figures:
         hio.create_dir(md_file_figs, incremental=False)
-    extract_media_part = f"--extract-media {md_file_figs}" if not skip_figures else ""
+    extract_media_part = (
+        f"--extract-media {md_file_figs}" if not skip_figures else ""
+    )
     cmd = (
         f"pandoc {docx_file} {extract_media_part} "
         f"-f docx -t markdown_strict --output {md_file}"

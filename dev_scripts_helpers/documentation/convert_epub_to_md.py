@@ -178,7 +178,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Output markdown: %s", md_file)
     if not skip_figures:
         _LOG.info("Images directory: %s", images_dir)
-    extract_media_part = f"--extract-media={images_dir}" if not skip_figures else ""
+    extract_media_part = (
+        f"--extract-media={images_dir}" if not skip_figures else ""
+    )
     cmd = (
         f"pandoc {epub_file} "
         f"--to=gfm "

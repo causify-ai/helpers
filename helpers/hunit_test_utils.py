@@ -621,9 +621,7 @@ def capture_system_calls(
     """
     invocations: List[Dict[str, Any]] = []
 
-    def _mock_invocation(
-        function_name: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def _mock_invocation(function_name: str, *args: Any, **kwargs: Any) -> None:
         invocations.append(
             {
                 "function": function_name,
@@ -659,7 +657,9 @@ def capture_system_calls(
         return (0, "")
 
     with mock.patch("subprocess.run", side_effect=mock_subprocess_run):
-        with mock.patch("helpers.hsystem.system", side_effect=mock_hsystem_system):
+        with mock.patch(
+            "helpers.hsystem.system", side_effect=mock_hsystem_system
+        ):
             with mock.patch(
                 "helpers.hsystem.system_to_string",
                 side_effect=mock_hsystem_system_to_string,

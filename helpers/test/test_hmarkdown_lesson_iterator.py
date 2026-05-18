@@ -15,6 +15,11 @@ from helpers.hmarkdown_lesson_iterator import (
 )
 
 
+# #############################################################################
+# Test_iterate_lesson_lines
+# #############################################################################
+
+
 class Test_iterate_lesson_lines(hunitest.TestCase):
     """
     Tests for `_iterate_lesson_lines()` function.
@@ -56,7 +61,9 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             self.assertEqual(items[i]["type"], expected_type)
             self.assertEqual(items[i]["line_number"], expected_line_num)
 
-    def _check_types_list(self, items: List, *, expected_types: List[str]) -> None:
+    def _check_types_list(
+        self, items: List, *, expected_types: List[str]
+    ) -> None:
         """
         Test helper to verify items' types match expected list.
 
@@ -155,7 +162,9 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             More content
             """).splitlines()
         items = list(_iterate_lesson_lines(lines))
-        self._check_single_item_type(items, expected_type="comment", expected_line_number=2)
+        self._check_single_item_type(
+            items, expected_type="comment", expected_line_number=2
+        )
         self.assertIn("This is a comment", items[0]["content"][0])
 
     def test7(self) -> None:
@@ -170,7 +179,9 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             More content
             """).splitlines()
         items = list(_iterate_lesson_lines(lines))
-        self._check_single_item_type(items, expected_type="comment", expected_line_number=2)
+        self._check_single_item_type(
+            items, expected_type="comment", expected_line_number=2
+        )
 
     def test8(self) -> None:
         """
@@ -182,7 +193,9 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
             Content after
             """).splitlines()
         items = list(_iterate_lesson_lines(lines))
-        self._check_single_item_type(items, expected_type="comment", expected_line_number=2)
+        self._check_single_item_type(
+            items, expected_type="comment", expected_line_number=2
+        )
 
     def test9(self) -> None:
         """
@@ -232,12 +245,16 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         """
         Test handling of markdown line separators.
         """
-        lines = hprint.dedent("""\
+        lines = (
+            hprint.dedent("""\
             * Slide 1
             Content
-            """).splitlines() + ["#" * 80] + hprint.dedent("""\
+            """).splitlines()
+            + ["#" * 80]
+            + hprint.dedent("""\
             More content
             """).splitlines()
+        )
         items = list(_iterate_lesson_lines(lines))
         self.assertEqual(len(items), 1)
         self.assertIn("#" * 80, items[0]["content"])
@@ -291,6 +308,11 @@ class Test_iterate_lesson_lines(hunitest.TestCase):
         expected_types = ["header", "slide", "comment", "slide", "header"]
         items = list(_iterate_lesson_lines(lines))
         self._check_types_list(items, expected_types=expected_types)
+
+
+# #############################################################################
+# Test_read_lesson_file
+# #############################################################################
 
 
 class Test_read_lesson_file(hunitest.TestCase):
@@ -357,6 +379,11 @@ class Test_read_lesson_file(hunitest.TestCase):
             list(read_lesson_file(nonexistent_file))
 
 
+# #############################################################################
+# TestReassembleFromItems
+# #############################################################################
+
+
 class TestReassembleFromItems(hunitest.TestCase):
     """
     Tests for `reassemble_from_items()` function.
@@ -401,7 +428,11 @@ class TestReassembleFromItems(hunitest.TestCase):
                 "content": ["# Title", "Introduction"],
                 "line_number": 1,
             },
-            {"type": "slide", "content": ["* Slide 1", "Content"], "line_number": 3},
+            {
+                "type": "slide",
+                "content": ["* Slide 1", "Content"],
+                "line_number": 3,
+            },
         ]
         # Run test.
         result = reassemble_from_items(items)
@@ -420,7 +451,11 @@ class TestReassembleFromItems(hunitest.TestCase):
                 "content": ["* Slide 1", "Content.", ""],
                 "line_number": 1,
             },
-            {"type": "slide", "content": ["* Slide 2", "More"], "line_number": 4},
+            {
+                "type": "slide",
+                "content": ["* Slide 2", "More"],
+                "line_number": 4,
+            },
         ]
         # Run test.
         result = reassemble_from_items(items)
@@ -434,13 +469,15 @@ class TestReassembleFromItems(hunitest.TestCase):
         """
         # Prepare inputs.
         items = [
-            {"type": "slide", "content": ["* Slide", "Content"], "line_number": 1}
+            {
+                "type": "slide",
+                "content": ["* Slide", "Content"],
+                "line_number": 1,
+            }
         ]
         original_content = "* Slide\nContent\n"
         # Run test.
-        result = reassemble_from_items(
-            items, original_content=original_content
-        )
+        result = reassemble_from_items(items, original_content=original_content)
         # Check outputs.
         self.assertEqual(result, original_content)
         self.assertTrue(result.endswith("\n"))
@@ -451,13 +488,15 @@ class TestReassembleFromItems(hunitest.TestCase):
         """
         # Prepare inputs.
         items = [
-            {"type": "slide", "content": ["* Slide", "Content"], "line_number": 1}
+            {
+                "type": "slide",
+                "content": ["* Slide", "Content"],
+                "line_number": 1,
+            }
         ]
         original_content = "* Slide\nContent\n\n"
         # Run test.
-        result = reassemble_from_items(
-            items, original_content=original_content
-        )
+        result = reassemble_from_items(items, original_content=original_content)
         # Check outputs.
         self.assertEqual(result, original_content)
         self.assertTrue(result.endswith("\n\n"))
@@ -468,13 +507,15 @@ class TestReassembleFromItems(hunitest.TestCase):
         """
         # Prepare inputs.
         items = [
-            {"type": "slide", "content": ["* Slide", "Content"], "line_number": 1}
+            {
+                "type": "slide",
+                "content": ["* Slide", "Content"],
+                "line_number": 1,
+            }
         ]
         original_content = "* Slide\nContent"
         # Run test.
-        result = reassemble_from_items(
-            items, original_content=original_content
-        )
+        result = reassemble_from_items(items, original_content=original_content)
         # Check outputs.
         self.assertEqual(result, original_content)
         self.assertFalse(result.endswith("\n"))
@@ -485,13 +526,21 @@ class TestReassembleFromItems(hunitest.TestCase):
         """
         # Prepare inputs.
         items = [
-            {"type": "slide", "content": ["* Slide 1", "Content"], "line_number": 1},
+            {
+                "type": "slide",
+                "content": ["* Slide 1", "Content"],
+                "line_number": 1,
+            },
             {
                 "type": "comment",
                 "content": ["<!-- Comment", "spanning lines", "-->"],
                 "line_number": 3,
             },
-            {"type": "slide", "content": ["* Slide 2", "More"], "line_number": 6},
+            {
+                "type": "slide",
+                "content": ["* Slide 2", "More"],
+                "line_number": 6,
+            },
         ]
         # Run test.
         result = reassemble_from_items(items)
@@ -513,7 +562,11 @@ class TestReassembleFromItems(hunitest.TestCase):
                 "content": ["::: columns", ":::: {.column}", "Text"],
                 "line_number": 1,
             },
-            {"type": "slide", "content": ["* Slide 1", "Content"], "line_number": 4},
+            {
+                "type": "slide",
+                "content": ["* Slide 1", "Content"],
+                "line_number": 4,
+            },
         ]
         # Run test.
         result = reassemble_from_items(items)
@@ -531,7 +584,11 @@ class TestReassembleFromItems(hunitest.TestCase):
         )
         # Simulate parsed items from the content.
         items = [
-            {"type": "header", "content": ["# Title", "Intro"], "line_number": 1},
+            {
+                "type": "header",
+                "content": ["# Title", "Intro"],
+                "line_number": 1,
+            },
             {
                 "type": "slide",
                 "content": ["* Slide 1", "Content"],
@@ -544,8 +601,6 @@ class TestReassembleFromItems(hunitest.TestCase):
             },
         ]
         # Run test.
-        result = reassemble_from_items(
-            items, original_content=original_content
-        )
+        result = reassemble_from_items(items, original_content=original_content)
         # Check outputs.
         self.assertEqual(result, original_content)

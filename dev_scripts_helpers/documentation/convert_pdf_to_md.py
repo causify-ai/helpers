@@ -144,7 +144,9 @@ def _extract_images_from_page(
                 pix = page.get_pixmap(matrix=mat)  # type: ignore
                 pix.save(image_path)
                 _LOG.info(
-                    "Page %d: Saved rendered page as %s", page_num, image_filename
+                    "Page %d: Saved rendered page as %s",
+                    page_num,
+                    image_filename,
                 )
                 y_pos = rect.height / 2
             else:

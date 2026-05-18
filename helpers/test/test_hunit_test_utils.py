@@ -359,7 +359,7 @@ class Test_get_test_file_for_source(hunitest.TestCase):
 
 
 # #############################################################################
-# TestIsTestFile
+# Test_is_test_file
 # #############################################################################
 
 
@@ -435,7 +435,7 @@ class Test_is_test_file(hunitest.TestCase):
 
 
 # #############################################################################
-# TestGetTestFilesForSources
+# Test_get_test_files_for_sources
 # #############################################################################
 
 
@@ -527,7 +527,7 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
 
 
 # #############################################################################
-# TestGetParentDirs
+# Test_get_parent_dirs
 # #############################################################################
 
 
@@ -637,7 +637,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
 
 
 # #############################################################################
-# TestCaptureSystemCalls
+# Test_capture_system_calls
 # #############################################################################
 
 

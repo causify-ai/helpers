@@ -138,7 +138,9 @@ class Test_find_header_by_partial_title(hunitest.TestCase):
         )
         partial_title = "Section 1.1"
         # Run test.
-        result = hmarsele.find_header_by_partial_title(header_list, partial_title)
+        result = hmarsele.find_header_by_partial_title(
+            header_list, partial_title
+        )
         # Check outputs.
         self.assertIsNotNone(result)
         self.assertEqual(result.description, "Section 1.1")
@@ -174,7 +176,9 @@ class Test_find_header_by_partial_title(hunitest.TestCase):
         )
         partial_title = "Nonexistent"
         # Run test.
-        result = hmarsele.find_header_by_partial_title(header_list, partial_title)
+        result = hmarsele.find_header_by_partial_title(
+            header_list, partial_title
+        )
         # Check outputs.
         self.assertIsNone(result)
 
@@ -192,7 +196,9 @@ class Test_find_header_by_partial_title(hunitest.TestCase):
         )
         partial_title = "Chapter"
         # Run test.
-        result = hmarsele.find_header_by_partial_title(header_list, partial_title)
+        result = hmarsele.find_header_by_partial_title(
+            header_list, partial_title
+        )
         # Check outputs.
         self.assertIsNotNone(result)
         self.assertEqual(result.description, "Chapter 1")
@@ -222,7 +228,9 @@ class Test_find_header_from_input(hunitest.TestCase):
         )
         header_input = "## Section 1.1"
         # Run test.
-        result, level = hmarsele.find_header_from_input(header_list, header_input)
+        result, level = hmarsele.find_header_from_input(
+            header_list, header_input
+        )
         # Check outputs.
         self.assertEqual(result.description, "Section 1.1")
         self.assertEqual(level, 2)
@@ -240,7 +248,9 @@ class Test_find_header_from_input(hunitest.TestCase):
         )
         header_input = "Chapter"
         # Run test.
-        result, level = hmarsele.find_header_from_input(header_list, header_input)
+        result, level = hmarsele.find_header_from_input(
+            header_list, header_input
+        )
         # Check outputs.
         self.assertEqual(result.description, "Chapter 1")
         self.assertEqual(level, 1)
@@ -274,7 +284,9 @@ class Test_find_header_from_input(hunitest.TestCase):
         )
         header_input = "# Section 1.1"
         # Run test (level prefix is ignored, partial match is used).
-        result, level = hmarsele.find_header_from_input(header_list, header_input)
+        result, level = hmarsele.find_header_from_input(
+            header_list, header_input
+        )
         # Check outputs.
         self.assertEqual(result.description, "Section 1.1")
         self.assertEqual(level, 2)
@@ -292,7 +304,9 @@ class Test_find_header_from_input(hunitest.TestCase):
         )
         header_input = "## Chapter"
         # Run test.
-        result, level = hmarsele.find_header_from_input(header_list, header_input)
+        result, level = hmarsele.find_header_from_input(
+            header_list, header_input
+        )
         # Check outputs.
         self.assertEqual(result.description, "Chapter 1")
         self.assertEqual(level, 1)

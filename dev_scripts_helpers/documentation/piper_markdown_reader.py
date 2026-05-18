@@ -38,7 +38,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 _DEFAULT_SPEED = 1.0
-#_DEFAULT_VOICE = "en_US-joe-medium"
+# _DEFAULT_VOICE = "en_US-joe-medium"
 _DEFAULT_VOICE = "en_US-amy-medium"
 _DEFAULT_MAX_LENGTH = 0
 _TMP_EXTRACT_FILE = "tmp.piper_markdown_reader.extract.md"
@@ -728,10 +728,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.debug("Validations passed")
     if args.md_start:
-        content = _extract_markdown_section(args.input, args.md_start, args.md_end)
-        _LOG.info(
-            "Extracted section '%s' from %s", args.md_start, args.input
+        content = _extract_markdown_section(
+            args.input, args.md_start, args.md_end
         )
+        _LOG.info("Extracted section '%s' from %s", args.md_start, args.input)
     else:
         content = _read_markdown_file(args.input)
         _LOG.info("Read markdown file: %s", args.input)
@@ -775,7 +775,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # - play.
     audio_files = []
     total_work = len(chunks) * (2 if args.speed != 1.0 else 1)
-    with tqdm(total=total_work, desc="Processing chunks", unit="step") as progress_bar:
+    with tqdm(
+        total=total_work, desc="Processing chunks", unit="step"
+    ) as progress_bar:
         for i in range(len(chunks)):
             chunk = chunks[i]
             audio_file = _process_chunk_audio(

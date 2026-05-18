@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import dev_scripts_helpers.documentation.piper_markdown_reader as piper_reader
+import dev_scripts_helpers.documentation.piper_markdown_reader as dshdpmare
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -75,7 +75,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = piper_reader._extract_markdown_section(
+        result = dshdpmare._extract_markdown_section(
             in_file, "# Methods", "# Results"
         )
         # Check outputs.
@@ -99,7 +99,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = piper_reader._extract_markdown_section(
+        result = dshdpmare._extract_markdown_section(
             in_file, "# Methods", None
         )
         # Check outputs.
@@ -111,7 +111,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         in_file = self._create_input_file()
         with self.assertRaises(Exception):
-            piper_reader._extract_markdown_section(
+            dshdpmare._extract_markdown_section(
                 in_file, "# Nonexistent", None
             )
 
@@ -128,9 +128,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = piper_reader._extract_markdown_section(
-            in_file, "Results", None
-        )
+        result = dshdpmare._extract_markdown_section(in_file, "Results", None)
         # Check outputs.
         self.assert_equal(result, expected)
 
@@ -155,7 +153,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = piper_reader._extract_markdown_section(
+        result = dshdpmare._extract_markdown_section(
             in_file, "# Methods", "END"
         )
         # Check outputs.
@@ -180,7 +178,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = piper_reader._extract_markdown_section(
+        result = dshdpmare._extract_markdown_section(
             in_file, "Data Collection", "END"
         )
         # Check outputs.
@@ -194,11 +192,9 @@ class Test__extract_markdown_section(hunitest.TestCase):
         # Prepare inputs.
         in_file = self._create_input_file()
         # Run test.
-        piper_reader._extract_markdown_section(
-            in_file, "# Methods", "# Results"
-        )
+        dshdpmare._extract_markdown_section(in_file, "# Methods", "# Results")
         # Check outputs.
-        tmp_file = piper_reader._TMP_EXTRACT_FILE
+        tmp_file = dshdpmare._TMP_EXTRACT_FILE
         self.assertTrue(
             os.path.exists(tmp_file),
             f"Intermediate file {tmp_file} was not created",
@@ -210,9 +206,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skip(
-    reason="Requires piper-tts installation and voice models"
-)
+@pytest.mark.skip(reason="Requires piper-tts installation and voice models")
 class Test_piper_markdown_reader_script(hunitest.TestCase):
     """
     Test piper_markdown_reader script CLI functionality.
@@ -295,7 +289,7 @@ class Test_piper_markdown_reader_script(hunitest.TestCase):
         # Run test.
         self._run_script("--md_start '# Methods' --md_end '# Results'")
         # Check outputs.
-        tmp_file = piper_reader._TMP_EXTRACT_FILE
+        tmp_file = dshdpmare._TMP_EXTRACT_FILE
         self.assertTrue(
             os.path.exists(tmp_file),
             f"Intermediate file {tmp_file} was not created",
