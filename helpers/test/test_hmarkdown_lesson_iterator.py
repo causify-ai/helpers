@@ -9,6 +9,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 from helpers.hmarkdown_lesson_iterator import (
+    _format_items_as_string,
     _iterate_slide_lines,
     SlideItem,
     read_lesson_file,
@@ -25,9 +26,9 @@ class Test_iterate_slide_lines(hunitest.TestCase):
     Tests for `_iterate_slide_lines()` function.
     """
 
-    def _check_slide_items(
+    def helper(
         self,
-        lines: List[str],
+        lines: str,
         expected_string: str,
     ) -> None:
         """
@@ -36,111 +37,85 @@ class Test_iterate_slide_lines(hunitest.TestCase):
         Converts SlideItem list into a formatted string and compares with
         expected output for golden file testing.
 
-        :param items: List of items to check
+        :param lines: Markdown lines to parse
         :param expected_string: Expected string representation of items
         """
-        # Prepare inputs.
-        lines = hprint.dedent(lines).splitlines()
-        # Run.
-        items = list(_iterate_slide_lines(in_lines))
-        # Check output.
-        actual_string = self._format_items_as_string(items)
+        split_lines = hprint.dedent(lines).splitlines()
+        items = list(_iterate_slide_lines(split_lines))
+        actual_string = _format_items_as_string(items)
         expected_string = hprint.dedent(expected_string)
         self.assertEqual(actual_string, expected_string)
-
-    # TODO(ai_gp): Move to helpers/hmarkdown_lesson_iterator.py
-    def _format_items_as_string(self, items: List[SlideItem]) -> str:
-        """
-        Format SlideItem list as a human-readable string.
-
-        :param items: List of SlideItem dicts to format
-        :return: Formatted string representation
-        """
-        lines = []
-        for item in items:
-            item_type = item["type"]
-            line_number = item["line_number"]
-            content = item["content"]
-            lines.append(f"type={item_type}, line_number={line_number}:")
-            for content_line in content:
-                lines.append(f"  {content_line}")
-        return "\n".join(lines)
 
     def test1(self) -> None:
         """
         Test behavior with empty file.
         """
-        lines: List[str] = []
-        items = list(_iterate_slide_lines(lines))
+        lines = ""
         expected_string = ""
-        self._check_slide_items(items, expected_string=expected_string)
+        self.helper(lines, expected_string=expected_string)
 
     def test2(self) -> None:
         """
         Test extraction of a single slide.
         """
-        lines = hprint.dedent("""
+        lines = """
             * First Slide
             Content of the slide
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=slide, line_number=1:
               * First Slide
               Content of the slide
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test3(self) -> None:
         """
         Test extraction of multiple slides.
         """
-        lines = [
-            "* Slide 1",
-            "Content 1",
-            "* Slide 2",
-            "Content 2",
-        ]
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+        lines = """
+            * Slide 1
+            Content 1
+            * Slide 2
+            Content 2
+            """
+        expected_string = """
             type=slide, line_number=1:
               * Slide 1
               Content 1
             type=slide, line_number=3:
               * Slide 2
               Content 2
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test4(self) -> None:
         """
         Test extraction of a single header.
         """
-        lines = hprint.dedent("""
+        lines = """
             # Main Title
             Some content
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=header, line_number=1:
               # Main Title
               Some content
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test5(self) -> None:
         """
         Test extraction of multiple headers with different levels.
         """
-        lines = hprint.dedent("""
+        lines = """
             # Title 1
             Content
             ## Subtitle
             More content
             ### Sub-subtitle
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=header, line_number=1:
               # Title 1
               Content
@@ -149,70 +124,79 @@ class Test_iterate_slide_lines(hunitest.TestCase):
               More content
             type=header, line_number=5:
               ### Sub-subtitle
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test6(self) -> None:
         """
         Test extraction of HTML comment blocks.
         """
-        lines = hprint.dedent("""
+        lines = """
             Some content
             <!-- This is a comment
             spanning multiple lines
             -->
             More content
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
+            type=preamble, line_number=1:
+              Some content
             type=comment, line_number=2:
               <!-- This is a comment
               spanning multiple lines
               -->
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            type=preamble, line_number=5:
+              More content
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test7(self) -> None:
         """
         Test extraction of CSS/JavaScript comment blocks.
         """
-        lines = hprint.dedent("""
+        lines = """
             Some content
             /* This is a comment
             spanning multiple lines
             */
             More content
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
+            type=preamble, line_number=1:
+              Some content
             type=comment, line_number=2:
               /* This is a comment
               spanning multiple lines
               */
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            type=preamble, line_number=5:
+              More content
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test8(self) -> None:
         """
         Test handling of single-line HTML comments.
         """
-        lines = hprint.dedent("""
+        lines = """
             Content before
             <!-- Single line comment -->
             Content after
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
+            type=preamble, line_number=1:
+              Content before
             type=comment, line_number=2:
               <!-- Single line comment -->
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            type=preamble, line_number=3:
+              Content after
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test9(self) -> None:
         """
         Test file with mixed slides, headers, and comments.
         """
-        lines = hprint.dedent("""
+        lines = """
             # Main Title
             Introduction
             * Slide 1
@@ -221,9 +205,8 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             * Slide 2
             ## Subsection
             More content
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=header, line_number=1:
               # Main Title
               Introduction
@@ -237,84 +220,77 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             type=header, line_number=7:
               ## Subsection
               More content
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test10(self) -> None:
         """
         Test that single-line comments are grouped with surrounding slide.
         """
-        lines = hprint.dedent("""
+        lines = """
             * Slide Title
             Content line 1
             // Single line comment
             Content line 2
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=slide, line_number=1:
               * Slide Title
               Content line 1
               // Single line comment
               Content line 2
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test11(self) -> None:
         """
         Test handling of %% single-line comments.
         """
-        lines = hprint.dedent("""
+        lines = """
             * Slide Title
             %% This is a comment
             Regular content
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=slide, line_number=1:
               * Slide Title
               %% This is a comment
               Regular content
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test12(self) -> None:
         """
         Test handling of markdown line separators.
         """
-        lines = (
-            hprint.dedent("""
+        separator = "#" * 80
+        lines = f"""
             * Slide 1
             Content
-            """).splitlines()
-            + ["#" * 80]
-            + hprint.dedent("""
+            {separator}
             More content
-            """).splitlines()
-        )
-        items = list(_iterate_slide_lines(lines))
+            """
         expected_string = (
             "type=slide, line_number=1:\n"
             "  * Slide 1\n"
             "  Content\n"
-            "  " + "#" * 80 + "\n"
+            "  " + separator + "\n"
             "  More content"
         )
-        self._check_slide_items(items, expected_string=expected_string)
+        self.helper(lines, expected_string=expected_string)
 
     def test13(self) -> None:
         """
         Test that line numbers are correctly tracked.
         """
-        lines = hprint.dedent("""
+        lines = """
             * Slide 1
             Content
             * Slide 2
             Content 2
             * Slide 3
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=slide, line_number=1:
               * Slide 1
               Content
@@ -323,36 +299,36 @@ class Test_iterate_slide_lines(hunitest.TestCase):
               Content 2
             type=slide, line_number=5:
               * Slide 3
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test14(self) -> None:
         """
         Test handling of empty lines between items.
         """
-        lines = hprint.dedent("""
+        lines = """
             * Slide 1
             Content
 
             * Slide 2
             Content 2
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=slide, line_number=1:
               * Slide 1
               Content
+
             type=slide, line_number=4:
               * Slide 2
               Content 2
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
     def test15(self) -> None:
         """
         Test parsing of complex file with mixed content.
         """
-        lines = hprint.dedent("""
+        lines = """
             # Introduction
             This is an introduction
             * What is AI?
@@ -362,9 +338,8 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             ## Key Concepts
             // Internal comment
             Definition of ML
-            """).splitlines()
-        items = list(_iterate_slide_lines(lines))
-        expected_string = hprint.dedent("""
+            """
+        expected_string = """
             type=header, line_number=1:
               # Introduction
               This is an introduction
@@ -379,8 +354,8 @@ class Test_iterate_slide_lines(hunitest.TestCase):
               ## Key Concepts
               // Internal comment
               Definition of ML
-            """)
-        self._check_slide_items(items, expected_string=expected_string)
+            """
+        self.helper(lines, expected_string=expected_string)
 
 
 # #############################################################################
@@ -447,7 +422,7 @@ class Test_read_lesson_file(hunitest.TestCase):
 # #############################################################################
 
 
-class TestReassembleFromItems(hunitest.TestCase):
+class Test_reassemble_from_items(hunitest.TestCase):
     """
     Tests for `reassemble_from_items()` function.
     """

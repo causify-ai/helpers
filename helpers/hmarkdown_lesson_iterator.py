@@ -20,6 +20,27 @@ _LOG = logging.getLogger(__name__)
 SlideItem = Dict[str, Any]
 
 
+def _format_items_as_string(items: List[SlideItem]) -> str:
+	"""
+	Format SlideItem list as a human-readable string.
+
+	:param items: List of SlideItem dicts to format
+	:return: Formatted string representation
+	"""
+	lines = []
+	for item in items:
+		item_type = item["type"]
+		line_number = item["line_number"]
+		content = item["content"]
+		lines.append(f"type={item_type}, line_number={line_number}:")
+		for content_line in content:
+			if content_line:
+				lines.append(f"  {content_line}")
+			else:
+				lines.append("")
+	return "\n".join(lines)
+
+
 def _iterate_slide_lines(
     lines: List[str],
 ) -> Generator[SlideItem, None, None]:
