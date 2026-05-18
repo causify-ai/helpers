@@ -262,27 +262,28 @@ def _apply_llm_via_library(
 
 # Overview of `apply_llm*` functions:
 # - `apply_llm()`
-#   - Core function for processing a single input string with an LLM.
+#   - Core function for processing a single input string with an LLM
+#   - Can use CLI executable or library backend
 #   - Returns the response and cost
-#   - Can use CLI executable or library backend.
 # - `apply_llm_with_files()`
 #   - Convenience wrapper around `apply_llm()` that reads from an input file,
-#     processes it, and writes the result to an output file.
+#     processes it, and writes the result to an output file
 # - `apply_llm_batch_individual()`
 #   - Process multiple inputs by making individual LLM calls for each input
-#     with the same system prompt. Each call is independent.
+#     with the same system prompt
+#   - Each call is independent
 # - `apply_llm_batch_with_shared_prompt()`
 #   - Process multiple inputs by maintaining a single conversation context
-#     across all inputs (more efficient for related queries).
+#     across all inputs (more efficient for related queries)
 # - `apply_llm_batch_combined()`
 #   - Process multiple inputs by combining them into a single LLM call
 #     expecting structured JSON output
 #   - Most efficient but requires careful prompt engineering for proper JSON
-#     formatting.
+#     formatting
 # - `apply_llm_prompt_to_df()`
 #   - Apply an LLM to process rows from a pandas dataframe, with results stored
-#     in a target column.
-#   - Supports all three batch modes and incremental progress saving.
+#     in a target column
+#   - Supports all three batch modes and incremental progress saving
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -863,6 +864,7 @@ def apply_llm_prompt_to_df(
                 progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
         # Call LLM only if there are valid items in this batch.
         if batch_items:
+            # TODO(ai_gp): Factor out from <start> to <end>
             _LOG.debug(
                 "Processing batch %d/%d (%d items, %d skipped)",
                 batch_num + 1,
@@ -887,6 +889,7 @@ def apply_llm_prompt_to_df(
             )
             # Update total_cost.
             total_cost += batch_cost
+            # <end>
             progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
             # Store results back into dataframe.
             for idx, response in zip(batch_indices, batch_responses):
