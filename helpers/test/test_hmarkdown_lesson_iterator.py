@@ -3,7 +3,7 @@ Unit tests for hmarkdown_lesson_iterator.
 """
 
 import os
-from typing import List, Optional
+from typing import List
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -13,7 +13,7 @@ from helpers.hmarkdown_lesson_iterator import (
     SlideItem,
     read_lesson_file,
     reassemble_from_items,
-) 
+)
 
 # #############################################################################
 # Test_iterate_slide_lines
@@ -27,8 +27,7 @@ class Test_iterate_slide_lines(hunitest.TestCase):
 
     def _check_slide_items(
         self,
-        items: List[SlideItem],
-        *,
+        lines: List[str],
         expected_string: str,
     ) -> None:
         """
@@ -40,9 +39,16 @@ class Test_iterate_slide_lines(hunitest.TestCase):
         :param items: List of items to check
         :param expected_string: Expected string representation of items
         """
+        # Prepare inputs.
+        lines = hprint.dedent(lines).splitlines()
+        # Run.
+        items = list(_iterate_slide_lines(in_lines))
+        # Check output.
         actual_string = self._format_items_as_string(items)
+        expected_string = hprint.dedent(expected_string)
         self.assertEqual(actual_string, expected_string)
 
+    # TODO(ai_gp): Move to helpers/hmarkdown_lesson_iterator.py
     def _format_items_as_string(self, items: List[SlideItem]) -> str:
         """
         Format SlideItem list as a human-readable string.
@@ -60,70 +66,14 @@ class Test_iterate_slide_lines(hunitest.TestCase):
                 lines.append(f"  {content_line}")
         return "\n".join(lines)
 
-    # TODO(ai_gp): Delete this function and replace the calls to this function with calls to
-    # _check_slide_items
-    def _check_single_item_type(
-        self,
-        items: List[SlideItem],
-        expected_type: str,
-        *,
-        expected_line_number: int = 1,
-        expected_content: Optional[List[str]] = None,
-    ) -> None:
-        """
-        Test helper to verify a single item's type, line number, and optionally content.
-
-        :param items: List of items to check
-        :param expected_type: Expected item type (e.g., 'slide', 'header', 'comment')
-        :param expected_line_number: Expected line number (default: 1)
-        :param expected_content: Expected content lines (optional)
-        """
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0]["type"], expected_type)
-        self.assertEqual(items[0]["line_number"], expected_line_number)
-        if expected_content is not None:
-            self.assertEqual(items[0]["content"], expected_content)
-
-    # TODO(ai_gp): Delete this function and replace the calls to this function with calls to
-    # _check_slide_items
-    def _check_items_with_line_numbers(
-        self, items: List[SlideItem], *, expected_specs: List[tuple]
-    ) -> None:
-        """
-        Test helper to verify items have expected types and line numbers.
-
-        :param items: List of items to check
-        :param expected_specs: List of (expected_type, expected_line_number) tuples
-        """
-        self.assertEqual(len(items), len(expected_specs))
-        for i, (expected_type, expected_line_num) in enumerate(expected_specs):
-            self.assertEqual(items[i]["type"], expected_type)
-            self.assertEqual(items[i]["line_number"], expected_line_num)
-
-    # TODO(ai_gp): Delete this function and replace the calls to this function with calls to
-    # _check_slide_items
-    def _check_types_list(
-        self, items: List[SlideItem], *, expected_types: List[str]
-    ) -> None:
-        """
-        Test helper to verify items' types match expected list.
-
-        :param items: List of items to check
-        :param expected_types: Expected list of item types
-        """
-        actual_types = [item["type"] for item in items]
-        self.assertEqual(actual_types, expected_types)
-
     def test1(self) -> None:
         """
         Test behavior with empty file.
         """
-        # Prepare inputs.
         lines: List[str] = []
-        # Run test.
         items = list(_iterate_slide_lines(lines))
-        # Check outputs.
-        self.assertEqual(items, [])
+        expected_string = ""
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test2(self) -> None:
         """
@@ -133,31 +83,34 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             * First Slide
             Content of the slide
             """).splitlines()
-        expected_content = hprint.dedent("""
-            * First Slide
-            Content of the slide
-            """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        self._check_single_item_type(
-            items, expected_type="slide", expected_content=expected_content
-        )
+        expected_string = hprint.dedent("""
+            type=slide, line_number=1:
+              * First Slide
+              Content of the slide
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test3(self) -> None:
         """
         Test extraction of multiple slides.
         """
-        # Prepare inputs.
         lines = [
             "* Slide 1",
             "Content 1",
             "* Slide 2",
             "Content 2",
         ]
-        expected_specs = [("slide", 1), ("slide", 3)]
-        # Run test.
         items = list(_iterate_slide_lines(lines))
-        # Check outputs.
-        self._check_items_with_line_numbers(items, expected_specs=expected_specs)
+        expected_string = hprint.dedent("""
+            type=slide, line_number=1:
+              * Slide 1
+              Content 1
+            type=slide, line_number=3:
+              * Slide 2
+              Content 2
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test4(self) -> None:
         """
@@ -167,14 +120,13 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             # Main Title
             Some content
             """).splitlines()
-        expected_content = hprint.dedent("""
-            # Main Title
-            Some content
-            """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        self._check_single_item_type(
-            items, expected_type="header", expected_content=expected_content
-        )
+        expected_string = hprint.dedent("""
+            type=header, line_number=1:
+              # Main Title
+              Some content
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test5(self) -> None:
         """
@@ -187,9 +139,18 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             More content
             ### Sub-subtitle
             """).splitlines()
-        expected_specs = [("header", 1), ("header", 3), ("header", 5)]
         items = list(_iterate_slide_lines(lines))
-        self._check_items_with_line_numbers(items, expected_specs=expected_specs)
+        expected_string = hprint.dedent("""
+            type=header, line_number=1:
+              # Title 1
+              Content
+            type=header, line_number=3:
+              ## Subtitle
+              More content
+            type=header, line_number=5:
+              ### Sub-subtitle
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test6(self) -> None:
         """
@@ -203,10 +164,13 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             More content
             """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        self._check_single_item_type(
-            items, expected_type="comment", expected_line_number=2
-        )
-        self.assertIn("This is a comment", items[0]["content"][0])
+        expected_string = hprint.dedent("""
+            type=comment, line_number=2:
+              <!-- This is a comment
+              spanning multiple lines
+              -->
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test7(self) -> None:
         """
@@ -220,9 +184,13 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             More content
             """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        self._check_single_item_type(
-            items, expected_type="comment", expected_line_number=2
-        )
+        expected_string = hprint.dedent("""
+            type=comment, line_number=2:
+              /* This is a comment
+              spanning multiple lines
+              */
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test8(self) -> None:
         """
@@ -234,9 +202,11 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             Content after
             """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        self._check_single_item_type(
-            items, expected_type="comment", expected_line_number=2
-        )
+        expected_string = hprint.dedent("""
+            type=comment, line_number=2:
+              <!-- Single line comment -->
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test9(self) -> None:
         """
@@ -252,9 +222,23 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             ## Subsection
             More content
             """).splitlines()
-        expected_types = ["header", "slide", "comment", "slide", "header"]
         items = list(_iterate_slide_lines(lines))
-        self._check_types_list(items, expected_types=expected_types)
+        expected_string = hprint.dedent("""
+            type=header, line_number=1:
+              # Main Title
+              Introduction
+            type=slide, line_number=3:
+              * Slide 1
+              Slide content
+            type=comment, line_number=5:
+              <!-- Comment -->
+            type=slide, line_number=6:
+              * Slide 2
+            type=header, line_number=7:
+              ## Subsection
+              More content
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test10(self) -> None:
         """
@@ -267,8 +251,14 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             Content line 2
             """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        self._check_single_item_type(items, expected_type="slide")
-        self.assertIn("// Single line comment", items[0]["content"])
+        expected_string = hprint.dedent("""
+            type=slide, line_number=1:
+              * Slide Title
+              Content line 1
+              // Single line comment
+              Content line 2
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test11(self) -> None:
         """
@@ -280,7 +270,13 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             Regular content
             """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        self._check_single_item_type(items, expected_type="slide")
+        expected_string = hprint.dedent("""
+            type=slide, line_number=1:
+              * Slide Title
+              %% This is a comment
+              Regular content
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test12(self) -> None:
         """
@@ -297,8 +293,14 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             """).splitlines()
         )
         items = list(_iterate_slide_lines(lines))
-        self.assertEqual(len(items), 1)
-        self.assertIn("#" * 80, items[0]["content"])
+        expected_string = (
+            "type=slide, line_number=1:\n"
+            "  * Slide 1\n"
+            "  Content\n"
+            "  " + "#" * 80 + "\n"
+            "  More content"
+        )
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test13(self) -> None:
         """
@@ -312,8 +314,17 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             * Slide 3
             """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        line_numbers = [item["line_number"] for item in items]
-        self.assertEqual(line_numbers, [1, 3, 5])
+        expected_string = hprint.dedent("""
+            type=slide, line_number=1:
+              * Slide 1
+              Content
+            type=slide, line_number=3:
+              * Slide 2
+              Content 2
+            type=slide, line_number=5:
+              * Slide 3
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test14(self) -> None:
         """
@@ -327,9 +338,15 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             Content 2
             """).splitlines()
         items = list(_iterate_slide_lines(lines))
-        self.assertEqual(len(items), 2)
-        self.assertEqual(items[0]["type"], "slide")
-        self.assertEqual(items[1]["type"], "slide")
+        expected_string = hprint.dedent("""
+            type=slide, line_number=1:
+              * Slide 1
+              Content
+            type=slide, line_number=4:
+              * Slide 2
+              Content 2
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
     def test15(self) -> None:
         """
@@ -346,9 +363,24 @@ class Test_iterate_slide_lines(hunitest.TestCase):
             // Internal comment
             Definition of ML
             """).splitlines()
-        expected_types = ["header", "slide", "comment", "slide", "header"]
         items = list(_iterate_slide_lines(lines))
-        self._check_types_list(items, expected_types=expected_types)
+        expected_string = hprint.dedent("""
+            type=header, line_number=1:
+              # Introduction
+              This is an introduction
+            type=slide, line_number=3:
+              * What is AI?
+              Artificial Intelligence overview
+            type=comment, line_number=5:
+              <!-- Hidden notes for instructor -->
+            type=slide, line_number=6:
+              * Machine Learning Basics
+            type=header, line_number=7:
+              ## Key Concepts
+              // Internal comment
+              Definition of ML
+            """)
+        self._check_slide_items(items, expected_string=expected_string)
 
 
 # #############################################################################
@@ -420,6 +452,27 @@ class TestReassembleFromItems(hunitest.TestCase):
     Tests for `reassemble_from_items()` function.
     """
 
+    def _make_item(
+        self,
+        item_type: str,
+        content: List[str],
+        *,
+        line_number: int = 1,
+    ) -> SlideItem:
+        """
+        Test helper to create a SlideItem dict.
+
+        :param item_type: Item type (e.g., 'slide', 'header', 'comment')
+        :param content: Content lines for the item
+        :param line_number: Line number where item starts
+        :return: SlideItem dict
+        """
+        return {
+            "type": item_type,
+            "content": content,
+            "line_number": line_number,
+        }
+
     def test_empty_items(self) -> None:
         """
         Test reassembly of empty item list.
@@ -436,17 +489,12 @@ class TestReassembleFromItems(hunitest.TestCase):
         Test reassembly of a single slide.
         """
         # Prepare inputs.
-        items = [
-            {
-                "type": "slide",
-                "content": ["* Slide 1", "Content"],
-                "line_number": 1,
-            }
-        ]
+        items = [self._make_item("slide", ["* Slide 1", "Content"])]
+        expected = "* Slide 1\nContent"
         # Run test.
         result = reassemble_from_items(items)
         # Check outputs.
-        self.assertEqual(result, "* Slide 1\nContent")
+        self.assertEqual(result, expected)
 
     def test_multiple_items(self) -> None:
         """
@@ -454,21 +502,13 @@ class TestReassembleFromItems(hunitest.TestCase):
         """
         # Prepare inputs.
         items = [
-            {
-                "type": "header",
-                "content": ["# Title", "Introduction"],
-                "line_number": 1,
-            },
-            {
-                "type": "slide",
-                "content": ["* Slide 1", "Content"],
-                "line_number": 3,
-            },
+            self._make_item("header", ["# Title", "Introduction"], line_number=1),
+            self._make_item("slide", ["* Slide 1", "Content"], line_number=3),
         ]
+        expected = "# Title\nIntroduction\n* Slide 1\nContent"
         # Run test.
         result = reassemble_from_items(items)
         # Check outputs.
-        expected = "# Title\nIntroduction\n* Slide 1\nContent"
         self.assertEqual(result, expected)
 
     def test_preserve_empty_lines(self) -> None:
@@ -477,21 +517,13 @@ class TestReassembleFromItems(hunitest.TestCase):
         """
         # Prepare inputs.
         items = [
-            {
-                "type": "slide",
-                "content": ["* Slide 1", "Content.", ""],
-                "line_number": 1,
-            },
-            {
-                "type": "slide",
-                "content": ["* Slide 2", "More"],
-                "line_number": 4,
-            },
+            self._make_item("slide", ["* Slide 1", "Content.", ""], line_number=1),
+            self._make_item("slide", ["* Slide 2", "More"], line_number=4),
         ]
+        expected = "* Slide 1\nContent.\n\n* Slide 2\nMore"
         # Run test.
         result = reassemble_from_items(items)
         # Check outputs.
-        expected = "* Slide 1\nContent.\n\n* Slide 2\nMore"
         self.assertEqual(result, expected)
 
     def test_single_trailing_newline(self) -> None:
@@ -499,13 +531,7 @@ class TestReassembleFromItems(hunitest.TestCase):
         Test preservation of single trailing newline.
         """
         # Prepare inputs.
-        items = [
-            {
-                "type": "slide",
-                "content": ["* Slide", "Content"],
-                "line_number": 1,
-            }
-        ]
+        items = [self._make_item("slide", ["* Slide", "Content"])]
         original_content = "* Slide\nContent\n"
         # Run test.
         result = reassemble_from_items(items, original_content=original_content)
@@ -518,13 +544,7 @@ class TestReassembleFromItems(hunitest.TestCase):
         Test preservation of multiple trailing newlines.
         """
         # Prepare inputs.
-        items = [
-            {
-                "type": "slide",
-                "content": ["* Slide", "Content"],
-                "line_number": 1,
-            }
-        ]
+        items = [self._make_item("slide", ["* Slide", "Content"])]
         original_content = "* Slide\nContent\n\n"
         # Run test.
         result = reassemble_from_items(items, original_content=original_content)
@@ -537,13 +557,7 @@ class TestReassembleFromItems(hunitest.TestCase):
         Test handling of content without trailing newline.
         """
         # Prepare inputs.
-        items = [
-            {
-                "type": "slide",
-                "content": ["* Slide", "Content"],
-                "line_number": 1,
-            }
-        ]
+        items = [self._make_item("slide", ["* Slide", "Content"])]
         original_content = "* Slide\nContent"
         # Run test.
         result = reassemble_from_items(items, original_content=original_content)
@@ -557,29 +571,21 @@ class TestReassembleFromItems(hunitest.TestCase):
         """
         # Prepare inputs.
         items = [
-            {
-                "type": "slide",
-                "content": ["* Slide 1", "Content"],
-                "line_number": 1,
-            },
-            {
-                "type": "comment",
-                "content": ["<!-- Comment", "spanning lines", "-->"],
-                "line_number": 3,
-            },
-            {
-                "type": "slide",
-                "content": ["* Slide 2", "More"],
-                "line_number": 6,
-            },
+            self._make_item("slide", ["* Slide 1", "Content"], line_number=1),
+            self._make_item(
+                "comment",
+                ["<!-- Comment", "spanning lines", "-->"],
+                line_number=3,
+            ),
+            self._make_item("slide", ["* Slide 2", "More"], line_number=6),
         ]
-        # Run test.
-        result = reassemble_from_items(items)
-        # Check outputs.
         expected = (
             "* Slide 1\nContent\n<!-- Comment\nspanning lines\n-->\n"
             "* Slide 2\nMore"
         )
+        # Run test.
+        result = reassemble_from_items(items)
+        # Check outputs.
         self.assertEqual(result, expected)
 
     def test_with_preamble(self) -> None:
@@ -588,21 +594,17 @@ class TestReassembleFromItems(hunitest.TestCase):
         """
         # Prepare inputs.
         items = [
-            {
-                "type": "preamble",
-                "content": ["::: columns", ":::: {.column}", "Text"],
-                "line_number": 1,
-            },
-            {
-                "type": "slide",
-                "content": ["* Slide 1", "Content"],
-                "line_number": 4,
-            },
+            self._make_item(
+                "preamble",
+                ["::: columns", ":::: {.column}", "Text"],
+                line_number=1,
+            ),
+            self._make_item("slide", ["* Slide 1", "Content"], line_number=4),
         ]
+        expected = "::: columns\n:::: {.column}\nText\n* Slide 1\nContent"
         # Run test.
         result = reassemble_from_items(items)
         # Check outputs.
-        expected = "::: columns\n:::: {.column}\nText\n* Slide 1\nContent"
         self.assertEqual(result, expected)
 
     def test_round_trip_simple(self) -> None:
@@ -613,23 +615,10 @@ class TestReassembleFromItems(hunitest.TestCase):
         original_content = (
             "# Title\nIntro\n* Slide 1\nContent\n* Slide 2\nMore\n"
         )
-        # Simulate parsed items from the content.
         items = [
-            {
-                "type": "header",
-                "content": ["# Title", "Intro"],
-                "line_number": 1,
-            },
-            {
-                "type": "slide",
-                "content": ["* Slide 1", "Content"],
-                "line_number": 3,
-            },
-            {
-                "type": "slide",
-                "content": ["* Slide 2", "More"],
-                "line_number": 5,
-            },
+            self._make_item("header", ["# Title", "Intro"], line_number=1),
+            self._make_item("slide", ["* Slide 1", "Content"], line_number=3),
+            self._make_item("slide", ["* Slide 2", "More"], line_number=5),
         ]
         # Run test.
         result = reassemble_from_items(items, original_content=original_content)
