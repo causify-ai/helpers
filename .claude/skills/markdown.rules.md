@@ -126,6 +126,7 @@ text.
 - Every fenced code block must have a valid programming language (e.g., `python`, `bash`, `latex`, `verbatim`)
   - E.g.:
     ````
+
     ```python
     ````
   - If it doesn't have a valid tag, infer it from the content. If unsure, leave it empty

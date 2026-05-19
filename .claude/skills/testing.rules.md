@@ -182,9 +182,9 @@
     - `test_preserve_yaml_frontmatter`
     - `test_page_separator_removal_with_frontmatter`
 
-## Code Formatting in Tests
+# Code Formatting in Tests
 
-### Dedent Strings to the Code
+## Dedent Strings to the Code
 
 - Align multi-line strings with the indentation of surrounding code:
   - **Bad**: String starts at column 0
@@ -346,29 +346,7 @@
             self.helper(input1, expected)
     ```
 
-## Input Data Patterns
-
-- Always use multiline text aligned to the variable of the string and then call
-  `hpring.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
-  - **Good**
-    ```python
-    # Prepare inputs.
-    text = """
-    line1
-    line2
-    line3
-    """
-    text = hprint.dedent(text)
-    ```
-  - **Bad**
-    ```python
-    # Prepare inputs.
-    text = """
-line1
-line2
-line3
-    """
-    ```
+## Use Input and Scratch Space from `hunittest`
 
 - Use scratch space for file testing:
   ```python
@@ -432,9 +410,57 @@ line3
           # Use self.test_data here.
   ```
 
+# Format Test Inputs
+
+## String Formatting for Assertions
+
+- Use multi-line strings with `hprint.dedent()` for values instead of escaped
+  newline strings to improve readability:
+  - **Bad**: Escaped newlines
+    ```python
+    text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
+    ```
+  - **Good**: Multi-line strings are human-readable
+    ```python
+    text = """
+    # Chapter 1
+
+
+    ## Section 1.1
+    Content 1.1
+    ## Section 1.2
+    Content 1.2
+    """
+    text = hprint.dedent(text)
+    ```
+
+## Input Data Patterns
+
+- Always use multiline text aligned to the variable of the string and then call
+  `hpring.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
+  - **Good**
+    ```python
+    # Prepare inputs.
+    text = """
+    line1
+    line2
+    line3
+    """
+    text = hprint.dedent(text)
+    ```
+  - **Bad**
+    ```python
+    # Prepare inputs.
+    text = """
+line1
+line2
+line3
+    """
+    ```
+
 # Checking Test Outputs
 
-## Use an expected output
+## Use an Expected Output
 
 - Instead of using assertions use an expected output
   - **Bad**

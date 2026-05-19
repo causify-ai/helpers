@@ -2,7 +2,7 @@
 description: Analyze and fix failure of tests in GitHub CI
 ---
 
-# Step 1: Parse logs
+# Step 1: Parse Logs
 - Parse the output of `invoke gh_workflow_list` which contains information on the
   failing tests
 
@@ -17,7 +17,7 @@ description: Analyze and fix failure of tests in GitHub CI
   ... > ./tmp.pytest_repro.fast_tests.sh
   ```
 
-# Step 2: Understand why tests fail in the CI / locally
+# Step 2: Understand Why Tests Fail in the CI / Locally
 - Read `<ci_log>` and understand why the tests `<failing_tests>` are failing
   remotely
 
@@ -27,12 +27,12 @@ description: Analyze and fix failure of tests in GitHub CI
 - Report a table with the information of what tests are passing in the CI,
   locally, and why they are failing in the CI and locally
 
-# Step 3: Propose fixes 
+# Step 3: Propose Fixes
 - Propose a set of fixes so that the failing tests pass both on the CI and
   locally
 - Do not make any change, only propose the fixes
 - Ask the user to continue or not
 
-# Step 4: Implement fixes
+# Step 4: Implement Fixes
 - If the user says to continue, implement the fixes
 - Do not commit the changes to Git

@@ -55,6 +55,6 @@ model: sonnet
   - Create a vim quickfile cfile for the locations using the convention in
     `@.claude/skills/cfile.rules.md`
 
-## Make changes
+## Make Changes
 - Wait for the user to review the proposed changes
 - Make the changes to remove repeated code

@@ -79,7 +79,7 @@
 
 # Code Cell Organization and Content
 
-## Each Code Cell has a Single Purpose
+## Each Code Cell Has a Single Purpose
 
 - Each cell should do one logical thing only
   - Good examples:
@@ -141,7 +141,7 @@
     pprint.pprint(summary_chain)
     ```
 
-## Format of Code Cells calling Utils Functions
+## Format of Code Cells Calling Utils Functions
 
 - For code cells containing complex code
   - Add comments explaining the code

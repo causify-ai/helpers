@@ -109,6 +109,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.system_prompt_file,
             len(system_prompt),
         )
+    elif args.rule:
+        system_prompt = hparser.extract_rule_from_file(args.rule)
+        _LOG.debug(
+            "Extracted rule from spec '%s' (%d chars)",
+            args.rule,
+            len(system_prompt),
+        )
     else:
         system_prompt = args.system_prompt
     # Calculate expected_num_chars if progress_bar is enabled.

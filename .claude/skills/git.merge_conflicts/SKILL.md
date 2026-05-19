@@ -2,13 +2,13 @@
 description: Merge git conflicts
 ---
 
-# Step 1: Find the files with conflicts
+# Step 1: Find the Files with Conflicts
 - Find the files with conflicts running
   ```
   > git diff --name-only --diff-filter=U
   ```
 
-# Step 2: Propose fixes
+# Step 2: Propose Fixes
 - For each file with conflict:
   - Explain why the conflict happened
   - Propose what needs to be done

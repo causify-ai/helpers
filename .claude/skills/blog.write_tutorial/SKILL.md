@@ -16,4 +16,5 @@ description: Write a short technical tutorial on a given topic following markdow
   ```bash
   > curl -LsSf https://astral.sh/uv/install.sh | sh
   ```
+
   ````

@@ -97,7 +97,7 @@ Present both sections to the user. Wait for them to:
 Once approved, implement the selected changes using the Edit or Read tools as
 appropriate.
 
-## Step 4: Run lint_txt.py
+## Step 4: Run Lint_txt.py
 
 - Finally run the command:
   ```bash

@@ -1,5 +1,5 @@
 ---
-description: Format slides following presentation conventions
+description: Format slides following slides conventions
 ---
 
 # Role
