@@ -716,7 +716,7 @@ def parse_dst_dir_arg(args: argparse.Namespace) -> str:
 
     If the destination directory already exists and `--overwrite` is not set,
     raises an error. If `--overwrite` is set and the directory exists, it is
-    removed before creating a fresh one.
+    used as-is (not deleted).
 
     :return: the destination directory path
     """
@@ -728,9 +728,9 @@ def parse_dst_dir_arg(args: argparse.Namespace) -> str:
                 f"Output directory already exists: {dst_dir} "
                 "(use --overwrite to replace)"
             )
-        _LOG.info("Removing existing dst_dir='%s'", dst_dir)
-        hio.delete_dir(dst_dir)
-    hio.create_dir(dst_dir, incremental=True)
+        _LOG.info("Reusing existing dst_dir='%s'", dst_dir)
+    else:
+        hio.create_dir(dst_dir, incremental=True)
     return dst_dir
 
 
