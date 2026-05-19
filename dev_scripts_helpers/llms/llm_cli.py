@@ -28,6 +28,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
+import helpers.hmarkdown_select as hmarsele
 import helpers.hparser as hparser
 import helpers.htimer as htimer
 
@@ -110,7 +111,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             len(system_prompt),
         )
     elif args.rule:
-        system_prompt = hparser.extract_rule_from_file(args.rule)
+        system_prompt = hmarsele.extract_rule_from_file(args.rule)
         _LOG.debug(
             "Extracted rule from spec '%s' (%d chars)",
             args.rule,
