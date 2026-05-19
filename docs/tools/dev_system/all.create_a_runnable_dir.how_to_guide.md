@@ -1,19 +1,19 @@
 <!-- toc -->
 
 - [How to Create a Runnable Dir](#how-to-create-a-runnable-dir)
-  * [Definition](#definition)
-  * [A Runnable Dir as Sub Directory Under a Super-Repo](#a-runnable-dir-as-sub-directory-under-a-super-repo)
-    + [1) Turn the Repo Into a Super-Repo with Helpers](#1-turn-the-repo-into-a-super-repo-with-helpers)
-    + [2) Copy and Customize Files in the Top Dir](#2-copy-and-customize-files-in-the-top-dir)
-    + [3) Copy and Customize Files in `devops`](#3-copy-and-customize-files-in-devops)
-    + [4) Copy and Customize Files in Thin_Client](#4-copy-and-customize-files-in-thin_client)
-    + [5) Replace Files with Symbolic Links](#5-replace-files-with-symbolic-links)
-    + [6) Commit Changes](#6-commit-changes)
-    + [7) Build a Container for a Runnable Dir](#7-build-a-container-for-a-runnable-dir)
-    + [8) Test the Code](#8-test-the-code)
-    + [9) Add the Dependency Lock Files to the Commit](#9-add-the-dependency-lock-files-to-the-commit)
-    + [10) Release the Docker Image](#10-release-the-docker-image)
-    + [11) Update and Release a New Version of the Image](#11-update-and-release-a-new-version-of-the-image)
+  - [Definition](#definition)
+  - [A Runnable Dir as Sub Directory Under a Super-Repo](#a-runnable-dir-as-sub-directory-under-a-super-repo)
+    - [1) Turn the Repo Into a Super-Repo with Helpers](#1-turn-the-repo-into-a-super-repo-with-helpers)
+    - [2) Copy and Customize Files in the Top Dir](#2-copy-and-customize-files-in-the-top-dir)
+    - [3) Copy and Customize Files in `devops`](#3-copy-and-customize-files-in-devops)
+    - [4) Copy and Customize Files in Thin\_Client](#4-copy-and-customize-files-in-thin_client)
+    - [5) Replace Files with Symbolic Links](#5-replace-files-with-symbolic-links)
+    - [6) Commit Changes](#6-commit-changes)
+    - [7) Build a Container for a Runnable Dir](#7-build-a-container-for-a-runnable-dir)
+    - [8) Test the Code](#8-test-the-code)
+    - [9) Add the Dependency Lock Files to the Commit](#9-add-the-dependency-lock-files-to-the-commit)
+    - [10) Release the Docker Image](#10-release-the-docker-image)
+    - [11) Update and Release a New Version of the Image](#11-update-and-release-a-new-version-of-the-image)
 
 <!-- tocstop -->
 
@@ -246,7 +246,16 @@
 
 - Release to GHCR
   - This is required for running the container from GH Actions CI/CD pipelines
+  - Only members of the `dev_releasers` group can release images to GHCR
   - TODO(heanh): Can we create an invoke target for this?
+  - Check that you can view and access the container package at
+    [https://github.com/orgs/causify-ai/packages/](https://github.com/orgs/causify-ai/packages/).
+    If not, ask an admin to add you to the `dev_releasers` group
+  - Create a GitHub personal access token (classic) at
+    [https://github.com/settings/tokens](https://github.com/settings/tokens)
+    (**Generate new token**) with at least **`read:packages`** and
+    **`write:packages`** scopes so you can pull from and push to the GHCR
+    container registry
   ```bash
   > docker login ghcr.io -u <username> -p <personal_access_token>
   > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/<image_name>:dev ghcr.io/causify-ai/<image_name>:dev
