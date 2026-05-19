@@ -84,26 +84,27 @@ description: Create an outline for a Jupyter notebook with visual and interactiv
 
 ## Example
 
-```markdown
-## Cell 1: Visual Population Distribution
+- An example is
+  ```markdown
+  ## Cell 1: Visual Population Distribution
 
-- **Purpose**: Give students a concrete visual representation of the unknown
-  population distribution
-- **Display**:
-  - Animated visualization of a bin with marbles
-  - Marbles colored proportionally to the parameter $\mu$
-  - Real-time count of marble colors updated as slider changes
-- **Interactive widget**:
-  - Slider for $\mu$ (true proportion of red marbles, range 0-1)
-  - Animation speed control (optional)
-- **Key insights**:
-  - Population parameters are fixed but unknown to us
-  - Small changes in $\mu$ produce visually distinct distributions
-- **Comment box**: "This is the true population. In practice, we can't see this
-  directly—only samples from it."
-- **Implementation**: Matplotlib for visualization, ipywidgets Slider for
-  interactivity
-```
+  - **Purpose**: Give students a concrete visual representation of the unknown
+    population distribution
+  - **Display**:
+    - Animated visualization of a bin with marbles
+    - Marbles colored proportionally to the parameter $\mu$
+    - Real-time count of marble colors updated as slider changes
+  - **Interactive widget**:
+    - Slider for $\mu$ (true proportion of red marbles, range 0-1)
+    - Animation speed control (optional)
+  - **Key insights**:
+    - Population parameters are fixed but unknown to us
+    - Small changes in $\mu$ produce visually distinct distributions
+  - **Comment box**: "This is the true population. In practice, we can't see this
+    directly—only samples from it."
+  - **Implementation**: Matplotlib for visualization, ipywidgets Slider for
+    interactivity
+  ```
 
 # Formatting
 - Do not use non-ascii characters
