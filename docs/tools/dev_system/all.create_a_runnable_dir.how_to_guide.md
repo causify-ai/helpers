@@ -14,6 +14,7 @@
     - [9) Add the Dependency Lock Files to the Commit](#9-add-the-dependency-lock-files-to-the-commit)
     - [10) Release the Docker Image](#10-release-the-docker-image)
     - [11) Update and Release a New Version of the Image](#11-update-and-release-a-new-version-of-the-image)
+  - [Renaming or moving a runnable dir](#renaming-or-moving-a-runnable-dir)
 
 <!-- tocstop -->
 
@@ -339,3 +340,16 @@ dependencies
 ```
 
 6. Release the images to remote registries
+
+## Renaming or moving a runnable dir
+
+- A runnable directory can be renamed or moved up or down the directory hierarchy
+  freely. Configuration such as `repo_config.yaml`, Docker
+  image name, registry settings, and `dev_scripts_<dir_suffix>` stay the same and
+  do not need to change.
+- If you want to change that configuration as well (e.g., a new `dir_suffix` or
+  `docker_image_name`, ...etc), treat it as a new runnable dir and follow this guide from
+  step 1.
+- After a rename or move, make sure symbolic links to files in `helpers_root` (and
+  other linked template dirs) still work. If they break, re-run `create_links.py`
+  as in steps 4 and 5.
