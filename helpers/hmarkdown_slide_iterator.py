@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown_lesson_iterator as hmaleite
+import helpers.hmarkdown_slide_iterator as hmaslite
 """
 
 import logging
