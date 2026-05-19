@@ -1,5 +1,23 @@
 - This file contains all the conventions and rules to write unit tests
 
+# Test Design
+
+## Test One Thing
+- A test class tests only one function or class; a test method tests only one
+  case
+- Keeps failures easy to diagnose — one thing broken means one test fails
+
+## Keep Tests Self-Contained
+- Each test must be independent and never assume execution order
+- Specify input data explicitly inside the test; do not rely on shared state
+
+## Test From the Outside-In
+- Start with public-facing behavior before internal helpers
+- Interface-level tests survive refactors; implementation-level tests do not
+
+## Keep Testing Code in Sync with Tested Code
+- When renaming a tested class or file, rename the test class and test file
+
 # Test Coverage
 
 ## What to Test
@@ -16,6 +34,35 @@
 
 - For a source file `<module_name>.py`, the corresponding test file is
   `test/test_<module_name>.py`
+- Start with one file per directory (`test_<dirname>.py`); split into
+  per-module files (`test_<module>.py`) only when the single file grows too large
+
+## Directory Structure
+- Golden files: `test/outcomes/<TestClass.test_method>/output/test.txt`
+- Ephemeral scratch: `test/scratch/<TestClass.test_method>/` — automatically deleted
+  by `hunitest.TestCase.tearDown()`; do not delete it explicitly in test code
+
+## Directory Helpers
+- All path helpers are methods on `hunitest.TestCase`; paths are scoped to the
+  running class and method automatically
+
+  | Method | Returns |
+  |--------|---------|
+  | `get_input_dir()` | Local path for static fixtures checked into git |
+  | `get_output_dir()` | Local path for golden files (managed by `check_string`) |
+  | `get_scratch_space()` | Local ephemeral dir, auto-deleted after the test by `tearDown()` |
+  | `get_s3_scratch_dir()` | S3 path for large temporary data, unique per user/server/test |
+  | `get_s3_input_dir()` | S3 path for fixtures too large to commit to git |
+
+## Use Text Files, Not Pickle
+- Prefer CSV / plain text fixtures over pickle
+- Pickle is not stable across library versions and not human-readable
+- Document how generated test data was produced
+
+## Keep Test Data Small
+- Use the smallest dataset that exercises the case
+- Never commit fixtures larger than a few kilobytes
+
 
 ## Unit Test Code Structure
 
@@ -318,6 +365,14 @@
 
 ## Setup and Teardown
 
+- Use `set_up_test()` / `tear_down_test()` via `@pytest.fixture(autouse=True)` for
+  per-method setup; never override `setUp()` / `tearDown()` directly
+- For inherited test classes that both need setup, add a numeric suffix:
+  - Parent: `set_up_test()` / `tear_down_test()`
+  - Child: `set_up_test2()` / `tear_down_test2()` — must call parent hooks
+  - Next level: `set_up_test3()`, etc.
+- Use `setUpClass` / `tearDownClass` only for expensive one-time class-scoped
+  setup (DB connection, shared file); decorate with `@classmethod`
 - Use this idiom when multiple test methods need the same setup/teardown code:
   ```python
   class TestClassName(hunitest.TestCase):
@@ -496,6 +551,9 @@ line3
   self.assert_equal(actual, expected, dedent=True)
   ```
 
+- Do not use `hdbg.dassert` — it guards production invariants and is not a
+  substitute for test assertions; use `self.assert*` family instead
+
 ## Testing Exceptions
 
 - Full exception testing with message verification:
@@ -565,3 +623,28 @@ line3
   ```python
   self.check_string(actual, fuzzy_match=True)
   ```
+
+# Mocking
+
+## Mock Only External Dependencies
+- Mock only 3rd-party providers, cloud infra (AWS/S3), databases, and external
+  APIs — never internal helpers
+- Mock the external library, not our internal wrapper on top of it
+
+## Mock at the Call Site
+- Patch where the symbol is **looked up**, not where it is defined:
+  `@umock.patch.object(calling_module.dep, "method")`
+
+## Class-Level Patches
+- Declare `umock.patch.object(...)` as a class attribute; `start()` / `stop()`
+  in `set_up_test()` / `tear_down_test()` so the same patch is reused per test
+
+## Mock AWS / S3 via `S3Mock_TestCase`
+- Inherit from `hmoto.S3Mock_TestCase` for in-process S3 mocking via `moto`
+- `moto` must be imported before `boto3`; `hmoto.py` enforces this
+- Each test gets a fresh bucket named `self.bucket_name`
+
+## Capture System Calls
+- `hunteuti.capture_system_calls()` intercepts `subprocess.run` and
+  `helpers.hsystem._system()` without running any shell command; pass
+  `side_effect=RuntimeError` to simulate failures

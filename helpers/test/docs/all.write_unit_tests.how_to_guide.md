@@ -115,6 +115,7 @@
 
 #### Test one thing
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#test-one-thing)
 - A good unit test tests only one thing
   - A test class should test only one function / class
   - A test method should only test a single case (e.g., "for these inputs the
@@ -125,6 +126,7 @@
 
 #### Keep tests self-contained
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#keep-tests-self-contained)
 - A unit test should be independent of all other unit tests
 - Each test should be self-sufficient
 - One should never assume that unit tests will be executed in a particular order
@@ -174,6 +176,7 @@
 
 #### Test from the outside-in
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#test-from-the-outside-in)
 - Prefer testing end-to-end behaviors first, rather than starting with internal
   implementation details.
 - This helps focus tests on what the system should do, not how it's implemented.
@@ -188,6 +191,7 @@
 
 #### Naming and placement conventions
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#naming-conventions-for-a-function)
 - We follow conventions that happen to be mostly the default to `pytest`
 
 - A directory `test` contains all the test code and artifacts
@@ -252,6 +256,7 @@
 
 #### Testing code layout
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#directory-structure)
 - The layout of a test dir should look like:
   ```bash
   > ls -1 helpers/test/
@@ -269,6 +274,7 @@
 
 #### Our framework to test using input / output data
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#directory-helpers)
 - [`/helpers/hunit_test.py`](/helpers/hunit_test.py) has some utilities to
   easily create input and output dirs storing data for unit tests
 - `hunitest.TestCase` has various methods to help you create dirs
@@ -466,6 +472,7 @@ sequenceDiagram
 
 #### Use text and not pickle files as input/outputs
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#use-text-files-not-pickle)
 - The problems with pickle files are the usual ones
   - Pickle files are not stable across different versions of libraries
   - Pickle files are not human-readable
@@ -479,6 +486,7 @@ sequenceDiagram
 
 #### Small testing data is best
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#keep-test-data-small)
 - Use a subset of the input data
 
 - The smaller, the better for everybody
@@ -492,6 +500,7 @@ Last review: GP on 2024-05-13
 
 #### `check_string` vs `self.assertEqual`
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#use-golden-file-testing-for-large-outputs)
 - Use `self.assert_equal()` when you expect a simple, small string comparison.
 - Use `self.check_string()` when:
   - The expected string is too large to inline in code.
@@ -503,6 +512,7 @@ Last review: GP on 2024-05-13
 
 #### Use `self.assert_equal()`
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#assertion-patterns)
 - This is a function that helps you understand what the mismatches are
 - It works on `str`
 
@@ -555,6 +565,8 @@ Last review: GP on 2024-05-13
   ```
 
 #### Use consistent comments in test methods
+
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#use-three-sections-in-testing-methods)
 
 We strongly encourage adding short, consistent comments at the start of each
 main action within your test methods to establish a unified structure:
@@ -620,6 +632,7 @@ test code.
 
 #### Use the appropriate `self.assert*`
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#assertion-patterns)
 - When you get a failure, you don't want to get something like "True is not
   False", rather an informative message like "5 is not < 4"
 - Bad `self.assertTrue(a < b)`
@@ -627,6 +640,7 @@ test code.
 
 #### Do not use `hdbg.dassert` in testing
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#assertion-patterns)
 - `dassert`s are for checking the self-consistency of the code
 - The invariant is that you can remove `dbg.dassert` without changing the code's
   behavior. Of course, you can't remove the assertion and get unit tests to work
@@ -668,6 +682,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 #### Use strings to compare output instead of data structures
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#use-an-expected-output)
 - Often, it's easier to do a check like:
 
   ```python
@@ -693,6 +708,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 #### Use `self.check_string()` for things that we care about not changing (or are too big to have as strings in the code)
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#use-golden-file-testing-for-large-outputs)
 - Use `self.assert_equal()` for things that should not change (e.g., 1 + 1 = 2)
 - When using `check_string` still try to add invariants that force the code to
   be correct
@@ -733,6 +749,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 #### Use set_up_test / tear_down_test
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#setup-and-teardown)
 - If you have a lot of repeated code in your tests, you can make them shorter by
   moving this code to `set_up_test/tear_down_test` methods:
   - These methods are our preferred alternative to `setUp()` and `tearDown()`
@@ -801,6 +818,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 #### Nested set_up_test / tear_down_test
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#setup-and-teardown)
 - In nested inheritance:
   - The parent class uses `set_up_test()` / `tear_down_test()`.
   - The child class uses `set_up_test2()` / `tear_down_test2()`, calling its
@@ -1075,6 +1093,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 #### Use setUpClass / tearDownClass
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#setup-and-teardown)
 - If you need some expensive code parts to be done once for the whole test
   class, such as opening a database connection, opening a temporary file on the
   filesystem, loading a shared library for testing, etc., you can use
@@ -1109,6 +1128,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 ## Environment-conditional test skipping
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#environment-conditional-skipping)
 - Sometimes a test is only valid in a specific environment (CI, macOS, a
   specific repo). Rather than relying on `pytest.mark.skipif` with hand-rolled
   predicates, use the helpers in
@@ -1146,6 +1166,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 ## Update test tags
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#update-test-tags)
 - In the root of each repo there is a `pytest.ini` file with the list of tests'
   tags
 - In order to update the tags:
@@ -1163,6 +1184,8 @@ self.assert_equal(act, exp, fuzzy_match=True)
   [unit test mock](https://docs.python.org/3/library/unittest.mock.html)
 
 ### Our Philosophy about mocking
+
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#mocking)
 
 #### Mock only external dependencies
 
@@ -1484,6 +1507,7 @@ datetime_patch = umock.patch.object(imvcdeexut, "datetime", spec=imvcdeexut.date
 
 ### Mocking AWS / S3
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#mock-aws--s3-via-s3mock_testcase)
 - Use `hmoto.S3Mock_TestCase` (from
   [`/helpers/hmoto.py`](/helpers/hmoto.py)) to replace real AWS S3 calls with
   an in-process mock backed by the `moto` library
@@ -1515,6 +1539,7 @@ datetime_patch = umock.patch.object(imvcdeexut, "datetime", spec=imvcdeexut.date
 
 ### Capturing system calls
 
+- See [`testing.rules.md`](/.claude/skills/testing.rules.md#capture-system-calls)
 - `hunteuti.capture_system_calls()` is a context manager that intercepts
   `subprocess.run()` and `helpers.hsystem._system()` without actually running
   any shell command
