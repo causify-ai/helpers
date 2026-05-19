@@ -151,7 +151,7 @@ class Test_get_target_headers(hunitest.TestCase):
         :param expected_titles: Expected header titles
         """
         actual = dshdsumd._get_target_headers(
-            all_headers, md_level=md_level, start=start, end=end
+            all_headers, md_level=md_level, md_start=start, md_end=end
         )
         self.assertEqual(len(actual), expected_count)
         if expected_titles:
@@ -296,7 +296,7 @@ class Test_get_target_headers(hunitest.TestCase):
         md_level = 3
         with self.assertRaises(AssertionError):
             dshdsumd._get_target_headers(
-                all_headers, md_level=md_level, start=None, end=None
+                all_headers, md_level=md_level, md_start=None, md_end=None
             )
 
 
@@ -428,7 +428,6 @@ class Test_extract_section(hunitest.TestCase):
         md_level = 1
         expected = hprint.dedent("""
         # Chapter 1
-
 
         ## Section 1.1
         Content 1.1
