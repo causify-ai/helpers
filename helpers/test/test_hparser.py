@@ -835,10 +835,3 @@ class Test_to_file(hunitest.TestCase):
         with open(file_path, "r") as f:
             written = f.read()
         self.assertEqual(written, "new content")
-
-
-# #############################################################################
-# Test_extract_rule_from_file
-# #############################################################################
-
-

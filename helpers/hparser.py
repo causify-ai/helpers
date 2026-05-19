@@ -1225,8 +1225,6 @@ def add_llm_prompt_arg(
     return parser
 
 
-
-
 def add_llm_args(
     parser: argparse.ArgumentParser,
     *,

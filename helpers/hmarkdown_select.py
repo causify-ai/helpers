@@ -235,7 +235,9 @@ def extract_rule_from_file(rule_spec: str) -> str:
     parts = rule_spec.split(":", 2)
     file_path = parts[0]
     # Check file exists.
-    hdbg.dassert_file_exists(file_path, "Rule file does not exist: %s", file_path)
+    hdbg.dassert_file_exists(
+        file_path, "Rule file does not exist: %s", file_path
+    )
     # Read file content.
     content = hio.from_file(file_path)
     lines = content.splitlines()
