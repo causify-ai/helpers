@@ -251,15 +251,23 @@
   - Check that you can view and access the container package at
     [https://github.com/orgs/causify-ai/packages/](https://github.com/orgs/causify-ai/packages/).
     If not, ask an admin to add you to the `dev_releasers` group
-  - Create a GitHub personal access token (classic) at
+  - Create a GitHub personal access token at
     [https://github.com/settings/tokens](https://github.com/settings/tokens)
     (**Generate new token**) with at least **`read:packages`** and
     **`write:packages`** scopes so you can pull from and push to the GHCR
     container registry
+  - **`dev` vs `dev-<version>` tags**
+    - The floating **`dev`** tag (e.g., `<image_name>:dev`) is what CI pipelines
+      pull from GHCR
+    - It is good practice to also push a versioned tag (e.g.,
+      `<image_name>:dev-1.0.0`) so you can pin, roll back, or reproduce a
+      specific release without relying on the moving `dev` tag
   ```bash
   > docker login ghcr.io -u <username> -p <personal_access_token>
   > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/<image_name>:dev ghcr.io/causify-ai/<image_name>:dev
+  > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/<image_name>:dev ghcr.io/causify-ai/<image_name>:dev-<version>
   > docker push ghcr.io/causify-ai/<image_name>:dev
+  > docker push ghcr.io/causify-ai/<image_name>:dev-<version>
   ```
 
 ### 11) Update and Release a New Version of the Image
