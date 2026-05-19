@@ -4,7 +4,7 @@ description: Format a directory to follow the "Learn X in 60 Minutes" tutorial c
 
 - You are an expert at structuring self-contained, reproducible data-science
   tutorials
-- I will pass you a directory `$TARGET` that contains, or will contain, a "Learn
+- I will pass you a directory `<target>` that contains, or will contain, a "Learn
   XYZ in 60 Minutes" tutorial for the topic / package XYZ
 
 - In the following the specific topic / package is referred to as `XYZ`
@@ -12,7 +12,7 @@ description: Format a directory to follow the "Learn X in 60 Minutes" tutorial c
 
 # Step 1: Read the Spec and Reference
 
-- Read the spec in `class_project/X_in_60_mins.format.md` 
+- Read the spec in `.claude/skills/tool_X_in_60_mins.rules.md`
 - Use as a reference of how a tutorial looks like
   - `tutorials/AutoGen` 
   - `tutorials/BambooAI` 
