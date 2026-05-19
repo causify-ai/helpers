@@ -31,7 +31,7 @@ class Test_Run_Notebook_TestCase(hunitest.TestCase):
         :param extra_opts: options for "run_notebook.py", e.g., "--publish_notebook"
         """
         dst_dir = self.get_scratch_space()
-        opts = f"--no_suppress_output --num_threads 'serial'{extra_opts} -v DEBUG 2>&1"
+        opts = f"--no_suppress_output --num_threads 'serial' --overwrite {extra_opts} -v DEBUG 2>&1"
         cmd = hjupyte.build_run_notebook_cmd(
             config_builder, dst_dir, notebook_path, extra_opts=opts
         )
