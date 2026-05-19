@@ -133,7 +133,7 @@
     - `convert_epub_to_md.py`: Converts EPUB to Markdown
     - `convert_pdf_to_md.py`: Converts PDF to Markdown
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
-    - `extract_text_from_txt.py`: Extracts text content from various document
+    - `extract_from_md.py`: Extracts text content from various document
       formats
     - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt
       slides, and Jupyter notebook files for navigation
@@ -529,7 +529,7 @@ The `--md_start` and `--md_end` parameters control which part of the markdown to
 
 The `--md_end "END"` special value is useful for reading from a starting section all the way to the end of the document.
 
-## `extract_text_from_txt.py`
+## `extract_from_md.py`
 
 ### What It Does
 - Extract text content from various document formats
@@ -539,7 +539,7 @@ The `--md_end "END"` special value is useful for reading from a starting section
 ### Examples
 - Extract text from a document
   ```bash
-  > extract_text_from_txt.py -i document.md -o output.txt
+  > extract_from_md.py -i document.md -o output.txt
   ```
 
 ## `convert_png_dir_to_movie.py`

@@ -22,22 +22,22 @@ For `.md` files, headers can be specified as:
 
 Examples:
 # Extract text between two headers (full format)
-> extract_text_from_txt.py -i input.md --md_start "## Section 1" --md_end "## Section 2" -o output.txt
+> extract_from_md.py -i input.md --md_start "## Section 1" --md_end "## Section 2" -o output.txt
 
 # Extract text using partial header match
-> extract_text_from_txt.py -i input.md --md_start "Section 1" --md_end "Section 2" -o output.txt
+> extract_from_md.py -i input.md --md_start "Section 1" --md_end "Section 2" -o output.txt
 
 # Extract text from "## Section 1" until the next level-2 header
-> extract_text_from_txt.py -i input.md --md_start "## Section 1" -o output.txt
+> extract_from_md.py -i input.md --md_start "## Section 1" -o output.txt
 
 # Extract text and print to stdout
-> extract_text_from_txt.py -i input.md --md_start "Chapter 1" --md_end "Chapter 2" -o -
+> extract_from_md.py -i input.md --md_start "Chapter 1" --md_end "Chapter 2" -o -
 
 # Extract text between slides in a .txt file (using slide notation)
-> extract_text_from_txt.py -i input.txt --md_start "* Slide 1" --md_end "* Slide 2" -o output.txt
+> extract_from_md.py -i input.txt --md_start "* Slide 1" --md_end "* Slide 2" -o output.txt
 
 # Extract text from a slide until next same-level slide (no explicit end)
-> extract_text_from_txt.py -i input.txt --md_start "* Introduction" -o output.txt
+> extract_from_md.py -i input.txt --md_start "* Introduction" -o output.txt
 """
 
 import argparse

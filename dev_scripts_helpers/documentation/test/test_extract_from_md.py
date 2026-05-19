@@ -212,13 +212,13 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_extract_text_from_txt_script1
+# Test_extract_from_md_script1
 # #############################################################################
 
 
-class Test_extract_text_from_txt_script1(hunitest.TestCase):
+class Test_extract_from_md_script1(hunitest.TestCase):
     """
-    Test extract_text_from_txt script functionality.
+    Test extract_from_md script functionality.
     """
 
     def _create_test_input_file(self) -> None:
@@ -272,7 +272,7 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
         :return: output content
         """
         in_file = os.path.join(self.get_input_dir(), input_file)
-        script_path = hgit.find_file_in_git_tree("extract_text_from_txt.py")
+        script_path = hgit.find_file_in_git_tree("extract_from_md.py")
         #
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         cmd = f"{script_path} -i {in_file} -o {out_file} {args}"
@@ -389,13 +389,13 @@ class Test_extract_text_from_txt_script1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test__extract_text_from_txtslides
+# Test__extract_from_md_slides
 # #############################################################################
 
 
-class Test__extract_text_from_txtslides(hunitest.TestCase):
+class Test__extract_from_md_slides(hunitest.TestCase):
     """
-    Test _extract_text_from_txtslides function with slide notation.
+    Test _extract_from_md_slides function with slide notation.
     """
 
     @staticmethod
