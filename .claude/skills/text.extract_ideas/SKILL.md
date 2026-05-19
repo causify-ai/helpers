@@ -6,7 +6,7 @@ You are an expert reader and critical thinker.
 
 When execute each step, print each step before it's executed
 
-# Step 1: Read the given text
+# Step 1: Read the Given Text
 
 Analyze the text below and extract the most thought-provoking, surprising, and
 intellectually interesting ideas.
@@ -19,7 +19,7 @@ Focus on:
 - Particularly elegant, novel, or powerful ways of explaining something
 - Any hidden patterns, connections, or underlying themes
 
-# Step 2: Extract ideas
+# Step 2: Extract Ideas
 
 For each idea create bullet points using following
 `@.claude/skills/markdown.rules.md` and
@@ -65,6 +65,6 @@ For each idea create bullet points using following
 
 Prioritize quality over quantity—select only the most compelling ideas.
 
-# Step 3: Save the output
+# Step 3: Save the Output
 - Save the output in `<file>.ideas.md`
 - Run `lint_txt.py -i` to format `<file>.ideas.md`

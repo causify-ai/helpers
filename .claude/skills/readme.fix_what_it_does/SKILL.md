@@ -32,6 +32,7 @@ E.g.,
   ```bash
   > ./run_jupyter.sh
   ```
+
 ````
 
   to
@@ -41,4 +42,5 @@ E.g.,
   ```bash
   > ./run_jupyter.sh
   ```
+
 ````

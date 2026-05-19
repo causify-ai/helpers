@@ -58,6 +58,7 @@ description: Write a README.md for a directory with sections for structure, file
       ```bash
       > actual command here
       ```
+
   ````
 
 - For instance
@@ -67,6 +68,7 @@ description: Write a README.md for a directory with sections for structure, file
     ```bash
     > ./generate_class_images.py "A sunset over mountains" --dst_dir ./images
     ```
+
   ````
 
 - Examples of this file are:

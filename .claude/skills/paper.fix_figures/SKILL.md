@@ -46,7 +46,7 @@ description: Fix figures in a LaTeX paper by ensuring every figure has a label, 
   % render_images:end
   ````
 
-# Create Labels and Captions from Scratch
+# Create Labels and Captions From Scratch
 
 - If a figure has no caption or label, infer them from the filename and
   surrounding context

@@ -8,7 +8,7 @@ papers
   ```
 - If there are more than one author use `et al`
 
-# Format to use in File Names
+# Format to Use in File Names
 
 - Convert the name of a file (book or paper) into a standard format without
   characters that are unfriendly for Linux (e.g., spaces, `.` `/`, `\`) converting

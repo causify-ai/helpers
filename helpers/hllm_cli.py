@@ -85,7 +85,7 @@ def shutup_llm_logging() -> None:
     """
     # OpenAI client logging.
     logging.getLogger("openai").setLevel(logging.WARNING)
-    # Common HTTP logging sources
+    # Common HTTP logging sources.
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -104,10 +104,10 @@ def _check_llm_executable() -> bool:
     """
     try:
         hsystem.system("which llm", suppress_output=True)
-        _LOG.debug("llm command found")
+        _LOG.debug("llm command found.")
         return True
     except Exception:
-        _LOG.debug("llm command not found")
+        _LOG.debug("llm command not found.")
         return False
 
 
@@ -155,8 +155,9 @@ def _apply_llm_via_executable(
         proc.wait()
         if proc.returncode != 0:
             error_msg = proc.stderr.read() if proc.stderr else ""
-            hdbg.dfatal(
-                f"llm command failed with return code: {proc.returncode} error: {error_msg}"
+            raise RuntimeError(
+                "llm command failed with return code: %s error: %s"
+                % (proc.returncode, error_msg)
             )
         response = "".join(response_parts)
     else:
@@ -259,6 +260,31 @@ def _apply_llm_via_library(
 # Main functions
 # #############################################################################
 
+# Overview of `apply_llm*` functions:
+# - `apply_llm()`
+#   - Core function for processing a single input string with an LLM
+#   - Can use CLI executable or library backend
+#   - Returns the response and cost
+# - `apply_llm_with_files()`
+#   - Convenience wrapper around `apply_llm()` that reads from an input file,
+#     processes it, and writes the result to an output file
+# - `apply_llm_batch_individual()`
+#   - Process multiple inputs by making individual LLM calls for each input
+#     with the same system prompt
+#   - Each call is independent
+# - `apply_llm_batch_with_shared_prompt()`
+#   - Process multiple inputs by maintaining a single conversation context
+#     across all inputs (more efficient for related queries)
+# - `apply_llm_batch_combined()`
+#   - Process multiple inputs by combining them into a single LLM call
+#     expecting structured JSON output
+#   - Most efficient but requires careful prompt engineering for proper JSON
+#     formatting
+# - `apply_llm_prompt_to_df()`
+#   - Apply an LLM to process rows from a pandas dataframe, with results stored
+#     in a target column
+#   - Supports all three batch modes and incremental progress saving
+
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def apply_llm(
@@ -294,7 +320,11 @@ def apply_llm(
         hdbg.dassert_ne(model, "", "Model cannot be empty string")
     if expected_num_chars is not None:
         hdbg.dassert_isinstance(expected_num_chars, int)
-        hdbg.dassert_lt(0, expected_num_chars)
+        hdbg.dassert_lt(
+            0,
+            expected_num_chars,
+            "Expected number of characters must be positive",
+        )
     _LOG.debug("Applying LLM to input text")
     _LOG.debug("use_llm_executable=%s", use_llm_executable)
     # Route to appropriate implementation.
@@ -311,6 +341,8 @@ def apply_llm(
             expected_num_chars=expected_num_chars,
         )
     else:
+        # Check that llm library is available.
+        hdbg.dassert(_LLM_AVAILABLE, "llm library not found")
         response, cost = _apply_llm_via_library(
             input_str,
             system_prompt=system_prompt,
@@ -386,8 +418,8 @@ def _validate_batch_inputs(
     :param input_list: List of inputs to validate
     :raises: Assertion errors if validation fails
     """
-    hdbg.dassert_isinstance(prompt, str)
-    hdbg.dassert_isinstance(input_list, list)
+    hdbg.dassert_isinstance(prompt, str, "Prompt must be a string")
+    hdbg.dassert_isinstance(input_list, list, "Input list must be a list")
     hdbg.dassert_lt(0, len(input_list), "Input list cannot be empty")
     for idx, input_str in enumerate(input_list):
         hdbg.dassert_isinstance(
@@ -413,20 +445,16 @@ def _llm(
     """
     Apply LLM using the llm Python library.
 
+    :param system_prompt: system prompt to guide the LLM's behavior
     :param input_str: the input text to process
-    :param system_prompt: optional system prompt to use
-    :param model: optional model name to use
-    :param expected_num_chars: optional expected number of characters in
-        output (used for progress bar)
-    :return: LLM response as string
+    :param model: model name to use
+    :return: tuple of (LLM response as string, cost in dollars)
     """
-    hdbg.dassert_isinstance(system_prompt, str)
+    hdbg.dassert_isinstance(system_prompt, str, "System prompt must be a string")
     _LOG.trace("system_prompt=\n%s", system_prompt)
-    #
-    hdbg.dassert_isinstance(input_str, str)
+    hdbg.dassert_isinstance(input_str, str, "Input string must be a string")
     _LOG.trace("input_str=\n%s", input_str)
-    #
-    hdbg.dassert_isinstance(model, str)
+    hdbg.dassert_isinstance(model, str, "Model must be a string")
     hdbg.dassert_ne(model, "", "Model cannot be empty")
     llm_model = llm.get_model(model)
     _LOG.debug("model=%s", llm_model.model_id)
@@ -504,7 +532,14 @@ def apply_llm_batch_individual(
     progress_bar_object: Optional[tqdm] = None,
 ) -> Tuple[List[str], float]:
     """
-    Apply an LLM to process a batch of inputs one at the time.
+    Apply an LLM to process a batch of inputs one at a time.
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input strings to process
+    :param model: model name to use
+    :param testing_functor: optional testing function to use instead of LLM
+    :param progress_bar_object: optional progress bar object to update
+    :return: tuple of (list of responses, total cost in dollars)
     """
     _validate_batch_inputs(prompt, input_list)
     _LOG.debug("Processing batch of %d inputs individually", len(input_list))
@@ -523,6 +558,7 @@ def apply_llm_batch_individual(
         responses.append(response)
         if progress_bar_object is not None:
             progress_bar_object.update(1)
+            progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
     _LOG.debug("Batch processing completed")
     _LOG.debug("Total cost for batch with individual prompt: $%.6f", total_cost)
     return responses, total_cost
@@ -538,6 +574,13 @@ def apply_llm_batch_with_shared_prompt(
 ) -> Tuple[List[str], float]:
     """
     Apply an LLM to process a batch of input texts using the same system prompt.
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input strings to process
+    :param model: model name to use
+    :param testing_functor: optional testing function to use instead of LLM
+    :param progress_bar_object: optional progress bar object to update
+    :return: tuple of (list of responses, total cost in dollars)
     """
     _validate_batch_inputs(prompt, input_list)
     _LOG.debug("Processing batch of %d inputs", len(input_list))
@@ -560,6 +603,7 @@ def apply_llm_batch_with_shared_prompt(
             responses.append(response)
             if progress_bar_object is not None:
                 progress_bar_object.update(1)
+                progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
     else:
         for input_str in input_list:
             response = testing_functor(input_str)
@@ -660,6 +704,9 @@ def apply_llm_batch_combined(
                 _LOG.debug("Successfully parsed JSON response")
                 if progress_bar_object is not None:
                     progress_bar_object.update(len(input_list))
+                    progress_bar_object.set_postfix_str(
+                        f"Cost: ${total_cost:.4f}"
+                    )
                 _LOG.debug(
                     "Total cost for batch with combined prompt: $%.6f",
                     total_cost,
@@ -673,8 +720,9 @@ def apply_llm_batch_combined(
                     e,
                 )
                 if retry_num == max_retries - 1:
-                    hdbg.dfatal(
-                        "Failed to parse JSON after %d retries", max_retries
+                    raise ValueError(
+                        "Failed to parse JSON after %d retries: %s"
+                        % (max_retries, str(e))
                     )
                 # Add instruction to retry.
                 combined_prompt += "\n\nPrevious response had invalid JSON format. Please return ONLY a valid JSON object."
@@ -696,7 +744,15 @@ def apply_llm_batch_combined(
 
 # TODO(gp): Move it somewhere else.
 def get_tqdm_progress_bar() -> tqdm:
-    # Use appropriate tqdm for notebook or terminal
+    """
+    Get the appropriate tqdm progress bar class for the current environment.
+
+    Detects whether running in a Jupyter notebook or terminal and returns
+    the corresponding `tqdm` class (`tqdm.notebook.tqdm` or `tqdm`).
+
+    :return: tqdm class appropriate for the current environment
+    """
+    # Use appropriate tqdm for notebook or terminal.
     try:
         from IPython import get_ipython
 
@@ -709,6 +765,199 @@ def get_tqdm_progress_bar() -> tqdm:
     except ImportError:
         tqdm_progress = tqdm
     return tqdm_progress
+
+
+def _call_batch_processor(
+    batch_mode: str,
+    prompt: str,
+    batch_items: List[str],
+    model: str,
+    testing_functor: Optional[Callable[[str], str]],
+    progress_bar_object: Optional[tqdm],
+) -> Tuple[List[str], float]:
+    """
+    Call the appropriate batch processor based on batch_mode.
+
+    :param batch_mode: batch mode to use (individual, shared_prompt, combined)
+    :param prompt: system prompt to guide the LLM's behavior
+    :param batch_items: list of input strings to process
+    :param model: model name to use
+    :param testing_functor: optional testing functor to use instead of LLM
+    :param progress_bar_object: optional progress bar object to update
+    :return: tuple of (list of responses, cost in dollars)
+    """
+    if batch_mode == "individual":
+        func = apply_llm_batch_individual
+    elif batch_mode == "shared_prompt":
+        func = apply_llm_batch_with_shared_prompt
+    elif batch_mode == "combined":
+        func = apply_llm_batch_combined
+    else:
+        hdbg.dfatal("Invalid batch mode: %s", batch_mode)
+    batch_responses, batch_cost = func(
+        prompt=prompt,
+        input_list=batch_items,
+        model=model,
+        testing_functor=testing_functor,
+        progress_bar_object=progress_bar_object,
+    )
+    return batch_responses, batch_cost
+
+
+def _process_batches(
+    values: List[str],
+    batch_size: int,
+    prompt: str,
+    batch_mode: str,
+    model: str,
+    testing_functor: Optional[Callable[[str], str]],
+    progress_bar_object: Optional[tqdm],
+    num_batches: int,
+) -> Tuple[List[str], int, float]:
+    """
+    Process a sequence of values in batches and return LLM results.
+
+    :param values: list of values to process
+    :param batch_size: number of items to process in each batch
+    :param prompt: system prompt to guide the LLM's behavior
+    :param batch_mode: batch mode to use (individual, shared_prompt, combined)
+    :param model: model name to use
+    :param testing_functor: optional functor to use for testing
+    :param progress_bar_object: optional progress bar object to update
+    :param num_batches: total number of batches to process
+    :return: tuple of (list of results, number of skipped items, total cost in dollars)
+    """
+    results = [""] * len(values)
+    num_skipped = 0
+    total_cost = 0.0
+    for batch_num in range(num_batches):
+        start_idx = batch_num * batch_size
+        end_idx = min(start_idx + batch_size, len(values))
+        batch_slice = values[start_idx:end_idx]
+        batch_items = []
+        batch_indices = []
+        for local_idx, value in enumerate(batch_slice):
+            global_idx = start_idx + local_idx
+            if value != "":
+                batch_items.append(value)
+                batch_indices.append(global_idx)
+            else:
+                results[global_idx] = ""
+                num_skipped += 1
+                if progress_bar_object is not None:
+                    progress_bar_object.update(1)
+                    progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
+        if batch_items:
+            _LOG.debug(
+                "Processing batch %d/%d (%d items, %d skipped)",
+                batch_num + 1,
+                num_batches,
+                len(batch_items),
+                len(batch_slice) - len(batch_items),
+            )
+            batch_responses, batch_cost = _call_batch_processor(
+                batch_mode=batch_mode,
+                prompt=prompt,
+                batch_items=batch_items,
+                model=model,
+                testing_functor=testing_functor,
+                progress_bar_object=progress_bar_object,
+            )
+            total_cost += batch_cost
+            if progress_bar_object is not None:
+                progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
+            for idx, response in zip(batch_indices, batch_responses):
+                results[idx] = response
+        else:
+            _LOG.debug(
+                "Skipping batch %d/%d (all %d items are empty)",
+                batch_num + 1,
+                num_batches,
+                len(batch_slice),
+            )
+    return results, num_skipped, total_cost
+
+
+# #############################################################################
+
+
+# TODO(gp): Merge this into _process_batches by extracting the things first
+# with extractor and the column in one shot.
+def _process_dataframe_batches(
+    df: pd.DataFrame,
+    batch_size: int,
+    extractor: Callable[[Union[str, pd.Series]], str],
+    target_col: str,
+    prompt: str,
+    batch_mode: str,
+    model: str,
+    testing_functor: Optional[Callable[[str], str]],
+    progress_bar_object: Optional[tqdm],
+    num_batches: int,
+) -> Tuple[int, float]:
+    """
+    Process dataframe batches and update target column with LLM results.
+
+    :param df: dataframe to process (modified in place)
+    :param batch_size: number of items to process in each batch
+    :param extractor: callable that extracts text from a row
+    :param target_col: name of column to store results
+    :param prompt: system prompt to guide the LLM's behavior
+    :param batch_mode: batch mode to use (individual, shared_prompt, combined)
+    :param model: model name to use
+    :param testing_functor: optional functor to use for testing
+    :param progress_bar_object: optional progress bar object to update
+    :param num_batches: total number of batches to process
+    :return: tuple of (number of skipped items, total cost in dollars)
+    """
+    num_skipped = 0
+    total_cost = 0.0
+    for batch_num in range(num_batches):
+        start_idx = batch_num * batch_size
+        end_idx = min(start_idx + batch_size, len(df))
+        rows = df.iloc[start_idx:end_idx]
+        batch_items = []
+        batch_indices = []
+        for idx, row in rows.iterrows():
+            extracted_text = extractor(row)
+            if extracted_text != "":
+                batch_items.append(extracted_text)
+                batch_indices.append(idx)
+            else:
+                df.at[idx, target_col] = ""
+                num_skipped += 1
+                if progress_bar_object is not None:
+                    progress_bar_object.update(1)
+                    progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
+        if batch_items:
+            _LOG.debug(
+                "Processing batch %d/%d (%d items, %d skipped)",
+                batch_num + 1,
+                num_batches,
+                len(batch_items),
+                len(rows) - len(batch_items),
+            )
+            batch_responses, batch_cost = _call_batch_processor(
+                batch_mode=batch_mode,
+                prompt=prompt,
+                batch_items=batch_items,
+                model=model,
+                testing_functor=testing_functor,
+                progress_bar_object=progress_bar_object,
+            )
+            total_cost += batch_cost
+            if progress_bar_object is not None:
+                progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
+            for idx, response in zip(batch_indices, batch_responses):
+                df.at[idx, target_col] = response
+        else:
+            _LOG.debug(
+                "Skipping batch %d/%d (all %d items have missing data)",
+                batch_num + 1,
+                num_batches,
+                len(rows),
+            )
+    return num_skipped, total_cost
 
 
 # TODO(gp): Skip values that already have a value in the target column.
@@ -775,7 +1024,6 @@ def apply_llm_prompt_to_df(
         batch_size,
     )
     _LOG.info(hprint.to_str("model batch_mode"))
-    num_skipped = 0
     progress_bar_ctor = get_tqdm_progress_bar()
     progress_bar_object = progress_bar_ctor(  # type: ignore
         total=num_items,
@@ -784,67 +1032,19 @@ def apply_llm_prompt_to_df(
         # Workaround for unit tests.
         file=sys.__stderr__ if use_sys_stderr else None,
     )
-    total_cost = 0.0
     # TODO(gp): Precompute the batch indices that needs to be processed.
-    for batch_num in range(num_batches):
-        # Get batch rows.
-        start_idx = batch_num * batch_size
-        end_idx = min(start_idx + batch_size, len(df))
-        rows = df.iloc[start_idx:end_idx]
-        # Extract items from rows, filtering out invalid ones.
-        batch_items = []
-        batch_indices = []
-        for idx, row in rows.iterrows():
-            extracted_text = extractor(row)
-            # Check if extraction returned valid text (not NaN/None/empty).
-            if extracted_text != "":
-                batch_items.append(extracted_text)
-                batch_indices.append(idx)
-            else:
-                # Set NaN for rows with missing company information.
-                df.at[idx, target_col] = ""
-                num_skipped += 1
-                progress_bar_object.update(1)
-        # Call LLM only if there are valid items in this batch.
-        if batch_items:
-            _LOG.debug(
-                "Processing batch %d/%d (%d items, %d skipped)",
-                batch_num + 1,
-                num_batches,
-                len(batch_items),
-                len(rows) - len(batch_items),
-            )
-            if batch_mode == "individual":
-                func = apply_llm_batch_individual
-            elif batch_mode == "shared_prompt":
-                func = apply_llm_batch_with_shared_prompt
-            elif batch_mode == "combined":
-                func = apply_llm_batch_combined
-            else:
-                hdbg.dfatal("Invalid batch mode: %s", batch_mode)
-            batch_responses, batch_cost = func(
-                prompt=prompt,
-                input_list=batch_items,
-                model=model,
-                testing_functor=testing_functor,
-                progress_bar_object=progress_bar_object,
-            )
-            # Update total_cost.
-            total_cost += batch_cost
-            # Store results back into dataframe.
-            for idx, response in zip(batch_indices, batch_responses):
-                df.at[idx, target_col] = response
-        else:
-            _LOG.debug(
-                "Skipping batch %d/%d (all %d items have missing data)",
-                batch_num + 1,
-                num_batches,
-                len(rows),
-            )
-        # Dump dataframe to file after batch if requested.
-        if dump_every_batch is not None:
-            _LOG.debug("Dumping dataframe to file: %s", dump_every_batch)
-            df.to_csv(dump_every_batch, index=False)
+    num_skipped, total_cost = _process_dataframe_batches(
+        df=df,
+        batch_size=batch_size,
+        extractor=extractor,
+        target_col=target_col,
+        prompt=prompt,
+        batch_mode=batch_mode,
+        model=model,
+        testing_functor=testing_functor,
+        progress_bar_object=progress_bar_object,
+        num_batches=num_batches,
+    )
     # Calculate elapsed time.
     elapsed_time = time.time() - start_time
     stats = {

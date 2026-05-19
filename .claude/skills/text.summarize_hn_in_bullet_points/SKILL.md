@@ -10,7 +10,7 @@ For bullet point formatting rules, refer to `@.claude/skills/text.rules.bullet_p
 - Given a pointer to a discussion on HackerNews in the form of a URL
   - E.g., https://news.ycombinator.com/item?id=47743628
 
-## Step 1: Summarize article
+## Step 1: Summarize Article
 
 - Summarize the main article in 5 bullet points
   ```
@@ -19,7 +19,7 @@ For bullet point formatting rules, refer to `@.claude/skills/text.rules.bullet_p
   - ...
   ```
 
-## Step 2: Summarize comments
+## Step 2: Summarize Comments
 
 - Analyze the Hacker News comment section for the linked article.
 

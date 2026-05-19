@@ -6,7 +6,7 @@ Given
 - a file passed from the user `<file>`
 - a number of slides passed from the user `<num_slides>`
 
-# Step 1: Extract the text
+# Step 1: Extract the Text
 - In the file `<file>` read the chunk between `<start>` and `<end>`
   - Make sure there is a single chunk of text
 

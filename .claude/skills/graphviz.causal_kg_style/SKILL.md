@@ -15,7 +15,7 @@ The resulting graph should allow a knowledgeable reader to
 
 Use color to distinguish variable types consistently.
 
-# Step 1: Generate DOT file
+# Step 1: Generate DOT File
 
 ## General Graph Rules
 
@@ -149,7 +149,7 @@ Use these colors consistently for node borders/fills:
   > open causal_graph.png
   ```
 
-# Step 4: Read the PNG file
+# Step 4: Read the PNG File
 
 - If an image was specified, read the PNG file
 - If the generated PNG image is very different from the input image:

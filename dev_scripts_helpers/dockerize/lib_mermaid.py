@@ -14,6 +14,7 @@ from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -64,6 +65,20 @@ EOL
 # Install mermaid.
 RUN npm install -g mermaid@{_MERMAID_NPM_VERSION} @mermaid-js/mermaid-cli@{_MERMAID_CLI_NPM_VERSION} && npm cache clean --force
 """
+
+
+def _find_puppeteer_config() -> str:
+    """
+    Find puppeteerConfig.json in the git repository.
+
+    Searches the git tree for the config file and returns the absolute path.
+
+    :return: path to puppeteerConfig.json
+    :raises AssertionError: if the file cannot be found in the git tree
+    """
+    config_path = hgit.find_file_in_git_tree("puppeteerConfig.json")
+    _LOG.debug(f"Found puppeteerConfig.json at: {config_path}")
+    return config_path
 
 
 def get_mermaid_container_image_name() -> str:
@@ -153,12 +168,14 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
+    # Find puppeteerConfig.json dynamically
+    puppeteer_config_file = _find_puppeteer_config()
     puppeteer_config_path = hdocker.convert_caller_to_callee_docker_path(
-        "puppeteerConfig.json",
+        puppeteer_config_file,
         caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
-        is_input=False,
+        is_input=True,
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
