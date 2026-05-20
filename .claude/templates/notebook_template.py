@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.3
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -28,10 +28,6 @@
 import logging
 
 # Third party libraries.
-import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # %%
 # Notebook-specific imports.
@@ -41,7 +37,6 @@ import matplotlib.pyplot as plt
 # %%
 # Local utility.
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hnotebook as hnotebook
 
 _LOG = logging.getLogger(__name__)

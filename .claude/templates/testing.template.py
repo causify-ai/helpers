@@ -6,6 +6,11 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_format_compressed_markdown1
+# #############################################################################
+
+
 class Test_format_compressed_markdown1(hunitest.TestCase):
     """
     Test the format_compressed_markdown function.

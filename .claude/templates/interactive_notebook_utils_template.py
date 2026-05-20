@@ -157,6 +157,7 @@ def cell2_interactive_distribution_explorer() -> None:
     # Create figure with single subplot.
     fig, ax = plt.subplots(figsize=(10, 6))
     plt.close()
+
     # Update function called when any widget changes.
     def _on_widget_change(change):
         """Handle widget value changes and update plot."""
@@ -171,6 +172,7 @@ def cell2_interactive_distribution_explorer() -> None:
         else:  # Statistics
             _create_statistics_text(ax, alpha, beta)
         fig.canvas.draw_idle()
+
     # Register callbacks for all widgets.
     alpha_slider.observe(_on_widget_change, names="value")
     beta_slider.observe(_on_widget_change, names="value")
@@ -234,6 +236,7 @@ def cell3_interactive_sample_generator() -> None:
     # Create figure with subplots.
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     plt.close()
+
     # Update function for generating samples and updating plots.
     def _on_sample_change(change):
         """Handle parameter changes and regenerate samples."""
@@ -286,6 +289,7 @@ def cell3_interactive_sample_generator() -> None:
             family="monospace",
         )
         fig.canvas.draw_idle()
+
     # Register callbacks.
     alpha_slider.observe(_on_sample_change, names="value")
     beta_slider.observe(_on_sample_change, names="value")
@@ -325,6 +329,7 @@ def cell4_mean_variance_heatmap() -> None:
     # Create figure for heatmap.
     fig, ax = plt.subplots(figsize=(10, 8))
     plt.close()
+
     # Update function for computing and displaying heatmap.
     def _on_stat_change(change):
         """Update heatmap based on selected statistic."""
@@ -339,9 +344,8 @@ def cell4_mean_variance_heatmap() -> None:
                 if stat_name == "Mean":
                     stat_grid[i, j] = alpha / (alpha + beta)
                 elif stat_name == "Variance":
-                    stat_grid[i, j] = (
-                        (alpha * beta)
-                        / ((alpha + beta) ** 2 * (alpha + beta + 1))
+                    stat_grid[i, j] = (alpha * beta) / (
+                        (alpha + beta) ** 2 * (alpha + beta + 1)
                     )
                 elif stat_name == "Skewness":
                     stat_grid[i, j] = scipy.stats.beta.stats(
@@ -368,6 +372,7 @@ def cell4_mean_variance_heatmap() -> None:
         cbar = plt.colorbar(im, ax=ax)
         cbar.set_label(stat_name, fontsize=11)
         fig.canvas.draw_idle()
+
     # Register callback.
     stat_dropdown.observe(_on_stat_change, names="value")
     # Display initial plot.
