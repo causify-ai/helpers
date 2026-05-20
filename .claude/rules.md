@@ -20,8 +20,7 @@ rule / conventions and templates
   - the template `.claude/templates/notebook_template.ipynb`
 
 - For interactive Jupyter notebooks (i.e., notebooks with `ipywidgets`) you
-  MUST follow
-  - the template `.claude/templates/interactive_notebook_template.ipynb`
+  MUST follow the templates `.claude/templates/interactive_notebook_template.ipynb`
     `.claude/templates/interactive_notebook_template_utils.py`
 
 ## Markdown

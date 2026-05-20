@@ -3,7 +3,7 @@ description: Implement Jupyter notebook from an outline description
 ---
 
 - Given the passed description for a Jupyter notebook in the format described in
-  `.claude/skills/notebook.outline.create/SKILL.md` implement the cells requested
+  `.claude/skills/notebook.create_outline/SKILL.md` implement the cells requested
   by the user
 
 # Conventions
@@ -31,7 +31,7 @@ description: Implement Jupyter notebook from an outline description
 
 # Format of Interactive Cells
 
-- The format is described in `.claude/skills/notebook.outline.create/SKILL.md`
+- The format is described in `.claude/skills/notebook.create_outline/SKILL.md`
   `# Format of Interactive Cell`
 
 # Reference Templates

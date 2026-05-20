@@ -5,12 +5,8 @@ description: Lint a Jupyter notebook to improve its appearance without changing 
 - Given a Jupyter notebook passed on the command line, you must improve its
   appearance without changing its behavior
 
-- Make sure to follow the rules in
-  `@.claude/skills/notebook.working_with_jupyter/SKILL.md`
+- You MUST follow the rules in `.claude/skills/notebook.rules.md` and
+  `.claude/skills/interactive_notebook.rules.md`
 
-- For interactive cells in the Jupyter notebook use the rules from
-  `@.claude/skills/notebook.interactive_cell.format/SKILL.md`
-
-# Important: Follow Conventions
-
-- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`
+- For interactive cells in the Jupyter notebook you MUST follow the rules from
+  `.claude/skills/interactive_notebook.format/SKILL.md`

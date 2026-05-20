@@ -48,4 +48,4 @@ description: Add a tutorial for lecture slides
     // - Compare discovery with vs. without constraints to measure impact
     ```
 - When creating the slides, follow the rules in
-  `helpers_root/.claude/skills/notebook.outline.create/SKILL.md`
+  `helpers_root/.claude/skills/notebook.create_outline/SKILL.md`
