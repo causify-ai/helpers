@@ -40,14 +40,12 @@ hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
 hnotebook.set_logger_to_print(_LOG)
 
 # %% [markdown]
-# # Cell 2: Interactive Distribution Explorer
+# # Cell 1: Interactive Distribution Explorer
 #
 # **Goal**:
 # - Visualize how distribution shape parameters ($\alpha$ and $\beta$) affect the Beta distribution
 # - Understand the relationship between parameters and key statistical properties
 # - Observe the probability density, cumulative distribution, and statistics simultaneously
-# - See real-time updates as you adjust parameters using interactive sliders
-# - Build intuition for how shape parameters control distribution behavior
 #
 # **Plots**:
 # - **Selected View** (first panel): Choose between three complementary views:
@@ -95,10 +93,10 @@ hnotebook.set_logger_to_print(_LOG)
 
 # %%
 # Create interactive widget to explore the Beta distribution.
-utils.cell2_interactive_distribution_explorer()
+utils.cell1_interactive_distribution_explorer()
 
 # %% [markdown]
-# # Cell 3: Interactive Sample Generator
+# # Cell 2: Interactive Sample Generator
 #
 # **Goal**:
 # - Understand sampling from the Beta distribution
@@ -126,4 +124,6 @@ utils.cell2_interactive_distribution_explorer()
 
 # %%
 # Create interactive widget to generate and visualize samples.
-utils.cell3_interactive_sample_generator()
+utils.cell2_interactive_sample_generator()
+
+# %%
