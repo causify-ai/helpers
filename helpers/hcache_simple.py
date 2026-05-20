@@ -120,6 +120,68 @@ def get_cache_debug() -> bool:
     return _CACHE_DEBUG
 
 
+# #############################################################################
+# Global caching on/off switch.
+# #############################################################################
+
+# When `False`, every `@simple_cache`-decorated call bypasses memory and disk
+# caches and executes the underlying function directly. This is a hard
+# override: it takes precedence over `_GLOBAL_CACHE_MODE`.
+_IS_CACHE_ENABLED: bool = True
+
+
+def enable_caching(val: bool) -> None:
+    """
+    Enable or disable all function caching globally.
+
+    When disabled, every `@simple_cache`-decorated function bypasses memory
+    and disk caches and executes the underlying function directly. This is a
+    hard override that takes precedence over `set_global_cache_mode()`.
+
+    :param val: `True` to enable caching, `False` to disable it
+    """
+    global _IS_CACHE_ENABLED
+    _LOG.warning("Setting caching %s -> %s", _IS_CACHE_ENABLED, val)
+    _IS_CACHE_ENABLED = val
+
+
+def is_caching_enabled() -> bool:
+    """
+    Return whether function caching is globally enabled.
+
+    :return: `True` if caching is enabled, `False` otherwise
+    """
+    return _IS_CACHE_ENABLED
+
+
+# #############################################################################
+# Clear-cache protection switch.
+# #############################################################################
+
+# When `False`, any call to `reset_cache()`, `reset_mem_cache()`, or
+# `reset_disk_cache()` raises a `RuntimeError`. This is a safety guard for
+# environments where accidental cache deletion would be expensive (e.g., a
+# production run with thousands of LLM calls already cached).
+_IS_CLEAR_CACHE_ENABLED: bool = True
+
+
+def enable_clear_cache(val: bool) -> None:
+    """
+    Enable or disable cache clearing globally.
+
+    When disabled, any call to `reset_cache()`, `reset_mem_cache()`, or
+    `reset_disk_cache()` raises a `RuntimeError`. Use this in production
+    environments to prevent accidental cache deletion.
+
+    :param val: `True` to allow clearing, `False` to block it
+    """
+    global _IS_CLEAR_CACHE_ENABLED
+    _LOG.warning(
+        "Setting clear_cache %s -> %s", _IS_CLEAR_CACHE_ENABLED, val
+    )
+    _IS_CLEAR_CACHE_ENABLED = val
+
+
 def sanity_check_function_cache(
     func_cache_data: _FunctionCacheType, *, assert_on_empty: bool = True
 ) -> None:
@@ -1521,6 +1583,11 @@ def reset_mem_cache(func_name: Optional[str] = "") -> None:
         all memory caches (for functions currently in memory).
     """
     _LOG.trace(hprint.func_signature_to_str())
+    # Abort if clearing has been disabled via `enable_clear_cache(False)`.
+    if not _IS_CLEAR_CACHE_ENABLED:
+        raise RuntimeError(
+            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1545,10 +1612,10 @@ def reset_disk_cache(
     If `func_name` is empty or None, reset all discoverable disk cache files:
     - All files in global cache directory matching global prefix
     - All files for functions with custom cache_dir/cache_prefix tracked in
-      _CACHE_PROPERTY
+      `_CACHE_PROPERTY`
 
     Note: This cannot discover orphaned cache files in custom directories
-    for functions not tracked in _CACHE_PROPERTY.
+    for functions not tracked in `_CACHE_PROPERTY`.
 
     :param func_name: The name of the function whose disk cache is to
         be reset. If empty or None, reset all discoverable disk cache files.
@@ -1556,6 +1623,11 @@ def reset_disk_cache(
         resetting the disk cache.
     """
     _LOG.trace(hprint.func_signature_to_str())
+    # Abort if clearing has been disabled via `enable_clear_cache(False)`.
+    if not _IS_CLEAR_CACHE_ENABLED:
+        raise RuntimeError(
+            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1604,10 +1676,10 @@ def reset_cache(func_name: Optional[str] = "", interactive: bool = True) -> None
     - All memory caches (for functions currently in memory)
     - All disk cache files in global cache directory matching global prefix
     - All disk cache files for functions with custom cache_dir/cache_prefix
-      tracked in _CACHE_PROPERTY
+      tracked in `_CACHE_PROPERTY`
 
     Note: This cannot discover orphaned cache files in custom directories
-    for functions not tracked in _CACHE_PROPERTY.
+    for functions not tracked in `_CACHE_PROPERTY`.
 
     :param func_name: The name of the function. If empty or None, reset all
         discoverable caches.
@@ -1615,6 +1687,11 @@ def reset_cache(func_name: Optional[str] = "", interactive: bool = True) -> None
         resetting the disk cache.
     """
     _LOG.trace(hprint.func_signature_to_str())
+    # Abort if clearing has been disabled via `enable_clear_cache(False)`.
+    if not _IS_CLEAR_CACHE_ENABLED:
+        raise RuntimeError(
+            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1831,6 +1908,14 @@ def simple_cache(
             func_name = getattr(func, "__name__", "unknown_function")
             if func_name.endswith("_intrinsic"):
                 func_name = func_name[: -len("_intrinsic")]
+            # Bypass all caching if globally disabled via `enable_caching(False)`.
+            # This hard override takes precedence over `cache_mode` and all
+            # per-function properties.
+            if not is_caching_enabled():
+                _LOG.warning(
+                    "All caching is disabled: executing '%s' directly", func_name
+                )
+                return func(*args, **kwargs)
             # Get the cache.
             cache = get_cache(func_name)
             # Remove keys that should not be part of the cache key.
@@ -1961,3 +2046,4 @@ def simple_cache(
         return wrapper
 
     return decorator
+

@@ -1,47 +1,104 @@
 #!/usr/bin/env python
 """
+Manage the `hcache_simple` function cache from the command line.
+
+Usage examples:
+```
+# Print stats for all cached functions.
+./manage_cache.py --action print_info
+
+# Clear everything (memory + disk).
+./manage_cache.py --action clear_all
+
+# Clear only the in-process memory layer.
+./manage_cache.py --action clear_mem
+
+# Clear only disk files.
+./manage_cache.py --action clear_disk
+
+# Run a self-contained smoke test.
+./manage_cache.py --action test
+```
+
 Import as:
 
-import dev_scripts_helpers.manage_cache as dscmacac
+import dev_scripts_helpers.coding_tools.manage_cache as dsccomaca
 """
 
 import argparse
+import logging
 
-import helpers.hcache as hcache
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
-# Example functions for testing.
+_LOG = logging.getLogger(__name__)
+
+# #############################################################################
+# Valid actions.
+# #############################################################################
+
+_VALID_ACTIONS = [
+    # Clear both memory and disk caches for all functions.
+    "clear_all",
+    # Clear only the in-process memory cache for all functions.
+    "clear_mem",
+    # Clear only disk cache files for all functions.
+    "clear_disk",
+    # Print entry-count stats for all locally cached functions.
+    "print_info",
+    # Run a smoke test of the cache round-trip.
+    "test",
+]
+_DEFAULT_ACTIONS = ["print_info"]
+
+# #############################################################################
+# Smoke-test function.
+# #############################################################################
+
+# The function name used by the smoke test, derived from the decorated name.
+_TEST_FUNC_NAME = "manage_cache_test_func"
 
 
-@hcache.cache(set_verbose_mode=True)
-def _func() -> str:
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def manage_cache_test_func() -> str:
+    """
+    Return a large string to exercise the cache round-trip.
+
+    :return: a 1 MB string of `#` characters
+    """
+    _LOG.info("Executing manage_cache_test_func (cache miss)")
     txt = "#" * 1024**2
     return txt
 
 
-def _test1() -> None:
+def _run_smoke_test() -> None:
     """
-    Call the intrinsic function.
+    Run a smoke test exercising write, read, and reset operations.
+
+    The test uses a custom cache directory under `/tmp` so it does not
+    pollute the main project cache.
     """
-    _ = _func()
+    cache_dir = "/tmp/manage_cache.test"
+    _LOG.info("Smoke test: using cache_dir='%s'", cache_dir)
+    hcacsimp.set_cache_property(_TEST_FUNC_NAME, "cache_dir", cache_dir)
+    # Reset any leftover state.
+    hcacsimp.reset_disk_cache(_TEST_FUNC_NAME, interactive=False)
+    hcacsimp.reset_mem_cache(_TEST_FUNC_NAME)
+    # First call: must be a cache miss (function executes).
+    _LOG.info("Call 1 (expect miss)...")
+    manage_cache_test_func()
+    _LOG.info("Stats after call 1:\n%s", hcacsimp.cache_stats_to_str(_TEST_FUNC_NAME))
+    # Drop memory only; second call must reload from disk.
+    hcacsimp.reset_mem_cache(_TEST_FUNC_NAME)
+    _LOG.info("Call 2 (expect disk hit)...")
+    manage_cache_test_func()
+    _LOG.info("Stats after call 2:\n%s", hcacsimp.cache_stats_to_str(_TEST_FUNC_NAME))
+    _LOG.info("Smoke test complete.")
 
 
-def _test2() -> None:
-    tag = "manage_cache"
-    hcache.clear_global_cache("all", tag=tag)
-    # Create a function-specific cache on disk only.
-    path = "/tmp/cache.function"
-    _func.set_function_cache_path(path)
-    _func.clear_function_cache()
-    #
-    _func()
-    print(_func.get_info())
-    hcache.clear_global_cache("mem", tag=tag)
-    #
-    _func()
-
-
+# #############################################################################
+# Argument parsing and main.
 # #############################################################################
 
 
@@ -50,7 +107,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--action", required=True, type=str)
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -58,33 +115,27 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    action = args.action
-    tag = None
-    actions = [
-        "clear_global_cache",
-        "clear_global_mem_cache",
-        "clear_global_disk_cache",
-        "list",
-        "print_cache_info",
-        "test",
-    ]
-    hdbg.dassert_in(action, actions)
-    if action == "clear_global_cache":
-        hcache.clear_global_cache("all", tag=tag)
-    elif action == "clear_global_mem_cache":
-        hcache.clear_global_cache("mem", tag=tag)
-    elif action == "clear_global_disk_cache":
-        hcache.clear_global_cache("disk", tag=tag)
-    elif action == "print_cache_info":
-        txt = hcache.get_global_cache_info()
-        print(txt)
-    elif action == "test":
-        _test2()
-    elif action == "list":
-        print("Valid actions are:\n" + "\n".join(actions))
-    else:
-        hdbg.dfatal(f"Invalid action='{action}'")
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # Execute selected actions.
+    if hparser.mark_action("clear_all", actions):
+        _LOG.info("Clearing all caches (memory + disk)...")
+        hcacsimp.reset_cache(interactive=False)
+    if hparser.mark_action("clear_mem", actions):
+        _LOG.info("Clearing memory cache...")
+        hcacsimp.reset_mem_cache()
+    if hparser.mark_action("clear_disk", actions):
+        _LOG.info("Clearing disk cache...")
+        hcacsimp.reset_disk_cache(interactive=False)
+    if hparser.mark_action("print_info", actions):
+        txt = hcacsimp.cache_stats_to_str()
+        if txt is not None:
+            print(txt.to_string())
+        else:
+            _LOG.info("No cached functions found.")
+    if hparser.mark_action("test", actions):
+        _run_smoke_test()
 
 
 if __name__ == "__main__":
     _main(_parse())
+
