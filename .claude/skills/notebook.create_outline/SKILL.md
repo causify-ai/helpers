@@ -6,7 +6,6 @@ description: Create an outline for a Jupyter notebook with visual and interactiv
   college student to understand the requested concepts
 
 # Goals
-
 - The goals for the Jupyter notebook are:
   - Strong intuition
   - Visual explanation
@@ -19,26 +18,24 @@ description: Create an outline for a Jupyter notebook with visual and interactiv
   - Create or update the file with the script `jupyter_script.<tag>.md`
 
 # Important
-
-- Always follow the conventions and guidelines in `.claude/skills/notebook.rules.md`
+- Always follow the conventions and guidelines in
+  `.claude/skills/notebook.rules.md`
 
 # Format of Interactive Cells
 
 ## Numbering and Structure
-
 - Cells should be numbered incrementally with a format `Cell i: <description>`
-- Each cell description corresponds to a **pair of cells** in the final notebook:
+- Each cell description corresponds to a **pair of cells** in the final
+  notebook:
   1. **Markdown cell**: Contains the header and purpose explanation
   2. **Code cell**: Contains visualization, interactive widgets, and comment box
 
 ## Content Focus
-
 - Focus only on examples without repeating content from the slides
 - Each cell should build incrementally on previous concepts
 - Emphasize discovery through interaction rather than explanation
 
 ## Cell Description Template
-
 - Describe each cell using the following structure with bullet points:
   ```markdown
   ## Cell i: <Concise Title>
@@ -83,7 +80,6 @@ description: Create an outline for a Jupyter notebook with visual and interactiv
 - Include performance considerations if relevant
 
 ## Example
-
 - An example is
   ```markdown
   ## Cell 1: Visual Population Distribution
@@ -113,7 +109,6 @@ description: Create an outline for a Jupyter notebook with visual and interactiv
 - Do not use page separator
 
 # Important
-
 - When writing markdown you must follow the rules and conventions in
   `.claude/skills/markdown.rules.md`
 

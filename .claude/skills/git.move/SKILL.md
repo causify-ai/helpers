@@ -17,7 +17,8 @@ description: Move a file or directory in the Git repo and update all references 
 - Run `git mv <src> <dst>` to preserve Git history
 - If the file is in a subrepo (e.g., `helpers_root`), descend in that dir to use
   `git`
-  - E.g., `cd helpers_root && git mv <src> <dst>` adjusting the paths accordingly
+  - E.g., `cd helpers_root && git mv <src> <dst>` adjusting the paths
+    accordingly
 
 ## Update All References
 - Search the entire repository for any occurrences of `<src>`
@@ -31,8 +32,8 @@ description: Move a file or directory in the Git repo and update all references 
 
 ## Summarize Changes
 - Report what changes that were performed
-  - List every file that had references updated, with a count of replacements per
-    file
+  - List every file that had references updated, with a count of replacements
+    per file
   - Flag any ambiguous matches that may need manual review
 
 ## Ask for Help If Unsure How to Do

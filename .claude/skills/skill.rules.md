@@ -3,7 +3,6 @@
 # Overview and Topics
 
 ## Skill Topics
-
 - All skills should refer to a specific "topic"
 
 - You can find the topics running a command like
@@ -16,7 +15,6 @@
 # SKILL.md File Format
 
 ## Frontmatter
-
 - Every SKILL.md file must start with YAML frontmatter:
   ```yaml
   ---
@@ -26,15 +24,16 @@
   ```
 
 - **Guidelines for description**:
-  - Use imperative verb: "Format Python code", "Write unit tests", "Create slides"
+  - Use imperative verb: "Format Python code", "Write unit tests", "Create
+    slides"
   - Keep it under 80 characters
   - Be specific about what transformation or task the skill performs
-  - Example: `description: Format Python code according to project coding
-    conventions and style rules`
+  - Example:
+    `description: Format Python code according to project coding conventions and style rules`
 
 ## Directory Structure
-
-- Skills are organized in directories: `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
+- Skills are organized in directories:
+  `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
   - **Good**
     - `.claude/skills/coding.format/SKILL.md`
     - `.claude/skills/testing.format/SKILL.md`
@@ -57,7 +56,6 @@
     corresponding rule file is `.claude/skills/coding.rules.md`
 
 ## Naming Conventions
-
 - Directory naming: `<TOPIC>.<ACTION>`
   - E.g.,
     - `coding.format`: Format code for the coding topic
@@ -68,14 +66,13 @@
 - Topics should be singular and lowercase
 
 ## Content Structure
-
 - Skills should be organized with clear sections:
-
   1. **Frontmatter**: YAML description
   2. **Introduction**: 1-2 sentences describing what the skill does
   3. **Main Sections**: Organized by topic area or workflow step
   4. **Examples**: Good/Bad patterns and concrete examples
-  5. **Scope/Limitations** (if applicable): What the skill covers or doesn't cover
+  5. **Scope/Limitations** (if applicable): What the skill covers or doesn't
+     cover
 
 - Use headers from `## ` down (skip `#` for section titles)
 - Keep sections focused and actionable

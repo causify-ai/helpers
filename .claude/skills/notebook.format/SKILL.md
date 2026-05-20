@@ -7,8 +7,8 @@ description: Apply conventions for Jupyter notebooks
   `Jupytext` using a `py:percent` format
 
 - Read the file with the conventions and guidelines
-  `@.claude/skills/notebook.rules.md` and apply them without changing the intent
-  and behavior of the 
+  `.claude/skills/notebook.rules.md` and apply them without changing the intent
+  and behavior of the notebook
 
 # Use Jupytext
 - Remember to modify only the Python file paired with Jupytext to the notebook

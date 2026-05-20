@@ -3,7 +3,6 @@ description: Remove mocking approach from unit tests
 ---
 
 # Goal
-
 - When the user passes a test file, apply the following transformations to
   remove mocking from unit testing code without changing behavior
 - Mocking often signals that your design could be more modular

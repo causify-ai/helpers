@@ -11,14 +11,14 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - For all Python code in notebooks, follow the rules in
   `.claude/skills/coding.rules.md`
 
-## Follow 
+## Follow
 - Follow `.claude/skills/notebook.rules.md` for the basic Jupyter notebooks
-  - Use the structure from `.claude/templates/notebook_template.py` for consistent
-    notebook initialization
+  - Use the structure from `.claude/templates/notebook_template.py` for
+    consistent notebook initialization
 
-- For interactive Jupyter notebooks (i.e., notebooks with `ipywidgets`) you
-  MUST follow the templates `.claude/templates/interactive_notebook_template.ipynb`
-    `.claude/templates/interactive_notebook_template_utils.py`
+- For interactive Jupyter notebooks (i.e., notebooks with `ipywidgets`) you MUST
+  follow the templates `.claude/templates/interactive_notebook_template.ipynb`
+  `.claude/templates/interactive_notebook_template_utils.py`
 
 # Formatting
 
@@ -29,8 +29,8 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Place `seed` parameter last in widget controls
 
 # Markdown Cell Content for Interactive Cells
-
-- Interactive cells (with visualizations or widgets) must include these sections:
+- Interactive cells (with visualizations or widgets) must include these
+  sections:
 
 ## Goal Section
 - Describe what the cell teaches and its learning objectives:

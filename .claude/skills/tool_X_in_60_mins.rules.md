@@ -2,7 +2,7 @@
 
 ## Overview
 Create a hands-on, beginner-friendly tutorial that teaches a Big Data, AI, LLM,
-or data science technology in 60 minutes.
+or data science technology in 60 minutes
 
 ### Reader Experience
 The 60-minute tutorial follows this time breakdown:
@@ -76,7 +76,7 @@ tutorials/XYZ/
 ### Create `{project}_utils.py`
 - Start with module docstring and `Import as:` line:
   ```python
-    """
+  """
   Utility functions for XYZ-based workflows.
 
   Import as:
@@ -137,7 +137,7 @@ The Docker container structure should follow
 - Group dependencies by section (core, optional, dev)
 
 ### Create Jupytext Pairing
-Every `.ipynb` must be paired with a `.py` file in `percent` format.
+Every `.ipynb` must be paired with a `.py` file in `percent` format
 
 - Run `jupytext --set-formats ipynb,py:percent <ipynb-file>` to set up pairing
 - After modifying the notebook, sync with `jupytext --sync <python-file>`

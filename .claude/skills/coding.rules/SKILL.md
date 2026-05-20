@@ -4,12 +4,10 @@ description: Conventions and patterns for writing Python code in this project. C
 ---
 
 # Python Style
-
 - This project has strict Python conventions
 - Follow this workflow whenever producing or modifying Python code
 
 ## Workflow
-
 1. Read `.claude/skills/coding.rules.md` for the full set of rules
 2. Refer to `.claude/templates/code.template.py` as an example of code
 3. Before finishing, ensure all Python code adheres to the specified conventions

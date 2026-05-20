@@ -21,7 +21,6 @@
 # Test Coverage
 
 ## What to Test
-
 - For each function, generate tests for:
   - Happy path (normal, expected input)
   - Edge cases (boundary conditions)
@@ -31,28 +30,28 @@
 # File and Test Structure
 
 ## File Structure
-
 - For a source file `<module_name>.py`, the corresponding test file is
   `test/test_<module_name>.py`
-- Start with one file per directory (`test_<dirname>.py`); split into
-  per-module files (`test_<module>.py`) only when the single file grows too large
+- Start with one file per directory (`test_<dirname>.py`); split into per-module
+  files (`test_<module>.py`) only when the single file grows too large
 
 ## Directory Structure
 - Golden files: `test/outcomes/<TestClass.test_method>/output/test.txt`
-- Ephemeral scratch: `test/scratch/<TestClass.test_method>/` — automatically deleted
-  by `hunitest.TestCase.tearDown()`; do not delete it explicitly in test code
+- Ephemeral scratch: `test/scratch/<TestClass.test_method>/` — automatically
+  deleted by `hunitest.TestCase.tearDown()`; do not delete it explicitly in test
+  code
 
 ## Directory Helpers
 - All path helpers are methods on `hunitest.TestCase`; paths are scoped to the
   running class and method automatically
 
-  | Method | Returns |
-  |--------|---------|
-  | `get_input_dir()` | Local path for static fixtures checked into git |
-  | `get_output_dir()` | Local path for golden files (managed by `check_string`) |
-  | `get_scratch_space()` | Local ephemeral dir, auto-deleted after the test by `tearDown()` |
-  | `get_s3_scratch_dir()` | S3 path for large temporary data, unique per user/server/test |
-  | `get_s3_input_dir()` | S3 path for fixtures too large to commit to git |
+  | Method                 | Returns                                                          |
+  | ---------------------- | ---------------------------------------------------------------- |
+  | `get_input_dir()`      | Local path for static fixtures checked into git                  |
+  | `get_output_dir()`     | Local path for golden files (managed by `check_string`)          |
+  | `get_scratch_space()`  | Local ephemeral dir, auto-deleted after the test by `tearDown()` |
+  | `get_s3_scratch_dir()` | S3 path for large temporary data, unique per user/server/test    |
+  | `get_s3_input_dir()`   | S3 path for fixtures too large to commit to git                  |
 
 ## Use Text Files, Not Pickle
 - Prefer CSV / plain text fixtures over pickle

@@ -3,7 +3,6 @@ description: Format rules for interactive cells in Jupyter notebooks
 ---
 
 # Interactive Widgets Conventions
-
 - Interactive widgets must always have:
   - The name of the variable (e.g., n, mu, nu)
   - Value cell and "-" and "+" buttons
@@ -13,7 +12,6 @@ description: Format rules for interactive cells in Jupyter notebooks
   `build_widget_control()` to create the widgets
 
 # Logarithmic Widget Control
-
 - When asked to build a logarithmic widget control, use the following idiom
   ```python
   # Create N widget with logarithmic slider and +/- buttons.
@@ -30,9 +28,8 @@ description: Format rules for interactive cells in Jupyter notebooks
   ```
 
 # Format of Code Cells with Interactive Demo
-
-- Each code cell description of the Jupyter notebook needs to have a
-  clear explanation of:
+- Each code cell description of the Jupyter notebook needs to have a clear
+  explanation of:
   - Purpose of what the code does
   - What is done
   - What is the key insight
@@ -53,7 +50,6 @@ description: Format rules for interactive cells in Jupyter notebooks
   ```
 
 # Reference Template
-
 - See `.claude/templates/interactive_notebook.template.py` and
   `.claude/templates/interactive_notebook_utils_template.py` for a complete
   example of:
@@ -63,5 +59,5 @@ description: Format rules for interactive cells in Jupyter notebooks
   - Examples of simple to complex widget architectures
 
 # Important: Follow Conventions
-
-- Always follow the conventions and guidelines in `.claude/skills/notebook.rules.md`
+- Always follow the conventions and guidelines in
+  `.claude/skills/notebook.rules.md`

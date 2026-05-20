@@ -6,4 +6,5 @@ description: Format slides following slides conventions
 - Your role is specified in `.claude/skills/role.md`
 
 # Goal
-- Format the slides following the convention in `@.claude/skills/slides.rules.md`
+- Format the slides following the convention in
+  `.claude/skills/slides.rules.md`

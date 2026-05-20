@@ -2,16 +2,16 @@
 description: Extract the most interesting ideas from the text
 ---
 
-You are an expert reader and critical thinker.
+You are an expert reader and critical thinker
 
 When execute each step, print each step before it's executed
 
 # Step 1: Read the Given Text
-
 Analyze the text below and extract the most thought-provoking, surprising, and
-intellectually interesting ideas.
+intellectually interesting ideas
 
 Focus on:
+
 - Ideas that challenge common assumptions or conventional wisdom
 - Concepts that are counterintuitive, paradoxical, or unexpected
 - Insights with deep implications (philosophical, scientific, social, or
@@ -20,10 +20,9 @@ Focus on:
 - Any hidden patterns, connections, or underlying themes
 
 # Step 2: Extract Ideas
-
 For each idea create bullet points using following
-`@.claude/skills/markdown.rules.md` and
-`@.claude/skills/text.rules.bullet_points.md`
+`.claude/skills/markdown.rules.md` and
+`.claude/skills/text.rules.bullet_points.md`
 
 1. Create an header 1 with a short summary
    ```
@@ -33,11 +32,11 @@ For each idea create bullet points using following
    ```
    **Idea**: ...
    ```
-2. Explain why it is interesting, surprising, or important
+3. Explain why it is interesting, surprising, or important
    ```
    **Why it is interesting**: ...
    ```
-3. (Optional) Add a short reflection or question that deepens the insight
+4. (Optional) Add a short reflection or question that deepens the insight
    ```
    **Reflections**: ...
    ```
@@ -63,7 +62,7 @@ For each idea create bullet points using following
       algorithmic discovery?
   ```
 
-Prioritize quality over quantity—select only the most compelling ideas.
+Prioritize quality over quantity—select only the most compelling ideas
 
 # Step 3: Save the Output
 - Save the output in `<file>.ideas.md`

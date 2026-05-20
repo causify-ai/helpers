@@ -1,14 +1,13 @@
 - Given a file passed on the command line, you must improve its appearance
-  without changing its behavior using the following rules based on the type
-  of file
+  without changing its behavior using the following rules based on the type of
+  file
 
 # Rules
-
 - For Python file (e.g., with a `.py` extension) apply the rules from
   `.claude/skills/coding.format/SKILL.md`
 
-- For Jupyter notebook (e.g., files with `.ipynb` extension) apply the rules from
-  `@.claude/skills/notebook.format/SKILL.md`
+- For Jupyter notebook (e.g., files with `.ipynb` extension) apply the rules
+  from `.claude/skills/notebook.format/SKILL.md`
   - After modification you need to run `jupytext --sync`
 
 - For a file storing unit tests (i.e., whose base name starts with
@@ -16,7 +15,7 @@
   `.claude/skills/testing.format/SKILL.md`
 
 - For a markdown or text file apply the rules in
-  `@.claude/skills/markdown.format/SKILL.md`
+  `.claude/skills/markdown.format/SKILL.md`
 
 - For a blog (e.g., a markdown in the dir `website/docs/blog/posts`) apply the
-  rules in `@.claude/skills/blog.format/SKILL.md`
+  rules in `.claude/skills/blog.format/SKILL.md`
