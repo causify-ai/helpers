@@ -165,14 +165,6 @@ class TestMockDict1(hunitest.TestCase):
     Test `MockDict` for order-independent replay.
     """
 
-    def _write_fixture(self, records: List[Any]) -> hplayba.MockDict:
-        """
-        Persist `records` to a scratch fixture and return a `MockDict`.
-        """
-        file_path = os.path.join(self.get_scratch_space(), "records.json")
-        hplayba._save_records(file_path, records)
-        return hplayba.MockDict(file_path)
-
     def test1(self) -> None:
         """
         Test lookup of a recorded call.
@@ -219,6 +211,14 @@ class TestMockDict1(hunitest.TestCase):
         with self.assertRaises(AssertionError):
             mock_dict("missing_cmd")
 
+    def _write_fixture(self, records: List[Any]) -> hplayba.MockDict:
+        """
+        Persist `records` to a scratch fixture and return a `MockDict`.
+        """
+        file_path = os.path.join(self.get_scratch_space(), "records.json")
+        hplayba._save_records(file_path, records)
+        return hplayba.MockDict(file_path)
+
 
 # #############################################################################
 # TestMockSequence1
@@ -229,14 +229,6 @@ class TestMockSequence1(hunitest.TestCase):
     """
     Test `MockSequence` for ordered replay.
     """
-
-    def _write_fixture(self, records: List[Any]) -> hplayba.MockSequence:
-        """
-        Persist `records` to a scratch fixture and return a `MockSequence`.
-        """
-        file_path = os.path.join(self.get_scratch_space(), "records.json")
-        hplayba._save_records(file_path, records)
-        return hplayba.MockSequence(file_path)
 
     def test1(self) -> None:
         """
@@ -299,3 +291,11 @@ class TestMockSequence1(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(first_call, 1)
         self.assertEqual(second_call, 1)
+
+    def _write_fixture(self, records: List[Any]) -> hplayba.MockSequence:
+        """
+        Persist `records` to a scratch fixture and return a `MockSequence`.
+        """
+        file_path = os.path.join(self.get_scratch_space(), "records.json")
+        hplayba._save_records(file_path, records)
+        return hplayba.MockSequence(file_path)

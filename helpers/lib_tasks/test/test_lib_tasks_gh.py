@@ -1,7 +1,7 @@
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 import pytest
@@ -10,7 +10,7 @@ import helpers.hgit as hgit
 import helpers.hplayback as hplayba
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks.lib_tasks_gh as hlitagh
+import helpers.lib_tasks.lib_tasks_gh as hltltagh
 
 _LOG = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class TestLibTasks1(hunitest.TestCase):
     def test_get_gh_issue_title1(self) -> None:
         issue_id = 1
         repo = "amp"
-        actual = hlitagh._get_gh_issue_title(issue_id, repo)
+        actual = hltltagh._get_gh_issue_title(issue_id, repo)
         expected = (
             "AmpTask1_Bridge_Python_and_R",
             "https://github.com/alphamatic/amp/issues/1",
@@ -49,14 +49,14 @@ class TestLibTasks1(hunitest.TestCase):
         #
         issue_id = 1
         repo = "current"
-        _ = hlitagh._get_gh_issue_title(issue_id, repo)
+        _ = hltltagh._get_gh_issue_title(issue_id, repo)
 
     def test_get_org_name1(self) -> None:
         """
         Test _get_org_name when org_name is provided.
         """
         org_name = "test-org"
-        result = hlitagh._get_org_name(org_name)
+        result = hltltagh._get_org_name(org_name)
         expected = "test-org"
         self.assertEqual(result, expected)
 
@@ -66,7 +66,7 @@ class TestLibTasks1(hunitest.TestCase):
         Test _get_org_name when org_name is empty (infers from repo).
         """
         mock_get_repo.return_value = "causify-ai/helpers"
-        result = hlitagh._get_org_name("")
+        result = hltltagh._get_org_name("")
         expected = "causify-ai"
         self.assertEqual(result, expected)
         mock_get_repo.assert_called_once_with(".", include_host_name=False)
@@ -98,7 +98,7 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
             {"slug": "qa_team", "id": 3},
         ]
         # Call function.
-        result = hlitagh.gh_get_org_team_names("test-org", sort=True)
+        result = hltltagh.gh_get_org_team_names("test-org", sort=True)
         # Verify result.
         expected = ["dev_backend", "dev_frontend", "qa_team"]
         self.assertEqual(result, expected)
@@ -124,7 +124,7 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
             {"login": "user3", "id": 103},
         ]
         # Call function.
-        result = hlitagh.gh_get_team_member_names(
+        result = hltltagh.gh_get_team_member_names(
             "dev_team", org_name="test-org"
         )
         # Verify result.
@@ -144,11 +144,12 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
 
 class TestGhHelpersWithMockDict1(hunitest.TestCase):
     """
-    Test the `gh_get_*` helpers via `MockDict`-replayed `_gh_run_and_get_json`.
+    Test the `gh_get_*` helpers via `MockDict`-replayed
+    `_gh_run_and_get_json()`.
 
     Each test writes a self-contained fixture and patches the wrapped
-    `_gh_run_and_get_json`, so the helpers can be exercised offline. The
-    `helper()` below absorbs the boilerplate.
+    `_gh_run_and_get_json()`, so the helpers can be exercised offline.
+    The `helper()` below absorbs the boilerplate.
     """
 
     def helper(
@@ -156,7 +157,7 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         cmd: str,
         raw_result: Any,
         helper_fn: Any,
-        helper_args: tuple,
+        helper_args: Tuple[Any, ...],
         helper_kwargs: Dict[str, Any],
         expected: Any,
     ) -> None:
@@ -164,8 +165,8 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         Replay one recorded call through a `gh_get_*` helper.
 
         :param cmd: command string the helper is expected to issue
-        :param raw_result: value `_gh_run_and_get_json` would return
-        :param helper_fn: helper to call (e.g., `hlitagh.gh_get_workflows`)
+        :param raw_result: value `_gh_run_and_get_json()` would return
+        :param helper_fn: helper to call (e.g., `hltltagh.gh_get_workflows()`)
         :param helper_args: positional args for `helper_fn`
         :param helper_kwargs: keyword args for `helper_fn`
         :param expected: value the helper should return after its
@@ -186,7 +187,7 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test that `gh_get_workflows` sorts by name and stringifies ids.
+        Test that `gh_get_workflows()` sorts by name and stringifies ids.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
@@ -202,7 +203,7 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         ]
         # Run test.
         self.helper(
-            cmd, raw, hlitagh.gh_get_workflows, (repo_name,), {}, expected
+            cmd, raw, hltltagh.gh_get_workflows, (repo_name,), {}, expected
         )
 
     def test2(self) -> None:
@@ -225,7 +226,7 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         self.helper(
             cmd,
             raw,
-            hlitagh.gh_get_workflows,
+            hltltagh.gh_get_workflows,
             (repo_name,),
             {"sort": False},
             expected,
@@ -233,14 +234,14 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test that `gh_get_workflow_details` returns the recorded payload.
+        Test that `gh_get_workflow_details()` returns the recorded payload.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
         workflow_id = "12345"
         fields = ["conclusion", "status", "url", "workflowName"]
         limit = 1
-        # The command format is copied verbatim from `gh_get_workflow_details`.
+        # The command format is copied verbatim from `gh_get_workflow_details()`.
         # Use single `\` so Python's source-level line continuation collapses
         # the newlines the same way the function does at runtime.
         cmd = f"""
@@ -265,7 +266,7 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         self.helper(
             cmd,
             raw,
-            hlitagh.gh_get_workflow_details,
+            hltltagh.gh_get_workflow_details,
             (repo_name, workflow_id, fields, limit),
             {},
             expected,
@@ -273,7 +274,7 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test that `gh_get_open_prs` returns the recorded payload.
+        Test that `gh_get_open_prs()` returns the recorded payload.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
@@ -283,12 +284,12 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         expected = raw
         # Run test.
         self.helper(
-            cmd, raw, hlitagh.gh_get_open_prs, (repo_name,), {}, expected
+            cmd, raw, hltltagh.gh_get_open_prs, (repo_name,), {}, expected
         )
 
     def test5(self) -> None:
         """
-        Test that `gh_get_workflow_type_names` returns sorted names.
+        Test that `gh_get_workflow_type_names()` returns sorted names.
         """
         # Prepare inputs.
         repo_name = "causify-ai/helpers"
@@ -300,7 +301,7 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         self.helper(
             cmd,
             raw,
-            hlitagh.gh_get_workflow_type_names,
+            hltltagh.gh_get_workflow_type_names,
             (repo_name,),
             {},
             expected,
@@ -314,8 +315,8 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
 
 class Test_gh_get_overall_build_status_for_repo1(hunitest.TestCase):
     """
-    Test `gh_get_overall_build_status_for_repo`, which derives its result
-    directly from a DataFrame and does not call `_gh_run_and_get_json`.
+    Test `gh_get_overall_build_status_for_repo()`, which derives its result
+    directly from a DataFrame and does not call `_gh_run_and_get_json()`.
     """
 
     def helper(self, conclusions: List[str], expected: str) -> None:
@@ -328,7 +329,7 @@ class Test_gh_get_overall_build_status_for_repo1(hunitest.TestCase):
         # Prepare inputs.
         repo_df = pd.DataFrame({"conclusion": conclusions})
         # Run test.
-        actual = hlitagh.gh_get_overall_build_status_for_repo(
+        actual = hltltagh.gh_get_overall_build_status_for_repo(
             repo_df, use_colors=False
         )
         # Check outputs.

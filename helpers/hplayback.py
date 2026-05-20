@@ -1,6 +1,6 @@
 """
-Record runtime calls of a function into a fixture file and replay them in
-tests without contacting the original backend.
+Record runtime calls of a function into a fixture file and replay them in tests
+without contacting the original backend.
 
 Import as:
 
@@ -32,7 +32,7 @@ _LOG = logging.getLogger(__name__)
 # round-trip through `pickle`.
 #
 # Trust boundary: only load fixtures produced by code you trust.
-# `pickle.loads` executes arbitrary code, so a fixture file is as
+# `pickle.loads()` executes arbitrary code, so a fixture file is as
 # privileged as any code in the repo.
 
 
@@ -61,7 +61,7 @@ def _decode_pickle(blob: str) -> Any:
 
 def _pickle_fallback(obj: Any) -> Dict[str, str]:
     """
-    `json.dumps` `default=` hook that wraps non-JSON-native values in a
+    `json.dumps()` `default=` hook that wraps non-JSON-native values in a
     sentinel dict carrying a base64-pickle blob.
 
     :param obj: value `json` cannot serialize natively
@@ -72,13 +72,13 @@ def _pickle_fallback(obj: Any) -> Dict[str, str]:
 
 def _rehydrate(obj: Any) -> Any:
     """
-    Walk a JSON-decoded structure and convert pickle sentinels back to
-    Python objects.
+    Walk a JSON-decoded structure and convert pickle sentinels back to Python
+    objects.
 
     A dict whose only key is `_PICKLE_SENTINEL` is replaced with the
     pickled value; all other dicts and lists are recursed into.
 
-    :param obj: value returned by `json.loads`
+    :param obj: value returned by `json.loads()`
     :return: structure with sentinels rehydrated
     """
     if isinstance(obj, dict):
@@ -95,15 +95,13 @@ def _rehydrate(obj: Any) -> Any:
 # #############################################################################
 
 
-def _save_records(
-    file_path: str, records: List[Dict[str, Any]]
-) -> None:
+def _save_records(file_path: str, records: List[Dict[str, Any]]) -> None:
     """
     Write `records` to `file_path` as JSON.
 
     Simple types stay human-readable; values `json` cannot serialize
     natively are wrapped in a `{"__pickle__": "<base64>"}` sentinel via
-    `_pickle_fallback`.
+    `_pickle_fallback()`.
 
     :param file_path: path to the output file
     :param records: list of records to save
@@ -115,10 +113,10 @@ def _save_records(
 
 def _load_records(file_path: str) -> List[Dict[str, Any]]:
     """
-    Read records previously written by `_save_records`.
+    Read records previously written by `_save_records()`.
 
-    Pickle sentinels emitted by `_pickle_fallback` are rehydrated back to
-    Python objects.
+    Pickle sentinels emitted by `_pickle_fallback()` are rehydrated back
+    to Python objects.
 
     :param file_path: path to the fixture file
     :return: list of records
@@ -138,15 +136,16 @@ def record(file_path: str) -> Callable:
     """
     Decorate a function so it can be recorded into `file_path`.
 
-    The decorator is inert by default and adds no recording overhead beyond
-    one attribute check per call. Turn recording on with `recording()`.
+    The decorator is inert by default and adds no recording overhead
+    beyond one attribute check per call. Turn recording on with
+    `recording()`.
 
-    :param file_path: path to the fixture file written when recording stops
+    :param file_path: path to the fixture file written when recording
+        stops
     :return: decorator that wraps the target function
     """
 
     def decorator(func: Callable) -> Callable:
-
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             result = func(*args, **kwargs)
@@ -200,13 +199,11 @@ def recording(func: Callable) -> Iterator[None]:
             )
 
 
-def _make_lookup_key(
-    args: Tuple[Any, ...], kwargs: Dict[str, Any]
-) -> str:
+def _make_lookup_key(args: Tuple[Any, ...], kwargs: Dict[str, Any]) -> str:
     """
     Build a deterministic JSON key for `(args, kwargs)`.
 
-    `default=str` falls back to `str()` for types `json.dumps` cannot
+    `default=str` falls back to `str()` for types `json.dumps()` cannot
     serialize natively. For recorded GH commands (plain strings) this is
     exact; for richer args, equality is by string representation.
 
@@ -228,14 +225,16 @@ class MockDict:
     Replay recorded calls as an order-independent `(args, kwargs) -> result`
     map.
 
-    Use when the function under test is a pure mapping from inputs to outputs.
+    Use when the function under test is a pure mapping from inputs to
+    outputs.
     """
 
     def __init__(self, file_path: str) -> None:
         """
         Build the lookup table from the records in `file_path`.
 
-        :param file_path: fixture file produced by `@record` + `recording()`
+        :param file_path: fixture file produced by `@record` +
+            `recording()`
         """
         self._file_path = file_path
         records = _load_records(file_path)
@@ -283,15 +282,16 @@ class MockSequence:
     """
     Replay recorded calls in capture order, asserting args at each step.
 
-    Use when call order matters or when the same function is called multiple
-    times with distinct inputs.
+    Use when call order matters or when the same function is called
+    multiple times with distinct inputs.
     """
 
     def __init__(self, file_path: str) -> None:
         """
         Load the sequence from `file_path` and place the cursor at the start.
 
-        :param file_path: fixture file produced by `@record` + `recording()`
+        :param file_path: fixture file produced by `@record` +
+            `recording()`
         """
         self._file_path = file_path
         self._records = _load_records(file_path)

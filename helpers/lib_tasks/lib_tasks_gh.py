@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks.lib_tasks_gh as hlitagh
+import helpers.lib_tasks.lib_tasks_gh as hltltagh
 """
 
 import datetime
@@ -24,12 +24,12 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htable as htable
-import helpers.lib_tasks.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hltltaut
 import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
-# Fixture file used by `@hplayba.record` on `_gh_run_and_get_json` and by the
+# Fixture file used by `@hplayba.record` on `_gh_run_and_get_json()` and by the
 # `MockDict` replay in unit tests. The path resolves to a location under the
 # `helpers` package so the file moves with the repo.
 _GH_FIXTURE_FILE = os.path.join(
@@ -53,7 +53,7 @@ def gh_login(  # type: ignore
     account="",
     print_status=False,
 ):
-    hlitauti.report_task()
+    hltltaut.report_task()
     #
     if not account:
         # Retrieve the name of the repo, e.g., "alphamatic/amp".
@@ -74,18 +74,18 @@ def gh_login(  # type: ignore
     #
     if print_status:
         cmd = "gh auth status"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
     #
     github_pat_filename = os.path.expanduser(f"~/.ssh/github_pat.{account}.txt")
     if os.path.exists(github_pat_filename):
         cmd = f"gh auth login --with-token <{github_pat_filename}"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
     else:
         _LOG.warning("Can't find file '%s'", github_pat_filename)
     #
     if print_status:
         cmd = "gh auth status"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
 
 
 # #############################################################################
@@ -200,7 +200,7 @@ def gh_workflow_list(  # type: ignore
         the stack trace
     :param print_table: if True, print the table with the status of the workflows
     """
-    hlitauti.report_task(
+    hltltaut.report_task(
         txt=hprint.to_str("filter_by_branch filter_by_completed")
     )
     # Login.
@@ -263,9 +263,7 @@ def gh_workflow_list(  # type: ignore
                 # to the `PATH` (when inside the container) so we can just use
                 # them without specifying the full path.
                 helpers_root_dir = hgit.find_helpers_root()
-                file_path = (
-                    f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
-                )
+                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
                 cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
@@ -317,7 +315,7 @@ def gh_workflow_run(ctx, branch="current_branch", workflows="all"):  # type: ign
     """
     Run GH workflows in a branch.
     """
-    hlitauti.report_task(txt=hprint.to_str("branch workflows"))
+    hltltaut.report_task(txt=hprint.to_str("branch workflows"))
     # Login.
     gh_login(ctx)
     # Get the branch name.
@@ -339,7 +337,7 @@ def gh_workflow_run(ctx, branch="current_branch", workflows="all"):  # type: ign
         gh_test += ".yml"
         # gh workflow run fast_tests.yml --ref AmpTask1251_Update_GH_actions_for_amp
         cmd = f"gh workflow run {gh_test} --ref {branch_name}"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
 
 
 # #############################################################################
@@ -432,7 +430,7 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
     :param pbcopy: save the result into the system clipboard (only on
         macOS)
     """
-    hlitauti.report_task(txt=hprint.to_str("issue_id repo_short_name"))
+    hltltaut.report_task(txt=hprint.to_str("issue_id repo_short_name"))
     # Login.
     gh_login(ctx)
     #
@@ -480,7 +478,7 @@ def gh_issue_create(  # type: ignore
         otherwise a `repo_short_name` (e.g., "amp")
     :return: issue ID (integer) of the created issue
     """
-    hlitauti.report_task(txt=hprint.to_str("title repo_short_name"))
+    hltltaut.report_task(txt=hprint.to_str("title repo_short_name"))
     # Login.
     gh_login(ctx)
     #
@@ -571,7 +569,7 @@ def gh_create_pr(  # type: ignore
     :param labels: comma-separated list of labels to apply
     :param assignee: GitHub username to assign the PR to
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Login.
     gh_login(ctx)
     #
@@ -619,12 +617,12 @@ def gh_create_pr(  # type: ignore
         if assignee:
             cmd += f" --assignee {assignee}"
         # TODO(gp): Use _to_single_line_cmd
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
     if auto_merge:
         cmd = f"gh pr ready {title}"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
         cmd = f"gh pr merge {title} --auto --delete-branch --squash"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
 
 
 # TODO(gp): Add gh_open_pr to jump to the PR from this branch.
@@ -644,7 +642,7 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
     :param mark_as_latest: if True, mark the dashboard as `latest`, otherwise
         just publish a timestamped copy
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Login to GH CLI.
     if hserver.is_inside_ci():
         _LOG.info("Skipping login since running inside CI")
@@ -959,9 +957,7 @@ def gh_get_overall_build_status_for_repo(
     return overall_status
 
 
-def gh_get_workflow_type_names(
-    repo_name: str, *, sort: bool = True
-) -> List[str]:
+def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str]:
     """
     Get a list of workflow names for a given repo.
 
@@ -1183,7 +1179,7 @@ def gh_delete_workflow_runs(  # type: ignore
     :param confirmation: if True, prompt user for confirmation before
         deletion (default: True)
     """
-    hlitauti.report_task(
+    hltltaut.report_task(
         txt=hprint.to_str("workflow_name older_than_days dry_run confirmation")
     )
     # Convert older_than_days to int if provided (invoke passes strings).
@@ -1245,7 +1241,7 @@ def gh_delete_workflow_runs(  # type: ignore
         try:
             cmd = f"gh api -X DELETE /repos/{repo_path}/actions/runs/{run_id}"
             _LOG.info("Deleting run %s", run_id)
-            hlitauti.run(ctx, cmd, dry_run=dry_run)
+            hltltaut.run(ctx, cmd, dry_run=dry_run)
             deleted_count += 1
         except (invexc.UnexpectedExit, RuntimeError) as e:
             _LOG.error("Failed to delete run %s: %s", run_id, str(e))
@@ -1264,12 +1260,12 @@ def gh_delete_workflow_runs(  # type: ignore
 @task
 def gh_create_mock_fixture(ctx):  # type: ignore
     """
-    Record live calls to `_gh_run_and_get_json` into the test fixture.
+    Record live calls to `_gh_run_and_get_json()` into the test fixture.
 
     Run this once with real GH access. The resulting fixture is consumed by
-    unit tests via `hplayba.MockDict`, so unit tests do not hit GitHub.
+    unit tests via `MockDict`, so unit tests do not hit GitHub.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     gh_login(ctx)
     repo_full_name = hgit.get_repo_full_name_from_dirname(
         ".", include_host_name=False
