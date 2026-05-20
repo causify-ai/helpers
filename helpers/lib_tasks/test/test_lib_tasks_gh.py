@@ -241,12 +241,14 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         fields = ["conclusion", "status", "url", "workflowName"]
         limit = 1
         # The command format is copied verbatim from `gh_get_workflow_details`.
+        # Use single `\` so Python's source-level line continuation collapses
+        # the newlines the same way the function does at runtime.
         cmd = f"""
-    gh run list \\
-        --json {",".join(fields)} \\
-        --repo {repo_name} \\
-        --branch master \\
-        --limit {limit} \\
+    gh run list \
+        --json {",".join(fields)} \
+        --repo {repo_name} \
+        --branch master \
+        --limit {limit} \
         --workflow "{workflow_id}"
     """
         raw = [
