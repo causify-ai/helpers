@@ -1,12 +1,7 @@
-- Write a Python script XYZ ... that ...
-
-- The interface is like:
-  ...
+Create a script apply_claude_rule.py that reads a 
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
-  - When the task is complex, create a plan.md with 5 bullet points explaining
-    what the plan is
 
 - When writing code you must always follow the instructions in
   `@.claude/skills/coding.rules.md`

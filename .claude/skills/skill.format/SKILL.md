@@ -7,23 +7,23 @@ description: Format the content of agentic skill files in SKILL.md
   `<SKILL>.md` passed by the user
 - Make sure that the intent and the behavior of the skill is not changed
 
-## Rewrite for clarity
+## Rewrite for Clarity
 - Remove ambiguity
 - Use direct instructions
 - Make behavior reliably executable
 - Avoid superficial wording edits without improving execution
 
-## Add structure (if missing)
+## Add Structure (if Missing)
 - Purpose
 - When to use
 - When NOT to use
 - Output format
 
-## Preserve intent
+## Preserve Intent
 - Do not change the skill's core behavior
 - Do not add opinions instead of rules
 
-## Add examples
+## Add Examples
 - When useful add good and bad examples
   ````
   - `**Bad**`
@@ -34,9 +34,10 @@ description: Format the content of agentic skill files in SKILL.md
     ```
     ...
     ```
+
   ````
 
-## Create a TODO list
+## Create a TODO List
 - Create a TODO list with the list of all the planned transformations
 
 ## Style
@@ -44,5 +45,5 @@ description: Format the content of agentic skill files in SKILL.md
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.bullet_points.md`
 
-## Lint the updated file
+## Lint the Updated File
 - Run `lint_txt.py -i` on `<SKILL.md>`

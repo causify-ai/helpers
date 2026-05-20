@@ -10,7 +10,7 @@ I will give you a GitHub issue ${ISSUE_NUM} and optionally a repo
   > gh issue view {ISSUE_NUM}
   ```
 
-# Step 2: Check if it's already done
+# Step 2: Check If It's Already Done
 - Check if it's already implemented
 
 # Step 3: Triage

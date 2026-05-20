@@ -1,4 +1,4 @@
-# Graphviz diagram
+# Graphviz Diagram
 - Any graphviz diagram should be follow the template below
 
 ```graphviz
@@ -32,7 +32,7 @@ digraph BayesianFlow {
 }
 ```
 
-# Tikz diagram
+# Tikz Diagram
 - Any Tikz diagram should be follow the template below
 
 ```latex
@@ -50,7 +50,7 @@ digraph BayesianFlow {
 \end{document}
 ```
 
-# Graphic image
+# Graphic Image
 
 - Any graphic image should follow the template below
 

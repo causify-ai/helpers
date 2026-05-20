@@ -2,20 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
-      "Bash(invoke --list)",
       "Bash(grep:*)",
       "Bash(ls:*)",
-      "WebFetch(domain:github.com)",
-      "Bash(python -m mypy:*)",
-      "Bash(python:*)",
-      "Bash(gh pr create:*)",
+      "Bash(python *)",
+      "Bash(bash ./tmp.pytest_repro.*.sh)",
+      "WebFetch(domain:*)",
       "Bash(gh pr view:*)",
-      "Bash(git add:*)",
-      "Bash(git push:*)",
-      "Bash(git commit:*)",
-      "WebFetch(domain:*)"
+      "Bash(python3 *)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
   },
   "hooks": {
     "Notification": [

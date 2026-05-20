@@ -22,6 +22,8 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Verbosity
+# #############################################################################
 
 
 def add_bool_arg(
@@ -49,9 +51,6 @@ def add_bool_arg(
     group.add_argument("--no_" + name, dest=name, action="store_false")
     parser.set_defaults(**{name: default_value})
     return parser
-
-
-# #############################################################################
 
 
 def add_verbosity_arg(
@@ -149,87 +148,6 @@ def parse_cache_control_args(args: argparse.Namespace) -> None:
     if cache_debug:
         _LOG.info("Enabling cache_debug logging")
     hcacsimp.set_cache_debug(cache_debug)
-
-
-# #############################################################################
-# Command line options for handling the destination dir.
-# #############################################################################
-
-
-def add_dst_dir_arg(
-    parser: argparse.ArgumentParser,
-    dst_dir_required: bool,
-    dst_dir_default: Optional[str] = None,
-) -> argparse.ArgumentParser:
-    """
-    Add command line options related to destination dir.
-
-    E.g., `--dst_dir`, `--clean_dst_dir`
-    """
-    # TODO(gp): Add unit test to check this.
-    # A required dst_dir implies no default dst_dir.
-    hdbg.dassert_imply(
-        dst_dir_required,
-        not dst_dir_default,
-        "Since dst_dir_required='%s', you need to specify a default "
-        "destination dir, instead of dst_dir_default='%s'",
-        dst_dir_required,
-        dst_dir_default,
-    )
-    # If dst_dir is not required, then a default dst_dir must be specified.
-    hdbg.dassert_imply(
-        not dst_dir_required,
-        dst_dir_default,
-        "Since dst_dir_required='%s', you can't specify a default "
-        "destination dir, dst_dir_default='%s'",
-        dst_dir_required,
-        dst_dir_default,
-    )
-    parser.add_argument(
-        "--dst_dir",
-        action="store",
-        default=dst_dir_default,
-        required=dst_dir_required,
-        help="Directory storing the results",
-    )
-    parser.add_argument(
-        "--clean_dst_dir",
-        action="store_true",
-        help="Delete the destination dir before running",
-    )
-    parser.add_argument(
-        "--no_confirm",
-        action="store_true",
-        help="Do not confirm before deleting dst dir",
-    )
-    return parser
-
-
-def parse_dst_dir_arg(args: argparse.Namespace) -> Tuple[str, bool]:
-    """
-    Process the command line options related to destination dir.
-
-    :return: a tuple (dst_dir, clean_dst_dir)
-        - dst_dir: the destination dir
-        - clean_dst_dir: whether to clean the destination dir or not
-    """
-    dst_dir = args.dst_dir
-    _LOG.debug("dst_dir=%s", dst_dir)
-    # TODO(Dan): Fix `clean_dst_dir` usage since it is always `False` now.
-    clean_dst_dir = False
-    if args.clean_dst_dir:
-        _LOG.info("Cleaning dst_dir='%s'", dst_dir)
-        if os.path.exists(dst_dir):
-            _LOG.warning("Dir '%s' already exists", dst_dir)
-            if not args.no_confirm:
-                hsystem.query_yes_no(
-                    f"Do you want to delete the dir '{dst_dir}'",
-                    abort_on_no=True,
-                )
-            hio.create_dir(dst_dir, incremental=False)
-    hio.create_dir(dst_dir, incremental=True)
-    _LOG.debug("clean_dst_dir=%s", clean_dst_dir)
-    return dst_dir, clean_dst_dir
 
 
 # #############################################################################
@@ -372,7 +290,8 @@ def select_actions(
         not (args.action and args.skip_action),
         "You can't specify together --action and --skip_action",
     )
-    # TODO(ai_gp): Is this still needed?
+    # TODO(ai_gp): Try to remove this.
+    # Needed because add_action_arg() is optional and might not be called.
     # Check for enable_action attribute (added for backward compatibility).
     has_enable = hasattr(args, "enable_action")
     if has_enable:
@@ -525,6 +444,11 @@ def add_input_output_args(
     """
     Add options to parse input and output file name, and handle stdin / stdout.
 
+    Supports three methods for specifying input files:
+    - `-i/--input`: single input file or `-` for stdin
+    - `--input_files`: space or comma-separated list of files
+    - `--from_file`: file containing one file per line
+
     :param in_default: default file to be used for input
         - If `None`, it must be specified by the user
     :param in_required: whether the input file is required
@@ -550,7 +474,49 @@ def add_input_output_args(
         default=out_default,
         help="Output file or `-` for stdout",
     )
+    parser.add_argument(
+        "--input_files",
+        nargs="+",
+        default=None,
+        help="One or more files (space-separated, shell globs supported) or comma-separated list",
+    )
+    parser.add_argument(
+        "--from_file",
+        action="store",
+        type=str,
+        default=None,
+        help="Path to a file containing a list of files to process (one per line)",
+    )
     return parser
+
+
+def parse_input_output_files(args: argparse.Namespace) -> Optional[List[str]]:
+    """
+    Parse files from --input_files or --from_file arguments.
+
+    Supports shell glob expansion (e.g., `--input_files books/chapters/*`)
+    and comma-separated lists for backward compatibility (e.g.,
+    `--input_files "a.md,b.md,c.md"`).
+
+    :param args: Parsed arguments.
+    :return: List of files to process, or None if neither option is provided.
+    """
+    if args.input_files:
+        # nargs='+' gives a list; flatten any comma-separated tokens for
+        # backward compatibility with the old "--input_files=a.md,b.md" style.
+        files = []
+        for token in args.input_files:
+            files.extend(token.replace(",", " ").split())
+        return files
+    elif args.from_file:
+        # Read files from the specified file.
+        if not os.path.exists(args.from_file):
+            _LOG.error("File not found: %s", args.from_file)
+            raise FileNotFoundError(f"File not found: {args.from_file}")
+        with open(args.from_file, "r") as f:
+            files = [line.strip() for line in f if line.strip()]
+        return files
+    return None
 
 
 def parse_input_output_args(
@@ -558,6 +524,12 @@ def parse_input_output_args(
 ) -> Tuple[str, str]:
     """
     Parse input and output file name, handling stdin / stdout.
+
+    If --files or --from_file is specified, use the first file as input
+    and the output file remains as specified.
+
+    If a single file is passed in -i/--input, then --output represents
+    the output file.
 
     :return input and output file name.
     """
@@ -574,7 +546,6 @@ def parse_input_output_args(
             os.system("clear")
         _LOG.info(hprint.to_str("in_file_name"))
         _LOG.info(hprint.to_str("out_file_name"))
-
     return in_file_name, out_file_name
 
 
@@ -690,6 +661,77 @@ def adapt_input_output_args_for_dockerized_scripts(
     #
     tmp_out_file_name = f"tmp.{tag}.out.txt"
     return tmp_in_file_name, tmp_out_file_name
+
+
+# TODO(ai_gp): Merge this in the input_output_args functions.
+def add_dst_dir_arg(
+    parser: argparse.ArgumentParser,
+    dst_dir_required: bool,
+    dst_dir_default: Optional[str] = None,
+) -> argparse.ArgumentParser:
+    """
+    Add command line options related to destination directory.
+
+    Adds `--dst_dir` and `--overwrite` flags. If the destination directory
+    already exists and `--overwrite` is not specified, an error is raised.
+
+    E.g., `--dst_dir`, `--overwrite`
+    """
+    # A required dst_dir implies no default dst_dir.
+    hdbg.dassert_imply(
+        dst_dir_required,
+        not dst_dir_default,
+        "Since dst_dir_required='%s', you need to specify a default "
+        "destination dir, instead of dst_dir_default='%s'",
+        dst_dir_required,
+        dst_dir_default,
+    )
+    # If dst_dir is not required, then a default dst_dir must be specified.
+    hdbg.dassert_imply(
+        not dst_dir_required,
+        dst_dir_default,
+        "Since dst_dir_required='%s', you can't specify a default "
+        "destination dir, dst_dir_default='%s'",
+        dst_dir_required,
+        dst_dir_default,
+    )
+    parser.add_argument(
+        "--dst_dir",
+        action="store",
+        default=dst_dir_default,
+        required=dst_dir_required,
+        help="Directory storing the results",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Delete existing destination directory if it already exists",
+    )
+    return parser
+
+
+def parse_dst_dir_arg(args: argparse.Namespace) -> str:
+    """
+    Process the command line options related to destination directory.
+
+    If the destination directory already exists and `--overwrite` is not set,
+    raises an error. If `--overwrite` is set and the directory exists, it is
+    used as-is (not deleted).
+
+    :return: the destination directory path
+    """
+    dst_dir = args.dst_dir
+    _LOG.debug("dst_dir=%s", dst_dir)
+    if os.path.exists(dst_dir):
+        if not args.overwrite:
+            raise ValueError(
+                f"Output directory already exists: {dst_dir} "
+                "(use --overwrite to replace)"
+            )
+        _LOG.info("Reusing existing dst_dir='%s'", dst_dir)
+    else:
+        hio.create_dir(dst_dir, incremental=True)
+    return dst_dir
 
 
 # #############################################################################
@@ -912,43 +954,6 @@ def add_dockerized_script_arg(
     return parser
 
 
-def add_llm_prompt_arg(
-    parser: argparse.ArgumentParser,
-    *,
-    default_prompt: str = "",
-    is_required: bool = True,
-) -> argparse.ArgumentParser:
-    """
-    Add common command line arguments for `*llm_transform.py` scripts.
-
-    :param default_prompt: default prompt to use
-    :param is_required: whether the prompt is required
-    :return: parser with the option added
-    """
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Print before/after the transform",
-    )
-    if default_prompt != "":
-        is_required = False
-    parser.add_argument(
-        "-p",
-        "--prompt",
-        required=is_required,
-        type=str,
-        help="Prompt to apply",
-        default=default_prompt,
-    )
-    parser.add_argument(
-        "-f",
-        "--fast_model",
-        action="store_true",
-        help="Use a fast LLM model vs a high-quality one",
-    )
-    return parser
-
-
 # #############################################################################
 # Command line options for limit range processing.
 # #############################################################################
@@ -1075,6 +1080,7 @@ def apply_limit_range(
 # #############################################################################
 
 
+# TODO(ai_gp): Merge with input_output_args
 def add_multi_file_args(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
@@ -1174,3 +1180,272 @@ def parse_multi_file_args(
         hdbg.dassert_path_exists(file_path)
     _LOG.info("Found %s file(s) to process", len(file_list))
     return file_list
+
+
+# #############################################################################
+# Command line options for LLM CLI scripts.
+# #############################################################################
+
+
+# TODO(ai_gp): Replace this with the more general parsing logic below.
+def add_llm_prompt_arg(
+    parser: argparse.ArgumentParser,
+    *,
+    default_prompt: str = "",
+    is_required: bool = True,
+) -> argparse.ArgumentParser:
+    """
+    Add common command line arguments for `*llm_transform.py` scripts.
+
+    :param default_prompt: default prompt to use
+    :param is_required: whether the prompt is required
+    :return: parser with the option added
+    """
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print before/after the transform",
+    )
+    if default_prompt != "":
+        is_required = False
+    parser.add_argument(
+        "-p",
+        "--prompt",
+        required=is_required,
+        type=str,
+        help="Prompt to apply",
+        default=default_prompt,
+    )
+    parser.add_argument(
+        "-f",
+        "--fast_model",
+        action="store_true",
+        help="Use a fast LLM model vs a high-quality one",
+    )
+    return parser
+
+
+# TODO(ai_gp): Move to dev_scripts_helpers/documentation/extract_from_md.py
+def extract_rule_from_file(rule_spec: str) -> str:
+    """
+    Extract a rule section from a rules file based on a rule specification.
+
+    :param rule_spec: rule specification in one of these formats:
+        - `path/to/file.md`: return all content
+        - `path/to/file.md:N`: extract section starting at line N (must be
+          a markdown header)
+        - `path/to/file.md:N:# Section Name`: same with header name
+          validation
+    :return: extracted rule text as a string
+    """
+    # Parse the rule specification.
+    parts = rule_spec.split(":", 2)
+    file_path = parts[0]
+    # Check file exists.
+    hdbg.dassert_file_exists(file_path, "Rule file does not exist: %s", file_path)
+    # Read file content.
+    content = hio.from_file(file_path)
+    lines = content.splitlines()
+    # If only path provided, return full content.
+    if len(parts) == 1:
+        return content
+    # Parse line number.
+    try:
+        line_num = int(parts[1])
+    except ValueError:
+        raise ValueError(
+            "Invalid line number '%s' in rule spec: %s" % (parts[1], rule_spec)
+        )
+    # Convert to 0-based index.
+    line_idx = line_num - 1
+    hdbg.dassert_lt(
+        line_idx,
+        len(lines),
+        "Line number %d exceeds file length %d",
+        line_num,
+        len(lines),
+    )
+    # Check that the target line is a header.
+    header_line = lines[line_idx]
+    if not header_line.startswith("#"):
+        raise ValueError(
+            "Line %d is not a markdown header: '%s'" % (line_num, header_line)
+        )
+    # Validate section name if provided.
+    if len(parts) == 3:
+        expected_name = parts[2]
+        if header_line.strip() != expected_name.strip():
+            raise ValueError(
+                "Section name mismatch at line %d: expected '%s', got '%s'"
+                % (line_num, expected_name, header_line)
+            )
+    # Determine header level (number of leading '#' characters).
+    header_level = len(header_line) - len(header_line.lstrip("#"))
+    # Find the end of section (next header at same or higher level).
+    end_idx = len(lines)
+    for i in range(line_idx + 1, len(lines)):
+        line = lines[i]
+        if line.startswith("#"):
+            this_level = len(line) - len(line.lstrip("#"))
+            if this_level <= header_level:
+                end_idx = i
+                break
+    # Extract and return the section.
+    section_lines = lines[line_idx:end_idx]
+    return "\n".join(section_lines)
+
+
+def add_llm_args(
+    parser: argparse.ArgumentParser,
+    *,
+    input_required: bool = True,
+    output_required: bool = False,
+    system_prompt_required: bool = False,
+    model_default: str = "gpt-4o-mini",
+    include_model: bool = True,
+    include_llm_executable: bool = True,
+) -> argparse.ArgumentParser:
+    """
+    Add comprehensive LLM-related command line arguments for LLM CLI scripts.
+
+    This helper function consolidates commonly used arguments for scripts that
+    process text with LLM transformations (e.g., llm_cli.py, ai_review.py).
+
+    :param input_required: whether input is required
+    :param output_required: whether output is required
+    :param system_prompt_required: whether system prompt is required
+    :param model_default: default LLM model name
+    :param include_model: whether to include --model argument
+    :param include_llm_executable: whether to include --use_llm_executable flag
+    :return: parser with LLM arguments added
+    """
+    # Input/Output options with mutually exclusive input sources.
+    input_group = parser.add_mutually_exclusive_group(required=input_required)
+    input_group.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        dest="input",
+        help="Path to the input file containing text to process, or '-' for stdin",
+    )
+    input_group.add_argument(
+        "--input_text",
+        type=str,
+        help="Text input to process directly from command line",
+    )
+    # Output option.
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        dest="output",
+        required=output_required,
+        default=None,
+        help="Path to the output file where result will be saved (use '-' to "
+        "print to screen). If not specified, writes in-place to the input file",
+    )
+    # System prompt options (mutually exclusive).
+    system_prompt_group = parser.add_mutually_exclusive_group(
+        required=system_prompt_required
+    )
+    system_prompt_group.add_argument(
+        "-p",
+        "--system_prompt",
+        type=str,
+        default=None,
+        dest="system_prompt",
+        help="Optional system prompt to guide the LLM's behavior",
+    )
+    system_prompt_group.add_argument(
+        "-pf",
+        "--system_prompt_file",
+        type=str,
+        default=None,
+        dest="system_prompt_file",
+        help="Optional path to file containing system prompt to guide the LLM's behavior",
+    )
+    system_prompt_group.add_argument(
+        "-r",
+        "--rule",
+        type=str,
+        default=None,
+        dest="rule",
+        help=(
+            "Rule specification used as system prompt. Formats: "
+            "'path/to/rules.md' (whole file), "
+            "'path/to/rules.md:LINE' (header section at LINE), "
+            "'path/to/rules.md:LINE:# Section Name' (with name validation)"
+        ),
+    )
+    # Model selection.
+    if include_model:
+        parser.add_argument(
+            "--model",
+            type=str,
+            default=model_default,
+            help=f"Optional model name to use (e.g., 'gpt-4', 'claude-3-opus'). "
+            f"Default: {model_default}",
+        )
+    # LLM executable option.
+    if include_llm_executable:
+        parser.add_argument(
+            "--use_llm_executable",
+            action="store_true",
+            default=False,
+            help="Use the llm CLI executable instead of the Python library",
+        )
+    # Progress bar options.
+    parser.add_argument(
+        "-b",
+        "--progress_bar",
+        action="store_true",
+        default=False,
+        help="Enable progress bar with automatic estimation (input length * 1.0)",
+    )
+    parser.add_argument(
+        "--expected_num_chars",
+        type=int,
+        default=None,
+        help="Expected number of characters in output (enables progress bar with explicit size)",
+    )
+    return parser
+
+
+# #############################################################################
+# Command line for markdown extraction and selection
+# #############################################################################
+
+
+def add_md_start_end_args(
+    parser: argparse.ArgumentParser,
+    *,
+    start_required: bool = True,
+    end_required: bool = False,
+) -> argparse.ArgumentParser:
+    """
+    Add options for markdown header range selection via --md_start and --md_end.
+
+    Both arguments accept header specifications in two formats:
+    - Full format: "## Section Title" (includes the # symbols)
+    - Partial match: "Section Title" (just the title, matches if unique)
+
+    :param parser: ArgumentParser to add arguments to
+    :param start_required: whether the start header is required (default: True)
+    :param end_required: whether the end header is required (default: False)
+    :return: ArgumentParser with the new arguments added
+    """
+    parser.add_argument(
+        "--md_start",
+        type=str,
+        required=start_required,
+        default=None,
+        help="Starting header: either full format (e.g., '## Section 1') or partial match (e.g., 'Section 1'). Partial match must be unique.",
+    )
+    parser.add_argument(
+        "--md_end",
+        type=str,
+        required=end_required,
+        default=None,
+        help="Ending header: either full format (e.g., '## Section 2') or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. Partial match must be unique.",
+    )
+    return parser

@@ -6,7 +6,7 @@ import config_root.config as cconfig
 import dev_scripts_helpers.notebooks.run_notebook_test_case as dshnrntca
 import helpers.hgit as hgit
 import helpers.hserver as hserver
-import helpers.lib_tasks_gh as hlitagh
+import helpers.lib_tasks.lib_tasks_gh as hlitagh
 
 
 def build_config() -> cconfig.ConfigList:

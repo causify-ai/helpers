@@ -1,20 +1,61 @@
 - This document consolidates formatting rules and conventions for creating
   professional lecture slides for graduate-level courses
 
-# Rules
-- **Definition**
-- **Question**
-- **Solution**
-- **Remark**: A simple but useful fact
-- **Proposition**: A result worth stating, but not as central as a theorem
-- **Lemma**: stepping stone used to prove a bigger result
-- **Claim**: A smaller assertion inside a proof or argument
-- **Intuition**: Explains the "why it makes sense"
-- **Example**: Concrete illustration
-- **Counterexample**: Shows what doesn't work
-- **Interpretation**: What the result means in context
+# Core Writing Principles
 
-# Basic Formatting
+## Pedagogical Progression
+- **Start with motivation**: Explain why the topic matters before diving into
+  details
+- **Intuition before formalism**: Explain the concept intuitively, then provide
+  mathematical formalism
+- **Build incrementally**: Progress from simple to complex, referencing earlier
+  concepts
+- **Use multiple representations**: Combine text, equations, diagrams, and
+  real-world examples
+- **Concrete examples**: Always include practical examples labeled
+- **Reference context**: Connect new concepts to previously introduced material
+
+## Engagement Strategies
+- **Open with motivation**: "Why does this matter?"
+- **Use questions**: Mark rhetorical questions with `**Question**:`
+- **Ground in examples**: Always include `**Example**:` with concrete scenarios
+- **Reference prior knowledge**: "As we saw in [previous topic]..."
+- **Contrast approaches**: Show what doesn't work vs what does
+
+## Slide Density Guidelines
+- Maximum 5-7 bullet points per slide (excluding sub-points)
+- Maximum 2-3 lines per bullet point
+- Use diagrams instead of long text descriptions
+- Break complex topics across multiple slides
+
+# Document Organization
+
+## Section Structure
+
+- Major sections to start new page/major topic:
+  ```markdown
+  # ##############################################################################
+  # Section Title
+  # ##############################################################################
+  ```
+
+- Subsections (within a major section):
+  ```markdown
+  ## #############################################################################
+  ## Subsection Title
+  ## #############################################################################
+  ```
+
+- Individual slides: use `*` with no leading spaces
+  ```markdown
+  * <Slide Title>
+
+  - <Main bullet point>
+    - <Sub-point> (2-space indent)
+      - Further nesting (4-space indent)
+  ```
+
+# Slide Organization
 
 ## General Formatting Rules
 
@@ -26,140 +67,113 @@
 ## Slide Structure
 
 - Each slide should start with:
-  ```
+  ```markdown
   * Slide title
   ```
 - Each slide contains bullet points arranged in a hierarchical structure
   - Every line starts with a bullet point
   - Do not use period at the end of a phrase
 - Use italic and add quotes for questions:
-  ```
-  - E.g., _"If we lower prices by 10%, will revenue increase?"_
-  ```
-
-## Spacing and Breaks
-
-- `\vspace{0.4cm}`: Small spacing between elements
-- `\vspace{1cm}`: Large spacing between major sections
-- Use comments (`//`) for internal notes (not rendered in output)
-- **Do NOT use page separators** (`---` markdown syntax)
-
-## Symbols and Characters
-
-**Do NOT use non-ASCII characters**. Use LaTeX instead:
-
-- ε → `$\varepsilon$`
-- → → `$\to$`
-- ∝ → `$\propto$`
-- ≈ → `$\approx$`
-- ∩ → `$\cap$`
-- ∪ → `$\cup$`
-
-## Font Sizing
-
-- Group all font size changes with LaTeX:
   ```markdown
-  \begingroup \large
-  Large text here
-  \endgroup
+  _"If we lower prices by 10%, will revenue increase?"_
   ```
-- Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
 
-# Document Structure and Organization
+## Use Bold for Slide Sections
 
-## Section Structure
+- Every first level bullet point should start with a bold label `<bold label>`
+  for pedagogical structure like in the following:
+  - **Definition**: A definition of a concept
+  - **Question**: A question to introduce a problem
+  - **Solution**: A solution to a previously introduced problem
+  - **Remark**: A simple but useful fact
+  - **Proposition**: A result worth stating, but not as central as a theorem
+  - **Lemma**: stepping stone used to prove a bigger result
+  - **Claim**: A smaller assertion inside a proof or argument
+  - **Intuition**: Explains the "why it makes sense"
+  - **Example**: Concrete illustration
+  - **Counterexample**: Shows what doesn't work
+  - **Interpretation**: What the result means in context
 
-- **Major sections** (start new page/major topic):
+- Template:
   ```markdown
-  # ##############################################################################
-  # Section Title
-  # ##############################################################################
+  * <slide title>
+
+  - **<Bold label>**:
+    - ...
+    - ...
   ```
 
-- **Subsections** (within a major section):
+- Example
   ```markdown
-  ## #############################################################################
-  ## Subsection Title
-  ## #############################################################################
-  ```
+  * Individual Treatment Effect
+  - **Definition**: the impact of the treatment $T$ on the outcome $Y$ for an
+    individual unit $i$ is:
+    $$\tau_i \defeq Y_i|do(T=t_1) - Y_i|do(T=t_0)$$
+    - The effect $\tau_i$ of going from treatment $t_0$ to $t_1$ for unit $i$ is
+      the difference in the outcome of that unit under $t_1$ compared to $t_0$
 
-- **Individual slides** (use `*` with no leading spaces):
+  - **Example**: for the sales example
+    $$AmountSold_i|do(IsOnSales=1) - AmountSold_i|do(IsOnSales=0)$$
+
+  - **Problem**: you can only observe one term due to the fundamental problem of
+    causal inference
+    - Represent it in theory, but can't recover it from data
+  ```
+- Example
   ```markdown
-  * Slide Title
+  * Potential Outcomes
+  - Aka "counterfactuals"
 
-  - Main bullet point
-    - Sub-point (2-space indent)
-      - Further nesting (4-space indent)
-  ```
+  - **Definition**: the $do()$ operator represents _"unit $i$ outcome $Y$ if
+    treatment is set to $t$"_
+    - $Y_{t,i}$ is Rubin's notation
+    - $Y_i | do(T_i = t)$ is Pearl's notation
 
-## Title Slide Format
+  - For binary treatment:
+    - $Y_{0i}$ potential outcome without treatment
+    - $Y_{1i}$ potential outcome with treatment
+    - One is "factual" (i.e., observable)
+    - The other is "counterfactual" (i.e., theoretical, not observable)
+    - Alternative expression:
+      $$
+      Y_i = T_i * Y_{1i} + (1 - T_i) * Y_{0i} = Y_{0i} + (Y_{1i} - Y_{0i}) * T_i
+      $$
 
-- Use this template for the first slide:
-  ```markdown
-  ::: columns
-  :::: {.column width=15%}
-  ![](msml610/lectures_source/figures/UMD_Logo.png)
-  ::::
-  :::: {.column width=75%}
+  - **Remark**: there is a difference between conditioning and intervention
+    - $Y|do(T=t)$ is _"what a business would sell if it cut prices"_
+    - $Y|T=t$ is _"what a business that cut the prices sold"_
+```
 
-  \vspace{0.4cm}
-  \begingroup \large
-  MSML610: Advanced Machine Learning
-  \endgroup
-  ::::
-  :::
+## Use Italic
+- Use _italic_ (`_text_`) for:
+  - Quoted statements
+  - Key terms
+  - Important concepts
+  - Emphasized definitions
 
-  \vspace{1cm}
-
-  \begingroup \Large
-  **$$\text{\blue{Lesson XX.X: Topic Title}}$$**
-  \endgroup
-  \vspace{1cm}
-
-  ::: columns
-  :::: {.column width=65%}
-  **Instructor**: Dr. GP Saggese, [gsaggese@umd.edu](gsaggese@umd.edu)
-
-  **References**:
-
-  - Author 1: _"Book Title"_ (Year)
-
-  - Author 2: _"Another Book Title"_ (Year)
-
-  ::::
-  :::: {.column width=40%}
-
-  ![](msml610/lectures_source/figures/book_covers/Book_cover_image.jpg){ height=20% }
-
-  ::::
-  :::
-  ```
-
-# Content and Styling
-
-## Text Formatting
-
-- **Bold** (`**text**`): Use for key terms, definitions, and important concepts
-- _Italic_ (`_text_`): Use for questions, hypotheticals, and quoted statements
-- Inline code (`` `code` ``): Use for technical terms, function names, variable names
-- `\blue{text}`: Use for highlighting key concepts and titles in LaTeX contexts
+## Use Inline Verbatim
+- Use inline verbatim (`code`) for:
+  - Technical terms
+  - Function names
+  - Variable names
+  - Implementation-oriented notation
 
 ## Mathematical Notation
 
 ### Display Modes
-- **Inline math** (within text):
+- Inline math within text:
   ```markdown
   The probability is $\Pr(X | Y)$ or expectation $\EE[X]$.
   ```
 
-- **Centered display math** (on own line):
+- Centered display math on own line:
   ```markdown
   $$
   \Pr(X | Y) = \frac{\Pr(Y | X) \Pr(X)}{\Pr(Y)}
   $$
   ```
 
-- **Multi-line equations** (with alignment):
+- Multi-line equations with alignment:
   ```markdown
   \begin{align*}
   & \Pr(x_1, x_2) \\
@@ -171,22 +185,49 @@
 
 Use these commands consistently across all slides:
 
-- `$\Pr(...)$` - Probability
-- `$\EE[...]$` - Expectation (mean)
-- `$\VV[...]$` - Variance
-- `$\mathcal{X}$` - Sets or spaces (use calligraphic)
-- `\defeq` - "Defined as"
-- `\iff` - "If and only if"
-- `\perp` - Independence (perpendicular symbol)
-- `\vx`, `\vy` - Vectors (if defined in preamble)
+- `$\Pr(...)$`: Probability
+- `$\Pr(... | ...)$`: Conditional probability (do not use `\mid`)
+- `$\EE[...]$`: Expectation (mean)
+- `$\VV[...]$`: Variance
+- `$\mathcal{X}$`: Sets or spaces (use calligraphic)
+- `\defeq`: "Defined as"
+- `\iff`: "If and only if"
+- `\perp`: Independence (perpendicular symbol)
+- `\vx`, `\vy`: Vectors (if defined in preamble)
+
+### Spacing and Breaks
+
+- Use comments (`//`) for internal notes (not rendered in output)
+- Do NOT use page separators (`---` markdown syntax)
+
+### Symbols and Characters
+
+- Do NOT use non-ASCII characters, but use LaTeX instead:
+
+- ε → `$\varepsilon$`
+- → → `$\to$`
+- ∝ → `$\propto$`
+- ≈ → `$\approx$`
+- ∩ → `$\cap$`
+- ∪ → `$\cup$`
+
+### Font Sizing
+
+- Group all font size changes with LaTeX:
+  ```markdown
+  \begingroup \large
+  Large text here
+  \endgroup
+  ```
+- Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
 
 # Visual Elements and Diagrams
 
 ## GraphViz Diagrams
-- **When to use**: Flowcharts, networks, agent interactions, system
-  relationships, process flows.
+- When to use: flowcharts, networks, agent interactions, system relationships,
+  process flows
 
-- **Standard template with styling**:
+- Standard template with styling:
   ```graphviz
   digraph DiagramName {
       splines=true;
@@ -204,7 +245,7 @@ Use these commands consistently across all slides:
   }
   ```
 
-- **Color palette** (use consistently throughout all diagrams):
+- Color palette (use consistently throughout all diagrams):
 
 | Color      | Code      | Use For                                |
 | ---------- | --------- | -------------------------------------- |
@@ -215,7 +256,7 @@ Use these commands consistently across all slides:
 | Light Blue | `#A6E7F4` | Parameters, configuration, settings    |
 | Blue       | `#A6C8F4` | Outputs, results, final states         |
 
-- **Example - Agent-Environment interaction**:
+- Example:
   ```graphviz
   digraph AgentEnv {
       splines=true;
@@ -233,8 +274,9 @@ Use these commands consistently across all slides:
   ```
 
 ## Mermaid Diagrams
-- **When to use**: Mind maps, hierarchical taxonomies, classification structures
-- **Mind map example**:
+- When to use: Mind maps, hierarchical taxonomies, classification structures
+
+- Example:
   ```mermaid
   mindmap
     root((**Machine Learning**))
@@ -249,7 +291,10 @@ Use these commands consistently across all slides:
   ```
 
 ## Tables
+
 - Use markdown tables for structured data comparisons
+
+- Example
   ```markdown
   \begingroup \scriptsize
   | **Column1** | **Column2** | **Column3** |
@@ -259,8 +304,11 @@ Use these commands consistently across all slides:
   \endgroup
   ```
 
+# Example Slide Styles
+
 ## Side-by-Side Content
-- **For symmetric content** (two equal columns):
+
+- For symmetric content (two equal columns):
   ```markdown
   ::: columns
   :::: {.column width=50%}
@@ -276,7 +324,7 @@ Use these commands consistently across all slides:
   :::
   ```
 
-- **For asymmetric content** (text + diagram):
+- For asymmetric content (text + diagram):
   ```markdown
   ::: columns
   :::: {.column width=65%}
@@ -292,15 +340,13 @@ Use these commands consistently across all slides:
   :::
   ```
 
-# Slide Templates and Patterns
-
 ## Definition Slide
 
-- Use for introducing a new concept or term.
+- Use for introducing a new concept or term
   ```markdown
   * <Term>: Definition
 
-  - **Term** is [concise definition in plain language]
+  - **Definition**: <Term> is [concise definition in plain language]
     - Property or characteristic 1
     - Property or characteristic 2
     - Property or characteristic 3
@@ -313,7 +359,7 @@ Use these commands consistently across all slides:
   - **Example**: [concrete, real-world scenario that demonstrates the concept]
   ```
 
-- **Real example**
+- Real example
   ```markdown
   * Machine Learning: Definition
 
@@ -331,93 +377,8 @@ Use these commands consistently across all slides:
     image datasets without being programmed with cat detection rules
   ```
 
-## Example Slide
-- Use for illustrating a concept with a structured walkthrough.
-  ```markdown
-  * <Topic>: Example
-
-  - **Example**: [scenario description]
-    - Given: [what information we have]
-    - Question: [what we want to find or determine]
-    - Solution: [step-by-step approach]
-      1. First step
-      2. Second step
-      3. Final result or conclusion
-  ```
-
-### Comparison Slide
-- Use for contrasting two or more approaches.
-  ```markdown
-  * <Topic>: <Approach A> vs <Approach B>
-
-  ::: columns
-  :::: {.column width=50%}
-  **Approach A**
-  - Characteristic 1
-  - Characteristic 2
-
-  - **Pros**
-    - Advantage 1
-    - Advantage 2
-
-  - **Cons**
-    - Disadvantage 1
-    - Disadvantage 2
-  ::::
-  :::: {.column width=50%}
-  **Approach B**
-  - Characteristic 1
-  - Characteristic 2
-
-  - **Pros**
-    - Advantage 1
-    - Advantage 2
-
-  - **Cons**
-    - Disadvantage 1
-    - Disadvantage 2
-  ::::
-  :::
-  ```
-
-### List of Paradigms/Techniques Slide
-- Use when introducing multiple related items. Break into multiple slides if the
-  list is long (use numbering like "1/3", "2/3", "3/3").
-  ```markdown
-  * Machine Learning Paradigms with Examples (1/3)
-
-  - **Paradigm 1**
-    - Brief description of what it is
-    - E.g., concrete example with real-world application
-
-  - **Paradigm 2**
-    - Brief description of what it is
-    - E.g., concrete example with real-world application
-
-  - **Paradigm 3**
-    - Brief description of what it is
-    - E.g., concrete example with real-world application
-  ```
-
-- **Real example** (from Lesson 02.2):
-  ```markdown
-  * Machine Learning Paradigms with Examples (1/3)
-
-  - **Supervised Learning**
-    - Learn from labeled data to predict labels for new inputs
-    - E.g., image classification using ResNet on ImageNet
-
-  - **Unsupervised Learning**
-    - Discover hidden patterns or structure in unlabeled data
-    - E.g., K-means clustering for customer segmentation
-
-  - **Reinforcement Learning**
-    - Learn through interaction with an environment, receiving rewards/punishments
-    - E.g., deep Q-Learning for playing Atari games
-  ```
-
-### Algorithm Slide
-- Use for describing a step-by-step procedure or algorithm.
+## Algorithm Slide
+- Use for describing a step-by-step procedure or algorithm
   ```markdown
   * <Algorithm Name>
 
@@ -435,39 +396,7 @@ Use these commands consistently across all slides:
     - Space: $O(...)$
   ```
 
-### Flow Diagram Slide
-- Use for showing process sequences or pipelines.
-  ````markdown
-  * <Process Name> Flow (1/2)
-
-  - **Step 1**: [description]
-  - **Step 2**: [description]
-  - **Step 3**: [description]
-
-  * <Process Name> Flow (2/2)
-
-  \`\`\`graphviz[height=80%]
-  digraph ProcessFlow {
-      rankdir=LR;
-      splines=true;
-      nodesep=1.0;
-      ranksep=0.75;
-      node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
-
-      "Step1" [fillcolor="#F4A6A6"];
-      "Step2" [fillcolor="#FFD1A6"];
-      "Step3" [fillcolor="#B2E2B2"];
-      "Step4" [fillcolor="#A6C8F4"];
-
-      "Step1" -> "Step2" -> "Step3" -> "Step4";
-  }
-  \`\`\`
-
-  - **Key insight 1**: [observation about the flow]
-  - **Key insight 2**: [observation about the flow]
-  ````
-
-### Pros/Cons Slide
+## Pros/Cons Slide
 - Use for evaluating approaches or concepts against criteria.
   ```markdown
   - <Topic>: Advantages and Disadvantages
@@ -483,7 +412,7 @@ Use these commands consistently across all slides:
     - Disadvantage 3: [why it's problematic]
   ```
 
-- **Real example** (from Lesson 01.1):
+- Example (from Lesson 01.1):
   ```markdown
   - AI as Thinking Humanly: Pros and Cons
 
@@ -495,8 +424,8 @@ Use these commands consistently across all slides:
     - Anthropocentric definition (not applicable to non-human intelligence)
   ```
 
-### Question/Discussion Slide
-- Use for posing rhetorical or engagement questions.
+## Question Slide
+- Use for posing rhetorical or engagement questions
   ```markdown
   * <Question or Topic>
 
@@ -511,29 +440,3 @@ Use these commands consistently across all slides:
 
   - **Key takeaway**: [what students should learn from this]
   ```
-
-# Design and Content Guidelines
-
-## When to Use Each Element
-| Element      | When to Use                                    | Example                             |
-| ------------ | ---------------------------------------------- | ----------------------------------- |
-| GraphViz     | System diagrams, workflows, agent interactions | Agent-Environment loop, ML pipeline |
-| Mermaid      | Hierarchies, taxonomies, mind maps             | ML paradigm taxonomy                |
-| Tables       | Comparisons, structured data                   | Feature comparison across methods   |
-| Columns      | Side-by-side content, comparisons              | Algorithm description + diagram     |
-| Math display | Complex equations, key formulas                | Bayes rule, loss functions          |
-| Inline math  | Within sentences, simple expressions           | Variable definitions                |
-| Images       | Real-world examples, photos                    | Book covers, system screenshots     |
-
-## Engagement Strategies
-- **Open with motivation**: "Why does this matter?"
-- **Use questions**: Mark rhetorical questions with `**Question**:`
-- **Ground in examples**: Always include "**Example**:" with concrete scenarios
-- **Reference prior knowledge**: "As we saw in [previous topic]..."
-- **Contrast approaches**: Show what doesn't work vs. what does
-
-## Slide Density Guidelines
-- **Maximum 5-7 bullet points** per slide (excluding sub-points)
-- **Maximum 2-3 lines** per bullet point
-- Use diagrams instead of long text descriptions
-- Break complex topics across multiple slides

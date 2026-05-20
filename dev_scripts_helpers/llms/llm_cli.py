@@ -41,73 +41,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # Create mutually exclusive group for input sources.
-    input_group = parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument(
-        "-i",
-        "--input",
-        type=str,
-        dest="input",
-        help="Path to the input file containing text to process, or '-' for stdin",
-    )
-    input_group.add_argument(
-        "--input_text",
-        type=str,
-        help="Text input to process directly from command line",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        dest="output",
-        required=False,
-        default=None,
-        help="Path to the output file where result will be saved (use '-' to "
-        "print to screen). If not specified, writes in-place to the input file",
-    )
-    # Create mutually exclusive group for system prompt sources.
-    system_prompt_group = parser.add_mutually_exclusive_group()
-    system_prompt_group.add_argument(
-        "-p",
-        "--system_prompt",
-        type=str,
-        default=None,
-        dest="system_prompt",
-        help="Optional system prompt to guide the LLM's behavior",
-    )
-    system_prompt_group.add_argument(
-        "-pf",
-        "--system_prompt_file",
-        type=str,
-        default=None,
-        dest="system_prompt_file",
-        help="Optional path to file containing system prompt to guide the LLM's behavior",
-    )
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="gpt-4o-mini",
-        help="Optional model name to use (e.g., 'gpt-4', 'claude-3-opus').",
-    )
-    parser.add_argument(
-        "--use_llm_executable",
-        action="store_true",
-        default=False,
-        help="Use the llm CLI executable instead of the Python library",
-    )
-    parser.add_argument(
-        "-b",
-        "--progress_bar",
-        action="store_true",
-        default=False,
-        help="Enable progress bar with automatic estimation (input length * 1.0)",
-    )
-    parser.add_argument(
-        "--expected_num_chars",
-        type=int,
-        default=None,
-        help="Expected number of characters in output (enables progress bar with explicit size)",
-    )
+    hparser.add_llm_args(parser, input_required=True)
     parser.add_argument(
         "--lint",
         action="store_true",
@@ -173,6 +107,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.debug(
             "Read system prompt from file: %s (%d chars)",
             args.system_prompt_file,
+            len(system_prompt),
+        )
+    elif args.rule:
+        system_prompt = hparser.extract_rule_from_file(args.rule)
+        _LOG.debug(
+            "Extracted rule from spec '%s' (%d chars)",
+            args.rule,
             len(system_prompt),
         )
     else:

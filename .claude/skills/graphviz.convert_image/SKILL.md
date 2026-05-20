@@ -17,7 +17,7 @@ description: Convert an image of a graph into a Graphviz Dot in an accurate way
   > open graph.png
   ```
 
-# Step 3: Read the PNG file
+# Step 3: Read the PNG File
 
 - If the generated PNG image is different from the input image:
   - Find the differences in terms of layout, e.g.,

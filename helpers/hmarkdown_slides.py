@@ -23,6 +23,10 @@ _LOG = logging.getLogger(__name__)
 _TRACE = True
 
 
+# Level at which slides (`* Title`) are converted to markdown headers.
+SLIDE_LEVEL = 5
+
+
 def extract_slides_from_markdown(
     lines: List[str],
 ) -> Tuple[HeaderList, int]:
@@ -157,14 +161,16 @@ def process_slides(txt: str, transform: Callable[..., Any]) -> str:
 # #############################################################################
 
 
-def convert_slide_to_markdown(lines: List[str], *, level: int = 5) -> List[str]:
+def convert_slide_to_markdown(
+    lines: List[str], *, level: int = SLIDE_LEVEL
+) -> List[str]:
     """
     Convert slide to standard markdown.
 
-    - Handle * bullets to markdown headers level 5
+    - Handle * bullets to markdown headers (default SLIDE_LEVEL = 5)
 
     :param lines: list of lines to convert
-    :param level: level of the markdown headers to convert to
+    :param level: level of the markdown headers to convert to (default: SLIDE_LEVEL)
     :return: list of converted lines
     """
     hdbg.dassert_isinstance(lines, list)
@@ -179,14 +185,16 @@ def convert_slide_to_markdown(lines: List[str], *, level: int = 5) -> List[str]:
     return converted_lines
 
 
-def convert_markdown_to_slide(lines: List[str], *, level: int = 5) -> List[str]:
+def convert_markdown_to_slide(
+    lines: List[str], *, level: int = SLIDE_LEVEL
+) -> List[str]:
     """
     Convert standard markdown back to slide.
 
-    - Handle markdown headers level 5 to * bullets
+    - Handle markdown headers at SLIDE_LEVEL (default 5) to * bullets
 
     :param lines: list of lines to convert
-    :param level: level of the markdown headers to convert to
+    :param level: level of the markdown headers to convert from (default: SLIDE_LEVEL)
     :return: list of converted lines
     """
     hdbg.dassert_isinstance(lines, list)
