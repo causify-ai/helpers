@@ -177,7 +177,9 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         hplayba._save_records(fixture_path, records)
         mock_dict = hplayba.MockDict(fixture_path)
         # Run test.
-        with mock_dict.patch("helpers.lib_tasks_gh._gh_run_and_get_json"):
+        with mock_dict.patch(
+            "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
+        ):
             actual = helper_fn(*helper_args, **helper_kwargs)
         # Check outputs.
         self.assertEqual(actual, expected)
