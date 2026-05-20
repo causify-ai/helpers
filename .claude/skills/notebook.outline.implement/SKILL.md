@@ -49,12 +49,3 @@ description: Implement Jupyter notebook from an outline description
   information in the "Comments" graph
 - You can use `plot_joint_entropy_interactive()` in
   `msml610/tutorials/Lesson94_Information_Theory_utils.py` as a reference
-
-# Plotting Graphs
-
-- When a plot changes a little bit because of the interactive widget controls,
-  it must not abruptly change the values on the y-axis and x-axis
-- The xlim and ylim of the graphs must be fixed until the graph is too big to
-  fit in which case it must change so that the xlim or ylim doubles or it's
-  reduced in half, so that the xlim / ylim can be stable when changing the
-  widget controls

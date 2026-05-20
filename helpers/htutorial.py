@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple, Union
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import matplotlib.text
-import seaborn as sns
 
 if TYPE_CHECKING:
     import ipywidgets
@@ -27,9 +26,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
 # Notebook configuration.
-# #############################################################################
 
 
 def set_notebook_style() -> None:
@@ -37,11 +34,12 @@ def set_notebook_style() -> None:
     Set default matplotlib style for notebooks.
     """
     _LOG.info("Setting notebook style")
+    import seaborn as sns
     sns.set_style("whitegrid")
     plt.rcParams["figure.figsize"] = [8, 3]
 
 
-# TODO(gp): Use hnotebook
+# TODO(gp): Merge with hnotebook
 def notebook_signature() -> None:
     """
     Display Python environment information including version and module versions.
@@ -61,6 +59,7 @@ def notebook_signature() -> None:
             _LOG.warning("%s is not installed", module)
 
 
+# TODO(gp): Merge with hnotebook
 def config_notebook() -> None:
     """
     Configure notebook with default style and display environment signature.
@@ -96,7 +95,7 @@ def obj_to_str(var_name: str, val: Any, *, top_n: int = 3) -> str:
 
 def print_obj(*args: Any, **kwargs: Any) -> None:
     """
-    Print object information using obj_to_str.
+    Print object information using `obj_to_str()`.
     """
     _LOG.info(obj_to_str(*args, **kwargs))
 
@@ -145,9 +144,7 @@ def process_figure(title: str) -> None:
     plt.savefig(file_name, dpi=300)
 
 
-# #############################################################################
-# Widget Builder Utilities
-# #############################################################################
+# Widget Builder Utilities.
 
 
 def _create_slider_widget(
@@ -176,7 +173,6 @@ def _create_slider_widget(
     :return: Tuple of (slider, text, minus_button, plus_button)
     """
     import ipywidgets
-
     _ = description
     # Create widgets based on type.
     if is_float:
@@ -241,17 +237,13 @@ def _link_slider_widgets(
 
     def slider_changed(change):
         text.value = change["new"]
-
     def text_changed(change):
         if slider.min <= change["new"] <= slider.max:
             slider.value = change["new"]
-
-    def minus_clicked(b):
+    def minus_clicked(_b):
         slider.value = max(slider.min, slider.value - slider.step)
-
-    def plus_clicked(b):
+    def plus_clicked(_b):
         slider.value = min(slider.max, slider.value + slider.step)
-
     # Connect observers.
     slider.observe(slider_changed, names="value")
     text.observe(text_changed, names="value")
@@ -288,7 +280,6 @@ def build_widget_control(
         is the HBox layout containing all components
     """
     import ipywidgets
-
     # Create widgets with sliders, text fields, and +/- buttons.
     slider, text, minus_button, plus_button = _create_slider_widget(
         name=name,
@@ -332,7 +323,6 @@ def build_log_widget_control(
         is the HBox layout containing all components
     """
     import ipywidgets
-
     # Create slider that operates on exponents.
     exp_slider = ipywidgets.IntSlider(
         min=min_exp,
@@ -353,18 +343,17 @@ def build_log_widget_control(
     # Create buttons.
     minus_button = ipywidgets.Button(description="-", layout={"width": "40px"})
     plus_button = ipywidgets.Button(description="+", layout={"width": "40px"})
-
     # Link widgets.
     def exp_slider_changed(change):
         """Update text field with actual value when slider changes."""
         value_text.value = base ** change["new"]
-
     def value_text_changed(change):
-        """Update slider exponent when text field changes."""
+        """
+        Update slider exponent when text field changes.
+        """
         try:
             # Find the closest exponent for the entered value.
             import math
-
             new_exp = round(math.log(change["new"], base))
             # Clamp to valid range.
             new_exp = max(min_exp, min(max_exp, new_exp))
@@ -372,15 +361,16 @@ def build_log_widget_control(
         except (ValueError, ZeroDivisionError):
             # Invalid value, reset to current slider value.
             value_text.value = base**exp_slider.value
-
-    def minus_clicked(b):
-        """Decrement exponent (halve value for base=2)."""
+    def minus_clicked(_b):
+        """
+        Decrement exponent (halve value for base=2).
+        """
         exp_slider.value = max(min_exp, exp_slider.value - 1)
-
-    def plus_clicked(b):
-        """Increment exponent (double value for base=2)."""
+    def plus_clicked(_b):
+        """
+        Increment exponent (double value for base=2).
+        """
         exp_slider.value = min(max_exp, exp_slider.value + 1)
-
     # Connect observers.
     exp_slider.observe(exp_slider_changed, names="value")
     value_text.observe(value_text_changed, names="value")
@@ -395,7 +385,6 @@ def add_fitted_text_box(
     ax: matplotlib.axes.Axes,
     text: str,
     box_xy: Tuple[float, float] = (0.02, 0.98),
-    box_width: float = 0.96,
     box_height: float = 0.96,
     *,
     max_fontsize: int = 16,
@@ -407,7 +396,6 @@ def add_fitted_text_box(
     :param ax: Matplotlib axes to add text to
     :param text: Text content to display
     :param box_xy: Position of text box as (x, y) in axes coordinates
-    :param box_width: Width of box as fraction of axes width
     :param box_height: Height of box as fraction of axes height
     :param max_fontsize: Maximum font size to try
     :param min_fontsize: Minimum font size to use
@@ -436,7 +424,7 @@ def add_fitted_text_box(
         if bbox.height <= box_height * ax_bbox.height:
             return txt
         txt.remove()
-    # fallback (smallest font)
+    # Fallback (smallest font).
     ax.text(
         box_xy[0],
         box_xy[1],
@@ -455,9 +443,7 @@ def add_fitted_text_box(
     )
 
 
-# #############################################################################
 # Animation generation utilities.
-# #############################################################################
 
 
 def generate_animation_values(
@@ -485,11 +471,11 @@ def generate_animation_values(
     :return: List of values.
     """
     import numpy as np
-
     if mode == "linear":
         sweep_values = np.linspace(sweep_min, sweep_max, n_steps)
     else:
         raise ValueError(f"Invalid mode: {mode}")
+    # Generate list of parameter dictionaries.
     values = []
     for val in sweep_values:
         entry = {sweep_variable: val}
@@ -541,7 +527,6 @@ def generate_animation(
             kwargs = {**kwargs, "figsize": figsize}
         # Save the original plt.show.
         original_show = plt.show
-
         # Create a custom show function that saves the figure.
         def save_figure():
             frame_path = os.path.join(dst_dir, f"frame_{i:03d}.png")
@@ -552,7 +537,6 @@ def generate_animation(
                 facecolor="white",
             )
             plt.close()
-
         # Replace plt.show temporarily.
         plt.show = save_figure
         try:
@@ -571,7 +555,6 @@ def generate_animation(
         for frame_file in frame_files:
             frame_path = os.path.join(dst_dir, frame_file)
             from PIL import Image as PILImage
-
             with PILImage.open(frame_path) as img:
                 dimensions.append((frame_file, img.size))
         # Check if all dimensions are the same.
@@ -613,7 +596,7 @@ def save_ax(ax: Any, file_name: str) -> None:
     """
     file_name = os.path.join(FIG_DIR, file_name)
     ax.figure.savefig(file_name, dpi=300, bbox_inches="tight")
-    #
+    # Convert path to relative markdown reference.
     file_name = file_name.replace("/app/", "")
     cmd = f"![]({file_name})"
     _LOG.info(cmd)
@@ -629,7 +612,7 @@ def save_fig(axes: Any, file_name: str) -> None:
     file_name = os.path.join(FIG_DIR, file_name)
     fig = axes[0, 0].figure
     fig.savefig(file_name, dpi=300, bbox_inches="tight")
-    #
+    # Convert path to relative markdown reference.
     file_name = file_name.replace("/app/", "")
     cmd = f"![]({file_name})"
     _LOG.info(cmd)
@@ -651,7 +634,7 @@ def save_dot(model: Any, file_name: str) -> None:
     # 300 is print quality; try 600 for very sharp images.
     dot2.graph_attr["dpi"] = "300"
     dot2.render(file_name, format="png", cleanup=True)
-    #
+    # Convert path to relative markdown reference.
     file_name = file_name.replace("/app/", "")
     cmd = f"![]({file_name})"
     _LOG.info(cmd)
@@ -668,7 +651,7 @@ def save_df(df: "pd.DataFrame", file_name: str) -> None:
 
     file_name = os.path.join(FIG_DIR, file_name)
     dfi.export(df, file_name, table_conversion="matplotlib", dpi=300)
-    #
+    # Convert path to relative markdown reference.
     file_name = file_name.replace("/app/", "")
     cmd = f"![]({file_name})"
     _LOG.info(cmd)
@@ -682,7 +665,7 @@ def save_plt(file_name: str) -> None:
     """
     file_name = os.path.join(FIG_DIR, file_name)
     plt.savefig(file_name, dpi=300, bbox_inches="tight")
-    #
+    # Convert path to relative markdown reference.
     file_name = file_name.replace("/app/", "")
     cmd = f"![]({file_name})"
     _LOG.info(cmd)

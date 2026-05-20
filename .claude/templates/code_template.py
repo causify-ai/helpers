@@ -31,9 +31,10 @@ def _format_greeting(name: str, *, greeting: str = DEFAULT_GREETING) -> str:
     """
     Format a greeting message with the given name.
 
-    :param name: the name to include in the greeting
-    :param greeting: the base greeting message to use
-    :return: formatted greeting
+    :param name: Person's name to include in the greeting
+    :param greeting: Base greeting message to use
+        - Default: `DEFAULT_GREETING`
+    :return: Formatted greeting string with name appended
     """
     _LOG.debug("Formatting greeting for name='%s'", name)
     greeting = f"{greeting}, {name}!"
@@ -47,14 +48,18 @@ def _format_greeting(name: str, *, greeting: str = DEFAULT_GREETING) -> str:
 
 class Greeter:
     """
-    A class that handles greeting operations with caching capabilities.
+    Generate and cache greeting messages for different names.
+
+    Maintains a cache of previously generated greetings to avoid redundant
+    formatting operations and provides statistics about greeting usage.
     """
 
     def __init__(self, *, default_greeting: str = DEFAULT_GREETING) -> None:
         """
         Initialize the Greeter with a default greeting.
 
-        :param default_greeting: the default greeting to use
+        :param default_greeting: Default greeting message to use
+            - Default: `DEFAULT_GREETING`
         """
         self._greeting_cache: Dict[str, str] = {}
         self._default_greeting = default_greeting
@@ -66,9 +71,13 @@ class Greeter:
         """
         Generate a greeting for the given name.
 
-        :param name: the name to greet
-        :param greeting: optional custom greeting to use
-        :return: the formatted greeting message
+        Checks the cache to avoid redundant formatting and logs cache hits/misses
+        for performance monitoring.
+
+        :param name: Person's name to greet
+        :param greeting: Optional custom greeting to use instead of the default
+            - Default: `None` (uses `self._default_greeting`)
+        :return: Formatted greeting message with name appended
         """
         hdbg.dassert_ne(name, "", "Name cannot be empty")
         # Check cache first.
@@ -89,7 +98,12 @@ class Greeter:
         """
         Get statistics about the greeting cache.
 
-        :return: cache statistics
+        Computes the total number of cached greetings and the count of unique
+        names that have been greeted.
+
+        :return: Single-row DataFrame with columns:
+            - `total_greetings`: Total number of cached greeting entries
+            - `unique_names`: Number of distinct names greeted
         """
         stats = {
             "total_greetings": len(self._greeting_cache),
@@ -107,6 +121,9 @@ class Greeter:
 def main() -> None:
     """
     Demonstrate the usage of the Greeter class.
+
+    Shows how to create a Greeter instance, generate greetings with both default
+    and custom messages, and retrieve cache statistics.
     """
     greeter = Greeter()
     # Use the default greeting.

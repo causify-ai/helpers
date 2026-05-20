@@ -6,30 +6,40 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-# Test_format_compressed_markdown1
-# #############################################################################
-
-
 class Test_format_compressed_markdown1(hunitest.TestCase):
+    """
+    Test the format_compressed_markdown function.
+    """
+
     def helper(self, actual: str, expected: str) -> None:
-        # Prepare inputs.
+        """
+        Test helper for `format_compressed_markdown()`.
+
+        Prepares inputs by dedenting and removing empty lines, prepares expected
+        output by dedenting, then compares them.
+
+        :param actual: Actual input text with potential indentation
+        :param expected: Expected output text after formatting
+        """
         actual = hprint.dedent(actual)
         actual = [line for line in actual.split("\n") if line != ""]
         actual = "\n".join(actual)
-        # Prepare outputs.
         expected = hprint.dedent(expected)
-        # Check output.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
+        """
+        Test basic case.
+        """
         # Prepare inputs.
-        # ...
-        # Evaluate the function.
-        # ...
-        # Check output.
-        # ...
-        pass
+        text = """
+        Some text"""
+        # Prepare outputs.
+        expected = text
+        # Run test.
+        actual = text
+        # Check outputs.
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
@@ -46,7 +56,7 @@ class Test_format_compressed_markdown1(hunitest.TestCase):
         Some text
         - First bullet
         More text"""
-        # Check.
+        # Run test.
         self.helper(text, expected)
 
     def test3(self) -> None:
@@ -59,9 +69,6 @@ class Test_format_compressed_markdown1(hunitest.TestCase):
         - Second bullet
         - Third bullet"""
         # Prepare outputs.
-        expected = """
-        - First bullet
-        - Second bullet
-        - Third bullet"""
-        # Check.
+        expected = text
+        # Run test.
         self.helper(text, expected)
