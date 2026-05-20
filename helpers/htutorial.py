@@ -1,5 +1,5 @@
 """
-Utility functions for MSML610 course tutorials.
+Utility functions for writing interactive notebook tutorials.
 
 Import as:
 
@@ -69,6 +69,7 @@ def config_notebook() -> None:
     notebook_signature()
 
 
+# TODO(gp): Move to hintrospection?
 def obj_to_str(var_name: str, val: Any, *, top_n: int = 3) -> str:
     """
     Convert object to string representation showing name, type, and preview.
@@ -99,6 +100,13 @@ def print_obj(*args: Any, **kwargs: Any) -> None:
     Print object information using `obj_to_str()`.
     """
     _LOG.info(obj_to_str(*args, **kwargs))
+
+
+# #############################################################################
+# Figure saving utilities.
+# #############################################################################
+
+FIG_DIR = "/app/lectures_source/figures"
 
 
 def convert_to_filename(string: str) -> str:
@@ -145,7 +153,93 @@ def process_figure(title: str) -> None:
     plt.savefig(file_name, dpi=300)
 
 
+def save_ax(ax: Any, file_name: str) -> None:
+    """
+    Save matplotlib axes figure to file and print markdown reference.
+
+    :param ax: Matplotlib axes object
+    :param file_name: Output filename
+    """
+    file_name = os.path.join(FIG_DIR, file_name)
+    ax.figure.savefig(file_name, dpi=300, bbox_inches="tight")
+    # Convert path to relative markdown reference.
+    file_name = file_name.replace("/app/", "")
+    cmd = f"![]({file_name})"
+    _LOG.info(cmd)
+
+
+def save_fig(axes: Any, file_name: str) -> None:
+    """
+    Save matplotlib figure from axes array to file and print markdown reference.
+
+    :param axes: Array of matplotlib axes
+    :param file_name: Output filename
+    """
+    file_name = os.path.join(FIG_DIR, file_name)
+    fig = axes[0, 0].figure
+    fig.savefig(file_name, dpi=300, bbox_inches="tight")
+    # Convert path to relative markdown reference.
+    file_name = file_name.replace("/app/", "")
+    cmd = f"![]({file_name})"
+    _LOG.info(cmd)
+
+
+def save_dot(model: Any, file_name: str) -> None:
+    """
+    Save PyMC model graph to PNG file and print markdown reference.
+
+    :param model: PyMC model object
+    :param file_name: Output filename
+    """
+    import pymc as pm
+
+    dot = pm.model_to_graphviz(model)
+    dot2 = copy.deepcopy(dot)
+    file_name = file_name.replace(".png", "")
+    file_name = os.path.join(FIG_DIR, file_name)
+    # 300 is print quality; try 600 for very sharp images.
+    dot2.graph_attr["dpi"] = "300"
+    dot2.render(file_name, format="png", cleanup=True)
+    # Convert path to relative markdown reference.
+    file_name = file_name.replace("/app/", "")
+    cmd = f"![]({file_name})"
+    _LOG.info(cmd)
+
+
+def save_df(df: "pd.DataFrame", file_name: str) -> None:
+    """
+    Save DataFrame as image file and print markdown reference.
+
+    :param df: DataFrame to save
+    :param file_name: Output filename
+    """
+    import dataframe_image as dfi  # type: ignore[import-untyped]
+
+    file_name = os.path.join(FIG_DIR, file_name)
+    dfi.export(df, file_name, table_conversion="matplotlib", dpi=300)
+    # Convert path to relative markdown reference.
+    file_name = file_name.replace("/app/", "")
+    cmd = f"![]({file_name})"
+    _LOG.info(cmd)
+
+
+def save_plt(file_name: str) -> None:
+    """
+    Save current matplotlib figure to file and print markdown reference.
+
+    :param file_name: Output filename
+    """
+    file_name = os.path.join(FIG_DIR, file_name)
+    plt.savefig(file_name, dpi=300, bbox_inches="tight")
+    # Convert path to relative markdown reference.
+    file_name = file_name.replace("/app/", "")
+    cmd = f"![]({file_name})"
+    _LOG.info(cmd)
+
+
+# #############################################################################
 # Widget Builder Utilities.
+# #############################################################################
 
 
 def _create_slider_widget(
@@ -457,7 +551,9 @@ def add_fitted_text_box(
     )
 
 
+# #############################################################################
 # Animation generation utilities.
+# #############################################################################
 
 
 def generate_animation_values(
@@ -596,94 +692,3 @@ def generate_animation(
             hdbg.dfatal(
                 "Frame dimensions are inconsistent. Expected all frames to have the same size."
             )
-
-
-# #############################################################################
-# Figure saving utilities.
-# #############################################################################
-
-FIG_DIR = "/app/lectures_source/figures"
-
-
-def save_ax(ax: Any, file_name: str) -> None:
-    """
-    Save matplotlib axes figure to file and print markdown reference.
-
-    :param ax: Matplotlib axes object
-    :param file_name: Output filename
-    """
-    file_name = os.path.join(FIG_DIR, file_name)
-    ax.figure.savefig(file_name, dpi=300, bbox_inches="tight")
-    # Convert path to relative markdown reference.
-    file_name = file_name.replace("/app/", "")
-    cmd = f"![]({file_name})"
-    _LOG.info(cmd)
-
-
-def save_fig(axes: Any, file_name: str) -> None:
-    """
-    Save matplotlib figure from axes array to file and print markdown reference.
-
-    :param axes: Array of matplotlib axes
-    :param file_name: Output filename
-    """
-    file_name = os.path.join(FIG_DIR, file_name)
-    fig = axes[0, 0].figure
-    fig.savefig(file_name, dpi=300, bbox_inches="tight")
-    # Convert path to relative markdown reference.
-    file_name = file_name.replace("/app/", "")
-    cmd = f"![]({file_name})"
-    _LOG.info(cmd)
-
-
-def save_dot(model: Any, file_name: str) -> None:
-    """
-    Save PyMC model graph to PNG file and print markdown reference.
-
-    :param model: PyMC model object
-    :param file_name: Output filename
-    """
-    import pymc as pm
-
-    dot = pm.model_to_graphviz(model)
-    dot2 = copy.deepcopy(dot)
-    file_name = file_name.replace(".png", "")
-    file_name = os.path.join(FIG_DIR, file_name)
-    # 300 is print quality; try 600 for very sharp images.
-    dot2.graph_attr["dpi"] = "300"
-    dot2.render(file_name, format="png", cleanup=True)
-    # Convert path to relative markdown reference.
-    file_name = file_name.replace("/app/", "")
-    cmd = f"![]({file_name})"
-    _LOG.info(cmd)
-
-
-def save_df(df: "pd.DataFrame", file_name: str) -> None:
-    """
-    Save DataFrame as image file and print markdown reference.
-
-    :param df: DataFrame to save
-    :param file_name: Output filename
-    """
-    import dataframe_image as dfi  # type: ignore[import-untyped]
-
-    file_name = os.path.join(FIG_DIR, file_name)
-    dfi.export(df, file_name, table_conversion="matplotlib", dpi=300)
-    # Convert path to relative markdown reference.
-    file_name = file_name.replace("/app/", "")
-    cmd = f"![]({file_name})"
-    _LOG.info(cmd)
-
-
-def save_plt(file_name: str) -> None:
-    """
-    Save current matplotlib figure to file and print markdown reference.
-
-    :param file_name: Output filename
-    """
-    file_name = os.path.join(FIG_DIR, file_name)
-    plt.savefig(file_name, dpi=300, bbox_inches="tight")
-    # Convert path to relative markdown reference.
-    file_name = file_name.replace("/app/", "")
-    cmd = f"![]({file_name})"
-    _LOG.info(cmd)

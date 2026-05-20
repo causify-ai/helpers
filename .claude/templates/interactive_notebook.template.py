@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.3
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -40,55 +40,58 @@ hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
 hnotebook.set_logger_to_print(_LOG)
 
 # %% [markdown]
-# # Cell 1: Basic Distribution Display
-#
-# **Goal**:
-# - Introduce the Beta distribution
-# - Show a simple static plot
-# - Understand probability density functions (PDF)
-#
-# **Plots**:
-# - Probability density function (PDF) of the Beta distribution with fixed shape parameters
-#   - Shows the characteristic curve shape
-#   - Illustrates how the Beta distribution behaves on the interval $[0, 1]$
-#
-# **Key observations**:
-# - The shape of the Beta distribution changes dramatically with different $\alpha$ and $\beta$ values
-# - When $\alpha = \beta$, the distribution is symmetric around 0.5
-# - When $\alpha > \beta$, the distribution skews toward 1
-# - When $\alpha < \beta$, the distribution skews toward 0
-# - The Beta distribution is a continuous probability distribution on $[0, 1]$, parameterized by shape parameters $\alpha$ and $\beta$
-
-# %%
-# Display the Beta distribution PDF with fixed parameters.
-utils.cell1_plot_distribution_pdf()
-
-# %% [markdown]
 # # Cell 2: Interactive Distribution Explorer
 #
 # **Goal**:
-# - Explore how changing distribution parameters affects the shape
-# - Understand the relationship between $\alpha$, $\beta$, and distribution properties
-# - See real-time updates as you adjust sliders
+# - Visualize how distribution shape parameters ($\alpha$ and $\beta$) affect the Beta distribution
+# - Understand the relationship between parameters and key statistical properties
+# - Observe the probability density, cumulative distribution, and statistics simultaneously
+# - See real-time updates as you adjust parameters using interactive sliders
+# - Build intuition for how shape parameters control distribution behavior
 #
 # **Plots**:
-# - **PDF View**: Shows the probability density function shape
-# - **CDF View**: Shows cumulative probability (useful for understanding quantiles)
-# - **Statistics View**: Displays mean, variance, and mode
+# - **Selected View** (first panel): Choose between three complementary views:
+#   - _Probability Density Function (PDF)_: Shows how probability mass is distributed across the domain [0,1]
+#     - Taller peaks indicate higher probability density
+#     - Shape changes based on $\alpha$ and $\beta$ values
+#   - _Cumulative Distribution Function (CDF)_: Shows the probability of observing values less than or equal to x
+#     - Always increases from 0 to 1
+#     - Steeper regions indicate higher probability density (matches PDF)
+#   - _Distribution Statistics_: Displays key summary statistics
+#     - Mean: $\mu = \frac{\alpha}{\alpha+\beta}$
+#     - Variance: $\sigma^2 = \frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$
+#     - Mode: $\frac{\alpha-1}{\alpha+\beta-2}$ (when $\alpha > 1$ and $\beta > 1$)
+# - **PDF Reference** (second panel): Continuous reference showing the probability density
+# - **CDF Reference** (third panel): Reference showing cumulative probabilities
+# - **Comments** (fourth panel): Text summary with current parameter values and key observations
 #
 # **Parameters**:
-# - `α (alpha)`: Controls the concentration toward 1
-#   - Larger $\alpha$ shifts density toward 1
-#   - Smaller $\alpha$ shifts density toward 0
-# - `β (beta)`: Controls the concentration toward 0
-#   - Larger $\beta$ shifts density toward 0
-#   - Smaller $\beta$ shifts density toward 1
-# - `Plot Type`: Choose which visualization to display
+# - `α (alpha)`: Shape parameter controlling concentration toward 1
+#   - Larger $\alpha$ shifts the distribution toward 1 (right-skewed)
+#   - Smaller $\alpha$ shifts the distribution toward 0 (left-skewed)
+#   - Range: 0.5 to 10 with 0.5 increments
+# - `β (beta)`: Shape parameter controlling concentration toward 0
+#   - Larger $\beta$ shifts the distribution toward 0 (left-skewed)
+#   - Smaller $\beta$ shifts the distribution toward 1 (right-skewed)
+#   - Range: 0.5 to 10 with 0.5 increments
+# - `Plot Type`: Dropdown to select which view to display in the first panel
+#   - **PDF**: Probability density function
+#   - **CDF**: Cumulative distribution function
+#   - **Statistics**: Summary statistics display
 #
-# **Key insights**:
-# - The mean is $\mu = \frac{\alpha}{\alpha + \beta}$
-# - The variance is $\sigma^2 = \frac{\alpha \beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$
-# - Both parameters affect the spread (variance) of the distribution
+# **Key Observations**:
+# - **Symmetry**: The distribution is symmetric when $\alpha = \beta$
+#   - Both tails behave identically
+#   - Mean is exactly 0.5
+# - **Concentration**: Increasing both $\alpha$ and $\beta$ concentrates the distribution
+#   - High values create a narrow peak
+#   - Low values create a flat or U-shaped distribution
+# - **Skewness**: Asymmetry appears when $\alpha \neq \beta$
+#   - $\alpha > \beta$: Distribution skews toward 1 (mean > 0.5)
+#   - $\alpha < \beta$: Distribution skews toward 0 (mean < 0.5)
+# - **Mode and Mean**: The mode (peak) and mean differ when $\alpha$ and $\beta$ are very different
+#   - When $\alpha = \beta = 1$: Distribution is uniform (flat)
+#   - When $\alpha$ and $\beta$ are small and unequal: U-shaped distribution appears
 
 # %%
 # Create interactive widget to explore the Beta distribution.
@@ -124,33 +127,3 @@ utils.cell2_interactive_distribution_explorer()
 # %%
 # Create interactive widget to generate and visualize samples.
 utils.cell3_interactive_sample_generator()
-
-# %% [markdown]
-# # Cell 4: Parameter Heatmap Exploration
-#
-# **Goal**:
-# - Visualize how distribution statistics vary across the parameter space
-# - Understand the joint effect of both $\alpha$ and $\beta$
-# - Identify regions where the distribution has desired properties
-#
-# **Plots**:
-# - **Heatmap**: Color represents the selected statistic across all $(\alpha, \beta)$ combinations
-#   - Colors: darker = lower values, brighter = higher values
-#   - Helps identify sweet spots for specific distribution properties
-#
-# **Parameters**:
-# - `Statistic`: Choose which property to visualize
-#   - **Mean**: The expected value $\mu = \frac{\alpha}{\alpha + \beta}$
-#   - **Variance**: The spread $\sigma^2 = \frac{\alpha \beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$
-#   - **Skewness**: Asymmetry of the distribution
-#   - **Kurtosis**: Heavy-tailedness of the distribution
-#
-# **Key observations**:
-# - The mean increases along lines where $\frac{\alpha}{\alpha+\beta}$ is constant
-# - Variance is maximized around $\alpha = \beta \approx 1$ (U-shaped distribution)
-# - Variance is minimized at the corners (when one parameter is much larger)
-# - Skewness and kurtosis reveal the distribution's shape properties
-
-# %%
-# Visualize distribution statistics across parameter space.
-utils.cell4_mean_variance_heatmap()
