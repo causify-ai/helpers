@@ -11,7 +11,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - For all Python code in notebooks, follow the rules in
   `.claude/skills/coding.rules.md`
 
-## Follow
+## Rules and Conventions to Follow
 - Follow `.claude/skills/notebook.rules.md` for the basic Jupyter notebooks
   - Use the structure from `.claude/templates/notebook_template.py` for
     consistent notebook initialization
@@ -24,42 +24,42 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 - Each `cellN_*()` function must follow this exact pattern:
 
-1. Create parameter controls using functions in `helpers/htutorials.py`, such
-   as
-   - `htutori.build_widget_control()` for linear-scale sliders (alpha, beta, epsilon, etc.)
-   - `htutori.build_log_widget_control()` for logarithmic-scale parameters (N, sample count)
-   - `ipywidgets.Dropdown()` for categorical choices (plot type, model selector)
+  1. Create parameter controls using functions in `helpers/htutorials.py`, such
+     as
+     - `htutori.build_widget_control()` for linear-scale sliders (alpha, beta, epsilon, etc.)
+     - `htutori.build_log_widget_control()` for logarithmic-scale parameters (N, sample count)
+     - `ipywidgets.Dropdown()` for categorical choices (plot type, model selector)
 
-2. Create `ipywidgets.Output()` to capture live updates
+  2. Create `ipywidgets.Output()` to capture live updates
 
-3. Define `update_plot(change=None)` closure that:
-   - Begins with: `with output: clear_output(wait=True)`
-   - Reads current widget values
-   - Creates figure
-   - Fills content panels with plots/data
-   - Fills last panel with comments via `htutori.add_fitted_text_box(ax4, text_content, ...)`
-   - Ends with: `plt.tight_layout()` then `plt.show()`
+  3. Define `update_plot(change=None)` closure that:
+     - Begins with: `with output: clear_output(wait=True)`
+     - Reads current widget values
+     - Creates figure
+     - Fills content panels with plots/data
+     - Fills last panel with comments via `htutori.add_fitted_text_box(ax4, text_content, ...)`
+     - Ends with: `plt.tight_layout()` then `plt.show()`
 
-4. Attach observers to all widgets
-   ```python
-   slider.observe(update_plot, names="value")
-   ```
+  4. Attach observers to all widgets
+     ```python
+     slider.observe(update_plot, names="value")
+     ```
 
-5. Call initial update: `update_plot()`
+  5. Call initial update: `update_plot()`
 
-6. Display via `ipywidgets.VBox()`:
-   ```python
-   display(ipywidgets.VBox([
-       ipywidgets.Label("Description:"),
-       slider1_box,
-       slider2_box,
-       output
-   ]))
-   ```
+  6. Display via `ipywidgets.VBox()`:
+     ```python
+     display(ipywidgets.VBox([
+         ipywidgets.Label("Description:"),
+         slider1_box,
+         slider2_box,
+         output
+     ]))
+     ```
 
-## The 4-Panel Layout Pattern
+## The Multiple-Panel Layout Pattern
 
-- All interactive cells must use a 1xn horizontal subplot layout `figsize=(20, 5)`:
+- All interactive cells must use a 1xn horizontal subplot layout
   - Panels 1-3: Data visualization (plots, histograms, heatmaps, etc.)
   - Panel 4: Comments panel with `ax.axis("off")`, a title, and text added
     via `htutori.add_fitted_text_box()`
@@ -93,9 +93,8 @@ exp_slider, box = htutori.build_log_widget_control(
 )
 ```
 
-Each returns `(slider, HBox)` where the `HBox` includes the slider, +/- buttons, and text display.
-
-# Formatting
+- Each returns `(slider, HBox)` where the `HBox` includes the slider, +/-
+  buttons, and text display
 
 ## Widget Parameter Names
 - Use short, unadorned variable names in widgets:
@@ -103,52 +102,45 @@ Each returns `(slider, HBox)` where the `HBox` includes the slider, +/- buttons,
   - Avoid: `mean_value`, `num_samples`, `noise_std_dev`, `shape_param`
 - Place `seed` parameter last in widget controls
 
-## Import Statements
-All utils files must import:
-```python
-import helpers.htutorial as htutori
-from IPython.display import clear_output, display
-```
-
 # Markdown Cell Content for Interactive Cells
-- Interactive cells (with visualizations or widgets) must include these
-  sections:
+- Interactive cells (with visualizations or widgets) must include a markdown cell
+  with the following sections:
 
-## Goal Section
-- Describe what the cell teaches and its learning objectives:
-  ```markdown
-  **Goal**:
-  - Visualize the true target function and how we sample data from it
-  - Understand that in real-world ML, we only observe samples, not the complete function
-  - Show the relationship between true function, training, and test data
-  ```
+  1. Goal Section: Describe what the cell teaches and its learning objectives:
+    ```markdown
+    **Goal**:
+    - Visualize the true target function and how we sample data from it
+    - Understand that in real-world ML, we only observe samples, not the complete function
+    - Show the relationship between true function, training, and test data
+    ```
 
-## Plots Section
-- Document the visualizations and their purpose:
-  ```markdown
-  **Plots**:
-  - Display four plots:
-    - _True Target Function_: The unknown function (with and without noise)
-    - _In-Sample Data (80%)_: Green points used for training
-    - _Out-of-Sample Data (20%)_: Red points used for testing
-    - _Comments_: Summary of parameters and observations
-  ```
+  2. Plots Section: Document the visualizations and their purpose:
+    ```markdown
+    **Plots**:
+    - Display four plots:
+      - _True Target Function_: The unknown function (with and without noise)
+      - _In-Sample Data (80%)_: Green points used for training
+      - _Out-of-Sample Data (20%)_: Red points used for testing
+      - _Comments_: Summary of parameters and observations
+    ```
 
-## Parameters Section
-- List all interactive controls and their ranges:
-  ```markdown
-  **Parameters**:
-  - `Function`: Select target function (Slow Sinusoid, Fast Sinusoid, Parabola, Constant, Linear)
-  - `epsilon` ($\epsilon$): Standard deviation of noise
-  - `N (total samples)` ($N$): Number of data points to sample
-  ```
+  3. Parameters Section: List all interactive controls and their ranges:
+    ```markdown
+    **Parameters**:
+    - `Function`: Select target function (Slow Sinusoid, Fast Sinusoid, Parabola, Constant, Linear)
+    - `epsilon` ($\epsilon$): Standard deviation of noise
+    - `N (total samples)` ($N$): Number of data points to sample
+    ```
 
-## Key Observations Section
-- Highlight insights learners should grasp:
-  ```markdown
-  **Key observations**:
-  - The complete curve is the unknown target function $f(x)$
-  - In practice, we only access noisy samples from the function
-  - Data splits into training (green) and testing (red) sets
-  - Goal is to learn from training data and generalize to test data
-  ```
+  4. Key Observations Section: Highlight insights learners should grasp:
+    ```markdown
+    **Key observations**:
+    - The complete curve is the unknown target function $f(x)$
+    - In practice, we only access noisy samples from the function
+    - Data splits into training (green) and testing (red) sets
+    - Goal is to learn from training data and generalize to test data
+    ```
+
+- Each section should be:
+  - formatted using bullet points using `.claude/skills/text.rules.bullet_points.md`
+  - short with no more than 3-5 bullet points

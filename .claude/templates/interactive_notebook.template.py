@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.0
+#       jupytext_version: 1.19.3
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -43,53 +43,32 @@ hnotebook.set_logger_to_print(_LOG)
 # # Cell 1: Interactive Distribution Explorer
 #
 # **Goal**:
-# - Visualize how distribution shape parameters ($\alpha$ and $\beta$) affect the Beta distribution
+# - Visualize how distribution shape parameters affect the Beta distribution
 # - Understand the relationship between parameters and key statistical properties
 # - Observe the probability density, cumulative distribution, and statistics simultaneously
 #
 # **Plots**:
-# - **Selected View** (first panel): Choose between three complementary views:
-#   - _Probability Density Function (PDF)_: Shows how probability mass is distributed across the domain [0,1]
-#     - Taller peaks indicate higher probability density
-#     - Shape changes based on $\alpha$ and $\beta$ values
-#   - _Cumulative Distribution Function (CDF)_: Shows the probability of observing values less than or equal to x
-#     - Always increases from 0 to 1
-#     - Steeper regions indicate higher probability density (matches PDF)
-#   - _Distribution Statistics_: Displays key summary statistics
-#     - Mean: $\mu = \frac{\alpha}{\alpha+\beta}$
-#     - Variance: $\sigma^2 = \frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$
-#     - Mode: $\frac{\alpha-1}{\alpha+\beta-2}$ (when $\alpha > 1$ and $\beta > 1$)
+# - **Selected View** (first panel): Choose between three complementary views via dropdown
+#   - _Probability Density Function (PDF)_: Shows probability mass distribution across [0,1]
+#   - _Cumulative Distribution Function (CDF)_: Shows probability of values ≤ x
+#   - _Distribution Statistics_: Displays mean, variance, and mode
 # - **PDF Reference** (second panel): Continuous reference showing the probability density
 # - **CDF Reference** (third panel): Reference showing cumulative probabilities
-# - **Comments** (fourth panel): Text summary with current parameter values and key observations
+# - **Comments** (fourth panel): Text summary with current parameter values and observations
 #
 # **Parameters**:
 # - `α (alpha)`: Shape parameter controlling concentration toward 1
-#   - Larger $\alpha$ shifts the distribution toward 1 (right-skewed)
-#   - Smaller $\alpha$ shifts the distribution toward 0 (left-skewed)
 #   - Range: 0.5 to 10 with 0.5 increments
 # - `β (beta)`: Shape parameter controlling concentration toward 0
-#   - Larger $\beta$ shifts the distribution toward 0 (left-skewed)
-#   - Smaller $\beta$ shifts the distribution toward 1 (right-skewed)
 #   - Range: 0.5 to 10 with 0.5 increments
-# - `Plot Type`: Dropdown to select which view to display in the first panel
-#   - **PDF**: Probability density function
-#   - **CDF**: Cumulative distribution function
-#   - **Statistics**: Summary statistics display
+# - `Plot Type`: Dropdown to select view in the first panel
+#   - Options: PDF, CDF, Statistics
 #
 # **Key Observations**:
-# - **Symmetry**: The distribution is symmetric when $\alpha = \beta$
-#   - Both tails behave identically
-#   - Mean is exactly 0.5
+# - **Symmetry**: Distribution is symmetric when $\alpha = \beta$ (mean = 0.5)
 # - **Concentration**: Increasing both $\alpha$ and $\beta$ concentrates the distribution
-#   - High values create a narrow peak
-#   - Low values create a flat or U-shaped distribution
-# - **Skewness**: Asymmetry appears when $\alpha \neq \beta$
-#   - $\alpha > \beta$: Distribution skews toward 1 (mean > 0.5)
-#   - $\alpha < \beta$: Distribution skews toward 0 (mean < 0.5)
-# - **Mode and Mean**: The mode (peak) and mean differ when $\alpha$ and $\beta$ are very different
-#   - When $\alpha = \beta = 1$: Distribution is uniform (flat)
-#   - When $\alpha$ and $\beta$ are small and unequal: U-shaped distribution appears
+# - **Skewness**: Asymmetry appears when $\alpha \neq \beta$ (affects location of mean)
+# - **Mode and Mean**: These differ when $\alpha$ and $\beta$ are very different
 
 # %%
 # Create interactive widget to explore the Beta distribution.
@@ -105,25 +84,25 @@ utils.cell1_interactive_distribution_explorer()
 # - Observe convergence to the true mean
 #
 # **Plots**:
-# - **Left**: Histogram of sampled values with theoretical PDF overlay
-# - **Right**: Summary statistics comparing samples to theory
+# - **Histogram with PDF Overlay** (left): Sampled values compared to theoretical distribution
+# - **Summary Statistics** (right): Sample vs. theoretical statistics comparison
 #
 # **Parameters**:
 # - `α (alpha)`: Shape parameter for the Beta distribution
+#   - Range: 0.5 to 10 with 0.5 increments
 # - `β (beta)`: Shape parameter for the Beta distribution
-# - `N samples`: Number of samples to draw
+#   - Range: 0.5 to 10 with 0.5 increments
+# - `N (total samples)`: Number of samples to draw
 #   - Smaller $N$: More variability between sample and theoretical mean
 #   - Larger $N$: Sample mean converges to theoretical mean (Law of Large Numbers)
 # - `seed`: Random seed for reproducibility
 #
-# **Key observations**:
+# **Key Observations**:
 # - As $N$ increases, the histogram approaches the theoretical PDF
-# - The sample mean approaches the theoretical mean $\mu = \frac{\alpha}{\alpha + \beta}$
+# - The sample mean converges to the theoretical mean $\mu = \frac{\alpha}{\alpha + \beta}$
 # - The difference between sample and theoretical mean decreases with more samples
 # - Try different seeds to see how sampling variability changes
 
 # %%
 # Create interactive widget to generate and visualize samples.
 utils.cell2_interactive_sample_generator()
-
-# %%
