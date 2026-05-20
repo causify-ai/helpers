@@ -50,6 +50,8 @@ def _build_ripgrep_command(
             )
             cmd.extend(["-g", f"*.{ext}"])
     cmd.append(pattern)
+    # Look also in hidden files, like `.claude`.
+    cmd.append("--hidden")
     if files:
         cmd.extend(files)
     else:

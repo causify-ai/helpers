@@ -7,6 +7,3 @@ description: Lint a Jupyter notebook to improve its appearance without changing 
 
 - You MUST follow the rules in `.claude/skills/notebook.rules.md` and
   `.claude/skills/interactive_notebook.rules.md`
-
-- For interactive cells in the Jupyter notebook you MUST follow the rules from
-  `.claude/skills/interactive_notebook.format/SKILL.md`

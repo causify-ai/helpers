@@ -13,12 +13,6 @@
 #     name: python3
 # ---
 
-# %% [markdown]
-# # Description
-#
-# This notebook demonstrates best practices for creating interactive Jupyter notebooks
-# with widgets, multiple plots, and parameter controls.
-
 # %%
 # %load_ext autoreload
 # %autoreload 2
@@ -27,9 +21,10 @@
 import logging
 
 # Third-party libraries.
-# import numpy as np
-# import pandas as pd
-# import seaborn as sns
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # %%
 # Local utility.
@@ -52,20 +47,21 @@ hnotebook.set_logger_to_print(_LOG)
 # - Show a simple static plot
 # - Understand probability density functions (PDF)
 #
-# **Concepts**:
-# - The Beta distribution is a continuous probability distribution on $[0, 1]$
-# - Parameterized by shape parameters $\alpha$ and $\beta$
-# - Useful for modeling proportions, probabilities, and rates
+# **Plots**:
+# - Probability density function (PDF) of the Beta distribution with fixed shape parameters
+#   - Shows the characteristic curve shape
+#   - Illustrates how the Beta distribution behaves on the interval $[0, 1]$
 #
 # **Key observations**:
 # - The shape of the Beta distribution changes dramatically with different $\alpha$ and $\beta$ values
 # - When $\alpha = \beta$, the distribution is symmetric around 0.5
 # - When $\alpha > \beta$, the distribution skews toward 1
 # - When $\alpha < \beta$, the distribution skews toward 0
+# - The Beta distribution is a continuous probability distribution on $[0, 1]$, parameterized by shape parameters $\alpha$ and $\beta$
 
 # %%
 # Display the Beta distribution PDF with fixed parameters.
-utils.cell1_plot_distribution_pdf(figsize=(10, 5))
+utils.cell1_plot_distribution_pdf()
 
 # %% [markdown]
 # # Cell 2: Interactive Distribution Explorer
@@ -96,7 +92,7 @@ utils.cell1_plot_distribution_pdf(figsize=(10, 5))
 
 # %%
 # Create interactive widget to explore the Beta distribution.
-utils.cell2_interactive_distribution_explorer(figsize=(10, 6))
+utils.cell2_interactive_distribution_explorer()
 
 # %% [markdown]
 # # Cell 3: Interactive Sample Generator
@@ -127,7 +123,7 @@ utils.cell2_interactive_distribution_explorer(figsize=(10, 6))
 
 # %%
 # Create interactive widget to generate and visualize samples.
-utils.cell3_interactive_sample_generator(figsize=(14, 5))
+utils.cell3_interactive_sample_generator()
 
 # %% [markdown]
 # # Cell 4: Parameter Heatmap Exploration
@@ -157,4 +153,4 @@ utils.cell3_interactive_sample_generator(figsize=(14, 5))
 
 # %%
 # Visualize distribution statistics across parameter space.
-utils.cell4_mean_variance_heatmap(figsize=(10, 8))
+utils.cell4_mean_variance_heatmap()

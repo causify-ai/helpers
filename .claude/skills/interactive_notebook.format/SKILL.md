@@ -57,6 +57,7 @@ description: Format rules for interactive cells in Jupyter notebooks
   - Proper organization of widget code in a utility file
   - Best practices for naming conventions and documentation
   - Examples of simple to complex widget architectures
+  - Configurable figure sizes with the `figsize` parameter
 
 # Important: Follow Conventions
 - Always follow the conventions and guidelines in
