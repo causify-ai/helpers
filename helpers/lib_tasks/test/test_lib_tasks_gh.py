@@ -1,7 +1,6 @@
 import logging
-import os
 import unittest.mock as umock
-from typing import Any, Dict, List, Tuple
+from typing import Any, List
 
 import pandas as pd
 import pytest
@@ -82,8 +81,8 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
     Test gh_get_org_team_names and gh_get_team_member_names with mocked data.
     """
 
-    @umock.patch.object(hlitagh, "_gh_run_and_get_json")
-    @umock.patch.object(hlitagh, "_get_org_name")
+    @umock.patch.object(hltltagh, "_gh_run_and_get_json")
+    @umock.patch.object(hltltagh, "_get_org_name")
     def test_gh_get_org_team_names1(
         self, mock_get_org_name: umock.Mock, mock_gh_run: umock.Mock
     ) -> None:
@@ -108,8 +107,8 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
             "gh api /orgs/test-org/teams --paginate"
         )
 
-    @umock.patch.object(hlitagh, "_gh_run_and_get_json")
-    @umock.patch.object(hlitagh, "_get_org_name")
+    @umock.patch.object(hltltagh, "_gh_run_and_get_json")
+    @umock.patch.object(hltltagh, "_get_org_name")
     def test_gh_get_team_member_names1(
         self, mock_get_org_name: umock.Mock, mock_gh_run: umock.Mock
     ) -> None:
@@ -144,167 +143,132 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
 
 class TestGhHelpersWithMockDict1(hunitest.TestCase):
     """
-    Test the `gh_get_*` helpers via `MockDict`-replayed
-    `_gh_run_and_get_json()`.
+    Test the `gh_get_*` helpers against the committed real-`gh` fixture.
 
-    Each test writes a self-contained fixture and patches the wrapped
-    `_gh_run_and_get_json()`, so the helpers can be exercised offline.
-    The `helper()` below absorbs the boilerplate.
+    Each test loads
+    `helpers/lib_tasks/test/input/test_lib_tasks_gh/_gh_run_and_get_json.json`,
+    patches `_gh_run_and_get_json()` with a `MockDict` of its recorded calls,
+    and asserts properties of the helper's post-processing of the real
+    `gh` output. Refresh the fixture with:
+
+        i gh_create_mock_fixture
+
+    Property-based assertions (not exact-value comparisons) so cosmetic
+    drift in `gh` (e.g., a new workflow added) does not break tests, but
+    schema drift (renamed fields, changed types) does.
     """
 
-    def helper(
-        self,
-        cmd: str,
-        raw_result: Any,
-        helper_fn: Any,
-        helper_args: Tuple[Any, ...],
-        helper_kwargs: Dict[str, Any],
-        expected: Any,
-    ) -> None:
-        """
-        Replay one recorded call through a `gh_get_*` helper.
+    # Repo recorded into the fixture; helpers must be called with this name so
+    # the patched `_gh_run_and_get_json()` lookup hits a recorded entry.
+    _REPO = "causify-ai/helpers"
 
-        :param cmd: command string the helper is expected to issue
-        :param raw_result: value `_gh_run_and_get_json()` would return
-        :param helper_fn: helper to call (e.g., `hltltagh.gh_get_workflows()`)
-        :param helper_args: positional args for `helper_fn`
-        :param helper_kwargs: keyword args for `helper_fn`
-        :param expected: value the helper should return after its
-            post-processing
+    @classmethod
+    def setUpClass(cls) -> None:
         """
-        # Prepare inputs.
-        fixture_path = os.path.join(self.get_scratch_space(), "fixture.json")
-        records = [{"args": [cmd], "kwargs": {}, "result": raw_result}]
-        hplayba._save_records(fixture_path, records)
-        mock_dict = hplayba.MockDict(fixture_path)
+        Load the committed fixture once per class run.
+
+        `MockDict` is stateless after construction, so one instance is safely
+        shared across tests.
+        """
+        super().setUpClass()
+        cls._mock = hplayba.MockDict(hltltagh._GH_FIXTURE_FILE)
+
+    def test_gh_get_workflows_sorts_and_stringifies(self) -> None:
+        """
+        Test that `gh_get_workflows()` stringifies ids and sorts by name.
+        """
         # Run test.
-        with mock_dict.patch(
-            "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
-        ):
-            actual = helper_fn(*helper_args, **helper_kwargs)
+        with self._patch():
+            workflows = hltltagh.gh_get_workflows(self._REPO)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        # Each entry exposes exactly `id` and `name`.
+        for w in workflows:
+            self.assertEqual(set(w.keys()), {"id", "name"})
+        # Ids are stringified even though `gh` returns them as ints.
+        self.assertTrue(all(isinstance(w["id"], str) for w in workflows))
+        # Names are sorted lexicographically.
+        names = [w["name"] for w in workflows]
+        self.assertEqual(names, sorted(names))
 
-    def test1(self) -> None:
+    def test_gh_get_workflows_unsorted_preserves_recorded_order(self) -> None:
         """
-        Test that `gh_get_workflows()` sorts by name and stringifies ids.
+        Test that `gh_get_workflows(sort=False)` preserves `gh`'s order.
         """
-        # Prepare inputs.
-        repo_name = "causify-ai/helpers"
-        cmd = f"gh workflow list --json id,name --repo {repo_name}"
-        raw = [
-            {"id": 200, "name": "Slow tests"},
-            {"id": 100, "name": "Fast tests"},
-        ]
-        # Prepare outputs.
-        expected = [
-            {"id": "100", "name": "Fast tests"},
-            {"id": "200", "name": "Slow tests"},
-        ]
         # Run test.
-        self.helper(
-            cmd, raw, hltltagh.gh_get_workflows, (repo_name,), {}, expected
-        )
+        with self._patch():
+            workflows = hltltagh.gh_get_workflows(self._REPO, sort=False)
+        # Check outputs.
+        # The recorded raw response is the authority for ordering.
+        raw = self._mock(f"gh workflow list --json id,name --repo {self._REPO}")
+        self.assertEqual([w["name"] for w in workflows], [r["name"] for r in raw])
+        # Ids are still stringified.
+        self.assertTrue(all(isinstance(w["id"], str) for w in workflows))
 
-    def test2(self) -> None:
+    def test_gh_get_open_prs_returns_recorded_payload(self) -> None:
         """
-        Test that `gh_get_workflows(sort=False)` preserves GitHub's order.
+        Test that `gh_get_open_prs()` returns the recorded list of PR ids.
         """
-        # Prepare inputs.
-        repo_name = "causify-ai/helpers"
-        cmd = f"gh workflow list --json id,name --repo {repo_name}"
-        raw = [
-            {"id": 200, "name": "Slow tests"},
-            {"id": 100, "name": "Fast tests"},
-        ]
-        # Prepare outputs.
-        expected = [
-            {"id": "200", "name": "Slow tests"},
-            {"id": "100", "name": "Fast tests"},
-        ]
         # Run test.
-        self.helper(
-            cmd,
-            raw,
-            hltltagh.gh_get_workflows,
-            (repo_name,),
-            {"sort": False},
-            expected,
-        )
+        with self._patch():
+            prs = hltltagh.gh_get_open_prs(self._REPO)
+        # Check outputs.
+        self.assertIsInstance(prs, list)
+        for pr in prs:
+            self.assertEqual(set(pr.keys()), {"id"})
+            self.assertIsInstance(pr["id"], str)
+            # `gh` PR ids are GraphQL global ids prefixed with `PR_`.
+            self.assertTrue(pr["id"].startswith("PR_"))
 
-    def test3(self) -> None:
+    def test_gh_get_workflow_type_names_sorted_no_duplicates(self) -> None:
         """
-        Test that `gh_get_workflow_details()` returns the recorded payload.
+        Test that `gh_get_workflow_type_names()` returns sorted unique names.
         """
-        # Prepare inputs.
-        repo_name = "causify-ai/helpers"
-        workflow_id = "12345"
-        fields = ["conclusion", "status", "url", "workflowName"]
-        limit = 1
-        # The command format is copied verbatim from `gh_get_workflow_details()`.
-        # Use single `\` so Python's source-level line continuation collapses
-        # the newlines the same way the function does at runtime.
-        cmd = f"""
-    gh run list \
-        --json {",".join(fields)} \
-        --repo {repo_name} \
-        --branch master \
-        --limit {limit} \
-        --workflow "{workflow_id}"
-    """
-        raw = [
-            {
-                "conclusion": "success",
-                "status": "completed",
-                "url": "https://github.com/causify-ai/helpers/actions/runs/1",
-                "workflowName": "Fast tests",
-            }
-        ]
-        # Prepare outputs.
-        expected = raw
         # Run test.
-        self.helper(
-            cmd,
-            raw,
-            hltltagh.gh_get_workflow_details,
-            (repo_name, workflow_id, fields, limit),
-            {},
-            expected,
-        )
+        with self._patch():
+            names = hltltagh.gh_get_workflow_type_names(self._REPO)
+        # Check outputs.
+        self.assertIsInstance(names, list)
+        self.assertTrue(all(isinstance(n, str) for n in names))
+        # Sorted lexicographically.
+        self.assertEqual(names, sorted(names))
+        # No duplicates (the helper asserts internally; mirror it here).
+        self.assertEqual(len(names), len(set(names)))
 
-    def test4(self) -> None:
+    def test_gh_get_workflow_details_replays_recorded_chain(self) -> None:
         """
-        Test that `gh_get_open_prs()` returns the recorded payload.
-        """
-        # Prepare inputs.
-        repo_name = "causify-ai/helpers"
-        cmd = f"gh pr list --state 'open' --json id --repo {repo_name}"
-        raw = [{"id": "PR_kwDO_a"}, {"id": "PR_kwDO_b"}]
-        # Prepare outputs.
-        expected = raw
-        # Run test.
-        self.helper(
-            cmd, raw, hltltagh.gh_get_open_prs, (repo_name,), {}, expected
-        )
+        Test that `gh_get_workflow_details()` replays the recorded chain.
 
-    def test5(self) -> None:
+        The fixture was captured by passing `workflows[0]["id"]` from
+        `gh_get_workflows(repo)` into `gh_get_workflow_details()`. We
+        replay that exact chain so the patched lookup hits the recorded
+        entry.
         """
-        Test that `gh_get_workflow_type_names()` returns sorted names.
-        """
-        # Prepare inputs.
-        repo_name = "causify-ai/helpers"
-        cmd = f"gh workflow list --json name --repo {repo_name}"
-        raw = [{"name": "Slow tests"}, {"name": "Fast tests"}]
-        # Prepare outputs.
-        expected = ["Fast tests", "Slow tests"]
         # Run test.
-        self.helper(
-            cmd,
-            raw,
-            hltltagh.gh_get_workflow_type_names,
-            (repo_name,),
-            {},
-            expected,
+        with self._patch():
+            workflows = hltltagh.gh_get_workflows(self._REPO, sort=False)
+            workflow_id = workflows[0]["id"]
+            details = hltltagh.gh_get_workflow_details(
+                self._REPO,
+                workflow_id,
+                ["conclusion", "status", "url", "workflowName"],
+                1,
+            )
+        # Check outputs.
+        self.assertIsInstance(details, list)
+        # Each run entry exposes the requested fields.
+        for run in details:
+            self.assertEqual(
+                set(run.keys()),
+                {"conclusion", "status", "url", "workflowName"},
+            )
+
+    def _patch(self) -> Any:
+        """
+        Return a `unittest.mock.patch` context that swaps in the shared
+        `MockDict` for `_gh_run_and_get_json()`.
+        """
+        return self._mock.patch(
+            "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
         )
 
 

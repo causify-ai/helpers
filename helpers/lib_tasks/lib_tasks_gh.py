@@ -1262,8 +1262,11 @@ def gh_create_mock_fixture(ctx):  # type: ignore
     """
     Record live calls to `_gh_run_and_get_json()` into the test fixture.
 
-    Run this once with real GH access. The resulting fixture is consumed by
-    unit tests via `MockDict`, so unit tests do not hit GitHub.
+    Run this with real GitHub access whenever `gh`'s output schema changes.
+    The resulting fixture at `_GH_FIXTURE_FILE` is consumed by the unit
+    tests in `test_lib_tasks_gh.py` via `MockDict`, so they run offline.
+    The fixture is committed to the repo; the git diff after a refresh is
+    the documented schema change.
     """
     hltltaut.report_task()
     gh_login(ctx)
