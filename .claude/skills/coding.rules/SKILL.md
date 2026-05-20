@@ -11,5 +11,5 @@ description: Conventions and patterns for writing Python code in this project. C
 ## Workflow
 
 1. Read `.claude/skills/coding.rules.md` for the full set of rules
-2. For new files, start from `.claude/templates/code_template.py`
+2. Refer to `.claude/templates/code.template.py` as an example of code
 3. Before finishing, ensure all Python code adheres to the specified conventions

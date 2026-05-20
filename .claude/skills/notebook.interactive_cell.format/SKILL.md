@@ -52,6 +52,16 @@ description: Format rules for interactive cells in Jupyter notebooks
     sold for different business sizes
   ```
 
+# Reference Template
+
+- See `.claude/templates/interactive_notebook.template.py` and
+  `.claude/templates/interactive_notebook_template_utils.py` for a complete
+  example of:
+  - Interactive cells with sliders, dropdowns, and multiple plot types
+  - Proper organization of widget code in a utility file
+  - Best practices for naming conventions and documentation
+  - Examples of simple to complex widget architectures
+
 # Important: Follow Conventions
 
 - Always follow the conventions and guidelines in `.claude/skills/notebook.rules.md`

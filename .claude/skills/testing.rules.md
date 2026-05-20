@@ -68,6 +68,8 @@
 
 - Always derive testing classes from `hunitest.TestCase`
 
+- Use the code from `.claude/templates/testing.template.py` as reference
+
 - Use this exact structure:
 
   ```python

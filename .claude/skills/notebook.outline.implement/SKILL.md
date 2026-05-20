@@ -34,6 +34,15 @@ description: Implement Jupyter notebook from an outline description
 - The format is described in `.claude/skills/notebook.outline.create/SKILL.md`
   `# Format of Interactive Cell`
 
+# Reference Templates
+
+- See `.claude/templates/interactive_notebook.template.py` for a complete
+  end-to-end example of implementing an interactive notebook with:
+  - Multiple cells (static, simple interactive, complex interactive, heatmap)
+  - Proper documentation structure with goals, parameters, and observations
+  - Integration with utility functions in `interactive_notebook_template_utils.py`
+  - Best practices for widget creation and plot updates
+
 # Complex Interactive Widgets
 
 - When the user asks for a "complex interactive widget", it means that there
@@ -49,3 +58,5 @@ description: Implement Jupyter notebook from an outline description
   information in the "Comments" graph
 - You can use `plot_joint_entropy_interactive()` in
   `msml610/tutorials/Lesson94_Information_Theory_utils.py` as a reference
+- See also the multiple-plot example in
+  `interactive_notebook_template_utils.py::cell3_interactive_sample_generator()`

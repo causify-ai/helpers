@@ -129,14 +129,14 @@ Skills should be organized with clear sections:
 
 ## File References
 
-- Enclose files into backticks with `@` prefix:
+- Enclose files into backticks:
   - **Bad**
     ```
-    A file looks like `@.claude/skills/markdown.format/SKILL.md`
+    A file looks like .claude/skills/markdown.format/SKILL.md
     ```
   - **Good**
     ```
-    A file looks like `@.claude/skills/markdown.format/SKILL.md`
+    A file looks like `.claude/skills/markdown.format/SKILL.md`
     ```
 
 ## Variable Notation
@@ -181,7 +181,7 @@ Skills should be organized with clear sections:
 ## Markdown Standards
 
 - Make sure the file follows the markdown conventions in
-  `@.claude/skills/markdown.rules.md`
+  `.claude/skills/markdown.rules.md`
 
 # References and Dependencies
 
@@ -195,7 +195,7 @@ Skills should be organized with clear sections:
 - Skills should defer to topic-specific rules files for conventions
 - Always reference the rules file at the top when applicable:
   ```
-  - Format Python code according to the rules in `@.claude/skills/coding.rules.md`
+  - Format Python code according to the rules in `.claude/skills/coding.rules.md`
   ```
 
 - If no rules file exists for a topic, create one before adding multiple skills
@@ -205,18 +205,16 @@ Skills should be organized with clear sections:
 
 - When a skill depends on understanding from another skill, reference it:
   ```
-  - Follow the coding style conventions described in `@.claude/skills/coding.format/SKILL.md`
+  - Follow the coding style conventions described in `.claude/skills/coding.format/SKILL.md`
   ```
-
-- Use backticks and full path with `@` prefix for clarity
 
 ## File Validation
 
 - All file references in skills must point to existing files
-- Paths should be verifiable: `@.claude/skills/<topic>.<action>/SKILL.md`
+- Paths should be verifiable: `.claude/skills/<topic>.<action>/SKILL.md`
 - If you reference a template or example, verify it exists:
   ```bash
-  > find .claude -name "code_template.py" -o -name "*_template.*"
+  > find .claude -name "code.template.py" -o -name "*_template.*"
   ```
 
 - All references in the skills should be to existing files
@@ -258,11 +256,11 @@ Skills should be organized with clear sections:
 When creating a new SKILL.md file, verify:
 
 - [ ] **Frontmatter**: Contains YAML with action-oriented description
-- [ ] **File References**: All paths enclosed in backticks with `@` prefix
+- [ ] **File References**: All paths enclosed in backticks
 - [ ] **Variables**: All variables use angle brackets `<var>` notation
 - [ ] **Examples**: Include both "Good" and "Bad" patterns with explanations
 - [ ] **Rules Reference**: Links to applicable `<topic>.rules.md` file if it exists
-- [ ] **Markdown**: Follows conventions in `@.claude/skills/markdown.rules.md`
+- [ ] **Markdown**: Follows conventions in `.claude/skills/markdown.rules.md`
 - [ ] **Language**: Uses imperative, direct tone
 - [ ] **Headers**: Uses `##` and below (no single `#`)
 - [ ] **Cross-References**: Links to related skills where applicable

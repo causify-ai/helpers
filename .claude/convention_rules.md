@@ -5,12 +5,12 @@
 - For writing Python file (files with a `.py` extension) you MUST follow the
   rules from:
   - `.claude/skills/coding.rules.md`
-  - `.claude/templates/code_template.py`
+  - `.claude/templates/code.template.py`
 
 - For a file storing unit tests (files whose base name starts with
   `test/test_<file>.py`) you MUST follow the rules from:
   - `.claude/skills/testing.rules.md`
-  - `.claude/templates/unit_test_template.py`
+  - `.claude/templates/testing.template.py`
 
 - For Jupyter notebook (files with `.ipynb` extension) you MUST follow the
   rules from
