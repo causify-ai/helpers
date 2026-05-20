@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.0
+#       jupytext_version: 1.19.3
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -26,10 +26,10 @@
 # System libraries.
 import logging
 
-# Third party libraries.
-
-# %%
-# import interactive_notebook_utils_template as utils
+# Third-party libraries.
+# import numpy as np
+# import pandas as pd
+# import seaborn as sns
 
 # %%
 # Local utility.
@@ -65,7 +65,7 @@ hnotebook.set_logger_to_print(_LOG)
 
 # %%
 # Display the Beta distribution PDF with fixed parameters.
-utils.cell1_plot_distribution_pdf()
+utils.cell1_plot_distribution_pdf(figsize=(10, 5))
 
 # %% [markdown]
 # # Cell 2: Interactive Distribution Explorer
@@ -96,7 +96,7 @@ utils.cell1_plot_distribution_pdf()
 
 # %%
 # Create interactive widget to explore the Beta distribution.
-utils.cell2_interactive_distribution_explorer()
+utils.cell2_interactive_distribution_explorer(figsize=(10, 6))
 
 # %% [markdown]
 # # Cell 3: Interactive Sample Generator
@@ -127,7 +127,7 @@ utils.cell2_interactive_distribution_explorer()
 
 # %%
 # Create interactive widget to generate and visualize samples.
-utils.cell3_interactive_sample_generator()
+utils.cell3_interactive_sample_generator(figsize=(14, 5))
 
 # %% [markdown]
 # # Cell 4: Parameter Heatmap Exploration
@@ -157,4 +157,4 @@ utils.cell3_interactive_sample_generator()
 
 # %%
 # Visualize distribution statistics across parameter space.
-utils.cell4_mean_variance_heatmap()
+utils.cell4_mean_variance_heatmap(figsize=(10, 8))

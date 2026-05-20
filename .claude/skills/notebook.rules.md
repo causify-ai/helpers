@@ -551,3 +551,20 @@
   ```python
   ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
   ```
+
+# Figure Size Parameter
+
+- All plotting functions must accept `figsize` as an optional parameter
+  - This allows callers to control the size of figures
+  - Use the pattern:
+    ```python
+    def plot_something(
+        *,
+        figsize: Optional[Tuple[int, int]] = None,
+    ) -> None:
+        if figsize is None:
+            figsize = plt.rcParams["figure.figsize"]
+        fig, ax = plt.subplots(figsize=figsize)
+    ```
+- Never hardcode figure sizes in function definitions
+- The caller should be able to pass custom figure sizes when needed

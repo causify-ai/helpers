@@ -1,4 +1,4 @@
-- This document contains conventions and rules to create agentic skills.
+- This document contains conventions and rules to create agentic skills
 
 # Overview and Topics
 
@@ -11,32 +11,7 @@
   > find .claude/skills -name "*.md" | sed 's|.claude/skills/||; s|\..*||' | sort | uniq
   ```
 
-- Example of topics
-  ```
-  bash
-  blog
-  book
-  coding
-  coding_qa
-  cxo_slides
-  demo
-  docker
-  git
-  github
-  graphviz
-  gws
-  markdown
-  notebook
-  paper
-  readme
-  skill
-  slides
-  testing
-  text
-  tikz
-  tutorials
-  X_in_60_min
-  ```
+- Example of topics are `bash`, `blog`, `coding`, `testing`
 
 # SKILL.md File Format
 
@@ -54,15 +29,16 @@
   - Use imperative verb: "Format Python code", "Write unit tests", "Create slides"
   - Keep it under 80 characters
   - Be specific about what transformation or task the skill performs
-  - Example: `description: Format Python code according to project coding conventions and style rules`
+  - Example: `description: Format Python code according to project coding
+    conventions and style rules`
 
 ## Directory Structure
 
-- Skills are organized in directories: `.claude/skills/<topic>.<action>/SKILL.md`
+- Skills are organized in directories: `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
   - **Good**
-    - `coding.format/SKILL.md`
-    - `testing.format/SKILL.md`
-    - `notebook.format/SKILL.md`
+    - `.claude/skills/coding.format/SKILL.md`
+    - `.claude/skills/testing.format/SKILL.md`
+    - `.claude/skills/notebook.format/SKILL.md`
 
 - Each skill directory may contain:
   - `SKILL.md`: Main skill instruction file
@@ -71,18 +47,18 @@
 ## Skill Rule File
 - For the passed skill file `<SKILL_FILE>` in the format
   ```
-  .claude/skills/<topic>.<action>/SKILL.md
+  .claude/skills/<TOPIC>.<ACTION>/SKILL.md
   ```
   there should be a corresponding rule file `<RULE_FILE>`
   ```
-  .claude/skills/<topic>.rules.md
+  .claude/skills/<TOPIC>.rules.md
   ```
   - E.g., for a skill file `.claude/skills/coding.fix_comments/SKILL.md` the
     corresponding rule file is `.claude/skills/coding.rules.md`
 
 ## Naming Conventions
 
-- Directory naming: `<topic>.<action>`
+- Directory naming: `<TOPIC>.<ACTION>`
   - E.g.,
     - `coding.format`: Format code for the coding topic
     - `testing.format`: Format tests for the testing topic
@@ -93,13 +69,13 @@
 
 ## Content Structure
 
-Skills should be organized with clear sections:
+- Skills should be organized with clear sections:
 
-1. **Frontmatter**: YAML description
-2. **Introduction**: 1-2 sentences describing what the skill does
-3. **Main Sections**: Organized by topic area or workflow step
-4. **Examples**: Good/Bad patterns and concrete examples
-5. **Scope/Limitations** (if applicable): What the skill covers or doesn't cover
+  1. **Frontmatter**: YAML description
+  2. **Introduction**: 1-2 sentences describing what the skill does
+  3. **Main Sections**: Organized by topic area or workflow step
+  4. **Examples**: Good/Bad patterns and concrete examples
+  5. **Scope/Limitations** (if applicable): What the skill covers or doesn't cover
 
 - Use headers from `## ` down (skip `#` for section titles)
 - Keep sections focused and actionable
@@ -114,18 +90,20 @@ Skills should be organized with clear sections:
 
 ## Add Examples
 - Skills should contain positive and negative examples
+- Use realistic, concrete cases
+- Use "Good" and "Bad" patterns to illustrate conventions
+- Format examples consistently:
   ````
-  - **Good**
+  - **Bad** (explain why)
+    ```language
+    code here
     ```
-    ...
-    ```
-  - **Bad**
-    ```
-    ...
+  - **Good** (explain why)
+    ```language
+    code here
     ```
 
   ````
-- Use realistic, concrete cases
 
 ## File References
 
@@ -141,39 +119,25 @@ Skills should be organized with clear sections:
 
 ## Variable Notation
 
-- Variables should be referred as `<var>` and not `$var`
+- Variables should be referred as `<VAR>` and not `$var` or `<var>`
   - **Bad**
     ```
     The variable $files ...
     ```
   - **Good**
     ```
-    The variable `<files>` ...
+    The variable `<FILES>` ...
     ```
-
-## Code Examples
-
-- Use "Good" and "Bad" patterns to illustrate conventions
-- Format examples consistently:
-  ```
-  - **Bad** (explain why)
-    ```language
-    code here
-    ```
-  - **Good** (explain why)
-    ```language
-    code here
-    ```
-
-  ```
 
 - Provide reasoning for each example to help users understand the principle
 
 ## Language and Tone
 
 - Use direct, imperative language:
-  - Good: "Format Python code according to...", "Create a test class that..."
-  - Bad: "Formatting Python code...", "You should create..."
+  - **Bad**:
+    - "Formatting Python code...", "You should create..."
+  - **Good**:
+    - "Format Python code according to...", "Create a test class that..."
 
 - Assume the reader is executing the skill or following the instructions
 - Be prescriptive rather than descriptive
@@ -187,7 +151,7 @@ Skills should be organized with clear sections:
 
 ## Rules Files
 
-- Each topic might have a "rules" file, in the format `<topic>.rules.md` that
+- Each topic might have a "rules" file, in the format `<TOPIC>.rules.md` that
   contains all the convention for that specific topic
 
 ## Referencing Rules Files
@@ -211,7 +175,7 @@ Skills should be organized with clear sections:
 ## File Validation
 
 - All file references in skills must point to existing files
-- Paths should be verifiable: `.claude/skills/<topic>.<action>/SKILL.md`
+- Paths should be verifiable: `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
 - If you reference a template or example, verify it exists:
   ```bash
   > find .claude -name "code.template.py" -o -name "*_template.*"
@@ -224,18 +188,18 @@ Skills should be organized with clear sections:
 
 ## Rules vs Skills
 
-- Create/update `<RULE_FILE>` `<topic>.rules.md` when documenting:
+- Create/update `<RULE_FILE>` `<TOPIC>.rules.md` when documenting:
   - Conventions and standards for a topic
   - Principles that apply across multiple related tasks
   - Decision criteria for formatting or style
 
-- Create/update `<SKILL_FILE>` `<topic>.<action>/SKILL.md` when documenting:
+- Create/update `<SKILL_FILE>` `<TOPIC>.<ACTION>/SKILL.md` when documenting:
   - A specific transformation or task
   - Step-by-step instructions for a particular action
   - Implementation guidance for achieving a specific output
 
 ## Keep Rules Organized in the Rule File
-- In the `<RULE_FILE>` `<topic>.rules.md` keep group related rules (with header
+- In the `<RULE_FILE>` `<TOPIC>.rules.md` keep group related rules (with header
   of level 2 ##) into logical sections (with header of level 1 #)
   ```
   # <Group 1>
@@ -249,19 +213,7 @@ Skills should be organized with clear sections:
   # <Group 2>
   ```
 
-# Quality Checklist
-
-## Skill Validation
-
-When creating a new SKILL.md file, verify:
-
-- [ ] **Frontmatter**: Contains YAML with action-oriented description
-- [ ] **File References**: All paths enclosed in backticks
-- [ ] **Variables**: All variables use angle brackets `<var>` notation
-- [ ] **Examples**: Include both "Good" and "Bad" patterns with explanations
-- [ ] **Rules Reference**: Links to applicable `<topic>.rules.md` file if it exists
-- [ ] **Markdown**: Follows conventions in `.claude/skills/markdown.rules.md`
-- [ ] **Language**: Uses imperative, direct tone
-- [ ] **Headers**: Uses `##` and below (no single `#`)
-- [ ] **Cross-References**: Links to related skills where applicable
-- [ ] **File Existence**: Verify all referenced files actually exist
+## Formatting Style
+- Make sure it follows the conventions in
+  - `.claude/skills/markdown.rules.md`
+  - `.claude/skills/text.rules.bullet_points.md`

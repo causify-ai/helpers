@@ -62,6 +62,21 @@ description: Format rules for interactive cells in Jupyter notebooks
   - Best practices for naming conventions and documentation
   - Examples of simple to complex widget architectures
 
+# Figure Size Parameter
+
+- All plotting functions must accept an optional `figsize` parameter
+  ```python
+  def cell1_plot_distribution(
+      *,
+      figsize: Optional[Tuple[int, int]] = None,
+  ) -> None:
+      if figsize is None:
+          figsize = plt.rcParams["figure.figsize"]
+      fig, ax = plt.subplots(figsize=figsize)
+  ```
+- This allows the caller in the notebook to control figure dimensions
+- Never hardcode figure sizes in plotting functions
+
 # Important: Follow Conventions
 
 - Always follow the conventions and guidelines in `.claude/skills/notebook.rules.md`

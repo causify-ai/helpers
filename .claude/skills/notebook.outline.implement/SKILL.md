@@ -60,3 +60,18 @@ description: Implement Jupyter notebook from an outline description
   `msml610/tutorials/Lesson94_Information_Theory_utils.py` as a reference
 - See also the multiple-plot example in
   `interactive_notebook_utils_template.py::cell3_interactive_sample_generator()`
+
+# Figure Size Parameter
+
+- All utility functions that create figures must accept an optional `figsize` parameter
+- Never hardcode figure sizes; always allow the caller to specify them
+- Use this pattern in all plotting functions:
+  ```python
+  def cell_name_function(
+      *,
+      figsize: Optional[Tuple[int, int]] = None,
+  ) -> None:
+      if figsize is None:
+          figsize = plt.rcParams["figure.figsize"]
+      fig, axes = plt.subplots(figsize=figsize)
+  ```

@@ -8,6 +8,8 @@ Import as:
 import interactive_notebook_utils_template as utils
 """
 
+from typing import Optional, Tuple
+
 import ipywidgets
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,20 +22,27 @@ from IPython.display import display
 # #############################################################################
 
 
-def cell1_plot_distribution_pdf() -> None:
+def cell1_plot_distribution_pdf(
+    *,
+    figsize: Optional[Tuple[int, int]] = None,
+) -> None:
     """
     Display basic distribution PDF with fixed parameters.
 
     Shows the probability density function of a Beta distribution and
     demonstrates basic plotting conventions.
+
+    :param figsize: Figure size as (width, height) tuple. If None, uses matplotlib defaults.
     """
+    if figsize is None:
+        figsize = plt.rcParams["figure.figsize"]
     # Create x values for plotting.
     x = np.linspace(0, 1, 1000)
     # Calculate PDF for Beta(2, 5) distribution.
     alpha, beta = 2, 5
     pdf = scipy.stats.beta.pdf(x, alpha, beta)
     # Create figure and plot.
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=figsize)
     ax.plot(x, pdf, linewidth=2, color="blue", label=f"Beta({alpha}, {beta})")
     ax.fill_between(x, pdf, alpha=0.3, color="blue")
     ax.set_xlabel("x", fontsize=12)
@@ -121,7 +130,10 @@ def _create_statistics_text(ax, alpha: float, beta: float) -> None:
     )
 
 
-def cell2_interactive_distribution_explorer() -> None:
+def cell2_interactive_distribution_explorer(
+    *,
+    figsize: Optional[Tuple[int, int]] = None,
+) -> None:
     """
     Create interactive widget to explore Beta distribution properties.
 
@@ -130,7 +142,11 @@ def cell2_interactive_distribution_explorer() -> None:
     - Dropdown for selecting plot type
     - Real-time plot updates using observe() callbacks
     - Complex widget control architecture
+
+    :param figsize: Figure size as (width, height) tuple. If None, uses matplotlib defaults.
     """
+    if figsize is None:
+        figsize = plt.rcParams["figure.figsize"]
     # Create sliders for distribution parameters.
     alpha_slider = ipywidgets.FloatSlider(
         value=2,
@@ -155,7 +171,7 @@ def cell2_interactive_distribution_explorer() -> None:
         description="Plot Type:",
     )
     # Create figure with single subplot.
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=figsize)
     plt.close()
 
     # Update function called when any widget changes.
@@ -190,7 +206,10 @@ def cell2_interactive_distribution_explorer() -> None:
 # #############################################################################
 
 
-def cell3_interactive_sample_generator() -> None:
+def cell3_interactive_sample_generator(
+    *,
+    figsize: Optional[Tuple[int, int]] = None,
+) -> None:
     """
     Create interactive widget to generate and visualize random samples.
 
@@ -199,7 +218,11 @@ def cell3_interactive_sample_generator() -> None:
     - Histogram visualization
     - Sample statistics display
     - Using htutorial helper functions for widget building
+
+    :param figsize: Figure size as (width, height) tuple. If None, uses matplotlib defaults.
     """
+    if figsize is None:
+        figsize = plt.rcParams["figure.figsize"]
     # Create sliders for distribution parameters.
     alpha_slider = ipywidgets.FloatSlider(
         value=3,
@@ -234,7 +257,7 @@ def cell3_interactive_sample_generator() -> None:
         continuous_update=False,
     )
     # Create figure with subplots.
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
     plt.close()
 
     # Update function for generating samples and updating plots.
@@ -310,7 +333,10 @@ def cell3_interactive_sample_generator() -> None:
 # #############################################################################
 
 
-def cell4_mean_variance_heatmap() -> None:
+def cell4_mean_variance_heatmap(
+    *,
+    figsize: Optional[Tuple[int, int]] = None,
+) -> None:
     """
     Create interactive heatmap showing distribution properties over parameter space.
 
@@ -319,7 +345,11 @@ def cell4_mean_variance_heatmap() -> None:
     - Computing statistics across a 2D parameter grid
     - Heatmap visualization with colorbar
     - Complex multi-dimensional interactive exploration
+
+    :param figsize: Figure size as (width, height) tuple. If None, uses matplotlib defaults.
     """
+    if figsize is None:
+        figsize = plt.rcParams["figure.figsize"]
     # Create dropdown for selecting statistic.
     stat_dropdown = ipywidgets.Dropdown(
         options=["Mean", "Variance", "Skewness", "Kurtosis"],
@@ -327,7 +357,7 @@ def cell4_mean_variance_heatmap() -> None:
         description="Statistic:",
     )
     # Create figure for heatmap.
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=figsize)
     plt.close()
 
     # Update function for computing and displaying heatmap.

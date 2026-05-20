@@ -4,7 +4,7 @@ description: Check with convention rules need to be applied
 
 Given the file passed by the user `<file>`
 
-- Read `.claude/skills/convention_rules.md` which maps file types to the set of
+- Read `.claude/rules.md` which maps file types to the set of
   rules to use
 
 - Find what files of rules `<rule_file>` apply to the file passed by the user
