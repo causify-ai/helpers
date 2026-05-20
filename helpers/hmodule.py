@@ -145,4 +145,5 @@ def install_module_if_not_present(
         if use_sudo:
             cmd = f"sudo {cmd}"
         _, output = _system_to_string(cmd)
+        hdbg.dassert(has_module(package_n), f"Can't find module '{package_n}")
         print(output)

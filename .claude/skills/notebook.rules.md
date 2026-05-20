@@ -32,7 +32,7 @@
 
 - The second cell contains imports specific of the notebook
   ```python
-  import msml610_utils as ut
+  import helpers.htutorial as ut
   import Lesson94_Information_Theory_utils as utils
   ```
 

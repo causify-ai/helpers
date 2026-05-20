@@ -32,4 +32,4 @@ description: Create an animation from an ipywidget interact function using a des
 
 # Important: Follow Conventions
 
-- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`
+- Always follow the conventions and guidelines in `.claude/skills/notebook.rules.md`

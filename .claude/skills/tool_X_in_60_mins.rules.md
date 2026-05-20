@@ -29,28 +29,25 @@ All tutorials must:
 - Follow the same consistent structure across all topics
 - Use GitHub with standard code organization
 - Handle all packages through Docker (`docker_build`, `docker_bash`)
-- Store material in
-  [`tutorials`](https://github.com/gpsaggese/umd_classes/tree/master/tutorials)
-  repo or [`//helpers`](https://github.com/causify-ai/helpers) sub-repo
 
 ## Architecture
 
 ### Deliverables
 Every tutorial consists of three core files:
 
-- **`{project}_utils.py`** — Python module with reusable helper functions and
+- **`{project}_utils.py`**: Python module with reusable helper functions and
   wrappers
   - Contains all logic, helper functions, and tool wrappers
   - No notebook-level side effects at import time
   - Notebooks call functions from this module instead of embedding complex code
 
-- **`{project}.API.ipynb`** — Jupyter notebook exploring the native API
+- **`{project}.API.ipynb`**: Jupyter notebook exploring the native API
   - Walkthrough of core classes, functions, and configuration
   - Describes the lightweight wrapper layer on top of the native API
   - Uses simple/synthetic examples so it runs quickly
   - Most code is moved to `*_utils.py`
 
-- **`{project}.example.ipynb`** — Jupyter notebook with end-to-end application
+- **`{project}.example.ipynb`**: Jupyter notebook with end-to-end application
   - Demonstrates a complete real-world application
   - Orchestrates logic from `*_utils.py` and displays results
   - Shows how to use the wrapper layer according to project specifications
@@ -71,12 +68,12 @@ tutorials/XYZ/
 ├── docker_clean.sh       # Remove container and image
 ├── requirements.txt      # Python dependencies (pinned versions)
 ├── README.md             # Quick start guide
-└── artifacts/            # Static files used by notebooks (images, etc.)
+└── artifacts/            # (Optional) Static files used by notebooks (images, etc.)
 ```
 
 ## Build the Implementation
 
-### 1. Create `{project}_utils.py`
+### Create `{project}_utils.py`
 - Start with module docstring and `Import as:` line:
   ```python
     """
@@ -89,12 +86,16 @@ tutorials/XYZ/
   ```
 - Import `helpers.hdbg` at the top; use `hdbg.dassert` for assertions
 - Group functions under section banners (e.g.,
-  `# ###...### / Section name / ###...###`)
+  ```
+  # ###...###
+  # Section name
+  # ###...###
+  ```
 - Every function must have a docstring with `:param:` and `:return:` tags
 - No notebook-level side effects at import time (no `input()`, `display()`,
   `plt.show()`)
 
-### 2. Create `{project}.API.ipynb`
+### Create `{project}.API.ipynb`
 - Title cell (markdown): `# XYZ API Overview`
 - Brief description of the technology and what the notebook covers
 - Structure sections to mirror the library's concept hierarchy (e.g., Agents,
@@ -106,7 +107,7 @@ tutorials/XYZ/
 - Use synthetic/lightweight examples so the notebook runs in under a few minutes
 - Import and use `XYZ_utils` for helper logic
 
-### 3. Create `{project}.example.ipynb`
+### Create `{project}.example.ipynb`
 - Title cell (markdown): `# XYZ: <Application Name>`
 - Introduction markdown describing the full application and workflow
 - Top-of-notebook setup cell with:
@@ -129,28 +130,28 @@ tutorials/XYZ/
 
 ### 4. Set Up Docker
 The Docker container structure should follow
-[`class_project/project_template/`](https://github.com/gpsaggese/umd_classes/tree/master/class_project/project_template).
+[`class_project/project_template/`](https://github.com/gpsaggese/gpsaggese.github.io/tree/master/class_project/project_template)
 
 - Container must have everything needed to run tutorials and develop
 - Include all dependencies in `requirements.txt` with pinned versions
 - Group dependencies by section (core, optional, dev)
 
-### 5. Create Jupytext Pairing
+### Create Jupytext Pairing
 Every `.ipynb` must be paired with a `.py` file in `percent` format.
 
 - Run `jupytext --set-formats ipynb,py:percent <ipynb-file>` to set up pairing
 - After modifying the notebook, sync with `jupytext --sync <python-file>`
 - The Jupytext header format is automatically generated
 
-### 6. Merge Markdown Into Notebooks
+### Merge Markdown Into Notebooks
 - Incorporate standalone markdown files directly into the corresponding notebook
 - Example: `tutorial_asana.md` explaining the API should be merged into
   `asana.API.ipynb`
 
-### 7. Create README.md
+### Create README.md
 - Required sections (use the Autogen README as template):
-  1. `# XYZ Tutorial` — one-line description
-  2. `## Quick Start` — bullets for:
+  1. `# XYZ Tutorial`: one-line description
+  2. `## Quick Start`: bullets for:
      - `cd tutorials/XYZ`
      - `./docker_build.sh`
      - `./docker_jupyter.sh`
@@ -173,10 +174,8 @@ Before submission, verify:
 
 ## Tools of the Trade
 - Format markdown: `lint_txt.py -i ...`
-- Clean up Python code: Use the `/coding.format` skill
+- Clean up Python code: Use the agent skill `/coding.format`
 - Render locally: `website/test.sh`
-- Reference tutorials: See
-  [`DATA605`](https://github.com/gpsaggese/umd_classes/blob/master/data605/tutorials)
-  and
-  [`MSML610`](https://github.com/gpsaggese/umd_classes/blob/master/msml610/tutorials/notebooks)
-  for examples
+- Reference tutorials:
+  - [`DATA605`](https://github.com/gpsaggese/gpsaggese.github.io/tree/master/data605/tutorials)
+  - [`MSML610`](https://github.com/gpsaggese/gpsaggese.github.io/tree/master/msml610/tutorials)

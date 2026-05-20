@@ -9,7 +9,7 @@ description: Format rules for interactive cells in Jupyter notebooks
   - Value cell and "-" and "+" buttons
 - The widget to select the seed must always be the first widget
 
-- Use code in `msml610_utils.py` like `_create_slider_widget()`,
+- Use code in `helpers/htutorial.py` like `_create_slider_widget()`,
   `build_widget_control()` to create the widgets
 
 # Logarithmic Widget Control
@@ -43,7 +43,7 @@ description: Format rules for interactive cells in Jupyter notebooks
   mtl0cireout.plot_single_vs_separate_trends()
   ```
   the markdown code before it should be like:
-  ```verbatim
+  ```markdown
   - **Purpose**: Demonstrates the importance of stratification in causal inference
   - **What it shows**: The difference between fitting a single regression line to
     pooled data vs. fitting separate lines for each subgroup
@@ -54,4 +54,4 @@ description: Format rules for interactive cells in Jupyter notebooks
 
 # Important: Follow Conventions
 
-- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`
+- Always follow the conventions and guidelines in `.claude/skills/notebook.rules.md`
