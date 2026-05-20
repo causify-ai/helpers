@@ -5,7 +5,7 @@ Demonstrates best practices for creating interactive notebook widgets and plots.
 
 Import as:
 
-import interactive_notebook_template_utils as utils
+import interactive_notebook_utils_template as utils
 """
 
 import ipywidgets

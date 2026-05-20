@@ -8,46 +8,46 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.3
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
 # %% [markdown]
-# # Interactive Notebook Template
+# # Description
 #
-# This template demonstrates best practices for creating interactive Jupyter notebooks
+# This notebook demonstrates best practices for creating interactive Jupyter notebooks
 # with widgets, multiple plots, and parameter controls.
-#
-# **What you'll learn**:
-# - How to structure an interactive notebook
-# - How to use ipywidgets for interactive controls
-# - How to organize code into notebook source files (.py) paired with utility files
-# - How to follow naming conventions and documentation standards
-
-# %% [markdown]
-# ## Imports
 
 # %%
 # %load_ext autoreload
 # %autoreload 2
 
+# System libraries.
 import logging
+
+# Third party libraries.
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
 
-sns.set_style("whitegrid")
-plt.rcParams["figure.figsize"] = (12, 6)
+# %%
+# import interactive_notebook_utils_template as utils
 
 # %%
-import interactive_notebook_template_utils as utils
-
-# %%
-import helpers.hnotebook as hnotebo
+# Local utility.
+import helpers.hdbg as hdbg
+import helpers.henv as henv
+import helpers.hnotebook as hnotebook
+import interactive_notebook_utils_template as utils
 
 _LOG = logging.getLogger(__name__)
-hnotebo.config_notebook()
-hnotebo.set_logger_to_print(_LOG)
+
+# Initialize notebook configuration and logging.
+hnotebook.config_notebook()
+hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
+hnotebook.set_logger_to_print(_LOG)
 
 # %% [markdown]
 # # Cell 1: Basic Distribution Display
@@ -163,27 +163,3 @@ utils.cell3_interactive_sample_generator()
 # %%
 # Visualize distribution statistics across parameter space.
 utils.cell4_mean_variance_heatmap()
-
-# %% [markdown]
-# ## Summary and Next Steps
-#
-# **What you learned**:
-# - How to structure interactive notebooks with static and dynamic sections
-# - How to use multiple visualization types (PDF, CDF, histogram, heatmap)
-# - How to create responsive widgets that update plots in real-time
-# - How to organize code into reusable utility functions
-#
-# **Best practices demonstrated**:
-# - Separate notebook source file (.py) from utility file (_utils.py)
-# - Use clear cell numbering (Cell 1, Cell 2, etc.)
-# - Include goals, parameters, and key observations for each section
-# - Use ipywidgets for interactive exploration
-# - Add comments explaining the mathematics and intuition
-# - Show both empirical (sample-based) and theoretical (formula-based) results
-#
-# **Extension ideas**:
-# - Add comparison between multiple distributions
-# - Create parameter optimization widgets to find specific properties
-# - Add sliders to dynamically change the number of samples
-# - Create 3D surface plots for visualizing statistics
-# - Add export functionality to save selected plots
