@@ -36,6 +36,7 @@ from typing import cast, List, Optional, Tuple
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
 
@@ -45,66 +46,78 @@ _LOG = logging.getLogger(__name__)
 
 def _get_rules_for_topic(
     topic: str,
-) -> Tuple[List[str], List[str]]:
+) -> Tuple[str, List[str], List[str]]:
     """
     Get rules and templates for a given topic.
 
     :param topic: Topic name (e.g., 'coding', 'testing')
-    :return: Tuple of (rules list, templates list)
+    :return: Tuple of (role, rules list, templates list)
     """
-    # TODO(ai_gp): Add a parameter "role" pointing to one of the files below
+    # TODO(ai_gp): Add a "role" in TOPIC_TO_RULES pointing to one of the files below
     # .claude/skills/role.ai_researcher.md
     # .claude/skills/role.python.md
-    # TODO(ai_gp): In rules factor out the string .claude/skills/ so that it's added at the end
-    # Same thing for template -> .claude/templates/
+    # depending on what is the best role.
+    # TODO(ai_gp): Rename TOPIC_TO_RULES -> TOPIC_TO_INFO
     TOPIC_TO_RULES = {
         "skill": {
-            "rules": [".claude/skills/skill.rules.md"],
+            "rules": ["skill.rules.md"],
             "templates": [],
         },
         "blog": {
             "rules": [
-                ".claude/skills/blog.rules.md",
-                ".claude/skills/markdown.rules.md",
-                ".claude/skills/text.rules.bullet_points.md",
+                "blog.rules.md",
+                "markdown.rules.md",
+                "text.rules.bullet_points.md",
             ],
             "templates": [],
         },
+        "book": {
+            "rules": ["book.rules.md"],
+            "templates": [],
+        },
         "slides": {
-            "rules": [".claude/skills/slides.rules.md"],
+            "rules": ["slides.rules.md"],
             "templates": [],
         },
         "testing": {
-            "rules": [".claude/skills/testing.rules.md"],
-            "templates": [".claude/templates/testing.template.py"],
+            "rules": ["testing.rules.md"],
+            "templates": ["testing.template.py"],
         },
         "coding": {
-            "rules": [".claude/skills/coding.rules.md"],
-            "templates": [".claude/templates/code.template.py"],
+            "rules": ["coding.rules.md"],
+            "templates": ["code.template.py"],
         },
         "bash": {
             "rules": [],
             "templates": [],
         },
+        "latex": {
+            "rules": ["latex.rules.md"],
+            "templates": [],
+        },
         "notebook": {
-            "rules": [".claude/skills/notebook.rules.md"],
-            "templates": [".claude/templates/notebook_template.ipynb"],
+            "rules": ["notebook.rules.md"],
+            "templates": ["notebook_template.ipynb"],
         },
         "interactive_notebook": {
             "rules": [
-                ".claude/skills/interactive_notebook.rules.md",
-                ".claude/skills/notebook.rules.md",
+                "interactive_notebook.rules.md",
+                "notebook.rules.md",
             ],
             "templates": [
-                ".claude/templates/interactive_notebook.template.py",
-                ".claude/templates/interactive_notebook_utils_template.py",
+                "interactive_notebook.template.py",
+                "interactive_notebook_utils_template.py",
             ],
         },
         "markdown": {
             "rules": [
-                ".claude/skills/markdown.rules.md",
-                ".claude/skills/text.rules.bullet_points.md",
+                "markdown.rules.md",
+                "text.rules.bullet_points.md",
             ],
+            "templates": [],
+        },
+        "readme": {
+            "rules": ["readme.rules.md"],
             "templates": [],
         },
         "cxo_slidesformat": {
@@ -112,11 +125,11 @@ def _get_rules_for_topic(
             "templates": [],
         },
         "tool_X_in_30_mins": {
-            "rules": [".claude/skills/tool_X_in_30_mins.rules.md"],
+            "rules": ["tool_X_in_30_mins.rules.md"],
             "templates": [],
         },
         "tool_X_in_60_mins": {
-            "rules": [".claude/skills/tool_X_in_60_mins.rules.md"],
+            "rules": ["tool_X_in_60_mins.rules.md"],
             "templates": [],
         },
     }
@@ -126,9 +139,10 @@ def _get_rules_for_topic(
         "Topic not found in rules",
     )
     rules_and_templates = TOPIC_TO_RULES[topic]
-    rules = rules_and_templates["rules"]
-    templates = rules_and_templates["templates"]
-    return (rules, templates)
+    rules = [f".claude/skills/{r}" for r in rules_and_templates["rules"]]
+    templates = [f".claude/templates/{t}" for t in rules_and_templates["templates"]]
+    role = f".claude/skills/role.{role}.md"
+    return (role, rules, templates)
 
 
 def _detect_file_type(file_path: str) -> Optional[str]:
@@ -139,25 +153,23 @@ def _detect_file_type(file_path: str) -> Optional[str]:
     :return: Skill name (e.g., 'coding.format') or None if no match found
     """
     basename = os.path.basename(file_path)
-    # TODO(ai_gp): Add rules for
-    # .claude/skills/blog.rules.md
-    # .claude/skills/book.rules.md
-    # .claude/skills/latex.rules.md
-    # .claude/skills/readme.rules.md
-    # .claude/skills/skill.rules.md
-    # .claude/skills/tool_X_in_30_mins.rules.md
-    # .claude/skills/tool_X_in_60_mins.rules.md
-    # TODO(ai_gp): Keep the check in alphabetical order per topic.
     if basename.startswith("test_") and basename.endswith(".py"):
         topic = "testing"
     elif basename.endswith(".py"):
         topic = "coding"
     elif basename.endswith(".sh"):
         topic = "bash"
+    elif basename.startswith("README") and basename.endswith(".md"):
+        topic = "readme"
+    elif basename.endswith("_in_30_mins.md"):
+        topic = "tool_X_in_30_mins"
+    elif basename.endswith("_in_60_mins.md"):
+        topic = "tool_X_in_60_mins"
+    elif basename.endswith(".tex"):
+        topic = "latex"
     elif basename.endswith(".md"):
         topic = "markdown"
     elif basename.endswith(".txt"):
-        # Assume those are slides.
         topic = "slides"
     elif basename.endswith(".ipynb"):
         topic = "notebook"
@@ -171,10 +183,12 @@ def _build_prompt(topic: str) -> str:
     Build a Claude Code prompt for the given skill.
 
     :param topic: Topic name (e.g., 'coding', 'testing')
+    :param role: Role name (e.g., 'ai_researcher', 'python')
     :return: Prompt string
     """
-    rules, templates = _get_rules_for_topic(topic)
+    role, rules, templates = _get_rules_for_topic(topic)
     prompt_parts = []
+    # TODO(ai_gp): Read the role file and inject it into prompt_parts. Assert if it doesn't exist.
     prompt_parts.append("You are a ...")
     if rules:
         prompt_parts.append("You MUST look for each rule below that is not followed and apply them:")
@@ -246,9 +260,15 @@ def _main(parser: argparse.ArgumentParser) -> int:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # TODO(ai_gp): Use hgit.get_files_to_process to extract the files given the
-    # command line options.
-    files = hgit.get_files_to_process(args.modified)
+    files = hgit.get_files_to_process(
+        args.modified,
+        args.branch,
+        args.last_commit,
+        args.all_,
+        args.files_from_user,
+        args.mutually_exclusive,
+        args.remove_dirs,
+    )
     if args.topic and len(files) != 1:
         raise ValueError("--topic can only be used with a single file")
     _LOG.info("Processing %d file(s)", len(files))
@@ -260,7 +280,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
             topic = _detect_file_type(file_path)
             hdbg.dassert_is_not(topic, None, "Topic detection failed")
             topic_str = cast(str, topic)
-        prompt = _build_prompt(topic_str)
+        prompt = _build_prompt(topic_str, role=args.role)
         rc = _run_claude_code(prompt, dry_run=args.dry_run)
         ret |= rc
     return ret
