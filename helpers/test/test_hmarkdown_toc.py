@@ -238,101 +238,6 @@ class Test_remove_table_of_contents(hunitest.TestCase):
         self.helper(text, expected)
 
 
-# #############################################################################
-# Test_add_navigation_slides_basic
-# #############################################################################
-
-
-class Test_add_navigation_slides_basic(hunitest.TestCase):
-    """
-    Test basic behavior of the `add_navigation_slides()` function.
-    """
-
-    def helper(
-        self,
-        lines: list,
-        max_level: int,
-        expand_all: bool,
-        *,
-        check_length: bool = True,
-    ) -> None:
-        """
-        Test helper for `add_navigation_slides()`.
-
-        :param lines: Input markdown lines
-        :param max_level: Maximum header level for navigation
-        :param expand_all: Whether to expand all sections
-        :param check_length: If True, also assert result length >= input length
-        """
-        # Run test.
-        result = hmartoc.add_navigation_slides(
-            lines, max_level=max_level, expand_all=expand_all, sanity_check=False
-        )
-        # Check outputs.
-        self.assertIsInstance(result, list)
-        if check_length:
-            self.assertGreaterEqual(len(result), len(lines))
-
-    def test1(self) -> None:
-        """
-        Test adding navigation slides to a simple markdown with headers.
-        """
-        # Prepare inputs.
-        lines = [
-            "# Section 1",
-            "Some content",
-            "## Subsection 1.1",
-            "More content",
-            "# Section 2",
-            "Another content",
-        ]
-        # Run test.
-        self.helper(lines, max_level=2, expand_all=False)
-
-    def test2(self) -> None:
-        """
-        Test navigation slides with expand_all=True.
-        """
-        # Prepare inputs.
-        lines = [
-            "# Section 1",
-            "Content 1",
-            "## Subsection 1.1",
-            "Content 1.1",
-            "# Section 2",
-            "Content 2",
-        ]
-        # Run test.
-        self.helper(lines, max_level=2, expand_all=True)
-
-    def test3(self) -> None:
-        """
-        Test that non-header lines are preserved.
-        """
-        # Prepare inputs.
-        lines = [
-            "Some initial content",
-            "# Section 1",
-            "Content under section 1",
-        ]
-        # Run test.
-        self.helper(lines, max_level=1, expand_all=False, check_length=False)
-
-    def test4(self) -> None:
-        """
-        Test with max_level limiting which headers get navigation.
-        """
-        # Prepare inputs.
-        lines = [
-            "# Section 1",
-            "Content",
-            "## Subsection 1.1",
-            "More content",
-            "### Subsubsection 1.1.1",
-            "Even more content",
-        ]
-        # Run test.
-        self.helper(lines, max_level=1, expand_all=False)
 
 
 # #############################################################################
@@ -346,7 +251,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
     """
 
     def helper(
-        self, input_text: str, max_level: int, expected: str
+        self, input_text: str, max_level: int, expected: str, expand_all: bool
     ) -> None:
         """
         Helper method to test `add_navigation_slides()` function.
@@ -359,7 +264,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
         input_text = hprint.dedent(input_text)
         lines = input_text.strip().split("\n")
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=False)
+        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all)
         actual_str = "\n".join(actual)
         # Check outputs.
         expected = hprint.dedent(expected)
@@ -412,3 +317,88 @@ class Test_add_navigation_slides(hunitest.TestCase):
             """
         # Run test.
         self.helper(input_text, max_level, expected)
+
+    def test3(self) -> None:
+        """
+        Test adding navigation slides to multiple sections with two levels.
+        """
+        # Prepare inputs.
+        input_text = """
+            # Section 1
+            Some content
+            ## Subsection 1.1
+            More content
+            # Section 2
+            Another content
+            """
+        input_text = hprint.dedent(input_text)
+        lines = input_text.strip().split("\n")
+        max_level = 2
+        # Run test.
+        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=False)
+        actual_str = "\n".join(actual)
+        # Check outputs.
+        self.check_string(actual_str)
+
+    def test4(self) -> None:
+        """
+        Test navigation slides with expand_all=True.
+        """
+        # Prepare inputs.
+        input_text = """
+            # Section 1
+            Content 1
+            ## Subsection 1.1
+            Content 1.1
+            # Section 2
+            Content 2
+            """
+        input_text = hprint.dedent(input_text)
+        lines = input_text.strip().split("\n")
+        max_level = 2
+        # Run test.
+        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=True)
+        actual_str = "\n".join(actual)
+        # Check outputs.
+        self.check_string(actual_str)
+
+    def test5(self) -> None:
+        """
+        Test that non-header lines are preserved.
+        """
+        # Prepare inputs.
+        input_text = """
+            Some initial content
+            # Section 1
+            Content under section 1
+            """
+        input_text = hprint.dedent(input_text)
+        lines = input_text.strip().split("\n")
+        max_level = 1
+        # Run test.
+        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=False)
+        actual_str = "\n".join(actual)
+        # Check outputs.
+        self.check_string(actual_str)
+
+    def test6(self) -> None:
+        """
+        Test with max_level limiting which headers get navigation.
+        """
+        # Prepare inputs.
+        input_text = """
+            # Section 1
+            Content
+            ## Subsection 1.1
+            More content
+            ### Subsubsection 1.1.1
+            Even more content
+            """
+        input_text = hprint.dedent(input_text)
+        lines = input_text.strip().split("\n")
+        max_level = 1
+        # Run test.
+        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=False)
+        actual_str = "\n".join(actual)
+        # Check outputs.
+        self.check_string(actual_str)

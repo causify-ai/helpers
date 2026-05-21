@@ -602,7 +602,7 @@ line3
       self.assertIn("expected substring", str(cm.exception))
   ```
 
-# Use Golden File Testing Only for Large Outputs
+## Use Golden File Testing Only for Large Outputs
 
 - Always use `self.assert_equal()` to do a comparison of actual with the expected
   value hard wired in the code
