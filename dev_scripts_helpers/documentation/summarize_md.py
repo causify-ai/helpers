@@ -368,122 +368,121 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Actions selected:\n%s", hparser.actions_to_string(
         actions, _VALID_ACTIONS, add_frame=True
     ))
-    # Handle lint action.
-    # TODO(ai_gp): This should be after.
-    to_lint, actions = hparser.mark_action("lint", actions)
-    if to_lint:
-        hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
-        hlint.lint_file(in_file_name)
-        _LOG.info("Linting complete: %s", in_file_name)
     # Handle summarize action.
     to_summarize, actions = hparser.mark_action("summarize", actions)
-    if not to_summarize:
-        return
-    hdbg.dassert(args.md_level >= 1, "--md_level must be >= 1")
-    # Generate output filename if not provided (when same as input file)
-    if out_file_name == in_file_name:
-        if in_file_name.endswith(".md"):
-            out_file_name = in_file_name[:-3] + ".summary.md"
-        else:
-            out_file_name = in_file_name + ".summary"
-    # Handle existing output file
-    if os.path.exists(out_file_name):
-        if args.overwrite:
-            os.remove(out_file_name)
-            _LOG.info("Deleted existing output file: %s", out_file_name)
-        else:
-            raise ValueError(
-                f"Output file already exists: {out_file_name} (use --overwrite to replace)"
+    if to_summarize:
+        hdbg.dassert(args.md_level >= 1, "--md_level must be >= 1")
+        # Generate output filename if not provided (when same as input file)
+        if out_file_name == in_file_name:
+            if in_file_name.endswith(".md"):
+                out_file_name = in_file_name[:-3] + ".summary.md"
+            else:
+                out_file_name = in_file_name + ".summary"
+        # Handle existing output file
+        if os.path.exists(out_file_name):
+            if args.overwrite:
+                os.remove(out_file_name)
+                _LOG.info("Deleted existing output file: %s", out_file_name)
+            else:
+                raise ValueError(
+                    f"Output file already exists: {out_file_name} (use --overwrite to replace)"
+                )
+        # Read input file and split into lines.
+        content = hio.from_file(in_file_name)
+        lines = content.splitlines()
+        _LOG.debug("Read %d lines from %s", len(lines), in_file_name)
+        # Parse markdown to extract headers using AST.
+        md_parser = MarkdownIt()
+        tokens = md_parser.parse(content)
+        all_headers = _extract_headers_from_ast(tokens)
+        _LOG.debug("Extracted %d headers from input file", len(all_headers))
+        # Filter headers to the target level and optional range.
+        target_headers = _get_target_headers(
+            all_headers,
+            md_level=args.md_level,
+            md_start=args.md_start,
+            md_end=args.md_end,
+        )
+        _LOG.info(
+            "Processing %d headers at level %d", len(target_headers), args.md_level
+        )
+        # Print headers to be summarized
+        print("\nHeaders to summarize:")
+        for i, header in enumerate(target_headers, 1):
+            level, title, _ = header
+            indent = "  " * (level - 1)
+            print(f"{indent}{i}. {title}")
+        system_prompt = _get_system_prompt()
+        # Initialize output file.
+        with open(out_file_name, "w") as f:
+            pass
+        total_cost = 0.0
+        written_headers: Dict[Tuple[int, str], bool] = {}
+        # Summarize each target header section.
+        pbar = tqdm(target_headers, desc="Summarizing sections")
+        for header in pbar:
+            # Get parent headers and write them if not already written.
+            parent_headers = _get_parent_headers(
+                header, all_headers, md_level=args.md_level
             )
-    # Read input file and split into lines.
-    content = hio.from_file(in_file_name)
-    lines = content.splitlines()
-    _LOG.debug("Read %d lines from %s", len(lines), in_file_name)
-    # Parse markdown to extract headers using AST.
-    md_parser = MarkdownIt()
-    tokens = md_parser.parse(content)
-    all_headers = _extract_headers_from_ast(tokens)
-    _LOG.debug("Extracted %d headers from input file", len(all_headers))
-    # Filter headers to the target level and optional range.
-    target_headers = _get_target_headers(
-        all_headers,
-        md_level=args.md_level,
-        md_start=args.md_start,
-        md_end=args.md_end,
-    )
-    _LOG.info(
-        "Processing %d headers at level %d", len(target_headers), args.md_level
-    )
-    # Print headers to be summarized
-    print("\nHeaders to summarize:")
-    for i, header in enumerate(target_headers, 1):
-        level, title, _ = header
-        indent = "  " * (level - 1)
-        print(f"{indent}{i}. {title}")
-    system_prompt = _get_system_prompt()
-    # Initialize output file.
-    with open(out_file_name, "w") as f:
-        pass
-    total_cost = 0.0
-    written_headers: Dict[Tuple[int, str], bool] = {}
-    # Summarize each target header section.
-    pbar = tqdm(target_headers, desc="Summarizing sections")
-    for header in pbar:
-        # Get parent headers and write them if not already written.
-        parent_headers = _get_parent_headers(
-            header, all_headers, md_level=args.md_level
-        )
-        with open(out_file_name, "a") as f:
-            for parent in parent_headers:
-                parent_key = (parent[0], parent[1])
-                if parent_key not in written_headers:
-                    f.write("#" * parent[0] + " " + parent[1])
-                    f.write("\n\n")
-                    written_headers[parent_key] = True
-                    # Extract intro text between parent and first child.
-                    intro_text = _extract_intro_text(parent, header, lines)
-                    if intro_text:
-                        intro_summary, intro_cost = _summarize_text(
-                            intro_text,
-                            system_prompt,
-                            args.model,
-                            test_mode=args.test,
-                        )
-                        total_cost += intro_cost
-                        pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
-                        f.write(intro_summary)
+            with open(out_file_name, "a") as f:
+                for parent in parent_headers:
+                    parent_key = (parent[0], parent[1])
+                    if parent_key not in written_headers:
+                        f.write("#" * parent[0] + " " + parent[1])
                         f.write("\n\n")
-            # Write the target header itself.
-            header_key = (header[0], header[1])
-            f.write("#" * header[0] + " " + header[1])
-            f.write("\n\n")
-            written_headers[header_key] = True
-        section_text = _extract_section(
-            header, all_headers, lines, md_level=args.md_level
-        )
-        _LOG.debug(
-            "Extracted section for header: %s",
-            header[1],
-        )
-        summary, cost = _summarize_text(
-            section_text,
-            system_prompt,
-            args.model,
-            test_mode=args.test,
-        )
-        total_cost += cost
-        pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
-        # Append summary to output file.
-        with open(out_file_name, "a") as f:
-            f.write(summary)
-            f.write("\n\n")
-        if args.dry_run:
-            _LOG.info("Dry run: summarized first section only")
-            print(summary)
-            break
-    if not args.test:
-        _LOG.info("Total LLM cost: $%.6f", total_cost)
-    _LOG.info("Summaries written to: %s", out_file_name)
+                        written_headers[parent_key] = True
+                        # Extract intro text between parent and first child.
+                        intro_text = _extract_intro_text(parent, header, lines)
+                        if intro_text:
+                            intro_summary, intro_cost = _summarize_text(
+                                intro_text,
+                                system_prompt,
+                                args.model,
+                                test_mode=args.test,
+                            )
+                            total_cost += intro_cost
+                            pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
+                            f.write(intro_summary)
+                            f.write("\n\n")
+                # Write the target header itself.
+                header_key = (header[0], header[1])
+                f.write("#" * header[0] + " " + header[1])
+                f.write("\n\n")
+                written_headers[header_key] = True
+            section_text = _extract_section(
+                header, all_headers, lines, md_level=args.md_level
+            )
+            _LOG.debug(
+                "Extracted section for header: %s",
+                header[1],
+            )
+            summary, cost = _summarize_text(
+                section_text,
+                system_prompt,
+                args.model,
+                test_mode=args.test,
+            )
+            total_cost += cost
+            pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
+            # Append summary to output file.
+            with open(out_file_name, "a") as f:
+                f.write(summary)
+                f.write("\n\n")
+            if args.dry_run:
+                _LOG.info("Dry run: summarized first section only")
+                print(summary)
+                break
+        if not args.test:
+            _LOG.info("Total LLM cost: $%.6f", total_cost)
+        _LOG.info("Summaries written to: %s", out_file_name)
+    # Handle lint action after summarization and process the output file.
+    to_lint, actions = hparser.mark_action("lint", actions)
+    if to_lint:
+        lint_file = out_file_name if to_summarize else in_file_name
+        hdbg.dassert_file_exists(lint_file, "File to lint must exist")
+        hlint.lint_file(lint_file)
+        _LOG.info("Linting complete: %s", lint_file)
 
 
 if __name__ == "__main__":

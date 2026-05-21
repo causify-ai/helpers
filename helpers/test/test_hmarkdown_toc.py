@@ -9,13 +9,13 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_extract_yaml_frontmatter1
+# Test_extract_yaml_frontmatter
 # #############################################################################
 
 
-class Test_extract_yaml_frontmatter1(hunitest.TestCase):
+class Test_extract_yaml_frontmatter(hunitest.TestCase):
     """
-    Test the extract_yaml_frontmatter function.
+    Test the `extract_yaml_frontmatter()` function.
     """
 
     def helper(
@@ -25,7 +25,7 @@ class Test_extract_yaml_frontmatter1(hunitest.TestCase):
         expected_remaining: list,
     ) -> None:
         """
-        Test helper for extract_yaml_frontmatter.
+        Test helper for `extract_yaml_frontmatter()`.
 
         :param txt: Input text to process
         :param expected_frontmatter: Expected front matter lines
@@ -133,11 +133,30 @@ class Test_extract_yaml_frontmatter1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_remove_table_of_contents1
+# Test_remove_table_of_contents
 # #############################################################################
 
 
-class Test_remove_table_of_contents1(hunitest.TestCase):
+class Test_remove_table_of_contents(hunitest.TestCase):
+    """
+    Test the `remove_table_of_contents()` function.
+    """
+
+    def helper(self, text: str, expected: str) -> None:
+        """
+        Test helper for `remove_table_of_contents()`.
+
+        :param text: Input markdown text
+        :param expected: Expected output text
+        """
+        # Prepare inputs.
+        text = hprint.dedent(text)
+        # Run test.
+        actual = hmarkdo.remove_table_of_contents(text)
+        # Check outputs.
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Test removing table of contents from markdown text.
@@ -157,6 +176,7 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
 
         Content of section 1.
         """
+        # Prepare outputs.
         expected = """
         # Introduction
 
@@ -168,12 +188,8 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
 
         Content of section 1.
         """
-        text = hprint.dedent(text)
         # Run test.
-        actual = hmarkdo.remove_table_of_contents(text)
-        # Check output.
-        expected = hprint.dedent(expected)
-        self.assert_equal(actual, expected)
+        self.helper(text, expected)
 
     def test2(self) -> None:
         """
@@ -189,11 +205,10 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
 
         Content of section 1.
         """
-        text = hprint.dedent(text)
+        # Prepare outputs.
+        expected = text
         # Run test.
-        actual = hmarkdo.remove_table_of_contents(text)
-        # Check output.
-        self.assert_equal(actual, text)
+        self.helper(text, expected)
 
     def test3(self) -> None:
         """
@@ -213,6 +228,7 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
 
         ## Section 1
         """
+        # Prepare outputs.
         expected = """
         # Introduction
 
@@ -220,23 +236,44 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
 
         ## Section 1
         """
-        text = hprint.dedent(text)
         # Run test.
-        actual = hmarkdo.remove_table_of_contents(text)
-        # Check output.
-        expected = hprint.dedent(expected)
-        self.assert_equal(actual, expected)
+        self.helper(text, expected)
 
 
 # #############################################################################
-# Test_add_navigation_slides1
+# Test_add_navigation_slides_basic
 # #############################################################################
 
 
-class Test_add_navigation_slides1(hunitest.TestCase):
+class Test_add_navigation_slides_basic(hunitest.TestCase):
     """
-    Test the add_navigation_slides function.
+    Test basic behavior of the `add_navigation_slides()` function.
     """
+
+    def helper(
+        self,
+        lines: list,
+        max_level: int,
+        expand_all: bool,
+        *,
+        check_length: bool = True,
+    ) -> None:
+        """
+        Test helper for `add_navigation_slides()`.
+
+        :param lines: Input markdown lines
+        :param max_level: Maximum header level for navigation
+        :param expand_all: Whether to expand all sections
+        :param check_length: If True, also assert result length >= input length
+        """
+        # Run test.
+        result = hmartoc.add_navigation_slides(
+            lines, max_level=max_level, expand_all=expand_all, sanity_check=False
+        )
+        # Check outputs.
+        self.assertIsInstance(result, list)
+        if check_length:
+            self.assertGreaterEqual(len(result), len(lines))
 
     def test1(self) -> None:
         """
@@ -252,13 +289,7 @@ class Test_add_navigation_slides1(hunitest.TestCase):
             "Another content",
         ]
         # Run test.
-        result = hmartoc.add_navigation_slides(
-            lines, max_level=2, expand_all=False, sanity_check=False
-        )
-        # Verify that result is a list and has content.
-        self.assertIsInstance(result, list)
-        # The result should have the same or more lines (navigation slides add content).
-        self.assertGreaterEqual(len(result), len(lines))
+        self.helper(lines, max_level=2, expand_all=False)
 
     def test2(self) -> None:
         """
@@ -273,13 +304,8 @@ class Test_add_navigation_slides1(hunitest.TestCase):
             "# Section 2",
             "Content 2",
         ]
-        # Run test with expand_all=True.
-        result = hmartoc.add_navigation_slides(
-            lines, max_level=2, expand_all=True, sanity_check=False
-        )
-        # Verify result.
-        self.assertIsInstance(result, list)
-        self.assertGreaterEqual(len(result), len(lines))
+        # Run test.
+        self.helper(lines, max_level=2, expand_all=True)
 
     def test3(self) -> None:
         """
@@ -292,11 +318,7 @@ class Test_add_navigation_slides1(hunitest.TestCase):
             "Content under section 1",
         ]
         # Run test.
-        result = hmartoc.add_navigation_slides(
-            lines, max_level=1, expand_all=False, sanity_check=False
-        )
-        # Verify that result is a list.
-        self.assertIsInstance(result, list)
+        self.helper(lines, max_level=1, expand_all=False, check_length=False)
 
     def test4(self) -> None:
         """
@@ -311,14 +333,8 @@ class Test_add_navigation_slides1(hunitest.TestCase):
             "### Subsubsection 1.1.1",
             "Even more content",
         ]
-        # Run test with max_level=1 (only level 1 headers get navigation).
-        result = hmartoc.add_navigation_slides(
-            lines, max_level=1, expand_all=False, sanity_check=False
-        )
-        # Verify result is a list.
-        self.assertIsInstance(result, list)
-        # With max_level=1, only level 1 headers get navigation.
-        self.assertGreaterEqual(len(result), len(lines))
+        # Run test.
+        self.helper(lines, max_level=1, expand_all=False)
 
 
 # #############################################################################
@@ -328,27 +344,27 @@ class Test_add_navigation_slides1(hunitest.TestCase):
 
 class Test_add_navigation_slides(hunitest.TestCase):
     """
-    Test the `_add_navigation_slides()` function.
+    Test the `add_navigation_slides()` function with detailed output.
     """
 
     def helper(
         self, input_text: str, max_level: int, expected: str
     ) -> None:
         """
-        Helper method to test _add_navigation_slides function.
+        Helper method to test `add_navigation_slides()` function.
 
-        :param input_text: input text with dedent applied
-        :param max_level: maximum header level
-        :param expected: expected output with dedent applied
+        :param input_text: Input text with dedent applied
+        :param max_level: Maximum header level
+        :param expected: Expected output with dedent applied
         """
         # Prepare inputs.
         input_text = hprint.dedent(input_text)
         lines = input_text.strip().split("\n")
-        expected = hprint.dedent(expected)
         # Run test.
         actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=False)
         actual_str = "\n".join(actual)
         # Check outputs.
+        expected = hprint.dedent(expected)
         self.assert_equal(actual_str, expected)
 
     def test1(self) -> None:
