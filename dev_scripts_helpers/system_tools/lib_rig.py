@@ -112,6 +112,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "positional", nargs="*", help="Positional arguments for search"
     )
+    # TODO(gp): Factor this out in hparser.py or similar.
     parser.add_argument(
         "--modified",
         action="store_true",
@@ -138,17 +139,8 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         type=str,
         help="Search in specific files (space-separated list)",
     )
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Print the ripgrep command and exit without running it",
-    )
-    parser.add_argument(
-        "--rg_opts",
-        type=str,
-        default="",
-        help="Additional ripgrep options (e.g., '-S -i' for smart case and ignore case)",
-    )
+    # 
+    # Special search mode.
     parser.add_argument(
         "--def",
         dest="def_mode",
@@ -173,6 +165,18 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         action="store_true",
         help="Save output to cfile and open in vim",
     )
+    # Modifiers for `rg`.
+    parser.add_argument(
+        "--rg_opts",
+        type=str,
+        default="",
+        help="Additional ripgrep options (e.g., '-S -i' for smart case and ignore case)",
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Print the ripgrep command and exit without running it",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -184,6 +188,13 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     :param parsed: Raw parsed arguments from ArgumentParser
     :return: Processed arguments namespace
     """
+    # TODO(ai_gp): Do not make these copies, but process parameters one at the
+    # time, to build the ripgrep command line using several variables to store
+    # the different parts of ripgrep command.
+    # - ripgrep_pattern
+    # - ripgrep_dirs
+    # - ripgrep_file_list
+    # - ripgrep_opts
     result = argparse.Namespace()
     result.pattern = None
     result.directory = "."
@@ -316,32 +327,33 @@ def main(
         print(" ".join(cmd))
         return 0
 
-        if need_capture:
-            # Capture output for post-processing
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            # In tests with mocks, result might be None or lack stdout attribute
-            if result is None or not hasattr(result, "stdout"):
-                return 0
-            lines = result.stdout.splitlines()
+    # TODO(ai_gp): need_capture = if --cfile was specfied
+    if need_capture:
+        # Capture output for post-processing
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        # In tests with mocks, result might be None or lack stdout attribute
+        if result is None or not hasattr(result, "stdout"):
+            return 0
+        lines = result.stdout.splitlines()
 
-            # Apply --todo filter: exclude lines containing 'cfile'
-            if parsed.todo_mode:
-                lines = [line for line in lines if "cfile" not in line]
+        # Apply --todo filter: exclude lines containing 'cfile'
+        if parsed.todo_mode:
+            lines = [line for line in lines if "cfile" not in line]
 
-            # Apply --rule filter: case-insensitive grep
-            if parsed.rule_mode and parsed.rule_filter:
-                filter_lower = parsed.rule_filter.lower()
-                lines = [
-                    line for line in lines if filter_lower in line.lower()
-                ]
+        # Apply --rule filter: case-insensitive grep
+        if parsed.rule_mode and parsed.rule_filter:
+            filter_lower = parsed.rule_filter.lower()
+            lines = [
+                line for line in lines if filter_lower in line.lower()
+            ]
 
-            output = "\n".join(lines)
-            print(output)
+        output = "\n".join(lines)
+        print(output)
 
-            # Save to cfile and open in vim if requested
-            if parsed.cfile:
-                hio.to_file("cfile", output)
-                subprocess.run(["vim", "-c", "cfile cfile"])
-        else:
-            subprocess.run(cmd)
+        # Save to cfile and open in vim if requested
+        if parsed.cfile:
+            hio.to_file("cfile", output)
+            subprocess.run(["vim", "-c", "cfile cfile"])
+    else:
+        subprocess.run(cmd)
     return 0

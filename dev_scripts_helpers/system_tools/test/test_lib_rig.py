@@ -40,6 +40,7 @@ class TestRigScript(hunitest.TestCase):
             except SystemExit as e:
                 exit_code = e.code
         # Check outputs.
+        # TODO(ai_gp): Use the hunteuti. to check outcome.
         if expected_cmd is not None:
             self.assertEqual(len(invocations), 1)
             self.assertEqual(invocations[0]["function"], "subprocess.run")

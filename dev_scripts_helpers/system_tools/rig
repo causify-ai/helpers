@@ -12,9 +12,6 @@ rig - Utility for ripgrep searches and directory operations.
 # Search for "TODO" in all files in current directory
 > rig "TODO"
 
-# Search in Python files in current directory
-> rig "import" py
-
 # Search in JavaScript files with case-insensitive matching
 > rig "import" . js -i
 """
