@@ -31,39 +31,36 @@ import argparse
 import logging
 import os
 import subprocess
-from typing import cast, List, Optional, Tuple
+from typing import cast, Dict, Optional, Tuple
 
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hlint as hlint
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 
 
 _LOG = logging.getLogger(__name__)
 
 
-def _get_rules_for_topic(
-    topic: str,
-) -> Tuple[str, List[str], List[str]]:
+def _get_rules_for_topic(topic: str) -> Dict:
     """
     Get rules and templates for a given topic.
 
     :param topic: Topic name (e.g., 'coding', 'testing')
-    :return: Tuple of (role, rules list, templates list)
+    :return: Dict with role, rules list, templates list, and other config
     """
-    # TODO(ai_gp): Add a "role" in TOPIC_TO_RULES pointing to one of the files below
-    # .claude/skills/role.ai_researcher.md
-    # .claude/skills/role.python.md
-    # depending on what is the best role.
-    # TODO(ai_gp): Rename TOPIC_TO_RULES -> TOPIC_TO_INFO
-    TOPIC_TO_RULES = {
+    TOPIC_TO_INFO = {
         "skill": {
+            "role": "python",
             "rules": ["skill.rules.md"],
             "templates": [],
         },
         "blog": {
+            "role": "ai_researcher",
             "rules": [
                 "blog.rules.md",
                 "markdown.rules.md",
@@ -72,34 +69,42 @@ def _get_rules_for_topic(
             "templates": [],
         },
         "book": {
+            "role": "ai_researcher",
             "rules": ["book.rules.md"],
             "templates": [],
         },
         "slides": {
+            "role": "ai_researcher",
             "rules": ["slides.rules.md"],
             "templates": [],
         },
         "testing": {
+            "role": "python",
             "rules": ["testing.rules.md"],
             "templates": ["testing.template.py"],
         },
         "coding": {
+            "role": "python",
             "rules": ["coding.rules.md"],
             "templates": ["code.template.py"],
         },
         "bash": {
+            "role": "python",
             "rules": [],
             "templates": [],
         },
         "latex": {
+            "role": "ai_researcher",
             "rules": ["latex.rules.md"],
             "templates": [],
         },
         "notebook": {
+            "role": "python",
             "rules": ["notebook.rules.md"],
             "templates": ["notebook_template.ipynb"],
         },
         "interactive_notebook": {
+            "role": "python",
             "rules": [
                 "interactive_notebook.rules.md",
                 "notebook.rules.md",
@@ -110,6 +115,7 @@ def _get_rules_for_topic(
             ],
         },
         "markdown": {
+            "role": "ai_researcher",
             "rules": [
                 "markdown.rules.md",
                 "text.rules.bullet_points.md",
@@ -117,32 +123,38 @@ def _get_rules_for_topic(
             "templates": [],
         },
         "readme": {
+            "role": "ai_researcher",
             "rules": ["readme.rules.md"],
             "templates": [],
         },
         "cxo_slidesformat": {
+            "role": "ai_researcher",
             "rules": [],
             "templates": [],
         },
         "tool_X_in_30_mins": {
+            "role": "ai_researcher",
             "rules": ["tool_X_in_30_mins.rules.md"],
             "templates": [],
         },
         "tool_X_in_60_mins": {
+            "role": "ai_researcher",
             "rules": ["tool_X_in_60_mins.rules.md"],
             "templates": [],
         },
     }
     hdbg.dassert_in(
         topic,
-        TOPIC_TO_RULES,
+        TOPIC_TO_INFO,
         "Topic not found in rules",
     )
-    rules_and_templates = TOPIC_TO_RULES[topic]
-    rules = [f".claude/skills/{r}" for r in rules_and_templates["rules"]]
-    templates = [f".claude/templates/{t}" for t in rules_and_templates["templates"]]
-    role = f".claude/skills/role.{role}.md"
-    return (role, rules, templates)
+    topic_info = TOPIC_TO_INFO[topic]
+    topic_info["role"] = f".claude/skills/role.%s.md" % topic_info["role"]
+    topic_info["rules"] = [f".claude/skills/{r}" for r in topic_info["rules"]]
+    topic_info["templates"] = [f".claude/templates/{t}" for t in topic_info["templates"]]
+    topic_info["run_jupytext"] = topic in ("notebook", )
+    topic_info["run_lint"] = topic in ("readme", "markdown", )
+    return topic_info
 
 
 def _detect_file_type(file_path: str) -> Optional[str]:
@@ -178,18 +190,21 @@ def _detect_file_type(file_path: str) -> Optional[str]:
     return topic
 
 
-def _build_prompt(topic: str) -> str:
+def _build_prompt(topic: str) -> Tuple[str, Dict]:
     """
     Build a Claude Code prompt for the given skill.
 
     :param topic: Topic name (e.g., 'coding', 'testing')
-    :param role: Role name (e.g., 'ai_researcher', 'python')
-    :return: Prompt string
+    :return: Tuple of (prompt string, topic_info dict)
     """
-    role, rules, templates = _get_rules_for_topic(topic)
+    topic_info = _get_rules_for_topic(topic)
+    role = topic_info["role"]
+    rules = topic_info["rules"]
+    templates = topic_info["templates"]
     prompt_parts = []
-    # TODO(ai_gp): Read the role file and inject it into prompt_parts. Assert if it doesn't exist.
-    prompt_parts.append("You are a ...")
+    hdbg.dassert_file_exists(role, "Role file not found")
+    role_content = hio.from_file(role)
+    prompt_parts.append(role_content)
     if rules:
         prompt_parts.append("You MUST look for each rule below that is not followed and apply them:")
         for rule_file in rules:
@@ -200,7 +215,7 @@ def _build_prompt(topic: str) -> str:
             prompt_parts.append(f"- {template_file}")
     prompt_parts.append("You MUST make sure not to change the behavior or the intent of the passed file")
     txt = "\n".join(prompt_parts)
-    return txt
+    return txt, topic_info
 
 
 def _run_claude_code(prompt: str, *, dry_run: bool = False) -> int:
@@ -280,28 +295,15 @@ def _main(parser: argparse.ArgumentParser) -> int:
             topic = _detect_file_type(file_path)
             hdbg.dassert_is_not(topic, None, "Topic detection failed")
             topic_str = cast(str, topic)
-        prompt = _build_prompt(topic_str, role=args.role)
+        prompt, topic_info = _build_prompt(topic_str)
+        if topic_info["run_jupytext"]:
+            cmd = ["jupytext", "--sync", file_path]
+            hsystem.system(" ".join(cmd))
+        if topic_info["run_lint"]:
+            hlint.lint_file(file_path)
         rc = _run_claude_code(prompt, dry_run=args.dry_run)
         ret |= rc
     return ret
-
-#- I will pass you a Python file `<FILE.py>` paired with Jupyter notebook with
-#  `Jupytext` using a `py:percent` format
-#
-#- Read the file with the conventions and guidelines
-#  `.claude/skills/notebook.rules.md` and apply them without changing the intent
-#  and behavior of the notebook
-#
-## Use Jupytext
-#- Remember to modify only the Python file paired with Jupytext to the notebook
-#  and then sync them with Jupytext
-
-
-#- After all the transformations apply the linter
-#  ```
-#  > lint_txt.py -i <file>
-#  ```
-#
 
 
 if __name__ == "__main__":
