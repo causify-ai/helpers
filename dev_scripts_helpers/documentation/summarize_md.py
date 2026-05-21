@@ -502,9 +502,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
     #
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info("Actions selected:\n%s", hparser.actions_to_string(
-        actions, _VALID_ACTIONS, add_frame=True
-    ))
+    _LOG.info(
+        "Actions selected:\n%s",
+        hparser.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
+    )
     # Handle summarize action.
     to_summarize, actions = hparser.mark_action("summarize", actions)
     if to_summarize:
@@ -520,7 +521,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             md_end=args.md_end,
         )
         _LOG.info(
-            "Processing %d headers at level %d", len(target_headers), args.md_level
+            "Processing %d headers at level %d",
+            len(target_headers),
+            args.md_level,
         )
         print("\nHeaders to summarize:")
         for i, header in enumerate(target_headers, 1):

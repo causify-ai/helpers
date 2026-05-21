@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks.lib_tasks_lint as hlitalin
+import helpers.lib_tasks.lib_tasks_lint as hltltali
 """
 
 import datetime
@@ -19,8 +19,8 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.lib_tasks.lib_tasks_docker as hlitadoc
-import helpers.lib_tasks.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_docker as hltltado
+import helpers.lib_tasks.lib_tasks_utils as hltltaut
 
 _LOG = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def lint_check_python_files_in_docker(  # type: ignore
 
     The params have the same meaning as in `get_files_to_process()`.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     _ = ctx
     # We allow to filter through the user specified `files`.
     mutually_exclusive = False
@@ -140,7 +140,7 @@ def lint_check_python_files(  # type: ignore
     ]
     docker_cmd_ = " ".join(cmd_line)
     cmd = f'invoke docker_cmd --cmd="{docker_cmd_}"'
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 def _get_lint_docker_cmd(
@@ -166,7 +166,7 @@ def _get_lint_docker_cmd(
         linter_image = base_image
     _LOG.debug(hprint.to_str("linter_image"))
     # Execute command line.
-    cmd: str = hlitadoc._get_docker_compose_cmd(
+    cmd: str = hltltado._get_docker_compose_cmd(
         linter_image,
         stage,
         version,
@@ -195,18 +195,18 @@ def lint_detect_cycles(  # type: ignore
           the task is run
     :param debug_tool: print the output of the cycle detector
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Remove the log file.
     if os.path.exists(out_file_name):
         cmd = f"rm {out_file_name}"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
     # Prepare the command line.
     docker_cmd_opts = [dir_name]
     if debug_tool:
         docker_cmd_opts.append("-v DEBUG")
     docker_cmd_ = (
         "$(find -wholename '*import_check/detect_import_cycles.py') "
-        + hlitauti._to_single_line_cmd(docker_cmd_opts)
+        + hltltaut._to_single_line_cmd(docker_cmd_opts)
     )
     # Execute command line.
     base_image = ""
@@ -215,7 +215,7 @@ def lint_detect_cycles(  # type: ignore
     # because writing to a file succeeds.
     cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}; exit $PIPESTATUS"
     # Run.
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 # pylint: disable=line-too-long
@@ -275,7 +275,7 @@ def lint(  # type: ignore
         hgit.is_cwd_git_repo(),
         msg="Linter should run from repo root",
     )
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Prepare the command line.
     lint_cmd_opts = []
     # Add the file selection argument.
@@ -324,12 +324,12 @@ def lint(  # type: ignore
         find_cmd = "$(find . -path '*linters/base.py')"
     else:
         find_cmd = "$(find -wholename '*linters/base.py')"
-    lint_cmd_ = find_cmd + " " + hlitauti._to_single_line_cmd(lint_cmd_opts)
+    lint_cmd_ = find_cmd + " " + hltltaut._to_single_line_cmd(lint_cmd_opts)
     docker_cmd_ = _get_lint_docker_cmd(
         base_image, lint_cmd_, stage=stage, version=version
     )
     # Run.
-    hlitauti.run(ctx, docker_cmd_)
+    hltltaut.run(ctx, docker_cmd_)
 
 
 @task
@@ -339,7 +339,7 @@ def lint_check_if_it_was_run(ctx):  # type: ignore
 
     - abort the task with error if the files were modified
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Check if the files were modified.
     hgit.is_client_clean(abort_if_not_clean=True)
 
@@ -351,7 +351,7 @@ def lint_create_branch(ctx, dry_run=False):  # type: ignore
 
     The dir needs to be specified to ensure the set-up is correct.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     #
     date = datetime.datetime.now().date()
     date_as_str = date.strftime("%Y%m%d")
@@ -359,7 +359,7 @@ def lint_create_branch(ctx, dry_run=False):  # type: ignore
     # query_yes_no("Are you sure you want to create the branch '{branch_name}'")
     _LOG.info("Creating branch '%s'", branch_name)
     cmd = f"invoke git_branch_create --branch-name '{branch_name}'"
-    hlitauti.run(ctx, cmd, dry_run=dry_run)
+    hltltaut.run(ctx, cmd, dry_run=dry_run)
 
 
 @task
@@ -373,7 +373,7 @@ def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  
     :param revert_to_original: if `True`, revert the changes to the original
     """
     _ = ctx
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Copy the code from the src Git client to the current one.
     src_git_dir = hgit.resolve_git_client_dir(git_client_name)
     #

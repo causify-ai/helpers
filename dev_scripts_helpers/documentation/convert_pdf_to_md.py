@@ -448,7 +448,9 @@ def _pdf_to_markdown(
         _LOG.debug("Extracted %d total images", total_images)
         _LOG.debug("Images saved to: %s", os.path.abspath(images_dir))
     else:
-        _LOG.debug("Image references included as HTML comments (figures skipped)")
+        _LOG.debug(
+            "Image references included as HTML comments (figures skipped)"
+        )
     _LOG.info("Markdown saved to: %s", os.path.abspath(md_path))
 
 

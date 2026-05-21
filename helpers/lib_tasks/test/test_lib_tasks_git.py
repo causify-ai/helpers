@@ -4,7 +4,7 @@ import pytest
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks.lib_tasks_git as hlitagit
+import helpers.lib_tasks.lib_tasks_git as hltltagi
 import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 # pylint: disable=protected-access
@@ -32,12 +32,12 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         ctx = httestlib._build_mock_context_returning_ok()
         #
         mode = "tar"
-        hlitagit.git_patch_create(
+        hltltagi.git_patch_create(
             ctx, mode, modified, branch, last_commit, files
         )
         #
         mode = "diff"
-        hlitagit.git_patch_create(
+        hltltagi.git_patch_create(
             ctx, mode, modified, branch, last_commit, files
         )
 
@@ -106,7 +106,7 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         files = __file__
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            hlitagit.git_patch_create(
+            hltltagi.git_patch_create(
                 ctx, mode, modified, branch, last_commit, files
             )
         actual = str(cm.exception)
@@ -144,7 +144,7 @@ class TestFilterGitFilesByType(hunitest.TestCase):
         :param expected: Expected filtered result
         """
         # Run test.
-        result = hlitagit._filter_git_files_by_type(files, file_types)
+        result = hltltagi._filter_git_files_by_type(files, file_types)
         # Check outputs.
         self.assertEqual(result, expected)
 

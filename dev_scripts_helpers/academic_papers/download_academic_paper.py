@@ -35,7 +35,7 @@ import download_academic_paper as dap
 # - Formats filenames as: <year>.<FirstAuthorLastName>.[et_al.].<Title>.pdf
 # - Checks if file already exists (skip unless --no_incremental)
 # - Saves papers to $PAPERS_DIR (or ~/papers if not set)
-# 
+#
 # - Filename examples:
 # - "2017.Vaswani.Attention_Is_All_You_Need.pdf"
 # - "2019.Devlin.et_al.BERT_Pre-training_of_Deep_Bidirectional_Transformers.pdf"
@@ -358,7 +358,7 @@ def _download_paper(
             response.raise_for_status()
             pdf_content = response.content
             # Extract metadata from PDF.
-            tmp_path ="tmp.download_academic_paper.metadata.pdf"
+            tmp_path = "tmp.download_academic_paper.metadata.pdf"
             with open(tmp_path, "wb") as f:
                 f.write(pdf_content)
             metadata = _extract_pdf_metadata_pymupdf(tmp_path)
@@ -407,9 +407,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     Parse command-line arguments.
     """
-    _DEFAULT_OUTPUT_DIR = os.path.expanduser(
-        os.getenv("PAPERS_DIR", ".")
-    )
+    _DEFAULT_OUTPUT_DIR = os.path.expanduser(os.getenv("PAPERS_DIR", "."))
     parser = argparse.ArgumentParser(
         description="Download academic papers with standardized filenames"
     )
@@ -423,7 +421,7 @@ def _parse() -> argparse.ArgumentParser:
         "-o",
         "--output_dir",
         default=_DEFAULT_OUTPUT_DIR,
-        help=f"Output directory",
+        help="Output directory",
     )
     parser.add_argument(
         "--no_incremental",

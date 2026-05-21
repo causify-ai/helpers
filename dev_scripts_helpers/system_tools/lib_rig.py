@@ -59,8 +59,6 @@ def _build_ripgrep_command(
     return cmd
 
 
-
-
 def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     """
     Create and return ArgumentParser for rig utility.
@@ -267,13 +265,15 @@ def main(
         rg_opts.extend(parsed["rg_opts"].split())
     # Retrieve filtered file list if user specified file selection criteria;
     # otherwise search entire directory.
-    if any([
-        parsed["modified"],
-        parsed["branch"],
-        parsed["last_commit"],
-        parsed["all_files"],
-        parsed["files_from_user"],
-    ]):
+    if any(
+        [
+            parsed["modified"],
+            parsed["branch"],
+            parsed["last_commit"],
+            parsed["all_files"],
+            parsed["files_from_user"],
+        ]
+    ):
         files = hgit.get_files_to_process(
             modified=parsed["modified"],
             branch=parsed["branch"],
@@ -315,5 +315,8 @@ def main(
             result = subprocess.run(cmd, text=True)
         return result.returncode if result else 0
     except FileNotFoundError:
-        _LOG.error("Command not found: %s", cmd_str if parsed["need_capture"] else cmd[0])
+        _LOG.error(
+            "Command not found: %s",
+            cmd_str if parsed["need_capture"] else cmd[0],
+        )
         return 1

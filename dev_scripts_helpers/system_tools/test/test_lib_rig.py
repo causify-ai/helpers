@@ -83,7 +83,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["class", ".", "py"]
         # Prepare outputs.
-        expected_cmd = "rg class . -g *.py --hidden -n --no-heading --color=never"
+        expected_cmd = (
+            "rg class . -g *.py --hidden -n --no-heading --color=never"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -133,7 +135,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["def", ".", "py,md"]
         # Prepare outputs.
-        expected_cmd = "rg def . -g *.py -g *.md --hidden -n --no-heading --color=never"
+        expected_cmd = (
+            "rg def . -g *.py -g *.md --hidden -n --no-heading --color=never"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -242,7 +246,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never"
+        expected_cmd = (
+            "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -274,7 +280,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--todo"]
         # Prepare outputs.
-        expected_cmd = r"rg TODO\(ai_gp\) . --hidden -n --no-heading --color=never"
+        expected_cmd = (
+            r"rg TODO\(ai_gp\) . --hidden -n --no-heading --color=never"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(

@@ -149,11 +149,16 @@ def _get_rules_for_topic(topic: str) -> Dict:
         "Topic not found in rules",
     )
     topic_info = TOPIC_TO_INFO[topic]
-    topic_info["role"] = f".claude/skills/role.%s.md" % topic_info["role"]
+    topic_info["role"] = ".claude/skills/role.%s.md" % topic_info["role"]
     topic_info["rules"] = [f".claude/skills/{r}" for r in topic_info["rules"]]
-    topic_info["templates"] = [f".claude/templates/{t}" for t in topic_info["templates"]]
-    topic_info["run_jupytext"] = topic in ("notebook", )
-    topic_info["run_lint"] = topic in ("readme", "markdown", )
+    topic_info["templates"] = [
+        f".claude/templates/{t}" for t in topic_info["templates"]
+    ]
+    topic_info["run_jupytext"] = topic in ("notebook",)
+    topic_info["run_lint"] = topic in (
+        "readme",
+        "markdown",
+    )
     return topic_info
 
 
@@ -211,19 +216,25 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     role_content = hio.from_file(role)
     prompt_parts.append(role_content)
     if rules:
-        prompt_parts.append("You MUST look for each rule below that is not followed and apply them:")
+        prompt_parts.append(
+            "You MUST look for each rule below that is not followed and apply them:"
+        )
         for rule_file in rules:
             prompt_parts.append(f"- {rule_file}")
     if templates:
         prompt_parts.append("You MUST follow the templates below:")
         for template_file in templates:
             prompt_parts.append(f"- {template_file}")
-    prompt_parts.append("You MUST make sure not to change the behavior or the intent of the passed file")
+    prompt_parts.append(
+        "You MUST make sure not to change the behavior or the intent of the passed file"
+    )
     txt = "\n".join(prompt_parts)
     return txt, topic_info
 
 
-def _run_claude_code(prompt: str, file_path: str, *, dry_run: bool = False) -> int:
+def _run_claude_code(
+    prompt: str, file_path: str, *, dry_run: bool = False
+) -> int:
     """
     Run Claude Code with the given prompt.
 
@@ -244,7 +255,7 @@ def _run_claude_code(prompt: str, file_path: str, *, dry_run: bool = False) -> i
         "-p",
         "--dangerously-skip-permissions",
         "--output-format=text",
-        f"'Execute the file {prompt_file}'"
+        f"'Execute the file {prompt_file}'",
     ]
     cmd = " ".join(cmd_parts)
     _LOG.info("Claude command: %s", cmd)

@@ -688,7 +688,13 @@ def _parse() -> argparse.ArgumentParser:
         "--toc_type",
         action="store",
         default="none",
-        choices=["none", "pandoc_native", "navigation", "partial_navigation", "remove_headers"],
+        choices=[
+            "none",
+            "pandoc_native",
+            "navigation",
+            "partial_navigation",
+            "remove_headers",
+        ],
         help=(
             "Type of table of contents to generate: "
             "'none' = no TOC; "

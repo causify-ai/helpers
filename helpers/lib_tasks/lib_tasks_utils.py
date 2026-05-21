@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hltltaut
 """
 
 import datetime
@@ -259,8 +259,6 @@ def _to_pbcopy(txt: str, pbcopy: bool) -> None:
     else:
         _LOG.warning("pbcopy works only on macOS")
         print(txt)
-
-
 
 
 # Copied from helpers.datetime_ to avoid dependency from pandas.

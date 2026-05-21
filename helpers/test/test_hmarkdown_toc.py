@@ -88,7 +88,9 @@ class Test_extract_yaml_frontmatter(hunitest.TestCase):
         # Prepare outputs.
         expected_frontmatter = []
         lines = txt.split("\n")
-        expected_remaining = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        expected_remaining = hprint.dedent(
+            lines, remove_lead_trail_empty_lines_=True
+        )
         # Run test.
         self.helper(txt, expected_frontmatter, expected_remaining)
 
@@ -121,7 +123,9 @@ class Test_extract_yaml_frontmatter(hunitest.TestCase):
         # Prepare outputs.
         expected_frontmatter = []
         lines = txt.split("\n")
-        expected_remaining = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        expected_remaining = hprint.dedent(
+            lines, remove_lead_trail_empty_lines_=True
+        )
         # Run test.
         self.helper(txt, expected_frontmatter, expected_remaining)
 
@@ -234,8 +238,6 @@ class Test_remove_table_of_contents(hunitest.TestCase):
         self.helper(text, expected)
 
 
-
-
 # #############################################################################
 # Test_add_navigation_slides
 # #############################################################################
@@ -283,7 +285,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             More content
             """
         max_level = 2
-        expand_all=False
+        expand_all = False
         # Prepare outputs.
         expected = r"""
             ####
@@ -310,7 +312,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content
             """
         max_level = 1
-        expand_all=False
+        expand_all = False
         # Prepare outputs.
         expected = r"""
             ####
@@ -335,7 +337,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Another content
             """
         max_level = 2
-        expand_all=False
+        expand_all = False
         expected = r"""
             ####
             - _**\textcolor{red}{Section 1}**_
@@ -372,7 +374,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content 2
             """
         max_level = 2
-        expand_all=True
+        expand_all = True
         expected = r"""
             ####
             - _**\textcolor{red}{Section 1}**_
@@ -407,7 +409,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content under section 1
             """
         max_level = 1
-        expand_all=False
+        expand_all = False
         expected = r"""
             Some initial content
             ####
@@ -432,7 +434,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Even more content
             """
         max_level = 1
-        expand_all=False
+        expand_all = False
         expected = r"""
             ####
             - _**\textcolor{red}{Section 1}**_

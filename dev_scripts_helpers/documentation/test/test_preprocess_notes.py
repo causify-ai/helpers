@@ -32,7 +32,9 @@ class Test_colorize_backticks(hunitest.TestCase):
         :param txt_in: input text
         :param expected: expected output text
         """
+        # Run test.
         actual = dshdprno._colorize_backticks(txt_in)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -41,6 +43,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "The `store` variable is used."
+        # Prepare outputs.
         expected = r"The \textcolor{blue}{\texttt{store}} variable is used."
         # Run test.
         self.helper(txt_in, expected)
@@ -51,6 +54,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Use `function1` and `function2` to process data."
+        # Prepare outputs.
         expected = r"Use \textcolor{blue}{\texttt{function1}} and \textcolor{blue}{\texttt{function2}} to process data."
         # Run test.
         self.helper(txt_in, expected)
@@ -61,6 +65,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "The `main function` is important."
+        # Prepare outputs.
         expected = r"The \textcolor{blue}{\texttt{main function}} is important."
         # Run test.
         self.helper(txt_in, expected)
@@ -71,6 +76,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "This line has no special formatting."
+        # Prepare outputs.
         expected = txt_in
         # Run test.
         self.helper(txt_in, expected)
@@ -81,6 +87,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "```python\nprint('hello')\n```"
+        # Prepare outputs.
         expected = txt_in
         # Run test.
         self.helper(txt_in, expected)
@@ -91,6 +98,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "`config` is a parameter"
+        # Prepare outputs.
         expected = r"\textcolor{blue}{\texttt{config}} is a parameter"
         # Run test.
         self.helper(txt_in, expected)
@@ -101,6 +109,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Import the module called `helpers`"
+        # Prepare outputs.
         expected = r"Import the module called \textcolor{blue}{\texttt{helpers}}"
         # Run test.
         self.helper(txt_in, expected)
@@ -111,6 +120,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Use the `_private_func` or `__dunder__` naming."
+        # Prepare outputs.
         expected = r"Use the \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} naming."
         # Run test.
         self.helper(txt_in, expected)
@@ -121,6 +131,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Call `func42` to compute result."
+        # Prepare outputs.
         expected = r"Call \textcolor{blue}{\texttt{func42}} to compute result."
         # Run test.
         self.helper(txt_in, expected)
@@ -131,7 +142,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Text with `` empty backticks here."
-        # Empty backticks should not match due to pattern requiring at least one character.
+        # Prepare outputs.
         expected = txt_in
         # Run test.
         self.helper(txt_in, expected)
@@ -142,6 +153,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "First sentence with `var1`. Second sentence with `var2`. Third sentence."
+        # Prepare outputs.
         expected = r"First sentence with \textcolor{blue}{\texttt{var1}}. Second sentence with \textcolor{blue}{\texttt{var2}}. Third sentence."
         # Run test.
         self.helper(txt_in, expected)
@@ -152,6 +164,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Import `numpy.array` for matrix operations."
+        # Prepare outputs.
         expected = r"Import \textcolor{blue}{\texttt{numpy.array}} for matrix operations."
         # Run test.
         self.helper(txt_in, expected)
@@ -162,6 +175,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "The `weeks_to_xmas` variable stores the countdown."
+        # Prepare outputs.
         expected = r"The \textcolor{blue}{\texttt{weeks\_to\_xmas}} variable stores the countdown."
         # Run test.
         self.helper(txt_in, expected)
@@ -170,16 +184,22 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         Test multiple backtick-wrapped words with underscores.
         """
+        # Prepare inputs.
         txt_in = "Use `_private_func` or `public_var` for different access levels."
+        # Prepare outputs.
         expected = r"Use \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{public\_var}} for different access levels."
+        # Run test.
         self.helper(txt_in, expected)
 
     def test15(self) -> None:
         """
         Test backticks with leading and trailing underscores.
         """
+        # Prepare inputs.
         txt_in = "Call `__init__` or `__dunder__` methods in Python."
+        # Prepare outputs.
         expected = r"Call \textcolor{blue}{\texttt{\_\_init\_\_}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} methods in Python."
+        # Run test.
         self.helper(txt_in, expected)
 
 
@@ -313,43 +333,79 @@ class Test_process_question1(hunitest.TestCase):
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(actual, expected)
 
-    def test_process_question1(self) -> None:
+    def test1(self) -> None:
+        """
+        Test single asterisk with spaces.
+        """
+        # Prepare inputs.
         txt_in = "* Hope is not a strategy"
         do_continue_exp = True
-        exp = "- **Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        # Prepare outputs.
+        expected = "- **Hope is not a strategy**"
+        # Run test.
+        self.helper(txt_in, do_continue_exp, expected)
 
-    def test_process_question2(self) -> None:
+    def test2(self) -> None:
+        """
+        Test double asterisk with spaces.
+        """
+        # Prepare inputs.
         txt_in = "** Hope is not a strategy"
         do_continue_exp = True
-        exp = "- **Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        # Prepare outputs.
+        expected = "- **Hope is not a strategy**"
+        # Run test.
+        self.helper(txt_in, do_continue_exp, expected)
 
-    def test_process_question3(self) -> None:
+    def test3(self) -> None:
+        """
+        Test asterisk-colon format.
+        """
+        # Prepare inputs.
         txt_in = "*: Hope is not a strategy"
         do_continue_exp = True
-        exp = "- **Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        # Prepare outputs.
+        expected = "- **Hope is not a strategy**"
+        # Run test.
+        self.helper(txt_in, do_continue_exp, expected)
 
-    def test_process_question4(self) -> None:
+    def test4(self) -> None:
+        """
+        Test regular markdown list (should not transform).
+        """
+        # Prepare inputs.
         txt_in = "- Systems don't run themselves, they need to be run"
         do_continue_exp = False
-        exp = txt_in
-        self.helper(txt_in, do_continue_exp, exp)
+        # Prepare outputs.
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, do_continue_exp, expected)
 
-    def test_process_question5(self) -> None:
+    def test5(self) -> None:
+        """
+        Test asterisk with custom spacing.
+        """
+        # Prepare inputs.
         space = "   "
         txt_in = "*" + space + "Hope is not a strategy"
         do_continue_exp = True
-        exp = "-" + space + "**Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        # Prepare outputs.
+        expected = "-" + space + "**Hope is not a strategy**"
+        # Run test.
+        self.helper(txt_in, do_continue_exp, expected)
 
-    def test_process_question6(self) -> None:
+    def test6(self) -> None:
+        """
+        Test double asterisk with custom spacing.
+        """
+        # Prepare inputs.
         space = "   "
         txt_in = "**" + space + "Hope is not a strategy"
         do_continue_exp = True
-        exp = "-" + " " * len(space) + "**Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        # Prepare outputs.
+        expected = "-" + " " * len(space) + "**Hope is not a strategy**"
+        # Run test.
+        self.helper(txt_in, do_continue_exp, expected)
 
 
 # #############################################################################
@@ -398,6 +454,7 @@ class Test_remove_headers1(hunitest.TestCase):
         # Chapter 1
         Some content here
         """
+        # Prepare outputs.
         expected = """
         Some content here
         """
@@ -419,6 +476,7 @@ class Test_remove_headers1(hunitest.TestCase):
         #### Sub-subsection
         Content line 4
         """
+        # Prepare outputs.
         expected = """
         Content line 1
         Content line 2
@@ -440,6 +498,7 @@ class Test_remove_headers1(hunitest.TestCase):
         ## Subheader
         Regular text
         """
+        # Prepare outputs.
         expected = """
         - Bullet point 1
         - Bullet point 2
@@ -458,6 +517,7 @@ class Test_remove_headers1(hunitest.TestCase):
         - Bullet point
         More text
         """
+        # Prepare outputs.
         expected = lines_in
         # Run test.
         self.helper(lines_in, expected)
@@ -472,6 +532,7 @@ class Test_remove_headers1(hunitest.TestCase):
         ## Header 2
         ### Header 3
         """
+        # Prepare outputs.
         expected = ""
         # Run test.
         self.helper(lines_in, expected)
@@ -709,7 +770,11 @@ class Test_extract_section(hunitest.TestCase):
         """
         # Prepare inputs.
         lines_str_dedented = hprint.dedent(lines_str)
-        lines = lines_str_dedented.strip().split("\n") if lines_str_dedented.strip() else []
+        lines = (
+            lines_str_dedented.strip().split("\n")
+            if lines_str_dedented.strip()
+            else []
+        )
         # Run test.
         actual = dshdprno._extract_section(lines, section_name)
         # Check outputs.
@@ -717,7 +782,11 @@ class Test_extract_section(hunitest.TestCase):
             self.assertEqual(actual, None)
         else:
             expected_str_dedented = hprint.dedent(expected_str)
-            expected = expected_str_dedented.strip().split("\n") if expected_str_dedented.strip() else []
+            expected = (
+                expected_str_dedented.strip().split("\n")
+                if expected_str_dedented.strip()
+                else []
+            )
             self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -1590,7 +1659,9 @@ class Test_transform_lines_actions(hunitest.TestCase):
             "- Bullet point 2",
         ]
         # Run test.
-        self.helper(lines, "slides", False, expected, actions=["colorize_bullets"])
+        self.helper(
+            lines, "slides", False, expected, actions=["colorize_bullets"]
+        )
 
 
 # #############################################################################
