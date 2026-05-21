@@ -89,11 +89,10 @@ class Test_extract_yaml_frontmatter(hunitest.TestCase):
         title: My Document
         # Content without closing delimiter
         """
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Prepare outputs.
         expected_frontmatter = []
-        expected_remaining = lines
+        lines = txt.split("\n")
+        expected_remaining = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Run test.
         self.helper(txt, expected_frontmatter, expected_remaining)
 
@@ -123,11 +122,10 @@ class Test_extract_yaml_frontmatter(hunitest.TestCase):
         ---
         More content
         """
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Prepare outputs.
         expected_frontmatter = []
-        expected_remaining = lines
+        lines = txt.split("\n")
+        expected_remaining = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Run test.
         self.helper(txt, expected_frontmatter, expected_remaining)
 

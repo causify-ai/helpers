@@ -77,6 +77,7 @@ def _remove_junk(*, pdf_path: str, output_dir: Optional[str] = None) -> None:
     md_filename = pdf_stem + ".md"
     md_path = os.path.join(output_dir, md_filename)
     hdbg.dassert_file_exists(md_path, "Markdown file does not exist")
+    # Read the markdown file content.
     with open(md_path, "r", encoding="utf-8") as f:
         content = f.read()
     original_content = content
@@ -87,6 +88,7 @@ def _remove_junk(*, pdf_path: str, output_dir: Optional[str] = None) -> None:
     # Remove excessive blank lines (more than 2 consecutive newlines).
     content = re.sub(r"\n\n\n+", "\n\n", content)
     content = content.strip() + "\n"
+    # Write cleaned content back to file if changes were made.
     if content != original_content:
         with open(md_path, "w", encoding="utf-8") as f:
             f.write(content)
@@ -117,6 +119,7 @@ def _extract_images_from_page(
     :return: List of tuples (y_position, image_filename, image_markdown)
     """
     image_items = []
+    # Extract raster images from page.
     image_list = page.get_images(full=True)
     _LOG.debug(
         "Page %d: Found %d images via get_images()", page_num, len(image_list)
@@ -298,6 +301,7 @@ def _extract_text_with_formatting(
                 block_text.append("".join(line_text))
         if not block_text:
             continue
+        # Format text content from the block.
         content = " ".join(block_text).strip()
         if not content:
             continue
@@ -368,10 +372,12 @@ def _pdf_to_markdown(
     # Create images directory to store extracted figures.
     if not skip_figures:
         hio.create_dir(images_dir, incremental=True)
+    # Open PDF and prepare for extraction.
     _LOG.debug("Opening PDF: %s", pdf_path)
     doc = fitz.open(pdf_path)
     md_lines = []
     total_images = 0
+    # Process each page of the PDF.
     for page_num, page in tqdm(
         enumerate(doc, start=1),  # type: ignore
         total=len(doc),
@@ -425,15 +431,15 @@ def _pdf_to_markdown(
                 else:
                     md_lines.append(content)
                 _LOG.debug("Inserted image at y=%.2f", y_pos)
-    # Join markdown lines and apply formatting.
+    # Join markdown lines and apply prettier formatting.
     markdown_content = "\n\n".join(md_lines)
-    # Apply prettier formatting to the markdown content.
     _LOG.info("Applying prettier formatting to markdown")
     markdown_content = dshdlipr.prettier_on_str(
         markdown_content,
         file_type="md",
         print_width=80,
     )
+    # Write formatted markdown to file.
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(markdown_content)
     _LOG.debug("=" * 60)
@@ -450,6 +456,11 @@ def _pdf_to_markdown(
 
 
 def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command-line arguments for the PDF to markdown conversion script.
+
+    :return: Configured `ArgumentParser` instance with all required and optional arguments
+    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -485,10 +496,19 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Execute the main script logic for PDF to markdown conversion.
+
+    Parses command-line arguments and executes selected actions (convert and/or
+    remove_junk) based on user input.
+
+    :param parser: Configured `ArgumentParser` instance
+    """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Execute convert action.
+    # TODO(ai_gp): Use the --action functions.
     if "convert" in actions:
         _pdf_to_markdown(
             pdf_path=args.input,
@@ -496,7 +516,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             skip_figures=args.skip_figures,
             overwrite=args.overwrite,
         )
-    # Execute remove_junk action.
+    # Execute remove_junk action for cleanup.
     if "remove_junk" in actions:
         _remove_junk(pdf_path=args.input, output_dir=args.output)
 

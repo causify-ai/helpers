@@ -251,6 +251,22 @@ class TestRigScript(hunitest.TestCase):
             expected_exit_code=expected_exit_code,
         )
 
+    def test16_rule_with_pattern(self) -> None:
+        """
+        Test --rule flag with a pattern to match Markdown headers.
+        """
+        # Prepare inputs.
+        args = ["assert_equal", "--rule"]
+        # Prepare outputs.
+        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
     def test17(self) -> None:
         """
         Test --todo flag to search for TODO(ai_gp) pattern.

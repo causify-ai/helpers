@@ -179,12 +179,14 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         ripgrep_extensions = ["py"]
     elif parsed.rule_mode:
         # --rule: search for markdown headers in `.claude/skills`.
-        ripgrep_pattern = "^#"
         ripgrep_dir = ".claude/skills"
         ripgrep_extensions = ["md"]
-        # First positional arg becomes a grep-i filter (if provided).
+        # First positional arg becomes part of the regex pattern (if provided).
         if parsed.positional:
             rule_filter = parsed.positional[0]
+            ripgrep_pattern = f"^#+.*{rule_filter}"
+        else:
+            ripgrep_pattern = "^#"
     elif parsed.todo_mode:
         # --todo: search for `TODO(ai_gp)` pattern.
         ripgrep_pattern = r"TODO\(ai_gp\)"
