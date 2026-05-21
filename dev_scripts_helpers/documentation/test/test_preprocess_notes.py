@@ -1526,11 +1526,31 @@ class Test_transform_lines_qa(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out a helper.
 class Test_transform_lines_actions(hunitest.TestCase):
     """
     Test the `_transform_lines()` function with various actions.
     """
+
+    def helper(
+        self,
+        lines: List[str],
+        type_: str,
+        is_qa: bool,
+        expected: List[str],
+        *,
+        actions: Optional[List[str]] = None,
+    ) -> None:
+        """
+        Helper method to test _transform_lines function with actions.
+
+        :param lines: input lines
+        :param type_: output type
+        :param is_qa: whether input is QA format
+        :param expected: expected output lines
+        :param actions: optional actions to perform
+        """
+        actual = dshdprno._transform_lines(lines, type_, is_qa, actions=actions)
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
@@ -1549,12 +1569,7 @@ class Test_transform_lines_actions(hunitest.TestCase):
             r"[\textcolor{blue}{\underline{Link text}}](https://example.com)",
         ]
         # Run test.
-        actual = dshdprno._transform_lines(
-            lines, "slides", is_qa=False, actions=["process_links"]
-        )
-        # Check outputs.
-        self.assertEqual(actual, expected)
-
+        self.helper(lines, "slides", False, expected, actions=["process_links"])
 
     def test2(self) -> None:
         """
@@ -1575,11 +1590,7 @@ class Test_transform_lines_actions(hunitest.TestCase):
             "- Bullet point 2",
         ]
         # Run test.
-        actual = dshdprno._transform_lines(
-            lines, "slides", is_qa=False, actions=["colorize_bullets"]
-        )
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(lines, "slides", False, expected, actions=["colorize_bullets"])
 
 
 # #############################################################################

@@ -205,7 +205,7 @@ def add_navigation_slides(
             _LOG.debug(hprint.to_str("line level description"))
             # Get the navigation string corresponding to the current header.
             if expand_all:
-                nav_str = hmarkdo.full_navigation_to_str(
+                nav_str = hmarkdo.full_tree_to_str(
                     tree,
                     level,
                     description,

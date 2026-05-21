@@ -387,6 +387,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 raise ValueError(
                     f"Output file already exists: {out_file_name} (use --overwrite to replace)"
                 )
+        # TODO(ai_gp): Factor out this in a function and split into subfunctions, if possible.
         # Read input file and split into lines.
         content = hio.from_file(in_file_name)
         lines = content.splitlines()
@@ -479,10 +480,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Handle lint action after summarization and process the output file.
     to_lint, actions = hparser.mark_action("lint", actions)
     if to_lint:
-        lint_file = out_file_name if to_summarize else in_file_name
-        hdbg.dassert_file_exists(lint_file, "File to lint must exist")
-        hlint.lint_file(lint_file)
-        _LOG.info("Linting complete: %s", lint_file)
+        hlint.lint_file(out_file_name)
+        _LOG.info("Linting complete: %s", out_file_name)
 
 
 if __name__ == "__main__":
