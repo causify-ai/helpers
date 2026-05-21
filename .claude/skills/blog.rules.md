@@ -1,9 +1,8 @@
-This document contains all the rules that must be followed when writing a blog.
+This document contains all the rules that must be followed when writing a blog
 
 # Blog Document Structure
 
 ## Front Matter (YAML)
-
 - Every blog post must start with YAML front matter enclosed in `---`:
   ```markdown
   ---
@@ -29,7 +28,6 @@ This document contains all the rules that must be followed when writing a blog.
     - Causal ELI5
 
 ## TL;DR Section
-
 - Immediately after the front matter, add a TL;DR (or TLDR):
   ```markdown
   TL;DR Your punchy one-liner summary that captures the essence of the post.
@@ -45,7 +43,6 @@ This document contains all the rules that must be followed when writing a blog.
 # Writing Style
 
 ## Tone and Audience
-
 - Avoid slang and overly casual language
 - Maintain a professional and informative tone
 - Aim for approximately 800–1,200 words
@@ -55,7 +52,6 @@ This document contains all the rules that must be followed when writing a blog.
   professional website or LinkedIn
 
 ## Formatting and Clarity
-
 - Maintain consistent spacing between sections
 - Use blank lines to separate different content blocks
 - Keep the tone professional but conversational

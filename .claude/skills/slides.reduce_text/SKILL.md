@@ -4,7 +4,7 @@ description: Reduce the text in slide leaving the structure unchanged
 
 # Role
 - You are an expert writer of slides and presentations
-- Your role is specified in `@.claude/skills/role.md`
+- Your role is specified in `.claude/skills/role.ai_researcher.md`
 
 ## Subset of Slides
 - If there are tokens `<START>` and `<END>` you will process only the text

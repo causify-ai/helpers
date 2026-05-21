@@ -511,3 +511,159 @@ class Test__extract_from_md_slides(hunitest.TestCase):
             """
         # Run test.
         self.helper(document_text, start_header, end_header, expected_text)
+
+
+# #############################################################################
+# Test_extract_rule_from_file
+# #############################################################################
+
+
+class Test_extract_rule_from_file(hunitest.TestCase):
+    """
+    Test extracting rules from markdown rule files.
+    """
+
+    def helper_create_rule_file(self) -> str:
+        """
+        Create a test rule file with multiple sections at different levels.
+
+        :return: path to the created rule file
+        """
+        out_dir = self.get_scratch_space()
+        file_path = os.path.join(out_dir, "rules.md")
+        content = """
+            - Document intro
+
+            # Level 1 Section
+
+            - Level 1 content line 1
+            - Level 1 content line 2
+
+            ## Level 1.1 Subsection
+
+            - Level 1.1 content line 1
+            - Level 1.1 content line 2
+
+            ## Level 1.2 Subsection
+
+            - Level 1.2 content
+
+            # Another Level 1 Section
+
+            - Another level 1 content
+            """
+        content = hprint.dedent(content)
+        hio.to_file(file_path, content)
+        return file_path
+
+    def test1(self) -> None:
+        """
+        Test extracting entire file when no line number is provided.
+        """
+        file_path = self.helper_create_rule_file()
+        rule_spec = file_path
+        actual = hmarsele.extract_rule_from_file(rule_spec)
+        # The content should be the full file.
+        expected = hio.from_file(file_path)
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test extracting level-1 header section (line 3).
+        """
+        file_path = self.helper_create_rule_file()
+        rule_spec = f"{file_path}:3"
+        actual = hmarsele.extract_rule_from_file(rule_spec)
+        # Should extract from line 3 until the next level-1 header (line 13).
+        expected = """
+            # Level 1 Section
+
+            - Level 1 content line 1
+            - Level 1 content line 2
+
+            ## Level 1.1 Subsection
+
+            - Level 1.1 content line 1
+            - Level 1.1 content line 2
+
+            ## Level 1.2 Subsection
+
+            - Level 1.2 content"""
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test3(self) -> None:
+        """
+        Test extracting level-2 header section stops at next level-2 or level-1.
+        """
+        file_path = self.helper_create_rule_file()
+        rule_spec = f"{file_path}:8"
+        actual = hmarsele.extract_rule_from_file(rule_spec)
+        # Should extract from line 8 (level-2 header) to next level-2 header
+        # (line 13).
+        expected = """
+            ## Level 1.1 Subsection
+
+            - Level 1.1 content line 1
+            - Level 1.1 content line 2"""
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test4(self) -> None:
+        """
+        Test extracting with section name validation (matching).
+        """
+        file_path = self.helper_create_rule_file()
+        rule_spec = f"{file_path}:3:# Level 1 Section"
+        actual = hmarsele.extract_rule_from_file(rule_spec)
+        # Same as test2 since the name matches.
+        expected = """
+            # Level 1 Section
+
+            - Level 1 content line 1
+            - Level 1 content line 2
+
+            ## Level 1.1 Subsection
+
+            - Level 1.1 content line 1
+            - Level 1.1 content line 2
+
+            ## Level 1.2 Subsection
+
+            - Level 1.2 content"""
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test5(self) -> None:
+        """
+        Test that section name mismatch raises ValueError.
+        """
+        file_path = self.helper_create_rule_file()
+        rule_spec = f"{file_path}:3:# Different Name"
+        with self.assertRaises(ValueError):
+            hmarsele.extract_rule_from_file(rule_spec)
+
+    def test6(self) -> None:
+        """
+        Test that non-header line raises ValueError.
+        """
+        file_path = self.helper_create_rule_file()
+        # This is "- Level 1 content line 1", not a header.
+        rule_spec = f"{file_path}:4"
+        with self.assertRaises(ValueError):
+            hmarsele.extract_rule_from_file(rule_spec)
+
+    def test7(self) -> None:
+        """
+        Test that invalid line number raises error.
+        """
+        file_path = self.helper_create_rule_file()
+        # Out of range.
+        rule_spec = f"{file_path}:999"
+        with self.assertRaises(AssertionError):
+            hmarsele.extract_rule_from_file(rule_spec)
+
+    def test8(self) -> None:
+        """
+        Test that non-existent file raises error.
+        """
+        rule_spec = "/nonexistent/path/to/file.md"
+        with self.assertRaises(AssertionError):
+            hmarsele.extract_rule_from_file(rule_spec)

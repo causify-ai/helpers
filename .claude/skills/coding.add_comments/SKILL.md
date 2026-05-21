@@ -4,6 +4,7 @@ description: Add comments to make the code more readable
 
 Given the following Python code, improve its readability by adding concise
 comments with these rules:
+
 - Add comments only for cohesive code blocks that are at least 5 lines long
 - Add comments describing important invariants, assumptions, or guarantees
   maintained by the code

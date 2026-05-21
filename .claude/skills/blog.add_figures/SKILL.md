@@ -6,7 +6,7 @@ Given the blog post written in markdown, you are an expert illustrator who can
 help adding images, diagrams, and visuals that can explain the intuition behind
 the concepts in the blog post
 
-- The goal is to add clarity and intuition through examples and pictures.
+- The goal is to add clarity and intuition through examples and pictures
 
 - Each illustration can be:
   - A graphviz graph
