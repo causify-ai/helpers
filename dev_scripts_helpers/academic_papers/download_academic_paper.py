@@ -5,7 +5,8 @@
 # ///
 
 """
-Download academic papers from arXiv, DOI, and other sources with standardized filenames.
+Download academic papers from arXiv, DOI, and other sources with standardized
+filenames.
 
 # Download from arXiv URL
 > download_academic_paper.py --input "https://arxiv.org/abs/1706.03762"
@@ -44,7 +45,6 @@ import argparse
 import logging
 import os
 import re
-import tempfile
 from typing import Any, Dict, List, Optional
 
 import feedparser
@@ -57,14 +57,14 @@ import helpers.hretry as hretry
 
 _LOG = logging.getLogger(__name__)
 
-# API decorator configuration (shared across multiple API functions).
+# API decorator configuration.
 _MAX_RETRIES = 3
 _RETRY_DELAY_SEC = 2
 _API_TIMEOUT = 30
 
 
 # #############################################################################
-# ArXiv metadata extraction
+# ArXiv metadata
 # #############################################################################
 
 
@@ -89,8 +89,20 @@ def _extract_arxiv_metadata(arxiv_id: str) -> Dict[str, Any]:
     return {"year": year, "authors": authors, "title": title}
 
 
+def _detect_arxiv_id(url: str) -> Optional[str]:
+    """
+    Detect arXiv ID from URL.
+
+    :param url: input URL
+    :return: arXiv ID if detected, None otherwise
+    """
+    _ARXIV_ID_PATTERN = r"(?:arxiv\.org/(?:abs|pdf)/)?(\d{4}\.\d{4,5})"
+    match = re.search(_ARXIV_ID_PATTERN, url)
+    return match.group(1) if match else None
+
+
 # #############################################################################
-# DOI metadata extraction
+# DOI metadata
 # #############################################################################
 
 
@@ -198,7 +210,7 @@ def _resolve_doi_metadata(doi: str) -> Dict[str, Any]:
 
 
 # #############################################################################
-# Non-arXiv metadata extraction
+# Non-arXiv metadata
 # #############################################################################
 
 
@@ -304,18 +316,6 @@ def _format_filename(
 # #############################################################################
 
 
-def _detect_arxiv_id(url: str) -> Optional[str]:
-    """
-    Detect arXiv ID from URL.
-
-    :param url: input URL
-    :return: arXiv ID if detected, None otherwise
-    """
-    _ARXIV_ID_PATTERN = r"(?:arxiv\.org/(?:abs|pdf)/)?(\d{4}\.\d{4,5})"
-    match = re.search(_ARXIV_ID_PATTERN, url)
-    return match.group(1) if match else None
-
-
 def _download_paper(
     url: str, output_dir: str, *, no_incremental: bool = False
 ) -> None:
@@ -355,17 +355,10 @@ def _download_paper(
             response.raise_for_status()
             pdf_content = response.content
             # Extract metadata from PDF.
-            # TODO(ai_gp): Use tempfile like "tmp.download_academic_paper.metadata.pdf"
-            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-                tmp_path = tmp.name
-            try:
-                with open(tmp_path, "wb") as f:
-                    f.write(pdf_content)
-                metadata = _extract_pdf_metadata_pymupdf(tmp_path)
-            finally:
-                # Clean up temporary file.
-                if os.path.exists(tmp_path):
-                    os.remove(tmp_path)
+            tmp_path ="tmp.download_academic_paper.metadata.pdf"
+            with open(tmp_path, "wb") as f:
+                f.write(pdf_content)
+            metadata = _extract_pdf_metadata_pymupdf(tmp_path)
     # Format filename.
     authors = metadata.get("authors", [])
     if not isinstance(authors, list):
@@ -403,7 +396,7 @@ def _download_paper(
 
 
 # #############################################################################
-# Argument parsing
+# Main
 # #############################################################################
 
 
@@ -412,7 +405,7 @@ def _parse() -> argparse.ArgumentParser:
     Parse command-line arguments.
     """
     _DEFAULT_OUTPUT_DIR = os.path.expanduser(
-        os.getenv("PAPERS_DIR", "~/papers")
+        os.getenv("PAPERS_DIR", ".")
     )
     parser = argparse.ArgumentParser(
         description="Download academic papers with standardized filenames"
@@ -427,7 +420,7 @@ def _parse() -> argparse.ArgumentParser:
         "-o",
         "--output_dir",
         default=_DEFAULT_OUTPUT_DIR,
-        help=f"Output directory (default: $PAPERS_DIR or ~/papers if unset)",
+        help=f"Output directory",
     )
     parser.add_argument(
         "--no_incremental",
@@ -436,11 +429,6 @@ def _parse() -> argparse.ArgumentParser:
     )
     hparser.add_verbosity_arg(parser)
     return parser
-
-
-# #############################################################################
-# Main
-# #############################################################################
 
 
 def _main(parser: argparse.ArgumentParser) -> None:

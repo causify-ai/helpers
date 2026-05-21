@@ -5,38 +5,37 @@
 # ///
 
 r"""
-Summarize markdown headers using an LLM or compute SHA1 digests.
+Summarize markdown headers using an LLM.
 
 The script reads a markdown file and, for each header at a specified level
 (--md_level), extracts the full section (including all nested content) and
-either sends it to an LLM for summarization or computes a SHA1 digest.
+either sends it to an LLM for summarization.
+
 Results are appended to the output file incrementally.
 
 The output preserves the markdown header structure with summaries or digests.
 
-Uses markdown-it-py to parse the markdown into an AST and process it for
-header extraction and section boundaries.
-
 Examples:
 # Summarize all level-1 chapters with LLM
-> ./summarize_md.py -i book.md -o book.summary.md --md_level 1
+> summarize_md.py -i book.md -o book.summary.md --md_level 1
 
 # Compute SHA1 digests instead of LLM summaries (for testing)
-> ./summarize_md.py -i book.md -o book.digest.md --md_level 1 --test
+> summarize_md.py -i book.md -o book.digest.md --md_level 1 --test
 
 # Summarize level-2 sections in a range
-> ./summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
+> summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
 
 # Dry run: test with the first section only
-> ./summarize_md.py -i book.md -o out.md --md_level 1 --dry_run
+> summarize_md.py -i book.md -o out.md --md_level 1 --dry_run
 
 # Use a different LLM model
-> ./summarize_md.py -i book.md -o out.md --md_level 1 --model "claude-3-opus"
+> summarize_md.py -i book.md -o out.md --md_level 1 --model "claude-3-opus"
 """
 
 import argparse
 import hashlib
 import logging
+import os
 from typing import Dict, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
@@ -315,7 +314,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser, out_required=True)
+    hparser.add_input_output_args(parser, out_required=False)
     parser.add_argument(
         "--md_level",
         type=int,
@@ -339,6 +338,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Compute SHA1 digest of text instead of summarizing with LLM",
     )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Delete target file if it already exists",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -355,6 +359,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
     hdbg.dassert(args.md_level >= 1, "--md_level must be >= 1")
+    # Generate output filename if not provided (when same as input file)
+    if out_file_name == in_file_name:
+        if in_file_name.endswith(".md"):
+            out_file_name = in_file_name[:-3] + ".summary.md"
+        else:
+            out_file_name = in_file_name + ".summary"
+    # Handle existing output file
+    if os.path.exists(out_file_name):
+        if args.overwrite:
+            os.remove(out_file_name)
+            _LOG.info("Deleted existing output file: %s", out_file_name)
+        else:
+            raise ValueError(
+                f"Output file already exists: {out_file_name} (use --overwrite to replace)"
+            )
     # Read input file and split into lines.
     content = hio.from_file(in_file_name)
     lines = content.splitlines()
@@ -374,6 +393,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(
         "Processing %d headers at level %d", len(target_headers), args.md_level
     )
+    # Print headers to be summarized
+    print("\nHeaders to summarize:")
+    for i, header in enumerate(target_headers, 1):
+        level, title, _ = header
+        indent = "  " * (level - 1)
+        print(f"{indent}{i}. {title}")
     system_prompt = _get_system_prompt()
     # Initialize output file.
     with open(out_file_name, "w") as f:

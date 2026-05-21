@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["pymupdf", "pyyaml"]
+# dependencies = ["pymupdf", "pyyaml", "tqdm"]
 # ///
 
 r"""
@@ -35,9 +35,10 @@ import argparse
 import logging
 import os
 import shutil
-from typing import Dict, List, Optional, Tuple
+from typing import cast, Dict, List, Optional, Tuple
 
 import fitz
+from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -69,7 +70,7 @@ def _extract_images_from_page(
     """
     image_items = []
     image_list = page.get_images(full=True)
-    _LOG.info(
+    _LOG.debug(
         "Page %d: Found %d images via get_images()", page_num, len(image_list)
     )
     # Track which xrefs we've already processed to avoid duplicates.
@@ -106,7 +107,7 @@ def _extract_images_from_page(
             if save_images:
                 with open(image_path, "wb") as f:
                     f.write(image_bytes)
-                _LOG.info(
+                _LOG.debug(
                     "Page %d: Saved image %s (xref=%d, size=%d bytes)",
                     page_num,
                     image_filename,
@@ -125,7 +126,7 @@ def _extract_images_from_page(
             )
     # Try to extract vector graphics as images.
     drawings = page.get_drawings()
-    _LOG.info("Page %d: Found %d vector drawings", page_num, len(drawings))
+    _LOG.debug("Page %d: Found %d vector drawings", page_num, len(drawings))
     if drawings:
         # Render the entire page as an image to capture vector graphics.
         # We'll do this only if there are drawings and few raster images.
@@ -135,7 +136,7 @@ def _extract_images_from_page(
             image_path = os.path.join(images_dir, image_filename)
             # Render and save page only when not skipping figures.
             if save_images:
-                _LOG.info(
+                _LOG.debug(
                     "Page %d: Rendering page to capture vector graphics",
                     page_num,
                 )
@@ -143,7 +144,7 @@ def _extract_images_from_page(
                 mat = fitz.Matrix(2, 2)
                 pix = page.get_pixmap(matrix=mat)  # type: ignore
                 pix.save(image_path)
-                _LOG.info(
+                _LOG.debug(
                     "Page %d: Saved rendered page as %s",
                     page_num,
                     image_filename,
@@ -312,13 +313,18 @@ def _pdf_to_markdown(
     # Create images directory only when extracting figures.
     if not skip_figures:
         hio.create_dir(images_dir, incremental=True)
-    _LOG.info("Opening PDF: %s", pdf_path)
+    _LOG.debug("Opening PDF: %s", pdf_path)
     doc = fitz.open(pdf_path)
     md_lines = []
     total_images = 0
-    for page_num, page in enumerate(doc, start=1):  # type: ignore
-        _LOG.info("=" * 60)
-        _LOG.info("Processing page %d of %d", page_num, len(doc))
+    for page_num, page in tqdm(
+        enumerate(doc, start=1),  # type: ignore
+        total=len(doc),
+        desc="Extracting pages",
+    ):
+        page = cast(fitz.Page, page)
+        _LOG.debug("=" * 60)
+        _LOG.debug("Processing page %d of %d", page_num, len(doc))
         # Analyze font sizes to determine heading thresholds.
         font_thresholds = _analyze_font_sizes(page)
         # Extract images with positions (saving files only when not skipping figures).
@@ -336,7 +342,7 @@ def _pdf_to_markdown(
             page_num=page_num,
             font_thresholds=font_thresholds,
         )
-        _LOG.info("Page %d: Found %d text items", page_num, len(text_items))
+        _LOG.debug("Page %d: Found %d text items", page_num, len(text_items))
         # Create items list with both text and images, each as (y_position, type, content).
         items = []
         for y_pos, md_type, content in text_items:
@@ -375,12 +381,12 @@ def _pdf_to_markdown(
     )
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(markdown_content)
-    _LOG.info("=" * 60)
+    _LOG.debug("=" * 60)
     if not skip_figures:
-        _LOG.info("Extracted %d total images", total_images)
-        _LOG.info("Images saved to: %s", os.path.abspath(images_dir))
+        _LOG.debug("Extracted %d total images", total_images)
+        _LOG.debug("Images saved to: %s", os.path.abspath(images_dir))
     else:
-        _LOG.info("Image references included as HTML comments (figures skipped)")
+        _LOG.debug("Image references included as HTML comments (figures skipped)")
     _LOG.info("Markdown saved to: %s", os.path.abspath(md_path))
 
 
