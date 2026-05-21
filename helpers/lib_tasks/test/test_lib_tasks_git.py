@@ -111,13 +111,13 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
             )
         actual = str(cm.exception)
         expected = """
-* Failed assertion *
-'0'
-==
-'1'
-Specify only one among --modified, --branch, --last-commit
-"""
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        * Failed assertion *
+        '0'
+        ==
+        '1'
+        Specify only one among --modified, --branch, --last-commit
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
 
 # #############################################################################

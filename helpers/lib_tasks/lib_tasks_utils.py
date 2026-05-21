@@ -297,6 +297,7 @@ def _filter_existing_paths(paths_from_user: List[str]) -> List[str]:
 
 # TODO(gp): We should factor out the meaning of the params in a string and add it
 #  to all the tasks' help.
+# TODO(ai_gp2): Move this to hgit.py
 def _get_files_to_process(
     modified: bool,
     branch: bool,

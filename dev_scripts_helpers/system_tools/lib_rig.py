@@ -59,7 +59,7 @@ def _build_ripgrep_command(
     return cmd
 
 
-# TODO(ai_gp2): Factor this out in hparser.py or similar.
+# TODO(ai_gp2): Factor this out in hgit.py or similar.
 def _get_files_to_search(
     modified: bool,
     branch: bool,
@@ -259,6 +259,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
                     ext,
                 )
     # Package computed components and behavioral flags into a result dictionary.
+    # TODO(ai_gp): Keep only the ones that are used downstream.
     result: Dict[str, Any] = {
         "pattern": ripgrep_pattern,
         "directory": ripgrep_dir,
