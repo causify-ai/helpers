@@ -45,6 +45,7 @@ import argparse
 import logging
 import os
 import re
+import unicodedata
 from typing import Any, Dict, List, Optional
 
 import feedparser
@@ -263,6 +264,20 @@ def _extract_pdf_metadata_pymupdf(pdf_path: str) -> Dict[str, Any]:
 # #############################################################################
 
 
+# TODO(ai_gp): Move to hprint and move the import inside.
+def _to_ascii(text: str) -> str:
+    """
+    Convert Unicode text to ASCII by decomposing and stripping accents.
+
+    :param text: input text with potential non-ASCII characters
+    :return: ASCII-safe text (e.g., "Schölkopf" -> "Scholkopf")
+    """
+    if not text:
+        return text
+    nfd = unicodedata.normalize("NFD", text)
+    return "".join(c for c in nfd if unicodedata.category(c) != "Mn")
+
+
 def _format_filename(
     year: Optional[str], authors: List[str], title: Optional[str]
 ) -> str:
@@ -288,6 +303,7 @@ def _format_filename(
         # Extract last name (assume "First Last" format).
         last_name_parts = first_author.strip().split()
         last_name = last_name_parts[-1] if last_name_parts else "Unknown"
+        last_name = _to_ascii(last_name)
         if len(authors) > 1:
             author_part = f"{last_name}.et.al"
         else:
@@ -298,6 +314,7 @@ def _format_filename(
     # Add title.
     if title:
         title = title.strip()
+        title = _to_ascii(title)
         title_part = title
     else:
         title_part = "UnknownTitle"

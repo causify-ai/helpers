@@ -439,6 +439,15 @@
 
 - Always use multiline text aligned to the variable of the string and then call
   `hpring.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
+  - **Bad**
+    ```python
+    # Prepare inputs.
+    text = """
+line1
+line2
+line3
+    """
+    ```
   - **Good**
     ```python
     # Prepare inputs.
@@ -448,15 +457,6 @@
     line3
     """
     text = hprint.dedent(text)
-    ```
-  - **Bad**
-    ```python
-    # Prepare inputs.
-    text = """
-line1
-line2
-line3
-    """
     ```
 
 # Checking Test Outputs
@@ -602,16 +602,18 @@ line3
       self.assertIn("expected substring", str(cm.exception))
   ```
 
-## Use Golden File Testing for Large Outputs
+# Use Golden File Testing Only for Large Outputs
 
 - Always use `self.assert_equal()` to do a comparison of actual with the expected
   value hard wired in the code
 - The only exception is when output is large (e.g., longer than 20 lines) or
-  changes frequently use `self.check_string()` instead of `self.assert_equal`
+  changes frequently use `self.check_string()` instead of `self.assert_equal()`
   - E.g.,
     ```python
     def test_large_output(self) -> None:
-        """Test description."""
+        """
+        Test description.
+        """
         # Prepare inputs.
         input_data = <value>
         # Run test.
@@ -627,13 +629,15 @@ line3
 
 # Mocking
 
+// TODO(gp): Review
+
 ## Mock Only External Dependencies
 - Mock only 3rd-party providers, cloud infra (AWS/S3), databases, and external
-  APIs — never internal helpers
+  APIs, never internal helpers
 - Mock the external library, not our internal wrapper on top of it
 
 ## Mock at the Call Site
-- Patch where the symbol is **looked up**, not where it is defined:
+- Patch where the symbol is looked up, not where it is defined:
   `@umock.patch.object(calling_module.dep, "method")`
 
 ## Class-Level Patches
@@ -646,6 +650,7 @@ line3
 - Each test gets a fresh bucket named `self.bucket_name`
 
 ## Capture System Calls
+// TODO(gp): Update this
 - `hunteuti.capture_system_calls()` intercepts `subprocess.run` and
   `helpers.hsystem._system()` without running any shell command; pass
   `side_effect=RuntimeError` to simulate failures

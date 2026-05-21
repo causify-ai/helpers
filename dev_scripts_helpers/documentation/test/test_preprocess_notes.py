@@ -170,22 +170,16 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         Test multiple backtick-wrapped words with underscores.
         """
-        # Prepare inputs.
-        txt_in = (
-            "Use `_private_func` or `public_var` for different access levels."
-        )
+        txt_in = "Use `_private_func` or `public_var` for different access levels."
         expected = r"Use \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{public\_var}} for different access levels."
-        # Run test.
         self.helper(txt_in, expected)
 
     def test15(self) -> None:
         """
         Test backticks with leading and trailing underscores.
         """
-        # Prepare inputs.
         txt_in = "Call `__init__` or `__dunder__` methods in Python."
         expected = r"Call \textcolor{blue}{\texttt{\_\_init\_\_}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} methods in Python."
-        # Run test.
         self.helper(txt_in, expected)
 
 
@@ -305,6 +299,20 @@ class Test_process_question1(hunitest.TestCase):
     the library function directly.
     """
 
+    def helper(self, txt_in: str, do_continue_exp: bool, expected: str) -> None:
+        """
+        Helper method to test _process_question_to_markdown function.
+
+        :param txt_in: input text
+        :param do_continue_exp: expected do_continue flag
+        :param expected: expected output text
+        """
+        # Run test.
+        do_continue, actual = dshdprno._process_question_to_markdown(txt_in)
+        # Check outputs.
+        self.assertEqual(do_continue, do_continue_exp)
+        self.assert_equal(actual, expected)
+
     def test_process_question1(self) -> None:
         txt_in = "* Hope is not a strategy"
         do_continue_exp = True
@@ -342,11 +350,6 @@ class Test_process_question1(hunitest.TestCase):
         do_continue_exp = True
         exp = "-" + " " * len(space) + "**Hope is not a strategy**"
         self.helper(txt_in, do_continue_exp, exp)
-
-    def helper(self, txt_in: str, do_continue_exp: bool, expected: str) -> None:
-        do_continue, actual = dshdprno._process_question_to_markdown(txt_in)
-        self.assertEqual(do_continue, do_continue_exp)
-        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -696,7 +699,7 @@ class Test_extract_section(hunitest.TestCase):
         :param section_name: section name to extract
         :param expected: expected extracted lines or None
         """
-        # Execute function.
+        # Run test.
         actual = dshdprno._extract_section(list(lines), section_name)
         # Check outputs.
         self.assertEqual(actual, expected)
@@ -865,14 +868,13 @@ class Test_expand_includes(hunitest.TestCase):
         :param expected: expected expanded lines
         :param files_to_create: dict of {filename: content} to create in temp dir
         """
-        # Create temporary files in scratch space.
+        # Prepare inputs.
         temp_dir = self.get_scratch_space()
         if files_to_create:
             self._create_temp_files(files_to_create, temp_dir)
-        # Change to temp directory for include path resolution.
 
         def run_test() -> None:
-            # Execute function.
+            # Run test.
             actual = dshdprno._expand_includes(list(lines))
             # Check outputs.
             self.assertEqual(actual, list(expected))
@@ -1092,9 +1094,11 @@ class Test_process_question_to_slides(hunitest.TestCase):
         :param expected_output: expected output text
         :param level: header level
         """
+        # Run test.
         actual_continue, actual_output = dshdprno._process_question_to_slides(
             txt_in, level=level
         )
+        # Check outputs.
         self.assertEqual(actual_continue, expected_continue)
         self.assertEqual(actual_output, expected_output)
 
@@ -1170,7 +1174,9 @@ class Test_process_abbreviations(hunitest.TestCase):
         :param txt_in: input text
         :param expected: expected output text
         """
+        # Run test.
         actual = dshdprno._process_abbreviations(txt_in)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -1223,7 +1229,9 @@ class Test_process_enumerated_list(hunitest.TestCase):
         :param txt_in: input text
         :param expected: expected output text
         """
+        # Run test.
         actual = dshdprno._process_enumerated_list(txt_in)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -1287,7 +1295,9 @@ class Test_transform_lines_slides(hunitest.TestCase):
         :param expected: expected output lines
         :param actions: optional actions to perform
         """
+        # Run test.
         actual = dshdprno._transform_lines(lines, type_, is_qa, actions=actions)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -1300,7 +1310,6 @@ class Test_transform_lines_slides(hunitest.TestCase):
             "* What is this?",
             "Some content",
         ]
-        # Expected: question converted to #### header
         expected = [
             "---",
             "# Main Slide",
@@ -1365,7 +1374,9 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         :param is_qa: whether input is QA format
         :param expected_contains: string that output should contain
         """
+        # Run test.
         actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+        # Check outputs.
         self.assertIn(expected_contains, "\n".join(actual))
 
     def test1(self) -> None:
@@ -1426,7 +1437,9 @@ class Test_transform_lines_qa(hunitest.TestCase):
         :param is_qa: whether input is QA format
         :param expected: expected output lines
         """
+        # Run test.
         actual = dshdprno._transform_lines(lines, type_, is_qa)
+        # Check outputs.
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -1567,10 +1580,16 @@ class Test_add_navigation_slides(hunitest.TestCase):
             """
         max_level = 2
         # Prepare outputs.
-        expected = """
-            # Part 1
+        expected = r"""
+            ####
+            - _**\textcolor{red}{Part 1}**_
+              - Section 1.1
+
             Content here
-            ## Section 1.1
+            ####
+            - Part 1
+              - _**\textcolor{red}{Section 1.1}**_
+
             More content
             """
         # Run test.
@@ -1587,8 +1606,10 @@ class Test_add_navigation_slides(hunitest.TestCase):
             """
         max_level = 1
         # Prepare outputs.
-        expected = """
-            # Main Title
+        expected = r"""
+            ####
+            - _**\textcolor{red}{Main Title}**_
+
             Content
             """
         # Run test.
@@ -1649,7 +1670,7 @@ class Test_validate_slide_names(hunitest.TestCase):
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
             dshdprno._validate_slide_names(lines)
-        # Check that the expected line number is in the error message.
+        # Check outputs.
         expected_substr = f"line {expected_line_num}"
         self.assertIn(expected_substr, str(cm.exception))
 
@@ -1809,7 +1830,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
         # Run test.
         actual = dshdprno._add_duplicate_slide_counters(lines)
         # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
