@@ -584,8 +584,6 @@ def _transform_lines(
     return out_tmp
 
 
-
-
 def _remove_headers(lines: List[str], max_level: int) -> List[str]:
     """
     Remove all markdown headers from the lines that are smaller than level 3.
@@ -613,7 +611,6 @@ def _preprocess_lines(
     is_qa: bool,
     *,
     actions: Optional[List[str]] = None,
-    expand_all_navigation: bool = False,
 ) -> List[str]:
     """
     Preprocess the lines of the notes.
@@ -623,7 +620,6 @@ def _preprocess_lines(
     :param toc_type: type of table of contents to add
     :param is_qa: True if the input is a QA file
     :param actions: optional list of actions to perform
-    :param expand_all_navigation: if True, expand all headers up to level 2 in navigation
     :return: list of preprocessed lines
     """
     hdbg.dassert_isinstance(lines, list)
@@ -633,6 +629,14 @@ def _preprocess_lines(
     if toc_type == "navigation":
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
+        expand_all_navigation = True
+        out = hmartoc.add_navigation_slides(
+            out, max_level, expand_all_navigation, sanity_check=True
+        )
+    elif toc_type == "partial_navigation":
+        hdbg.dassert_eq(type_, "slides")
+        max_level = 2
+        expand_all_navigation = False
         out = hmartoc.add_navigation_slides(
             out, max_level, expand_all_navigation, sanity_check=True
         )
@@ -684,22 +688,14 @@ def _parse() -> argparse.ArgumentParser:
         "--toc_type",
         action="store",
         default="none",
-        choices=["none", "pandoc_native", "navigation", "remove_headers"],
+        choices=["none", "pandoc_native", "navigation", "partial_navigation", "remove_headers"],
         help=(
             "Type of table of contents to generate: "
             "'none' = no TOC; "
             "'pandoc_native' = use pandoc's native --toc option (depth 2); "
             "'navigation' = add custom navigation slides for headers (levels 1-3); "
+            "'partial_navigation' = add custom navigation slides for headers (levels 1-3); "
             "'remove_headers' = remove headers smaller than level 3"
-        ),
-    )
-    parser.add_argument(
-        "--expand_all_navigation",
-        action="store_true",
-        default=False,
-        help=(
-            "For navigation TOC type: expand all headers up to level 2 for each slide "
-            "(instead of only expanding the path to the current header)"
         ),
     )
     # TODO(gp): Unclear what it does.
@@ -735,7 +731,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.toc_type,
         args.qa,
         actions=actions,
-        expand_all_navigation=args.expand_all_navigation,
     )
     out = "\n".join(out)
     # Save results.

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hprint as hprint
@@ -261,13 +259,13 @@ class Test_add_navigation_slides(hunitest.TestCase):
         :param input_text: Input text with dedent applied
         :param max_level: Maximum header level
         :param expand_all: Whether to expand all headers in navigation
-        :param expected: Expected output (if None, uses golden file)
+        :param expected: Expected output
         """
         # Prepare inputs.
         input_text = hprint.dedent(input_text)
         lines = input_text.strip().split("\n")
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=expand_all)
+        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all)
         actual_str = "\n".join(actual)
         # Check outputs.
         expected_str = hprint.dedent(expected)
@@ -285,6 +283,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             More content
             """
         max_level = 2
+        expand_all=False
         # Prepare outputs.
         expected = r"""
             ####
@@ -299,7 +298,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             More content
             """
         # Run test.
-        self.helper(input_text, max_level, expected=expected)
+        self.helper(input_text, max_level, expand_all, expected)
 
     def test2(self) -> None:
         """
@@ -311,6 +310,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content
             """
         max_level = 1
+        expand_all=False
         # Prepare outputs.
         expected = r"""
             ####
@@ -319,7 +319,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content
             """
         # Run test.
-        self.helper(input_text, max_level, expected=expected)
+        self.helper(input_text, max_level, expand_all, expected)
 
     def test3(self) -> None:
         """
@@ -335,6 +335,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Another content
             """
         max_level = 2
+        expand_all=False
         expected = r"""
             ####
             - _**\textcolor{red}{Section 1}**_
@@ -355,7 +356,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Another content
             """
         # Run test.
-        self.helper(input_text, max_level, expected=expected)
+        self.helper(input_text, max_level, expand_all, expected)
 
     def test4(self) -> None:
         """
@@ -371,6 +372,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content 2
             """
         max_level = 2
+        expand_all=True
         expected = r"""
             ####
             - _**\textcolor{red}{Section 1}**_
@@ -392,7 +394,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content 2
             """
         # Run test.
-        self.helper(input_text, max_level, expand_all=True, expected=expected)
+        self.helper(input_text, max_level, expand_all, expected)
 
     def test5(self) -> None:
         """
@@ -405,6 +407,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content under section 1
             """
         max_level = 1
+        expand_all=False
         expected = r"""
             Some initial content
             ####
@@ -413,7 +416,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content under section 1
             """
         # Run test.
-        self.helper(input_text, max_level, expected=expected)
+        self.helper(input_text, max_level, expand_all, expected)
 
     def test6(self) -> None:
         """
@@ -429,6 +432,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Even more content
             """
         max_level = 1
+        expand_all=False
         expected = r"""
             ####
             - _**\textcolor{red}{Section 1}**_
@@ -440,4 +444,4 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Even more content
             """
         # Run test.
-        self.helper(input_text, max_level, expected=expected)
+        self.helper(input_text, max_level, expand_all, expected)

@@ -258,6 +258,9 @@ def main(
         "--no-heading",
         # Plain output without ANSI colors.
         "--color=never",
+        # Exclude .git directory from search.
+        "-g",
+        "!.git",
     ]
     # Append user-provided ripgrep options if any.
     if parsed["rg_opts"]:
