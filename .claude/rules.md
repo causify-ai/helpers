@@ -44,3 +44,4 @@ conventions and templates
   `.claude/skills/blog.rules.md`
 
 ## Agent Skills
+- For skills you MUST follow instructions in `.claude/skills/skill.rules.md`

@@ -55,7 +55,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . -n --no-heading --color=never"
+        expected_cmd = "rg TODO --hidden . -n --no-heading --color=never"
         # Run test.
         self.helper(args, expected_cmd=expected_cmd, expected_exit_code=0)
 
@@ -66,7 +66,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src"]
         # Prepare outputs.
-        expected_cmd = "rg import src -n --no-heading --color=never"
+        expected_cmd = "rg import --hidden src -n --no-heading --color=never"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -82,7 +82,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["class", ".", "py"]
         # Prepare outputs.
-        expected_cmd = "rg -g *.py class . -n --no-heading --color=never"
+        expected_cmd = "rg -g *.py class --hidden . -n --no-heading --color=never"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -132,7 +132,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["def", ".", "py,md"]
         # Prepare outputs.
-        expected_cmd = "rg -g *.py -g *.md def . -n --no-heading --color=never"
+        expected_cmd = "rg -g *.py -g *.md def --hidden . -n --no-heading --color=never"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -148,7 +148,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src", "py, ipynb, md"]
         # Prepare outputs.
-        expected_cmd = "rg -g *.py -g *.ipynb -g *.md import src -n --no-heading --color=never"
+        expected_cmd = "rg -g *.py -g *.ipynb -g *.md import --hidden src -n --no-heading --color=never"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -209,7 +209,55 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", ".", "--rg_opts", "-S -i"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . -n --no-heading --color=never -S -i"
+        expected_cmd = "rg TODO --hidden . -n --no-heading --color=never -S -i"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test15(self) -> None:
+        """
+        Test --def flag to search for Python class/def definitions.
+        """
+        # Prepare inputs.
+        args = ["main", "--def"]
+        # Prepare outputs.
+        expected_cmd = "rg -g *.py (class|def) main --hidden . -n --no-heading --color=never"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test16(self) -> None:
+        """
+        Test --rule flag to search for Markdown headers in .claude/skills.
+        """
+        # Prepare inputs.
+        args = ["--rule"]
+        # Prepare outputs.
+        expected_cmd = "rg -g *.md ^# --hidden .claude/skills -n --no-heading --color=never"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test17(self) -> None:
+        """
+        Test --todo flag to search for TODO(ai_gp) pattern.
+        """
+        # Prepare inputs.
+        args = ["--todo"]
+        # Prepare outputs.
+        expected_cmd = r"rg TODO\(ai_gp\) --hidden . -n --no-heading --color=never"
         expected_exit_code = 0
         # Run test.
         self.helper(

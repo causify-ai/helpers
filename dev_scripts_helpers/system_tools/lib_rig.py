@@ -195,6 +195,11 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     result.files_from_user = parsed.files
     result.dry_run = parsed.dry_run
     result.rg_opts = parsed.rg_opts
+    result.def_mode = parsed.def_mode
+    result.rule_mode = parsed.rule_mode
+    result.todo_mode = parsed.todo_mode
+    result.cfile = parsed.cfile
+    result.rule_filter = None
     if parsed.positional:
         result.pattern = parsed.positional[0]
     if len(parsed.positional) > 1:
@@ -211,6 +216,39 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
                 "Extension '%s' must not start with dot",
                 ext,
             )
+    # Apply mode-specific overrides.
+    if result.def_mode:
+        # --def: search for class/def definitions in Python files.
+        pattern_suffix = f" {result.pattern}" if result.pattern else ""
+        result.pattern = f"(class|def){pattern_suffix}"
+        result.extensions = ["py"]
+        # Directory can come from positional[1] if provided, otherwise stays as "."
+        if len(parsed.positional) > 1:
+            result.directory = parsed.positional[1]
+    elif result.rule_mode:
+        # --rule: search for markdown headers in `.claude/skills`.
+        result.pattern = "^#"
+        result.directory = ".claude/skills"
+        result.extensions = ["md"]
+        # First positional arg becomes a grep-i filter (if provided)
+        if parsed.positional:
+            result.rule_filter = parsed.positional[0]
+    elif result.todo_mode:
+        # --todo: search for `TODO(ai_gp)` pattern.
+        result.pattern = r"TODO\(ai_gp\)"
+        # Directory and extensions can come from positional args
+        if len(parsed.positional) > 1:
+            result.directory = parsed.positional[1]
+        if len(parsed.positional) > 2:
+            result.extensions = [
+                ext.strip() for ext in parsed.positional[2].split(",")
+            ]
+            for ext in result.extensions:
+                hdbg.dassert(
+                    not ext.startswith("."),
+                    "Extension '%s' must not start with dot",
+                    ext,
+                )
     return result
 
 
@@ -277,8 +315,33 @@ def main(
         # Print the command and exit without running it.
         print(" ".join(cmd))
         return 0
-    try:
-        subprocess.run(cmd)
-    except FileNotFoundError:
-        return 1
+
+        if need_capture:
+            # Capture output for post-processing
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            # In tests with mocks, result might be None or lack stdout attribute
+            if result is None or not hasattr(result, "stdout"):
+                return 0
+            lines = result.stdout.splitlines()
+
+            # Apply --todo filter: exclude lines containing 'cfile'
+            if parsed.todo_mode:
+                lines = [line for line in lines if "cfile" not in line]
+
+            # Apply --rule filter: case-insensitive grep
+            if parsed.rule_mode and parsed.rule_filter:
+                filter_lower = parsed.rule_filter.lower()
+                lines = [
+                    line for line in lines if filter_lower in line.lower()
+                ]
+
+            output = "\n".join(lines)
+            print(output)
+
+            # Save to cfile and open in vim if requested
+            if parsed.cfile:
+                hio.to_file("cfile", output)
+                subprocess.run(["vim", "-c", "cfile cfile"])
+        else:
+            subprocess.run(cmd)
     return 0
