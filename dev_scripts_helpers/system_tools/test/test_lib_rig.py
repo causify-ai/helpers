@@ -266,3 +266,37 @@ class TestRigScript(hunitest.TestCase):
             expected_cmd=expected_cmd,
             expected_exit_code=expected_exit_code,
         )
+
+    def test18(self) -> None:
+        """
+        Test -i flag expands to -S -i for ripgrep (smart-case + ignore-case).
+        """
+        # Prepare inputs.
+        args = ["TODO", "-i"]
+        # Prepare outputs.
+        expected_cmd = "rg TODO --hidden . -n --no-heading --color=never -S -i"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test19(self) -> None:
+        """
+        Test -i flag combined with directory and extension arguments.
+        """
+        # Prepare inputs.
+        args = ["import", "src", "js", "-i"]
+        # Prepare outputs.
+        expected_cmd = (
+            "rg -g *.js import --hidden src -n --no-heading --color=never -S -i"
+        )
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
