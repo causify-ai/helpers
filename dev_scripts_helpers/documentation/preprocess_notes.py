@@ -358,15 +358,14 @@ def _validate_unique_slide_names(lines: List[str]) -> None:
     seen_names: Dict[str, int] = {}
     for header_info in header_list:
         name = header_info.description
-        # TODO(ai_gp): dassert_not_in(...)
-        if name in seen_names:
-            hdbg.dassert(
-                False,
-                "Duplicate slide name found: '%s' at lines %d and %d",
-                name,
-                seen_names[name],
-                header_info.line_number,
-            )
+        hdbg.dassert_not_in(
+            name,
+            seen_names,
+            "Duplicate slide name found: '%s' at lines %d and %d",
+            name,
+            seen_names.get(name),
+            header_info.line_number,
+        )
         seen_names[name] = header_info.line_number
 
 
@@ -589,10 +588,9 @@ def _transform_lines(
 def _add_navigation_slides(
     lines: List[str],
     max_level: int,
+    expand_all: bool,
     *,
     sanity_check: bool = False,
-    # TOOD(ai_gp): Move before * argument.
-    expand_all: bool = False,
 ) -> List[str]:
     """
     Add the navigation slides to the notes.
@@ -600,9 +598,9 @@ def _add_navigation_slides(
     :param lines: list of lines of the notes
     :param max_level: maximum level of headers to consider (e.g., 3 creates a
         navigation slide for headers of level 1, 2, and 3)
-    :param sanity_check: if True, perform sanity checks
     :param expand_all: if True, expand all headers up to level 2; if False, expand
         only the path to the current header
+    :param sanity_check: if True, perform sanity checks
     :return: list of lines with the navigation slides added
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
@@ -704,7 +702,7 @@ def _preprocess_lines(
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         out = _add_navigation_slides(
-            out, max_level, sanity_check=True, expand_all=expand_all_navigation
+            out, max_level, expand_all_navigation, sanity_check=True
         )
     elif toc_type == "remove_headers":
         # Remove headers smaller than level 4 so that we leave only the `*`.
