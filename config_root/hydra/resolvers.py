@@ -4,6 +4,7 @@ import logging
 from typing import Any, Dict
 
 import omegaconf as omgcfg
+import pandas as pd
 
 _LOG = logging.getLogger(__name__)
 
@@ -48,4 +49,14 @@ def register_custom_resolvers() -> None:
         lambda name: getattr(builtins, name), 
         replace=True
     )
+    omgcfg.OmegaConf.register_new_resolver(                                                                                                                                                                                                                                      
+        "to_timestamp",                                                                                                                                                                                                                                                          
+        lambda s, tz=None: pd.Timestamp(s, tz=tz) if tz else pd.Timestamp(s),                                                                                                                                                                                                    
+        replace=True                                                                                                                                                                                                                                                             
+    )  
+    omgcfg.OmegaConf.register_new_resolver(                                                                                                                                                                                                                                     
+        "to_timedelta",                                                                                                                                                                                                                                                         
+        lambda s: pd.Timedelta(s),                                                                                                                                                                                                                                              
+        replace=True                                                                                                                                                                                                                                                            
+    )  
     _RESOLVERS_REGISTERED = True
