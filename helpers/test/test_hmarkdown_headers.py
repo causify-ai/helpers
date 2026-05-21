@@ -904,25 +904,53 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out a helper.
 class Test_full_tree_to_str1(hunitest.TestCase):
     """
     Test the full_tree_to_str function.
     """
+
+    def _test_full_tree_helper(
+        self,
+        txt: str,
+        level: int,
+        description: str,
+        max_expand_level: int,
+        expected: str,
+        *,
+        open_modifier: str = "**",
+        close_modifier: str = "**",
+    ) -> None:
+        """
+        Helper method to test full_tree_to_str function.
+
+        :param txt: markdown text to process
+        :param level: header level for selected node
+        :param description: header description for selected node
+        :param max_expand_level: maximum expansion level
+        :param expected: expected output string
+        :param open_modifier: opening modifier for selected node
+        :param close_modifier: closing modifier for selected node
+        """
+        lines = txt.split("\n")
+        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
+        tree = hmarkdo.build_header_tree(header_list)
+        actual = hmarkdo.full_tree_to_str(
+            tree,
+            level,
+            description,
+            max_expand_level=max_expand_level,
+            open_modifier=open_modifier,
+            close_modifier=close_modifier,
+        )
+        self.assert_equal(actual, expected, dedent=True)
 
     def test1(self) -> None:
         """
         Test with basic tree and default max_expand_level.
         """
         txt = _get_markdown_example4()
-        lines = txt.split("\n")
-        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        tree = hmarkdo.build_header_tree(header_list)
         level = 2
         description = "Section 1.1"
-        actual = hmarkdo.full_tree_to_str(
-            tree, level, description, max_expand_level=2
-        )
         expected = r"""
         - Chapter 1
           - **Section 1.1**
@@ -931,40 +959,28 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - Section 2.1
           - Section 2.2
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self._test_full_tree_helper(txt, level, description, 2, expected)
 
     def test2(self) -> None:
         """
         Test with max_expand_level=1 (only top level expanded).
         """
         txt = _get_markdown_example4()
-        lines = txt.split("\n")
-        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        tree = hmarkdo.build_header_tree(header_list)
         level = 2
         description = "Section 1.1"
-        actual = hmarkdo.full_tree_to_str(
-            tree, level, description, max_expand_level=1
-        )
         expected = r"""
         - Chapter 1
         - Chapter 2
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self._test_full_tree_helper(txt, level, description, 1, expected)
 
     def test3(self) -> None:
         """
         Test with max_expand_level=3 (expand all three levels).
         """
         txt = _get_markdown_example4()
-        lines = txt.split("\n")
-        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        tree = hmarkdo.build_header_tree(header_list)
         level = 3
         description = "Subsection 1.1.1"
-        actual = hmarkdo.full_tree_to_str(
-            tree, level, description, max_expand_level=3
-        )
         expected = r"""
         - Chapter 1
           - Section 1.1
@@ -976,26 +992,15 @@ class Test_full_tree_to_str1(hunitest.TestCase):
             - Subsection 2.1.1
           - Section 2.2
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self._test_full_tree_helper(txt, level, description, 3, expected)
 
     def test4(self) -> None:
         """
         Test with custom open and close modifiers.
         """
         txt = _get_markdown_example4()
-        lines = txt.split("\n")
-        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        tree = hmarkdo.build_header_tree(header_list)
         level = 1
         description = "Chapter 1"
-        actual = hmarkdo.full_tree_to_str(
-            tree,
-            level,
-            description,
-            max_expand_level=2,
-            open_modifier="<<",
-            close_modifier=">>",
-        )
         expected = r"""
         - <<Chapter 1>>
           - Section 1.1
@@ -1004,21 +1009,23 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - Section 2.1
           - Section 2.2
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self._test_full_tree_helper(
+            txt,
+            level,
+            description,
+            2,
+            expected,
+            open_modifier="<<",
+            close_modifier=">>",
+        )
 
     def test5(self) -> None:
         """
         Test with selected node at level 3.
         """
         txt = _get_markdown_example4()
-        lines = txt.split("\n")
-        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        tree = hmarkdo.build_header_tree(header_list)
         level = 3
         description = "Subsection 1.1.2"
-        actual = hmarkdo.full_tree_to_str(
-            tree, level, description, max_expand_level=3
-        )
         expected = r"""
         - Chapter 1
           - Section 1.1
@@ -1030,21 +1037,15 @@ class Test_full_tree_to_str1(hunitest.TestCase):
             - Subsection 2.1.1
           - Section 2.2
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self._test_full_tree_helper(txt, level, description, 3, expected)
 
     def test6(self) -> None:
         """
         Test with selected node at chapter level.
         """
         txt = _get_markdown_example4()
-        lines = txt.split("\n")
-        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        tree = hmarkdo.build_header_tree(header_list)
         level = 1
         description = "Chapter 2"
-        actual = hmarkdo.full_tree_to_str(
-            tree, level, description, max_expand_level=2
-        )
         expected = r"""
         - Chapter 1
           - Section 1.1
@@ -1053,21 +1054,15 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - Section 2.1
           - Section 2.2
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self._test_full_tree_helper(txt, level, description, 2, expected)
 
     def test7(self) -> None:
         """
         Test with simpler header structure (example5).
         """
         txt = _get_markdown_example5()
-        lines = txt.split("\n")
-        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        tree = hmarkdo.build_header_tree(header_list)
         level = 2
         description = "Random forests"
-        actual = hmarkdo.full_tree_to_str(
-            tree, level, description, max_expand_level=2
-        )
         expected = r"""
         - Models
           - Naive Bayes
@@ -1075,7 +1070,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - **Random forests**
           - Linear models
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self._test_full_tree_helper(txt, level, description, 2, expected)
 
     def test8(self) -> None:
         """
@@ -1092,14 +1087,8 @@ class Test_full_tree_to_str1(hunitest.TestCase):
         # Module Gamma
         """
         )
-        lines = txt.split("\n")
-        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
-        tree = hmarkdo.build_header_tree(header_list)
         level = 2
         description = "Lesson Beta-1"
-        actual = hmarkdo.full_tree_to_str(
-            tree, level, description, max_expand_level=2
-        )
         expected = r"""
         - Module Alpha
           - Lesson Alpha-1
@@ -1108,7 +1097,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - **Lesson Beta-1**
         - Module Gamma
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self._test_full_tree_helper(txt, level, description, 2, expected)
 
 
 # #############################################################################

@@ -313,6 +313,143 @@ def _summarize_text(
     return summary, cost
 
 
+def _prepare_output_file(
+    in_file_name: str,
+    out_file_name: Optional[str],
+    overwrite: bool,
+) -> str:
+    """
+    Prepare output file path and handle existing file.
+
+    Generates output filename if not provided, and manages existing files
+    based on the overwrite flag.
+
+    :param in_file_name: Input markdown file path
+    :param out_file_name: Output file path (None = auto-generate)
+    :param overwrite: Whether to overwrite existing output file
+    :return: Path to output file
+    """
+    if out_file_name == in_file_name or out_file_name is None:
+        if in_file_name.endswith(".md"):
+            out_file_name = in_file_name[:-3] + ".summary.md"
+        else:
+            out_file_name = in_file_name + ".summary"
+    if os.path.exists(out_file_name):
+        if overwrite:
+            os.remove(out_file_name)
+            _LOG.info("Deleted existing output file: %s", out_file_name)
+        else:
+            raise ValueError(
+                f"Output file already exists: {out_file_name} (use --overwrite to replace)"
+            )
+    return out_file_name
+
+
+def _read_and_parse_markdown(
+    in_file_name: str,
+) -> Tuple[List[str], List[Tuple[int, str, int]]]:
+    """
+    Read markdown file and extract headers using AST parser.
+
+    :param in_file_name: Path to markdown file
+    :return: Tuple of (lines, headers) where headers are (level, title, line_number)
+    """
+    content = hio.from_file(in_file_name)
+    lines = content.splitlines()
+    _LOG.debug("Read %d lines from %s", len(lines), in_file_name)
+    md_parser = MarkdownIt()
+    tokens = md_parser.parse(content)
+    all_headers = _extract_headers_from_ast(tokens)
+    _LOG.debug("Extracted %d headers from input file", len(all_headers))
+    return lines, all_headers
+
+
+def _process_headers_for_summarization(
+    target_headers: List[Tuple[int, str, int]],
+    all_headers: List[Tuple[int, str, int]],
+    lines: List[str],
+    out_file_name: str,
+    system_prompt: str,
+    model: str,
+    *,
+    md_level: int,
+    test_mode: bool,
+    dry_run: bool,
+) -> float:
+    """
+    Process and summarize target headers, writing results to output file.
+
+    Iterates through target headers, extracts sections, generates summaries,
+    and writes parent headers and summaries to the output file.
+
+    :param target_headers: List of headers to summarize
+    :param all_headers: All headers in the document
+    :param lines: All markdown lines
+    :param out_file_name: Output file path
+    :param system_prompt: System prompt for LLM
+    :param model: LLM model name
+    :param md_level: Target header level
+    :param test_mode: If True, compute SHA1 digest; otherwise use LLM
+    :param dry_run: If True, summarize only first section
+    :return: Total cost of LLM calls
+    """
+    with open(out_file_name, "w") as f:
+        pass
+    total_cost = 0.0
+    written_headers: Dict[Tuple[int, str], bool] = {}
+    pbar = tqdm(target_headers, desc="Summarizing sections")
+    for header in pbar:
+        parent_headers = _get_parent_headers(
+            header, all_headers, md_level=md_level
+        )
+        with open(out_file_name, "a") as f:
+            for parent in parent_headers:
+                parent_key = (parent[0], parent[1])
+                if parent_key not in written_headers:
+                    f.write("#" * parent[0] + " " + parent[1])
+                    f.write("\n\n")
+                    written_headers[parent_key] = True
+                    intro_text = _extract_intro_text(parent, header, lines)
+                    if intro_text:
+                        intro_summary, intro_cost = _summarize_text(
+                            intro_text,
+                            system_prompt,
+                            model,
+                            test_mode=test_mode,
+                        )
+                        total_cost += intro_cost
+                        pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
+                        f.write(intro_summary)
+                        f.write("\n\n")
+            header_key = (header[0], header[1])
+            f.write("#" * header[0] + " " + header[1])
+            f.write("\n\n")
+            written_headers[header_key] = True
+        section_text = _extract_section(
+            header, all_headers, lines, md_level=md_level
+        )
+        _LOG.debug(
+            "Extracted section for header: %s",
+            header[1],
+        )
+        summary, cost = _summarize_text(
+            section_text,
+            system_prompt,
+            model,
+            test_mode=test_mode,
+        )
+        total_cost += cost
+        pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
+        with open(out_file_name, "a") as f:
+            f.write(summary)
+            f.write("\n\n")
+        if dry_run:
+            _LOG.info("Dry run: summarized first section only")
+            print(summary)
+            break
+    return total_cost
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -372,32 +509,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     to_summarize, actions = hparser.mark_action("summarize", actions)
     if to_summarize:
         hdbg.dassert(args.md_level >= 1, "--md_level must be >= 1")
-        # Generate output filename if not provided (when same as input file)
-        if out_file_name == in_file_name:
-            if in_file_name.endswith(".md"):
-                out_file_name = in_file_name[:-3] + ".summary.md"
-            else:
-                out_file_name = in_file_name + ".summary"
-        # Handle existing output file
-        if os.path.exists(out_file_name):
-            if args.overwrite:
-                os.remove(out_file_name)
-                _LOG.info("Deleted existing output file: %s", out_file_name)
-            else:
-                raise ValueError(
-                    f"Output file already exists: {out_file_name} (use --overwrite to replace)"
-                )
-        # TODO(ai_gp): Factor out this in a function and split into subfunctions, if possible.
-        # Read input file and split into lines.
-        content = hio.from_file(in_file_name)
-        lines = content.splitlines()
-        _LOG.debug("Read %d lines from %s", len(lines), in_file_name)
-        # Parse markdown to extract headers using AST.
-        md_parser = MarkdownIt()
-        tokens = md_parser.parse(content)
-        all_headers = _extract_headers_from_ast(tokens)
-        _LOG.debug("Extracted %d headers from input file", len(all_headers))
-        # Filter headers to the target level and optional range.
+        out_file_name = _prepare_output_file(
+            in_file_name, out_file_name, args.overwrite
+        )
+        lines, all_headers = _read_and_parse_markdown(in_file_name)
         target_headers = _get_target_headers(
             all_headers,
             md_level=args.md_level,
@@ -407,73 +522,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info(
             "Processing %d headers at level %d", len(target_headers), args.md_level
         )
-        # Print headers to be summarized
         print("\nHeaders to summarize:")
         for i, header in enumerate(target_headers, 1):
             level, title, _ = header
             indent = "  " * (level - 1)
             print(f"{indent}{i}. {title}")
         system_prompt = _get_system_prompt()
-        # Initialize output file.
-        with open(out_file_name, "w") as f:
-            pass
-        total_cost = 0.0
-        written_headers: Dict[Tuple[int, str], bool] = {}
-        # Summarize each target header section.
-        pbar = tqdm(target_headers, desc="Summarizing sections")
-        for header in pbar:
-            # Get parent headers and write them if not already written.
-            parent_headers = _get_parent_headers(
-                header, all_headers, md_level=args.md_level
-            )
-            with open(out_file_name, "a") as f:
-                for parent in parent_headers:
-                    parent_key = (parent[0], parent[1])
-                    if parent_key not in written_headers:
-                        f.write("#" * parent[0] + " " + parent[1])
-                        f.write("\n\n")
-                        written_headers[parent_key] = True
-                        # Extract intro text between parent and first child.
-                        intro_text = _extract_intro_text(parent, header, lines)
-                        if intro_text:
-                            intro_summary, intro_cost = _summarize_text(
-                                intro_text,
-                                system_prompt,
-                                args.model,
-                                test_mode=args.test,
-                            )
-                            total_cost += intro_cost
-                            pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
-                            f.write(intro_summary)
-                            f.write("\n\n")
-                # Write the target header itself.
-                header_key = (header[0], header[1])
-                f.write("#" * header[0] + " " + header[1])
-                f.write("\n\n")
-                written_headers[header_key] = True
-            section_text = _extract_section(
-                header, all_headers, lines, md_level=args.md_level
-            )
-            _LOG.debug(
-                "Extracted section for header: %s",
-                header[1],
-            )
-            summary, cost = _summarize_text(
-                section_text,
-                system_prompt,
-                args.model,
-                test_mode=args.test,
-            )
-            total_cost += cost
-            pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
-            # Append summary to output file.
-            with open(out_file_name, "a") as f:
-                f.write(summary)
-                f.write("\n\n")
-            if args.dry_run:
-                _LOG.info("Dry run: summarized first section only")
-                print(summary)
-                break
+        total_cost = _process_headers_for_summarization(
+            target_headers,
+            all_headers,
+            lines,
+            out_file_name,
+            system_prompt,
+            args.model,
+            md_level=args.md_level,
+            test_mode=args.test,
+            dry_run=args.dry_run,
+        )
         if not args.test:
             _LOG.info("Total LLM cost: $%.6f", total_cost)
         _LOG.info("Summaries written to: %s", out_file_name)

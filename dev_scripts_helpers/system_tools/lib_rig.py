@@ -13,6 +13,7 @@ import subprocess
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
@@ -147,6 +148,30 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         type=str,
         default="",
         help="Additional ripgrep options (e.g., '-S -i' for smart case and ignore case)",
+    )
+    parser.add_argument(
+        "--def",
+        dest="def_mode",
+        action="store_true",
+        help="Search for Python class/def definitions",
+    )
+    parser.add_argument(
+        "--rule",
+        dest="rule_mode",
+        action="store_true",
+        help="Search for Markdown headers in .claude/skills/*.md",
+    )
+    parser.add_argument(
+        "--todo",
+        dest="todo_mode",
+        action="store_true",
+        help="Search for TODO(ai_gp) patterns",
+    )
+    parser.add_argument(
+        "--cfile",
+        dest="cfile",
+        action="store_true",
+        help="Save output to cfile and open in vim",
     )
     hparser.add_verbosity_arg(parser)
     return parser
