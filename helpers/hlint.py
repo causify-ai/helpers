@@ -33,7 +33,7 @@ def lint_file(file_path: str) -> None:
         hdbg.dassert_file_exists(script_path)
         _LOG.debug("Found lint_txt.py at: %s", script_path)
         # Build command to call the lint_txt.py script.
-        cmd = f"{script_path} --in_file {file_path}"
+        cmd = f"{script_path} -i {file_path}"
         hsystem.system(cmd, abort_on_error=True, suppress_output=False)
     else:
         # Direct library call.

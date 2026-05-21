@@ -144,6 +144,9 @@ def install_module_if_not_present(
             cmd = f"pip install {quiet_flag} {package_n}"
         if use_sudo:
             cmd = f"sudo {cmd}"
-        _, output = _system_to_string(cmd)
-        hdbg.dassert(has_module(package_n), f"Can't find module '{package_n}")
+        rc, output = _system_to_string(cmd)
+        if rc != 0:
+            raise RuntimeError(
+                f"Failed to install module '{package_n}'. Output:\n{output}"
+            )
         print(output)

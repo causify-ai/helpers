@@ -56,7 +56,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never"
+        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git"
         # Run test.
         self.helper(args, expected_cmd=expected_cmd, expected_exit_code=0)
 
@@ -67,7 +67,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src"]
         # Prepare outputs.
-        expected_cmd = "rg import src --hidden -n --no-heading --color=never"
+        expected_cmd = "rg import src --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -84,7 +84,7 @@ class TestRigScript(hunitest.TestCase):
         args = ["class", ".", "py"]
         # Prepare outputs.
         expected_cmd = (
-            "rg class . -g *.py --hidden -n --no-heading --color=never"
+            "rg class . -g *.py --hidden -n --no-heading --color=never -g !.git"
         )
         expected_exit_code = 0
         # Run test.
@@ -136,7 +136,7 @@ class TestRigScript(hunitest.TestCase):
         args = ["def", ".", "py,md"]
         # Prepare outputs.
         expected_cmd = (
-            "rg def . -g *.py -g *.md --hidden -n --no-heading --color=never"
+            "rg def . -g *.py -g *.md --hidden -n --no-heading --color=never -g !.git"
         )
         expected_exit_code = 0
         # Run test.
@@ -153,7 +153,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src", "py, ipynb, md"]
         # Prepare outputs.
-        expected_cmd = "rg import src -g *.py -g *.ipynb -g *.md --hidden -n --no-heading --color=never"
+        expected_cmd = "rg import src -g *.py -g *.ipynb -g *.md --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -214,7 +214,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", ".", "--rg_opts", "-S -i"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -S -i"
+        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git -S -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -230,7 +230,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["main", "--def"]
         # Prepare outputs.
-        expected_cmd = "rg (class|def) main . -g *.py --hidden -n --no-heading --color=never"
+        expected_cmd = "rg (class|def) main . -g *.py --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -247,7 +247,7 @@ class TestRigScript(hunitest.TestCase):
         args = ["--rule"]
         # Prepare outputs.
         expected_cmd = (
-            "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never"
+            "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git"
         )
         expected_exit_code = 0
         # Run test.
@@ -264,7 +264,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["assert_equal", "--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never"
+        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -281,7 +281,7 @@ class TestRigScript(hunitest.TestCase):
         args = ["--todo"]
         # Prepare outputs.
         expected_cmd = (
-            r"rg TODO\(ai_gp\) . --hidden -n --no-heading --color=never"
+            r"rg TODO\(ai_gp\) . --hidden -n --no-heading --color=never -g !.git"
         )
         expected_exit_code = 0
         # Run test.
@@ -298,7 +298,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", "-i"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -S -i"
+        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git -S -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -315,7 +315,7 @@ class TestRigScript(hunitest.TestCase):
         args = ["import", "src", "js", "-i"]
         # Prepare outputs.
         expected_cmd = (
-            "rg import src -g *.js --hidden -n --no-heading --color=never -S -i"
+            "rg import src -g *.js --hidden -n --no-heading --color=never -g !.git -S -i"
         )
         expected_exit_code = 0
         # Run test.

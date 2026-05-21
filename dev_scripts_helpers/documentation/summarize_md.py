@@ -547,7 +547,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info("Summaries written to: %s", out_file_name)
     # Handle lint action after summarization and process the output file.
     to_lint, actions = hparser.mark_action("lint", actions)
-    if to_lint:
+    if to_lint and not args.test:
         hlint.lint_file(out_file_name)
         _LOG.info("Linting complete: %s", out_file_name)
 
