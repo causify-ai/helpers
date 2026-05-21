@@ -27,45 +27,40 @@ plan-then-implement approach
   > pytest --cov=<pkg> --cov-report=term-missing --cov-report=html <test_file>
   ```
 
-- Summarize which lines and branches are not covered.
+- Summarize which lines and branches are not covered
 
 # Step 2: Design a Testing Plan
-
-- Analyze uncovered code paths and behaviors.
+- Analyze uncovered code paths and behaviors
 - Propose a clear testing plan that:
-  - Tests functions modularly before testing interactions.
+  - Tests functions modularly before testing interactions
   - Prioritizes end-to-end and user-visible behavior over incidental
-    implementation details.
+    implementation details
   - Avoids testing assertions, defensive checks, or invalid inputs unless they
-    are critical to correctness.
-- Explicitly map each uncovered area to one or more proposed tests.
+    are critical to correctness
+- Explicitly map each uncovered area to one or more proposed tests
 
 # Step 3: Specify Tests Without Implementation
-
-- Define test classes and test method names.
+- Define test classes and test method names
 - For each proposed test:
-  - Describe the input data.
-  - Describe the expected output or observable behavior.
-- Do not write executable test code at this stage.
+  - Describe the input data
+  - Describe the expected output or observable behavior
+- Do not write executable test code at this stage
 
 # Step 4: Implement After Approval
-
-- Wait for user confirmation or feedback on the testing plan.
+- Wait for user confirmation or feedback on the testing plan
 - After approval:
-  - Implement the tests according to the approved plan.
+  - Implement the tests according to the approved plan
   - Re-run coverage and verify that coverage for the target function is near 100
-    percent.
-  - Report final coverage results and remaining gaps, if any.
+    percent
+  - Report final coverage results and remaining gaps, if any
 
 # Important Rules
-
-- Do not implement tests before the plan is approved.
-- Do not proceed if instructions or requirements are ambiguous.
-- Always adhere to the formatting and style guides referenced above.
-- Focus on meaningful behavior and correctness rather than superficial
-  coverage.
+- Do not implement tests before the plan is approved
+- Do not proceed if instructions or requirements are ambiguous
+- Always adhere to the formatting and style guides referenced above
+- Focus on meaningful behavior and correctness rather than superficial coverage
 - All tests and code must strictly follow:
-  - `@.claude/skills/coding.rules.md` for any Python code
-  - `@.claude/skills/testing.format/SKILL.md` for tests
+  - `.claude/skills/coding.rules.md` for any Python code
+  - `.claude/skills/testing.rules.md` for tests
 - If any part of the task is unclear or underspecified, stop and ask for
-  clarification before proceeding.
+  clarification before proceeding

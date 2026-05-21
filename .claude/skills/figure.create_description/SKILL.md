@@ -16,15 +16,17 @@ description: Describe a diagram for a technical book, from either an image or a 
 
 # Task
 - Produce a concise figure description that covers:
-  1. **Overview**: one sentence stating what the diagram shows and why it matters
+  1. **Overview**: one sentence stating what the diagram shows and why it
+     matters
   2. **Structure**: walk through the visual layout (e.g. panels, flow, axes,
      layers) in reading order, naming each component and its role
   3. **Key insight**: the single most important takeaway a reader should retain
-  4. **Visual notes** *(optional)*: flag any enhancements that would improve
+  4. **Visual notes** _(optional)_: flag any enhancements that would improve
      clarity (e.g. color coding, callout labels, a legend, or a simpler layout)
 
 # Constraints
 - Write for a technical but non-specialist audience
 - Use present tense and active voice
-- Keep the full description under 200 words unless the diagram is unusually complex
+- Keep the full description under 200 words unless the diagram is unusually
+  complex
 - Do not invent details that are not present in the input

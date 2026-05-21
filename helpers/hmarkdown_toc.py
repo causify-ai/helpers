@@ -13,6 +13,7 @@ from typing import Any, List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
@@ -162,3 +163,77 @@ def remove_table_of_contents(txt: str) -> str:
     """
     txt = re.sub(r"<!-- toc -->.*?<!-- tocstop -->", "", txt, flags=re.DOTALL)
     return txt
+
+
+# #############################################################################
+# Navigation
+# #############################################################################
+
+
+def add_navigation_slides(
+    lines: List[str],
+    max_level: int,
+    expand_all: bool,
+    *,
+    sanity_check: bool = False,
+) -> List[str]:
+    """
+    Add the navigation slides to the notes.
+
+    :param lines: list of lines of the notes
+    :param max_level: maximum level of headers to consider (e.g., 3 creates a
+        navigation slide for headers of level 1, 2, and 3)
+    :param expand_all: if True, expand all headers up to level 2; if False, expand
+        only the path to the current header
+    :param sanity_check: if True, perform sanity checks
+    :return: list of lines with the navigation slides added
+    """
+    _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
+    hdbg.dassert_isinstance(lines, list)
+    header_list = hmarkdo.extract_headers_from_markdown(
+        lines, max_level, sanity_check=sanity_check
+    )
+    _LOG.debug("header_list=\n%s", header_list)
+    tree = hmarkdo.build_header_tree(header_list)
+    _LOG.debug("tree=\n%s", tree)
+    out: List[str] = []
+    open_modifier = r"_**\textcolor{red}{"
+    close_modifier = r"}**_"
+    for line in lines:
+        is_header, level, description = hmarkdo.is_header(line)
+        if is_header and level <= max_level:
+            _LOG.debug(hprint.to_str("line level description"))
+            # Get the navigation string corresponding to the current header.
+            if expand_all:
+                nav_str = hmarkdo.full_tree_to_str(
+                    tree,
+                    level,
+                    description,
+                    max_expand_level=2,
+                    open_modifier=open_modifier,
+                    close_modifier=close_modifier,
+                )
+            else:
+                nav_str = hmarkdo.selected_navigation_to_str(
+                    tree,
+                    level,
+                    description,
+                    open_modifier=open_modifier,
+                    close_modifier=close_modifier,
+                )
+            _LOG.debug("nav_str=\n%s", nav_str)
+            # Replace the header slide with the navigation slide.
+            # TODO(gp): We assume the slide level is 4.
+            # line_tmp = f"#### {description}\n"
+            line_tmp = "####\n"
+            # line_tmp += '<span style="color:blue">\n' + nav_str
+            line_tmp += nav_str
+            # line_tmp += "\n</span>\n"
+            # Add an extra newline to avoid to have the next title adjacent,
+            # confusing pandoc.
+            line_tmp += "\n"
+            out.append(line_tmp)
+        else:
+            out.append(line)
+    hdbg.dassert_isinstance(out, list)
+    return out

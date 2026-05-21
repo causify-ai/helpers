@@ -4,11 +4,9 @@ model: haiku
 ---
 
 # Read Content
-
-- Read the first file `<input>` passed by the user 
+- Read the first file `<input>` passed by the user
 
 # Summarize Content in Bullet Points
-
 - Write a summary in bullet points using the rules in
   `.claude/skills/text.rules.bullet_points.md`
 
@@ -33,7 +31,6 @@ model: haiku
   ```
 
 # Write Output
-
 - Write the result in the passed file `<output>`
   - If not specified use `summary.md` in the current directory as `<output>`
 - Print on screen the path of the file as
@@ -48,7 +45,6 @@ model: haiku
   ```
 
 # Answer Follow-up Questions
-
 - Do not do anything else, but wait for the user to ask questions
 - Answer any questions the user asks about the content just read, referencing
   specific sections or concepts from the chapter summary

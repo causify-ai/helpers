@@ -2,10 +2,9 @@
 description: Convert formulas in text to their Latex equivalent
 ---
 
-- Convert formulas to Latex leaving the structure of the text exactly the
-  same
+- Convert formulas to Latex leaving the structure of the text exactly the same
 
-- Use the rules and conventions in `@.claude/skills/latex.rules.md`
+- Use the rules and conventions in `.claude/skills/latex.rules.md`
 
 # Step 1: Convert Mathematical Formulas
 

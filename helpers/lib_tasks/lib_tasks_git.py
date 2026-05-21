@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks.lib_tasks_git as hlitagit
+import helpers.lib_tasks.lib_tasks_git as hltltagi
 """
 
 import logging
@@ -24,8 +24,8 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test_utils as hunteuti
-import helpers.lib_tasks.lib_tasks_gh as hlitagh
-import helpers.lib_tasks.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_gh as hltltagh
+import helpers.lib_tasks.lib_tasks_utils as hltltaut
 
 _LOG = logging.getLogger(__name__)
 
@@ -109,10 +109,10 @@ def run_git_recursively(ctx: Any, cmd_: str) -> None:
     :param cmd_: Git command to execute
     """
     cmd = cmd_
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Run the same command on all submodules.
     cmd = f"git submodule foreach '{cmd_}'"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 @task
@@ -126,7 +126,7 @@ def git_set_symlink_perms(ctx, dir_name="."):  # type: ignore
     :param dir_name: directory to process (default: ".")
     """
     _ = ctx
-    hlitauti.report_task(txt=hprint.to_str("dir_name"))
+    hltltaut.report_task(txt=hprint.to_str("dir_name"))
     _add_write_perm_to_symlink(dir_name)
 
 
@@ -141,7 +141,7 @@ def git_reset_symlink_perms(ctx, dir_name="."):  # type: ignore
     :param dir_name: directory to process (default: ".")
     """
     _ = ctx
-    hlitauti.report_task(txt=hprint.to_str("dir_name"))
+    hltltaut.report_task(txt=hprint.to_str("dir_name"))
     _remove_write_perm_from_symlink(dir_name)
 
 
@@ -152,7 +152,7 @@ def git_pull(ctx):  # type: ignore
 
     Temporarily enables write permissions on symlinks to allow pull operations.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Temporarily grant write access to symlinks needed for pulling.
     root_dir = hgit.get_client_root(super_module=False)
     _add_write_perm_to_symlink(root_dir)
@@ -173,7 +173,7 @@ def git_fetch_master(ctx):  # type: ignore
     Updates the local master branch to track the latest remote master without
     affecting the current branch.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Fetch remote master directly into local master ref (colon syntax).
     cmd = "git fetch origin master:master"
     run_git_recursively(ctx, cmd)
@@ -196,7 +196,7 @@ def git_merge_master(
     :param auto_merge: automatically commit and push if merge is
         successful
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Verify working directory is clean before merging to avoid losing changes.
     hgit.is_client_clean(dir_name=".", abort_if_not_clean=abort_if_not_clean)
     # Fetch latest master from remote to ensure we merge the latest changes.
@@ -206,12 +206,12 @@ def git_merge_master(
     cmd = "git merge master"
     if abort_if_not_ff:
         cmd += " --ff-only"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Commit and push automatically if merge succeeded and user requested it.
     if auto_merge:
         _LOG.info("Auto-merge enabled: committing and pushing changes")
         cmd = 'git commit -am "Merge master" && git push'
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
 
 
 @task
@@ -221,14 +221,14 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
 
     Run `git status --ignored` to see what it's skipped.
     """
-    hlitauti.report_task(txt=hprint.to_str("dry_run"))
+    hltltaut.report_task(txt=hprint.to_str("dry_run"))
 
     def _run_all_repos(cmd: str) -> None:
         # Use `run(ctx, cmd)` instead of `hsystem.system()` so unit tests can easily mock context.
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
         # Also clean submodules to ensure they're included in cleanup.
         cmd = f"git submodule foreach '{cmd}'"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
 
     # Remove untracked files and directories from main repo and submodules.
     git_clean_cmd = "git clean -fd"
@@ -242,7 +242,7 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
     # Fix permissions on symlinks if requested, then clean any temporary files created.
     if fix_perms_:
         cmd = "invoke fix_perms"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
         # Remove temporary files that may have been created during permission fix.
         _run_all_repos(git_clean_cmd)
     # Remove common build artifacts and cache directories.
@@ -268,7 +268,7 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
     cmd = f"find . {opts} | sort"
     if not dry_run:
         cmd += " | xargs rm -rf"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 @task
@@ -276,10 +276,10 @@ def git_add_all_untracked(ctx):  # type: ignore
     """
     Add all untracked files to Git.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # cmd = "git add $(git ls-files -o --exclude-standard)"
     cmd = "git ls-files -o --exclude-standard -z | xargs -0 git add"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 @task
@@ -291,13 +291,13 @@ def git_patch_create(  # type: ignore
     revision. This script accepts a list of files to package, if specified.
 
     The parameters `modified`, `branch`, `last_commit` have the same meaning as
-    in `_get_files_to_process()`.
+    in `get_files_to_process()`.
 
     :param mode: what kind of patch to create
         - "diff": (default) creates a patch with the diff of the files
         - "tar": creates a tar ball with all the files
     """
-    hlitauti.report_task(
+    hltltaut.report_task(
         txt=hprint.to_str("mode modified branch last_commit files")
     )
     _ = ctx
@@ -314,7 +314,7 @@ def git_patch_create(  # type: ignore
     git_client_root = hgit.get_client_root(super_module)
     hash_ = hgit.get_head_hash(git_client_root, short_hash=True)
     # Use timestamp and hash to ensure unique patch filenames across time.
-    timestamp = hlitauti.get_ET_timestamp()
+    timestamp = hltltaut.get_ET_timestamp()
     tag = os.path.basename(git_client_root)
     dst_file = f"patch.{tag}.{hash_}.{timestamp}"
     if mode == "tar":
@@ -335,7 +335,7 @@ def git_patch_create(  # type: ignore
     mutually_exclusive = False
     # Filter out directories; patches only work with files.
     remove_dirs = True
-    files_as_list = hlitauti._get_files_to_process(
+    files_as_list = hgit.get_files_to_process(
         modified,
         branch,
         last_commit,
@@ -445,7 +445,7 @@ def git_files(  # type: ignore
     """
     Report which files are changed in the current branch with respect to master.
 
-    The params have the same meaning as in `_get_files_to_process()`.
+    The params have the same meaning as in `get_files_to_process()`.
 
     :param file_types: Comma-separated list of file extensions to include
         (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
@@ -457,7 +457,7 @@ def git_files(  # type: ignore
         - "test_dirs": print test directories associated with the changed source files
     """
     if not only_print_files:
-        hlitauti.report_task()
+        hltltaut.report_task()
     _ = ctx
     # If no filter option is specified, default to branch=True.
     if not (modified or last_commit):
@@ -467,7 +467,7 @@ def git_files(  # type: ignore
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True
-    files_as_list = hlitauti._get_files_to_process(
+    files_as_list = hgit.get_files_to_process(
         modified,
         branch,
         last_commit,
@@ -520,7 +520,7 @@ def git_roll_amp_forward(ctx):  # type: ignore
     Checks out master in amp, pulls latest changes, updates the parent repo's
     submodule pointer, and commits the change.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     AMP_DIR = "amp"
     if os.path.exists(AMP_DIR):
         # Update amp submodule to point to the latest master.
@@ -533,7 +533,7 @@ def git_roll_amp_forward(ctx):  # type: ignore
             "git push",
         ]
         for cmd in cmds:
-            hlitauti.run(ctx, cmd)
+            hltltaut.run(ctx, cmd)
     else:
         _LOG.warning("%s does not exist, aborting", AMP_DIR)
 
@@ -564,7 +564,7 @@ def git_branch_files(ctx):  # type: ignore
     This is a more detailed version of `invoke git_files --branch`, showing file
     statuses (added, modified, deleted) rather than just the file list.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     _ = ctx
     # Display the detailed summary of changes made on this branch.
     print(
@@ -606,7 +606,7 @@ def git_branch_create(  # type: ignore
     :param check_branch_name: make sure the name of the branch is valid like
         `{Amp,...}TaskXYZ_...`
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     if issue_id > 0:
         # Convert GitHub issue ID to branch name.
         hdbg.dassert_eq(
@@ -614,7 +614,7 @@ def git_branch_create(  # type: ignore
             "",
             "Cannot specify both --issue and --branch-name; choose one",
         )
-        title, _ = hlitagh._get_gh_issue_title(issue_id, repo_short_name)
+        title, _ = hltltagh._get_gh_issue_title(issue_id, repo_short_name)
         branch_name = title
         _LOG.info(
             "Issue %d in %s repo_short_name corresponds to '%s'",
@@ -673,12 +673,12 @@ def git_branch_create(  # type: ignore
             # )
     # Fetch master.
     cmd = "git pull --autostash --rebase"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # git checkout -b LmTask169_Get_GH_actions_working_on_lm
     cmd = f"git checkout -b {branch_name}"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     cmd = f"git push --set-upstream origin {branch_name}"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 # TODO(gp): @all Move to hgit.
@@ -725,7 +725,7 @@ def _delete_branches(ctx: Any, tag: str, confirm_delete: bool) -> None:
         )
     for branch in branches:
         cmd_tmp = f"{delete_cmd} {branch}"
-        hlitauti.run(ctx, cmd_tmp)
+        hltltaut.run(ctx, cmd_tmp)
 
 
 @task
@@ -733,7 +733,7 @@ def git_branch_delete_merged(ctx, confirm_delete=True):  # type: ignore
     """
     Remove (both local and remote) branches that have been merged into master.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Ensure user is on master since we're deleting branches merged into master.
     hdbg.dassert_eq(
         hgit.get_branch_name(),
@@ -742,13 +742,13 @@ def git_branch_delete_merged(ctx, confirm_delete=True):  # type: ignore
     )
     #
     cmd = "git fetch --all --prune"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Delete local and remote branches that are already merged into master.
     _delete_branches(ctx, "local", confirm_delete)
     _delete_branches(ctx, "remote", confirm_delete)
     #
     cmd = "git fetch --all --prune"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 @task
@@ -756,7 +756,7 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
     """
     Rename current branch both locally and remotely.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     old_branch_name = hgit.get_branch_name(".")
     # Ensure new branch name is actually different to avoid no-op rename.
     hdbg.dassert_ne(
@@ -773,24 +773,24 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
     # Rename the local branch to the new name.
     # > git branch -m <old_name> <new_name>
     cmd = f"git branch -m {new_branch_name}"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Delete the old branch on remote.
     # > git push <remote> --delete <old_name>
     cmd = f"git push origin --delete {old_branch_name}"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Prevent Git from using the old name when pushing in the next step.
     # Otherwise, Git will use the old upstream name instead of <new_name>.
     # > git branch --unset-upstream <new_name>
     cmd = f"git branch --unset-upstream {new_branch_name}"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Push the new branch to remote.
     # > git push <remote> <new_name>
     cmd = f"git push origin {new_branch_name}"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Reset the upstream branch for the new_name local branch.
     # > git push <remote> -u <new_name>
     cmd = f"git push origin u {new_branch_name}"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     print("Done")
 
 
@@ -809,7 +809,7 @@ def git_branch_next_name(ctx, branch_name=None, method="auto"):  # type: ignore
     E.g., `AmpTask1903_Implemented_system_Portfolio` ->
         `AmpTask1903_Implemented_system_Portfolio_3`
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     _ = ctx
     branch_next_name = hgit.get_branch_next_name(
         curr_branch_name=branch_name, method=method, log_verb=logging.INFO
@@ -846,7 +846,7 @@ def git_branch_copy(  # type: ignore
     )
     # Remove untracked files to ensure clean state when copying branch.
     cmd = "git clean -fd"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     curr_branch_name = hgit.get_branch_name()
     # Cannot copy master branch since it would be copying the source to itself.
     hdbg.dassert_ne(
@@ -857,7 +857,7 @@ def git_branch_copy(  # type: ignore
     # Sync with master first to ensure new branch includes latest changes (if requested).
     if not skip_git_merge_master:
         cmd = "invoke git_merge_master --abort-if-not-ff --no-auto-merge"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
     else:
         _LOG.warning("Skipping git_merge_master as requested")
     if use_patch:
@@ -886,13 +886,13 @@ def git_branch_copy(  # type: ignore
         cmd = f"git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'"
         if not check_branch_name:
             cmd += " --no-check-branch-name"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     if use_patch:
         # TODO(gp): Apply the patch.
         pass
     # Squash merge copies all commits as a single change without creating a merge commit.
     cmd = f"git merge --squash --ff {curr_branch_name} && git reset HEAD"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 # ///////////////////////////////////////////////////////////////////////////////
@@ -1061,10 +1061,10 @@ def _git_diff_with_branch(
     script_file_name = f"./tmp.vimdiff_branch_with_{tag}.sh"
     msg = f"To diff against {tag} run"
     hio.create_executable_script(script_file_name, script_txt, msg=msg)
-    hlitauti.run(ctx, script_file_name, dry_run=dry_run, pty=True)
+    hltltaut.run(ctx, script_file_name, dry_run=dry_run, pty=True)
     # Clean up temporary files.
     cmd = f"rm -rf {dst_dir}"
-    hlitauti.run(ctx, cmd, dry_run=dry_run)
+    hltltaut.run(ctx, cmd, dry_run=dry_run)
 
 
 def _git_diff_with_branch_wrapper(
@@ -1357,7 +1357,7 @@ def git_branch_is_merged(ctx):  # type: ignore
     Uses GitHub API to check for open/closed PRs and git to verify branch presence on remote.
     """
     _ = ctx
-    hlitauti.report_task()
+    hltltaut.report_task()
     branch_name = hgit.get_branch_name()
     print(f"branch_name='{branch_name}'")
     # Check for PRs targeting master from the current branch on GitHub.
@@ -1392,7 +1392,7 @@ def git_backup(
     :param dry_run: if True, only print the files that would be included
         without creating the zip
     """
-    hlitauti.report_task(
+    hltltaut.report_task(
         txt=hprint.to_str("file_mode, backup_dir, include_subrepos, dry_run")
     )
     _ = ctx
@@ -1413,7 +1413,7 @@ def git_backup(
     super_module = False
     git_client_root = hgit.get_client_root(super_module)
     # Include timestamp to avoid overwriting previous backups.
-    timestamp = hlitauti.get_ET_timestamp()
+    timestamp = hltltaut.get_ET_timestamp()
     repo_name = os.path.basename(git_client_root)
     zip_file_name = f"modified_files.{repo_name}.{timestamp}.zip"
     # Collect files from the main repository.
@@ -1512,7 +1512,7 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
 
     :param interval: Update interval in seconds
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Check if running inside tmux and save original window name.
     old_pane_title = None
     if os.environ.get("TMUX"):
@@ -1578,7 +1578,7 @@ def git_fix_perms(ctx, check=True, fix=False, dir_name="."):  # type: ignore
     :param dir_name: directory to process (default: ".")
     """
     _ = ctx
-    hlitauti.report_task(txt=hprint.to_str("check fix dir_name"))
+    hltltaut.report_task(txt=hprint.to_str("check fix dir_name"))
     _LOG.info("Scanning directory: %s", dir_name)
     files_to_fix = []
     files_checked = 0
@@ -1622,6 +1622,125 @@ def git_fix_perms(ctx, check=True, fix=False, dir_name="."):  # type: ignore
             _LOG.info("Fixed %d files/directories", fixed_count)
     else:
         print("All files/directories have correct permissions (ug+w)")
+
+
+@task
+def git_file_version(  # type: ignore
+    ctx,
+    file_path="",
+    count=5,
+    dir_name="",
+):
+    """
+    Extract N recent versions of a file from git history.
+
+    Saves each version as `filename.{ISO_timestamp}.{short_hash}.{ext}`.
+    Versions are ordered from newest to oldest. Creates a `tmp.git_file_version.sh`
+    bash script that opens all extracted versions in vim.
+
+    :param file_path: Path to the file to extract versions for
+    :param count: Number of recent versions to extract (default: 5)
+    :param dir_name: Output directory (default: same directory as file)
+    """
+    hltltaut.report_task(txt=hprint.to_str("file_path count dir_name"))
+    _ = ctx
+    hdbg.dassert_ne(
+        file_path,
+        "",
+        "file_path parameter is required",
+    )
+    hdbg.dassert_file_exists(file_path)
+    hdbg.dassert_lt(0, count, "count must be positive")
+    # Determine output directory: use provided dir_name or file's directory.
+    if dir_name == "":
+        dir_name = os.path.dirname(file_path)
+        if dir_name == "":
+            dir_name = "."
+    hdbg.dassert_dir_exists(dir_name)
+    # Get git log with commit hash and timestamp for the file.
+    cmd = f"git log --follow --format=%H --date=iso -- {file_path}"
+    _, output = hsystem.system_to_string(cmd)
+    commit_hashes = [h.strip() for h in output.split("\n") if h.strip()]
+    if not commit_hashes:
+        _LOG.warning("No git history found for file: %s", file_path)
+        return
+    # Keep only the requested number of recent versions (newest first).
+    commit_hashes = commit_hashes[:count]
+    _LOG.info(
+        "Found %d commits for file %s, extracting %d versions",
+        len(commit_hashes),
+        file_path,
+        len(commit_hashes),
+    )
+    # Extract each version with timestamp and hash.
+    base_name = os.path.basename(file_path)
+    name_parts = base_name.rsplit(".", 1)
+    if len(name_parts) == 2:
+        name, ext = name_parts
+        ext = "." + ext
+    else:
+        name = base_name
+        ext = ""
+    version_files: List[str] = []
+    for i, commit_hash in enumerate(commit_hashes):
+        # Get timestamp for this commit.
+        cmd = f"git show -s --format=%cI {commit_hash}"
+        _, timestamp_str = hsystem.system_to_string(cmd)
+        timestamp_str = timestamp_str.strip()
+        short_hash = commit_hash[:7]
+        # Convert ISO 8601 timestamp to simpler format (YYYY-MM-DDTHH:MM:SS).
+        # Handle format: 2024-05-17T12:00:00+00:00
+        if "T" in timestamp_str:
+            # ISO format: extract up to seconds, remove timezone.
+            timestamp_str = timestamp_str.split("+")[0]
+            if timestamp_str.count("-") > 2:
+                # Remove timezone offset like -05:00.
+                timestamp_str = timestamp_str.rsplit("-", 1)[0]
+        else:
+            # Try alternative format: 2024-05-17 12:00:00 +0000.
+            parts = timestamp_str.split()
+            if len(parts) >= 2:
+                timestamp_str = parts[0] + "T" + parts[1]
+        # Construct output filename.
+        version_file = os.path.join(
+            dir_name, f"{name}.{timestamp_str}.{short_hash}{ext}"
+        )
+        # Extract the file content from git.
+        cmd = f"git show {commit_hash}:{file_path} > {version_file}"
+        _LOG.debug(
+            "Extracting version %d of %d: %s",
+            i + 1,
+            len(commit_hashes),
+            version_file,
+        )
+        rc = hsystem.system(cmd, abort_on_error=False)
+        if rc != 0:
+            _LOG.warning(
+                "Failed to extract version from %s, skipping",
+                commit_hash,
+            )
+            if os.path.exists(version_file):
+                os.remove(version_file)
+        else:
+            _LOG.info("Created: %s", version_file)
+            version_files.append(version_file)
+            print(f"Created: {version_file}")
+    # Create a bash script to open all extracted version files.
+    if not version_files:
+        _LOG.warning("No versions were successfully extracted")
+        return
+    script_content = "#!/bin/bash\n"
+    script_content += "# Auto-generated script to open extracted file versions\n"
+    script_content += f"# Base file: {file_path}\n"
+    script_content += "# Generated by: invoke git_file_version\n"
+    script_content += "\n"
+    script_content += f"vim {' '.join(version_files)}\n"
+    script_file = "tmp.git_file_version.sh"
+    with open(script_file, "w") as f:
+        f.write(script_content)
+    os.chmod(script_file, os.stat(script_file).st_mode | 0o111)
+    _LOG.info("Created script to open versions: %s", script_file)
+    print(f"\nTo open all versions in vim, run:\n  ./{script_file}")
 
 
 # TODO(gp): Add the following scripts:
