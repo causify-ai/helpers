@@ -9,12 +9,11 @@ files.
 
 import argparse
 import logging
-import subprocess
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
@@ -189,7 +188,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     return parser
 
 
-def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
+def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
     """
     Process parsed command-line arguments into ripgrep command components.
 
@@ -201,7 +200,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     - `ripgrep_opts`: extra rg options
 
     :param parsed: Raw parsed arguments from `ArgumentParser`
-    :return: Processed arguments namespace with ripgrep command components
+    :return: Dictionary with processed ripgrep command components and flags
     """
     # Build ripgrep pattern from first positional arg.
     ripgrep_pattern = parsed.positional[0] if parsed.positional else None
@@ -261,28 +260,23 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
                     "Extension '%s' must not start with dot",
                     ext,
                 )
-    # TODO(ai_gp): Return the variables
-    #     - `ripgrep_pattern`: search pattern
-    #     - `ripgrep_dir`: directory to search
-    #     - `ripgrep_extensions`: file extensions to filter
-    #     - `ripgrep_opts`: extra rg options
-    # as a dictionary instead of the code below.
-    # Package computed components and behavioral flags into result namespace.
-    result = argparse.Namespace()
-    result.pattern = ripgrep_pattern
-    result.directory = ripgrep_dir
-    result.extensions = ripgrep_extensions
-    result.rg_opts = ripgrep_opts
-    result.need_capture = need_capture
-    result.rule_filter = rule_filter
-    result.modified = parsed.modified
-    result.branch = parsed.branch
-    result.last_commit = parsed.last_commit
-    result.all_files = parsed.all_files
-    result.files_from_user = parsed.files
-    result.dry_run = parsed.dry_run
-    result.todo_mode = parsed.todo_mode
-    result.rule_mode = parsed.rule_mode
+    # Package computed components and behavioral flags into a result dictionary.
+    result: Dict[str, Any] = {
+        "pattern": ripgrep_pattern,
+        "directory": ripgrep_dir,
+        "extensions": ripgrep_extensions,
+        "rg_opts": ripgrep_opts,
+        "need_capture": need_capture,
+        "rule_filter": rule_filter,
+        "modified": parsed.modified,
+        "branch": parsed.branch,
+        "last_commit": parsed.last_commit,
+        "all_files": parsed.all_files,
+        "files_from_user": parsed.files,
+        "dry_run": parsed.dry_run,
+        "todo_mode": parsed.todo_mode,
+        "rule_mode": parsed.rule_mode,
+    }
     return result
 
 
@@ -313,7 +307,7 @@ def main(
         log_filename="",
     )
     parsed = _parse_arguments(parsed)
-    if not parsed.pattern:
+    if not parsed["pattern"]:
         parser.print_help()
         return 0
     # Default ripgrep options for consistent output formatting.
@@ -326,39 +320,35 @@ def main(
         "--color=never",
     ]
     # Append user-provided ripgrep options if any.
-    if parsed.rg_opts:
-        rg_opts.extend(parsed.rg_opts.split())
+    if parsed["rg_opts"]:
+        rg_opts.extend(parsed["rg_opts"].split())
     # Retrieve filtered file list if user specified file selection criteria;
     # otherwise search entire directory.
     files = _get_files_to_search(
-        modified=parsed.modified,
-        branch=parsed.branch,
-        last_commit=parsed.last_commit,
-        all_files=parsed.all_files,
-        files_from_user=parsed.files_from_user,
+        parsed["modified"],
+        parsed["branch"],
+        parsed["last_commit"],
+        parsed["all_files"],
+        parsed["files_from_user"],
     )
     cmd = _build_ripgrep_command(
-        pattern=parsed.pattern,
-        directory=parsed.directory,
-        extensions=parsed.extensions,
-        rg_opts=rg_opts,
+        parsed["pattern"],
+        parsed["directory"],
+        parsed["extensions"],
+        rg_opts,
         files=files,
     )
-    # Capture output when --cfile was specified for filtering and vim integration.
-    if args.cfile:
-        # TODO(ai_gp): Add a "2>&1 | tee cfile" to cmd
-        pass
-    # TODO(ai_gp): Call hsystem.system(cmd)
-
+    # Convert command list to string for logging and execution.
+    cmd_str = " ".join(cmd)
+    # Append pipe to tee for capturing output when --cfile was specified.
+    if parsed["need_capture"]:
+        cmd_str = cmd_str + " 2>&1 | tee cfile"
     # Log the command in shell format for easy copy-paste debugging.
-    _LOG.debug("> %s", " ".join(cmd))
-    if parsed.dry_run:
+    _LOG.debug("> %s", cmd_str)
+    if parsed["dry_run"]:
         # Print the command and exit without running it.
-        print(" ".join(cmd))
+        print(cmd_str)
         return 0
-    # Save to cfile and open in vim if requested
-    if parsed.cfile:
-        hio.to_file("cfile", output)
-        subprocess.run(["vim", "-c", "cfile cfile"])
-
+    # Run the command using system call.
+    hsystem.system(cmd_str)
     return 0
