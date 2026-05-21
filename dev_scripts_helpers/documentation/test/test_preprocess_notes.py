@@ -1,4 +1,3 @@
-import logging
 import os
 from collections.abc import Sequence
 from typing import Dict, List, Optional
@@ -11,8 +10,6 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -213,24 +210,24 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
     Test backtick colorization as part of the full preprocessing pipeline.
     """
 
-    def helper(self, txt_in: str, type_: str, expected: str) -> None:
+    def helper(self, txt_in_str: str, type_: str, expected_str: str) -> None:
         """
         Test helper for _transform_lines with backtick colorization.
 
-        :param txt_in: input text
+        :param txt_in_str: input text with dedent applied
         :param type_: output type ("pdf" or "slides")
-        :param expected: expected output text
+        :param expected_str: expected output text with dedent applied
         """
         # Prepare inputs.
-        txt_in_lines = txt_in.split("\n")
+        txt_in_lines = txt_in_str.split("\n")
         txt_in_lines = hprint.dedent(
             txt_in_lines, remove_lead_trail_empty_lines_=True
         )
-        # Execute function.
+        # Run test.
         actual = dshdprno._transform_lines(txt_in_lines, type_, is_qa=False)
         actual = "\n".join(actual)
-        # Check.
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        # Check outputs.
+        expected = hprint.dedent(expected_str, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -243,6 +240,8 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         The `variable` is used here.
         And `function_name` is called next.
         """
+        type_ = "pdf"
+        # Prepare outputs.
         expected = r"""
         ---
         fontsize: 10pt
@@ -255,7 +254,7 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         And \textcolor{blue}{\texttt{function\_name}} is called next.
         """
         # Run test.
-        self.helper(txt_in, "pdf", expected)
+        self.helper(txt_in, type_, expected)
 
     def test2(self) -> None:
         """
@@ -266,6 +265,8 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         # Slide Title
         Use `method1` and `method2` for processing.
         """
+        type_ = "slides"
+        # Prepare outputs.
         expected = r"""
         ---
         fontsize: 10pt
@@ -277,7 +278,7 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         Use \textcolor{blue}{\texttt{method1}} and \textcolor{blue}{\texttt{method2}} for processing.
         """
         # Run test.
-        self.helper(txt_in, "slides", expected)
+        self.helper(txt_in, type_, expected)
 
     def test3(self) -> None:
         """
@@ -291,6 +292,8 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         ```
         The `variable` name is important.
         """
+        type_ = "pdf"
+        # Prepare outputs.
         expected = r"""
         ---
         fontsize: 10pt
@@ -305,7 +308,7 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         The \textcolor{blue}{\texttt{variable}} name is important.
         """
         # Run test.
-        self.helper(txt_in, "pdf", expected)
+        self.helper(txt_in, type_, expected)
 
 
 # #############################################################################
@@ -794,74 +797,82 @@ class Test_extract_section(hunitest.TestCase):
         Test extracting a basic section from a header.
         """
         # Prepare inputs.
-        lines = """
+        lines_str = """
         # Section A
         Line 1 of section A
         Line 2 of section A
         # Section B
         Line 1 of section B
         """
-        expected = """
+        section_name = "Section A"
+        # Prepare outputs.
+        expected_str = """
         Line 1 of section A
         Line 2 of section A
         """
         # Run test.
-        self.helper(lines, "Section A", expected)
+        self.helper(lines_str, section_name, expected_str)
 
     def test2(self) -> None:
         """
         Test extracting a section that extends to end of file.
         """
         # Prepare inputs.
-        lines = """
+        lines_str = """
         # Section A
         Line 1 of A
         # Section B
         Line 1 of B
         Line 2 of B
         """
-        expected = """
+        section_name = "Section B"
+        # Prepare outputs.
+        expected_str = """
         Line 1 of B
         Line 2 of B
         """
         # Run test.
-        self.helper(lines, "Section B", expected)
+        self.helper(lines_str, section_name, expected_str)
 
     def test3(self) -> None:
         """
         Test when section is not found returns None.
         """
         # Prepare inputs.
-        lines = """
+        lines_str = """
         # Section A
         Content A
         # Section B
         Content B
         """
-        expected = None
+        section_name = "Section C"
+        # Prepare outputs.
+        expected_str = None
         # Run test.
-        self.helper(lines, "Section C", expected)
+        self.helper(lines_str, section_name, expected_str)
 
     def test4(self) -> None:
         """
         Test extracting a section with no content (next header immediately after).
         """
         # Prepare inputs.
-        lines = """
+        lines_str = """
         # Section A
         # Section B
         Content B
         """
-        expected = ""
+        section_name = "Section A"
+        # Prepare outputs.
+        expected_str = ""
         # Run test.
-        self.helper(lines, "Section A", expected)
+        self.helper(lines_str, section_name, expected_str)
 
     def test5(self) -> None:
         """
         Test extracting a section that contains subsections (level 2+ headers).
         """
         # Prepare inputs.
-        lines = """
+        lines_str = """
         # Main Section
         Intro text
         ## Subsection 1
@@ -871,7 +882,9 @@ class Test_extract_section(hunitest.TestCase):
         # Next Section
         Next content
         """
-        expected = """
+        section_name = "Main Section"
+        # Prepare outputs.
+        expected_str = """
         Intro text
         ## Subsection 1
         Subsection content
@@ -879,7 +892,7 @@ class Test_extract_section(hunitest.TestCase):
         Deep content
         """
         # Run test.
-        self.helper(lines, "Main Section", expected)
+        self.helper(lines_str, section_name, expected_str)
 
 
 # #############################################################################
@@ -1177,55 +1190,79 @@ class Test_process_question_to_slides(hunitest.TestCase):
         """
         Test single-star question converted to level-4 header.
         """
+        # Prepare inputs.
         txt_in = "* What is this?"
+        level = 4
+        # Prepare outputs.
         expected_continue = True
         expected_output = "#### What is this?"
-        self.helper(txt_in, expected_continue, expected_output)
+        # Run test.
+        self.helper(txt_in, expected_continue, expected_output, level=level)
 
     def test2(self) -> None:
         """
         Test double-star question converted to level-4 header.
         """
+        # Prepare inputs.
         txt_in = "** What is this?"
+        level = 4
+        # Prepare outputs.
         expected_continue = True
         expected_output = "#### What is this?"
-        self.helper(txt_in, expected_continue, expected_output)
+        # Run test.
+        self.helper(txt_in, expected_continue, expected_output, level=level)
 
     def test3(self) -> None:
         """
         Test colon-question converted to level-4 header.
         """
+        # Prepare inputs.
         txt_in = "*: What is this?"
+        level = 4
+        # Prepare outputs.
         expected_continue = True
         expected_output = "#### What is this?"
-        self.helper(txt_in, expected_continue, expected_output)
+        # Run test.
+        self.helper(txt_in, expected_continue, expected_output, level=level)
 
     def test4(self) -> None:
         """
         Test line without question marker returns False.
         """
+        # Prepare inputs.
         txt_in = "This is regular text"
+        level = 4
+        # Prepare outputs.
         expected_continue = False
         expected_output = txt_in
-        self.helper(txt_in, expected_continue, expected_output)
+        # Run test.
+        self.helper(txt_in, expected_continue, expected_output, level=level)
 
     def test5(self) -> None:
         """
         Test custom header level parameter.
         """
+        # Prepare inputs.
         txt_in = "* Question text"
+        level = 2
+        # Prepare outputs.
         expected_continue = True
         expected_output = "## Question text"
-        self.helper(txt_in, expected_continue, expected_output, level=2)
+        # Run test.
+        self.helper(txt_in, expected_continue, expected_output, level=level)
 
     def test6(self) -> None:
         """
         Test question with trailing spaces.
         """
+        # Prepare inputs.
         txt_in = "* Question text   "
+        level = 4
+        # Prepare outputs.
         expected_continue = True
         expected_output = "#### Question text   "
-        self.helper(txt_in, expected_continue, expected_output)
+        # Run test.
+        self.helper(txt_in, expected_continue, expected_output, level=level)
 
 
 # #############################################################################
@@ -1254,32 +1291,44 @@ class Test_process_abbreviations(hunitest.TestCase):
         """
         Test => replacement with spaces.
         """
+        # Prepare inputs.
         txt_in = r"A => B"
+        # Prepare outputs.
         expected = r"A $\implies$ B"
+        # Run test.
         self.helper(txt_in, expected)
 
     def test2(self) -> None:
         """
         Test no replacement without spaces around operator.
         """
+        # Prepare inputs.
         txt_in = "A=>B"
+        # Prepare outputs.
         expected = "A=>B"
+        # Run test.
         self.helper(txt_in, expected)
 
     def test3(self) -> None:
         """
         Test multiple replacements in one line.
         """
+        # Prepare inputs.
         txt_in = r"X => Y => Z"
+        # Prepare outputs.
         expected = r"X $\implies$ Y $\implies$ Z"
+        # Run test.
         self.helper(txt_in, expected)
 
     def test4(self) -> None:
         """
         Test line without abbreviations remains unchanged.
         """
+        # Prepare inputs.
         txt_in = "This line has no abbreviations"
+        # Prepare outputs.
         expected = txt_in
+        # Run test.
         self.helper(txt_in, expected)
 
 
@@ -1309,32 +1358,44 @@ class Test_process_enumerated_list(hunitest.TestCase):
         """
         Test basic enumerated list with parenthesis.
         """
+        # Prepare inputs.
         txt_in = "1) Item one"
+        # Prepare outputs.
         expected = "1. Item one"
+        # Run test.
         self.helper(txt_in, expected)
 
     def test2(self) -> None:
         """
         Test enumerated list with indentation.
         """
+        # Prepare inputs.
         txt_in = "  2) Item two"
+        # Prepare outputs.
         expected = "  2. Item two"
+        # Run test.
         self.helper(txt_in, expected)
 
     def test3(self) -> None:
         """
         Test line without enumeration remains unchanged.
         """
+        # Prepare inputs.
         txt_in = "Regular text without numbering"
+        # Prepare outputs.
         expected = txt_in
+        # Run test.
         self.helper(txt_in, expected)
 
     def test4(self) -> None:
         """
         Test numbered line without parenthesis remains unchanged.
         """
+        # Prepare inputs.
         txt_in = "1. Already formatted"
+        # Prepare outputs.
         expected = txt_in
+        # Run test.
         self.helper(txt_in, expected)
 
 
@@ -1375,47 +1436,62 @@ class Test_transform_lines_slides(hunitest.TestCase):
         """
         Test slides processing converts questions to headers.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "# Main Slide",
             "* What is this?",
             "Some content",
         ]
+        type_ = "slides"
+        is_qa = False
+        # Prepare outputs.
         expected = [
             "---",
             "# Main Slide",
             "#### What is this?",
             "Some content",
         ]
-        self.helper(lines, "slides", False, expected)
+        # Run test.
+        self.helper(lines, type_, is_qa, expected)
 
     def test2(self) -> None:
         """
         Test slides with backticks colorized properly.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "Content with `code` inline",
         ]
+        type_ = "slides"
+        is_qa = False
+        # Prepare outputs.
         expected = [
             "---",
             r"Content with \textcolor{blue}{\texttt{code}} inline",
         ]
-        self.helper(lines, "slides", False, expected)
+        # Run test.
+        self.helper(lines, type_, is_qa, expected)
 
     def test3(self) -> None:
         """
         Test slides processing with abbreviations.
         """
+        # Prepare inputs.
         lines = [
             "---",
             r"A => B is implied",
         ]
+        type_ = "slides"
+        is_qa = False
+        # Prepare outputs.
         expected = [
             "---",
             r"A $\implies$ B is implied",
         ]
-        self.helper(lines, "slides", False, expected)
+        # Run test.
+        self.helper(lines, type_, is_qa, expected)
 
 
 # #############################################################################
@@ -1454,12 +1530,19 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         """
         Test toc_type='none' with basic processing.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "# Header",
             "Content",
         ]
-        self.helper(lines, "pdf", "none", False, "# Header")
+        type_ = "pdf"
+        toc_type = "none"
+        is_qa = False
+        # Prepare outputs.
+        expected_contains = "# Header"
+        # Run test.
+        self.helper(lines, type_, toc_type, is_qa, expected_contains)
 
     def test2(self) -> None:
         """
@@ -1473,9 +1556,12 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
             "#### Header 4",
             "Content",
         ]
+        type_ = "pdf"
+        toc_type = "remove_headers"
+        is_qa = False
         # Run test.
         actual = dshdprno._preprocess_lines(
-            lines, "pdf", "remove_headers", False
+            lines, type_, toc_type, is_qa
         )
         actual_str = "\n".join(actual)
         # Check outputs.
@@ -1530,6 +1616,8 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "Question text",
             "Answer text",
         ]
+        type_ = "pdf"
+        is_qa = True
         # Prepare outputs.
         expected = [
             "  ---",
@@ -1538,7 +1626,7 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "  Answer text",
         ]
         # Run test.
-        self.helper(lines, "pdf", True, expected)
+        self.helper(lines, type_, is_qa, expected)
 
     def test2(self) -> None:
         """
@@ -1552,6 +1640,8 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "",
             "Line 2",
         ]
+        type_ = "pdf"
+        is_qa = True
         # Prepare outputs.
         expected = [
             "  ---",
@@ -1560,7 +1650,7 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "  Line 2",
         ]
         # Run test.
-        self.helper(lines, "pdf", True, expected)
+        self.helper(lines, type_, is_qa, expected)
 
     def test3(self) -> None:
         """
@@ -1576,6 +1666,8 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "code",
             "```",
         ]
+        type_ = "pdf"
+        is_qa = True
         # Prepare outputs.
         expected = [
             "  ---",
@@ -1587,7 +1679,7 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "  ```",
         ]
         # Run test.
-        self.helper(lines, "pdf", True, expected)
+        self.helper(lines, type_, is_qa, expected)
 
 
 # #############################################################################
@@ -1631,6 +1723,9 @@ class Test_transform_lines_actions(hunitest.TestCase):
             "# Title",
             "[Link text](https://example.com)",
         ]
+        type_ = "slides"
+        is_qa = False
+        actions = ["process_links"]
         # Prepare outputs.
         expected = [
             "---",
@@ -1638,7 +1733,7 @@ class Test_transform_lines_actions(hunitest.TestCase):
             r"[\textcolor{blue}{\underline{Link text}}](https://example.com)",
         ]
         # Run test.
-        self.helper(lines, "slides", False, expected, actions=["process_links"])
+        self.helper(lines, type_, is_qa, expected, actions=actions)
 
     def test2(self) -> None:
         """
@@ -1651,6 +1746,9 @@ class Test_transform_lines_actions(hunitest.TestCase):
             "- Bullet point 1",
             "- Bullet point 2",
         ]
+        type_ = "slides"
+        is_qa = False
+        actions = ["colorize_bullets"]
         # Prepare outputs.
         expected = [
             "---",
@@ -1660,7 +1758,7 @@ class Test_transform_lines_actions(hunitest.TestCase):
         ]
         # Run test.
         self.helper(
-            lines, "slides", False, expected, actions=["colorize_bullets"]
+            lines, type_, is_qa, expected, actions=actions
         )
 
 
@@ -1678,14 +1776,19 @@ class Test_preprocess_lines_navigation(hunitest.TestCase):
         """
         Test toc_type='navigation' with type_='slides'.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "# Part 1",
             "## Section 1.1",
             "Content here",
         ]
-        actual = dshdprno._preprocess_lines(lines, "slides", "navigation", False)
-        # Navigation processing should add slides
+        type_ = "slides"
+        toc_type = "navigation"
+        is_qa = False
+        # Run test.
+        actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+        # Check outputs.
         self.assertGreaterEqual(len(actual), len(lines))
 
 
@@ -1747,7 +1850,7 @@ class Test_validate_slide_names(hunitest.TestCase):
             "Some content",
         ]
         expected_line_num = 2
-        # Run test.
+        # Run test and check output.
         self.helper_invalid(lines, expected_line_num)
 
     def test3(self) -> None:
@@ -1763,7 +1866,7 @@ class Test_validate_slide_names(hunitest.TestCase):
             "More content",
         ]
         expected_line_num = 2
-        # Run test.
+        # Run test and check output.
         self.helper_invalid(lines, expected_line_num)
 
     def test4(self) -> None:
@@ -1778,7 +1881,7 @@ class Test_validate_slide_names(hunitest.TestCase):
             "More content",
         ]
         expected_line_num = 1
-        # Run test.
+        # Run test and check output.
         self.helper_invalid(lines, expected_line_num)
 
     def test5(self) -> None:
@@ -1854,7 +1957,7 @@ class Test_assert_no_existing_counters(hunitest.TestCase):
             "* Slide 1",
             "* Slide 2 (1/2)",
         ]
-        # Run test.
+        # Run test and check output.
         self.helper_invalid(lines)
 
 
@@ -1891,7 +1994,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
             "* Slide 2",
             "Content",
         ]
-        # Expected: no changes.
+        # Prepare outputs.
         expected = lines
         # Run test.
         self.helper(lines, expected)
@@ -1907,7 +2010,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
             "* Demo",
             "Content 2",
         ]
-        # Expected: counters added.
+        # Prepare outputs.
         expected = [
             "* Demo (1/2)",
             "Content 1",
@@ -1932,7 +2035,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
             "* Example",
             "Content 3",
         ]
-        # Expected: all Example slides get counters.
+        # Prepare outputs.
         expected = [
             "* Example (1/3)",
             "Content 1",
@@ -1957,7 +2060,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
             "* Other",
             "* Dup",
         ]
-        # Expected: only Dup gets counters.
+        # Prepare outputs.
         expected = [
             "* Unique",
             "* Dup (1/2)",
@@ -1973,7 +2076,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
         """
         # Prepare inputs.
         lines: List[str] = []
-        # Expected: no changes.
+        # Prepare outputs.
         expected = lines
         # Run test.
         self.helper(lines, expected)
@@ -2030,7 +2133,7 @@ class Test_validate_unique_slide_names(hunitest.TestCase):
             "* Slide 1",
             "* Slide 1",
         ]
-        # Run test.
+        # Run test and check output.
         self.helper_invalid(lines)
 
     def test3(self) -> None:
