@@ -1,6 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
 
-# TODO(ai_gp): Use the uv to install packages on the fly
+# /// script
+# dependencies = ["tqdm"]
+# ///
 
 """
 Format or lint files using Claude Code.
@@ -29,16 +31,15 @@ import argparse
 import logging
 import os
 import subprocess
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
+
+# TODO(ai_gp): Use import tqdm
+from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 
-try:
-    from tqdm import tqdm
-except ImportError:
-    tqdm = None
 
 _LOG = logging.getLogger(__name__)
 
@@ -119,10 +120,10 @@ def _get_rules_for_topic(
     }
     hdbg.dassert_in(
         topic,
-        TYPE_TO_RULES,
+        TOPIC_TO_RULES,
         "Topic not found in rules",
     )
-    rules_and_templates = TYPE_TO_RULES[topic]
+    rules_and_templates = TOPIC_TO_RULES[topic]
     rules = rules_and_templates["rules"]
     templates = rules_and_templates["templates"]
     return (rules, templates)
@@ -136,25 +137,46 @@ def _detect_file_type(file_path: str) -> Optional[str]:
     :return: Skill name (e.g., 'coding.format') or None if no match found
     """
     basename = os.path.basename(file_path)
-    if basename.startswith("test_") and f.endswith(".py"):
-        topic = "testing.format"
+    if basename.startswith("test_") and basename.endswith(".py"):
+        topic = "testing"
     elif basename.endswith(".py"):
-        topic ="coding.format"
-    # TODO(ai_gp): Add this.
-    #    (lambda f: f.endswith(".sh"), "bash.format"),
-    #    (lambda f: f.endswith(".md"), "markdown.format"),
-    #    (lambda f: f.endswith(".ipynb"), "notebook.format"),
+        topic = "coding"
+    elif basename.endswith(".sh"):
+        topic = "bash"
+    elif basename.endswith(".md"):
+        topic = "markdown"
+    elif basename.endswith(".txt"):
+        # Assume those are slides.
+        topic = "slides"
+    elif basename.endswith(".ipynb"):
+        topic = "notebook"
+    else:
+        topic = None
     return topic
 
 
-def _build_prompt(file, topic) -> str:
+def _build_prompt(file_path: str, topic: str) -> str:
     """
     Build a Claude Code prompt for the given skill and files.
 
+    :param file_path: Path to the file to process
+    :param topic:
     :return: Prompt string
     """
-    # TODO(ai_gp): Create a prompt using a role, a set of rules and templates.
-    return 
+    rules, templates = _get_rules_for_topic(topic)
+    prompt_parts = []
+    prompt_parts.append("You are a ...")
+    if rules:
+        prompt_parts.append("You MUST look for each rule below that is not followed and apply them:")
+        for rule_file in rules:
+            prompt_parts.append(f"- {rule_file}")
+    if templates:
+        prompt_parts.append("You MUST follow the templates below:")
+        for template_file in templates:
+            prompt_parts.append(f"- {template_file}")
+    prompt_parts.append("You must make sure not to change the behavior or the intent of the passed file")
+    txt = "".join(prompt_parts)
+    return txt
 
 
 def _run_claude_code(prompt: str, *, dry_run: bool = False) -> int:
@@ -203,7 +225,8 @@ def _parse() -> argparse.ArgumentParser:
         help="Claude Code skill topic (e.g., 'coding.format'). "
         "Can only be used with a single file.",
     )
-    # TODO(ai_gp): Add add_file_selection_args
+    # TODO(ai_gp): Call ./helpers/hparser.py:98:def add_file_selection_args(
+    # to select files, and make sure that this is mutually exclusive to files.
     parser.add_argument(
         "--dry_run",
         action="store_true",
@@ -221,17 +244,20 @@ def _main(parser: argparse.ArgumentParser) -> int:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     if args.topic and len(args.files) != 1:
         raise ValueError("--topic can only be used with a single file")
-    _LOG.info("Processing %d file(s) with %s", len(files), skill)
-    for file in tqdm(files, desc="Processing files"):
+    _LOG.info("Processing %d file(s)", len(args.files))
+    ret = 0
+    for file_path in tqdm(args.files, desc="Processing files"):
         if args.topic:
             topic = args.topic
         else:
-            topic = _detect_file_type(file)
-        prompt = _build_prompt(file, topic)
+            topic = _detect_file_type(file_path)
+        dbg.dassert_is_not(topic, None)
+        prompt = _build_prompt(file_path, topic)
         rc = _run_claude_code(prompt, dry_run=args.dry_run)
         ret |= rc
     return ret
 
 
 if __name__ == "__main__":
-    _main(_parse())
+    ret = _main(_parse())
+    exit(ret)
