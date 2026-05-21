@@ -7,27 +7,38 @@
 """
 Download academic papers from arXiv, DOI, and other sources with standardized filenames.
 
-Examples:
-
 # Download from arXiv URL
-python download_academic_paper.py --input "https://arxiv.org/abs/1706.03762" --output_dir ./papers
+> download_academic_paper.py --input "https://arxiv.org/abs/1706.03762"
 
 # Download from DOI URL
-python download_academic_paper.py --input "https://doi.org/10.1038/nature12373" --output_dir ./papers
+> download_academic_paper.py --input "https://doi.org/10.1038/nature12373"
 
 # Download from bare DOI
-python download_academic_paper.py --input "10.1038/nature12373" --output_dir ./papers
+> download_academic_paper.py --input "10.1038/nature12373"
 
 # Download from generic PDF URL
-python download_academic_paper.py --input "https://example.com/paper.pdf" --output_dir ./papers
+> download_academic_paper.py --input "https://example.com/paper.pdf"
+
+# Specify custom output directory
+> download_academic_paper.py --input "https://arxiv.org/abs/1706.03762" --output_dir ./my_papers
 
 # Overwrite existing files
-python download_academic_paper.py --input "10.1038/nature12373" --output_dir ./papers --no_incremental
+> download_academic_paper.py --input "10.1038/nature12373" --no_incremental
 
 Import as:
 
 import download_academic_paper as dap
 """
+
+# - Extracts metadata (year, authors, title) from arXiv API, CrossRef, or PDF
+# - Formats filenames as: <year>.<FirstAuthorLastName>.[et_al.].<Title>.pdf
+# - Checks if file already exists (skip unless --no_incremental)
+# - Saves papers to $PAPERS_DIR (or ~/papers if not set)
+# 
+# - Filename examples:
+# - "2017.Vaswani.Attention_Is_All_You_Need.pdf"
+# - "2019.Devlin.et_al.BERT_Pre-training_of_Deep_Bidirectional_Transformers.pdf"
+# - "2020.Brown.et_al.Language_Models_are_Few-Shot_Learners.pdf"
 
 import argparse
 import logging
@@ -46,24 +57,10 @@ import helpers.hretry as hretry
 
 _LOG = logging.getLogger(__name__)
 
-# Default output directory.
-DEFAULT_OUTPUT_DIR = os.path.expanduser("~/papers")
-
-# ArXiv URL patterns.
-ARXIV_ID_PATTERN = r"(?:arxiv\.org/(?:abs|pdf)/)?(\d{4}\.\d{4,5})"
-ARXIV_API_URL = "http://export.arxiv.org/api/query?id_list={arxiv_id}"
-
-# DOI detection patterns.
-DOI_URL_PATTERN = r"(?:https?://)?(?:dx\.)?doi\.org/(.+)"
-DOI_BARE_PATTERN = r"^(10\.\d{4,}/\S+)$"
-
-# API configuration.
-CROSSREF_API = "https://api.crossref.org/works"
-UNPAYWALL_API = "https://api.unpaywall.org/v2"
-MAX_RETRIES = 3
-RETRY_DELAY_SEC = 2
-API_TIMEOUT = 30
-DOWNLOAD_TIMEOUT = 300
+# API decorator configuration (shared across multiple API functions).
+_MAX_RETRIES = 3
+_RETRY_DELAY_SEC = 2
+_API_TIMEOUT = 30
 
 
 # #############################################################################
@@ -78,8 +75,9 @@ def _extract_arxiv_metadata(arxiv_id: str) -> Dict[str, Any]:
     :param arxiv_id: arXiv paper ID (e.g., "1706.03762")
     :return: dict with 'year', 'authors', 'title' keys
     """
+    _ARXIV_API_URL = "http://export.arxiv.org/api/query?id_list={arxiv_id}"
     _LOG.debug("Extracting metadata from arXiv for ID: %s", arxiv_id)
-    url = ARXIV_API_URL.format(arxiv_id=arxiv_id)
+    url = _ARXIV_API_URL.format(arxiv_id=arxiv_id)
     feed = feedparser.parse(url)
     hdbg.dassert(feed.entries, "No entries found for arXiv ID: %s", arxiv_id)
     entry = feed.entries[0]
@@ -103,21 +101,23 @@ def _detect_doi(url: str) -> Optional[str]:
     :param url: URL or bare DOI (e.g., "https://doi.org/10.xxx" or "10.xxx/yyy")
     :return: DOI if detected, None otherwise
     """
+    _DOI_URL_PATTERN = r"(?:https?://)?(?:dx\.)?doi\.org/(.+)"
+    _DOI_BARE_PATTERN = r"^(10\.\d{4,}/\S+)$"
     # Try URL pattern.
-    match = re.search(DOI_URL_PATTERN, url)
+    match = re.search(_DOI_URL_PATTERN, url)
     if match:
         return match.group(1)
     # Try bare DOI pattern.
-    match = re.search(DOI_BARE_PATTERN, url)
+    match = re.search(_DOI_BARE_PATTERN, url)
     if match:
         return match.group(1)
     return None
 
 
 @hretry.sync_retry(
-    num_attempts=MAX_RETRIES,
+    num_attempts=_MAX_RETRIES,
     exceptions=(requests.RequestException,),
-    retry_delay_in_sec=RETRY_DELAY_SEC,
+    retry_delay_in_sec=_RETRY_DELAY_SEC,
 )
 def _crossref_query(doi: str) -> Dict[str, Any]:
     """
@@ -126,17 +126,18 @@ def _crossref_query(doi: str) -> Dict[str, Any]:
     :param doi: DOI string
     :return: API response as dict
     """
-    url = f"{CROSSREF_API}/{doi}"
+    _CROSSREF_API = "https://api.crossref.org/works"
+    url = f"{_CROSSREF_API}/{doi}"
     _LOG.debug("Querying CrossRef API: %s", url)
-    resp = requests.get(url, timeout=API_TIMEOUT)
+    resp = requests.get(url, timeout=_API_TIMEOUT)
     resp.raise_for_status()
     return resp.json()
 
 
 @hretry.sync_retry(
-    num_attempts=MAX_RETRIES,
+    num_attempts=_MAX_RETRIES,
     exceptions=(requests.RequestException,),
-    retry_delay_in_sec=RETRY_DELAY_SEC,
+    retry_delay_in_sec=_RETRY_DELAY_SEC,
 )
 def _unpaywall_query(
     doi: str, *, email: str = "user@example.com"
@@ -148,10 +149,11 @@ def _unpaywall_query(
     :param email: email for API (Unpaywall requests valid email)
     :return: API response as dict
     """
-    url = f"{UNPAYWALL_API}/{doi}"
+    _UNPAYWALL_API = "https://api.unpaywall.org/v2"
+    url = f"{_UNPAYWALL_API}/{doi}"
     params = {"email": email}
     _LOG.debug("Querying Unpaywall API: %s", url)
-    resp = requests.get(url, params=params, timeout=API_TIMEOUT)
+    resp = requests.get(url, params=params, timeout=_API_TIMEOUT)
     resp.raise_for_status()
     return resp.json()
 
@@ -255,7 +257,7 @@ def _format_filename(
     """
     Format filename according to spec with bash-safe formatting (spaces → underscores).
 
-    Format: <year>_<First_author_last_name>_[et_al.]_<Title>
+    Format: <year>.<First_author_last_name>.[et_al.].<Title>
 
     :param year: publication year
     :param authors: list of author names
@@ -275,7 +277,7 @@ def _format_filename(
         last_name_parts = first_author.strip().split()
         last_name = last_name_parts[-1] if last_name_parts else "Unknown"
         if len(authors) > 1:
-            author_part = f"{last_name}_et_al"
+            author_part = f"{last_name}.et.al"
         else:
             author_part = last_name
     else:
@@ -288,8 +290,8 @@ def _format_filename(
     else:
         title_part = "UnknownTitle"
     parts.append(title_part)
-    # Join parts with underscore.
-    filename = "_".join(parts)
+    # Join parts with dot.
+    filename = ".".join(parts)
     # Remove invalid characters and replace spaces with underscores.
     filename = re.sub(r'[<>:"/\\|?*]', "", filename)
     filename = re.sub(r"\s+", "_", filename)
@@ -309,7 +311,8 @@ def _detect_arxiv_id(url: str) -> Optional[str]:
     :param url: input URL
     :return: arXiv ID if detected, None otherwise
     """
-    match = re.search(ARXIV_ID_PATTERN, url)
+    _ARXIV_ID_PATTERN = r"(?:arxiv\.org/(?:abs|pdf)/)?(\d{4}\.\d{4,5})"
+    match = re.search(_ARXIV_ID_PATTERN, url)
     return match.group(1) if match else None
 
 
@@ -323,6 +326,7 @@ def _download_paper(
     :param output_dir: directory to save PDF
     :param no_incremental: if True, overwrite existing files
     """
+    _DOWNLOAD_TIMEOUT = 300
     _LOG.info("Processing URL: %s", url)
     # Check if output directory exists.
     hdbg.dassert_dir_exists(
@@ -347,10 +351,11 @@ def _download_paper(
             _LOG.debug("Non-arXiv paper, downloading and extracting metadata")
             # Download PDF once for both extraction and saving.
             _LOG.debug("Downloading PDF from URL")
-            response = requests.get(url, timeout=DOWNLOAD_TIMEOUT)
+            response = requests.get(url, timeout=_DOWNLOAD_TIMEOUT)
             response.raise_for_status()
             pdf_content = response.content
             # Extract metadata from PDF.
+            # TODO(ai_gp): Use tempfile like "tmp.download_academic_paper.metadata.pdf"
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 tmp_path = tmp.name
             try:
@@ -387,7 +392,7 @@ def _download_paper(
         else:
             download_url = url
         _LOG.debug("Downloading PDF from URL: %s", download_url)
-        response = requests.get(download_url, timeout=DOWNLOAD_TIMEOUT)
+        response = requests.get(download_url, timeout=_DOWNLOAD_TIMEOUT)
         response.raise_for_status()
         pdf_content = response.content
     # Save PDF.
@@ -406,6 +411,9 @@ def _parse() -> argparse.ArgumentParser:
     """
     Parse command-line arguments.
     """
+    _DEFAULT_OUTPUT_DIR = os.path.expanduser(
+        os.getenv("PAPERS_DIR", "~/papers")
+    )
     parser = argparse.ArgumentParser(
         description="Download academic papers with standardized filenames"
     )
@@ -418,8 +426,8 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-o",
         "--output_dir",
-        default=DEFAULT_OUTPUT_DIR,
-        help=f"Output directory (default: {DEFAULT_OUTPUT_DIR})",
+        default=_DEFAULT_OUTPUT_DIR,
+        help=f"Output directory (default: $PAPERS_DIR or ~/papers if unset)",
     )
     parser.add_argument(
         "--no_incremental",

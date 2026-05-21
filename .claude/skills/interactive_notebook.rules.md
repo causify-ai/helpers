@@ -66,37 +66,48 @@ description: Conventions and standards for interactive Jupyter notebook structur
     - The comment panel uses a wheat-colored rounded box (via `add_fitted_text_box`
       defaults) to highlight key observations, parameters, and insights
 
-## Widget Control Patterns
+## Widgets
 
-### Linear Scale (default for most parameters)
-```python
-slider, box = htutori.build_widget_control(
-    name="alpha",
-    description="Shape parameter",
-    min_val=0.5,
-    max_val=10,
-    step=0.5,
-    initial_value=2,
-    is_float=True,
-)
-```
+- Interactive widgets must always have:
+  - The name of the variable (e.g., n, mu, nu)
+  - Value cell and "-" and "+" buttons
 
-### Logarithmic Scale (for parameters spanning orders of magnitude)
-```python
-exp_slider, box = htutori.build_log_widget_control(
-    name="log(N)",
-    description="Sample count",
-    min_exp=2,      # 2^2 = 4
-    max_exp=12,     # 2^12 = 4096
-    initial_exp=10, # 2^10 = 1024
-    base=2,
-)
-```
+- The widget to select the seed must always be the first widget
+
+- `htutori.build_widget_control()` for linear-scale sliders (alpha, beta, epsilon, etc.)
+- `htutori.build_log_widget_control()` for logarithmic-scale parameters (N, sample count)
 
 - Each returns `(slider, HBox)` where the `HBox` includes the slider, +/-
   buttons, and text display
 
-## Widget Parameter Names
+- A linear scale widget looks like
+  ```python
+  slider, box = htutori.build_widget_control(
+      name="alpha",
+      description="Shape parameter",
+      min_val=0.5,
+      max_val=10,
+      step=0.5,
+      initial_value=2,
+      is_float=True,
+  )
+  ```
+
+- Use a logarithmic Scale for parameters spanning orders of magnitude
+  ```python
+  # Create N widget with logarithmic slider and +/- buttons.
+  # Uses exponents 2-10 for base 2: gives values 4, 8, 16, 32, 64, 128, 256, 512, 1024
+  # Initial exponent 4 gives initial value of 16
+  N_exp_slider, N_box = htutori.build_log_widget_control(
+      name="log(N)",
+      description="N (total samples)",
+      min_exp=2,
+      max_exp=10,
+      initial_exp=4,
+      base=2,
+  )
+  ```
+
 - Use short, unadorned variable names in widgets:
   - Use: `mu`, `N`, `epsilon`, `seed`, `alpha`, `beta`
   - Avoid: `mean_value`, `num_samples`, `noise_std_dev`, `shape_param`
