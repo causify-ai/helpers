@@ -364,46 +364,51 @@ class Test_remove_headers1(hunitest.TestCase):
 
     def helper(
         self,
-        lines_in: Sequence[str],
-        expected: Sequence[str],
+        lines_in_str: str,
+        expected_str: str,
         *,
         max_level: int = 999,
     ) -> None:
         """
         Helper method to test the _remove_headers function.
 
-        :param lines_in: input lines
-        :param expected: expected output lines
+        :param lines_in_str: input text with dedent applied
+        :param expected_str: expected output text with dedent applied
         :param max_level: maximum level of headers to consider (default:
             999 to remove all headers)
         """
-        actual = dshdprno._remove_headers(list(lines_in), max_level)
-        # Convert lists to strings for comparison.
+        # Prepare inputs.
+        lines_in = lines_in_str.split("\n")
+        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
+        expected = expected_str.split("\n")
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdprno._remove_headers(lines_in, max_level)
+        # Check outputs.
         actual_str = "\n".join(actual)
-        expected_str = "\n".join(expected)
-        self.assert_equal(actual_str, expected_str)
+        expected_str_final = "\n".join(expected)
+        self.assert_equal(actual_str, expected_str_final)
 
     def test1(self) -> None:
         """
         Test removing a single level 1 header.
         """
+        # Prepare inputs.
         lines_in = """
         # Chapter 1
         Some content here
         """
-        lines_in = lines_in.split("\n")
-        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
         expected = """
         Some content here
         """
-        expected = expected.split("\n")
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        # Run test.
         self.helper(lines_in, expected)
 
     def test2(self) -> None:
         """
         Test removing headers of various levels.
         """
+        # Prepare inputs.
         lines_in = """
         # Chapter 1
         Content line 1
@@ -414,22 +419,20 @@ class Test_remove_headers1(hunitest.TestCase):
         #### Sub-subsection
         Content line 4
         """
-        lines_in = lines_in.split("\n")
-        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
         expected = """
         Content line 1
         Content line 2
         Content line 3
         Content line 4
         """
-        expected = expected.split("\n")
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        # Run test.
         self.helper(lines_in, expected)
 
     def test3(self) -> None:
         """
         Test headers mixed with regular text and bullet points.
         """
+        # Prepare inputs.
         lines_in = """
         # Header
         - Bullet point 1
@@ -437,52 +440,56 @@ class Test_remove_headers1(hunitest.TestCase):
         ## Subheader
         Regular text
         """
-        lines_in = lines_in.split("\n")
-        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
         expected = """
         - Bullet point 1
         - Bullet point 2
         Regular text
         """
-        expected = expected.split("\n")
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        # Run test.
         self.helper(lines_in, expected)
 
     def test4(self) -> None:
         """
         Test input with no headers (should return unchanged).
         """
+        # Prepare inputs.
         lines_in = """
         This is some text
         - Bullet point
         More text
         """
-        lines_in = lines_in.split("\n")
-        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
         expected = lines_in
+        # Run test.
         self.helper(lines_in, expected)
 
     def test5(self) -> None:
         """
         Test input with only headers (should return empty list).
         """
+        # Prepare inputs.
         lines_in = """
         # Header 1
         ## Header 2
         ### Header 3
         """
-        lines_in = lines_in.split("\n")
-        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
-        expected = []
+        expected = ""
+        # Run test.
         self.helper(lines_in, expected)
 
     def test6(self) -> None:
         """
         Test that empty lines around headers are preserved.
         """
+        # Prepare inputs.
         lines_in = ["", "# Header", "", "Content", ""]
+        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=False)
         expected = ["", "", "Content", ""]
-        self.helper(lines_in, expected)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
+        # Run test.
+        actual = dshdprno._remove_headers(lines_in, 999)
+        actual_str = "\n".join(actual)
+        expected_str = "\n".join(expected)
+        self.assert_equal(actual_str, expected_str)
 
 
 # #############################################################################
@@ -688,21 +695,29 @@ class Test_extract_section(hunitest.TestCase):
 
     def helper(
         self,
-        lines: Sequence[str],
+        lines_str: str,
         section_name: str,
-        expected: Optional[Sequence[str]],
+        expected_str: Optional[str],
     ) -> None:
         """
         Test helper for _extract_section.
 
-        :param lines: input lines list
+        :param lines_str: input text with dedent applied
         :param section_name: section name to extract
-        :param expected: expected extracted lines or None
+        :param expected_str: expected extracted text or None
         """
+        # Prepare inputs.
+        lines_str_dedented = hprint.dedent(lines_str)
+        lines = lines_str_dedented.strip().split("\n") if lines_str_dedented.strip() else []
         # Run test.
-        actual = dshdprno._extract_section(list(lines), section_name)
+        actual = dshdprno._extract_section(lines, section_name)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        if expected_str is None:
+            self.assertEqual(actual, None)
+        else:
+            expected_str_dedented = hprint.dedent(expected_str)
+            expected = expected_str_dedented.strip().split("\n") if expected_str_dedented.strip() else []
+            self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
@@ -716,14 +731,10 @@ class Test_extract_section(hunitest.TestCase):
         # Section B
         Line 1 of section B
         """
-        lines = lines.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         expected = """
         Line 1 of section A
         Line 2 of section A
         """
-        expected = expected.split("\n")
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Run test.
         self.helper(lines, "Section A", expected)
 
@@ -739,14 +750,10 @@ class Test_extract_section(hunitest.TestCase):
         Line 1 of B
         Line 2 of B
         """
-        lines = lines.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         expected = """
         Line 1 of B
         Line 2 of B
         """
-        expected = expected.split("\n")
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Run test.
         self.helper(lines, "Section B", expected)
 
@@ -761,8 +768,6 @@ class Test_extract_section(hunitest.TestCase):
         # Section B
         Content B
         """
-        lines = lines.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         expected = None
         # Run test.
         self.helper(lines, "Section C", expected)
@@ -777,9 +782,7 @@ class Test_extract_section(hunitest.TestCase):
         # Section B
         Content B
         """
-        lines = lines.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        expected = []
+        expected = ""
         # Run test.
         self.helper(lines, "Section A", expected)
 
@@ -798,8 +801,6 @@ class Test_extract_section(hunitest.TestCase):
         # Next Section
         Next content
         """
-        lines = lines.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         expected = """
         Intro text
         ## Subsection 1
@@ -807,8 +808,6 @@ class Test_extract_section(hunitest.TestCase):
         ### Deep subsection
         Deep content
         """
-        expected = expected.split("\n")
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Run test.
         self.helper(lines, "Main Section", expected)
 
@@ -818,6 +817,7 @@ class Test_extract_section(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): Can we simplify this without using the temp dir?
 class Test_expand_includes(hunitest.TestCase):
     """
     Test the `_expand_includes()` function.
@@ -1100,7 +1100,7 @@ class Test_process_question_to_slides(hunitest.TestCase):
         )
         # Check outputs.
         self.assertEqual(actual_continue, expected_continue)
-        self.assertEqual(actual_output, expected_output)
+        self.assert_equal(actual_output, expected_output)
 
     def test1(self) -> None:
         """
@@ -1177,7 +1177,7 @@ class Test_process_abbreviations(hunitest.TestCase):
         # Run test.
         actual = dshdprno._process_abbreviations(txt_in)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -1232,7 +1232,7 @@ class Test_process_enumerated_list(hunitest.TestCase):
         # Run test.
         actual = dshdprno._process_enumerated_list(txt_in)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -1394,6 +1394,7 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         """
         Test toc_type='remove_headers' removes appropriate headers.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "# Header 1",
@@ -1401,15 +1402,20 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
             "#### Header 4",
             "Content",
         ]
+        # Run test.
         actual = dshdprno._preprocess_lines(
             lines, "pdf", "remove_headers", False
         )
         actual_str = "\n".join(actual)
-        # Should remove headers level < 4
-        self.assertNotIn("# Header 1", actual_str)
-        self.assertNotIn("## Header 2", actual_str)
-        # Should keep level 4
-        self.assertIn("#### Header 4", actual_str)
+        # Check outputs.
+        expected_dict = {
+            "# Header 1": False,
+            "## Header 2": False,
+            "#### Header 4": True,
+        }
+        for text, should_be_present in expected_dict.items():
+            is_present = text in actual_str
+            self.assertEqual(is_present, should_be_present)
 
 
 # #############################################################################
@@ -1446,24 +1452,26 @@ class Test_transform_lines_qa(hunitest.TestCase):
         """
         Test QA file processing adds indentation to non-header lines.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "# Chapter Title",
             "Question text",
             "Answer text",
         ]
+        # Run test.
         actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
         actual_str = "\n".join(actual)
-        # Chapter headers should not be indented
-        self.assertIn("# Chapter Title", actual_str)
-        # Non-header lines should be indented
-        self.assertIn("  Question text", actual_str)
-        self.assertIn("  Answer text", actual_str)
+        # Check outputs.
+        expected_contains = ["# Chapter Title", "  Question text", "  Answer text"]
+        for expected_text in expected_contains:
+            self.assertIn(expected_text, actual_str)
 
     def test2(self) -> None:
         """
         Test QA file removes empty lines unless adjacent to special content.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "# Chapter",
@@ -1471,14 +1479,16 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "",
             "Line 2",
         ]
+        # Run test.
         actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
-        # Empty line between content should be removed
-        self.assertNotIn("", actual)
+        # Check outputs.
+        self.assertEqual("" in actual, False)
 
     def test3(self) -> None:
         """
         Test QA file preserves empty lines before code blocks.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "# Chapter",
@@ -1488,9 +1498,10 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "code",
             "```",
         ]
+        # Run test.
         actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
         actual_str = "\n".join(actual)
-        # Empty line before code block should be preserved
+        # Check outputs.
         self.assertIn("```python", actual_str)
 
 
