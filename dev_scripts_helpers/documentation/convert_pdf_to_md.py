@@ -80,9 +80,9 @@ def _remove_junk(*, pdf_path: str, output_dir: Optional[str] = None) -> None:
     with open(md_path, "r", encoding="utf-8") as f:
         content = f.read()
     original_content = content
-    # Remove HTML page comments.
+    # Remove HTML page marker comments like "<!-- Page 12 -->".
     content = re.sub(r"<!--\s*Page\s+\d+\s*-->\n*", "", content)
-    # Remove standalone page number headings (e.g., "### 11").
+    # Remove standalone page number headings such as "### 11".
     content = re.sub(r"^#+\s+\d+\s*$", "", content, flags=re.MULTILINE)
     # Remove excessive blank lines (more than 2 consecutive newlines).
     content = re.sub(r"\n\n\n+", "\n\n", content)
@@ -121,7 +121,7 @@ def _extract_images_from_page(
     _LOG.debug(
         "Page %d: Found %d images via get_images()", page_num, len(image_list)
     )
-    # Track which xrefs we've already processed to avoid duplicates.
+    # Track which xrefs we have already processed to avoid duplicates.
     processed_xrefs = set()
     for img_index, img in enumerate(image_list, start=1):
         xref = img[0]
@@ -130,7 +130,7 @@ def _extract_images_from_page(
             continue
         processed_xrefs.add(xref)
         try:
-            # Extract image.
+            # Extract image from the PDF.
             base_image = page.parent.extract_image(xref)  # type: ignore
             image_bytes = base_image["image"]
             image_ext = base_image["ext"]
@@ -141,17 +141,17 @@ def _extract_images_from_page(
                 y_pos = rects[0].y0
                 _LOG.debug("Image xref %d positioned at y=%.2f", xref, y_pos)
             else:
-                # If no position found, place at end of page.
+                # Place image at end of page if no position found.
                 y_pos = float("inf")
                 _LOG.warning(
                     "Page %d: No position found for image xref %d",
                     page_num,
                     xref,
                 )
-            # Generate filename.
+            # Generate image filename for this page and index.
             image_filename = f"page_{page_num}_img_{img_index}.{image_ext}"
             image_path = os.path.join(images_dir, image_filename)
-            # Save image only when not skipping figures.
+            # Save image to disk only when not skipping figures.
             if save_images:
                 with open(image_path, "wb") as f:
                     f.write(image_bytes)
@@ -162,7 +162,7 @@ def _extract_images_from_page(
                     xref,
                     len(image_bytes),
                 )
-            # Create markdown reference using the images directory name.
+            # Create markdown reference with the images directory name.
             img_markdown = f"![Figure]({images_dir_name}/{image_filename})"
             image_items.append((y_pos, image_filename, img_markdown))
         except Exception as e:
@@ -172,17 +172,16 @@ def _extract_images_from_page(
                 xref,
                 str(e),
             )
-    # Try to extract vector graphics as images.
+    # Extract vector graphics by rendering page as image.
     drawings = page.get_drawings()
     _LOG.debug("Page %d: Found %d vector drawings", page_num, len(drawings))
     if drawings:
-        # Render the entire page as an image to capture vector graphics.
-        # We'll do this only if there are drawings and few raster images.
+        # Render page as image to capture vector graphics if there are few raster images.
         if len(image_list) < 3:
             img_index = len(image_list) + 1
             image_filename = f"page_{page_num}_rendered_{img_index}.png"
             image_path = os.path.join(images_dir, image_filename)
-            # Render and save page only when not skipping figures.
+            # Render and save page to disk only when not skipping figures.
             if save_images:
                 _LOG.debug(
                     "Page %d: Rendering page to capture vector graphics",
@@ -199,7 +198,7 @@ def _extract_images_from_page(
                 )
                 y_pos = rect.height / 2
             else:
-                # Approximate position at page center when not rendering.
+                # Approximate position at page center when not saving figures.
                 y_pos = page.rect.height / 2
             img_markdown = (
                 f"![Figure (rendered)]({images_dir_name}/{image_filename})"
@@ -208,12 +207,14 @@ def _extract_images_from_page(
     return image_items
 
 
-def _analyze_font_sizes(page: fitz.Page) -> Dict:  # type: ignore
+def _analyze_font_sizes(page: fitz.Page) -> Dict[str, float]:  # type: ignore
     """
     Analyze font sizes in a page to determine heading thresholds.
 
     :param page: PyMuPDF page object
     :return: Dictionary with font size statistics
+        - Keys: "median", "h1_threshold", "h2_threshold", "h3_threshold"
+        - Values: Computed font size thresholds as floats
     """
     text_dict = page.get_text("dict")  # type: ignore
     font_sizes = []
@@ -224,6 +225,7 @@ def _analyze_font_sizes(page: fitz.Page) -> Dict:  # type: ignore
                     size = span.get("size", 0)
                     if size > 0:
                         font_sizes.append(size)
+    # Return default thresholds if no font sizes detected.
     if not font_sizes:
         return {
             "median": 10,
@@ -231,9 +233,9 @@ def _analyze_font_sizes(page: fitz.Page) -> Dict:  # type: ignore
             "h2_threshold": 14,
             "h3_threshold": 12,
         }
+    # Compute heading thresholds based on median font size.
     font_sizes.sort()
     median_size = font_sizes[len(font_sizes) // 2]
-    # Thresholds for different heading levels.
     h1_threshold = median_size * 1.5
     h2_threshold = median_size * 1.3
     h3_threshold = median_size * 1.1
@@ -256,7 +258,7 @@ def _extract_text_with_formatting(
     page: fitz.Page,
     *,
     page_num: int,
-    font_thresholds: Dict,  # type: ignore
+    font_thresholds: Dict[str, float],  # type: ignore
 ) -> List[Tuple[float, str, str]]:
     """
     Extract text with formatting information to identify headers.
@@ -264,7 +266,12 @@ def _extract_text_with_formatting(
     :param page: PyMuPDF page object
     :param page_num: Page number (1-indexed)
     :param font_thresholds: Dictionary with font size thresholds
+        - Keys: "h1_threshold", "h2_threshold", "h3_threshold"
+        - Values: Minimum font sizes for each heading level
     :return: List of tuples (y_position, markdown_type, content)
+        - y_position: Vertical position on page
+        - markdown_type: "h1", "h2", "h3", or "text"
+        - content: Extracted text content
     """
     text_dict = page.get_text("dict")  # type: ignore
     text_items = []
@@ -339,13 +346,13 @@ def _pdf_to_markdown(
     if not output_dir:
         output_dir = "."
     hio.create_dir(output_dir, incremental=True)
-    # Compute output paths using the PDF stem.
+    # Compute output paths and directory names using the PDF stem.
     pdf_stem = os.path.splitext(os.path.basename(pdf_path))[0]
     images_dir_name = f"{pdf_stem}.figs"
     images_dir = os.path.join(output_dir, images_dir_name)
     md_filename = pdf_stem + ".md"
     md_path = os.path.join(output_dir, md_filename)
-    # Handle existing output files.
+    # Handle existing output files: delete if overwrite flag is set.
     if os.path.exists(md_path) or os.path.exists(images_dir):
         if overwrite:
             if os.path.exists(md_path):
@@ -358,7 +365,7 @@ def _pdf_to_markdown(
             raise ValueError(
                 f"Output file already exists: {md_path} (use --overwrite to replace)"
             )
-    # Create images directory only when extracting figures.
+    # Create images directory to store extracted figures.
     if not skip_figures:
         hio.create_dir(images_dir, incremental=True)
     _LOG.debug("Opening PDF: %s", pdf_path)
@@ -375,7 +382,7 @@ def _pdf_to_markdown(
         _LOG.debug("Processing page %d of %d", page_num, len(doc))
         # Analyze font sizes to determine heading thresholds.
         font_thresholds = _analyze_font_sizes(page)
-        # Extract images with positions (saving files only when not skipping figures).
+        # Extract images with positions (save files only when not skipping figures).
         image_items = _extract_images_from_page(
             page,
             page_num=page_num,
@@ -391,17 +398,17 @@ def _pdf_to_markdown(
             font_thresholds=font_thresholds,
         )
         _LOG.debug("Page %d: Found %d text items", page_num, len(text_items))
-        # Create items list with both text and images, each as (y_position, type, content).
+        # Create items list combining text and images, each as (y_position, type, content).
         items = []
         for y_pos, md_type, content in text_items:
             items.append((y_pos, md_type, content))
         for y_pos, _, img_markdown in image_items:
             items.append((y_pos, "image", img_markdown))
-        # Sort all items by y-position (top to bottom).
+        # Sort all items by y-position to maintain document order.
         items.sort(key=lambda x: x[0])
-        # Add page marker.
+        # Add page marker comment.
         md_lines.append(f"\n\n<!-- Page {page_num} -->\n\n")
-        # Process items in order.
+        # Process items in order and format as markdown.
         for y_pos, item_type, content in items:
             if item_type == "h1":
                 md_lines.append(f"# {content}")
@@ -412,15 +419,15 @@ def _pdf_to_markdown(
             elif item_type == "text":
                 md_lines.append(content)
             elif item_type == "image":
-                # Comment out image refs when figures are skipped.
+                # Comment out image references when figures are skipped.
                 if skip_figures:
                     md_lines.append(f"<!-- {content} -->")
                 else:
                     md_lines.append(content)
                 _LOG.debug("Inserted image at y=%.2f", y_pos)
-    # Save markdown file.
+    # Join markdown lines and apply formatting.
     markdown_content = "\n\n".join(md_lines)
-    # Apply prettier formatting to the markdown.
+    # Apply prettier formatting to the markdown content.
     _LOG.info("Applying prettier formatting to markdown")
     markdown_content = dshdlipr.prettier_on_str(
         markdown_content,
@@ -430,6 +437,7 @@ def _pdf_to_markdown(
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(markdown_content)
     _LOG.debug("=" * 60)
+    # Log extraction results based on figure skip setting.
     if not skip_figures:
         _LOG.debug("Extracted %d total images", total_images)
         _LOG.debug("Images saved to: %s", os.path.abspath(images_dir))

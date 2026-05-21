@@ -218,28 +218,35 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     return txt, topic_info
 
 
-def _run_claude_code(prompt: str, *, dry_run: bool = False) -> int:
+def _run_claude_code(prompt: str, file_path: str, *, dry_run: bool = False) -> int:
     """
     Run Claude Code with the given prompt.
 
-    :param prompt: Claude Code prompt (e.g., '/coding.format file1.py file2.py')
+    :param prompt: Claude Code prompt
     :param dry_run: If True, print command but don't execute
     :return: Return code (0 on success, or subprocess return code)
     """
+    # Add the file.
+    hdbg.dassert_file_exists(file_path)
+    prompt += f"\nThe file to process is {file_path}"
+    _LOG.info("Prompt:\n%s", prompt)
+    # Create the file.
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
+    #
     cmd_parts = [
         "claude",
+        "-p",
         "--dangerously-skip-permissions",
         "--output-format=text",
-        f"-p={prompt}",
+        f"'Execute the file {prompt_file}'"
     ]
     cmd = " ".join(cmd_parts)
     _LOG.info("Claude command: %s", cmd)
     if dry_run:
         _LOG.info("Dry run: command not executed")
         return 0
-    _LOG.debug("Executing: %s", cmd)
+    _LOG.debug("Executing: %s", " ".join(cmd_parts[:4]))
     result = subprocess.run(cmd_parts, capture_output=False)
     return result.returncode
 
@@ -275,14 +282,17 @@ def _main(parser: argparse.ArgumentParser) -> int:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    all_files = False
+    mutually_exclusive = True
+    remove_dirs = False
     files = hgit.get_files_to_process(
         args.modified,
         args.branch,
         args.last_commit,
-        args.all_,
-        args.files_from_user,
-        args.mutually_exclusive,
-        args.remove_dirs,
+        all_files,
+        args.files,
+        mutually_exclusive,
+        remove_dirs,
     )
     if args.topic and len(files) != 1:
         raise ValueError("--topic can only be used with a single file")
@@ -296,13 +306,14 @@ def _main(parser: argparse.ArgumentParser) -> int:
             hdbg.dassert_is_not(topic, None, "Topic detection failed")
             topic_str = cast(str, topic)
         prompt, topic_info = _build_prompt(topic_str)
+        rc = _run_claude_code(prompt, file_path, dry_run=args.dry_run)
+        ret |= rc
+        # Post-process.
         if topic_info["run_jupytext"]:
             cmd = ["jupytext", "--sync", file_path]
             hsystem.system(" ".join(cmd))
         if topic_info["run_lint"]:
             hlint.lint_file(file_path)
-        rc = _run_claude_code(prompt, dry_run=args.dry_run)
-        ret |= rc
     return ret
 
 
