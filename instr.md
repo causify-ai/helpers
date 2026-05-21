@@ -1,7 +1,31 @@
-Create a script called linters2/lint_cc.py that accepts a list of files and calls
-claude code with a prompt referring to the proper files
+In linters2/lint_cc.py 
+
+Implement the TODO(ai_gp)
 
 The prompt is built based on the type of files to process
+
+create a mapping from file type to rules, template files, to use for each type of file
+
+For notebooks
+- The rule files are
+  `.claude/skills/notebook.rules.md`
+  `.claude/skills/interactive_notebook.rules.md
+- The templates are
+    - `.claude/templates/interactive_notebook.template.py`
+    -`.claude/templates/interactive_notebook_utils_template.py`
+
+For blog
+- `.claude/skills/blog.rules.md`: for blog formatting rules
+- `.claude/skills/markdown.rules.md`: for markdown formatting rules
+- `.claude/skills/text.rules.bullet_points.md`: for formatting rules of text in
+  bullet points
+
+For python code
+- Format the Python files according to the rules in
+  `@.claude/skills/coding.rules.md`
+
+
+Complete the mapping reading the files
 
 # Step 1
 Read .claude/rules.md
@@ -21,9 +45,6 @@ Read the files
 .claude/skills/testing.format/SKILL.md
 .claude/skills/tool_X_in_30_mins.format/SKILL.md
 .claude/skills/tool_X_in_60_mins.format/SKILL.md
-
-# Step 3
-create a mapping from file type to rules, template files, to use for each type of file
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

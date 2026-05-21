@@ -9,11 +9,13 @@ files.
 
 import argparse
 import logging
+import os
+import shlex
+import subprocess
 from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
@@ -37,7 +39,7 @@ def _build_ripgrep_command(
     :param files: Specific files to search in, optional list
     :return: Command list ready for subprocess
     """
-    cmd = ["rg"]
+    cmd = ["rg", pattern, directory]
     if extensions:
         for ext in extensions:
             # Ensure extensions don't have a dot prefix since ripgrep expects
@@ -49,20 +51,16 @@ def _build_ripgrep_command(
                 ext,
             )
             cmd.extend(["-g", f"*.{ext}"])
-    cmd.append(pattern)
     # Look also in hidden files, like `.claude`.
     cmd.append("--hidden")
     if files:
         cmd.extend(files)
-    else:
-        cmd.append(directory)
     cmd.extend(rg_opts)
     return cmd
 
 
 # TODO(ai_gp2): Factor this out in hparser.py or similar.
 def _get_files_to_search(
-    *,
     modified: bool,
     branch: bool,
     last_commit: bool,
@@ -338,17 +336,23 @@ def main(
         rg_opts,
         files=files,
     )
-    # Convert command list to string for logging and execution.
-    cmd_str = " ".join(cmd)
-    # Append pipe to tee for capturing output when --cfile was specified.
-    if parsed["need_capture"]:
-        cmd_str = cmd_str + " 2>&1 | tee cfile"
-    # Log the command in shell format for easy copy-paste debugging.
+    # Log the command for debugging.
+    cmd_str = " ".join(shlex.quote(arg) for arg in cmd)
     _LOG.debug("> %s", cmd_str)
     if parsed["dry_run"]:
         # Print the command and exit without running it.
         print(cmd_str)
         return 0
-    # Run the command using system call.
-    hsystem.system(cmd_str)
-    return 0
+    # Run the command using system call and capture output.
+    if parsed["need_capture"]:
+        # For piping to tee, use shell=True with the string command.
+        cmd_str = cmd_str + " 2>&1 | tee cfile"
+        result = subprocess.run(cmd_str, shell=True, text=True)
+        # Open vim with the cfile if it was created.
+        if os.path.exists("cfile"):
+            vim_cmd = 'vim -c "cfile cfile"'
+            subprocess.run(vim_cmd, shell=True)
+    else:
+        # For normal execution, pass the command as a list.
+        result = subprocess.run(cmd, text=True)
+    return result.returncode if result else 0
