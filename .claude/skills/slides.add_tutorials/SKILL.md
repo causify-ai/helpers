@@ -3,7 +3,7 @@ description: Add a tutorial for lecture slides
 ---
 
 # Role
-- Your role is specified in `@.claude/skills/role.md`
+- Your role is specified in `.claude/skills/role.ai_researcher.md`
 
 # Step 1: Read File
 - Read the passed file `<FILE>`

@@ -3,7 +3,7 @@ description: Enrich a slide with references to academic papers and books
 ---
 
 # Role
-- Your role is specified in `@.claude/skills/role.md`
+- Your role is specified in `.claude/skills/role.ai_researcher.md`
 
 # Goal
 - Your task is to review the content of the file with slides and add references

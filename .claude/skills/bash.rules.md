@@ -1,9 +1,3 @@
----
-description: Format a bash file according to conventions
----
-
-- You are an expert at writing `bash` scripts
-
 ## Add Description at the Beginning of a Script
 
 - Add a short description of what a script using a single short paragraph.

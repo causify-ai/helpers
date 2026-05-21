@@ -3,7 +3,7 @@ description: Explain a lecture slide
 ---
 
 # Role
-- Your role is specified in `@.claude/skills/role.md`
+- Your role is specified in `.claude/skills/role.ai_researcher.md`
 
 # Goal
 - Given a file `<FILE>` storing lecture slides in the format described in

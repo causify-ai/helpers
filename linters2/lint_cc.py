@@ -31,9 +31,8 @@ import argparse
 import logging
 import os
 import subprocess
-from typing import List, Optional, Tuple
+from typing import cast, List, Optional, Tuple
 
-# TODO(ai_gp): Use import tqdm
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
@@ -53,8 +52,11 @@ def _get_rules_for_topic(
     :param topic: Topic name (e.g., 'coding', 'testing')
     :return: Tuple of (rules list, templates list)
     """
-    # TODO(gp): Add role.
-    #_PYTHON_ROLE = "You are 
+    # TODO(ai_gp): Add a parameter "role" pointing to one of the files below
+    # .claude/skills/role.ai_researcher.md
+    # .claude/skills/role.python.md
+    # TODO(ai_gp): In rules factor out the string .claude/skills/ so that it's added at the end
+    # Same thing for template -> .claude/templates/
     TOPIC_TO_RULES = {
         "skill": {
             "rules": [".claude/skills/skill.rules.md"],
@@ -137,6 +139,15 @@ def _detect_file_type(file_path: str) -> Optional[str]:
     :return: Skill name (e.g., 'coding.format') or None if no match found
     """
     basename = os.path.basename(file_path)
+    # TODO(ai_gp): Add rules for
+    # .claude/skills/blog.rules.md
+    # .claude/skills/book.rules.md
+    # .claude/skills/latex.rules.md
+    # .claude/skills/readme.rules.md
+    # .claude/skills/skill.rules.md
+    # .claude/skills/tool_X_in_30_mins.rules.md
+    # .claude/skills/tool_X_in_60_mins.rules.md
+    # TODO(ai_gp): Keep the check in alphabetical order per topic.
     if basename.startswith("test_") and basename.endswith(".py"):
         topic = "testing"
     elif basename.endswith(".py"):
@@ -151,16 +162,15 @@ def _detect_file_type(file_path: str) -> Optional[str]:
     elif basename.endswith(".ipynb"):
         topic = "notebook"
     else:
-        topic = None
+        raise ValueError(f"Invalid topic for filename '{file_path}'")
     return topic
 
 
-def _build_prompt(file_path: str, topic: str) -> str:
+def _build_prompt(topic: str) -> str:
     """
-    Build a Claude Code prompt for the given skill and files.
+    Build a Claude Code prompt for the given skill.
 
-    :param file_path: Path to the file to process
-    :param topic:
+    :param topic: Topic name (e.g., 'coding', 'testing')
     :return: Prompt string
     """
     rules, templates = _get_rules_for_topic(topic)
@@ -174,8 +184,8 @@ def _build_prompt(file_path: str, topic: str) -> str:
         prompt_parts.append("You MUST follow the templates below:")
         for template_file in templates:
             prompt_parts.append(f"- {template_file}")
-    prompt_parts.append("You must make sure not to change the behavior or the intent of the passed file")
-    txt = "".join(prompt_parts)
+    prompt_parts.append("You MUST make sure not to change the behavior or the intent of the passed file")
+    txt = "\n".join(prompt_parts)
     return txt
 
 
@@ -214,24 +224,18 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "files",
-        nargs="+",
-        help="Files to format/lint",
-    )
-    parser.add_argument(
         "--topic",
         type=str,
         default=None,
         help="Claude Code skill topic (e.g., 'coding.format'). "
         "Can only be used with a single file.",
     )
-    # TODO(ai_gp): Call ./helpers/hparser.py:98:def add_file_selection_args(
-    # to select files, and make sure that this is mutually exclusive to files.
     parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Print the command but don't execute",
     )
+    hparser.add_file_selection_args(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -242,20 +246,42 @@ def _main(parser: argparse.ArgumentParser) -> int:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    if args.topic and len(args.files) != 1:
+    # TODO(ai_gp): Use hgit.get_files_to_process to extract the files given the
+    # command line options.
+    files = hgit.get_files_to_process(args.modified)
+    if args.topic and len(files) != 1:
         raise ValueError("--topic can only be used with a single file")
-    _LOG.info("Processing %d file(s)", len(args.files))
+    _LOG.info("Processing %d file(s)", len(files))
     ret = 0
-    for file_path in tqdm(args.files, desc="Processing files"):
+    for file_path in tqdm(files, desc="Processing files"):
         if args.topic:
-            topic = args.topic
+            topic_str = args.topic
         else:
             topic = _detect_file_type(file_path)
-        dbg.dassert_is_not(topic, None)
-        prompt = _build_prompt(file_path, topic)
+            hdbg.dassert_is_not(topic, None, "Topic detection failed")
+            topic_str = cast(str, topic)
+        prompt = _build_prompt(topic_str)
         rc = _run_claude_code(prompt, dry_run=args.dry_run)
         ret |= rc
     return ret
+
+#- I will pass you a Python file `<FILE.py>` paired with Jupyter notebook with
+#  `Jupytext` using a `py:percent` format
+#
+#- Read the file with the conventions and guidelines
+#  `.claude/skills/notebook.rules.md` and apply them without changing the intent
+#  and behavior of the notebook
+#
+## Use Jupytext
+#- Remember to modify only the Python file paired with Jupytext to the notebook
+#  and then sync them with Jupytext
+
+
+#- After all the transformations apply the linter
+#  ```
+#  > lint_txt.py -i <file>
+#  ```
+#
 
 
 if __name__ == "__main__":
