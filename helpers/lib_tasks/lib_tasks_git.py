@@ -291,7 +291,7 @@ def git_patch_create(  # type: ignore
     revision. This script accepts a list of files to package, if specified.
 
     The parameters `modified`, `branch`, `last_commit` have the same meaning as
-    in `_get_files_to_process()`.
+    in `get_files_to_process()`.
 
     :param mode: what kind of patch to create
         - "diff": (default) creates a patch with the diff of the files
@@ -335,7 +335,7 @@ def git_patch_create(  # type: ignore
     mutually_exclusive = False
     # Filter out directories; patches only work with files.
     remove_dirs = True
-    files_as_list = hltltaut._get_files_to_process(
+    files_as_list = hgit.get_files_to_process(
         modified,
         branch,
         last_commit,
@@ -445,7 +445,7 @@ def git_files(  # type: ignore
     """
     Report which files are changed in the current branch with respect to master.
 
-    The params have the same meaning as in `_get_files_to_process()`.
+    The params have the same meaning as in `get_files_to_process()`.
 
     :param file_types: Comma-separated list of file extensions to include
         (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
@@ -467,7 +467,7 @@ def git_files(  # type: ignore
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True
-    files_as_list = hltltaut._get_files_to_process(
+    files_as_list = hgit.get_files_to_process(
         modified,
         branch,
         last_commit,

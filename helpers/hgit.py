@@ -1625,6 +1625,7 @@ def get_files_to_process(
             1,
             msg="Specify only one among --modified, --branch, --last-commit",
         )
+    files: List[str] = []
     if modified:
         files = get_modified_files(dir_name)
     elif branch:

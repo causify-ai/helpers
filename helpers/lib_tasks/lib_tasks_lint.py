@@ -48,14 +48,14 @@ def lint_check_python_files_in_docker(  # type: ignore
 
     This is supposed to be run inside Docker.
 
-    The params have the same meaning as in `_get_files_to_process()`.
+    The params have the same meaning as in `get_files_to_process()`.
     """
     hlitauti.report_task()
     _ = ctx
     # We allow to filter through the user specified `files`.
     mutually_exclusive = False
     remove_dirs = True
-    file_list = hlitauti._get_files_to_process(
+    file_list = hgit.get_files_to_process(
         modified,
         branch,
         last_commit,

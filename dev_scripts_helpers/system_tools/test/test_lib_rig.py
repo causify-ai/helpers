@@ -199,7 +199,7 @@ class TestRigScript(hunitest.TestCase):
         """
         Test --last-commit flag with pattern.
         """
-        args = ["TODO", "--last_commit"]
+        args = ["TODO", "--last-commit"]
         expected_exit_code = 0
         self.helper(args, expected_exit_code=expected_exit_code)
 

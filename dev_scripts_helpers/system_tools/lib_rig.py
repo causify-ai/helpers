@@ -15,8 +15,8 @@ import subprocess
 from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hparser as hparser
-import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 
@@ -59,36 +59,6 @@ def _build_ripgrep_command(
     return cmd
 
 
-# TODO(ai_gp2): Factor this out in hgit.py or similar.
-def _get_files_to_search(
-    modified: bool,
-    branch: bool,
-    last_commit: bool,
-    all_files: bool,
-    files_from_user: Optional[str],
-) -> Optional[List[str]]:
-    """
-    Get list of files to search based on selection criteria.
-
-    :param modified: Return files modified in the client
-    :param branch: Return files modified with respect to the branch point
-    :param last_commit: Return files part of the previous commit
-    :param all_files: Return all repo files
-    :param files_from_user: Files passed by the user
-    :return: List of files to search, or None to search entire directory
-    """
-    if not any([modified, branch, last_commit, all_files, files_from_user]):
-        return None
-    files = hlitauti._get_files_to_process(
-        modified=modified,
-        branch=branch,
-        last_commit=last_commit,
-        all_=all_files,
-        files_from_user=files_from_user or "",
-        mutually_exclusive=True,
-        remove_dirs=True,
-    )
-    return files if files else None
 
 
 def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
@@ -110,34 +80,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "positional", nargs="*", help="Positional arguments for search"
     )
-    # TODO(ai_gp2): Factor this out in hparser.py or similar.
-    parser.add_argument(
-        "--modified",
-        action="store_true",
-        help="Search only in files modified in the client (staged and unstaged)",
-    )
-    parser.add_argument(
-        "--branch",
-        action="store_true",
-        help="Search only in files modified with respect to the branch point",
-    )
-    parser.add_argument(
-        "--last-commit",
-        action="store_true",
-        help="Search only in files part of the previous commit",
-    )
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        dest="all_files",
-        help="Search all repo files",
-    )
-    parser.add_argument(
-        "--files",
-        type=str,
-        help="Search in specific files (space-separated list)",
-    )
-    # 
+    hparser.add_file_selection_args(parser)
     # Special search mode.
     parser.add_argument(
         "--def",
@@ -281,20 +224,16 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
 
 def main(
     args: Optional[List[str]] = None,
-    # TODO(ai_gp2): Is this needed?
-    parser: Optional[argparse.ArgumentParser] = None,
     description: Optional[str] = None,
 ) -> int:
     """
     Main entry point for rig utility.
 
     :param args: Command-line arguments (defaults to sys.argv[1:])
-    :param parser: ArgumentParser instance (created if not provided)
     :param description: Custom description for help output
     :return: Exit code (0 for success, 1 for error)
     """
-    if parser is None:
-        parser = parse(description=description)
+    parser = parse(description=description)
     if args is not None:
         parsed = parser.parse_args(args)
     else:
@@ -323,13 +262,25 @@ def main(
         rg_opts.extend(parsed["rg_opts"].split())
     # Retrieve filtered file list if user specified file selection criteria;
     # otherwise search entire directory.
-    files = _get_files_to_search(
+    if any([
         parsed["modified"],
         parsed["branch"],
         parsed["last_commit"],
         parsed["all_files"],
         parsed["files_from_user"],
-    )
+    ]):
+        files = hgit.get_files_to_process(
+            modified=parsed["modified"],
+            branch=parsed["branch"],
+            last_commit=parsed["last_commit"],
+            all_=parsed["all_files"],
+            files_from_user=parsed["files_from_user"] or "",
+            mutually_exclusive=True,
+            remove_dirs=True,
+        )
+        files = files if files else None
+    else:
+        files = None
     cmd = _build_ripgrep_command(
         parsed["pattern"],
         parsed["directory"],
@@ -345,15 +296,19 @@ def main(
         print(cmd_str)
         return 0
     # Run the command using system call and capture output.
-    if parsed["need_capture"]:
-        # For piping to tee, use shell=True with the string command.
-        cmd_str = cmd_str + " 2>&1 | tee cfile"
-        result = subprocess.run(cmd_str, shell=True, text=True)
-        # Open vim with the cfile if it was created.
-        if os.path.exists("cfile"):
-            vim_cmd = 'vim -c "cfile cfile"'
-            subprocess.run(vim_cmd, shell=True)
-    else:
-        # For normal execution, pass the command as a list.
-        result = subprocess.run(cmd, text=True)
-    return result.returncode if result else 0
+    try:
+        if parsed["need_capture"]:
+            # For piping to tee, use shell=True with the string command.
+            cmd_str = cmd_str + " 2>&1 | tee cfile"
+            result = subprocess.run(cmd_str, shell=True, text=True)
+            # Open vim with the cfile if it was created.
+            if os.path.exists("cfile"):
+                vim_cmd = 'vim -c "cfile cfile"'
+                subprocess.run(vim_cmd, shell=True)
+        else:
+            # For normal execution, pass the command as a list.
+            result = subprocess.run(cmd, text=True)
+        return result.returncode if result else 0
+    except FileNotFoundError:
+        _LOG.error("Command not found: %s", cmd_str if parsed["need_capture"] else cmd[0])
+        return 1
