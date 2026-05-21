@@ -1,11 +1,9 @@
-import logging
+from typing import Optional
 
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -251,24 +249,29 @@ class Test_add_navigation_slides(hunitest.TestCase):
     """
 
     def helper(
-        self, input_text: str, max_level: int, expected: str, expand_all: bool
+        self,
+        input_text: str,
+        max_level: int,
+        expand_all: bool,
+        expected: str,
     ) -> None:
         """
         Helper method to test `add_navigation_slides()` function.
 
         :param input_text: Input text with dedent applied
         :param max_level: Maximum header level
-        :param expected: Expected output with dedent applied
+        :param expand_all: Whether to expand all headers in navigation
+        :param expected: Expected output (if None, uses golden file)
         """
         # Prepare inputs.
         input_text = hprint.dedent(input_text)
         lines = input_text.strip().split("\n")
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all)
+        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=expand_all)
         actual_str = "\n".join(actual)
         # Check outputs.
-        expected = hprint.dedent(expected)
-        self.assert_equal(actual_str, expected)
+        expected_str = hprint.dedent(expected)
+        self.assert_equal(actual_str, expected_str)
 
     def test1(self) -> None:
         """
@@ -296,7 +299,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             More content
             """
         # Run test.
-        self.helper(input_text, max_level, expected)
+        self.helper(input_text, max_level, expected=expected)
 
     def test2(self) -> None:
         """
@@ -316,7 +319,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
             Content
             """
         # Run test.
-        self.helper(input_text, max_level, expected)
+        self.helper(input_text, max_level, expected=expected)
 
     def test3(self) -> None:
         """
@@ -331,14 +334,28 @@ class Test_add_navigation_slides(hunitest.TestCase):
             # Section 2
             Another content
             """
-        input_text = hprint.dedent(input_text)
-        lines = input_text.strip().split("\n")
         max_level = 2
+        expected = r"""
+            ####
+            - _**\textcolor{red}{Section 1}**_
+              - Subsection 1.1
+            - Section 2
+
+            Some content
+            ####
+            - Section 1
+              - _**\textcolor{red}{Subsection 1.1}**_
+            - Section 2
+
+            More content
+            ####
+            - Section 1
+            - _**\textcolor{red}{Section 2}**_
+
+            Another content
+            """
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=False)
-        actual_str = "\n".join(actual)
-        # Check outputs.
-        self.check_string(actual_str)
+        self.helper(input_text, max_level, expected=expected)
 
     def test4(self) -> None:
         """
@@ -353,14 +370,29 @@ class Test_add_navigation_slides(hunitest.TestCase):
             # Section 2
             Content 2
             """
-        input_text = hprint.dedent(input_text)
-        lines = input_text.strip().split("\n")
         max_level = 2
+        expected = r"""
+            ####
+            - _**\textcolor{red}{Section 1}**_
+              - Subsection 1.1
+            - Section 2
+
+            Content 1
+            ####
+            - Section 1
+              - _**\textcolor{red}{Subsection 1.1}**_
+            - Section 2
+
+            Content 1.1
+            ####
+            - Section 1
+              - Subsection 1.1
+            - _**\textcolor{red}{Section 2}**_
+
+            Content 2
+            """
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=True)
-        actual_str = "\n".join(actual)
-        # Check outputs.
-        self.check_string(actual_str)
+        self.helper(input_text, max_level, expand_all=True, expected=expected)
 
     def test5(self) -> None:
         """
@@ -372,14 +404,16 @@ class Test_add_navigation_slides(hunitest.TestCase):
             # Section 1
             Content under section 1
             """
-        input_text = hprint.dedent(input_text)
-        lines = input_text.strip().split("\n")
         max_level = 1
+        expected = r"""
+            Some initial content
+            ####
+            - _**\textcolor{red}{Section 1}**_
+
+            Content under section 1
+            """
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=False)
-        actual_str = "\n".join(actual)
-        # Check outputs.
-        self.check_string(actual_str)
+        self.helper(input_text, max_level, expected=expected)
 
     def test6(self) -> None:
         """
@@ -394,11 +428,16 @@ class Test_add_navigation_slides(hunitest.TestCase):
             ### Subsubsection 1.1.1
             Even more content
             """
-        input_text = hprint.dedent(input_text)
-        lines = input_text.strip().split("\n")
         max_level = 1
+        expected = r"""
+            ####
+            - _**\textcolor{red}{Section 1}**_
+
+            Content
+            ## Subsection 1.1
+            More content
+            ### Subsubsection 1.1.1
+            Even more content
+            """
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all=False)
-        actual_str = "\n".join(actual)
-        # Check outputs.
-        self.check_string(actual_str)
+        self.helper(input_text, max_level, expected=expected)

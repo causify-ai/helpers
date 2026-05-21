@@ -31,7 +31,7 @@ import argparse
 import logging
 import os
 import subprocess
-from typing import cast, Dict, Optional, Tuple
+from typing import cast, Dict, Tuple
 
 from tqdm import tqdm
 
@@ -54,9 +54,9 @@ def _get_rules_for_topic(topic: str) -> Dict:
     :return: Dict with role, rules list, templates list, and other config
     """
     TOPIC_TO_INFO = {
-        "skill": {
+        "bash": {
             "role": "python",
-            "rules": ["skill.rules.md"],
+            "rules": [],
             "templates": [],
         },
         "blog": {
@@ -73,35 +73,15 @@ def _get_rules_for_topic(topic: str) -> Dict:
             "rules": ["book.rules.md"],
             "templates": [],
         },
-        "slides": {
-            "role": "ai_researcher",
-            "rules": ["slides.rules.md"],
-            "templates": [],
-        },
-        "testing": {
-            "role": "python",
-            "rules": ["testing.rules.md"],
-            "templates": ["testing.template.py"],
-        },
         "coding": {
             "role": "python",
             "rules": ["coding.rules.md"],
             "templates": ["code.template.py"],
         },
-        "bash": {
-            "role": "python",
+        "cxo_slidesformat": {
+            "role": "ai_researcher",
             "rules": [],
             "templates": [],
-        },
-        "latex": {
-            "role": "ai_researcher",
-            "rules": ["latex.rules.md"],
-            "templates": [],
-        },
-        "notebook": {
-            "role": "python",
-            "rules": ["notebook.rules.md"],
-            "templates": ["notebook_template.ipynb"],
         },
         "interactive_notebook": {
             "role": "python",
@@ -114,6 +94,11 @@ def _get_rules_for_topic(topic: str) -> Dict:
                 "interactive_notebook_utils_template.py",
             ],
         },
+        "latex": {
+            "role": "ai_researcher",
+            "rules": ["latex.rules.md"],
+            "templates": [],
+        },
         "markdown": {
             "role": "ai_researcher",
             "rules": [
@@ -122,15 +107,30 @@ def _get_rules_for_topic(topic: str) -> Dict:
             ],
             "templates": [],
         },
+        "notebook": {
+            "role": "python",
+            "rules": ["notebook.rules.md"],
+            "templates": ["notebook_template.ipynb"],
+        },
         "readme": {
             "role": "ai_researcher",
             "rules": ["readme.rules.md"],
             "templates": [],
         },
-        "cxo_slidesformat": {
-            "role": "ai_researcher",
-            "rules": [],
+        "skill": {
+            "role": "python",
+            "rules": ["skill.rules.md"],
             "templates": [],
+        },
+        "slides": {
+            "role": "ai_researcher",
+            "rules": ["slides.rules.md"],
+            "templates": [],
+        },
+        "testing": {
+            "role": "python",
+            "rules": ["testing.rules.md"],
+            "templates": ["testing.template.py"],
         },
         "tool_X_in_30_mins": {
             "role": "ai_researcher",
@@ -157,34 +157,39 @@ def _get_rules_for_topic(topic: str) -> Dict:
     return topic_info
 
 
-def _detect_file_type(file_path: str) -> Optional[str]:
+# TODO(ai_gp): Add unit tests for the functions.
+def _infer_topic_from_filename(file_path: str) -> str:
     """
-    Detect the file type and return the corresponding skill name.
+    Detect the file type and return the corresponding topic.
 
     :param file_path: Path to the file
-    :return: Skill name (e.g., 'coding.format') or None if no match found
+    :return: topic (e.g., 'coding.format')
     """
     basename = os.path.basename(file_path)
-    if basename.startswith("test_") and basename.endswith(".py"):
-        topic = "testing"
+    if basename.endswith(".ipynb"):
+        topic = "notebook"
+    elif basename.endswith(".md"):
+        if basename.startswith("README"):
+            topic = "readme"
+        elif "_in_30_mins.md" in file_path:
+            topic = "tool_X_in_30_mins"
+        elif "_in_60_mins.md" in file_path:
+            topic = "tool_X_in_60_mins"
+        elif ".claude/skills/" in file_path:
+            topic = "skill"
+        else:
+            topic = "markdown"
     elif basename.endswith(".py"):
-        topic = "coding"
+        if basename.startswith("test_"):
+            topic = "testing"
+        else:
+            topic = "coding"
     elif basename.endswith(".sh"):
         topic = "bash"
-    elif basename.startswith("README") and basename.endswith(".md"):
-        topic = "readme"
-    elif basename.endswith("_in_30_mins.md"):
-        topic = "tool_X_in_30_mins"
-    elif basename.endswith("_in_60_mins.md"):
-        topic = "tool_X_in_60_mins"
     elif basename.endswith(".tex"):
         topic = "latex"
-    elif basename.endswith(".md"):
-        topic = "markdown"
     elif basename.endswith(".txt"):
         topic = "slides"
-    elif basename.endswith(".ipynb"):
-        topic = "notebook"
     else:
         raise ValueError(f"Invalid topic for filename '{file_path}'")
     return topic
@@ -302,7 +307,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
         if args.topic:
             topic_str = args.topic
         else:
-            topic = _detect_file_type(file_path)
+            topic = _infer_topic_from_filename(file_path)
             hdbg.dassert_is_not(topic, None, "Topic detection failed")
             topic_str = cast(str, topic)
         prompt, topic_info = _build_prompt(topic_str)
