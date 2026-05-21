@@ -487,6 +487,7 @@ class Test_remove_headers1(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
         # Run test.
         actual = dshdprno._remove_headers(lines_in, 999)
+        # Check outputs.
         actual_str = "\n".join(actual)
         expected_str = "\n".join(expected)
         self.assert_equal(actual_str, expected_str)
@@ -1084,6 +1085,7 @@ class Test_process_question_to_slides(hunitest.TestCase):
         txt_in: str,
         expected_continue: bool,
         expected_output: str,
+        *,
         level: int = 4,
     ) -> None:
         """
@@ -1459,13 +1461,15 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "Question text",
             "Answer text",
         ]
+        # Prepare outputs.
+        expected = [
+            "  ---",
+            "# Chapter Title",
+            "  Question text",
+            "  Answer text",
+        ]
         # Run test.
-        actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
-        actual_str = "\n".join(actual)
-        # Check outputs.
-        expected_contains = ["# Chapter Title", "  Question text", "  Answer text"]
-        for expected_text in expected_contains:
-            self.assertIn(expected_text, actual_str)
+        self.helper(lines, "pdf", True, expected)
 
     def test2(self) -> None:
         """
@@ -1479,10 +1483,15 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "",
             "Line 2",
         ]
+        # Prepare outputs.
+        expected = [
+            "  ---",
+            "# Chapter",
+            "  Line 1",
+            "  Line 2",
+        ]
         # Run test.
-        actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
-        # Check outputs.
-        self.assertEqual("" in actual, False)
+        self.helper(lines, "pdf", True, expected)
 
     def test3(self) -> None:
         """
@@ -1498,11 +1507,18 @@ class Test_transform_lines_qa(hunitest.TestCase):
             "code",
             "```",
         ]
+        # Prepare outputs.
+        expected = [
+            "  ---",
+            "# Chapter",
+            "  Text",
+            "",
+            "  ```python",
+            "  code",
+            "  ```",
+        ]
         # Run test.
-        actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
-        actual_str = "\n".join(actual)
-        # Check outputs.
-        self.assertIn("```python", actual_str)
+        self.helper(lines, "pdf", True, expected)
 
 
 # #############################################################################
@@ -1510,6 +1526,7 @@ class Test_transform_lines_qa(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out a helper.
 class Test_transform_lines_actions(hunitest.TestCase):
     """
     Test the `_transform_lines()` function with various actions.
@@ -1519,33 +1536,50 @@ class Test_transform_lines_actions(hunitest.TestCase):
         """
         Test slides processing with process_links action.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "# Title",
             "[Link text](https://example.com)",
         ]
+        # Prepare outputs.
+        expected = [
+            "---",
+            "# Title",
+            r"[\textcolor{blue}{\underline{Link text}}](https://example.com)",
+        ]
+        # Run test.
         actual = dshdprno._transform_lines(
             lines, "slides", is_qa=False, actions=["process_links"]
         )
-        # Should process links
-        actual_str = "\n".join(actual)
-        self.assertIn("example.com", actual_str)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
 
     def test2(self) -> None:
         """
         Test slides processing with colorize_bullets action.
         """
+        # Prepare inputs.
         lines = [
             "---",
             "#### Slide Title",
             "- Bullet point 1",
             "- Bullet point 2",
         ]
+        # Prepare outputs.
+        expected = [
+            "---",
+            "#### Slide Title",
+            "- Bullet point 1",
+            "- Bullet point 2",
+        ]
+        # Run test.
         actual = dshdprno._transform_lines(
             lines, "slides", is_qa=False, actions=["colorize_bullets"]
         )
-        # Should have colorized content
-        self.assertIsInstance(actual, list)
+        # Check outputs.
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################

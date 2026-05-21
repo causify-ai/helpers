@@ -584,9 +584,15 @@ def _transform_lines(
     return out_tmp
 
 
-# TODO(ai): Move to helpers/hmarkdown_toc.py
+# TODO(ai_gp): Move to helpers/hmarkdown_toc.py
+# TODO(ai_gp): Unit test.
 def _add_navigation_slides(
-    lines: List[str], max_level: int, *, sanity_check: bool = False
+    lines: List[str],
+    max_level: int,
+    *,
+    sanity_check: bool = False,
+    # TOOD(ai_gp): Move before * argument.
+    expand_all: bool = False,
 ) -> List[str]:
     """
     Add the navigation slides to the notes.
@@ -595,6 +601,8 @@ def _add_navigation_slides(
     :param max_level: maximum level of headers to consider (e.g., 3 creates a
         navigation slide for headers of level 1, 2, and 3)
     :param sanity_check: if True, perform sanity checks
+    :param expand_all: if True, expand all headers up to level 2; if False, expand
+        only the path to the current header
     :return: list of lines with the navigation slides added
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
@@ -613,13 +621,23 @@ def _add_navigation_slides(
         if is_header and level <= max_level:
             _LOG.debug(hprint.to_str("line level description"))
             # Get the navigation string corresponding to the current header.
-            nav_str = hmarkdo.selected_navigation_to_str(
-                tree,
-                level,
-                description,
-                open_modifier=open_modifier,
-                close_modifier=close_modifier,
-            )
+            if expand_all:
+                nav_str = hmarkdo.full_navigation_to_str(
+                    tree,
+                    level,
+                    description,
+                    max_expand_level=2,
+                    open_modifier=open_modifier,
+                    close_modifier=close_modifier,
+                )
+            else:
+                nav_str = hmarkdo.selected_navigation_to_str(
+                    tree,
+                    level,
+                    description,
+                    open_modifier=open_modifier,
+                    close_modifier=close_modifier,
+                )
             _LOG.debug("nav_str=\n%s", nav_str)
             # Replace the header slide with the navigation slide.
             # TODO(gp): We assume the slide level is 4.
@@ -665,6 +683,7 @@ def _preprocess_lines(
     is_qa: bool,
     *,
     actions: Optional[List[str]] = None,
+    expand_all_navigation: bool = False,
 ) -> List[str]:
     """
     Preprocess the lines of the notes.
@@ -674,6 +693,7 @@ def _preprocess_lines(
     :param toc_type: type of table of contents to add
     :param is_qa: True if the input is a QA file
     :param actions: optional list of actions to perform
+    :param expand_all_navigation: if True, expand all headers up to level 2 in navigation
     :return: list of preprocessed lines
     """
     hdbg.dassert_isinstance(lines, list)
@@ -683,7 +703,9 @@ def _preprocess_lines(
     if toc_type == "navigation":
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
-        out = _add_navigation_slides(out, max_level, sanity_check=True)
+        out = _add_navigation_slides(
+            out, max_level, sanity_check=True, expand_all=expand_all_navigation
+        )
     elif toc_type == "remove_headers":
         # Remove headers smaller than level 4 so that we leave only the `*`.
         out = _remove_headers(out, max_level=4)
@@ -733,6 +755,22 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default="none",
         choices=["none", "pandoc_native", "navigation", "remove_headers"],
+        help=(
+            "Type of table of contents to generate: "
+            "'none' = no TOC; "
+            "'pandoc_native' = use pandoc's native --toc option (depth 2); "
+            "'navigation' = add custom navigation slides for headers (levels 1-3); "
+            "'remove_headers' = remove headers smaller than level 3"
+        ),
+    )
+    parser.add_argument(
+        "--expand_all_navigation",
+        action="store_true",
+        default=False,
+        help=(
+            "For navigation TOC type: expand all headers up to level 2 for each slide "
+            "(instead of only expanding the path to the current header)"
+        ),
     )
     # TODO(gp): Unclear what it does.
     parser.add_argument(
@@ -762,7 +800,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Expand include directives before other preprocessing.
     lines = _expand_includes(lines)
     out = _preprocess_lines(
-        lines, args.type, args.toc_type, args.qa, actions=actions
+        lines,
+        args.type,
+        args.toc_type,
+        args.qa,
+        actions=actions,
+        expand_all_navigation=args.expand_all_navigation,
     )
     out = "\n".join(out)
     # Save results.

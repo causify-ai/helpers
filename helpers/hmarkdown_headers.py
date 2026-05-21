@@ -846,3 +846,94 @@ def selected_navigation_to_str(
         close_modifier=close_modifier,
     )
     return txt
+
+
+# TODO(ai_gp): Unit test this.
+def _full_tree_to_str(
+    tree: _HeaderTree,
+    level: int,
+    description: str,
+    max_expand_level: int,
+    *,
+    open_modifier: str = "**",
+    close_modifier: str = "**",
+    current_level: int = 1,
+    indent: int = 0,
+) -> str:
+    """
+    Return the tree as a string, expanding all nodes up to max_expand_level.
+
+    The selected node (matching level and description) is highlighted.
+
+    :param tree: tree to convert to a string
+    :param level: level of the selected node
+    :param description: description of the selected node
+    :param max_expand_level: maximum level to expand (e.g., 2 to expand levels 1-2)
+    :param open_modifier: modifier to use for the open of the selected node
+    :param close_modifier: modifier to use for the close of the selected node
+    :param current_level: current level in recursion (internal use)
+    :param indent: indent of the tree
+    :return: string representation of the tree with all nodes expanded up to max_expand_level
+    """
+    prefix = "  " * indent + "- "
+    result = []
+    for node in tree:
+        # Check if this is the selected node
+        is_selected = node.level == level and node.description == description
+        val = prefix
+        if is_selected:
+            val += open_modifier + node.description + close_modifier
+        else:
+            val += node.description
+        if val:
+            result.append(val)
+        # Expand children if we haven't reached max_expand_level
+        if node.children and current_level < max_expand_level:
+            val = _full_tree_to_str(
+                node.children,
+                level,
+                description,
+                max_expand_level,
+                open_modifier=open_modifier,
+                close_modifier=close_modifier,
+                current_level=current_level + 1,
+                indent=indent + 1,
+            )
+            if val:
+                result.append(val)
+    return "\n".join(result)
+
+
+# TODO(ai_gp): Inline this.
+def full_navigation_to_str(
+    tree: _HeaderTree,
+    level: int,
+    description: str,
+    max_expand_level: int = 2,
+    *,
+    open_modifier: str = "**",
+    close_modifier: str = "**",
+) -> str:
+    """
+    Generate navigation string with all nodes expanded up to max_expand_level.
+
+    The selected node is highlighted. All sibling nodes at all expanded levels
+    are shown, not just the ancestry path.
+
+    :param tree: header tree
+    :param level: level of the selected node
+    :param description: description of the selected node
+    :param max_expand_level: maximum header level to expand (default: 2)
+    :param open_modifier: modifier for opening the selected node
+    :param close_modifier: modifier for closing the selected node
+    :return: navigation string with all nodes expanded up to max_expand_level
+    """
+    txt = _full_tree_to_str(
+        tree,
+        level,
+        description,
+        max_expand_level,
+        open_modifier=open_modifier,
+        close_modifier=close_modifier,
+    )
+    return txt

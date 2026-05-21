@@ -44,6 +44,7 @@ from tqdm import tqdm
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_select as hmarsele
@@ -51,6 +52,9 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
+_VALID_ACTIONS = ["summarize", "lint"]
+_DEFAULT_ACTIONS = ["summarize", "lint"]
 
 
 def _get_system_prompt() -> str:
@@ -314,6 +318,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_input_output_args(parser, out_required=False)
     parser.add_argument(
         "--md_level",
@@ -349,15 +354,31 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     """
-    Main function to summarize markdown sections.
+    Main function to summarize markdown sections or lint with prettier.
 
     Summarizes sections using LLM by default, or computes SHA1 digests if
-    `--test` flag is enabled.
+    `--test` flag is enabled. With --action lint, formats the file using prettier.
     """
     args = parser.parse_args()
     hparser.parse_verbosity_args(args)
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
+    #
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    _LOG.info("Actions selected:\n%s", hparser.actions_to_string(
+        actions, _VALID_ACTIONS, add_frame=True
+    ))
+    # Handle lint action.
+    # TODO(ai_gp): This should be after.
+    to_lint, actions = hparser.mark_action("lint", actions)
+    if to_lint:
+        hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
+        hlint.lint_file(in_file_name)
+        _LOG.info("Linting complete: %s", in_file_name)
+    # Handle summarize action.
+    to_summarize, actions = hparser.mark_action("summarize", actions)
+    if not to_summarize:
+        return
     hdbg.dassert(args.md_level >= 1, "--md_level must be >= 1")
     # Generate output filename if not provided (when same as input file)
     if out_file_name == in_file_name:

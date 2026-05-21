@@ -16,6 +16,7 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(ai_gp): Pass an option to call executable or library.
 def lint_file(file_path: str) -> None:
     """
     Lint a file to ensure proper formatting.

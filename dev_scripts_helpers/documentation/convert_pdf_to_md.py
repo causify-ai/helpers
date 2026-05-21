@@ -14,26 +14,23 @@ Automatically installs dependencies via `uv` if missing.
 
 Usage:
 # Convert PDF to markdown with images.
-> convert_pdf_to_md.py \
-    --input document.pdf \
-    --output output_dir
+> convert_pdf_to_md.py --input document.pdf --action convert --output output_dir
 
 # Convert PDF to markdown without images.
 > convert_pdf_to_md.py \
     --input document.pdf \
+    --action convert \
     --output output_dir \
     --skip_figures
 
-# With verbose logging.
-> convert_pdf_to_md.py \
-    --input document.pdf \
-    --output output_dir \
-    -v DEBUG
+# Clean an existing markdown file (remove PDF conversion artifacts).
+> convert_pdf_to_md.py --input document.pdf --action remove_junk
 """
 
 import argparse
 import logging
 import os
+import re
 import shutil
 from typing import cast, Dict, List, Optional, Tuple
 
@@ -46,6 +43,57 @@ import helpers.hparser as hparser
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
+
+# #############################################################################
+# Constants
+# #############################################################################
+
+_VALID_ACTIONS = ["convert", "remove_junk"]
+_DEFAULT_ACTIONS = ["convert", "remove_junk"]
+
+# #############################################################################
+
+
+def _remove_junk(*, pdf_path: str, output_dir: Optional[str] = None) -> None:
+    """
+    Remove artifacts from PDF conversion including page markers and page numbers.
+
+    Removes:
+    - HTML comments like "<!-- Page 12 -->"
+    - Standalone page number headings like "### 11"
+    - Excessive blank lines
+
+    :param pdf_path: Path to input PDF file (used to derive markdown file name)
+    :param output_dir: Directory containing the markdown file; defaults to input file's directory
+    """
+    hdbg.dassert_file_exists(pdf_path, "PDF file does not exist")
+    # Derive output directory from input file location when not specified.
+    if output_dir is None:
+        output_dir = os.path.dirname(os.path.abspath(pdf_path))
+    if not output_dir:
+        output_dir = "."
+    # Compute markdown path using the PDF stem.
+    pdf_stem = os.path.splitext(os.path.basename(pdf_path))[0]
+    md_filename = pdf_stem + ".md"
+    md_path = os.path.join(output_dir, md_filename)
+    hdbg.dassert_file_exists(md_path, "Markdown file does not exist")
+    with open(md_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    original_content = content
+    # Remove HTML page comments.
+    content = re.sub(r"<!--\s*Page\s+\d+\s*-->\n*", "", content)
+    # Remove standalone page number headings (e.g., "### 11").
+    content = re.sub(r"^#+\s+\d+\s*$", "", content, flags=re.MULTILINE)
+    # Remove excessive blank lines (more than 2 consecutive newlines).
+    content = re.sub(r"\n\n\n+", "\n\n", content)
+    content = content.strip() + "\n"
+    if content != original_content:
+        with open(md_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        _LOG.info("Removed PDF junk from: %s", os.path.abspath(md_path))
+    else:
+        _LOG.info("No PDF junk found in: %s", os.path.abspath(md_path))
+
 
 # #############################################################################
 
@@ -423,6 +471,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Delete target files if they already exist",
     )
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -430,13 +479,18 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Run conversion.
-    _pdf_to_markdown(
-        pdf_path=args.input,
-        output_dir=args.output,
-        skip_figures=args.skip_figures,
-        overwrite=args.overwrite,
-    )
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # Execute convert action.
+    if "convert" in actions:
+        _pdf_to_markdown(
+            pdf_path=args.input,
+            output_dir=args.output,
+            skip_figures=args.skip_figures,
+            overwrite=args.overwrite,
+        )
+    # Execute remove_junk action.
+    if "remove_junk" in actions:
+        _remove_junk(pdf_path=args.input, output_dir=args.output)
 
 
 if __name__ == "__main__":
