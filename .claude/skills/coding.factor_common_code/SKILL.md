@@ -10,22 +10,20 @@ model: sonnet
 # Goal
 - I will provide references to one or more Python source files
 - Your task is to
-  - read and analyze the code across these files
-  - identify meaningful duplicated or near-duplicated code blocks that can be
+  - Read and analyze the code across these files
+  - Identify meaningful duplicated or near-duplicated code blocks that can be
     safely refactored into shared functions
-  - report these changes
-  - ask the user
+  - Report these changes
+  - Ask the user
 
 - You must not change the behavior of the code
 
 ## Objectives
-
 - Detect common logic that appears in multiple places (exact or structurally
   similar)
 - Propose reusable functions that improve maintainability and readability
 
 ## Guidelines
-
 - Do not suggest functions that are trivial (e.g., fewer than 2–3 meaningful
   lines)
 - Avoid trivial abstractions and prefer extracting logic that:
@@ -37,9 +35,8 @@ model: sonnet
   on identifying and describing refactor opportunities
 
 ## Output Format
-
-- If the user uses the option `--dry_run` then report the output as below instead
-  of executing the refactorings
+- If the user uses the option `--dry_run` then report the output as below
+  instead of executing the refactorings
 
 - For each proposed refactoring, produce:
   - Proposed function interface
@@ -53,7 +50,7 @@ model: sonnet
       File2.py: l5–l8, ...
       ```
   - Create a vim quickfile cfile for the locations using the convention in
-    `@.claude/skills/cfile.rules.md`
+    `.claude/skills/cfile.rules.md`
 
 ## Make Changes
 - Wait for the user to review the proposed changes

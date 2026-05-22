@@ -2,9 +2,9 @@
 description: Write a short technical tutorial on a given topic following markdown conventions
 ---
 
-- You are a technical writer.
+- You are a technical writer
 - Write a short tutorial about the topic passed from the user
-- Read and follow `@.claude/skills/markdown.format/SKILL.md`
+- Read and follow `.claude/skills/markdown.rules.md`
 
 - Focus on Linux and MacOS builds
 
@@ -16,5 +16,4 @@ description: Write a short technical tutorial on a given topic following markdow
   ```bash
   > curl -LsSf https://astral.sh/uv/install.sh | sh
   ```
-
   ````

@@ -9,11 +9,11 @@
 
 # Rules
 
-.claude/skills/blog.format.md
-.claude/skills/coding.rules.md
-.claude/skills/markdown.format.md
-.claude/skills/notebook.format.md
-.claude/skills/testing.format.md
+- .claude/skills/blog.format.md
+- .claude/skills/coding.rules.md
+- .claude/skills/markdown.format.md
+- .claude/skills/notebook.format.md
+- .claude/skills/testing.format.md
 
 # Implement Code
 

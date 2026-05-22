@@ -846,7 +846,9 @@ def _process_batches(
                 num_skipped += 1
                 if progress_bar_object is not None:
                     progress_bar_object.update(1)
-                    progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
+                    progress_bar_object.set_postfix_str(
+                        f"Cost: ${total_cost:.4f}"
+                    )
         if batch_items:
             _LOG.debug(
                 "Processing batch %d/%d (%d items, %d skipped)",
@@ -928,7 +930,9 @@ def _process_dataframe_batches(
                 num_skipped += 1
                 if progress_bar_object is not None:
                     progress_bar_object.update(1)
-                    progress_bar_object.set_postfix_str(f"Cost: ${total_cost:.4f}")
+                    progress_bar_object.set_postfix_str(
+                        f"Cost: ${total_cost:.4f}"
+                    )
         if batch_items:
             _LOG.debug(
                 "Processing batch %d/%d (%d items, %d skipped)",

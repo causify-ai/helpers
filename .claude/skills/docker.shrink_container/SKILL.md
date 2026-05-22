@@ -6,5 +6,5 @@ description: Propose solutions to make a Docker container faster and smaller wit
 
 - I will pass you a directory $TARGET with a project
 
-- Propose solutions to make the Docker container faster and smaller
-  without changing its functionality
+- Propose solutions to make the Docker container faster and smaller without
+  changing its functionality

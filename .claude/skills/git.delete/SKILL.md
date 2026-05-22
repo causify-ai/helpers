@@ -20,8 +20,8 @@ description: Safely remove a Python function, file, or directory from the Git re
 
 # If `<src>` Is a File or Directory
 - **Remove the file/directory** from the repo
-- **Find all references**: search for any `import`, `from ... import`, `require`,
-  or path strings pointing to `<src>`
+- **Find all references**: search for any `import`, `from ... import`,
+  `require`, or path strings pointing to `<src>`
 - **Remove or refactor each reference**: delete the import and any code that
   depended on it, or replace it with an alternative if a substitute exists
 - **Remove related tests**: delete test files that exclusively test the removed
