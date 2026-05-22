@@ -6,13 +6,13 @@ Compare a Jupyter notebook with its paired Python file using jupytext.
 Given a file (.ipynb or .py), this script:
 - Finds the paired file (.py for .ipynb, .ipynb for .py)
 - Reports which file is newer
-- Checks if the files are in sync using jupytext --test
+- Checks if the files are in sync using `jupytext --test`
 - Extracts Python code from the .ipynb file to a temporary file
 - Prints the vimdiff command to compare the Python file and extracted code
 
 Usage examples:
-  ./jupytext_diff.py notebook.ipynb
-  ./jupytext_diff.py script.py
+> jupytext_diff.py notebook.ipynb
+> jupytext_diff.py paired_notebook.py
 
 Import as:
 
@@ -104,6 +104,7 @@ def _check_sync_status(ipynb_file: str) -> None:
     """
     cmd = f"jupytext --diff {ipynb_file} > /dev/null 2>&1"
     _LOG.info("Checking sync status...")
+    _LOG.info("%s", cmd)
     exit_code = os.system(cmd)
     # os.system returns the exit code shifted left by 8 bits on Unix
     exit_code = exit_code >> 8
