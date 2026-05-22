@@ -93,8 +93,8 @@
 
 - Jupytext keeps a notebook and the paired `.py` file in sync
   ```bash
-  > jupytext --test --to py:percent --stop <notebok>.ipynb 
-  > jupytext --test-strict --to py:percent <notebook>.ipynb 
+  > jupytext --test --to py:percent --check <notebook>.ipynb 
+  > jupytext --test --check --to py:percent <notebook>.ipynb 
   ```
 
 ### Manual sync
@@ -147,10 +147,10 @@
 
 ### Refresh all the scripts
 
-- The script `dev_scripts/notebooks/process_jupytext.py` automates some of the
+- The script `dev_scripts_helpers/notebooks/process_jupytext.py` automates some of the
   workflow in Jupytext (see the help)
 
-- The script `dev_scripts/notebooks/process_all_jupytext.sh` applies
+- The script `dev_scripts_helpers/notebooks/process_all_jupytext.sh` applies
   `process_jupytext.py` to all the `ipynb` files
   ```bash
   > dev_scripts/notebooks/process_all_jupytext.sh <ACTION>

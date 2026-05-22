@@ -48,13 +48,12 @@ import logging
 # Helpers imports.
 import helpers.hdbg as hdbg
 
-_LOG = logging.getLogger(__name__)
-
+# Tutorial-specific imports.
 import interactive_notebook_utils_template as utils
 
 # Initialize notebook configuration and logging.
 _LOG = logging.getLogger(__name__)
-utils.init_logger(_LOG)
+utils.init_loggers(_LOG)
     
 _LOG.info("Test _LOG.info")
 _LOG.debug("Test _LOG.debug")

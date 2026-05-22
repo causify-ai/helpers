@@ -18,6 +18,10 @@ from IPython.display import clear_output, display
 
 import helpers.htutorial as htutori
 
+def init_loggers(notebook_log: logging.Logger) -> None:
+    global _LOG
+    hnotebo.init_loggers(notebook_log, utils_log=_LOG)
+    
 
 # #############################################################################
 # Cell 1: Interactive Distribution Explorer with Plot Type Selection

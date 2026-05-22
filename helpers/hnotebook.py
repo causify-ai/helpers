@@ -166,6 +166,7 @@ def init_loggers(
     # Configure the notebook environment.
     config_notebook()
     # Initialize the logger to INFO level.
+    import helpers.hdbg as hdbg
     hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
     # Redirect notebook logger to print.
     set_logger_to_print(notebook_log)
