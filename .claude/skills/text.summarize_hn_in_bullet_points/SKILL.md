@@ -3,15 +3,14 @@ description: Summarize the discussion on Hacker News on a topic
 model: haiku
 ---
 
-For bullet point formatting rules, refer to `@.claude/skills/text.rules.bullet_points.md`
+For bullet point formatting rules, refer to
+`.claude/skills/text.rules.bullet_points.md`
 
 ## Input
-
 - Given a pointer to a discussion on HackerNews in the form of a URL
   - E.g., https://news.ycombinator.com/item?id=47743628
 
-## Step 1: Summarize article
-
+## Step 1: Summarize Article
 - Summarize the main article in 5 bullet points
   ```
   # The peril of laziness lost
@@ -19,12 +18,11 @@ For bullet point formatting rules, refer to `@.claude/skills/text.rules.bullet_p
   - ...
   ```
 
-## Step 2: Summarize comments
+## Step 2: Summarize Comments
+- Analyze the Hacker News comment section for the linked article
 
-- Analyze the Hacker News comment section for the linked article.
-
-- From all comments, summarize the 5 most interesting ones based on the following
-  criteria:
+- From all comments, summarize the 5 most interesting ones based on the
+  following criteria:
   - Thought-provoking or insightful
   - Presents a unique perspective or uncommon knowledge
   - Sparks discussion or debate
@@ -38,7 +36,6 @@ For bullet point formatting rules, refer to `@.claude/skills/text.rules.bullet_p
   - Repetitive or low-effort
 
 ## Step 3: Output
-
 - Do not output any comment on screen
 - Output the result in a file `hn.txt` without bold or other markdown formatting
 - Run the command:

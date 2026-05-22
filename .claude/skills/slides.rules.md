@@ -15,8 +15,6 @@
 - **Concrete examples**: Always include practical examples labeled
 - **Reference context**: Connect new concepts to previously introduced material
 
-# Design and Content Guidelines
-
 ## Engagement Strategies
 - **Open with motivation**: "Why does this matter?"
 - **Use questions**: Mark rhetorical questions with `**Question**:`
@@ -30,56 +28,7 @@
 - Use diagrams instead of long text descriptions
 - Break complex topics across multiple slides
 
-# Basic Formatting
-
-## General Formatting Rules
-
-- Don't use emoji
-- Don't use page separators
-- Don't use unicode characters but use LaTeX symbols if needed
-  - Instead of → use `$\to$`
-
-## Slide Structure
-
-- Each slide should start with:
-  ```
-  * Slide title
-  ```
-- Each slide contains bullet points arranged in a hierarchical structure
-  - Every line starts with a bullet point
-  - Do not use period at the end of a phrase
-- Use italic and add quotes for questions:
-  ```
-  - E.g., _"If we lower prices by 10%, will revenue increase?"_
-  ```
-
-## Spacing and Breaks
-
-- Use comments (`//`) for internal notes (not rendered in output)
-- Do NOT use page separators (`---` markdown syntax)
-
-## Symbols and Characters
-
-- Do NOT use non-ASCII characters, but use LaTeX instead:
-
-- ε → `$\varepsilon$`
-- → → `$\to$`
-- ∝ → `$\propto$`
-- ≈ → `$\approx$`
-- ∩ → `$\cap$`
-- ∪ → `$\cup$`
-
-## Font Sizing
-
-- Group all font size changes with LaTeX:
-  ```markdown
-  \begingroup \large
-  Large text here
-  \endgroup
-  ```
-- Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
-
-# Document Structure and Organization
+# Document Organization
 
 ## Section Structure
 
@@ -99,21 +48,43 @@
 
 - Individual slides: use `*` with no leading spaces
   ```markdown
-  * Slide Title
+  * <Slide Title>
 
-  - Main bullet point
-    - Sub-point (2-space indent)
+  - <Main bullet point>
+    - <Sub-point> (2-space indent)
       - Further nesting (4-space indent)
   ```
 
-# Content and Styling
+# Slide Organization
 
-## Text Formatting
+## General Formatting Rules
 
-- **Bold**: Use a description of the section like in the following
-  - **Definition**
-  - **Question**
-  - **Solution**
+- Don't use emoji
+- Don't use page separators
+- Don't use unicode characters but use LaTeX symbols if needed
+  - Instead of → use `$\to$`
+
+## Slide Structure
+
+- Each slide should start with:
+  ```markdown
+  * Slide title
+  ```
+- Each slide contains bullet points arranged in a hierarchical structure
+  - Every line starts with a bullet point
+  - Do not use period at the end of a phrase
+- Use italic and add quotes for questions:
+  ```markdown
+  _"If we lower prices by 10%, will revenue increase?"_
+  ```
+
+## Use Bold for Slide Sections
+
+- Every first level bullet point should start with a bold label `<bold label>`
+  for pedagogical structure like in the following:
+  - **Definition**: A definition of a concept
+  - **Question**: A question to introduce a problem
+  - **Solution**: A solution to a previously introduced problem
   - **Remark**: A simple but useful fact
   - **Proposition**: A result worth stating, but not as central as a theorem
   - **Lemma**: stepping stone used to prove a bigger result
@@ -122,9 +93,70 @@
   - **Example**: Concrete illustration
   - **Counterexample**: Shows what doesn't work
   - **Interpretation**: What the result means in context
-- _Italic_ (`_text_`): Use for quoted statements, key terms, definitions, and
-  important concepts
-- Inline code (`` `code` ``): Use for technical terms, function names, variable names
+
+- Template:
+  ```markdown
+  * <slide title>
+
+  - **<Bold label>**:
+    - ...
+    - ...
+  ```
+
+- Example
+  ```markdown
+  * Individual Treatment Effect
+  - **Definition**: the impact of the treatment $T$ on the outcome $Y$ for an
+    individual unit $i$ is:
+    $$\tau_i \defeq Y_i|do(T=t_1) - Y_i|do(T=t_0)$$
+    - The effect $\tau_i$ of going from treatment $t_0$ to $t_1$ for unit $i$ is
+      the difference in the outcome of that unit under $t_1$ compared to $t_0$
+
+  - **Example**: for the sales example
+    $$AmountSold_i|do(IsOnSales=1) - AmountSold_i|do(IsOnSales=0)$$
+
+  - **Problem**: you can only observe one term due to the fundamental problem of
+    causal inference
+    - Represent it in theory, but can't recover it from data
+  ```
+- Example
+  ```markdown
+  * Potential Outcomes
+  - Aka "counterfactuals"
+
+  - **Definition**: the $do()$ operator represents _"unit $i$ outcome $Y$ if
+    treatment is set to $t$"_
+    - $Y_{t,i}$ is Rubin's notation
+    - $Y_i | do(T_i = t)$ is Pearl's notation
+
+  - For binary treatment:
+    - $Y_{0i}$ potential outcome without treatment
+    - $Y_{1i}$ potential outcome with treatment
+    - One is "factual" (i.e., observable)
+    - The other is "counterfactual" (i.e., theoretical, not observable)
+    - Alternative expression:
+      $$
+      Y_i = T_i * Y_{1i} + (1 - T_i) * Y_{0i} = Y_{0i} + (Y_{1i} - Y_{0i}) * T_i
+      $$
+
+  - **Remark**: there is a difference between conditioning and intervention
+    - $Y|do(T=t)$ is _"what a business would sell if it cut prices"_
+    - $Y|T=t$ is _"what a business that cut the prices sold"_
+```
+
+## Use Italic
+- Use _italic_ (`_text_`) for:
+  - Quoted statements
+  - Key terms
+  - Important concepts
+  - Emphasized definitions
+
+## Use Inline Verbatim
+- Use inline verbatim (`code`) for:
+  - Technical terms
+  - Function names
+  - Variable names
+  - Implementation-oriented notation
 
 ## Mathematical Notation
 
@@ -162,6 +194,32 @@ Use these commands consistently across all slides:
 - `\iff`: "If and only if"
 - `\perp`: Independence (perpendicular symbol)
 - `\vx`, `\vy`: Vectors (if defined in preamble)
+
+### Spacing and Breaks
+
+- Use comments (`//`) for internal notes (not rendered in output)
+- Do NOT use page separators (`---` markdown syntax)
+
+### Symbols and Characters
+
+- Do NOT use non-ASCII characters, but use LaTeX instead:
+
+- ε → `$\varepsilon$`
+- → → `$\to$`
+- ∝ → `$\propto$`
+- ≈ → `$\approx$`
+- ∩ → `$\cap$`
+- ∪ → `$\cup$`
+
+### Font Sizing
+
+- Group all font size changes with LaTeX:
+  ```markdown
+  \begingroup \large
+  Large text here
+  \endgroup
+  ```
+- Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
 
 # Visual Elements and Diagrams
 

@@ -3,9 +3,9 @@ description: Generate a TikZ code for an image or a description
 ---
 
 ## Purpose
-- Convert images or textual descriptions into publication-quality TikZ LaTeX code
-  Generate a compilable LaTeX file, render it to PNG, and iteratively refine the
-  output to match the input precisely
+- Convert images or textual descriptions into publication-quality TikZ LaTeX
+  code Generate a compilable LaTeX file, render it to PNG, and iteratively
+  refine the output to match the input precisely
 
 ## When to Use
 Use this skill when you need to:
@@ -63,8 +63,8 @@ minimal working example:
 
 ### Step 2: Save the File
 - Save the generated LaTeX code to `./tikz_figure.tex` in the current directory
-  (not in `.claude/`). Output only valid TikZ code without markdown formatting or
-  explanations
+  (not in `.claude/`). Output only valid TikZ code without markdown formatting
+  or explanations
 
 ### Step 3: Render to Image
 - Generate a PNG image using the rendering script:

@@ -5,18 +5,17 @@ description: Create a 15-slide presentation storyboard script for a narrated exp
 Use the information given to create the script of a presentation / storyboard
 that can be converted into a video
 
-You are an expert storyteller, presentation designer, and video script writer.
+You are an expert storyteller, presentation designer, and video script writer
 
 Using the information I provide, create a **15-slide presentation storyboard**
-that can be directly converted into a **narrated explainer video**.
+that can be directly converted into a **narrated explainer video**
 
 ## Audience
-
 - The audience includes:
   - Business executives
   - The general public
 
-- Assume **no technical background**.
+- Assume **no technical background**
 
 - Use:
   - Clear, simple language
@@ -26,7 +25,6 @@ that can be directly converted into a **narrated explainer video**.
   - A strong narrative arc: problem → tension → insight → solution → future
 
 ## Story Requirements
-
 - The presentation must:
   - Start with a **high-impact real-world problem**
   - Show why the current industry approach fails
@@ -40,14 +38,12 @@ that can be directly converted into a **narrated explainer video**.
   - Feel like part of a movie, not a technical deck
 
 ## Output Format
-
 - Return the result as a markdown table with **exactly 15 rows** (one per slide)
   and **three columns**:
 
 | Slide Title | Video / Slide Description | Bullet Points / Voiceover |
 
 ### Column Rules
-
 **Slide Title**
 
 - Short, powerful, and non-technical
@@ -66,19 +62,16 @@ that can be directly converted into a **narrated explainer video**.
 - Avoid technical terms unless unavoidable
 
 ## Tone
-
 - Confident but not salesy
 - Serious about the problem
 - Inspiring about the solution
 - Easy to understand
 
 ## Do NOT
-
 - Use buzzwords
 - Write like a research paper
 - Explain implementation details
 - Refer to "this slide" or "this presentation"
 
 ## Instructions
-
-- Begin only when the source information is provided.
+- Begin only when the source information is provided

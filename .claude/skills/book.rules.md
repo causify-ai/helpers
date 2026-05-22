@@ -8,12 +8,11 @@ papers
   ```
 - If there are more than one author use `et al`
 
-# Format to use in File Names
-
+# Format to Use in File Names
 - Convert the name of a file (book or paper) into a standard format without
-  characters that are unfriendly for Linux (e.g., spaces, `.` `/`, `\`) converting
-  them into underscore
-- Separate Year, Author and 
+  characters that are unfriendly for Linux (e.g., spaces, `.` `/`, `\`)
+  converting them into underscore
+- Separate Year, Author and Title
   ```
   <Year>.<Last_name_of_first_author>_[et_al].<Title>
   ```
@@ -21,12 +20,13 @@ papers
 
 - Example
   - **Before**
-    - Ajay Agrawal, Joshua Gans, Avi Goldfarb - Prediction Machines_ The Simple Economics of Artificial Intelligence (2018, Harvard Business Review Press) - libgen.li.epub
+    - Ajay Agrawal, Joshua Gans, Avi Goldfarb - Prediction Machines\_ The Simple
+      Economics of Artificial Intelligence (2018, Harvard Business Review
+      Press) - libgen.li.epub
   - **After**
     2018.Agrawal_et_al.Prediction_Machines_The_Simple_Economics_of_Artificial_Intelligence.epub
 
 # Format for General Text
-
 - When using references in a general file
   ```
   <Year>, <Last name of first author> [et al.], "<Title>"
@@ -39,7 +39,6 @@ papers
   ```
 
 # Format in `.txt` and `.md` Files
-
 - When using references inside a `.txt` or a `.md` file use the format:
   ```
   - <Year>, <Last name of first author> [et al.], "<Title>"

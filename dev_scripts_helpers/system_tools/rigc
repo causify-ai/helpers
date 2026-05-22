@@ -1,7 +1,6 @@
 #!/bin/bash
 # """
-# Run `rig` and capture output to quickfix file, and open in vim.
+# Run `rig --cfile` to capture output to quickfix file and open in vim.
 # """
 
-rig "$@" 2>&1 | tee cfile
-vim -c "cfile cfile"
+rig --cfile "$@"

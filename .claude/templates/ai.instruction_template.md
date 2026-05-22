@@ -9,11 +9,11 @@
 
 # Rules
 
-.claude/skills/blog.format.md
-.claude/skills/coding.rules.md
-.claude/skills/markdown.format.md
-.claude/skills/notebook.format.md
-.claude/skills/testing.format.md
+- .claude/skills/blog.format.md
+- .claude/skills/coding.rules.md
+- .claude/skills/markdown.format.md
+- .claude/skills/notebook.format.md
+- .claude/skills/testing.format.md
 
 # Implement Code
 
@@ -72,7 +72,7 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md
   <start> and <end> of $script
 - Update $notebook
 
-# Test code
+# Test Code
 
 Given the passed code
 
@@ -106,9 +106,9 @@ Given the passed code
 
 - There should be an option --dry-run to just print what needs to be done
 
-# Plan and then Implement Code
+# Plan and Then Implement Code
 
-## Step 1) Come up with a plan for the code
+## Step 1) Come Up with a Plan for the Code
   - Describe the goal, listing the main steps
   - Mention any edge cases
   - If the task is not perfectly clear, you MUST not perform it, but ask for
@@ -116,26 +116,26 @@ Given the passed code
   - Write the plan in a file `claude.plan.md
   - Wait for my response before executing the plan
 
-## Step 2) Implement interfaces
+## Step 2) Implement Interfaces
   - Write the interfaces and the docstrings of the needed code in the places of
     the code base
   - Add comment explaining what each function does
   - Do not implement the body of the code
   - Wait for my response
 
-## Step 3) Implement code
+## Step 3) Implement Code
   - Implement the code following the instructions in
     @.claude/skills/coding.rules.md
 
-## Step 4) Come up with a plan for the tests
+## Step 4) Come Up with a Plan for the Tests
   - Implement unit tests following the instructions in 
     @.claude/skills/testing.format.md
 
-## Step 5) Implement tests
+## Step 5) Implement Tests
   - Implement unit tests following the instructions in 
     @.claude/skills/testing.format.md
 
-## Step 6) Create new README
+## Step 6) Create New README
   - If it's a new script, find where the documentation of this change should go
   - Generate a short description of how to use the script in a file close to the
     script with extension .md
@@ -144,7 +144,7 @@ Given the passed code
   - Update the file README.md in the same directory of the script following the
     instructions in @.claude/skills/readme.create.md
 
-# Write short tutorial
+# Write Short Tutorial
 
 - Execute @.claude/skills/blog.write_tutorial.md about ripgrep
 

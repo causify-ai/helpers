@@ -1,6 +1,6 @@
 #!/bin/bash
 # """
-# Run rig looking for `TODO` for `ai_gp` pattern.
+# Run rig --todo to search for TODO(ai_gp) patterns.
 # """
 
-rig 'TODO\(ai_gp\)' "$@" | grep -v cfile
+rig --todo "$@"

@@ -1,4 +1,3 @@
-import logging
 import os
 
 import pytest
@@ -6,12 +5,7 @@ import pytest
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks.lib_tasks_utils as hlitauti
-
-_LOG = logging.getLogger(__name__)
-
-
-# pylint: disable=protected-access
+import helpers.lib_tasks.lib_tasks_utils as hltltaut
 
 
 # #############################################################################
@@ -35,7 +29,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         files_from_user = ""
         mutually_exclusive = True
         remove_dirs = True
-        _ = hlitauti._get_files_to_process(
+        _ = hgit.get_files_to_process(
             modified,
             branch,
             last_commit,
@@ -63,7 +57,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         files_from_user = ""
         mutually_exclusive = True
         remove_dirs = True
-        _ = hlitauti._get_files_to_process(
+        _ = hgit.get_files_to_process(
             modified,
             branch,
             last_commit,
@@ -84,7 +78,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         files_from_user = ""
         mutually_exclusive = True
         remove_dirs = True
-        _ = hlitauti._get_files_to_process(
+        _ = hgit.get_files_to_process(
             modified,
             branch,
             last_commit,
@@ -105,7 +99,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         files_from_user = __file__
         mutually_exclusive = True
         remove_dirs = True
-        files = hlitauti._get_files_to_process(
+        files = hgit.get_files_to_process(
             modified,
             branch,
             last_commit,
@@ -131,7 +125,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         files_from_user = "testfile1.py testfiles1/*"
         mutually_exclusive = True
         remove_dirs = True
-        files = hlitauti._get_files_to_process(
+        files = hgit.get_files_to_process(
             modified,
             branch,
             last_commit,
@@ -170,7 +164,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         remove_dirs = True
         # Join the names with `\n` separator.
         joined_files_from_user = "\n".join(files_from_user)
-        files = hlitauti._get_files_to_process(
+        files = hgit.get_files_to_process(
             modified,
             branch,
             last_commit,
@@ -196,7 +190,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         mutually_exclusive = True
         remove_dirs = True
         with self.assertRaises(AssertionError) as cm:
-            hlitauti._get_files_to_process(
+            hgit.get_files_to_process(
                 modified,
                 branch,
                 last_commit,
@@ -228,7 +222,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         mutually_exclusive = True
         remove_dirs = True
         with self.assertRaises(AssertionError) as cm:
-            hlitauti._get_files_to_process(
+            hgit.get_files_to_process(
                 modified,
                 branch,
                 last_commit,
@@ -259,7 +253,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         files_from_user = __file__
         mutually_exclusive = False
         remove_dirs = True
-        files = hlitauti._get_files_to_process(
+        files = hgit.get_files_to_process(
             modified,
             branch,
             last_commit,
@@ -269,9 +263,6 @@ class Test_get_files_to_process1(hunitest.TestCase):
             remove_dirs,
         )
         self.assertEqual(files, [__file__])
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -291,7 +282,7 @@ class TestLibTasksRemoveSpaces1(hunitest.TestCase):
                 --entrypoint bash \
                 user_space
             """
-        actual = hlitauti._to_single_line_cmd(txt)
+        actual = hltltaut._to_single_line_cmd(txt)
         expected = (
             "IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp_test:dev"
             " docker-compose --file"
