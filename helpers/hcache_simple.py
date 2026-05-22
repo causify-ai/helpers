@@ -11,6 +11,8 @@ import helpers.hcache_simple as hcacsimp
 
 import functools
 import glob
+import hashlib
+import inspect
 import json
 import logging
 import os
@@ -276,6 +278,10 @@ _SYSTEM_PROPERTIES = [
     "s3_prefix",
     "aws_profile",
     "auto_sync_s3",
+    # MD5 hex digest of the function source code recorded at the time of the
+    # last cache miss. Used to warn when the function body changes while stale
+    # cached values are still being served.
+    "func_hash",
 ]
 
 
@@ -515,6 +521,8 @@ def _check_valid_cache_property(property_name: str) -> None:
         "aws_profile",
         # Auto-sync to S3 after cache updates.
         "auto_sync_s3",
+        # MD5 hex digest of the function source at the last cache miss.
+        "func_hash",
     ]
     hdbg.dassert_in(property_name, valid_properties)
 
@@ -1782,6 +1790,27 @@ def mock_cache_from_disk(
 
 
 # #############################################################################
+# Function hash utilities.
+# #############################################################################
+
+
+def _compute_func_hash(func: Callable) -> str:
+    """
+    Compute an MD5 hash of the function's source code.
+
+    The hash is used to detect when a cached function's body has changed
+    between sessions so callers can be warned that stale cached values may
+    be served.
+
+    :param func: the function to fingerprint
+    :return: lowercase hex MD5 digest of the source
+    """
+    source = inspect.getsource(func)
+    func_hash = hashlib.md5(source.encode()).hexdigest()
+    return func_hash
+
+
+# #############################################################################
 # Decorator
 # #############################################################################
 
@@ -1986,6 +2015,21 @@ def simple_cache(
                     cache_perf["hits"] += 1
                 # Retrieve the value from the cache.
                 value = cache[cache_key]
+                # Warn if the function source has changed since this value
+                # was cached.
+                stored_hash = get_cache_property(func_name, "func_hash")
+                if stored_hash:
+                    current_hash = _compute_func_hash(func)
+                    if current_hash != stored_hash:
+                        _LOG.warning(
+                            "Function '%s' source code has changed since "
+                            "this value was cached (stored_hash=%s, "
+                            "current_hash=%s). Clear the cache manually "
+                            "if you need fresh results.",
+                            func_name,
+                            stored_hash,
+                            current_hash,
+                        )
             else:
                 _LOG.trace("Cache miss for key='%s'", cache_key)
                 # Update the performance stats.
@@ -2016,6 +2060,11 @@ def simple_cache(
                         _LOG.warning("cache[%s]: COMPUTE (miss)", func_name)
                 # Access the intrinsic function.
                 value = func(*args, **kwargs_for_func)
+                # Record the function source hash so future cache hits can
+                # detect if the function body has changed.
+                set_cache_property(
+                    func_name, "func_hash", _compute_func_hash(func)
+                )
                 # Update cache.
                 cache[cache_key] = value
                 # Ensure the cache dict is stored in memory.
