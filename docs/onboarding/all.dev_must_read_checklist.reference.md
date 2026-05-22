@@ -42,6 +42,10 @@
 
 - [ ] [Tips for writing documentation](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
 
+## AI Tools
+
+- [ ] [AI tools onboarding](/docs/onboarding/all.ai_onboarding.reference.md)
+
 ## Beyond the must-read
 
 - There are many, many more docs in our knowledge base than the ones listed
