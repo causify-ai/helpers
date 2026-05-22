@@ -91,6 +91,56 @@ def parse_verbosity_args(
 
 
 # #############################################################################
+# File selection arguments
+# #############################################################################
+
+
+def add_file_selection_args(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    """
+    Add file selection arguments to a parser.
+
+    Adds the following mutually exclusive arguments:
+    - --modified: Search only in files modified in the client
+    - --branch: Search only in files modified with respect to the branch point
+    - --last-commit: Search only in files part of the previous commit
+    - --all: Search all repo files
+    - --files: Search in specific files
+
+    :param parser: ArgumentParser to add arguments to
+    :return: The same parser with arguments added
+    """
+    parser.add_argument(
+        "--modified",
+        action="store_true",
+        help="Select only files modified in the client (staged and unstaged)",
+    )
+    parser.add_argument(
+        "--branch",
+        action="store_true",
+        help="Select only files modified with respect to the branch point",
+    )
+    parser.add_argument(
+        "--last-commit",
+        action="store_true",
+        help="Select only files part of the previous commit",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        dest="all_files",
+        help="Select all repo files",
+    )
+    parser.add_argument(
+        "--files",
+        type=str,
+        help="Select specific files (space-separated list)",
+    )
+    return parser
+
+
+# #############################################################################
 # Command line for `@hcache_simple.simple_cache` functions.
 # #############################################################################
 
@@ -716,7 +766,7 @@ def parse_dst_dir_arg(args: argparse.Namespace) -> str:
 
     If the destination directory already exists and `--overwrite` is not set,
     raises an error. If `--overwrite` is set and the directory exists, it is
-    removed before creating a fresh one.
+    used as-is (not deleted).
 
     :return: the destination directory path
     """
@@ -728,9 +778,9 @@ def parse_dst_dir_arg(args: argparse.Namespace) -> str:
                 f"Output directory already exists: {dst_dir} "
                 "(use --overwrite to replace)"
             )
-        _LOG.info("Removing existing dst_dir='%s'", dst_dir)
-        hio.delete_dir(dst_dir)
-    hio.create_dir(dst_dir, incremental=True)
+        _LOG.info("Reusing existing dst_dir='%s'", dst_dir)
+    else:
+        hio.create_dir(dst_dir, incremental=True)
     return dst_dir
 
 
@@ -1225,6 +1275,76 @@ def add_llm_prompt_arg(
     return parser
 
 
+# TODO(ai_gp): Move to dev_scripts_helpers/documentation/extract_from_md.py
+def extract_rule_from_file(rule_spec: str) -> str:
+    """
+    Extract a rule section from a rules file based on a rule specification.
+
+    :param rule_spec: rule specification in one of these formats:
+        - `path/to/file.md`: return all content
+        - `path/to/file.md:N`: extract section starting at line N (must be
+          a markdown header)
+        - `path/to/file.md:N:# Section Name`: same with header name
+          validation
+    :return: extracted rule text as a string
+    """
+    # Parse the rule specification.
+    parts = rule_spec.split(":", 2)
+    file_path = parts[0]
+    # Check file exists.
+    hdbg.dassert_file_exists(file_path, "Rule file does not exist")
+    # Read file content.
+    content = hio.from_file(file_path)
+    lines = content.splitlines()
+    # If only path provided, return full content.
+    if len(parts) == 1:
+        return content
+    # Parse line number.
+    try:
+        line_num = int(parts[1])
+    except ValueError:
+        raise ValueError(
+            "Invalid line number '%s' in rule spec: %s" % (parts[1], rule_spec)
+        )
+    # Convert to 0-based index.
+    line_idx = line_num - 1
+    hdbg.dassert_lt(
+        line_idx,
+        len(lines),
+        "Line number %d exceeds file length %d",
+        line_num,
+        len(lines),
+    )
+    # Check that the target line is a header.
+    header_line = lines[line_idx]
+    if not header_line.startswith("#"):
+        raise ValueError(
+            "Line %d is not a markdown header: '%s'" % (line_num, header_line)
+        )
+    # Validate section name if provided.
+    if len(parts) == 3:
+        expected_name = parts[2]
+        if header_line.strip() != expected_name.strip():
+            raise ValueError(
+                "Section name mismatch at line %d: expected '%s', got '%s'"
+                % (line_num, expected_name, header_line)
+            )
+    # Determine header level (number of leading '#' characters).
+    header_level = len(header_line) - len(header_line.lstrip("#"))
+    # Find the end of section (next header at same or higher level).
+    end_idx = len(lines)
+    for i in range(line_idx + 1, len(lines)):
+        line = lines[i]
+        if line.startswith("#"):
+            this_level = len(line) - len(line.lstrip("#"))
+            if this_level <= header_level:
+                end_idx = i
+                break
+    # Extract and return the section.
+    section_lines = lines[line_idx:end_idx]
+    return "\n".join(section_lines)
+
+
 def add_llm_args(
     parser: argparse.ArgumentParser,
     *,
@@ -1294,6 +1414,19 @@ def add_llm_args(
         dest="system_prompt_file",
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
+    system_prompt_group.add_argument(
+        "-r",
+        "--rule",
+        type=str,
+        default=None,
+        dest="rule",
+        help=(
+            "Rule specification used as system prompt. Formats: "
+            "'path/to/rules.md' (whole file), "
+            "'path/to/rules.md:LINE' (header section at LINE), "
+            "'path/to/rules.md:LINE:# Section Name' (with name validation)"
+        ),
+    )
     # Model selection.
     if include_model:
         parser.add_argument(
@@ -1324,5 +1457,45 @@ def add_llm_args(
         type=int,
         default=None,
         help="Expected number of characters in output (enables progress bar with explicit size)",
+    )
+    return parser
+
+
+# #############################################################################
+# Command line for markdown extraction and selection
+# #############################################################################
+
+
+def add_md_start_end_args(
+    parser: argparse.ArgumentParser,
+    *,
+    start_required: bool = True,
+    end_required: bool = False,
+) -> argparse.ArgumentParser:
+    """
+    Add options for markdown header range selection via --md_start and --md_end.
+
+    Both arguments accept header specifications in two formats:
+    - Full format: "## Section Title" (includes the # symbols)
+    - Partial match: "Section Title" (just the title, matches if unique)
+
+    :param parser: ArgumentParser to add arguments to
+    :param start_required: whether the start header is required (default: True)
+    :param end_required: whether the end header is required (default: False)
+    :return: ArgumentParser with the new arguments added
+    """
+    parser.add_argument(
+        "--md_start",
+        type=str,
+        required=start_required,
+        default=None,
+        help="Starting header: either full format (e.g., '## Section 1') or partial match (e.g., 'Section 1'). Partial match must be unique.",
+    )
+    parser.add_argument(
+        "--md_end",
+        type=str,
+        required=end_required,
+        default=None,
+        help="Ending header: either full format (e.g., '## Section 2') or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. Partial match must be unique.",
     )
     return parser

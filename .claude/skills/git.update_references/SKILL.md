@@ -22,11 +22,10 @@ model: haiku
   - `lemonade`: located at `~/src/lemonade1`
 
 - You must
-  - ignore searching in any Git sub repository of each repo (e.g.,
+  - Ignore searching in any Git sub repository of each repo (e.g.,
     `helpers_root`)
-  - only search in files that are under Git control
-  - ignore searching in symlinks (e.g., `.claude`)
-  using an approach like:
+  - Only search in files that are under Git control
+  - Ignore searching in symlinks (e.g., `.claude`) using an approach like:
   ```bash
   search_repo() {
     local repo_path=$1
@@ -50,8 +49,8 @@ model: haiku
   ```
 
 - Print the references in a table organized by
-  - repos
-  - files
+  - Repos
+  - Files
 
 - Create a vim quickfile cfile for the locations using the conventions in
   `@.claude/skills/cfile.rules.md`

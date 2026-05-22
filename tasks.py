@@ -82,6 +82,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     git_branches,
     git_clean,
     git_fetch_master,
+    git_file_version,
     git_files,
     git_fix_perms,
     git_merge_master,
@@ -156,7 +157,7 @@ try:
 except ImportError:
     pass
 try:
-    from helpers.lib_tasks_gh import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
+    from helpers.lib_tasks.lib_tasks_gh import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
         gh_publish_buildmeister_dashboard_to_s3,
     )
 except ImportError:

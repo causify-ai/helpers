@@ -196,7 +196,7 @@ Scan for these AI markers before applying detailed rules:
 - Remove: "Let's explore", "Let's unpack", "Let's dive in", "Let's break it
   down", "In this article, we'll"
 - Just start; the best first sentence puts the reader in the middle of something
-- Bad: "In this article, we'll explore the hidden costs of micromanagement.
+- Bad: "In this article, we'll explore the hidden costs of micromanagement
   Let's dive in."
 - Good: "I micromanaged someone last Tuesday."
 

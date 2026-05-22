@@ -28,6 +28,7 @@ from typing import Dict, List, Match, Optional, Tuple, cast
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_toc as hmartoc
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -358,15 +359,14 @@ def _validate_unique_slide_names(lines: List[str]) -> None:
     seen_names: Dict[str, int] = {}
     for header_info in header_list:
         name = header_info.description
-        # TODO(ai_gp): dassert_not_in(...)
-        if name in seen_names:
-            hdbg.dassert(
-                False,
-                "Duplicate slide name found: '%s' at lines %d and %d",
-                name,
-                seen_names[name],
-                header_info.line_number,
-            )
+        hdbg.dassert_not_in(
+            name,
+            seen_names,
+            "Duplicate slide name found: '%s' at lines %d and %d",
+            name,
+            seen_names.get(name),
+            header_info.line_number,
+        )
         seen_names[name] = header_info.line_number
 
 
@@ -584,60 +584,6 @@ def _transform_lines(
     return out_tmp
 
 
-# TODO(ai): Move to helpers/hmarkdown_toc.py
-def _add_navigation_slides(
-    lines: List[str], max_level: int, *, sanity_check: bool = False
-) -> List[str]:
-    """
-    Add the navigation slides to the notes.
-
-    :param lines: list of lines of the notes
-    :param max_level: maximum level of headers to consider (e.g., 3 creates a
-        navigation slide for headers of level 1, 2, and 3)
-    :param sanity_check: if True, perform sanity checks
-    :return: list of lines with the navigation slides added
-    """
-    _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
-    hdbg.dassert_isinstance(lines, list)
-    header_list = hmarkdo.extract_headers_from_markdown(
-        lines, max_level, sanity_check=sanity_check
-    )
-    _LOG.debug("header_list=\n%s", header_list)
-    tree = hmarkdo.build_header_tree(header_list)
-    _LOG.debug("tree=\n%s", tree)
-    out: List[str] = []
-    open_modifier = r"_**\textcolor{red}{"
-    close_modifier = r"}**_"
-    for line in lines:
-        is_header, level, description = hmarkdo.is_header(line)
-        if is_header and level <= max_level:
-            _LOG.debug(hprint.to_str("line level description"))
-            # Get the navigation string corresponding to the current header.
-            nav_str = hmarkdo.selected_navigation_to_str(
-                tree,
-                level,
-                description,
-                open_modifier=open_modifier,
-                close_modifier=close_modifier,
-            )
-            _LOG.debug("nav_str=\n%s", nav_str)
-            # Replace the header slide with the navigation slide.
-            # TODO(gp): We assume the slide level is 4.
-            # line_tmp = f"#### {description}\n"
-            line_tmp = "####\n"
-            # line_tmp += '<span style="color:blue">\n' + nav_str
-            line_tmp += nav_str
-            # line_tmp += "\n</span>\n"
-            # Add an extra newline to avoid to have the next title adjacent,
-            # confusing pandoc.
-            line_tmp += "\n"
-            out.append(line_tmp)
-        else:
-            out.append(line)
-    hdbg.dassert_isinstance(out, list)
-    return out
-
-
 def _remove_headers(lines: List[str], max_level: int) -> List[str]:
     """
     Remove all markdown headers from the lines that are smaller than level 3.
@@ -683,7 +629,17 @@ def _preprocess_lines(
     if toc_type == "navigation":
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
-        out = _add_navigation_slides(out, max_level, sanity_check=True)
+        expand_all_navigation = True
+        out = hmartoc.add_navigation_slides(
+            out, max_level, expand_all_navigation, sanity_check=True
+        )
+    elif toc_type == "partial_navigation":
+        hdbg.dassert_eq(type_, "slides")
+        max_level = 2
+        expand_all_navigation = False
+        out = hmartoc.add_navigation_slides(
+            out, max_level, expand_all_navigation, sanity_check=True
+        )
     elif toc_type == "remove_headers":
         # Remove headers smaller than level 4 so that we leave only the `*`.
         out = _remove_headers(out, max_level=4)
@@ -732,7 +688,21 @@ def _parse() -> argparse.ArgumentParser:
         "--toc_type",
         action="store",
         default="none",
-        choices=["none", "pandoc_native", "navigation", "remove_headers"],
+        choices=[
+            "none",
+            "pandoc_native",
+            "navigation",
+            "partial_navigation",
+            "remove_headers",
+        ],
+        help=(
+            "Type of table of contents to generate: "
+            "'none' = no TOC; "
+            "'pandoc_native' = use pandoc's native --toc option (depth 2); "
+            "'navigation' = add custom navigation slides for headers (levels 1-3); "
+            "'partial_navigation' = add custom navigation slides for headers (levels 1-3); "
+            "'remove_headers' = remove headers smaller than level 3"
+        ),
     )
     # TODO(gp): Unclear what it does.
     parser.add_argument(
@@ -762,7 +732,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Expand include directives before other preprocessing.
     lines = _expand_includes(lines)
     out = _preprocess_lines(
-        lines, args.type, args.toc_type, args.qa, actions=actions
+        lines,
+        args.type,
+        args.toc_type,
+        args.qa,
+        actions=actions,
     )
     out = "\n".join(out)
     # Save results.

@@ -1,9 +1,8 @@
-- This file contains rules and conventions for writing LaTeX formulas.
+- This file contains rules and conventions for writing LaTeX formulas
 
 # Symbols and Notation
 
 ## Symbol Conventions
-
 - Include LaTeX formulas in `$$ $$` instead of `\[` and `\]`
 - `$\Pr(...)$` for probability, instead of `P(...)`
 - `$\EE[...]$` for expectation (mean), instead of `\mathbb{E}` or `E`
@@ -11,17 +10,21 @@
 - `$\mathcal{X}$` for sets or spaces (use calligraphic)
 - `\vx`, `\vy` for vectors
 - `\mA` for matrices
-- `|` instead of `\mid` 
+- `|` instead of `\mid`
 - Do not use `\left[`, `\left(`, `\right]`, `\right)` unless necessary
 
 # Formula Formatting
 
 ## Multi-line Layout
-
 - Format the LaTeX code on multiple lines to be easy to read
   - **Bad**
-    $$\hat{ATE} = \frac{1}{N}\sum(({Y_{i}-Y_{jm}(i)})T_{i} + ({Y_{jm}(i)-Y_{i}})(1-T_{i}))$$
+    ```
+    $$
+    \hat{ATE} = \frac{1}{N}\sum(({Y_{i}-Y_{jm}(i)})T_{i} + ({Y_{jm}(i)-Y_{i}})(1-T_{i}))
+    $$
+    ```
   - **Good**
+    ```
     $$
     \hat{ATE}
     = \frac{1}{N}\sum (
@@ -29,6 +32,7 @@
       ( {Y_{jm}(i) - Y_{i}} )( 1 - T_{i} )
     )
     $$
+    ```
 
 # Converting Formulas
 

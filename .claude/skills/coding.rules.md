@@ -8,15 +8,15 @@
 
 # Code Style and Structure
 
-## Follow the Coding Style from the Template
+## Follow the Coding Style From the Template
 
-- Use the coding style in `@.claude/templates/code_template.py`
+- Use the coding style in `.claude/templates/code.template.py`
 
 ## Use * for Default Parameters
 
 - Use `*` to mark which parameters in functions should be default parameters
 
-## Use `typing` Module Style for type hints
+## Use `typing` Module Style for Type Hints
 
 - Use type hints from the `typing` module instead of newer PEP 604 syntax
 - Use `Tuple`, `Dict`, `Optional` instead of `tuple`, `dict`, `|` union syntax
@@ -335,7 +335,7 @@
     )
     ```
 
-## Do not use try-except
+## Do Not Use `try-except`
 
 - Do not use try except to recover errors but let statements raise their own
   errors
@@ -550,7 +550,23 @@
   the `dependencies` array
 - This allows scripts to be run directly without pre-installing packages: `./script.py`
 
-## Use Standard Argument Helpers from `hparser`
+## Make Scripts Executable
+
+- When creating a Python script, run `chmod +x` on it to make it executable
+- In the README and comments, always refer to scripts as `./script.py` or
+  `script.py`, never as `python script.py`
+  - **Bad**: Documentation refers to the script as needing Python
+    ```
+    # Run the script: python standardize_book_filename.py
+    # Usage: python convert_epub_to_md.py input.epub output.md
+    ```
+  - **Good**: Documentation refers to the script as executable
+    ```
+    # Run the script: ./standardize_book_filename.py
+    # Usage: ./convert_epub_to_md.py input.epub output.md
+    ```
+
+## Use Standard Argument Helpers From `hparser`
 
 - Use `hparser` helper functions to add standard arguments instead of defining
   them manually
@@ -591,8 +607,8 @@
 ## Command Line Argument Naming
 
 - Use only underscores as separators in command line arguments, not dashes
-- **Good**: `--cache_reset`, `--max_iterations`, `--output_dir`
-- **Bad**: `--cache-reset`, `--max-iterations`, `--output-dir`
+  - **Good**: `--cache_reset`, `--max_iterations`, `--output_dir`
+  - **Bad**: `--cache-reset`, `--max-iterations`, `--output-dir`
 - This applies to both long-form argument names and the attribute names assigned
   by argparse (which converts `_` to `_` in the namespace)
 
@@ -601,7 +617,7 @@
 - If directory doesn't exist create it using `hio.create_dir`
   - If a `--from_scratch` option is requested, create the directory from scratch
 
-## Temporary files
+## Temporary Files
 
 - When using temporary files use files named
   `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
@@ -643,7 +659,7 @@
     pattern = re.compile(quote_pattern, re.VERBOSE)
     ```
 
-## Use verbatim to refer to Python Objects
+## Use Verbatim to Refer to Python Objects
 
 - When referring to Python objects (e.g., variables, classes, and functions) in
   comments and docstrings use verbatim included in backticks

@@ -151,6 +151,5 @@ import config_root.config.config_ as crococon
 
 # Important
 
-- You MUST read and strictly follow `.claude/convention_rules.md`
-
-- You MUST never commit changes without user permission
+- You MUST read and strictly follow the following rules
+  `@.claude/rules.md`

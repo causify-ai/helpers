@@ -30,5 +30,5 @@ description: Use this idiom for controlling logging in Jupyter notebooks
   ```
 
 # Important: Follow Conventions
-
-- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`
+- Always follow the conventions and guidelines in
+  `@.claude/skills/notebook.rules.md`

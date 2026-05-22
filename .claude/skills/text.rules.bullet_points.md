@@ -1,5 +1,5 @@
-This document contains all the rules that must be followed to write text in terms
-of bullet lists.
+This document contains all the rules that must be followed to write text in
+terms of bullet lists
 
 ## Goals and Philosophy
 
@@ -49,7 +49,7 @@ of bullet lists.
   - **Bad**: A → B
   - **Good**: A -> B
 
-## Text is Formatted with Bullets
+## Text Is Formatted with Bullets
 
 - Every text should start with a bullet point
 
@@ -158,7 +158,7 @@ of bullet lists.
     ## 3. Third
     ```
 
-## Organize text in bullet points
+## Organize Text in Bullet Points
 
 - Make sure all the text is organized in bullet points
   ```
@@ -169,7 +169,7 @@ of bullet lists.
   - Creates output directory automatically with optional from-scratch mode
   ```
 
-## Summarize the text into structured markdown bullet points
+## Summarize the Text Into Structured Markdown Bullet Points
 
 - Create 4-5 bullet points capturing the main ideas
 - Use nested markdown bullets with maximal clarity and fewer words
@@ -182,7 +182,7 @@ of bullet lists.
 - Extract concrete examples
 - Be concise: remove narrative prose, keep only key facts and relationships
 
-## Use : instead of - 
+## Use `:` Instead of `-`
 
 - When writing bullet points with an explanation, use `:` and not `-` to separate
   the first part from the comment
@@ -222,7 +222,7 @@ of bullet lists.
     - $\EE[Y | T, M] = \EE[Y | M]$ and also the inverse $\EE[T | Y, M] = \EE[T | M]$
   ```
 
-## Example 2: Core values
+## Example 2: Core Values
 
   ```
   - Are a timeless set of guiding principles
