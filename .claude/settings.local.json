@@ -1,4 +1,5 @@
 {
+  "model": "haiku",
   "permissions": {
     "allow": [
       "Bash(find:*)",
