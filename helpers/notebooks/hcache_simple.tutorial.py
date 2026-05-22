@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.0
+#       jupytext_version: 1.19.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -344,9 +344,7 @@ result1 = api_call("python", session_id="abc")
 elapsed1 = time.time() - start_time
 print(f"Result: {result1} (time: {elapsed1:.3f}s)")
 # Same query, different session_id - should hit cache.
-print(
-    "\nCalling with query='python', session_id='xyz' (different session_id)..."
-)
+print("\nCalling with query='python', session_id='xyz' (different session_id)...")
 start_time = time.time()
 result2 = api_call("python", session_id="xyz")
 elapsed2 = time.time() - start_time
@@ -487,6 +485,7 @@ print(f"Time taken: {elapsed_time:.6f} seconds (from cache!)")
 # - `func_hash` tracking: A WARNING is logged on a cache hit whenever the
 #   function's source code has changed since the value was last computed.
 
+
 # %%
 # Demonstrate enable_caching: bypass cache entirely.
 @hcacsimp.simple_cache(cache_type="json")
@@ -546,14 +545,10 @@ hcacsimp.set_cache_property("multiply", "func_hash", "deadbeef" * 4)
 print("Simulated source change by overwriting func_hash.")
 
 # Next cache hit will warn that the source has changed.
-import logging as _log_mod
-
-with _log_mod.captureWarnings(True):
-    result = multiply(7, 8)
-print(
-    f"Result returned (stale cache still served): {result}\n"
-    "Check logs for: 'source code has changed' WARNING."
-)
+# The warning is emitted via _LOG.warning() inside the cache wrapper,
+# so it appears in the log output automatically.
+result = multiply(7, 8)
+print(f"Result returned (stale cache still served): {result}")
 
 # Restore.
 hcacsimp.set_cache_property("multiply", "func_hash", real_hash)

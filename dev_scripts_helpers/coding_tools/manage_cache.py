@@ -88,12 +88,16 @@ def _run_smoke_test() -> None:
     # First call: must be a cache miss (function executes).
     _LOG.info("Call 1 (expect miss)...")
     manage_cache_test_func()
-    _LOG.info("Stats after call 1:\n%s", hcacsimp.cache_stats_to_str(_TEST_FUNC_NAME))
+    _LOG.info(
+        "Stats after call 1:\n%s", hcacsimp.cache_stats_to_str(_TEST_FUNC_NAME)
+    )
     # Drop memory only; second call must reload from disk.
     hcacsimp.reset_mem_cache(_TEST_FUNC_NAME)
     _LOG.info("Call 2 (expect disk hit)...")
     manage_cache_test_func()
-    _LOG.info("Stats after call 2:\n%s", hcacsimp.cache_stats_to_str(_TEST_FUNC_NAME))
+    _LOG.info(
+        "Stats after call 2:\n%s", hcacsimp.cache_stats_to_str(_TEST_FUNC_NAME)
+    )
     _LOG.info("Smoke test complete.")
 
 
@@ -138,4 +142,3 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
 if __name__ == "__main__":
     _main(_parse())
-

@@ -1145,9 +1145,7 @@ class Test_cache_mode(_BaseCacheTest):
         _cache_mode_function(10)
         initial_count = _cache_mode_function.call_count
         # Set force_refresh property.
-        hcacsimp.set_cache_property(
-            "_cache_mode_function", "force_refresh", True
-        )
+        hcacsimp.set_cache_property("_cache_mode_function", "force_refresh", True)
         # Run test.
         result = _cache_mode_function(10)
         # Check outputs.
@@ -2034,9 +2032,7 @@ class Test_per_function_cache_dir(_BaseCacheTest):
         _ = _test_per_function_cache_dir(10)
         # Check.
         # Verify cache file is in decorator-specified directory.
-        cache_file = hcacsimp._get_cache_file_name(
-            "_test_per_function_cache_dir"
-        )
+        cache_file = hcacsimp._get_cache_file_name("_test_per_function_cache_dir")
         self.assertIn("/tmp/custom_cache", cache_file)
         # Flush to disk to verify file creation.
         hcacsimp.flush_cache_to_disk("_test_per_function_cache_dir")
@@ -2620,7 +2616,8 @@ def _hash_test_func_v1(x: int) -> int:
     """
     Return x + 1.
 
-    Used by Test__compute_func_hash to represent an unmodified function body.
+    Used by Test__compute_func_hash to represent an unmodified function
+    body.
 
     :param x: input integer
     :return: x + 1
@@ -2632,8 +2629,8 @@ def _hash_test_func_v2(x: int) -> int:
     """
     Return x + 2.
 
-    Used by Test__compute_func_hash to represent a different function body
-    from _hash_test_func_v1.
+    Used by Test__compute_func_hash to represent a different function
+    body from _hash_test_func_v1.
 
     :param x: input integer
     :return: x + 2
@@ -2735,9 +2732,7 @@ class Test_enable_clear_cache(_BaseCacheTest):
         hcacsimp.enable_clear_cache(False)
         # Run / check.
         with self.assertRaises(RuntimeError):
-            hcacsimp.reset_disk_cache(
-                "_cached_json_double", interactive=False
-            )
+            hcacsimp.reset_disk_cache("_cached_json_double", interactive=False)
 
     def test3(self) -> None:
         """
@@ -2818,8 +2813,8 @@ class Test_func_hash_tracking(_BaseCacheTest):
 
     def test1(self) -> None:
         """
-        Verify that func_hash property is None before the first call and is
-        set to a valid MD5 string after the first cache miss.
+        Verify that func_hash property is None before the first call and is set
+        to a valid MD5 string after the first cache miss.
         """
         # func_hash must not exist before any call.
         before = hcacsimp.get_cache_property("_cached_json_double", "func_hash")
@@ -2833,8 +2828,8 @@ class Test_func_hash_tracking(_BaseCacheTest):
 
     def test2(self) -> None:
         """
-        Verify that no source-change warning is emitted on a cache hit when
-        the function body has not changed.
+        Verify that no source-change warning is emitted on a cache hit when the
+        function body has not changed.
         """
         # First call: cache miss, stores hash.
         _cached_json_double(42)
@@ -2843,9 +2838,7 @@ class Test_func_hash_tracking(_BaseCacheTest):
             _cached_json_double(42)
         # Check: the source-change warning must not appear.
         msgs = [str(c) for c in mock_warn.call_args_list]
-        self.assertFalse(
-            any("source code has changed" in m for m in msgs)
-        )
+        self.assertFalse(any("source code has changed" in m for m in msgs))
 
     def test3(self) -> None:
         """
@@ -2863,9 +2856,7 @@ class Test_func_hash_tracking(_BaseCacheTest):
             _cached_json_double(42)
         # Check: the source-change warning must appear.
         msgs = [str(c) for c in mock_warn.call_args_list]
-        self.assertTrue(
-            any("source code has changed" in m for m in msgs)
-        )
+        self.assertTrue(any("source code has changed" in m for m in msgs))
 
     def test4(self) -> None:
         """
