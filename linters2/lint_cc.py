@@ -40,6 +40,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 
@@ -244,9 +245,9 @@ def _run_claude_code(
     """
     # Add the file.
     hdbg.dassert_file_exists(file_path)
+    # Create the prompt file.
     prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
-    _LOG.info("Prompt:\n%s", prompt)
-    # Create the file.
+    _LOG.info("%s\n%s", hprint.frame("Prompt"), prompt)
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
     #

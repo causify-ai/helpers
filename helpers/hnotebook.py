@@ -80,19 +80,20 @@ def config_notebook(sns_set: bool = True) -> None:
 
 
 # #############################################################################
+# Logger Configuration
+# #############################################################################
 
 # Notebook util libraries can use the following idiom to control the logging so
 # that it works well both in a notebook and in code.
-
+#
 # In the notebook add:
 # ```
 # import <tutorial>_utils as tutils
-
-# # Configure the logger for this tutorial.
+#
 # _LOG = logging.getLogger(__name__)
 # tutils.init_loggers(_LOG)
 # ```
-
+#
 # Define `init_loggers()` in the paired `*_utils.py` file:
 # ```
 # import helpers.hnotebook as hnotebo
@@ -103,31 +104,42 @@ def config_notebook(sns_set: bool = True) -> None:
 # ```
 
 
-def _info_print(msg: str, *args, **kwargs) -> None:
+def _info_print(msg: str, *args) -> None:
     """
     Print a message with optional formatting arguments.
+
+    Formats the message using printf-style formatting if additional arguments
+    are provided, then prints it.
+
+    :param msg: Message template to print
+    :param args: Optional positional arguments for message formatting
     """
     if args:
         msg = msg % args
     print(msg)
 
 
-def set_logger_to_print(log) -> None:
+def set_logger_to_print(log: logging.Logger) -> None:
     """
-    Replace `log.info` method with a `print` function.
+    Replace logger's `info()` method with `print()` function.
 
-    :param log: logger object to modify
+    Modifies the logger in-place to output messages via print instead of the
+    standard logging mechanism, useful for notebook environments.
+
+    :param log: Logger object to modify
     """
     log.info = _info_print
 
 
-def set_all_loggers_to_print() -> None:
+def _set_all_loggers_to_print() -> None:
     """
-    Replace all loggers' info method with a print function.
+    Replace all registered loggers' `info()` methods with `print()` function.
+
+    Iterates through all logger instances in the logging hierarchy and replaces
+    their `info()` method with the `_info_print()` function for notebook output.
     """
     for name in logging.root.manager.loggerDict:
         logger = logging.getLogger(name)
-        # print("Setting logger %s to print" % name)
         set_logger_to_print(logger)
 
 
@@ -138,19 +150,28 @@ def init_loggers(
     set_all_loggers_to_print: bool = False
 ) -> None:
     """
-    - notebook_log: 
-    - utils_log: the _LOG from the *_utils.py
+    Initialize loggers for notebook use with sensible defaults.
+
+    Configures notebook environment (matplotlib, seaborn, pandas), sets up
+    debug logging, and redirects specified loggers to print output for
+    interactive notebook use.
+
+    :param notebook_log: Logger instance from the notebook's `__main__`
+    :param utils_log: Optional logger from paired `*_utils.py` module
+        - Default: `None` (skipped)
+    :param set_all_loggers_to_print: Whether to redirect all loggers to print
+        - If True, all registered loggers' `info()` methods will output via print
+        - Default: `False`
     """
-    import helpers.hdbg as hdbg
-    # Configure the notebook.
+    # Configure the notebook environment.
     config_notebook()
-    # Initialize the logger to a certain level.
+    # Initialize the logger to INFO level.
     hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
-    # Init notebook logging to printing.
+    # Redirect notebook logger to print.
     set_logger_to_print(notebook_log)
-    # Init current module logging to printing.
+    # Redirect utils logger to print if provided.
     if utils_log is not None:
         set_logger_to_print(utils_log)
-    # Init all module logging to printing.
+    # Redirect all module loggers to print if requested.
     if set_all_loggers_to_print:
-        set_all_loggers_to_print()
+        _set_all_loggers_to_print()
