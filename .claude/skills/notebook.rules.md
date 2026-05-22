@@ -14,52 +14,9 @@ description: Conventions and standards for interative Jupyter notebook structure
 - Use the structure from `.claude/templates/notebook.template.py` for consistent
   notebook initialization
 
-## First Cell: Standard Imports and Configuration
-- Include autoreload, logging, and core dependencies:
-  ```python
-  %load_ext autoreload
-  %autoreload 2
-
-  # System libraries.
-  import logging
-
-  # Third-party libraries.
-  # import numpy as np
-  # import pandas as pd
-  # import seaborn as sns
-  # import matplotlib.pyplot as plt
-  ```
-
-## Second Cell: Optionally Install Packages on-the-fly
-- Install packages on the fly during development (all packages should be in the
-  Docker container)
-  ```
-  # import helpers.hmodule as hmodule
-  # hmodule.install_module_if_not_present(
-  #     [""],
-  #     use_activate=True,
-  #     use_sudo=False,
-  #     venv_path="/opt/venv",
-  # )
-  ```
-
-## Third Cell: Notebook-Specific Imports and Logger
-- Define `init_logger()` in the paired `*_utils.py` file and call it
-  from the notebook, as described in `helpers_root/helpers/hnotebook.py`
-
-- Add imports unique to this notebook after the standard cell:
-  ```python
-  # Helpers packages.
-  import helpers.hdbg as hdbg
-  import helpers.hnotebook as hnotebo
-
-  # Tutorial-specific packages.
-  import <tutorial>_utils as tutils
-
-  # Configure the logger for this tutorial.
-  _LOG = logging.getLogger(__name__)
-  tutils.init_logger(_LOG)
-  ```
+- First Cell: Include autoreload, logging, and core dependencies
+- Second Cell: Optionally install packages on-the-fly
+- Third Cell: Notebook-specific imports and logger
 
 ## Notebook-to-File Pairing
 - Each notebook is paired with Jupytext to a Python file

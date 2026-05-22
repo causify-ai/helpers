@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-# pylint: disable=line-too-long
 """
 Automate some common workflows with jupytext.
 

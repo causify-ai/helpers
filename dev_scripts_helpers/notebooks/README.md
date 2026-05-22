@@ -14,32 +14,49 @@ conversion, image extraction, publishing, and testing workflows.
 
 - `__init__.py`
   - Package initialization importing notebook test case utilities for testing workflows
+
+- `conftest.py`
+  - pytest configuration and fixtures for notebook-related tests
+
 - `add_toc_to_notebook.py`
   - Automatically generates and adds a table of contents to Jupyter notebooks
+
 - `all.extract_notebook_images.how_to_guide.md`
   - Guide for extracting images from annotated Jupyter notebook cells
+
 - `dockerized_extract_notebook_images.py`
   - Extracts marked regions from notebooks and converts them to images using Docker
+
 - `extract_notebook_images.py`
   - Wrapper to run notebook image extraction inside Docker container with dynamic build
+
 - `ipynb_format.py`
   - Formats code cells in Jupyter notebooks using yapf style configuration
+
 - `jupytext_diff.py`
   - Compares Jupyter notebook with paired Python file using vimdiff and jupytext
+
 - `process_jupytext.py`
   - Automates jupytext workflows including pairing, syncing, and testing notebook conversions
+
 - `profile_test_durations.py`
   - Notebook for analyzing and visualizing test execution durations and performance
+
 - `publish_notebook.py`
   - Converts notebooks to HTML and publishes to browser, S3, or webserver
+
 - `run_jupyter_server.py`
   - Manages Jupyter notebook server lifecycle including start, stop, and port management
+
 - `run_notebook_test_case.py`
   - Test case base class for running notebooks end-to-end with configuration
+
 - `run_notebook.py`
   - Executes notebooks with specified configs and handles parallel execution and publishing
+
 - `test/test_dockerized_extract_notebook_images.py`
   - Tests for extracting regions from notebooks using Docker-based extraction
+
 - `test/test_extract_notebook_images.py`
   - Integration tests for dockerized notebook image extractor with container rebuild
 
@@ -314,4 +331,126 @@ conversion, image extraction, publishing, and testing workflows.
         --config_builder "build_configs()" \
         --dst_dir ./output \
         --publish_notebook
+    ```
+
+### `process_all_jupytext.sh`
+
+- **What It Does**:
+  - Batch processes all .ipynb files in a directory tree with jupytext
+  - Applies sync action to every notebook found recursively
+  - Skips .ipynb_checkpoints directories
+  - Uses xargs for efficient batch operations
+
+- **Examples**:
+
+  - Sync all notebooks in current directory and subdirectories:
+
+    ```bash
+    > ./process_all_jupytext.sh
+    ```
+
+### `jupytext_pair.sh`
+
+- **What It Does**:
+  - Pairs all .ipynb files in current directory with Python files
+  - Sets jupytext format to ipynb with percent-style Python pairing
+  - Convenience script for bulk pairing operations
+
+- **Examples**:
+
+  - Pair all notebooks in current directory:
+
+    ```bash
+    > ./jupytext_pair.sh
+    ```
+
+### `notebook.pair.sh`
+
+- **What It Does**:
+  - Lists and pairs all .ipynb files in current directory with Python files
+  - Configures jupytext format as ipynb,py:percent for each notebook
+  - Initial setup script for notebook pairing in a project
+
+- **Examples**:
+
+  - Set up jupytext pairing for all notebooks:
+
+    ```bash
+    > ./notebook.pair.sh
+    ```
+
+### `notebook.sync.sh`
+
+- **What It Does**:
+  - Synchronizes paired notebooks and Python files across a directory
+  - Handles bidirectional conversion between .ipynb and .py formats
+  - Preserves cell structure and metadata during synchronization
+
+- **Examples**:
+
+  - Sync all paired notebook/Python files:
+
+    ```bash
+    > ./notebook.sync.sh
+    ```
+
+### `notebook.restore.sh`
+
+- **What It Does**:
+  - Restores paired Python files from their corresponding notebooks
+  - Reverts changes to Python files to match current notebook state
+  - Useful after accidental modifications to paired Python files
+
+- **Examples**:
+
+  - Restore Python files from notebooks:
+
+    ```bash
+    > ./notebook.restore.sh
+    ```
+
+### `notebook.remove.sh`
+
+- **What It Does**:
+  - Removes jupytext pairing configuration from notebooks
+  - Cleans up paired Python files associated with notebooks
+  - Reverts notebooks to standalone format without Python pairing
+
+- **Examples**:
+
+  - Remove jupytext pairing:
+
+    ```bash
+    > ./notebook.remove.sh
+    ```
+
+### `profile_test_durations.py`
+
+- **What It Does**:
+  - Analyzes and visualizes test execution time distributions
+  - Parses test logs to extract duration data
+  - Creates histograms and statistics for performance profiling
+  - Identifies slow tests and performance bottlenecks
+
+- **Examples**:
+
+  - Profile test execution durations from log data:
+
+    ```bash
+    > ./profile_test_durations.py
+    ```
+
+### `fix_vim_plugin.sh`
+
+- **What It Does**:
+  - Resolves compatibility issues with Vim notebook editing plugins
+  - Patches or reinstalls Vim extensions for Jupyter integration
+  - Ensures Vim mode works correctly with notebook environment
+
+- **Examples**:
+
+  - Fix Vim plugin integration issues:
+
+    ```bash
+    > ./fix_vim_plugin.sh
     ```
