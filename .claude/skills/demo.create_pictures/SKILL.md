@@ -3,12 +3,10 @@ description: Generate image prompts for each slide in a storyboard and create a 
 ---
 
 # Step 1)
-
 - Given the text of a storyboard for a presentation, for each slide generate
   images in the following format, where you can add a description in <Complete>
 
 - The prompt should be like:
-
   ```verbatim
   CHARACTERS
   <Complete>
@@ -30,7 +28,6 @@ description: Generate image prompts for each slide in a storyboard and create a 
   ```
 
 # Step 2)
-
 - You need to generate a file demo_images.md that can be used with the command
   ```python
   > ./helpers_root/dev_scripts_helpers/documentation/generate_images.py \

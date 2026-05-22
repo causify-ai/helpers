@@ -3,12 +3,11 @@ description: Move the general content from a skill to the corresponding rule fil
 model: haiku
 ---
 
-
 - Given the skill file `<SKILL_FILE>` passed by the user execute the following
   steps
 
 # Step 1
-- Read `.claude/skills/skill.rules.md` and focus on `## Rules vs Skills`
+- Read `.claude/skills/skill.rules.md`
 - Print the name of the skill and rule file
   ```
   Skill file: <SKILL_FILE>

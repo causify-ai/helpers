@@ -6,6 +6,7 @@ import helpers.hgit as hgit
 
 import collections
 import functools
+import glob
 import logging
 import os
 import random
@@ -14,6 +15,7 @@ import string
 from typing import cast, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -1533,6 +1535,125 @@ def get_summary_files_in_branch(
             res += hprint.indent("\n".join(files)) + "\n"
     res = res.rstrip("\n")
     return res
+
+
+def _filter_existing_paths(paths_from_user: List[str]) -> List[str]:
+    """
+    Filter out the paths to non-existent files.
+
+    :param paths_from_user: paths passed by user
+    :return: existing paths
+    """
+    paths = []
+    for user_path in paths_from_user:
+        if user_path.endswith("/*"):
+            # Get the files according to the "*" pattern.
+            dir_files = glob.glob(user_path)
+            if dir_files:
+                # Check whether the pattern matches files.
+                paths.extend(dir_files)
+            else:
+                _LOG.error(
+                    (
+                        "'%s' pattern doesn't match any files: "
+                        "the directory is empty or path does not exist"
+                    ),
+                    user_path,
+                )
+        elif os.path.exists(user_path):
+            paths.append(user_path)
+        else:
+            _LOG.error("'%s' does not exist", user_path)
+    return paths
+
+
+def get_files_to_process(
+    modified: bool,
+    branch: bool,
+    last_commit: bool,
+    all_: bool,
+    files_from_user: str,
+    mutually_exclusive: bool,
+    remove_dirs: bool,
+    *,
+    dir_name: str = ".",
+) -> List[str]:
+    """
+    Get a list of files to process based on selection criteria.
+
+    The files are selected based on the switches:
+    - `branch`: changed in the branch
+    - `modified`: changed in the client (both staged and modified)
+    - `last_commit`: part of the previous commit
+    - `all_`: all the files in the repo
+    - `files_from_user`: passed by the user
+
+    :param modified: return files modified in the client (i.e., changed with
+        respect to HEAD)
+    :param branch: return files modified with respect to the branch point
+    :param last_commit: return files part of the previous commit
+    :param all_: return all repo files
+    :param files_from_user: return files passed to this function
+    :param mutually_exclusive: ensure that all options are mutually exclusive
+    :param remove_dirs: whether directories should be processed
+    :param dir_name: directory to process (default: current directory)
+    :return: paths to process
+    """
+    _LOG.debug(
+        hprint.to_str(
+            "modified branch last_commit all_ files_from_user "
+            "mutually_exclusive remove_dirs dir_name"
+        )
+    )
+    if mutually_exclusive:
+        # All the options are mutually exclusive.
+        hdbg.dassert_eq(
+            int(modified)
+            + int(branch)
+            + int(last_commit)
+            + int(all_)
+            + int(len(files_from_user) > 0),
+            1,
+            msg="Specify only one among --modified, --branch, --last-commit, "
+            "--all_files, and --files",
+        )
+    else:
+        # We filter the files passed from the user through other the options,
+        # so only the filtering options need to be mutually exclusive.
+        hdbg.dassert_eq(
+            int(modified) + int(branch) + int(last_commit) + int(all_),
+            1,
+            msg="Specify only one among --modified, --branch, --last-commit",
+        )
+    files: List[str] = []
+    if modified:
+        files = get_modified_files(dir_name)
+    elif branch:
+        files = get_modified_files_in_branch("master", dir_name)
+    elif last_commit:
+        files = get_previous_committed_files(dir_name)
+    elif all_:
+        pattern = "*"
+        only_files = True
+        use_relative_paths = True
+        files = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
+    if files_from_user:
+        # If files were passed, filter out non-existent paths.
+        files = _filter_existing_paths(files_from_user.split())
+    # Convert into a list.
+    hdbg.dassert_isinstance(files, list)
+    files_to_process = [f for f in files if f != ""]
+    # We need to remove `amp` to avoid copying the entire tree.
+    files_to_process = [f for f in files_to_process if f != "amp"]
+    _LOG.debug("files_to_process='%s'", str(files_to_process))
+    # Remove dirs, if needed.
+    if remove_dirs:
+        files_to_process = hsystem.remove_dirs(files_to_process)
+    _LOG.debug("files_to_process='%s'", str(files_to_process))
+    # Ensure that there are files to process.
+    if not files_to_process:
+        _LOG.warning("No files were selected")
+    return files_to_process
 
 
 # #############################################################################

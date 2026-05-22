@@ -781,6 +781,13 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default="none",
         choices=["none", "pandoc_native", "navigation", "remove_headers"],
+        help=(
+            "Type of table of contents to generate: "
+            "'none': no TOC; "
+            "'pandoc_native': use pandoc's native --toc option (depth 2); "
+            "'navigation': add custom navigation slides for headers (levels 1-3); "
+            "'remove_headers': remove headers smaller than level 3"
+        ),
     )
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False

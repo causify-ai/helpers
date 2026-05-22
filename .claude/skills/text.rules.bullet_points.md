@@ -1,5 +1,5 @@
-This document contains all the rules that must be followed to write text in terms
-of bullet lists.
+This document contains all the rules that must be followed to write text in
+terms of bullet lists
 
 ## Goals and Philosophy
 

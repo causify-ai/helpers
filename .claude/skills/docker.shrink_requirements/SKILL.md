@@ -4,17 +4,16 @@ description: Find unused packages in requirements.txt that are not needed by the
 
 - You are an expert of Docker
 
-- I will pass you a directory $TARGET with a project
+- I will pass you a directory `<TARGET_DIR>` with a project
 
-- Find out which packages in `requirements.txt` are not needed
-  by the code in $TARGET
+- Find out which packages in `requirements.txt` are not needed by the code in
+  `<TARGET_DIR>`
 
 ## Methodology
-
 - Use `grep -r "import <pkg>"` or AST-based analysis to find actual imports
-  across all `.py` files in `$TARGET`
-- Map package names in `requirements.txt` to their import names (e.g.,
-  `Pillow` → `PIL`, `scikit-learn` → `sklearn`, `PyYAML` → `yaml`)
+  across all `.py` files in ``<TARGET_DIR>``
+- Map package names in `requirements.txt` to their import names (e.g., `Pillow`
+  → `PIL`, `scikit-learn` → `sklearn`, `PyYAML` → `yaml`)
 - Also check `setup.py`, `pyproject.toml`, `tasks.py`, and `Makefile` for
   indirect or tool-level usage
 - Flag but do NOT remove packages that are:
@@ -23,7 +22,6 @@ description: Find unused packages in requirements.txt that are not needed by the
   - Used only in test files (mark them as "test-only")
 
 ## Output
-
 - Print a table with columns:
   ```
   package | import_name | used_in_code | verdict

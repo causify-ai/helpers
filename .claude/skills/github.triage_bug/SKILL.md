@@ -15,6 +15,7 @@ I will give you a GitHub issue ${ISSUE_NUM} and optionally a repo
 
 # Step 3: Triage
 Tasks:
+
 - Estimate difficulty (easy/medium/hard)
 - Identify which files are likely involved
 - Determine root cause

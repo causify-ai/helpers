@@ -10,7 +10,7 @@
 
 ## Follow the Coding Style From the Template
 
-- Use the coding style in `@.claude/templates/code_template.py`
+- Use the coding style in `.claude/templates/code.template.py`
 
 ## Use * for Default Parameters
 
@@ -607,8 +607,8 @@
 ## Command Line Argument Naming
 
 - Use only underscores as separators in command line arguments, not dashes
-- **Good**: `--cache_reset`, `--max_iterations`, `--output_dir`
-- **Bad**: `--cache-reset`, `--max-iterations`, `--output-dir`
+  - **Good**: `--cache_reset`, `--max_iterations`, `--output_dir`
+  - **Bad**: `--cache-reset`, `--max-iterations`, `--output-dir`
 - This applies to both long-form argument names and the attribute names assigned
   by argparse (which converts `_` to `_` in the namespace)
 
