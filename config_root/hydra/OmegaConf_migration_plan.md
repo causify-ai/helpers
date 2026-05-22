@@ -307,7 +307,438 @@ def use_config():
     # resolved.model.weights = pd.Series([0.5, 0.3, 0.2], index=["a", "b", "c"])
 ```
 
-### Long-Term Vision: Three Phases
+### Execution plan
+
+#### Prerequisites
+1. ✅ Install `OmegaConf` and `Hydra` to the main Docker container
+2. ✅ Create shared resolver library at `helpers_root/config_root/hydra/resolvers.py`
+3. ✅ Document migration patterns in `OmegaConf_migration_plan.md`
+
+#### Sequence of PRs
+
+- All Mock DagBuilders to serve as reference implementations https://github.com/causify-ai/csfy/pull/8943
+- Example DagBuilders under `dataflow/core/`
+- Product-Specific DagBuilders (Grid & Sentinel)
+- Unencrypted Orange DagBuilders
+- Encrypted Lemonade DagBuilders (Final Stage)
+
+**Why Last?**
+- Encryption is expensive (time + complexity)
+- Want to encrypt only once after all code changes stabilize
+- Minimize risk of needing to re-encrypt due to migration issues
+
+## Porting System Classes to OmegaConf
+
+System classes follow similar patterns to DagBuilders but manage entire ML systems composed of multiple components (MarketData, DAG, Portfolio, Broker, DagRunner). However, Systems introduce critical architectural challenges that require paradigm shifts.
+
+### Removing Config-Specific Patterns
+
+#### 1. Compound Key Access
+
+**Current Config pattern:**
+```python
+# Compound tuple keys for nested access
+system.config["market_data_config", "asset_ids"] = [101, 102]
+system.config["dag_config", "resample", "transformer_kwargs", "rule"] = "5T"
+
+# Reading compound keys
+asset_ids = system.config["market_data_config", "asset_ids"]
+rule = system.config["dag_config", "resample", "transformer_kwargs", "rule"]
+```
+
+**Problem:** OmegaConf doesn't support tuple-based compound keys. This is a Config-specific feature for navigating nested dictionaries.
+
+**OmegaConf replacement:**
+```python
+# Dot notation (preferred - clean and Pythonic)
+system.config.market_data_config.asset_ids = [101, 102]
+system.config.dag_config.resample.transformer_kwargs.rule = "5T"
+
+# Reading with dot notation
+asset_ids = system.config.market_data_config.asset_ids
+rule = system.config.dag_config.resample.transformer_kwargs.rule
+
+# Or bracket notation (when keys have special characters or are dynamic)
+system.config["market_data_config"]["asset_ids"] = [101, 102]
+asset_ids = system.config["market_data_config"]["asset_ids"]
+```
+
+#### 2. Removing `get_and_mark_as_used()`
+
+**Current Config pattern:**
+```python
+class DagBuilder:
+    def get_trading_period(
+        self, config: cconfig.Config, mark_key_as_used: bool
+    ) -> str:
+        # Get value and mark it as "used"
+        key = ("dag_config", "resample", "transformer_kwargs", "rule")
+        val: str = config.get_and_mark_as_used(
+            key, mark_key_as_used=mark_key_as_used
+        )
+        return val
+
+```
+
+**Problem:** OmegaConf doesn't have built-in usage tracking. The `.get_and_mark_as_used()` method and `mark_key_as_used` pattern are Config-specific.
+
+**Remove usage tracking (simplest)**
+```python
+class DagBuilder:
+    def get_trading_period(self, config: omcfg.DictConfig) -> str:
+        # Direct access without tracking
+        val: str = config.dag_config.resample.transformer_kwargs.rule
+        return val
+```
+
+**Pros:**
+- Simplest migration
+- OmegaConf provides missing key errors by default
+- Structured configs provide type validation
+
+**Cons:**
+- Lose ability to detect unused keys
+- No explicit validation that all config was consumed
+
+### Config as Blueprint vs State Container
+
+**Critical Issue:** The current System implementation uses `Config` as both:
+1. A configuration blueprint (parameters, settings)
+2. A state container (storing built Python objects)
+
+**Why this breaks with OmegaConf:**
+
+```python
+# Current pattern.
+system = System()
+system.config["dag_runner_object"] = dag_runner  # Live Python object.
+system.config["market_object"] = market_data    # Live Python object.
+
+# Try to serialize...
+OmegaConf.to_yaml(system.config)  
+system.config.save_to_file("config.yaml") 
+```
+
+OmegaConf is designed for **serializable data only** (strings, ints, lists, dicts). When you store live Python objects in the config and try to serialize to YAML, the serializer fails.
+
+**The Solution: Separate Blueprint from State**
+
+```python
+class System:
+    def __init__(self):
+        # Pure configuration blueprint (serializable)
+        self._config: DictConfig = self._get_system_config_template()
+
+        # Live object cache (NOT serializable, but that's OK)
+        self._object_cache: Dict[str, Any] = {}
+```
+
+**Key Principle:**
+- `self._config` = Pure data blueprint, always serializable
+- `self._object_cache` = Live Python objects (MarketData, DAG, Portfolio, DagRunner)
+
+### Execution plan
+
+#### Reference Implementation
+**PR**: https://github.com/causify-ai/csfy/pull/8974
+
+Successfully ported Mock1 System to OmegaConf, demonstrating common patterns for System migration.
+
+#### Migration Strategy
+
+**Global vs Local Changes:**
+
+1. **Global + Backward-Compatible**: Update in place
+   - Replace compound keys: `system.config[("key1", "key2")]` → `system.config["key1"]["key2"]`
+   - Works for both `cconfig.Config` and `omegaconf.DictConfig`
+
+2. **Global + Not Backward-Compatible**: Use `isinstance()` checks
+   - Generalize existing functions to handle both config types
+   - Avoids creating duplicate functions that increase maintenance burden
+
+   ```python
+   if isinstance(system.config, cconfig.Config):
+       dict_["start_time"] = datetime.time(9, 30)
+   elif isinstance(system.config, omegaconf.DictConfig):
+       dict_["start_time"] = "${to_time:09:30}"
+   ```
+
+3. **Local Changes**: Update in place
+   - System-specific code migrates fully in one PR
+   - No need for backward compatibility within a single System
+
+#### Common Patterns
+
+**1. Replace Compound Keys**
+
+```python
+# Before (Config-specific)
+system.config["market_data_config", "asset_ids"] = [101, 102]
+asset_ids = system.config["market_data_config", "asset_ids"]
+system.config["dag_config", "resample", "transformer_kwargs", "rule"] = "5T"
+
+# After (works for both Config and OmegaConf)
+system.config["market_data_config"]["asset_ids"] = [101, 102]
+asset_ids = system.config["market_data_config"]["asset_ids"]
+system.config["dag_config"]["resample"]["transformer_kwargs"]["rule"] = "5T"
+
+# Or dot notation (OmegaConf only, cleaner)
+system.config.market_data_config.asset_ids = [101, 102]
+```
+
+**2. Store Objects in `_object_cache`, Not Config**
+
+```python
+# Before (not serializable)
+system.config["dag_builder_object"] = Mock1_DagBuilder()
+system.config["portfolio_object"] = portfolio
+system.config["event_loop_object"] = event_loop
+
+# After (serializable config, objects cached separately)
+system._object_cache["dag_builder"] = Mock1_DagBuilder()
+system._object_cache["portfolio"] = portfolio
+system._event_loop = event_loop  # Class attribute for special cases
+
+# Access via properties
+@property
+def dag_builder(self) -> DagBuilder:
+    return self._object_cache["dag_builder"]
+
+@property
+def portfolio(self) -> Portfolio:
+    return self._object_cache.get("portfolio")
+```
+
+**3. Use Custom Resolvers for Non-Serializable Types**
+
+```python
+# Before (not serializable)
+system.config["market_data_config"]["start_time"] = datetime.time(9, 30)
+system.config["market_data_config"]["start_timestamp"] = pd.Timestamp("2024-01-01", tz="UTC")
+system.config["market_data_config"]["lookback"] = pd.Timedelta(days=7)
+
+# After (serializable with resolvers)
+system.config["market_data_config"]["start_time"] = "${to_time:09:30}"
+system.config["market_data_config"]["start_timestamp"] = "${to_timestamp:2024-01-01, UTC}"
+system.config["market_data_config"]["lookback"] = "${to_timedelta:7 days}"
+
+# Resolved automatically when accessed
+start_time = system.config.market_data_config.start_time  # → datetime.time(9, 30)
+```
+
+**4. Use `_target_` Pattern for Object Instantiation**
+
+```python
+# Before (stores live object - not serializable)
+df = cofinanc.get_MarketData_df6(universe)
+system.config["market_data_config"]["data"] = df
+
+# After (stores function path - serializable)
+system.config["market_data_config"]["data"] = {
+    "_target_": "core.finance.get_MarketData_df6",
+    "qualified_assets": universe,
+}
+
+# Hydra instantiates when needed
+market_data = hydra.utils.instantiate(system.config.market_data_config.data)
+```
+
+**5. Store Function Paths in Tests (Not DataFrames)**
+
+```python
+# Before (test passes DataFrame directly)
+data, rt_timeout = cofinanc.get_MarketData_df1()
+system = get_Mock1_System_example1(data, rt_timeout)
+
+# After (test passes function path)
+_, rt_timeout = cofinanc.get_MarketData_df1()
+system = get_Mock1_System_example1(
+    data_generator_target="core.finance.get_MarketData_df1",
+    rt_timeout_in_secs_or_time=rt_timeout,
+)
+
+# Example function signature change
+def get_Mock1_System_example1(
+    data_generator_target: str,  # Function path, not DataFrame
+    rt_timeout_in_secs_or_time: Optional[Union[int, datetime.time]],
+) -> System:
+    system.config["market_data_config"]["data"] = {
+        "_target_": data_generator_target
+    }
+```
+
+**6. Remove `get_and_mark_as_used()`**
+
+```python
+# Before (Config-specific)
+val = system.config.get_and_mark_as_used(
+    ("dag_runner_config", "bar_duration_in_secs"),
+    mark_key_as_used=True
+)
+history_lookback = system.config.get_and_mark_as_used(
+    ("market_data_config", "days"),
+    default_value=None
+)
+
+# After (direct access)
+val = system.config["dag_runner_config"]["bar_duration_in_secs"]
+
+# With default value using OmegaConf.select()
+history_lookback = omegaconf.OmegaConf.select(
+    system.config,
+    "market_data_config.days",
+    default=None
+)
+```
+
+**7. Check Nested Key Existence Before Setting**
+
+```python
+# Before (compound key check)
+if ("market_data_config", "asset_ids") not in system.config:
+    system.config["market_data_config", "asset_ids"] = asset_ids
+
+# After (check each level)
+if "market_data_config" not in system.config or "asset_ids" not in system.config["market_data_config"]:
+    if "market_data_config" not in system.config:
+        system.config["market_data_config"] = {}
+    system.config["market_data_config"]["asset_ids"] = asset_ids
+```
+
+**8. Ensure Nested Dicts Exist Before Assignment**
+
+```python
+# Before (fails if parent doesn't exist)
+system.config["process_forecasts_node_dict"]["process_forecasts_dict"]["trading_start_time"] = "${to_time:09:30}"
+
+# After (create parents first)
+if "process_forecasts_node_dict" not in system.config:
+    system.config["process_forecasts_node_dict"] = {}
+if "process_forecasts_dict" not in system.config["process_forecasts_node_dict"]:
+    system.config["process_forecasts_node_dict"]["process_forecasts_dict"] = {}
+system.config["process_forecasts_node_dict"]["process_forecasts_dict"]["trading_start_time"] = "${to_time:09:30}"
+```
+
+**9. Convert OmegaConf to Native Types Before Passing to Functions**
+
+```python
+# Before (may fail with type checks)
+node = ProcessForecastsNode(
+    stage,
+    portfolio=portfolio,
+    **system.config["process_forecasts_node_dict"],  # OmegaConf DictConfig
+)
+
+# After (convert to dict)
+process_forecasts_node_dict = omegaconf.OmegaConf.to_container(
+    system.config["process_forecasts_node_dict"],
+    resolve=True  # Resolve all ${...} expressions
+)
+node = ProcessForecastsNode(
+    stage,
+    portfolio=portfolio,
+    **process_forecasts_node_dict,  # Native Python dict
+)
+```
+
+**10. Get Live Objects from System Properties, Not Config**
+
+```python
+# Before (objects in config)
+portfolio = system.config["portfolio_object"]
+dag_builder = system.config["dag_builder_object"]
+
+# After (objects from cache/properties)
+portfolio = system.portfolio  # Property accessing _object_cache
+dag_builder = system.dag_builder  # Property accessing _object_cache
+
+# In add_ProcessForecastsNode()
+def add_ProcessForecastsNode(system: System, dag: DAG) -> DAG:
+    # Get portfolio from system, not config (portfolio not serializable)
+    portfolio = system.portfolio
+    node = ProcessForecastsNode(
+        stage="process_forecasts",
+        portfolio=portfolio,
+        **system.config["process_forecasts_node_dict"],
+    )
+    dag.append_to_tail(node)
+    return dag
+```
+
+**11. Use `isinstance()` Checks in Shared Utilities**
+
+```python
+# Shared utilities that support both config types
+def apply_ProcessForecastsNode_config_for_equities(system: System) -> System:
+    if isinstance(system.config, cconfig.Config):
+        # Use datetime objects directly
+        dict_ = {
+            "ath_start_time": datetime.time(9, 30),
+            "ath_end_time": datetime.time(16, 0),
+        }
+    elif isinstance(system.config, omegaconf.DictConfig):
+        # Use resolvers for serialization
+        dict_ = {
+            "ath_start_time": "${to_time:09:30}",
+            "ath_end_time": "${to_time:16:00}",
+        }
+
+    # Common logic for both types
+    for key, value in dict_.items():
+        system.config["process_forecasts_node_dict"]["process_forecasts_dict"][key] = value
+    return system
+```
+
+**12. Serialize to YAML Instead of Pickle**
+
+```python
+# Before (Config class)
+system.config.save_to_file(log_dir, tag="system_config")  # Saves as pickle
+
+# After (OmegaConf)
+config_path = os.path.join(log_dir, f"system_config.{tag}.yaml")
+with open(config_path, "w") as f:
+    omegaconf.OmegaConf.save(system.config, f)
+
+# Or single-line
+omegaconf.OmegaConf.save(system.config, config_path)
+```
+
+#### PR Sequence
+
+**PR 1: Remove Objects from Config** (Backward-Compatible)
+- Create `System._object_cache` attribute for live Python objects
+- Add `system.dag_builder` property (instead of `config["dag_builder_object"]`)
+- Use `System.set_event_loop()` (instead of passing via config)
+- **Rationale**: Non-breaking changes; OmegaConf requires serializable values only
+
+**PR 2: Remove Config-Specific Patterns** (Backward-Compatible)
+- Eliminate `get_and_mark_as_used()` calls
+- Replace all compound keys with dict-like access
+- **Rationale**: Dict-like access works for both `cconfig.Config` and `omegaconf.DictConfig`
+
+**PR 3: Mock Systems**
+- Update Mock1, Mock2, Mock3, MockBidAsk Systems
+- Located in `dataflow_amp/optima/system/mockX/`
+- Can split into multiple PRs (one per Mock system)
+
+**PR 4: Cx Unit Test Systems**
+- Update Cx Systems used for testing
+- Located in `dataflow_amp/optima/system/Cx/`
+- Can split into multiple PRs
+
+**PR 5: Cx Production Systems**
+- Update production Cx systems
+- Focus on `dataflow_amp/optima/system/Cx/Cx_prod_system.py`
+- Requires careful staging validation
+
+**PR 6: Lemonade Systems**
+- Update encrypted production Systems in `lemonade` repo
+- Saved for last (similar to DagBuilders) to minimize re-encryption
+
+## Long-Term Vision
+
+### DagBuilders
 
 The current approach (Phase 0) is pragmatic, but Hydra's true power emerges through three evolutionary phases.
 
@@ -570,89 +1001,7 @@ python main.py pipeline=branching_dag
 python main.py --multirun pipeline=branching_dag,branching_dag_no_alpha2
 ```
 
-### Execution plan
-
-1. Install `OmegaConf` and `Hydra` to the main Docker container 
-2. Prepare instructions for ClaudeCode to update the entire codebase using Mock1DagBuilder as a reference
-3. Update the `csfy` repo first
-4. We may need to re-encrypt some models in the `orange` repo
-5. Update `DagBuilders` in `lemonade`
-6. Make sure all the tests pass
-
-## Porting System Classes to OmegaConf
-
-System classes follow similar patterns to DagBuilders but manage entire ML systems composed of multiple components (MarketData, DAG, Portfolio, Broker, DagRunner). However, Systems introduce critical architectural challenges that require paradigm shifts.
-
-### Removing Config-Specific Patterns
-
-#### 1. Compound Key Access
-
-**Current Config pattern:**
-```python
-# Compound tuple keys for nested access
-system.config["market_data_config", "asset_ids"] = [101, 102]
-system.config["dag_config", "resample", "transformer_kwargs", "rule"] = "5T"
-
-# Reading compound keys
-asset_ids = system.config["market_data_config", "asset_ids"]
-rule = system.config["dag_config", "resample", "transformer_kwargs", "rule"]
-```
-
-**Problem:** OmegaConf doesn't support tuple-based compound keys. This is a Config-specific feature for navigating nested dictionaries.
-
-**OmegaConf replacement:**
-```python
-# Dot notation (preferred - clean and Pythonic)
-system.config.market_data_config.asset_ids = [101, 102]
-system.config.dag_config.resample.transformer_kwargs.rule = "5T"
-
-# Reading with dot notation
-asset_ids = system.config.market_data_config.asset_ids
-rule = system.config.dag_config.resample.transformer_kwargs.rule
-
-# Or bracket notation (when keys have special characters or are dynamic)
-system.config["market_data_config"]["asset_ids"] = [101, 102]
-asset_ids = system.config["market_data_config"]["asset_ids"]
-```
-
-#### 2. Removing `get_and_mark_as_used()`
-
-**Current Config pattern:**
-```python
-class DagBuilder:
-    def get_trading_period(
-        self, config: cconfig.Config, mark_key_as_used: bool
-    ) -> str:
-        # Get value and mark it as "used"
-        key = ("dag_config", "resample", "transformer_kwargs", "rule")
-        val: str = config.get_and_mark_as_used(
-            key, mark_key_as_used=mark_key_as_used
-        )
-        return val
-
-```
-
-**Problem:** OmegaConf doesn't have built-in usage tracking. The `.get_and_mark_as_used()` method and `mark_key_as_used` pattern are Config-specific.
-
-**Remove usage tracking (simplest)**
-```python
-class DagBuilder:
-    def get_trading_period(self, config: omcfg.DictConfig) -> str:
-        # Direct access without tracking
-        val: str = config.dag_config.resample.transformer_kwargs.rule
-        return val
-```
-
-**Pros:**
-- Simplest migration
-- OmegaConf provides missing key errors by default
-- Structured configs provide type validation
-
-**Cons:**
-- Lose ability to detect unused keys
-- No explicit validation that all config was consumed
-
-### Rethinking "Example" Functions
+### Rethinking System "Example" Functions
 
 The codebase contains many "example" functions like `get_Mock1_NonTime_ForecastSystem_for_simulation_example1()` and `get_Mock1_HistoricalDag_example1()`. Their purpose is to **hard-wire specific parameter values** for common use cases (tests, simulations, specific configurations).
 
@@ -974,41 +1323,3 @@ This approach makes configurations:
 - **More composable**: Mix-and-match via Hydra defaults
 - **More maintainable**: Change configs without touching code
 - **More flexible**: CLI overrides for any parameter
-
-### Config as Blueprint vs State Container
-
-**Critical Issue:** The current System implementation uses `Config` as both:
-1. A configuration blueprint (parameters, settings)
-2. A state container (storing built Python objects)
-
-**Why this breaks with OmegaConf:**
-
-```python
-# Current pattern.
-system = System()
-system.config["dag_runner_object"] = dag_runner  # Live Python object.
-system.config["market_object"] = market_data    # Live Python object.
-
-# Try to serialize...
-OmegaConf.to_yaml(system.config)  
-system.config.save_to_file("config.yaml") 
-```
-
-OmegaConf is designed for **serializable data only** (strings, ints, lists, dicts). When you store live Python objects in the config and try to serialize to YAML, the serializer fails.
-
-**The Solution: Separate Blueprint from State**
-
-```python
-class System:
-    def __init__(self):
-        # Pure configuration blueprint (serializable)
-        self._config: DictConfig = self._get_system_config_template()
-
-        # Live object cache (NOT serializable, but that's OK)
-        self._object_cache: Dict[str, Any] = {}
-```
-
-**Key Principle:**
-- `self._config` = Pure data blueprint, always serializable
-- `self._object_cache` = Live Python objects (MarketData, DAG, Portfolio, DagRunner)
-
