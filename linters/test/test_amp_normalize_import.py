@@ -1043,7 +1043,7 @@ class TestReplaceShortImportsInFile(hunitest.TestCase):
         import numpy as nmp
         import pandas as pd
 
-        import helpers.hcache as hcache
+        import helpers.hcache_simple as hcacsimp
         import helpers.hparser as prs
         import linters.amp_normalize_import as lamnoimp
         import linters.amp_black as black
@@ -1059,7 +1059,7 @@ class TestReplaceShortImportsInFile(hunitest.TestCase):
         import numpy as nmp
         import pandas as pd
 
-        import helpers.hcache as hcache
+        import helpers.hcache_simple as hcacsimp
         import helpers.hparser as hparser
         import linters.amp_normalize_import as lamnoimp
         import linters.amp_black as lampblac
