@@ -451,6 +451,8 @@ class _OrderedConfig(_OrderedDictType):
             - `only_values` for simple string representation
             - `verbose` for values with `val_type` and `mark_as_used`
         """
+        import omegaconf as omgcfg
+
         txt = []
         for key, (marked_as_used, writer, val) in self.items():
             # 1) Process key.
@@ -477,6 +479,18 @@ class _OrderedConfig(_OrderedDictType):
             elif isinstance(val, (Config, _OrderedConfig)):
                 # Convert Configs recursively.
                 val_as_str = val.to_string(mode)
+                val_as_str = "\n" + hprint.indent(val_as_str)
+            elif omgcfg.OmegaConf.is_config(val):
+                import hydra.utils as hydutil
+
+                # TODO(Grisha): because the transition to `OmegaConf` is gradual,
+                # some of the sub-configs may be already of the `OmegaConf` type.
+                # This is a stepping stone, until `Config` is completely deprecated.
+                # Resolve everything and convert to `Config` so that the string
+                # representation remains compatible with the one used across the
+                # codebase.
+                resolved_dict = hydutil.instantiate(val, _convert_="all")
+                val_as_str = Config.from_dict(resolved_dict).to_string(mode)
                 val_as_str = "\n" + hprint.indent(val_as_str)
             else:
                 # Normal Python data structures.
