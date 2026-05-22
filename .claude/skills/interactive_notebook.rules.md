@@ -13,7 +13,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 ## Rules and Conventions to Follow
 - Follow `.claude/skills/notebook.rules.md` for the basic Jupyter notebooks
-  - Use the structure from `.claude/templates/notebook_template.py` for
+  - Use the structure from `.claude/templates/notebook.template.py` for
     consistent notebook initialization
 
 - For interactive Jupyter notebooks (i.e., notebooks with `ipywidgets`) you MUST

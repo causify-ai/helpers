@@ -11,7 +11,7 @@ description: Conventions and standards for interative Jupyter notebook structure
 # Notebook Structure and Initialization
 
 ## Use Standard Template Structure
-- Use the structure from `.claude/templates/notebook_template.py` for consistent
+- Use the structure from `.claude/templates/notebook.template.py` for consistent
   notebook initialization
 
 ## First Cell: Standard Imports and Configuration
@@ -23,58 +23,64 @@ description: Conventions and standards for interative Jupyter notebook structure
   # System libraries.
   import logging
 
-  # Third party libraries.
-  import numpy as np
-  import pandas as pd
-  import seaborn as sns
-  import matplotlib.pyplot as plt
+  # Third-party libraries.
+  # import numpy as np
+  # import pandas as pd
+  # import seaborn as sns
+  # import matplotlib.pyplot as plt
   ```
 
-## Second Cell: Notebook-Specific Imports and Logger
+## Second Cell: Optionally Install Packages on-the-fly
+- Install packages on the fly during development (all packages should be in the
+  Docker container)
+  ```
+  # import helpers.hmodule as hmodule
+  # hmodule.install_module_if_not_present(
+  #     [""],
+  #     use_activate=True,
+  #     use_sudo=False,
+  #     venv_path="/opt/venv",
+  # )
+  ```
+
+## Third Cell: Notebook-Specific Imports and Logger
+- Define `init_logger()` in the paired `*_utils.py` file and call it
+  from the notebook, as described in `helpers_root/helpers/hnotebook.py`
+
 - Add imports unique to this notebook after the standard cell:
   ```python
-  import helpers.htutorial as htutorial
-  import Lesson94_Information_Theory_utils as utils
-
-  _LOG = logging.getLogger(__name__)
-  utils.init_logger(_LOG)
-  ```
-
-- Define `init_logger()` in the paired `*_utils.py` file:
-  ```python
+  # Helpers packages.
+  import helpers.hdbg as hdbg
   import helpers.hnotebook as hnotebo
 
-  def init_logger(notebook_log: logging.Logger) -> None:
-      hnotebo.config_notebook()
-      hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
-      # Init notebook logging.
-      hnotebo.set_logger_to_print(notebook_log)
-      # Init utils logging.
-      global _LOG
-      _LOG = hnotebo.set_logger_to_print(_LOG)
-      # Init module logging.
-      causalml_logger: logging.Logger = logging.getLogger("causalml")
-      hnotebo.set_logger_to_print(causalml_logger)
+  # Tutorial-specific packages.
+  import <tutorial>_utils as tutils
+
+  # Configure the logger for this tutorial.
+  _LOG = logging.getLogger(__name__)
+  tutils.init_logger(_LOG)
   ```
 
 ## Notebook-to-File Pairing
 - Each notebook is paired with Jupytext to a Python file
-  - Example notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-  - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
 - Each notebook has a corresponding `*_utils.py` file containing the code
   corresponding to that notebook
-  - Utilities file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 - Use hyphens in notebook filenames and underscores in Python filenames and
   utility files
+
+- Example
+  - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
+  - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
+  - Paired utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 # Code Cell Organization and Content
 
 ## Single Responsibility Per Cell
 - Each code cell performs exactly one logical task:
-  - **Good**: Import libraries, Load data, Clean data, Plot data, Train model,
-    Evaluate model
   - **Bad**: One cell that loads data, cleans it, trains a model, and plots
     results
+  - **Good**: Import libraries, Load data, Clean data, Plot data, Train model,
+    Evaluate model
 - Split cells if they perform multiple distinct steps
 
 ## Code Cell Structure

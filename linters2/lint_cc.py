@@ -110,7 +110,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
         "notebook": {
             "role": "role.notebook.md",
             "rules": ["notebook.rules.md"],
-            "templates": ["notebook_template.ipynb"],
+            "templates": ["notebook.template.ipynb"],
         },
         "readme": {
             "role": "role.ai_researcher.md",

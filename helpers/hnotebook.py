@@ -77,6 +77,39 @@ def config_notebook(sns_set: bool = True) -> None:
     _ = hwarnin
 
 
+# #############################################################################
+
+# Notebook util libraries can use the following idiom to control the logging so
+# that it works well both in a notebook and in code.
+
+# In the notebook add:
+# ```
+# import helpers.htutorial as htutorial
+# import <tutorial>_utils as utils
+
+# # Configure the logger for this tutorial.
+# _LOG = logging.getLogger(__name__)
+# utils.init_logger(_LOG)
+# ```
+
+# Define `init_logger()` in the paired `*_utils.py` file:
+# ```
+# import helpers.hnotebook as hnotebo
+#
+# def init_logger(notebook_log: logging.Logger) -> None:
+#     hnotebo.config_notebook()
+#     hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
+#     # Init notebook logging.
+#     hnotebo.set_logger_to_print(notebook_log)
+#     # Init utils logging.
+#     global _LOG
+#     _LOG = hnotebo.set_logger_to_print(_LOG)
+#     # Init module logging.
+#     <package>_logger: logging.Logger = logging.getLogger("<package>")
+#     hnotebo.set_logger_to_print(<package>_logger)
+# ```
+
+
 def _info_print(msg: str, *args, **kwargs) -> None:
     """
     Print a message with optional formatting arguments.
@@ -88,7 +121,7 @@ def _info_print(msg: str, *args, **kwargs) -> None:
 
 def set_logger_to_print(log) -> None:
     """
-    Replace logger.info method with a print function.
+    Replace `log.info` method with a `print` function.
 
     :param log: logger object to modify
     """
