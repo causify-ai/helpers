@@ -6,6 +6,8 @@ import helpers.hnotebook as hnotebo
 
 import logging
 
+from typing import Optional
+
 
 def config_notebook(sns_set: bool = True) -> None:
     """
@@ -84,26 +86,20 @@ def config_notebook(sns_set: bool = True) -> None:
 
 # In the notebook add:
 # ```
-# import helpers.htutorial as htutorial
-# import <tutorial>_utils as utils
+# import <tutorial>_utils as tutils
 
 # # Configure the logger for this tutorial.
 # _LOG = logging.getLogger(__name__)
-# utils.init_logger(_LOG)
+# tutils.init_loggers(_LOG)
 # ```
 
-# Define `init_logger()` in the paired `*_utils.py` file:
+# Define `init_loggers()` in the paired `*_utils.py` file:
 # ```
 # import helpers.hnotebook as hnotebo
 #
 # def init_logger(notebook_log: logging.Logger) -> None:
-#     hnotebo.config_notebook()
-#     hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
-#     # Init notebook logging.
-#     hnotebo.set_logger_to_print(notebook_log)
-#     # Init module logging.
-#     <package>_logger: logging.Logger = logging.getLogger("<package>")
-#     hnotebo.set_logger_to_print(<package>_logger)
+#     global _LOG
+#     hnotebo.init_loggers(notebook_log, utils_log=_LOG)
 # ```
 
 
@@ -133,3 +129,28 @@ def set_all_loggers_to_print() -> None:
         logger = logging.getLogger(name)
         # print("Setting logger %s to print" % name)
         set_logger_to_print(logger)
+
+
+def init_loggers(
+    notebook_log: logging.Logger,
+    *,
+    utils_log: Optional[logging.Logger] = None,
+    set_all_loggers_to_print: bool = False
+) -> None:
+    """
+    - notebook_log: 
+    - utils_log: the _LOG from the *_utils.py
+    """
+    import helpers.hdbg as hdbg
+    # Configure the notebook.
+    config_notebook()
+    # Initialize the logger to a certain level.
+    hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
+    # Init notebook logging to printing.
+    set_logger_to_print(notebook_log)
+    # Init current module logging to printing.
+    if utils_log is not None:
+        set_logger_to_print(utils_log)
+    # Init all module logging to printing.
+    if set_all_loggers_to_print:
+        set_all_loggers_to_print()

@@ -53,16 +53,8 @@ _LOG = logging.getLogger(__name__)
 import interactive_notebook_utils_template as utils
 
 # Initialize notebook configuration and logging.
-if True:
-    import helpers.hnotebook as hnotebook
-    
-    hnotebook.config_notebook()
-    hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
-    hnotebook.set_logger_to_print(_LOG)
-else:
-    # Configure the logger for this tutorial.
-    _LOG = logging.getLogger(__name__)
-    utils.init_logger(_LOG)
+_LOG = logging.getLogger(__name__)
+utils.init_logger(_LOG)
     
 _LOG.info("Test _LOG.info")
 _LOG.debug("Test _LOG.debug")
