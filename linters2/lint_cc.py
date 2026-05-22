@@ -55,12 +55,12 @@ def _get_rules_for_topic(topic: str) -> Dict:
     """
     TOPIC_TO_INFO = {
         "bash": {
-            "role": "python",
+            "role": "role.coding.md",
             "rules": [],
             "templates": [],
         },
         "blog": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": [
                 "blog.rules.md",
                 "markdown.rules.md",
@@ -69,22 +69,22 @@ def _get_rules_for_topic(topic: str) -> Dict:
             "templates": [],
         },
         "book": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": ["book.rules.md"],
             "templates": [],
         },
         "coding": {
-            "role": "python",
+            "role": "role.coding.md",
             "rules": ["coding.rules.md"],
             "templates": ["code.template.py"],
         },
         "cxo_slidesformat": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": [],
             "templates": [],
         },
         "interactive_notebook": {
-            "role": "python",
+            "role": "role.notebook.md",
             "rules": [
                 "interactive_notebook.rules.md",
                 "notebook.rules.md",
@@ -95,12 +95,12 @@ def _get_rules_for_topic(topic: str) -> Dict:
             ],
         },
         "latex": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": ["latex.rules.md"],
             "templates": [],
         },
         "markdown": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": [
                 "markdown.rules.md",
                 "text.rules.bullet_points.md",
@@ -108,37 +108,37 @@ def _get_rules_for_topic(topic: str) -> Dict:
             "templates": [],
         },
         "notebook": {
-            "role": "python",
+            "role": "role.notebook.md",
             "rules": ["notebook.rules.md"],
             "templates": ["notebook_template.ipynb"],
         },
         "readme": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": ["readme.rules.md"],
             "templates": [],
         },
         "skill": {
-            "role": "python",
+            "role": "role.coding.md",
             "rules": ["skill.rules.md"],
             "templates": [],
         },
         "slides": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": ["slides.rules.md"],
             "templates": [],
         },
         "testing": {
-            "role": "python",
+            "role": "role.coding.md",
             "rules": ["testing.rules.md"],
             "templates": ["testing.template.py"],
         },
         "tool_X_in_30_mins": {
-            "role": "ai_researcher",
+            "role": "role.coding.md",
             "rules": ["tool_X_in_30_mins.rules.md"],
             "templates": [],
         },
         "tool_X_in_60_mins": {
-            "role": "ai_researcher",
+            "role": "role.coding.md",
             "rules": ["tool_X_in_60_mins.rules.md"],
             "templates": [],
         },
@@ -149,7 +149,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
         "Topic not found in rules",
     )
     topic_info = TOPIC_TO_INFO[topic]
-    topic_info["role"] = ".claude/skills/role.%s.md" % topic_info["role"]
+    topic_info["role"] = ".claude/skills/%s" % topic_info["role"]
     topic_info["rules"] = [f".claude/skills/{r}" for r in topic_info["rules"]]
     topic_info["templates"] = [
         f".claude/templates/{t}" for t in topic_info["templates"]
@@ -244,7 +244,7 @@ def _run_claude_code(
     """
     # Add the file.
     hdbg.dassert_file_exists(file_path)
-    prompt += f"\nThe file to process is {file_path}"
+    prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
     _LOG.info("Prompt:\n%s", prompt)
     # Create the file.
     prompt_file = "tmp.lint_cc.prompt.txt"

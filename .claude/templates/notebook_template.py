@@ -45,3 +45,13 @@ _LOG = logging.getLogger(__name__)
 hnotebook.config_notebook()
 hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
 hnotebook.set_logger_to_print(_LOG)
+
+# %%
+# # To install additional packages, use:
+# import helpers.hmodule as hmodule
+# hmodule.install_module_if_not_present(
+#     ["..."],
+#     use_activate=True,
+#     use_sudo=False,
+#     venv_path="/opt/venv",
+# )
