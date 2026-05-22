@@ -8,19 +8,19 @@ These are conventions for writing a README
   - Information on how executables interact in workflows
 
 # Overall Structure
-
 READMEs should follow this hierarchical organization:
 
 1. **Summary**: One paragraph describing the directory's purpose
 2. **Structure of the Dir**: List subdirectories and their roles
-3. **Description of Files**: Alphabetical list of all files with 1-2 line descriptions
+3. **Description of Files**: Alphabetical list of all files with 1-2 line
+   descriptions
 4. **Description of Executables**: Detailed docs for each script/tool
-4. **Description of workflows**: How executables are put together to implement
+5. **Description of workflows**: How executables are put together to implement
    complex functionalities
 
 # Conventions
-
-- Follow the same conventions of `.claude/skills/markdown.rules.md` for writing text
+- Follow the same conventions of `.claude/skills/markdown.rules.md` for writing
+  text
 
 ## Document Structure
 
@@ -48,7 +48,7 @@ READMEs should follow this hierarchical organization:
 - Standard subsections for each executable:
   - **What It Does**: Explain purpose and key features (2-5 bullets)
   - **Examples**: Show 3-5 usage patterns with actual code blocks
-  - Additional sections as needed: Parameters, Workflow, Features, etc.
+  - Additional sections as needed: Parameters, Workflow, Features, etc
 
 ## For Each Executable (Under `### ToolName`)
 
@@ -65,10 +65,9 @@ READMEs should follow this hierarchical organization:
 - Use proper bash code blocks with `> ` prefix (no `$` prompt)
 
 ## Format of Commands
-
 - Commands should have a short description as a bullet point, followed by the
   command in a fenced code block
-  ```
+  ````
   - Description of what this command does:
     ```bash
     > command --arg value

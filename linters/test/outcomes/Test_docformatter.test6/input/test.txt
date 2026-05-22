@@ -10,6 +10,7 @@ def block_in_the_middle() -> None:
     Some more text.
     """
 
+
 def block_after_param(cmd: str) -> None:
     """
     Test docstring.
@@ -22,6 +23,7 @@ def block_after_param(cmd: str) -> None:
     ```
     """
 
+
 def block_without_empty_lines(cmd: str) -> None:
     """
     Test docstring.
@@ -32,6 +34,7 @@ def block_without_empty_lines(cmd: str) -> None:
     ```
     Text after.
     """
+
 
 def two_code_blocks(cmd: str) -> None:
     """
@@ -46,6 +49,7 @@ def two_code_blocks(cmd: str) -> None:
     ```
     """
 
+
 def block_in_second_line(cmd: str) -> None:
     """
     Test docstring:
@@ -53,6 +57,7 @@ def block_in_second_line(cmd: str) -> None:
     > git pull
     ```
     """
+
 
 def long_docstring_line(cmd: str) -> None:
     """
@@ -63,6 +68,7 @@ def long_docstring_line(cmd: str) -> None:
     > git pull
     ```
     """
+
 
 def empty_lines_in_code_block(cmd: str) -> None:
     """

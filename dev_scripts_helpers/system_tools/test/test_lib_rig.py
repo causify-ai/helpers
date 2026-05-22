@@ -40,6 +40,7 @@ class TestRigScript(hunitest.TestCase):
             except SystemExit as e:
                 exit_code = e.code
         # Check outputs.
+        # TODO(ai_gp): Use the hunteuti. to check outcome.
         if expected_cmd is not None:
             self.assertEqual(len(invocations), 1)
             self.assertEqual(invocations[0]["function"], "subprocess.run")
@@ -55,7 +56,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . -n --no-heading --color=never"
+        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git"
         # Run test.
         self.helper(args, expected_cmd=expected_cmd, expected_exit_code=0)
 
@@ -66,7 +67,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src"]
         # Prepare outputs.
-        expected_cmd = "rg import src -n --no-heading --color=never"
+        expected_cmd = "rg import src --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -82,7 +83,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["class", ".", "py"]
         # Prepare outputs.
-        expected_cmd = "rg -g *.py class . -n --no-heading --color=never"
+        expected_cmd = (
+            "rg class . -g *.py --hidden -n --no-heading --color=never -g !.git"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -132,7 +135,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["def", ".", "py,md"]
         # Prepare outputs.
-        expected_cmd = "rg -g *.py -g *.md def . -n --no-heading --color=never"
+        expected_cmd = (
+            "rg def . -g *.py -g *.md --hidden -n --no-heading --color=never -g !.git"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -148,7 +153,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src", "py, ipynb, md"]
         # Prepare outputs.
-        expected_cmd = "rg -g *.py -g *.ipynb -g *.md import src -n --no-heading --color=never"
+        expected_cmd = "rg import src -g *.py -g *.ipynb -g *.md --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -209,7 +214,109 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", ".", "--rg_opts", "-S -i"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . -n --no-heading --color=never -S -i"
+        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git -S -i"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test15(self) -> None:
+        """
+        Test --def flag to search for Python class/def definitions.
+        """
+        # Prepare inputs.
+        args = ["main", "--def"]
+        # Prepare outputs.
+        expected_cmd = "rg (class|def) main . -g *.py --hidden -n --no-heading --color=never -g !.git"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test16(self) -> None:
+        """
+        Test --rule flag to search for Markdown headers in .claude/skills.
+        """
+        # Prepare inputs.
+        args = ["--rule"]
+        # Prepare outputs.
+        expected_cmd = (
+            "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git"
+        )
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test16_rule_with_pattern(self) -> None:
+        """
+        Test --rule flag with a pattern to match Markdown headers.
+        """
+        # Prepare inputs.
+        args = ["assert_equal", "--rule"]
+        # Prepare outputs.
+        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test17(self) -> None:
+        """
+        Test --todo flag to search for TODO(ai_gp) pattern.
+        """
+        # Prepare inputs.
+        args = ["--todo"]
+        # Prepare outputs.
+        expected_cmd = (
+            r"rg TODO\(ai_gp\) . --hidden -n --no-heading --color=never -g !.git"
+        )
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test18(self) -> None:
+        """
+        Test -i flag expands to -S -i for ripgrep (smart-case + ignore-case).
+        """
+        # Prepare inputs.
+        args = ["TODO", "-i"]
+        # Prepare outputs.
+        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git -S -i"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
+
+    def test19(self) -> None:
+        """
+        Test -i flag combined with directory and extension arguments.
+        """
+        # Prepare inputs.
+        args = ["import", "src", "js", "-i"]
+        # Prepare outputs.
+        expected_cmd = (
+            "rg import src -g *.js --hidden -n --no-heading --color=never -g !.git -S -i"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(

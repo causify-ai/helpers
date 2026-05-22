@@ -152,4 +152,4 @@ import config_root.config.config_ as crococon
 # Important
 
 - You MUST read and strictly follow the following rules
-  `@.claude/convention_rules.md`
+  `@.claude/rules.md`

@@ -3,15 +3,16 @@ description: Analyze and fix failure of tests in GitHub CI
 ---
 
 # Step 1: Parse Logs
-- Parse the output of `invoke gh_workflow_list` which contains information on the
-  failing tests
+- Parse the output of `invoke gh_workflow_list` which contains information on
+  the failing tests
 
 - The log of the failing tests on the CI is stored in a file `<ci_log>` like:
   ```
   # Log is in 'tmp.failure.check_if_the_linter_was_run.gp_scratch_19.txt'
   ```
 
-- The list of failing tests `<failing_tests>` is in a file `<repro_script>` like:
+- The list of failing tests `<failing_tests>` is in a file `<repro_script>`
+  like:
   ```
   ... # To run the tests:
   ... > ./tmp.pytest_repro.fast_tests.sh

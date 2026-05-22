@@ -3,11 +3,11 @@ description: Explain a lecture slide
 ---
 
 # Role
-- Your role is specified in `@.claude/skills/role.md`
+- Your role is specified in `.claude/skills/role.ai_researcher.md`
 
 # Goal
 - Given a file `<FILE>` storing lecture slides in the format described in
-  `@.claude/skills/slide.rules.md`
+  `.claude/skills/slide.rules.md`
 - Print the name of the file as:
   ```
   File: <FILE>
@@ -22,6 +22,6 @@ description: Explain a lecture slide
   ```
 
 - Explain the slide in bullet points using the conventions in
-  `@.claude/skills/text.rules.bullet_points.md`
+  `.claude/skills/text.rules.bullet_points.md`
 
 - Answer users questions about the slide

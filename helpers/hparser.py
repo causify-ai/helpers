@@ -91,6 +91,56 @@ def parse_verbosity_args(
 
 
 # #############################################################################
+# File selection arguments
+# #############################################################################
+
+
+def add_file_selection_args(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    """
+    Add file selection arguments to a parser.
+
+    Adds the following mutually exclusive arguments:
+    - --modified: Search only in files modified in the client
+    - --branch: Search only in files modified with respect to the branch point
+    - --last-commit: Search only in files part of the previous commit
+    - --all: Search all repo files
+    - --files: Search in specific files
+
+    :param parser: ArgumentParser to add arguments to
+    :return: The same parser with arguments added
+    """
+    parser.add_argument(
+        "--modified",
+        action="store_true",
+        help="Select only files modified in the client (staged and unstaged)",
+    )
+    parser.add_argument(
+        "--branch",
+        action="store_true",
+        help="Select only files modified with respect to the branch point",
+    )
+    parser.add_argument(
+        "--last-commit",
+        action="store_true",
+        help="Select only files part of the previous commit",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        dest="all_files",
+        help="Select all repo files",
+    )
+    parser.add_argument(
+        "--files",
+        type=str,
+        help="Select specific files (space-separated list)",
+    )
+    return parser
+
+
+# #############################################################################
 # Command line for `@hcache_simple.simple_cache` functions.
 # #############################################################################
 
@@ -1242,7 +1292,7 @@ def extract_rule_from_file(rule_spec: str) -> str:
     parts = rule_spec.split(":", 2)
     file_path = parts[0]
     # Check file exists.
-    hdbg.dassert_file_exists(file_path, "Rule file does not exist: %s", file_path)
+    hdbg.dassert_file_exists(file_path, "Rule file does not exist")
     # Read file content.
     content = hio.from_file(file_path)
     lines = content.splitlines()

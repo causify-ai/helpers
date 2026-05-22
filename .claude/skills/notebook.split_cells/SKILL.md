@@ -3,7 +3,6 @@ description: Split Jupyter notebook cells so each cell contains only one concept
 ---
 
 # Each Jupyter Cell Should Have Only One Example
-
 - Cells that contain more than one concept / example should be split so that
   each cell has only one example
 

@@ -1,32 +1,32 @@
-- This document contains all the rules for creating a markdown file following the
-  "tool_X_in_30_mins" format.
+- This document contains all the rules for creating a markdown file following
+  the "tool_X_in_30_mins" format
 
 - These are quick-reference guides that introduce a developer tool in
   approximately 30 minutes of reading time, covering its purpose, basic usage,
-  and practical examples.
+  and practical examples
 
 # Overview and Guidelines
-
 - Follow the format and conventions in:
   - `@.claude/skills/blog.rules.md`
   - `@.claude/skills/markdown.rules.md`
   - `@.claude/skills/text.rules.bullet_points.md`
 
 ## Content Guidelines
-
-- **Word count**: Target 2,000–4,000 words for a comprehensive "in 30 mins" guide
+- **Word count**: Target 2,000–4,000 words for a comprehensive "in 30 mins"
+  guide
 - **Tone**: Professional and informative, suitable for developers
-- **Audience**: Developers familiar with basic command line and package management
+- **Audience**: Developers familiar with basic command line and package
+  management
 - **Clarity**: Prioritize clarity and brevity over completeness
 - **Examples**: Use concrete, copy-paste ready examples
 - **Performance**: Highlight speed and efficiency advantages when relevant
 - **Commands**: Show variations and flags that users commonly need
-- **Warnings**: Include "Common Gotchas" or "Known Issues" section when applicable
+- **Warnings**: Include "Common Gotchas" or "Known Issues" section when
+  applicable
 
 # Document Structure
 
 ## Typical Section Order
-
 1. Front matter
 2. TL;DR and `<!-- more -->`
 3. Introduction
@@ -43,7 +43,6 @@
 14. Comparison Tables
 
 ## Section Details
-
 - **Introduction**: Explain why the tool matters and the problem it solves
   - Use bullet points to highlight main benefits
   - Address the tool's core advantages over alternatives
@@ -98,15 +97,13 @@
 # Writing Style and Formatting
 
 ## Code Blocks
-
-- All code blocks must have language tags (e.g., `bash`,
-  `python`, `yaml`, `toml`)
+- All code blocks must have language tags (e.g., `bash`, `python`, `yaml`,
+  `toml`)
   - Commands in bash blocks must be prefixed with `>`
   - Output shown after commands should not have `>`
   - Use `bash` for shell commands, specific language tags for code samples
 
 ## Lists and Bullets
-
 - **Bullet points**: Organize information in bullet lists
   - Follow rules in `.claude/skills/text.rules.bullet_points.md`
   - Each bullet expresses one atomic idea
@@ -114,7 +111,6 @@
   - Do not end bullet points with periods
 
 ## Headers and Hierarchy
-
 - **Headers**: Structure with proper hierarchy
   - Start with level 1 headers for main sections (`#`)
   - Use level 2 headers for subsections (`##`)
@@ -123,7 +119,6 @@
   - Avoid level 4 headers; convert to bold text or bullets instead
 
 ## Emphasis and Formatting
-
 - **Bold and emphasis**: Use strategically
   - Bold key tool names and important concepts
   - Bold at the start of list items for labels/headers
@@ -137,7 +132,6 @@
   - Code elements: `` `variable_name` ``
 
 ## Tables and Examples
-
 - **Tables**: Use for comparisons
   - Left-aligned columns (`:-------`)
   - Include feature comparisons between tools
@@ -147,12 +141,11 @@
 - **Examples and demonstrations**: Show practical usage
   - Include realistic command examples
   - Show actual output when helpful
-  - Use ellipsis (`…`) or `...` for truncated output
+  - Use ellipsis (`...`) or `...` for truncated output
   - Provide context before code blocks
   - Demonstrate both success and error cases when instructive
 
 ## Output Formatting
-
 - Use only ASCII characters (no emojis or special symbols)
 - Avoid decorative formatting like `---` separators
 - Use `->` instead of arrows
