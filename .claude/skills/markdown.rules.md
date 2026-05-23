@@ -132,6 +132,9 @@ text
 
 # Code Blocks and Commands
 
+## Leave Fenced Code Blocks Alone
+- If there is a fenced code block, do not remove it
+
 ## Command Formatting
 
 - Make sure all Linux/macOS shell commands are prepended with the appropriate prefix:

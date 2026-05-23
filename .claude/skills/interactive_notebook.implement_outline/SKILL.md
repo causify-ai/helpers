@@ -4,41 +4,41 @@ description: Implement a Jupyter interactive notebook from an outline descriptio
 
 # Purpose
 
-Transform a cell outline (from `.claude/skills/interactive_notebook.create_outline/SKILL.md`) 
-into a working interactive Jupyter notebook. This involves writing both the notebook cells 
-and the supporting utility code that powers the interactivity.
+- Transform a cell outline into a working interactive Jupyter notebook
+- Sources: `.claude/skills/interactive_notebook.create_outline/SKILL.md`
+- Includes both notebook cells and supporting utility code
 
 # Core Workflow
 
-1. **Understand the outline**: Review each cell's Purpose, Display, Widgets, and
-   Key Insights
-2. **Implement utility functions**: Write reusable widget and visualization code
-   in `*_utils.py`
-3. **Create notebook cells**: Add markdown cells (context) and code cells (widget
-   calls) to the notebook
-4. **Follow the separation principle**: Utilities contain implementation;
-   notebook contains only function calls
+- **Understand the outline**: Review each cell's Purpose, Display, Widgets, and
+  Key Insights
+- **Implement utility functions**: Write reusable widget and visualization code
+  in `*_utils.py`
+- **Create notebook cells**: Add markdown cells (context) and code cells (widget
+  calls) to the notebook
+- **Follow the separation principle**: Utilities contain implementation; notebook
+  contains only function calls
 
 # Key Conventions
 
-You must follow:
-- `.claude/skills/notebook.rules.md`: General notebook conventions and structure
-- Outline cell format from
+- Follow `.claude/skills/notebook.rules.md`: General notebook conventions and
+  structure
+- Follow outline cell format from
   `.claude/skills/interactive_notebook.create_outline/SKILL.md`
-- All project-level Python conventions (see project CLAUDE.md)
+- Follow all project-level Python conventions (see project CLAUDE.md)
 
 # Architecture: Utilities vs. Notebook
 
 ## Organization Pattern
 
-- Each interactive notebook follows a paired utility model:
+- Each interactive notebook follows a paired utility model
   - **Notebook**: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
   - **Jupytext paired file**: `msml610/tutorials/Lesson94-Information_Theory.py`
   - **Associated utility file**: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 ## Responsibility Division
 
-- In `*_utils.py` (All complexity goes here):
+- **In `*_utils.py`**: All complexity goes here
   - Widget creation and state management
   - Visualization and plotting functions
   - Data computation and transformations
@@ -53,20 +53,20 @@ You must follow:
   # Changing the seed generates new realizations with different empirical values.
   ```
 
-Rationale: Utilities are testable, reusable, and decoupled from notebook structure. 
-Notebooks stay readable and focused on narrative flow.
+- **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
 
 # Reference Templates
 
-For complete examples with best practices:
-- `.claude/templates/interactive_notebook.template.py`: End-to-end interactive notebook 
-  covering multiple cell types (static, simple interactive, complex interactive, heatmap)
-- `.claude/templates/interactive_notebook_utils_template.py`: Paired utilities file 
-  with widget creation, state management, and visualization functions
-- `msml610/tutorials/Lesson94_Information_Theory_utils.py`: Production example with 
-  complex interactive patterns (especially `plot_joint_entropy_interactive()`)
-
-Study these before implementing; they establish the quality bar and idioms.
+- Study these before implementing; they establish the quality bar and idioms
+  - `.claude/templates/interactive_notebook.template.py`
+    - End-to-end interactive notebook covering multiple cell types (static,
+      simple interactive, complex interactive, heatmap)
+  - `.claude/templates/interactive_notebook_utils_template.py`
+    - Paired utilities file with widget creation, state management, and
+      visualization functions
+  - `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+    - Production example with complex interactive patterns (especially
+      `plot_joint_entropy_interactive()`)
 
 # Implementation Patterns
 
@@ -90,30 +90,29 @@ Each cell in the outline becomes two notebook cells:
 
 ## Simple Interactive Widgets
 
-For cells with a single visualization and a few sliders:
-- Create the widgets, visualization, and update logic in a single utility function
-- Return the widget container (not bare prints or displays)
-- Accept all widget parameters explicitly (don't rely on global state)
+- For cells with a single visualization and a few sliders:
+  - Create the widgets, visualization, and update logic in a single utility
+    function
+  - Return the widget container (not bare prints or displays)
+  - Accept all widget parameters explicitly (don't rely on global state)
 
-Example:
-```python
-def gaussian_interactive(mu_range=(0, 1), sigma_range=(0.1, 1)):
-    """
-    Interactive Gaussian visualization with sliders for mu and sigma.
-    """
-    # Create widgets
-    # Create figure and initial plot
-    # Create update callback
-    # Return interactive container
-```
+- Example:
+  ```python
+  def gaussian_interactive(mu_range=(0, 1), sigma_range=(0.1, 1)):
+      """
+      Interactive Gaussian visualization with sliders for mu and sigma.
+      """
+      # Create widgets
+      # Create figure and initial plot
+      # Create update callback
+      # Return interactive container
+  ```
 
 ## Complex Interactive Widgets
 
-When an outline specifies "complex interactive widget", it means:
-- **Multiple coordinated visualizations** (3-4 side-by-side plots, not a 2×2 grid)
-- **Shared parameter controls** (sliders and numeric inputs for parameters)
-- **Explanatory subplot**: One plot must be "Comments" with text explanation of what 
-  the other plots show based on current slider values
+- Multiple coordinated visualizations (3-4 side-by-side plots, not a 2×2 grid)
+- Shared parameter controls (sliders and numeric inputs for parameters)
+- Explanatory subplot with text explanation of what other plots show
 
 ### Layout and Organization
 

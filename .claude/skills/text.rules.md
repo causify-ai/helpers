@@ -188,6 +188,12 @@ terms of bullet lists
     - Creates output directory automatically with optional from-scratch mode
   ```
 
+## Leave Fenced Code Blocks Alone
+- If there is a fenced code block, do not remove it
+  ```python
+  ...
+  ```
+
 ## Summarize the Text Into Structured Markdown Bullet Points
 
 - Create 4-5 bullet points capturing the main ideas
@@ -218,7 +224,7 @@ terms of bullet lists
 
 ## Example 1: Chains
 
-  ```
+  ```markdown
   - In case of $T \to M \to Y$:
     - $M$ is "mediator" since it mediates the relationship between $T$ and $Y$
     - Causation flows only in the direction of the arrows
@@ -243,7 +249,7 @@ terms of bullet lists
 
 ## Example 2: Core Values
 
-  ```
+  ```markdown
   - Are a timeless set of guiding principles
   - Define the culture, who fits and who doesn't
   - Define what makes the Company different and unique
