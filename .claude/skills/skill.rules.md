@@ -31,6 +31,16 @@
   - Example:
     `description: Format Python code according to project coding conventions and style rules`
 
+## Naming Conventions
+- Directory naming: `<TOPIC>.<ACTION>`
+  - E.g.,
+    - `coding.format`: Format code for the coding topic
+    - `testing.format`: Format tests for the testing topic
+    - `interactive_notebook.format`: Format interactive cells in notebooks
+    - `demo.create_script`: Create a demo script
+
+- Topics should be singular and lowercase
+
 ## Directory Structure
 - Skills are organized in directories:
   `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
@@ -54,16 +64,6 @@
   ```
   - E.g., for a skill file `.claude/skills/coding.fix_comments/SKILL.md` the
     corresponding rule file is `.claude/skills/coding.rules.md`
-
-## Naming Conventions
-- Directory naming: `<TOPIC>.<ACTION>`
-  - E.g.,
-    - `coding.format`: Format code for the coding topic
-    - `testing.format`: Format tests for the testing topic
-    - `interactive_notebook.format`: Format interactive cells in notebooks
-    - `demo.create_script`: Create a demo script
-
-- Topics should be singular and lowercase
 
 ## Content Structure
 - Skills should be organized with clear sections:

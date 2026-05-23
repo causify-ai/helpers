@@ -2,13 +2,11 @@
 description: Conventions and standards for interative Jupyter notebook structure, formatting, and cell organization
 ---
 
-# Python Code Style and Conventions
+# Setup and Initialization
 
 ## Use Python Style
 - For all Python code in notebooks, follow the rules in
   `.claude/skills/coding.rules.md`
-
-# Notebook Structure and Initialization
 
 ## Use Standard Template Structure
 - Use the structure from `.claude/templates/notebook.template.py` for consistent
@@ -30,7 +28,7 @@ description: Conventions and standards for interative Jupyter notebook structure
   - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
   - Paired utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
-# Code Cell Organization and Content
+# Code Cell Design and Content
 
 ## Single Responsibility Per Cell
 - Each code cell performs exactly one logical task:
@@ -91,7 +89,7 @@ description: Conventions and standards for interative Jupyter notebook structure
   print(getattr(contract_out["messages"][-1], "content", ""))
   ```
 
-# Cell Numbering and Naming
+# Notebook Organization and Consistency
 
 ## Name Markdown Cells with Cell Numbers
 - Use format `Cell <number>:` for markdown headers based on nesting level
@@ -112,8 +110,6 @@ description: Conventions and standards for interative Jupyter notebook structure
   - **Good**: Cell 2 header calls `utils.cell2_create_widget()`
 - The cell number in the header is authoritative; update function names to match
 - When cells are renumbered, update all matching function names
-
-# Utility File Organization
 
 ## Order Code by Cell Number
 - In `*_utils.py`, organize functions in the same order as notebook cells:
@@ -140,7 +136,7 @@ description: Conventions and standards for interative Jupyter notebook structure
       ...
   ```
 
-# Markdown Formatting Standards
+# Markdown Formatting and Presentation
 
 ## Use Nested Bullet Lists
 - Organize markdown text with nested bullets for clarity:
