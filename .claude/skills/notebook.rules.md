@@ -121,16 +121,16 @@ description: Conventions and standards for interative Jupyter notebook structure
 ## Use Section Dividers
 - Separate each cell's code with a framed divider matching the cell title:
   ```python
-  # ######################
+  # #############################################################################
   # Cell 1: Visual Bin: Population of Marbles
-  # ######################
+  # #############################################################################
 
   def cell1_calculate_entropy(...):
       ...
 
-  # ######################
+  # #############################################################################
   # Cell 2: Entropy vs Variance
-  # ######################
+  # #############################################################################
 
   def cell2_plot_distribution_with_stats(...):
       ...
