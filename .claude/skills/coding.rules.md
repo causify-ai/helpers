@@ -535,6 +535,55 @@
   def _main(parser: argparse.ArgumentParser) -> None:
   ```
 
+## Documentation Structure
+
+### Docstrings (Primary Documentation)
+- Add script docstrings with brief description (1-2 sentences) and **Example
+  use** section with actual command-line invocations showing realistic parameter
+  values at the top of the file
+- Integrate docstring into argparse help using
+  `formatter_class=argparse.RawTextHelpFormatter`
+
+- **Good**: Script with comprehensive docstring
+  ```python
+  #!/usr/bin/env python
+  """
+  Flatten all open positions in the account using CCXT.
+
+  Example use:
+
+  # Flatten futures live account and assert if some positions are not completely
+  # closed (i.e. holdings not brought to zero).
+  > oms/broker/ccxt/scripts/flatten_ccxt_account.py \
+      --log_dir ./flatten_log \
+      --exchange 'binance' \
+      --contract_type 'futures' \
+      --stage 'preprod' \
+      --secret_id 3 \
+      --universe "v7.4" \
+      --assert_on_non_zero_positions
+  """
+
+  def _parse() -> argparse.ArgumentParser:
+      parser = argparse.ArgumentParser(
+          description=__doc__,
+          formatter_class=argparse.RawTextHelpFormatter,
+      )
+      # ... add arguments
+      return parser
+  ```
+
+- **Bad**: Minimal docstring without examples
+  ```python
+  #!/usr/bin/env python
+  """Flatten account positions."""
+  ```
+
+### README File (Optional, High-Level)
+- Create README for directories with multiple scripts as an index with 1-line
+  description per script and high-level architecture notes
+- **Do NOT duplicate** detailed usage instructions from docstrings (DRY)
+
 ## Script Shebang and Dependencies
 
 - For scripts with external package dependencies, use the `uv run` shebang with
