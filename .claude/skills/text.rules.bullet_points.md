@@ -3,7 +3,8 @@ terms of bullet lists
 
 ## Goals and Philosophy
 
-- Make the text easy to consume for both humans and AI
+- Make the text is easy to consume for both humans and AI, i.e., it's
+  well-organized, structured, without fluff, and AI slop
 
 - Focus on:
   - Clarity
@@ -11,8 +12,6 @@ terms of bullet lists
   - Visual structure
 
 - Think of notes as a hybrid between a textbook and a student's notebook
-
-- This document is written using the rules described in this document itself
 
 ## Writing Style
 
@@ -35,32 +34,50 @@ terms of bullet lists
 ### Use Direct Statements
 
 - Convert abstract principles into short, direct statements, e.g.,
-  - **Bad**: "Everyone takes responsibility, owns their projects, and blames no
-    one if something doesn't get finished."
-  - **Good**: "Everyone takes responsibility: no blaming others if work isn't
-    finished."
+  - **Bad**:
+    ```
+    Everyone takes responsibility, owns their projects, and blames no one if
+    something doesn't get finished
+    ```
+  - **Good**:
+    ```
+    Everyone takes responsibility: no blaming others if work isn't finished
+    ```
 
 ## Use Only Text
 
 - Avoid emojis and icons
 - Avoid any decorative formatting
   - Do not use line separator like `---`
-- Use only basic text
+- Use only basic text and ASCII
   - **Bad**: A → B
   - **Good**: A -> B
 
 ## Text Is Formatted with Bullets
 
 - Every text should start with a bullet point
+  - **Bad**
+    ```markdown
+    Hello, my name is ...
+    ```
+  - **Good**
+    ```markdown
+    - Hello, my name is ...
+    ```
 
-- **Bad**
-  ```
-  Hello, my name is ...
-  ```
-- **Good**
-  ```
-  - Hello, my name is ...
-  ```
+- Example
+  - **Bad**
+    ```markdown
+    Always follow these guidelines:
+    - `.claude/skills/notebook.rules.md`: General notebook conventions
+    - `.claude/skills/interactive_notebook.rules.md`: Interactive notebook specifics
+    ```
+  - **Good**
+    ```markdown
+    - Always follow these guidelines:
+      - `.claude/skills/notebook.rules.md`: General notebook conventions
+      - `.claude/skills/interactive_notebook.rules.md`: Interactive notebook specifics
+    ```
 
 ## Use Bullets
 
@@ -109,38 +126,40 @@ terms of bullet lists
 
 ## Try to Use Lists
 
-- **Bad**
-  ```
-  This document covers how to publish documents, books, and blogs across
-  different repos (e.g., `//helpers`, `//csfy`, `//tutorials`, and
-  `//umd_classes`)
-  ```
-- **Good**
-  ```
-  - This document covers how to publish:
-    - Documents
-    - Books
-    - Blogs
-    across different repos, e.g.,
-    - `//helpers`
-    - `//csfy`
-    - `//tutorials`
-    - `//umd_classes`
-  ```
+- Try to use lists to make the text more structured and legible
+  - **Bad**
+    ```
+    This document covers how to publish documents, books, and blogs across
+    different repos (e.g., `//helpers`, `//csfy`, `//tutorials`, and
+    `//umd_classes`)
+    ```
+  - **Good**
+    ```
+    - This document covers how to publish:
+      - Documents
+      - Books
+      - Blogs
+      across different repos, e.g.,
+      - `//helpers`
+      - `//csfy`
+      - `//tutorials`
+      - `//umd_classes`
+    ```
 
-- **Bad**
-  ```
-  - They appear everywhere: husbands with controlling wives, overly helpful
-    friends with chaotic lives, seemingly stable men who suddenly fall apart
-  ```
-- **Good**
-  ```
-  - They appear everywhere:
-    - Husbands with controlling wives
-    - Overly helpful
-    - Friends with chaotic lives
-    - Seemingly stable men who suddenly fall apart
-  ```
+- Example
+  - **Bad**
+    ```markdown
+    - They appear everywhere: husbands with controlling wives, overly helpful
+      friends with chaotic lives, seemingly stable men who suddenly fall apart
+    ```
+  - **Good**
+    ```markdown
+    - They appear everywhere:
+      - Husbands with controlling wives
+      - Overly helpful
+      - Friends with chaotic lives
+      - Seemingly stable men who suddenly fall apart
+    ```
 
 ## Keep Number Lists in Order
 
@@ -160,13 +179,13 @@ terms of bullet lists
 
 ## Organize Text in Bullet Points
 
-- Make sure all the text is organized in bullet points
-  ```
-  **What it does**:
-  - Extracts each page of a PDF file as a separate PNG image
-  - Numbers output files sequentially (`slides001.png`, `slides002.png`, etc.)
-  - Supports customizable DPI for image quality control
-  - Creates output directory automatically with optional from-scratch mode
+- Make sure all the text is organized in bullet points, e.g.,
+  ```markdown
+  - **What it does**:
+    - Extracts each page of a PDF file as a separate PNG image
+    - Numbers output files sequentially (`slides001.png`, `slides002.png`, etc.)
+    - Supports customizable DPI for image quality control
+    - Creates output directory automatically with optional from-scratch mode
   ```
 
 ## Summarize the Text Into Structured Markdown Bullet Points
@@ -229,20 +248,20 @@ terms of bullet lists
   - Define the culture, who fits and who doesn't
   - Define what makes the Company different and unique
 
-  **Culture > strategy**
+  ## Culture > strategy
 
   - In a Company, culture wins in the long term
   - A Company
     - Needs to know who it is
     - Is defined by the Core Values
 
-  **Uses of Core Values**
+  ## Uses of Core Values
 
   - Hire
   - Fire
   - Review everyone
 
-  **Core values: EOS Worldwide example**
+  ## Core values: EOS Worldwide example
 
   - Be humble but confident
   - Grow or die

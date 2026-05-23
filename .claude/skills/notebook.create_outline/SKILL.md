@@ -1,21 +1,33 @@
 ---
-description: Create an outline for a Jupyter notebook with visual cells for teaching concepts
+description: Create a detailed markdown outline (notebook_outline file) for a Jupyter notebook, specifying each cell's content, purpose, visuals, and interactivity to teach concepts through example and discovery
 ---
 
-- Given the passed content, you need to create a Jupyter notebook that helps a
-  college student to understand the requested concepts
+- **Input**: Teaching concepts, learning objectives, or educational content
+- **Output**: A `notebook_outline.<tag>.md` markdown file that describes each
+  notebook cell
+  - Do not write actual code, but describe what each cell will contain and
+    accomplish
+- **Purpose**: Design the pedagogical structure and flow of an interactive
+  tutorial notebook
 
-# Goals
-- The goals for the Jupyter notebook are:
-  - Strong intuition
-  - Visual explanation
-  - Build example incrementally
-  - Use interactive widgets so that user can change the important variables and
-    see the results immediately
+# Pedagogical Goals
 
-- Do not write any code
-  - The Jupyter notebook is described in terms of a markdown
-  - Create or update the file with the script `jupyter_script.<tag>.md`
+Design the notebook to achieve:
+- **Strong intuition**: Build understanding through concrete examples, not theory
+- **Visual explanation**: Use plots, diagrams, and visual feedback
+- **Incremental building**: Each cell builds on previous concepts
+- **Interactive discovery**: Use widgets to let students change variables and see
+  results in real-time
+
+# Cell Outline Structure
+
+For each cell, specify:
+- **Cell type** (markdown, code, or visualization)
+- **Purpose** (what concept or skill it teaches)
+- **Content description** (what examples, explanations, or demonstrations it
+  includes)
+- **Key variables or parameters** (for interactive widgets)
+- **Expected output or visualization** (what the student will see)
 
 # Format of Notebook
 
