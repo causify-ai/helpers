@@ -2,6 +2,8 @@
 description: Convert a notebook_outline outline into a fully functional Jupyter notebook with working code cells and visualizations
 ---
 
+## Description
+
 - **Input**: A `notebook_outline.<tag>.md` outline file describing each notebook
   cell (created via `.claude/skills/notebook.create_outline/SKILL.md`)
 - **Outputs**:
@@ -23,7 +25,7 @@ description: Convert a notebook_outline outline into a fully functional Jupyter 
   - Move complexity and infrastructure code to utils
   - Import and use utils functions to keep cells focused on concepts
 
-## File Structure Example naming pattern:
+## File Structure Example Naming Pattern
 - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
 - Jupytext paired file: `msml610/tutorials/Lesson94-Information_Theory.py`
 - Utilities file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`

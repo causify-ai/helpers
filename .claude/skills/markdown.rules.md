@@ -52,7 +52,7 @@ text
 
 ## Bullet Lists
 - Write text using bullet lists following the directions in
-  `.claude/skills/text.rules.bullet_points.md`
+  `.claude/skills/text.rules.md`
 - Use `-` (dash) consistently for unordered lists
 - Indent sub-items with two spaces
 - Use ordered lists (`1.`, `2.`, etc.) when sequence matters

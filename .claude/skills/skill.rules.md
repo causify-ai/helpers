@@ -213,4 +213,4 @@
 ## Formatting Style
 - Make sure it follows the conventions in
   - `.claude/skills/markdown.rules.md`
-  - `.claude/skills/text.rules.bullet_points.md`
+  - `.claude/skills/text.rules.md`

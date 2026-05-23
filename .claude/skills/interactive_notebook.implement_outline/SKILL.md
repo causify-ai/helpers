@@ -31,11 +31,10 @@ You must follow:
 
 ## Organization Pattern
 
-- Each interactive notebook follows a **paired utility model**:
-  - E.g.,
-  - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-  - Paired with Jupytext to `msml610/tutorials/Lesson94-Information_Theory.py`
-  - Associated utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+- Each interactive notebook follows a paired utility model:
+  - **Notebook**: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
+  - **Jupytext paired file**: `msml610/tutorials/Lesson94-Information_Theory.py`
+  - **Associated utility file**: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 ## Responsibility Division
 

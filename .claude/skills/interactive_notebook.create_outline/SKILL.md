@@ -35,7 +35,7 @@ Always follow these guidelines:
 - `.claude/skills/notebook.rules.md`: General notebook conventions
 - `.claude/skills/interactive_notebook.rules.md`: Interactive notebook specifics
 - `.claude/skills/markdown.rules.md`: Markdown formatting rules
-- `.claude/skills/text.rules.bullet_points.md`: Bullet point conventions
+- `.claude/skills/text.rules.md`: Bullet point conventions
 
 # Cell Outline Structure
 
@@ -136,4 +136,4 @@ Here's a well-structured cell outline to emulate:
 - **No non-ASCII characters**: Use `mu` instead of `μ`, `alpha` instead of `α`
 - **No page separators**: Avoid `---` or similar between cells
 - **Follow markdown conventions**: See `.claude/skills/markdown.rules.md`
-- **Follow bullet point conventions**: See `.claude/skills/text.rules.bullet_points.md`
+- **Follow bullet point conventions**: See `.claude/skills/text.rules.md`

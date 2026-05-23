@@ -2,6 +2,8 @@
 description: Create a detailed markdown outline (notebook_outline file) for a Jupyter notebook, specifying each cell's content, purpose, visuals, and interactivity to teach concepts through example and discovery
 ---
 
+## Description
+
 - **Input**: Teaching concepts, learning objectives, or educational content
 - **Output**: A `notebook_outline.<tag>.md` markdown file that describes each
   notebook cell
@@ -35,7 +37,7 @@ For each cell, specify:
 - Always follow the conventions and guidelines in
   `.claude/skills/notebook.rules.md`
 
-## Content Focus:
+## Content Focus
 - Focus only on examples without repeating content from the slides
 - Each cell should build incrementally on previous concepts
 - Emphasize discovery through interaction rather than explanation
@@ -51,4 +53,4 @@ For each cell, specify:
   `.claude/skills/markdown.rules.md`
 
 - When writing bullet points you must follow the rules and conventions in
-  `.claude/skills/text.rules.bullet_points.md`
+  `.claude/skills/text.rules.md`

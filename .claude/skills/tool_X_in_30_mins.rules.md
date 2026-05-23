@@ -7,9 +7,9 @@
 
 # Overview and Guidelines
 - Follow the format and conventions in:
-  - `@.claude/skills/blog.rules.md`
-  - `@.claude/skills/markdown.rules.md`
-  - `@.claude/skills/text.rules.bullet_points.md`
+  - `.claude/skills/blog.rules.md`
+  - `.claude/skills/markdown.rules.md`
+  - `.claude/skills/text.rules.md`
 
 ## Content Guidelines
 - **Word count**: Target 2,000–4,000 words for a comprehensive "in 30 mins"
@@ -105,7 +105,7 @@
 
 ## Lists and Bullets
 - **Bullet points**: Organize information in bullet lists
-  - Follow rules in `.claude/skills/text.rules.bullet_points.md`
+  - Follow rules in `.claude/skills/text.rules.md`
   - Each bullet expresses one atomic idea
   - Use nested bullets for elaboration, examples, or hierarchical information
   - Do not end bullet points with periods

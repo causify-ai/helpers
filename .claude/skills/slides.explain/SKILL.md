@@ -22,6 +22,6 @@ description: Explain a lecture slide
   ```
 
 - Explain the slide in bullet points using the conventions in
-  `.claude/skills/text.rules.bullet_points.md`
+  `.claude/skills/text.rules.md`
 
 - Answer users questions about the slide

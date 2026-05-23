@@ -7,5 +7,4 @@ related to bullet point formatting, fenced code blocks, command formatting, and
 markdown conventions referring to:
 
 - `.claude/skills/markdown.rules.md`: Complete markdown formatting guidelines
-- `.claude/skills/text.rules.bullet_points.md`: Rules for creating and formatting
-  bullet points
+- `.claude/skills/text.rules.md`: Rules for creating and formatting bullet points

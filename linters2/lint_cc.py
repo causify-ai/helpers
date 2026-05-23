@@ -65,7 +65,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
             "rules": [
                 "blog.rules.md",
                 "markdown.rules.md",
-                "text.rules.bullet_points.md",
+                "text.rules.md",
             ],
             "templates": [],
         },
@@ -78,11 +78,6 @@ def _get_rules_for_topic(topic: str) -> Dict:
             "role": "role.coding.md",
             "rules": ["coding.rules.md"],
             "templates": ["code.template.py"],
-        },
-        "cxo_slidesformat": {
-            "role": "role.ai_researcher.md",
-            "rules": [],
-            "templates": [],
         },
         "interactive_notebook": {
             "role": "role.notebook.md",
@@ -104,7 +99,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
             "role": "role.ai_researcher.md",
             "rules": [
                 "markdown.rules.md",
-                "text.rules.bullet_points.md",
+                "text.rules.md",
             ],
             "templates": [],
         },
@@ -119,7 +114,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
             "templates": [],
         },
         "skill": {
-            "role": "role.coding.md",
+            "role": "role.skill.md",
             "rules": ["skill.rules.md"],
             "templates": [],
         },
@@ -234,7 +229,7 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
 
 
 def _run_claude_code(
-    prompt: str, file_path: str, *, dry_run: bool = False
+    prompt: str, topic: str, file_path: str, *, dry_run: bool = False
 ) -> int:
     """
     Run Claude Code with the given prompt.
@@ -247,7 +242,7 @@ def _run_claude_code(
     hdbg.dassert_file_exists(file_path)
     # Create the prompt file.
     prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
-    _LOG.info("%s\n%s", hprint.frame("Prompt"), prompt)
+    _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
     #
@@ -323,7 +318,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
             hdbg.dassert_is_not(topic, None, "Topic detection failed")
             topic_str = cast(str, topic)
         prompt, topic_info = _build_prompt(topic_str)
-        rc = _run_claude_code(prompt, file_path, dry_run=args.dry_run)
+        rc = _run_claude_code(prompt, topic_str, file_path, dry_run=args.dry_run)
         ret |= rc
         # Post-process.
         if topic_info["run_jupytext"]:

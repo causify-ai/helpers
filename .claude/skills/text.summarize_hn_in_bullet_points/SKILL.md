@@ -4,7 +4,7 @@ model: haiku
 ---
 
 For bullet point formatting rules, refer to
-`.claude/skills/text.rules.bullet_points.md`
+`.claude/skills/text.rules.md`
 
 ## Input
 - Given a pointer to a discussion on HackerNews in the form of a URL

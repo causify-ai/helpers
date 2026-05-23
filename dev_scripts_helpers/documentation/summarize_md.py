@@ -66,7 +66,7 @@ def _get_system_prompt() -> str:
 
     :return: System prompt string with formatting instructions and examples
     """
-    rules_file = hgit.find_file_in_git_tree("text.rules.bullet_points.md")
+    rules_file = hgit.find_file_in_git_tree("text.rules.md")
     rules_content = hio.from_file(rules_file)
     system_prompt = f"""
     Write a summary in bullet points using the following rules from the style guide:

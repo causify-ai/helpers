@@ -153,5 +153,5 @@ description: Conventions and standards for interactive Jupyter notebook structur
     ```
 
 - Each section should be:
-  - formatted using bullet points using `.claude/skills/text.rules.bullet_points.md`
+  - formatted using bullet points using `.claude/skills/text.rules.md`
   - short with no more than 3-5 bullet points
