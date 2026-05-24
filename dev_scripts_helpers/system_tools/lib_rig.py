@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -214,7 +215,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         "branch": parsed.branch,
         "last_commit": parsed.last_commit,
         "all_files": parsed.all_files,
-        "files_from_user": parsed.files,
+        "from_file": parsed.from_file,
         "dry_run": parsed.dry_run,
     }
     return result
@@ -269,7 +270,7 @@ def main(
             parsed["branch"],
             parsed["last_commit"],
             parsed["all_files"],
-            parsed["files_from_user"],
+            parsed["from_file"],
         ]
     ):
         files = hgit.get_files_to_process(
@@ -277,7 +278,7 @@ def main(
             branch=parsed["branch"],
             last_commit=parsed["last_commit"],
             all_=parsed["all_files"],
-            files_from_user=parsed["files_from_user"] or "",
+            from_file=parsed["from_file"],
             mutually_exclusive=True,
             remove_dirs=True,
         )

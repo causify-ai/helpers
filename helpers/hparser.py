@@ -107,6 +107,7 @@ def add_file_selection_args(
     - --last-commit: Search only in files part of the previous commit
     - --all: Search all repo files
     - --files: Search in specific files
+    - --from_files: Search in files listed in a file
 
     :param parser: ArgumentParser to add arguments to
     :return: The same parser with arguments added
@@ -122,7 +123,7 @@ def add_file_selection_args(
         help="Select only files modified with respect to the branch point",
     )
     parser.add_argument(
-        "--last-commit",
+        "--last_commit",
         action="store_true",
         help="Select only files part of the previous commit",
     )
@@ -137,7 +138,50 @@ def add_file_selection_args(
         type=str,
         help="Select specific files (space-separated list)",
     )
+    parser.add_argument(
+        "--from_file",
+        type=str,
+        help="Path to file containing one file path per line",
+    )
     return parser
+
+
+def parse_file_selection_args(
+    args: argparse.Namespace,
+    *,
+    remove_dirs: bool = True,
+    dir_name: str = ".",
+) -> List[str]:
+    """
+    Parse file selection arguments and return list of files to process.
+
+    Handles these mutually exclusive options:
+    - --modified: files modified in the client
+    - --branch: files modified with respect to the branch point
+    - --last_commit: files part of the previous commit
+    - --all: all repo files
+    - --files: files specified as space-separated list
+    - --from_files: files listed in a file (one per line)
+
+    :param args: Parsed command-line arguments from add_file_selection_args
+    :param remove_dirs: Whether to exclude directories from results
+    :param dir_name: Directory to search (default: current directory)
+    :return: List of file paths to process
+    """
+    # Import here to avoid circular dependency.
+    import helpers.hgit as hgit
+
+    files = hgit.get_files_to_process(
+        modified=args.modified,
+        branch=args.branch,
+        last_commit=args.last_commit,
+        all_=args.all_files,
+        from_file=args.from_file,
+        mutually_exclusive=True,
+        remove_dirs=remove_dirs,
+        dir_name=dir_name,
+    )
+    return files
 
 
 # #############################################################################
@@ -1130,7 +1174,7 @@ def apply_limit_range(
 # #############################################################################
 
 
-# TODO(ai_gp): Merge with input_output_args
+# TODO(gp): Merge with input_output_args and / or add_file_selection_args?
 def add_multi_file_args(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:

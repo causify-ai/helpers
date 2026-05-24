@@ -135,14 +135,14 @@
   - **Bad**
     ```python
     # Run test.
-    self.helper(".tex", "figs/diagram.png", "fig:test_diagram")
+    self.helper(".tex", None, 5)
     ```
   - **Good**
     ```python
     # Prepare inputs.
     extension = ".tex"
-    rel_img_path = "figs/diagram.png"
-    label = "fig:test_diagram"
+    rel_img_path = None
+    label = 5
     # Run test.
     self.helper(extension, rel_img_path, user_img_size)
     ```

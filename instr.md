@@ -1,31 +1,33 @@
-Extend linters2/lint_cc.py to accept 
+In add_file_selection_args( add an option for
 
-1) Execute a skill on selected files
---skill <skill>
+  add_argument(
+      "--from_files",
+      type=str,
+      help="Path to file containing one file path per line",
+  )
 
-Look for the full name of the skill using the same code as
+Add a function to parse the args
 
-mdm skill f <skill>
+if any(
+    [
+        args.modified,
+        args.branch,
+        args.last_commit,
+        args.all_files,
+        args.files_from_user,
+    ]
+):
+    files = hgit.get_files_to_process(
+        modified=parsed["modified"],
+        branch=parsed["branch"],
+        last_commit=parsed["last_commit"],
+        all_=parsed["all_files"],
+        files_from_user=parsed["files_from_user"] or "",
+        mutually_exclusive=True,
+        remove_dirs=True,
+    )
 
-mdm skill f coding.fix_inline
-
-Abort if there are more than one possible matches
-
-Otherwise call claude code with a prompt like `/skill <file>`
-
-2) Execute a rule on selected files
-
---rule <rule_match>
-
-The rule is selected running
-
-> rigrule | grep -i <rule_march>
-.claude/skills/readme.rules.md:99:## Inline Commands
-.claude/skills/slides.rules.md:154:## Use Inline Verbatim
-
-Abort if there are more than one possible matches
-
-Otherwise call claude code with a prompt like `Execute the rule <rule> on <file>`
+- Use this function everywhere add_file_selection_args is used
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

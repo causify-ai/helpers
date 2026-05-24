@@ -76,8 +76,9 @@ class TestRigScript(hunitest.TestCase):
         args = ["TODO"]
         # Prepare outputs.
         expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git"
+        expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_cmd=expected_cmd, expected_exit_code=0)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test2(self) -> None:
         """
@@ -91,8 +92,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test3(self) -> None:
@@ -109,8 +110,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test4(self) -> None:
@@ -120,8 +121,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--help"]
         expected_exit_code = 0
+        expected_cmd = None
         # Run test.
-        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test5(self) -> None:
         """
@@ -129,9 +131,10 @@ class TestRigScript(hunitest.TestCase):
         """
         # Prepare inputs.
         args = []
+        expected_cmd = None
         expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test6(self) -> None:
         """
@@ -140,12 +143,13 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO"]
         expected_exit_code = 1
+        side_effect = FileNotFoundError
         # Run test.
         self.helper(
             args,
-            expected_cmd=None,
-            expected_exit_code=expected_exit_code,
-            side_effect=FileNotFoundError,
+            None,
+            expected_exit_code,
+            side_effect=side_effect,
         )
 
     def test7(self) -> None:
@@ -162,8 +166,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test8(self) -> None:
@@ -178,8 +182,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test9(self) -> None:
@@ -199,9 +203,10 @@ class TestRigScript(hunitest.TestCase):
         # This test verifies that --modified flag is parsed correctly,
         # though we can't test the actual git integration without a real repo.
         args = ["TODO", "--modified"]
+        expected_cmd = None
         expected_exit_code = 0
         # Run test (may return 0 even if no files, since git cmd may not work in test).
-        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test11(self) -> None:
         """
@@ -210,9 +215,10 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", "--branch"]
         # Prepare outputs.
+        expected_cmd = None
         expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test12(self) -> None:
         """
@@ -221,9 +227,10 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", "--all"]
         # Prepare outputs.
+        expected_cmd = None
         expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test13(self) -> None:
         """
@@ -232,9 +239,10 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", "--last-commit"]
         # Prepare outputs.
+        expected_cmd = None
         expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test14(self) -> None:
         """
@@ -248,8 +256,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test15(self) -> None:
@@ -264,8 +272,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test16(self) -> None:
@@ -282,8 +290,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test16_rule_with_pattern(self) -> None:
@@ -298,8 +306,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test17(self) -> None:
@@ -316,8 +324,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test18(self) -> None:
@@ -332,8 +340,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test19(self) -> None:
@@ -350,6 +358,6 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )

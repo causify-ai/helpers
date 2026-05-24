@@ -42,7 +42,6 @@ from typing import cast, Dict, Tuple
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hparser as hparser
@@ -375,18 +374,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
         1,
         "Only one of --topic, --skill, or --rule can be used simultaneously",
     )
-    all_files = False
-    mutually_exclusive = True
-    remove_dirs = False
-    files = hgit.get_files_to_process(
-        args.modified,
-        args.branch,
-        args.last_commit,
-        all_files,
-        args.files,
-        mutually_exclusive,
-        remove_dirs,
-    )
+    files = hparser.parse_file_selection_args(args, remove_dirs=False)
     if args.topic and len(files) != 1:
         raise ValueError("--topic can only be used with a single file")
     _LOG.info("Processing %d file(s)", len(files))
@@ -394,7 +382,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
     for file_path in tqdm(files, desc="Processing files"):
         if args.skill:
             full_skill_name = _find_skill(args.skill)
-            prompt = f"/skill {full_skill_name} {file_path}"
+            prompt = f"/{full_skill_name} {file_path}"
             topic_str = "skill"
             inferred_topic = _infer_topic_from_filename(file_path)
             topic_info = _get_rules_for_topic(inferred_topic)
@@ -403,22 +391,21 @@ def _main(parser: argparse.ArgumentParser) -> int:
             )
         elif args.rule:
             full_rule_line = _find_rule(args.rule)
-            prompt = f"Execute the rule {full_rule_line} on file {file_path}"
+            prompt = f"Execute the rule '{full_rule_line}' on file {file_path}"
             topic_str = "rule"
             inferred_topic = _infer_topic_from_filename(file_path)
             topic_info = _get_rules_for_topic(inferred_topic)
             rc = _run_claude_code(
                 prompt, topic_str, file_path, dry_run=args.dry_run
             )
-        elif args.topic:
-            topic_str = args.topic
-            prompt, topic_info = _build_prompt(topic_str)
-            prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
-            rc = _run_claude_code(prompt, topic_str, file_path, dry_run=args.dry_run)
         else:
-            topic = _infer_topic_from_filename(file_path)
-            hdbg.dassert_is_not(topic, None, "Topic detection failed")
-            topic_str = cast(str, topic)
+            if args.topic:
+                topic_str = args.topic
+                prompt, topic_info = _build_prompt(topic_str)
+            else:
+                topic = _infer_topic_from_filename(file_path)
+                hdbg.dassert_is_not(topic, None, "Topic detection failed")
+                topic_str = cast(str, topic)
             prompt, topic_info = _build_prompt(topic_str)
             prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
             rc = _run_claude_code(prompt, topic_str, file_path, dry_run=args.dry_run)

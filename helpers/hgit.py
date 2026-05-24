@@ -1572,7 +1572,7 @@ def get_files_to_process(
     branch: bool,
     last_commit: bool,
     all_: bool,
-    files_from_user: str,
+    from_file: str,
     mutually_exclusive: bool,
     remove_dirs: bool,
     *,
@@ -1586,7 +1586,7 @@ def get_files_to_process(
     - `modified`: changed in the client (both staged and modified)
     - `last_commit`: part of the previous commit
     - `all_`: all the files in the repo
-    - `files_from_user`: passed by the user
+    - `from_file`: file with a file 
 
     :param modified: return files modified in the client (i.e., changed with
         respect to HEAD)
@@ -1612,10 +1612,10 @@ def get_files_to_process(
             + int(branch)
             + int(last_commit)
             + int(all_)
-            + int(len(files_from_user) > 0),
+            + int(from_file),
             1,
             msg="Specify only one among --modified, --branch, --last-commit, "
-            "--all_files, and --files",
+            "--all_files, and --from_file",
         )
     else:
         # We filter the files passed from the user through other the options,
@@ -1637,9 +1637,10 @@ def get_files_to_process(
         only_files = True
         use_relative_paths = True
         files = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
-    if files_from_user:
-        # If files were passed, filter out non-existent paths.
-        files = _filter_existing_paths(files_from_user.split())
+    if from_file:
+        hdbg.dassert_path_exists(from_file)
+        files = hio.from_file(from_file)
+    files = _filter_existing_paths(files.split())
     # Convert into a list.
     hdbg.dassert_isinstance(files, list)
     files_to_process = [f for f in files if f != ""]
