@@ -77,7 +77,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
         "coding": {
             "role": "role.coding.md",
             "rules": ["coding.rules.md"],
-            "templates": ["code.template.py"],
+            "templates": ["coding.template.py"],
         },
         "interactive_notebook": {
             "role": "role.notebook.md",

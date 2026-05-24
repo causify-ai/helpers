@@ -10,7 +10,7 @@
 
 ## Follow the Coding Style From the Template
 
-- Use the coding style in `.claude/templates/code.template.py`
+- Use the coding style in `.claude/templates/coding.template.py`
 
 ## Use * for Default Parameters
 

@@ -175,7 +175,7 @@
 - Paths should be verifiable: `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
 - If you reference a template or example, verify it exists:
   ```bash
-  > find .claude -name "code.template.py" -o -name "*_template.*"
+  > find .claude -name "coding.template.py" -o -name "*_template.*"
   ```
 
 - All references in the skills should be to existing files

@@ -3,16 +3,21 @@ Graph visualization utilities for networkx graphs.
 
 Import as:
 
-import helpers.hgraph_viz as hgraphviz
+import helpers.hgraphviz as hgraphviz
 """
 
+import io
 import logging
 from typing import Any, Dict, Mapping, Optional, Tuple
 
+import graphviz
 import matplotlib.axes as maxes
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import networkx as nx
+# TODO(ai_gp): Use import PIL
+
+from PIL import Image
 
 _LOG = logging.getLogger(__name__)
 
@@ -41,7 +46,6 @@ def _graph_to_graphviz_dot(
     :param edge_colors: Optional per-edge color
     :return: DOT string for graphviz rendering
     """
-
     # Map matplotlib colors to hex for graphviz.
     def _to_hex(color: Any) -> str:
         if isinstance(color, str):
@@ -49,7 +53,6 @@ def _graph_to_graphviz_dot(
                 return color
             return color
         return "#A6C8F4"
-
     # Build the DOT representation.
     lines = ["digraph {", "    rankdir=TB;", "    splines=true;"]
     lines.append("    nodesep=0.6;")
@@ -94,17 +97,12 @@ def plot_dag_with_graphviz(
     :param ax: Matplotlib axes to draw on
     :param dpi: Resolution in dots per inch
     """
-    import graphviz
-    from PIL import Image
-    import io
-
     dot_str = _graph_to_graphviz_dot(
         G, title, node_colors=node_colors, edge_colors=edge_colors
     )
     # Render to PNG with specified DPI.
     g = graphviz.Source(dot_str, format="png")
-    # TODO(gp): This doesn't work.
-    # g.graph_attr["dpi"] = "300"
+    # TODO(gp): DPI setting doesn't work in graphviz.Source.
     png_data = g.pipe(format="png")
     img = Image.open(io.BytesIO(png_data))
     if ax is not None:
@@ -174,6 +172,7 @@ def plot_dag_with_networkx_rounded_boxes(
             text_len = len(str(node))
             width = max(0.25, text_len * 0.08)
             height = 0.2
+            # Get the appropriate node color.
             color = (
                 node_color_list[i]
                 if isinstance(node_color_list, list)
@@ -212,7 +211,7 @@ def plot_dag_with_networkx(
     ax: Optional[maxes.Axes] = None,
 ) -> None:
     """
-    This implementation used NetworkX's drawing functions.
+    Render a DAG using NetworkX's drawing functions.
 
     :param G: Graph to draw
     :param pos: Node position dictionary
@@ -220,12 +219,12 @@ def plot_dag_with_networkx(
     :param edge_color: Single color or list of colors for edges
     :param ax: Matplotlib axes object
     """
-    #
+    # Draw nodes with customizable color and size.
     node_kwargs = {"node_size": 2000, "edgecolors": "black", "ax": ax}
     if node_color is not None:
         node_kwargs["node_color"] = node_color
     nx.draw_networkx_nodes(G, pos, **node_kwargs)
-    #
+    # Draw edges with arrows and customizable colors.
     edge_kwargs = {"arrowsize": 20, "arrowstyle": "-|>", "width": 1.8, "ax": ax}
     if edge_color is not None:
         edge_kwargs["edge_color"] = edge_color
@@ -249,33 +248,40 @@ def plot_causal_dag(
 
     Dispatches to the appropriate plotting function based on the mode
     parameter. Supports three rendering backends:
-    - "graphviz": Uses graphviz DOT format with automatic layout
-    - "networkx_rounded_boxes": Uses NetworkX with rounded box nodes
-    - "networkx": Uses basic NetworkX drawing functions
+      - "graphviz": Uses graphviz DOT format with automatic layout
+      - "networkx_rounded_boxes": Uses NetworkX with rounded box nodes
+      - "networkx": Uses basic NetworkX drawing functions
 
     :param G: Directed acyclic graph to plot
     :param title: Title displayed on the axes
-    :param mode: Visualization mode ("graphviz", "networkx_rounded_boxes", or "networkx")
+    :param mode: Visualization mode
+        - "graphviz": Uses graphviz DOT format with automatic layout
+        - "networkx_rounded_boxes": Uses NetworkX with rounded box nodes
+        - "networkx": Uses basic NetworkX drawing functions
     :param node_colors: Per-node fill color mapping
     :param edge_colors: Per-edge color mapping
-    :param ax: Matplotlib axes to draw on; creates new figure if None
+    :param ax: Matplotlib axes to draw on
+        - Default: Creates new figure if None
     :param figsize: Override the default figure size
     :param dpi: Resolution in dots per inch
-    :param pos: Node position dictionary (only used with mode="networkx")
+    :param pos: Node position dictionary
+        - Only used with mode="networkx"
     :return: The axes containing the plot
     """
+    # Validate the visualization mode.
+    # TODO(ai_gp): AUse dassert_not_in
     if mode not in ("graphviz", "networkx_rounded_boxes", "networkx"):
         raise ValueError(
             f"Invalid mode: {mode}. Must be one of 'graphviz', "
             "'networkx_rounded_boxes', or 'networkx'."
         )
-
+    # Create a new figure if no axes provided.
     fig = None
     if ax is None:
         if figsize is None:
             figsize = FIG_SIZE
         fig, ax = plt.subplots(figsize=figsize)
-
+    # Dispatch to the appropriate plotting function.
     if mode == "graphviz":
         plot_dag_with_graphviz(
             G,
@@ -306,8 +312,7 @@ def plot_causal_dag(
             ax=ax,
         )
         ax.set_title(title, fontsize=12, fontweight="bold")
-
+    # Finalize the figure layout if it was created.
     if fig is not None:
         fig.tight_layout()
-
     return ax

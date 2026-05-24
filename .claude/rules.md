@@ -7,7 +7,7 @@ rules
 ## Coding
 - For writing Python file (files with a `.py` extension) you MUST follow:
   - The rules `.claude/skills/coding.rules.md`
-  - The template `.claude/templates/code.template.py`
+  - The template `.claude/templates/coding.template.py`
 
 ## Testing
 - For a file storing unit tests (files whose base name starts with
