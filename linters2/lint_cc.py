@@ -20,6 +20,12 @@ Examples:
 # Call a specific set of rules on a single file:
 > lint_cc.py --topic coding file.py
 
+# Execute a skill on a single file:
+> lint_cc.py --skill coding.fix_inline file.py
+
+# Execute a rule on a single file:
+> lint_cc.py --rule "coding.rules" file.py
+
 # Print the command without executing:
 > lint_cc.py --dry_run *.md
 
@@ -227,24 +233,78 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     return txt, topic_info
 
 
+def _find_skill(skill_match: str) -> str:
+    """
+    Find the full skill name by searching with `mdm skill f`.
+
+    :param skill_match: Partial or full skill name to search for
+    :return: Full skill name if exactly one match found
+    """
+    cmd = ["mdm", "skill", "f", skill_match]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    matches = result.stdout.strip().split("\n")
+    matches = [m.strip() for m in matches if m.strip()]
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Expected exactly one skill match for '%s', got %d matches: %s",
+        skill_match,
+        len(matches),
+        ", ".join(matches),
+    )
+    full_skill_name = matches[0]
+    return full_skill_name
+
+
+def _find_rule(rule_match: str) -> str:
+    """
+    Find the full rule name by searching with `rigrule`.
+
+    :param rule_match: Partial or full rule name to search for
+    :return: Full rule name if exactly one match found
+    """
+    result = subprocess.run(["rigrule"], capture_output=True, text=True)
+    hdbg.dassert_eq(
+        result.returncode,
+        0,
+    )
+    all_rules = result.stdout.strip().split("\n")
+    matches = [r for r in all_rules if rule_match.lower() in r.lower()]
+    matches = [m.strip() for m in matches if m.strip()]
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Expected exactly one rule match for '%s', got %d matches: %s",
+        rule_match,
+        len(matches),
+        ", ".join(matches),
+    )
+    full_rule_line = matches[0]
+    return full_rule_line
+
+
 def _run_claude_code(
-    prompt: str, topic: str, file_path: str, *, dry_run: bool = False
+    prompt: str,
+    topic: str,
+    file_path: str,
+    *,
+    dry_run: bool = False,
+    complete_prompt: bool = False,
 ) -> int:
     """
     Run Claude Code with the given prompt.
 
     :param prompt: Claude Code prompt
+    :param topic: Topic for logging purposes
+    :param file_path: File to process
     :param dry_run: If True, print command but don't execute
+    :param complete_prompt: If True, prompt is complete and should not be appended with file instructions
     :return: Return code (0 on success, or subprocess return code)
     """
-    # Add the file.
     hdbg.dassert_file_exists(file_path)
-    # Create the prompt file.
-    prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
     _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
-    #
     cmd_parts = [
         "claude",
         "-p",
@@ -278,6 +338,18 @@ def _parse() -> argparse.ArgumentParser:
         "Can only be used with a single file.",
     )
     parser.add_argument(
+        "--skill",
+        type=str,
+        default=None,
+        help="Execute a skill on selected files. E.g., `coding.fix_inline`"
+    )
+    parser.add_argument(
+        "--rule",
+        type=str,
+        default=None,
+        help="Execute a rule on selected files. E.g., `Use Inline Verbatim`"
+    )
+    parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Print the command but don't execute",
@@ -293,6 +365,18 @@ def _main(parser: argparse.ArgumentParser) -> int:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    num_exclusive = sum(
+        [
+            args.topic is not None,
+            args.skill is not None,
+            args.rule is not None,
+        ]
+    )
+    hdbg.dassert_lte(
+        num_exclusive,
+        1,
+        "Only one of --topic, --skill, or --rule can be used simultaneously",
+    )
     all_files = False
     mutually_exclusive = True
     remove_dirs = False
@@ -310,16 +394,34 @@ def _main(parser: argparse.ArgumentParser) -> int:
     _LOG.info("Processing %d file(s)", len(files))
     ret = 0
     for file_path in tqdm(files, desc="Processing files"):
-        if args.topic:
+        if args.skill:
+            full_skill_name = _find_skill(args.skill)
+            prompt = f"/skill {full_skill_name} {file_path}"
+            topic_str = "skill"
+            # TODO(ai_gp): This should depend on the type of file.
+            topic_info = {"run_jupytext": False, "run_lint": False}
+            rc = _run_claude_code(
+                prompt, topic_str, file_path, dry_run=args.dry_run
+            )
+        elif args.rule:
+            full_rule_line = _find_rule(args.rule)
+            prompt = f"Execute the rule {full_rule_line} on file {file_path}"
+            topic_str = "rule"
+            # TODO(ai_gp): This should depend on the type of file.
+            topic_info = {"run_jupytext": False, "run_lint": False}
+            rc = _run_claude_code(
+                prompt, topic_str, file_path, dry_run=args.dry_run
+            )
+        elif args.topic:
             topic_str = args.topic
         else:
             topic = _infer_topic_from_filename(file_path)
             hdbg.dassert_is_not(topic, None, "Topic detection failed")
             topic_str = cast(str, topic)
-        prompt, topic_info = _build_prompt(topic_str)
-        rc = _run_claude_code(prompt, topic_str, file_path, dry_run=args.dry_run)
+            prompt, topic_info = _build_prompt(topic_str)
+            prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
+            rc = _run_claude_code(prompt, topic_str, file_path, dry_run=args.dry_run)
         ret |= rc
-        # Post-process.
         if topic_info["run_jupytext"]:
             cmd = ["jupytext", "--sync", file_path]
             hsystem.system(" ".join(cmd))

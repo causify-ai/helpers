@@ -11,6 +11,18 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
     Tests for `lint_cc._infer_topic_from_filename()` function.
     """
 
+    def helper(self, filename: str, expected: str) -> None:
+        """
+        Test helper for `_infer_topic_from_filename()`.
+
+        :param filename: Input filename to test
+        :param expected: Expected topic result
+        """
+        # Run test.
+        topic = l2lccc._infer_topic_from_filename(filename)
+        # Check outputs.
+        self.assertEqual(topic, expected)
+
     def test1(self) -> None:
         """
         Test detection of Jupyter notebook files.
@@ -20,9 +32,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "notebook"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test2(self) -> None:
         """
@@ -33,9 +43,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "readme"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test3(self) -> None:
         """
@@ -46,9 +54,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "tool_X_in_30_mins"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test4(self) -> None:
         """
@@ -59,9 +65,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "tool_X_in_60_mins"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test5(self) -> None:
         """
@@ -72,9 +76,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "skill"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test6(self) -> None:
         """
@@ -85,9 +87,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "markdown"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test7(self) -> None:
         """
@@ -98,9 +98,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "testing"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test8(self) -> None:
         """
@@ -111,9 +109,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "coding"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test9(self) -> None:
         """
@@ -124,9 +120,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "bash"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test10(self) -> None:
         """
@@ -137,9 +131,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "latex"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test11(self) -> None:
         """
@@ -150,9 +142,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "slides"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test12(self) -> None:
         """
@@ -173,9 +163,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "testing"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
     def test14(self) -> None:
         """
@@ -186,15 +174,24 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare outputs.
         expected = "readme"
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
-        # Check outputs.
-        self.assertEqual(topic, expected)
+        self.helper(filename, expected)
 
 
 class Test_get_rules_for_topic(hunitest.TestCase):
     """
     Tests for `lint_cc._get_rules_for_topic()` function.
     """
+
+    def helper_check_run_lint(self, topic: str) -> None:
+        """
+        Test helper that verifies `run_lint` is set for a given topic.
+
+        :param topic: Topic name to retrieve rules for
+        """
+        # Run test.
+        topic_info = l2lccc._get_rules_for_topic(topic)
+        # Check outputs.
+        self.assertTrue(topic_info["run_lint"])
 
     def test1(self) -> None:
         """
@@ -254,9 +251,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Prepare inputs.
         topic = "readme"
         # Run test.
-        topic_info = l2lccc._get_rules_for_topic(topic)
-        # Check outputs.
-        self.assertTrue(topic_info["run_lint"])
+        self.helper_check_run_lint(topic)
 
     def test6(self) -> None:
         """
@@ -265,9 +260,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Prepare inputs.
         topic = "markdown"
         # Run test.
-        topic_info = l2lccc._get_rules_for_topic(topic)
-        # Check outputs.
-        self.assertTrue(topic_info["run_lint"])
+        self.helper_check_run_lint(topic)
 
     def test7(self) -> None:
         """
