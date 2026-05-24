@@ -1,4 +1,4 @@
-from typing import List, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
 import dev_scripts_helpers.system_tools.lib_rig as dshstliri
 import helpers.hunit_test as hunitest
@@ -15,12 +15,32 @@ class TestRigScript(hunitest.TestCase):
     Test rig script functionality through hrig module integration.
     """
 
+    def _assert_cmd_invocation(
+        self,
+        invocations: List[Dict[str, Any]],
+        expected_cmd: str,
+    ) -> None:
+        """
+        Assert that the captured invocations match the expected command.
+
+        :param invocations: Captured system call invocations
+        :param expected_cmd: Expected command string
+        """
+        self.assertEqual(len(invocations), 1, "Expected exactly one invocation")
+        self.assertEqual(
+            invocations[0]["function"],
+            "subprocess.run",
+            "Expected subprocess.run call",
+        )
+        actual_cmd = " ".join(invocations[0]["args"][0])
+        self.assertEqual(actual_cmd, expected_cmd)
+
     def helper(
         self,
         args: List[str],
+        expected_cmd: Optional[str],
+        expected_exit_code: Optional[int],
         *,
-        expected_cmd: Optional[str] = None,
-        expected_exit_code: Optional[int] = None,
         side_effect: Optional[Type[Exception]] = None,
     ) -> None:
         """
@@ -28,7 +48,9 @@ class TestRigScript(hunitest.TestCase):
 
         :param args: Arguments to pass to hrig.main()
         :param expected_cmd: Expected command string passed to subprocess.run()
+            or None to skip command verification
         :param expected_exit_code: Expected exit code from hrig.main()
+            or None to skip exit code verification
         :param side_effect: Exception to raise from subprocess.run()
         """
         # Run test.
@@ -39,13 +61,10 @@ class TestRigScript(hunitest.TestCase):
                 exit_code = dshstliri.main(args)
             except SystemExit as e:
                 exit_code = e.code
-        # Check outputs.
-        # TODO(ai_gp): Use the hunteuti. to check outcome.
+        # Check command output.
         if expected_cmd is not None:
-            self.assertEqual(len(invocations), 1)
-            self.assertEqual(invocations[0]["function"], "subprocess.run")
-            actual_cmd = " ".join(invocations[0]["args"][0])
-            self.assertEqual(actual_cmd, expected_cmd)
+            self._assert_cmd_invocation(invocations, expected_cmd)
+        # Check exit code.
         if expected_exit_code is not None:
             self.assertEqual(exit_code, expected_exit_code)
 
@@ -102,7 +121,7 @@ class TestRigScript(hunitest.TestCase):
         args = ["--help"]
         expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test5(self) -> None:
         """
@@ -110,9 +129,9 @@ class TestRigScript(hunitest.TestCase):
         """
         # Prepare inputs.
         args = []
-        # Run test.
         expected_exit_code = 0
-        self.helper(args, expected_exit_code=expected_exit_code)
+        # Run test.
+        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test6(self) -> None:
         """
@@ -124,6 +143,7 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
+            expected_cmd=None,
             expected_exit_code=expected_exit_code,
             side_effect=FileNotFoundError,
         )
@@ -180,8 +200,8 @@ class TestRigScript(hunitest.TestCase):
         # though we can't test the actual git integration without a real repo.
         args = ["TODO", "--modified"]
         expected_exit_code = 0
-        # Run test (may return 0 even if no files, since git cmd may not work in test)
-        self.helper(args, expected_exit_code=expected_exit_code)
+        # Run test (may return 0 even if no files, since git cmd may not work in test).
+        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test11(self) -> None:
         """
@@ -189,7 +209,7 @@ class TestRigScript(hunitest.TestCase):
         """
         args = ["TODO", "--branch"]
         expected_exit_code = 0
-        self.helper(args, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test12(self) -> None:
         """
@@ -197,7 +217,7 @@ class TestRigScript(hunitest.TestCase):
         """
         args = ["TODO", "--all"]
         expected_exit_code = 0
-        self.helper(args, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test13(self) -> None:
         """
@@ -205,7 +225,7 @@ class TestRigScript(hunitest.TestCase):
         """
         args = ["TODO", "--last-commit"]
         expected_exit_code = 0
-        self.helper(args, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test14(self) -> None:
         """

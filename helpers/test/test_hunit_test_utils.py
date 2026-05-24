@@ -2,6 +2,7 @@ import logging
 import os
 import pprint
 import subprocess
+from typing import Optional
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -41,16 +42,28 @@ class TestUnitTestRenamer(hunitest.TestCase):
         content = hprint.dedent(content)
         return content
 
+    def helper_rename(
+        self, old_name: str, new_name: str, content: str
+    ) -> str:
+        """
+        Test helper for class renaming.
+
+        :param old_name: Original class name
+        :param new_name: New class name
+        :param content: Content to rename
+        :return: Renamed content
+        """
+        root_dir = os.getcwd()
+        renamer = hunteuti.UnitTestRenamer(old_name, new_name, root_dir)
+        actual, _ = renamer._rename_class(content)
+        return actual
+
     def test1(self) -> None:
         """
         Test renaming of existing class.
         """
         # Prepare inputs.
         content = self.helper()
-        root_dir = os.getcwd()
-        # Run test.
-        renamer = hunteuti.UnitTestRenamer("TestCases", "TestNewCase", root_dir)
-        actual, _ = renamer._rename_class(content)
         # Prepare outputs.
         expected = """
         class TestNewCase(hunitest.TestCase):
@@ -64,6 +77,8 @@ class TestUnitTestRenamer(hunitest.TestCase):
                 self.check_string(actual)
         """
         expected = hprint.dedent(expected)
+        # Run test.
+        actual = self.helper_rename("TestCases", "TestNewCase", content)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -73,12 +88,12 @@ class TestUnitTestRenamer(hunitest.TestCase):
         """
         # Prepare inputs.
         content = self.helper()
-        root_dir = os.getcwd()
+        # Prepare outputs.
+        expected = content
         # Run test.
-        renamer = hunteuti.UnitTestRenamer("TestCase", "TestNewCase", root_dir)
-        actual, _ = renamer._rename_class(content)
+        actual = self.helper_rename("TestCase", "TestNewCase", content)
         # Check outputs.
-        self.assert_equal(actual, content)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -126,18 +141,28 @@ class TestPytestRenameMethod(hunitest.TestCase):
         content = hprint.dedent(content)
         return content
 
+    def helper_rename_method(
+        self, old_name: str, new_name: str, content: str
+    ) -> str:
+        """
+        Test helper for method renaming.
+
+        :param old_name: Original method name
+        :param new_name: New method name
+        :param content: Content to rename
+        :return: Renamed content
+        """
+        root_dir = os.getcwd()
+        renamer = hunteuti.UnitTestRenamer(old_name, new_name, root_dir)
+        actual, _ = renamer._rename_method(content)
+        return actual
+
     def test1(self) -> None:
         """
         Test renaming of existing method.
         """
         # Prepare inputs.
         content = self.helper()
-        root_dir = os.getcwd()
-        # Run test.
-        renamer = hunteuti.UnitTestRenamer(
-            "TestCases.test1", "TestCases.test_new", root_dir
-        )
-        actual, _ = renamer._rename_method(content)
         # Prepare outputs.
         expected = """
         class TestCases(hunitest.TestCase):
@@ -167,6 +192,10 @@ class TestPytestRenameMethod(hunitest.TestCase):
                 self.check_string(actual)
         """
         expected = hprint.dedent(expected)
+        # Run test.
+        actual = self.helper_rename_method(
+            "TestCases.test1", "TestCases.test_new", content
+        )
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -176,14 +205,14 @@ class TestPytestRenameMethod(hunitest.TestCase):
         """
         # Prepare inputs.
         content = self.helper()
-        root_dir = os.getcwd()
+        # Prepare outputs.
+        expected = content
         # Run test.
-        renamer = hunteuti.UnitTestRenamer(
-            "TestOtherCases.test5", "TestOtherCases.test6", root_dir
+        actual = self.helper_rename_method(
+            "TestOtherCases.test5", "TestOtherCases.test6", content
         )
-        actual, _ = renamer._rename_method(content)
         # Check outputs.
-        self.assert_equal(actual, content)
+        self.assert_equal(actual, expected)
 
     def test3(self) -> None:
         """
@@ -191,7 +220,6 @@ class TestPytestRenameMethod(hunitest.TestCase):
         """
         # Prepare inputs.
         root_dir = os.getcwd()
-        self.helper()
         # Run test and check output.
         with self.assertRaises(AssertionError):
             hunteuti.UnitTestRenamer(
@@ -239,6 +267,21 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         cmd = f"git reset {toy_test}/ && rm -rf {toy_test}/"
         hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
+    def _get_sorted_outcome_dirs(self, test_path: str) -> list:
+        """
+        Return sorted list of subdirectories inside the outcomes directory.
+
+        :param test_path: Base test directory path
+        :return: Sorted list of outcome directory names
+        """
+        outcomes_path = os.path.join(test_path, "outcomes")
+        outcomes_dirs = os.listdir(outcomes_path)
+        return sorted(
+            ent
+            for ent in outcomes_dirs
+            if os.path.isdir(os.path.join(outcomes_path, ent))
+        )
+
     def test1(self) -> None:
         """
         Rename outcome directory.
@@ -248,21 +291,7 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         test_path = os.path.join(toy_test, "test")
         self.helper(toy_test)
         root_dir = os.getcwd()
-        # Run test.
-        renamer = hunteuti.UnitTestRenamer(
-            "TestCase", "TestRenamedCase", root_dir
-        )
-        renamer.rename_outcomes(test_path)
         # Prepare outputs.
-        outcomes_path = os.path.join(test_path, "outcomes")
-        outcomes_dirs = os.listdir(outcomes_path)
-        actual = sorted(
-            [
-                ent
-                for ent in outcomes_dirs
-                if os.path.isdir(os.path.join(outcomes_path, ent))
-            ]
-        )
         expected = [
             "TestCases.test_rename2",
             "TestRename.test_rename1",
@@ -270,6 +299,12 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
             "TestRenamedCase.test_rename",
             "TestRenamedCase.test_rename3",
         ]
+        # Run test.
+        renamer = hunteuti.UnitTestRenamer(
+            "TestCase", "TestRenamedCase", root_dir
+        )
+        renamer.rename_outcomes(test_path)
+        actual = self._get_sorted_outcome_dirs(test_path)
         # Check outputs.
         self.assertEqual(actual, expected)
         self._clean_up(toy_test)
@@ -283,23 +318,7 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         test_path = os.path.join(toy_test, "test")
         self.helper(toy_test)
         root_dir = os.getcwd()
-        # Run test.
-        renamer = hunteuti.UnitTestRenamer(
-            "TestCase.test_rename",
-            "TestCase.test_method_renamed",
-            root_dir,
-        )
-        renamer.rename_outcomes(test_path)
         # Prepare outputs.
-        outcomes_path = os.path.join(test_path, "outcomes")
-        outcomes_dirs = os.listdir(outcomes_path)
-        actual = sorted(
-            [
-                ent
-                for ent in outcomes_dirs
-                if os.path.isdir(os.path.join(outcomes_path, ent))
-            ]
-        )
         expected = [
             "TestCase.test_check_string1",
             "TestCase.test_method_renamed",
@@ -307,6 +326,14 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
             "TestCases.test_rename2",
             "TestRename.test_rename1",
         ]
+        # Run test.
+        renamer = hunteuti.UnitTestRenamer(
+            "TestCase.test_rename",
+            "TestCase.test_method_renamed",
+            root_dir,
+        )
+        renamer.rename_outcomes(test_path)
+        actual = self._get_sorted_outcome_dirs(test_path)
         # Check outputs.
         self.assertEqual(actual, expected)
         self._clean_up(toy_test)
@@ -322,6 +349,18 @@ class Test_get_test_file_for_source(hunitest.TestCase):
     Test mapping source files to test files.
     """
 
+    def helper(self, file_path: str, expected: Optional[str]) -> None:
+        """
+        Test helper for get_test_file_for_source.
+
+        :param file_path: Source file path to check
+        :param expected: Expected test file path
+        """
+        # Run test.
+        actual = hunteuti.get_test_file_for_source(file_path)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Source file with existing test file returns the test path.
@@ -331,9 +370,7 @@ class Test_get_test_file_for_source(hunitest.TestCase):
         # Prepare outputs.
         expected = "helpers/test/test_hdbg.py"
         # Run test.
-        actual = hunteuti.get_test_file_for_source(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(file_path, expected)
 
     def test2(self) -> None:
         """
@@ -341,10 +378,10 @@ class Test_get_test_file_for_source(hunitest.TestCase):
         """
         # Prepare inputs.
         file_path = "tasks.py"
+        # Prepare outputs.
+        expected = None
         # Run test.
-        actual = hunteuti.get_test_file_for_source(file_path)
-        # Check outputs.
-        self.assertIsNone(actual)
+        self.helper(file_path, expected)
 
     def test3(self) -> None:
         """
@@ -352,10 +389,10 @@ class Test_get_test_file_for_source(hunitest.TestCase):
         """
         # Prepare inputs.
         file_path = "helpers/test/test_hdbg.py"
+        # Prepare outputs.
+        expected = None
         # Run test.
-        actual = hunteuti.get_test_file_for_source(file_path)
-        # Check outputs.
-        self.assertIsNone(actual)
+        self.helper(file_path, expected)
 
 
 # #############################################################################
@@ -368,6 +405,18 @@ class Test_is_test_file(hunitest.TestCase):
     Test test file detection.
     """
 
+    def helper(self, file_path: str, expected: bool) -> None:
+        """
+        Test helper for is_test_file.
+
+        :param file_path: File path to check
+        :param expected: Whether it should be detected as test file
+        """
+        # Run test.
+        actual = hunteuti.is_test_file(file_path)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Path containing /test/ is detected as test file.
@@ -377,9 +426,7 @@ class Test_is_test_file(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = hunteuti.is_test_file(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(file_path, expected)
 
     def test2(self) -> None:
         """
@@ -390,9 +437,7 @@ class Test_is_test_file(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = hunteuti.is_test_file(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(file_path, expected)
 
     def test3(self) -> None:
         """
@@ -403,9 +448,7 @@ class Test_is_test_file(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = hunteuti.is_test_file(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(file_path, expected)
 
     def test4(self) -> None:
         """
@@ -416,9 +459,7 @@ class Test_is_test_file(hunitest.TestCase):
         # Prepare outputs.
         expected = False
         # Run test.
-        actual = hunteuti.is_test_file(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(file_path, expected)
 
     def test5(self) -> None:
         """
@@ -429,9 +470,7 @@ class Test_is_test_file(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = hunteuti.is_test_file(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(file_path, expected)
 
 
 # #############################################################################
@@ -443,6 +482,22 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
     """
     Test mapping lists of source files to test files.
     """
+
+    def helper(self, files: list, expected: list, *, sort_result: bool = False) -> None:
+        """
+        Test helper for get_test_files_for_sources.
+
+        :param files: Input file list
+        :param expected: Expected test file list
+        :param sort_result: Whether to sort before comparing
+        """
+        # Run test.
+        actual = hunteuti.get_test_files_for_sources(files)
+        # Check outputs.
+        if sort_result:
+            self.assertEqual(sorted(actual), sorted(expected))
+        else:
+            self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
@@ -460,9 +515,7 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
             "helpers/test/test_hio.py",
         ]
         # Run test.
-        actual = hunteuti.get_test_files_for_sources(files)
-        # Check outputs.
-        self.assertEqual(sorted(actual), sorted(expected))
+        self.helper(files, expected, sort_result=True)
 
     def test2(self) -> None:
         """
@@ -476,9 +529,7 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
         # Prepare outputs.
         expected = []
         # Run test.
-        actual = hunteuti.get_test_files_for_sources(files)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(files, expected)
 
     def test3(self) -> None:
         """
@@ -495,9 +546,7 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
             "helpers/test/test_hio.py",
         ]
         # Run test.
-        actual = hunteuti.get_test_files_for_sources(files)
-        # Check outputs.
-        self.assertEqual(sorted(actual), sorted(expected))
+        self.helper(files, expected, sort_result=True)
 
     def test4(self) -> None:
         """
@@ -508,9 +557,7 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
         # Prepare outputs.
         expected = []
         # Run test.
-        actual = hunteuti.get_test_files_for_sources(files)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(files, expected)
 
     def test5(self) -> None:
         """
@@ -521,9 +568,7 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
         # Prepare outputs.
         expected = []
         # Run test.
-        actual = hunteuti.get_test_files_for_sources(files)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(files, expected)
 
 
 # #############################################################################
@@ -536,6 +581,22 @@ class Test_get_parent_dirs(hunitest.TestCase):
     Test extracting minimal parent directories from file list.
     """
 
+    def helper(self, files: list, expected: list, sort_result: bool = False) -> None:
+        """
+        Test helper for get_parent_dirs.
+
+        :param files: Input file list
+        :param expected: Expected parent directory list
+        :param sort_result: Whether to sort before comparing
+        """
+        # Run test.
+        actual = hunteuti.get_parent_dirs(files)
+        # Check outputs.
+        if sort_result:
+            self.assertEqual(sorted(actual), sorted(expected))
+        else:
+            self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Single file returns its parent directory.
@@ -545,9 +606,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
         # Prepare outputs.
         expected = ["helpers"]
         # Run test.
-        actual = hunteuti.get_parent_dirs(files)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(files, expected)
 
     def test2(self) -> None:
         """
@@ -561,9 +620,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
         # Prepare outputs.
         expected = ["helpers"]
         # Run test.
-        actual = hunteuti.get_parent_dirs(files)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(files, expected)
 
     def test3(self) -> None:
         """
@@ -581,9 +638,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
             "helpers",
         ]
         # Run test.
-        actual = hunteuti.get_parent_dirs(files)
-        # Check outputs.
-        self.assertEqual(sorted(actual), sorted(expected))
+        self.helper(files, expected, sort_result=True)
 
     def test4(self) -> None:
         """
@@ -602,9 +657,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
             "helpers",
         ]
         # Run test.
-        actual = hunteuti.get_parent_dirs(files)
-        # Check outputs.
-        self.assertEqual(sorted(actual), sorted(expected))
+        self.helper(files, expected, sort_result=True)
 
     def test5(self) -> None:
         """
@@ -615,9 +668,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
         # Prepare outputs.
         expected = []
         # Run test.
-        actual = hunteuti.get_parent_dirs(files)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(files, expected)
 
     def test6(self) -> None:
         """
@@ -631,9 +682,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
         # Prepare outputs.
         expected = ["."]
         # Run test.
-        actual = hunteuti.get_parent_dirs(files)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(files, expected)
 
 
 # #############################################################################
@@ -650,63 +699,61 @@ class Test_capture_system_calls(hunitest.TestCase):
         """
         Capture single subprocess.run() call.
         """
-        # Run test.
-        with hunteuti.capture_system_calls() as invocations:
-            subprocess.run(["echo", "hello"], check=False)
-        # Check outputs.
-        actual = pprint.pformat(invocations)
+        # Prepare outputs.
         expected = """
         [{'args': (['echo', 'hello'],),
           'function': 'subprocess.run',
           'kwargs': {'check': False}}]
         """
         expected = hprint.dedent(expected)
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            subprocess.run(["echo", "hello"], check=False)
+        actual = pprint.pformat(invocations)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
         Capture hsystem.system() call.
         """
-        # Run test.
-        with hunteuti.capture_system_calls() as invocations:
-            hsystem.system("echo hello", suppress_output=True)
-        # Check outputs.
-        actual = pprint.pformat(invocations)
+        # Prepare outputs.
         expected = """
         [{'args': ('echo hello',),
           'function': 'hsystem.system',
           'kwargs': {'suppress_output': True}}]
         """
         expected = hprint.dedent(expected)
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system("echo hello", suppress_output=True)
+        actual = pprint.pformat(invocations)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test3(self) -> None:
         """
         Capture hsystem.system_to_string() call.
         """
-        # Run test.
-        with hunteuti.capture_system_calls() as invocations:
-            hsystem.system_to_string("echo test", suppress_output=True)
-        # Check outputs.
-        actual = pprint.pformat(invocations)
+        # Prepare outputs.
         expected = """
         [{'args': ('echo test',),
           'function': 'hsystem.system_to_string',
           'kwargs': {'suppress_output': True}}]
         """
         expected = hprint.dedent(expected)
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system_to_string("echo test", suppress_output=True)
+        actual = pprint.pformat(invocations)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test4(self) -> None:
         """
         Capture multiple system calls.
         """
-        # Run test.
-        with hunteuti.capture_system_calls() as invocations:
-            hsystem.system("echo hello", suppress_output=True)
-            hsystem.system_to_string("echo world", suppress_output=True)
-        # Check outputs.
-        actual = pprint.pformat(invocations)
+        # Prepare outputs.
         expected = """
         [{'args': ('echo hello',),
           'function': 'hsystem.system',
@@ -716,6 +763,12 @@ class Test_capture_system_calls(hunitest.TestCase):
           'kwargs': {'suppress_output': True}}]
         """
         expected = hprint.dedent(expected)
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system("echo hello", suppress_output=True)
+            hsystem.system_to_string("echo world", suppress_output=True)
+        actual = pprint.pformat(invocations)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test5(self) -> None:
@@ -745,17 +798,15 @@ class Test_capture_system_calls(hunitest.TestCase):
         with hunteuti.capture_system_calls() as invocations:
             hsystem.system("echo test", suppress_output=True)
         # Check outputs.
-        hunteuti.assert_invocations(self, invocations, expected_invocations_str)
+        hunteuti.assert_invocations(
+            self, invocations, expected_invocations_str
+        )
 
     def test7(self) -> None:
         """
         Assert invocations with multiple calls.
         """
-        # Run test.
-        with hunteuti.capture_system_calls() as invocations:
-            hsystem.system("echo hello", suppress_output=True)
-            hsystem.system("echo world", suppress_output=True)
-        # Check outputs.
+        # Prepare outputs.
         expected_invocations_str = (
             "[{'args': ('echo hello',),\n"
             "  'function': 'hsystem.system',\n"
@@ -764,6 +815,11 @@ class Test_capture_system_calls(hunitest.TestCase):
             "  'function': 'hsystem.system',\n"
             "  'kwargs': {'suppress_output': True}}]"
         )
+        # Run test.
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system("echo hello", suppress_output=True)
+            hsystem.system("echo world", suppress_output=True)
+        # Check outputs.
         hunteuti.assert_invocations(self, invocations, expected_invocations_str)
 
     def test8(self) -> None:

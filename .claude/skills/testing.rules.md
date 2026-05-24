@@ -627,6 +627,35 @@ line3
   self.check_string(actual, fuzzy_match=True)
   ```
 
+# End-to-end Unit Tests for CLI Commands
+- End-to-end tests for command-line tools should:
+  1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
+     and record calls to `subprocess.run()`, `hsystem.system()`, and
+     `hsystem.system_to_string()`
+  2. Verify that the exact commands were called with the correct arguments using
+     `assert_invocations()`
+  3. Validate that your CLI tool constructs and executes the right commands
+
+- Example
+  ```python
+  def test1(self) -> None:
+      """
+      Test command ...
+      """
+      # Prepare inputs.
+      args = ["TODO", "src", "py"]
+      # Capture and execute.
+      with hunteuti.capture_system_calls() as invocations:
+          your_module.main(args)
+      # Check expected outputs.
+      expected_invocations_str = (
+          "[{'args': (['rg', 'TODO', 'src', '-g', '*.py', '--hidden'],),\n"
+          "  'function': 'subprocess.run',\n"
+          "  'kwargs': {'check': False}}]"
+      )
+      hunteuti.assert_invocations(self, invocations, expected_invocations_str)
+  ```
+
 # Mocking
 
 // TODO(gp): Review
@@ -648,9 +677,3 @@ line3
 - Inherit from `hmoto.S3Mock_TestCase` for in-process S3 mocking via `moto`
 - `moto` must be imported before `boto3`; `hmoto.py` enforces this
 - Each test gets a fresh bucket named `self.bucket_name`
-
-## Capture System Calls
-// TODO(gp): Update this
-- `hunteuti.capture_system_calls()` intercepts `subprocess.run` and
-  `helpers.hsystem._system()` without running any shell command; pass
-  `side_effect=RuntimeError` to simulate failures

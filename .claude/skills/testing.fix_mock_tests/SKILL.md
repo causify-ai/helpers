@@ -116,6 +116,6 @@ description: Remove mocking approach from unit tests
 
 # Important
 - All invariants and conventions for unit tests are documented in
-  `@.claude/skills/testing.rules.md`
+  `.claude/skills/testing.rules.md`
 - For all code you must follow the instructions in
-  `@.claude/skills/coding.rules.md`
+  `.claude/skills/coding.rules.md`

@@ -289,7 +289,6 @@ def _run_claude_code(
     file_path: str,
     *,
     dry_run: bool = False,
-    complete_prompt: bool = False,
 ) -> int:
     """
     Run Claude Code with the given prompt.
@@ -298,7 +297,6 @@ def _run_claude_code(
     :param topic: Topic for logging purposes
     :param file_path: File to process
     :param dry_run: If True, print command but don't execute
-    :param complete_prompt: If True, prompt is complete and should not be appended with file instructions
     :return: Return code (0 on success, or subprocess return code)
     """
     hdbg.dassert_file_exists(file_path)
@@ -398,8 +396,8 @@ def _main(parser: argparse.ArgumentParser) -> int:
             full_skill_name = _find_skill(args.skill)
             prompt = f"/skill {full_skill_name} {file_path}"
             topic_str = "skill"
-            # TODO(ai_gp): This should depend on the type of file.
-            topic_info = {"run_jupytext": False, "run_lint": False}
+            inferred_topic = _infer_topic_from_filename(file_path)
+            topic_info = _get_rules_for_topic(inferred_topic)
             rc = _run_claude_code(
                 prompt, topic_str, file_path, dry_run=args.dry_run
             )
@@ -407,13 +405,16 @@ def _main(parser: argparse.ArgumentParser) -> int:
             full_rule_line = _find_rule(args.rule)
             prompt = f"Execute the rule {full_rule_line} on file {file_path}"
             topic_str = "rule"
-            # TODO(ai_gp): This should depend on the type of file.
-            topic_info = {"run_jupytext": False, "run_lint": False}
+            inferred_topic = _infer_topic_from_filename(file_path)
+            topic_info = _get_rules_for_topic(inferred_topic)
             rc = _run_claude_code(
                 prompt, topic_str, file_path, dry_run=args.dry_run
             )
         elif args.topic:
             topic_str = args.topic
+            prompt, topic_info = _build_prompt(topic_str)
+            prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
+            rc = _run_claude_code(prompt, topic_str, file_path, dry_run=args.dry_run)
         else:
             topic = _infer_topic_from_filename(file_path)
             hdbg.dassert_is_not(topic, None, "Topic detection failed")
