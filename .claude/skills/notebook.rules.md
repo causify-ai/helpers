@@ -36,7 +36,75 @@ description: Conventions and standards for interative Jupyter notebook structure
     results
   - **Good**: Import libraries, Load data, Clean data, Plot data, Train model,
     Evaluate model
-- Split cells if they perform multiple distinct steps
+
+## Split Cells That Perform Distinct Steps
+- Cells that contain more than one concept / example should be split so that each
+  cell has only one example
+
+- Example1
+  - **Bad** (this cell has 3 examples and should be split in 3 cells, as below)
+    ```python
+    # Test with fair coin.
+    fair_coin = [0.5, 0.5]
+    print(f"Fair coin entropy: {utils.calculate_entropy(fair_coin):.4f} bits")
+
+    # Test with biased coin.
+    biased_coin = [0.9, 0.1]
+    print(f"Biased coin (90-10) entropy: {utils.calculate_entropy(biased_coin):.4f} bits")
+
+    # Test with certain outcome.
+    certain = [1.0, 0.0]
+    print(f"Certain outcome entropy: {utils.calculate_entropy(certain):.4f} bits")
+    ```
+  - **Good**: each cell has one example
+    - First cell
+      ```python
+      # Test with fair coin.
+      # Two equally likely outcomes → maximum uncertainty, $H = 1$ bit
+      fair_coin = [0.5, 0.5]
+      print(f"Fair coin entropy: {utils.calculate_entropy(fair_coin):.4f} bits")
+      ```
+    - Second cell
+      ```python
+      # Test with biased coin.
+      # If heads occurs 90% of the time → less uncertainty, $H < 1$ bit
+      biased_coin = [0.9, 0.1]
+      print(f"Biased coin (90-10) entropy: {utils.calculate_entropy(biased_coin):.4f} bits")
+      ```
+    - Third cell
+      ```python
+      # Test with certain outcome.
+      # Certain results have no entropy, $H = 0$ bit.
+      certain = [1.0, 0.0]
+      print(f"Certain outcome entropy: {utils.calculate_entropy(certain):.4f} bits")
+      ```
+
+- Example2
+  - **Bad**
+    ```python
+    # Use the weather-activity example.
+    print("Example: Weather and Activity Correlation")
+    print("=" * 50)
+    utils.visualize_information_decomposition(joint_prob)
+
+    # Calculate and display mutual information.
+    mi = utils.calculate_mutual_information(joint_prob)
+    print(f"\nMutual Information I(Weather; Activity) = {mi:.4f} bits")
+    print(f"This means knowing the weather reduces uncertainty about activity by {mi:.4f} bits")
+    ```
+  - **Good**: two different cells
+    ```python
+    # Use the weather-activity example.
+    print("Example: Weather and Activity Correlation")
+    print("=" * 50)
+    utils.visualize_information_decomposition(joint_prob)
+    ```
+    ```
+    # Calculate and display mutual information.
+    mi = utils.calculate_mutual_information(joint_prob)
+    print(f"\nMutual Information I(Weather; Activity) = {mi:.4f} bits")
+    print(f"This means knowing the weather reduces uncertainty about activity by {mi:.4f} bits")
+    ```
 
 ## Code Cell Structure
 - Use this standard structure in every code cell:
@@ -48,7 +116,11 @@ description: Conventions and standards for interative Jupyter notebook structure
   # Comment on the outcome.
   ```
 - Keep cells short and focused
-- End with a visible result (via `print()`, `display()`, or plot)
+- End with a visible result (via `print()`, `display()`, or a plot)
+
+## Showing Results
+- Use `display()` to show a dataframe
+- Use `print()` for everything else
 
 ## Suppress Unwanted Output
 - Assign output to underscore `_` to prevent display:
@@ -224,4 +296,4 @@ description: Conventions and standards for interative Jupyter notebook structure
           figsize = plt.rcParams["figure.figsize"]
       fig, ax = plt.subplots(figsize=figsize)
   ```
-- Never hardcode figure dimensions; let callers customize size
+- Never hard-code figure dimensions, but let callers customize size

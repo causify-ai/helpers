@@ -42,12 +42,6 @@ For each cell, specify:
 - Each cell should build incrementally on previous concepts
 - Emphasize discovery through interaction rather than explanation
 
-## Text Formatting
-- Do not use non-ascii characters
-  - E.g., use mu instead of μ
-
-- Do not use page separator
-
 # Important
 - When writing markdown you must follow the rules and conventions in
   `.claude/skills/markdown.rules.md`

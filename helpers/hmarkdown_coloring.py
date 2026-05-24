@@ -271,10 +271,11 @@ def colorize_bullet_points_in_slide(
             )
             latex_color = get_md_colors_latex_mapping()[color_to_use]
             color_idx += 1
+            escaped_text = text.replace("_", "\\_").replace("&", "\\&")
             if use_abbreviations:
-                ret = f"**\\{color_to_use}{{{text}}}**"
+                ret = f"**\\{color_to_use}{{{escaped_text}}}**"
             else:
-                ret = f"**\\textcolor{{{latex_color}}}{{{text}}}**"
+                ret = f"**\\textcolor{{{latex_color}}}{{{escaped_text}}}**"
             return ret
 
         line = re.sub(r"\*\*([^*]+)\*\*", color_replacer, line)
