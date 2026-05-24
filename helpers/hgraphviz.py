@@ -30,6 +30,7 @@ FIG_SIZE = (10, 8)
 FIG_DPI = 150
 
 
+# TODO(ai_gp): Add support for figsize and DPI.
 def _graph_to_graphviz_dot(
     G: nx.DiGraph,
     title: str,
@@ -85,6 +86,7 @@ def plot_dag_with_graphviz(
     node_colors: Optional[Mapping[str, Any]] = None,
     edge_colors: Optional[Mapping[Tuple[str, str], Any]] = None,
     ax: Optional[maxes.Axes] = None,
+    figsize: Optional[Tuple[int, int]] = None,
     dpi: int = FIG_DPI,
 ) -> None:
     """
@@ -92,17 +94,21 @@ def plot_dag_with_graphviz(
 
     Uses graphviz's layout engine for automatic positioning and supports
     custom node and edge colors. Nodes are rounded rectangles with optional
-    fill colors.
+    fill colors. The figsize parameter controls the output size of the
+    rendered graph.
 
     :param G: Directed acyclic graph to plot
     :param title: Title displayed on the axes
     :param node_colors: Optional per-node fill color
     :param edge_colors: Optional per-edge color
     :param ax: Matplotlib axes to draw on
+    :param figsize: Size of output graph as (width, height) in inches
     :param dpi: Resolution in dots per inch
     """
+    if figsize is None:
+        figsize = FIG_SIZE
     dot_str = _graph_to_graphviz_dot(
-        G, title, node_colors=node_colors, edge_colors=edge_colors
+        G, title, node_colors=node_colors, edge_colors=edge_colors, size=figsize
     )
     # Render to PNG with specified DPI.
     g = graphviz.Source(dot_str, format="png")
@@ -114,7 +120,7 @@ def plot_dag_with_graphviz(
         ax.axis("off")
         ax.set_title(title, fontsize=12, fontweight="bold")
     else:
-        fig, ax_new = plt.subplots(figsize=FIG_SIZE)
+        fig, ax_new = plt.subplots(figsize=figsize)
         ax_new.imshow(img)
         ax_new.axis("off")
         ax_new.set_title(title, fontsize=12, fontweight="bold")
@@ -266,7 +272,9 @@ def plot_causal_dag(
     :param edge_colors: Per-edge color mapping
     :param ax: Matplotlib axes to draw on
         - Default: Creates new figure if None
-    :param figsize: Override the default figure size
+    :param figsize: Size as (width, height) in inches
+        - For "graphviz" mode: controls the rendered graph output size
+        - For other modes: controls the matplotlib figure size
     :param dpi: Resolution in dots per inch
     :param pos: Node position dictionary
         - Only used with mode="networkx"
@@ -276,7 +284,7 @@ def plot_causal_dag(
     hdbg.dassert_in(
         mode,
         ("graphviz", "networkx_rounded_boxes", "networkx"),
-        "Invalid visualization mode",
+        "Invalid visualization mode '%s'",
         mode,
     )
     # Create a new figure if no axes provided.
@@ -293,6 +301,7 @@ def plot_causal_dag(
             node_colors=node_colors,
             edge_colors=edge_colors,
             ax=ax,
+            figsize=figsize,
             dpi=dpi,
         )
     elif mode == "networkx_rounded_boxes":
