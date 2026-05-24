@@ -185,6 +185,8 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
             ripgrep_pattern = f"^#+.*{rule_filter}"
         else:
             ripgrep_pattern = "^#"
+        # Make rule search case-insensitive by default.
+        ripgrep_opts = (ripgrep_opts + " -i").strip()
     elif parsed.todo_mode:
         # --todo: search for `# TODO(ai_gp)` or `// TODO(ai_gp)` patterns.
         ripgrep_pattern = r"(#|//)\s*TODO\(ai_gp\)"

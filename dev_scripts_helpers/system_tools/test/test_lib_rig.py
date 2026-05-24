@@ -207,24 +207,33 @@ class TestRigScript(hunitest.TestCase):
         """
         Test --branch flag with pattern.
         """
+        # Prepare inputs.
         args = ["TODO", "--branch"]
+        # Prepare outputs.
         expected_exit_code = 0
+        # Run test.
         self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test12(self) -> None:
         """
         Test --all flag with pattern.
         """
+        # Prepare inputs.
         args = ["TODO", "--all"]
+        # Prepare outputs.
         expected_exit_code = 0
+        # Run test.
         self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test13(self) -> None:
         """
         Test --last-commit flag with pattern.
         """
+        # Prepare inputs.
         args = ["TODO", "--last-commit"]
+        # Prepare outputs.
         expected_exit_code = 0
+        # Run test.
         self.helper(args, expected_cmd=None, expected_exit_code=expected_exit_code)
 
     def test14(self) -> None:

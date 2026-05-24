@@ -130,30 +130,57 @@
 
 ## Assign Variables and Then Call Functions
 
-- Don't just pass data to a function directly, but explain the data first
-  by assigning each value to a variable, and then pass the variables to the
-  function
+- Don't pass hard-coded parameters to a function, but assign each value to a
+  variable, and then pass the variables to the function
   - **Bad**
     ```python
     # Run test.
-    self.helper(".tex", "figs/diagram.png", "...", "fig:test_diagram",
-    "fig:test_diagram", "Test diagram showing communication")
+    self.helper(".tex", "figs/diagram.png", "fig:test_diagram")
     ```
-
   - **Good**
     ```python
     # Prepare inputs.
     extension = ".tex"
     rel_img_path = "figs/diagram.png"
-    user_img_size = ""
     label = "fig:test_diagram"
-    caption = "Test diagram showing communication"
-    # Prepare outputs.
-    expected = r"""
-    ...
-    """
     # Run test.
-    self.helper(extension, rel_img_path, user_img_size, expected, label, caption)
+    self.helper(extension, rel_img_path, user_img_size)
+    ```
+
+## Respect Positional Function Parameters
+
+- Do not redundantly pass required positional parameters as keywords, but
+	prefer positional invocation for required parameters
+
+- Example
+  - If the called function looks like:
+    ```python
+    def helper(
+        self,
+        args: List[str],
+        expected_cmd: Optional[str],
+        expected_exit_code: Optional[int],
+        *,
+        side_effect: Optional[Type[Exception]] = None,
+    ) -> None:
+    ```
+  - **Bad**
+    ```python
+    self.helper(
+      args,
+      expected_cmd=expected_cmd,
+      expected_exit_code=expected_exit_code,
+    )
+    ```
+  - **Good**
+    ```python
+    expected_cmd = ...
+    expected_exit_code = ...
+    self.helper(
+      args,
+      expected_cmd,
+      expected_exit_code
+    )
     ```
 
 # Naming Conventions

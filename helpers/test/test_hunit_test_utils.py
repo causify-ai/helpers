@@ -64,6 +64,8 @@ class TestUnitTestRenamer(hunitest.TestCase):
         """
         # Prepare inputs.
         content = self.helper()
+        old_name = "TestCases"
+        new_name = "TestNewCase"
         # Prepare outputs.
         expected = """
         class TestNewCase(hunitest.TestCase):
@@ -78,7 +80,7 @@ class TestUnitTestRenamer(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_rename("TestCases", "TestNewCase", content)
+        actual = self.helper_rename(old_name, new_name, content)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -88,10 +90,12 @@ class TestUnitTestRenamer(hunitest.TestCase):
         """
         # Prepare inputs.
         content = self.helper()
+        old_name = "TestCase"
+        new_name = "TestNewCase"
         # Prepare outputs.
         expected = content
         # Run test.
-        actual = self.helper_rename("TestCase", "TestNewCase", content)
+        actual = self.helper_rename(old_name, new_name, content)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -163,6 +167,8 @@ class TestPytestRenameMethod(hunitest.TestCase):
         """
         # Prepare inputs.
         content = self.helper()
+        old_method_name = "TestCases.test1"
+        new_method_name = "TestCases.test_new"
         # Prepare outputs.
         expected = """
         class TestCases(hunitest.TestCase):
@@ -194,7 +200,7 @@ class TestPytestRenameMethod(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_rename_method(
-            "TestCases.test1", "TestCases.test_new", content
+            old_method_name, new_method_name, content
         )
         # Check outputs.
         self.assert_equal(actual, expected)
@@ -205,11 +211,13 @@ class TestPytestRenameMethod(hunitest.TestCase):
         """
         # Prepare inputs.
         content = self.helper()
+        old_method_name = "TestOtherCases.test5"
+        new_method_name = "TestOtherCases.test6"
         # Prepare outputs.
         expected = content
         # Run test.
         actual = self.helper_rename_method(
-            "TestOtherCases.test5", "TestOtherCases.test6", content
+            old_method_name, new_method_name, content
         )
         # Check outputs.
         self.assert_equal(actual, expected)
@@ -220,10 +228,12 @@ class TestPytestRenameMethod(hunitest.TestCase):
         """
         # Prepare inputs.
         root_dir = os.getcwd()
+        old_method_name = "TestCases.test10"
+        new_method_name = "TestOtherCases.test6"
         # Run test and check output.
         with self.assertRaises(AssertionError):
             hunteuti.UnitTestRenamer(
-                "TestCases.test10", "TestOtherCases.test6", root_dir
+                old_method_name, new_method_name, root_dir
             )
 
 
@@ -291,6 +301,8 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         test_path = os.path.join(toy_test, "test")
         self.helper(toy_test)
         root_dir = os.getcwd()
+        old_class_name = "TestCase"
+        new_class_name = "TestRenamedCase"
         # Prepare outputs.
         expected = [
             "TestCases.test_rename2",
@@ -301,7 +313,7 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         ]
         # Run test.
         renamer = hunteuti.UnitTestRenamer(
-            "TestCase", "TestRenamedCase", root_dir
+            old_class_name, new_class_name, root_dir
         )
         renamer.rename_outcomes(test_path)
         actual = self._get_sorted_outcome_dirs(test_path)
@@ -318,6 +330,8 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         test_path = os.path.join(toy_test, "test")
         self.helper(toy_test)
         root_dir = os.getcwd()
+        old_method_name = "TestCase.test_rename"
+        new_method_name = "TestCase.test_method_renamed"
         # Prepare outputs.
         expected = [
             "TestCase.test_check_string1",
@@ -328,8 +342,8 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         ]
         # Run test.
         renamer = hunteuti.UnitTestRenamer(
-            "TestCase.test_rename",
-            "TestCase.test_method_renamed",
+            old_method_name,
+            new_method_name,
             root_dir,
         )
         renamer.rename_outcomes(test_path)
@@ -777,10 +791,11 @@ class Test_capture_system_calls(hunitest.TestCase):
         """
         # Prepare outputs.
         expected_exception = RuntimeError
+        side_effect = RuntimeError("Test error")
         # Run test and check output.
         with self.assertRaises(expected_exception):
             with hunteuti.capture_system_calls(
-                side_effect=RuntimeError("Test error")
+                side_effect=side_effect
             ):
                 hsystem.system("echo test", suppress_output=True)
 
