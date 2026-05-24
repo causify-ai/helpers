@@ -26,7 +26,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = False
         last_commit = False
         all_ = False
-        files_from_user = ""
+        from_file = ""
         mutually_exclusive = True
         remove_dirs = True
         _ = hgit.get_files_to_process(
@@ -34,7 +34,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
             branch,
             last_commit,
             all_,
-            files_from_user,
+            from_file,
             mutually_exclusive,
             remove_dirs,
         )
@@ -54,7 +54,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = True
         last_commit = False
         all_ = False
-        files_from_user = ""
+        from_file = ""
         mutually_exclusive = True
         remove_dirs = True
         _ = hgit.get_files_to_process(
@@ -62,7 +62,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
             branch,
             last_commit,
             all_,
-            files_from_user,
+            from_file,
             mutually_exclusive,
             remove_dirs,
         )
@@ -75,7 +75,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = False
         last_commit = True
         all_ = False
-        files_from_user = ""
+        from_file = ""
         mutually_exclusive = True
         remove_dirs = True
         _ = hgit.get_files_to_process(
@@ -83,7 +83,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
             branch,
             last_commit,
             all_,
-            files_from_user,
+            from_file,
             mutually_exclusive,
             remove_dirs,
         )
@@ -96,7 +96,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = False
         last_commit = False
         all_ = False
-        files_from_user = __file__
+        from_file = __file__
         mutually_exclusive = True
         remove_dirs = True
         files = hgit.get_files_to_process(
@@ -104,7 +104,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
             branch,
             last_commit,
             all_,
-            files_from_user,
+            from_file,
             mutually_exclusive,
             remove_dirs,
         )
@@ -122,7 +122,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = False
         last_commit = False
         all_ = False
-        files_from_user = "testfile1.py testfiles1/*"
+        from_file = "testfile1.py testfiles1/*"
         mutually_exclusive = True
         remove_dirs = True
         files = hgit.get_files_to_process(
@@ -130,7 +130,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
             branch,
             last_commit,
             all_,
-            files_from_user,
+            from_file,
             mutually_exclusive,
             remove_dirs,
         )
@@ -148,7 +148,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         all_ = False
         # Specify the number of toy files.
         n_toy_files = 4
-        files_from_user = []
+        from_file = []
         # Get root directory.
         root_dir = hgit.get_client_root(super_module=False)
         # Generate toy files and store their paths.
@@ -159,24 +159,24 @@ class Test_get_files_to_process1(hunitest.TestCase):
             test_path = os.path.join(root_dir, file_name)
             # Create the empty toy file.
             hio.to_file(test_path, "")
-            files_from_user.append(test_path)
+            from_file.append(test_path)
         mutually_exclusive = True
         remove_dirs = True
         # Join the names with `\n` separator.
-        joined_files_from_user = "\n".join(files_from_user)
+        joined_from_file = "\n".join(from_file)
         files = hgit.get_files_to_process(
             modified,
             branch,
             last_commit,
             all_,
-            joined_files_from_user,
+            joined_from_file,
             mutually_exclusive,
             remove_dirs,
         )
         # Remove the toy files.
-        for path in files_from_user:
+        for path in from_file:
             hio.delete_file(path)
-        self.assertEqual(files, files_from_user)
+        self.assertEqual(files, from_file)
 
     def test_assert1(self) -> None:
         """
@@ -186,7 +186,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = True
         last_commit = False
         all_ = True
-        files_from_user = ""
+        from_file = ""
         mutually_exclusive = True
         remove_dirs = True
         with self.assertRaises(AssertionError) as cm:
@@ -195,7 +195,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
                 branch,
                 last_commit,
                 all_,
-                files_from_user,
+                from_file,
                 mutually_exclusive,
                 remove_dirs,
             )
@@ -218,7 +218,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = False
         last_commit = False
         all_ = False
-        files_from_user = __file__
+        from_file = __file__
         mutually_exclusive = True
         remove_dirs = True
         with self.assertRaises(AssertionError) as cm:
@@ -227,7 +227,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
                 branch,
                 last_commit,
                 all_,
-                files_from_user,
+                from_file,
                 mutually_exclusive,
                 remove_dirs,
             )
@@ -250,7 +250,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = False
         last_commit = False
         all_ = False
-        files_from_user = __file__
+        from_file = __file__
         mutually_exclusive = False
         remove_dirs = True
         files = hgit.get_files_to_process(
@@ -258,7 +258,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
             branch,
             last_commit,
             all_,
-            files_from_user,
+            from_file,
             mutually_exclusive,
             remove_dirs,
         )

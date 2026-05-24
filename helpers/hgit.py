@@ -1593,7 +1593,7 @@ def get_files_to_process(
     :param branch: return files modified with respect to the branch point
     :param last_commit: return files part of the previous commit
     :param all_: return all repo files
-    :param files_from_user: return files passed to this function
+    :param from_file: file storing files to process
     :param mutually_exclusive: ensure that all options are mutually exclusive
     :param remove_dirs: whether directories should be processed
     :param dir_name: directory to process (default: current directory)
@@ -1601,7 +1601,7 @@ def get_files_to_process(
     """
     _LOG.debug(
         hprint.to_str(
-            "modified branch last_commit all_ files_from_user "
+            "modified branch last_commit all_ from_file "
             "mutually_exclusive remove_dirs dir_name"
         )
     )
@@ -1612,7 +1612,7 @@ def get_files_to_process(
             + int(branch)
             + int(last_commit)
             + int(all_)
-            + int(from_file),
+            + int(from_file != ""),
             1,
             msg="Specify only one among --modified, --branch, --last-commit, "
             "--all_files, and --from_file",
