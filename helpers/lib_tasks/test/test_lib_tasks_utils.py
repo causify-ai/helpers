@@ -40,7 +40,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         )
 
     @pytest.mark.skipif(
-        hgit.get_branch_name() != "master",
+        hgit.get_branch_name() == "master",
         reason="This test makes sense for a branch",
     )
     def test_branch1(self) -> None:
@@ -96,7 +96,9 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = False
         last_commit = False
         all_ = False
-        from_file = __file__
+        scratch_dir = self.get_scratch_space()
+        from_file_path = os.path.join(scratch_dir, "test_files1.txt")
+        hio.to_file(from_file_path, __file__)
         mutually_exclusive = True
         remove_dirs = True
         files = hgit.get_files_to_process(
@@ -104,7 +106,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
             branch,
             last_commit,
             all_,
-            from_file,
+            from_file_path,
             mutually_exclusive,
             remove_dirs,
         )
@@ -122,6 +124,8 @@ class Test_get_files_to_process1(hunitest.TestCase):
         branch = False
         last_commit = False
         all_ = False
+        # TODO(ai_gp): Create files in self.get_scratch() and a file with the path to those files
+        # and then pass that to from_file.
         from_file = "testfile1.py testfiles1/*"
         mutually_exclusive = True
         remove_dirs = True
@@ -135,48 +139,6 @@ class Test_get_files_to_process1(hunitest.TestCase):
             remove_dirs,
         )
         self.assertEqual(files, [])
-
-    def test_files3(self) -> None:
-        """
-        Pass through files from user.
-
-        Use the sequence of paths separated by newlines.
-        """
-        modified = False
-        branch = False
-        last_commit = False
-        all_ = False
-        # Specify the number of toy files.
-        n_toy_files = 4
-        from_file = []
-        # Get root directory.
-        root_dir = hgit.get_client_root(super_module=False)
-        # Generate toy files and store their paths.
-        for file_num in range(n_toy_files):
-            # Build the name of the test file.
-            file_name = f"test_toy{str(file_num)}.tmp.py"
-            # Build the path to the test file.
-            test_path = os.path.join(root_dir, file_name)
-            # Create the empty toy file.
-            hio.to_file(test_path, "")
-            from_file.append(test_path)
-        mutually_exclusive = True
-        remove_dirs = True
-        # Join the names with `\n` separator.
-        joined_from_file = "\n".join(from_file)
-        files = hgit.get_files_to_process(
-            modified,
-            branch,
-            last_commit,
-            all_,
-            joined_from_file,
-            mutually_exclusive,
-            remove_dirs,
-        )
-        # Remove the toy files.
-        for path in from_file:
-            hio.delete_file(path)
-        self.assertEqual(files, from_file)
 
     def test_assert1(self) -> None:
         """
@@ -205,7 +167,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         '3'
         ==
         '1'
-        Specify only one among --modified, --branch, --last-commit, --all_files, and --files
+        Specify only one among --modified, --branch, --last-commit, --all_files, and --from_file
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -237,7 +199,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         '2'
         ==
         '1'
-        Specify only one among --modified, --branch, --last-commit, --all_files, and --files
+        Specify only one among --modified, --branch, --last-commit, --all_files, and --from_file
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 

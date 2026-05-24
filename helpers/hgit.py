@@ -1640,7 +1640,8 @@ def get_files_to_process(
     if from_file:
         hdbg.dassert_path_exists(from_file)
         files = hio.from_file(from_file)
-    files = _filter_existing_paths(files.split())
+    hdgg.dassert_isinstance(files, list)
+    files = _filter_existing_paths(files)
     # Convert into a list.
     hdbg.dassert_isinstance(files, list)
     files_to_process = [f for f in files if f != ""]
