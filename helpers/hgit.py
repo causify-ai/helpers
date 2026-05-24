@@ -1573,6 +1573,7 @@ def get_files_to_process(
     last_commit: bool,
     all_: bool,
     from_file: str,
+    # TODO(gp): Can mutually_exclusive be removed? When is it actually useful?
     mutually_exclusive: bool,
     remove_dirs: bool,
     *,
@@ -1639,8 +1640,13 @@ def get_files_to_process(
         files = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
     if from_file:
         hdbg.dassert_path_exists(from_file)
-        files = hio.from_file(from_file)
-    hdgg.dassert_isinstance(files, list)
+        file_content = hio.from_file(from_file)
+        from_files = file_content.split()
+        if mutually_exclusive:
+            files = from_files
+        else:
+            files.extend(from_files)
+    hdbg.dassert_isinstance(files, list)
     files = _filter_existing_paths(files)
     # Convert into a list.
     hdbg.dassert_isinstance(files, list)
