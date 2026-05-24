@@ -186,8 +186,8 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         else:
             ripgrep_pattern = "^#"
     elif parsed.todo_mode:
-        # --todo: search for `TODO(ai_gp)` pattern.
-        ripgrep_pattern = r"TODO\(ai_gp\)"
+        # --todo: search for `# TODO(ai_gp)` or `// TODO(ai_gp)` patterns.
+        ripgrep_pattern = r"(#|//)\s*TODO\(ai_gp\)"
         # Directory and extensions can come from positional args.
         if len(parsed.positional) > 1:
             ripgrep_dir = parsed.positional[1]
@@ -202,22 +202,18 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
                     ext,
                 )
     # Package computed components and behavioral flags into a result dictionary.
-    # TODO(ai_gp): Keep only the ones that are used downstream.
     result: Dict[str, Any] = {
         "pattern": ripgrep_pattern,
         "directory": ripgrep_dir,
         "extensions": ripgrep_extensions,
         "rg_opts": ripgrep_opts,
         "need_capture": need_capture,
-        "rule_filter": rule_filter,
         "modified": parsed.modified,
         "branch": parsed.branch,
         "last_commit": parsed.last_commit,
         "all_files": parsed.all_files,
         "files_from_user": parsed.files,
         "dry_run": parsed.dry_run,
-        "todo_mode": parsed.todo_mode,
-        "rule_mode": parsed.rule_mode,
     }
     return result
 

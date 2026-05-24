@@ -3,7 +3,7 @@ Graph visualization utilities for networkx graphs.
 
 Import as:
 
-import helpers.hgraphviz as hgraphviz
+import helpers.hgraphviz as hgraphv
 """
 
 import io
@@ -15,9 +15,11 @@ import matplotlib.axes as maxes
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import networkx as nx
-# TODO(ai_gp): Use import PIL
 
+# TODO(ai_gp): Use import PIL if possible.
 from PIL import Image
+
+import helpers.hdbg as hdbg
 
 _LOG = logging.getLogger(__name__)
 
@@ -46,6 +48,7 @@ def _graph_to_graphviz_dot(
     :param edge_colors: Optional per-edge color
     :return: DOT string for graphviz rendering
     """
+
     # Map matplotlib colors to hex for graphviz.
     def _to_hex(color: Any) -> str:
         if isinstance(color, str):
@@ -53,6 +56,7 @@ def _graph_to_graphviz_dot(
                 return color
             return color
         return "#A6C8F4"
+
     # Build the DOT representation.
     lines = ["digraph {", "    rankdir=TB;", "    splines=true;"]
     lines.append("    nodesep=0.6;")
@@ -269,12 +273,12 @@ def plot_causal_dag(
     :return: The axes containing the plot
     """
     # Validate the visualization mode.
-    # TODO(ai_gp): AUse dassert_not_in
-    if mode not in ("graphviz", "networkx_rounded_boxes", "networkx"):
-        raise ValueError(
-            f"Invalid mode: {mode}. Must be one of 'graphviz', "
-            "'networkx_rounded_boxes', or 'networkx'."
-        )
+    hdbg.dassert_in(
+        mode,
+        ("graphviz", "networkx_rounded_boxes", "networkx"),
+        "Invalid visualization mode",
+        mode,
+    )
     # Create a new figure if no axes provided.
     fig = None
     if ax is None:

@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.1
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -53,16 +53,17 @@ _LOG = logging.getLogger(__name__)
 # Initialize notebook configuration and logging.
 if True:
     import helpers.hnotebook as hnotebook
-    
+
     hnotebook.config_notebook()
     hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
     hnotebook.set_logger_to_print(_LOG)
 else:
     import tutorial_utils as utils
+
     # Configure the logger for this tutorial.
     _LOG = logging.getLogger(__name__)
     utils.init_logger(_LOG)
-    
+
 _LOG.info("Test _LOG.info")
 _LOG.debug("Test _LOG.debug")
 

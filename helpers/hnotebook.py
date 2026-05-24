@@ -147,7 +147,7 @@ def init_loggers(
     notebook_log: logging.Logger,
     *,
     utils_log: Optional[logging.Logger] = None,
-    set_all_loggers_to_print: bool = False
+    set_all_loggers_to_print: bool = False,
 ) -> None:
     """
     Initialize loggers for notebook use with sensible defaults.
@@ -167,6 +167,7 @@ def init_loggers(
     config_notebook()
     # Initialize the logger to INFO level.
     import helpers.hdbg as hdbg
+
     hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
     # Redirect notebook logger to print.
     set_logger_to_print(notebook_log)

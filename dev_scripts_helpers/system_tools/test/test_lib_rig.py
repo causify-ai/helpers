@@ -275,13 +275,13 @@ class TestRigScript(hunitest.TestCase):
 
     def test17(self) -> None:
         """
-        Test --todo flag to search for TODO(ai_gp) pattern.
+        Test --todo flag.
         """
         # Prepare inputs.
         args = ["--todo"]
         # Prepare outputs.
         expected_cmd = (
-            r"rg TODO\(ai_gp\) . --hidden -n --no-heading --color=never -g !.git"
+            r"rg (#|//)\s*TODO\(ai_gp\) . --hidden -n --no-heading --color=never -g !.git"
         )
         expected_exit_code = 0
         # Run test.

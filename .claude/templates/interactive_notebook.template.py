@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.1
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -46,7 +46,6 @@ import logging
 
 # %%
 # Helpers imports.
-import helpers.hdbg as hdbg
 
 # Tutorial-specific imports.
 import interactive_notebook_utils_template as utils
@@ -54,7 +53,7 @@ import interactive_notebook_utils_template as utils
 # Initialize notebook configuration and logging.
 _LOG = logging.getLogger(__name__)
 utils.init_loggers(_LOG)
-    
+
 _LOG.info("Test _LOG.info")
 _LOG.debug("Test _LOG.debug")
 

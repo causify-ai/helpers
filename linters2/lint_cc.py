@@ -158,7 +158,6 @@ def _get_rules_for_topic(topic: str) -> Dict:
     return topic_info
 
 
-# TODO(ai_gp): Add unit tests for the functions.
 def _infer_topic_from_filename(file_path: str) -> str:
     """
     Detect the file type and return the corresponding topic.
