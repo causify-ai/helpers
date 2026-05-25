@@ -1,8 +1,13 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 
-import helpers.hgraphviz as hgraphviz
+import helpers.hgraphviz as hgraphv
 import helpers.hunit_test as hunitest
+
+
+# #############################################################################
+# Test_graph_to_graphviz_dot
+# #############################################################################
 
 
 class Test_graph_to_graphviz_dot(hunitest.TestCase):
@@ -31,7 +36,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         :param size: Optional figure size
         """
         # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(
+        actual = hgraphv._graph_to_graphviz_dot(
             G, title, node_colors=node_colors, edge_colors=edge_colors, size=size
         )
         # Check outputs.
@@ -315,6 +320,11 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         self.helper(G, title, expected)
 
 
+# #############################################################################
+# Test_plot_dag_with_graphviz
+# #############################################################################
+
+
 class Test_plot_dag_with_graphviz(hunitest.TestCase):
     """
     Test the plot_dag_with_graphviz function.
@@ -330,7 +340,7 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         G.add_edge("B", "C")
         title = "Test DAG"
         # Run test and check no exception is raised.
-        hgraphviz.plot_dag_with_graphviz(G, title)
+        hgraphv.plot_dag_with_graphviz(G, title)
 
     def test2(self) -> None:
         """
@@ -342,9 +352,7 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         title = "Colored DAG"
         node_colors = {"A": "#FF0000", "B": "#00FF00"}
         # Run test.
-        hgraphviz.plot_dag_with_graphviz(
-            G, title, node_colors=node_colors
-        )
+        hgraphv.plot_dag_with_graphviz(G, title, node_colors=node_colors)
 
     def test3(self) -> None:
         """
@@ -356,9 +364,7 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         title = "Edge Colored DAG"
         edge_colors = {("A", "B"): "#0000FF"}
         # Run test.
-        hgraphviz.plot_dag_with_graphviz(
-            G, title, edge_colors=edge_colors
-        )
+        hgraphv.plot_dag_with_graphviz(G, title, edge_colors=edge_colors)
 
     def test4(self) -> None:
         """
@@ -370,7 +376,7 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         title = "Sized DAG"
         figsize = (12, 10)
         # Run test.
-        hgraphviz.plot_dag_with_graphviz(G, title, figsize=figsize)
+        hgraphv.plot_dag_with_graphviz(G, title, figsize=figsize)
 
     def test5(self) -> None:
         """
@@ -382,7 +388,7 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         title = "DAG on Axes"
         fig, ax = plt.subplots()
         # Run test.
-        hgraphviz.plot_dag_with_graphviz(G, title, ax=ax)
+        hgraphv.plot_dag_with_graphviz(G, title, ax=ax)
         # Check outputs.
         self.assertIsNotNone(ax.images)
         plt.close(fig)
@@ -396,7 +402,7 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         G.add_node("Only")
         title = "Single Node"
         # Run test.
-        hgraphviz.plot_dag_with_graphviz(G, title)
+        hgraphv.plot_dag_with_graphviz(G, title)
 
     def test7(self) -> None:
         """
@@ -408,7 +414,7 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         title = "High DPI"
         dpi = 300
         # Run test.
-        hgraphviz.plot_dag_with_graphviz(G, title, dpi=dpi)
+        hgraphv.plot_dag_with_graphviz(G, title, dpi=dpi)
 
     def test8(self) -> None:
         """
@@ -428,7 +434,7 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         dpi = 200
         fig, ax = plt.subplots()
         # Run test.
-        hgraphviz.plot_dag_with_graphviz(
+        hgraphv.plot_dag_with_graphviz(
             G,
             title,
             node_colors=node_colors,
@@ -440,6 +446,11 @@ class Test_plot_dag_with_graphviz(hunitest.TestCase):
         # Check outputs.
         self.assertIsNotNone(ax)
         plt.close(fig)
+
+
+# #############################################################################
+# Test_plot_dag_with_networkx_rounded_boxes
+# #############################################################################
 
 
 class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
@@ -457,7 +468,7 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         G.add_edge("B", "C")
         title = "NetworkX Rounded Boxes"
         # Run test and check no exception is raised.
-        hgraphviz.plot_dag_with_networkx_rounded_boxes(G, title)
+        hgraphv.plot_dag_with_networkx_rounded_boxes(G, title)
 
     def test2(self) -> None:
         """
@@ -469,7 +480,7 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         title = "Colored Boxes"
         node_colors = {"A": "#FF0000", "B": "#00FF00"}
         # Run test.
-        hgraphviz.plot_dag_with_networkx_rounded_boxes(
+        hgraphv.plot_dag_with_networkx_rounded_boxes(
             G, title, node_colors=node_colors
         )
 
@@ -483,7 +494,7 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         title = "Edge Colors"
         edge_colors = {("A", "B"): "#0000FF"}
         # Run test.
-        hgraphviz.plot_dag_with_networkx_rounded_boxes(
+        hgraphv.plot_dag_with_networkx_rounded_boxes(
             G, title, edge_colors=edge_colors
         )
 
@@ -497,7 +508,7 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         title = "With Axes"
         fig, ax = plt.subplots()
         # Run test.
-        hgraphviz.plot_dag_with_networkx_rounded_boxes(G, title, ax=ax)
+        hgraphv.plot_dag_with_networkx_rounded_boxes(G, title, ax=ax)
         # Check outputs.
         self.assertIsNotNone(ax)
         plt.close(fig)
@@ -511,7 +522,7 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         G.add_node("Single")
         title = "Single Node"
         # Run test.
-        hgraphviz.plot_dag_with_networkx_rounded_boxes(G, title)
+        hgraphv.plot_dag_with_networkx_rounded_boxes(G, title)
 
     def test6(self) -> None:
         """
@@ -522,7 +533,7 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         G.add_edge("VeryLongNodeNameA", "VeryLongNodeNameB")
         title = "Long Names"
         # Run test.
-        hgraphviz.plot_dag_with_networkx_rounded_boxes(G, title)
+        hgraphv.plot_dag_with_networkx_rounded_boxes(G, title)
 
     def test7(self) -> None:
         """
@@ -534,7 +545,7 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         G.add_edge("B", "C")
         title = "No Axes"
         # Run test.
-        hgraphviz.plot_dag_with_networkx_rounded_boxes(G, title, ax=None)
+        hgraphv.plot_dag_with_networkx_rounded_boxes(G, title, ax=None)
 
     def test8(self) -> None:
         """
@@ -552,7 +563,7 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         }
         fig, ax = plt.subplots()
         # Run test.
-        hgraphviz.plot_dag_with_networkx_rounded_boxes(
+        hgraphv.plot_dag_with_networkx_rounded_boxes(
             G,
             title,
             node_colors=node_colors,
@@ -562,6 +573,11 @@ class Test_plot_dag_with_networkx_rounded_boxes(hunitest.TestCase):
         # Check outputs.
         self.assertIsNotNone(ax)
         plt.close(fig)
+
+
+# #############################################################################
+# Test_plot_dag_with_networkx
+# #############################################################################
 
 
 class Test_plot_dag_with_networkx(hunitest.TestCase):
@@ -579,7 +595,7 @@ class Test_plot_dag_with_networkx(hunitest.TestCase):
         G.add_edge("B", "C")
         pos = nx.spring_layout(G, seed=42)
         # Run test.
-        hgraphviz.plot_dag_with_networkx(G, pos)
+        hgraphv.plot_dag_with_networkx(G, pos)
 
     def test2(self) -> None:
         """
@@ -591,7 +607,7 @@ class Test_plot_dag_with_networkx(hunitest.TestCase):
         pos = nx.spring_layout(G, seed=42)
         node_color = "#FF0000"
         # Run test.
-        hgraphviz.plot_dag_with_networkx(G, pos, node_color=node_color)
+        hgraphv.plot_dag_with_networkx(G, pos, node_color=node_color)
 
     def test3(self) -> None:
         """
@@ -603,7 +619,7 @@ class Test_plot_dag_with_networkx(hunitest.TestCase):
         pos = nx.spring_layout(G, seed=42)
         edge_color = "#0000FF"
         # Run test.
-        hgraphviz.plot_dag_with_networkx(G, pos, edge_color=edge_color)
+        hgraphv.plot_dag_with_networkx(G, pos, edge_color=edge_color)
 
     def test4(self) -> None:
         """
@@ -615,7 +631,7 @@ class Test_plot_dag_with_networkx(hunitest.TestCase):
         pos = nx.spring_layout(G, seed=42)
         fig, ax = plt.subplots()
         # Run test.
-        hgraphviz.plot_dag_with_networkx(G, pos, ax=ax)
+        hgraphv.plot_dag_with_networkx(G, pos, ax=ax)
         # Check outputs.
         self.assertIsNotNone(ax)
         plt.close(fig)
@@ -629,7 +645,7 @@ class Test_plot_dag_with_networkx(hunitest.TestCase):
         G.add_node("A")
         pos = {"A": (0, 0)}
         # Run test.
-        hgraphviz.plot_dag_with_networkx(G, pos)
+        hgraphv.plot_dag_with_networkx(G, pos)
 
     def test6(self) -> None:
         """
@@ -643,12 +659,17 @@ class Test_plot_dag_with_networkx(hunitest.TestCase):
         edge_color = "#00FF00"
         fig, ax = plt.subplots()
         # Run test.
-        hgraphviz.plot_dag_with_networkx(
+        hgraphv.plot_dag_with_networkx(
             G, pos, node_color=node_color, edge_color=edge_color, ax=ax
         )
         # Check outputs.
         self.assertIsNotNone(ax)
         plt.close(fig)
+
+
+# #############################################################################
+# Test_plot_causal_dag
+# #############################################################################
 
 
 class Test_plot_causal_dag(hunitest.TestCase):
@@ -665,7 +686,7 @@ class Test_plot_causal_dag(hunitest.TestCase):
         node_colors=None,
         edge_colors=None,
         figsize=None,
-        dpi: int = hgraphviz.FIG_DPI,
+        dpi: int = hgraphv.FIG_DPI,
         pos=None,
     ) -> None:
         """
@@ -684,7 +705,7 @@ class Test_plot_causal_dag(hunitest.TestCase):
             G = nx.DiGraph()
             G.add_edge("A", "B")
         # Run test.
-        ax = hgraphviz.plot_causal_dag(
+        ax = hgraphv.plot_causal_dag(
             G,
             title,
             mode=mode,
@@ -771,7 +792,7 @@ class Test_plot_causal_dag(hunitest.TestCase):
         fig, ax = plt.subplots()
         mode = "graphviz"
         # Run test.
-        ax_result = hgraphviz.plot_causal_dag(G, title, mode=mode, ax=ax)
+        ax_result = hgraphv.plot_causal_dag(G, title, mode=mode, ax=ax)
         # Check outputs.
         self.assertIsNotNone(ax_result)
         plt.close(fig)
@@ -798,7 +819,7 @@ class Test_plot_causal_dag(hunitest.TestCase):
         pos = nx.spring_layout(G, seed=42)
         mode = "networkx"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(G, title, mode=mode, pos=pos)
+        ax = hgraphv.plot_causal_dag(G, title, mode=mode, pos=pos)
         # Check outputs.
         self.assertIsNotNone(ax)
 
@@ -813,7 +834,7 @@ class Test_plot_causal_dag(hunitest.TestCase):
         mode = "invalid_mode"
         # Run test and check exception.
         with self.assertRaises(AssertionError):
-            hgraphviz.plot_causal_dag(G, title, mode=mode)
+            hgraphv.plot_causal_dag(G, title, mode=mode)
 
     def test11(self) -> None:
         """
@@ -830,7 +851,7 @@ class Test_plot_causal_dag(hunitest.TestCase):
             ("A", "C"): "#00FFFF",
         }
         # Run test with graphviz mode.
-        ax1 = hgraphviz.plot_causal_dag(
+        ax1 = hgraphv.plot_causal_dag(
             G,
             title,
             mode="graphviz",
@@ -850,7 +871,7 @@ class Test_plot_causal_dag(hunitest.TestCase):
         title = "NetworkX Title Test"
         mode = "networkx"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(G, title, mode=mode)
+        ax = hgraphv.plot_causal_dag(G, title, mode=mode)
         # Check outputs.
         self.assertIsNotNone(ax)
         if ax is not None:
@@ -865,11 +886,11 @@ class Test_plot_causal_dag(hunitest.TestCase):
         G.add_node("OnlyNode")
         title = "Single Node"
         # Run test with graphviz mode.
-        ax1 = hgraphviz.plot_causal_dag(G, title, mode="graphviz")
+        ax1 = hgraphv.plot_causal_dag(G, title, mode="graphviz")
         self.assertIsNotNone(ax1)
         # Run test with networkx_rounded_boxes mode.
-        ax2 = hgraphviz.plot_causal_dag(G, title, mode="networkx_rounded_boxes")
+        ax2 = hgraphv.plot_causal_dag(G, title, mode="networkx_rounded_boxes")
         self.assertIsNotNone(ax2)
         # Run test with networkx mode.
-        ax3 = hgraphviz.plot_causal_dag(G, title, mode="networkx")
+        ax3 = hgraphv.plot_causal_dag(G, title, mode="networkx")
         self.assertIsNotNone(ax3)

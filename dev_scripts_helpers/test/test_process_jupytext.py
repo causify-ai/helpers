@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import dev_scripts_helpers.notebooks.process_jupytext as dsnprju
+import dev_scripts_helpers.notebooks.process_jupytext as dshnprju
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -11,6 +11,11 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
+
+
+# #############################################################################
+# Test_is_jupytext_version_different
+# #############################################################################
 
 
 class Test_is_jupytext_version_different(hunitest.TestCase):
@@ -25,7 +30,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         # Prepare inputs.
         output_txt = "Some random output without jupytext_version"
         # Run test.
-        result = dsnprju._is_jupytext_version_different(output_txt)
+        result = dshnprju._is_jupytext_version_different(output_txt)
         # Check outputs.
         self.assertFalse(result)
 
@@ -36,7 +41,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         # Prepare inputs.
         output_txt = "#       jupytext_version: 1.3.3"
         # Run test.
-        result = dsnprju._is_jupytext_version_different(output_txt)
+        result = dshnprju._is_jupytext_version_different(output_txt)
         # Check outputs.
         self.assertFalse(result)
 
@@ -51,7 +56,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
             "#       jupytext_version: 1.3.0"
         )
         # Run test.
-        result = dsnprju._is_jupytext_version_different(output_txt)
+        result = dshnprju._is_jupytext_version_different(output_txt)
         # Check outputs.
         self.assertTrue(result)
 
@@ -75,7 +80,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         # Run test.
-        result = dsnprju._is_jupytext_version_different(txt)
+        result = dshnprju._is_jupytext_version_different(txt)
         # Check outputs.
         self.assertTrue(result)
 
@@ -99,9 +104,14 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         # Run test.
-        result = dsnprju._is_jupytext_version_different(txt)
+        result = dshnprju._is_jupytext_version_different(txt)
         # Check outputs.
         self.assertFalse(result)
+
+
+# #############################################################################
+# Test_find_paired_file
+# #############################################################################
 
 
 class Test_find_paired_file(hunitest.TestCase):
@@ -122,7 +132,7 @@ class Test_find_paired_file(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        result = dsnprju._find_paired_file(ipynb_file)
+        result = dshnprju._find_paired_file(ipynb_file)
         # Check outputs.
         self.assertEqual(result, py_file)
 
@@ -139,7 +149,7 @@ class Test_find_paired_file(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        result = dsnprju._find_paired_file(py_file)
+        result = dshnprju._find_paired_file(py_file)
         # Check outputs.
         self.assertEqual(result, ipynb_file)
 
@@ -154,7 +164,7 @@ class Test_find_paired_file(hunitest.TestCase):
             f.write("{}")
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dsnprju._find_paired_file(ipynb_file)
+            dshnprju._find_paired_file(ipynb_file)
 
     def test4(self) -> None:
         """
@@ -167,7 +177,12 @@ class Test_find_paired_file(hunitest.TestCase):
             f.write("")
         # Run test and check output.
         with self.assertRaises((AssertionError, TypeError)):
-            dsnprju._find_paired_file(invalid_file)
+            dshnprju._find_paired_file(invalid_file)
+
+
+# #############################################################################
+# Test_process_jupytext_py
+# #############################################################################
 
 
 class Test_process_jupytext_py(hunitest.TestCase):
@@ -186,7 +201,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("{}")
         # Run test.
         with hunteuti.capture_system_calls() as invocations:
-            dsnprju._pair(ipynb_file)
+            dshnprju._pair(ipynb_file)
         # Check outputs.
         self.assertEqual(len(invocations), 4)
         self.assertIn("jupytext", invocations[0]["args"][0])
@@ -208,7 +223,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("{}")
         # Run test.
         with hunteuti.capture_system_calls() as invocations:
-            dsnprju._test(ipynb_file, "test")
+            dshnprju._test(ipynb_file, "test")
         # Check outputs.
         self.assertEqual(len(invocations), 1)
         self.assertEqual(invocations[0]["function"], "hsystem.system_to_string")
@@ -225,7 +240,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("{}")
         # Run test.
         with hunteuti.capture_system_calls() as invocations:
-            dsnprju._test(ipynb_file, "test_strict")
+            dshnprju._test(ipynb_file, "test_strict")
         # Check outputs.
         self.assertEqual(len(invocations), 1)
         self.assertEqual(invocations[0]["function"], "hsystem.system_to_string")
@@ -245,7 +260,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("")
         # Run test.
         with hunteuti.capture_system_calls() as invocations:
-            dsnprju._sync(ipynb_file)
+            dshnprju._sync(ipynb_file)
         # Check outputs.
         self.assertEqual(len(invocations), 2)
         self.assertIn("jupytext", invocations[0]["args"][0])
@@ -267,7 +282,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("")
         # Run test.
         with hunteuti.capture_system_calls() as invocations:
-            dsnprju._sync(py_file)
+            dshnprju._sync(py_file)
         # Check outputs.
         self.assertEqual(len(invocations), 2)
         self.assertIn("jupytext", invocations[0]["args"][0])
@@ -287,7 +302,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("{}")
         # Run test.
         with hunteuti.capture_system_calls() as invocations:
-            result = dsnprju._extract_python_from_notebook(ipynb_file)
+            result = dshnprju._extract_python_from_notebook(ipynb_file)
         # Check outputs.
         self.assertEqual(len(invocations), 1)
         self.assertIn("jupytext", invocations[0]["args"][0])
@@ -306,7 +321,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("{}")
         # Run test.
         try:
-            dsnprju._check_sync_status(ipynb_file)
+            dshnprju._check_sync_status(ipynb_file)
         except Exception as e:
             self.fail(f"_check_sync_status raised {e}")
 
@@ -324,7 +339,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("file2")
         # Run test.
         try:
-            dsnprju._report_newer_file(file1, file2)
+            dshnprju._report_newer_file(file1, file2)
         except Exception as e:
             self.fail(f"_report_newer_file raised {e}")
 
@@ -335,7 +350,9 @@ class Test_process_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree("dev_scripts_helpers/notebooks/process_jupytext.py")
+        executable = hgit.find_file_in_git_tree(
+            "dev_scripts_helpers/notebooks/process_jupytext.py"
+        )
         cmd = f"{executable} -f {ipynb_file} --action pair 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -352,7 +369,9 @@ class Test_process_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree("dev_scripts_helpers/notebooks/process_jupytext.py")
+        executable = hgit.find_file_in_git_tree(
+            "dev_scripts_helpers/notebooks/process_jupytext.py"
+        )
         cmd = f"{executable} -f {ipynb_file} --action test 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -369,7 +388,9 @@ class Test_process_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree("dev_scripts_helpers/notebooks/process_jupytext.py")
+        executable = hgit.find_file_in_git_tree(
+            "dev_scripts_helpers/notebooks/process_jupytext.py"
+        )
         cmd = f"{executable} -f {ipynb_file} --action test_strict 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -387,7 +408,9 @@ class Test_process_jupytext_py(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         py_file = f"{scratch_dir}/test_notebook.py"
-        executable = hgit.find_file_in_git_tree("dev_scripts_helpers/notebooks/process_jupytext.py")
+        executable = hgit.find_file_in_git_tree(
+            "dev_scripts_helpers/notebooks/process_jupytext.py"
+        )
         cmd = f"{executable} -f {ipynb_file} --action sync 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -406,13 +429,16 @@ class Test_process_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree("dev_scripts_helpers/notebooks/process_jupytext.py")
+        executable = hgit.find_file_in_git_tree(
+            "dev_scripts_helpers/notebooks/process_jupytext.py"
+        )
         cmd = f"{executable} -f {ipynb_file} --action invalid_action 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
         # Run test.
         with self.assertRaises(Exception):
             hsystem.system(cmd)
+
 
 # #############################################################################
 # Test_process_jupytext
@@ -449,9 +475,12 @@ class Test_process_jupytext(hunitest.TestCase):
         py_text += "\na = 0"
         hio.to_file(file_path, py_text)
         # Run test.
-        cmd = f"$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py') -f {file_path} --action sync 2>&1"
+        executable = hgit.find_file_in_git_tree(
+            "dev_scripts_helpers/notebooks/process_jupytext.py"
+        )
+        cmd = f"{executable} -f {file_path} --action sync 2>&1"
         hsystem.system(cmd)
-        cmd = f"$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py') -f {file_path} --action test 2>&1"
+        cmd = f"{executable} -f {file_path} --action test 2>&1"
         hsystem.system(cmd)
         # Check outputs.
         new_ipynb_text = hio.from_file(ipynb_path)

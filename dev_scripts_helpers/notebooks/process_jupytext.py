@@ -153,9 +153,11 @@ def _test(file_name: str, action: str) -> None:
     else:
         _LOG.info("'%s': PASSED", file_name)
 
+
 # #############################################################################
 # Diff
 # #############################################################################
+
 
 def _find_paired_file(file_path: str) -> str:
     """
