@@ -203,14 +203,9 @@ class Test_process_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_system_calls() as invocations:
             dshnprju._pair(ipynb_file)
         # Check outputs.
-        self.assertEqual(len(invocations), 4)
-        self.assertIn("jupytext", invocations[0]["args"][0])
-        self.assertIn("--update-metadata", invocations[0]["args"][0])
-        self.assertIn("jupytext", invocations[1]["args"][0])
-        self.assertIn("--test", invocations[1]["args"][0])
-        self.assertIn("jupytext", invocations[2]["args"][0])
-        self.assertIn("--to py:percent", invocations[2]["args"][0])
-        self.assertIn("git add", invocations[3]["args"][0])
+        outcome_dir = os.path.join(self.get_output_dir(), "test.txt")
+        expected_str = hio.from_file(outcome_dir)
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
     def test6(self) -> None:
         """
@@ -351,7 +346,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         executable = hgit.find_file_in_git_tree(
-            "dev_scripts_helpers/notebooks/process_jupytext.py"
+            "process_jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action pair 2>&1"
         with open(ipynb_file, "w") as f:
@@ -370,7 +365,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         executable = hgit.find_file_in_git_tree(
-            "dev_scripts_helpers/notebooks/process_jupytext.py"
+            "process_jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action test 2>&1"
         with open(ipynb_file, "w") as f:
@@ -389,7 +384,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         executable = hgit.find_file_in_git_tree(
-            "dev_scripts_helpers/notebooks/process_jupytext.py"
+            "process_jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action test_strict 2>&1"
         with open(ipynb_file, "w") as f:
@@ -409,7 +404,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         py_file = f"{scratch_dir}/test_notebook.py"
         executable = hgit.find_file_in_git_tree(
-            "dev_scripts_helpers/notebooks/process_jupytext.py"
+            "process_jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action sync 2>&1"
         with open(ipynb_file, "w") as f:
@@ -430,7 +425,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         executable = hgit.find_file_in_git_tree(
-            "dev_scripts_helpers/notebooks/process_jupytext.py"
+            "process_jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action invalid_action 2>&1"
         with open(ipynb_file, "w") as f:
@@ -476,7 +471,7 @@ class Test_process_jupytext(hunitest.TestCase):
         hio.to_file(file_path, py_text)
         # Run test.
         executable = hgit.find_file_in_git_tree(
-            "dev_scripts_helpers/notebooks/process_jupytext.py"
+            "process_jupytext.py"
         )
         cmd = f"{executable} -f {file_path} --action sync 2>&1"
         hsystem.system(cmd)

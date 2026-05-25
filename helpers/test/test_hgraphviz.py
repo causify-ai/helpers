@@ -1,3 +1,5 @@
+from typing import Any, Dict, Optional, Tuple
+
 import matplotlib.pyplot as plt
 import networkx as nx
 
@@ -21,9 +23,9 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         title: str,
         expected: str,
         *,
-        node_colors=None,
-        edge_colors=None,
-        size=None,
+        node_colors: Optional[Dict[str, str]] = None,
+        edge_colors: Optional[Dict[Tuple[str, str], str]] = None,
+        size: Optional[Tuple[float, float]] = None,
     ) -> None:
         """
         Test helper for _graph_to_graphviz_dot.
@@ -682,12 +684,12 @@ class Test_plot_causal_dag(hunitest.TestCase):
         mode: str,
         title: str,
         *,
-        G: nx.DiGraph | None = None,
-        node_colors=None,
-        edge_colors=None,
-        figsize=None,
+        G: Optional[nx.DiGraph] = None,
+        node_colors: Optional[Dict[str, str]] = None,
+        edge_colors: Optional[Dict[Tuple[str, str], str]] = None,
+        figsize: Optional[Tuple[int, int]] = None,
         dpi: int = hgraphv.FIG_DPI,
-        pos=None,
+        pos: Optional[Dict[Any, Tuple[float, float]]] = None,
     ) -> None:
         """
         Test helper for plot_causal_dag.
