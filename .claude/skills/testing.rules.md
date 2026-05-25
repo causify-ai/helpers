@@ -29,7 +29,34 @@
 ## What not to Test
 - Do not test heavily error conditions (e.g., invalid input and assertion)
 
-# File and Test Structure
+# Naming Conventions
+
+## Naming Conventions for a Function
+
+- For testing a function `<FunctionName>` use `Test_<FunctionName>` (separated by
+  underscore since the function name starts with lower case), e.g.,
+  - `parse_limit_range()` -> `class Test_parse_limit_range(hunitest.TestCase):`
+  - `apply_limit_range()` -> `class Test_apply_limit_range(hunitest.TestCase):`
+
+## Naming Conventions for a Class
+
+- For testing a class `<ClassName>` use `Test<ClassName>` (no underscore since
+  the class name starts with capital case), e.g.,
+  - `Config` -> `class TestConfig(hunitest.TestCase):`
+  - `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
+
+## Test Method Names
+
+- For test method names always number the method tests, as `test1`, `test2`
+  since the explanation of what they do is in the docstring
+  - **Bad**
+    - `test_preserve_yaml_frontmatter`
+    - `test_page_separator_removal_with_frontmatter`
+  - **Good**
+    - `test1`
+    - `test2`
+
+# Test File Organization
 
 ## File Structure
 - For a source file `<module_name>.py`, the corresponding test file is
@@ -60,6 +87,8 @@
 
 ## Keep Test Data Small
 - Use the smallest dataset that exercises the case
+
+# Writing Test Code
 
 ## Unit Test Code Structure
 
@@ -185,36 +214,9 @@
     )
     ```
 
-# Naming Conventions
+## Code Formatting in Tests
 
-## Naming Conventions for a Function
-
-- For testing a function `<FunctionName>` use `Test_<FunctionName>` (separated by
-  underscore since the function name starts with lower case), e.g.,
-  - `parse_limit_range()` -> `class Test_parse_limit_range(hunitest.TestCase):`
-  - `apply_limit_range()` -> `class Test_apply_limit_range(hunitest.TestCase):`
-
-## Naming Conventions for a Class
-
-- For testing a class `<ClassName>` use `Test<ClassName>` (no underscore since
-  the class name starts with capital case), e.g.,
-  - `Config` -> `class TestConfig(hunitest.TestCase):`
-  - `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
-
-## Test Method Names
-
-- For test method names always number the method tests, as `test1`, `test2`
-  since the explanation of what they do is in the docstring
-  - **Bad**
-    - `test_preserve_yaml_frontmatter`
-    - `test_page_separator_removal_with_frontmatter`
-  - **Good**
-    - `test1`
-    - `test2`
-
-# Code Formatting in Tests
-
-## Dedent Strings to the Code
+### Dedent Strings to the Code
 
 - Align multi-line strings with the indentation of surrounding code:
   - **Bad**: String starts at column 0
@@ -239,7 +241,7 @@
         content = hprint.dedent(content)
     ```
 
-## Avoid Replicated Assignment
+### Avoid Replicated Assignment
 
 - If a variable `var` and `expected` need to always be the same (e.g., to show
   that a variable doesn't change), instead of replicating the assignment, assign
@@ -279,8 +281,6 @@
         # Run test.
         self.helper(txt, expected)
     ```
-
-# Test Method Conventions
 
 ## Use Three Sections in Testing Methods
 
@@ -437,7 +437,7 @@
           # Use self.test_data here.
   ```
 
-# Format Test Inputs
+# Test Input and Output Handling
 
 ## String Formatting for Test Inputs and Assertions
 
@@ -490,8 +490,6 @@ line3
     # Check outputs.
     self.assert_equal(actual, expected, dedent=True)
     ```
-
-# Checking Test Outputs
 
 ## Use an Expected Output
 
