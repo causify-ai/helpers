@@ -571,6 +571,36 @@ line3
   self.assert_equal(actual, expected, fuzzy_match=True)
   ```
 
+- Do not use multiple `assertIn()` calls to check individual pieces of a string
+  output; instead compare the entire output with `assert_equal()`
+  - **Bad** (multiple assertIn checks on parts of the output)
+    ```python
+    actual = <function_that_returns_string>()
+    # Check outputs.
+    self.assertIn('"A"', actual)
+    self.assertIn('"B"', actual)
+    self.assertIn('"C"', actual)
+    self.assertIn('"A" -> "B"', actual)
+    self.assertIn('"B" -> "C"', actual)
+    ```
+  - **Good** (single assert_equal with full expected output)
+    ```python
+    actual = <function_that_returns_string>()
+    # Prepare outputs.
+    expected = """
+    digraph {
+        rankdir=TB;
+        "A" [fillcolor="#A6C8F4"];
+        "B" [fillcolor="#A6C8F4"];
+        "C" [fillcolor="#A6C8F4"];
+        "A" -> "B" [color="#555555"];
+        "B" -> "C" [color="#555555"];
+    }
+    """
+    # Check outputs.
+    self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+    ```
+
 - Compare with text purification `self.assert_equal(..., purify_text=True)` to
   remove implementation details (e.g., memory addresses, paths, usernames,
   timestamps, and other machine/environment-specific details that would cause
