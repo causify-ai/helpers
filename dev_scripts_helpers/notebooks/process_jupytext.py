@@ -29,6 +29,7 @@ import datetime
 import logging
 import os
 import re
+from typing import Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -60,16 +61,20 @@ def _pair(file_name: str) -> None:
     cmd.append("""'{"jupytext":{"formats":"ipynb,py:percent"}}'""")
     cmd.append(file_name)
     cmd = " ".join(cmd)
+    _LOG.info("Execute '%s'", cmd)
     hsystem.system(cmd)
     # Test the ipynb -> py:percent -> ipynb round trip conversion.
     cmd = _EXECUTABLE + f" --test --stop --to py:percent {file_name}"
+    _LOG.info("Execute '%s'", cmd)
     hsystem.system(cmd)
     # Add the .py file.
     cmd = _EXECUTABLE + f" --to py:percent {file_name}"
+    _LOG.info("Execute '%s'", cmd)
     hsystem.system(cmd)
     # Add to git.
     py_file_name = liutils.from_ipynb_to_python_file(file_name)
     cmd = f"git add {py_file_name}"
+    _LOG.info("Execute '%s'", cmd)
     hsystem.system(cmd)
 
 
@@ -85,8 +90,10 @@ def _sync(file_name: str) -> None:
             cmd_update = _EXECUTABLE + f" --to ipynb --update {file_name}"
         else:
             cmd_update = _EXECUTABLE + f" --to py {file_name}"
+        _LOG.info("Execute '%s'", cmd_update)
         hsystem.system(cmd_update)
         cmd_sync = _EXECUTABLE + f" --sync {file_name}"
+        _LOG.info("Execute '%s'", cmd_sync)
         hsystem.system(cmd_sync)
     else:
         _LOG.warning("The file '%s' is not paired: run --pair", file_name)
@@ -135,9 +142,19 @@ def _test(file_name: str, action: str) -> None:
         opts = "--test-strict"
     else:
         raise ValueError(f"Invalid action='{action}'")
+    if liutils.is_ipynb_file(file_name):
+        ipynb_file = file_name
+    else:
+        ipynb_file = liutils.from_python_to_ipynb_file(file_name)
+    in_sync, _ = _is_notebook_in_sync(ipynb_file)
+    if not in_sync:
+        _LOG.warning(
+            "Notebook '%s' and paired .py file are NOT in sync",
+            ipynb_file,
+        )
     cmd = [_EXECUTABLE, opts, f"--stop --to py:percent {file_name}"]
     cmd = " ".join(cmd)
-    _LOG.debug("cmd=%s", cmd)
+    _LOG.info("Execute '%s'", cmd)
     rc, txt = hsystem.system_to_string(cmd, abort_on_error=False)
     if rc != 0:
         # Here we handle special cases that must be escaped.
@@ -208,29 +225,30 @@ def _report_newer_file(file1: str, file2: str) -> None:
         _LOG.info("Files have the same modification time")
 
 
-def _check_sync_status(ipynb_file: str) -> None:
+def _is_notebook_in_sync(ipynb_file: str) -> Tuple[bool, str]:
     """
-    Check if notebook and paired file are in sync using jupytext.
+    Check if notebook and paired Python file are in sync.
 
-    Exit codes:
-    - 0: Files already in sync (no diff)
-    - 1: Files differ
-    - 2: Error
+    Extracts Python from the notebook and compares with the paired Python file
+    using `diff`.
 
     :param ipynb_file: Path to .ipynb file
+    :return: Tuple of (is_in_sync, tmp_py_file_path)
+        - is_in_sync: True if files are identical, False if they differ
+        - tmp_py_file_path: Path to the temporary Python file extracted from notebook
     """
-    cmd = f"jupytext --diff {ipynb_file} > /dev/null 2>&1"
     _LOG.info("Checking sync status...")
-    _LOG.info("%s", cmd)
-    exit_code = os.system(cmd)
-    # os.system returns the exit code shifted left by 8 bits on Unix
-    exit_code = exit_code >> 8
-    if exit_code == 0:
-        _LOG.info("Files already in sync")
-    elif exit_code == 1:
-        _LOG.warning("Files are NOT in sync - there are differences")
+    paired_py_file = _find_paired_file(ipynb_file)
+    tmp_py_file = _extract_python_from_notebook(ipynb_file)
+    cmd = f"diff {paired_py_file} {tmp_py_file}"
+    _LOG.info("Execute '%s'", cmd)
+    rc, _ = hsystem.system_to_string(cmd, abort_on_error=False)
+    in_sync = rc == 0
+    if in_sync:
+        _LOG.info("Files are in sync")
     else:
-        _LOG.error("Error checking sync status (exit code: %d)", exit_code)
+        _LOG.warning("Files are NOT in sync - there are differences")
+    return in_sync, tmp_py_file
 
 
 def _extract_python_from_notebook(ipynb_file: str) -> str:
@@ -245,6 +263,7 @@ def _extract_python_from_notebook(ipynb_file: str) -> str:
     tmp_file = f"tmp.jupytext_diff.{base_name[:-6]}.py"
     # Extract using jupytext.
     cmd = f"jupytext --to py:percent {ipynb_file} -o {tmp_file}"
+    _LOG.info("Execute '%s'", cmd)
     hsystem.system(cmd)
     _LOG.info("Extracted Python code to: %s", tmp_file)
     return tmp_file
@@ -258,7 +277,7 @@ def _run_vimdiff(file1: str, file2: str) -> None:
     :param file2: Second file path
     """
     cmd = f"vimdiff {file1} {file2}"
-    _LOG.info("To compare files, run: %s", cmd)
+    _LOG.info("Execute '%s'", cmd)
     os.system(cmd)
 
 
@@ -269,23 +288,16 @@ def _diff(file_name: str) -> None:
     :param file_name: Path to .ipynb or .py file
     """
     _LOG.info("Processing file: %s", file_name)
-    # Find paired file.
     paired_file = _find_paired_file(file_name)
     _LOG.info("Found paired file: %s", paired_file)
-    # Report which file is newer.
     _report_newer_file(file_name, paired_file)
-    # Determine which is the notebook file.
     if file_name.endswith(".ipynb"):
         ipynb_file = file_name
         py_file = paired_file
     else:
         ipynb_file = paired_file
         py_file = file_name
-    # Check sync status.
-    _check_sync_status(ipynb_file)
-    # Extract Python from notebook.
-    tmp_py_file = _extract_python_from_notebook(ipynb_file)
-    # Run vimdiff.
+    _, tmp_py_file = _is_notebook_in_sync(ipynb_file)
     _LOG.info("Running vimdiff between %s and %s", py_file, tmp_py_file)
     _run_vimdiff(py_file, tmp_py_file)
 

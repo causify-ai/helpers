@@ -360,10 +360,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         }
         """
         # Run test.
-        actual = hgraphv._graph_to_graphviz_dot(
-            G, title, dpi=dpi
-        )
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(G, title, expected, dpi=dpi)
 
     def test13(self) -> None:
         """
@@ -389,10 +386,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         }
         """
         # Run test.
-        actual = hgraphv._graph_to_graphviz_dot(
-            G, title, dpi=dpi
-        )
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(G, title, expected, dpi=dpi)
 
     def test14(self) -> None:
         """
@@ -420,10 +414,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         }
         """
         # Run test.
-        actual = hgraphv._graph_to_graphviz_dot(
-            G, title, size=size, dpi=dpi
-        )
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self.helper(G, title, expected, size=size, dpi=dpi)
 
 
 # #############################################################################
@@ -1046,6 +1037,49 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         plt.close(fig)
         return img
 
+    def _assert_dpi_in_range(
+        self,
+        img: Image.Image,
+        expected_dpi: int,
+        lower: float,
+        upper: float,
+    ) -> None:
+        """
+        Assert that image DPI is within specified range.
+
+        :param img: PIL Image object
+        :param expected_dpi: Expected DPI value
+        :param lower: Lower bound for DPI assertion
+        :param upper: Upper bound for DPI assertion
+        """
+        img_dpi = img.info.get("dpi", (expected_dpi, expected_dpi))
+        self.assertIsNotNone(img_dpi)
+        self.assertGreater(img_dpi[0], lower)
+        self.assertLess(img_dpi[0], upper)
+
+    def _assert_image_dimensions(
+        self,
+        img: Image.Image,
+        figsize: Tuple[int, int],
+        dpi: int,
+        tolerance: float = 0.1,
+    ) -> None:
+        """
+        Assert that image dimensions match expected figsize × DPI.
+
+        :param img: PIL Image object
+        :param figsize: Expected figure size in inches (width, height)
+        :param dpi: Dots per inch used for rendering
+        :param tolerance: Acceptable tolerance as fraction of expected (default 0.1 = ±10%)
+        """
+        width, height = img.size
+        expected_width = figsize[0] * dpi
+        expected_height = figsize[1] * dpi
+        self.assertGreater(width, expected_width * (1 - tolerance))
+        self.assertLess(width, expected_width * (1 + tolerance))
+        self.assertGreater(height, expected_height * (1 - tolerance))
+        self.assertLess(height, expected_height * (1 + tolerance))
+
     def test_default_dpi(self) -> None:
         """
         Test that default DPI (150) is applied to the image.
@@ -1057,12 +1091,7 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         # Get image.
         img = self._get_image_from_graph(G, title)
         # Check DPI.
-        # PIL returns DPI as a tuple (x_dpi, y_dpi)
-        img_dpi = img.info.get("dpi", (hgraphv.FIG_DPI, hgraphv.FIG_DPI))
-        self.assertIsNotNone(img_dpi)
-        # DPI should be close to the default (150)
-        self.assertGreater(img_dpi[0], 100)
-        self.assertLess(img_dpi[0], 200)
+        self._assert_dpi_in_range(img, hgraphv.FIG_DPI, 100, 200)
 
     def test_high_dpi_200(self) -> None:
         """
@@ -1076,11 +1105,7 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         # Get image.
         img = self._get_image_from_graph(G, title, dpi=dpi)
         # Check DPI.
-        img_dpi = img.info.get("dpi", (dpi, dpi))
-        self.assertIsNotNone(img_dpi)
-        # DPI should be close to 200
-        self.assertGreater(img_dpi[0], 180)
-        self.assertLess(img_dpi[0], 220)
+        self._assert_dpi_in_range(img, dpi, 180, 220)
 
     def test_high_dpi_300(self) -> None:
         """
@@ -1094,11 +1119,7 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         # Get image.
         img = self._get_image_from_graph(G, title, dpi=dpi)
         # Check DPI.
-        img_dpi = img.info.get("dpi", (dpi, dpi))
-        self.assertIsNotNone(img_dpi)
-        # DPI should be close to 300
-        self.assertGreater(img_dpi[0], 280)
-        self.assertLess(img_dpi[0], 320)
+        self._assert_dpi_in_range(img, dpi, 280, 320)
 
     def test_low_dpi_100(self) -> None:
         """
@@ -1112,11 +1133,7 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         # Get image.
         img = self._get_image_from_graph(G, title, dpi=dpi)
         # Check DPI.
-        img_dpi = img.info.get("dpi", (dpi, dpi))
-        self.assertIsNotNone(img_dpi)
-        # DPI should be close to 100
-        self.assertGreater(img_dpi[0], 80)
-        self.assertLess(img_dpi[0], 120)
+        self._assert_dpi_in_range(img, dpi, 80, 120)
 
     def test_figsize_small(self) -> None:
         """
@@ -1131,16 +1148,7 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         # Get image.
         img = self._get_image_from_graph(G, title, figsize=figsize, dpi=dpi)
         # Check image dimensions.
-        # Expected: width = 8 inches * 100 dpi = 800 pixels (approximate)
-        # Expected: height = 6 inches * 100 dpi = 600 pixels (approximate)
-        width, height = img.size
-        expected_width = figsize[0] * dpi
-        expected_height = figsize[1] * dpi
-        # Allow 10% tolerance due to padding/borders
-        self.assertGreater(width, expected_width * 0.9)
-        self.assertLess(width, expected_width * 1.1)
-        self.assertGreater(height, expected_height * 0.9)
-        self.assertLess(height, expected_height * 1.1)
+        self._assert_image_dimensions(img, figsize, dpi)
 
     def test_figsize_large(self) -> None:
         """
@@ -1155,16 +1163,7 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         # Get image.
         img = self._get_image_from_graph(G, title, figsize=figsize, dpi=dpi)
         # Check image dimensions.
-        # Expected: width = 14 inches * 100 dpi = 1400 pixels (approximate)
-        # Expected: height = 10 inches * 100 dpi = 1000 pixels (approximate)
-        width, height = img.size
-        expected_width = figsize[0] * dpi
-        expected_height = figsize[1] * dpi
-        # Allow 10% tolerance due to padding/borders
-        self.assertGreater(width, expected_width * 0.9)
-        self.assertLess(width, expected_width * 1.1)
-        self.assertGreater(height, expected_height * 0.9)
-        self.assertLess(height, expected_height * 1.1)
+        self._assert_image_dimensions(img, figsize, dpi)
 
     def test_figsize_and_dpi_combination(self) -> None:
         """
@@ -1179,17 +1178,9 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         # Get image.
         img = self._get_image_from_graph(G, title, figsize=figsize, dpi=dpi)
         # Check DPI.
-        img_dpi = img.info.get("dpi", (dpi, dpi))
-        self.assertGreater(img_dpi[0], 130)
-        self.assertLess(img_dpi[0], 170)
+        self._assert_dpi_in_range(img, dpi, 130, 170)
         # Check image dimensions.
-        width, height = img.size
-        expected_width = figsize[0] * dpi
-        expected_height = figsize[1] * dpi
-        self.assertGreater(width, expected_width * 0.9)
-        self.assertLess(width, expected_width * 1.1)
-        self.assertGreater(height, expected_height * 0.9)
-        self.assertLess(height, expected_height * 1.1)
+        self._assert_image_dimensions(img, figsize, dpi)
 
     def test_dpi_affects_image_size(self) -> None:
         """
