@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from typing import Optional
+from typing import Callable, List, Optional
 
 import pytest
 
@@ -19,6 +19,31 @@ import helpers.hmarkdown_headers as hmarhead
 _LOG = logging.getLogger(__name__)
 
 
+def _helper_process_lines(
+    self: hunitest.TestCase,
+    txt: str,
+    expected: str,
+    func: Callable[[List[str]], List[str]],
+) -> None:
+    """
+    Helper function to process text lines and compare with expected output.
+
+    :param self: Test case instance with assert_equal method
+    :param txt: Input text to process
+    :param expected: Expected output after processing
+    :param func: Function to apply to the lines
+    """
+    # Prepare inputs.
+    lines = txt.split("\n")
+    lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+    # Run test.
+    actual = func(lines)
+    # Check outputs.
+    actual = "\n".join(actual)
+    expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+    self.assert_equal(actual, expected)
+
+
 # #############################################################################
 # Test__remove_code_block_extra_indentation
 # #############################################################################
@@ -29,23 +54,17 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
     Test the _remove_code_block_extra_indentation function.
     """
 
+    # TODO(ai_gp): Inline this in the callers since it's so thin.
     def helper(self, txt: str, expected: str) -> None:
         """
         Test helper for _remove_code_block_extra_indentation.
 
         :param txt: Input text to process
-        :param expected: Expected output after removing extra
-            indentation
+        :param expected: Expected output after removing extra indentation
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._remove_code_block_extra_indentation(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._remove_code_block_extra_indentation
+        )
 
     def test1(self) -> None:
         """
@@ -234,15 +253,7 @@ class Test__handle_empty_lines(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after handling empty lines
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._handle_empty_lines(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(self, txt, expected, dshdlitx._handle_empty_lines)
 
     def test1(self) -> None:
         """
@@ -502,15 +513,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after removing page separators
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._remove_page_separators(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(self, txt, expected, dshdlitx._remove_page_separators)
 
     def test1(self) -> None:
         """
@@ -640,15 +643,9 @@ class Test_add_blank_lines_between_headers(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after adding blank lines
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._add_blank_lines_between_headers(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._add_blank_lines_between_headers
+        )
 
     def test1(self) -> None:
         """
@@ -833,18 +830,11 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         Test helper for _convert_asterisk_bullets_to_dashes.
 
         :param txt: Input text to process
-        :param expected: Expected output after converting asterisk
-            bullets
+        :param expected: Expected output after converting asterisk bullets
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._convert_asterisk_bullets_to_dashes(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._convert_asterisk_bullets_to_dashes
+        )
 
     def test1(self) -> None:
         """
@@ -1054,15 +1044,9 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after removing trailing periods
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._remove_trailing_periods(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._remove_trailing_periods
+        )
 
     def test1(self) -> None:
         """
@@ -1382,15 +1366,9 @@ class Test_remove_markdown_formatting(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after removing markdown formatting
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._remove_markdown_formatting(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._remove_markdown_formatting
+        )
 
     def test1(self) -> None:
         """
@@ -1716,18 +1694,9 @@ class Test_capitalize_header(hunitest.TestCase):
         Test helper for capitalize_header.
 
         :param input_lines: Input markdown lines to process
-        :param expected: Expected output after capitalize_header
-            processing
+        :param expected: Expected output after capitalize_header processing
         """
-        # Prepare inputs.
-        lines = input_lines.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = hmarhead.capitalize_header(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(self, input_lines, expected, hmarhead.capitalize_header)
 
     def test1(self) -> None:
         """
@@ -1837,15 +1806,7 @@ class Test_lint_txt1(hunitest.TestCase):
         :param txt: Input text to preprocess
         :param expected: Expected output after preprocessing
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run.
-        actual = dshdlitx._preprocess_txt(lines)
-        # Check.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(self, txt, expected, dshdlitx._preprocess_txt)
 
     # //////////////////////////////////////////////////////////////////////////
 
@@ -2372,15 +2333,12 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
         self,
         in_file: str,
         type_: str,
-        cmd_opts: str,
     ) -> str:
         """
         Run lint_txt processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'md' or 'tex'.
-        :param cmd_opts: Additional command-line options to pass to the
-            script.
         :return: The processed text content.
         """
         hdbg.dassert_in(type_, ["md", "tex"])
@@ -2425,9 +2383,8 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
             _LOG.info("Testing idempotency for file: %s", in_file)
             # Prepare outputs.
             type_ = "md"
-            cmd_opts = ""
             # Run the script once.
-            output_txt_1 = self.run_lint_txt(in_file, type_, cmd_opts)
+            output_txt_1 = self.run_lint_txt(in_file, type_)
             # Format the output again using the same formatter.
             lines = output_txt_1.split("\n")
             output_lines = dshdlitx._perform_actions(
