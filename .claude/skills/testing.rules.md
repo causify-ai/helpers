@@ -439,16 +439,35 @@
 
 # Format Test Inputs
 
-## String Formatting for Assertions
+## String Formatting for Test Inputs and Assertions
 
-- Use multi-line strings with `hprint.dedent()` for values instead of escaped
-  newline strings to improve readability:
-  - **Bad**: (Escaped newlines)
+- Use multi-line strings with `hprint.dedent()` instead of escaped newline
+  strings for improved readability and maintainability
+- Always align multi-line strings to the variable indentation, then call
+  `hprint.dedent()` to remove the indentation
+- Alternative: use `self.assert_equal(actual, expected, dedent=True)` to dedent
+  during comparison
+
+- Examples:
+
+  - **Bad**: Escaped newlines (hard to read)
     ```python
     text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
     ```
-  - **Good**: (Use multi-line strings, since they are human-readable)
+
+  - **Bad**: Text not aligned to variable indentation
     ```python
+    # Prepare inputs.
+    text = """
+line1
+line2
+line3
+    """
+    ```
+
+  - **Good**: Multi-line string aligned and dedented (readable and maintainable)
+    ```python
+    # Prepare inputs.
     text = """
     # Chapter 1
 
@@ -460,28 +479,16 @@
     text = hprint.dedent(text)
     ```
 
-## Input Data Patterns
-
-- Always use multiline text aligned to the variable of the string and then call
-  `hpring.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
-  - **Bad** (the text is not aligned to the variable)
+  - **Good**: Using dedent in assertion (convenient for comparisons)
     ```python
-    # Prepare inputs.
-    text = """
-line1
-line2
-line3
-    """
-    ```
-  - **Good** (the text is aligned to the variable and then dedent-ed)
-    ```python
-    # Prepare inputs.
-    text = """
+    # Prepare outputs.
+    expected = """
     line1
     line2
     line3
     """
-    text = hprint.dedent(text)
+    # Check outputs.
+    self.assert_equal(actual, expected, dedent=True)
     ```
 
 # Checking Test Outputs

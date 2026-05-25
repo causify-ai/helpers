@@ -13,6 +13,8 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import helpers.hmarkdown_headers as hmarhead
+
 
 _LOG = logging.getLogger(__name__)
 
@@ -1717,8 +1719,6 @@ class Test_capitalize_header(hunitest.TestCase):
         :param expected: Expected output after capitalize_header
             processing
         """
-        import helpers.hmarkdown_headers as hmarhead
-
         # Prepare inputs.
         lines = input_lines.split("\n")
         lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
@@ -1966,8 +1966,6 @@ class Test_lint_txt2(hunitest.TestCase):
             )
             self.assert_equal(actual, expected_str)
         return actual
-
-    # //////////////////////////////////////////////////////////////////////////
 
     @pytest.mark.slow
     def test1(self) -> None:
@@ -2222,6 +2220,7 @@ class Test_lint_txt2(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): -> Test_lint_txt_py1
 class Test_lint_txt_cmd_line1(hunitest.TestCase):
     """
     Test the lint_txt.py command-line script with different file types.
@@ -2363,6 +2362,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): -> Test_lint_txt_py_idempotency
 class Test_lint_txt_idempotency(hunitest.TestCase):
     """
     Test that lint_txt.py does not modify already formatted files.
@@ -2441,3 +2441,62 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
             output_txt_2 = "\n".join(output_lines)
             # Check that both runs produce identical output (idempotency).
             self.assert_equal(output_txt_1, output_txt_2)
+
+
+# #############################################################################
+# Test backup and revert functionality
+# #############################################################################
+
+
+class Test__get_backup_filename(hunitest.TestCase):
+    """
+    Test the _get_backup_filename function.
+    """
+
+    def test_simple_filename(self) -> None:
+        """
+        Test backup filename generation for a simple filename.
+        """
+        # Prepare inputs.
+        file_path = "test.md"
+        # Run test.
+        actual = dshdlitx._get_backup_filename(file_path)
+        # Check outputs.
+        expected = "tmp.lint_txt.test.md"
+        self.assertEqual(actual, expected)
+
+    def test_filename_with_single_directory(self) -> None:
+        """
+        Test backup filename generation for a file in a directory.
+        """
+        # Prepare inputs.
+        file_path = ".claude/skills/testing.rules.md"
+        # Run test.
+        actual = dshdlitx._get_backup_filename(file_path)
+        # Check outputs.
+        expected = ".claude/skills/tmp.lint_txt.testing.rules.md"
+        self.assertEqual(actual, expected)
+
+    def test_filename_with_nested_directories(self) -> None:
+        """
+        Test backup filename generation for a file in nested directories.
+        """
+        # Prepare inputs.
+        file_path = "path/to/nested/directory/file.txt"
+        # Run test.
+        actual = dshdlitx._get_backup_filename(file_path)
+        # Check outputs.
+        expected = "path/to/nested/directory/tmp.lint_txt.file.txt"
+        self.assertEqual(actual, expected)
+
+    def test_filename_with_multiple_dots(self) -> None:
+        """
+        Test backup filename generation for files with multiple dots.
+        """
+        # Prepare inputs.
+        file_path = "directory/some.config.yaml"
+        # Run test.
+        actual = dshdlitx._get_backup_filename(file_path)
+        # Check outputs.
+        expected = "directory/tmp.lint_txt.some.config.yaml"
+        self.assertEqual(actual, expected)
