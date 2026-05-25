@@ -54,7 +54,6 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
     Test the _remove_code_block_extra_indentation function.
     """
 
-    # TODO(ai_gp): Inline this in the callers since it's so thin.
     def helper(self, txt: str, expected: str) -> None:
         """
         Test helper for _remove_code_block_extra_indentation.
@@ -2177,12 +2176,11 @@ class Test_lint_txt2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt_cmd_line1
+# Test_lint_txt_py1
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_lint_txt_py1
-class Test_lint_txt_cmd_line1(hunitest.TestCase):
+class Test_lint_txt_py1(hunitest.TestCase):
     """
     Test the lint_txt.py command-line script with different file types.
     """
@@ -2319,12 +2317,11 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt_idempotency
+# Test_lint_txt_py_idempotency
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_lint_txt_py_idempotency
-class Test_lint_txt_idempotency(hunitest.TestCase):
+class Test_lint_txt_py_idempotency(hunitest.TestCase):
     """
     Test that lint_txt.py does not modify already formatted files.
     """
