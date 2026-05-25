@@ -1,7 +1,9 @@
+import io
 from typing import Any, Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import networkx as nx
+from PIL import Image
 
 import helpers.hgraphviz as hgraphv
 import helpers.hunit_test as hunitest
@@ -26,6 +28,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         node_colors: Optional[Dict[str, str]] = None,
         edge_colors: Optional[Dict[Tuple[str, str], str]] = None,
         size: Optional[Tuple[float, float]] = None,
+        dpi: int = hgraphv.FIG_DPI,
     ) -> None:
         """
         Test helper for _graph_to_graphviz_dot.
@@ -36,10 +39,11 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         :param node_colors: Optional per-node fill colors
         :param edge_colors: Optional per-edge colors
         :param size: Optional figure size
+        :param dpi: Dots per inch for rendering
         """
         # Run test.
         actual = hgraphv._graph_to_graphviz_dot(
-            G, title, node_colors=node_colors, edge_colors=edge_colors, size=size
+            G, title, node_colors=node_colors, edge_colors=edge_colors, size=size, dpi=dpi
         )
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
@@ -57,6 +61,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -81,6 +86,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -109,6 +115,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -134,6 +141,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -160,6 +168,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             rankdir=TB;
             splines=true;
             size="12.5,10.5";
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -184,6 +193,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -207,6 +217,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -234,6 +245,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -257,6 +269,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -282,6 +295,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -308,6 +322,7 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         digraph {
             rankdir=TB;
             splines=true;
+            dpi=150;
             nodesep=0.6;
             ranksep=0.6;
             node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
@@ -320,6 +335,95 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         """
         # Run test.
         self.helper(G, title, expected)
+
+    def test12(self) -> None:
+        """
+        Test graph with custom DPI.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "DPI Graph"
+        dpi = 200
+        # Prepare outputs.
+        expected = """
+        digraph {
+            rankdir=TB;
+            splines=true;
+            dpi=200;
+            nodesep=0.6;
+            ranksep=0.6;
+            node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
+            "A" [fillcolor="#A6C8F4"];
+            "B" [fillcolor="#A6C8F4"];
+            "A" -> "B" [color="#555555", penwidth=2.0];
+        }
+        """
+        # Run test.
+        actual = hgraphv._graph_to_graphviz_dot(
+            G, title, dpi=dpi
+        )
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test13(self) -> None:
+        """
+        Test graph with high DPI (300).
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "High DPI"
+        dpi = 300
+        # Prepare outputs.
+        expected = """
+        digraph {
+            rankdir=TB;
+            splines=true;
+            dpi=300;
+            nodesep=0.6;
+            ranksep=0.6;
+            node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
+            "A" [fillcolor="#A6C8F4"];
+            "B" [fillcolor="#A6C8F4"];
+            "A" -> "B" [color="#555555", penwidth=2.0];
+        }
+        """
+        # Run test.
+        actual = hgraphv._graph_to_graphviz_dot(
+            G, title, dpi=dpi
+        )
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test14(self) -> None:
+        """
+        Test graph with both size and DPI.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "Size and DPI"
+        size = (12.5, 10.5)
+        dpi = 200
+        # Prepare outputs.
+        expected = """
+        digraph {
+            rankdir=TB;
+            splines=true;
+            size="12.5,10.5";
+            dpi=200;
+            nodesep=0.6;
+            ranksep=0.6;
+            node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, penwidth=1.4];
+            "A" [fillcolor="#A6C8F4"];
+            "B" [fillcolor="#A6C8F4"];
+            "A" -> "B" [color="#555555", penwidth=2.0];
+        }
+        """
+        # Run test.
+        actual = hgraphv._graph_to_graphviz_dot(
+            G, title, size=size, dpi=dpi
+        )
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
 
 # #############################################################################
@@ -896,3 +1000,233 @@ class Test_plot_causal_dag(hunitest.TestCase):
         # Run test with networkx mode.
         ax3 = hgraphv.plot_causal_dag(G, title, mode="networkx")
         self.assertIsNotNone(ax3)
+
+
+# #############################################################################
+# Test_graphviz_image_properties
+# #############################################################################
+
+
+class Test_graphviz_image_properties(hunitest.TestCase):
+    """
+    Test that DPI and figsize are correctly applied to rendered images.
+    """
+
+    def _get_image_from_graph(
+        self,
+        G: nx.DiGraph,
+        title: str,
+        figsize: Optional[Tuple[int, int]] = None,
+        dpi: int = hgraphv.FIG_DPI,
+    ) -> Image.Image:
+        """
+        Helper to render a graph and extract the image.
+
+        :param G: Input directed acyclic graph
+        :param title: Graph title
+        :param figsize: Optional figure size
+        :param dpi: Dots per inch for rendering
+        :return: PIL Image object
+        """
+        # Create a temporary figure and axis
+        if figsize is None:
+            figsize = hgraphv.FIG_SIZE
+        fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
+        # Render the graph
+        hgraphv.plot_dag_with_graphviz(
+            G, title, ax=ax, figsize=figsize, dpi=dpi
+        )
+        # Save to bytes buffer
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=dpi)
+        buf.seek(0)
+        # Load and return the image
+        img = Image.open(buf)
+        img.load()
+        plt.close(fig)
+        return img
+
+    def test_default_dpi(self) -> None:
+        """
+        Test that default DPI (150) is applied to the image.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "Default DPI"
+        # Get image.
+        img = self._get_image_from_graph(G, title)
+        # Check DPI.
+        # PIL returns DPI as a tuple (x_dpi, y_dpi)
+        img_dpi = img.info.get("dpi", (hgraphv.FIG_DPI, hgraphv.FIG_DPI))
+        self.assertIsNotNone(img_dpi)
+        # DPI should be close to the default (150)
+        self.assertGreater(img_dpi[0], 100)
+        self.assertLess(img_dpi[0], 200)
+
+    def test_high_dpi_200(self) -> None:
+        """
+        Test that DPI of 200 is applied to the image.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "High DPI 200"
+        dpi = 200
+        # Get image.
+        img = self._get_image_from_graph(G, title, dpi=dpi)
+        # Check DPI.
+        img_dpi = img.info.get("dpi", (dpi, dpi))
+        self.assertIsNotNone(img_dpi)
+        # DPI should be close to 200
+        self.assertGreater(img_dpi[0], 180)
+        self.assertLess(img_dpi[0], 220)
+
+    def test_high_dpi_300(self) -> None:
+        """
+        Test that DPI of 300 is applied to the image.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "High DPI 300"
+        dpi = 300
+        # Get image.
+        img = self._get_image_from_graph(G, title, dpi=dpi)
+        # Check DPI.
+        img_dpi = img.info.get("dpi", (dpi, dpi))
+        self.assertIsNotNone(img_dpi)
+        # DPI should be close to 300
+        self.assertGreater(img_dpi[0], 280)
+        self.assertLess(img_dpi[0], 320)
+
+    def test_low_dpi_100(self) -> None:
+        """
+        Test that DPI of 100 is applied to the image.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "Low DPI 100"
+        dpi = 100
+        # Get image.
+        img = self._get_image_from_graph(G, title, dpi=dpi)
+        # Check DPI.
+        img_dpi = img.info.get("dpi", (dpi, dpi))
+        self.assertIsNotNone(img_dpi)
+        # DPI should be close to 100
+        self.assertGreater(img_dpi[0], 80)
+        self.assertLess(img_dpi[0], 120)
+
+    def test_figsize_small(self) -> None:
+        """
+        Test that small figsize (8, 6) is applied correctly.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "Small Size"
+        figsize = (8, 6)
+        dpi = 100
+        # Get image.
+        img = self._get_image_from_graph(G, title, figsize=figsize, dpi=dpi)
+        # Check image dimensions.
+        # Expected: width = 8 inches * 100 dpi = 800 pixels (approximate)
+        # Expected: height = 6 inches * 100 dpi = 600 pixels (approximate)
+        width, height = img.size
+        expected_width = figsize[0] * dpi
+        expected_height = figsize[1] * dpi
+        # Allow 10% tolerance due to padding/borders
+        self.assertGreater(width, expected_width * 0.9)
+        self.assertLess(width, expected_width * 1.1)
+        self.assertGreater(height, expected_height * 0.9)
+        self.assertLess(height, expected_height * 1.1)
+
+    def test_figsize_large(self) -> None:
+        """
+        Test that large figsize (14, 10) is applied correctly.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "Large Size"
+        figsize = (14, 10)
+        dpi = 100
+        # Get image.
+        img = self._get_image_from_graph(G, title, figsize=figsize, dpi=dpi)
+        # Check image dimensions.
+        # Expected: width = 14 inches * 100 dpi = 1400 pixels (approximate)
+        # Expected: height = 10 inches * 100 dpi = 1000 pixels (approximate)
+        width, height = img.size
+        expected_width = figsize[0] * dpi
+        expected_height = figsize[1] * dpi
+        # Allow 10% tolerance due to padding/borders
+        self.assertGreater(width, expected_width * 0.9)
+        self.assertLess(width, expected_width * 1.1)
+        self.assertGreater(height, expected_height * 0.9)
+        self.assertLess(height, expected_height * 1.1)
+
+    def test_figsize_and_dpi_combination(self) -> None:
+        """
+        Test that both figsize and DPI work correctly together.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edges_from([("A", "B"), ("B", "C")])
+        title = "Combined Parameters"
+        figsize = (12, 8)
+        dpi = 150
+        # Get image.
+        img = self._get_image_from_graph(G, title, figsize=figsize, dpi=dpi)
+        # Check DPI.
+        img_dpi = img.info.get("dpi", (dpi, dpi))
+        self.assertGreater(img_dpi[0], 130)
+        self.assertLess(img_dpi[0], 170)
+        # Check image dimensions.
+        width, height = img.size
+        expected_width = figsize[0] * dpi
+        expected_height = figsize[1] * dpi
+        self.assertGreater(width, expected_width * 0.9)
+        self.assertLess(width, expected_width * 1.1)
+        self.assertGreater(height, expected_height * 0.9)
+        self.assertLess(height, expected_height * 1.1)
+
+    def test_dpi_affects_image_size(self) -> None:
+        """
+        Test that higher DPI produces larger pixel dimensions for same figsize.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "DPI Comparison"
+        figsize = (10, 8)
+        # Get images with different DPI values.
+        img_150 = self._get_image_from_graph(G, title, figsize=figsize, dpi=150)
+        img_300 = self._get_image_from_graph(G, title, figsize=figsize, dpi=300)
+        # Check that higher DPI produces larger image.
+        size_150 = img_150.size[0] * img_150.size[1]
+        size_300 = img_300.size[0] * img_300.size[1]
+        # 300 DPI image should be roughly 4x the pixel area (2x in each dimension)
+        ratio = size_300 / size_150
+        self.assertGreater(ratio, 3.5)
+        self.assertLess(ratio, 4.5)
+
+    def test_figsize_consistency(self) -> None:
+        """
+        Test that different DPI values with same figsize maintain aspect ratio.
+        """
+        # Prepare inputs.
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        title = "Aspect Ratio"
+        figsize = (12, 8)
+        # Get images with different DPI values.
+        img_100 = self._get_image_from_graph(G, title, figsize=figsize, dpi=100)
+        img_200 = self._get_image_from_graph(G, title, figsize=figsize, dpi=200)
+        # Check aspect ratios are the same.
+        aspect_100 = img_100.size[0] / img_100.size[1]
+        aspect_200 = img_200.size[0] / img_200.size[1]
+        expected_aspect = figsize[0] / figsize[1]
+        # All should be close to the expected aspect ratio
+        self.assertAlmostEqual(aspect_100, expected_aspect, places=1)
+        self.assertAlmostEqual(aspect_200, expected_aspect, places=1)

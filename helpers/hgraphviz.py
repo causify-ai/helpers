@@ -31,7 +31,6 @@ FIG_SIZE = (10, 8)
 FIG_DPI = 150
 
 
-# TODO(ai_gp): Add support for figsize and DPI.
 def _graph_to_graphviz_dot(
     G: nx.DiGraph,
     title: str,
@@ -39,6 +38,7 @@ def _graph_to_graphviz_dot(
     node_colors: Optional[Mapping[str, Any]] = None,
     edge_colors: Optional[Mapping[Tuple[str, str], Any]] = None,
     size: Optional[Tuple[float, float]] = None,
+    dpi: int = FIG_DPI,
 ) -> str:
     """
     Convert a networkx DiGraph to a graphviz DOT string with styling.
@@ -50,6 +50,7 @@ def _graph_to_graphviz_dot(
     :param node_colors: Optional per-node fill color
     :param edge_colors: Optional per-edge color
     :param size: Optional figure size as (width, height) in inches
+    :param dpi: Dots per inch for rendering (default: FIG_DPI)
     :return: DOT string for graphviz rendering
     """
 
@@ -65,6 +66,7 @@ def _graph_to_graphviz_dot(
     lines = ["digraph {", "    rankdir=TB;", "    splines=true;"]
     if size is not None:
         lines.append(f'    size="{size[0]},{size[1]}";')
+    lines.append(f"    dpi={dpi};")
     lines.append("    nodesep=0.6;")
     lines.append("    ranksep=0.6;")
     lines.append(
@@ -113,11 +115,10 @@ def plot_dag_with_graphviz(
     if figsize is None:
         figsize = FIG_SIZE
     dot_str = _graph_to_graphviz_dot(
-        G, title, node_colors=node_colors, edge_colors=edge_colors, size=figsize
+        G, title, node_colors=node_colors, edge_colors=edge_colors, size=figsize, dpi=dpi
     )
     # Render to PNG with specified DPI.
     g = graphviz.Source(dot_str, format="png")
-    # TODO(gp): DPI setting doesn't work in graphviz.Source.
     png_data = g.pipe(format="png")
     img = Image.open(io.BytesIO(png_data))
     if ax is not None:
