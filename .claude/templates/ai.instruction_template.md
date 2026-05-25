@@ -5,7 +5,7 @@
   clarifications
 
 - For all the code you must follow the instructions in
-  @.claude/skills/coding.rules.md
+  `.claude/skills/coding.rules.md`
 
 # Rules
 
@@ -33,15 +33,15 @@ next step
   the plan is
 
 - For all the code you must follow the instructions in
-  @.claude/skills/coding.rules.md
+  `.claude/skills/coding.rules.md`
 
 ## Step 2)
 - Update the file README.md in the same directory of the script following the
-  instructions in @.claude/skills/readme.create.md
+  instructions in `.claude/skills/readme.create.md`
 
 ## Step 3)
 - Generate unit tests for the code following the instructions in
-  @.claude/skills/testing.format.md
+  `.claude/skills/testing.format.md`
   - Write test class and methods
   - Preview unit tests that need to be written by creating input and expected
     outputs
@@ -49,7 +49,7 @@ next step
 
 ## Step 4)
 - Implement unit test code for the code following the instructions in
-  @.claude/skills/testing.format.md
+  `.claude/skills/testing.format.md`
 
 # Implement Notebook Script
 
@@ -59,7 +59,7 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md
 
 ## Build the Notebook Script
 - Read $source and understand the bin analogy
-- Execute @.claude/skills/notebook.create_visual_script.md to create the script
+- Execute `.claude/skills/notebook.create_visual_script.md` to create the script
   for the concept
 
 ## Build the Notebook
@@ -68,7 +68,7 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md
   > cp ./msml610/tutorials/template.ipynb $notebook
   > git add $notebook
   ```
-- Execute @.claude/skills/notebook.implement_script.md for cells between
+- Execute `.claude/skills/notebook.implement_script.md` for cells between
   <start> and <end> of $script
 - Update $notebook
 
@@ -78,14 +78,14 @@ Given the passed code
 
 ## Step 1)
 - Generate unit tests for the code following the instructions in
-  @.claude/skills/testing.format.md
+  `.claude/skills/testing.format.md`
 - Focus on writing test class and methods and their docstring without implement
   testing code
 
 ## Step 2)
 - Once the user has approved the testing code, implement the testing code
 - For all the code you must follow the instructions in
-  @.claude/skills/coding.rules.md
+  `.claude/skills/coding.rules.md`
 
 # Rename Files
 
@@ -125,15 +125,15 @@ Given the passed code
 
 ## Step 3) Implement Code
   - Implement the code following the instructions in
-    @.claude/skills/coding.rules.md
+    `.claude/skills/coding.rules.md`
 
 ## Step 4) Come Up with a Plan for the Tests
   - Implement unit tests following the instructions in 
-    @.claude/skills/testing.format.md
+    `.claude/skills/testing.format.md`
 
 ## Step 5) Implement Tests
   - Implement unit tests following the instructions in 
-    @.claude/skills/testing.format.md
+    `.claude/skills/testing.format.md`
 
 ## Step 6) Create New README
   - If it's a new script, find where the documentation of this change should go
@@ -142,10 +142,10 @@ Given the passed code
   - Explain the goal of the script
   - Report some examples of how to use the script
   - Update the file README.md in the same directory of the script following the
-    instructions in @.claude/skills/readme.create.md
+    instructions in `.claude/skills/readme.create.md`
 
 # Write Short Tutorial
 
-- Execute @.claude/skills/blog.write_tutorial.md about ripgrep
+- Execute .claude/skills/blog.write_tutorial.md about ripgrep
 
 - Write the result in `website/docs/blog/drafts/ripgrep.md

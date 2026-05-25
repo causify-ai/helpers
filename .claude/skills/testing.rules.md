@@ -5,7 +5,7 @@
 ## Test One Thing
 - A test class tests only one function or class; a test method tests only one
   case
-- Keeps failures easy to diagnose — one thing broken means one test fails
+- Keeps failures easy to diagnose: one thing broken means one test fails
 
 ## Keep Tests Self-Contained
 - Each test must be independent and never assume execution order
@@ -25,25 +25,25 @@
   - Happy path (normal, expected input)
   - Edge cases (boundary conditions)
     - E.g., empty input, zero, single item, large input
-  - Do not test heavily error conditions (e.g., invalid input)
+
+## What not to Test
+- Do not test heavily error conditions (e.g., invalid input and assertion)
 
 # File and Test Structure
 
 ## File Structure
 - For a source file `<module_name>.py`, the corresponding test file is
   `test/test_<module_name>.py`
-- Start with one file per directory (`test_<dirname>.py`); split into per-module
-  files (`test_<module>.py`) only when the single file grows too large
 
 ## Directory Structure
 - Golden files: `test/outcomes/<TestClass.test_method>/output/test.txt`
-- Ephemeral scratch: `test/scratch/<TestClass.test_method>/` — automatically
-  deleted by `hunitest.TestCase.tearDown()`; do not delete it explicitly in test
-  code
+- Ephemeral scratch: `test/scratch/<TestClass.test_method>/`
+  - It is automatically deleted by `hunitest.TestCase.tearDown()`
+  - Do not delete it explicitly in test code
 
 ## Directory Helpers
-- All path helpers are methods on `hunitest.TestCase`; paths are scoped to the
-  running class and method automatically
+- All path helpers are methods on `hunitest.TestCase`
+- Paths are scoped to the running class and method automatically
 
   | Method                 | Returns                                                          |
   | ---------------------- | ---------------------------------------------------------------- |
@@ -54,23 +54,19 @@
   | `get_s3_input_dir()`   | S3 path for fixtures too large to commit to git                  |
 
 ## Use Text Files, Not Pickle
-- Prefer CSV / plain text fixtures over pickle
-- Pickle is not stable across library versions and not human-readable
+- Use human readable files (e.g., CSV, JSOn, plain input files) over pickle
+  - Pickle is not stable across library versions and not human-readable
 - Document how generated test data was produced
 
 ## Keep Test Data Small
 - Use the smallest dataset that exercises the case
-- Never commit fixtures larger than a few kilobytes
-
 
 ## Unit Test Code Structure
 
 - Always derive testing classes from `hunitest.TestCase`
 
 - Use the code from `.claude/templates/testing.template.py` as reference
-
-- Use this exact structure:
-
+- Use this exact structure for a unit test
   ```python
   import logging
 
@@ -85,7 +81,10 @@
       Brief description of what this test class tests.
       """
 
-      # Test methods here
+      # Test methods here.
+      def test1(self): ...
+
+      def test2(self): ...
 
 
   class TestClassName2(hunitest.TestCase):
@@ -93,15 +92,18 @@
       Brief description of what this test class tests.
       """
 
-      # Test methods here
+      # Test methods here.
+      def test1(self): ...
+
+      def test2(self): ...
   ```
 
 ## Consolidate Inputs and Outputs
 
-- Organize input variables in a consecutive block and organize output variables
-  in a consecutive block
+- Organize input variables in a consecutive code block and then organize output
+  variables in a consecutive code block
   - **Bad** (the input and output dirs are mixed)
-    ```
+    ```python
     # Create input and output directories.
     input_dir = self_.get_input_dir()
     output_dir = self_.get_output_dir()
@@ -114,16 +116,16 @@
     # Create output file path.
     output_file = os.path.join(output_dir, f"test_output.{output_ext}")
     ```
-  - **Good**
-    ```
+  - **Good** (first code related to inputs and then code related to output)
+    ```python
     # Create inputs.
     input_dir = self_.get_input_dir()
-    output_dir = self_.get_output_dir()
     input_file = os.path.join(input_dir, f"test.{input_ext}")
     input_content = hprint.dedent(input_content)
     hio.to_file(input_file, input_content)
     _LOG.debug("Created input file: %s", input_file)
     # Create outputs.
+    output_dir = self_.get_output_dir()
     hio.create_dir(output_dir, incremental=True)
     output_file = os.path.join(output_dir, f"test_output.{output_ext}")
     ```
@@ -153,7 +155,7 @@
 	prefer positional invocation for required parameters
 
 - Example
-  - If the called function looks like:
+  - Given a called function that looks like:
     ```python
     def helper(
         self,
@@ -203,12 +205,12 @@
 
 - For test method names always number the method tests, as `test1`, `test2`
   since the explanation of what they do is in the docstring
-  - **Good**
-    - `test1`
-    - `test2`
   - **Bad**
     - `test_preserve_yaml_frontmatter`
     - `test_page_separator_removal_with_frontmatter`
+  - **Good**
+    - `test1`
+    - `test2`
 
 # Code Formatting in Tests
 
@@ -224,7 +226,8 @@
     Content for file2
     """
     ```
-  - **Good**: String is indented and dedented in code
+  - **Good**: String is indented to the variable and then
+    `hprint.dedent(content)`
     ```python
     def hello(self) -> None:
         content = """
@@ -250,16 +253,12 @@
         # Prepare inputs.
         txt = """
         - Delete unused reference files
-          ```bash
           > rm Dockerfile.ubuntu
-          ```
         """
         # Expected: no changes needed.
         expected = """
         - Delete unused reference files
-          ```bash
           > rm Dockerfile.ubuntu
-          ```
         """
         # Run test.
         self.helper(txt, expected)
@@ -273,9 +272,7 @@
         # Prepare inputs.
         txt = """
         - Delete unused reference files
-          ```bash
           > rm Dockerfile.ubuntu
-          ```
         """
         # Expected: no changes needed.
         expected = txt
@@ -288,8 +285,8 @@
 ## Use Three Sections in Testing Methods
 
 - Every test method must have three sections with standard comments:
-  - `# Prepare inputs.`: Input data setup
-  - `# Prepare outputs.`: Expected output setup
+  - `# Prepare inputs.`: Input data
+  - `# Prepare outputs.`: Expected output
   - `# Run test.`: Test execution
   - `# Check outputs.`: Result verification
 
@@ -299,7 +296,9 @@
       Brief description of what this tests.
       """
       # Prepare inputs.
-      <setup test data>
+      <setup input test data>
+      # Prepare outputs.
+      <setup output test data>
       # Run test.
       <call function under test>
       # Check outputs.
@@ -307,9 +306,7 @@
   ```
 
 - You must preserve test structure comments that organize test logic into
-  sections
-  - These comments provide consistent structure for unit tests and improve
-    readability
+  sections to provide consistent structure for unit tests and improve readability
   - **Good**: (test structure is clear)
     ```python
     def test1(self) -> None:
@@ -376,7 +373,15 @@
 
 ## Use Input and Scratch Space from `hunittest`
 
-- Use scratch space for file testing:
+- When the inputs are too big (e.g., more than 2000 characters) use a file in
+  the input directory:
+  ```python
+  # Prepare inputs.
+  input_file = os.path.join(self.get_input_dir(), "test_data.json")
+  data = hio.from_json(input_file)
+  ```
+
+- When the unit test needs some intermediate file, use the scratch space:
   ```python
   # Prepare inputs.
   scratch_dir = self.get_scratch_space()
@@ -384,23 +389,17 @@
   hio.to_file(test_file, "content")
   ```
 
-- Use input directory for large test data:
-  ```python
-  # Prepare inputs.
-  input_file = os.path.join(self.get_input_dir(), "test_data.json")
-  data = hio.from_json(input_file)
-  ```
-
 ## Setup and Teardown
 
-- Use `set_up_test()` / `tear_down_test()` via `@pytest.fixture(autouse=True)` for
-  per-method setup; never override `setUp()` / `tearDown()` directly
+- Use `set_up_test()` and `tear_down_test()` via `@pytest.fixture(autouse=True)`
+  for per-method setup
+  - Never override `setUp()` / `tearDown()` directly
 - For inherited test classes that both need setup, add a numeric suffix:
-  - Parent: `set_up_test()` / `tear_down_test()`
-  - Child: `set_up_test2()` / `tear_down_test2()` — must call parent hooks
+  - Parent: `set_up_test()`, `tear_down_test()`
+  - Child: `set_up_test2()`, `tear_down_test2()`, which must call parent hooks
   - Next level: `set_up_test3()`, etc.
-- Use `setUpClass` / `tearDownClass` only for expensive one-time class-scoped
-  setup (DB connection, shared file); decorate with `@classmethod`
+- Use `setUpClass` and `tearDownClass` only for expensive one-time class-scoped
+  setup (DB connection, shared file) and decorate with `@classmethod`
 - Use this idiom when multiple test methods need the same setup/teardown code:
   ```python
   class TestClassName(hunitest.TestCase):
@@ -433,7 +432,7 @@
 
       def test_method1(self) -> None:
           """
-          Test description.i
+          Test description.
           """
           # Use self.test_data here.
   ```
@@ -444,15 +443,14 @@
 
 - Use multi-line strings with `hprint.dedent()` for values instead of escaped
   newline strings to improve readability:
-  - **Bad**: Escaped newlines
+  - **Bad**: (Escaped newlines)
     ```python
     text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
     ```
-  - **Good**: Multi-line strings are human-readable
+  - **Good**: (Use multi-line strings, since they are human-readable)
     ```python
     text = """
     # Chapter 1
-
 
     ## Section 1.1
     Content 1.1
@@ -466,7 +464,7 @@
 
 - Always use multiline text aligned to the variable of the string and then call
   `hpring.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
-  - **Bad**
+  - **Bad** (the text is not aligned to the variable)
     ```python
     # Prepare inputs.
     text = """
@@ -475,7 +473,7 @@ line2
 line3
     """
     ```
-  - **Good**
+  - **Good** (the text is aligned to the variable and then dedent-ed)
     ```python
     # Prepare inputs.
     text = """
@@ -490,9 +488,13 @@ line3
 
 ## Use an Expected Output
 
-- Instead of using assertions use an expected output
-  - **Bad**
-    ```
+- Do not use assertion to check each part of the output, but convert the output
+  in a human-readable representation (e.g., with `pprint.pformat`) and then
+  compare it to a string representing the expected value
+
+  - **Bad** (check each component of the actual output to its expected value)
+    ```python
+    actual = ...
     # Check outputs.
     self.assertEqual(
         actual["repo_info"]["repo_name"],
@@ -514,7 +516,8 @@ line3
         actual["runnable_dir_info"]["use_helpers_as_nested_module"]
     )
     ```
-  - **Good**
+  - **Good** (convert the actual output into a string and then compare it to the
+    expected value)
     ```python
     actual = pprint.pfromat(actual)
     expected = """
@@ -547,40 +550,44 @@ line3
   self.assertEqual(actual, expected)
   ```
 
-- Use `self.assert_equal()` when the arguments are strings
+- Always Use `self.assert_equal()` when the arguments are strings
 
-- Compare data structures `XYZ` (e.g., lists, dicts) as strings:
+- Compare data structures `XYZ` (e.g., lists, dicts) as strings with
+  `self.assert_equal()`
   ```python
   # Check outputs.
   self.assert_equal(str(actual), str(expected))
   ```
 
-- Compare with fuzzy matching which ignores whitespace differences when needed:
+- Compare with fuzzy matching `self.assert_equal(..., fuzzy_match=True)` which
+  ignores whitespace differences when needed:
   ```python
   # Check outputs.
   self.assert_equal(actual, expected, fuzzy_match=True)
   ```
 
-- Compare with text purification to remove implementation details (e.g., memory
-  addresses, paths, usernames, timestamps, and other machine/environment-specific
-  details that would cause test failures when run on different systems)
+- Compare with text purification `self.assert_equal(..., purify_text=True)` to
+  remove implementation details (e.g., memory addresses, paths, usernames,
+  timestamps, and other machine/environment-specific details that would cause
+  test failures when run on different systems)
   ```python
   # Check outputs.
   self.assert_equal(actual, expected, purify_text=True)
   ```
 
-- Compare strings with auto-dedent:
+- Compare strings with `self.assert_equal()`
   ```python
   # Check outputs.
   expected = """
-      line1
-      line2
-      """
+  line1
+  line2
+  """
   self.assert_equal(actual, expected, dedent=True)
   ```
 
-- Do not use `hdbg.dassert` — it guards production invariants and is not a
-  substitute for test assertions; use `self.assert*` family instead
+- Do not use `hdbg.dassert` since it guards production invariants and is not a
+  substitute for test assertions
+  - Always use `self.assert*` family instead
 
 ## Testing Exceptions
 
@@ -592,13 +599,15 @@ line3
       """
       # Prepare inputs.
       invalid_input = <value>
-      # Run test and check output.
-      with self.assertRaises(ExceptionType) as cm:
-          function_under_test(invalid_input)
-      actual = str(cm.exception)
+      # Prepare outputs.
       expected = """
       Expected error message
       """
+      # Run test.
+      with self.assertRaises(ExceptionType) as cm:
+          function_under_test(invalid_input)
+      # Check output.
+      actual = str(cm.exception)
       self.assert_equal(actual, expected, fuzzy_match=True)
   ```
 
@@ -623,16 +632,19 @@ line3
       """
       # Prepare inputs.
       invalid_input = <value>
-      # Run test and check output.
+      # Prepare outputs.
+      expected = "expected substring"
+      # Run test.
       with self.assertRaises(AssertionError) as cm:
           function_under_test(invalid_input)
-      self.assertIn("expected substring", str(cm.exception))
+      # Check output.
+      self.assertIn(expected, str(cm.exception))
   ```
 
 ## Use Golden File Testing Only for Large Outputs
 
 - Always use `self.assert_equal()` to do a comparison of actual with the expected
-  value hard wired in the code
+  value hardwired in the code
 - The only exception is when output is large (e.g., longer than 20 lines) or
   changes frequently use `self.check_string()` instead of `self.assert_equal()`
   - E.g.,
@@ -654,8 +666,12 @@ line3
   self.check_string(actual, fuzzy_match=True)
   ```
 
-# End-to-end Unit Tests for CLI Commands
-- End-to-end tests for command-line tools should:
+# End-to-end Unit Tests for Executables
+
+- For testing an executable like `<process_file.py>` use a test class called
+  `Test_process_file_py`
+
+- For testing executables use end-to-end tests that:
   1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
      and record calls to `subprocess.run()`, `hsystem.system()`, and
      `hsystem.system_to_string()`

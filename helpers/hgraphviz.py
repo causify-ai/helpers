@@ -24,6 +24,7 @@ import helpers.hdbg as hdbg
 _LOG = logging.getLogger(__name__)
 
 # Default figure size for DAG visualizations
+# TODO(ai_gp): -> DAG_FIGURE_SIZE
 FIG_SIZE = (10, 8)
 
 # Default DPI for image rendering
@@ -37,6 +38,7 @@ def _graph_to_graphviz_dot(
     *,
     node_colors: Optional[Mapping[str, Any]] = None,
     edge_colors: Optional[Mapping[Tuple[str, str], Any]] = None,
+    size: Optional[Tuple[float, float]] = None,
 ) -> str:
     """
     Convert a networkx DiGraph to a graphviz DOT string with styling.
@@ -47,6 +49,7 @@ def _graph_to_graphviz_dot(
     :param title: Graph title
     :param node_colors: Optional per-node fill color
     :param edge_colors: Optional per-edge color
+    :param size: Optional figure size as (width, height) in inches
     :return: DOT string for graphviz rendering
     """
 
@@ -60,6 +63,8 @@ def _graph_to_graphviz_dot(
 
     # Build the DOT representation.
     lines = ["digraph {", "    rankdir=TB;", "    splines=true;"]
+    if size is not None:
+        lines.append(f"    size=\"{size[0]},{size[1]}\";")
     lines.append("    nodesep=0.6;")
     lines.append("    ranksep=0.6;")
     lines.append(
