@@ -703,9 +703,42 @@ line3
 
 # End-to-end Unit Tests for Executables
 
+## Test Name
 - For testing an executable like `<process_file.py>` use a test class called
   `Test_process_file_py`
 
+## Test Behavior, Not Implementation
+- Prefer validating externally observable behavior over internal implementation details
+- E.g., Verify:
+	- generated files
+	- stdout/stderr
+	- exit codes
+	- constructed commands
+	- side effects on disk
+
+## Create Files in the Scratch Space
+- Always create test files under `self.get_scratch_space()` rather than mocking
+  file access
+
+The goal is to exercise as much real code as possible, so do not mock:
+	- filesystem operations
+	- argument parsing
+	- orchestration logic
+
+- This keeps tests closer to real execution and validates more of the system end
+  to end
+- Use realistic:
+	- directory layouts
+	- file names
+	- file contents
+	- command-line arguments
+
+## Run Command Instead of Calling its Main
+- Do not inject (`sys.argv = ["process_jupytext.py"] + args_list`)
+  and call the main of the script (e.g., `_main(parser)`)
+- Instead call the executable directly with a call like `hsystem.system()`
+
+## Use the Mocking Infrastructure
 - For testing executables use end-to-end tests that:
   1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
      and record calls to `subprocess.run()`, `hsystem.system()`, and

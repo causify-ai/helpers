@@ -143,9 +143,15 @@ def _test(file_name: str, action: str) -> None:
         # Here we handle special cases that must be escaped.
         _LOG.debug("rc=%s, txt=\n'%s'", rc, txt)
         if _is_jupytext_version_different(txt):
-            pass
+            _LOG.warning(
+                "'%s': PASSED (with jupytext version mismatch, which is ignored)",
+                file_name,
+            )
         else:
+            _LOG.error("'%s': FAILED", file_name)
             raise RuntimeError(txt)
+    else:
+        _LOG.info("'%s': PASSED", file_name)
 
 # #############################################################################
 # Diff
