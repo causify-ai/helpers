@@ -33,11 +33,9 @@ conversion, image extraction, publishing, and testing workflows.
 - `ipynb_format.py`
   - Formats code cells in Jupyter notebooks using yapf style configuration
 
-- `jupytext_diff.py`
-  - Compares Jupyter notebook with paired Python file using vimdiff and jupytext
-
 - `process_jupytext.py`
-  - Automates jupytext workflows including pairing, syncing, and testing notebook conversions
+  - Automates jupytext workflows including pairing, syncing, testing, and
+    comparing notebook conversions
 
 - `profile_test_durations.py`
   - Notebook for analyzing and visualizing test execution durations and performance
@@ -153,33 +151,13 @@ conversion, image extraction, publishing, and testing workflows.
     > ./ipynb_format.py --style google my_notebook.ipynb
     ```
 
-### `jupytext_diff.py`
-
-- **What It Does**:
-  - Finds the paired file (.py for .ipynb or vice versa)
-  - Reports which file has been modified more recently
-  - Extracts Python code from notebook and runs vimdiff comparison
-
-- **Examples**:
-
-  - Compare notebook with its paired Python file:
-
-    ```bash
-    > ./jupytext_diff.py my_notebook.ipynb
-    ```
-
-  - Compare Python file with its paired notebook:
-
-    ```bash
-    > ./jupytext_diff.py my_script.py
-    ```
-
 ### `process_jupytext.py`
 
 - **What It Does**:
   - Pairs unpaired notebooks with Python files using percent format
   - Synchronizes changes between notebooks and paired Python files
   - Tests round-trip conversion to ensure no data loss
+  - Compares notebooks with paired Python files using vimdiff
 
 - **Examples**:
 
@@ -213,6 +191,22 @@ conversion, image extraction, publishing, and testing workflows.
     > ./process_jupytext.py \
         --file my_notebook.ipynb \
         --action test_strict
+    ```
+
+  - Compare notebook with its paired Python file:
+
+    ```bash
+    > ./process_jupytext.py \
+        --file my_notebook.ipynb \
+        --action diff
+    ```
+
+  - Compare Python file with its paired notebook:
+
+    ```bash
+    > ./process_jupytext.py \
+        --file my_script.py \
+        --action diff
     ```
 
 ### `publish_notebook.py`

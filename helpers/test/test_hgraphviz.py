@@ -10,6 +10,33 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
     Test the _graph_to_graphviz_dot function.
     """
 
+    def helper(
+        self,
+        G: nx.DiGraph,
+        title: str,
+        expected: str,
+        *,
+        node_colors=None,
+        edge_colors=None,
+        size=None,
+    ) -> None:
+        """
+        Test helper for _graph_to_graphviz_dot.
+
+        :param G: Input directed acyclic graph
+        :param title: Graph title
+        :param expected: Expected DOT output string
+        :param node_colors: Optional per-node fill colors
+        :param edge_colors: Optional per-edge colors
+        :param size: Optional figure size
+        """
+        # Run test.
+        actual = hgraphviz._graph_to_graphviz_dot(
+            G, title, node_colors=node_colors, edge_colors=edge_colors, size=size
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
     def test1(self) -> None:
         """
         Test basic graph with two nodes and one edge.
@@ -18,8 +45,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G = nx.DiGraph()
         G.add_edge("A", "B")
         title = "Test Graph"
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(G, title)
         # Prepare outputs.
         expected = """
         digraph {
@@ -33,8 +58,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "A" -> "B" [color="#555555", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected)
 
     def test2(self) -> None:
         """
@@ -44,8 +69,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G = nx.DiGraph()
         G.add_edges_from([("A", "B"), ("B", "C"), ("A", "C")])
         title = "Multi Node Graph"
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(G, title)
         # Prepare outputs.
         expected = """
         digraph {
@@ -62,8 +85,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "B" -> "C" [color="#555555", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected)
 
     def test3(self) -> None:
         """
@@ -74,10 +97,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G.add_edge("A", "B")
         title = "Colored Graph"
         node_colors = {"A": "#FF0000", "B": "#00FF00"}
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(
-            G, title, node_colors=node_colors
-        )
         # Prepare outputs.
         expected = """
         digraph {
@@ -91,8 +110,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "A" -> "B" [color="#555555", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected, node_colors=node_colors)
 
     def test4(self) -> None:
         """
@@ -103,10 +122,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G.add_edge("A", "B")
         title = "Edge Colors"
         edge_colors = {("A", "B"): "#0000FF"}
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(
-            G, title, edge_colors=edge_colors
-        )
         # Prepare outputs.
         expected = """
         digraph {
@@ -120,8 +135,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "A" -> "B" [color="#0000FF", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected, edge_colors=edge_colors)
 
     def test5(self) -> None:
         """
@@ -132,8 +147,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G.add_edge("A", "B")
         title = "Sized Graph"
         size = (12.5, 10.5)
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(G, title, size=size)
         # Prepare outputs.
         expected = """
         digraph {
@@ -148,8 +161,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "A" -> "B" [color="#555555", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected, size=size)
 
     def test6(self) -> None:
         """
@@ -159,8 +172,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G = nx.DiGraph()
         G.add_node("A")
         title = "Single Node"
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(G, title)
         # Prepare outputs.
         expected = """
         digraph {
@@ -172,8 +183,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "A" [fillcolor="#A6C8F4"];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected)
 
     def test7(self) -> None:
         """
@@ -184,8 +195,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G.add_edge(1, 2)
         G.add_edge(2, 3)
         title = "Numeric Nodes"
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(G, title)
         # Prepare outputs.
         expected = """
         digraph {
@@ -201,8 +210,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "2" -> "3" [color="#555555", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected)
 
     def test8(self) -> None:
         """
@@ -213,10 +222,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G.add_node("A")
         title = "Hex Color Test"
         node_colors = {"A": "#ABCDEF"}
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(
-            G, title, node_colors=node_colors
-        )
         # Prepare outputs.
         expected = """
         digraph {
@@ -228,8 +233,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "A" [fillcolor="#ABCDEF"];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected, node_colors=node_colors)
 
     def test9(self) -> None:
         """
@@ -240,10 +245,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G.add_edge("A", "B")
         title = "Partial Colors"
         node_colors = {"A": "#FF0000"}
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(
-            G, title, node_colors=node_colors
-        )
         # Prepare outputs.
         expected = """
         digraph {
@@ -257,8 +258,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "A" -> "B" [color="#555555", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected, node_colors=node_colors)
 
     def test10(self) -> None:
         """
@@ -269,10 +270,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G.add_edges_from([("A", "B"), ("B", "C")])
         title = "Partial Edge Colors"
         edge_colors = {("A", "B"): "#FF0000"}
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(
-            G, title, edge_colors=edge_colors
-        )
         # Prepare outputs.
         expected = """
         digraph {
@@ -288,8 +285,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "B" -> "C" [color="#555555", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected, edge_colors=edge_colors)
 
     def test11(self) -> None:
         """
@@ -299,8 +296,6 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         G = nx.DiGraph()
         G.add_edges_from([("Start", "Process"), ("Process", "End")])
         title = "Valid DOT"
-        # Run test.
-        actual = hgraphviz._graph_to_graphviz_dot(G, title)
         # Prepare outputs.
         expected = """
         digraph {
@@ -316,8 +311,8 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
             "Process" -> "End" [color="#555555", penwidth=2.0];
         }
         """
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(G, title, expected)
 
 
 class Test_plot_dag_with_graphviz(hunitest.TestCase):
@@ -661,98 +656,109 @@ class Test_plot_causal_dag(hunitest.TestCase):
     Test the plot_causal_dag function.
     """
 
+    def helper(
+        self,
+        mode: str,
+        title: str,
+        *,
+        G: nx.DiGraph | None = None,
+        node_colors=None,
+        edge_colors=None,
+        figsize=None,
+        dpi: int = hgraphviz.FIG_DPI,
+        pos=None,
+    ) -> None:
+        """
+        Test helper for plot_causal_dag.
+
+        :param mode: Visualization mode
+        :param title: Graph title
+        :param G: Input directed acyclic graph (defaults to simple A->B)
+        :param node_colors: Optional per-node fill colors
+        :param edge_colors: Optional per-edge colors
+        :param figsize: Optional figure size
+        :param dpi: Resolution in dots per inch
+        :param pos: Optional node position dictionary
+        """
+        if G is None:
+            G = nx.DiGraph()
+            G.add_edge("A", "B")
+        # Run test.
+        ax = hgraphviz.plot_causal_dag(
+            G,
+            title,
+            mode=mode,
+            node_colors=node_colors,
+            edge_colors=edge_colors,
+            figsize=figsize,
+            dpi=dpi,
+            pos=pos,
+        )
+        # Check outputs.
+        self.assertIsNotNone(ax)
+
     def test1(self) -> None:
         """
         Test graphviz mode.
         """
         # Prepare inputs.
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
         title = "Graphviz Mode"
         mode = "graphviz"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(G, title, mode=mode)
-        # Check outputs.
-        self.assertIsNotNone(ax)
+        self.helper(mode, title)
 
     def test2(self) -> None:
         """
         Test networkx_rounded_boxes mode.
         """
         # Prepare inputs.
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
         title = "NetworkX Rounded Mode"
         mode = "networkx_rounded_boxes"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(G, title, mode=mode)
-        # Check outputs.
-        self.assertIsNotNone(ax)
+        self.helper(mode, title)
 
     def test3(self) -> None:
         """
         Test networkx mode.
         """
         # Prepare inputs.
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
         title = "NetworkX Mode"
         mode = "networkx"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(G, title, mode=mode)
-        # Check outputs.
-        self.assertIsNotNone(ax)
+        self.helper(mode, title)
 
     def test4(self) -> None:
         """
         Test with custom node colors.
         """
         # Prepare inputs.
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
         title = "With Node Colors"
         node_colors = {"A": "#FF0000", "B": "#00FF00"}
         mode = "graphviz"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(
-            G, title, mode=mode, node_colors=node_colors
-        )
-        # Check outputs.
-        self.assertIsNotNone(ax)
+        self.helper(mode, title, node_colors=node_colors)
 
     def test5(self) -> None:
         """
         Test with custom edge colors.
         """
         # Prepare inputs.
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
         title = "With Edge Colors"
         edge_colors = {("A", "B"): "#0000FF"}
         mode = "graphviz"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(
-            G, title, mode=mode, edge_colors=edge_colors
-        )
-        # Check outputs.
-        self.assertIsNotNone(ax)
+        self.helper(mode, title, edge_colors=edge_colors)
 
     def test6(self) -> None:
         """
         Test with custom figsize.
         """
         # Prepare inputs.
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
         title = "With Figsize"
         figsize = (12, 10)
         mode = "graphviz"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(
-            G, title, mode=mode, figsize=figsize
-        )
-        # Check outputs.
-        self.assertIsNotNone(ax)
+        self.helper(mode, title, figsize=figsize)
 
     def test7(self) -> None:
         """
@@ -775,15 +781,11 @@ class Test_plot_causal_dag(hunitest.TestCase):
         Test with custom DPI.
         """
         # Prepare inputs.
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
         title = "With DPI"
         dpi = 300
         mode = "graphviz"
         # Run test.
-        ax = hgraphviz.plot_causal_dag(G, title, mode=mode, dpi=dpi)
-        # Check outputs.
-        self.assertIsNotNone(ax)
+        self.helper(mode, title, dpi=dpi)
 
     def test9(self) -> None:
         """

@@ -147,11 +147,11 @@
 
 ### Refresh all the scripts
 
-- The script `dev_scripts_helpers/notebooks/process_jupytext.py` automates some of the
-  workflow in Jupytext (see the help)
+- The script `process_jupytext.py` automates some of the workflow in Jupytext
+  (see the help)
 
 - The script `dev_scripts_helpers/notebooks/process_all_jupytext.sh` applies
   `process_jupytext.py` to all the `ipynb` files
   ```bash
-  > dev_scripts/notebooks/process_all_jupytext.sh <ACTION>
+  > process_all_jupytext.sh <ACTION>
   ```
