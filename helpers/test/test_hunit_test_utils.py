@@ -42,9 +42,7 @@ class TestUnitTestRenamer(hunitest.TestCase):
         content = hprint.dedent(content)
         return content
 
-    def helper_rename(
-        self, old_name: str, new_name: str, content: str
-    ) -> str:
+    def helper_rename(self, old_name: str, new_name: str, content: str) -> str:
         """
         Test helper for class renaming.
 
@@ -232,9 +230,7 @@ class TestPytestRenameMethod(hunitest.TestCase):
         new_method_name = "TestOtherCases.test6"
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            hunteuti.UnitTestRenamer(
-                old_method_name, new_method_name, root_dir
-            )
+            hunteuti.UnitTestRenamer(old_method_name, new_method_name, root_dir)
 
 
 # #############################################################################
@@ -497,7 +493,9 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
     Test mapping lists of source files to test files.
     """
 
-    def helper(self, files: list, expected: list, *, sort_result: bool = False) -> None:
+    def helper(
+        self, files: list, expected: list, *, sort_result: bool = False
+    ) -> None:
         """
         Test helper for get_test_files_for_sources.
 
@@ -595,7 +593,9 @@ class Test_get_parent_dirs(hunitest.TestCase):
     Test extracting minimal parent directories from file list.
     """
 
-    def helper(self, files: list, expected: list, sort_result: bool = False) -> None:
+    def helper(
+        self, files: list, expected: list, sort_result: bool = False
+    ) -> None:
         """
         Test helper for get_parent_dirs.
 
@@ -794,9 +794,7 @@ class Test_capture_system_calls(hunitest.TestCase):
         side_effect = RuntimeError("Test error")
         # Run test and check output.
         with self.assertRaises(expected_exception):
-            with hunteuti.capture_system_calls(
-                side_effect=side_effect
-            ):
+            with hunteuti.capture_system_calls(side_effect=side_effect):
                 hsystem.system("echo test", suppress_output=True)
 
     def test6(self) -> None:
@@ -813,9 +811,7 @@ class Test_capture_system_calls(hunitest.TestCase):
         with hunteuti.capture_system_calls() as invocations:
             hsystem.system("echo test", suppress_output=True)
         # Check outputs.
-        hunteuti.assert_invocations(
-            self, invocations, expected_invocations_str
-        )
+        hunteuti.assert_invocations(self, invocations, expected_invocations_str)
 
     def test7(self) -> None:
         """

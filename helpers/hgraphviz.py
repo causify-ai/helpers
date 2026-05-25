@@ -64,7 +64,7 @@ def _graph_to_graphviz_dot(
     # Build the DOT representation.
     lines = ["digraph {", "    rankdir=TB;", "    splines=true;"]
     if size is not None:
-        lines.append(f"    size=\"{size[0]},{size[1]}\";")
+        lines.append(f'    size="{size[0]},{size[1]}";')
     lines.append("    nodesep=0.6;")
     lines.append("    ranksep=0.6;")
     lines.append(

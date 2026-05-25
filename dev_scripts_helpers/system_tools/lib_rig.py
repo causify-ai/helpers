@@ -16,7 +16,6 @@ from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
-import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)

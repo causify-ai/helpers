@@ -1,9 +1,14 @@
 import logging
 
-import linters2.lint_cc as l2lccc
+import linters2.lint_cc as llincc
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_infer_topic_from_filename
+# #############################################################################
 
 
 class Test_infer_topic_from_filename(hunitest.TestCase):
@@ -19,7 +24,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         :param expected: Expected topic result
         """
         # Run test.
-        topic = l2lccc._infer_topic_from_filename(filename)
+        topic = llincc._infer_topic_from_filename(filename)
         # Check outputs.
         self.assertEqual(topic, expected)
 
@@ -152,7 +157,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         filename = "unsupported.xyz"
         # Run test and check outputs.
         with self.assertRaises(ValueError):
-            l2lccc._infer_topic_from_filename(filename)
+            llincc._infer_topic_from_filename(filename)
 
     def test13(self) -> None:
         """
@@ -177,6 +182,11 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         self.helper(filename, expected)
 
 
+# #############################################################################
+# Test_get_rules_for_topic
+# #############################################################################
+
+
 class Test_get_rules_for_topic(hunitest.TestCase):
     """
     Tests for `lint_cc._get_rules_for_topic()` function.
@@ -189,7 +199,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         :param topic: Topic name to retrieve rules for
         """
         # Run test.
-        topic_info = l2lccc._get_rules_for_topic(topic)
+        topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
         self.assertTrue(topic_info["run_lint"])
 
@@ -200,7 +210,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Prepare inputs.
         topic = "coding"
         # Run test.
-        topic_info = l2lccc._get_rules_for_topic(topic)
+        topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
         self.assertIn("role", topic_info)
         self.assertIn("rules", topic_info)
@@ -215,12 +225,10 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Prepare inputs.
         topic = "testing"
         # Run test.
-        topic_info = l2lccc._get_rules_for_topic(topic)
+        topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
         self.assertIn("rules", topic_info)
-        self.assertTrue(
-            any("testing" in r for r in topic_info["rules"])
-        )
+        self.assertTrue(any("testing" in r for r in topic_info["rules"]))
 
     def test3(self) -> None:
         """
@@ -229,7 +237,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Prepare inputs.
         topic = "markdown"
         # Run test.
-        topic_info = l2lccc._get_rules_for_topic(topic)
+        topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
         self.assertGreater(len(topic_info["rules"]), 0)
 
@@ -240,7 +248,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Prepare inputs.
         topic = "notebook"
         # Run test.
-        topic_info = l2lccc._get_rules_for_topic(topic)
+        topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
         self.assertTrue(topic_info["run_jupytext"])
 
@@ -270,7 +278,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         topic = "invalid_topic"
         # Run test and check outputs.
         with self.assertRaises(AssertionError):
-            l2lccc._get_rules_for_topic(topic)
+            llincc._get_rules_for_topic(topic)
 
     def test8(self) -> None:
         """
@@ -279,7 +287,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Prepare inputs.
         topic = "coding"
         # Run test.
-        topic_info = l2lccc._get_rules_for_topic(topic)
+        topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
         self.assertTrue(topic_info["role"].startswith(".claude/skills/"))
         for rule in topic_info["rules"]:
@@ -293,11 +301,22 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Prepare inputs.
         topics = [
-            "bash", "blog", "book", "coding", "interactive_notebook",
-            "latex", "markdown", "notebook", "readme", "skill", "slides",
-            "testing", "tool_X_in_30_mins", "tool_X_in_60_mins",
+            "bash",
+            "blog",
+            "book",
+            "coding",
+            "interactive_notebook",
+            "latex",
+            "markdown",
+            "notebook",
+            "readme",
+            "skill",
+            "slides",
+            "testing",
+            "tool_X_in_30_mins",
+            "tool_X_in_60_mins",
         ]
         # Run test and check outputs.
         for topic in topics:
-            topic_info = l2lccc._get_rules_for_topic(topic)
+            topic_info = llincc._get_rules_for_topic(topic)
             self.assertIsNotNone(topic_info)

@@ -1587,7 +1587,7 @@ def get_files_to_process(
     - `modified`: changed in the client (both staged and modified)
     - `last_commit`: part of the previous commit
     - `all_`: all the files in the repo
-    - `from_file`: file with a file 
+    - `from_file`: file with a list of files inside
 
     :param modified: return files modified in the client (i.e., changed with
         respect to HEAD)

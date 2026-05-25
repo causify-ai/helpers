@@ -338,13 +338,13 @@ def _parse() -> argparse.ArgumentParser:
         "--skill",
         type=str,
         default=None,
-        help="Execute a skill on selected files. E.g., `coding.fix_inline`"
+        help="Execute a skill on selected files. E.g., `coding.fix_inline`",
     )
     parser.add_argument(
         "--rule",
         type=str,
         default=None,
-        help="Execute a rule on selected files. E.g., `Use Inline Verbatim`"
+        help="Execute a rule on selected files. E.g., `Use Inline Verbatim`",
     )
     parser.add_argument(
         "--dry_run",
@@ -408,7 +408,9 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 topic_str = cast(str, topic)
             prompt, topic_info = _build_prompt(topic_str)
             prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
-            rc = _run_claude_code(prompt, topic_str, file_path, dry_run=args.dry_run)
+            rc = _run_claude_code(
+                prompt, topic_str, file_path, dry_run=args.dry_run
+            )
         ret |= rc
         if topic_info["run_jupytext"]:
             cmd = ["jupytext", "--sync", file_path]

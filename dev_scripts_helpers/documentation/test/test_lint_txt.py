@@ -512,7 +512,9 @@ class Test_remove_page_separators(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after removing page separators
         """
-        _helper_process_lines(self, txt, expected, dshdlitx._remove_page_separators)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._remove_page_separators
+        )
 
     def test1(self) -> None:
         """
@@ -1695,7 +1697,9 @@ class Test_capitalize_header(hunitest.TestCase):
         :param input_lines: Input markdown lines to process
         :param expected: Expected output after capitalize_header processing
         """
-        _helper_process_lines(self, input_lines, expected, hmarhead.capitalize_header)
+        _helper_process_lines(
+            self, input_lines, expected, hmarhead.capitalize_header
+        )
 
     def test1(self) -> None:
         """
@@ -2398,7 +2402,7 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
 
 
 # #############################################################################
-# Test backup and revert functionality
+# Test__get_backup_filename
 # #############################################################################
 
 
