@@ -44,6 +44,37 @@ def _helper_process_lines(
     self.assert_equal(actual, expected)
 
 
+def _get_text1() -> str:
+    """
+    Get sample text containing mathematical equations in LaTeX format.
+    """
+    txt = r"""
+    * Gradient descent for logistic regression
+    - The typical implementations of gradient descent (basic or advanced) need
+      two inputs:
+        - The cost function $E_{in}(\vw)$ (to monitor convergence)
+        - The gradient of the cost function
+          $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
+    - The cost function is:
+        $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
+
+    - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
+        $$
+        E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        \big)
+        $$
+
+    - In case of logistic regression in \{+1, -1\}:
+        $$E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))$$
+
+    - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
+      $\vw$ (sum of exponentials and flipped exponentials is convex and log is
+      monotone)"""
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+    return txt
+
+
 # #############################################################################
 # Test_lint_txt1
 # #############################################################################
@@ -132,7 +163,6 @@ class Test_lint_txt1(hunitest.TestCase):
         # ////////////////"""
         expected = r"""# test"""
         self.helper(txt, expected)
-
 
 
 # #############################################################################
@@ -265,7 +295,6 @@ class Test_remove_page_separators(hunitest.TestCase):
         expected = ""
         # Run test.
         self.helper(txt, expected)
-
 
 
 # #############################################################################
@@ -528,7 +557,6 @@ class Test__handle_empty_lines(hunitest.TestCase):
         self.helper(txt, expected)
 
 
-
 # #############################################################################
 # Test_add_blank_lines_between_headers
 # #############################################################################
@@ -716,7 +744,6 @@ class Test_add_blank_lines_between_headers(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, expected)
-
 
 
 # #############################################################################
@@ -929,7 +956,6 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, expected)
-
 
 
 # #############################################################################
@@ -1254,7 +1280,6 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         self.helper(txt, expected)
 
 
-
 # #############################################################################
 # Test_remove_markdown_formatting
 # #############################################################################
@@ -1549,38 +1574,6 @@ class Test_remove_markdown_formatting(hunitest.TestCase):
         self.helper(txt, expected)
 
 
-def _get_text1() -> str:
-    """
-    Get sample text containing mathematical equations in LaTeX format.
-    """
-    txt = r"""
-    * Gradient descent for logistic regression
-    - The typical implementations of gradient descent (basic or advanced) need
-      two inputs:
-        - The cost function $E_{in}(\vw)$ (to monitor convergence)
-        - The gradient of the cost function
-          $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
-    - The cost function is:
-        $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
-
-    - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
-        $$
-        E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-        \big)
-        $$
-
-    - In case of logistic regression in \{+1, -1\}:
-        $$E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))$$
-
-    - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
-      $\vw$ (sum of exponentials and flipped exponentials is convex and log is
-      monotone)"""
-    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-    return txt
-
-
-
 # #############################################################################
 # Test__remove_code_block_extra_indentation
 # #############################################################################
@@ -1772,7 +1765,6 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
         self.helper(txt, expected)
 
 
-
 # #############################################################################
 # Test_capitalize_header
 # #############################################################################
@@ -1888,7 +1880,6 @@ class Test_capitalize_header(hunitest.TestCase):
         """
         # Run test.
         self.helper(input_lines, expected)
-
 
 
 # #############################################################################
@@ -2188,7 +2179,6 @@ class Test_lint_txt2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
 
-
 # #############################################################################
 # Test_lint_txt_py1
 # #############################################################################
@@ -2330,7 +2320,6 @@ class Test_lint_txt_py1(hunitest.TestCase):
         self.check_string(output_txt, test_method_name="test4")
 
 
-
 # #############################################################################
 # Test_lint_txt_py_idempotency
 # #############################################################################
@@ -2410,7 +2399,6 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
             output_txt_2 = "\n".join(output_lines)
             # Check that both runs produce identical output (idempotency).
             self.assert_equal(output_txt_1, output_txt_2)
-
 
 
 # #############################################################################
