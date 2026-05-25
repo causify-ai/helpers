@@ -1,18 +1,15 @@
-import dev_scripts_helpers.notebooks.process_jupytext as dsnprju
-import helpers.hunit_test as hunitest
-import helpers.hunit_test_utils as hunteuti
 import difflib
-import logging
 import os
 
 import pytest
 
-import dev_scripts_helpers.notebooks.process_jupytext as dshnprju
+import dev_scripts_helpers.notebooks.process_jupytext as dsnprju
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_utils as hunteuti
 
 
 class Test_process_jupytext_py(hunitest.TestCase):
@@ -288,79 +285,58 @@ class Test_process_jupytext_py(hunitest.TestCase):
 
     def test_main_pair_action(self) -> None:
         """
-        Test _main with --action pair.
+        Test process_jupytext.py with --action pair.
         """
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         # Create an ipynb file.
         with open(ipynb_file, "w") as f:
             f.write("{}")
-        # Test with pair action.
-        parser = dsnprju._parse()
-        args_list = ["-f", ipynb_file, "--action", "pair"]
-        # Mock argv and parse.
-        import sys
-        original_argv = sys.argv
-        try:
-            sys.argv = ["process_jupytext.py"] + args_list
-            with hunteuti.capture_system_calls() as invocations:
-                dsnprju._main(parser)
-            # Verify that pair was called.
-            self.assertGreater(len(invocations), 0)
-        finally:
-            sys.argv = original_argv
+        # Call the executable directly.
+        script_path = "$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py')"
+        cmd = f"{script_path} -f {ipynb_file} --action pair 2>&1"
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system(cmd)
+        # Verify that pair was called.
+        self.assertGreater(len(invocations), 0)
 
     def test_main_test_action(self) -> None:
         """
-        Test _main with --action test.
+        Test process_jupytext.py with --action test.
         """
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         # Create an ipynb file.
         with open(ipynb_file, "w") as f:
             f.write("{}")
-        # Test with test action.
-        parser = dsnprju._parse()
-        args_list = ["-f", ipynb_file, "--action", "test"]
-        # Mock argv and parse.
-        import sys
-        original_argv = sys.argv
-        try:
-            sys.argv = ["process_jupytext.py"] + args_list
-            with hunteuti.capture_system_calls() as invocations:
-                dsnprju._main(parser)
-            # Verify that test was called.
-            self.assertGreater(len(invocations), 0)
-        finally:
-            sys.argv = original_argv
+        # Call the executable directly.
+        script_path = "$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py')"
+        cmd = f"{script_path} -f {ipynb_file} --action test 2>&1"
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system(cmd)
+        # Verify that test was called.
+        self.assertGreater(len(invocations), 0)
 
     def test_main_test_strict_action(self) -> None:
         """
-        Test _main with --action test_strict.
+        Test process_jupytext.py with --action test_strict.
         """
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         # Create an ipynb file.
         with open(ipynb_file, "w") as f:
             f.write("{}")
-        # Test with test_strict action.
-        parser = dsnprju._parse()
-        args_list = ["-f", ipynb_file, "--action", "test_strict"]
-        # Mock argv and parse.
-        import sys
-        original_argv = sys.argv
-        try:
-            sys.argv = ["process_jupytext.py"] + args_list
-            with hunteuti.capture_system_calls() as invocations:
-                dsnprju._main(parser)
-            # Verify that test_strict was called.
-            self.assertGreater(len(invocations), 0)
-        finally:
-            sys.argv = original_argv
+        # Call the executable directly.
+        script_path = "$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py')"
+        cmd = f"{script_path} -f {ipynb_file} --action test_strict 2>&1"
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system(cmd)
+        # Verify that test_strict was called.
+        self.assertGreater(len(invocations), 0)
 
     def test_main_sync_action(self) -> None:
         """
-        Test _main with --action sync.
+        Test process_jupytext.py with --action sync.
         """
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
@@ -370,43 +346,29 @@ class Test_process_jupytext_py(hunitest.TestCase):
             f.write("{}")
         with open(py_file, "w") as f:
             f.write("")
-        # Test with sync action.
-        parser = dsnprju._parse()
-        args_list = ["-f", ipynb_file, "--action", "sync"]
-        # Mock argv and parse.
-        import sys
-        original_argv = sys.argv
-        try:
-            sys.argv = ["process_jupytext.py"] + args_list
-            with hunteuti.capture_system_calls() as invocations:
-                dsnprju._main(parser)
-            # Verify that sync was called.
-            self.assertGreater(len(invocations), 0)
-        finally:
-            sys.argv = original_argv
+        # Call the executable directly.
+        script_path = "$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py')"
+        cmd = f"{script_path} -f {ipynb_file} --action sync 2>&1"
+        with hunteuti.capture_system_calls() as invocations:
+            hsystem.system(cmd)
+        # Verify that sync was called.
+        self.assertGreater(len(invocations), 0)
 
     def test_main_invalid_action(self) -> None:
         """
-        Test _main with invalid action.
+        Test process_jupytext.py with invalid action.
         """
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         # Create an ipynb file.
         with open(ipynb_file, "w") as f:
             f.write("{}")
-        # Test with invalid action.
-        parser = dsnprju._parse()
-        args_list = ["-f", ipynb_file, "--action", "invalid_action"]
-        # Mock argv and parse - should fail because invalid_action is not in choices.
-        import sys
-        original_argv = sys.argv
-        try:
-            sys.argv = ["process_jupytext.py"] + args_list
-            # The argparse will raise SystemExit for invalid choices
-            with self.assertRaises(SystemExit):
-                dsnprju._main(parser)
-        finally:
-            sys.argv = original_argv
+        # Call the executable directly with invalid action.
+        script_path = "$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py')"
+        cmd = f"{script_path} -f {ipynb_file} --action invalid_action 2>&1"
+        # The command should fail because invalid_action is not in choices.
+        with self.assertRaises(Exception):
+            hsystem.system(cmd)
 
 # #############################################################################
 # Test_process_jupytext
@@ -482,7 +444,7 @@ class Test_process_jupytext(hunitest.TestCase):
         #     language: python
         """
         txt = hprint.dedent(txt)
-        self.assertTrue(dshnprju._is_jupytext_version_different(txt))
+        self.assertTrue(dsnprju._is_jupytext_version_different(txt))
 
     def test_is_jupytext_version_different_false(self) -> None:
         """
@@ -502,4 +464,4 @@ class Test_process_jupytext(hunitest.TestCase):
         #     language: python
         """
         txt = hprint.dedent(txt)
-        self.assertFalse(dshnprju._is_jupytext_version_different(txt))
+        self.assertFalse(dsnprju._is_jupytext_version_different(txt))
