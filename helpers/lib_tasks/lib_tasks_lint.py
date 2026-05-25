@@ -325,7 +325,7 @@ def lint(  # type: ignore
         find_cmd = "$(find . -path '*linters2/lint.py')"
     else:
         find_cmd = "$(find -wholename '*linters2/lint.py')"
-    lint_cmd_ = find_cmd + " " + hlitauti._to_single_line_cmd(lint_cmd_opts)
+    lint_cmd_ = find_cmd + " " + hltltaut._to_single_line_cmd(lint_cmd_opts)
     docker_cmd_ = _get_lint_docker_cmd(
         base_image, lint_cmd_, stage=stage, version=version
     )
