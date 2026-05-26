@@ -163,26 +163,23 @@ description: Conventions and standards for interative Jupyter notebook structure
 
 # Notebook Organization and Consistency
 
-## Name Markdown Cells with Cell Numbers
-- Use format `Cell <number>:` for markdown headers based on nesting level
-- For level 1 headers, use single `#` and format like:
-  `# Cell 1: Visual Bin: Population of Marbles`
-- For level 2 headers, use double `##` and format like:
-  `## Cell 1.1: Samples Over Time and Empirical PDF`
-- Configuration cells (Imports, Logging) do not need `Cell <number>:` prefix
+## Markdown Header Structure and Naming
 
-## Use Part and Cell Headers with Correct Levels
+### Parts and Cells Hierarchy
 
 - Use level 1 headers (`#`) for Parts:
   - Format: `# Part XYZ: Description`
   - Parts group multiple related cells together
 
 - Use level 2 headers (`##`) for Cells within Parts:
-  - Format: `## Cell XYZ: Description`
+  - Format: `## Cell <part>.<id>: Description`
   - Each cell is a sub-section of its Part
+  - Configuration cells (Imports, Logging) do not need `Cell <number>:` prefix
 
-- This creates a clear hierarchy in the notebook structure where Parts are major
-  organizational units and Cells are contained within them
+- Numbering convention: `<part>.<id>` where:
+  - `<part>`: Part number (1, 2, 3, etc.)
+  - `<id>`: Cell ID within that Part (1, 2, 3, etc.)
+  - Example: `Cell 1.1`, `Cell 1.2`, `Cell 2.1`, `Cell 2.2`
 
 - Example
   - **Good** structure:
@@ -200,55 +197,47 @@ description: Conventions and standards for interative Jupyter notebook structure
     ## Cell 2.2: Normalize features
     ```
 
-## Use Two-Level Numbering for Nested Cells
+### Sequential Cell Numbering
 
-- When cells are nested within Parts using level 2 headers (`##`), use numbering
-  format `Cell <part>.<id>`
-  - Example: `Cell 1.1`, `Cell 1.2`, `Cell 2.1`, `Cell 2.2`
+- Cell numbers must be sequential with no gaps within each Part:
+  - **Bad**: Cell 1.1 -> Cell 1.5 (skips 1.2, 1.3, 1.4)
+  - **Good**: Cell 1.1 -> Cell 1.2 -> Cell 1.3
 
-- The first number represents the Part, the second number represents the Cell
-  within that Part:
-  - `<part>`: Part number (1, 2, 3, etc.)
-  - `<id>`: Cell ID within that Part (1, 2, 3, etc.)
+## Utility File Organization
 
-- Full header format: `## Cell <part>.<id>: Description`
+### Sync Function Names with Cell Numbers
 
-## Number Cells Consecutively and in Order
-- Cell numbers must be sequential with no gaps:
-  - **Bad**: Cell 2 -> Cell 5 (skips 3 and 4)
-  - **Good**: Cell 2 -> Cell 3 -> Cell 4
-
-## Sync Function Names with Cell Numbers
 - Function names in `*_utils.py` must match the cell number in notebook headers:
-  - **Bad**: Cell 2 header calls `utils.cell5_create_widget()`
+  - **Bad**: Cell 1.2 header calls `utils.cell15_create_widget()`
   - **Good**: Cell 2 header calls `utils.cell2_create_widget()`
+  - **Good**: Cell 1.2 header calls `utils.cell1_2_create_widget()`
 - The cell number in the header is authoritative; update function names to match
 - When cells are renumbered, update all matching function names
 
-## Order Code by Cell Number
+### Organize Code by Cell Order
+
 - In `*_utils.py`, organize functions in the same order as notebook cells:
-  - `cell1_*()` functions first
-  - `cell2_*()` functions next
-  - Continue in ascending order
+  - Group all functions for Cell 1.1, then Cell 1.2, etc.
+  - Use section dividers to separate each cell's code:
+    ```python
+    # #############################################################################
+    # Cell 1.1: Visual Bin: Population of Marbles
+    # #############################################################################
+
+    def cell1_1_calculate_entropy(...):
+        ...
+
+    # #############################################################################
+    # Cell 1.2: Entropy vs Variance
+    # #############################################################################
+
+    def cell1_2_plot_distribution_with_stats(...):
+        ...
+    ```
+  - `cell1_1_*()` functions first
+  - `cell1_2_*()` functions next
+  - Continue in ascending order by Part and Cell ID
   - Group related cell functions together
-
-## Use Section Dividers
-- Separate each cell's code with a framed divider matching the cell title:
-  ```python
-  # #############################################################################
-  # Cell 1: Visual Bin: Population of Marbles
-  # #############################################################################
-
-  def cell1_calculate_entropy(...):
-      ...
-
-  # #############################################################################
-  # Cell 2: Entropy vs Variance
-  # #############################################################################
-
-  def cell2_plot_distribution_with_stats(...):
-      ...
-  ```
 
 # Markdown Formatting and Presentation
 
