@@ -1,5 +1,5 @@
 ---
-description: Conventions and standards for interative Jupyter notebook structure, formatting, and cell organization
+description: Conventions and standards for interactive Jupyter notebook structure, formatting, and cell organization
 ---
 
 # Setup and Initialization
@@ -161,11 +161,9 @@ description: Conventions and standards for interative Jupyter notebook structure
   print(getattr(contract_out["messages"][-1], "content", ""))
   ```
 
-# Notebook Organization and Consistency
+# Notebook Organization
 
 ## Markdown Header Structure and Naming
-
-### Parts and Cells Hierarchy
 
 - Use level 1 headers (`#`) for Parts:
   - Format: `# Part XYZ: Description`
@@ -197,15 +195,15 @@ description: Conventions and standards for interative Jupyter notebook structure
     ## Cell 2.2: Normalize features
     ```
 
-### Sequential Cell Numbering
+## Sequential Cell Numbering
 
 - Cell numbers must be sequential with no gaps within each Part:
   - **Bad**: Cell 1.1 -> Cell 1.5 (skips 1.2, 1.3, 1.4)
   - **Good**: Cell 1.1 -> Cell 1.2 -> Cell 1.3
 
-## Utility File Organization
+# Utility File Organization
 
-### Sync Function Names with Cell Numbers
+## Sync Function Names with Cell Numbers
 
 - Function names in `*_utils.py` must match the cell number in notebook headers:
   - **Bad**: Cell 1.2 header calls `utils.cell15_create_widget()`
@@ -214,7 +212,7 @@ description: Conventions and standards for interative Jupyter notebook structure
 - The cell number in the header is authoritative; update function names to match
 - When cells are renumbered, update all matching function names
 
-### Organize Code by Cell Order
+## Organize Code by Cell Order
 
 - In `*_utils.py`, organize functions in the same order as notebook cells:
   - Group all functions for Cell 1.1, then Cell 1.2, etc.
@@ -239,7 +237,7 @@ description: Conventions and standards for interative Jupyter notebook structure
   - Continue in ascending order by Part and Cell ID
   - Group related cell functions together
 
-# Markdown Formatting and Presentation
+# Text and Markdown Formatting
 
 ## Use Nested Bullet Lists
 - Organize markdown text with nested bullets for clarity:
@@ -271,27 +269,6 @@ description: Conventions and standards for interative Jupyter notebook structure
 - Exception: LaTeX formulas may use any case
 - **Bad**: `This Shows The Distribution`
 - **Good**: `This shows the distribution`
-
-# Cell Cleanup and Security
-
-## Remove Development Environment Cells
-- Remove cells for JupyterLab extensions or environment setup:
-  ```python
-  !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
-  !jupyter labextension enable
-  ```
-
-## Remove Package Installation Cells
-- Do not install packages in notebooks; use `requirements.txt` and Docker
-  instead:
-  - **Remove**: `!pip install --quiet PyGithub`
-  - **Instead**: Add `PyGithub` to `requirements.txt` and rebuild Docker image
-
-## Remove Secret and Token Assignments
-- Remove all cells that hardcode secrets, tokens, or credentials:
-  - **Remove**: `os.environ["GITHUB_ACCESS_TOKEN"] = "..."`
-  - **Instead**: Pass secrets as read-only environment variables at container
-    startup
 
 # Data Processing and Visualization
 
@@ -329,7 +306,28 @@ description: Conventions and standards for interative Jupyter notebook structure
   ```
 - Never hard-code figure dimensions, but let callers customize size
 
-# Interactice Cells
+# Code Cleanup
+
+## Remove Development Environment Cells
+- Remove cells for JupyterLab extensions or environment setup:
+  ```python
+  !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
+  !jupyter labextension enable
+  ```
+
+## Remove Package Installation Cells
+- Do not install packages in notebooks; use `requirements.txt` and Docker
+  instead:
+  - **Remove**: `!pip install --quiet PyGithub`
+  - **Instead**: Add `PyGithub` to `requirements.txt` and rebuild Docker image
+
+## Remove Secret and Token Assignments
+- Remove all cells that hardcode secrets, tokens, or credentials:
+  - **Remove**: `os.environ["GITHUB_ACCESS_TOKEN"] = "..."`
+  - **Instead**: Pass secrets as read-only environment variables at container
+    startup
+
+# Interactive Cells
 
 - Jupyter notebooks can contain `ipywidgets` widgets for interactive cells
 
