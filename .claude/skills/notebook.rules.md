@@ -171,6 +171,48 @@ description: Conventions and standards for interative Jupyter notebook structure
   `## Cell 1.1: Samples Over Time and Empirical PDF`
 - Configuration cells (Imports, Logging) do not need `Cell <number>:` prefix
 
+## Use Part and Cell Headers with Correct Levels
+
+- Use level 1 headers (`#`) for Parts:
+  - Format: `# Part XYZ: Description`
+  - Parts group multiple related cells together
+
+- Use level 2 headers (`##`) for Cells within Parts:
+  - Format: `## Cell XYZ: Description`
+  - Each cell is a sub-section of its Part
+
+- This creates a clear hierarchy in the notebook structure where Parts are major
+  organizational units and Cells are contained within them
+
+- Example
+  - **Good** structure:
+    ```markdown
+    # Part 1: Data Exploration and Loading
+
+    ## Cell 1.1: Import libraries and load data
+
+    ## Cell 1.2: Display data summary
+
+    # Part 2: Data Preprocessing
+
+    ## Cell 2.1: Handle missing values
+
+    ## Cell 2.2: Normalize features
+    ```
+
+## Use Two-Level Numbering for Nested Cells
+
+- When cells are nested within Parts using level 2 headers (`##`), use numbering
+  format `Cell <part>.<id>`
+  - Example: `Cell 1.1`, `Cell 1.2`, `Cell 2.1`, `Cell 2.2`
+
+- The first number represents the Part, the second number represents the Cell
+  within that Part:
+  - `<part>`: Part number (1, 2, 3, etc.)
+  - `<id>`: Cell ID within that Part (1, 2, 3, etc.)
+
+- Full header format: `## Cell <part>.<id>: Description`
+
 ## Number Cells Consecutively and in Order
 - Cell numbers must be sequential with no gaps:
   - **Bad**: Cell 2 -> Cell 5 (skips 3 and 4)

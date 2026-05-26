@@ -139,11 +139,6 @@
 - Assume the reader is executing the skill or following the instructions
 - Be prescriptive rather than descriptive
 
-## Markdown Standards
-
-- Make sure the file follows the markdown conventions in
-  `.claude/skills/markdown.rules.md`
-
 # References and Dependencies
 
 ## Rules Files
@@ -209,6 +204,8 @@
 
   # <Group 2>
   ```
+
+- Rules in the same group with header of level 1 should be cohesive
 
 ## Formatting Style
 - Make sure it follows the conventions in

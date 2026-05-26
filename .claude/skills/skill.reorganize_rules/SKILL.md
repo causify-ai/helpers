@@ -13,8 +13,8 @@ model: haiku
 
 # Step 3
 - Propose changes to the user if you see:
-  - A H2 sections or text that is redundant
   - A better organization of H1 sections that is more cohesive and simpler
+  - A H2 sections or text that is redundant
   - A H2 section that belongs to a better H1 section so that it's more cohesive
 - Do not change the content and intention of the `<RULE_FILE>` file
 
