@@ -37,11 +37,12 @@ def lint_check_python_files_in_docker(  # type: ignore
     ctx,
     python_compile=True,
     python_execute=True,
+    files="",
+    from_file="",
     modified=False,
     branch=False,
     last_commit=False,
     all_=False,
-    files="",
 ):
     """
     Compile and execute Python files checking for errors.
@@ -56,13 +57,14 @@ def lint_check_python_files_in_docker(  # type: ignore
     mutually_exclusive = False
     remove_dirs = True
     file_list = hgit.get_files_to_process(
+        files,
+        from_file,
         modified,
         branch,
         last_commit,
         all_,
-        files,
-        mutually_exclusive,
-        remove_dirs,
+        mutually_exclusive=mutually_exclusive,
+        remove_dirs=remove_dirs,
     )
     _LOG.debug("Found %d files:\n%s", len(file_list), "\n".join(file_list))
     # Filter keeping only Python files.

@@ -984,3 +984,136 @@ class Test_extract_rule_from_file(hunitest.TestCase):
         rule_spec = "/nonexistent/path/to/file.md"
         with self.assertRaises(AssertionError):
             hparser.extract_rule_from_file(rule_spec)
+
+
+# #############################################################################
+# Test_add_file_type_filter_args
+# #############################################################################
+
+# TODO(ai_gp): /factor_out
+
+
+class Test_add_file_type_filter_args(hunitest.TestCase):
+    """
+    Test adding file type filter arguments to parser.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that correct arguments are added to parser.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser)
+        args = parser.parse_args([])
+        self.assertTrue(hasattr(args, "file_types"))
+        self.assertTrue(hasattr(args, "skip_file_types"))
+        self.assertEqual(args.file_types, "py,ipynb")
+        self.assertEqual(args.skip_file_types, "")
+
+    def test2(self) -> None:
+        """
+        Test custom default for file_types.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,md")
+        args = parser.parse_args([])
+        self.assertEqual(args.file_types, "py,md")
+
+
+# #############################################################################
+# Test_parse_file_type_filter_args
+# #############################################################################
+
+
+class Test_parse_file_type_filter_args(hunitest.TestCase):
+    """
+    Test parsing file type filter arguments.
+    """
+
+    def test1(self) -> None:
+        """
+        Test parsing default file types (py,ipynb).
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser)
+        args = parser.parse_args([])
+        actual = hparser.parse_file_type_filter_args(args)
+        expected = ["py", "ipynb"]
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test parsing custom file types with --file_types.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser)
+        args = parser.parse_args(["--file_types", "py,md,txt"])
+        actual = hparser.parse_file_type_filter_args(args)
+        expected = ["py", "md", "txt"]
+        self.assertEqual(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test parsing with whitespace in comma-separated list.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser)
+        args = parser.parse_args(["--file_types", "py , ipynb , md"])
+        actual = hparser.parse_file_type_filter_args(args)
+        expected = ["py", "ipynb", "md"]
+        self.assertEqual(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test parsing with skip_file_types to exclude extensions.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser)
+        args = parser.parse_args(
+            ["--file_types", "py,ipynb,md,txt", "--skip_file_types", "txt"]
+        )
+        actual = hparser.parse_file_type_filter_args(args)
+        expected = ["py", "ipynb", "md"]
+        self.assertEqual(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Test parsing with multiple skip_file_types.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser)
+        args = parser.parse_args(
+            [
+                "--file_types",
+                "py,ipynb,md,txt",
+                "--skip_file_types",
+                "txt,md",
+            ]
+        )
+        actual = hparser.parse_file_type_filter_args(args)
+        expected = ["py", "ipynb"]
+        self.assertEqual(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test parsing with empty file_types (should result in empty list).
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser)
+        args = parser.parse_args(["--file_types", ""])
+        actual = hparser.parse_file_type_filter_args(args)
+        expected: list = []
+        self.assertEqual(actual, expected)
+
+    def test7(self) -> None:
+        """
+        Test parsing with skip_file_types that skips all file types.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser)
+        args = parser.parse_args(
+            ["--file_types", "py,ipynb", "--skip_file_types", "py,ipynb"]
+        )
+        actual = hparser.parse_file_type_filter_args(args)
+        expected: list = []
+        self.assertEqual(actual, expected)

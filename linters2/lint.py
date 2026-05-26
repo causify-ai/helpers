@@ -402,7 +402,6 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     # File selection arguments (mutually exclusive).
-    # TODO(ai_gp): Use the function in hparser.py
     file_selection = parser.add_mutually_exclusive_group()
     file_selection.add_argument(
         "--modified",
@@ -440,14 +439,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Lint files from last commit",
     )
     # File type filters.
-    parser.add_argument(
-        "--file_types",
-        type=str,
-        default="py,ipynb",
-        help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')\n"
-        "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
-        "  Default: 'py,ipynb'",
-    )
+    hparser.add_file_type_filter_args(parser)
     parser.add_argument(
         "--skip_files",
         nargs="+",
@@ -509,9 +501,8 @@ def _main(args: argparse.Namespace) -> int:
     if not has_selection:
         args.branch = "master"
         has_selection = True
-    # Parse file_types into a list of extensions
-    file_extensions = [ext.strip() for ext in args.file_types.split(",")]
-    _LOG.info("File extensions to process: %s", file_extensions)
+    # Parse file_types and skip_file_types into a list of extensions
+    file_extensions = hparser.parse_file_type_filter_args(args)
     # Get files based on selection mode.
     file_paths = llinutil.get_files_to_check(
         args.files,

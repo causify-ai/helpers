@@ -171,6 +171,7 @@ def parse_file_selection_args(
     # Import here to avoid circular dependency.
     import helpers.hgit as hgit
 
+    # TODO(ai_gp): Move this inside get_files_to_process
     # Handle --files argument (space-separated list)
     if hasattr(args, "files") and args.files:
         files_str = args.files
@@ -185,11 +186,12 @@ def parse_file_selection_args(
         return files_to_process
 
     files = hgit.get_files_to_process(
-        modified=args.modified,
-        branch=args.branch,
-        last_commit=args.last_commit,
-        all_=args.all_files,
-        from_file=args.from_file,
+        "",
+        args.from_file,
+        args.modified,
+        args.branch,
+        args.last_commit,
+        args.all_files,
         mutually_exclusive=True,
         remove_dirs=remove_dirs,
         dir_name=dir_name,
@@ -1557,3 +1559,81 @@ def add_md_start_end_args(
         help="Ending header: either full format (e.g., '## Section 2') or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. Partial match must be unique.",
     )
     return parser
+
+
+# #############################################################################
+# Command line options for file type filtering
+# #############################################################################
+
+
+def add_file_type_filter_args(
+    parser: argparse.ArgumentParser,
+    *,
+    file_types_default: str = "py,ipynb",
+) -> argparse.ArgumentParser:
+    """
+    Add command line arguments for filtering files by type.
+
+    Adds the following arguments:
+    - `--file_types`: comma-separated list of file extensions to include
+      (e.g., 'py,ipynb,md'). Empty string means keep all extensions.
+    - `--skip_file_types`: comma-separated list of file extensions to skip
+      (e.g., 'txt'). Empty string means skip no extensions.
+
+    :param parser: ArgumentParser to add arguments to
+    :param file_types_default: default file types to process
+    :return: ArgumentParser with the arguments added
+    """
+    parser.add_argument(
+        "--file_types",
+        type=str,
+        default=file_types_default,
+        help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')\n"
+        "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
+        f"  Default: '{file_types_default}'",
+    )
+    parser.add_argument(
+        "--skip_file_types",
+        type=str,
+        default="",
+        help="Comma-separated list of file extensions to skip (e.g., 'txt')\n"
+        "  Empty string means skip no extensions",
+    )
+    return parser
+
+
+# TODO(ai_gp): Pass the list of files to filter.
+def parse_file_type_filter_args(
+    args: argparse.Namespace,
+) -> List[str]:
+    """
+    Parse file type filter arguments and return list of extensions to process.
+
+    Parses both `--file_types` and `--skip_file_types` arguments, returning
+    the list of extensions to actually process after filtering.
+
+    :param args: Parsed command line arguments from add_file_type_filter_args
+    :return: List of file extensions to process (empty extensions are stripped)
+    """
+    # Parse file_types: comma-separated list of extensions to include
+    file_types_str = getattr(args, "file_types", "")
+    if file_types_str:
+        file_extensions = [ext.strip() for ext in file_types_str.split(",")]
+    else:
+        file_extensions = []
+
+    # Parse skip_file_types: comma-separated list of extensions to skip
+    skip_file_types_str = getattr(args, "skip_file_types", "")
+    skip_extensions = set()
+    if skip_file_types_str:
+        skip_extensions = {
+            ext.strip() for ext in skip_file_types_str.split(",")
+        }
+
+    # Filter out extensions that should be skipped
+    file_extensions = [
+        ext for ext in file_extensions if ext not in skip_extensions
+    ]
+
+    _LOG.info("File extensions to process: %s", file_extensions)
+    return file_extensions

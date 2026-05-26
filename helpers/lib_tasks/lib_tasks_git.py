@@ -284,7 +284,7 @@ def git_add_all_untracked(ctx):  # type: ignore
 
 @task
 def git_patch_create(  # type: ignore
-    ctx, mode="diff", modified=False, branch=False, last_commit=False, files=""
+    ctx, mode="diff",  files="", modified=False, branch=False, last_commit=False,
 ):
     """
     Create a patch file for the entire repo_short_name client from the base
@@ -330,19 +330,21 @@ def git_patch_create(  # type: ignore
         hgit.get_summary_files_in_branch("master", dir_name="."),
     )
     # Determine which files to include in the patch.
+    from_file = ""
     all_ = False
     # Allow optional user-specified file subset (can be combined with other selectors).
     mutually_exclusive = False
     # Filter out directories; patches only work with files.
     remove_dirs = True
     files_as_list = hgit.get_files_to_process(
+        files,
+        from_file,
         modified,
         branch,
         last_commit,
         all_,
-        files,
-        mutually_exclusive,
-        remove_dirs,
+        mutually_exclusive=mutually_exclusive,
+        remove_dirs=remove_dirs,
     )
     _LOG.info("Files to save:\n%s", hprint.indent("\n".join(files_as_list)))
     if not files_as_list:
@@ -464,17 +466,19 @@ def git_files(  # type: ignore
         branch = True
     all_ = False
     files = ""
+    from_file = ""
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True
     files_as_list = hgit.get_files_to_process(
+        files,
+        from_file,
         modified,
         branch,
         last_commit,
         all_,
-        files,
-        mutually_exclusive,
-        remove_dirs,
+        mutually_exclusive=mutually_exclusive,
+        remove_dirs=remove_dirs,
     )
     # Parse file_types string into a list.
     file_types_list = [

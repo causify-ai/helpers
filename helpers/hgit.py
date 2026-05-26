@@ -1568,18 +1568,16 @@ def _filter_existing_paths(paths_from_user: List[str]) -> List[str]:
 
 
 def get_files_to_process(
+    files: str,
+    from_file: str,
     modified: bool,
     branch: bool,
     last_commit: bool,
     all_: bool,
-    from_file: str,
-    # TODO(ai_gp): move it first and then from_file second and update all the code
-    # and comments
-    files: str = "",
+    *,
     # TODO(gp): Can mutually_exclusive be removed? When is it actually useful?
     mutually_exclusive: bool = True,
     remove_dirs: bool = False,
-    *,
     dir_name: str = ".",
 ) -> List[str]:
     """
@@ -1593,13 +1591,13 @@ def get_files_to_process(
     - `last_commit`: part of the previous commit
     - `all_`: all the files in the repo
 
+    :param files: space-separated list of files to process
+    :param from_file: file storing files to process
     :param modified: return files modified in the client (i.e., changed with
         respect to HEAD)
     :param branch: return files modified with respect to the branch point
     :param last_commit: return files part of the previous commit
     :param all_: return all repo files
-    :param from_file: file storing files to process
-    :param files: space-separated list of files to process
     :param mutually_exclusive: ensure that all options are mutually exclusive
     :param remove_dirs: whether directories should be processed
     :param dir_name: directory to process (default: current directory)
@@ -1607,22 +1605,30 @@ def get_files_to_process(
     """
     _LOG.debug(
         hprint.to_str(
-            "modified branch last_commit all_ from_file files "
+            "files from_file modified branch last_commit all_ "
             "mutually_exclusive remove_dirs dir_name"
         )
     )
     if mutually_exclusive:
         # All the options are mutually exclusive.
+        selected_options = []
+        if files != "":
+            selected_options.append("--files")
+        if from_file != "":
+            selected_options.append("--from_file")
+        if modified:
+            selected_options.append("--modified")
+        if branch:
+            selected_options.append("--branch")
+        if last_commit:
+            selected_options.append("--last_commit")
+        if all_:
+            selected_options.append("--all_files")
         hdbg.dassert_eq(
-            int(modified)
-            + int(branch)
-            + int(last_commit)
-            + int(all_)
-            + int(from_file != "")
-            + int(files != ""),
+            len(selected_options),
             1,
-            msg="Specify only one among --modified, --branch, --last-commit, "
-            "--all_files, --from_file, and --files",
+            msg="You can pick only one option to select files. Selected: "
+            + ", ".join(selected_options),
         )
     else:
         # We filter the files passed from the user through other the options,

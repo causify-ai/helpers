@@ -790,12 +790,12 @@ class Test_get_files_to_process1(hunitest.TestCase):
         hio.to_file(file1, "content1")
         # Test with single file using absolute path.
         actual = hgit.get_files_to_process(
-            modified=False,
-            branch=False,
-            last_commit=False,
-            all_=False,
-            from_file="",
-            files=file1,
+            file1,
+            "",
+            False,
+            False,
+            False,
+            False,
             mutually_exclusive=True,
             remove_dirs=False,
             dir_name=temp_dir,
@@ -818,12 +818,12 @@ class Test_get_files_to_process1(hunitest.TestCase):
         # Test with multiple files using absolute paths.
         files_str = f"{file1} {file2} {file3}"
         actual = hgit.get_files_to_process(
-            modified=False,
-            branch=False,
-            last_commit=False,
-            all_=False,
-            from_file="",
-            files=files_str,
+            files_str,
+            "",
+            False,
+            False,
+            False,
+            False,
             mutually_exclusive=True,
             remove_dirs=False,
             dir_name=temp_dir,
@@ -847,12 +847,12 @@ class Test_get_files_to_process1(hunitest.TestCase):
         # Test with one existing and one non-existent file using absolute paths.
         files_str = f"{file1} {nonexistent}"
         actual = hgit.get_files_to_process(
-            modified=False,
-            branch=False,
-            last_commit=False,
-            all_=False,
-            from_file="",
-            files=files_str,
+            files_str,
+            "",
+            False,
+            False,
+            False,
+            False,
             mutually_exclusive=True,
             remove_dirs=False,
             dir_name=temp_dir,
@@ -870,12 +870,12 @@ class Test_get_files_to_process1(hunitest.TestCase):
         hio.to_file(file1, "content1")
         # Test with empty files parameter and mutually_exclusive=False.
         actual = hgit.get_files_to_process(
-            modified=True,
-            branch=False,
-            last_commit=False,
-            all_=False,
-            from_file="",
-            files="",
+            "",
+            "",
+            True,
+            False,
+            False,
+            False,
             mutually_exclusive=False,
             remove_dirs=False,
             dir_name=temp_dir,
@@ -893,12 +893,12 @@ class Test_get_files_to_process1(hunitest.TestCase):
         # Test that error is raised when both --files and --modified are specified.
         with self.assertRaises(AssertionError):
             hgit.get_files_to_process(
-                modified=True,
-                branch=False,
-                last_commit=False,
-                all_=False,
-                from_file="",
-                files=file1,
+                file1,
+                "",
+                True,
+                False,
+                False,
+                False,
                 mutually_exclusive=True,
                 remove_dirs=False,
                 dir_name=temp_dir,
@@ -916,12 +916,12 @@ class Test_get_files_to_process1(hunitest.TestCase):
         # Test with directory and remove_dirs=True using absolute paths.
         files_str = f"{file1} {dir1}"
         actual = hgit.get_files_to_process(
-            modified=False,
-            branch=False,
-            last_commit=False,
-            all_=False,
-            from_file="",
-            files=files_str,
+            files_str,
+            "",
+            False,
+            False,
+            False,
+            False,
             mutually_exclusive=True,
             remove_dirs=True,
             dir_name=temp_dir,
@@ -940,12 +940,12 @@ class Test_get_files_to_process1(hunitest.TestCase):
         # Test with 'amp' in the list - use 'amp' as a bare name
         files_str = f"{file1} amp"
         actual = hgit.get_files_to_process(
-            modified=False,
-            branch=False,
-            last_commit=False,
-            all_=False,
-            from_file="",
-            files=files_str,
+            files_str,
+            "",
+            False,
+            False,
+            False,
+            False,
             mutually_exclusive=True,
             remove_dirs=False,
             dir_name=temp_dir,

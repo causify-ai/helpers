@@ -210,11 +210,12 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         "extensions": ripgrep_extensions,
         "rg_opts": ripgrep_opts,
         "need_capture": need_capture,
+        "files": parsed.files,
+        "from_file": parsed.from_file,
         "modified": parsed.modified,
         "branch": parsed.branch,
         "last_commit": parsed.last_commit,
         "all_files": parsed.all_files,
-        "from_file": parsed.from_file,
         "dry_run": parsed.dry_run,
     }
     return result
@@ -265,19 +266,21 @@ def main(
     # otherwise search entire directory.
     if any(
         [
+            parsed["files"],
+            parsed["from_file"],
             parsed["modified"],
             parsed["branch"],
             parsed["last_commit"],
             parsed["all_files"],
-            parsed["from_file"],
         ]
     ):
         files = hgit.get_files_to_process(
-            modified=parsed["modified"],
-            branch=parsed["branch"],
-            last_commit=parsed["last_commit"],
-            all_=parsed["all_files"],
-            from_file=parsed["from_file"],
+            parsed["files"],
+            parsed["from_file"],
+            parsed["modified"],
+            parsed["branch"],
+            parsed["last_commit"],
+            parsed["all_files"],
             mutually_exclusive=True,
             remove_dirs=True,
         )

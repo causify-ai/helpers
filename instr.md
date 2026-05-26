@@ -1,13 +1,19 @@
-Factor out in helpers/hparser.py the logic to add the command line arguments like
+In all the calls to get_files_to_process use parameters in order and not
+by name for the mandatory ones
 
-  :param file_types: a comma-separated list of extensions to check, e.g.,
-      'csv,py'. An empty string means keep all the extensions
-  :param skip_file_types: a comma-separated list of extensions to skip, e.g.,
-      'txt'. An empty string means do not skip any extension
-
-and the logic to parse it
-
-- Update the unit tests
+def get_files_to_process(
+    files: str,
+    from_file: str,
+    modified: bool,
+    branch: bool,
+    last_commit: bool,
+    all_: bool,
+    *,
+    # TODO(gp): Can mutually_exclusive
+    mutually_exclusive: bool = True,
+    remove_dirs: bool = False,
+    dir_name: str = ".",
+) -> List[str]:
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
