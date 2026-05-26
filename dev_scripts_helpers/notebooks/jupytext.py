@@ -3,23 +3,28 @@
 """
 Automate some common workflows with jupytext.
 
-> find . -name "*.ipynb" | grep -v ipynb_checkpoints | head -3 | xargs -t -L 1 process_jupytext.py --action sync --file
-
 # Pair
-> process_jupytext.py -f <notebook.ipynb> --action pair
+> jupytext.py --action pair --files <notebook.ipynb> [<notebook2.ipynb> ...]
+> jupytext.py --action pair --all
+> jupytext.py --action pair --modified
+> jupytext.py --action pair --branch
 
 # Test
-> process_jupytext.py -f <notebook.{py,ipynb}> --action test
+> jupytext.py --action test --files <notebook.{py,ipynb}> [<notebook2.{py,ipynb}> ...]
+> jupytext.py --action test --all
+> jupytext.py --action test --modified
 
 # Sync
-> process_jupytext.py -f <notebook.{py,ipynb}> --action sync
+> jupytext.py --action sync --files <notebook.{py,ipynb}> [<notebook2.{py,ipynb}> ...]
+> jupytext.py --action sync --all
+> jupytext.py --action sync --modified
 
 # Diff (compare notebook with paired Python file using vimdiff)
-> process_jupytext.py -f <notebook.{py,ipynb}> --action diff
+> jupytext.py --action diff --files <notebook.{py,ipynb}> [<notebook2.{py,ipynb}> ...]
 
 Import as:
 
-import dev_scripts_helpers.notebooks.process_jupytext as dshnprju
+import dev_scripts_helpers.notebooks.jupytext as dshnprju
 """
 
 import argparse
@@ -312,20 +317,13 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "-f",
-        "--file",
-        action="store",
-        type=str,
-        required=True,
-        help="File to process",
-    )
-    parser.add_argument(
         "--action",
         action="store",
         choices=["pair", "test", "sync", "diff"],
         required=True,
         help="Action to perform",
     )
+    hparser.add_file_selection_args(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -338,20 +336,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
-    file_name = args.file
-    hdbg.dassert_path_exists(file_name)
+    files = hparser.parse_file_selection_args(args)
+    hdbg.dassert(
+        len(files) > 0,
+        "No files selected; use --all, --files, --modified, --branch, --last_commit, or --from_file",
+    )
     rc = 0
-    if args.action == "pair":
-        _pair(file_name)
-    elif args.action == "sync":
-        _sync(file_name)
-    elif args.action in ("test", "test_strict"):
-        # Convert bool result to exit code: True (in sync) -> 0, False (not in sync) -> 1.
-        rc = 0 if _test(file_name, args.action) else 1
-    elif args.action == "diff":
-        _diff(file_name)
-    else:
-        raise ValueError(f"Invalid action '{args.action}'")
+    for file_name in files:
+        _LOG.info("Processing file: %s", file_name)
+        hdbg.dassert_path_exists(file_name)
+        if args.action == "pair":
+            _pair(file_name)
+        elif args.action == "sync":
+            _sync(file_name)
+        elif args.action in ("test", "test_strict"):
+            if not _test(file_name, args.action):
+                rc = 1
+        elif args.action == "diff":
+            _diff(file_name)
+        else:
+            raise ValueError(f"Invalid action '{args.action}'")
     sys.exit(rc)
 
 
