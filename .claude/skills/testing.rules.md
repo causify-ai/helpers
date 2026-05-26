@@ -738,6 +738,24 @@ The goal is to exercise as much real code as possible, so do not mock:
   and call the main of the script (e.g., `_main(parser)`)
 - Instead call the executable directly with a call like `hsystem.system()`
 
+## Locate Script Paths Dynamically
+- Do not hardwire paths to executable scripts in tests, instead, use
+  `hgit.find_file_in_git_tree()` to locate the script path dynamically
+- This ensures tests work regardless of where the code is run from and handles
+  cases where scripts are relocated
+
+- **Bad** (hardcoded path)
+  ```python
+  executable = "dev_scripts_helpers/system_tools/mdm"
+  result = hsystem.system(f"{executable} --help")
+  ```
+
+- **Good** (dynamic path lookup)
+  ```python
+  executable = hgit.find_file_in_git_tree("mdm")
+  result = hsystem.system(f"{executable} --help")
+  ```
+
 ## Use the Mocking Infrastructure
 - For testing executables use end-to-end tests that:
   1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
