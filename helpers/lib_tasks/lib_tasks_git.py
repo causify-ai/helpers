@@ -284,21 +284,18 @@ def git_add_all_untracked(ctx):  # type: ignore
 
 @task
 def git_patch_create(  # type: ignore
-    ctx, mode="diff",  files="", modified=False, branch=False, last_commit=False,
+    ctx, mode="diff",  files="", from_file="", modified=False, branch=False, last_commit=False,
 ):
     """
     Create a patch file for the entire repo_short_name client from the base
     revision. This script accepts a list of files to package, if specified.
-
-    The parameters `modified`, `branch`, `last_commit` have the same meaning as
-    in `get_files_to_process()`.
 
     :param mode: what kind of patch to create
         - "diff": (default) creates a patch with the diff of the files
         - "tar": creates a tar ball with all the files
     """
     hltltaut.report_task(
-        txt=hprint.to_str("mode modified branch last_commit files")
+        txt=hprint.to_str("mode files from_file modified branch last_commit")
     )
     _ = ctx
     # TODO(gp): Check that the current branch is up to date with master to avoid
@@ -330,7 +327,6 @@ def git_patch_create(  # type: ignore
         hgit.get_summary_files_in_branch("master", dir_name="."),
     )
     # Determine which files to include in the patch.
-    from_file = ""
     all_ = False
     # Allow optional user-specified file subset (can be combined with other selectors).
     mutually_exclusive = False
@@ -447,6 +443,7 @@ def git_files(  # type: ignore
     """
     Report which files are changed in the current branch with respect to master.
 
+
     The params have the same meaning as in `get_files_to_process()`.
 
     :param file_types: Comma-separated list of file extensions to include
@@ -481,6 +478,7 @@ def git_files(  # type: ignore
         remove_dirs=remove_dirs,
     )
     # Parse file_types string into a list.
+    # TODO(ai_gp): Use the function in hparser to filer.
     file_types_list = [
         ext.strip() for ext in file_types.split(",") if ext.strip()
     ]
@@ -497,7 +495,8 @@ def git_files(  # type: ignore
     elif mode == "test_files":
         test_files = hunteuti.get_test_files_for_sources(files_as_list)
         output_list = sorted(test_files)
-    else:  # mode == "test_dirs"
+    else:
+        hdbg.dassert_eq(mode, "test_dirs")
         test_files = hunteuti.get_test_files_for_sources(files_as_list)
         test_dirs = hunteuti.get_parent_dirs(test_files)
         output_list = sorted(test_dirs)

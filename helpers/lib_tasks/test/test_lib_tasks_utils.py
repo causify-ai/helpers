@@ -15,6 +15,7 @@ import helpers.lib_tasks.lib_tasks_utils as hltltaut
 # #############################################################################
 
 
+# TODO(ai_gp): Is this the right place for this testing function.
 class Test_get_files_to_process1(hunitest.TestCase):
     """
     We can't check the outcome so we just execute the code.

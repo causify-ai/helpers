@@ -49,7 +49,8 @@ def lint_check_python_files_in_docker(  # type: ignore
 
     This is supposed to be run inside Docker.
 
-    The params have the same meaning as in `get_files_to_process()`.
+    :param --files, --from_file, --modified, --branch, --last_commit, -all:
+        Same meaning as in `get_files_to_process()`
     """
     hltltaut.report_task()
     _ = ctx
@@ -121,7 +122,8 @@ def lint_check_python_files(  # type: ignore
     """
     Compile and execute Python files checking for errors.
 
-    The params have the same meaning as in `_get_files_to_process()`.
+    :param --files, --from_file, --modified, --branch, --last_commit, -all:
+            Same meaning as in `get_files_to_process()`
     """
     _ = (
         python_compile,
