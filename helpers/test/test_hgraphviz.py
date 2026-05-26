@@ -1021,7 +1021,7 @@ class Test_graphviz_image_properties(hunitest.TestCase):
         """
         # Create a temporary figure and axis
         if figsize is None:
-            figsize = hgraphv.FIG_SIZE
+            figsize = hgraphv.DAG_FIGURE_SIZE
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
         # Render the graph
         hgraphv.plot_dag_with_graphviz(

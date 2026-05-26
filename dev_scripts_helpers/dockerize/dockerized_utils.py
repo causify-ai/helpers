@@ -35,20 +35,6 @@ def create_test_file(self_: Any, txt: str, extension: str) -> str:
     return file_path
 
 
-# TODO(ai_gp2): Inline this in the callers.
-def assert_output_file_exists(self_: Any, out_file_path: str) -> None:
-    """
-    Assert that a file exists at the given path.
-
-    :param self_: test instance (needs `assertTrue()`)
-    :param out_file_path: path to check
-    """
-    self_.assertTrue(
-        os.path.exists(out_file_path),
-        msg=f"Output file {out_file_path} not found",
-    )
-
-
 def add_open_arg(parser: argparse.ArgumentParser) -> None:
     """
     Add --open option to parser for opening output files on macOS.

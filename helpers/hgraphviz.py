@@ -24,8 +24,7 @@ import helpers.hdbg as hdbg
 _LOG = logging.getLogger(__name__)
 
 # Default figure size for DAG visualizations
-# TODO(ai_gp2): -> DAG_FIGURE_SIZE
-FIG_SIZE = (8, 6)
+DAG_FIGURE_SIZE = (8, 6)
 
 # Default DPI for image rendering
 FIG_DPI = 150
@@ -113,7 +112,7 @@ def plot_dag_with_graphviz(
     :param dpi: Resolution in dots per inch
     """
     if figsize is None:
-        figsize = FIG_SIZE
+        figsize = DAG_FIGURE_SIZE
     dot_str = _graph_to_graphviz_dot(
         G, title, node_colors=node_colors, edge_colors=edge_colors, size=figsize, dpi=dpi
     )
@@ -297,7 +296,7 @@ def plot_causal_dag(
     fig = None
     if ax is None:
         if figsize is None:
-            figsize = FIG_SIZE
+            figsize = DAG_FIGURE_SIZE
         fig, ax = plt.subplots(figsize=figsize)
     # Dispatch to the appropriate plotting function.
     if mode == "graphviz":
