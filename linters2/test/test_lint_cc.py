@@ -305,7 +305,6 @@ class Test_get_rules_for_topic(hunitest.TestCase):
             "blog",
             "book",
             "coding",
-            "interactive_notebook",
             "latex",
             "markdown",
             "notebook",

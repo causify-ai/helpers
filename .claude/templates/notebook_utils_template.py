@@ -5,8 +5,10 @@ Demonstrates best practices for creating interactive notebook widgets and plots.
 
 Import as:
 
-import interactive_notebook_utils_template as utils
+import notebook_utils_template as utils
 """
+
+import logging
 
 from typing import Any, Optional, Tuple
 
@@ -16,7 +18,11 @@ import numpy as np
 import scipy.stats
 from IPython.display import clear_output, display
 
+import helpers.hnotebook as hnotebo
 import helpers.htutorial as htutori
+
+
+_LOG = logging.getLogger(__name__)
 
 
 def init_loggers(notebook_log: logging.Logger) -> None:

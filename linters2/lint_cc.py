@@ -84,17 +84,6 @@ def _get_rules_for_topic(topic: str) -> Dict:
             "rules": ["coding.rules.md"],
             "templates": ["coding.template.py"],
         },
-        "interactive_notebook": {
-            "role": "role.notebook.md",
-            "rules": [
-                "interactive_notebook.rules.md",
-                "notebook.rules.md",
-            ],
-            "templates": [
-                "interactive_notebook.template.py",
-                "interactive_notebook_utils_template.py",
-            ],
-        },
         "latex": {
             "role": "role.ai_researcher.md",
             "rules": ["latex.rules.md"],
@@ -111,7 +100,8 @@ def _get_rules_for_topic(topic: str) -> Dict:
         "notebook": {
             "role": "role.notebook.md",
             "rules": ["notebook.rules.md"],
-            "templates": ["notebook.template.ipynb"],
+            "templates": ["notebook.template.ipynb",
+                "notebook_utils_template.py"],
         },
         "readme": {
             "role": "role.ai_researcher.md",

@@ -20,10 +20,6 @@ rules
   - The rules `.claude/skills/notebook.rules.md`
   - The template `.claude/templates/notebook.template.ipynb`
 
-- For interactive Jupyter notebooks (i.e., notebooks with `ipywidgets`) you MUST
-  follow the templates `.claude/templates/interactive_notebook_template.ipynb`
-  `.claude/templates/interactive_notebook_template_utils.py`
-
 ## Markdown
 - For writing markdown text you MUST follow instructions in
   `.claude/skills/markdown.rules.md`

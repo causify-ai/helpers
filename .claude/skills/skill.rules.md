@@ -36,7 +36,7 @@
   - E.g.,
     - `coding.format`: Format code for the coding topic
     - `testing.format`: Format tests for the testing topic
-    - `interactive_notebook.format`: Format interactive cells in notebooks
+    - `notebook.format`: Format interactive cells in notebooks
     - `demo.create_script`: Create a demo script
 
 - Topics should be singular and lowercase

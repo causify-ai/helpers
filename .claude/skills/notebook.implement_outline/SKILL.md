@@ -84,7 +84,7 @@ description: Implement a Jupyter notebook from an outline description (including
 - Study these before implementing; they establish the quality bar and idioms
   - `.claude/templates/notebook.template.py`
     - End-to-end notebook covering both static and interactive cell types
-  - `.claude/templates/interactive_notebook_utils_template.py`
+  - `.claude/templates/notebook_utils_template.py`
     - Paired utilities file with widget creation, state management, and
       visualization functions
   - `msml610/tutorials/Lesson94_Information_Theory_utils.py`
@@ -164,7 +164,7 @@ def complex_entropy_interactive():
 4. **Legend per plot**: Add informative legends to each subplot, not just one global legend
 5. **Reference implementation**: Study `plot_joint_entropy_interactive()` in 
    `msml610/tutorials/Lesson94_Information_Theory_utils.py` and 
-   `cell3_interactive_sample_generator()` in `interactive_notebook_utils_template.py`
+   `cell3_interactive_sample_generator()` in `notebook_utils_template.py`
 
 ### Example Structure
 
