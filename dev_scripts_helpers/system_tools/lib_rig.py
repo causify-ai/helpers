@@ -192,7 +192,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
     elif parsed.todo_str:
         # --todo: search for `# TODO(<string>)` or `// TODO(<string>)` patterns.
         if parsed.todo_str == "_default_":
-            todo_pattern = "ai_gp\s*"
+            todo_pattern = "ai_gp\S*"
         else:
             todo_pattern = parsed.todo_str
         ripgrep_pattern = rf"^\s*(#|//)\s*TODO\({todo_pattern}\)"

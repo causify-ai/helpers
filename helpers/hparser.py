@@ -174,27 +174,14 @@ def parse_file_selection_args(
     # Import here to avoid circular dependency.
     import helpers.hgit as hgit
 
-    # TODO(ai_gp1): Move this inside get_files_to_process
-    # Handle --files argument (space-separated list)
-    if hasattr(args, "files") and args.files:
-        files_str = args.files
-        files = files_str.split()
-        files = hgit._filter_existing_paths(files)
-        files_to_process = [f for f in files if f != ""]
-        files_to_process = [f for f in files_to_process if f != "amp"]
-        if remove_dirs:
-            files_to_process = hsystem.remove_dirs(files_to_process)
-        if not files_to_process:
-            _LOG.warning("No files were selected")
-        return files_to_process
-
+    # TODO(gp): Can we use args.files?
     files = hgit.get_files_to_process(
-        "",
-        args.from_file,
-        args.modified,
-        args.branch,
-        args.last_commit,
-        args.all_files,
+        getattr(args, "files", None) or "",
+        getattr(args, "from_file", None) or "",
+        getattr(args, "modified", False),
+        getattr(args, "branch", False),
+        getattr(args, "last_commit", False),
+        getattr(args, "all_files", False),
         mutually_exclusive=True,
         remove_dirs=remove_dirs,
         dir_name=dir_name,

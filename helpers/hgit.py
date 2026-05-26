@@ -1639,7 +1639,18 @@ def get_files_to_process(
             msg="Specify only one among --modified, --branch, --last-commit",
         )
     files_list: List[str] = []
-    if modified:
+    if files:
+        # Handle space-separated list of files.
+        files_list = files.split()
+    elif from_file:
+        hdbg.dassert_path_exists(from_file)
+        file_content = hio.from_file(from_file)
+        from_files = file_content.split()
+        if mutually_exclusive:
+            files_list = from_files
+        else:
+            files_list.extend(from_files)
+    elif modified:
         files_list = get_modified_files(dir_name)
     elif branch:
         files_list = get_modified_files_in_branch("master", dir_name)
@@ -1650,17 +1661,6 @@ def get_files_to_process(
         only_files = True
         use_relative_paths = True
         files_list = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
-    elif files:
-        # Handle space-separated list of files.
-        files_list = files.split()
-    if from_file:
-        hdbg.dassert_path_exists(from_file)
-        file_content = hio.from_file(from_file)
-        from_files = file_content.split()
-        if mutually_exclusive:
-            files_list = from_files
-        else:
-            files_list.extend(from_files)
     hdbg.dassert_isinstance(files_list, list)
     files_list = _filter_existing_paths(files_list)
     # Convert into a list.
