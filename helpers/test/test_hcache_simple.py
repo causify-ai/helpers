@@ -1,8 +1,8 @@
 import copy
 import logging
 import os
+import unittest.mock as umock
 from typing import Any, Dict
-from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -2813,18 +2813,18 @@ class Test_func_hash_tracking(_BaseCacheTest):
 
     def test1(self) -> None:
         """
-        Verify that func_hash property is None before the first call and is set
-        to a valid MD5 string after the first cache miss.
+        Verify that func_hash is set at decoration time and remains the same
+        after the first cache miss (same source, same hash).
         """
-        # func_hash must not exist before any call.
+        # Hash is set at decoration time, before any calls.
         before = hcacsimp.get_cache_property("_cached_json_double", "func_hash")
-        self.assertIsNone(before)
-        # First call is a cache miss; the hash should be stored.
+        self.assertIsNotNone(before)
+        self.assertRegex(before, r"^[0-9a-f]{32}$")
+        # First call is a cache miss; hash should still equal the decoration-time
+        # hash because the source has not changed.
         _cached_json_double(42)
-        # Check.
         after = hcacsimp.get_cache_property("_cached_json_double", "func_hash")
-        self.assertIsNotNone(after)
-        self.assertRegex(after, r"^[0-9a-f]{32}$")
+        self.assertEqual(before, after)
 
     def test2(self) -> None:
         """
@@ -2834,7 +2834,7 @@ class Test_func_hash_tracking(_BaseCacheTest):
         # First call: cache miss, stores hash.
         _cached_json_double(42)
         # Second call: cache hit, hashes should match.
-        with patch.object(hcacsimp._LOG, "warning") as mock_warn:
+        with umock.patch.object(hcacsimp._LOG, "warning") as mock_warn:
             _cached_json_double(42)
         # Check: the source-change warning must not appear.
         msgs = [str(c) for c in mock_warn.call_args_list]
@@ -2852,7 +2852,7 @@ class Test_func_hash_tracking(_BaseCacheTest):
             "_cached_json_double", "func_hash", "deadbeef" * 4
         )
         # Second call: cache hit, but hashes diverge.
-        with patch.object(hcacsimp._LOG, "warning") as mock_warn:
+        with umock.patch.object(hcacsimp._LOG, "warning") as mock_warn:
             _cached_json_double(42)
         # Check: the source-change warning must appear.
         msgs = [str(c) for c in mock_warn.call_args_list]

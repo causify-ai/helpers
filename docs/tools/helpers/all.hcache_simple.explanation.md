@@ -38,8 +38,8 @@
 
 - `hcache_simple` is a lightweight, decorator-based module designed for
   individual function caching, offering in-memory and disk storage (via JSON or
-  pickle) with manual management, performance tracking, and source-change
-  detection.
+  pickle) with manual management, performance tracking, and lightweight
+  source-change detection.
 
 ## Overview
 
@@ -331,10 +331,19 @@
 - After a cache miss (i.e., the function actually runs with the new code), the
   stored `func_hash` is updated to reflect the new source
 
-- Note: Only one hash is stored per function, not per cache entry. This is a
-  lightweight "best effort" approach: if a fresh execution updates the hash,
-  stale cache entries for other argument combinations will no longer trigger
-  warnings.
+- Note: Only one hash is stored per function (in `_CACHE_PROPERTY`), not one
+  per individual cache entry. The comparison on every hit is:
+  `current_hash` (recomputed from source now) vs `stored_hash` (last recorded
+  at execution time). Once any cache miss updates `stored_hash` to the new
+  code's hash, all subsequent hits compare `H_new == H_new` and produce no
+  warning, even for cache entries that were computed with the old code.
+  This is intentional: the warning fires before any fresh execution in the new
+  session, giving the user the opportunity to clear the full function cache. If
+  the user does not clear the cache and allows a fresh execution to proceed, the
+  stored hash advances and the remaining stale entries become silently stale.
+  A per-entry approach (storing the hash inside each cache dict entry) would
+  be more precise but requires a schema change; the current per-function hash
+  is the accepted lightweight trade-off.
 
 ## Cache Inspection and Statistics
 

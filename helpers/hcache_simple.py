@@ -178,9 +178,7 @@ def enable_clear_cache(val: bool) -> None:
     :param val: `True` to allow clearing, `False` to block it
     """
     global _IS_CLEAR_CACHE_ENABLED
-    _LOG.warning(
-        "Setting clear_cache %s -> %s", _IS_CLEAR_CACHE_ENABLED, val
-    )
+    _LOG.warning("Setting clear_cache %s -> %s", _IS_CLEAR_CACHE_ENABLED, val)
     _IS_CLEAR_CACHE_ENABLED = val
 
 
@@ -1799,8 +1797,8 @@ def _compute_func_hash(func: Callable) -> str:
     Compute an MD5 hash of the function's source code.
 
     The hash is used to detect when a cached function's body has changed
-    between sessions so callers can be warned that stale cached values may
-    be served.
+    between sessions so callers can be warned that stale cached values
+    may be served.
 
     :param func: the function to fingerprint
     :return: lowercase hex MD5 digest of the source
@@ -1889,6 +1887,14 @@ def simple_cache(
         existing_type = get_cache_property(func_name, "type")
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
+        # Store initial function source hash if not already set. Same guard as
+        # `type` above: written once and never overwritten at decoration time,
+        # so cross-session change detection is preserved. This ensures hits work
+        # correctly even when cache entries were populated externally (e.g.,
+        # pulled from S3) without the function ever running locally.
+        existing_hash = get_cache_property(func_name, "func_hash")
+        if not existing_hash:
+            set_cache_property(func_name, "func_hash", _compute_func_hash(func))
         # Store caching behavior settings.
         set_cache_property(func_name, "write_through", write_through)
         # Store exclude_keys as empty list if None for consistency.
@@ -2095,4 +2101,3 @@ def simple_cache(
         return wrapper
 
     return decorator
-
