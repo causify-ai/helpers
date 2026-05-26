@@ -276,9 +276,9 @@ _SYSTEM_PROPERTIES = [
     "s3_prefix",
     "aws_profile",
     "auto_sync_s3",
-    # MD5 hex digest of the function source code recorded at the time of the
-    # last cache miss. Used to warn when the function body changes while stale
-    # cached values are still being served.
+    # MD5 hex digest of the function source code recorded at decoration time.
+    # Used to warn when the function body changes while stale cached values
+    # are still being served.
     "func_hash",
 ]
 
@@ -519,7 +519,7 @@ def _check_valid_cache_property(property_name: str) -> None:
         "aws_profile",
         # Auto-sync to S3 after cache updates.
         "auto_sync_s3",
-        # MD5 hex digest of the function source at the last cache miss.
+        # MD5 hex digest of the function source recorded at decoration time.
         "func_hash",
     ]
     hdbg.dassert_in(property_name, valid_properties)
@@ -1889,9 +1889,9 @@ def simple_cache(
             set_cache_property(func_name, "type", cache_type)
         # Store initial function source hash if not already set. Same guard as
         # `type` above: written once and never overwritten at decoration time,
-        # so cross-session change detection is preserved. This ensures hits work
-        # correctly even when cache entries were populated externally (e.g.,
-        # pulled from S3) without the function ever running locally.
+        # so cross-session change detection is preserved. Without this, a warm
+        # cache (e.g., populated before `func_hash` was introduced) would have
+        # no hash stored and hits would skip the comparison indefinitely.
         existing_hash = get_cache_property(func_name, "func_hash")
         if not existing_hash:
             set_cache_property(func_name, "func_hash", _compute_func_hash(func))
@@ -2021,8 +2021,12 @@ def simple_cache(
                     cache_perf["hits"] += 1
                 # Retrieve the value from the cache.
                 value = cache[cache_key]
-                # Warn if the function source has changed since this value
-                # was cached.
+                # Warn if the function source has changed since the hash
+                # was last recorded (at decoration time).
+                # TODO(krishna): Cross-machine staleness is not detected. To
+                # support it, the hash would need to be stored per cache entry
+                # (inside the JSON/pickle file alongside the value) rather than
+                # as a single per-function property.
                 stored_hash = get_cache_property(func_name, "func_hash")
                 if stored_hash:
                     current_hash = _compute_func_hash(func)
