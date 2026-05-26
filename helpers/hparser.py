@@ -1565,8 +1565,7 @@ def add_md_start_end_args(
 def add_file_type_filter_args(
     parser: argparse.ArgumentParser,
     *,
-    # TODO(ai_gp1): Make this mandatory.
-    file_types_default: str = "py,ipynb",
+    file_types_default: str,
 ) -> argparse.ArgumentParser:
     """
     Add command line arguments for filtering files by type.
@@ -1600,7 +1599,7 @@ def add_file_type_filter_args(
     return parser
 
 
-# TODO(ai_gp1): Add unit tests.
+# TODO(ai_gp2): Add unit tests.
 def filter_files_by_extensions(
     files: List[str],
     file_types_str: str,

@@ -433,7 +433,7 @@ def _parse() -> argparse.ArgumentParser:
     # File selection arguments using hparser helper.
     hparser.add_file_selection_args(parser)
     # File type filters using hparser helper.
-    hparser.add_file_type_filter_args(parser)
+    hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
     # Other options.
     parser.add_argument(
         "--action",

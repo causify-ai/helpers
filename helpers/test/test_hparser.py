@@ -1003,7 +1003,7 @@ class Test_add_file_type_filter_args(hunitest.TestCase):
         Test that correct arguments are added to parser.
         """
         parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser)
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
         args = parser.parse_args([])
         self.assertTrue(hasattr(args, "file_types"))
         self.assertTrue(hasattr(args, "skip_file_types"))
@@ -1035,7 +1035,7 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
         Test parsing default file types (py,ipynb).
         """
         parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser)
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
         args = parser.parse_args([])
         actual = hparser.parse_file_type_filter_args(args)
         expected = ["py", "ipynb"]
@@ -1046,7 +1046,7 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
         Test parsing custom file types with --file_types.
         """
         parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser)
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
         args = parser.parse_args(["--file_types", "py,md,txt"])
         actual = hparser.parse_file_type_filter_args(args)
         expected = ["py", "md", "txt"]
@@ -1057,7 +1057,7 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
         Test parsing with whitespace in comma-separated list.
         """
         parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser)
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
         args = parser.parse_args(["--file_types", "py , ipynb , md"])
         actual = hparser.parse_file_type_filter_args(args)
         expected = ["py", "ipynb", "md"]
@@ -1068,7 +1068,7 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
         Test parsing with skip_file_types to exclude extensions.
         """
         parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser)
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
         args = parser.parse_args(
             ["--file_types", "py,ipynb,md,txt", "--skip_file_types", "txt"]
         )
@@ -1081,7 +1081,7 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
         Test parsing with multiple skip_file_types.
         """
         parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser)
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
         args = parser.parse_args(
             [
                 "--file_types",
@@ -1099,7 +1099,7 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
         Test parsing with empty file_types (should result in empty list).
         """
         parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser)
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
         args = parser.parse_args(["--file_types", ""])
         actual = hparser.parse_file_type_filter_args(args)
         expected: list = []
@@ -1110,7 +1110,7 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
         Test parsing with skip_file_types that skips all file types.
         """
         parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser)
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
         args = parser.parse_args(
             ["--file_types", "py,ipynb", "--skip_file_types", "py,ipynb"]
         )
