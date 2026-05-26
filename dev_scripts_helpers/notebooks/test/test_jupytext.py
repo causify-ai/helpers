@@ -4,7 +4,7 @@ import pprint
 
 import pytest
 
-import dev_scripts_helpers.notebooks.process_jupytext as dshnprju
+import dev_scripts_helpers.notebooks.jupytext as dshnprju
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -182,13 +182,13 @@ class Test_find_paired_file(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_process_jupytext_py
+# Test_jupytext_py
 # #############################################################################
 
 
-class Test_process_jupytext_py(hunitest.TestCase):
+class Test_jupytext_py(hunitest.TestCase):
     """
-    End-to-end unit tests for process_jupytext.py executable.
+    End-to-end unit tests for jupytext.py executable.
     """
 
     def test5(self) -> None:
@@ -242,13 +242,31 @@ class Test_process_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
+        py_file = f"{scratch_dir}/test_notebook.py"
         with open(ipynb_file, "w") as f:
             f.write("{}")
+        with open(py_file, "w") as f:
+            f.write("")
         # Run test.
         with hunteuti.capture_system_calls() as invocations:
             dshnprju._test(ipynb_file, "test")
         # Check outputs.
         expected_invocations = [
+            {
+                "args": (
+                    f"jupytext --to py:percent {ipynb_file} -o "
+                    "tmp.jupytext_diff.test_notebook.py",
+                ),
+                "function": "hsystem.system",
+                "kwargs": {},
+            },
+            {
+                "args": (
+                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
+                ),
+                "function": "hsystem.system_to_string",
+                "kwargs": {"abort_on_error": False},
+            },
             {
                 "args": (
                     "jupytext --test --stop --to py:percent " f"{ipynb_file}",
@@ -267,13 +285,31 @@ class Test_process_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
+        py_file = f"{scratch_dir}/test_notebook.py"
         with open(ipynb_file, "w") as f:
             f.write("{}")
+        with open(py_file, "w") as f:
+            f.write("")
         # Run test.
         with hunteuti.capture_system_calls() as invocations:
             dshnprju._test(ipynb_file, "test_strict")
         # Check outputs.
         expected_invocations = [
+            {
+                "args": (
+                    f"jupytext --to py:percent {ipynb_file} -o "
+                    "tmp.jupytext_diff.test_notebook.py",
+                ),
+                "function": "hsystem.system",
+                "kwargs": {},
+            },
+            {
+                "args": (
+                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
+                ),
+                "function": "hsystem.system_to_string",
+                "kwargs": {"abort_on_error": False},
+            },
             {
                 "args": (
                     "jupytext --test-strict --stop --to py:percent "
@@ -376,18 +412,39 @@ class Test_process_jupytext_py(hunitest.TestCase):
 
     def test11(self) -> None:
         """
-        Test _check_sync_status calls jupytext diff.
+        Test _is_notebook_in_sync checks sync status using diff.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
+        py_file = f"{scratch_dir}/test_notebook.py"
         with open(ipynb_file, "w") as f:
             f.write("{}")
+        with open(py_file, "w") as f:
+            f.write("")
         # Run test.
-        try:
-            dshnprju._check_sync_status(ipynb_file)
-        except Exception as e:
-            self.fail(f"_check_sync_status raised {e}")
+        with hunteuti.capture_system_calls() as invocations:
+            _, _ = dshnprju._is_notebook_in_sync(ipynb_file)
+        # Check outputs: should have extract and diff calls.
+        expected_invocations = [
+            {
+                "args": (
+                    f"jupytext --to py:percent {ipynb_file} -o "
+                    "tmp.jupytext_diff.test_notebook.py",
+                ),
+                "function": "hsystem.system",
+                "kwargs": {},
+            },
+            {
+                "args": (
+                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
+                ),
+                "function": "hsystem.system_to_string",
+                "kwargs": {"abort_on_error": False},
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
     def test12(self) -> None:
         """
@@ -406,13 +463,13 @@ class Test_process_jupytext_py(hunitest.TestCase):
 
     def test13(self) -> None:
         """
-        Test process_jupytext.py with --action pair.
+        Test jupytext.py with --action pair.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         executable = hgit.find_file_in_git_tree(
-            "process_jupytext.py"
+            "jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action pair 2>&1"
         with open(ipynb_file, "w") as f:
@@ -433,13 +490,13 @@ class Test_process_jupytext_py(hunitest.TestCase):
 
     def test14(self) -> None:
         """
-        Test process_jupytext.py with --action test.
+        Test jupytext.py with --action test.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         executable = hgit.find_file_in_git_tree(
-            "process_jupytext.py"
+            "jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action test 2>&1"
         with open(ipynb_file, "w") as f:
@@ -460,13 +517,13 @@ class Test_process_jupytext_py(hunitest.TestCase):
 
     def test15(self) -> None:
         """
-        Test process_jupytext.py with --action test_strict.
+        Test jupytext.py with --action test_strict.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         executable = hgit.find_file_in_git_tree(
-            "process_jupytext.py"
+            "jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action test_strict 2>&1"
         with open(ipynb_file, "w") as f:
@@ -487,14 +544,14 @@ class Test_process_jupytext_py(hunitest.TestCase):
 
     def test16(self) -> None:
         """
-        Test process_jupytext.py with --action sync.
+        Test jupytext.py with --action sync.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         py_file = f"{scratch_dir}/test_notebook.py"
         executable = hgit.find_file_in_git_tree(
-            "process_jupytext.py"
+            "jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action sync 2>&1"
         with open(ipynb_file, "w") as f:
@@ -517,13 +574,13 @@ class Test_process_jupytext_py(hunitest.TestCase):
 
     def test17(self) -> None:
         """
-        Test process_jupytext.py with invalid action.
+        Test jupytext.py with invalid action.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         executable = hgit.find_file_in_git_tree(
-            "process_jupytext.py"
+            "jupytext.py"
         )
         cmd = f"{executable} -f {ipynb_file} --action invalid_action 2>&1"
         with open(ipynb_file, "w") as f:
@@ -534,7 +591,7 @@ class Test_process_jupytext_py(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_process_jupytext
+# Test_jupytext
 # #############################################################################
 
 
@@ -542,13 +599,13 @@ class Test_process_jupytext_py(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="jupytext is only inside Docker dev environment",
 )
-class Test_process_jupytext(hunitest.TestCase):
+class Test_jupytext_py_end_to_end(hunitest.TestCase):
     @pytest.mark.slow("~7 seconds.")
     def test1(self) -> None:
         """
-        Test file syncing with `process_jupytext.py` end-to-end.
+        Test file syncing with `jupytext.py` end-to-end.
 
-        Test that `process_jupytext.py` updates an `.ipynb` notebook when the
+        Test that `jupytext.py` updates an `.ipynb` notebook when the
         paired `.py` file is changed.
         """
         # Prepare inputs.
@@ -569,7 +626,7 @@ class Test_process_jupytext(hunitest.TestCase):
         hio.to_file(file_path, py_text)
         # Run test.
         executable = hgit.find_file_in_git_tree(
-            "process_jupytext.py"
+            "jupytext.py"
         )
         cmd = f"{executable} -f {file_path} --action sync 2>&1"
         hsystem.system(cmd)
