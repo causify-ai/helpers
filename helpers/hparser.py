@@ -112,35 +112,34 @@ def add_file_selection_args(
     :param parser: ArgumentParser to add arguments to
     :return: The same parser with arguments added
     """
-    # TODO(ai_gp1): Make is a mutually exclusive group
-    # file_selection = parser.add_mutually_exclusive_group()
+    file_selection = parser.add_mutually_exclusive_group()
     # TODO(gp): Use -f and -i and --input as alternative
-    parser.add_argument(
+    file_selection.add_argument(
         "--files",
         type=str,
         help="Select specific files (space-separated list)",
     )
-    parser.add_argument(
+    file_selection.add_argument(
         "--from_file",
         type=str,
         help="Path to file containing one file path per line",
     )
-    parser.add_argument(
+    file_selection.add_argument(
         "--modified",
         action="store_true",
         help="Select only files modified in the client (staged and unstaged)",
     )
-    parser.add_argument(
+    file_selection.add_argument(
         "--branch",
         action="store_true",
         help="Select only files modified with respect to the branch point",
     )
-    parser.add_argument(
+    file_selection.add_argument(
         "--last_commit",
         action="store_true",
         help="Select only files part of the previous commit",
     )
-    parser.add_argument(
+    file_selection.add_argument(
         "--all",
         action="store_true",
         dest="all_files",
@@ -1538,15 +1537,22 @@ def add_md_start_end_args(
         type=str,
         required=start_required,
         default=None,
-        # TODO(ai_gp1): Fix the length of all these strings exceeding 80 chars.
-        help="Starting header: either full format (e.g., '## Section 1') or partial match (e.g., 'Section 1'). Partial match must be unique.",
+        help=(
+            "Starting header: either full format (e.g., '## Section 1') or "
+            "partial match (e.g., 'Section 1'). Partial match must be unique."
+        ),
     )
     parser.add_argument(
         "--md_end",
         type=str,
         required=end_required,
         default=None,
-        help="Ending header: either full format (e.g., '## Section 2') or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. Partial match must be unique.",
+        help=(
+            "Ending header: either full format (e.g., '## Section 2') or "
+            "partial match (e.g., 'Section 2'). If not provided, extracts "
+            "until the next header at the same or higher level. Partial match "
+            "must be unique."
+        ),
     )
     return parser
 
@@ -1559,13 +1565,13 @@ def add_md_start_end_args(
 def add_file_type_filter_args(
     parser: argparse.ArgumentParser,
     *,
-    # TODO(ai_gp): Make this mandatory.
+    # TODO(ai_gp1): Make this mandatory.
     file_types_default: str = "py,ipynb",
 ) -> argparse.ArgumentParser:
     """
     Add command line arguments for filtering files by type.
 
-    Adds the following arguments:
+    Adds the following mutually exclusive arguments:
     - `--file_types`: comma-separated list of file extensions to include
       (e.g., 'py,ipynb,md'). Empty string means keep all extensions.
     - `--skip_file_types`: comma-separated list of file extensions to skip
@@ -1575,8 +1581,8 @@ def add_file_type_filter_args(
     :param file_types_default: default file types to process
     :return: ArgumentParser with the arguments added
     """
-    # TODO(ai_gp1): Make these options mutually exclusive.
-    parser.add_argument(
+    file_type_group = parser.add_mutually_exclusive_group()
+    file_type_group.add_argument(
         "--file_types",
         type=str,
         default=file_types_default,
@@ -1584,7 +1590,7 @@ def add_file_type_filter_args(
         "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
         f"  Default: '{file_types_default}'",
     )
-    parser.add_argument(
+    file_type_group.add_argument(
         "--skip_file_types",
         type=str,
         default="",
@@ -1594,35 +1600,78 @@ def add_file_type_filter_args(
     return parser
 
 
-# TODO(ai_gp1): Extract a function that can be called with the strings 
-# args.file_types_str instead of args so that it can be called also by invoke.
-# TODO(ai_gp1): Finish implementing this.
 # TODO(ai_gp1): Add unit tests.
+def filter_files_by_extensions(
+    files: List[str],
+    file_types_str: str,
+    skip_file_types_str: str,
+) -> List[str]:
+    """
+    Filter files by their extensions based on include or exclude patterns.
+
+    This helper function can be called with strings to filter files by type,
+    making it useful for both command-line interfaces and programmatic use
+    (e.g., from invoke tasks).
+
+    :param files: List of file paths to filter
+    :param file_types_str: Comma-separated string of extensions to include
+        (e.g., 'py,ipynb,md'). If provided, only files with these extensions
+        are included.
+    :param skip_file_types_str: Comma-separated string of extensions to skip
+        (e.g., 'txt,log'). If provided, files with these extensions are
+        excluded.
+    :return: Filtered list of file paths
+    """
+    if file_types_str == "" and skip_file_types_str == "":
+        # Nothing to do.
+        return files
+    hdbg.dassert_lte(int(file_types_str != "") + int(skip_file_types_str != ""), 1)
+    filtered_files = []
+    # Keep the files with a certain 
+    _LOG.debug("File to process: %s", files)
+    if file_types_str:
+        file_extensions = {
+            ext.strip() for ext in file_types_str.split(",") if ext.strip()
+        }
+        _LOG.debug("File extensions to process: %s", file_extensions)
+        for file_path in files:
+            ext = file_path.split(".")[-1] if "." in file_path else ""
+            if ext in file_extensions:
+                filtered_files.append(file_path)
+    elif skip_file_types_str:
+        skip_extensions = {
+            ext.strip()
+            for ext in skip_file_types_str.split(",")
+            if ext.strip()
+        }
+        _LOG.debug("File extensions to skip: %s", skip_extensions)
+        for file_path in files:
+            ext = file_path.split(".")[-1] if "." in file_path else ""
+            if ext not in skip_extensions:
+                filtered_files.append(file_path)
+    _LOG.debug("Filtered files: %d -> %d", len(files), len(filtered_files))
+    return filtered_files
+
+
 def parse_file_type_filter_args(
     args: argparse.Namespace,
     files: List[str],
 ) -> List[str]:
     """
-    Parse file type filter arguments and return list of extensions to process.
+    Parse file type filter arguments and return filtered list of files.
 
     Parses both `--file_types` and `--skip_file_types` arguments, returning
-    the list of extensions to actually process after filtering.
+    the list of files to process after filtering by extension.
 
     :param args: Parsed command line arguments from add_file_type_filter_args
-    :return: List of file extensions to process (empty extensions are stripped)
+    :param files: List of file paths to filter
+    :return: List of file paths after extension filtering
     """
-    # Ensure that the two options `--file_types` and `--skip_file_types` are
-    # not selected together.
-    hdbg.dassert_lte(bool(args.file_types) + bool(args.skip_file_types), 2)
-    # Extract the extensions for `--file_types` or `skip_file_types`.
-    if args.file_types:
-        file_extensions = [ext.strip() for ext in args.file_types_str.split(",")]
-        _LOG.debug("File extensions to process: %s", file_extensions)
-    elif args.skip_file_types:
-        skip_file_extensions = [
-            ext.strip() for ext in args.skip_file_types_str.split(",")
-            ]
-    # Filter files based on the extensions.
-    _LOG.debug("Files to process: %s", files)
-    # TODO(ai_gp1): Implement similar to _filter_git_files_by_type
-    return files
+    file_types = getattr(args, "file_types", None)
+    skip_file_types = getattr(args, "skip_file_types", None)
+    filtered_files = filter_files_by_extensions(
+        files,
+        file_types_str=file_types,
+        skip_file_types_str=skip_file_types,
+    )
+    return filtered_files
