@@ -7,30 +7,33 @@
 """
 Format or lint files using Claude Code.
 
-This script detects file types (by extension and path pattern) builds a prompt,
+This script detects file types (by extension and path pattern), builds a prompt,
 and invokes Claude Code with that prompt.
 
 Examples:
-# Lint Python .py files:
-> lint_cc.py file1.py file2.py
+# Lint specific Python files:
+> lint_cc.py --files "file1.py file2.py"
 
-# Lint Python testing files test_*.py:
-> lint_cc.py test_foo.py test_bar.py
+# Lint Python testing files:
+> lint_cc.py --files "test_foo.py test_bar.py"
 
-# Call a specific set of rules on a single file:
-> lint_cc.py --topic coding file.py
+# Call a specific topic (rules) on a single file:
+> lint_cc.py --topic coding --files "file.py"
 
 # Execute a skill on a single file:
-> lint_cc.py --skill coding.fix_inline file.py
+> lint_cc.py --skill coding.fix_inline --files "file.py"
 
 # Execute a rule on a single file:
-> lint_cc.py --rule "coding.rules" file.py
+> lint_cc.py --rule "coding.rules" --files "file.py"
+
+# Lint modified files in the client:
+> lint_cc.py --modified
 
 # Print the command without executing:
-> lint_cc.py --dry_run *.md
+> lint_cc.py --dry_run --files "*.md"
 
 # Run with debug logging:
-> lint_cc.py *.py - DEBUG
+> lint_cc.py --files "*.py" -v DEBUG
 """
 
 import argparse
@@ -352,6 +355,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Select files.
     num_exclusive = sum(
         [
             args.topic is not None,
@@ -368,6 +372,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
     if args.topic and len(files) != 1:
         raise ValueError("--topic can only be used with a single file")
     _LOG.info("Processing %d file(s)", len(files))
+    #
     ret = 0
     for file_path in tqdm(files, desc="Processing files"):
         if args.skill:

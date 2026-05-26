@@ -102,16 +102,26 @@ def add_file_selection_args(
     Add file selection arguments to a parser.
 
     Adds the following mutually exclusive arguments:
-    - --modified: Search only in files modified in the client
-    - --branch: Search only in files modified with respect to the branch point
-    - --last-commit: Search only in files part of the previous commit
-    - --all: Search all repo files
-    - --files: Search in specific files
-    - --from_files: Search in files listed in a file
+    - --files: Specify specific files
+    - --from_files: Select files listed in a file
+    - --modified: Select files modified in the client
+    - --branch: Select files modified with respect to the branch point
+    - --last_commit: Select files part of the previous commit
+    - --all: Select all files
 
     :param parser: ArgumentParser to add arguments to
     :return: The same parser with arguments added
     """
+    parser.add_argument(
+        "--files",
+        type=str,
+        help="Select specific files (space-separated list)",
+    )
+    parser.add_argument(
+        "--from_file",
+        type=str,
+        help="Path to file containing one file path per line",
+    )
     parser.add_argument(
         "--modified",
         action="store_true",
@@ -132,16 +142,6 @@ def add_file_selection_args(
         action="store_true",
         dest="all_files",
         help="Select all repo files",
-    )
-    parser.add_argument(
-        "--files",
-        type=str,
-        help="Select specific files (space-separated list)",
-    )
-    parser.add_argument(
-        "--from_file",
-        type=str,
-        help="Path to file containing one file path per line",
     )
     return parser
 
@@ -170,6 +170,19 @@ def parse_file_selection_args(
     """
     # Import here to avoid circular dependency.
     import helpers.hgit as hgit
+
+    # Handle --files argument (space-separated list)
+    if hasattr(args, "files") and args.files:
+        files_str = args.files
+        files = files_str.split()
+        files = hgit._filter_existing_paths(files)
+        files_to_process = [f for f in files if f != ""]
+        files_to_process = [f for f in files_to_process if f != "amp"]
+        if remove_dirs:
+            files_to_process = hsystem.remove_dirs(files_to_process)
+        if not files_to_process:
+            _LOG.warning("No files were selected")
+        return files_to_process
 
     files = hgit.get_files_to_process(
         modified=args.modified,

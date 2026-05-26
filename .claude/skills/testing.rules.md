@@ -371,6 +371,70 @@
             self.helper(input1, expected)
     ```
 
+## Avoid Base Test Classes for Shared Code
+
+- Do not create derived test classes to share testing utilities
+- Instead, create helper methods within the test class that perform the shared
+  operations
+
+- Reason:
+  - Base test classes complicate the inheritance hierarchy, make test discovery
+    harder, and obscure the test structure
+  - Helper methods are simpler, more explicit, and easier to understand
+
+- **Bad** (using base test class to share utilities)
+  ```python
+  class Test_mdm_py_base(hunitest.TestCase):
+      """
+      Base class with shared utilities for mdm executable tests.
+      """
+
+      def _run_mdm(self, topic: str, action: str, *names: str) -> str:
+          """
+          Run mdm executable and capture output...
+          """
+          # ... implementation ...
+          return result
+
+
+  class Test_mdm_py(Test_mdm_py_base):
+      """
+      Test mdm executable.
+      """
+
+      def test1(self) -> None:
+          """
+          Test...
+          """
+          result = self._run_mdm("research", "list")
+          # ... assertions ...
+  ```
+
+- **Good** (create helper method in the test class)
+  ```python
+  def _run_mdm(
+      self: hunitest.TestCase,
+      topic: str,
+      action: str, 
+      *names: str) -> str:
+      """
+      Run mdm executable and capture output...
+      """
+      # ... implementation ...
+      return result
+
+
+  class Test_mdm_py(hunitest.TestCase):
+      """
+      Test mdm executable.
+      """
+
+      def test1(self) -> None:
+          """Test..."""
+          result = _run_mdm(self, "research", "list")
+          # ... assertions ...
+  ```
+
 ## Use Input and Scratch Space from `hunittest`
 
 - When the inputs are too big (e.g., more than 2000 characters) use a file in
