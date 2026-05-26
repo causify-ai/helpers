@@ -769,7 +769,7 @@ class Test_find_git_root5(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp1): /factor_out
+# TODO(ai_gp1): /coding.factor_common_code
 class Test_get_files_to_process1(hunitest.TestCase):
     """
     Test get_files_to_process with --files argument (space-separated list).
@@ -1006,6 +1006,257 @@ class Test_get_files_to_process1(hunitest.TestCase):
         # 'amp' should be filtered out (since it's a bare filename without path)
         self.assertEqual(len(actual), 1)
         self.assertIn("file1.txt", actual[0])
+
+    def test_modified1(self) -> None:
+        """
+        Retrieve files modified in this client.
+        """
+        # Prepare inputs.
+        files = ""
+        from_file = ""
+        modified = True
+        branch = False
+        last_commit = False
+        all_ = False
+        mutually_exclusive = True
+        remove_dirs = True
+        # Run test.
+        _ = hgit.get_files_to_process(
+            files,
+            from_file,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+        )
+        # No check since we don't know what is modified.
+
+    @pytest.mark.skipif(
+        hgit.get_branch_name() == "master",
+        reason="This test makes sense for a branch",
+    )
+    def test_branch1(self) -> None:
+        """
+        Retrieved files modified in this client.
+        """
+        # Prepare inputs: This test needs a reference to Git master branch.
+        hgit.fetch_origin_master_if_needed()
+        files = ""
+        from_file = ""
+        modified = False
+        branch = True
+        last_commit = False
+        all_ = False
+        mutually_exclusive = True
+        remove_dirs = True
+        # Run test.
+        _ = hgit.get_files_to_process(
+            files,
+            from_file,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+        )
+        # No check since we don't know what is modified.
+
+    def test_last_commit1(self) -> None:
+        """
+        Retrieved files modified in the last commit.
+        """
+        # Prepare inputs.
+        files = ""
+        from_file = ""
+        modified = False
+        branch = False
+        last_commit = True
+        all_ = False
+        mutually_exclusive = True
+        remove_dirs = True
+        # Run test.
+        _ = hgit.get_files_to_process(
+            files,
+            from_file,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+        )
+        # No check since we don't know what is modified.
+
+    def test_files1(self) -> None:
+        """
+        Pass through files from user.
+        """
+        # Prepare inputs.
+        files = ""
+        #
+        scratch_dir = self.get_scratch_space()
+        from_file_path = os.path.join(scratch_dir, "test_files1.txt")
+        hio.to_file(from_file_path, __file__)
+        #
+        modified = False
+        branch = False
+        last_commit = False
+        all_ = False
+        mutually_exclusive = True
+        remove_dirs = True
+        # Run test.
+        files = hgit.get_files_to_process(
+            files,
+            from_file_path,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+        )
+        # Check outputs.
+        self.assertEqual(files, [__file__])
+
+    def test_files2(self) -> None:
+        """
+        Pass through files from user.
+
+        Use two types of paths we don't want to process:
+          - non-existent python file
+          - pattern "/*" that matches no files
+        """
+        # Prepare inputs.
+        files = ""
+        modified = False
+        branch = False
+        last_commit = False
+        all_ = False
+        scratch_dir = self.get_scratch_space()
+        from_file_path = os.path.join(scratch_dir, "test_files2.txt")
+        file_list_content = "testfile1.py testfiles1/*"
+        hio.to_file(from_file_path, file_list_content)
+        mutually_exclusive = True
+        remove_dirs = True
+        # Run test.
+        files = hgit.get_files_to_process(
+            files,
+            from_file_path,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+        )
+        # Check outputs.
+        self.assertEqual(files, [])
+
+    def test_assert1(self) -> None:
+        """
+        Test that --modified and --branch together cause an assertion.
+        """
+        # Prepare inputs.
+        files = ""
+        from_file = ""
+        modified = True
+        branch = True
+        last_commit = False
+        all_ = True
+        mutually_exclusive = True
+        remove_dirs = True
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            hgit.get_files_to_process(
+            files,
+            from_file,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+            )
+        actual = str(cm.exception)
+        expected = r"""
+        * Failed assertion *
+        '3'
+        ==
+        '1'
+        You can pick only one option to select files. Selected: --modified, --branch, --all_files
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test_assert2(self) -> None:
+        """
+        Test that --modified and --files together cause an assertion if
+        `mutually_exclusive=True`.
+        """
+        # Prepare inputs.
+        files = ""
+        from_file = __file__
+        modified = True
+        branch = False
+        last_commit = False
+        all_ = False
+        mutually_exclusive = True
+        remove_dirs = True
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            hgit.get_files_to_process(
+            files,
+            from_file,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+            )
+        actual = str(cm.exception)
+        expected = r"""
+        * Failed assertion *
+        '2'
+        ==
+        '1'
+        You can pick only one option to select files. Selected: --from_file, --modified
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test_assert3(self) -> None:
+        """
+        Test that --modified and --files together don't cause an assertion if
+        `mutually_exclusive=False`.
+        """
+        # Prepare inputs.
+        files = ""
+        scratch_dir = self.get_scratch_space()
+        #
+        from_file_path = os.path.join(scratch_dir, "test_assert3.txt")
+        hio.to_file(from_file_path, __file__)
+        #
+        modified = True
+        branch = False
+        last_commit = False
+        all_ = False
+        mutually_exclusive = False
+        remove_dirs = True
+        # Run test.
+        files = hgit.get_files_to_process(
+            files,
+            from_file_path,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+        )
+        # Check outputs.
+        self.assertIn(__file__, files)
 
 
 # #############################################################################

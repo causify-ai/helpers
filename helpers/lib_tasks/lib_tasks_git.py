@@ -432,9 +432,11 @@ def _filter_git_files_by_type(
 @task
 def git_files(  # type: ignore
     ctx,
+    #
     modified=False,
     branch=False,
     last_commit=False,
+    #
     file_types="",
     pbcopy=False,
     only_print_files=False,
