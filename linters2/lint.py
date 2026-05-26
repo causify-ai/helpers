@@ -402,6 +402,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     # File selection arguments (mutually exclusive).
+    # TODO(ai_gp): Use the function in hparser.py
     file_selection = parser.add_mutually_exclusive_group()
     file_selection.add_argument(
         "--modified",
@@ -447,6 +448,12 @@ def _parse() -> argparse.ArgumentParser:
         "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
         "  Default: 'py,ipynb'",
     )
+    parser.add_argument(
+        "--skip_files",
+        nargs="+",
+        type=str,
+        help="Files to skip during linting",
+    )
     # Other options.
     parser.add_argument(
         "--action",
@@ -460,12 +467,6 @@ def _parse() -> argparse.ArgumentParser:
         "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
         "  pyright: Run pyright type checker\n"
         "  coverage: Run pytest coverage for test files",
-    )
-    parser.add_argument(
-        "--skip_files",
-        nargs="+",
-        type=str,
-        help="Files to skip during linting",
     )
     parser.add_argument(
         "--abort_on_error",

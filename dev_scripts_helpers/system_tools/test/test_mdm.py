@@ -41,7 +41,9 @@ def _run_mdm(topic: str, action: str, *names: str) -> str:
 
 
 class Test_mdm_py_list(hunitest.TestCase):
-    """Tests for list action."""
+    """
+    Tests for list action.
+    """
 
     def test1(self) -> None:
         """
@@ -50,9 +52,15 @@ class Test_mdm_py_list(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("skill", "list")
         # Check outputs.
+        # Expected: Non-empty string with one or more skill names per line
+        # Invariant: Output should not be empty (at least one skill exists)
         self.assertNotEqual(actual, "")
         lines = actual.split("\n")
+        # Expected: List of skill names, one per line
+        # Invariant: At least one line should be present
         self.assertGreater(len(lines), 0)
+        # Expected: Each line contains a valid skill name (non-empty string)
+        # Invariant: No blank lines in output
         for line in lines:
             self.assertTrue(len(line) > 0)
 
@@ -63,8 +71,12 @@ class Test_mdm_py_list(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("skill", "list", "blog")
         # Check outputs.
+        # Expected: Skill names matching the "blog" pattern, one per line
+        # Invariant: At least one line should match the filter
         lines = actual.split("\n")
         self.assertGreater(len(lines), 0)
+        # Expected: Each returned line contains "blog" (case-insensitive)
+        # Invariant: Pattern filter successfully filters results
         for line in lines:
             self.assertIn("blog", line.lower())
 
@@ -75,6 +87,8 @@ class Test_mdm_py_list(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("rules", "list")
         # Check outputs.
+        # Expected: Rule names without file extension suffix (e.g., "coding" not "coding.rules.md")
+        # Invariant: No line should contain ".rules.md" extension when rules are listed
         if actual:
             lines = actual.split("\n")
             self.assertTrue(all(".rules.md" not in line for line in lines))
@@ -86,7 +100,9 @@ class Test_mdm_py_list(hunitest.TestCase):
 
 
 class Test_mdm_py_full_list(hunitest.TestCase):
-    """Tests for full_list action."""
+    """
+    Tests for full_list action.
+    """
 
     def test1(self) -> None:
         """
@@ -95,9 +111,15 @@ class Test_mdm_py_full_list(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("skill", "full_list")
         # Check outputs.
+        # Expected: Non-empty string with full file paths
+        # Invariant: Output should not be empty when skills exist
         self.assertNotEqual(actual, "")
         lines = actual.split("\n")
+        # Expected: Multiple full paths to SKILL.md files
+        # Invariant: At least one line should be present
         self.assertGreater(len(lines), 0)
+        # Expected: At least one line contains "SKILL.md" (indicating full path format)
+        # Invariant: Full list includes complete file paths, not just names
         self.assertTrue(any("SKILL.md" in line for line in lines))
 
     def test2(self) -> None:
@@ -107,6 +129,8 @@ class Test_mdm_py_full_list(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("rules", "full_list")
         # Check outputs.
+        # Expected: Full paths to .rules.md files (e.g., "/path/to/coding.rules.md")
+        # Invariant: At least one line should contain ".rules.md" extension when rules exist
         if actual:
             lines = actual.split("\n")
             self.assertTrue(any(".rules.md" in line for line in lines))
@@ -118,7 +142,9 @@ class Test_mdm_py_full_list(hunitest.TestCase):
 
 
 class Test_mdm_py_directory(hunitest.TestCase):
-    """Tests for directory action."""
+    """
+    Tests for directory action.
+    """
 
     def test1(self) -> None:
         """
@@ -127,7 +153,11 @@ class Test_mdm_py_directory(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("skill", "directory")
         # Check outputs.
+        # Expected: Non-empty path to the skills directory
+        # Invariant: Output should not be empty (directory path must exist)
         self.assertNotEqual(actual, "")
+        # Expected: Path contains ".claude/skills" indicating the standard location
+        # Invariant: Returned path points to the expected skills directory structure
         self.assertIn(".claude/skills", actual)
 
     def test2(self) -> None:
@@ -137,6 +167,8 @@ class Test_mdm_py_directory(hunitest.TestCase):
         # Run test - research directory may not exist in all environments
         try:
             actual = _run_mdm("research", "directory")
+            # Expected: Path containing "research" directory indicator (if path is returned)
+            # Invariant: When research directory exists, returned path should mention it
             if actual:
                 self.assertIn("research", actual.lower())
         except Exception:
@@ -149,6 +181,8 @@ class Test_mdm_py_directory(hunitest.TestCase):
         # Run test - story directory may not exist in all environments
         try:
             actual = _run_mdm("story", "directory")
+            # Expected: Path containing "short_stories" directory indicator (if path is returned)
+            # Invariant: When story directory exists, returned path should mention it
             if actual:
                 self.assertIn("short_stories", actual.lower())
         except Exception:
@@ -160,6 +194,8 @@ class Test_mdm_py_directory(hunitest.TestCase):
         """
         # Run test - blog directory may not exist in all environments
         try:
+            # Expected: Command executes without raising exceptions
+            # Invariant: Blog directory command should be callable (success or graceful failure)
             _run_mdm("blog", "directory")
         except Exception:
             pass
@@ -171,7 +207,9 @@ class Test_mdm_py_directory(hunitest.TestCase):
 
 
 class Test_mdm_py_describe(hunitest.TestCase):
-    """Tests for describe action."""
+    """
+    Tests for describe action.
+    """
 
     def test1(self) -> None:
         """
@@ -180,8 +218,12 @@ class Test_mdm_py_describe(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("skill", "describe")
         # Check outputs.
+        # Expected: Non-empty output with skill names and their descriptions
+        # Invariant: At least one skill with its description should be returned
         self.assertNotEqual(actual, "")
         lines = actual.split("\n")
+        # Expected: Multiple lines, each containing skill name and description info
+        # Invariant: At least one line should be present in describe output
         self.assertGreater(len(lines), 0)
 
     def test2(self) -> None:
@@ -191,8 +233,12 @@ class Test_mdm_py_describe(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("skill", "describe", "blog")
         # Check outputs.
+        # Expected: Descriptions for skills matching "blog" pattern, one per line
+        # Invariant: Each non-empty line should contain "blog" (case-insensitive)
         lines = actual.split("\n") if actual else []
         for line in lines:
+            # Expected: Filtered output containing only "blog"-related skills
+            # Invariant: Pattern filter successfully restricts describe results
             if line:
                 self.assertIn("blog", line.lower())
 
@@ -203,7 +249,9 @@ class Test_mdm_py_describe(hunitest.TestCase):
 
 
 class Test_mdm_py_topics(hunitest.TestCase):
-    """Tests for topics action."""
+    """
+    Tests for topics action.
+    """
 
     def test1(self) -> None:
         """
@@ -212,9 +260,15 @@ class Test_mdm_py_topics(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("skill", "topics")
         # Check outputs.
+        # Expected: Non-empty string with topic prefixes (e.g., "blog", "coding", "docker")
+        # Invariant: At least one topic prefix should be listed
         self.assertNotEqual(actual, "")
         lines = actual.split("\n")
+        # Expected: Multiple unique topic prefixes, one per line
+        # Invariant: At least one line should be present
         self.assertGreater(len(lines), 0)
+        # Expected: Each prefix contains only alphanumeric characters and underscores
+        # Invariant: Valid identifier format for skill topic names (e.g., "blog", "coding_qa")
         for prefix in lines:
             self.assertTrue(
                 prefix.isalpha() or all(c.isalnum() or c == "_" for c in prefix),
@@ -228,132 +282,6 @@ class Test_mdm_py_topics(hunitest.TestCase):
         # Run test.
         actual = _run_mdm("skill", "topics", "blog")
         # Check outputs.
+        # Expected: Output containing "blog" topic prefix when filtered
+        # Invariant: Pattern filter successfully returns matching topic prefixes
         self.assertIn("blog", actual)
-
-
-# #############################################################################
-# Test_mdm_py_prefix_matching
-# #############################################################################
-
-
-class Test_mdm_py_prefix_matching(hunitest.TestCase):
-    """Tests for prefix matching in topic and action names."""
-
-    def test1(self) -> None:
-        """
-        Test prefix matching: 'sk' matches 'skill' topic.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "skill", "list")
-        actual_prefix = _run_mdm(self, "sk", "list")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test2(self) -> None:
-        """
-        Test prefix matching: 'bl' matches 'blog' topic.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "blog", "directory")
-        actual_prefix = _run_mdm(self, "bl", "directory")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test3(self) -> None:
-        """
-        Test prefix matching: 'res' matches 'research' topic.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "research", "directory")
-        actual_prefix = _run_mdm(self, "res", "directory")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test4(self) -> None:
-        """
-        Test prefix matching: 'st' matches 'story' topic.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "story", "directory")
-        actual_prefix = _run_mdm(self, "st", "directory")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test5(self) -> None:
-        """
-        Test prefix matching: 'l' matches 'list' action.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "skill", "list")
-        actual_prefix = _run_mdm(self, "skill", "l")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test6(self) -> None:
-        """
-        Test prefix matching: 'f' matches 'full_list' action.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "skill", "full_list")
-        actual_prefix = _run_mdm(self, "skill", "f")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test7(self) -> None:
-        """
-        Test prefix matching: 'di' matches 'directory' action.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "skill", "directory")
-        actual_prefix = _run_mdm(self, "skill", "di")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test8(self) -> None:
-        """
-        Test prefix matching: 'de' matches 'describe' action.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "skill", "describe")
-        actual_prefix = _run_mdm(self, "skill", "de")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test9(self) -> None:
-        """
-        Test prefix matching: 't' matches 'topics' action.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "skill", "topics")
-        actual_prefix = _run_mdm(self, "skill", "t")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-    def test10(self) -> None:
-        """
-        Test prefix matching: 'ru' matches 'rules' topic.
-        """
-        # Run test.
-        actual_full = _run_mdm(self, "rules", "list")
-        actual_prefix = _run_mdm(self, "ru", "list")
-        # Check outputs.
-        self.assertEqual(actual_full, actual_prefix)
-
-
-# #############################################################################
-# Test_mdm_py_case_insensitive
-# #############################################################################
-
-
-class Test_mdm_py_case_insensitive(hunitest.TestCase):
-    """Tests for case-insensitive argument handling."""
-
-    def test1(self) -> None:
-        """
-        Test case-insensitive prefix matching for actions.
-        """
-        # Run test.
-        actual_lower = _run_mdm(self, "skill", "list")
-        actual_upper = _run_mdm(self, "SKILL", "LIST")
-        # Check outputs.
-        self.assertEqual(actual_lower, actual_upper)

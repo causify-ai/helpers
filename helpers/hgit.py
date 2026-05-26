@@ -1573,9 +1573,12 @@ def get_files_to_process(
     last_commit: bool,
     all_: bool,
     from_file: str,
+    # TODO(ai_gp): move it first and then from_file second and update all the code
+    # and comments
+    files: str = "",
     # TODO(gp): Can mutually_exclusive be removed? When is it actually useful?
-    mutually_exclusive: bool,
-    remove_dirs: bool,
+    mutually_exclusive: bool = True,
+    remove_dirs: bool = False,
     *,
     dir_name: str = ".",
 ) -> List[str]:
@@ -1583,11 +1586,12 @@ def get_files_to_process(
     Get a list of files to process based on selection criteria.
 
     The files are selected based on the switches:
+    - `files`: space-separated list of files to process
+    - `from_file`: file with a list of files inside
     - `branch`: changed in the branch
     - `modified`: changed in the client (both staged and modified)
     - `last_commit`: part of the previous commit
     - `all_`: all the files in the repo
-    - `from_file`: file with a list of files inside
 
     :param modified: return files modified in the client (i.e., changed with
         respect to HEAD)
@@ -1595,6 +1599,7 @@ def get_files_to_process(
     :param last_commit: return files part of the previous commit
     :param all_: return all repo files
     :param from_file: file storing files to process
+    :param files: space-separated list of files to process
     :param mutually_exclusive: ensure that all options are mutually exclusive
     :param remove_dirs: whether directories should be processed
     :param dir_name: directory to process (default: current directory)
@@ -1602,7 +1607,7 @@ def get_files_to_process(
     """
     _LOG.debug(
         hprint.to_str(
-            "modified branch last_commit all_ from_file "
+            "modified branch last_commit all_ from_file files "
             "mutually_exclusive remove_dirs dir_name"
         )
     )
@@ -1613,10 +1618,11 @@ def get_files_to_process(
             + int(branch)
             + int(last_commit)
             + int(all_)
-            + int(from_file != ""),
+            + int(from_file != "")
+            + int(files != ""),
             1,
             msg="Specify only one among --modified, --branch, --last-commit, "
-            "--all_files, and --from_file",
+            "--all_files, --from_file, and --files",
         )
     else:
         # We filter the files passed from the user through other the options,
@@ -1626,31 +1632,34 @@ def get_files_to_process(
             1,
             msg="Specify only one among --modified, --branch, --last-commit",
         )
-    files: List[str] = []
+    files_list: List[str] = []
     if modified:
-        files = get_modified_files(dir_name)
+        files_list = get_modified_files(dir_name)
     elif branch:
-        files = get_modified_files_in_branch("master", dir_name)
+        files_list = get_modified_files_in_branch("master", dir_name)
     elif last_commit:
-        files = get_previous_committed_files(dir_name)
+        files_list = get_previous_committed_files(dir_name)
     elif all_:
         pattern = "*"
         only_files = True
         use_relative_paths = True
-        files = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
+        files_list = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
+    elif files:
+        # Handle space-separated list of files.
+        files_list = files.split()
     if from_file:
         hdbg.dassert_path_exists(from_file)
         file_content = hio.from_file(from_file)
         from_files = file_content.split()
         if mutually_exclusive:
-            files = from_files
+            files_list = from_files
         else:
-            files.extend(from_files)
-    hdbg.dassert_isinstance(files, list)
-    files = _filter_existing_paths(files)
+            files_list.extend(from_files)
+    hdbg.dassert_isinstance(files_list, list)
+    files_list = _filter_existing_paths(files_list)
     # Convert into a list.
-    hdbg.dassert_isinstance(files, list)
-    files_to_process = [f for f in files if f != ""]
+    hdbg.dassert_isinstance(files_list, list)
+    files_to_process = [f for f in files_list if f != ""]
     # We need to remove `amp` to avoid copying the entire tree.
     files_to_process = [f for f in files_to_process if f != "amp"]
     _LOG.debug("files_to_process='%s'", str(files_to_process))

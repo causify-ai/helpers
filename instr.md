@@ -1,41 +1,16 @@
-1) When running `mdm skill l skill` the output is garbled
+Factor out in helpers/hparser.py the logic to add the command line arguments like
 
-```
-skills
-skills
-skills
-skills
-skills
-skills
-skills
-skills
-skills
-skills
-skills
-skills
-skills
-skill.add
-skill.improve_text
-skill.move_to_rules
-skill.reorganize_rules
-skills
-skills
-skills
-skills
-skills
-skills
-```
+  :param file_types: a comma-separated list of extensions to check, e.g.,
+      'csv,py'. An empty string means keep all the extensions
+  :param skip_file_types: a comma-separated list of extensions to skip, e.g.,
+      'txt'. An empty string means do not skip any extension
 
-Find out why and fix it
+and the logic to parse it
 
-2) -v DEBUG doesn't work for mdm. Maybe because the logger sets the verbosity
-  for the current file instead of setting it for the librig.py
-- Fix it
-
-- Find the root cause and propose a solution
-
-- When writing code you must always follow the instructions in
-  `.claude/skills/coding.rules.md`
+- Update the unit tests
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
+
+- Depending on the type of file to modify follow the rules described in
+	`@.claude/rules.md`

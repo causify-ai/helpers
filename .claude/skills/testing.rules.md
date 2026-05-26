@@ -849,6 +849,38 @@ The goal is to exercise as much real code as possible, so do not mock:
       hunteuti.assert_invocations(self, invocations, expected_invocations_str)
   ```
 
+## Document Output Assertions When Exact Matching is Not Possible
+- When checking end-to-end output from a test, if it is not possible to check the
+  exact output (e.g., since the output depends on environment-specific details),
+  add a comment above the assertion showing:
+  1. How the output should look like from the actual command
+  2. The invariant being checked (what property must hold true)
+
+- This documents the intent of the test for future maintainers when exact string
+  matching is not feasible
+
+- **Good** (comment shows expected format and what is being validated)
+  ```python
+  # Check outputs.
+  # Expected: contains the output from the command (paths are variable)
+  # Invariant: output contains expected sections and key values
+  self.assertIn("Processing complete", actual)
+  self.assertIn("Files: ", actual)
+  self.assertIn("Status: SUCCESS", actual)
+  ```
+
+- **Good** (with fuzzy matching and explanatory comment)
+  ```python
+  # Check outputs.
+  # Expected from command: "Processed /path/to/file.txt in 0.123s"
+  # Invariant: message format is consistent and success status is present
+  expected = """
+  Processed .*/path/to/file.txt in [0-9.]+s
+  Status: SUCCESS
+  """
+  self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+  ```
+
 # Mocking
 
 // TODO(gp): Review

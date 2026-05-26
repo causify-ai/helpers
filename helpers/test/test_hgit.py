@@ -771,6 +771,191 @@ class Test_find_git_root5(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_get_files_to_process1
+# #############################################################################
+
+
+# TODO(ai_gp): /factor_out
+class Test_get_files_to_process1(hunitest.TestCase):
+    """
+    Test get_files_to_process with --files argument (space-separated list).
+    """
+
+    def test_files_with_single_file(self) -> None:
+        """
+        Test with a single file in the space-separated list.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        hio.to_file(file1, "content1")
+        # Test with single file using absolute path.
+        actual = hgit.get_files_to_process(
+            modified=False,
+            branch=False,
+            last_commit=False,
+            all_=False,
+            from_file="",
+            files=file1,
+            mutually_exclusive=True,
+            remove_dirs=False,
+            dir_name=temp_dir,
+        )
+        # Result should contain the absolute path
+        self.assertEqual(len(actual), 1)
+        self.assertIn("file1.txt", actual[0])
+
+    def test_files_with_multiple_files(self) -> None:
+        """
+        Test with multiple files in the space-separated list.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        file2 = os.path.join(temp_dir, "file2.txt")
+        file3 = os.path.join(temp_dir, "file3.txt")
+        hio.to_file(file1, "content1")
+        hio.to_file(file2, "content2")
+        hio.to_file(file3, "content3")
+        # Test with multiple files using absolute paths.
+        files_str = f"{file1} {file2} {file3}"
+        actual = hgit.get_files_to_process(
+            modified=False,
+            branch=False,
+            last_commit=False,
+            all_=False,
+            from_file="",
+            files=files_str,
+            mutually_exclusive=True,
+            remove_dirs=False,
+            dir_name=temp_dir,
+        )
+        # Check that all files are present
+        self.assertEqual(len(actual), 3)
+        for expected_file in ["file1.txt", "file2.txt", "file3.txt"]:
+            self.assertTrue(
+                any(expected_file in f for f in actual),
+                f"{expected_file} not found in {actual}",
+            )
+
+    def test_files_with_nonexistent_file(self) -> None:
+        """
+        Test that non-existent files are filtered out.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        nonexistent = os.path.join(temp_dir, "nonexistent.txt")
+        hio.to_file(file1, "content1")
+        # Test with one existing and one non-existent file using absolute paths.
+        files_str = f"{file1} {nonexistent}"
+        actual = hgit.get_files_to_process(
+            modified=False,
+            branch=False,
+            last_commit=False,
+            all_=False,
+            from_file="",
+            files=files_str,
+            mutually_exclusive=True,
+            remove_dirs=False,
+            dir_name=temp_dir,
+        )
+        # Only existing file should remain
+        self.assertEqual(len(actual), 1)
+        self.assertIn("file1.txt", actual[0])
+
+    def test_files_with_empty_string(self) -> None:
+        """
+        Test that empty string is handled correctly when mutually_exclusive=False.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        hio.to_file(file1, "content1")
+        # Test with empty files parameter and mutually_exclusive=False.
+        actual = hgit.get_files_to_process(
+            modified=True,
+            branch=False,
+            last_commit=False,
+            all_=False,
+            from_file="",
+            files="",
+            mutually_exclusive=False,
+            remove_dirs=False,
+            dir_name=temp_dir,
+        )
+        # Should return a list.
+        self.assertIsInstance(actual, list)
+
+    def test_files_mutually_exclusive_with_modified(self) -> None:
+        """
+        Test that --files is mutually exclusive with --modified when mutually_exclusive=True.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        hio.to_file(file1, "content1")
+        # Test that error is raised when both --files and --modified are specified.
+        with self.assertRaises(AssertionError):
+            hgit.get_files_to_process(
+                modified=True,
+                branch=False,
+                last_commit=False,
+                all_=False,
+                from_file="",
+                files=file1,
+                mutually_exclusive=True,
+                remove_dirs=False,
+                dir_name=temp_dir,
+            )
+
+    def test_files_with_directory(self) -> None:
+        """
+        Test with a directory in the file list and remove_dirs=True.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        dir1 = os.path.join(temp_dir, "dir1")
+        hio.to_file(file1, "content1")
+        hio.create_dir(dir1, incremental=False)
+        # Test with directory and remove_dirs=True using absolute paths.
+        files_str = f"{file1} {dir1}"
+        actual = hgit.get_files_to_process(
+            modified=False,
+            branch=False,
+            last_commit=False,
+            all_=False,
+            from_file="",
+            files=files_str,
+            mutually_exclusive=True,
+            remove_dirs=True,
+            dir_name=temp_dir,
+        )
+        # Directory should be removed, only file remains
+        self.assertEqual(len(actual), 1)
+        self.assertIn("file1.txt", actual[0])
+
+    def test_files_with_paths_containing_amp(self) -> None:
+        """
+        Test that 'amp' directory is filtered out.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        hio.to_file(file1, "content1")
+        # Test with 'amp' in the list - use 'amp' as a bare name
+        files_str = f"{file1} amp"
+        actual = hgit.get_files_to_process(
+            modified=False,
+            branch=False,
+            last_commit=False,
+            all_=False,
+            from_file="",
+            files=files_str,
+            mutually_exclusive=True,
+            remove_dirs=False,
+            dir_name=temp_dir,
+        )
+        # 'amp' should be filtered out (since it's a bare filename without path)
+        self.assertEqual(len(actual), 1)
+        self.assertIn("file1.txt", actual[0])
+
+
+# #############################################################################
 # Test_find_git_root6
 # #############################################################################
 
