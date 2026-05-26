@@ -1,7 +1,7 @@
 In all the calls to get_files_to_process use parameters in order and not
 by name for the mandatory ones
 
-def get_files_to_process(
+get_files_to_process(
     files: str,
     from_file: str,
     modified: bool,
