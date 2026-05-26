@@ -2066,11 +2066,6 @@ def simple_cache(
                         _LOG.warning("cache[%s]: COMPUTE (miss)", func_name)
                 # Access the intrinsic function.
                 value = func(*args, **kwargs_for_func)
-                # Record the function source hash so future cache hits can
-                # detect if the function body has changed.
-                set_cache_property(
-                    func_name, "func_hash", _compute_func_hash(func)
-                )
                 # Update cache.
                 cache[cache_key] = value
                 # Ensure the cache dict is stored in memory.
