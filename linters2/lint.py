@@ -402,7 +402,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     # File selection arguments (mutually exclusive).
-    # TODO(ai_gp): Use the function in hparser.py
+    # TODO(ai_gp1): Use the function in hparser.py add_file_selection_args
     file_selection = parser.add_mutually_exclusive_group()
     file_selection.add_argument(
         "--modified",
@@ -441,14 +441,15 @@ def _parse() -> argparse.ArgumentParser:
     )
     # File type filters.
     hparser.add_file_type_filter_args(parser)
-    # TODO(ai_gp): 
-    parser.add_argument(
-        "--skip_files",
-        nargs="+",
-        type=str,
-        help="Files to skip during linting",
-    )
+    # TODO(ai_gp1): Use the option in add_file_type_filter_args
+#    parser.add_argument(
+#        "--skip_files",
+#        nargs="+",
+#        type=str,
+#        help="Files to skip during linting",
+#    )
     # Other options.
+    # TODO(ai_gp): Use hparser.py add_action_arg
     parser.add_argument(
         "--action",
         nargs="+",

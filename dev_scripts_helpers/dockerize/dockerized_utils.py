@@ -35,7 +35,7 @@ def create_test_file(self_: Any, txt: str, extension: str) -> str:
     return file_path
 
 
-# TODO(ai_gp): Inline this.
+# TODO(ai_gp): Inline this in the callers.
 def assert_output_file_exists(self_: Any, out_file_path: str) -> None:
     """
     Assert that a file exists at the given path.

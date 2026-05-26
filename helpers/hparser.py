@@ -112,6 +112,9 @@ def add_file_selection_args(
     :param parser: ArgumentParser to add arguments to
     :return: The same parser with arguments added
     """
+    # TODO(ai_gp1): Make is a mutually exclusive group
+    # file_selection = parser.add_mutually_exclusive_group()
+    # TODO(gp): Use -f and -i and --input as alternative
     parser.add_argument(
         "--files",
         type=str,
@@ -171,7 +174,7 @@ def parse_file_selection_args(
     # Import here to avoid circular dependency.
     import helpers.hgit as hgit
 
-    # TODO(ai_gp): Move this inside get_files_to_process
+    # TODO(ai_gp1): Move this inside get_files_to_process
     # Handle --files argument (space-separated list)
     if hasattr(args, "files") and args.files:
         files_str = args.files
@@ -260,7 +263,7 @@ def parse_cache_control_args(args: argparse.Namespace) -> None:
 
 
 # #############################################################################
-# Command line options related to selection actions.
+# Select actions.
 # #############################################################################
 
 # # Define valid and default actions.
@@ -1185,7 +1188,7 @@ def apply_limit_range(
 
 
 # #############################################################################
-# Command line options for multiple file input.
+# Select multiple file input.
 # #############################################################################
 
 
@@ -1334,7 +1337,7 @@ def add_llm_prompt_arg(
     return parser
 
 
-# TODO(ai_gp): Move to dev_scripts_helpers/documentation/extract_from_md.py
+# TODO(ai_gp1): Move to dev_scripts_helpers/documentation/extract_from_md.py
 def extract_rule_from_file(rule_spec: str) -> str:
     """
     Extract a rule section from a rules file based on a rule specification.
@@ -1548,7 +1551,7 @@ def add_md_start_end_args(
         type=str,
         required=start_required,
         default=None,
-        # TODO(ai_gp): Fix the length of all these strings exceeding 80 chars.
+        # TODO(ai_gp1): Fix the length of all these strings exceeding 80 chars.
         help="Starting header: either full format (e.g., '## Section 1') or partial match (e.g., 'Section 1'). Partial match must be unique.",
     )
     parser.add_argument(
@@ -1569,6 +1572,7 @@ def add_md_start_end_args(
 def add_file_type_filter_args(
     parser: argparse.ArgumentParser,
     *,
+    # TODO(ai_gp): Make this mandatory.
     file_types_default: str = "py,ipynb",
 ) -> argparse.ArgumentParser:
     """
@@ -1584,6 +1588,7 @@ def add_file_type_filter_args(
     :param file_types_default: default file types to process
     :return: ArgumentParser with the arguments added
     """
+    # TODO(ai_gp1): Make these options mutually exclusive.
     parser.add_argument(
         "--file_types",
         type=str,
@@ -1602,9 +1607,13 @@ def add_file_type_filter_args(
     return parser
 
 
-# TODO(ai_gp): Pass the list of files to filter.
+# TODO(ai_gp1): Extract a function that can be called with the strings 
+# args.file_types_str instead of args so that it can be called also by invoke.
+# TODO(ai_gp1): Finish implementing this.
+# TODO(ai_gp1): Add unit tests.
 def parse_file_type_filter_args(
     args: argparse.Namespace,
+    files: List[str],
 ) -> List[str]:
     """
     Parse file type filter arguments and return list of extensions to process.
@@ -1615,25 +1624,18 @@ def parse_file_type_filter_args(
     :param args: Parsed command line arguments from add_file_type_filter_args
     :return: List of file extensions to process (empty extensions are stripped)
     """
-    # Parse file_types: comma-separated list of extensions to include
-    file_types_str = getattr(args, "file_types", "")
-    if file_types_str:
-        file_extensions = [ext.strip() for ext in file_types_str.split(",")]
-    else:
-        file_extensions = []
-
-    # Parse skip_file_types: comma-separated list of extensions to skip
-    skip_file_types_str = getattr(args, "skip_file_types", "")
-    skip_extensions = set()
-    if skip_file_types_str:
-        skip_extensions = {
-            ext.strip() for ext in skip_file_types_str.split(",")
-        }
-
-    # Filter out extensions that should be skipped
-    file_extensions = [
-        ext for ext in file_extensions if ext not in skip_extensions
-    ]
-
-    _LOG.info("File extensions to process: %s", file_extensions)
-    return file_extensions
+    # Ensure that the two options `--file_types` and `--skip_file_types` are
+    # not selected together.
+    hdbg.dassert_lte(bool(args.file_types) + bool(args.skip_file_types), 2)
+    # Extract the extensions for `--file_types` or `skip_file_types`.
+    if args.file_types:
+        file_extensions = [ext.strip() for ext in args.file_types_str.split(",")]
+        _LOG.debug("File extensions to process: %s", file_extensions)
+    elif args.skip_file_types:
+        skip_file_extensions = [
+            ext.strip() for ext in args.skip_file_types_str.split(",")
+            ]
+    # Filter files based on the extensions.
+    _LOG.debug("Files to process: %s", files)
+    # TODO(ai_gp1): Implement similar to _filter_git_files_by_type
+    return files

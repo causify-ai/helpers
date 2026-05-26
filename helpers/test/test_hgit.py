@@ -775,13 +775,14 @@ class Test_find_git_root5(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): /factor_out
+# TODO(ai_gp1): Move to helpers/test/test_hgit.py
+# TODO(ai_gp1): /factor_out
 class Test_get_files_to_process1(hunitest.TestCase):
     """
     Test get_files_to_process with --files argument (space-separated list).
     """
 
-    # TODO(ai_gp): test1
+    # TODO(ai_gp1): Rename the test methods to test1
     def test_files_with_single_file(self) -> None:
         """
         Test with a single file in the space-separated list.
@@ -790,7 +791,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         file1 = os.path.join(temp_dir, "file1.txt")
         hio.to_file(file1, "content1")
         # Test with single file using absolute path.
-        # TODO(ai_gp): Assign values.
+        # TODO(ai_gp1): Apply .claude/skills/testing.rules.md:162:## Assign Variables and Then Call Functions
         actual = hgit.get_files_to_process(
             file1,
             "",
@@ -819,7 +820,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         hio.to_file(file3, "content3")
         # Test with multiple files using absolute paths.
         files_str = f"{file1} {file2} {file3}"
-        # TODO(ai_gp): Assign values.
+        # TODO(ai_gp1): Apply .claude/skills/testing.rules.md:162:## Assign Variables and Then Call Functions
         actual = hgit.get_files_to_process(
             files_str,
             "",
@@ -849,7 +850,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         hio.to_file(file1, "content1")
         # Test with one existing and one non-existent file using absolute paths.
         files_str = f"{file1} {nonexistent}"
-        # TODO(ai_gp): Assign values.
+        # TODO(ai_gp): Apply .claude/skills/testing.rules.md:162:## Assign Variables and Then Call Functions
         actual = hgit.get_files_to_process(
             files_str,
             "",
@@ -873,7 +874,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         file1 = os.path.join(temp_dir, "file1.txt")
         hio.to_file(file1, "content1")
         # Test with empty files parameter and mutually_exclusive=False.
-        # TODO(ai_gp): Assign values.
+        # TODO(ai_gp): Apply .claude/skills/testing.rules.md:162:## Assign Variables and Then Call Functions
         actual = hgit.get_files_to_process(
             "",
             "",
@@ -896,7 +897,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         file1 = os.path.join(temp_dir, "file1.txt")
         hio.to_file(file1, "content1")
         # Test that error is raised when both --files and --modified are specified.
-        # TODO(ai_gp): Assign values.
+        # TODO(ai_gp): Apply .claude/skills/testing.rules.md:162:## Assign Variables and Then Call Functions
         with self.assertRaises(AssertionError):
             hgit.get_files_to_process(
                 file1,
@@ -921,7 +922,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         hio.create_dir(dir1, incremental=False)
         # Test with directory and remove_dirs=True using absolute paths.
         files_str = f"{file1} {dir1}"
-        # TODO(ai_gp): Assign values.
+        # TODO(ai_gp1): Apply .claude/skills/testing.rules.md:162:## Assign Variables and Then Call Functions
         actual = hgit.get_files_to_process(
             files_str,
             "",
@@ -946,7 +947,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         hio.to_file(file1, "content1")
         # Test with 'amp' in the list - use 'amp' as a bare name
         files_str = f"{file1} amp"
-        # TODO(ai_gp): Assign values.
+        # TODO(ai_gp1): Apply .claude/skills/testing.rules.md:162:## Assign Variables and Then Call Functions
         actual = hgit.get_files_to_process(
             files_str,
             "",

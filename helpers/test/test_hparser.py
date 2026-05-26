@@ -990,7 +990,7 @@ class Test_extract_rule_from_file(hunitest.TestCase):
 # Test_add_file_type_filter_args
 # #############################################################################
 
-# TODO(ai_gp): /factor_out
+# TODO(ai_gp1): /coding.factor_common_code
 
 
 class Test_add_file_type_filter_args(hunitest.TestCase):

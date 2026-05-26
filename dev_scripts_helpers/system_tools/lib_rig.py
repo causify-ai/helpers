@@ -94,9 +94,11 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--todo",
-        dest="todo_mode",
-        action="store_true",
-        help="Search for TODO(ai_gp) patterns",
+        dest="todo_str",
+        nargs="?",
+        const="_default_",
+        default=None,
+        help="Search for TODO(<string>) patterns (optional <string> parameter"
     )
     parser.add_argument(
         "--cfile",
@@ -187,9 +189,13 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
             ripgrep_pattern = "^#"
         # Make rule search case-insensitive by default.
         ripgrep_opts = (ripgrep_opts + " -i").strip()
-    elif parsed.todo_mode:
-        # --todo: search for `# TODO(ai_gp)` or `// TODO(ai_gp)` patterns.
-        ripgrep_pattern = r"(#|//)\s*TODO\(ai_gp\)"
+    elif parsed.todo_str:
+        # --todo: search for `# TODO(<string>)` or `// TODO(<string>)` patterns.
+        if parsed.todo_str == "_default_":
+            todo_pattern = "ai_gp\s*"
+        else:
+            todo_pattern = parsed.todo_str
+        ripgrep_pattern = rf"^\s*(#|//)\s*TODO\({todo_pattern}\)"
         # Directory and extensions can come from positional args.
         if len(parsed.positional) > 1:
             ripgrep_dir = parsed.positional[1]

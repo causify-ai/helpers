@@ -403,6 +403,7 @@ def git_patch_create(  # type: ignore
     print(msg)
 
 
+# TODO(ai_gp1): Remove this
 def _filter_git_files_by_type(
     file_paths: List[str],
     file_types: List[str],
@@ -443,7 +444,6 @@ def git_files(  # type: ignore
     """
     Report which files are changed in the current branch with respect to master.
 
-
     The params have the same meaning as in `get_files_to_process()`.
 
     :param file_types: Comma-separated list of file extensions to include
@@ -478,7 +478,7 @@ def git_files(  # type: ignore
         remove_dirs=remove_dirs,
     )
     # Parse file_types string into a list.
-    # TODO(ai_gp): Use the function in hparser to filer.
+    # TODO(ai_gp1): Use the function in hparser to filer.
     file_types_list = [
         ext.strip() for ext in file_types.split(",") if ext.strip()
     ]
