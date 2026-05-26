@@ -284,7 +284,9 @@ def prettier(
     # Run prettier.
     # Disable dockerized prettier when already inside Docker to avoid nested Docker issues.
     if use_dockerized_prettier and hserver.is_inside_docker():
-        _LOG.debug("Disabling dockerized prettier since we're already inside Docker")
+        _LOG.debug(
+            "Disabling dockerized prettier since we're already inside Docker"
+        )
         use_dockerized_prettier = False
     if use_dockerized_prettier:
         # Run `prettier` in a Docker container.
