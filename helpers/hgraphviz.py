@@ -24,7 +24,7 @@ import helpers.hdbg as hdbg
 _LOG = logging.getLogger(__name__)
 
 # Default figure size for DAG visualizations
-# TODO(ai_gp): -> DAG_FIGURE_SIZE
+# TODO(ai_gp2): -> DAG_FIGURE_SIZE
 FIG_SIZE = (8, 6)
 
 # Default DPI for image rendering

@@ -1323,7 +1323,7 @@ def add_llm_prompt_arg(
     return parser
 
 
-# TODO(ai_gp): Move to dev_scripts_helpers/documentation/extract_from_md.py
+# TODO(ai_gp2): Move to dev_scripts_helpers/documentation/extract_from_md.py
 def extract_rule_from_file(rule_spec: str) -> str:
     """
     Extract a rule section from a rules file based on a rule specification.
