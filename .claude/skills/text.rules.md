@@ -70,13 +70,11 @@ terms of bullet lists
     ```markdown
     Always follow these guidelines:
     - `.claude/skills/notebook.rules.md`: General notebook conventions
-    - `.claude/skills/interactive_notebook.rules.md`: Interactive notebook specifics
     ```
   - **Good**
     ```markdown
     - Always follow these guidelines:
       - `.claude/skills/notebook.rules.md`: General notebook conventions
-      - `.claude/skills/interactive_notebook.rules.md`: Interactive notebook specifics
     ```
 
 ## Use Bullets

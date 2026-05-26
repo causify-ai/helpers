@@ -25,7 +25,7 @@ _LOG = logging.getLogger(__name__)
 
 # Default figure size for DAG visualizations
 # TODO(ai_gp): -> DAG_FIGURE_SIZE
-FIG_SIZE = (10, 8)
+FIG_SIZE = (8, 6)
 
 # Default DPI for image rendering
 FIG_DPI = 150
