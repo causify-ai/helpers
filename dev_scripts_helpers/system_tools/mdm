@@ -91,7 +91,7 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
-import dev_scripts_helpers.system_tools.md_utils as devmduti
+import dev_scripts_helpers.system_tools.mdm_utils as devmduti
 
 _LOG = logging.getLogger(__name__)
 
