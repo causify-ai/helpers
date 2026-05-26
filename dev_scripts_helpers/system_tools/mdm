@@ -4,13 +4,13 @@ Unified markdown file manager script and documentation for managing research
 ideas, blog posts, short stories, and Claude Code skills across multiple
 repositories.
 
-Overview
+# Overview
 - The `mdm` script provides a single, consistent interface for managing markdown
-  files across four different content types and repositories
+  files across four different content topics and repositories
 - Unifies and simplifies the existing bash script families (`skill*`, `blog*`,
   `res*`, `story*`) into one tool with prefix-matching CLI arguments
 
-Content Types
+# Content topics
 - `research`: Research ideas stored in `<umd_classes1>/research/ideas/`
 - `blog`: Blog posts stored in `<blog_repo>/blog/posts/`
 - `story`: Short stories stored in `<notes1>/short_stories/`
@@ -18,48 +18,49 @@ Content Types
 - `rules`: Claude Code rules stored in `<helpers_root>/.claude/skills/` as
       `*.rules.md` files
 
-Actions
+# Actions
 - `list`: List markdown files in the directory (with optional name filter)
   - For skills: shows skill names only (e.g., `blog.add_figures`)
-  - For other types: shows full file paths
+  - For other topics: shows full file paths
 - `full_list`: List markdown files with full paths (with optional name filter)
 - `describe`: Show descriptions of markdown files (for skills with metadata)
 - `edit`: Open a file in vim for editing (creates with template if not found)
-- `directory`: Print the directory path for the given type
-- `types`: Print unique prefixes before the first dot (equivalent to `cut -d'.' -f1 | sort -u`)
+- `directory`: Print the directory path for the given topic
+- `topics`: Print unique prefixes before the first dot (equivalent to `cut -d'.' -f1 | sort -u`)
 
-Usage:
-  mdm <type> <action> [names...]
-    type:   research, blog, story, skill, rules (prefix matching supported)
-    action: list, full_list, edit, directory, describe, copy, types (prefix
+# Usage:
+> mdm <topic> <action> [names...]
+
+  where:
+  - topic:   research, blog, story, skill, rules (prefix matching supported)
+  - action: list, full_list, edit, directory, describe, copy, topics (prefix
        matching supported)
-    names:
+  - names:
        - optional for 'list' action (filter pattern),
        - multiple allowed for 'edit'
        - required for 'copy' action (source dest)
 
-Usage Examples
+# Usage Examples
 - List all skills (shows skill names only)
-  mdm skill list
+  > mdm skill list
 
 - List all skills with full file paths
-  mdm skill full_list
+  > mdm skill full_list
 
 - List research items matching a pattern
-  mdm research list causal
+  > mdm research list causal
 
 - Edit or create a blog post (creates with YAML template if new)
-  mdm blog edit My_Post
+  > mdm blog edit My_Post
 
 - Copy a skill from source to destination
-  mdm skill copy coding.fix_bloated_imports coding.fix_empty_lines
+  > mdm skill copy coding.fix_bloated_imports coding.fix_empty_lines
 
 - Print the research ideas directory path
-  mdm research directory
+  > mdm research directory
 
-Prefix Matching
-Type and action arguments support prefix matching (first match wins):
-
+# Prefix Matching
+`topic` and `action` arguments support prefix matching (first match wins):
 - `sk` matches `skill`
 - `bl` matches `blog`
 - `res` matches `research`
@@ -69,12 +70,12 @@ Type and action arguments support prefix matching (first match wins):
 - `f` matches `full_list`
 - `d` matches `describe` or `directory` (first match)
 - `e` matches `edit`
-- `t` matches `types`
+- `t` matches `topics`
 - `c` matches `copy`
 
-Templates
+# Templates
 - When creating a new file with the `edit` action, `mdm` automatically generates
-  templates appropriate for each content type
+  templates appropriate for each content topic
   - `blog`: YAML frontmatter with title, author, date, and TL;DR section
   - `skill`: Summary section header
   - `research`: Header with the idea name
@@ -105,12 +106,12 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "type",
-        help="Type: research, blog, story, skill (supports prefix matching)",
+        "topic",
+        help="topic: research, blog, story, skill (supports prefix matching)",
     )
     parser.add_argument(
         "action",
-        help="Action: list, edit, directory, describe, types (supports prefix matching)",
+        help="Action: list, edit, directory, describe, topics (supports prefix matching)",
     )
     parser.add_argument(
         "names",
@@ -126,21 +127,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     logging.getLogger(devmduti.__name__).setLevel(args.log_level)
-    type_ = devmduti._match_prefix(args.type, devmduti._VALID_TYPES)
+    topic_ = devmduti._match_prefix(args.topic, devmduti._VALID_TOPICS)
     action = devmduti._match_prefix(args.action, devmduti._VALID_ACTIONS)
     # For non-edit/copy actions, use first name as pattern if available.
     pattern = None
     if args.names and action not in ("edit", "copy"):
         pattern = devmduti._normalize_name(args.names[0])
-    dir_ = devmduti._get_directory(type_)
+    dir_ = devmduti._get_directory(topic_)
     if action == "list":
-        devmduti._action_list(type_, dir_, pattern=pattern)
+        devmduti._action_list(topic_, dir_, pattern=pattern)
     elif action == "full_list":
-        devmduti._action_full_list(type_, dir_, pattern=pattern)
+        devmduti._action_full_list(topic_, dir_, pattern=pattern)
     elif action == "describe":
-        devmduti._action_describe(type_, dir_, pattern=pattern)
-    elif action == "types":
-        devmduti._action_types(type_, dir_, pattern=pattern)
+        devmduti._action_describe(topic_, dir_, pattern=pattern)
+    elif action == "topics":
+        devmduti._action_topics(topic_, dir_, pattern=pattern)
     elif action == "edit":
         hdbg.dassert_ne(
             args.names,
@@ -149,7 +150,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         # Normalize all names.
         normalized_names = [devmduti._normalize_name(name) for name in args.names]
-        devmduti._action_edit(type_, dir_, normalized_names)
+        devmduti._action_edit(topic_, dir_, normalized_names)
     elif action == "copy":
         hdbg.dassert_eq(
             len(args.names),
@@ -158,7 +159,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         source_name = devmduti._normalize_name(args.names[0])
         dest_name = devmduti._normalize_name(args.names[1])
-        devmduti._action_copy(type_, dir_, source_name, dest_name)
+        devmduti._action_copy(topic_, dir_, source_name, dest_name)
     elif action == "directory":
         devmduti._action_directory(dir_)
     else:

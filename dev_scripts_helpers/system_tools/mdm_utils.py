@@ -2,11 +2,11 @@
 Utility functions for the markdown file manager.
 
 Provides helpers for managing markdown files across research, blog, story,
-and skill content types.
+and skill content topics.
 
 Import as:
 
-import dev_scripts_helpers.system_tools.md_utils as dshstmdut
+import dev_scripts_helpers.system_tools.mdm_utils as dshstmdut
 """
 
 import glob
@@ -28,14 +28,15 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-_VALID_TYPES = ["research", "blog", "story", "skill", "rules"]
+# TODO(gp): This should be inferred automatically from the dir.
+_VALID_TOPICS = ["research", "blog", "story", "skill", "rules"]
 _VALID_ACTIONS = [
     "list",
     "edit",
     "directory",
     "full_list",
     "describe",
-    "types",
+    "topics",
     "copy",
 ]
 
@@ -100,26 +101,26 @@ def _get_repo_root() -> str:
     return repo_root
 
 
-def _get_directory(type_: str) -> str:
+def _get_directory(topic_: str) -> str:
     """
-    Get the directory path for the given type by searching from workspace root.
+    Get the directory path for the given topic by searching from workspace root.
 
-    :param type_: the type (research, blog, story, skill)
+    :param topic_: the topic (research, blog, story, skill)
     :return: absolute path to the directory
     """
-    _LOG.debug("Getting directory for type '%s'", type_)
+    _LOG.debug("Getting directory for topic '%s'", topic_)
     repo_root = _get_repo_root()
     workspace_root = os.path.dirname(repo_root)
     _LOG.debug("Repository root: %s, workspace root: %s", repo_root, workspace_root)
-    # Resolve directory path based on type: skills and rules use fixed paths,
+    # Resolve directory path based on topic: skills and rules use fixed paths,
     # others are discovered via filesystem search.
     target_dir = ""
-    if type_ == "skill":
+    if topic_ == "skill":
         target_dir = os.path.join(repo_root, ".claude", "skills")
         _LOG.debug("Using static skill directory: %s", target_dir)
-    elif type_ == "blog":
+    elif topic_ == "blog":
         cmd = (
-            f"find {workspace_root} -maxdepth 5 -type d -path '*/posts'"
+            f"find {workspace_root} -maxdepth 5 -topic d -path '*/posts'"
             " 2>/dev/null | head -1"
         )
         _LOG.debug("Searching for blog posts directory with command: %s", cmd)
@@ -130,9 +131,9 @@ def _get_directory(type_: str) -> str:
             _LOG.debug("Found blog posts directory: %s", target_dir)
         else:
             _LOG.warning("Could not find posts directory")
-    elif type_ == "research":
+    elif topic_ == "research":
         cmd = (
-            f"find {workspace_root} -maxdepth 3 -type d"
+            f"find {workspace_root} -maxdepth 3 -topic d"
             " -path '*/research/ideas' 2>/dev/null | head -1"
         )
         _LOG.debug("Searching for research/ideas directory with command: %s", cmd)
@@ -143,9 +144,9 @@ def _get_directory(type_: str) -> str:
             _LOG.debug("Found research/ideas directory: %s", target_dir)
         else:
             _LOG.warning("Could not find 'research/ideas' directory")
-    elif type_ == "story":
+    elif topic_ == "story":
         cmd = (
-            f"find {workspace_root} -maxdepth 3 -type d"
+            f"find {workspace_root} -maxdepth 3 -topic d"
             " -name 'short_stories' 2>/dev/null | head -1"
         )
         _LOG.debug("Searching for short_stories directory with command: %s", cmd)
@@ -156,25 +157,25 @@ def _get_directory(type_: str) -> str:
             _LOG.debug("Found short_stories directory: %s", target_dir)
         else:
             _LOG.warning("Could not find 'short_stories' directory")
-    elif type_ == "rules":
+    elif topic_ == "rules":
         target_dir = os.path.join(repo_root, ".claude", "skills")
         _LOG.debug("Using static rules directory: %s", target_dir)
     else:
-        hdbg.dfatal("Unknown type '%s'" % type_)
+        hdbg.dfatal("Unknown topic '%s'" % topic_)
     abs_path = os.path.abspath(target_dir) if target_dir else ""
     _LOG.debug("Returning absolute path: %s", abs_path)
     return abs_path
 
 
-def _get_template(type_: str, name: str) -> str:
+def _get_template(topic_: str, name: str) -> str:
     """
-    Get the template content for creating a new file of the given type.
+    Get the template content for creating a new file of the given topic.
 
-    :param type_: the type (research, blog, story, skill)
+    :param topic_: the topic (research, blog, story, skill)
     :param name: the name to include in the template
     :return: template string
     """
-    if type_ == "blog":
+    if topic_ == "blog":
         today = date.today().isoformat()
         text = f"""
         ---
@@ -196,7 +197,7 @@ def _get_template(type_: str, name: str) -> str:
         <Your content here>
         """
         result = hprint.dedent(text)
-    elif type_ == "skill":
+    elif topic_ == "skill":
         text = """
         ---
         description: <Brief description of what this skill does>
@@ -215,20 +216,20 @@ def _get_template(type_: str, name: str) -> str:
         <Technical details>
         """
         result = hprint.dedent(text)
-    elif type_ == "research":
+    elif topic_ == "research":
         result = f"# {name}\n\n<Research notes here>\n"
-    elif type_ == "story":
+    elif topic_ == "story":
         result = ""
-    elif type_ == "rules":
+    elif topic_ == "rules":
         result = ""
     else:
-        hdbg.dfatal("Unknown type", type_)
+        hdbg.dfatal("Unknown topic", topic_)
     return result
 
 
 def _list_markdown_files(
     dir_: str,
-    type_: str,
+    topic_: str,
     *,
     pattern: Optional[str] = None,
     full_path: bool = False,
@@ -240,26 +241,29 @@ def _list_markdown_files(
     - 'list' mode shows names only
     - 'full_path' mode shows full paths
 
-    For other types, both modes show full paths.
+    For other topics, both modes show full paths.
 
     Pattern matching matches against skill/rule names and filenames.
 
     :param dir_: the directory to search
-    :param type_: the type (research, blog, story, skill, rules)
+    :param topic_: the topic (research, blog, story, skill, rules)
     :param pattern: optional filter pattern
     :param full_path:
         - If True, show full paths
         - If False, show names for skills and rules
     """
-    _LOG.debug("Listing markdown files in %s (type=%s, pattern=%s, full_path=%s)",
-               dir_, type_, pattern, full_path)
+    _LOG.debug("Listing markdown files in %s (topic=%s, pattern=%s, full_path=%s)",
+               dir_, topic_, pattern, full_path)
     if not dir_:
-        _LOG.info("Directory not available for type '%s'", type_)
+        _LOG.info("Directory not available for topic '%s'", topic_)
         return
     hdbg.dassert_dir_exists(dir_, "Directory must exist to list files")
-    # Search for markdown files: rules use *.rules.md pattern, others use
-    # recursive **/*.md search.
-    if type_ == "rules":
+    # Search for markdown files: skills use **/SKILL.md pattern, rules use
+    # *.rules.md pattern, others use recursive **/*.md search.
+    if topic_ == "skill":
+        files = glob.glob(os.path.join(dir_, "**/SKILL.md"), recursive=True)
+        _LOG.debug("Searching for **/SKILL.md files")
+    elif topic_ == "rules":
         files = glob.glob(os.path.join(dir_, "*.rules.md"))
         _LOG.debug("Searching for *.rules.md files")
     else:
@@ -271,16 +275,16 @@ def _list_markdown_files(
     files = list(dict.fromkeys(files))
     if pattern:
         # Filter files by pattern: match against skill name (directory), rule
-        # name (filename without suffix), or filename for other types.
+        # name (filename without suffix), or filename for other topics.
         pattern_lower = pattern.lower()
         _LOG.debug("Filtering files by pattern: '%s'", pattern)
-        if type_ == "skill":
+        if topic_ == "skill":
             files = [
                 f
                 for f in files
                 if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
                 ]
-        elif type_ == "rules":
+        elif topic_ == "rules":
             files = [
                 f
                 for f in files
@@ -298,10 +302,10 @@ def _list_markdown_files(
         _LOG.debug("Printing %d file(s), full_path=%s", len(files), full_path)
         for f in files:
             if not full_path:
-                if type_ == "skill":
+                if topic_ == "skill":
                     skill_name = os.path.basename(os.path.dirname(f))
                     print(skill_name)
-                elif type_ == "rules":
+                elif topic_ == "rules":
                     rule_name = os.path.basename(f).replace(".rules.md", "")
                     print(rule_name)
                 else:
@@ -313,19 +317,23 @@ def _list_markdown_files(
         _LOG.info("No markdown files found in %s", dir_)
 
 
-def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
+def _find_file_for_edit(topic_: str, dir_: str, name: str) -> str:
     """
-    Find or create a file for editing based on type and name.
+    Find or create a file for editing based on topic and name.
 
-    :param type_: the type (research, blog, story, skill, rules)
-    :param dir_: the base directory for this type
+    :param topic_: the topic (research, blog, story, skill, rules)
+    :param dir_: the base directory for this topic
     :param name: the name/pattern to find or create
     :return: absolute path to the file
     """
-    _LOG.debug("Finding file for edit: type=%s, name=%s, directory=%s",
-               type_, name, dir_)
+    _LOG.debug("Finding file for edit: topic=%s, name=%s, directory=%s",
+               topic_, name, dir_)
     file_path = ""
-    if type_ == "skill":
+    # Find or create file based on topic: skills use directory structure
+    # (dir/skill_name/SKILL.md), research uses directory with README.md, blog/story
+    # use flat files, rules use *.rules.md pattern.
+    if topic_ == "skill":
+        # Try to find existing skill by pattern or exact name.
         candidates = glob.glob(os.path.join(dir_, f"*{name}*", "SKILL.md"))
         _LOG.debug("Searching for skill candidates matching pattern '%s': found %d",
                    name, len(candidates))
@@ -344,26 +352,29 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
                 _LOG.debug("Found skill candidate: %s", candidates[0])
                 file_path = candidates[0]
         else:
+            # Create new skill directory and SKILL.md file with template.
             skill_dir = os.path.join(dir_, name)
             file_path = os.path.join(skill_dir, "SKILL.md")
             _LOG.debug("Creating new skill directory and file: %s", file_path)
             hio.create_dir(skill_dir, incremental=True)
-            template = _get_template(type_, name)
+            template = _get_template(topic_, name)
             hio.to_file(file_path, template)
             _LOG.info("Created new skill: %s", file_path)
-    elif type_ == "research":
+    elif topic_ == "research":
+        # Research ideas are stored in directories with README.md files.
         idea_dir = os.path.join(dir_, name)
         file_path = os.path.join(idea_dir, "README.md")
         if not os.path.exists(file_path):
             _LOG.debug("Creating new research idea directory and file: %s",
                        file_path)
             hio.create_dir(idea_dir, incremental=True)
-            template = _get_template(type_, name)
+            template = _get_template(topic_, name)
             hio.to_file(file_path, template)
             _LOG.info("Created new research idea: %s", file_path)
         else:
             _LOG.debug("Found existing research idea file: %s", file_path)
-    elif type_ == "blog":
+    elif topic_ == "blog":
+        # Blog posts are flat files with optional draft prefix.
         candidates = glob.glob(os.path.join(dir_, f"*{name}*.md"))
         _LOG.debug("Searching for blog candidates matching pattern '%s': found %d",
                    name, len(candidates))
@@ -374,12 +385,13 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
             file_path = os.path.join(dir_, f"draft.{name}.md")
             if not os.path.exists(file_path):
                 _LOG.debug("Creating new blog post file: %s", file_path)
-                template = _get_template(type_, name)
+                template = _get_template(topic_, name)
                 hio.to_file(file_path, template)
                 _LOG.info("Created new blog post: %s", file_path)
             else:
                 _LOG.debug("Found existing blog post file: %s", file_path)
-    elif type_ == "story":
+    elif topic_ == "story":
+        # Stories are flat files with any extension.
         candidates = glob.glob(os.path.join(dir_, f"*{name}*.*"))
         _LOG.debug("Searching for story candidates matching pattern '%s': found %d",
                    name, len(candidates))
@@ -390,12 +402,13 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
             file_path = os.path.join(dir_, f"{name}.md")
             if not os.path.exists(file_path):
                 _LOG.debug("Creating new story file: %s", file_path)
-                template = _get_template(type_, name)
+                template = _get_template(topic_, name)
                 hio.to_file(file_path, template)
                 _LOG.info("Created new story: %s", file_path)
             else:
                 _LOG.debug("Found existing story file: %s", file_path)
-    elif type_ == "rules":
+    elif topic_ == "rules":
+        # Rules are flat files with .rules.md suffix.
         candidates = glob.glob(os.path.join(dir_, f"*{name}*.rules.md"))
         _LOG.debug("Searching for rule candidates matching pattern '%s': found %d",
                    name, len(candidates))
@@ -418,16 +431,21 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
         else:
             file_path = exact_match
             _LOG.debug("Creating new rule file: %s", file_path)
-            template = _get_template(type_, name)
+            template = _get_template(topic_, name)
             hio.to_file(file_path, template)
             _LOG.info("Created new rule: %s", file_path)
     else:
-        hdbg.dfatal("Unknown type", type_)
+        hdbg.dfatal("Unknown topic", topic_)
     return file_path
 
 
+# #############################################################################
+# Full list
+# #############################################################################
+
+
 def _action_list(
-    type_: str, dir_: str, *, pattern: Optional[str] = None
+    topic_: str, dir_: str, *, pattern: Optional[str] = None
 ) -> None:
     """
     List markdown files in a directory (concise format).
@@ -435,45 +453,55 @@ def _action_list(
     TODO(ai_gp): Add example
 
     For skills: shows skill names only.
-    For other types: shows full file paths.
+    For other topics: shows full file paths.
 
-    :param type_: the type (research, blog, story, skill)
+    :param topic_: the topic (research, blog, story, skill)
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    _list_markdown_files(dir_, type_, pattern=pattern, full_path=False)
+    _list_markdown_files(dir_, topic_, pattern=pattern, full_path=False)
 
 
 def _action_full_list(
-    type_: str, dir_: str, *, pattern: Optional[str] = None
+    topic_: str, dir_: str, *, pattern: Optional[str] = None
 ) -> None:
     """
     List markdown files in a directory (full paths).
 
     TODO(ai_gp): Add example
 
-    :param type_: the type (research, blog, story, skill)
+    :param topic_: the topic (research, blog, story, skill)
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    _list_markdown_files(dir_, type_, pattern=pattern, full_path=True)
+    _list_markdown_files(dir_, topic_, pattern=pattern, full_path=True)
 
 
-def _action_edit(type_: str, dir_: str, names: List[str]) -> None:
+# #############################################################################
+# Edit
+# #############################################################################
+
+
+def _action_edit(topic_: str, dir_: str, names: List[str]) -> None:
     """
     Open file(s) for editing (creating if necessary).
 
-    :param type_: the type (research, blog, story, skill)
-    :param dir_: the base directory for this type
+    :param topic_: the topic (research, blog, story, skill)
+    :param dir_: the base directory for this topic
     :param names: list of file name(s) to edit
     """
-    _LOG.debug("Preparing to edit %d file(s) of type '%s'", len(names), type_)
-    file_paths = [_find_file_for_edit(type_, dir_, name) for name in names]
+    _LOG.debug("Preparing to edit %d file(s) of topic '%s'", len(names), topic_)
+    file_paths = [_find_file_for_edit(topic_, dir_, name) for name in names]
     _LOG.debug("Resolved file paths: %s", file_paths)
     files_str = " ".join(f'"{path}"' for path in file_paths)
     _LOG.info("Opening %d file(s) in vim", len(file_paths))
     _LOG.debug("Running vim command: vim %s", files_str)
     os.system(f"vim {files_str}")
+
+
+# #############################################################################
+# Describe
+# #############################################################################
 
 
 def _get_description(file_path: str) -> str:
@@ -488,14 +516,15 @@ def _get_description(file_path: str) -> str:
     if not os.path.exists(file_path):
         _LOG.debug("File does not exist, returning empty description")
     else:
+        # Parse YAML front matter to extract description field.
         content = hio.from_file(file_path)
         lines = content.splitlines()
-        # Check for YAML front matter (starts with ---).
+        # YAML front matter must start with `---` delimiter.
         if not lines or lines[0].strip() != "---":
             _LOG.debug("No YAML front matter found in file")
         else:
             _LOG.debug("Found YAML front matter, searching for description field")
-            # Search for "description:" within the front matter.
+            # Scan lines until closing `---` delimiter or description field found.
             for line in lines[1:]:
                 if line.strip() == "---":
                     _LOG.debug("End of YAML front matter reached without finding description")
@@ -510,39 +539,44 @@ def _get_description(file_path: str) -> str:
 
 
 def _action_describe(
-    type_: str, dir_: str, *, pattern: Optional[str] = None
+    topic_: str, dir_: str, *, pattern: Optional[str] = None
 ) -> None:
     """
     List markdown files with their description from YAML front matter.
 
     Like list, but also prints the description line from each file.
 
-    :param type_: the type (research, blog, story, skill, rules)
+    :param topic_: the topic (research, blog, story, skill, rules)
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    _LOG.debug("Describing markdown files in %s (type=%s, pattern=%s)",
-               dir_, type_, pattern)
+    _LOG.debug("Describing markdown files in %s (topic=%s, pattern=%s)",
+               dir_, topic_, pattern)
     if not dir_:
-        _LOG.info("Directory not available for type '%s'", type_)
+        _LOG.info("Directory not available for topic '%s'", topic_)
         return
     hdbg.dassert_dir_exists(dir_, "Directory must exist to describe files")
-    if type_ == "rules":
+    # Search for markdown files using appropriate patterns for each topic.
+    if topic_ == "skill":
+        files = glob.glob(os.path.join(dir_, "**/SKILL.md"), recursive=True)
+    elif topic_ == "rules":
         files = glob.glob(os.path.join(dir_, "*.rules.md"))
     else:
         files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
     files.sort()
     _LOG.debug("Found %d total markdown file(s)", len(files))
     if pattern:
+        # Filter files by pattern: match against skill name (directory), rule
+        # name (filename without suffix), or filename for other topics.
         pattern_lower = pattern.lower()
         _LOG.debug("Filtering files by pattern: '%s'", pattern)
-        if type_ == "skill":
+        if topic_ == "skill":
             files = [
                 f
                 for f in files
                 if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
             ]
-        elif type_ == "rules":
+        elif topic_ == "rules":
             files = [
                 f
                 for f in files
@@ -555,19 +589,20 @@ def _action_describe(
             ]
         _LOG.debug("After filtering: %d file(s) match pattern", len(files))
     if files:
-        # Collect entries first to compute max name length for alignment.
+        # Collect entries and extract descriptions to compute column alignment.
         _LOG.debug("Extracting descriptions from %d file(s)", len(files))
         entries = []
         for f in files:
-            if type_ == "skill":
+            if topic_ == "skill":
                 name = os.path.basename(os.path.dirname(f))
-            elif type_ == "rules":
+            elif topic_ == "rules":
                 name = os.path.basename(f).replace(".rules.md", "")
             else:
                 name = os.path.basename(f)
             desc = _get_description(f)
             entries.append((name, desc))
-        # Compute column alignment: find longest name, then pad shorter names with dots.
+        # Format output with dot-padded alignment: compute longest name length,
+        # then pad shorter names with dots before description.
         max_name_len = max(len(name) for name, _ in entries)
         min_dots = 4
         _LOG.debug("Printing %d entries with descriptions", len(entries))
@@ -591,8 +626,13 @@ def _action_directory(dir_: str) -> None:
     print(dir_)
 
 
-def _action_types(
-    type_: str, dir_: str, *, pattern: Optional[str] = None
+# #############################################################################
+# Topics
+# #############################################################################
+
+
+def _action_topics(
+    topic_: str, dir_: str, *, pattern: Optional[str] = None
 ) -> None:
     """
     List unique prefixes before the first dot from markdown file names.
@@ -600,33 +640,38 @@ def _action_types(
     For example, skill names like 'blog.add_figures' and 'blog.create_tldr'
     will both produce prefix 'blog'. Equivalent to cut -d'.' -f1 | sort -u.
 
-    :param type_: the type (research, blog, story, skill, rules)
+    :param topic_: the topic (research, blog, story, skill, rules)
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    _LOG.debug("Extracting type prefixes from %s (type=%s, pattern=%s)",
-               dir_, type_, pattern)
+    _LOG.debug("Extracting topic prefixes from %s (topic=%s, pattern=%s)",
+               dir_, topic_, pattern)
     if not dir_:
-        _LOG.info("Directory not available for type '%s'", type_)
+        _LOG.info("Directory not available for topic '%s'", topic_)
         return
     hdbg.dassert_dir_exists(
-        dir_, "Directory must exist to extract type prefixes"
+        dir_, "Directory must exist to extract topic prefixes"
     )
-    if type_ == "rules":
+    # Search for markdown files using appropriate patterns for each topic.
+    if topic_ == "skill":
+        files = glob.glob(os.path.join(dir_, "**/SKILL.md"), recursive=True)
+    elif topic_ == "rules":
         files = glob.glob(os.path.join(dir_, "*.rules.md"))
     else:
         files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
     _LOG.debug("Found %d markdown file(s) total", len(files))
     if pattern:
+        # Filter files by pattern: match against skill name (directory), rule
+        # name (filename without suffix), or filename for other topics.
         pattern_lower = pattern.lower()
         _LOG.debug("Filtering files by pattern: '%s'", pattern)
-        if type_ == "skill":
+        if topic_ == "skill":
             files = [
                 f
                 for f in files
                 if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
             ]
-        elif type_ == "rules":
+        elif topic_ == "rules":
             files = [
                 f
                 for f in files
@@ -638,14 +683,14 @@ def _action_types(
                 f for f in files if pattern_lower in os.path.basename(f).lower()
             ]
         _LOG.debug("After filtering: %d file(s) match pattern", len(files))
-    # Extract tool category prefix (part before the first dot).
+    # Extract category prefixes (part before the first dot in filename).
     # For example: 'blog.add_figures' -> 'blog', 'testing.reach_coverage' -> 'testing'.
     _LOG.debug("Extracting prefixes from file names")
     prefixes = set()
     for f in files:
-        if type_ == "skill":
+        if topic_ == "skill":
             name = os.path.basename(os.path.dirname(f))
-        elif type_ == "rules":
+        elif topic_ == "rules":
             name = os.path.basename(f).replace(".rules.md", "")
         else:
             name = os.path.basename(f)
@@ -662,21 +707,24 @@ def _action_types(
 
 
 def _action_copy(
-    type_: str, dir_: str, source_name: str, dest_name: str
+    topic_: str, dir_: str, source_name: str, dest_name: str
 ) -> None:
     """
     Copy a directory (for skills) or file (for rules) to a new location.
 
     For skills, copies the entire skill directory. For rules, copies the file.
 
-    :param type_: the type (skill, rules)
-    :param dir_: the base directory for this type
+    :param topic_: the topic (skill, rules)
+    :param dir_: the base directory for this topic
     :param source_name: name of source to copy
     :param dest_name: name of destination
     """
     _LOG.debug("Copying %s from '%s' to '%s' in directory %s",
-               type_, source_name, dest_name, dir_)
-    if type_ == "skill":
+               topic_, source_name, dest_name, dir_)
+    # Copy skill directory or rule file: skills are directories with all contents,
+    # rules are single .rules.md files.
+    if topic_ == "skill":
+        # Copy entire skill directory including all contents.
         source_dir = os.path.join(dir_, source_name)
         dest_dir = os.path.join(dir_, dest_name)
         _LOG.debug("Copying skill directory from %s to %s", source_dir, dest_dir)
@@ -695,7 +743,8 @@ def _action_copy(
         _LOG.info("Copied skill from '%s' to '%s'", source_name, dest_name)
         print(f"Copied skill from '{source_name}' to '{dest_name}'")
         print(f"New skill location: {dest_dir}")
-    elif type_ == "rules":
+    elif topic_ == "rules":
+        # Copy single rule file with .rules.md suffix.
         source_file = os.path.join(dir_, f"{source_name}.rules.md")
         dest_file = os.path.join(dir_, f"{dest_name}.rules.md")
         _LOG.debug("Copying rule file from %s to %s", source_file, dest_file)
