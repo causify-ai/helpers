@@ -1,11 +1,8 @@
-- Write unit tests for helpers/hgraphviz.py
-- Come up with a short plan in 5 points to describe how you want to test the code
+Add add_file_selection_args from hparser to jupytext.py
+and process all the files selected
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
-
-- When writing unit tests for follow the instructions in
-  `.claude/skills/testing.rules.md`
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

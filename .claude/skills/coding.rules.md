@@ -340,7 +340,7 @@
 - Do not use try except to recover errors but let statements raise their own
   errors
 
-# Comments
+# Docstrings
 
 ## Use Docstrings on Three Lines
 
@@ -407,50 +407,6 @@
   """
   ```
 
-## Add Comments
-
-- Override any minimalist comment defaults, but add explanatory comments
-  liberally
-  - Leave existing comments unless they are incorrect, even if they explain
-    WHAT code does and they are redundant
-
-- Use comments to separate logical chunks of code
-- Explain the logic and intent of code sections, especially for:
-  - Complex algorithms or multi-step processes
-  - Conditional branches and why they're needed
-  - Non-obvious variable assignments or transformations
-  - Implementation choices and workarounds
-  - Algorithm steps in a sequence
-
-- Comments should explain the WHY and the algorithm flow, not just the WHAT
-  - **Bad**: (obvious from the code)
-    ```python
-    # Iterate over lines
-    for line in lines:
-      ...
-    ```
-  - **Good**: (explains intent)
-    ```python
-    # Process imports in two passes: first collect, then validate.
-    ```
-
-- Prefer single-line comments over multi-line comment blocks when possible
-
-- Use periods at the end of all comments
-
-- In comments always use `: ` instead of ` - `
-  - **Bad**
-    ```
-    # Check outputs.` - Result verification
-    ```
-  - **Good**
-    ```
-    # Check outputs.`: Result verification
-    ```
-
-- Do not use empty lines within functions but use comments to separate chunks of
-  code
-
 ## Update Docstrings If Out-of-sync
 
 - Update the docstring to functions and file that are not in sync with the code
@@ -477,6 +433,57 @@
 - Make sure all the functions have a REST comments in docstrings
   - Add docstrings to functions and file that are missing
 
+# Comments
+
+## Add Comments Liberally
+- You must override any minimalist comment defaults add explanatory comments
+  liberally
+  - Leave existing comments unless they are incorrect, even if they explain
+    WHAT code does and they are redundant
+
+## Comment Chunk of Code
+- Use comments to separate logical chunks of code
+- Explain the logic and intent of code sections, especially for:
+  - Complex algorithms or multi-step processes
+  - Conditional branches and why they're needed
+  - Non-obvious variable assignments or transformations
+  - Implementation choices and workarounds
+  - Algorithm steps in a sequence
+
+- Comments should explain the WHY and the algorithm flow, not only the WHAT
+  - **Bad**: (obvious from the code)
+    ```python
+    # Iterate over lines.
+    for line in lines:
+      ...
+    ```
+  - **Good**: (explains intent)
+    ```python
+    # Process imports in two passes: first collect, then validate.
+    ```
+
+## Commenting Style
+- Prefer single-line comments over multi-line comment blocks when possible
+
+- Use periods at the end of all comments
+
+- In comments always use `: ` instead of ` - `
+  - **Bad**
+    ```
+    # Check outputs.` - Result verification
+    ```
+  - **Good**
+    ```
+    # Check outputs.`: Result verification
+    ```
+
+## Convert Empty Lines and Empty Comments in Block Comments
+- Do not use empty lines within functions but use comments to separate chunks of
+  code
+
+- If there are empty lines or empty comments `# ` separating chunks of code
+  replace them with comments explaining the block
+
 ## Leave Existing Comments Untouched
 
 - Leave untouched comments that represent examples of input-output relationships
@@ -488,7 +495,7 @@
     #   'head_hash = remh_hash = a2bfc704'
     ```
 
-- Leave comments that represent running a command and getting a result
+- Leave comments that represent running a command and getting a result:
   - E.g.,
     ```python
     # > git config --file /Users/saggese/src/.../.gitmodules --get-regexp path
