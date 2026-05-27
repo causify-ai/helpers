@@ -1,4 +1,5 @@
 import os
+import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -6,7 +7,28 @@ import helpers.hunit_test as hunitest
 import linters.amp_autoflake as lampauto
 
 
+# #############################################################################
+# TestAutoflake
+# #############################################################################
+
+
+@pytest.mark.need_dev_container
 class TestAutoflake(hunitest.TestCase):
+    def _autoflake(self, text: str) -> str:
+        """
+        Run the `autoflake` wrapper.
+
+        :param text: content of the file to be modified
+        :return: modified content after autoflake
+        """
+        root_dir = hgit.get_client_root(super_module=False)
+        test_file = os.path.join(root_dir, "autoflake.tmp.py")
+        hio.to_file(test_file, text)
+        _ = lampauto._Autoflake()._execute(file_name=test_file, pedantic=0)
+        content: str = hio.from_file(test_file)
+        hio.delete_file(test_file)
+        return content
+
     def test1(self) -> None:
         """
         Test that unused imports are removed.
@@ -73,18 +95,3 @@ def func() -> int:
 """
         actual = self._autoflake(text)
         self.assertEqual(expected, actual)
-
-    def _autoflake(self, text: str) -> str:
-        """
-        Run the `autoflake` wrapper.
-
-        :param text: content of the file to be modified
-        :return: modified content after autoflake
-        """
-        root_dir = hgit.get_client_root(super_module=False)
-        test_file = os.path.join(root_dir, "autoflake.tmp.py")
-        hio.to_file(test_file, text)
-        _ = lampauto._Autoflake()._execute(file_name=test_file, pedantic=0)
-        content: str = hio.from_file(test_file)
-        hio.delete_file(test_file)
-        return content

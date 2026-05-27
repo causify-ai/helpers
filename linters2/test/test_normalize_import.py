@@ -1546,6 +1546,7 @@ class TestEndToEnd(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class TestEndToEndShortImports(hunitest.TestCase):
     """
     End-to-end test to check how short imports are modified.

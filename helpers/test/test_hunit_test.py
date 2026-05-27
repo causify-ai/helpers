@@ -272,6 +272,7 @@ class TestTestCase1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_AssertEqual1(hunitest.TestCase):
     def test_equal1(self) -> None:
         """
@@ -911,6 +912,7 @@ class Test_check_string_debug1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_get_dir_signature1(hunitest.TestCase):
     def helper(self, include_file_content: bool) -> str:
         in_dir = self.get_input_dir()

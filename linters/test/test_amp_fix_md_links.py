@@ -1,6 +1,7 @@
 import logging
 import os
 from typing import List
+import pytest
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -36,6 +37,7 @@ def _get_output_string(out_warnings: List[str], updated_lines: List[str]) -> str
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_fix_links(hunitest.TestCase):
     def run_test(
         self, input_content: str, *, file_name: str = "test.md"

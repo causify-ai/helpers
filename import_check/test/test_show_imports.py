@@ -21,6 +21,7 @@ _LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.slow()
+@pytest.mark.need_dev_container
 class Test_show_imports(hunitest.TestCase):
     def create_io_dirs(self) -> None:
         dir_name = self.get_input_dir()

@@ -6,6 +6,7 @@ from typing import Tuple
 
 import jupytext
 import pytest
+
 # Skip this test suite if libcst is not installed (skip for tutorials).
 pytest.importorskip("libcst")
 from packaging import version
@@ -22,7 +23,6 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 ## base.py
-# #############################################################################
 
 
 # #############################################################################
@@ -30,6 +30,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_linter_py1(hunitest.TestCase):
     def write_input_file(self, txt: str, file_name: str) -> Tuple[str, str]:
         """
@@ -47,6 +48,70 @@ class Test_linter_py1(hunitest.TestCase):
         file_name = os.path.abspath(file_name)
         hio.to_file(file_name, txt)
         return dir_name, file_name
+
+    # #########################################################################
+
+    def _run_linter(
+        self,
+        file_name: str,
+        linter_log: str,
+        as_system_call: bool,
+    ) -> str:
+        if as_system_call:
+            cmd = []
+            cmd.append(f"linters/base.py --files {file_name}")
+            cmd_as_str = " ".join(cmd)
+            ## We need to ignore the errors reported by the script, since it
+            ## represents how many lints were found.
+            suppress_output = _LOG.getEffectiveLevel() > logging.DEBUG
+            hsystem.system(
+                cmd_as_str,
+                abort_on_error=False,
+                suppress_output=suppress_output,
+                output_file=linter_log,
+            )
+            cmd_rm = f"git restore --staged {file_name}"
+            hsystem.system(cmd_rm, abort_on_error=False)
+        else:
+            logger_verbosity = hdbg.get_logger_verbosity()
+            parser = libase._parse()
+            args = parser.parse_args(
+                [
+                    "-f",
+                    file_name,
+                    "--linter_log",
+                    linter_log,
+                    # TODO(gp): Avoid to call the logger.
+                    "-v",
+                    "ERROR",
+                ]
+            )
+            libase._main(args)
+            hdbg.init_logger(logger_verbosity)
+
+        # Read log.
+        _LOG.debug("linter_log=%s", linter_log)
+        txt = hio.from_file(linter_log)
+        # Process log.
+        output = []
+        output.append("# linter log")
+        for line in txt.split("\n"):
+            # Remove the line:
+            #   Cmd line='.../linter.py -f input.py --linter_log ./linter.log'
+            if "cmd line=" in line:
+                continue
+            # Filter out code rate because of #2241.
+            if "Your code has been rated at" in line:
+                continue
+            output.append(line)
+        # Read output.
+        _LOG.debug("file_name=%s", file_name)
+        output.append("# linter file")
+        txt = hio.from_file(file_name)
+        output.extend(txt.split("\n"))
+        # //////////////
+        output_as_str = "\n".join(output)
+        return output_as_str
 
     def run_linter(self, txt: str, file_name: str, as_system_call: bool) -> str:
         """
@@ -76,6 +141,13 @@ class Test_linter_py1(hunitest.TestCase):
             output,
         )
         return output
+
+    def _get_input_text(self) -> str:
+        # Prepare input.
+        test_input_dir = self.get_input_dir()
+        text_file_path = os.path.join(test_input_dir, "test.txt")
+        text = hio.from_file(text_file_path)
+        return text
 
     # #########################################################################
 
@@ -290,74 +362,3 @@ class Test_linter_py1(hunitest.TestCase):
         output = hio.from_file(file_path_py)
         # Check.
         self.check_string(output, purify_text=True)
-
-    # #########################################################################
-
-    def _run_linter(
-        self,
-        file_name: str,
-        linter_log: str,
-        as_system_call: bool,
-    ) -> str:
-        if as_system_call:
-            cmd = []
-            cmd.append(f"linters/base.py --files {file_name}")
-            cmd_as_str = " ".join(cmd)
-            ## We need to ignore the errors reported by the script, since it
-            ## represents how many lints were found.
-            suppress_output = _LOG.getEffectiveLevel() > logging.DEBUG
-            hsystem.system(
-                cmd_as_str,
-                abort_on_error=False,
-                suppress_output=suppress_output,
-                output_file=linter_log,
-            )
-            cmd_rm = f"git restore --staged {file_name}"
-            hsystem.system(cmd_rm, abort_on_error=False)
-        else:
-            logger_verbosity = hdbg.get_logger_verbosity()
-            parser = libase._parse()
-            args = parser.parse_args(
-                [
-                    "-f",
-                    file_name,
-                    "--linter_log",
-                    linter_log,
-                    # TODO(gp): Avoid to call the logger.
-                    "-v",
-                    "ERROR",
-                ]
-            )
-            libase._main(args)
-            hdbg.init_logger(logger_verbosity)
-
-        # Read log.
-        _LOG.debug("linter_log=%s", linter_log)
-        txt = hio.from_file(linter_log)
-        # Process log.
-        output = []
-        output.append("# linter log")
-        for line in txt.split("\n"):
-            # Remove the line:
-            #   Cmd line='.../linter.py -f input.py --linter_log ./linter.log'
-            if "cmd line=" in line:
-                continue
-            # Filter out code rate because of #2241.
-            if "Your code has been rated at" in line:
-                continue
-            output.append(line)
-        # Read output.
-        _LOG.debug("file_name=%s", file_name)
-        output.append("# linter file")
-        txt = hio.from_file(file_name)
-        output.extend(txt.split("\n"))
-        # //////////////
-        output_as_str = "\n".join(output)
-        return output_as_str
-
-    def _get_input_text(self) -> str:
-        # Prepare input.
-        test_input_dir = self.get_input_dir()
-        text_file_path = os.path.join(test_input_dir, "test.txt")
-        text = hio.from_file(text_file_path)
-        return text

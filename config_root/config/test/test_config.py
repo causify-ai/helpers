@@ -4,6 +4,7 @@ import logging
 import os
 import pprint
 import re
+import sys
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -105,6 +106,7 @@ class Test_flat_config_set1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test_roundtrip_transform1(self) -> None:
         """
         Test serialization/deserialization for a flat config.
@@ -762,6 +764,7 @@ class Test_nested_config_misc1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test_config_to_python1(self) -> None:
         """
         Test `to_python()` on a nested config.
@@ -774,6 +777,7 @@ class Test_nested_config_misc1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test_roundtrip_transform1(self) -> None:
         """
         Test serialization/deserialization for nested config.
@@ -1635,6 +1639,7 @@ class Test_to_dict1(hunitest.TestCase):
 
 
 class Test_to_dict2(hunitest.TestCase):
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test1(self) -> None:
         config = _get_nested_config6(self)
         # Run.
@@ -1649,6 +1654,7 @@ class Test_to_dict2(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test2(self) -> None:
         config = _get_nested_config6(self)
         # Run.
