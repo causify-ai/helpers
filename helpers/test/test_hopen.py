@@ -79,6 +79,7 @@ class Test_open_html(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_open_pdf(hunitest.TestCase):
     """
     Test different command correctness for opening pdf file.

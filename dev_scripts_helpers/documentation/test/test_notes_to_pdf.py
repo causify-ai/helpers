@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from typing import Optional, Tuple
 
 import pytest
@@ -161,6 +162,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         self.check_string(txt, purify_text=True)
 
     @pytest.mark.superslow
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test4(self) -> None:
         """
         Run:

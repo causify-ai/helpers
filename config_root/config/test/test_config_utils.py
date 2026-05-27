@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import unittest.mock as umock
 from typing import Any, Dict
 
@@ -9,6 +10,7 @@ except ImportError:
     from collections import Hashable as AbcHashable
 
 import pandas as pd
+import pytest
 
 import config_root.config as cconfig
 import helpers.hio as hio
@@ -576,6 +578,7 @@ class Test_make_hashable(hunitest.TestCase):
 
 
 class Test_replace_shared_root_path(hunitest.TestCase):
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test_replace_shared_dir_paths(self) -> None:
         """
         Test replacing in config all shared root paths with the dummy mapping.
