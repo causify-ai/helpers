@@ -438,7 +438,7 @@ class TestShortenImportNames(hunitest.TestCase):
         Test shorten import end to end.
         """
         py_files = [
-            "amp/helpers/cache.py",
+            "amp/helpers/hcache_simple.py",
             "core/dataflow/nodes/sarimax_models.py",
             "core/dataflow/nodes/sklearn_models.py",
             "helpers/backtest.py",
@@ -447,7 +447,7 @@ class TestShortenImportNames(hunitest.TestCase):
         short_imports_generator = lnorimpo.LongToShortImportGenerator()
         actual = short_imports_generator.shorten_import_names(py_files)
         expected = {
-            "helpers.cache": "hcache",
+            "helpers.hcache_simple": "hcacsimp",
             "core.dataflow.nodes.sarimax_models": "cdtfnosamo",
             "core.dataflow.nodes.sklearn_models": "cdtfnoskmo",
             "helpers.backtest": "hbackte",
