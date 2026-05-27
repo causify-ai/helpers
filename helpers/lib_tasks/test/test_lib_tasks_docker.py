@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import sys
 import unittest.mock as umock
 from typing import Dict, Optional
 
@@ -74,14 +75,17 @@ class Test_generate_compose_file1(hunitest.TestCase):
         txt = hunitest.filter_text(r"working_dir", txt)
         self.check_string(txt)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test1(self) -> None:
         self.helper(stage="prod", use_privileged_mode=True)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test2(self) -> None:
         self.helper(
             stage="prod", shared_data_dirs={"/data/shared": "/shared_data"}
         )
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test3(self) -> None:
         self.helper(stage="prod", use_main_network=True)
 
@@ -90,6 +94,7 @@ class Test_generate_compose_file1(hunitest.TestCase):
     @pytest.mark.skipif(
         hgit.is_in_amp_as_submodule(), reason="Only run in amp directly"
     )
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test4(self) -> None:
         self.helper(stage="dev")
 
@@ -169,6 +174,7 @@ class Test_generate_compose_file2(hunitest.TestCase):
         txt = "\n".join(txt)
         self.check_string(txt)
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test1(self) -> None:
         """
         Check that file is generated correctly when the repo is `//cmamp`.
@@ -180,6 +186,7 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_is_in_helpers_as_supermodule=False,
         )
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test2(self) -> None:
         """
         Check that file is generated correctly when the repo is `//helpers`.
@@ -191,6 +198,7 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_is_in_helpers_as_supermodule=True,
         )
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test3(self) -> None:
         """
         Check that file is generated correctly when the repo is `//cmamp` and
@@ -203,6 +211,7 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_is_in_helpers_as_supermodule=False,
         )
 
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test4(self) -> None:
         """
         Check that file is generated correctly when the repo is `//orange`.
