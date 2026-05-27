@@ -78,6 +78,7 @@ def _get_completion_parameters4() -> Dict[str, Any]:
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_get_completion(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -182,6 +183,7 @@ class Test_response_to_txt(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_retrieve_openrouter_model_info(hunitest.TestCase):
     @umock.patch("requests.get")
     def test_retrieve_success(self, mock_get) -> None:
@@ -220,6 +222,7 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_save_models_info_to_csv(hunitest.TestCase):
     def get_temp_path(self) -> str:
         """
@@ -293,6 +296,7 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_calculate_cost(hunitest.TestCase):
     def get_tmp_path(self) -> str:
         """

@@ -1,4 +1,5 @@
 import logging
+import pytest
 
 import pandas as pd
 
@@ -15,6 +16,7 @@ _AWS_PROFILE = "ck"
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_df_to_str(hunitest.TestCase):
     @staticmethod
     def get_test_data() -> pd.DataFrame:

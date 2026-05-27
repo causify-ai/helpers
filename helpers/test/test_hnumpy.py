@@ -1,4 +1,5 @@
 import logging
+import pytest
 
 import numpy as np
 import collections
@@ -138,6 +139,7 @@ class TestFloorWithPrecision(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_OrderedDict_repr_str(hunitest.TestCase):
     """
     The tests are used to gatekeep the expected behavior of

@@ -19,6 +19,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_detect_import_cycles(hunitest.TestCase):
     def create_io_dirs(self) -> None:
         dir_name = self.get_input_dir()
