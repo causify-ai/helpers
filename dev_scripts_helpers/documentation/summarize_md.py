@@ -463,7 +463,7 @@ def _parse() -> argparse.ArgumentParser:
         default=1,
         help="Header level to summarize (1=H1, 2=H2, etc.; default: 1)",
     )
-    hparser.add_md_start_end_args(parser, start_required=False)
+    hmarsele.add_select_arg(parser, required=False)
     parser.add_argument(
         "--model",
         type=str,
@@ -514,11 +514,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
             in_file_name, out_file_name, args.overwrite
         )
         lines, all_headers = _read_and_parse_markdown(in_file_name)
+        md_start = None
+        md_end = None
+        if args.select:
+            md_start, md_end = hmarsele.parse_select_arg(args.select)
         target_headers = _get_target_headers(
             all_headers,
             md_level=args.md_level,
-            md_start=args.md_start,
-            md_end=args.md_end,
+            md_start=md_start,
+            md_end=md_end,
         )
         _LOG.info(
             "Processing %d headers at level %d",

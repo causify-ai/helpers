@@ -12,7 +12,7 @@ description: Reduce the text in slide leaving the structure unchanged
 - Otherwise you process the entire file
 
 ## Follow Conventions
-- Follow the conventions in `@.claude/skills/slides.rules.md`
+- Follow the conventions in `.claude/skills/slides.rules.md`
 
 ## Slide Title
 - If a line starts with an asterisk `*`, it's the slide title and leave it

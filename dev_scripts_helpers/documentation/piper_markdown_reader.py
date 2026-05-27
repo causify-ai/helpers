@@ -64,7 +64,7 @@ def _read_markdown_file(file_path: str) -> str:
 
 def _extract_markdown_section(
     file_path: str,
-    md_start: str,
+    md_start: Optional[str],
     md_end: Optional[str],
 ) -> str:
     """
@@ -693,15 +693,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Maximum text length per chunk (0 = no chunking)",
     )
     hparser.add_verbosity_arg(parser)
-    hparser.add_md_start_end_args(parser, start_required=False)
-    # Update --md_end help to document the special "END" value
-    for action in parser._actions:
-        if action.dest == "md_end":
-            action.help = (
-                "Ending header (e.g., '## Section 2' or 'Section 2'). "
-                "If omitted with --md_start, stops at next same-level header. "
-                "Use special value 'END' to extract to end of file."
-            )
+    hmarsele.add_select_arg(parser, required=False)
     return parser
 
 
@@ -727,11 +719,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Input file path is required",
     )
     _LOG.debug("Validations passed")
-    if args.md_start:
+    if args.select:
+        md_start, md_end = hmarsele.parse_select_arg(args.select)
         content = _extract_markdown_section(
-            args.input, args.md_start, args.md_end
+            args.input, md_start, md_end
         )
-        _LOG.info("Extracted section '%s' from %s", args.md_start, args.input)
+        _LOG.info("Extracted section '%s' from %s", md_start, args.input)
     else:
         content = _read_markdown_file(args.input)
         _LOG.info("Read markdown file: %s", args.input)

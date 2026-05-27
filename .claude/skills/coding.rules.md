@@ -573,6 +573,25 @@
     # Usage: ./convert_epub_to_md.py input.epub output.md
     ```
 
+## Script Docstring Usage Examples
+
+- When writing docstrings or comments to explain how to use a script, do not use
+  the entire file path and do not prepend with `python`
+- Refer to scripts using their simple filename or relative path with `./`
+
+- **Bad**: Uses full path and `python` prefix
+  ```python
+  """
+  > python dev_scripts_helpers/llms/llm_cli.py -i some.md ...
+  """
+  ```
+- **Good**: Uses simple script name
+  ```python
+  """
+  > extract_from_md.py -i some.md ...
+  """
+  ```
+
 ## Use Standard Argument Helpers From `hparser`
 
 - Use `hparser` helper functions to add standard arguments instead of defining

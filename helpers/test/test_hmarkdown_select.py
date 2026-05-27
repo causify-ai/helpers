@@ -20,6 +20,65 @@ def _build_header_list(data: List[Tuple[int, str]]) -> hmarhead.HeaderList:
 
 
 # #############################################################################
+# Test_parse_select_arg
+# #############################################################################
+
+
+class Test_parse_select_arg(hunitest.TestCase):
+    """
+    Test --select argument parsing.
+    """
+
+    def test1(self) -> None:
+        """
+        Test parsing with both START and END.
+        """
+        # Prepare inputs.
+        select_str = "## Section 1:## Section 2"
+        # Run test.
+        start, end = hmarsele.parse_select_arg(select_str)
+        # Check outputs.
+        self.assertEqual(start, "## Section 1")
+        self.assertEqual(end, "## Section 2")
+
+    def test2(self) -> None:
+        """
+        Test parsing with only END (colon at beginning).
+        """
+        # Prepare inputs.
+        select_str = ":Section 2"
+        # Run test.
+        start, end = hmarsele.parse_select_arg(select_str)
+        # Check outputs.
+        self.assertIsNone(start)
+        self.assertEqual(end, "Section 2")
+
+    def test3(self) -> None:
+        """
+        Test parsing with only START (colon at end).
+        """
+        # Prepare inputs.
+        select_str = "Section 1:"
+        # Run test.
+        start, end = hmarsele.parse_select_arg(select_str)
+        # Check outputs.
+        self.assertEqual(start, "Section 1")
+        self.assertIsNone(end)
+
+    def test4(self) -> None:
+        """
+        Test parsing with no colon (implies to EOF).
+        """
+        # Prepare inputs.
+        select_str = "Section 1"
+        # Run test.
+        start, end = hmarsele.parse_select_arg(select_str)
+        # Check outputs.
+        self.assertEqual(start, "Section 1")
+        self.assertEqual(end, "END")
+
+
+# #############################################################################
 # Test_parse_header_string
 # #############################################################################
 
@@ -117,6 +176,134 @@ class Test_find_header_by_title(hunitest.TestCase):
 # #############################################################################
 # Test_find_header_by_partial_title
 # #############################################################################
+
+
+class Test_find_header_by_substring_title(hunitest.TestCase):
+    """
+    Test substring header title matching.
+    """
+
+    def test1(self) -> None:
+        """
+        Test finding a header by substring anywhere in title.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "My Chapter 2"),
+                (2, "Chapter 2 Intro"),
+            ]
+        )
+        substring = "Chapter 2"
+        # Run test and check output (multiple matches).
+        with self.assertRaises(AssertionError) as cm:
+            hmarsele.find_header_by_substring_title(header_list, substring)
+        self.assertIn("multiple headers", str(cm.exception))
+
+    def test2(self) -> None:
+        """
+        Test finding header with unique substring.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "My Section 1"),
+                (2, "My Section 2"),
+            ]
+        )
+        substring = "My Section 2"
+        # Run test.
+        result = hmarsele.find_header_by_substring_title(
+            header_list, substring
+        )
+        # Check outputs.
+        self.assertIsNotNone(result)
+        self.assertEqual(result.description, "My Section 2")
+
+    def test3(self) -> None:
+        """
+        Test substring not found.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "Section 1"),
+            ]
+        )
+        substring = "Nonexistent"
+        # Run test.
+        result = hmarsele.find_header_by_substring_title(
+            header_list, substring
+        )
+        # Check outputs.
+        self.assertIsNone(result)
+
+
+# TODO(ai_gp): Run skill /coding.factor_common_code
+class Test_find_header_by_level_and_prefix(hunitest.TestCase):
+    """
+    Test level-exact and prefix matching.
+    """
+
+    def test1(self) -> None:
+        """
+        Test finding header by exact level and prefix match.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "Section 1.1"),
+                (2, "Section 1.2"),
+            ]
+        )
+        # Run test.
+        result = hmarsele.find_header_by_level_and_prefix(
+            header_list, 2, "Section 1.1"
+        )
+        # Check outputs.
+        self.assertIsNotNone(result)
+        self.assertEqual(result.description, "Section 1.1")
+
+    def test2(self) -> None:
+        """
+        Test level mismatch returns None.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "Section 1.1"),
+            ]
+        )
+        # Run test (level 1 doesn't match level 2 header).
+        result = hmarsele.find_header_by_level_and_prefix(
+            header_list, 1, "Section"
+        )
+        # Check outputs.
+        self.assertIsNone(result)
+
+    def test3(self) -> None:
+        """
+        Test multiple level-exact prefix matches raises error.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "Section 1.1"),
+                (2, "Section 1.2"),
+            ]
+        )
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            hmarsele.find_header_by_level_and_prefix(
+                header_list, 2, "Section"
+            )
+        self.assertIn("multiple headers", str(cm.exception))
 
 
 class Test_find_header_by_partial_title(hunitest.TestCase):
@@ -273,7 +460,7 @@ class Test_find_header_from_input(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test finding header with full format (level prefix is ignored, uses partial match).
+        Test finding header with full format (level must match exactly).
         """
         # Prepare inputs.
         header_list = _build_header_list(
@@ -282,8 +469,8 @@ class Test_find_header_from_input(hunitest.TestCase):
                 (2, "Section 1.1"),
             ]
         )
-        header_input = "# Section 1.1"
-        # Run test (level prefix is ignored, partial match is used).
+        header_input = "## Section 1.1"
+        # Run test (level must match exactly).
         result, level = hmarsele.find_header_from_input(
             header_list, header_input
         )
@@ -293,7 +480,7 @@ class Test_find_header_from_input(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test partial match with # prefix.
+        Test finding header with line number.
         """
         # Prepare inputs.
         header_list = _build_header_list(
@@ -302,14 +489,35 @@ class Test_find_header_from_input(hunitest.TestCase):
                 (2, "Section 1.1"),
             ]
         )
-        header_input = "## Chapter"
+        header_input = "6"
+        # Run test (6 is the line number for second header: 5*1+1=6).
+        result, level = hmarsele.find_header_from_input(
+            header_list, header_input
+        )
+        # Check outputs.
+        self.assertEqual(result.description, "Section 1.1")
+        self.assertEqual(level, 2)
+
+    def test6(self) -> None:
+        """
+        Test finding header with substring (no # prefix).
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "My Section 1"),
+                (2, "My Other"),
+            ]
+        )
+        header_input = "Section"
         # Run test.
         result, level = hmarsele.find_header_from_input(
             header_list, header_input
         )
         # Check outputs.
-        self.assertEqual(result.description, "Chapter 1")
-        self.assertEqual(level, 1)
+        self.assertEqual(result.description, "My Section 1")
+        self.assertEqual(level, 2)
 
 
 # #############################################################################
@@ -415,9 +623,81 @@ class Test_find_end_line(hunitest.TestCase):
 # #############################################################################
 
 
+class Test_get_chunk_bounds(hunitest.TestCase):
+    """
+    Test chunk boundary computation.
+    """
+
+    def test1(self) -> None:
+        """
+        Test getting bounds for explicit START and END.
+        """
+        # Prepare inputs.
+        lines = [
+            "# Chapter 1",
+            "Intro",
+            "",
+            "## Section 1.1",
+            "Content",
+            "",
+            "## Section 1.2",
+            "More",
+        ]
+        # Run test.
+        start_idx, end_idx = hmarsele.get_chunk_bounds(
+            lines, "Section 1.1", "Section 1.2"
+        )
+        # Check outputs.
+        self.assertEqual(start_idx, 3)
+        self.assertEqual(end_idx, 6)
+
+    def test2(self) -> None:
+        """
+        Test getting bounds with no end (next same-level).
+        """
+        # Prepare inputs.
+        lines = [
+            "# Chapter 1",
+            "Intro",
+            "",
+            "## Section 1.1",
+            "Content",
+            "",
+            "## Section 1.2",
+            "More",
+        ]
+        # Run test.
+        start_idx, end_idx = hmarsele.get_chunk_bounds(
+            lines, "Section 1.1", None
+        )
+        # Check outputs: should stop before Section 1.2.
+        self.assertEqual(start_idx, 3)
+        self.assertEqual(end_idx, 6)
+
+    def test3(self) -> None:
+        """
+        Test getting bounds with None start (from beginning).
+        """
+        # Prepare inputs.
+        lines = [
+            "# Chapter 1",
+            "Intro",
+            "",
+            "## Section 1.1",
+            "Content",
+        ]
+        # Run test.
+        start_idx, end_idx = hmarsele.get_chunk_bounds(
+            lines, None, "Section 1.1"
+        )
+        # Check outputs: should start from line 0.
+        self.assertEqual(start_idx, 0)
+        self.assertEqual(end_idx, 3)
+
+
 class Test_extract_text_from_markdown_lines(hunitest.TestCase):
     """
-    Test text extraction with "END" special value.
+    Test text extraction with "END" special value and new features.
     """
 
     def test1(self) -> None:
@@ -506,3 +786,30 @@ class Test_extract_text_from_markdown_lines(hunitest.TestCase):
         self.assertIn("## Section 1.1", result_text)
         self.assertNotIn("## Section 1.2", result_text)
         self.assertNotIn("# Chapter 2", result_text)
+
+    def test4(self) -> None:
+        """
+        Test extracting from beginning of file (start_header_str=None).
+        """
+        # Prepare inputs.
+        lines = [
+            "# Chapter 1",
+            "Intro",
+            "",
+            "## Section 1.1",
+            "Content",
+            "",
+            "## Section 1.2",
+            "More",
+        ]
+        # Run test: extract from beginning to "Section 1.1" (excluding it).
+        result = hmarsele.extract_text_from_markdown_lines(
+            lines, None, "Section 1.1"
+        )
+        # Check outputs: should start from first line but stop before Section 1.1.
+        # TODO(ai_gp): Use self.assert_equal
+        result_text = "\n".join(result)
+        self.assertIn("# Chapter 1", result_text)
+        self.assertIn("Intro", result_text)
+        self.assertNotIn("## Section 1.1", result_text)
+        self.assertNotIn("## Section 1.2", result_text)

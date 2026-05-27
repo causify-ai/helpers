@@ -313,7 +313,7 @@ class Test_extract_from_md_script1(hunitest.TestCase):
         Test extracting text between two headers.
         """
         # Prepare inputs.
-        args = "--md_start '# Methods' --md_end '# Results'"
+        args = "--select '# Methods:# Results'"
         expected_output = """
         # Methods
 
@@ -330,10 +330,10 @@ class Test_extract_from_md_script1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test extracting from header to next same-level header (implicit end).
+        Test extracting from header to next same-level header (explicit end).
         """
         # Prepare inputs.
-        args = "--md_start '## Background' --md_end '## Motivation'"
+        args = "--select '## Background:## Motivation'"
         expected_output = """
         ## Background
 
@@ -347,7 +347,7 @@ class Test_extract_from_md_script1(hunitest.TestCase):
         Test extracting from a header to next same-level (no explicit end).
         """
         # Prepare inputs.
-        args = "--md_start '# Results'"
+        args = "--select '# Results'"
         expected_output = """
         # Results
 
@@ -361,7 +361,7 @@ class Test_extract_from_md_script1(hunitest.TestCase):
         Test error when end header not found.
         """
         # Prepare inputs.
-        args = "--md_start '## Data Collection' --md_end '## Results'"
+        args = "--select '## Data Collection:## Results'"
         # Run test and check output.
         self._assert_script_fails(
             args, "Expected script to fail when end header not found"
@@ -372,7 +372,7 @@ class Test_extract_from_md_script1(hunitest.TestCase):
         Test error when start header not found.
         """
         # Prepare inputs.
-        args = "--md_start '# Nonexistent'"
+        args = "--select '# Nonexistent'"
         # Run test and check output.
         self._assert_script_fails(
             args, "Expected script to fail when start header not found"
@@ -380,11 +380,11 @@ class Test_extract_from_md_script1(hunitest.TestCase):
 
     def test6(self) -> None:
         """
-        Test error when no --md_start argument provided.
+        Test error when no --select argument provided.
         """
         # Run test and check output.
         self._assert_script_fails(
-            "", "Expected script to fail when --md_start is missing"
+            "", "Expected script to fail when --select is missing"
         )
 
 

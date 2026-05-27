@@ -9,12 +9,70 @@ Import as:
 import helpers.hmarkdown_select as hmarsele
 """
 
+import argparse
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarslid
+
+
+def add_select_arg(
+    parser: argparse.ArgumentParser,
+    *,
+    required: bool = True,
+) -> argparse.ArgumentParser:
+    """
+    Add option for markdown header range selection via --select START:END.
+
+    :param parser: ArgumentParser to add arguments to
+    :param required: whether the --select argument is required (default: True)
+    :return: ArgumentParser with the new argument added
+    """
+    parser.add_argument(
+        "--select",
+        type=str,
+        required=required,
+        default=None,
+        help=(
+            "Select text range as START:END. Examples: "
+            "'## Section 1:## Section 2', 'Section 1:Section 2', ':END', "
+            "'START:', or 'START' (no colon implies to EOF). "
+            "START/END can be a header (with # or * prefix), title substring, "
+            "or line number."
+        ),
+    )
+    return parser
+
+
+# #############################################################################
+
+
+def parse_select_arg(select_str: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Parse a --select argument into (start, end) components.
+
+    Formats:
+    - "START:END" -> ("START", "END")
+    - ":END" -> (None, "END"): extract from file beginning
+    - "START:" -> ("START", None): extract until next same-level header
+    - "START" (no colon) -> ("START", "END"): extract from START to EOF
+
+    :param select_str: the --select argument value
+    :return: tuple of (start, end) where each can be None or a string
+    """
+    hdbg.dassert_isinstance(select_str, str, "select_str must be a string")
+    hdbg.dassert_ne(select_str, "", "Select string cannot be empty")
+    if ":" not in select_str:
+        return select_str, "END"
+    parts = select_str.split(":", 1)
+    start = parts[0] if parts[0].strip() else None
+    end = parts[1] if parts[1].strip() else None
+    return start, end
+
+
+# #############################################################################
 
 
 def parse_header_string(header_str: str) -> Tuple[int, str]:
@@ -80,33 +138,143 @@ def find_header_by_partial_title(
     return matches[0]
 
 
+def find_header_by_substring_title(
+    header_list: hmarhead.HeaderList, substring: str
+) -> Optional[hmarhead.HeaderInfo]:
+    """
+    Find a header by substring title match (anywhere in title).
+
+    The substring matches if it appears anywhere in the header's title (case-sensitive).
+    Raises an error if multiple headers match.
+
+    :param header_list: list of HeaderInfo objects
+    :param substring: substring to match (must be unique)
+    :return: HeaderInfo if found, None otherwise
+    """
+    matches = []
+    for header_info in header_list:
+        if substring in header_info.description:
+            matches.append(header_info)
+    if len(matches) == 0:
+        return None
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Substring '%s' matches multiple headers: %s. Please provide a more specific match.",
+        substring,
+        [h.description for h in matches],
+    )
+    return matches[0]
+
+
+def find_header_by_level_and_prefix(
+    header_list: hmarhead.HeaderList, level: int, title_prefix: str
+) -> Optional[hmarhead.HeaderInfo]:
+    """
+    Find a header by exact level match and title prefix.
+
+    Matches headers where level == target level AND title starts with prefix.
+    Raises an error if multiple headers match.
+
+    :param header_list: list of HeaderInfo objects
+    :param level: exact header level to match
+    :param title_prefix: prefix the title must start with
+    :return: HeaderInfo if found, None otherwise
+    """
+    matches = []
+    for header_info in header_list:
+        if (header_info.level == level and
+            header_info.description.startswith(title_prefix)):
+            matches.append(header_info)
+    if len(matches) == 0:
+        return None
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Level %d with prefix '%s' matches multiple headers: %s. Please provide a more specific match.",
+        level,
+        title_prefix,
+        [h.description for h in matches],
+    )
+    return matches[0]
+
+
+def _find_header_by_line_number(
+    header_list: hmarhead.HeaderList, line_number: int
+) -> Optional[hmarhead.HeaderInfo]:
+    """
+    Find a header at a specific line number.
+
+    :param header_list: list of HeaderInfo objects
+    :param line_number: 1-based line number
+    :return: HeaderInfo if found, None otherwise
+    """
+    for header_info in header_list:
+        if header_info.line_number == line_number:
+            return header_info
+    return None
+
+
 def find_header_from_input(
     header_list: hmarhead.HeaderList,
     header_input: str,
 ) -> Tuple[hmarhead.HeaderInfo, int]:
     """
-    Find a header from user input using partial title matching.
+    Find a header from user input with flexible matching.
 
-    Supports both "## Title" (full header format) and "Title" (partial match).
-    Both formats will use partial matching, so "2 Cheap" and "# 2 Cheap" both work.
+    Supports multiple input formats:
+    - Line number: "42" (1-based line number)
+    - Slide format: "* Slide Title" (matches level-5 header with prefix)
+    - Full header format: "## Title" (matches level-exact header with prefix)
+    - Substring: "Title" (matches anywhere in title, must be unique)
 
     :param header_list: list of HeaderInfo objects
-    :param header_input: either "## Title" (full header) or "Title" (partial match)
+    :param header_input: various formats as described above
     :return: tuple of (HeaderInfo, level)
     :raises: AssertionError if input is ambiguous or header not found
     """
-    # Extract title from input, removing # symbols if present
-    if header_input.lstrip().startswith("#"):
-        # Full header format like "## Title" - extract the title part
-        _, title = parse_header_string(header_input)
-    else:
-        # Already just a title
-        title = header_input
-    # Always use partial matching for flexibility
-    header_info = find_header_by_partial_title(header_list, title.strip())
+    hdbg.dassert_isinstance(header_input, str, "header_input must be a string")
+    hdbg.dassert_ne(header_input, "", "Header input cannot be empty")
+    header_input = header_input.strip()
+    # Check if input is a line number
+    if header_input.isdigit():
+        line_num = int(header_input)
+        header_info = _find_header_by_line_number(header_list, line_num)
+        hdbg.dassert_is_not(
+            header_info, None, "No header at line %d", line_num
+        )
+        # TODO(ai_gp): Use dassert_isinstance everywhere
+        assert isinstance(header_info, hmarhead.HeaderInfo)
+        # TODO(ai_gp): Have a single return exit.
+        return header_info, header_info.level
+    # Check if input is slide format (* Title)
+    if header_input.startswith("*"):
+        title = header_input[1:].strip()
+        header_info = find_header_by_level_and_prefix(
+            header_list, hmarslid.SLIDE_LEVEL, title
+        )
+        hdbg.dassert_is_not(
+            header_info, None, "No slide matches: '%s'", header_input
+        )
+        assert isinstance(header_info, hmarhead.HeaderInfo)
+        return header_info, header_info.level
+    # Check if input is full header format (# Title)
+    if header_input.startswith("#"):
+        level, title = parse_header_string(header_input)
+        header_info = find_header_by_level_and_prefix(
+            header_list, level, title
+        )
+        hdbg.dassert_is_not(
+            header_info, None, "No header matches: '%s'", header_input
+        )
+        assert isinstance(header_info, hmarhead.HeaderInfo)
+        return header_info, header_info.level
+    # Default: substring matching
+    header_info = find_header_by_substring_title(header_list, header_input)
     hdbg.dassert_is_not(
         header_info, None, "No header matches: '%s'", header_input
     )
+    assert isinstance(header_info, hmarhead.HeaderInfo)
     return header_info, header_info.level
 
 
@@ -139,6 +307,7 @@ def find_end_line(
             start_idx = i
             break
     hdbg.dassert_is_not(start_idx, None, "Start header not found in header list")
+    assert isinstance(start_idx, int)
     # If an explicit end header is provided, use it directly.
     if end_header_input is not None:
         end_header_info, _ = find_header_from_input(
@@ -153,9 +322,98 @@ def find_end_line(
     return None
 
 
+def get_chunk_bounds(
+    lines: List[str],
+    start_header_str: Optional[str],
+    end_header_str: Optional[str],
+    is_slide_format: bool = False,
+) -> Tuple[int, int]:
+    """
+    Find the 0-based start and end indices for a text chunk between headers.
+
+    Uses the same matching logic as extract_text_from_markdown_lines but returns
+    indices instead of the actual lines. Useful for in-place file editing where
+    you need to know positions to replace.
+
+    :param lines: list of lines in the input file
+    :param start_header_str: starting header (or None for file beginning)
+    :param end_header_str: ending header (optional), or "END" for end of file
+    :param is_slide_format: whether the input is in slide format (*.txt)
+    :return: tuple of (start_idx, end_idx) where indices are 0-based
+    """
+    hdbg.dassert_isinstance(lines, list, "lines must be a list of strings")
+    hdbg.dassert_ne(len(lines), 0, "Input lines cannot be empty")
+    lines_converted = lines
+    if is_slide_format:
+        lines_converted = hmarslid.convert_slide_to_markdown(lines)
+    sanity_check = False
+    header_list = hmarhead.extract_headers_from_markdown(
+        lines_converted, max_level=10, sanity_check=sanity_check
+    )
+    # Prepare converted header strings if needed
+    start_header_str_converted = None
+    end_header_str_converted = None
+    if start_header_str is not None:
+        start_header_str_converted = start_header_str
+        if is_slide_format and start_header_str.startswith("*"):
+            start_header_str_converted = hmarslid.convert_slide_to_markdown(
+                [start_header_str]
+            )[0]
+    if end_header_str is not None and end_header_str != "END":
+        end_header_str_converted = end_header_str
+        if is_slide_format and end_header_str.startswith("*"):
+            end_header_str_converted = hmarslid.convert_slide_to_markdown(
+                [end_header_str]
+            )[0]
+    # Determine start index
+    if start_header_str is None:
+        start_idx = 0
+    else:
+        assert start_header_str_converted is not None
+        start_header_info, _ = find_header_from_input(
+            header_list, start_header_str_converted
+        )
+        start_idx = start_header_info.line_number - 1
+    # Determine end index
+    if end_header_str is None:
+        if start_header_str is None:
+            end_idx = len(lines_converted)
+        else:
+            # Auto-detect: find next same-level header
+            assert start_header_str_converted is not None
+            start_header_info, _ = find_header_from_input(
+                header_list, start_header_str_converted
+            )
+            end_line = find_end_line(
+                header_list, start_header_info, None
+            )
+            end_idx = len(lines_converted) if end_line is None else end_line
+    elif end_header_str == "END":
+        end_idx = len(lines_converted)
+    else:
+        assert end_header_str_converted is not None
+        if start_header_str is None:
+            # Extract from beginning to explicit end header
+            end_header_info, _ = find_header_from_input(
+                header_list, end_header_str_converted
+            )
+            end_idx = end_header_info.line_number - 1
+        else:
+            # Extract from start header to explicit end header
+            assert start_header_str_converted is not None
+            start_header_info, _ = find_header_from_input(
+                header_list, start_header_str_converted
+            )
+            end_line = find_end_line(
+                header_list, start_header_info, end_header_str_converted
+            )
+            end_idx = len(lines_converted) if end_line is None else end_line
+    return start_idx, end_idx
+
+
 def extract_text_from_markdown_lines(
     lines: List[str],
-    start_header_str: str,
+    start_header_str: Optional[str],
     end_header_str: Optional[str],
     is_slide_format: bool = False,
 ) -> List[str]:
@@ -165,58 +423,40 @@ def extract_text_from_markdown_lines(
     For .txt slide files, headers can be specified as:
     - Slides: "* Slide Title" (shorthand for `##### Slide Title`)
     - Full header format: "##### Section 1" (includes the # symbols)
-    - Partial match: "Section 1" (just the title, matches if unique)
+    - Line number: "42" (1-based)
+    - Substring: "Section 1" (matches anywhere in title)
 
     For .md files, headers can be specified as:
     - Full format: "## Section 1" (includes the # symbols)
-    - Partial match: "Section 1" (just the title, matches if unique)
+    - Line number: "42" (1-based)
+    - Substring: "Section 1" (matches anywhere in title)
 
-    Special values for end_header_str:
-    - "END": Extract from start_header to the end of the file
+    Special handling:
+    - start_header_str=None: Extract from beginning of file
+    - end_header_str="END": Extract to end of file
+    - end_header_str=None: Extract until next same-level header
 
     :param lines: list of lines in the input file
-    :param start_header_str: starting header (e.g., "## Section 1" or "Section 1")
-    :param end_header_str: ending header (optional, same formats accepted), or "END" for end of file
+    :param start_header_str: starting header (or None for file beginning)
+    :param end_header_str: ending header (optional), or "END" for end of file
     :param is_slide_format: whether the input is in slide format (*.txt)
     :return: extracted lines with trailing blank lines removed
     """
     hdbg.dassert_isinstance(lines, list, "lines must be a list of strings")
-    # Convert slide notation ('* Title') to header notation if needed.
-    start_header_str_converted = start_header_str
-    end_header_str_converted = end_header_str
+    hdbg.dassert_ne(len(lines), 0, "Input lines cannot be empty")
     lines_converted = lines
     if is_slide_format:
-        start_header_str_converted = hmarslid.convert_slide_to_markdown(
-            [start_header_str]
-        )[0]
-        if end_header_str is not None and end_header_str != "END":
-            end_header_str_converted = hmarslid.convert_slide_to_markdown(
-                [end_header_str]
-            )[0]
         lines_converted = hmarslid.convert_slide_to_markdown(lines)
-    sanity_check = False
-    header_list = hmarhead.extract_headers_from_markdown(
-        lines_converted, max_level=10, sanity_check=sanity_check
+    start_idx, end_idx = get_chunk_bounds(
+        lines_converted, start_header_str, end_header_str, is_slide_format=False
     )
-    start_header_info, _ = find_header_from_input(
-        header_list, start_header_str_converted
-    )
-    # Handle special "END" value to extract to end of file
-    if end_header_str == "END":
-        end_line = None
-    else:
-        end_line = find_end_line(
-            header_list, start_header_info, end_header_str_converted
-        )
-    start_idx = start_header_info.line_number - 1
-    if end_line is None:
-        end_idx = len(lines_converted)
-    else:
-        end_idx = end_line
     extracted_lines = lines_converted[start_idx:end_idx]
     while extracted_lines and extracted_lines[-1].strip() == "":
         extracted_lines.pop()
     return extracted_lines
+
+
+# #############################################################################
 
 
 def extract_rule_from_file(rule_spec: str) -> str:
