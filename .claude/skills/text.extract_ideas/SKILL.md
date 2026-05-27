@@ -22,7 +22,7 @@ Focus on:
 # Step 2: Extract Ideas
 For each idea create bullet points using following
 `.claude/skills/markdown.rules.md` and
-`.claude/skills/text.rules.bullet_points.md`
+`.claude/skills/text.rules.md`
 
 1. Create an header 1 with a short summary
    ```

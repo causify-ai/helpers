@@ -909,8 +909,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
     Test the full_tree_to_str function.
     """
 
-    # TODO(ai_gp): -> halper
-    def _test_full_tree_helper(
+    def helper(
         self,
         txt: str,
         level: int,
@@ -960,7 +959,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - Section 2.1
           - Section 2.2
         """
-        self._test_full_tree_helper(txt, level, description, 2, expected)
+        self.helper(txt, level, description, 2, expected)
 
     def test2(self) -> None:
         """
@@ -973,7 +972,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
         - Chapter 1
         - Chapter 2
         """
-        self._test_full_tree_helper(txt, level, description, 1, expected)
+        self.helper(txt, level, description, 1, expected)
 
     def test3(self) -> None:
         """
@@ -993,7 +992,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
             - Subsection 2.1.1
           - Section 2.2
         """
-        self._test_full_tree_helper(txt, level, description, 3, expected)
+        self.helper(txt, level, description, 3, expected)
 
     def test4(self) -> None:
         """
@@ -1010,7 +1009,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - Section 2.1
           - Section 2.2
         """
-        self._test_full_tree_helper(
+        self.helper(
             txt,
             level,
             description,
@@ -1038,7 +1037,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
             - Subsection 2.1.1
           - Section 2.2
         """
-        self._test_full_tree_helper(txt, level, description, 3, expected)
+        self.helper(txt, level, description, 3, expected)
 
     def test6(self) -> None:
         """
@@ -1055,7 +1054,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - Section 2.1
           - Section 2.2
         """
-        self._test_full_tree_helper(txt, level, description, 2, expected)
+        self.helper(txt, level, description, 2, expected)
 
     def test7(self) -> None:
         """
@@ -1071,7 +1070,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - **Random forests**
           - Linear models
         """
-        self._test_full_tree_helper(txt, level, description, 2, expected)
+        self.helper(txt, level, description, 2, expected)
 
     def test8(self) -> None:
         """
@@ -1098,7 +1097,7 @@ class Test_full_tree_to_str1(hunitest.TestCase):
           - **Lesson Beta-1**
         - Module Gamma
         """
-        self._test_full_tree_helper(txt, level, description, 2, expected)
+        self.helper(txt, level, description, 2, expected)
 
 
 # #############################################################################

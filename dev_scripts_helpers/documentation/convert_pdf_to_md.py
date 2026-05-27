@@ -510,7 +510,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Execute convert action.
-    # TODO(ai_gp): Use the --action functions.
+#    # TODO(ai_gp): Use the --action functions in hparser.py
     if "convert" in actions:
         _pdf_to_markdown(
             pdf_path=args.input,

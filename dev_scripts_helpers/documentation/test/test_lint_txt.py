@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from typing import Optional
+from typing import Callable, List, Optional
 
 import pytest
 
@@ -13,204 +13,286 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import helpers.hmarkdown_headers as hmarhead
+
 
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-# Test__remove_code_block_extra_indentation
-# #############################################################################
-
-
-class Test__remove_code_block_extra_indentation(hunitest.TestCase):
+def _helper_process_lines(
+    self: hunitest.TestCase,
+    txt: str,
+    expected: str,
+    func: Callable[[List[str]], List[str]],
+) -> None:
     """
-    Test the _remove_code_block_extra_indentation function.
+    Helper function to process text lines and compare with expected output.
+
+    :param self: Test case instance with assert_equal method
+    :param txt: Input text to process
+    :param expected: Expected output after processing
+    :param func: Function to apply to the lines
+    """
+    # Prepare inputs.
+    lines = txt.split("\n")
+    lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+    # Run test.
+    actual = func(lines)
+    # Check outputs.
+    actual = "\n".join(actual)
+    expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+    self.assert_equal(actual, expected)
+
+
+def _get_text1() -> str:
+    """
+    Get sample text containing mathematical equations in LaTeX format.
+    """
+    txt = r"""
+    * Gradient descent for logistic regression
+    - The typical implementations of gradient descent (basic or advanced) need
+      two inputs:
+        - The cost function $E_{in}(\vw)$ (to monitor convergence)
+        - The gradient of the cost function
+          $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
+    - The cost function is:
+        $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
+
+    - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
+        $$
+        E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        \big)
+        $$
+
+    - In case of logistic regression in \{+1, -1\}:
+        $$E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))$$
+
+    - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
+      $\vw$ (sum of exponentials and flipped exponentials is convex and log is
+      monotone)"""
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+    return txt
+
+
+# #############################################################################
+# Test_lint_txt1
+# #############################################################################
+
+
+class Test_lint_txt1(hunitest.TestCase):
+    """
+    Test the text preprocessing functionality.
     """
 
     def helper(self, txt: str, expected: str) -> None:
         """
-        Test helper for _remove_code_block_extra_indentation.
+        Process text with `_preprocess_txt()` and compare with expected output.
+
+        :param txt: Input text to preprocess
+        :param expected: Expected output after preprocessing
+        """
+        _helper_process_lines(self, txt, expected, dshdlitx._preprocess_txt)
+
+    # //////////////////////////////////////////////////////////////////////////
+
+    def test_preprocess1(self) -> None:
+        txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
+        expected = r"""
+        $$
+        E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
+        $$"""
+        self.helper(txt, expected)
+
+    def test_preprocess2(self) -> None:
+        txt = r"""
+        $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        \big)$$"""
+        expected = r"""
+        $$
+        E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        \big)
+        $$"""
+        self.helper(txt, expected)
+
+    def test_preprocess3(self) -> None:
+        txt = _get_text1()
+        expected = r"""
+        - STARGradient descent for logistic regression
+        - The typical implementations of gradient descent (basic or advanced) need
+          two inputs:
+            - The cost function $E_{in}(\vw)$ (to monitor convergence)
+            - The gradient of the cost function
+              $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
+        - The cost function is:
+            $$
+            E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
+            $$
+
+        - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
+            $$
+            E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+            -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+            \big)
+            $$
+
+        - In case of logistic regression in \{+1, -1\}:
+            $$
+            E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))
+            $$
+
+        - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
+          $\vw$ (sum of exponentials and flipped exponentials is convex and log is
+          monotone)"""
+        self.helper(txt, expected)
+
+    def test_preprocess4(self) -> None:
+        txt = r"""
+        # #########################
+        # test
+        # #############################################################################"""
+        expected = r"""# test"""
+        self.helper(txt, expected)
+
+    def test_preprocess5(self) -> None:
+        txt = r"""
+        ## ////////////////
+        # test
+        # ////////////////"""
+        expected = r"""# test"""
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_remove_page_separators
+# #############################################################################
+
+
+class Test_remove_page_separators(hunitest.TestCase):
+    """
+    Test the _remove_page_separators function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _remove_page_separators.
 
         :param txt: Input text to process
-        :param expected: Expected output after removing extra
-            indentation
+        :param expected: Expected output after removing page separators
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._remove_code_block_extra_indentation(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._remove_page_separators
+        )
 
     def test1(self) -> None:
         """
-        Test simple (non-indented) code block with no extra indentation.
+        Test removing a single page separator line.
         """
         # Prepare inputs.
         txt = """
-        # Test Document
-        Some text here:
-        ```bash
-        > docker_jupyter.sh -p 8890 -u
-        # Go to localhost:8890
-        ```
-        More text after.
+        First section
+        ---
+        Second section
         """
-        # Expected: no changes needed.
-        expected = txt
+        # Prepare outputs.
+        expected = """
+        First section
+
+        Second section
+        """
         # Run test.
         self.helper(txt, expected)
 
     def test2(self) -> None:
         """
-        Test indented code block with correct indentation.
+        Test removing multiple page separator lines.
         """
         # Prepare inputs.
         txt = """
-        - Delete unused reference files
-          ```bash
-          > rm Dockerfile.ubuntu
-          ```
+        Section 1
+        ---
+        Section 2
+        ---
+        Section 3
         """
-        # Expected: no changes needed.
-        expected = txt
+        # Prepare outputs.
+        expected = """
+        Section 1
+
+        Section 2
+
+        Section 3
+        """
         # Run test.
         self.helper(txt, expected)
 
     def test3(self) -> None:
         """
-        Test code block with Dockerfile content that has extra indentation.
+        Test removing page separators with trailing spaces.
         """
         # Prepare inputs.
         txt = """
-        - Wrong: Embed everything in the Dockerfile
-          ```dockerfile
-            RUN pip install my-package
-          ```
+        Content before
+        ---
+        Content after
         """
         # Prepare outputs.
         expected = """
-        - Wrong: Embed everything in the Dockerfile
-          ```dockerfile
-          RUN pip install my-package
-          ```
+        Content before
+
+        Content after
         """
         # Run test.
         self.helper(txt, expected)
 
     def test4(self) -> None:
         """
-        Test multiple code blocks with different types of content.
+        Test that text without separators remains unchanged.
         """
         # Prepare inputs.
         txt = """
-        - Example 1:
-          ```bash
-            > docker run -it ubuntu
-          ```
-
-        - Example 2:
-          ```dockerfile
-            RUN apt-get update
-          ```
+        First line
+        Second line
+        Third line
         """
-        # Prepare outputs - removes extra indentation from both blocks.
+        # Prepare outputs.
         expected = """
-        - Example 1:
-          ```bash
-          > docker run -it ubuntu
-          ```
-
-        - Example 2:
-          ```dockerfile
-          RUN apt-get update
-          ```
+        First line
+        Second line
+        Third line
         """
         # Run test.
         self.helper(txt, expected)
 
     def test5(self) -> None:
         """
-        Test deeply indented code block in nested list.
+        Test that separators within text content are preserved.
         """
         # Prepare inputs.
         txt = """
-        - Level 1
-          - Level 2
-            ```python
-              print("hello")
-            ```
+        Example:
+        This is a --- dash in text
+        And another line
         """
         # Prepare outputs.
         expected = """
-        - Level 1
-          - Level 2
-            ```python
-            print("hello")
-            ```
+        Example:
+        This is a --- dash in text
+        And another line
         """
         # Run test.
         self.helper(txt, expected)
 
     def test6(self) -> None:
         """
-        Test code block with multiple lines of content.
+        Test with empty input.
         """
         # Prepare inputs.
-        txt = """
-        - Instructions:
-          ```bash
-            > docker run image
-            > docker exec
-          ```
-        """
+        txt = ""
         # Prepare outputs.
-        expected = """
-        - Instructions:
-          ```bash
-          > docker run image
-            > docker exec
-          ```
-        """
-        # Run test.
-        self.helper(txt, expected)
-
-    @pytest.mark.superslow("~95 seconds.")
-    def test7(self) -> None:
-        """
-        Test code block with correct indentation already present.
-        """
-        # Prepare inputs.
-        txt = """
-        - Example:
-          ```python
-          def foo():
-              return 42
-          ```
-        """
-        # Expected: no changes needed.
-        expected = txt
-        # Run test.
-        self.helper(txt, expected)
-
-    @pytest.mark.superslow("~25 seconds.")
-    def test8(self) -> None:
-        """
-        Test that code blocks without extra indentation are unchanged.
-        """
-        # Prepare inputs.
-        txt = """
-        Code example:
-        ```javascript
-        console.log("test");
-        const x = 42;
-        ```
-        """
-        # Expected: no changes needed.
-        expected = txt
+        expected = ""
         # Run test.
         self.helper(txt, expected)
 
@@ -232,15 +314,7 @@ class Test__handle_empty_lines(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after handling empty lines
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._handle_empty_lines(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(self, txt, expected, dshdlitx._handle_empty_lines)
 
     def test1(self) -> None:
         """
@@ -484,144 +558,6 @@ class Test__handle_empty_lines(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_remove_page_separators
-# #############################################################################
-
-
-class Test_remove_page_separators(hunitest.TestCase):
-    """
-    Test the _remove_page_separators function.
-    """
-
-    def helper(self, txt: str, expected: str) -> None:
-        """
-        Test helper for _remove_page_separators.
-
-        :param txt: Input text to process
-        :param expected: Expected output after removing page separators
-        """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._remove_page_separators(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
-
-    def test1(self) -> None:
-        """
-        Test removing a single page separator line.
-        """
-        # Prepare inputs.
-        txt = """
-        First section
-        ---
-        Second section
-        """
-        # Prepare outputs.
-        expected = """
-        First section
-
-        Second section
-        """
-        # Run test.
-        self.helper(txt, expected)
-
-    def test2(self) -> None:
-        """
-        Test removing multiple page separator lines.
-        """
-        # Prepare inputs.
-        txt = """
-        Section 1
-        ---
-        Section 2
-        ---
-        Section 3
-        """
-        # Prepare outputs.
-        expected = """
-        Section 1
-
-        Section 2
-
-        Section 3
-        """
-        # Run test.
-        self.helper(txt, expected)
-
-    def test3(self) -> None:
-        """
-        Test removing page separators with trailing spaces.
-        """
-        # Prepare inputs.
-        txt = """
-        Content before
-        ---
-        Content after
-        """
-        # Prepare outputs.
-        expected = """
-        Content before
-
-        Content after
-        """
-        # Run test.
-        self.helper(txt, expected)
-
-    def test4(self) -> None:
-        """
-        Test that text without separators remains unchanged.
-        """
-        # Prepare inputs.
-        txt = """
-        First line
-        Second line
-        Third line
-        """
-        # Prepare outputs.
-        expected = """
-        First line
-        Second line
-        Third line
-        """
-        # Run test.
-        self.helper(txt, expected)
-
-    def test5(self) -> None:
-        """
-        Test that separators within text content are preserved.
-        """
-        # Prepare inputs.
-        txt = """
-        Example:
-        This is a --- dash in text
-        And another line
-        """
-        # Prepare outputs.
-        expected = """
-        Example:
-        This is a --- dash in text
-        And another line
-        """
-        # Run test.
-        self.helper(txt, expected)
-
-    def test6(self) -> None:
-        """
-        Test with empty input.
-        """
-        # Prepare inputs.
-        txt = ""
-        # Prepare outputs.
-        expected = ""
-        # Run test.
-        self.helper(txt, expected)
-
-
-# #############################################################################
 # Test_add_blank_lines_between_headers
 # #############################################################################
 
@@ -638,15 +574,9 @@ class Test_add_blank_lines_between_headers(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after adding blank lines
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._add_blank_lines_between_headers(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._add_blank_lines_between_headers
+        )
 
     def test1(self) -> None:
         """
@@ -831,18 +761,11 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         Test helper for _convert_asterisk_bullets_to_dashes.
 
         :param txt: Input text to process
-        :param expected: Expected output after converting asterisk
-            bullets
+        :param expected: Expected output after converting asterisk bullets
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._convert_asterisk_bullets_to_dashes(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._convert_asterisk_bullets_to_dashes
+        )
 
     def test1(self) -> None:
         """
@@ -1052,15 +975,9 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after removing trailing periods
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._remove_trailing_periods(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._remove_trailing_periods
+        )
 
     def test1(self) -> None:
         """
@@ -1380,15 +1297,9 @@ class Test_remove_markdown_formatting(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after removing markdown formatting
         """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = dshdlitx._remove_markdown_formatting(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._remove_markdown_formatting
+        )
 
     def test1(self) -> None:
         """
@@ -1663,35 +1574,195 @@ class Test_remove_markdown_formatting(hunitest.TestCase):
         self.helper(txt, expected)
 
 
-def _get_text1() -> str:
+# #############################################################################
+# Test__remove_code_block_extra_indentation
+# #############################################################################
+
+
+class Test__remove_code_block_extra_indentation(hunitest.TestCase):
     """
-    Get sample text containing mathematical equations in LaTeX format.
+    Test the _remove_code_block_extra_indentation function.
     """
-    txt = r"""
-    * Gradient descent for logistic regression
-    - The typical implementations of gradient descent (basic or advanced) need
-      two inputs:
-        - The cost function $E_{in}(\vw)$ (to monitor convergence)
-        - The gradient of the cost function
-          $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
-    - The cost function is:
-        $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
 
-    - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
-        $$
-        E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-        \big)
-        $$
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _remove_code_block_extra_indentation.
 
-    - In case of logistic regression in \{+1, -1\}:
-        $$E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))$$
+        :param txt: Input text to process
+        :param expected: Expected output after removing extra indentation
+        """
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._remove_code_block_extra_indentation
+        )
 
-    - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
-      $\vw$ (sum of exponentials and flipped exponentials is convex and log is
-      monotone)"""
-    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-    return txt
+    def test1(self) -> None:
+        """
+        Test simple (non-indented) code block with no extra indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        # Test Document
+        Some text here:
+        ```bash
+        > docker_jupyter.sh -p 8890 -u
+        # Go to localhost:8890
+        ```
+        More text after.
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test indented code block with correct indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test code block with Dockerfile content that has extra indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Wrong: Embed everything in the Dockerfile
+          ```dockerfile
+            RUN pip install my-package
+          ```
+        """
+        # Prepare outputs.
+        expected = """
+        - Wrong: Embed everything in the Dockerfile
+          ```dockerfile
+          RUN pip install my-package
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test multiple code blocks with different types of content.
+        """
+        # Prepare inputs.
+        txt = """
+        - Example 1:
+          ```bash
+            > docker run -it ubuntu
+          ```
+
+        - Example 2:
+          ```dockerfile
+            RUN apt-get update
+          ```
+        """
+        # Prepare outputs - removes extra indentation from both blocks.
+        expected = """
+        - Example 1:
+          ```bash
+          > docker run -it ubuntu
+          ```
+
+        - Example 2:
+          ```dockerfile
+          RUN apt-get update
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test deeply indented code block in nested list.
+        """
+        # Prepare inputs.
+        txt = """
+        - Level 1
+          - Level 2
+            ```python
+              print("hello")
+            ```
+        """
+        # Prepare outputs.
+        expected = """
+        - Level 1
+          - Level 2
+            ```python
+            print("hello")
+            ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test code block with multiple lines of content.
+        """
+        # Prepare inputs.
+        txt = """
+        - Instructions:
+          ```bash
+            > docker run image
+            > docker exec
+          ```
+        """
+        # Prepare outputs.
+        expected = """
+        - Instructions:
+          ```bash
+          > docker run image
+            > docker exec
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    @pytest.mark.superslow("~95 seconds.")
+    def test7(self) -> None:
+        """
+        Test code block with correct indentation already present.
+        """
+        # Prepare inputs.
+        txt = """
+        - Example:
+          ```python
+          def foo():
+              return 42
+          ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    @pytest.mark.superslow("~25 seconds.")
+    def test8(self) -> None:
+        """
+        Test that code blocks without extra indentation are unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        Code example:
+        ```javascript
+        console.log("test");
+        const x = 42;
+        ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
 
 
 # #############################################################################
@@ -1714,20 +1785,11 @@ class Test_capitalize_header(hunitest.TestCase):
         Test helper for capitalize_header.
 
         :param input_lines: Input markdown lines to process
-        :param expected: Expected output after capitalize_header
-            processing
+        :param expected: Expected output after capitalize_header processing
         """
-        import helpers.hmarkdown_headers as hmarhead
-
-        # Prepare inputs.
-        lines = input_lines.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        actual = hmarhead.capitalize_header(lines)
-        # Check outputs.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        _helper_process_lines(
+            self, input_lines, expected, hmarhead.capitalize_header
+        )
 
     def test1(self) -> None:
         """
@@ -1821,104 +1883,6 @@ class Test_capitalize_header(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt1
-# #############################################################################
-
-
-class Test_lint_txt1(hunitest.TestCase):
-    """
-    Test the text preprocessing functionality.
-    """
-
-    def helper(self, txt: str, expected: str) -> None:
-        """
-        Process text with `_preprocess_txt()` and compare with expected output.
-
-        :param txt: Input text to preprocess
-        :param expected: Expected output after preprocessing
-        """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run.
-        actual = dshdlitx._preprocess_txt(lines)
-        # Check.
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
-
-    # //////////////////////////////////////////////////////////////////////////
-
-    def test_preprocess1(self) -> None:
-        txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
-        expected = r"""
-        $$
-        E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
-        $$"""
-        self.helper(txt, expected)
-
-    def test_preprocess2(self) -> None:
-        txt = r"""
-        $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-        \big)$$"""
-        expected = r"""
-        $$
-        E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-        \big)
-        $$"""
-        self.helper(txt, expected)
-
-    def test_preprocess3(self) -> None:
-        txt = _get_text1()
-        expected = r"""
-        - STARGradient descent for logistic regression
-        - The typical implementations of gradient descent (basic or advanced) need
-          two inputs:
-            - The cost function $E_{in}(\vw)$ (to monitor convergence)
-            - The gradient of the cost function
-              $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
-        - The cost function is:
-            $$
-            E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
-            $$
-
-        - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
-            $$
-            E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-            -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-            \big)
-            $$
-
-        - In case of logistic regression in \{+1, -1\}:
-            $$
-            E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))
-            $$
-
-        - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
-          $\vw$ (sum of exponentials and flipped exponentials is convex and log is
-          monotone)"""
-        self.helper(txt, expected)
-
-    def test_preprocess4(self) -> None:
-        txt = r"""
-        # #########################
-        # test
-        # #############################################################################"""
-        expected = r"""# test"""
-        self.helper(txt, expected)
-
-    def test_preprocess5(self) -> None:
-        txt = r"""
-        ## ////////////////
-        # test
-        # ////////////////"""
-        expected = r"""# test"""
-        self.helper(txt, expected)
-
-
-# #############################################################################
 # Test_lint_txt2
 # #############################################################################
 
@@ -1966,8 +1930,6 @@ class Test_lint_txt2(hunitest.TestCase):
             )
             self.assert_equal(actual, expected_str)
         return actual
-
-    # //////////////////////////////////////////////////////////////////////////
 
     @pytest.mark.slow
     def test1(self) -> None:
@@ -2218,11 +2180,11 @@ class Test_lint_txt2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt_cmd_line1
+# Test_lint_txt_py1
 # #############################################################################
 
 
-class Test_lint_txt_cmd_line1(hunitest.TestCase):
+class Test_lint_txt_py1(hunitest.TestCase):
     """
     Test the lint_txt.py command-line script with different file types.
     """
@@ -2359,11 +2321,11 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt_idempotency
+# Test_lint_txt_py_idempotency
 # #############################################################################
 
 
-class Test_lint_txt_idempotency(hunitest.TestCase):
+class Test_lint_txt_py_idempotency(hunitest.TestCase):
     """
     Test that lint_txt.py does not modify already formatted files.
     """
@@ -2372,15 +2334,12 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
         self,
         in_file: str,
         type_: str,
-        cmd_opts: str,
     ) -> str:
         """
         Run lint_txt processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'md' or 'tex'.
-        :param cmd_opts: Additional command-line options to pass to the
-            script.
         :return: The processed text content.
         """
         hdbg.dassert_in(type_, ["md", "tex"])
@@ -2425,9 +2384,8 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
             _LOG.info("Testing idempotency for file: %s", in_file)
             # Prepare outputs.
             type_ = "md"
-            cmd_opts = ""
             # Run the script once.
-            output_txt_1 = self.run_lint_txt(in_file, type_, cmd_opts)
+            output_txt_1 = self.run_lint_txt(in_file, type_)
             # Format the output again using the same formatter.
             lines = output_txt_1.split("\n")
             output_lines = dshdlitx._perform_actions(
@@ -2441,3 +2399,62 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
             output_txt_2 = "\n".join(output_lines)
             # Check that both runs produce identical output (idempotency).
             self.assert_equal(output_txt_1, output_txt_2)
+
+
+# #############################################################################
+# Test__get_backup_filename
+# #############################################################################
+
+
+class Test__get_backup_filename(hunitest.TestCase):
+    """
+    Test the _get_backup_filename function.
+    """
+
+    def test_simple_filename(self) -> None:
+        """
+        Test backup filename generation for a simple filename.
+        """
+        # Prepare inputs.
+        file_path = "test.md"
+        # Run test.
+        actual = dshdlitx._get_backup_filename(file_path)
+        # Check outputs.
+        expected = "tmp.lint_txt.test.md"
+        self.assertEqual(actual, expected)
+
+    def test_filename_with_single_directory(self) -> None:
+        """
+        Test backup filename generation for a file in a directory.
+        """
+        # Prepare inputs.
+        file_path = ".claude/skills/testing.rules.md"
+        # Run test.
+        actual = dshdlitx._get_backup_filename(file_path)
+        # Check outputs.
+        expected = ".claude/skills/tmp.lint_txt.testing.rules.md"
+        self.assertEqual(actual, expected)
+
+    def test_filename_with_nested_directories(self) -> None:
+        """
+        Test backup filename generation for a file in nested directories.
+        """
+        # Prepare inputs.
+        file_path = "path/to/nested/directory/file.txt"
+        # Run test.
+        actual = dshdlitx._get_backup_filename(file_path)
+        # Check outputs.
+        expected = "path/to/nested/directory/tmp.lint_txt.file.txt"
+        self.assertEqual(actual, expected)
+
+    def test_filename_with_multiple_dots(self) -> None:
+        """
+        Test backup filename generation for files with multiple dots.
+        """
+        # Prepare inputs.
+        file_path = "directory/some.config.yaml"
+        # Run test.
+        actual = dshdlitx._get_backup_filename(file_path)
+        # Check outputs.
+        expected = "directory/tmp.lint_txt.some.config.yaml"
+        self.assertEqual(actual, expected)

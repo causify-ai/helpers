@@ -7,24 +7,33 @@
 """
 Format or lint files using Claude Code.
 
-This script detects file types (by extension and path pattern) builds a prompt,
+This script detects file types (by extension and path pattern), builds a prompt,
 and invokes Claude Code with that prompt.
 
 Examples:
-# Lint Python .py files:
-> lint_cc.py file1.py file2.py
+# Lint specific Python files:
+> lint_cc.py --files "file1.py file2.py"
 
-# Lint Python testing files test_*.py:
-> lint_cc.py test_foo.py test_bar.py
+# Lint Python testing files:
+> lint_cc.py --files "test_foo.py test_bar.py"
 
-# Call a specific set of rules on a single file:
-> lint_cc.py --topic coding file.py
+# Call a specific topic (rules) on a single file:
+> lint_cc.py --topic coding --files "file.py"
+
+# Execute a skill on a single file:
+> lint_cc.py --skill coding.fix_inline --files "file.py"
+
+# Execute a rule on a single file:
+> lint_cc.py --rule "coding.rules" --files "file.py"
+
+# Lint modified files in the client:
+> lint_cc.py --modified
 
 # Print the command without executing:
-> lint_cc.py --dry_run *.md
+> lint_cc.py --dry_run --files "*.md"
 
 # Run with debug logging:
-> lint_cc.py *.py - DEBUG
+> lint_cc.py --files "*.py" -v DEBUG
 """
 
 import argparse
@@ -36,10 +45,10 @@ from typing import cast, Dict, Tuple
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 
@@ -55,90 +64,75 @@ def _get_rules_for_topic(topic: str) -> Dict:
     """
     TOPIC_TO_INFO = {
         "bash": {
-            "role": "python",
+            "role": "role.coding.md",
             "rules": [],
             "templates": [],
         },
         "blog": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": [
                 "blog.rules.md",
                 "markdown.rules.md",
-                "text.rules.bullet_points.md",
+                "text.rules.md",
             ],
             "templates": [],
         },
         "book": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": ["book.rules.md"],
             "templates": [],
         },
         "coding": {
-            "role": "python",
+            "role": "role.coding.md",
             "rules": ["coding.rules.md"],
-            "templates": ["code.template.py"],
-        },
-        "cxo_slidesformat": {
-            "role": "ai_researcher",
-            "rules": [],
-            "templates": [],
-        },
-        "interactive_notebook": {
-            "role": "python",
-            "rules": [
-                "interactive_notebook.rules.md",
-                "notebook.rules.md",
-            ],
-            "templates": [
-                "interactive_notebook.template.py",
-                "interactive_notebook_utils_template.py",
-            ],
+            "templates": ["coding.template.py"],
         },
         "latex": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": ["latex.rules.md"],
             "templates": [],
         },
         "markdown": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": [
                 "markdown.rules.md",
-                "text.rules.bullet_points.md",
+                "text.rules.md",
             ],
             "templates": [],
         },
         "notebook": {
-            "role": "python",
+            "role": "role.notebook.md",
             "rules": ["notebook.rules.md"],
-            "templates": ["notebook_template.ipynb"],
+            "templates": ["notebook.template.ipynb",
+                "notebook_utils_template.py"],
         },
         "readme": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": ["readme.rules.md"],
             "templates": [],
         },
         "skill": {
-            "role": "python",
+            "role": "role.skill.md",
             "rules": ["skill.rules.md"],
             "templates": [],
         },
         "slides": {
-            "role": "ai_researcher",
+            "role": "role.ai_researcher.md",
             "rules": ["slides.rules.md"],
             "templates": [],
         },
         "testing": {
-            "role": "python",
+            "role": "role.coding.md",
             "rules": ["testing.rules.md"],
             "templates": ["testing.template.py"],
         },
         "tool_X_in_30_mins": {
-            "role": "ai_researcher",
+            "role": "role.coding.md",
             "rules": ["tool_X_in_30_mins.rules.md"],
             "templates": [],
         },
         "tool_X_in_60_mins": {
-            "role": "ai_researcher",
+            "role": "role.coding.md",
             "rules": ["tool_X_in_60_mins.rules.md"],
             "templates": [],
         },
@@ -149,7 +143,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
         "Topic not found in rules",
     )
     topic_info = TOPIC_TO_INFO[topic]
-    topic_info["role"] = ".claude/skills/role.%s.md" % topic_info["role"]
+    topic_info["role"] = ".claude/skills/%s" % topic_info["role"]
     topic_info["rules"] = [f".claude/skills/{r}" for r in topic_info["rules"]]
     topic_info["templates"] = [
         f".claude/templates/{t}" for t in topic_info["templates"]
@@ -162,7 +156,6 @@ def _get_rules_for_topic(topic: str) -> Dict:
     return topic_info
 
 
-# TODO(ai_gp): Add unit tests for the functions.
 def _infer_topic_from_filename(file_path: str) -> str:
     """
     Detect the file type and return the corresponding topic.
@@ -232,24 +225,76 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     return txt, topic_info
 
 
+def _find_skill(skill_match: str) -> str:
+    """
+    Find the full skill name by searching with `mdm skill f`.
+
+    :param skill_match: Partial or full skill name to search for
+    :return: Full skill name if exactly one match found
+    """
+    cmd = ["mdm", "skill", "f", skill_match]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    matches = result.stdout.strip().split("\n")
+    matches = [m.strip() for m in matches if m.strip()]
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Expected exactly one skill match for '%s', got %d matches: %s",
+        skill_match,
+        len(matches),
+        ", ".join(matches),
+    )
+    full_skill_name = matches[0]
+    return full_skill_name
+
+
+def _find_rule(rule_match: str) -> str:
+    """
+    Find the full rule name by searching with `rigrule`.
+
+    :param rule_match: Partial or full rule name to search for
+    :return: Full rule name if exactly one match found
+    """
+    result = subprocess.run(["rigrule"], capture_output=True, text=True)
+    hdbg.dassert_eq(
+        result.returncode,
+        0,
+    )
+    all_rules = result.stdout.strip().split("\n")
+    matches = [r for r in all_rules if rule_match.lower() in r.lower()]
+    matches = [m.strip() for m in matches if m.strip()]
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Expected exactly one rule match for '%s', got %d matches: %s",
+        rule_match,
+        len(matches),
+        ", ".join(matches),
+    )
+    full_rule_line = matches[0]
+    return full_rule_line
+
+
 def _run_claude_code(
-    prompt: str, file_path: str, *, dry_run: bool = False
+    prompt: str,
+    topic: str,
+    file_path: str,
+    *,
+    dry_run: bool = False,
 ) -> int:
     """
     Run Claude Code with the given prompt.
 
     :param prompt: Claude Code prompt
+    :param topic: Topic for logging purposes
+    :param file_path: File to process
     :param dry_run: If True, print command but don't execute
     :return: Return code (0 on success, or subprocess return code)
     """
-    # Add the file.
     hdbg.dassert_file_exists(file_path)
-    prompt += f"\nThe file to process is {file_path}"
-    _LOG.info("Prompt:\n%s", prompt)
-    # Create the file.
+    _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
-    #
     cmd_parts = [
         "claude",
         "-p",
@@ -283,6 +328,18 @@ def _parse() -> argparse.ArgumentParser:
         "Can only be used with a single file.",
     )
     parser.add_argument(
+        "--skill",
+        type=str,
+        default=None,
+        help="Execute a skill on selected files. E.g., `coding.fix_inline`",
+    )
+    parser.add_argument(
+        "--rule",
+        type=str,
+        default=None,
+        help="Execute a rule on selected files. E.g., `Use Inline Verbatim`",
+    )
+    parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Print the command but don't execute",
@@ -298,33 +355,58 @@ def _main(parser: argparse.ArgumentParser) -> int:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    all_files = False
-    mutually_exclusive = True
-    remove_dirs = False
-    files = hgit.get_files_to_process(
-        args.modified,
-        args.branch,
-        args.last_commit,
-        all_files,
-        args.files,
-        mutually_exclusive,
-        remove_dirs,
+    # Select files.
+    num_exclusive = sum(
+        [
+            args.topic is not None,
+            args.skill is not None,
+            args.rule is not None,
+        ]
     )
+    hdbg.dassert_lte(
+        num_exclusive,
+        1,
+        "Only one of --topic, --skill, or --rule can be used simultaneously",
+    )
+    files = hparser.parse_file_selection_args(args, remove_dirs=False)
     if args.topic and len(files) != 1:
         raise ValueError("--topic can only be used with a single file")
     _LOG.info("Processing %d file(s)", len(files))
+    #
     ret = 0
     for file_path in tqdm(files, desc="Processing files"):
-        if args.topic:
-            topic_str = args.topic
+        if args.skill:
+            full_skill_name = _find_skill(args.skill)
+            prompt = f"/{full_skill_name} {file_path}"
+            topic_str = "skill"
+            inferred_topic = _infer_topic_from_filename(file_path)
+            topic_info = _get_rules_for_topic(inferred_topic)
+            rc = _run_claude_code(
+                prompt, topic_str, file_path, dry_run=args.dry_run
+            )
+        elif args.rule:
+            full_rule_line = _find_rule(args.rule)
+            prompt = f"Execute the rule '{full_rule_line}' on file {file_path}"
+            topic_str = "rule"
+            inferred_topic = _infer_topic_from_filename(file_path)
+            topic_info = _get_rules_for_topic(inferred_topic)
+            rc = _run_claude_code(
+                prompt, topic_str, file_path, dry_run=args.dry_run
+            )
         else:
-            topic = _infer_topic_from_filename(file_path)
-            hdbg.dassert_is_not(topic, None, "Topic detection failed")
-            topic_str = cast(str, topic)
-        prompt, topic_info = _build_prompt(topic_str)
-        rc = _run_claude_code(prompt, file_path, dry_run=args.dry_run)
+            if args.topic:
+                topic_str = args.topic
+                prompt, topic_info = _build_prompt(topic_str)
+            else:
+                topic = _infer_topic_from_filename(file_path)
+                hdbg.dassert_is_not(topic, None, "Topic detection failed")
+                topic_str = cast(str, topic)
+            prompt, topic_info = _build_prompt(topic_str)
+            prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
+            rc = _run_claude_code(
+                prompt, topic_str, file_path, dry_run=args.dry_run
+            )
         ret |= rc
-        # Post-process.
         if topic_info["run_jupytext"]:
             cmd = ["jupytext", "--sync", file_path]
             hsystem.system(" ".join(cmd))

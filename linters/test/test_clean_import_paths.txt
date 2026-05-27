@@ -2,7 +2,7 @@
 //src/dev_scripts/__init__.py
 //src/dev_scripts/notebooks/__init__.py
 //src/dev_scripts/notebooks/process_jupytext.py
-//src/dev_scripts/notebooks/test/test_process_jupytext.py
+//src/dev_scripts/notebooks/test/jupytext.py
 //src/documentation/scripts/__init__.py
 //src/documentation/scripts/convert_txt_to_pandoc.py
 //src/documentation/scripts/generate_latex_sty.py

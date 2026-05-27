@@ -291,7 +291,7 @@ def _format_filename(
         last_name = last_name_parts[-1] if last_name_parts else "Unknown"
         last_name = hstring.to_ascii(last_name)
         if len(authors) > 1:
-            author_part = f"{last_name}.et.al"
+            author_part = f"{last_name}_et_al"
         else:
             author_part = last_name
     else:

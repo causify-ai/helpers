@@ -8,7 +8,7 @@ model: haiku
 
 # Summarize Content in Bullet Points
 - Write a summary in bullet points using the rules in
-  `.claude/skills/text.rules.bullet_points.md`
+  `.claude/skills/text.rules.md`
 
 - Use the same structure of the chapter and subchapter in markdown headers
   - Use numbers of chapter (e.g., 1.) and subchapters (e.g., 1.1)
