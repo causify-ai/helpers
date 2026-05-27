@@ -121,10 +121,8 @@ Modules follow the `h<name>` naming convention and are organized by domain.
 
 ## Caching and Performance
 
-- `hcache.py`
-  - Advanced function caching using joblib with S3 and git integration
 - `hcache_simple.py`
-  - Simple caching with JSON or pickle file-based storage backends
+  - Function caching with disk, memory, and S3 backends; supports global cache mode, per-function cache properties, and cache introspection
 - `hjoblib.py`
   - Joblib parallelization, memory caching, and job management
 - `hpickle.py`

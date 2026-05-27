@@ -115,7 +115,7 @@
     "/app/amp/helpers/hlogging.py",
     "/app/amp/helpers/hparquet.py",
     "/app/amp/helpers/hgit.py",
-    "/app/amp/helpers/hcache.py",
+    "/app/amp/helpers/hcache_simple.py",
     "/app/amp/helpers/hasyncio.py",
     "/app/amp/helpers/hcsv.py",
     "/app/amp/helpers/henv.py",

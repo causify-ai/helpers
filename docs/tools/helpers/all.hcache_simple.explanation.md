@@ -8,6 +8,7 @@
   * [S3 Cache](#s3-cache)
   * [Per-Function Configuration](#per-function-configuration)
   * [Cache Performance Monitoring](#cache-performance-monitoring)
+  * [Global Caching Controls](#global-caching-controls)
   * [Cache Inspection and Statistics](#cache-inspection-and-statistics)
   * [Cache Properties: User and System](#cache-properties-user-and-system)
   * [Decorator](#decorator)
@@ -36,11 +37,9 @@
   [`/helpers/hcache_simple.py`](/helpers/hcache_simple.py).
 
 - `hcache_simple` is a lightweight, decorator-based module designed for
-  individual function caching, offering basic in‑memory and disk storage (via
-  JSON or pickle) with manual management and performance tracking.
-- In contrast to `hcache` which is a robust, global caching solution that
-  supports tagged caches, automatic invalidation, and shared cache directories
-  across multiple functions and users, using advanced tools
+  individual function caching, offering in-memory and disk storage (via JSON or
+  pickle) with manual management, performance tracking, and lightweight
+  source-change detection.
 
 ## Overview
 
@@ -266,6 +265,86 @@
   - `get_cache_perf_stats(func_name)`: returns a formatted string with
     performance metrics including hit rate
 
+## Global Caching Controls
+
+### On/Off Switch
+
+- `enable_caching(val: bool)`: Globally enable or disable all `@simple_cache`
+  decorated functions at once
+  - When `False`, every decorated call executes the underlying function directly
+    and neither reads from nor writes to any cache layer
+  - This is a hard override: it takes precedence over `set_global_cache_mode()`
+    and all per-function properties
+  - Restore normal caching with `enable_caching(True)`
+- `is_caching_enabled() -> bool`: Returns the current global on/off state
+
+- Example:
+  ```python
+  import helpers.hcache_simple as hcacsimp
+
+  # Disable all caching for a debugging session.
+  hcacsimp.enable_caching(False)
+  result = expensive_function(42)  # Always executes directly.
+
+  # Re-enable when done.
+  hcacsimp.enable_caching(True)
+  ```
+
+### Clear-Cache Protection
+
+- `enable_clear_cache(val: bool)`: Enable or disable the ability to delete
+  cached data
+  - When `False`, any call to `reset_cache()`, `reset_mem_cache()`, or
+    `reset_disk_cache()` raises a `RuntimeError`
+  - Use this in production runs with thousands of expensive cached calls to
+    prevent accidental deletion
+  - Restore the ability to clear with `enable_clear_cache(True)`
+
+- Example:
+  ```python
+  import helpers.hcache_simple as hcacsimp
+
+  # Lock the cache before a production run.
+  hcacsimp.enable_clear_cache(False)
+
+  # This now raises RuntimeError instead of deleting data.
+  # hcacsimp.reset_cache()
+
+  # Re-enable after the run.
+  hcacsimp.enable_clear_cache(True)
+  ```
+
+### Function Source Tracking (`func_hash`)
+
+- When a cached function executes (cache miss), `hcache_simple` computes an MD5
+  hash of the function's source code and stores it as the `func_hash` system
+  property
+- On every subsequent cache **hit**, the system recomputes the hash and compares
+  it with the stored one
+  - If they differ, a `WARNING` is logged:
+    ```
+    Function 'my_func' source code has changed since this value was cached
+    (stored_hash=..., current_hash=...). Clear the cache manually if you need
+    fresh results.
+    ```
+  - The cached value is still returned; the user decides whether to clear
+- After a cache miss (i.e., the function actually runs with the new code), the
+  stored `func_hash` is updated to reflect the new source
+
+- Note: Only one hash is stored per function (in `_CACHE_PROPERTY`), not one
+  per individual cache entry. The comparison on every hit is:
+  `current_hash` (recomputed from source now) vs `stored_hash` (last recorded
+  at execution time). Once any cache miss updates `stored_hash` to the new
+  code's hash, all subsequent hits compare `H_new == H_new` and produce no
+  warning, even for cache entries that were computed with the old code.
+  This is intentional: the warning fires before any fresh execution in the new
+  session, giving the user the opportunity to clear the full function cache. If
+  the user does not clear the cache and allows a fresh execution to proceed, the
+  stored hash advances and the remaining stale entries become silently stale.
+  A per-entry approach (storing the hash inside each cache dict entry) would
+  be more precise but requires a schema change; the current per-function hash
+  is the accepted lightweight trade-off.
+
 ## Cache Inspection and Statistics
 
 - The system provides several utility functions for inspecting and debugging the
@@ -325,6 +404,9 @@
     - `s3_prefix`: Per-function S3 prefix path (overrides global)
     - `aws_profile`: Per-function AWS profile (overrides global)
     - `auto_sync_s3`: Whether to automatically sync cache to S3 after updates
+    - `func_hash`: MD5 hex digest of the function source code recorded at the
+      last cache miss; used to warn when the function body changes while stale
+      cached values are still being served
 
 - Persistent storage:
   - All cache properties are stored on disk in a single pickle file:
@@ -1028,6 +1110,8 @@ flowchart TD
 
     %% Function Call Flow %%
     subgraph "Function Call Flow"
+        B0{is_caching_enabled?}
+        B0x[Execute directly, skip all cache]
         B1[Function Called with Args, Keyword Arguments]
         B2[Generate Cache Key<br>exclude configured keys]
         B3[Update Performance Totals]
@@ -1035,7 +1119,10 @@ flowchart TD
         B5[Get Cache<br>checks memory → disk → S3 if configured<br>one-time S3 pull per function]
         B6{Key in Cache?}
         B7[Cache Hit: Return Cached Value]
+        B7h{func_hash changed?}
+        B7w[WARNING: source changed,<br>clear cache if needed]
         B8[Cache Miss: Call Original Function]
+        B8h[Update stored func_hash]
         B9[Store Result in Memory Cache]
         B10{write_through Enabled?}
         B11[Flush Memory Cache to Disk]
@@ -1044,7 +1131,10 @@ flowchart TD
         B14[Return Result]
 
         A3 --> B1
-        B1 --> B2
+        B1 --> B0
+        B0 -- No --> B0x
+        B0x --> B14
+        B0 -- Yes --> B2
         B2 --> B3
         B3 --> B4
         B4 -- Yes --> B8
@@ -1052,8 +1142,12 @@ flowchart TD
         B5 --> B6
         B6 -- Yes --> B7
         B6 -- No --> B8
-        B7 --> B14
-        B8 --> B9
+        B7 --> B7h
+        B7h -- Changed --> B7w
+        B7h -- Same --> B14
+        B7w --> B14
+        B8 --> B8h
+        B8h --> B9
         B9 --> B10
         B10 -- Yes --> B11
         B10 -- No --> B14
@@ -1081,7 +1175,7 @@ flowchart TD
     %% Cache Properties & Performance %%
     subgraph "Properties & Configuration"
         D1[User Properties:<br>force_refresh, abort_on_cache_miss,<br>report_on_cache_miss]
-        D2[System Properties:<br>cache type: json/pickle,<br>write_through, exclude_keys]
+        D2[System Properties:<br>cache type: json/pickle,<br>write_through, exclude_keys,<br>func_hash]
         D3[Per-Function Config:<br>cache_dir, cache_prefix,<br>s3_bucket, s3_prefix,<br>aws_profile, auto_sync_s3]
         D4[Performance Stats:<br>tot, hits, misses]
     end

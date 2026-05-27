@@ -85,7 +85,7 @@ refactoring.
   - Checks GitHub user status and sends repository collaboration invitations via
     API
 - `manage_cache.py`
-  - Manages hcache global cache with clear, list, and test operations
+  - Manages hcache_simple global cache with clear, list, and test operations
 - `measure_import_times.py`
   - Measures and reports execution time for importing Python modules
 - `parallel_script_template.py`
@@ -400,7 +400,7 @@ refactoring.
 
 #### What It Does
 
-- Manages hcache global cache for decorated functions
+- Manages hcache_simple global cache for decorated functions
 - Clears memory cache, disk cache, or both
 - Provides cache info and test operations
 

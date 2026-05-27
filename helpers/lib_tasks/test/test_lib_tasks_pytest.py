@@ -974,7 +974,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         actual = "\n".join([line_cmd] + lines_test_output)
         regex = "init_logger"
         actual = hunitest.filter_text(regex, actual)
-        regex = r"(WARN|INFO)\s+hcache.py"
+        regex = r"(WARN|INFO)\s+hcache_simple.py"
         actual = hunitest.filter_text(regex, actual)
         # Check the outcome.
         self.check_string(actual, purify_text=True, fuzzy_match=True)

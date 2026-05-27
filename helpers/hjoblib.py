@@ -27,7 +27,7 @@ import helpers.hprint as hprint
 import helpers.htimer as htimer
 import helpers.htqdm as htqdm
 
-# Avoid dependency from other `helpers` modules, such as `helpers.hcache`, to
+# Avoid dependency from other `helpers` modules, such as `helpers.hcache_simple`, to
 # prevent import cycles.
 
 

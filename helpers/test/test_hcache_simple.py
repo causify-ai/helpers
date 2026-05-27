@@ -1,6 +1,7 @@
 import copy
 import logging
 import os
+import unittest.mock as umock
 from typing import Any, Dict
 
 import pandas as pd
@@ -127,6 +128,9 @@ class _BaseCacheTest(hunitest.TestCase):
         # Isolate configuration globals.
         scratch_space = self.get_scratch_space()
         self.monkeypatch.setattr(hcacsimp, "_CACHE_DIR", scratch_space)
+        # Reset global on/off switches so tests are fully independent.
+        self.monkeypatch.setattr(hcacsimp, "_IS_CACHE_ENABLED", True)
+        self.monkeypatch.setattr(hcacsimp, "_IS_CLEAR_CACHE_ENABLED", True)
         self.monkeypatch.setattr(
             hcacsimp, "_CACHE_FILE_PREFIX", hcacsimp._CACHE_FILE_PREFIX
         )
@@ -1141,9 +1145,7 @@ class Test_cache_mode(_BaseCacheTest):
         _cache_mode_function(10)
         initial_count = _cache_mode_function.call_count
         # Set force_refresh property.
-        hcacsimp.set_cache_property(
-            "_cache_mode_function", "force_refresh", True
-        )
+        hcacsimp.set_cache_property("_cache_mode_function", "force_refresh", True)
         # Run test.
         result = _cache_mode_function(10)
         # Check outputs.
@@ -2030,9 +2032,7 @@ class Test_per_function_cache_dir(_BaseCacheTest):
         _ = _test_per_function_cache_dir(10)
         # Check.
         # Verify cache file is in decorator-specified directory.
-        cache_file = hcacsimp._get_cache_file_name(
-            "_test_per_function_cache_dir"
-        )
+        cache_file = hcacsimp._get_cache_file_name("_test_per_function_cache_dir")
         self.assertIn("/tmp/custom_cache", cache_file)
         # Flush to disk to verify file creation.
         hcacsimp.flush_cache_to_disk("_test_per_function_cache_dir")
@@ -2605,3 +2605,276 @@ class Test__check_s3_configured(_BaseCacheTest):
         actual = hcacsimp._check_s3_configured("_test_per_function_s3_configs")
         # Check.
         self.assertTrue(actual)
+
+
+# #############################################################################
+# Helper functions for hash tests (must be module-level for inspect.getsource).
+# #############################################################################
+
+
+def _hash_test_func_v1(x: int) -> int:
+    """
+    Return x + 1.
+
+    Used by Test__compute_func_hash to represent an unmodified function
+    body.
+
+    :param x: input integer
+    :return: x + 1
+    """
+    return x + 1
+
+
+def _hash_test_func_v2(x: int) -> int:
+    """
+    Return x + 2.
+
+    Used by Test__compute_func_hash to represent a different function
+    body from _hash_test_func_v1.
+
+    :param x: input integer
+    :return: x + 2
+    """
+    return x + 2
+
+
+# #############################################################################
+# Test_enable_caching
+# #############################################################################
+
+
+class Test_enable_caching(_BaseCacheTest):
+    """
+    Test enable_caching / is_caching_enabled.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that caching is enabled by default.
+        """
+        # Check.
+        self.assertTrue(hcacsimp.is_caching_enabled())
+
+    def test2(self) -> None:
+        """
+        Test that disabled caching bypasses the cache and stores nothing.
+        """
+        # Pre-populate so a future call to arg=5 could be a cache hit.
+        _cached_json_double(5)
+        # Disable caching.
+        hcacsimp.enable_caching(False)
+        # Call with an arg that would normally be stored.
+        _cached_json_double(99)
+        # Check: 99 must not have been cached.
+        cache = hcacsimp.get_mem_cache("_cached_json_double")
+        self.assertNotIn('{"args": [99], "kwargs": {}}', cache)
+
+    def test3(self) -> None:
+        """
+        Test that re-enabling caching restores normal behavior.
+        """
+        # Disable then re-enable.
+        hcacsimp.enable_caching(False)
+        hcacsimp.enable_caching(True)
+        # Run.
+        _cached_json_double(7)
+        # Check: the result should now be in the cache.
+        cache = hcacsimp.get_mem_cache("_cached_json_double")
+        self.assertIn('{"args": [7], "kwargs": {}}', cache)
+
+    def test4(self) -> None:
+        """
+        Test that disabled caching does not increment performance counters.
+        """
+        # Populate cache and enable performance tracking.
+        _cached_json_double(3)
+        hcacsimp.enable_cache_perf("_cached_json_double")
+        # Disable caching.
+        hcacsimp.enable_caching(False)
+        # Call the function (bypasses cache entirely).
+        _cached_json_double(3)
+        # Check: all counters must still be zero.
+        perf = hcacsimp.get_cache_perf("_cached_json_double")
+        self.assertEqual(perf["hits"], 0)
+        self.assertEqual(perf["misses"], 0)
+        self.assertEqual(perf["tot"], 0)
+
+
+# #############################################################################
+# Test_enable_clear_cache
+# #############################################################################
+
+
+class Test_enable_clear_cache(_BaseCacheTest):
+    """
+    Test enable_clear_cache safety guard.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that reset_mem_cache raises RuntimeError when clearing is
+        disabled.
+        """
+        # Disable clearing.
+        hcacsimp.enable_clear_cache(False)
+        # Run / check.
+        with self.assertRaises(RuntimeError):
+            hcacsimp.reset_mem_cache("_cached_json_double")
+
+    def test2(self) -> None:
+        """
+        Test that reset_disk_cache raises RuntimeError when clearing is
+        disabled.
+        """
+        # Disable clearing.
+        hcacsimp.enable_clear_cache(False)
+        # Run / check.
+        with self.assertRaises(RuntimeError):
+            hcacsimp.reset_disk_cache("_cached_json_double", interactive=False)
+
+    def test3(self) -> None:
+        """
+        Test that reset_cache raises RuntimeError when clearing is disabled.
+        """
+        # Disable clearing.
+        hcacsimp.enable_clear_cache(False)
+        # Run / check.
+        with self.assertRaises(RuntimeError):
+            hcacsimp.reset_cache("_cached_json_double", interactive=False)
+
+    def test4(self) -> None:
+        """
+        Test that reset operations succeed after re-enabling.
+        """
+        # Populate cache.
+        _cached_json_double(9)
+        # Disable then re-enable.
+        hcacsimp.enable_clear_cache(False)
+        hcacsimp.enable_clear_cache(True)
+        # Run: should not raise.
+        hcacsimp.reset_mem_cache("_cached_json_double")
+        # Check: cache must now be empty.
+        cache = hcacsimp.get_mem_cache("_cached_json_double")
+        self.assertEqual(len(cache), 0)
+
+
+# #############################################################################
+# Test__compute_func_hash
+# #############################################################################
+
+
+class Test__compute_func_hash(_BaseCacheTest):
+    """
+    Test the _compute_func_hash helper.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the same function produces the same hash on repeated calls.
+        """
+        # Run.
+        h1 = hcacsimp._compute_func_hash(_hash_test_func_v1)
+        h2 = hcacsimp._compute_func_hash(_hash_test_func_v1)
+        # Check.
+        self.assertEqual(h1, h2)
+
+    def test2(self) -> None:
+        """
+        Test that functions with different bodies produce different hashes.
+        """
+        # Run.
+        h1 = hcacsimp._compute_func_hash(_hash_test_func_v1)
+        h2 = hcacsimp._compute_func_hash(_hash_test_func_v2)
+        # Check.
+        self.assertNotEqual(h1, h2)
+
+    def test3(self) -> None:
+        """
+        Test that the hash is a 32-character lowercase hex string.
+        """
+        # Run.
+        h = hcacsimp._compute_func_hash(_hash_test_func_v1)
+        # Check.
+        self.assertRegex(h, r"^[0-9a-f]{32}$")
+
+
+# #############################################################################
+# Test_func_hash_tracking
+# #############################################################################
+
+
+class Test_func_hash_tracking(_BaseCacheTest):
+    """
+    Test func_hash property tracking.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that func_hash is set at decoration time and unchanged after a
+        miss.
+        """
+        # Hash is set at decoration time, before any calls.
+        before = hcacsimp.get_cache_property("_cached_json_double", "func_hash")
+        self.assertIsNotNone(before)
+        self.assertRegex(before, r"^[0-9a-f]{32}$")
+        # First call is a cache miss; hash should still equal the decoration-time
+        # hash because the source has not changed.
+        _cached_json_double(42)
+        after = hcacsimp.get_cache_property("_cached_json_double", "func_hash")
+        self.assertEqual(before, after)
+
+    def test2(self) -> None:
+        """
+        Test that no warning is emitted on a cache hit when the function source
+        has not changed.
+        """
+        # First call: cache miss, stores hash.
+        _cached_json_double(42)
+        # Second call: cache hit, hashes should match.
+        with umock.patch.object(hcacsimp._LOG, "warning") as mock_warn:
+            _cached_json_double(42)
+        # Check: the source-change warning must not appear.
+        msgs = [str(c) for c in mock_warn.call_args_list]
+        self.assertFalse(any("source code has changed" in m for m in msgs))
+
+    def test3(self) -> None:
+        """
+        Test that a WARNING is emitted on a cache hit when the stored hash
+        differs.
+        """
+        # First call populates the cache.
+        _cached_json_double(42)
+        # Overwrite stored hash with a fake value to simulate a code change.
+        hcacsimp.set_cache_property(
+            "_cached_json_double", "func_hash", "deadbeef" * 4
+        )
+        # Second call: cache hit, but hashes diverge.
+        with umock.patch.object(hcacsimp._LOG, "warning") as mock_warn:
+            _cached_json_double(42)
+        # Check: the source-change warning must appear.
+        msgs = [str(c) for c in mock_warn.call_args_list]
+        self.assertTrue(any("source code has changed" in m for m in msgs))
+
+    def test4(self) -> None:
+        """
+        Test that func_hash is not updated on a cache miss.
+        """
+        # Capture the decoration-time hash.
+        decoration_hash = hcacsimp.get_cache_property(
+            "_cached_json_double", "func_hash"
+        )
+        # Simulate a code change by overwriting the stored hash.
+        hcacsimp.set_cache_property(
+            "_cached_json_double", "func_hash", "aaaa" * 8
+        )
+        # Clear the cache to force a miss on the next call.
+        hcacsimp.reset_mem_cache("_cached_json_double")
+        hcacsimp.reset_disk_cache("_cached_json_double", interactive=False)
+        # Call again: cache miss, hash must NOT be silently advanced.
+        _cached_json_double(42)
+        # Check: stored hash must still be the fake value, not updated.
+        hash_after_miss = hcacsimp.get_cache_property(
+            "_cached_json_double", "func_hash"
+        )
+        self.assertEqual(hash_after_miss, "aaaa" * 8)
+        _ = decoration_hash

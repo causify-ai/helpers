@@ -151,7 +151,7 @@ class TestDryRunTasks1(hunitest.TestCase):
         regex = r"# \S+:"
         actual = hunitest.filter_text(regex, actual)
         #
-        regex = r"(WARN|INFO)\s+hcache.py"
+        regex = r"(WARN|INFO)\s+hcache_simple.py"
         actual = hunitest.filter_text(regex, actual)
         # Filter out `no module` warnings.
         # TODO(Grisha): add the "no module warning" filtering
