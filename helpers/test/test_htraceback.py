@@ -1,5 +1,6 @@
 import logging
 from typing import List
+import pytest
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -14,6 +15,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_Traceback1(hunitest.TestCase):
     def test_parse0(self) -> None:
         txt = """

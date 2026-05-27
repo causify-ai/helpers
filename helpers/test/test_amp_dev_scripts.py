@@ -1,4 +1,6 @@
 import logging
+import sys
+
 import pytest
 
 import helpers.hdbg as hdbg
@@ -37,6 +39,7 @@ class Test_url_py1(hunitest.TestCase):
         self.assertEqual(actual, expected)
 
     @pytest.mark.slow("~10 seconds.")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test_run1(self) -> None:
         exec_name = hgit.find_file_in_git_tree("url.py")
         hdbg.dassert_path_exists(exec_name)

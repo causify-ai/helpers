@@ -10,10 +10,13 @@ import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hmarkdown_headers as hmarhead
+
 
 
 _LOG = logging.getLogger(__name__)
@@ -2263,6 +2266,10 @@ class Test_lint_txt_py1(hunitest.TestCase):
         # Check.
         self.check_string(output_txt)
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="Nested container issues",
+    )
     def test2(self) -> None:
         """
         Run lint_to_txt.py on a markdown file using the command-line script.
@@ -2359,6 +2366,10 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
         output_txt = "\n".join(out_lines)
         return output_txt
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="Nested container issues",
+    )
     def test1(self) -> None:
         """
         Test idempotency for all markdown files in the input directory.

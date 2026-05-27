@@ -276,6 +276,7 @@ class Test_hserver_inside_docker_container_on_gp_mac1(
     not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
     reason="Config not matching",
 )
+@pytest.mark.need_dev_container
 class Test_hserver_outside_docker_container_on_gp_mac1(
     _TestCase1, hunitest.TestCase
 ):

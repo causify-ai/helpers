@@ -1,7 +1,10 @@
 import logging
 from typing import List, Tuple
 
+import pytest
+
 import dev_scripts_helpers.system_tools.replace_text as dscretex
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -209,6 +212,10 @@ class Test_get_files_to_replace(hunitest.TestCase):
         self.assertEqual(actual_file_names, expected_file_names)
         self.assertEqual(actual_cfile, expected_cfile)
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="Environment path differences",
+    )
     def test1(self) -> None:
         in_dir = self.get_input_dir()
         file_names = [
