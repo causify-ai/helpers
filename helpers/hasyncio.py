@@ -76,7 +76,7 @@ class _EventLoop(async_solipsism.EventLoop):
             #     return self._selector.clock.time()
             # AttributeError: 'NoneType' object has no attribute 'clock'
             # Call stack:
-            #   File "/app/amp/helpers/hcache.py", line 311, in clear_global_cache
+            #   File "/app/amp/helpers/hcache_simple.py", line 311, in clear_global_cache
             #     _LOG.info("After clear_global_cache: %s", info_after)
             # Message: 'After clear_global_cache: %s'
             # Arguments: ("'global mem' cache: path='/mnt/tmpfs/tmp.cache.mem', size=nan",)
