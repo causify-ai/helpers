@@ -141,7 +141,7 @@ Modules follow the `h<name>` naming convention and are organized by domain.
 - `hcoverage.py`
   - Code coverage utilities and test coverage analysis helpers
 - `hplayback.py`
-  - Automatically generate unit tests by recording and replaying function calls
+  - Record runtime calls into a JSON fixture and replay them in tests via `MockDict` / `MockSequence`
 - `htest_logger.py`
   - Test logging script template
 - `hmoto.py`
