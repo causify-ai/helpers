@@ -1612,9 +1612,9 @@ def get_files_to_process(
     if mutually_exclusive:
         # All the options are mutually exclusive.
         selected_options = []
-        if files != "":
+        if files:
             selected_options.append("--files")
-        if from_file != "":
+        if from_file:
             selected_options.append("--from_file")
         if modified:
             selected_options.append("--modified")

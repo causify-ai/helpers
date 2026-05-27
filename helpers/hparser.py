@@ -158,12 +158,12 @@ def parse_file_selection_args(
     Parse file selection arguments and return list of files to process.
 
     Handles these mutually exclusive options:
+    - --files: files specified as space-separated list
+    - --from_files: files listed in a file (one per line)
     - --modified: files modified in the client
     - --branch: files modified with respect to the branch point
     - --last_commit: files part of the previous commit
     - --all: all repo files
-    - --files: files specified as space-separated list
-    - --from_files: files listed in a file (one per line)
 
     :param args: Parsed command-line arguments from add_file_selection_args
     :param remove_dirs: Whether to exclude directories from results
@@ -175,8 +175,8 @@ def parse_file_selection_args(
 
     # TODO(gp): Can we use args.files?
     files = hgit.get_files_to_process(
-        getattr(args, "files", None) or "",
-        getattr(args, "from_file", None) or "",
+        getattr(args, "files", ""),
+        getattr(args, "from_file", ""),
         getattr(args, "modified", False),
         getattr(args, "branch", False),
         getattr(args, "last_commit", False),
