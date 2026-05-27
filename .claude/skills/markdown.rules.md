@@ -1,10 +1,9 @@
 This document contains all the rules that must be followed when writing markdown
-text.
+text
 
 # Organization and Structure
 
 ## Headers and Organization
-
 - Use headers and paragraphs:
   ```
   # Header 1
@@ -37,12 +36,11 @@ text.
 - Use `##` for main sections with clear, descriptive titles
 - Use `###` for subsections
 - Capitalize major words in headings
-- If a Markdown header doesn't have a title, complete it using the content of the
-  following text
+- If a Markdown header doesn't have a title, complete it using the content of
+  the following text
 - Avoid level 4 headers (####), convert them into lists or bold text instead
 
 ## Body Structure
-
 - Write in a direct, conversational tone
 - Keep paragraphs short (2-4 sentences typically)
 - Separate paragraphs with a single blank line
@@ -53,7 +51,6 @@ text.
 # Lists and Items
 
 ## Bullet Lists
-
 - Write text using bullet lists following the directions in
   `.claude/skills/text.rules.bullet_points.md`
 - Use `-` (dash) consistently for unordered lists
@@ -71,7 +68,6 @@ text.
   ```
 
 ## List of Items
-
 - In lists of items:
   - Bold the item whenever possible
   - Use verbatim when the item is a script, a command (e.g., `python`, `bash`,
@@ -91,12 +87,10 @@ text.
 # Text Formatting
 
 ## Use Verbatim
-
 - Use verbatim for libraries, executables, scripts
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
 ## Emphasis Styles
-
 - **Bold text** (`**text**`):
   - Use for key terms and important concepts
   - Use at the start of list items for headers/labels
@@ -112,7 +106,6 @@ text.
   - Use for technical terms, variable names, or code snippets
 
 ## Word Choice
-
 - **Bad**: Extraction & Conversion Tools
 - **Good**: Extraction and Conversion Tools
 - Do not abuse bold in explanations of commands
@@ -126,6 +119,7 @@ text.
 - Every fenced code block must have a valid programming language (e.g., `python`, `bash`, `latex`, `verbatim`)
   - E.g.:
     ````
+
     ```python
     ````
   - If it doesn't have a valid tag, infer it from the content. If unsure, leave it empty

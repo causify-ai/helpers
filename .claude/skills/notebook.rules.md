@@ -1,19 +1,21 @@
-- This file contains conventions and rules for notebooks
+---
+description: Conventions and standards for interative Jupyter notebook structure, formatting, and cell organization
+---
 
 # Python Code Style and Conventions
 
 ## Use Python Style
-
-- For all the Python code you must follow the rules from
-  `@.claude/skills/coding.rules.md`
+- For all Python code in notebooks, follow the rules in
+  `.claude/skills/coding.rules.md`
 
 # Notebook Structure and Initialization
 
-## Format of First Cell
+## Use Standard Template Structure
+- Use the structure from `.claude/templates/notebook_template.py` for consistent
+  notebook initialization
 
-- The first cell of a notebook contains basic initialization that is the same for
-  all notebooks
-
+## First Cell: Standard Imports and Configuration
+- Include autoreload, logging, and core dependencies:
   ```python
   %load_ext autoreload
   %autoreload 2
@@ -28,28 +30,18 @@
   import matplotlib.pyplot as plt
   ```
 
-## Format of Second Cell
-
-- The second cell contains imports specific of the notebook
+## Second Cell: Notebook-Specific Imports and Logger
+- Add imports unique to this notebook after the standard cell:
   ```python
-  import msml610_utils as ut
+  import helpers.htutorial as htutorial
   import Lesson94_Information_Theory_utils as utils
-  ```
-
-## Format of Third Cell
-
-- For a Jupyter notebook always use the following idiom for logging
-  ```python
-  import logging
-  # Local utility.
-  import utils
 
   _LOG = logging.getLogger(__name__)
   utils.init_logger(_LOG)
   ```
 
-- In the local utility `*_utils.py` there should be a function like
-  ```
+- Define `init_logger()` in the paired `*_utils.py` file:
+  ```python
   import helpers.hnotebook as hnotebo
 
   def init_logger(notebook_log: logging.Logger) -> None:
@@ -65,487 +57,212 @@
       hnotebo.set_logger_to_print(causalml_logger)
   ```
 
-## Notebook Pairing to Python File and Utility File
-
-- Each notebook is paired with Jupytext to a Python file and has a corresponding
-  `*_utils.py` file containing the code corresponding to that notebook
-  - E.g., for the Jupyter notebook
-    `msml610/tutorials/Lesson94-Information_Theory.ipynb` is paired with
-    Jupytext to the file `msml610/tutorials/Lesson94-Information_Theory.py` and
-    the corresponding `*_utils.py` file is
-    `./msml610/tutorials/Lesson94_Information_Theory_utils.py`
-- Given the notebook, find and print the corresponding paired file and the
-  `*_utils.py` file
+## Notebook-to-File Pairing
+- Each notebook is paired with Jupytext to a Python file
+  - Example notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
+  - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
+- Each notebook has a corresponding `*_utils.py` file containing the code
+  corresponding to that notebook
+  - Utilities file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+- Use hyphens in notebook filenames and underscores in Python filenames and
+  utility files
 
 # Code Cell Organization and Content
 
-## Each Code Cell has a Single Purpose
+## Single Responsibility Per Cell
+- Each code cell performs exactly one logical task:
+  - **Good**: Import libraries, Load data, Clean data, Plot data, Train model,
+    Evaluate model
+  - **Bad**: One cell that loads data, cleans it, trains a model, and plots
+    results
+- Split cells if they perform multiple distinct steps
 
-- Each cell should do one logical thing only
-  - Good examples:
-    -	Import libraries
-    -	Load data
-    -	Clean data
-    -	Plot data
-    -	Train model
-    -	Evaluate model
-  - Bad example:
-    - One giant cell that loads data, cleans it, trains a model, and plots results.
-
-- If a cell does more than one step, split it
-
-## Format of a Code Cell
-
-- Each cell has only one concept / group of statements and a comment on the
-  result
-- Keep cells short
-- Each cell has:
-  - A comment explaining what we want to do
-  - A group of commands
-  - A statement to show the result (e.g., `print()`, `display()`)
-  - A comment about the outcome
-  ```
-  # Comment explaining what we are trying to do.
+## Code Cell Structure
+- Use this standard structure in every code cell:
+  ```python
+  # Comment explaining the goal.
   operation
-
-  print results
-  # Comment on the result.
+  
+  print(result)
+  # Comment on the outcome.
   ```
+- Keep cells short and focused
+- End with a visible result (via `print()`, `display()`, or plot)
 
+## Suppress Unwanted Output
+- Assign output to underscore `_` to prevent display:
+  - **Bad**: `statement;`
+  - **Good**: `_ = statement`
+
+## Comment Complex Code
+- Add comments for non-trivial code blocks:
+  - Aim for 1 comment per 2–3 lines of code
+  - Focus on high-level intent, not obvious operations
+  - End each comment with a period
 - Example:
   ```python
-  # Test with broken coin.
-  biased_coin = [1.0, 0.0]
-  print(f"Biased coin (100-0) entropy: {utils.calculate_entropy(biased_coin):.4f} bits")
-  # If heads occurs 100% of the time → no uncertainty, $H = 0$ bit.
-  ```
-
-## Suppressing Output in Code Cells
-
-- When the last statement in a cell produces output that you don't want to display,
-  use one of these approaches assign to underscore:
-  - **Bad**
-    ```
-    statement;
-    ```
-  - **Good**
-    ```
-    _ = statement
-    ```
-
-- Each cell should:
-  - Focus on building objects, explaining with comments what is done
-  - Remove the redundant `import` statements if needed from the generated cells
-  - Print the object to help the user understand what is done
-    ```
-    pprint.pprint(summary_chain)
-    ```
-
-## Format of Code Cells calling Utils Functions
-
-- For code cells containing complex code
-  - Add comments explaining the code
-  - Avoid trivial comments, but focus on commenting the high level workings of
-    the code, e.g., a comment every 2-3 lines of code.
-  - Add a period at the end of each comment.
-
-- E.g.,
-  ```
-  # Create an agent that can use tools and follow a system prompt defining its behavior.
+  # Create an agent configured with tools and system behavior instructions.
   contract_agent = langchain.agents.create_agent(
       model=llm,
       tools=[ut.utc_now],
-      # The system prompt instructs the agent to call the utc_now tool when time is requested
-      # and to include the exact tool call inside a fenced Python block in the final response.
+      # The system prompt instructs the agent to call utc_now when time is
+      # requested.
       system_prompt=(
           "When time is requested, call utc_now. "
-          "In your final answer, include a fenced python block with the exact tool call used."
+          "In your final answer, include the exact tool call used."
       ),
   )
-
-  # Invoke the agent with a human message asking for the current UTC time,
-  # which should trigger the agent to use the provided utc_now tool.
+  
+  # Invoke the agent with a request for the current UTC time.
   contract_out = contract_agent.invoke(
       {
           "messages": [
-              langchain_core.messages.HumanMessage(content="What is the current UTC time? Use your tool.")
+              langchain_core.messages.HumanMessage(
+                  content="What is the current UTC time? Use your tool."
+              )
           ]
       }
   )
-
-  # Extract and print the content of the last message returned by the agent,
-  # which should contain the final response including the tool call.
+  
+  # Extract and display the agent's final response.
   print(getattr(contract_out["messages"][-1], "content", ""))
   ```
 
-# Notebook Cell Numbering and Structure
+# Cell Numbering and Naming
 
-## Rename Markdown Cells
+## Name Markdown Cells with Cell Numbers
+- Use format `Cell <number>:` for markdown headers based on nesting level
+- For level 1 headers, use single `#` and format like:
+  `# Cell 1: Visual Bin: Population of Marbles`
+- For level 2 headers, use double `##` and format like:
+  `## Cell 1.1: Samples Over Time and Empirical PDF`
+- Configuration cells (Imports, Logging) do not need `Cell <number>:` prefix
 
-- Each markdown cell must be named, depending on the markdown header level, with
-  a format like "Cell 1:" or "Cell 1.1:" as in the following
-  - For header of level 1
-    ```
-    # Cell 1: Visual Bin: Population of Marbles.
-    ```
-  - For header of level 2
-    ```
-    ## Cell 1.1: Visual Bin: Population of Marbles.
-    ```
-- Cells around importing packages and configuring the notebook don't need the
-  prefix "Cell:"
-  ```
-  # Imports
-  ```
+## Number Cells Consecutively and in Order
+- Cell numbers must be sequential with no gaps:
+  - **Bad**: Cell 2 -> Cell 5 (skips 3 and 4)
+  - **Good**: Cell 2 -> Cell 3 -> Cell 4
 
-## Cells in Increasing Order
-
-- Cells should be increasing and consecutive order
-  - Bad
-
-    ```markdown
-    # Cell 2: Entropy vs Variance
-
-    # Cell 5: Interactive Visualization: Binary Entropy
-    ```
-  - Good
-
-    ```markdown
-    # Cell 2: Entropy vs Variance
-
-    # Cell 3: Interactive Visualization: Binary Entropy
-    ```
-
-- When cells are renamed in the Python and Jupyter notebook also the names of
-  the functions should be renamed
-  - Bad
-
-    ```python
-    # Cell 2: Interactive Visualization: Binary Entropy
-
-    utils.cell5_create_binary_entropy_widget()
-    ```
-  - Good
-
-    ```python
-    # Cell 2: Interactive Visualization: Binary Entropy
-
-    utils.cell2_create_binary_entropy_widget()
-    ```
-
-## Header of a Markdown Cell with `Cell XYZ`
-
-- A markdown cell can have a title starting with `Cell XYZ: ...`
-  - If the header is level 1 (e.g., 1, 2, 3), it should have a single `#`, e.g.,
-    ```markdown
-    # Cell i: Visual Bin.
-    ```
-  - If the header is level 2 (e.g., 1.2, 2.3), it should be prepended `##`,
-    e.g.,
-    ```markdown
-    ## Cell 1.2: Samples Over Time and Empirical PDF.
-    ```
-
-# Content of Markdown Cells with `Cell XYZ` Header
-
-## Goal
-
-- Describe the goal of the interactive cell
-  ```markdown
-  **Goal**:
-  - Visualize the true target function and how we sample data from it
-  - Understand that in real-world machine learning, we don't have access to the
-    complete target function: we only observe sampled points
-  - Show the relationship between the true function, in-sample (training) data,
-    and out-of-sample (test) data
-  ```
-
-## Plots
-
-- Describe the plots of the interactive cell
-  ```markdown
-  **Plots**:
-  - Display four plots:
-    - _True Target Function_: The complete unknown function we want to learn
-      (shown with and without noise)
-    - _In-Sample Data (80%)_: Green points used for training the model
-    - _Out-of-Sample Data (20%)_: Red points used for testing the model
-    - _Comments_: Summary of parameters and observations
-  ```
-
-## Parameters
-
-- Describe the parameters of the interactive cell
-  ```markdown
-  **Parameters**:
-  - `Function`: Select the true target function (Slow Sinusoid, Fast Sinusoid,
-    Parabola, Constant, or Linear)
-  - `epsilon` ($\epsilon$): Standard deviation of noise added to observations
-  - `N (total samples)` ($N$): Number of data points to sample from the function
-  ```
-
-## Key Observations
-
-- Describe the key points and observations of the interactive cell
-  ```markdown
-  **Key observations**:
-  - The complete curve represents the unknown target function $f(x)$
-  - In practice, we only have access to a few noisy samples from this function
-  - We split data into training (green) and testing (red) sets
-  - The goal is to learn from training data and generalize to test data
-  ```
-
-# Code Cell Content and Function Naming
-
-## Content of Code Cells
-
-- The interactive code in each cell must have a reference to the cell itself so
-  that they are in sync
-
-- E.g., for a cell with the header
-  ```
-  ## Cell 1: Visual Bin: Population of Marbles.
-  ```
-  the name of the function must be:
-  ```
-  utils.cell1_draw_bin_with_marbles_interactive()
-  ```
-
-## Keep Function Names in Sync with the Cells
-
-- The name of a Python function needs to be in sync with the header of the
-  corresponding cell
-  - Good
-    ```markdown
-    # Cell 1: True Target Function and Data Sampling
-
-    utils.cell1_plot_true_target_function()
-    ```
-    ```markdown
-    ## Cell 2.2: Interactive Hoeffding Inequality Demonstration
-
-    utils.cell22_hoeffding_inequality_demo()
-    ```
-  - Bad
-    ```markdown
-    ## Cell 2.2: Interactive Hoeffding Inequality Demonstration
-
-    utils.cell4_hoeffding_inequality_demo()
-    ```
-
-- Assume that the header of the cells are correct and the function names need to
-  be renamed
-
-## Widget Variable Names
-
-- In the widgets of an interactive cell use only the names of the variables
-  without description
-  - `mu`, `N`, `epsilon`, `seed`
-- `seed` should be the last one
+## Sync Function Names with Cell Numbers
+- Function names in `*_utils.py` must match the cell number in notebook headers:
+  - **Bad**: Cell 2 header calls `utils.cell5_create_widget()`
+  - **Good**: Cell 2 header calls `utils.cell2_create_widget()`
+- The cell number in the header is authoritative; update function names to match
+- When cells are renumbered, update all matching function names
 
 # Utility File Organization
 
-## Reorganize Code in the `*_utils.py` Python File
+## Order Code by Cell Number
+- In `*_utils.py`, organize functions in the same order as notebook cells:
+  - `cell1_*()` functions first
+  - `cell2_*()` functions next
+  - Continue in ascending order
+  - Group related cell functions together
 
-- When the code implementing the cells is in a `*_utils.py` Python file, make
-  sure that:
+## Use Section Dividers
+- Separate each cell's code with a framed divider matching the cell title:
+  ```python
+  # ######################
+  # Cell 1: Visual Bin: Population of Marbles
+  # ######################
 
-  1. All the code must be in the right order according to the cells
-     - E.g., the code for `cell1_draw_bin_with_marbles_interactive` comes before
-       the code for `cell2_...`
-  2. All the code for each chunk of cells is close to each other
-  3. In the Python file, there are framed dividers between cells matching the
-     title of the cells
-     - Good
+  def cell1_calculate_entropy(...):
+      ...
 
-       ```python
-       # ####################...
-       # Cell 1: Visual Bin: Population of Marbles.
-       # ####################...
+  # ######################
+  # Cell 2: Entropy vs Variance
+  # ######################
 
-       def cell1_calculate_entropy(
-       ...
+  def cell2_plot_distribution_with_stats(...):
+      ...
+  ```
 
-       # ####################...
-       # Cell 2: ...
-       # ####################...
+# Markdown Formatting Standards
 
-       def cell2_plot_distribution_with_stats(
-       ```
-
-# Text and Formatting Standards
-
-## Use Nested Bullets
-
-- Each markdown cell must have text organized in nested bullet list
-  - Bad
-    ```
-    Examine what happens when we repeatedly sample N points many times. Each trial produces an empirical mean nu. This cell shows the distribution of nu over many trials and compares it with the expected distribution predicted by the Law of Large Numbers and Central Limit Theorem.
-    ```
-  - Good
-    ```
-    - Examine what happens when we repeatedly sample N points many times
+## Use Nested Bullet Lists
+- Organize markdown text with nested bullets for clarity:
+  - **Bad**: Single paragraph with multiple ideas
+    `    Examine what happens when we repeatedly sample N points. Each trial produces an empirical mean nu. This cell shows the distribution of nu and compares it with predictions from the Law of Large Numbers.    `
+  - **Good**: Nested structure with related ideas grouped ` - Examine what
+    happens when we repeatedly sample N points many times
     - Each trial produces an empirical mean nu
     - This cell:
       - Shows the distribution of nu over many trials
-      - Compares it with the expected distribution predicted by the Law of Large
-        Numbers and Central Limit Theorem.
-    ```
+      - Compares it with the expected distribution from the Law of Large Numbers
+        and Central Limit Theorem `
 
-## Do Not Use Capitalized Text
+## Use LaTeX Notation
+- Express variables and formulas with LaTeX:
+  - Inline: `$\mu$ (mean), $\sigma^2$ (variance)`
+  - Display: `$$E[X] = \sum x_i P(x_i)$$`
+- **Bad**: `The mean is mu and variance is sigma^2`
+- **Good**: `The mean is $\mu$ and variance is $\sigma^2$`
 
-- Do not use capitalized text in markdown cells, but prefer to use italic or bold
-  text
+## Avoid Capitalization, Emojis, and HTML
+- Do not use: ALL CAPS for emphasis, emoji, non-ASCII characters, or HTML anchor
+  tags
+- Use **bold** or _italic_ for emphasis instead
+- Remove horizontal separators (`---`) from markdown cells
 
-## Use Latex Notation
-
-- Markdown cell must use Latex notation for variables and formulas
-- Use `$variable$` for inline formulas and `$$formula$$` for display equations
-- Examples:
-  - Good: `The mean is $\mu$ and variance is $\sigma^2$`
-  - Bad: `The mean is mu and variance is sigma^2`
-
-## Do Not Use Emoji or Non-Ascii Characters
-
-- Do not use emoji or non-ascii characters, but only ascii ones
-- You can use Latex notation for formulas, like $...$ even if they are not
-  rendered
-
-## Do Not Allow Page Separators
-
-- In Jupyter markdown cells remove separators like
-  ```verbatim
-  ---
-  ```
-
-## Remove HTML Links in Cells
-
-- Remove HTML Links in Markdown cells like:
-  ```markdown
-  <a name='github-api-tutorial'></a>
-  <a name='1.-install-dependencies'></a>
-  <a name='setup'></a>
-  ```
+## Text Case Standards
+- Use sentence case, not title case, for labels and descriptions
+- Exception: LaTeX formulas may use any case
+- **Bad**: `This Shows The Distribution`
+- **Good**: `This shows the distribution`
 
 # Cell Cleanup and Security
 
-## Remove Cells to Install Jupyterlab-vim
-
-- Remove Markdown cells containing installation of Jupyterlab-vim extension
-  ```markdown
+## Remove Development Environment Cells
+- Remove cells for JupyterLab extensions or environment setup:
+  ```python
   !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
   !jupyter labextension enable
   ```
 
-## Replace Cells Installing Packages with Installing in the Docker Container
+## Remove Package Installation Cells
+- Do not install packages in notebooks; use `requirements.txt` and Docker
+  instead:
+  - **Remove**: `!pip install --quiet PyGithub`
+  - **Instead**: Add `PyGithub` to `requirements.txt` and rebuild Docker image
 
-- Packages should be installed through Docker and `requirements.txt` not in
-  the notebook
-  ```markdown
-  !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet PyGithub)"
-  ```
+## Remove Secret and Token Assignments
+- Remove all cells that hardcode secrets, tokens, or credentials:
+  - **Remove**: `os.environ["GITHUB_ACCESS_TOKEN"] = "..."`
+  - **Instead**: Pass secrets as read-only environment variables at container
+    startup
 
-## Remove Cells Dealing with Secrets and Tokens
+# Data Processing and Visualization
 
-- Remove all cells that assign tokens like:
-  ```
-  os.environ["GITHUB_ACCESS_TOKEN"] = ""
-  ```
-- Enforce that all the secrets are passed as read-only from environment variables
+## Prefer Pandas and Seaborn
+- Use `pandas` instead of `numpy` for data manipulation
+- Use `seaborn` instead of `matplotlib` for plots
+- Goal: Reduce code verbosity and improve readability
 
-# Purpose
+## Add Information to Plots, Not Output
+- Embed results and information directly on plots using `ax.text()`:
+  - **Bad**: Create plot, then `print(result)` below it
+  - **Good**: Add result text to plot with `ax.text()` or `ax.set_title()`
 
-- Maintain synchronization between Jupyter notebook files (.ipynb) and their
-  paired Python files (.py) using Jupytext
-- Edit notebooks through their Python source files, ensuring consistency between
-  formats
+## Visual Distinction Between Theoretical and Empirical Data
+- When plotting both theoretical (expected) and empirical (observed) data:
+  - **Theoretical**: Light, transparent colors; dotted lines
+  - **Empirical**: Darker, solid colors; solid lines
 
-# When to Use
-
-- User asks to modify a Jupyter notebook (.ipynb file)
-- User asks to create a notebook from existing .ipynb file without a paired .py file
-- User asks to add cells, modify cells, or change notebook structure
-
-# When NOT to Use
-
-- User is asking questions about notebook content
-- User wants to work with a Python file directly (not a notebook)
-
-# Workflow
-
-## Step 1: Sync Before Editing
-
-- Check if a paired Python file exists
-  - If yes: Sync the files to ensure they are in sync
-    ```bash
-    > uvx jupytext --sync <path/to/notebook_name.py>
-    ```
-  - If no: Create the pairing in `py:percent` format
-    ```bash
-    > uvx jupytext --set-formats ipynb,py:percent <path/to/notebook_name.ipynb>
-    ```
-
-## Step 2: Edit Only the Python File
-
-- Modify only the .py file, never the .ipynb file directly
-- Follow all notebook formatting rules from `@.claude/skills/notebook.format/SKILL.md`
-- Make changes to cell content, structure, and metadata through the .py file
-- Use the NotebookEdit tool on the paired .py file if needed
-
-## Step 3: Sync After Editing
-
-- After completing all modifications to the .py file, sync to update the .ipynb file
-  ```bash
-  > uvx jupytext --sync <path/to/notebook_name.py>
-  ```
-- This propagates your changes to the Jupyter notebook format
-
-# Example Workflow
-
-- User request: "Add a new cell to my tutorial notebook"
-  ```bash
-  > uvx jupytext --sync notebooks/my_tutorial.py
-  # (edit notebooks/my_tutorial.py using NotebookEdit tool)
-  > uvx jupytext --sync notebooks/my_tutorial.py
-  ```
-
-- User request: "Create a Python file for this notebook"
-  ```bash
-  > uvx jupytext --set-formats ipynb,py:percent notebooks/my_tutorial.ipynb
-  ```
-
-# Key Points
-
-- Always use `py:percent` format for jupytext pairing
-- Sync before editing to catch any upstream changes
-- Sync after editing to generate the updated .ipynb file
-- Never edit .ipynb files directly when a .py file exists
-- The NotebookEdit tool and Edit tool work on the .py file
-
-# Use Pandas and Seaborn
-
-- When writing new code:
-  - Use `pandas` library instead of `numpy`
-  - Prefer to use `Seaborn` package instead of `matplotlib`
-- The goal is to make the code shorter and more readable
-
-# Add All Information on Plot
-
-- When creating a plot
-  - Do not use the statement `print` after the plot
-  - Add results and information directly to the plot using `ax.text`
-
-# Theoretical vs Empirical Data
-
-- When plotting data with theoretical (e.g., the mean of the underlying
-  distribution) vs empirical (e.g., the sample mean of the data):
-  - The theoretical data should have lighter and transparent colors and dotted
-    lines
-  - Empirical data should have darker colors and be solid lines
-
-# Title for the Comment Box
-
-- When using `add_fitted_text_box()` set the title
+## Comment Box Titles
+- When using helper function `add_fitted_text_box()`, add a bold title:
   ```python
   ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
   ```
+
+## Configurable Figure Sizes
+- All plotting functions must accept optional `figsize` parameter:
+  ```python
+  def plot_something(
+      *,
+      figsize: Optional[Tuple[int, int]] = None,
+  ) -> None:
+      if figsize is None:
+          figsize = plt.rcParams["figure.figsize"]
+      fig, ax = plt.subplots(figsize=figsize)
+  ```
+- Never hardcode figure dimensions; let callers customize size

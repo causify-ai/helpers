@@ -3,5 +3,4 @@
 # Look for definition of a Python function or class.
 # """
 
-rig "(class|def) $@" . py 2>&1 | tee cfile
-vim -c "cfile cfile"
+rig --def "$@"

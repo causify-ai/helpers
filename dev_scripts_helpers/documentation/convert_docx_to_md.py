@@ -18,6 +18,7 @@ directory.
 import argparse
 import logging
 import os
+import re
 import shutil
 
 import helpers.hdbg as hdbg
@@ -122,9 +123,20 @@ def _parse() -> argparse.ArgumentParser:
         "--output",
         "-o",
         action="store",
-        required=True,
+        required=False,
         type=str,
-        help="The output Markdown file",
+        default=".",
+        help="Output directory (default: current directory)",
+    )
+    parser.add_argument(
+        "--skip_figures",
+        action="store_true",
+        help="Skip processing figures and images when converting to markdown",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Delete target files if they already exist",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -134,19 +146,47 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     docx_file = args.input
-    md_file = args.output
-    # Create the folder for the figures.
-    md_file_figs = md_file.replace(".md", "_figs")
-    hio.create_dir(md_file_figs, incremental=False)
-    # Convert from Docx to Markdown.
-    cmd = (
-        f"pandoc {docx_file} --extract-media {md_file_figs} "
-        f"-f docx -t markdown_strict --output {md_file}"
+    output_dir = args.output
+    skip_figures = args.skip_figures
+    overwrite = args.overwrite
+    hdbg.dassert_file_exists(docx_file, "Docx file does not exist")
+    hio.create_dir(output_dir, incremental=True)
+    docx_basename = os.path.basename(docx_file)
+    md_filename = os.path.splitext(docx_basename)[0] + ".md"
+    md_file = os.path.join(output_dir, md_filename)
+    md_file_figs = md_file.replace(".md", ".figs")
+    if os.path.exists(md_file) or os.path.exists(md_file_figs):
+        if overwrite:
+            if os.path.exists(md_file):
+                os.remove(md_file)
+                _LOG.info("Deleted existing output file: %s", md_file)
+            if os.path.exists(md_file_figs):
+                shutil.rmtree(md_file_figs)
+                _LOG.info("Deleted existing figures directory: %s", md_file_figs)
+        else:
+            raise ValueError(
+                f"Output file already exists: {md_file} (use --overwrite to replace)"
+            )
+    if not skip_figures:
+        hio.create_dir(md_file_figs, incremental=False)
+    extract_media_part = (
+        f"--extract-media {md_file_figs}" if not skip_figures else ""
     )
+    cmd = (
+        f"pandoc {docx_file} {extract_media_part} "
+        f"-f docx -t markdown_strict --output {md_file}"
+    ).strip()
     container_type = "pandoc_only"
     dshdlipa.run_dockerized_pandoc(cmd, container_type)
-    _move_media(md_file_figs)
+    if not skip_figures:
+        _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)
+    if skip_figures:
+        # Comment out image references since figures are skipped.
+        _LOG.info("Commenting out image references...")
+        content = hio.from_file(md_file)
+        content = re.sub(r"(!\[[^\]]*\]\([^)]*\))", r"<!-- \1 -->", content)
+        hio.to_file(md_file, content)
     _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)
 
 

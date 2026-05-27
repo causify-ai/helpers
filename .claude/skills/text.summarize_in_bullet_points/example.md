@@ -82,4 +82,3 @@
     - If you can't do it, don't commit
   - Do the right thing
   ```
-

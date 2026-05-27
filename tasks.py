@@ -83,6 +83,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     git_branches,
     git_clean,
     git_fetch_master,
+    git_file_version,
     git_files,
     git_fix_perms,
     git_merge_master,

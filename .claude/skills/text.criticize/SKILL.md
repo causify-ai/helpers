@@ -5,7 +5,7 @@ description: Find mistakes and provide improvements for a text
 # Purpose
 Review text files (markdown, blog posts, documentation) and identify mistakes
 and improvement opportunities. This skill separates factual errors from style
-suggestions and prioritizes issues by severity.
+suggestions and prioritizes issues by severity
 
 # When to Use
 - Reviewing a written document for accuracy and clarity
@@ -23,7 +23,7 @@ suggestions and prioritizes issues by severity.
 
 ## Step 1: Identify and Rank Mistakes
 Read the text carefully and identify factual errors, incorrect statements, or
-broken logic.
+broken logic
 
 - **Criteria for mistakes:**
   - Factual inaccuracy (wrong information, outdated claims)
@@ -33,7 +33,8 @@ broken logic.
   - Only report issues you are absolutely certain about
 
 - **Ranking severity:**
-  - **Critical**: Blocks understanding, causes wrong action, or is factually false
+  - **Critical**: Blocks understanding, causes wrong action, or is factually
+    false
   - **High**: Misleads reader or causes confusion
   - **Medium**: Could improve clarity or accuracy
   - **Low**: Minor inconsistency or incomplete statement
@@ -58,7 +59,7 @@ broken logic.
 
 ## Step 2: Suggest Improvements
 Identify opportunities to improve clarity, structure, or completeness without
-changing facts.
+changing facts
 
 - **Types of improvements:**
   - Clarity: Making text easier to understand
@@ -95,10 +96,9 @@ Present both sections to the user. Wait for them to:
 - Provide any additional context or corrections
 
 Once approved, implement the selected changes using the Edit or Read tools as
-appropriate.
+appropriate
 
-## Step 4: Run lint_txt.py
-
+## Step 4: Run Lint_txt.py
 - Finally run the command:
   ```bash
   > lint_txt.py -i <file>

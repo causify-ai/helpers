@@ -7,7 +7,7 @@ description: Reorganize the Python functions in a file
 Reorganize the Python functions in the user-provided file according to the
 following rules.
 
-## Organize functions into logical layers
+## Organize Functions Into Logical Layers
 
 - Group related functions into sections separated by headers in the following format:
   ```python
@@ -25,7 +25,7 @@ following rules.
   - Public API functions
   - CLI / entry points
 
-## Order layers by abstraction level
+## Order Layers by Abstraction Level
 
 - Arrange layers from lower-level/simple functionality to higher-level/complex
   functionality
@@ -34,7 +34,7 @@ following rules.
   - Fundamental utilities first
   - High-level orchestration last
 
-## Order functions within each layer
+## Order Functions Within Each Layer
 
 - Inside each layer, organize functions from:
   - More primitive / reusable
@@ -42,7 +42,7 @@ following rules.
 
 - Functions should generally appear before functions that depend on them.
 
-## Mark file-private functions as private
+## Mark File-private Functions as Private
 
 - Rename functions that are only used internally within the file to use a leading
   underscore
@@ -73,12 +73,12 @@ following rules.
 
 # Constraints
 
-## Preserve behavior exactly
+## Preserve Behavior Exactly
 
 - Do not modify functionality, logic, signatures, control flow, side effects, or semantics
 - The resulting code must behave identically to the original.
 
-## Move code only
+## Move Code Only
 
 - The refactor must be structural only.
   Allowed changes:

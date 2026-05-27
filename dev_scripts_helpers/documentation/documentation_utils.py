@@ -397,14 +397,14 @@ def remove_junk(content: str) -> str:
 # #############################################################################
 
 
-def standardize_filename(filename: str) -> str:
+def standardize_book_filename(filename: str) -> str:
     """
     Convert a file name (book or paper) into a standard format.
 
     Transforms filenames like:
     `Ajay Agrawal, Joshua Gans, Avi Goldfarb - Prediction Machines_ The
     Simple Economics of Artificial Intelligence (2018, Harvard Business
-    Review Press) - libgen.li.epub`
+    Review Press).li.epub`
 
     Into standardized format:
     `2018.Agrawal_et_al.Prediction_Machines_The_Simple_Economics_of_Artificial_Intelligence.epub`
@@ -485,5 +485,5 @@ def standardize_filename(filename: str) -> str:
     if clean_title:
         parts.append(clean_title)
     standardized = ".".join(parts) + ext
-    _LOG.info("Standardized filename: %s", standardized)
+    _LOG.debug("Standardized filename: %s", standardized)
     return standardized

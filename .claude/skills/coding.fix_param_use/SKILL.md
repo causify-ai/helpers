@@ -10,9 +10,8 @@ description: Fix function call sites to pass positional args by position and ass
     corresponding to the formal parameters
 
 - For a function with the signature
-
   ```python
-    def apply_llm_prompt_to_df(
+  def apply_llm_prompt_to_df(
       prompt: str,
       df: pd.DataFrame,
       extractor: Callable[[Union[str, pd.Series]], str],
@@ -28,8 +27,7 @@ description: Fix function call sites to pass positional args by position and ass
   ) -> Tuple[pd.DataFrame, Dict[str, int]]:
   ```
 
-- Bad
-
+- **Bad**
   ```python
   df, stats = hllmcli.apply_llm_prompt_to_df(
       prompt=prompt,
@@ -43,7 +41,7 @@ description: Fix function call sites to pass positional args by position and ass
   )
   ```
 
-- Good
+- **Good**
   ```python
   target_col = "industry"
   df, stats = hllmcli.apply_llm_prompt_to_df(

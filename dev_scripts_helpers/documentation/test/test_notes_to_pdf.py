@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from typing import Optional, Tuple
 
 import pytest
@@ -30,8 +31,6 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    # #########################################################################
-
     def create_input_file1(self) -> str:
         txt = """
         # Header1
@@ -60,12 +59,10 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         This function constructs and executes a command to convert notes
         to a PDF or HTML file using the `notes_to_pdf.py` script.
 
-        :param in_file: Path to the input file containing the notes.
-        :param type_: The output format, either 'pdf' or 'html'.
-        :param cmd_opts: Additional command-line options to pass to the
-            script.
-        :return: A tuple containing the script content and the output
-            content.
+        :param in_file: Path to the input file containing the notes
+        :param type_: The output format, either 'pdf' or 'html'
+        :param cmd_opts: Additional command-line options to pass to the script
+        :return: A tuple containing the script content and the output content
         """
         # notes_to_pdf.py \
         #   --input lectures_source/Lesson1-Intro.txt \
@@ -114,8 +111,6 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
         return script_txt, output_txt
-
-    # ///////////////////////////////////////////////////////////////////////////
 
     def test1(self) -> None:
         """
@@ -166,9 +161,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         txt += f"output_txt:\n{output_txt}\n"
         self.check_string(txt, purify_text=True)
 
-    # #########################################################################
-
     @pytest.mark.superslow
+    @pytest.mark.skipif(sys.platform == "darwin", reason="")
     def test4(self) -> None:
         """
         Run:

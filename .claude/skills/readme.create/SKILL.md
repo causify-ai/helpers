@@ -2,13 +2,12 @@
 description: Write a README.md for a directory with sections for structure, files, and executable descriptions
 ---
 
-- You are an expert technical writer specializing in software documentation.
+- You are an expert technical writer specializing in software documentation
 
 - I will give you the path of a directory <DIR> and you will write a `README.md`
   in the target directory that has the following sections
 
 # Structure of the Dir
-
 - Find all the dirs under <DIR>
 - For each directory write a short comment on its content
   - Report the output in markdown, with a bullet per directory, reflecting the
@@ -22,7 +21,6 @@ description: Write a README.md for a directory with sections for structure, file
     ```
 
 # Description of Files
-
 - For each file Python and markdown file write a one line description of what it
   contains in fewer than 20 words, in the format
   ```
@@ -35,7 +33,6 @@ description: Write a README.md for a directory with sections for structure, file
   ```
 
 # Description of Executables
-
 - Find a list of **executable files** in that directory
 - For each executable create a short description of what it does
   - Its `--help` text
@@ -43,7 +40,6 @@ description: Write a README.md for a directory with sections for structure, file
 
 - Create a "Description of executables" section with one subsection per tool,
   using this exact structure:
-
   ````markdown
   ## `<tool>`
 
@@ -58,6 +54,7 @@ description: Write a README.md for a directory with sections for structure, file
       ```bash
       > actual command here
       ```
+
   ````
 
 - For instance
@@ -67,6 +64,7 @@ description: Write a README.md for a directory with sections for structure, file
     ```bash
     > ./generate_class_images.py "A sunset over mountains" --dst_dir ./images
     ```
+
   ````
 
 - Examples of this file are:

@@ -133,7 +133,7 @@
     - `convert_epub_to_md.py`: Converts EPUB to Markdown
     - `convert_pdf_to_md.py`: Converts PDF to Markdown
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
-    - `extract_text_from_txt.py`: Extracts text content from various document
+    - `extract_from_md.py`: Extracts text content from various document
       formats
     - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt
       slides, and Jupyter notebook files for navigation
@@ -465,7 +465,71 @@ The supported File types and code blocks are:
   > count_words.py input.txt
   ```
 
-## `extract_text_from_txt.py`
+## `piper_markdown_reader.py`
+
+### What It Does
+- Convert markdown files to audio using Piper text-to-speech with interactive playback controls
+- Extract specific sections from markdown documents and convert to speech
+- Cache audio generation for efficient reprocessing with different speeds
+- Keyboard controls: `p` to pause/resume, `s` to stop
+- Supports multiple voices and adjustable speech speed
+
+### Key Features
+- **Section extraction**: Extract and read specific markdown sections using header-based filtering
+- **Smart chunking**: Split content at bullet points with optional length-based sub-chunking
+- **Audio caching**: Cache base audio (1.0x speed) and apply speed adjustment via ffmpeg
+- **Dry-run mode**: Preview chunks without generating audio
+- **Reading time estimation**: Calculate estimated reading time at specified speech speed
+
+### Examples
+- Read entire markdown file
+  ```bash
+  > piper_markdown_reader.py --input README.md
+  ```
+
+- Extract section "5" and read to end of file
+  ```bash
+  > piper_markdown_reader.py --input book.md --md_start "5" --md_end "END" --dry_run
+  ```
+
+- Extract specific section range
+  ```bash
+  > piper_markdown_reader.py --input notes.md --md_start "Chapter 3" --md_end "Chapter 4"
+  ```
+
+- Extract from header to next same-level header (auto-detect end)
+  ```bash
+  > piper_markdown_reader.py --input document.md --md_start "## Methods"
+  ```
+
+- Customize voice and speed
+  ```bash
+  > piper_markdown_reader.py --input README.md --speed 1.5 --voice en_US-joe-medium
+  ```
+
+- Generate audio without playing
+  ```bash
+  > piper_markdown_reader.py --input README.md --no_play
+  ```
+
+- Preview chunks without audio generation
+  ```bash
+  > piper_markdown_reader.py --input README.md --dry_run
+  ```
+
+### Section Extraction Behavior
+The `--md_start` and `--md_end` parameters control which part of the markdown to read:
+
+| Command | Behavior |
+|---------|----------|
+| `--md_start "5"` | Extracts section starting at header "5", stops at next same-level header |
+| `--md_start "5" --md_end "6"` | Extracts from section "5" to just before section "6" |
+| `--md_start "5" --md_end "END"` | Extracts from section "5" to **end of file** |
+| No `--md_start` | Reads entire file |
+
+The `--md_end "END"` special value is useful for reading from a starting section all the way to the end of the document.
+
+## `extract_from_md.py`
 
 ### What It Does
 - Extract text content from various document formats
@@ -475,7 +539,7 @@ The supported File types and code blocks are:
 ### Examples
 - Extract text from a document
   ```bash
-  > extract_text_from_txt.py -i document.md -o output.txt
+  > extract_from_md.py -i document.md -o output.txt
   ```
 
 ## `convert_png_dir_to_movie.py`

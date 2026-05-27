@@ -50,7 +50,7 @@ def config_notebook(sns_set: bool = True) -> None:
             # Fontsize of the figure title.
             plt.rc("figure", titlesize=bigger_size)
     else:
-        print("No module '{module}'")
+        print(f"No module '{module}'")
     # Seaborn.
     module = "seaborn"
     if hmodule.has_module(module):
@@ -59,7 +59,7 @@ def config_notebook(sns_set: bool = True) -> None:
         if sns_set:
             sns.set()
     else:
-        print("No module '{module}'")
+        print(f"No module '{module}'")
     # Pandas.
     module = "pandas"
     if hmodule.has_module(module):
@@ -69,7 +69,7 @@ def config_notebook(sns_set: bool = True) -> None:
         pd.set_option("display.max_columns", 500)
         pd.set_option("display.width", 1000)
     else:
-        print("No module '{module}'")
+        print(f"No module '{module}'")
     # Warnings.
     import helpers.hwarnings as hwarnin
 

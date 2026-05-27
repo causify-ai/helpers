@@ -10,7 +10,7 @@ description: Generate a SVG code for an image or a description
   1. An image of a diagram
   2. A textual description of a concept or situation
 
-## Generate an SVG image for the description of the diagram
+## Generate an SVG Image for the Description of the Diagram
 
 - Generate the diagram as clean SVG using these strict conventions below
 
@@ -22,14 +22,14 @@ description: Generate a SVG code for an image or a description
 - Right margin (x=540–640): callout labels with dashed leader lines
 - Center (x=140–540): the actual figure
 
-### Typography (two sizes only)
+### Typography (two Sizes Only)
 - 14px, weight 500 → component names, axis titles (class="th")
 - 12px, weight 400 → sub-labels, callouts, tick marks (class="ts")
 - Sentence case everywhere. Never ALL CAPS or Title Case.
 - All <text> must carry class="t", "ts", or "th": never unclassed
 - SVG <text> never wraps: use explicit <tspan dy="1.2em"> for line breaks
 
-### Color System (encode meaning, not sequence)
+### Color System (encode Meaning, Not Sequence)
 Use these ramp classes on <g> or shape elements:
   c-blue   → primary subject / main flow
   c-teal   → secondary system / output
@@ -56,7 +56,7 @@ Max 3 color ramps per figure. Add a 1-line legend if color encodes data.
 - No drop shadows, gradients, blur, or glow (exception: one linearGradient
   for a continuous physical property like temperature)
 
-### Figure Types: choose the right one
+### Figure Types: Choose the Right One
 FLOWCHART     → sequential steps, decision branches, pipelines
 STRUCTURAL    → containment (things inside other things), architecture
 ILLUSTRATIVE  → physical cross-sections or abstract spatial metaphors
@@ -64,7 +64,7 @@ ILLUSTRATIVE  → physical cross-sections or abstract spatial metaphors
 DATA CHART    → use Chart.js or D3, not raw SVG, for quantitative data
 ERD/CLASS     → use mermaid.js erDiagram / classDiagram syntax
 
-### Spacing Rules (no exceptions)
+### Spacing Rules (no Exceptions)
 - Box padding: 24px horizontal, 12px vertical
 - Minimum gap between adjacent boxes: 20px
 - Arrow must not cross any unrelated box: use L-bend <path> detours
@@ -114,7 +114,7 @@ ERD/CLASS     → use mermaid.js erDiagram / classDiagram syntax
   - E.g., "Demand didn't change: Occupancy will fall"
 - Visual weight of ✕ should match the prominence of the mistake in the narrative
 
-### What NOT to do
+### What NOT to Do
 - Icons or illustrations inside flowchart boxes (text only)
 - Rotated text
 - Text smaller than 11px

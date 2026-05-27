@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import tempfile
+import unicodedata
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
@@ -39,6 +40,19 @@ def remove_suffix(string: str, suffix: str, assert_on_error: bool = True) -> str
                 f"string='{string}' doesn't end with suffix='{suffix}'"
             )
     return res
+
+
+def to_ascii(text: str) -> str:
+    """
+    Convert Unicode text to ASCII by decomposing and stripping accents.
+
+    :param text: input text with potential non-ASCII characters
+    :return: ASCII-safe text (e.g., "Schölkopf" -> "Scholkopf")
+    """
+    if not text:
+        return text
+    nfd = unicodedata.normalize("NFD", text)
+    return "".join(c for c in nfd if unicodedata.category(c) != "Mn")
 
 
 def diff_strings(

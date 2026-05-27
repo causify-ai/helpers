@@ -2,12 +2,11 @@
 description: Convert formulas in text to their Latex equivalent
 ---
 
-- Convert formulas to Latex leaving the structure of the text exactly the
-  same
+- Convert formulas to Latex leaving the structure of the text exactly the same
 
-- Use the rules and conventions in `@.claude/skills/latex.rules.md`
+- Use the rules and conventions in `.claude/skills/latex.rules.md`
 
-# Step 1: Convert mathematical formulas
+# Step 1: Convert Mathematical Formulas
 
 - Convert mathematical formulas to Latex without changing their meaning
   and formatting so that they are easily readable
@@ -37,7 +36,7 @@ description: Convert formulas in text to their Latex equivalent
     $$
     ```
 
-# Step 2: Convert symbols to Latex
+# Step 2: Convert Symbols to Latex
 
 - Convert symbols into Latex ones, together with variables if needed:
   - **Bad**
@@ -58,7 +57,7 @@ description: Convert formulas in text to their Latex equivalent
     "If battery low" $\to$ seek charging station
     ```
 
-# Step 3: Lint the file
+# Step 3: Lint the File
 
 - After the conversion run the command:
   ```bash

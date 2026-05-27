@@ -1,5 +1,6 @@
 import logging
 import os
+import pytest
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -14,6 +15,23 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_fix_md_headers(hunitest.TestCase):
+    def _write_input_file(self, txt: str, file_name: str) -> str:
+        """
+        Write test content to a file.
+
+        :param txt: the content of the file
+        :param file_name: the name of the file
+        :return: the path to the file
+        """
+        # Get the path to the scratch space.
+        dir_name = self.get_scratch_space()
+        # Compile the file path.
+        file_path = os.path.join(dir_name, file_name)
+        file_path = os.path.abspath(file_path)
+        # Write the file.
+        hio.to_file(file_path, txt)
+        return file_path
+
     def test1(self) -> None:
         """
         Test that no modifications are made when headers are correct.
@@ -128,6 +146,14 @@ for i in range(10):
             updated_lines, txt_with_python_and_bash_code.splitlines()
         )
 
+
+# #############################################################################
+# Test_verify_toc_postion
+# #############################################################################
+
+
+@pytest.mark.need_dev_container
+class Test_verify_toc_postion(hunitest.TestCase):
     def _write_input_file(self, txt: str, file_name: str) -> str:
         """
         Write test content to a file.
@@ -145,13 +171,6 @@ for i in range(10):
         hio.to_file(file_path, txt)
         return file_path
 
-
-# #############################################################################
-# Test_verify_toc_postion
-# #############################################################################
-
-
-class Test_verify_toc_postion(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test that a warning is issued when content appears before TOC.
@@ -262,20 +281,3 @@ class Test_verify_toc_postion(hunitest.TestCase):
         out_warnings = lacmtohe.verify_toc_position(lines, file_path)
         # Check.
         self.assertEqual(out_warnings, [])
-
-    def _write_input_file(self, txt: str, file_name: str) -> str:
-        """
-        Write test content to a file.
-
-        :param txt: the content of the file
-        :param file_name: the name of the file
-        :return: the path to the file
-        """
-        # Get the path to the scratch space.
-        dir_name = self.get_scratch_space()
-        # Compile the file path.
-        file_path = os.path.join(dir_name, file_name)
-        file_path = os.path.abspath(file_path)
-        # Write the file.
-        hio.to_file(file_path, txt)
-        return file_path
