@@ -3,6 +3,8 @@ import os
 import unittest.mock as umock
 from typing import List, Optional, Tuple
 
+import pytest
+
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
@@ -20,6 +22,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_replace_shared_root_path1(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -81,6 +84,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_convert_to_docker_path1(hunitest.TestCase):
     @staticmethod
     def convert_caller_to_callee_docker_path(
@@ -342,6 +346,7 @@ class Test_is_path1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_convert_all_paths_from_caller_to_callee_docker_path1(
     hunitest.TestCase
 ):
