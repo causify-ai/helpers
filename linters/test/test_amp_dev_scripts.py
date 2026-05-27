@@ -284,6 +284,10 @@ class Test_linter_py1(hunitest.TestCase):
         self.check_string(output, purify_text=True)
 
     @pytest.mark.slow("About 6 sec")
+    @pytest.mark.skipif(
+        hserver.is_inside_ci(),
+        reason="Disabled in CI",
+    )
     def test_linter_ipynb1(self) -> None:
         """
         Run Linter as executable on a notebook.
