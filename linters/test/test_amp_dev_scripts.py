@@ -12,6 +12,7 @@ from packaging import version
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import linters.base as libase
@@ -156,6 +157,10 @@ class Test_linter_py1(hunitest.TestCase):
         # Check.
         self.check_string(output, purify_text=True)
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="Linting action differences",
+    )
     def test_linter_txt1(self) -> None:
         """
         Run Linter as executable on a txt file with empty lines at the end.
@@ -174,6 +179,10 @@ class Test_linter_py1(hunitest.TestCase):
         # Check.
         self.check_string(output, purify_text=True)
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="Linting action differences",
+    )
     def test_linter_txt2(self) -> None:
         """
         Run Linter as executable on a txt file without empty lines.

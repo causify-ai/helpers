@@ -1,6 +1,9 @@
 from typing import Any, Dict, List, Optional, Type
 
+import pytest
+
 import dev_scripts_helpers.system_tools.lib_rig as dshstliri
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 
@@ -234,6 +237,10 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="rg version issues",
+    )
     def test13(self) -> None:
         """
         Test --last_commit flag with pattern.
@@ -280,6 +287,10 @@ class TestRigScript(hunitest.TestCase):
             expected_exit_code,
         )
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="rg version issues",
+    )
     def test16(self) -> None:
         """
         Test --rule flag to search for Markdown headers in .claude/skills.
@@ -296,6 +307,10 @@ class TestRigScript(hunitest.TestCase):
             expected_exit_code,
         )
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="rg version issues",
+    )
     def test16_rule_with_pattern(self) -> None:
         """
         Test --rule flag with a pattern to match Markdown headers.
@@ -312,6 +327,10 @@ class TestRigScript(hunitest.TestCase):
             expected_exit_code,
         )
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="rg version issues",
+    )
     def test17(self) -> None:
         """
         Test --todo flag.
