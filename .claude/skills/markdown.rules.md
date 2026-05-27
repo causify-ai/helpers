@@ -52,7 +52,7 @@ text
 
 ## Bullet Lists
 - Write text using bullet lists following the directions in
-  `.claude/skills/text.rules.bullet_points.md`
+  `.claude/skills/text.rules.md`
 - Use `-` (dash) consistently for unordered lists
 - Indent sub-items with two spaces
 - Use ordered lists (`1.`, `2.`, etc.) when sequence matters
@@ -60,29 +60,34 @@ text
 
 - Example:
   ```markdown
-  The main advantages are:
-  - **First advantage**: Description here
-  - **Second advantage**: Description here
-    - Sub-point with details
-    - Another sub-point
+  - The main advantages are:
+    - **First advantage**: Description here
+    - **Second advantage**: Description here
+      - Sub-point with details
+      - Another sub-point
   ```
 
 ## List of Items
 - In lists of items:
-  - Bold the item whenever possible
-  - Use verbatim when the item is a script, a command (e.g., `python`, `bash`,
-    `latex`)
+  - Bold the first item whenever possible, e.g.,
+    ```markdown
+    - The main advantages are:
+      - **First advantage**: Description here
+      - **Second advantage**: Description here
+        - Sub-point with details
+        - Another sub-point
+    ```
   - Use `:` to separate file and description instead of `-`
-  - **Bad**:
-    ```
-    - notes_to_pdf.py - Main tool for converting notes to PDF/HTML/slides
-    - render_images.py - Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
-    ```
-  - **Good**:
-    ```
-    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides
-    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
-    ```
+    - **Bad**:
+      ```
+      - notes_to_pdf.py - Main tool for converting notes to PDF/HTML/slides
+      - render_images.py - Auto-renders diagrams
+      ```
+    - **Good**:
+      ```
+      - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides
+      - `render_images.py`: Auto-renders diagrams
+      ```
 
 # Text Formatting
 
@@ -106,30 +111,29 @@ text
   - Use for technical terms, variable names, or code snippets
 
 ## Word Choice
-- **Bad**: Extraction & Conversion Tools
-- **Good**: Extraction and Conversion Tools
 - Do not abuse bold in explanations of commands
-  - Bad: `- **Extract with higher DPI** for better image quality:`
-  - Good: `- Extract with higher DPI for better image quality:`
+  - **Bad**
+    ```
+    - **Extract with higher DPI** for better image quality:
+    ```
+  - **Good**
+    ```
+    - Extract with higher DPI for better image quality:
+    ```
+- Do not use &
+  - **Bad**:
+    ```
+    Extraction & Conversion Tools
+    ```
+  - **Good**:
+    ```
+    Extraction and Conversion Tools
+    ```
 
 # Code Blocks and Commands
 
-## Fenced Code Blocks
-
-- Every fenced code block must have a valid programming language (e.g., `python`, `bash`, `latex`, `verbatim`)
-  - E.g.:
-    ````
-
-    ```python
-    ````
-  - If it doesn't have a valid tag, infer it from the content. If unsure, leave it empty
-- The fenced code block should be aligned with the text and the bullet points:
-  ````
-  - Do this and that:
-    ```bash
-    > do_this_and_that
-    ```
-  ````
+## Leave Fenced Code Blocks Alone
+- If there is a fenced code block, do not remove it
 
 ## Command Formatting
 
@@ -152,20 +156,31 @@ text
 
 - Make sure all fenced blocks have a syntax description (e.g., python, markdown,
   verbatim)
-  - Bad:
-    ````markdown
-    The simplest ripgrep command searches for a pattern:
+  - **Bad**:
+    ```
+    > rig "pattern"
+    ```
+  - **Good**:
     ```bash
     > rig "pattern"
     ```
-    ````
-  - Good:
+
+## Fenced Code Blocks
+
+- Every fenced code block must have a valid programming language (e.g., `python`,
+  `bash`, `latex`, `verbatim`)
+  - E.g.:
     ````markdown
-    - The simplest ripgrep command searches for a pattern:
-      ```bash
-      > rig "pattern"
-      ```
+    ```python
     ````
+  - If it doesn't have a valid tag, infer it from the content. If unsure, leave it empty
+- The fenced code block should be aligned with the text and the bullet points:
+  ````markdown
+  - Do this and that:
+    ```bash
+    > do_this_and_that
+    ```
+  ````
 
 # Visual Elements
 

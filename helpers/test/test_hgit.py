@@ -128,30 +128,31 @@ class Test_git_submodule2(hunitest.TestCase):
 
 
 class Test_git_repo_name1(hunitest.TestCase):
+    def _helper_parse_github_repo_name(
+        self,
+        repo_name: str,
+        expected_host: str,
+        expected_repo: str,
+    ) -> None:
+        host_name, actual_repo = hgit._parse_github_repo_name(repo_name)
+        self.assert_equal(host_name, expected_host)
+        self.assert_equal(actual_repo, expected_repo)
+
     def test_parse_github_repo_name1(self) -> None:
         repo_name = "git@github.com:alphamatic/amp"
-        host_name, repo_name = hgit._parse_github_repo_name(repo_name)
-        self.assert_equal(host_name, "github.com")
-        self.assert_equal(repo_name, "alphamatic/amp")
+        self._helper_parse_github_repo_name(repo_name, "github.com", "alphamatic/amp")
 
     def test_parse_github_repo_name2(self) -> None:
         repo_name = "https://github.com/alphamatic/amp"
-        hgit._parse_github_repo_name(repo_name)
-        host_name, repo_name = hgit._parse_github_repo_name(repo_name)
-        self.assert_equal(host_name, "github.com")
-        self.assert_equal(repo_name, "alphamatic/amp")
+        self._helper_parse_github_repo_name(repo_name, "github.com", "alphamatic/amp")
 
     def test_parse_github_repo_name3(self) -> None:
         repo_name = "git@github.fake.com:alphamatic/amp"
-        host_name, repo_name = hgit._parse_github_repo_name(repo_name)
-        self.assert_equal(host_name, "github.fake.com")
-        self.assert_equal(repo_name, "alphamatic/amp")
+        self._helper_parse_github_repo_name(repo_name, "github.fake.com", "alphamatic/amp")
 
     def test_parse_github_repo_name4(self) -> None:
         repo_name = "https://github.fake.com/alphamatic/amp"
-        host_name, repo_name = hgit._parse_github_repo_name(repo_name)
-        self.assert_equal(host_name, "github.fake.com")
-        self.assert_equal(repo_name, "alphamatic/amp")
+        self._helper_parse_github_repo_name(repo_name, "github.fake.com", "alphamatic/amp")
 
     def test_get_repo_full_name_from_dirname1(self) -> None:
         actual = hgit.get_repo_full_name_from_dirname(
@@ -283,9 +284,6 @@ class Test_git_modified_files1(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_find_docker_file1
 # #############################################################################
 
@@ -382,9 +380,6 @@ class Test_find_docker_file1(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_extract_gh_issue_number_from_branch
 # #############################################################################
 
@@ -449,6 +444,13 @@ class Test_find_git_root1(hunitest.TestCase):
             `-- .git (points to ../../.git/modules/amp/modules/helpers_root)
     """
 
+    def _helper_find_git_root(self, working_dir_attr: str) -> None:
+        self.set_up_test()
+        working_dir = getattr(self, working_dir_attr)
+        with hsystem.cd(working_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
     def set_up_test(self) -> None:
         temp_dir = self.get_scratch_space()
         # Create `orange` repo.
@@ -485,30 +487,21 @@ class Test_find_git_root1(hunitest.TestCase):
         Check that the function returns the correct git root if
         - the caller is in the super repo (e.g. //orange)
         """
-        self.set_up_test()
-        with hsystem.cd(self.repo_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("repo_dir")
 
     def test2(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is in first level submodule (e.g. //amp)
         """
-        self.set_up_test()
-        with hsystem.cd(self.submodule_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("submodule_dir")
 
     def test3(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is in second level submodule (e.g. //helpers)
         """
-        self.set_up_test()
-        with hsystem.cd(self.subsubmodule_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("subsubmodule_dir")
 
     def test4(self) -> None:
         """
@@ -516,10 +509,7 @@ class Test_find_git_root1(hunitest.TestCase):
         - the caller is in a runnable dir (e.g. ck.infra) under the
             first level submodule (e.g. //amp)
         """
-        self.set_up_test()
-        with hsystem.cd(self.runnable_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("runnable_dir")
 
 
 # #############################################################################
@@ -540,6 +530,13 @@ class Test_find_git_root2(hunitest.TestCase):
     `-- helpers_root/
         `-- .git (points to ../.git/modules/helpers_root)
     """
+
+    def _helper_find_git_root(self, working_dir_attr: str) -> None:
+        self.set_up_test()
+        working_dir = getattr(self, working_dir_attr)
+        with hsystem.cd(working_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
 
     def set_up_test(self) -> None:
         temp_dir = self.get_scratch_space()
@@ -567,30 +564,21 @@ class Test_find_git_root2(hunitest.TestCase):
         Check that the function returns the correct git root if
         - the caller is in the super repo (e.g. //cmamp)
         """
-        self.set_up_test()
-        with hsystem.cd(self.repo_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("repo_dir")
 
     def test2(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is the submodule (e.g. //helpers)
         """
-        self.set_up_test()
-        with hsystem.cd(self.submodule_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("submodule_dir")
 
     def test3(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is in a runnable dir (e.g. ck.infra)
         """
-        self.set_up_test()
-        with hsystem.cd(self.runnable_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("runnable_dir")
 
 
 # #############################################################################
@@ -610,6 +598,13 @@ class Test_find_git_root3(hunitest.TestCase):
         `-- arbitrary1a/
     """
 
+    def _helper_find_git_root(self, working_dir_attr: str) -> None:
+        self.set_up_test()
+        working_dir = getattr(self, working_dir_attr)
+        with hsystem.cd(working_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
     def set_up_test(self) -> None:
         temp_dir = self.get_scratch_space()
         # Create `helpers` repo.
@@ -628,20 +623,14 @@ class Test_find_git_root3(hunitest.TestCase):
         Check that the function returns the correct git root if
         - the caller is the root of repo
         """
-        self.set_up_test()
-        with hsystem.cd(self.repo_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("repo_dir")
 
     def test2(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is in an arbitrary directory under the repo
         """
-        self.set_up_test()
-        with hsystem.cd(self.arbitrary_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        self._helper_find_git_root("arbitrary_dir")
 
 
 # #############################################################################
@@ -768,6 +757,266 @@ class Test_find_git_root5(hunitest.TestCase):
         Top-level .git directory not found.
         """
         self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_get_files_to_process1
+# #############################################################################
+
+
+class Test_get_files_to_process1(hunitest.TestCase):
+    """
+    Test get_files_to_process with --files argument (space-separated list).
+    """
+
+    def _call_get_files_to_process(
+        self,
+        *,
+        files: str = "",
+        from_file: str = "",
+        modified: bool = False,
+        branch: bool = False,
+        last_commit: bool = False,
+        all_: bool = False,
+        mutually_exclusive: bool = True,
+        remove_dirs: bool = False,
+        dir_name: Optional[str] = None,
+    ) -> List[str]:
+        return hgit.get_files_to_process(
+            files,
+            from_file,
+            modified,
+            branch,
+            last_commit,
+            all_,
+            mutually_exclusive=mutually_exclusive,
+            remove_dirs=remove_dirs,
+            dir_name=dir_name,
+        )
+
+    def test1(self) -> None:
+        """
+        Test with a single file in the space-separated list.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        hio.to_file(file1, "content1")
+        actual = self._call_get_files_to_process(files=file1, dir_name=temp_dir)
+        self.assertEqual(len(actual), 1)
+        self.assertIn("file1.txt", actual[0])
+
+    def test2(self) -> None:
+        """
+        Test with multiple files in the space-separated list.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        file2 = os.path.join(temp_dir, "file2.txt")
+        file3 = os.path.join(temp_dir, "file3.txt")
+        hio.to_file(file1, "content1")
+        hio.to_file(file2, "content2")
+        hio.to_file(file3, "content3")
+        files = f"{file1} {file2} {file3}"
+        actual = self._call_get_files_to_process(files=files, dir_name=temp_dir)
+        self.assertEqual(len(actual), 3)
+        for expected_file in ["file1.txt", "file2.txt", "file3.txt"]:
+            self.assertTrue(
+                any(expected_file in f for f in actual),
+                f"{expected_file} not found in {actual}",
+            )
+
+    def test3(self) -> None:
+        """
+        Test that non-existent files are filtered out.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        nonexistent = os.path.join(temp_dir, "nonexistent.txt")
+        hio.to_file(file1, "content1")
+        files = f"{file1} {nonexistent}"
+        actual = self._call_get_files_to_process(files=files, dir_name=temp_dir)
+        self.assertEqual(len(actual), 1)
+        self.assertIn("file1.txt", actual[0])
+
+    def test4(self) -> None:
+        """
+        Test that empty string is handled correctly when mutually_exclusive=False.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        hio.to_file(file1, "content1")
+        actual = self._call_get_files_to_process(
+            modified=True,
+            mutually_exclusive=False,
+            dir_name=temp_dir,
+        )
+        self.assertIsInstance(actual, list)
+
+    def test5(self) -> None:
+        """
+        Test that --files is mutually exclusive with --modified when mutually_exclusive=True.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        hio.to_file(file1, "content1")
+        with self.assertRaises(AssertionError):
+            self._call_get_files_to_process(
+                files=file1,
+                modified=True,
+                dir_name=temp_dir,
+            )
+
+    def test6(self) -> None:
+        """
+        Test with a directory in the file list and remove_dirs=True.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        dir1 = os.path.join(temp_dir, "dir1")
+        hio.to_file(file1, "content1")
+        hio.create_dir(dir1, incremental=False)
+        files = f"{file1} {dir1}"
+        actual = self._call_get_files_to_process(
+            files=files,
+            remove_dirs=True,
+            dir_name=temp_dir,
+        )
+        self.assertEqual(len(actual), 1)
+        self.assertIn("file1.txt", actual[0])
+
+    def test7(self) -> None:
+        """
+        Test that 'amp' directory is filtered out.
+        """
+        temp_dir = self.get_scratch_space()
+        file1 = os.path.join(temp_dir, "file1.txt")
+        hio.to_file(file1, "content1")
+        files = f"{file1} amp"
+        actual = self._call_get_files_to_process(
+            files=files,
+            dir_name=temp_dir,
+        )
+        self.assertEqual(len(actual), 1)
+        self.assertIn("file1.txt", actual[0])
+
+    def test_modified1(self) -> None:
+        """
+        Retrieve files modified in this client.
+        """
+        _ = self._call_get_files_to_process(
+            modified=True,
+            remove_dirs=True,
+        )
+
+    @pytest.mark.skipif(
+        hgit.get_branch_name() == "master",
+        reason="This test makes sense for a branch",
+    )
+    def test_branch1(self) -> None:
+        """
+        Retrieved files modified in this client.
+        """
+        hgit.fetch_origin_master_if_needed()
+        _ = self._call_get_files_to_process(
+            branch=True,
+            remove_dirs=True,
+        )
+
+    def test_last_commit1(self) -> None:
+        """
+        Retrieved files modified in the last commit.
+        """
+        _ = self._call_get_files_to_process(
+            last_commit=True,
+            remove_dirs=True,
+        )
+
+    def test_files1(self) -> None:
+        """
+        Pass through files from user.
+        """
+        scratch_dir = self.get_scratch_space()
+        from_file_path = os.path.join(scratch_dir, "test_files1.txt")
+        hio.to_file(from_file_path, __file__)
+        files = self._call_get_files_to_process(
+            from_file=from_file_path,
+            remove_dirs=True,
+        )
+        self.assertEqual(files, [__file__])
+
+    def test_files2(self) -> None:
+        """
+        Pass through files from user.
+
+        Use two types of paths we don't want to process:
+          - non-existent python file
+          - pattern "/*" that matches no files
+        """
+        scratch_dir = self.get_scratch_space()
+        from_file_path = os.path.join(scratch_dir, "test_files2.txt")
+        file_list_content = "testfile1.py testfiles1/*"
+        hio.to_file(from_file_path, file_list_content)
+        files = self._call_get_files_to_process(
+            from_file=from_file_path,
+            remove_dirs=True,
+        )
+        self.assertEqual(files, [])
+
+    def test_assert1(self) -> None:
+        """
+        Test that --modified and --branch together cause an assertion.
+        """
+        with self.assertRaises(AssertionError) as cm:
+            self._call_get_files_to_process(
+                modified=True,
+                branch=True,
+                all_=True,
+            )
+        actual = str(cm.exception)
+        expected = r"""
+        * Failed assertion *
+        '3'
+        ==
+        '1'
+        You can pick only one option to select files. Selected: --modified, --branch, --all_files
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test_assert2(self) -> None:
+        """
+        Test that --modified and --files together cause an assertion if
+        `mutually_exclusive=True`.
+        """
+        with self.assertRaises(AssertionError) as cm:
+            self._call_get_files_to_process(
+                from_file=__file__,
+                modified=True,
+            )
+        actual = str(cm.exception)
+        expected = r"""
+        * Failed assertion *
+        '2'
+        ==
+        '1'
+        You can pick only one option to select files. Selected: --from_file, --modified
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test_assert3(self) -> None:
+        """
+        Test that --modified and --files together don't cause an assertion if
+        `mutually_exclusive=False`.
+        """
+        scratch_dir = self.get_scratch_space()
+        from_file_path = os.path.join(scratch_dir, "test_assert3.txt")
+        hio.to_file(from_file_path, __file__)
+        files = self._call_get_files_to_process(
+            from_file=from_file_path,
+            modified=True,
+            mutually_exclusive=False,
+            remove_dirs=True,
+        )
+        self.assertIn(__file__, files)
 
 
 # #############################################################################

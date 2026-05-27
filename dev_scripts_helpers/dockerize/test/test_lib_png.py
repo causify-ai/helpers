@@ -110,7 +110,10 @@ class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check outputs.
-        dshddout.assert_output_file_exists(self, out_file_path)
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
 
 
 # #############################################################################
@@ -145,4 +148,7 @@ class Test_run_dockerized_imagemagick1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check outputs.
-        dshddout.assert_output_file_exists(self, out_file_path)
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )

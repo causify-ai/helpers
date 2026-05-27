@@ -43,7 +43,7 @@ def _get_system_prompt() -> str:
     :return: system prompt string
     """
     # Load bullet point conventions to ensure consistent formatting.
-    rules_file = hgit.find_file_in_git_tree("text.rules.bullet_points.md")
+    rules_file = hgit.find_file_in_git_tree("text.rules.md")
     rules_content = hio.from_file(rules_file)
     system_prompt = f"""
     # Keep the same structure

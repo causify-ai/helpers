@@ -55,3 +55,6 @@ model: sonnet
 ## Make Changes
 - Wait for the user to review the proposed changes
 - Make the changes to remove repeated code
+
+## Conventions
+- Follow the rules in `.claude/skills/coding.rules.md`

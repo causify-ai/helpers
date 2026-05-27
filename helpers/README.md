@@ -202,8 +202,6 @@ Modules follow the `h<name>` naming convention and are organized by domain.
   - Google Drive and Google Sheets API integration utilities
 - `hchatgpt.py`
   - OpenAI API integration with file management and chat utilities
-- `hchatgpt_instructions.py`
-  - ChatGPT system instructions and prompt templates
 - `hllm.py`
   - LLM API integration with caching, cost tracking, and response handling
 - `hllm_cli.py`

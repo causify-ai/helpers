@@ -541,9 +541,9 @@ Last review: GP on 2024-05-13
   `test_$DIRNAME.py`(or`test*dir_name.py`) \* In the large file add a framed
   comment like:
   ```python
-  # ##################
+  # #############################################################################
   # Unit tests for ...
-  # ##################
+  # #############################################################################
   ```
   - So it's easy to find which file is tested were using grep
 - Then split when it becomes too big using `test_$FILENAME.py`

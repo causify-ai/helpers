@@ -1,12 +1,13 @@
 This file contains a mapping between file type and file containing rule /
 conventions and templates
 
-# Important Guidelines and Rules
+Based on the files that you need to operate, read and follow the corresponding
+rules
 
 ## Coding
 - For writing Python file (files with a `.py` extension) you MUST follow:
   - The rules `.claude/skills/coding.rules.md`
-  - The template `.claude/templates/code.template.py`
+  - The template `.claude/templates/coding.template.py`
 
 ## Testing
 - For a file storing unit tests (files whose base name starts with
@@ -17,11 +18,7 @@ conventions and templates
 ## Notebooks
 - For Jupyter notebook (files with `.ipynb` extension) you MUST follow:
   - The rules `.claude/skills/notebook.rules.md`
-  - The template `.claude/templates/notebook_template.ipynb`
-
-- For interactive Jupyter notebooks (i.e., notebooks with `ipywidgets`) you MUST
-  follow the templates `.claude/templates/interactive_notebook_template.ipynb`
-  `.claude/templates/interactive_notebook_template_utils.py`
+  - The template `.claude/templates/notebook.template.ipynb`
 
 ## Markdown
 - For writing markdown text you MUST follow instructions in

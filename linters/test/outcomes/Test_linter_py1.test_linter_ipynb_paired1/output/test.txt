@@ -15,10 +15,13 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "import pandas as pd\n",
     "import re\n",
     "\n",
     "# TODO: Fix.\n",
-    "res = re.findall(r\"[a-z]+\", \"some text\")"
+    "res = re.findall(r\"[a-z]+\", \"some text\")\n",
+    "\n",
+    "\n"
    ]
   }
  ],

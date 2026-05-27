@@ -22,6 +22,7 @@ import helpers.hsystem as hsystem
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
@@ -284,21 +285,18 @@ def git_add_all_untracked(ctx):  # type: ignore
 
 @task
 def git_patch_create(  # type: ignore
-    ctx, mode="diff", modified=False, branch=False, last_commit=False, files=""
+    ctx, mode="diff",  files="", from_file="", modified=False, branch=False, last_commit=False,
 ):
     """
     Create a patch file for the entire repo_short_name client from the base
     revision. This script accepts a list of files to package, if specified.
-
-    The parameters `modified`, `branch`, `last_commit` have the same meaning as
-    in `get_files_to_process()`.
 
     :param mode: what kind of patch to create
         - "diff": (default) creates a patch with the diff of the files
         - "tar": creates a tar ball with all the files
     """
     hltltaut.report_task(
-        txt=hprint.to_str("mode modified branch last_commit files")
+        txt=hprint.to_str("mode files from_file modified branch last_commit")
     )
     _ = ctx
     # TODO(gp): Check that the current branch is up to date with master to avoid
@@ -336,13 +334,14 @@ def git_patch_create(  # type: ignore
     # Filter out directories; patches only work with files.
     remove_dirs = True
     files_as_list = hgit.get_files_to_process(
+        files,
+        from_file,
         modified,
         branch,
         last_commit,
         all_,
-        files,
-        mutually_exclusive,
-        remove_dirs,
+        mutually_exclusive=mutually_exclusive,
+        remove_dirs=remove_dirs,
     )
     _LOG.info("Files to save:\n%s", hprint.indent("\n".join(files_as_list)))
     if not files_as_list:
@@ -405,38 +404,16 @@ def git_patch_create(  # type: ignore
     print(msg)
 
 
-def _filter_git_files_by_type(
-    file_paths: List[str],
-    file_types: List[str],
-) -> List[str]:
-    """
-    Filter files by type for git_files task.
-
-    Returns a flat list (not a tuple) and does not separate paired jupytext files.
-
-    :param file_paths: files to filter
-    :param file_types: list of file extensions to include (e.g., ["py", "ipynb", "md"])
-        If empty, all files are kept (no filtering)
-    :return: filtered list of files
-    """
-    if not file_types:
-        return file_paths
-    filtered = []
-    for f in file_paths:
-        for ext in file_types:
-            if f.endswith(f".{ext}"):
-                filtered.append(f)
-                break
-    return filtered
-
-
 @task
 def git_files(  # type: ignore
     ctx,
+    #
     modified=False,
     branch=False,
     last_commit=False,
+    #
     file_types="",
+    skip_file_types="",
     pbcopy=False,
     only_print_files=False,
     on_one_line=False,
@@ -448,6 +425,8 @@ def git_files(  # type: ignore
     The params have the same meaning as in `get_files_to_process()`.
 
     :param file_types: Comma-separated list of file extensions to include
+        (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
+    :param skip_file_types: Comma-separated list of file extensions to skip
         (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
     :param only_print_files: only print files without logging headers/footers (default: False)
     :param on_one_line: show results only in "On one line" format (default: False)
@@ -464,24 +443,24 @@ def git_files(  # type: ignore
         branch = True
     all_ = False
     files = ""
+    from_file = ""
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True
     files_as_list = hgit.get_files_to_process(
+        files,
+        from_file,
         modified,
         branch,
         last_commit,
         all_,
-        files,
-        mutually_exclusive,
-        remove_dirs,
+        mutually_exclusive=mutually_exclusive,
+        remove_dirs=remove_dirs,
     )
-    # Parse file_types string into a list.
-    file_types_list = [
-        ext.strip() for ext in file_types.split(",") if ext.strip()
-    ]
-    # Filter by file type.
-    files_as_list = _filter_git_files_by_type(files_as_list, file_types_list)
+    # Filter by file type using hparser utility.
+    files_as_list = hparser.filter_files_by_extensions(
+        files_as_list, file_types, skip_file_types
+    )
     # Handle different output modes.
     hdbg.dassert_in(
         mode,
@@ -493,7 +472,8 @@ def git_files(  # type: ignore
     elif mode == "test_files":
         test_files = hunteuti.get_test_files_for_sources(files_as_list)
         output_list = sorted(test_files)
-    else:  # mode == "test_dirs"
+    else:
+        hdbg.dassert_eq(mode, "test_dirs")
         test_files = hunteuti.get_test_files_for_sources(files_as_list)
         test_dirs = hunteuti.get_parent_dirs(test_files)
         output_list = sorted(test_dirs)

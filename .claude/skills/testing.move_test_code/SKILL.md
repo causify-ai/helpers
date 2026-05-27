@@ -1,20 +1,29 @@
 ---
-description: Move test classes from a test file into the correct separate test files based on what they test
+description: Split test classes from a test file into the correct separate test files based on what function they test
 ---
 
-- I will pass you a file with unit tests test_file.py
+- I will pass you a file with unit tests `<test/test_<filename>.py>`
 
-## Step 1
-- Find the functions that are tested in the file `test_file.py`
-- Prepare a plan that shows a mapping between test classes and file that
-  contains the functions tested by each class
+# Step 1
+- Find the functions that are tested in the file `<test_file.py>`
+- Prepare a plan that shows a mapping between
+  - Test classes 
+  - The functions tested by each class
+  - The file containing the tested functions
 
-## Step 2
-- Implement this plan
-  - Using the --append option in `split_in_files.py`
-  - Not preserving the input file so it's an actual move of code from one file
-    to another
+# Step 2
+- Propose a plan to split the test classes in multiple files to match the code
+  they test
+  - E.g., `Test_func1`, testing the function `func1` in `funcs.py` should go
+    in `test_funcs.py`
 
-- Modify `test_file.py` to move the code to the right direction
+# Step 3
+- Ask for the user to confirm the plan
 
-- Write the `split_in_files.py` command
+# Step 4
+- Implement the plan moving the code without changing it
+
+# Important
+- For all the code you must follow the instructions in
+  - `.claude/skills/coding.rules.md`
+  - `.claude/skills/testing.rules.md`

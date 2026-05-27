@@ -6,12 +6,12 @@ This skill renumbers cells in a Jupyter notebook consecutively and ensures all
 function names are synchronized with cell headers
 
 ## Rules Reference
-- Make sure to follow the sections on notebook cell numbering, content
-  structure, and function naming from `@.claude/skills/notebook.rules.md`:
-  - "Notebook Cell Numbering and Structure"
-  - "Content of Markdown Cells with `Cell XYZ` Header"
-  - "Code Cell Content and Function Naming"
-  - "Utility File Organization"
+- Make sure to follow the sections on notebook organization and utility file
+  structure from `.claude/skills/notebook.rules.md`:
+  - "Notebook Organization" (Markdown Header Structure and Naming, Sequential
+    Cell Numbering)
+  - "Utility File Organization" (Sync Function Names with Cell Numbers, Organize
+    Code by Cell Order)
 
 ## Workflow
 1. Read all existing cell headers and identify the current numbering

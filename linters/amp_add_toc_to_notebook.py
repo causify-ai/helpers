@@ -11,8 +11,8 @@ import logging
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 import linters.action as liaction
 import linters.utils as liutils
 
@@ -26,12 +26,16 @@ _LOG = logging.getLogger(__name__)
 
 class _AddTOC(liaction.Action):
     def __init__(self) -> None:
-        executable = "$(find -wholename '*dev_scripts_helpers/notebooks/add_toc_to_notebook.py')"
-        super().__init__(executable)
+        try:
+            executable = hgit.find_file_in_git_tree("add_toc_to_notebook.py")
+            super().__init__(executable)
+            self._is_possible = True
+        except AssertionError:
+            super().__init__("")
+            self._is_possible = False
 
     def check_if_possible(self) -> bool:
-        check: bool = hsystem.check_exec(self._executable)
-        return check
+        return self._is_possible
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic

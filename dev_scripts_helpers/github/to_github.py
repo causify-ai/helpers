@@ -113,8 +113,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Open the URL in default web browser",
     )
     parser.add_argument(
-        # TODO(ai_gp): --pbcopy
-        "--copy",
+        "--pbcopy",
         action="store_true",
         help="Copy the URL to system clipboard",
     )
@@ -133,7 +132,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Print the URL.
     _LOG.info("GitHub URL: %s", github_url)
     # Copy to clipboard if requested.
-    if args.copy:
+    if args.pbcopy:
         hsystem.to_pbcopy(github_url, pbcopy=True)
     # Open in browser if requested.
     if args.open:
