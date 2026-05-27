@@ -1,5 +1,6 @@
 import os
 from typing import List, Tuple
+import pytest
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -11,7 +12,28 @@ import linters.amp_doc_formatter as lamdofor
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 class Test_docformatter(hunitest.TestCase):
+    def _docformatter(self, text: str) -> Tuple[str, List[str], str]:
+        """
+        Run the docformatter on the temp file in scratch space.
+
+        :param text: content to be formatted
+        :param scratch_dir: directory for temp files
+        :return:
+            - modified content after formatting
+            - warnings
+            - filepath for temporary file
+        """
+        scratch_dir = self.get_scratch_space()
+        temp_file = os.path.join(scratch_dir, "temp_file.py")
+        hio.to_file(temp_file, text)
+        warnings = lamdofor._DocFormatter().execute(
+            file_name=temp_file, pedantic=0
+        )
+        content: str = hio.from_file(temp_file)
+        return content, warnings, temp_file
+
     def test1(self) -> None:
         """
         Test that the docstring should be dedented.
@@ -212,26 +234,6 @@ doc11
         # Check.
         expected = text
         self.assertEqual(expected.strip(), actual.strip())
-
-    def _docformatter(self, text: str) -> Tuple[str, List[str], str]:
-        """
-        Run the docformatter on the temp file in scratch space.
-
-        :param text: content to be formatted
-        :param scratch_dir: directory for temp files
-        :return:
-            - modified content after formatting
-            - warnings
-            - filepath for temporary file
-        """
-        scratch_dir = self.get_scratch_space()
-        temp_file = os.path.join(scratch_dir, "temp_file.py")
-        hio.to_file(temp_file, text)
-        warnings = lamdofor._DocFormatter().execute(
-            file_name=temp_file, pedantic=0
-        )
-        content: str = hio.from_file(temp_file)
-        return content, warnings, temp_file
 
 
 # #############################################################################
