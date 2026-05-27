@@ -39,8 +39,8 @@ def get_use_sudo() -> bool:
     :return: Whether to use sudo for Docker commands.
     """
     use_sudo = False
-    # if hserver.is_inside_docker():
-    #    use_sudo = True
+    if hserver.is_inside_docker():
+       use_sudo = True
     return use_sudo
 
 
@@ -566,11 +566,7 @@ def get_docker_mount_info(
     else:
         # Inside a Docker container, the mount path depends on the container
         # style.
-        use_host_git_root = (
-            use_sibling_container_for_callee
-            and not hserver.is_csfy_dind_enabled()
-        )
-        if use_host_git_root:
+        if use_sibling_container_for_callee:
             # For sibling containers, we need to get the Git root on the host.
             caller_mount_path = get_host_git_root()
         else:

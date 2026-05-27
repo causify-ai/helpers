@@ -17,7 +17,6 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -282,12 +281,6 @@ def prettier(
         hio.to_file(tmp_file_name, txt)
         in_file_path = tmp_file_name
     # Run prettier.
-    # Disable dockerized prettier when already inside Docker to avoid nested Docker issues.
-    if use_dockerized_prettier and hserver.is_inside_docker():
-        _LOG.debug(
-            "Disabling dockerized prettier since we're already inside Docker"
-        )
-        use_dockerized_prettier = False
     if use_dockerized_prettier:
         # Run `prettier` in a Docker container.
         force_rebuild = False
