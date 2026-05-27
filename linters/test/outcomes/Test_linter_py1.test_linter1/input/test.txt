@@ -1,7 +1,7 @@
 
 from typing import Any, List
 import helpers.hdbg as hdbg
-import helpers.hcache as hcac
+import helpers.hcache_simple as hcac
 import helpers.hio as io
 import nltk
 import pandas as pd
@@ -14,8 +14,8 @@ x = "hcac._get_cache_types()"
 
 def func(a: str, lst: List[str]) -> Any:
     """First comment line."""
-    import helpers.hcache as hcache
-    hcache._get_cache_types()
+    import helpers.hcache_simple as hcacsimp
+    hcacsimp._get_cache_types()
     for i in tqdm.tqdm(lst):
         a += "string {}".format(i)
     return a
