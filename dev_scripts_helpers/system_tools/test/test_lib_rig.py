@@ -236,10 +236,10 @@ class TestRigScript(hunitest.TestCase):
 
     def test13(self) -> None:
         """
-        Test --last-commit flag with pattern.
+        Test --last_commit flag with pattern.
         """
         # Prepare inputs.
-        args = ["TODO", "--last-commit"]
+        args = ["TODO", "--last_commit"]
         # Prepare outputs.
         expected_cmd = None
         expected_exit_code = 0
@@ -287,7 +287,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git"
+        expected_cmd = "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -303,7 +303,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["assert_equal", "--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git"
+        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -319,7 +319,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--todo"]
         # Prepare outputs.
-        expected_cmd = r"rg (#|//)\s*TODO\(ai_gp\) . --hidden -n --no-heading --color=never -g !.git"
+        expected_cmd = r"rg ^\s*(#|//)\s*TODO\(ai_gp\S*\) . --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
