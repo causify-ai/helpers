@@ -11,6 +11,8 @@ import helpers.hcache_simple as hcacsimp
 
 import functools
 import glob
+import hashlib
+import inspect
 import json
 import logging
 import os
@@ -120,6 +122,66 @@ def get_cache_debug() -> bool:
     return _CACHE_DEBUG
 
 
+# #############################################################################
+# Global caching on/off switch.
+# #############################################################################
+
+# When `False`, every `@simple_cache`-decorated call bypasses memory and disk
+# caches and executes the underlying function directly. This is a hard
+# override: it takes precedence over `_GLOBAL_CACHE_MODE`.
+_IS_CACHE_ENABLED: bool = True
+
+
+def enable_caching(val: bool) -> None:
+    """
+    Enable or disable all function caching globally.
+
+    When disabled, every `@simple_cache`-decorated function bypasses memory
+    and disk caches and executes the underlying function directly. This is a
+    hard override that takes precedence over `set_global_cache_mode()`.
+
+    :param val: `True` to enable caching, `False` to disable it
+    """
+    global _IS_CACHE_ENABLED
+    _LOG.warning("Setting caching %s -> %s", _IS_CACHE_ENABLED, val)
+    _IS_CACHE_ENABLED = val
+
+
+def is_caching_enabled() -> bool:
+    """
+    Return whether function caching is globally enabled.
+
+    :return: `True` if caching is enabled, `False` otherwise
+    """
+    return _IS_CACHE_ENABLED
+
+
+# #############################################################################
+# Clear-cache protection switch.
+# #############################################################################
+
+# When `False`, any call to `reset_cache()`, `reset_mem_cache()`, or
+# `reset_disk_cache()` raises a `RuntimeError`. This is a safety guard for
+# environments where accidental cache deletion would be expensive (e.g., a
+# production run with thousands of LLM calls already cached).
+_IS_CLEAR_CACHE_ENABLED: bool = True
+
+
+def enable_clear_cache(val: bool) -> None:
+    """
+    Enable or disable cache clearing globally.
+
+    When disabled, any call to `reset_cache()`, `reset_mem_cache()`, or
+    `reset_disk_cache()` raises a `RuntimeError`. Use this in production
+    environments to prevent accidental cache deletion.
+
+    :param val: `True` to allow clearing, `False` to block it
+    """
+    global _IS_CLEAR_CACHE_ENABLED
+    _LOG.warning("Setting clear_cache %s -> %s", _IS_CLEAR_CACHE_ENABLED, val)
+    _IS_CLEAR_CACHE_ENABLED = val
+
+
 def sanity_check_function_cache(
     func_cache_data: _FunctionCacheType, *, assert_on_empty: bool = True
 ) -> None:
@@ -214,6 +276,10 @@ _SYSTEM_PROPERTIES = [
     "s3_prefix",
     "aws_profile",
     "auto_sync_s3",
+    # MD5 hex digest of the function source code recorded at decoration time.
+    # Used to warn when the function body changes while stale cached values
+    # are still being served.
+    "func_hash",
 ]
 
 
@@ -453,6 +519,8 @@ def _check_valid_cache_property(property_name: str) -> None:
         "aws_profile",
         # Auto-sync to S3 after cache updates.
         "auto_sync_s3",
+        # MD5 hex digest of the function source recorded at decoration time.
+        "func_hash",
     ]
     hdbg.dassert_in(property_name, valid_properties)
 
@@ -1521,6 +1589,11 @@ def reset_mem_cache(func_name: Optional[str] = "") -> None:
         all memory caches (for functions currently in memory).
     """
     _LOG.trace(hprint.func_signature_to_str())
+    # Abort if clearing has been disabled via `enable_clear_cache(False)`.
+    if not _IS_CLEAR_CACHE_ENABLED:
+        raise RuntimeError(
+            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1545,10 +1618,10 @@ def reset_disk_cache(
     If `func_name` is empty or None, reset all discoverable disk cache files:
     - All files in global cache directory matching global prefix
     - All files for functions with custom cache_dir/cache_prefix tracked in
-      _CACHE_PROPERTY
+      `_CACHE_PROPERTY`
 
     Note: This cannot discover orphaned cache files in custom directories
-    for functions not tracked in _CACHE_PROPERTY.
+    for functions not tracked in `_CACHE_PROPERTY`.
 
     :param func_name: The name of the function whose disk cache is to
         be reset. If empty or None, reset all discoverable disk cache files.
@@ -1556,6 +1629,11 @@ def reset_disk_cache(
         resetting the disk cache.
     """
     _LOG.trace(hprint.func_signature_to_str())
+    # Abort if clearing has been disabled via `enable_clear_cache(False)`.
+    if not _IS_CLEAR_CACHE_ENABLED:
+        raise RuntimeError(
+            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1604,10 +1682,10 @@ def reset_cache(func_name: Optional[str] = "", interactive: bool = True) -> None
     - All memory caches (for functions currently in memory)
     - All disk cache files in global cache directory matching global prefix
     - All disk cache files for functions with custom cache_dir/cache_prefix
-      tracked in _CACHE_PROPERTY
+      tracked in `_CACHE_PROPERTY`
 
     Note: This cannot discover orphaned cache files in custom directories
-    for functions not tracked in _CACHE_PROPERTY.
+    for functions not tracked in `_CACHE_PROPERTY`.
 
     :param func_name: The name of the function. If empty or None, reset all
         discoverable caches.
@@ -1615,6 +1693,11 @@ def reset_cache(func_name: Optional[str] = "", interactive: bool = True) -> None
         resetting the disk cache.
     """
     _LOG.trace(hprint.func_signature_to_str())
+    # Abort if clearing has been disabled via `enable_clear_cache(False)`.
+    if not _IS_CLEAR_CACHE_ENABLED:
+        raise RuntimeError(
+            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1705,6 +1788,27 @@ def mock_cache_from_disk(
 
 
 # #############################################################################
+# Function hash utilities.
+# #############################################################################
+
+
+def _compute_func_hash(func: Callable) -> str:
+    """
+    Compute an MD5 hash of the function's source code.
+
+    The hash is used to detect when a cached function's body has changed
+    between sessions so callers can be warned that stale cached values
+    may be served.
+
+    :param func: the function to fingerprint
+    :return: lowercase hex MD5 digest of the source
+    """
+    source = inspect.getsource(func)
+    func_hash = hashlib.md5(source.encode()).hexdigest()
+    return func_hash
+
+
+# #############################################################################
 # Decorator
 # #############################################################################
 
@@ -1783,6 +1887,14 @@ def simple_cache(
         existing_type = get_cache_property(func_name, "type")
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
+        # Store initial function source hash if not already set. Same guard as
+        # `type` above: written once and never overwritten at decoration time,
+        # so cross-session change detection is preserved. Without this, a warm
+        # cache (e.g., populated before `func_hash` was introduced) would have
+        # no hash stored and hits would skip the comparison indefinitely.
+        existing_hash = get_cache_property(func_name, "func_hash")
+        if not existing_hash:
+            set_cache_property(func_name, "func_hash", _compute_func_hash(func))
         # Store caching behavior settings.
         set_cache_property(func_name, "write_through", write_through)
         # Store exclude_keys as empty list if None for consistency.
@@ -1831,6 +1943,14 @@ def simple_cache(
             func_name = getattr(func, "__name__", "unknown_function")
             if func_name.endswith("_intrinsic"):
                 func_name = func_name[: -len("_intrinsic")]
+            # Bypass all caching if globally disabled via `enable_caching(False)`.
+            # This hard override takes precedence over `cache_mode` and all
+            # per-function properties.
+            if not is_caching_enabled():
+                _LOG.warning(
+                    "All caching is disabled: executing '%s' directly", func_name
+                )
+                return func(*args, **kwargs)
             # Get the cache.
             cache = get_cache(func_name)
             # Remove keys that should not be part of the cache key.
@@ -1901,6 +2021,25 @@ def simple_cache(
                     cache_perf["hits"] += 1
                 # Retrieve the value from the cache.
                 value = cache[cache_key]
+                # Warn if the function source has changed since the hash
+                # was last recorded (at decoration time).
+                # TODO(krishna): Cross-machine staleness is not detected. To
+                # support it, the hash would need to be stored per cache entry
+                # (inside the JSON/pickle file alongside the value) rather than
+                # as a single per-function property.
+                stored_hash = get_cache_property(func_name, "func_hash")
+                if stored_hash:
+                    current_hash = _compute_func_hash(func)
+                    if current_hash != stored_hash:
+                        _LOG.warning(
+                            "Function '%s' source code has changed since "
+                            "this value was cached (stored_hash=%s, "
+                            "current_hash=%s). Clear the cache manually "
+                            "if you need fresh results.",
+                            func_name,
+                            stored_hash,
+                            current_hash,
+                        )
             else:
                 _LOG.trace("Cache miss for key='%s'", cache_key)
                 # Update the performance stats.
