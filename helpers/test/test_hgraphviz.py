@@ -3,8 +3,10 @@ from typing import Any, Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import pytest
 from PIL import Image
 
+pytest.importorskip("graphviz")
 import helpers.hgraphviz as hgraphv
 import helpers.hunit_test as hunitest
 
