@@ -9,6 +9,7 @@ import dev_scripts_helpers.remove_escape_chars as dsreesch
 import argparse
 import logging
 
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -23,23 +24,23 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser)
+    hselsio.add_input_output_args(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
+    hselsio.init_logger_for_input_output_transform(args)
     #
-    in_file_name, out_file_name = hparser.parse_input_output_args(
+    in_file_name, out_file_name = hselsio.parse_input_output_args(
         args, clear_screen=False
     )
-    txt = hparser.from_file(in_file_name)
+    txt = hselsio.from_file(in_file_name)
     txt_tmp = "\n".join(txt)
     txt_tmp = hprint.remove_non_printable_chars(txt_tmp)
     txt_tmp = txt_tmp.split("\n")
-    hparser.to_file(txt_tmp, out_file_name)
+    hselsio.to_file(txt_tmp, out_file_name)
 
 
 if __name__ == "__main__":

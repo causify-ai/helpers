@@ -1228,6 +1228,7 @@ def add_llm_args(
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
     import helpers.hmarkdown_select as hmarsele
+
     hmarsele.add_rule_cli_arg(system_prompt_group)
     # Model selection.
     if include_model:

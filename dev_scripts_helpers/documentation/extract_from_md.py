@@ -56,6 +56,7 @@ import os
 
 import helpers.hdbg as hdbg
 import helpers.hmarkdown_select as hmarsele
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -72,7 +73,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     out_default = "-"
-    hparser.add_input_output_args(parser, out_default=out_default)
+    hselsio.add_input_output_args(parser, out_default=out_default)
     hmarsele.add_select_arg(parser, required=True)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -86,9 +87,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     verbose = False
-    hparser.init_logger_for_input_output_transform(args, verbose=verbose)
-    in_file_name, out_file_name = hparser.parse_input_output_args(args)
-    input_content = hparser.from_file(in_file_name)
+    hselsio.init_logger_for_input_output_transform(args, verbose=verbose)
+    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
+    input_content = hselsio.from_file(in_file_name)
     hdbg.dassert_isinstance(
         input_content, list, "input_content must be a list of lines"
     )
@@ -104,7 +105,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     output_content = "\n".join(extracted_lines)
     _LOG.info(f"Extracted {len(extracted_lines)} lines")
-    hparser.to_file(output_content, out_file_name)
+    hselsio.to_file(output_content, out_file_name)
 
 
 if __name__ == "__main__":

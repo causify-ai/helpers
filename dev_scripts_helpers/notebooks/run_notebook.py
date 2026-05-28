@@ -27,6 +27,7 @@ import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hjoblib as hjoblib
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -269,7 +270,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Create the dst dir.
-    dst_dir = hparser.parse_dst_dir_arg(args)
+    dst_dir = hselsio.parse_dst_dir_arg(args)
     # Prepare the workload.
     workload = _get_workload(args)
     # Parse command-line options.

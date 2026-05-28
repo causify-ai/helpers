@@ -36,6 +36,7 @@ import sys
 from typing import Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 import linters.utils as liutils
@@ -323,7 +324,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Action to perform",
     )
-    hparser.add_file_selection_args(parser)
+    hselsio.add_file_selection_args(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -336,7 +337,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
-    files = hparser.parse_file_selection_args(args)
+    files = hselsio.parse_file_selection_args(args)
     hdbg.dassert(
         len(files) > 0,
         "No files selected; use --all, --files, --modified, --branch, --last_commit, or --from_file",

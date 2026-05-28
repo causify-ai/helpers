@@ -48,8 +48,9 @@ import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_select as hmarsele
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
-import helpers.hselect_action as hselsact
+import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -456,8 +457,8 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    hparser.add_input_output_args(parser, out_required=False)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselsio.add_input_output_args(parser, out_required=False)
     parser.add_argument(
         "--md_level",
         type=int,
@@ -499,16 +500,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hparser.parse_verbosity_args(args)
-    in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
     hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
     #
-    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
         "Actions selected:\n%s",
-        hselsact.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
     )
     # Handle summarize action.
-    to_summarize, actions = hselsact.mark_action("summarize", actions)
+    to_summarize, actions = hselacti.mark_action("summarize", actions)
     if to_summarize:
         hdbg.dassert(args.md_level >= 1, "--md_level must be >= 1")
         out_file_name = _prepare_output_file(
@@ -551,7 +552,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _LOG.info("Total LLM cost: $%.6f", total_cost)
         _LOG.info("Summaries written to: %s", out_file_name)
     # Handle lint action after summarization and process the output file.
-    to_lint, actions = hselsact.mark_action("lint", actions)
+    to_lint, actions = hselacti.mark_action("lint", actions)
     if to_lint and not args.test:
         hlint.lint_file(out_file_name)
         _LOG.info("Linting complete: %s", out_file_name)

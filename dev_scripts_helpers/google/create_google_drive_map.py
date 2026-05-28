@@ -62,8 +62,9 @@ from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
-import helpers.hselect_action as hselsact
+import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -101,14 +102,14 @@ def _parse() -> argparse.ArgumentParser:
         help="Directory to save output files (default: current directory)",
     )
     # Add limit range argument.
-    hparser.add_limit_range_arg(parser)
+    hselsio.add_limit_range_arg(parser)
     parser.add_argument(
         "--from_scratch",
         action="store_true",
         help="Delete the output directory before processing",
     )
     # Add actions arguments.
-    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -152,7 +153,7 @@ def _get_directories(
     # Sort alphabetically.
     directories.sort()
     # Apply limit range if specified.
-    directories = hparser.apply_limit_range(
+    directories = hselsio.apply_limit_range(
         directories, limit_range, item_name="directories"
     )
     return directories
@@ -199,7 +200,11 @@ def _create_directory_table(directories: List[str], out_dir: str) -> None:
             "department": "Sales",
             "content": "",
         },
-        "Causify Products": {"owner": "", "department": "Product", "content": ""},
+        "Causify Products": {
+            "owner": "",
+            "department": "Product",
+            "content": "",
+        },
         "Compliance": {
             "owner": "Denis",
             "department": "Compliance",
@@ -442,12 +447,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Get the selected actions.
-    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)
     # Check system requirements.
     _check_system_requirements()
     # Parse limit range if specified.
-    limit_range = hparser.parse_limit_range_args(args)
+    limit_range = hselsio.parse_limit_range_args(args)
     # Get directories to process.
     directories = _get_directories(args.in_dir, limit_range=limit_range)
     hdbg.dassert_lt(0, len(directories), "No directories found to process")

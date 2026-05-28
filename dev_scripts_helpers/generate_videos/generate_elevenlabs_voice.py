@@ -23,6 +23,7 @@ import tqdm
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_slides as hmarslid
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -147,7 +148,7 @@ def _process_slides(
     header_list, _ = hmarslid.extract_slides_from_markdown(lines)
     _LOG.info("Found %s slides in input file", len(header_list))
     # Apply limit range if specified.
-    slides_to_process = hparser.apply_limit_range(
+    slides_to_process = hselsio.apply_limit_range(
         header_list,
         limit_range,
         item_name="slides",
@@ -215,7 +216,7 @@ def _parse() -> argparse.Namespace:
         help="Output directory for generated voice files",
     )
     parser = hparser.add_verbosity_arg(parser)
-    parser = hparser.add_limit_range_arg(parser)
+    parser = hselsio.add_limit_range_arg(parser)
     return parser.parse_args()
 
 
@@ -227,7 +228,7 @@ def _main(args: argparse.Namespace) -> None:
     """
     hdbg.init_logger(verbosity=args.log_level)
     # Parse limit range.
-    limit_range = hparser.parse_limit_range_args(args)
+    limit_range = hselsio.parse_limit_range_args(args)
     # Process slides.
     _process_slides(
         args.in_file,

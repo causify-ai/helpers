@@ -21,6 +21,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser)
+    hselsio.add_input_output_args(parser)
     parser.add_argument(
         "--action",
         action="store",
@@ -47,11 +48,11 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
+    hselsio.init_logger_for_input_output_transform(args)
     # Parse files.
-    in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
     # Read file.
-    txt = hparser.from_file(in_file_name)
+    txt = hselsio.from_file(in_file_name)
     # Transform.
     txt_tmp = "\n".join(txt)
     if args.action == "convert_md_to_latex":
@@ -59,7 +60,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         hdbg.dfatal("Invalid action='%s'", args.action)
     # Write file.
-    hparser.to_file(txt_out.split("\n"), out_file_name)
+    hselsio.to_file(txt_out.split("\n"), out_file_name)
 
 
 if __name__ == "__main__":

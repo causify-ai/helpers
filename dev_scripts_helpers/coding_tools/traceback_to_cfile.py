@@ -23,6 +23,7 @@ import logging
 import sys
 
 import helpers.hio as hio
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -41,7 +42,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     in_default = _NEWEST_LOG_FILE
-    parser = hparser.add_input_output_args(
+    parser = hselsio.add_input_output_args(
         parser, in_default=in_default, out_default="cfile"
     )
     parser = hparser.add_bool_arg(
@@ -56,9 +57,9 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
+    hselsio.init_logger_for_input_output_transform(args)
     # Parse files.
-    in_file_name, out_file_name = hparser.parse_input_output_args(
+    in_file_name, out_file_name = hselsio.parse_input_output_args(
         args, clear_screen=True
     )
     if in_file_name == _NEWEST_LOG_FILE:
@@ -77,7 +78,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if out_file_name != "-":
         hio.delete_file(out_file_name)
     # Read file.
-    txt = hparser.from_file(in_file_name)
+    txt = hselsio.from_file(in_file_name)
     # Transform.
     txt_tmp = "\n".join(txt)
     cfile, traceback = htraceb.parse_traceback(
@@ -90,7 +91,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cfile_as_str = htraceb.cfile_to_str(cfile)
     print(hprint.frame("cfile", char1="-") + "\n" + cfile_as_str)
     # Write file.
-    hparser.to_file(cfile_as_str.split("\n"), out_file_name)
+    hselsio.to_file(cfile_as_str.split("\n"), out_file_name)
 
 
 if __name__ == "__main__":

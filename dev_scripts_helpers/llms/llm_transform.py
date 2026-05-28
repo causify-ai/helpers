@@ -43,6 +43,7 @@ import helpers.hio as hio
 import helpers.hlatex as hlatex
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown as hmarkdo
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -60,7 +61,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(
+    hselsio.add_input_output_args(
         parser,
         in_default="-",
         out_default="-",
@@ -218,7 +219,9 @@ def _get_input_transforms() -> List[Tuple[str, str]]:
     return input_transforms
 
 
-def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> bool:
+def process_transform(
+    prompt: str, in_file_name: str, out_file_name: str
+) -> bool:
     """
     Process a transform that doesn't require LLMs.
 
@@ -235,7 +238,7 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
     if prompt in input_transforms_names:
         # Read the input.
         _LOG.debug("Reading input file: %s", in_file_name)
-        txt = hparser.from_file(in_file_name)
+        txt = hselsio.from_file(in_file_name)
         txt = "\n".join(txt)
         if prompt == "md_to_latex":
             txt = hlatex.convert_pandoc_md_to_latex(txt)
@@ -258,31 +261,35 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
         elif prompt == "slide_add_figure":
             lines = txt.split("\n")
             lines_out = []
-            lines_out.append(hprint.dedent("""
+            lines_out.append(
+                hprint.dedent("""
             ::: columns
             :::: {.column width=50%}
-            """))
+            """)
+            )
             lines_out.extend(lines)
-            lines_out.append(hprint.dedent("""
+            lines_out.append(
+                hprint.dedent("""
             ::::
             :::: {.column width=45%}
             ::::
             :::
-            """))
+            """)
+            )
             txt = "\n".join(lines_out)
             txt = hmarkdo.format_markdown(txt)
         else:
             raise ValueError(f"Invalid prompt='{prompt}'")
         #
         _LOG.debug("Writing output file: %s", out_file_name)
-        hparser.to_file(txt, out_file_name)
+        hselsio.to_file(txt, out_file_name)
         return True
     return False
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args, verbose=False)
+    hselsio.init_logger_for_input_output_transform(args, verbose=False)
     # Handle --list option.
     if args.list:
         print("# Available contexts:")
@@ -307,10 +314,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if done:
         return
     # Parse files.
-    in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
     tag = "llm_transform"
     tmp_in_file_name, tmp_out_file_name = (
-        hparser.adapt_input_output_args_for_dockerized_scripts(args.input, tag)
+        hselsio.adapt_input_output_args_for_dockerized_scripts(args.input, tag)
     )
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
@@ -352,7 +359,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_txt = hio.from_file(tmp_out_file_name)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    hparser.to_file(out_txt, out_file_name)
+    hselsio.to_file(out_txt, out_file_name)
     if os.path.basename(out_file_name) == "cfile":
         print(out_txt)
 

@@ -27,6 +27,7 @@ import os
 
 import helpers.hdbg as hdbg
 import helpers.hjoblib as hjoblib
+import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 
 # This module contains example workloads.
@@ -61,7 +62,7 @@ def _parse() -> argparse.ArgumentParser:
         default=1,
         type=int,
     )
-    # parser = hparser.add_dst_dir_arg(parser, dst_dir_required=True)
+    # parser = hselsio.add_dst_dir_arg(parser, dst_dir_required=True)
     parser = hjoblib.add_parallel_processing_arg(parser)
     parser = hparser.add_verbosity_arg(parser)
     return parser  # type: ignore
@@ -83,7 +84,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         hdbg.dfatal(f"Invalid workload='{args.workload}'")
     # Handle the dst dir.
-    # dst_dir, clean_dst_dir = hparser.parse_dst_dir_arg(args)
+    # dst_dir, clean_dst_dir = hselsio.parse_dst_dir_arg(args)
     # _ = clean_dst_dir
     # Parse command-line options.
     dry_run = args.dry_run
