@@ -810,7 +810,8 @@ class Test_extract_text_from_markdown_lines(hunitest.TestCase):
             lines, None, "Section 1.1"
         )
         # Check outputs: should start from first line but stop before Section 1.1.
-        # TODO(ai_gp): Use self.assert_equal
+        # TODO(ai_gp): Apply .claude/skills/testing.rules.md:663:## Replace Checking Invariants with `assert_equal`
+        # to all functions in the file
         result_text = "\n".join(result)
         self.assertIn("# Chapter 1", result_text)
         self.assertIn("Intro", result_text)

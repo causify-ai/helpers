@@ -236,6 +236,7 @@ def find_header_from_input(
     hdbg.dassert_isinstance(header_input, str, "header_input must be a string")
     hdbg.dassert_ne(header_input, "", "Header input cannot be empty")
     header_input = header_input.strip()
+    header_info = None
     # Check if input is a line number
     if header_input.isdigit():
         line_num = int(header_input)
@@ -243,12 +244,9 @@ def find_header_from_input(
         hdbg.dassert_is_not(
             header_info, None, "No header at line %d", line_num
         )
-        # TODO(ai_gp): Use dassert_isinstance everywhere
-        assert isinstance(header_info, hmarhead.HeaderInfo)
-        # TODO(ai_gp): Have a single return exit.
-        return header_info, header_info.level
+        hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Check if input is slide format (* Title)
-    if header_input.startswith("*"):
+    elif header_input.startswith("*"):
         title = header_input[1:].strip()
         header_info = find_header_by_level_and_prefix(
             header_list, hmarslid.SLIDE_LEVEL, title
@@ -256,10 +254,9 @@ def find_header_from_input(
         hdbg.dassert_is_not(
             header_info, None, "No slide matches: '%s'", header_input
         )
-        assert isinstance(header_info, hmarhead.HeaderInfo)
-        return header_info, header_info.level
+        hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Check if input is full header format (# Title)
-    if header_input.startswith("#"):
+    elif header_input.startswith("#"):
         level, title = parse_header_string(header_input)
         header_info = find_header_by_level_and_prefix(
             header_list, level, title
@@ -267,14 +264,15 @@ def find_header_from_input(
         hdbg.dassert_is_not(
             header_info, None, "No header matches: '%s'", header_input
         )
-        assert isinstance(header_info, hmarhead.HeaderInfo)
-        return header_info, header_info.level
+        hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Default: substring matching
-    header_info = find_header_by_substring_title(header_list, header_input)
-    hdbg.dassert_is_not(
-        header_info, None, "No header matches: '%s'", header_input
-    )
-    assert isinstance(header_info, hmarhead.HeaderInfo)
+    else:
+        header_info = find_header_by_substring_title(header_list, header_input)
+        hdbg.dassert_is_not(
+            header_info, None, "No header matches: '%s'", header_input
+        )
+        hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
+    hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     return header_info, header_info.level
 
 
