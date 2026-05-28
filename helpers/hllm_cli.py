@@ -1084,6 +1084,7 @@ def apply_llm_prompt_to_df(
 #         result = my_function_that_calls_apply_llm()
 #         self.assertEqual(result, expected_value)
 
+
 @contextlib.contextmanager
 def mock_apply_llm():
     """
@@ -1094,6 +1095,7 @@ def mock_apply_llm():
     making an actual LLM call. This avoids expensive API calls and external
     dependencies during testing.
     """
+
     def _mock_apply_llm(
         input_str: str,
         *,

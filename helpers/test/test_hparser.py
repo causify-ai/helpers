@@ -16,7 +16,7 @@ def _create_test_file(file_path: str, *, content: str = "test") -> None:
 
 
 def _make_parser_with_input_output_args(
-    *, in_required: bool = True, out_required: bool = True
+    in_required: bool, out_required: bool
 ) -> argparse.ArgumentParser:
     """
     Create an ArgumentParser with input/output arguments.
@@ -378,7 +378,9 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         Test that non-existent files raise error.
         """
-        args = self._make_namespace_args(files="/nonexistent/file1.txt,/nonexistent/file2.txt")
+        args = self._make_namespace_args(
+            files="/nonexistent/file1.txt,/nonexistent/file2.txt"
+        )
         with self.assertRaises(AssertionError):
             hparser.parse_multi_file_args(args)
 
@@ -563,7 +565,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         Test that FileNotFoundError is raised for non-existent file.
         """
-        args = self._make_io_parser_args(["--from_file", "/nonexistent/path/files.txt"])
+        args = self._make_io_parser_args(
+            ["--from_file", "/nonexistent/path/files.txt"]
+        )
         with self.assertRaises(FileNotFoundError):
             hparser.parse_input_output_files(args)
 
@@ -758,6 +762,7 @@ class Test_to_file(hunitest.TestCase):
 # Test_add_file_type_filter_args
 # #############################################################################
 
+
 class Test_add_file_type_filter_args(hunitest.TestCase):
     """
     Test adding file type filter arguments to parser.
@@ -790,6 +795,8 @@ class Test_add_file_type_filter_args(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Apply .claude/skills/testing.rules.md:328:## Use Helper Methods When You Have Repetitive Tests
+# to this class
 class Test_parse_file_type_filter_args(hunitest.TestCase):
     """
     Test parsing file type filter arguments and filtering files.
@@ -872,7 +879,8 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
 # Test_filter_files_by_extensions
 # #############################################################################
 
-
+# TODO(ai_gp): Apply .claude/skills/testing.rules.md:328:## Use Helper Methods When You Have Repetitive Tests
+# to this class
 class Test_filter_files_by_extensions(hunitest.TestCase):
     """
     Test filtering files by their extensions.

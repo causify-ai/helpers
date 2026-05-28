@@ -136,14 +136,16 @@ class Test_git_submodule2(hunitest.TestCase):
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_group_hashes1(self) -> None:
+        # Prepare inputs.
         head_hash = "a2bfc704"
         remh_hash = "a2bfc704"
         subm_hash = None
         expected = "head_hash = remh_hash = a2bfc704"
-        #
+        # Run test.
         self._helper_group_hashes(head_hash, remh_hash, subm_hash, expected)
 
     def test_group_hashes2(self) -> None:
+        # Prepare inputs.
         head_hash = "22996772"
         remh_hash = "92167662"
         subm_hash = "92167662"
@@ -151,15 +153,16 @@ class Test_git_submodule2(hunitest.TestCase):
         head_hash = 22996772
         remh_hash = subm_hash = 92167662
         """
-        #
+        # Run test.
         self._helper_group_hashes(head_hash, remh_hash, subm_hash, expected)
 
     def test_group_hashes3(self) -> None:
+        # Prepare inputs.
         head_hash = "7ea03eb6"
         remh_hash = "7ea03eb6"
         subm_hash = "7ea03eb6"
         expected = "head_hash = remh_hash = subm_hash = 7ea03eb6"
-        #
+        # Run test.
         self._helper_group_hashes(head_hash, remh_hash, subm_hash, expected)
 
 
@@ -181,19 +184,35 @@ class Test_git_repo_name1(hunitest.TestCase):
 
     def test_parse_github_repo_name1(self) -> None:
         repo_name = "git@github.com:alphamatic/amp"
-        self._helper_parse_github_repo_name(repo_name, "github.com", "alphamatic/amp")
+        expected_host = "github.com"
+        expected_repo = "alphamatic/amp"
+        self._helper_parse_github_repo_name(
+            repo_name, expected_host, expected_repo
+        )
 
     def test_parse_github_repo_name2(self) -> None:
         repo_name = "https://github.com/alphamatic/amp"
-        self._helper_parse_github_repo_name(repo_name, "github.com", "alphamatic/amp")
+        expected_host = "github.com"
+        expected_repo = "alphamatic/amp"
+        self._helper_parse_github_repo_name(
+            repo_name, expected_host, expected_repo
+        )
 
     def test_parse_github_repo_name3(self) -> None:
         repo_name = "git@github.fake.com:alphamatic/amp"
-        self._helper_parse_github_repo_name(repo_name, "github.fake.com", "alphamatic/amp")
+        expected_host = "github.fake.com"
+        expected_repo = "alphamatic/amp"
+        self._helper_parse_github_repo_name(
+            repo_name, expected_host, expected_repo
+        )
 
     def test_parse_github_repo_name4(self) -> None:
         repo_name = "https://github.fake.com/alphamatic/amp"
-        self._helper_parse_github_repo_name(repo_name, "github.fake.com", "alphamatic/amp")
+        expected_host = "github.fake.com"
+        expected_repo = "alphamatic/amp"
+        self._helper_parse_github_repo_name(
+            repo_name, expected_host, expected_repo
+        )
 
     def test_get_repo_full_name_from_dirname1(self) -> None:
         actual = hgit.get_repo_full_name_from_dirname(
@@ -437,6 +456,7 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         """
         branch_name = "CmampTask10725_Add_more_tabs_to_orange_tmux"
         expected = "10725"
+        # Run test.
         self._helper(branch_name, expected)
 
     def test_extract_gh_issue_number_from_branch2(self) -> None:
@@ -445,6 +465,7 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         """
         branch_name = "HelpersTask23_Add_more_tabs_to_orange_tmux"
         expected = "23"
+        # Run test.
         self._helper(branch_name, expected)
 
     def test_extract_gh_issue_number_from_branch3(self) -> None:
@@ -453,6 +474,7 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         """
         branch_name = "CmTask3434"
         expected = "3434"
+        # Run test.
         self._helper(branch_name, expected)
 
     def test_extract_gh_issue_number_from_branch4(self) -> None:
@@ -461,6 +483,7 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         """
         branch_name = "NoTaskNumberHere"
         expected = "None"
+        # Run test.
         self._helper(branch_name, expected)
 
 
@@ -796,8 +819,9 @@ class Test_find_git_root5(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_get_files_to_process1
+# Test_get_files_to_process_files
 # #############################################################################
+
 
 class Test_get_files_to_process_files(hunitest.TestCase):
     """

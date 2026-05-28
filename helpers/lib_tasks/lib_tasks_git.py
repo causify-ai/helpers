@@ -285,7 +285,13 @@ def git_add_all_untracked(ctx):  # type: ignore
 
 @task
 def git_patch_create(  # type: ignore
-    ctx, mode="diff",  files="", from_file="", modified=False, branch=False, last_commit=False,
+    ctx,
+    mode="diff",
+    files="",
+    from_file="",
+    modified=False,
+    branch=False,
+    last_commit=False,
 ):
     """
     Create a patch file for the entire repo_short_name client from the base

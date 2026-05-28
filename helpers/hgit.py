@@ -1613,7 +1613,9 @@ def get_files_to_process(
         )
     )
     # If use_branch_by_default and no option is selected, then use branch = True
-    if use_branch_by_default and not any([files, from_file, modified, branch, last_commit, all_]):
+    if use_branch_by_default and not any(
+        [files, from_file, modified, branch, last_commit, all_]
+    ):
         _LOG.debug("Using branch=True by default")
         branch = True
     if mutually_exclusive:
@@ -1667,7 +1669,9 @@ def get_files_to_process(
         pattern = "*"
         only_files = True
         use_relative_paths = True
-        files_list = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
+        files_list = hio.listdir(
+            dir_name, pattern, only_files, use_relative_paths
+        )
     hdbg.dassert_isinstance(files_list, list)
     files_list = _filter_existing_paths(files_list)
     # Convert into a list.
