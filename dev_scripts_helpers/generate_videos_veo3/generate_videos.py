@@ -56,6 +56,7 @@ import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -431,7 +432,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Global image file to use as reference for all scenes (overrides scene-specific File= entries)",
     )
     hparser.add_verbosity_arg(parser)
-    hparser.add_limit_range_arg(parser)
+    hseinout.add_limit_range_arg(parser)
     return parser
 
 
@@ -467,9 +468,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         0, len(scenes), "No scenes found in input file: %s", args.in_file
     )
     # Parse limit range from command line arguments.
-    limit_range = hparser.parse_limit_range_args(args)
+    limit_range = hseinout.parse_limit_range_args(args)
     # Apply limit range filtering to discovered scenes.
-    scenes = hparser.apply_limit_range(scenes, limit_range, item_name="scenes")
+    scenes = hseinout.apply_limit_range(scenes, limit_range, item_name="scenes")
     # Generate videos for all scenes.
     generated_files = _generate_videos_from_scenes(
         client, scenes, args.low_res, args.dry_run, image_file=args.image_file

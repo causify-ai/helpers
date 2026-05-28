@@ -37,6 +37,7 @@ import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hdocker as hdocker
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
@@ -845,7 +846,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Path to the output file",
     )
     # Add multi-file arguments.
-    hparser.add_multi_file_args(parser)
+    hseinout.add_multi_file_args(parser)
     # Add actions arguments.
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
@@ -965,9 +966,9 @@ def _process_single_file_remove_figs(
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
+    hseinout.init_logger_for_input_output_transform(args)
     # Get list of input files using multi-file parsing.
-    in_files = hparser.parse_multi_file_args(args)
+    in_files = hseinout.parse_multi_file_args(args)
     # Initialize output file.
     out_file = ""
     # Handle output file for multi-file mode.

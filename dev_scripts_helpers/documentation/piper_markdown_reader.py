@@ -28,6 +28,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown_select as hmarsele
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -80,7 +81,7 @@ def _extract_markdown_section(
     :return: processed content of the extracted section
     """
     # Read, process, write back file.
-    lines = hparser.from_file(file_path)
+    lines = hseinout.from_file(file_path)
     extracted_lines = hmarsele.extract_text_from_markdown_lines(
         lines, md_start, md_end
     )

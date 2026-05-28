@@ -62,6 +62,7 @@ from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
@@ -101,7 +102,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Directory to save output files (default: current directory)",
     )
     # Add limit range argument.
-    hparser.add_limit_range_arg(parser)
+    hseinout.add_limit_range_arg(parser)
     parser.add_argument(
         "--from_scratch",
         action="store_true",
@@ -152,7 +153,7 @@ def _get_directories(
     # Sort alphabetically.
     directories.sort()
     # Apply limit range if specified.
-    directories = hparser.apply_limit_range(
+    directories = hseinout.apply_limit_range(
         directories, limit_range, item_name="directories"
     )
     return directories
@@ -451,7 +452,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Check system requirements.
     _check_system_requirements()
     # Parse limit range if specified.
-    limit_range = hparser.parse_limit_range_args(args)
+    limit_range = hseinout.parse_limit_range_args(args)
     # Get directories to process.
     directories = _get_directories(args.in_dir, limit_range=limit_range)
     hdbg.dassert_lt(0, len(directories), "No directories found to process")

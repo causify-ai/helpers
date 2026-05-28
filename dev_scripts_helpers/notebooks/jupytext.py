@@ -36,6 +36,7 @@ import sys
 from typing import Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 import linters.utils as liutils
@@ -45,6 +46,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Pair
 # #############################################################################
+
 
 def _pair(file_name: str) -> None:
     """
@@ -85,9 +87,11 @@ def _pair(file_name: str) -> None:
     _LOG.info("Execute '%s'", cmd)
     hsystem.system(cmd)
 
+
 # #############################################################################
 # Sync
 # #############################################################################
+
 
 def _sync(file_name: str) -> None:
     """
@@ -111,9 +115,11 @@ def _sync(file_name: str) -> None:
     else:
         _LOG.warning("The file '%s' is not paired: run --pair", file_name)
 
+
 # #############################################################################
 # Test
 # #############################################################################
+
 
 def _is_jupytext_version_different(output_txt: str) -> bool:
     """
@@ -151,27 +157,6 @@ def _is_jupytext_version_different(output_txt: str) -> bool:
     return ret
 
 
-def _test(file_name: str, action: str) -> bool:
-    """
-    Test if notebook and paired Python file are in sync.
-
-    :param file_name: Path to .ipynb or .py file to test
-    :param action: Action type (not currently used)
-    :return: True if files are in sync, False otherwise
-    """
-    if liutils.is_ipynb_file(file_name):
-        ipynb_file = file_name
-    else:
-        ipynb_file = liutils.from_python_to_ipynb_file(file_name)
-    in_sync, _ = _is_notebook_in_sync(ipynb_file)
-    if not in_sync:
-        _LOG.warning(
-            "Notebook '%s' and paired .py file are NOT in sync",
-            ipynb_file,
-        )
-    return in_sync
-
-
 # #############################################################################
 # Diff
 # #############################################################################
@@ -201,29 +186,22 @@ def _find_paired_file(file_path: str) -> str:
     return paired_file
 
 
-def _report_newer_file(file1: str, file2: str) -> None:
+def _extract_python_from_notebook(ipynb_file: str) -> str:
     """
-    Report which file is newer based on modification time.
+    Extract Python code from notebook to temporary file.
 
-    :param file1: First file path
-    :param file2: Second file path
+    :param ipynb_file: Path to .ipynb file
+    :return: Path to temporary Python file
     """
-    mtime1 = os.path.getmtime(file1)
-    mtime2 = os.path.getmtime(file2)
-    timestamp1 = datetime.datetime.fromtimestamp(mtime1).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-    timestamp2 = datetime.datetime.fromtimestamp(mtime2).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-    _LOG.info("File: %s - Modified: %s", file1, timestamp1)
-    _LOG.info("File: %s - Modified: %s", file2, timestamp2)
-    if mtime1 > mtime2:
-        _LOG.info("Newer file: %s", file1)
-    elif mtime2 > mtime1:
-        _LOG.info("Newer file: %s", file2)
-    else:
-        _LOG.info("Files have the same modification time")
+    # Generate a descriptive temp file name to aid debugging.
+    base_name = os.path.basename(ipynb_file)
+    tmp_file = f"tmp.jupytext_diff.{base_name[:-6]}.py"
+    # Convert notebook to py:percent format for comparison with paired .py file.
+    cmd = f"jupytext --to py:percent {ipynb_file} -o {tmp_file}"
+    _LOG.info("Execute '%s'", cmd)
+    hsystem.system(cmd)
+    _LOG.info("Extracted Python code to: %s", tmp_file)
+    return tmp_file
 
 
 def _is_notebook_in_sync(ipynb_file: str) -> Tuple[bool, str]:
@@ -252,22 +230,50 @@ def _is_notebook_in_sync(ipynb_file: str) -> Tuple[bool, str]:
     return in_sync, tmp_py_file
 
 
-def _extract_python_from_notebook(ipynb_file: str) -> str:
+def _test(file_name: str, action: str) -> bool:
     """
-    Extract Python code from notebook to temporary file.
+    Test if notebook and paired Python file are in sync.
 
-    :param ipynb_file: Path to .ipynb file
-    :return: Path to temporary Python file
+    :param file_name: Path to .ipynb or .py file to test
+    :param action: Action type (not currently used)
+    :return: True if files are in sync, False otherwise
     """
-    # Generate a descriptive temp file name to aid debugging.
-    base_name = os.path.basename(ipynb_file)
-    tmp_file = f"tmp.jupytext_diff.{base_name[:-6]}.py"
-    # Convert notebook to py:percent format for comparison with paired .py file.
-    cmd = f"jupytext --to py:percent {ipynb_file} -o {tmp_file}"
-    _LOG.info("Execute '%s'", cmd)
-    hsystem.system(cmd)
-    _LOG.info("Extracted Python code to: %s", tmp_file)
-    return tmp_file
+    if liutils.is_ipynb_file(file_name):
+        ipynb_file = file_name
+    else:
+        ipynb_file = liutils.from_python_to_ipynb_file(file_name)
+    in_sync, _ = _is_notebook_in_sync(ipynb_file)
+    if not in_sync:
+        _LOG.warning(
+            "Notebook '%s' and paired .py file are NOT in sync",
+            ipynb_file,
+        )
+    return in_sync
+
+
+def _report_newer_file(file1: str, file2: str) -> None:
+    """
+    Report which file is newer based on modification time.
+
+    :param file1: First file path
+    :param file2: Second file path
+    """
+    mtime1 = os.path.getmtime(file1)
+    mtime2 = os.path.getmtime(file2)
+    timestamp1 = datetime.datetime.fromtimestamp(mtime1).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    timestamp2 = datetime.datetime.fromtimestamp(mtime2).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    _LOG.info("File: %s - Modified: %s", file1, timestamp1)
+    _LOG.info("File: %s - Modified: %s", file2, timestamp2)
+    if mtime1 > mtime2:
+        _LOG.info("Newer file: %s", file1)
+    elif mtime2 > mtime1:
+        _LOG.info("Newer file: %s", file2)
+    else:
+        _LOG.info("Files have the same modification time")
 
 
 def _run_vimdiff(file1: str, file2: str) -> None:
@@ -323,7 +329,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Action to perform",
     )
-    hparser.add_file_selection_args(parser)
+    hseinout.add_file_selection_args(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -336,7 +342,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
-    files = hparser.parse_file_selection_args(args)
+    files = hseinout.parse_file_selection_args(args)
     hdbg.dassert(
         len(files) > 0,
         "No files selected; use --all, --files, --modified, --branch, --last_commit, or --from_file",

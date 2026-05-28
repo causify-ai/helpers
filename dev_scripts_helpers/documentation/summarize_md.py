@@ -48,6 +48,7 @@ import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_select as hmarsele
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
@@ -457,7 +458,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    hparser.add_input_output_args(parser, out_required=False)
+    hseinout.add_input_output_args(parser, out_required=False)
     parser.add_argument(
         "--md_level",
         type=int,
@@ -499,7 +500,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hparser.parse_verbosity_args(args)
-    in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
     #
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)

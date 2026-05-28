@@ -57,6 +57,7 @@ import sys
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -105,9 +106,7 @@ def _parse_file_extensions(
         # Use all standard extensions minus skipped ones
         all_extensions = {"py", "ipynb", "md", "txt"}
         skip_extensions = {
-            ext.strip()
-            for ext in skip_file_types_str.split(",")
-            if ext.strip()
+            ext.strip() for ext in skip_file_types_str.split(",") if ext.strip()
         }
         return list(all_extensions - skip_extensions)
     else:
@@ -431,9 +430,9 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     # File selection arguments using hparser helper.
-    hparser.add_file_selection_args(parser)
+    hseinout.add_file_selection_args(parser)
     # File type filters using hparser helper.
-    hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+    hseinout.add_file_type_filter_args(parser, file_types_default="py,ipynb")
     # Other options.
     parser.add_argument(
         "--action",
@@ -475,7 +474,7 @@ def _main(args: argparse.Namespace) -> int:
     """
     hdbg.init_logger(args.log_level)
     # Get files based on selection mode using hparser helper.
-    file_paths = hparser.parse_file_selection_args(args, remove_dirs=False)
+    file_paths = hseinout.parse_file_selection_args(args, remove_dirs=False)
     if not file_paths:
         _LOG.warning("No files matched the selection criteria")
         return 0
