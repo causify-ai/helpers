@@ -31,6 +31,7 @@ Examples:
 > lint_cc.py --skill coding.fix_inline --files "file.py"
 
 # Execute a rule on a single file:
+# TODO(ai_gp2): Explain more of --rule based on its help
 # E.g., --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions"
 > lint_cc.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
 
@@ -233,6 +234,7 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     return txt, topic_info
 
 
+# TODO(ai_gp2): Move to hmarkdown_extract.py
 def _find_skill(skill_match: str) -> str:
     """
     Find the full skill name by searching with `mdm skill f`.
@@ -253,9 +255,11 @@ def _find_skill(skill_match: str) -> str:
         ", ".join(matches),
     )
     full_skill_name = matches[0]
+    hdbg.dassert_file_exists(full_skill_name)
     return full_skill_name
 
 
+# TODO(ai_gp2): Inline this
 def _extract_rule(rule_spec: str) -> str:
     """
     Extract a rule section from a rules file.
@@ -330,6 +334,7 @@ def _parse() -> argparse.ArgumentParser:
         default=None,
         help="Execute a skill on selected files. E.g., `coding.fix_inline`",
     )
+    # TODO(ai_gp2): Use add_rule_cli_arg from hmarkdown_select.py
     parser.add_argument(
         "--rule",
         type=str,

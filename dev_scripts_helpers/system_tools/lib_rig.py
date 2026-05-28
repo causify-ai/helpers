@@ -86,6 +86,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         action="store_true",
         help="Search for Python class/def definitions",
     )
+    # This can't use hmarkdown_select.py functions since it's called by that.
     parser.add_argument(
         "--rule",
         dest="rule_mode",

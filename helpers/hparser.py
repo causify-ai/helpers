@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hmarkdown_extract as hmextr
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -1285,7 +1286,7 @@ def parse_multi_file_args(
 # #############################################################################
 
 
-# TODO(ai_gp): Replace this with the more general parsing logic below.
+# TODO(ai_gp): Replace this with the more general parsing logic add_llm_args.
 def add_llm_prompt_arg(
     parser: argparse.ArgumentParser,
     *,
@@ -1392,19 +1393,7 @@ def add_llm_args(
         dest="system_prompt_file",
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
-    system_prompt_group.add_argument(
-        "-r",
-        "--rule",
-        type=str,
-        default=None,
-        dest="rule",
-        help=(
-            "Rule specification used as system prompt. Formats: "
-            "'path/to/rules.md' (whole file), "
-            "'path/to/rules.md:LINE' (header section at LINE), "
-            "'path/to/rules.md:LINE:# Section Name' (with name validation)"
-        ),
-    )
+    hmextr.add_rule_cli_arg(system_prompt_group)
     # Model selection.
     if include_model:
         parser.add_argument(
