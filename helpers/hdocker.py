@@ -570,7 +570,7 @@ def get_docker_mount_info(
             # For sibling containers, we need to get the Git root on the host.
             caller_mount_path = get_host_git_root()
         else:
-            # For children containers (or CI), use the local Git root inside
+            # For children containers, use the local Git root inside
             # this container.
             caller_mount_path = hgit.find_git_root()
     # The target mount path is always `/app` inside the Docker container.
