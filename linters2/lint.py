@@ -105,9 +105,7 @@ def _parse_file_extensions(
         # Use all standard extensions minus skipped ones
         all_extensions = {"py", "ipynb", "md", "txt"}
         skip_extensions = {
-            ext.strip()
-            for ext in skip_file_types_str.split(",")
-            if ext.strip()
+            ext.strip() for ext in skip_file_types_str.split(",") if ext.strip()
         }
         return list(all_extensions - skip_extensions)
     else:
