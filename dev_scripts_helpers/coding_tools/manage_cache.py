@@ -31,7 +31,7 @@ import logging
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import helpers.hselect_action as hselsact
+import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -120,24 +120,24 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Execute selected actions.
-    if hselsact.mark_action("clear_all", actions):
+    if hselacti.mark_action("clear_all", actions):
         _LOG.info("Clearing all caches (memory + disk)...")
         hcacsimp.reset_cache(interactive=False)
-    if hselsact.mark_action("clear_mem", actions):
+    if hselacti.mark_action("clear_mem", actions):
         _LOG.info("Clearing memory cache...")
         hcacsimp.reset_mem_cache()
-    if hselsact.mark_action("clear_disk", actions):
+    if hselacti.mark_action("clear_disk", actions):
         _LOG.info("Clearing disk cache...")
         hcacsimp.reset_disk_cache(interactive=False)
-    if hselsact.mark_action("print_info", actions):
+    if hselacti.mark_action("print_info", actions):
         txt = hcacsimp.cache_stats_to_str()
         if txt is not None:
             print(txt.to_string())
         else:
             _LOG.info("No cached functions found.")
-    if hselsact.mark_action("test", actions):
+    if hselacti.mark_action("test", actions):
         _run_smoke_test()
 
 

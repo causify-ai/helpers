@@ -102,7 +102,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         nargs="?",
         const="_default_",
         default=None,
-        help="Search for TODO(<string>) patterns (optional <string> parameter"
+        help="Search for TODO(<string>) patterns (optional <string> parameter",
     )
     parser.add_argument(
         "--cfile",

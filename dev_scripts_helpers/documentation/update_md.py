@@ -70,7 +70,7 @@ import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
-import helpers.hselect_action as hselsact
+import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
@@ -453,7 +453,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_multi_file_args(parser)
-    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
         "-m",
         "--model",
@@ -481,7 +481,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Get selected actions.
-    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Ensure at least one action is specified.
     hdbg.dassert(
         len(actions) > 0,

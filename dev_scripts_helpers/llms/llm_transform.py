@@ -218,7 +218,9 @@ def _get_input_transforms() -> List[Tuple[str, str]]:
     return input_transforms
 
 
-def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> bool:
+def process_transform(
+    prompt: str, in_file_name: str, out_file_name: str
+) -> bool:
     """
     Process a transform that doesn't require LLMs.
 
@@ -258,17 +260,21 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
         elif prompt == "slide_add_figure":
             lines = txt.split("\n")
             lines_out = []
-            lines_out.append(hprint.dedent("""
+            lines_out.append(
+                hprint.dedent("""
             ::: columns
             :::: {.column width=50%}
-            """))
+            """)
+            )
             lines_out.extend(lines)
-            lines_out.append(hprint.dedent("""
+            lines_out.append(
+                hprint.dedent("""
             ::::
             :::: {.column width=45%}
             ::::
             :::
-            """))
+            """)
+            )
             txt = "\n".join(lines_out)
             txt = hmarkdo.format_markdown(txt)
         else:

@@ -238,8 +238,6 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     return txt, topic_info
 
 
-
-
 def _run_claude_code(
     prompt: str,
     topic: str,

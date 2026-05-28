@@ -97,6 +97,7 @@ def parse_verbosity_args(
 
 # TODO(ai_gp): -> helpers/hselect_input_output.py
 
+
 def add_file_selection_args(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
@@ -1043,6 +1044,7 @@ def str_to_bool(value: str) -> bool:
 
 # TODO(ai_gp): -> helpers/hdocker.py
 
+
 def add_dockerized_script_arg(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
@@ -1191,6 +1193,7 @@ def apply_limit_range(
 
 # TODO(ai_gp): -> helpers/hselect_input_output.py
 
+
 # TODO(gp): Merge with input_output_args and / or add_file_selection_args?
 def add_multi_file_args(
     parser: argparse.ArgumentParser,
@@ -1298,6 +1301,7 @@ def parse_multi_file_args(
 # #############################################################################
 
 # TODO(ai_gp): -> hllm_cli.py
+
 
 # TODO(ai_gp): Replace this with the more general parsing logic add_llm_args.
 def add_llm_prompt_arg(
@@ -1407,6 +1411,7 @@ def add_llm_args(
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
     import helpers.hmarkdown_select as hmarsele
+
     hmarsele.add_rule_cli_arg(system_prompt_group)
     # Model selection.
     if include_model:
@@ -1447,6 +1452,7 @@ def add_llm_args(
 # #############################################################################
 
 # TODO(ai_gp): -> helpers/hselect_input_output.py
+
 
 def add_file_type_filter_args(
     parser: argparse.ArgumentParser,

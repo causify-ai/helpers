@@ -34,7 +34,7 @@ import requests
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
-import helpers.hselect_action as hselsact
+import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
@@ -330,7 +330,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser, in_required=True, out_required=False)
-    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Humanization options.
     parser.add_argument(
         "--readability",
@@ -378,7 +378,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Get API key.
     api_key = _get_api_key()
     # Select actions to run.
-    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)
     # Run actions.
     for action in actions:

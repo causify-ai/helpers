@@ -586,12 +586,13 @@ def add_rule_cli_arg(
         dest="rule",
         help=(
             hprint.dedent(
-            """
+                """
             Rule specification used as system prompt. Formats:
             - 'path/to/rules.md': whole file
             - 'path/to/rules.md:LINE': header section at LINE
             - 'path/to/rules.md:LINE:# Section Name': with name validation
-            - 'dassert': a single result of rigrule""")
+            - 'dassert': a single result of rigrule"""
+            )
         ),
     )
     return group

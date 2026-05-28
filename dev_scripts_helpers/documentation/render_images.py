@@ -38,7 +38,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
-import helpers.hselect_action as hselsact
+import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -847,7 +847,7 @@ def _parse() -> argparse.ArgumentParser:
     # Add multi-file arguments.
     hparser.add_multi_file_args(parser)
     # Add actions arguments.
-    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
         "--dst_dir",
         type=str,
@@ -1014,7 +1014,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         # Standard rendering mode.
         # Get the selected actions.
-        actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+        actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
         _LOG.info("Selected actions: %s", actions)
         for in_file in iterator:
             # For multi-file mode, compute dst_dir per file if using default.

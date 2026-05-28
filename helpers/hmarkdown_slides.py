@@ -9,8 +9,8 @@ import re
 from typing import Any, Callable, List, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.hmarkdown_comments as hmcomments
-import helpers.hmarkdown_headers as hmheaders
+import helpers.hmarkdown_comments as hmarcomm
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ SLIDE_LEVEL = 5
 
 def extract_slides_from_markdown(
     lines: List[str],
-) -> Tuple[hmheaders.HeaderList, int]:
+) -> Tuple[hmarhead.HeaderList, int]:
     """
     Extract slides (i.e., sections prepended by `*`) from Markdown file and
     return an `HeaderList`.
@@ -41,19 +41,19 @@ def extract_slides_from_markdown(
         - last line number of the file, e.g., '100'
     """
     hdbg.dassert_isinstance(lines, list)
-    header_list: hmheaders.HeaderList = []
+    header_list: hmarhead.HeaderList = []
     # Process the input file to extract headers.
     for line_number, line in enumerate(lines, start=1):
         _LOG.debug("%d: %s", line_number, line)
         # TODO(gp): Use the iterator.
         # Skip the visual separators.
-        if hmheaders.is_markdown_line_separator(line):
+        if hmarhead.is_markdown_line_separator(line):
             continue
         # Get the header level and title.
         m = re.match(r"^\* (.*)$", line)
         if m:
             title = m.group(1)
-            header_info = hmheaders.HeaderInfo(1, title, line_number)
+            header_info = hmarhead.HeaderInfo(1, title, line_number)
             header_list.append(header_info)
     last_line_number = len(lines)
     # Return results.
@@ -92,7 +92,9 @@ def process_slides(txt: str, transform: Callable[..., Any]) -> str:
     for i, line in enumerate(lines):
         _LOG.debug("%s:line='%s'", i, line)
         # 1) Remove comment block.
-        do_continue, in_skip_block = hmcomments.process_comment_block(line, in_skip_block)
+        do_continue, in_skip_block = hmarcomm.process_comment_block(
+            line, in_skip_block
+        )
         if _TRACE:
             _LOG.debug(" -> %s", hprint.to_str("do_continue in_skip_block"))
         if do_continue:

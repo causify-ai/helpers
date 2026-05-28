@@ -24,7 +24,7 @@ import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
-import helpers.hselect_action as hselsact
+import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.htext_protect as htexprot
@@ -790,7 +790,7 @@ def _parser() -> argparse.ArgumentParser:
         default=False,
         help="Revert a file from its backup copy",
     )
-    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -812,9 +812,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _revert_from_backup(in_file_name)
         return
     # Print actions (once for all files).
-    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
-    actions_as_str = hselsact.actions_to_string(
+    actions_as_str = hselacti.actions_to_string(
         actions, _VALID_ACTIONS, add_frame
     )
     _LOG.info("\n%s", actions_as_str)

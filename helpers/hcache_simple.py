@@ -706,6 +706,129 @@ def _extract_func_names_from_cache_files(
     return func_names
 
 
+# #############################################################################
+# Disk cache.
+# #############################################################################
+
+# Functions to save and retrieve cache from disk.
+# ```
+# {
+#     "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"10 + 15\", \"gpt-5-nano\"], \"kwargs\": {}}": [
+#         "25",
+#         3.195e-05
+#     ],
+#     "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"2 + 3\", \"gpt-5-nano\"], \"kwargs\": {}}": [
+#         "5",
+#         3.195e-05
+#     ]
+# }
+# ```
+
+
+def _get_cache_file_name(func_name: str) -> str:
+    """
+    Get the cache file name for a given function.
+
+    The function returns the full cache file path including the local
+    directory, configured globally or per-function.
+
+    :param func_name: the name of the function
+    :return: the cache file name with appropriate extension
+    """
+    _LOG.trace("func_name='%s'", func_name)
+    hdbg.dassert_isinstance(func_name, str)
+    # Check for per-function cache dir, otherwise use global.
+    func_cache_dir = get_cache_property(func_name, "cache_dir")
+    if func_cache_dir:
+        cache_dir = func_cache_dir
+    else:
+        cache_dir = get_cache_dir()
+    # Check for per-function cache file prefix, otherwise use global.
+    func_cache_prefix = get_cache_property(func_name, "cache_prefix")
+    if func_cache_prefix:
+        prefix = func_cache_prefix
+    else:
+        prefix = get_cache_file_prefix()
+    file_name = os.path.join(cache_dir, f"{prefix}.{func_name}")
+    cache_type = get_cache_property(func_name, "type")
+    _LOG.trace(hprint.to_str("cache_type"))
+    if cache_type == "pickle":
+        file_name += ".pkl"
+    elif cache_type == "json":
+        file_name += ".json"
+    elif cache_type is None:
+        # Try to infer cache type from existing files.
+        if os.path.exists(file_name + ".pkl"):
+            file_name += ".pkl"
+        elif os.path.exists(file_name + ".json"):
+            file_name += ".json"
+        else:
+            # Default to json if no file exists.
+            file_name += ".json"
+    else:
+        raise ValueError(f"Invalid cache type '{cache_type}'")
+    return file_name
+
+
+def _list_s3_cached_func_names(
+    bucket: str,
+    prefix: Optional[str],
+    aws_profile: str,
+) -> List[str]:
+    """
+    List names of functions cached in S3 bucket.
+
+    :param bucket: S3 bucket path (e.g., "s3://my-bucket")
+    :param prefix: S3 prefix path (e.g., "cache/shared")
+    :param aws_profile: AWS profile name
+    :return: names of functions cached in S3 bucket
+    """
+    # Build S3 directory path.
+    if prefix:
+        s3_dir = f"{bucket}/{prefix}"
+    else:
+        s3_dir = bucket
+    # List files in S3 directory.
+    try:
+        s3_files = hs3.listdir(
+            s3_dir,
+            pattern="*",
+            only_files=True,
+            use_relative_paths=False,
+            aws_profile=aws_profile,
+        )
+    except Exception as e:
+        _LOG.warning("Failed to list S3 directory '%s': %s", s3_dir, e)
+        return []
+    # Collect all valid cache file prefixes.
+    valid_prefixes = _get_valid_cache_prefixes()
+    # Extract function names from S3 file names.
+    func_names = _extract_func_names_from_cache_files(s3_files, valid_prefixes)
+    out = sorted(func_names)
+    return out
+
+
+def _check_s3_configured(func_name: Optional[str] = None) -> bool:
+    """
+    Check if S3 is properly configured.
+
+    :param func_name: the name of the function to check per-function S3
+        settings
+    :return: True if S3 is configured, False otherwise
+    """
+    # Check if per-function S3 bucket is defined.
+    if func_name:
+        func_s3_bucket = get_cache_property(func_name, "s3_bucket")
+        if func_s3_bucket:
+            return True
+    # Check if global bucket is defined.
+    bucket = get_s3_bucket()
+    if bucket is None:
+        _LOG.warning("S3 bucket not configured - use set_s3_bucket()")
+        return False
+    return True
+
+
 def get_cached_func_names(type_: str) -> List[str]:
     """
     Retrieve the function names cached with the specified type.
@@ -907,70 +1030,6 @@ def get_cache_perf_stats(func_name: str) -> str:
     return txt
 
 
-# #############################################################################
-# Disk cache.
-# #############################################################################
-
-# Functions to save and retrieve cache from disk.
-# ```
-# {
-#     "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"10 + 15\", \"gpt-5-nano\"], \"kwargs\": {}}": [
-#         "25",
-#         3.195e-05
-#     ],
-#     "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"2 + 3\", \"gpt-5-nano\"], \"kwargs\": {}}": [
-#         "5",
-#         3.195e-05
-#     ]
-# }
-# ```
-
-
-def _get_cache_file_name(func_name: str) -> str:
-    """
-    Get the cache file name for a given function.
-
-    The function returns the full cache file path including the local
-    directory, configured globally or per-function.
-
-    :param func_name: the name of the function
-    :return: the cache file name with appropriate extension
-    """
-    _LOG.trace("func_name='%s'", func_name)
-    hdbg.dassert_isinstance(func_name, str)
-    # Check for per-function cache dir, otherwise use global.
-    func_cache_dir = get_cache_property(func_name, "cache_dir")
-    if func_cache_dir:
-        cache_dir = func_cache_dir
-    else:
-        cache_dir = get_cache_dir()
-    # Check for per-function cache file prefix, otherwise use global.
-    func_cache_prefix = get_cache_property(func_name, "cache_prefix")
-    if func_cache_prefix:
-        prefix = func_cache_prefix
-    else:
-        prefix = get_cache_file_prefix()
-    file_name = os.path.join(cache_dir, f"{prefix}.{func_name}")
-    cache_type = get_cache_property(func_name, "type")
-    _LOG.trace(hprint.to_str("cache_type"))
-    if cache_type == "pickle":
-        file_name += ".pkl"
-    elif cache_type == "json":
-        file_name += ".json"
-    elif cache_type is None:
-        # Try to infer cache type from existing files.
-        if os.path.exists(file_name + ".pkl"):
-            file_name += ".pkl"
-        elif os.path.exists(file_name + ".json"):
-            file_name += ".json"
-        else:
-            # Default to json if no file exists.
-            file_name += ".json"
-    else:
-        raise ValueError(f"Invalid cache type '{cache_type}'")
-    return file_name
-
-
 def _save_cache_dict_to_disk(
     func_name: str, func_cache_data: _FunctionCacheType
 ) -> None:
@@ -1130,65 +1189,6 @@ def _extract_func_name_from_cache_file(cache_file_name: str) -> Optional[str]:
     return None
 
 
-def _list_s3_cached_func_names(
-    bucket: str,
-    prefix: Optional[str],
-    aws_profile: str,
-) -> List[str]:
-    """
-    List names of functions cached in S3 bucket.
-
-    :param bucket: S3 bucket path (e.g., "s3://my-bucket")
-    :param prefix: S3 prefix path (e.g., "cache/shared")
-    :param aws_profile: AWS profile name
-    :return: names of functions cached in S3 bucket
-    """
-    # Build S3 directory path.
-    if prefix:
-        s3_dir = f"{bucket}/{prefix}"
-    else:
-        s3_dir = bucket
-    # List files in S3 directory.
-    try:
-        s3_files = hs3.listdir(
-            s3_dir,
-            pattern="*",
-            only_files=True,
-            use_relative_paths=False,
-            aws_profile=aws_profile,
-        )
-    except Exception as e:
-        _LOG.warning("Failed to list S3 directory '%s': %s", s3_dir, e)
-        return []
-    # Collect all valid cache file prefixes.
-    valid_prefixes = _get_valid_cache_prefixes()
-    # Extract function names from S3 file names.
-    func_names = _extract_func_names_from_cache_files(s3_files, valid_prefixes)
-    out = sorted(func_names)
-    return out
-
-
-def _check_s3_configured(func_name: Optional[str] = None) -> bool:
-    """
-    Check if S3 is properly configured.
-
-    :param func_name: the name of the function to check per-function S3
-        settings
-    :return: True if S3 is configured, False otherwise
-    """
-    # Check if per-function S3 bucket is defined.
-    if func_name:
-        func_s3_bucket = get_cache_property(func_name, "s3_bucket")
-        if func_s3_bucket:
-            return True
-    # Check if global bucket is defined.
-    bucket = get_s3_bucket()
-    if bucket is None:
-        _LOG.warning("S3 bucket not configured - use set_s3_bucket()")
-        return False
-    return True
-
-
 def _upload_cache_to_s3(func_name: str) -> None:
     """
     Upload a cache file to S3.
@@ -1255,7 +1255,9 @@ def _download_cache_from_s3(func_name: str) -> bool:
         # Try both .json and .pkl extensions.
         for ext_type in ["json", "pickle"]:
             # Build S3 path for this type.
-            s3_path_candidate = _build_s3_cache_path_for_type(func_name, ext_type)
+            s3_path_candidate = _build_s3_cache_path_for_type(
+                func_name, ext_type
+            )
             if s3fs_.exists(s3_path_candidate):
                 # Set type property and use this path.
                 cache_type = ext_type
@@ -1295,6 +1297,113 @@ def _download_cache_from_s3(func_name: str) -> bool:
     return True
 
 
+# #############################################################################
+# Stats.
+# #############################################################################
+
+
+def cache_stats_to_str(
+    func_name: Optional[str] = "",
+) -> Optional["pd.DataFrame"]:  # noqa: F821
+    """
+    Print the cache stats.
+
+    If `func_name` is empty or None, returns stats for all functions with local cache
+    (mem + disk).
+
+    E.g.,
+    ```
+    find_email:
+      memory: -
+      disk: 1044
+
+    verify_email:
+      memory: -
+      disk: 2322
+    ```
+    """
+    # We want to limit the dependency from pandas in the cache.
+    import pandas as pd
+
+    # Handle None as empty string.
+    if func_name is None:
+        func_name = ""
+    if func_name == "":
+        result = []
+        for func_name_tmp in get_cached_func_names("local"):
+            result_tmp = cache_stats_to_str(func_name_tmp)
+            result.append(result_tmp)
+        if result:
+            result = pd.concat(result)
+        else:
+            result = None
+        return result
+    result = {}
+    # Memory cache.
+    if func_name in _CACHE:
+        result["memory"] = len(_CACHE[func_name])
+    else:
+        result["memory"] = "-"
+    # Disk cache.
+    file_name = _get_cache_file_name(func_name)
+    if os.path.exists(file_name):
+        disk_cache = get_disk_cache(func_name)
+        result["disk"] = len(disk_cache)
+    else:
+        result["disk"] = "-"
+    result = pd.Series(result).to_frame().T
+    result.index = [func_name]
+    return result
+
+
+def get_mem_cache(func_name: str) -> _FunctionCacheType:
+    """
+    Retrieve the memory cache for a given function.
+
+    :param func_name: the name of the function
+    :return: memory cache data
+    """
+    mem_cache = _CACHE.get(func_name, {})
+    return mem_cache
+
+
+def flush_cache_to_disk(func_name: Optional[str] = "") -> None:
+    """
+    Flush the memory cache to disk and update the memory cache.
+
+    This merges memory cache with disk cache (memory takes precedence)
+    and saves to disk, then updates memory with the merged result.
+
+    :param func_name: the name of the function. If empty or None, apply
+        to all functions with memory cache
+    """
+    # Handle None as empty string.
+    if func_name is None:
+        func_name = ""
+    if func_name == "":
+        _LOG.info("Before:\n%s", cache_stats_to_str())
+        for func_name_tmp in get_cached_func_names("mem"):
+            flush_cache_to_disk(func_name_tmp)
+        _LOG.info("After:\n%s", cache_stats_to_str())
+        return
+    _LOG.trace("func_name='%s'", func_name)
+    # Get memory cache.
+    mem_cache = get_mem_cache(func_name)
+    _LOG.trace("mem_cache=%s", len(mem_cache))
+    # Get disk cache.
+    disk_cache = get_disk_cache(func_name)
+    _LOG.trace("disk_cache=%s", len(disk_cache))
+    # Merge disk cache with memory cache.
+    disk_cache.update(mem_cache)
+    # Save merged cache to disk only if non-empty.
+    # Do not create empty cache files.
+    if len(disk_cache) > 0:
+        _save_cache_dict_to_disk(func_name, disk_cache)
+        # Update the memory cache.
+        global _CACHE
+        _CACHE[func_name] = disk_cache
+
+
 def push_cache_to_s3(func_name: str = "") -> None:
     """
     Push local cache to S3 for a given function.
@@ -1309,6 +1418,33 @@ def push_cache_to_s3(func_name: str = "") -> None:
         _LOG.info("Pushing cache to S3 for '%s'", func_name_tmp)
         # Upload to S3.
         _upload_cache_to_s3(func_name_tmp)
+
+
+def force_cache_from_disk(func_name: Optional[str] = "") -> None:
+    """
+    Force loading the cache from disk and update the memory cache.
+
+    :param func_name: the name of the function. If empty or None, apply
+        to all discoverable functions with cache on local disk
+    """
+    # Handle None as empty string.
+    if func_name is None:
+        func_name = ""
+    if func_name == "":
+        _LOG.info("Before:\n%s", cache_stats_to_str())
+        for func_name_tmp in get_cached_func_names("disk"):
+            force_cache_from_disk(func_name_tmp)
+        _LOG.info("After:\n%s", cache_stats_to_str())
+        return
+    _LOG.trace("func_name='%s'", func_name)
+    # Get disk cache.
+    disk_cache = get_disk_cache(func_name)
+    _LOG.trace("disk_cache=%s", len(disk_cache))
+    # Update the memory cache only if non-empty.
+    # Do not store empty dicts to avoid phantom cached functions.
+    if len(disk_cache) > 0:
+        global _CACHE
+        _CACHE[func_name] = disk_cache
 
 
 def pull_cache_from_s3(func_name: str = "") -> None:
@@ -1386,140 +1522,6 @@ def sync_cache_with_s3(func_name: str = "") -> None:
     else:
         # Upload local cache to S3.
         push_cache_to_s3(func_name)
-
-
-# #############################################################################
-# Stats.
-# #############################################################################
-
-
-def cache_stats_to_str(
-    func_name: Optional[str] = "",
-) -> Optional["pd.DataFrame"]:  # noqa: F821
-    """
-    Print the cache stats.
-
-    If `func_name` is empty or None, returns stats for all functions with local cache
-    (mem + disk).
-
-    E.g.,
-    ```
-    find_email:
-      memory: -
-      disk: 1044
-
-    verify_email:
-      memory: -
-      disk: 2322
-    ```
-    """
-    # We want to limit the dependency from pandas in the cache.
-    import pandas as pd
-
-    # Handle None as empty string.
-    if func_name is None:
-        func_name = ""
-    if func_name == "":
-        result = []
-        for func_name_tmp in get_cached_func_names("local"):
-            result_tmp = cache_stats_to_str(func_name_tmp)
-            result.append(result_tmp)
-        if result:
-            result = pd.concat(result)
-        else:
-            result = None
-        return result
-    result = {}
-    # Memory cache.
-    if func_name in _CACHE:
-        result["memory"] = len(_CACHE[func_name])
-    else:
-        result["memory"] = "-"
-    # Disk cache.
-    file_name = _get_cache_file_name(func_name)
-    if os.path.exists(file_name):
-        disk_cache = get_disk_cache(func_name)
-        result["disk"] = len(disk_cache)
-    else:
-        result["disk"] = "-"
-    result = pd.Series(result).to_frame().T
-    result.index = [func_name]
-    return result
-
-
-def force_cache_from_disk(func_name: Optional[str] = "") -> None:
-    """
-    Force loading the cache from disk and update the memory cache.
-
-    :param func_name: the name of the function. If empty or None, apply
-        to all discoverable functions with cache on local disk
-    """
-    # Handle None as empty string.
-    if func_name is None:
-        func_name = ""
-    if func_name == "":
-        _LOG.info("Before:\n%s", cache_stats_to_str())
-        for func_name_tmp in get_cached_func_names("disk"):
-            force_cache_from_disk(func_name_tmp)
-        _LOG.info("After:\n%s", cache_stats_to_str())
-        return
-    _LOG.trace("func_name='%s'", func_name)
-    # Get disk cache.
-    disk_cache = get_disk_cache(func_name)
-    _LOG.trace("disk_cache=%s", len(disk_cache))
-    # Update the memory cache only if non-empty.
-    # Do not store empty dicts to avoid phantom cached functions.
-    if len(disk_cache) > 0:
-        global _CACHE
-        _CACHE[func_name] = disk_cache
-
-
-def get_mem_cache(func_name: str) -> _FunctionCacheType:
-    """
-    Retrieve the memory cache for a given function.
-
-    :param func_name: the name of the function
-    :return: memory cache data
-    """
-    mem_cache = _CACHE.get(func_name, {})
-    return mem_cache
-
-
-def flush_cache_to_disk(func_name: Optional[str] = "") -> None:
-    """
-    Flush the memory cache to disk and update the memory cache.
-
-    This merges memory cache with disk cache (memory takes precedence)
-    and saves to disk, then updates memory with the merged result.
-
-    :param func_name: the name of the function. If empty or None, apply
-        to all functions with memory cache
-    """
-    # Handle None as empty string.
-    if func_name is None:
-        func_name = ""
-    if func_name == "":
-        _LOG.info("Before:\n%s", cache_stats_to_str())
-        for func_name_tmp in get_cached_func_names("mem"):
-            flush_cache_to_disk(func_name_tmp)
-        _LOG.info("After:\n%s", cache_stats_to_str())
-        return
-    _LOG.trace("func_name='%s'", func_name)
-    # Get memory cache.
-    mem_cache = get_mem_cache(func_name)
-    _LOG.trace("mem_cache=%s", len(mem_cache))
-    # Get disk cache.
-    disk_cache = get_disk_cache(func_name)
-    _LOG.trace("disk_cache=%s", len(disk_cache))
-    # Merge disk cache with memory cache.
-    disk_cache.update(mem_cache)
-    # Save merged cache to disk only if non-empty.
-    # Do not create empty cache files.
-    if len(disk_cache) > 0:
-        _save_cache_dict_to_disk(func_name, disk_cache)
-        # Update the memory cache.
-        global _CACHE
-        _CACHE[func_name] = disk_cache
 
 
 def get_cache(func_name: str) -> _FunctionCacheType:
@@ -2054,8 +2056,9 @@ def simple_cache(
                 if abort_on_cache_miss:
                     raise ValueError(f"Cache miss for key='{cache_key}'")
                 # Report on cache miss.
-                report_on_cache_miss = report_on_cache_miss or get_cache_property(
-                    func_name, "report_on_cache_miss"
+                report_on_cache_miss = (
+                    report_on_cache_miss
+                    or get_cache_property(func_name, "report_on_cache_miss")
                 )
                 _LOG.trace("report_on_cache_miss=%s", report_on_cache_miss)
                 if report_on_cache_miss:
@@ -2094,7 +2097,9 @@ def simple_cache(
                     # Check if auto-sync to S3 is enabled.
                     auto_sync = get_cache_property(func_name, "auto_sync_s3")
                     if auto_sync:
-                        _LOG.debug("Auto-syncing cache to S3 for '%s'", func_name)
+                        _LOG.debug(
+                            "Auto-syncing cache to S3 for '%s'", func_name
+                        )
                         _upload_cache_to_s3(func_name)
             return value
 

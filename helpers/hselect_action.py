@@ -3,7 +3,7 @@ Select and manage action execution based on command-line arguments.
 
 Import as:
 
-import helpers.hselect_action as hselsact
+import helpers.hselect_action as hselacti
 """
 
 import argparse
