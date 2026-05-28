@@ -78,7 +78,11 @@ def _process_select_mode(
     :return: The cost of the LLM operation.
     """
     select_start, select_end = hmarsele.parse_select_arg(args.select)
-    _LOG.info("Select mode: extracting chunk from '%s' to '%s'", select_start, select_end)
+    _LOG.info(
+        "Select mode: extracting chunk from '%s' to '%s'",
+        select_start,
+        select_end,
+    )
     input_lines = hparser.from_file(input_file)
     _, ext = os.path.splitext(input_file) if input_file != "-" else ("", "")
     is_slide_format = ext == ".txt"
@@ -108,7 +112,12 @@ def _process_select_mode(
         else:
             new_content = response
         hio.to_file(input_file, new_content)
-        _LOG.info("Updated file in-place: %s (lines %d-%d)", input_file, start_idx + 1, end_idx)
+        _LOG.info(
+            "Updated file in-place: %s (lines %d-%d)",
+            input_file,
+            start_idx + 1,
+            end_idx,
+        )
     else:
         hparser.to_file(response, output_file)
     return cost
@@ -219,7 +228,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         is_select_mode = True
         # In select mode with in-place editing, we will process the selected chunk.
         # Later we'll handle the in-place replacement.
-        _LOG.info("Select mode: extracting chunk from '%s' to '%s'", select_start, select_end)
+        _LOG.info(
+            "Select mode: extracting chunk from '%s' to '%s'",
+            select_start,
+            select_end,
+        )
     # Calculate expected_num_chars if progress_bar is enabled.
     if args.progress_bar and args.expected_num_chars is None:
         # Read input to get its length.
@@ -257,11 +270,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
     memento = htimer.dtimer_start(logging.INFO, "LLM processing")
     # Handle select mode.
     if is_select_mode:
-        hdbg.dassert_is(input_text, None, "Select mode requires file input, not --input_text")
-        cost = _process_select_mode(args, input_file, output_file, system_prompt, expected_num_chars)
+        hdbg.dassert_is(
+            input_text, None, "Select mode requires file input, not --input_text"
+        )
+        cost = _process_select_mode(
+            args, input_file, output_file, system_prompt, expected_num_chars
+        )
     elif input_text is not None or input_file == "-" or print_only:
         cost = _process_simple_input(
-            args, input_text, input_file, output_file, system_prompt, expected_num_chars
+            args,
+            input_text,
+            input_file,
+            output_file,
+            system_prompt,
+            expected_num_chars,
         )
     else:
         # Use file-based processing.

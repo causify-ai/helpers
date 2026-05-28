@@ -439,11 +439,9 @@ def git_files(  # type: ignore
         hltltaut.report_task()
     _ = ctx
     # If no filter option is specified, default to branch=True.
-    if not (modified or last_commit):
-        branch = True
-    all_ = False
     files = ""
     from_file = ""
+    all_ = False
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True

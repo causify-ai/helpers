@@ -60,8 +60,6 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-
-
 def _parse() -> argparse.ArgumentParser:
     """
     Create and return the argument parser for the script.

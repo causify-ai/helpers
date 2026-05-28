@@ -787,7 +787,7 @@ def _get_submodule_hash(dir_name: str) -> str:
     """
     hdbg.dassert_path_exists(dir_name)
     # Use git ls-tree to get the submodule entry which includes its hash.
-    cmd = f"git ls-tree master | grep {dir_name}"
+    cmd = f"git ls-tree master | grep {dir_name} | sort"
     data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
     _, output = data
     _LOG.debug("output=%s", output)
@@ -1577,6 +1577,7 @@ def get_files_to_process(
     *,
     # TODO(gp): Can mutually_exclusive be removed? When is it actually useful?
     mutually_exclusive: bool = True,
+    use_branch_by_default: bool = True,
     remove_dirs: bool = False,
     dir_name: str = ".",
 ) -> List[str]:
@@ -1599,6 +1600,8 @@ def get_files_to_process(
     :param last_commit: return files part of the previous commit
     :param all_: return all repo files
     :param mutually_exclusive: ensure that all options are mutually exclusive
+    :param use_branch_by_default: if True and no option is selected, default to
+        branch=True
     :param remove_dirs: whether directories should be processed
     :param dir_name: directory to process (default: current directory)
     :return: paths to process
@@ -1606,9 +1609,13 @@ def get_files_to_process(
     _LOG.debug(
         hprint.to_str(
             "files from_file modified branch last_commit all_ "
-            "mutually_exclusive remove_dirs dir_name"
+            "mutually_exclusive use_branch_by_default remove_dirs dir_name"
         )
     )
+    # If use_branch_by_default and no option is selected, then use branch = True
+    if use_branch_by_default and not any([files, from_file, modified, branch, last_commit, all_]):
+        _LOG.debug("Using branch=True by default")
+        branch = True
     if mutually_exclusive:
         # All the options are mutually exclusive.
         selected_options = []

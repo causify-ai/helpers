@@ -19,4 +19,4 @@ get_files_to_process(
   clarifications
 
 - Depending on the type of file to modify follow the rules described in
-	`@.claude/rules.md`
+	`.claude/rules.md`

@@ -177,7 +177,7 @@ class Test_find_header_by_title(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_find_header_by_partial_title
+# Test_find_header_by_substring_title
 # #############################################################################
 
 
@@ -218,9 +218,7 @@ class Test_find_header_by_substring_title(hunitest.TestCase):
         )
         substring = "My Section 2"
         # Run test.
-        result = hmarsele.find_header_by_substring_title(
-            header_list, substring
-        )
+        result = hmarsele.find_header_by_substring_title(header_list, substring)
         # Check outputs.
         self.assertIsNotNone(result)
         self.assertEqual(result.description, "My Section 2")
@@ -238,14 +236,16 @@ class Test_find_header_by_substring_title(hunitest.TestCase):
         )
         substring = "Nonexistent"
         # Run test.
-        result = hmarsele.find_header_by_substring_title(
-            header_list, substring
-        )
+        result = hmarsele.find_header_by_substring_title(header_list, substring)
         # Check outputs.
         self.assertIsNone(result)
 
 
-# TODO(ai_gp): Run skill /coding.factor_common_code
+# #############################################################################
+# Test_find_header_by_level_and_prefix
+# #############################################################################
+
+
 class Test_find_header_by_level_and_prefix(hunitest.TestCase):
     """
     Test level-exact and prefix matching.
@@ -303,10 +303,13 @@ class Test_find_header_by_level_and_prefix(hunitest.TestCase):
         )
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            hmarsele.find_header_by_level_and_prefix(
-                header_list, 2, "Section"
-            )
+            hmarsele.find_header_by_level_and_prefix(header_list, 2, "Section")
         self.assertIn("multiple headers", str(cm.exception))
+
+
+# #############################################################################
+# Test_find_header_by_partial_title
+# #############################################################################
 
 
 class Test_find_header_by_partial_title(hunitest.TestCase):
@@ -622,7 +625,7 @@ class Test_find_end_line(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_extract_text_from_markdown_lines
+# Test_get_chunk_bounds
 # #############################################################################
 
 
@@ -698,7 +701,12 @@ class Test_get_chunk_bounds(hunitest.TestCase):
         self.assertEqual(end_idx, 3)
 
 
-class Test_extract_text_from_markdown_lines(hunitest.TestCase):
+# #############################################################################
+# Test_extract_text_from_markdown_lines2
+# #############################################################################
+
+
+class Test_extract_text_from_markdown_lines2(hunitest.TestCase):
     """
     Test text extraction with "END" special value and new features.
     """
@@ -724,15 +732,23 @@ class Test_extract_text_from_markdown_lines(hunitest.TestCase):
             "# Conclusion",
             "Final thoughts",
         ]
+        # Prepare outputs.
+        expected = [
+            "# Methods",
+            "Method details",
+            "",
+            "# Results",
+            "Our findings",
+            "",
+            "# Conclusion",
+            "Final thoughts",
+        ]
         # Run test: extract from "Methods" to end of file.
-        result = hmarsele.extract_text_from_markdown_lines(
+        actual = hmarsele.extract_text_from_markdown_lines(
             lines, "Methods", "END"
         )
-        # Check outputs: should include everything from "# Methods" to end.
-        self.assertIn("# Methods", result[0])
-        self.assertIn("# Results", "\n".join(result))
-        self.assertIn("# Conclusion", "\n".join(result))
-        self.assertNotIn("# Introduction", "\n".join(result))
+        # Check outputs.
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
@@ -752,15 +768,20 @@ class Test_extract_text_from_markdown_lines(hunitest.TestCase):
             "# Chapter 2",
             "New chapter",
         ]
+        # Prepare outputs.
+        expected = [
+            "## Section 1.2",
+            "More content",
+            "",
+            "# Chapter 2",
+            "New chapter",
+        ]
         # Run test: extract from "Section 1.2" to end.
-        result = hmarsele.extract_text_from_markdown_lines(
+        actual = hmarsele.extract_text_from_markdown_lines(
             lines, "Section 1.2", "END"
         )
         # Check outputs.
-        result_text = "\n".join(result)
-        self.assertIn("## Section 1.2", result_text)
-        self.assertIn("# Chapter 2", result_text)
-        self.assertNotIn("Section 1.1", result_text)
+        self.assert_equal(actual, expected)
 
     def test3(self) -> None:
         """
@@ -780,15 +801,17 @@ class Test_extract_text_from_markdown_lines(hunitest.TestCase):
             "# Chapter 2",
             "New",
         ]
+        # Prepare outputs.
+        expected = [
+            "## Section 1.1",
+            "Content",
+        ]
         # Run test: extract with None (should stop at "## Section 1.2").
-        result = hmarsele.extract_text_from_markdown_lines(
+        actual = hmarsele.extract_text_from_markdown_lines(
             lines, "Section 1.1", None
         )
-        # Check outputs: should NOT include Section 1.2 or Chapter 2.
-        result_text = "\n".join(result)
-        self.assertIn("## Section 1.1", result_text)
-        self.assertNotIn("## Section 1.2", result_text)
-        self.assertNotIn("# Chapter 2", result_text)
+        # Check outputs.
+        self.assert_equal(actual, expected)
 
     def test4(self) -> None:
         """
@@ -805,18 +828,17 @@ class Test_extract_text_from_markdown_lines(hunitest.TestCase):
             "## Section 1.2",
             "More",
         ]
+        # Prepare outputs.
+        expected = [
+            "# Chapter 1",
+            "Intro",
+        ]
         # Run test: extract from beginning to "Section 1.1" (excluding it).
-        result = hmarsele.extract_text_from_markdown_lines(
+        actual = hmarsele.extract_text_from_markdown_lines(
             lines, None, "Section 1.1"
         )
-        # Check outputs: should start from first line but stop before Section 1.1.
-        # TODO(ai_gp): Apply .claude/skills/testing.rules.md:663:## Replace Checking Invariants with `assert_equal`
-        # to all functions in the file
-        result_text = "\n".join(result)
-        self.assertIn("# Chapter 1", result_text)
-        self.assertIn("Intro", result_text)
-        self.assertNotIn("## Section 1.1", result_text)
-        self.assertNotIn("## Section 1.2", result_text)
+        # Check outputs.
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -1013,7 +1035,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             lines, start_header, end_header, is_slide_format=False
         )
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -1175,11 +1197,11 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_extract_text_from_markdown_lines
+# Test_extract_text_from_markdown_lines1
 # #############################################################################
 
 
-class Test_extract_text_from_markdown_lines(hunitest.TestCase):
+class Test_extract_text_from_markdown_lines1(hunitest.TestCase):
     """
     Test _extract_from_md_slides function with slide notation.
     """
@@ -1212,7 +1234,7 @@ class Test_extract_text_from_markdown_lines(hunitest.TestCase):
             lines, start_header, end_header, is_slide_format=True
         )
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """

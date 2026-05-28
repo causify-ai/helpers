@@ -17,6 +17,47 @@ _LOG = logging.getLogger(__name__)
 # completes and visually inspect the outcome, if possible.
 
 
+def _check_find_git_root(
+    test_case: hunitest.TestCase,
+    working_dir: str,
+    expected_root: str,
+) -> None:
+    """
+    Check that find_git_root returns the expected root from working_dir.
+    """
+    with hsystem.cd(working_dir):
+        git_root = hgit.find_git_root(".")
+        test_case.assert_equal(git_root, expected_root)
+
+
+def _call_get_files_to_process(
+    *,
+    files: str = "",
+    from_file: str = "",
+    modified: bool = False,
+    branch: bool = False,
+    last_commit: bool = False,
+    all_: bool = False,
+    mutually_exclusive: bool = True,
+    remove_dirs: bool = False,
+    dir_name: Optional[str] = None,
+) -> List[str]:
+    """
+    Call get_files_to_process with default values.
+    """
+    return hgit.get_files_to_process(
+        files,
+        from_file,
+        modified,
+        branch,
+        last_commit,
+        all_,
+        mutually_exclusive=mutually_exclusive,
+        remove_dirs=remove_dirs,
+        dir_name=dir_name,
+    )
+
+
 # #############################################################################
 # Test_git_submodule1
 # #############################################################################
@@ -385,41 +426,42 @@ class Test_find_docker_file1(hunitest.TestCase):
 
 
 class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
+    def _helper(self, branch_name: str, expected: str) -> None:
+        """Helper to test extract_gh_issue_number_from_branch."""
+        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
+        self.assert_equal(str(actual), expected)
+
     def test_extract_gh_issue_number_from_branch1(self) -> None:
         """
         Tests extraction from a branch name with a specific format.
         """
         branch_name = "CmampTask10725_Add_more_tabs_to_orange_tmux"
-        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
         expected = "10725"
-        self.assert_equal(str(actual), expected)
+        self._helper(branch_name, expected)
 
     def test_extract_gh_issue_number_from_branch2(self) -> None:
         """
         Tests extraction from another branch name format.
         """
         branch_name = "HelpersTask23_Add_more_tabs_to_orange_tmux"
-        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
         expected = "23"
-        self.assert_equal(str(actual), expected)
+        self._helper(branch_name, expected)
 
     def test_extract_gh_issue_number_from_branch3(self) -> None:
         """
         Tests extraction from a short branch name format.
         """
         branch_name = "CmTask3434"
-        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
         expected = "3434"
-        self.assert_equal(str(actual), expected)
+        self._helper(branch_name, expected)
 
     def test_extract_gh_issue_number_from_branch4(self) -> None:
         """
         Tests behavior when no issue number is present in the branch name.
         """
         branch_name = "NoTaskNumberHere"
-        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
         expected = "None"
-        self.assert_equal(str(actual), expected)
+        self._helper(branch_name, expected)
 
 
 # #############################################################################
@@ -447,9 +489,7 @@ class Test_find_git_root1(hunitest.TestCase):
     def _helper_find_git_root(self, working_dir_attr: str) -> None:
         self.set_up_test()
         working_dir = getattr(self, working_dir_attr)
-        with hsystem.cd(working_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        _check_find_git_root(self, working_dir, self.repo_dir)
 
     def set_up_test(self) -> None:
         temp_dir = self.get_scratch_space()
@@ -534,9 +574,7 @@ class Test_find_git_root2(hunitest.TestCase):
     def _helper_find_git_root(self, working_dir_attr: str) -> None:
         self.set_up_test()
         working_dir = getattr(self, working_dir_attr)
-        with hsystem.cd(working_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        _check_find_git_root(self, working_dir, self.repo_dir)
 
     def set_up_test(self) -> None:
         temp_dir = self.get_scratch_space()
@@ -601,9 +639,7 @@ class Test_find_git_root3(hunitest.TestCase):
     def _helper_find_git_root(self, working_dir_attr: str) -> None:
         self.set_up_test()
         working_dir = getattr(self, working_dir_attr)
-        with hsystem.cd(working_dir):
-            git_root = hgit.find_git_root(".")
-            self.assert_equal(git_root, self.repo_dir)
+        _check_find_git_root(self, working_dir, self.repo_dir)
 
     def set_up_test(self) -> None:
         temp_dir = self.get_scratch_space()
@@ -763,36 +799,10 @@ class Test_find_git_root5(hunitest.TestCase):
 # Test_get_files_to_process1
 # #############################################################################
 
-
-class Test_get_files_to_process1(hunitest.TestCase):
+class Test_get_files_to_process_files(hunitest.TestCase):
     """
     Test get_files_to_process with --files argument (space-separated list).
     """
-
-    def _call_get_files_to_process(
-        self,
-        *,
-        files: str = "",
-        from_file: str = "",
-        modified: bool = False,
-        branch: bool = False,
-        last_commit: bool = False,
-        all_: bool = False,
-        mutually_exclusive: bool = True,
-        remove_dirs: bool = False,
-        dir_name: Optional[str] = None,
-    ) -> List[str]:
-        return hgit.get_files_to_process(
-            files,
-            from_file,
-            modified,
-            branch,
-            last_commit,
-            all_,
-            mutually_exclusive=mutually_exclusive,
-            remove_dirs=remove_dirs,
-            dir_name=dir_name,
-        )
 
     def test1(self) -> None:
         """
@@ -801,7 +811,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         temp_dir = self.get_scratch_space()
         file1 = os.path.join(temp_dir, "file1.txt")
         hio.to_file(file1, "content1")
-        actual = self._call_get_files_to_process(files=file1, dir_name=temp_dir)
+        actual = _call_get_files_to_process(files=file1, dir_name=temp_dir)
         self.assertEqual(len(actual), 1)
         self.assertIn("file1.txt", actual[0])
 
@@ -817,7 +827,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         hio.to_file(file2, "content2")
         hio.to_file(file3, "content3")
         files = f"{file1} {file2} {file3}"
-        actual = self._call_get_files_to_process(files=files, dir_name=temp_dir)
+        actual = _call_get_files_to_process(files=files, dir_name=temp_dir)
         self.assertEqual(len(actual), 3)
         for expected_file in ["file1.txt", "file2.txt", "file3.txt"]:
             self.assertTrue(
@@ -834,7 +844,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         nonexistent = os.path.join(temp_dir, "nonexistent.txt")
         hio.to_file(file1, "content1")
         files = f"{file1} {nonexistent}"
-        actual = self._call_get_files_to_process(files=files, dir_name=temp_dir)
+        actual = _call_get_files_to_process(files=files, dir_name=temp_dir)
         self.assertEqual(len(actual), 1)
         self.assertIn("file1.txt", actual[0])
 
@@ -845,7 +855,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         temp_dir = self.get_scratch_space()
         file1 = os.path.join(temp_dir, "file1.txt")
         hio.to_file(file1, "content1")
-        actual = self._call_get_files_to_process(
+        actual = _call_get_files_to_process(
             modified=True,
             mutually_exclusive=False,
             dir_name=temp_dir,
@@ -860,7 +870,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         file1 = os.path.join(temp_dir, "file1.txt")
         hio.to_file(file1, "content1")
         with self.assertRaises(AssertionError):
-            self._call_get_files_to_process(
+            _call_get_files_to_process(
                 files=file1,
                 modified=True,
                 dir_name=temp_dir,
@@ -876,7 +886,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         hio.to_file(file1, "content1")
         hio.create_dir(dir1, incremental=False)
         files = f"{file1} {dir1}"
-        actual = self._call_get_files_to_process(
+        actual = _call_get_files_to_process(
             files=files,
             remove_dirs=True,
             dir_name=temp_dir,
@@ -892,18 +902,29 @@ class Test_get_files_to_process1(hunitest.TestCase):
         file1 = os.path.join(temp_dir, "file1.txt")
         hio.to_file(file1, "content1")
         files = f"{file1} amp"
-        actual = self._call_get_files_to_process(
+        actual = _call_get_files_to_process(
             files=files,
             dir_name=temp_dir,
         )
         self.assertEqual(len(actual), 1)
         self.assertIn("file1.txt", actual[0])
 
+
+# #############################################################################
+# Test_get_files_to_process_git
+# #############################################################################
+
+
+class Test_get_files_to_process_git(hunitest.TestCase):
+    """
+    Test get_files_to_process with git flags (--modified, --branch, --last_commit).
+    """
+
     def test_modified1(self) -> None:
         """
         Retrieve files modified in this client.
         """
-        _ = self._call_get_files_to_process(
+        _ = _call_get_files_to_process(
             modified=True,
             remove_dirs=True,
         )
@@ -917,7 +938,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         Retrieved files modified in this client.
         """
         hgit.fetch_origin_master_if_needed()
-        _ = self._call_get_files_to_process(
+        _ = _call_get_files_to_process(
             branch=True,
             remove_dirs=True,
         )
@@ -926,10 +947,21 @@ class Test_get_files_to_process1(hunitest.TestCase):
         """
         Retrieved files modified in the last commit.
         """
-        _ = self._call_get_files_to_process(
+        _ = _call_get_files_to_process(
             last_commit=True,
             remove_dirs=True,
         )
+
+
+# #############################################################################
+# Test_get_files_to_process_from_file
+# #############################################################################
+
+
+class Test_get_files_to_process_from_file(hunitest.TestCase):
+    """
+    Test get_files_to_process with --from_file argument.
+    """
 
     def test_files1(self) -> None:
         """
@@ -938,7 +970,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         from_file_path = os.path.join(scratch_dir, "test_files1.txt")
         hio.to_file(from_file_path, __file__)
-        files = self._call_get_files_to_process(
+        files = _call_get_files_to_process(
             from_file=from_file_path,
             remove_dirs=True,
         )
@@ -956,18 +988,29 @@ class Test_get_files_to_process1(hunitest.TestCase):
         from_file_path = os.path.join(scratch_dir, "test_files2.txt")
         file_list_content = "testfile1.py testfiles1/*"
         hio.to_file(from_file_path, file_list_content)
-        files = self._call_get_files_to_process(
+        files = _call_get_files_to_process(
             from_file=from_file_path,
             remove_dirs=True,
         )
         self.assertEqual(files, [])
+
+
+# #############################################################################
+# Test_get_files_to_process_assert
+# #############################################################################
+
+
+class Test_get_files_to_process_assert(hunitest.TestCase):
+    """
+    Test get_files_to_process mutual exclusivity assertions.
+    """
 
     def test_assert1(self) -> None:
         """
         Test that --modified and --branch together cause an assertion.
         """
         with self.assertRaises(AssertionError) as cm:
-            self._call_get_files_to_process(
+            _call_get_files_to_process(
                 modified=True,
                 branch=True,
                 all_=True,
@@ -988,7 +1031,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         `mutually_exclusive=True`.
         """
         with self.assertRaises(AssertionError) as cm:
-            self._call_get_files_to_process(
+            _call_get_files_to_process(
                 from_file=__file__,
                 modified=True,
             )
@@ -1010,7 +1053,7 @@ class Test_get_files_to_process1(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         from_file_path = os.path.join(scratch_dir, "test_assert3.txt")
         hio.to_file(from_file_path, __file__)
-        files = self._call_get_files_to_process(
+        files = _call_get_files_to_process(
             from_file=from_file_path,
             modified=True,
             mutually_exclusive=False,

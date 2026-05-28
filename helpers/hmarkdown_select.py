@@ -183,8 +183,9 @@ def find_header_by_level_and_prefix(
     """
     matches = []
     for header_info in header_list:
-        if (header_info.level == level and
-            header_info.description.startswith(title_prefix)):
+        if header_info.level == level and header_info.description.startswith(
+            title_prefix
+        ):
             matches.append(header_info)
     if len(matches) == 0:
         return None
@@ -241,9 +242,7 @@ def find_header_from_input(
     if header_input.isdigit():
         line_num = int(header_input)
         header_info = _find_header_by_line_number(header_list, line_num)
-        hdbg.dassert_is_not(
-            header_info, None, "No header at line %d", line_num
-        )
+        hdbg.dassert_is_not(header_info, None, "No header at line %d", line_num)
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Check if input is slide format (* Title)
     elif header_input.startswith("*"):
@@ -258,9 +257,7 @@ def find_header_from_input(
     # Check if input is full header format (# Title)
     elif header_input.startswith("#"):
         level, title = parse_header_string(header_input)
-        header_info = find_header_by_level_and_prefix(
-            header_list, level, title
-        )
+        header_info = find_header_by_level_and_prefix(header_list, level, title)
         hdbg.dassert_is_not(
             header_info, None, "No header matches: '%s'", header_input
         )
@@ -382,9 +379,7 @@ def get_chunk_bounds(
             start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
             )
-            end_line = find_end_line(
-                header_list, start_header_info, None
-            )
+            end_line = find_end_line(header_list, start_header_info, None)
             end_idx = len(lines_converted) if end_line is None else end_line
     elif end_header_str == "END":
         end_idx = len(lines_converted)

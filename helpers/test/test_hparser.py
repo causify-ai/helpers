@@ -7,6 +7,27 @@ import helpers.hparser as hparser
 import helpers.hunit_test as hunitest
 
 
+def _create_test_file(file_path: str, *, content: str = "test") -> None:
+    """
+    Create a test file with given content.
+    """
+    hio.create_dir(os.path.dirname(file_path), incremental=True)
+    hio.to_file(file_path, content)
+
+
+def _make_parser_with_input_output_args(
+    *, in_required: bool = True, out_required: bool = True
+) -> argparse.ArgumentParser:
+    """
+    Create an ArgumentParser with input/output arguments.
+    """
+    parser = argparse.ArgumentParser()
+    hparser.add_input_output_args(
+        parser, in_required=in_required, out_required=out_required
+    )
+    return parser
+
+
 # #############################################################################
 # Test_parse_limit_range
 # #############################################################################
@@ -252,13 +273,6 @@ class Test_parse_multi_file_args(hunitest.TestCase):
     Test parsing multi-file arguments.
     """
 
-    def _create_test_file(self, file_path: str, content: str = "test") -> None:
-        """
-        Create a test file with given content.
-        """
-        hio.create_dir(os.path.dirname(file_path), incremental=True)
-        hio.to_file(file_path, content)
-
     def _make_namespace_args(
         self,
         *,
@@ -283,9 +297,9 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         file3 = f"{scratch_dir}/file3.txt"
-        self._create_test_file(file1)
-        self._create_test_file(file2)
-        self._create_test_file(file3)
+        _create_test_file(file1)
+        _create_test_file(file2)
+        _create_test_file(file3)
         args = self._make_namespace_args(files=f"{file1},{file2},{file3}")
         actual = hparser.parse_multi_file_args(args)
         expected = [file1, file2, file3]
@@ -299,12 +313,12 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         file3 = f"{scratch_dir}/file3.txt"
-        self._create_test_file(file1)
-        self._create_test_file(file2)
-        self._create_test_file(file3)
+        _create_test_file(file1)
+        _create_test_file(file2)
+        _create_test_file(file3)
         list_file = f"{scratch_dir}/list.txt"
         content = f"{file1}\n{file2}\n{file3}\n"
-        self._create_test_file(list_file, content)
+        _create_test_file(list_file, content=content)
         args = self._make_namespace_args(from_files=list_file)
         actual = hparser.parse_multi_file_args(args)
         expected = [file1, file2, file3]
@@ -317,8 +331,8 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
-        self._create_test_file(file1)
-        self._create_test_file(file2)
+        _create_test_file(file1)
+        _create_test_file(file2)
         list_file = f"{scratch_dir}/list.txt"
         content = f"""
         # This is a comment
@@ -328,7 +342,7 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         {file2}
 
         """
-        self._create_test_file(list_file, content)
+        _create_test_file(list_file, content=content)
         args = self._make_namespace_args(from_files=list_file)
         actual = hparser.parse_multi_file_args(args)
         expected = [file1, file2]
@@ -341,8 +355,8 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
-        self._create_test_file(file1)
-        self._create_test_file(file2)
+        _create_test_file(file1)
+        _create_test_file(file2)
         args = self._make_namespace_args(input_=[file1, file2])
         actual = hparser.parse_multi_file_args(args)
         expected = [file1, file2]
@@ -354,7 +368,7 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         scratch_dir = self.get_scratch_space()
         file1 = f"{scratch_dir}/file1.txt"
-        self._create_test_file(file1)
+        _create_test_file(file1)
         args = self._make_namespace_args(input_=file1)
         actual = hparser.parse_multi_file_args(args)
         expected = [file1]
@@ -462,8 +476,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         Create an ArgumentParser with input/output args and parse the given list.
         """
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        parser = _make_parser_with_input_output_args(
+            in_required=False, out_required=False
+        )
         return parser.parse_args(args_list)
 
     def test1(self) -> None:
@@ -521,10 +536,9 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         out_dir = self.get_scratch_space()
         file_list_path = os.path.join(out_dir, "files.txt")
-        with open(file_list_path, "w") as f:
-            f.write("file1.txt\n")
-            f.write("file2.txt\n")
-            f.write("file3.txt\n")
+        _create_test_file(
+            file_list_path, content="file1.txt\nfile2.txt\nfile3.txt\n"
+        )
         args = self._make_io_parser_args(["--from_file", file_list_path])
         expected = ["file1.txt", "file2.txt", "file3.txt"]
         result = hparser.parse_input_output_files(args)
@@ -536,12 +550,10 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         out_dir = self.get_scratch_space()
         file_list_path = os.path.join(out_dir, "files.txt")
-        with open(file_list_path, "w") as f:
-            f.write("file1.txt\n")
-            f.write("\n")
-            f.write("file2.txt\n")
-            f.write("  \n")
-            f.write("file3.txt\n")
+        _create_test_file(
+            file_list_path,
+            content="file1.txt\n\nfile2.txt\n  \nfile3.txt\n",
+        )
         args = self._make_io_parser_args(["--from_file", file_list_path])
         expected = ["file1.txt", "file2.txt", "file3.txt"]
         result = hparser.parse_input_output_files(args)
@@ -587,9 +599,8 @@ class Test_parse_input_output_args(hunitest.TestCase):
         :param expected_in: Expected input file
         :param expected_out: Expected output file
         """
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
+        parser = _make_parser_with_input_output_args(
+            in_required=False, out_required=False
         )
         args = parser.parse_args(args_list)
         in_file, out_file = hparser.parse_input_output_args(args)
@@ -746,9 +757,6 @@ class Test_to_file(hunitest.TestCase):
 # #############################################################################
 # Test_add_file_type_filter_args
 # #############################################################################
-
-# TODO(ai_gp1): /coding.factor_common_code
-
 
 class Test_add_file_type_filter_args(hunitest.TestCase):
     """

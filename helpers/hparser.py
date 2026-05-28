@@ -1502,7 +1502,9 @@ def filter_files_by_extensions(
         excluded.
     :return: Filtered list of file paths
     """
-    hdbg.dassert_lte(int(file_types_str != "") + int(skip_file_types_str != ""), 1)
+    hdbg.dassert_lte(
+        int(file_types_str != "") + int(skip_file_types_str != ""), 1
+    )
     if file_types_str == "" and skip_file_types_str == "":
         # Nothing to do.
         return files
@@ -1519,9 +1521,7 @@ def filter_files_by_extensions(
                 filtered_files.append(file_path)
     elif skip_file_types_str != "":
         skip_extensions = {
-            ext.strip()
-            for ext in skip_file_types_str.split(",")
-            if ext.strip()
+            ext.strip() for ext in skip_file_types_str.split(",") if ext.strip()
         }
         _LOG.debug("File extensions to skip: %s", skip_extensions)
         for file_path in files:

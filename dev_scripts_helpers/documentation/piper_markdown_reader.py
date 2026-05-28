@@ -79,6 +79,7 @@ def _extract_markdown_section(
     :param md_end: ending header or None to auto-detect next same-level, or "END" to extract to end of file
     :return: processed content of the extracted section
     """
+    # Read, process, write back file.
     lines = hparser.from_file(file_path)
     extracted_lines = hmarsele.extract_text_from_markdown_lines(
         lines, md_start, md_end
@@ -86,11 +87,13 @@ def _extract_markdown_section(
     extracted_content = "\n".join(extracted_lines)
     hio.to_file(_TMP_EXTRACT_FILE, extracted_content)
     _LOG.info("Extracted section written to '%s'", _TMP_EXTRACT_FILE)
+    # Lint.
     _LOG.info("Linting ...")
     lint_script = hgit.find_file_in_git_tree("lint_txt.py")
     cmd = f"{lint_script} -i {_TMP_EXTRACT_FILE} -w 1000"
     hsystem.system(cmd)
     _LOG.info("Linting ... done")
+    # Read back.
     processed_content = hio.from_file(_TMP_EXTRACT_FILE)
     return processed_content
 
@@ -721,9 +724,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("Validations passed")
     if args.select:
         md_start, md_end = hmarsele.parse_select_arg(args.select)
-        content = _extract_markdown_section(
-            args.input, md_start, md_end
-        )
+        content = _extract_markdown_section(args.input, md_start, md_end)
         _LOG.info("Extracted section '%s' from %s", md_start, args.input)
     else:
         content = _read_markdown_file(args.input)
