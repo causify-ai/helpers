@@ -29,6 +29,7 @@ import helpers.hmarkdown_select as hmarsele
 """
 
 import argparse
+import logging
 import os
 import re
 from typing import List, Optional, Tuple
@@ -38,6 +39,8 @@ import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarslid
 import helpers.hsystem as hsystem
+
+_LOG = logging.getLogger(__name__)
 
 
 def add_select_arg(
@@ -342,6 +345,10 @@ def find_header_from_input(
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
+    hdbg.dassert_is_not(header_info, None)
+    _LOG.info(
+        f"found header at line {header_info.line_number}: {header_info.description}"
+    )
     return header_info, header_info.level
 
 
@@ -536,6 +543,8 @@ def extract_text_from_markdown_lines(
     extracted_lines = lines_converted[start_idx:end_idx]
     while extracted_lines and extracted_lines[-1].strip() == "":
         extracted_lines.pop()
+    num_lines = len(extracted_lines)
+    _LOG.info(f"selection:{start_idx + 1}-{end_idx} ({num_lines} lines)")
     return extracted_lines
 
 
@@ -548,14 +557,18 @@ def _parse_rigrule_output(keyword: str) -> str:
 
     :param keyword: keyword to search for (e.g., 'dassert')
     :return: full rule spec in format 'path:line:header'
-    :raises: AssertionError if no matches found
+    :raises: AssertionError if no matches found or multiple matches found
     """
     cmd = f"rigrule {keyword}"
-    rc, output = hsystem.system_to_string(cmd, abort_on_error=False, suppress_output=False)
-    hdbg.dassert_eq(rc, 0,
-            "rigrule command failed for keyword '%s'",
-            keyword,
-        )
+    rc, output = hsystem.system_to_string(
+        cmd, abort_on_error=False, suppress_output=False
+    )
+    hdbg.dassert_eq(
+        rc,
+        0,
+        "rigrule command failed for keyword '%s'",
+        keyword,
+    )
     output = output.strip()
     # Remove ANSI color codes from output.
     output = re.sub(r"\x1b\[[0-9;]*m", "", output)
@@ -564,6 +577,15 @@ def _parse_rigrule_output(keyword: str) -> str:
         len(matches) > 0,
         "Expected at least one rule match for keyword '%s'",
         keyword,
+    )
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Expected exactly one rule match for keyword '%s', but found %d matches. "
+        "Please be more specific with the rule specification: %s",
+        keyword,
+        len(matches),
+        ", ".join(matches),
     )
     return matches[0]
 
@@ -651,4 +673,6 @@ def extract_rule_from_file(rule_spec: str) -> str:
                 break
     # Extract and return the section.
     section_lines = lines[line_idx:end_idx]
+    num_lines = len(section_lines)
+    _LOG.info(f"{file_path}:{line_num}-{end_idx} ({num_lines} lines)")
     return "\n".join(section_lines)

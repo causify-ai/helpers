@@ -1360,7 +1360,9 @@ class Test_find_header_by_regex(hunitest.TestCase):
         result = hmarsele.find_header_by_regex(header_list, pattern)
         # Check outputs.
         self.assertIsNotNone(result)
-        self.assertEqual(result.description, "Causal and Exhaustive Augmentation: Limitations")
+        self.assertEqual(
+            result.description, "Causal and Exhaustive Augmentation: Limitations"
+        )
         self.assertEqual(result.level, 5)
 
     def test2(self) -> None:
@@ -1380,7 +1382,9 @@ class Test_find_header_by_regex(hunitest.TestCase):
         result = hmarsele.find_header_by_regex(header_list, pattern)
         # Check outputs.
         self.assertIsNotNone(result)
-        self.assertEqual(result.description, "Causal and Exhaustive Augmentation: Limitations")
+        self.assertEqual(
+            result.description, "Causal and Exhaustive Augmentation: Limitations"
+        )
 
     def test3(self) -> None:
         """

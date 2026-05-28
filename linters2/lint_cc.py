@@ -109,8 +109,10 @@ def _get_rules_for_topic(topic: str) -> Dict:
         "notebook": {
             "role": "role.notebook.md",
             "rules": ["notebook.rules.md"],
-            "templates": ["notebook.template.ipynb",
-                "notebook_utils_template.py"],
+            "templates": [
+                "notebook.template.ipynb",
+                "notebook_utils_template.py",
+            ],
         },
         "readme": {
             "role": "role.ai_researcher.md",
@@ -380,7 +382,9 @@ def _main(parser: argparse.ArgumentParser) -> int:
             )
         elif args.rule:
             rule_content = _extract_rule(args.rule)
-            prompt = f"Execute the rule below on file {file_path}:\n\n{rule_content}"
+            prompt = (
+                f"Execute the rule below on file {file_path}:\n\n{rule_content}"
+            )
             topic_str = "rule"
             inferred_topic = _infer_topic_from_filename(file_path)
             topic_info = _get_rules_for_topic(inferred_topic)
@@ -396,9 +400,11 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 hdbg.dassert_is_not(topic, None, "Topic detection failed")
                 topic_str = cast(str, topic)
             prompt, topic_info = _build_prompt(topic_str)
-            prompt += (f"\n\nProcess the file {file_path} and make the changes " +
-                "according to the rules and conventions without asking " +
-                "questions to the user")
+            prompt += (
+                f"\n\nProcess the file {file_path} and make the changes "
+                + "according to the rules and conventions without asking "
+                + "questions to the user"
+            )
             rc = _run_claude_code(
                 prompt, topic_str, file_path, dry_run=args.dry_run
             )
