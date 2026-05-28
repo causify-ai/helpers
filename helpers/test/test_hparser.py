@@ -795,160 +795,155 @@ class Test_add_file_type_filter_args(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Apply .claude/skills/testing.rules.md:328:## Use Helper Methods When You Have Repetitive Tests
-# to this class
 class Test_parse_file_type_filter_args(hunitest.TestCase):
     """
     Test parsing file type filter arguments and filtering files.
     """
 
+    def helper(
+        self,
+        parse_args_list: list,
+        files: list,
+        expected: list,
+    ) -> None:
+        """
+        Test helper for `parse_file_type_filter_args()`.
+
+        :param parse_args_list: Arguments to pass to parse_args
+        :param files: List of files to filter
+        :param expected: Expected filtered files
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+        args = parser.parse_args(parse_args_list)
+        actual = hparser.parse_file_type_filter_args(args, files)
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test filtering files with default file types (py,ipynb).
         """
-        parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
-        args = parser.parse_args([])
         files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
-        actual = hparser.parse_file_type_filter_args(args, files)
         expected = ["file1.py", "file2.ipynb"]
-        self.assertEqual(actual, expected)
+        self.helper([], files, expected)
 
     def test2(self) -> None:
         """
         Test filtering files with custom file types.
         """
-        parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
-        args = parser.parse_args(["--file_types", "py,md,txt"])
         files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
-        actual = hparser.parse_file_type_filter_args(args, files)
         expected = ["file1.py", "file3.md", "file4.txt"]
-        self.assertEqual(actual, expected)
+        self.helper(["--file_types", "py,md,txt"], files, expected)
 
     def test3(self) -> None:
         """
         Test filtering with whitespace in comma-separated list.
         """
-        parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
-        args = parser.parse_args(["--file_types", "py , ipynb , md"])
         files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
-        actual = hparser.parse_file_type_filter_args(args, files)
         expected = ["file1.py", "file2.ipynb", "file3.md"]
-        self.assertEqual(actual, expected)
+        self.helper(["--file_types", "py , ipynb , md"], files, expected)
 
     def test4(self) -> None:
         """
         Test filtering with skip_file_types to exclude extensions.
         """
-        parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
-        args = parser.parse_args(["--skip_file_types", "txt"])
         files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
-        actual = hparser.parse_file_type_filter_args(args, files)
         expected = ["file1.py", "file2.ipynb", "file3.md"]
-        self.assertEqual(actual, expected)
+        self.helper(["--skip_file_types", "txt"], files, expected)
 
     def test5(self) -> None:
         """
         Test filtering with multiple skip_file_types.
         """
-        parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
-        args = parser.parse_args(["--skip_file_types", "txt,md"])
         files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
-        actual = hparser.parse_file_type_filter_args(args, files)
         expected = ["file1.py", "file2.ipynb"]
-        self.assertEqual(actual, expected)
+        self.helper(["--skip_file_types", "txt,md"], files, expected)
 
     def test6(self) -> None:
         """
         Test filtering that excludes all file types with skip.
         """
-        parser = argparse.ArgumentParser()
-        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
-        args = parser.parse_args(["--skip_file_types", "py,ipynb,md,txt"])
         files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
-        actual = hparser.parse_file_type_filter_args(args, files)
         expected: list = []
-        self.assertEqual(actual, expected)
+        self.helper(["--skip_file_types", "py,ipynb,md,txt"], files, expected)
 
 
 # #############################################################################
 # Test_filter_files_by_extensions
 # #############################################################################
 
-# TODO(ai_gp): Apply .claude/skills/testing.rules.md:328:## Use Helper Methods When You Have Repetitive Tests
-# to this class
 class Test_filter_files_by_extensions(hunitest.TestCase):
     """
     Test filtering files by their extensions.
     """
+
+    def helper(
+        self,
+        files: list,
+        file_types_str: str,
+        skip_file_types_str: str,
+        expected: list,
+    ) -> None:
+        """
+        Test helper for `filter_files_by_extensions()`.
+
+        :param files: List of files to filter
+        :param file_types_str: Comma-separated file types to include
+        :param skip_file_types_str: Comma-separated file types to skip
+        :param expected: Expected filtered files
+        """
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str=file_types_str, skip_file_types_str=skip_file_types_str
+        )
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
         Test filtering with no filters (empty strings) returns all files.
         """
         files = ["file1.py", "file2.ipynb", "file3.md"]
-        actual = hparser.filter_files_by_extensions(files, "", "")
         expected = ["file1.py", "file2.ipynb", "file3.md"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "", "", expected)
 
     def test2(self) -> None:
         """
         Test filtering with file_types to include only specific extensions.
         """
         files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="py,ipynb", skip_file_types_str=""
-        )
         expected = ["file1.py", "file2.ipynb"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "py,ipynb", "", expected)
 
     def test3(self) -> None:
         """
         Test filtering with skip_file_types to exclude specific extensions.
         """
         files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="", skip_file_types_str="txt,md"
-        )
         expected = ["file1.py", "file2.ipynb"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "", "txt,md", expected)
 
     def test4(self) -> None:
         """
         Test filtering with single file type.
         """
         files = ["file1.py", "file2.ipynb", "file3.md"]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="py", skip_file_types_str=""
-        )
         expected = ["file1.py"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "py", "", expected)
 
     def test5(self) -> None:
         """
         Test filtering with files that have no extension (no dot).
         """
         files = ["file1", "file2.py", "file3.ipynb"]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="py", skip_file_types_str=""
-        )
         expected = ["file2.py"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "py", "", expected)
 
     def test6(self) -> None:
         """
         Test filtering with whitespace in extension list.
         """
         files = ["file1.py", "file2.ipynb", "file3.md"]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="py , ipynb", skip_file_types_str=""
-        )
         expected = ["file1.py", "file2.ipynb"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "py , ipynb", "", expected)
 
     def test7(self) -> None:
         """
@@ -961,33 +956,24 @@ class Test_filter_files_by_extensions(hunitest.TestCase):
             "file4.txt",
             "file5.log",
         ]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="", skip_file_types_str="txt,log,md"
-        )
         expected = ["file1.py", "file2.ipynb"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "", "txt,log,md", expected)
 
     def test8(self) -> None:
         """
         Test filtering that results in empty list.
         """
         files = ["file1.py", "file2.ipynb"]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="md,txt", skip_file_types_str=""
-        )
         expected: list = []
-        self.assertEqual(actual, expected)
+        self.helper(files, "md,txt", "", expected)
 
     def test9(self) -> None:
         """
         Test filtering preserves file order.
         """
         files = ["z.py", "a.ipynb", "m.py", "b.ipynb", "c.py"]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="py", skip_file_types_str=""
-        )
         expected = ["z.py", "m.py", "c.py"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "py", "", expected)
 
     def test10(self) -> None:
         """
@@ -998,8 +984,5 @@ class Test_filter_files_by_extensions(hunitest.TestCase):
             "another/path/file2.ipynb",
             "file3.md",
         ]
-        actual = hparser.filter_files_by_extensions(
-            files, file_types_str="py,ipynb", skip_file_types_str=""
-        )
         expected = ["path/to/file1.py", "another/path/file2.ipynb"]
-        self.assertEqual(actual, expected)
+        self.helper(files, "py,ipynb", "", expected)
