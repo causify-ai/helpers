@@ -1,22 +1,24 @@
-In all the calls to get_files_to_process use parameters in order and not
-by name for the mandatory ones
+Create a function mock_apply_llm in llm_cli that allows to mock apply_llm and
+returns the digest of concatenation of the strings input_str and system_prompt
 
-get_files_to_process(
-    files: str,
-    from_file: str,
-    modified: bool,
-    branch: bool,
-    last_commit: bool,
-    all_: bool,
-    *,
-    # TODO(gp): Can mutually_exclusive
-    mutually_exclusive: bool = True,
-    remove_dirs: bool = False,
-    dir_name: str = ".",
-) -> List[str]:
+This function should be usable with a with mock_apply_llm():
+
+by tests to avoid to call llm
+
+Add a short explanation of how to use this idiom
+
+Use this new function in dev_scripts_helpers/llms/test/test_llm_cli.py
+
+- When writing code you must always follow the instructions in
+  `.claude/skills/coding.rules.md`
+
+- When writing unit tests for follow the instructions in
+  `.claude/skills/testing.rules.md`
+
+- When implementing notebooks follow the instructions in
+  - `.claude/skills/notebook.rules.md`
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
-
-- Depending on the type of file to modify follow the rules described in
-	`.claude/rules.md`
+  - When the task is complex, create a `plan.md` with 5 bullet points explaining
+    what the plan is

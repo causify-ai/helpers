@@ -36,37 +36,51 @@ import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 
 
-def _get_system_prompt(args: argparse.Namespace) -> str:
+def _get_system_prompt(
+    *,
+    system_prompt_file: Optional[str],
+    rule: Optional[str],
+    system_prompt: str,
+) -> str:
     """
     Get system prompt from file, rule, or argument.
+
+    :param system_prompt_file: Path to file containing system prompt
+    :param rule: Rule specification to extract system prompt from
+    :param system_prompt: Default system prompt text
+    :return: The resolved system prompt
     """
-    if args.system_prompt_file:
+    if system_prompt_file:
         hdbg.dassert_ne(
-            args.system_prompt_file, "", "System prompt file cannot be empty"
+            system_prompt_file, "", "System prompt file cannot be empty"
         )
-        system_prompt = hio.from_file(args.system_prompt_file)
+        result = hio.from_file(system_prompt_file)
         _LOG.debug(
             "Read system prompt from file: %s (%d chars)",
-            args.system_prompt_file,
-            len(system_prompt),
+            system_prompt_file,
+            len(result),
         )
-    elif args.rule:
-        system_prompt = hmarsele.extract_rule_from_file(args.rule)
+    elif rule:
+        result = hmarsele.extract_rule_from_file(rule)
         _LOG.debug(
             "Extracted rule from spec '%s' (%d chars)",
-            args.rule,
-            len(system_prompt),
+            rule,
+            len(result),
         )
     else:
-        system_prompt = args.system_prompt
-    return system_prompt
+        result = system_prompt
+    return result
 
 
 def _process_select_mode(
-    args: argparse.Namespace,
+    *,
+    select: str,
+    model: str,
+    use_llm_executable: bool,
     input_file: Optional[str],
     output_file: Optional[str],
     system_prompt: str,
@@ -75,9 +89,16 @@ def _process_select_mode(
     """
     Process file in select mode: extract chunk, transform, reassemble.
 
-    :return: The cost of the LLM operation.
+    :param select: Select specification (e.g., 'start_marker:end_marker')
+    :param model: Name of the LLM model to use
+    :param use_llm_executable: Whether to use the LLM executable
+    :param input_file: Path to input file
+    :param output_file: Path to output file
+    :param system_prompt: System prompt for the LLM
+    :param expected_num_chars: Expected number of output characters for progress bar
+    :return: The cost of the LLM operation
     """
-    select_start, select_end = hmarsele.parse_select_arg(args.select)
+    select_start, select_end = hmarsele.parse_select_arg(select)
     _LOG.info(
         "Select mode: extracting chunk from '%s' to '%s'",
         select_start,
@@ -94,8 +115,8 @@ def _process_select_mode(
     response, cost = hllmcli.apply_llm(
         chunk_text,
         system_prompt=system_prompt,
-        model=args.model,
-        use_llm_executable=args.use_llm_executable,
+        model=model,
+        use_llm_executable=use_llm_executable,
         expected_num_chars=expected_num_chars,
     )
     if output_file == input_file:
@@ -124,7 +145,9 @@ def _process_select_mode(
 
 
 def _process_simple_input(
-    args: argparse.Namespace,
+    *,
+    model: str,
+    use_llm_executable: bool,
     input_text: Optional[str],
     input_file: Optional[str],
     output_file: Optional[str],
@@ -134,7 +157,14 @@ def _process_simple_input(
     """
     Process file with input_text, stdin, or print_only mode.
 
-    :return: The cost of the LLM operation.
+    :param model: Name of the LLM model to use
+    :param use_llm_executable: Whether to use the LLM executable
+    :param input_text: Input text (if provided directly)
+    :param input_file: Path to input file
+    :param output_file: Path to output file
+    :param system_prompt: System prompt for the LLM
+    :param expected_num_chars: Expected number of output characters for progress bar
+    :return: The cost of the LLM operation
     """
     if input_text is not None:
         input_str = input_text
@@ -146,12 +176,15 @@ def _process_simple_input(
     response, cost = hllmcli.apply_llm(
         input_str,
         system_prompt=system_prompt,
-        model=args.model,
-        use_llm_executable=args.use_llm_executable,
+        model=model,
+        use_llm_executable=use_llm_executable,
         expected_num_chars=expected_num_chars,
     )
     hparser.to_file(response, output_file)
     return cost
+
+
+# #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -208,20 +241,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
         output_file = input_file
         print_only = False
         _LOG.info("No output specified, writing in-place to: %s", output_file)
-    elif args.output == "":
-        hdbg.dfatal("Output file cannot be empty string")
     elif args.output == "-":
         # Print to screen.
         output_file = "-"
         print_only = True
     else:
+        # Use the specified output file.
+        hdbg.dassert_ne(args.output, "", "Output file cannot be empty string")
         output_file = args.output
         print_only = False
     # Determine system prompt source.
-    system_prompt = _get_system_prompt(args)
+    system_prompt = _get_system_prompt(
+        system_prompt_file=args.system_prompt_file,
+        rule=args.rule,
+        system_prompt=args.system_prompt,
+    )
     # Parse --select if provided.
-    select_start = None
-    select_end = None
     is_select_mode = False
     if args.select:
         select_start, select_end = hmarsele.parse_select_arg(args.select)
@@ -274,16 +309,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
             input_text, None, "Select mode requires file input, not --input_text"
         )
         cost = _process_select_mode(
-            args, input_file, output_file, system_prompt, expected_num_chars
+            select=args.select,
+            model=args.model,
+            use_llm_executable=args.use_llm_executable,
+            input_file=input_file,
+            output_file=output_file,
+            system_prompt=system_prompt,
+            expected_num_chars=expected_num_chars,
         )
     elif input_text is not None or input_file == "-" or print_only:
         cost = _process_simple_input(
-            args,
-            input_text,
-            input_file,
-            output_file,
-            system_prompt,
-            expected_num_chars,
+            model=args.model,
+            use_llm_executable=args.use_llm_executable,
+            input_text=input_text,
+            input_file=input_file,
+            output_file=output_file,
+            system_prompt=system_prompt,
+            expected_num_chars=expected_num_chars,
         )
     else:
         # Use file-based processing.

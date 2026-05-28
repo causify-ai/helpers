@@ -6,6 +6,8 @@ import helpers.hllm_cli as hllmcli
 
 from __future__ import annotations
 
+import contextlib
+import hashlib
 import json
 import logging
 import shlex
@@ -15,6 +17,7 @@ import importlib
 import pprint
 import time
 from typing import Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from unittest import mock
 
 try:
     import llm
@@ -1060,3 +1063,51 @@ def apply_llm_prompt_to_df(
     }
     _LOG.info("Processing completed:\n%s", pprint.pformat(stats))
     return df, stats
+
+
+# #############################################################################
+# Testing utilities
+# #############################################################################
+
+# with mock_apply_llm():
+#     # Code that calls apply_llm() will now return mocked values
+#     response, cost = apply_llm(
+#         "some input",
+#         system_prompt="some prompt",
+#     )
+#     # response will be the MD5 hash of "some inputsome prompt"
+#     # cost will be 0.0
+#
+# Example in a test:
+# def test_my_function(self):
+#     with mock_apply_llm():
+#         result = my_function_that_calls_apply_llm()
+#         self.assertEqual(result, expected_value)
+
+@contextlib.contextmanager
+def mock_apply_llm():
+    """
+    Context manager to mock `apply_llm()` for testing without calling LLM.
+
+    This provides a convenient way to mock `apply_llm()` in tests by returning
+    the digest of the concatenated `input_str` and `system_prompt` instead of
+    making an actual LLM call. This avoids expensive API calls and external
+    dependencies during testing.
+    """
+    def _mock_apply_llm(
+        input_str: str,
+        *,
+        system_prompt: Optional[str] = None,
+        model: Optional[str] = None,
+        use_llm_executable: bool = False,
+        expected_num_chars: Optional[int] = None,
+    ) -> Tuple[str, float]:
+        # Concatenate input_str and system_prompt to create digest input.
+        concatenated = input_str + (system_prompt or "")
+        # Create MD5 digest of the concatenated strings.
+        digest = hashlib.md5(concatenated.encode()).hexdigest()
+        # Return digest as response and zero cost.
+        return digest, 0.0
+
+    with mock.patch("helpers.hllm_cli.apply_llm", side_effect=_mock_apply_llm):
+        yield
