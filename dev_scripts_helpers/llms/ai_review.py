@@ -66,7 +66,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_file_name = "cfile"
     tag = "ai_review"
     tmp_in_file_name, tmp_out_file_name = (
-        hseinout.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
+        hseinout.adapt_input_output_args_for_dockerized_scripts(
+            in_file_name, tag
+        )
     )
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
