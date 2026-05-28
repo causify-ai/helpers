@@ -12,7 +12,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hmarkdown_select as hmarsele
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -1407,6 +1406,7 @@ def add_llm_args(
         dest="system_prompt_file",
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
+    import helpers.hmarkdown_select as hmarsele
     hmarsele.add_rule_cli_arg(system_prompt_group)
     # Model selection.
     if include_model:
