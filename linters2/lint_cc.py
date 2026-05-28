@@ -30,9 +30,13 @@ Examples:
 # Execute a skill on a single file:
 > lint_cc.py --skill coding.fix_inline --files "file.py"
 
-# Execute a rule on a single file:
-# TODO(ai_gp2): Explain more of --rule based on its help
-# E.g., --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions"
+# Execute a rule on a single file using one of these formats:
+# - Full path: --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions"
+#   (path:line:header format with header validation)
+# - Line number only: --rule ".claude/skills/coding.rules.md:58"
+#   (extracts the section starting at that line)
+# - Keyword search: --rule "dassert"
+#   (searches for unique matching rule using rigrule)
 > lint_cc.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
 
 # Print the command without executing:
@@ -234,45 +238,6 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     return txt, topic_info
 
 
-# TODO(ai_gp2): Move to hmarkdown_extract.py
-def _find_skill(skill_match: str) -> str:
-    """
-    Find the full skill name by searching with `mdm skill f`.
-
-    :param skill_match: Partial or full skill name to search for
-    :return: Full skill name if exactly one match found
-    """
-    cmd = ["mdm", "skill", "f", skill_match]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    matches = result.stdout.strip().split("\n")
-    matches = [m.strip() for m in matches if m.strip()]
-    hdbg.dassert_eq(
-        len(matches),
-        1,
-        "Expected exactly one skill match for '%s', got %d matches: %s",
-        skill_match,
-        len(matches),
-        ", ".join(matches),
-    )
-    full_skill_name = matches[0]
-    hdbg.dassert_file_exists(full_skill_name)
-    return full_skill_name
-
-
-# TODO(ai_gp2): Inline this
-def _extract_rule(rule_spec: str) -> str:
-    """
-    Extract a rule section from a rules file.
-
-    :param rule_spec: Rule specification in one of these formats:
-        - `path/to/file.md`: return all content
-        - `path/to/file.md:N`: extract section starting at line N
-        - `path/to/file.md:N:# Section Name`: extract with header validation
-        - `keyword`: search for the keyword using rigrule and extract the
-          unique matching rule
-    :return: Extracted rule text as a string
-    """
-    return hmarsele.extract_rule_from_file(rule_spec)
 
 
 def _run_claude_code(
@@ -321,26 +286,21 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_file_selection_args(parser)
-    parser.add_argument(
+    action_group = parser.add_mutually_exclusive_group()
+    action_group.add_argument(
         "--topic",
         type=str,
         default=None,
         help="Claude Code skill topic (e.g., 'coding.format'). "
         "Can only be used with a single file.",
     )
-    parser.add_argument(
+    action_group.add_argument(
         "--skill",
         type=str,
         default=None,
         help="Execute a skill on selected files. E.g., `coding.fix_inline`",
     )
-    # TODO(ai_gp2): Use add_rule_cli_arg from hmarkdown_select.py
-    parser.add_argument(
-        "--rule",
-        type=str,
-        default=None,
-        help="Execute a rule on selected files. Specify as 'path/to/file.md:LINE:HEADER'. E.g., '.claude/skills/coding.rules.md:58:## Mark Private Functions'",
-    )
+    hmarsele.add_rule_cli_arg(action_group)
     parser.add_argument(
         "--dry_run",
         action="store_true",
@@ -377,7 +337,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
     ret = 0
     for file_path in tqdm(files, desc="Processing files"):
         if args.skill:
-            full_skill_name = _find_skill(args.skill)
+            full_skill_name = hmarsele.find_skill(args.skill)
             prompt = f"/{full_skill_name} {file_path}"
             topic_str = "skill"
             inferred_topic = _infer_topic_from_filename(file_path)
@@ -386,7 +346,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 prompt, topic_str, file_path, dry_run=args.dry_run
             )
         elif args.rule:
-            rule_content = _extract_rule(args.rule)
+            rule_content = hmarsele.extract_rule_from_file(args.rule)
             prompt = (
                 f"Execute the rule below on file {file_path}:\n\n{rule_content}"
             )

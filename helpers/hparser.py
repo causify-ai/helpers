@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hmarkdown_extract as hmextr
+import helpers.hmarkdown_select as hmarsele
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -95,6 +95,8 @@ def parse_verbosity_args(
 # File selection arguments
 # #############################################################################
 
+
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 def add_file_selection_args(
     parser: argparse.ArgumentParser,
@@ -194,6 +196,9 @@ def parse_file_selection_args(
 # #############################################################################
 
 
+# TODO(ai_gp): Move to helpers/hcache_simple.py
+
+
 # TODO(gp): Use the ones from hcache_simple.py for DRY.
 _CACHE_MODE_CHOICES = ("REFRESH_CACHE", "DISABLE_CACHE", "HIT_CACHE_OR_ABORT")
 
@@ -252,6 +257,8 @@ def parse_cache_control_args(args: argparse.Namespace) -> None:
 # #############################################################################
 # Select actions.
 # #############################################################################
+
+# TODO(ai_gp): Move this to helpers/hselect_action.py
 
 # # Define valid and default actions.
 # valid_actions = ["download", "process", "upload", "cleanup"]
@@ -484,6 +491,8 @@ def mark_action(
 # #############################################################################
 # Command line options for input/output processing.
 # #############################################################################
+
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 # For non-dockerized scripts the following idiom is used:
 #
@@ -839,7 +848,7 @@ def parse_dst_dir_arg(args: argparse.Namespace) -> str:
 
 
 # pylint: disable=line-too-long
-# TODO(gp): These should go in hjoblib.py
+# TODO(ai_gp): These should go in hjoblib.py
 def add_parallel_processing_arg(
     parser: argparse.ArgumentParser,
     *,
@@ -1033,6 +1042,7 @@ def str_to_bool(value: str) -> bool:
 # Command line options for dockerized scripts.
 # #############################################################################
 
+# TODO(ai_gp): -> helpers/hdocker.py
 
 def add_dockerized_script_arg(
     parser: argparse.ArgumentParser,
@@ -1056,6 +1066,8 @@ def add_dockerized_script_arg(
 # #############################################################################
 # Command line options for limit range processing.
 # #############################################################################
+
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 
 def add_limit_range_arg(
@@ -1178,6 +1190,7 @@ def apply_limit_range(
 # Select multiple file input.
 # #############################################################################
 
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 # TODO(gp): Merge with input_output_args and / or add_file_selection_args?
 def add_multi_file_args(
@@ -1285,6 +1298,7 @@ def parse_multi_file_args(
 # Command line options for LLM CLI scripts.
 # #############################################################################
 
+# TODO(ai_gp): -> hllm_cli.py
 
 # TODO(ai_gp): Replace this with the more general parsing logic add_llm_args.
 def add_llm_prompt_arg(
@@ -1393,7 +1407,7 @@ def add_llm_args(
         dest="system_prompt_file",
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
-    hmextr.add_rule_cli_arg(system_prompt_group)
+    hmarsele.add_rule_cli_arg(system_prompt_group)
     # Model selection.
     if include_model:
         parser.add_argument(
@@ -1432,6 +1446,7 @@ def add_llm_args(
 # Command line options for file type filtering
 # #############################################################################
 
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 def add_file_type_filter_args(
     parser: argparse.ArgumentParser,

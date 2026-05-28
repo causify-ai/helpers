@@ -1,5 +1,5 @@
 r"""
-Utilities for selecting header ranges in markdown files.
+Utilities for selecting header ranges in markdown files and extracting rules.
 
 Provides functions to find and validate markdown headers by full format or
 partial title match, and to determine section boundaries for text extraction.
@@ -23,6 +23,12 @@ Headers can be searched using several strategies:
   - `find_header_by_regex()`: Regex match (pattern starts with ^ anchor)
   - `find_header_by_level_and_prefix()`: Match by level and title prefix
 
+# Rule Extraction and Skill Finding
+
+- `add_rule_cli_arg()`: Add --rule argument to CLI argument parser
+- `extract_rule_from_file()`: Extract rule sections from markdown rule files
+- `find_skill()`: Search for skills using the `mdm skill f` command
+
 Import as:
 
 import helpers.hmarkdown_select as hmarsele
@@ -32,15 +38,22 @@ import argparse
 import logging
 import os
 import re
+import subprocess
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarslid
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Header extraction
+# #############################################################################
 
 
 def add_select_arg(
@@ -549,6 +562,63 @@ def extract_text_from_markdown_lines(
 
 
 # #############################################################################
+# Rules
+# #############################################################################
+
+
+def add_rule_cli_arg(
+    group: argparse._MutuallyExclusiveGroup,
+) -> argparse._MutuallyExclusiveGroup:
+    """
+    Add --rule argument to a mutually exclusive argument group.
+
+    The rule argument allows specifying rule files and sections for use as
+    system prompts.
+
+    :param group: mutually exclusive argument group to add argument to
+    :return: the same group with the argument added
+    """
+    group.add_argument(
+        "-r",
+        "--rule",
+        type=str,
+        default=None,
+        dest="rule",
+        help=(
+            hprint.dedent(
+            """
+            Rule specification used as system prompt. Formats:
+            - 'path/to/rules.md': whole file
+            - 'path/to/rules.md:LINE': header section at LINE
+            - 'path/to/rules.md:LINE:# Section Name': with name validation
+            - 'dassert': a single result of rigrule""")
+        ),
+    )
+    return group
+
+
+def find_skill(skill_match: str) -> str:
+    """
+    Find the full skill name by searching with `mdm skill f`.
+
+    :param skill_match: Partial or full skill name to search for
+    :return: Full skill name if exactly one match found
+    """
+    cmd = ["mdm", "skill", "f", skill_match]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    matches = result.stdout.strip().split("\n")
+    matches = [m.strip() for m in matches if m.strip()]
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Expected exactly one skill match for '%s', got %d matches: %s",
+        skill_match,
+        len(matches),
+        ", ".join(matches),
+    )
+    full_skill_name = matches[0]
+    hdbg.dassert_file_exists(full_skill_name)
+    return full_skill_name
 
 
 def _parse_rigrule_output(keyword: str) -> str:

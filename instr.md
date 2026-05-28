@@ -1,7 +1,11 @@
-When calling the functions corresponding to --select and --rule 
-print the range selected like
+Fix the issue when calling rig with options like --last_commit --branch that specify a list of
+files
 
-file:X-Y (num lines)
+rig --last_commit -v DEBUG
+
+rg '^\s*(#|//)\s*TODO\(ai_gp\S*\)' . --hidden dev_scripts_helpers/system_tools/lib_rig.py helpers/hparser.py linters2/lint_cc.py -n --no-heading --color=never -g '!.git'
+
+The directory should be replaced with the list of files
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
