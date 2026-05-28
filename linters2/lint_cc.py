@@ -254,7 +254,6 @@ def _find_skill(skill_match: str) -> str:
     return full_skill_name
 
 
-# TODO(ai_gp): Inline
 def _extract_rule(rule_spec: str) -> str:
     """
     Extract a rule section from a rules file.
@@ -263,6 +262,8 @@ def _extract_rule(rule_spec: str) -> str:
         - `path/to/file.md`: return all content
         - `path/to/file.md:N`: extract section starting at line N
         - `path/to/file.md:N:# Section Name`: extract with header validation
+        - `keyword`: search for the keyword using rigrule and extract the
+          unique matching rule
     :return: Extracted rule text as a string
     """
     return hmarsele.extract_rule_from_file(rule_spec)

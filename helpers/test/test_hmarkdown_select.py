@@ -70,10 +70,22 @@ class Test_parse_select_arg(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test parsing with no colon (implies to EOF).
+        Test parsing with no colon (implies next same-level header).
         """
         # Prepare inputs.
         select_str = "Section 1"
+        # Run test.
+        start, end = hmarsele.parse_select_arg(select_str)
+        # Check outputs.
+        self.assertEqual(start, "Section 1")
+        self.assertIsNone(end)
+
+    def test5(self) -> None:
+        """
+        Test parsing with explicit END to extract to EOF.
+        """
+        # Prepare inputs.
+        select_str = "Section 1:END"
         # Run test.
         start, end = hmarsele.parse_select_arg(select_str)
         # Check outputs.
@@ -748,7 +760,7 @@ class Test_extract_text_from_markdown_lines2(hunitest.TestCase):
             lines, "Methods", "END"
         )
         # Check outputs.
-        self.assert_equal(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
@@ -781,7 +793,7 @@ class Test_extract_text_from_markdown_lines2(hunitest.TestCase):
             lines, "Section 1.2", "END"
         )
         # Check outputs.
-        self.assert_equal(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test3(self) -> None:
         """
@@ -811,7 +823,7 @@ class Test_extract_text_from_markdown_lines2(hunitest.TestCase):
             lines, "Section 1.1", None
         )
         # Check outputs.
-        self.assert_equal(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test4(self) -> None:
         """
@@ -838,7 +850,7 @@ class Test_extract_text_from_markdown_lines2(hunitest.TestCase):
             lines, None, "Section 1.1"
         )
         # Check outputs.
-        self.assert_equal(actual, expected)
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -1035,7 +1047,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             lines, start_header, end_header, is_slide_format=False
         )
         # Check outputs.
-        self.assert_equal(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
@@ -1234,7 +1246,7 @@ class Test_extract_text_from_markdown_lines1(hunitest.TestCase):
             lines, start_header, end_header, is_slide_format=True
         )
         # Check outputs.
-        self.assert_equal(actual, expected)
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """

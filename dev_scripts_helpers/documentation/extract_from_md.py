@@ -23,7 +23,8 @@ For `.md` files, headers can be specified as:
 - "START:END" - extract from START to END
 - ":END" - extract from beginning to END
 - "START:" - extract from START until next same-level header
-- "START" (no colon) - extract from START to EOF
+- "START" (no colon) - extract from START until next same-level header
+- "START:END" (where END is "END") - extract from START to EOF
 
 # Examples:
 

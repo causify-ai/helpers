@@ -29,6 +29,7 @@ import helpers.hmarkdown_select as hmarsele
 """
 
 import argparse
+import os
 import re
 from typing import List, Optional, Tuple
 
@@ -36,6 +37,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarslid
+import helpers.hsystem as hsystem
 
 
 def add_select_arg(
@@ -58,7 +60,8 @@ def add_select_arg(
         help=(
             "Select text range as START:END. Examples: "
             "'## Section 1:## Section 2', 'Section 1:Section 2', ':END', "
-            "'START:', or 'START' (no colon implies to EOF). "
+            "'START:' (extracts until next same-level header), 'START' (extracts until next same-level header), "
+            "or 'START:END' (where END is 'END' for EOF). "
             "START/END can be a header (with # or * prefix), title substring, "
             "or line number."
         ),
@@ -77,7 +80,8 @@ def parse_select_arg(select_str: str) -> Tuple[Optional[str], Optional[str]]:
     - "START:END" -> ("START", "END")
     - ":END" -> (None, "END"): extract from file beginning
     - "START:" -> ("START", None): extract until next same-level header
-    - "START" (no colon) -> ("START", "END"): extract from START to EOF
+    - "START:END" where END is "END" -> ("START", "END"): extract from START to EOF
+    - "START" (no colon) -> ("START", None): extract until next same-level header
 
     :param select_str: the --select argument value
     :return: tuple of (start, end) where each can be None or a string
@@ -85,7 +89,7 @@ def parse_select_arg(select_str: str) -> Tuple[Optional[str], Optional[str]]:
     hdbg.dassert_isinstance(select_str, str, "select_str must be a string")
     hdbg.dassert_ne(select_str, "", "Select string cannot be empty")
     if ":" not in select_str:
-        return select_str, "END"
+        return select_str, None
     parts = select_str.split(":", 1)
     start = parts[0] if parts[0].strip() else None
     end = parts[1] if parts[1].strip() else None
@@ -308,7 +312,7 @@ def find_header_from_input(
     # Check if input is slide format (* Title)
     elif header_input.startswith("*"):
         title = header_input[1:].strip()
-        header_info = _find_header_by_level_and_prefix(
+        header_info = find_header_by_level_and_prefix(
             header_list, hmarslid.SLIDE_LEVEL, title
         )
         hdbg.dassert_is_not(
@@ -317,22 +321,22 @@ def find_header_from_input(
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Check if input is full header format (# Title)
     elif header_input.startswith("#"):
-        level, title = _parse_header_string(header_input)
-        header_info = _find_header_by_level_and_prefix(header_list, level, title)
+        level, title = parse_header_string(header_input)
+        header_info = find_header_by_level_and_prefix(header_list, level, title)
         hdbg.dassert_is_not(
             header_info, None, "No header matches: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Check if input is regex pattern (^ anchor)
     elif header_input.startswith("^"):
-        header_info = _find_header_by_regex(header_list, header_input)
+        header_info = find_header_by_regex(header_list, header_input)
         hdbg.dassert_is_not(
             header_info, None, "No header matches regex: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Default: substring matching
     else:
-        header_info = _find_header_by_substring_title(header_list, header_input)
+        header_info = find_header_by_substring_title(header_list, header_input)
         hdbg.dassert_is_not(
             header_info, None, "No header matches: '%s'", header_input
         )
@@ -373,7 +377,7 @@ def find_end_line(
     hdbg.dassert_isinstance(start_idx, int)
     # If an explicit end header is provided, use it directly.
     if end_header_input is not None:
-        end_header_info, _ = _find_header_from_input(
+        end_header_info, _ = find_header_from_input(
             header_list, end_header_input
         )
         return end_header_info.line_number - 1
@@ -437,7 +441,7 @@ def get_chunk_bounds(
             None,
             "start_header_str_converted must not be None",
         )
-        start_header_info, _ = _find_header_from_input(
+        start_header_info, _ = find_header_from_input(
             header_list, start_header_str_converted
         )
         start_idx = start_header_info.line_number - 1
@@ -452,10 +456,10 @@ def get_chunk_bounds(
                 None,
                 "start_header_str_converted must not be None",
             )
-            start_header_info, _ = _find_header_from_input(
+            start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
             )
-            end_line = _find_end_line(header_list, start_header_info, None)
+            end_line = find_end_line(header_list, start_header_info, None)
             end_idx = len(lines_converted) if end_line is None else end_line
     elif end_header_str == "END":
         end_idx = len(lines_converted)
@@ -467,7 +471,7 @@ def get_chunk_bounds(
         )
         if start_header_str is None:
             # Extract from beginning to explicit end header.
-            end_header_info, _ = _find_header_from_input(
+            end_header_info, _ = find_header_from_input(
                 header_list, end_header_str_converted
             )
             end_idx = end_header_info.line_number - 1
@@ -478,10 +482,10 @@ def get_chunk_bounds(
                 None,
                 "start_header_str_converted must not be None",
             )
-            start_header_info, _ = _find_header_from_input(
+            start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
             )
-            end_line = _find_end_line(
+            end_line = find_end_line(
                 header_list, start_header_info, end_header_str_converted
             )
             end_idx = len(lines_converted) if end_line is None else end_line
@@ -538,6 +542,32 @@ def extract_text_from_markdown_lines(
 # #############################################################################
 
 
+def _parse_rigrule_output(keyword: str) -> str:
+    """
+    Search for a rule using `rigrule` command and return the full spec.
+
+    :param keyword: keyword to search for (e.g., 'dassert')
+    :return: full rule spec in format 'path:line:header'
+    :raises: AssertionError if no matches found
+    """
+    cmd = f"rigrule {keyword}"
+    rc, output = hsystem.system_to_string(cmd, abort_on_error=False, suppress_output=False)
+    hdbg.dassert_eq(rc, 0,
+            "rigrule command failed for keyword '%s'",
+            keyword,
+        )
+    output = output.strip()
+    # Remove ANSI color codes from output.
+    output = re.sub(r"\x1b\[[0-9;]*m", "", output)
+    matches = [line.strip() for line in output.split("\n") if line.strip()]
+    hdbg.dassert(
+        len(matches) > 0,
+        "Expected at least one rule match for keyword '%s'",
+        keyword,
+    )
+    return matches[0]
+
+
 def extract_rule_from_file(rule_spec: str) -> str:
     """
     Extract a rule section from a rules file based on a rule specification.
@@ -548,11 +578,21 @@ def extract_rule_from_file(rule_spec: str) -> str:
           a markdown header)
         - `path/to/file.md:N:# Section Name`: same with header name
           validation
+        - `keyword`: search for the keyword using rigrule and extract the
+          unique matching rule
     :return: extracted rule text as a string
     """
     # Parse the rule specification.
     parts = rule_spec.split(":", 2)
     file_path = parts[0]
+    # If only one part and it doesn't look like a file path, try rigrule.
+    if len(parts) == 1 and not file_path.endswith(".md"):
+        file_exists = os.path.exists(file_path)
+        if not file_exists:
+            # Treat as a keyword to search for and call itself.
+            # E.g., .claude/skills/testing.rules.md:657:## Do Not Use `hdbg.dassert` to Test Assertions
+            matched_spec = _parse_rigrule_output(file_path)
+            return extract_rule_from_file(matched_spec)
     # Check file exists.
     hdbg.dassert_file_exists(
         file_path, "Rule file does not exist: %s", file_path
