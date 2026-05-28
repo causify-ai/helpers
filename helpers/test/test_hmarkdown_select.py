@@ -1319,3 +1319,108 @@ class Test_extract_text_from_markdown_lines1(hunitest.TestCase):
             """
         # Run test.
         self.helper(document_text, start_header, end_header, expected_text)
+
+
+# #############################################################################
+# Test_find_header_by_regex
+# #############################################################################
+
+
+class Test_find_header_by_regex(hunitest.TestCase):
+    """
+    Test regex header matching.
+    """
+
+    def test1(self) -> None:
+        """
+        Test finding header by exact regex match on slide level.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (5, "Causal and Exhaustive Augmentation: Limitations"),
+                (5, "Causal and Exhaustive Augmentation"),
+            ]
+        )
+        pattern = r"^\* Causal and Exhaustive Augmentation: Limitations$"
+        # Run test.
+        result = hmarsele.find_header_by_regex(header_list, pattern)
+        # Check outputs.
+        self.assertIsNotNone(result)
+        self.assertEqual(result.description, "Causal and Exhaustive Augmentation: Limitations")
+        self.assertEqual(result.level, 5)
+
+    def test2(self) -> None:
+        """
+        Test finding header by prefix regex match on slide level.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (5, "Causal and Exhaustive Augmentation: Limitations"),
+                (5, "Causal and Other Methods"),
+            ]
+        )
+        pattern = r"^\* Causal and Exhaustive Augmentation"
+        # Run test.
+        result = hmarsele.find_header_by_regex(header_list, pattern)
+        # Check outputs.
+        self.assertIsNotNone(result)
+        self.assertEqual(result.description, "Causal and Exhaustive Augmentation: Limitations")
+
+    def test3(self) -> None:
+        """
+        Test finding header by regex match on level 2.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "Section 1.1"),
+                (2, "Section 1.2"),
+            ]
+        )
+        pattern = r"^## Section 1\.1$"
+        # Run test.
+        result = hmarsele.find_header_by_regex(header_list, pattern)
+        # Check outputs.
+        self.assertIsNotNone(result)
+        self.assertEqual(result.description, "Section 1.1")
+        self.assertEqual(result.level, 2)
+
+    def test4(self) -> None:
+        """
+        Test regex not matching any header.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "Section 1"),
+            ]
+        )
+        pattern = r"^## Nonexistent"
+        # Run test.
+        result = hmarsele.find_header_by_regex(header_list, pattern)
+        # Check outputs.
+        self.assertIsNone(result)
+
+    def test5(self) -> None:
+        """
+        Test regex matching multiple headers raises error.
+        """
+        # Prepare inputs.
+        header_list = _build_header_list(
+            [
+                (1, "Chapter 1"),
+                (2, "Section A"),
+                (2, "Section B"),
+            ]
+        )
+        pattern = r"^## Section"
+        # Run test and check output (multiple matches).
+        with self.assertRaises(AssertionError) as cm:
+            hmarsele.find_header_by_regex(header_list, pattern)
+        self.assertIn("multiple headers", str(cm.exception))

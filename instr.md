@@ -1,13 +1,16 @@
-Create a function mock_apply_llm in llm_cli that allows to mock apply_llm and
-returns the digest of concatenation of the strings input_str and system_prompt
+In linters2/lint_cc.py replace _find_rule with a call
+hmarsele.extract_rule_from_file(rule)
+and update the documentation
 
-This function should be usable with a with mock_apply_llm():
+In extract_rule_from_file if the format doesn't match any allowed format 
+call rigrule
 
-by tests to avoid to call llm
+rigrule dassert
 
-Add a short explanation of how to use this idiom
+make sure there is a single match and then use the resulting single match
 
-Use this new function in dev_scripts_helpers/llms/test/test_llm_cli.py
+E.g.,
+.claude/skills/testing.rules.md:657:## Do Not Use `hdbg.dassert` to Test Assertions
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`

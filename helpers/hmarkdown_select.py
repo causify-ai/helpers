@@ -4,12 +4,32 @@ Utilities for selecting header ranges in markdown files.
 Provides functions to find and validate markdown headers by full format or
 partial title match, and to determine section boundaries for text extraction.
 
+# Searching for Headers
+
+Headers can be searched using several strategies:
+
+- `find_header_from_input()`: Main flexible matching function that supports
+  multiple input formats:
+  - Line number: `"42"` (1-based line number)
+  - Slide format: `"* Slide Title"` (level-5 header prefix)
+  - Full header format: `"## Title"` (with # symbols)
+  - Regex pattern: `"^\\* Title$"` (Python regex matching full header line)
+  - Substring: `"Title"` (matches anywhere in title, must be unique)
+
+- Other matching functions for specific use cases:
+  - `find_header_by_title()`: Exact title match
+  - `find_header_by_partial_title()`: Prefix match (title must start with input)
+  - `find_header_by_substring_title()`: Substring match (anywhere in title)
+  - `find_header_by_regex()`: Regex match (pattern starts with ^ anchor)
+  - `find_header_by_level_and_prefix()`: Match by level and title prefix
+
 Import as:
 
 import helpers.hmarkdown_select as hmarsele
 """
 
 import argparse
+import re
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
@@ -216,6 +236,46 @@ def _find_header_by_line_number(
     return None
 
 
+def find_header_by_regex(
+    header_list: hmarhead.HeaderList, pattern: str
+) -> Optional[hmarhead.HeaderInfo]:
+    """
+    Find a header by Python regex matching against the full header line.
+
+    The regex is matched against the reconstructed header line:
+    - For level-5 (SLIDE_LEVEL): "* Title"
+    - For other levels: "## Title", "### Title", etc.
+    Raises an error if multiple headers match.
+
+    :param header_list: list of HeaderInfo objects
+    :param pattern: Python regex pattern (must compile successfully)
+    :return: HeaderInfo if found, None otherwise
+    """
+    try:
+        compiled_pattern = re.compile(pattern)
+    except re.error as e:
+        hdbg.dassert(False, "Invalid regex pattern '%s': %s", pattern, str(e))
+    matches = []
+    for header_info in header_list:
+        # Reconstruct the full header line.
+        if header_info.level == hmarslid.SLIDE_LEVEL:
+            full_line = f"* {header_info.description}"
+        else:
+            full_line = f"{'#' * header_info.level} {header_info.description}"
+        if compiled_pattern.search(full_line):
+            matches.append(header_info)
+    if len(matches) == 0:
+        return None
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Regex '%s' matches multiple headers: %s. Please provide a more specific pattern.",
+        pattern,
+        [h.description for h in matches],
+    )
+    return matches[0]
+
+
 def find_header_from_input(
     header_list: hmarhead.HeaderList,
     header_input: str,
@@ -227,6 +287,7 @@ def find_header_from_input(
     - Line number: "42" (1-based line number)
     - Slide format: "* Slide Title" (matches level-5 header with prefix)
     - Full header format: "## Title" (matches level-exact header with prefix)
+    - Regex pattern: "^\\* Title$" (Python regex matching full header line)
     - Substring: "Title" (matches anywhere in title, must be unique)
 
     :param header_list: list of HeaderInfo objects
@@ -247,7 +308,7 @@ def find_header_from_input(
     # Check if input is slide format (* Title)
     elif header_input.startswith("*"):
         title = header_input[1:].strip()
-        header_info = find_header_by_level_and_prefix(
+        header_info = _find_header_by_level_and_prefix(
             header_list, hmarslid.SLIDE_LEVEL, title
         )
         hdbg.dassert_is_not(
@@ -256,15 +317,22 @@ def find_header_from_input(
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Check if input is full header format (# Title)
     elif header_input.startswith("#"):
-        level, title = parse_header_string(header_input)
-        header_info = find_header_by_level_and_prefix(header_list, level, title)
+        level, title = _parse_header_string(header_input)
+        header_info = _find_header_by_level_and_prefix(header_list, level, title)
         hdbg.dassert_is_not(
             header_info, None, "No header matches: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
+    # Check if input is regex pattern (^ anchor)
+    elif header_input.startswith("^"):
+        header_info = _find_header_by_regex(header_list, header_input)
+        hdbg.dassert_is_not(
+            header_info, None, "No header matches regex: '%s'", header_input
+        )
+        hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     # Default: substring matching
     else:
-        header_info = find_header_by_substring_title(header_list, header_input)
+        header_info = _find_header_by_substring_title(header_list, header_input)
         hdbg.dassert_is_not(
             header_info, None, "No header matches: '%s'", header_input
         )
@@ -305,7 +373,7 @@ def find_end_line(
     hdbg.dassert_isinstance(start_idx, int)
     # If an explicit end header is provided, use it directly.
     if end_header_input is not None:
-        end_header_info, _ = find_header_from_input(
+        end_header_info, _ = _find_header_from_input(
             header_list, end_header_input
         )
         return end_header_info.line_number - 1
@@ -345,7 +413,7 @@ def get_chunk_bounds(
     header_list = hmarhead.extract_headers_from_markdown(
         lines_converted, max_level=10, sanity_check=sanity_check
     )
-    # Prepare converted header strings if needed
+    # Prepare converted header strings if needed.
     start_header_str_converted = None
     end_header_str_converted = None
     if start_header_str is not None:
@@ -360,7 +428,7 @@ def get_chunk_bounds(
             end_header_str_converted = hmarslid.convert_slide_to_markdown(
                 [end_header_str]
             )[0]
-    # Determine start index
+    # Determine start index.
     if start_header_str is None:
         start_idx = 0
     else:
@@ -369,25 +437,25 @@ def get_chunk_bounds(
             None,
             "start_header_str_converted must not be None",
         )
-        start_header_info, _ = find_header_from_input(
+        start_header_info, _ = _find_header_from_input(
             header_list, start_header_str_converted
         )
         start_idx = start_header_info.line_number - 1
-    # Determine end index
+    # Determine end index.
     if end_header_str is None:
         if start_header_str is None:
             end_idx = len(lines_converted)
         else:
-            # Auto-detect: find next same-level header
+            # Auto-detect: find next same-level header.
             hdbg.dassert_is_not(
                 start_header_str_converted,
                 None,
                 "start_header_str_converted must not be None",
             )
-            start_header_info, _ = find_header_from_input(
+            start_header_info, _ = _find_header_from_input(
                 header_list, start_header_str_converted
             )
-            end_line = find_end_line(header_list, start_header_info, None)
+            end_line = _find_end_line(header_list, start_header_info, None)
             end_idx = len(lines_converted) if end_line is None else end_line
     elif end_header_str == "END":
         end_idx = len(lines_converted)
@@ -398,22 +466,22 @@ def get_chunk_bounds(
             "end_header_str_converted must not be None",
         )
         if start_header_str is None:
-            # Extract from beginning to explicit end header
-            end_header_info, _ = find_header_from_input(
+            # Extract from beginning to explicit end header.
+            end_header_info, _ = _find_header_from_input(
                 header_list, end_header_str_converted
             )
             end_idx = end_header_info.line_number - 1
         else:
-            # Extract from start header to explicit end header
+            # Extract from start header to explicit end header.
             hdbg.dassert_is_not(
                 start_header_str_converted,
                 None,
                 "start_header_str_converted must not be None",
             )
-            start_header_info, _ = find_header_from_input(
+            start_header_info, _ = _find_header_from_input(
                 header_list, start_header_str_converted
             )
-            end_line = find_end_line(
+            end_line = _find_end_line(
                 header_list, start_header_info, end_header_str_converted
             )
             end_idx = len(lines_converted) if end_line is None else end_line
@@ -432,11 +500,13 @@ def extract_text_from_markdown_lines(
     For .txt slide files, headers can be specified as:
     - Slides: "* Slide Title" (shorthand for `##### Slide Title`)
     - Full header format: "##### Section 1" (includes the # symbols)
+    - Regex pattern: "^\\* Slide Title$" (Python regex matching full header line)
     - Line number: "42" (1-based)
     - Substring: "Section 1" (matches anywhere in title)
 
     For .md files, headers can be specified as:
     - Full format: "## Section 1" (includes the # symbols)
+    - Regex pattern: "^## Section" (Python regex matching full header line)
     - Line number: "42" (1-based)
     - Substring: "Section 1" (matches anywhere in title)
 

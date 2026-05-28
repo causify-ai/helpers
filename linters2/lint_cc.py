@@ -8,14 +8,21 @@
 Format or lint files using Claude Code.
 
 This script detects file types (by extension and path pattern), builds a prompt,
-and invokes Claude Code with that prompt.
+and invokes Claude Code with that prompt on the selected files.
 
 Examples:
-# Lint specific Python files:
+# Lint specific Python files using the proper rule file (in this case
+# `coding.rules.md`):
 > lint_cc.py --files "file1.py file2.py"
 
-# Lint Python testing files:
+# Lint Python testing files (with `testing.rules.md`):
 > lint_cc.py --files "test_foo.py test_bar.py"
+
+# Files can be selected with --files, --from_file, --branch
+> lint_cc.py --branch
+
+# Lint modified files in the client:
+> lint_cc.py --modified
 
 # Call a specific topic (rules) on a single file:
 > lint_cc.py --topic coding --files "file.py"
@@ -24,10 +31,8 @@ Examples:
 > lint_cc.py --skill coding.fix_inline --files "file.py"
 
 # Execute a rule on a single file:
-> lint_cc.py --rule "coding.rules" --files "file.py"
-
-# Lint modified files in the client:
-> lint_cc.py --modified
+# E.g., --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions"
+> lint_cc.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
 
 # Print the command without executing:
 > lint_cc.py --dry_run --files "*.md"
@@ -47,6 +52,7 @@ from tqdm import tqdm
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hlint as hlint
+import helpers.hmarkdown_select as hmarsele
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -248,31 +254,18 @@ def _find_skill(skill_match: str) -> str:
     return full_skill_name
 
 
-def _find_rule(rule_match: str) -> str:
+# TODO(ai_gp): Inline
+def _extract_rule(rule_spec: str) -> str:
     """
-    Find the full rule name by searching with `rigrule`.
+    Extract a rule section from a rules file.
 
-    :param rule_match: Partial or full rule name to search for
-    :return: Full rule name if exactly one match found
+    :param rule_spec: Rule specification in one of these formats:
+        - `path/to/file.md`: return all content
+        - `path/to/file.md:N`: extract section starting at line N
+        - `path/to/file.md:N:# Section Name`: extract with header validation
+    :return: Extracted rule text as a string
     """
-    result = subprocess.run(["rigrule"], capture_output=True, text=True)
-    hdbg.dassert_eq(
-        result.returncode,
-        0,
-    )
-    all_rules = result.stdout.strip().split("\n")
-    matches = [r for r in all_rules if rule_match.lower() in r.lower()]
-    matches = [m.strip() for m in matches if m.strip()]
-    hdbg.dassert_eq(
-        len(matches),
-        1,
-        "Expected exactly one rule match for '%s', got %d matches: %s",
-        rule_match,
-        len(matches),
-        ", ".join(matches),
-    )
-    full_rule_line = matches[0]
-    return full_rule_line
+    return hmarsele.extract_rule_from_file(rule_spec)
 
 
 def _run_claude_code(
@@ -320,6 +313,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    hparser.add_file_selection_args(parser)
     parser.add_argument(
         "--topic",
         type=str,
@@ -337,14 +331,13 @@ def _parse() -> argparse.ArgumentParser:
         "--rule",
         type=str,
         default=None,
-        help="Execute a rule on selected files. E.g., `Use Inline Verbatim`",
+        help="Execute a rule on selected files. Specify as 'path/to/file.md:LINE:HEADER'. E.g., '.claude/skills/coding.rules.md:58:## Mark Private Functions'",
     )
     parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Print the command but don't execute",
     )
-    hparser.add_file_selection_args(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -385,8 +378,8 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 prompt, topic_str, file_path, dry_run=args.dry_run
             )
         elif args.rule:
-            full_rule_line = _find_rule(args.rule)
-            prompt = f"Execute the rule '{full_rule_line}' on file {file_path}"
+            rule_content = _extract_rule(args.rule)
+            prompt = f"Execute the rule below on file {file_path}:\n\n{rule_content}"
             topic_str = "rule"
             inferred_topic = _infer_topic_from_filename(file_path)
             topic_info = _get_rules_for_topic(inferred_topic)
@@ -402,7 +395,9 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 hdbg.dassert_is_not(topic, None, "Topic detection failed")
                 topic_str = cast(str, topic)
             prompt, topic_info = _build_prompt(topic_str)
-            prompt += f"\n\nProcess the file {file_path} and make the changes according to the rules and conventions without asking questions to the user"
+            prompt += (f"\n\nProcess the file {file_path} and make the changes " +
+                "according to the rules and conventions without asking " +
+                "questions to the user")
             rc = _run_claude_code(
                 prompt, topic_str, file_path, dry_run=args.dry_run
             )
