@@ -302,7 +302,7 @@ def find_end_line(
             start_idx = i
             break
     hdbg.dassert_is_not(start_idx, None, "Start header not found in header list")
-    assert isinstance(start_idx, int)
+    hdbg.dassert_isinstance(start_idx, int)
     # If an explicit end header is provided, use it directly.
     if end_header_input is not None:
         end_header_info, _ = find_header_from_input(
@@ -364,7 +364,11 @@ def get_chunk_bounds(
     if start_header_str is None:
         start_idx = 0
     else:
-        assert start_header_str_converted is not None
+        hdbg.dassert_is_not(
+            start_header_str_converted,
+            None,
+            "start_header_str_converted must not be None",
+        )
         start_header_info, _ = find_header_from_input(
             header_list, start_header_str_converted
         )
@@ -375,7 +379,11 @@ def get_chunk_bounds(
             end_idx = len(lines_converted)
         else:
             # Auto-detect: find next same-level header
-            assert start_header_str_converted is not None
+            hdbg.dassert_is_not(
+                start_header_str_converted,
+                None,
+                "start_header_str_converted must not be None",
+            )
             start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
             )
@@ -384,7 +392,11 @@ def get_chunk_bounds(
     elif end_header_str == "END":
         end_idx = len(lines_converted)
     else:
-        assert end_header_str_converted is not None
+        hdbg.dassert_is_not(
+            end_header_str_converted,
+            None,
+            "end_header_str_converted must not be None",
+        )
         if start_header_str is None:
             # Extract from beginning to explicit end header
             end_header_info, _ = find_header_from_input(
@@ -393,7 +405,11 @@ def get_chunk_bounds(
             end_idx = end_header_info.line_number - 1
         else:
             # Extract from start header to explicit end header
-            assert start_header_str_converted is not None
+            hdbg.dassert_is_not(
+                start_header_str_converted,
+                None,
+                "start_header_str_converted must not be None",
+            )
             start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
             )
@@ -495,18 +511,23 @@ def extract_rule_from_file(rule_spec: str) -> str:
     )
     # Check that the target line is a header.
     header_line = lines[line_idx]
-    if not header_line.startswith("#"):
-        raise ValueError(
-            "Line %d is not a markdown header: '%s'" % (line_num, header_line)
-        )
+    hdbg.dassert(
+        header_line.startswith("#"),
+        "Line %d is not a markdown header: '%s'",
+        line_num,
+        header_line,
+    )
     # Validate section name if provided.
     if len(parts) == 3:
         expected_name = parts[2]
-        if header_line.strip() != expected_name.strip():
-            raise ValueError(
-                "Section name mismatch at line %d: expected '%s', got '%s'"
-                % (line_num, expected_name, header_line)
-            )
+        hdbg.dassert_eq(
+            header_line.strip(),
+            expected_name.strip(),
+            "Section name mismatch at line %d: expected '%s', got '%s'",
+            line_num,
+            expected_name,
+            header_line,
+        )
     # Determine header level (number of leading '#' characters).
     header_level = len(header_line) - len(header_line.lstrip("#"))
     # Find the end of section (next header at same or higher level).
