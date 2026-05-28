@@ -189,7 +189,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_llm_args(parser, input_required=True)
+    hllmcli.add_llm_args(parser, input_required=True)
     hmarsele.add_select_arg(parser, required=False)
     parser.add_argument(
         "--lint",
@@ -329,10 +329,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cost = hllmcli.apply_llm_with_files(
             input_file,
             output_file,
-            system_prompt,
-            args.model,
-            args.use_llm_executable,
-            expected_num_chars,
+            system_prompt=system_prompt,
+            model=args.model,
+            use_llm_executable=args.use_llm_executable,
+            expected_num_chars=expected_num_chars,
         )
     msg, elapsed_time = htimer.dtimer_stop(memento)
     _LOG.info(msg)

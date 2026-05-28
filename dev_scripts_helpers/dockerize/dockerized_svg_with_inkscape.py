@@ -12,6 +12,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
 
@@ -47,7 +48,7 @@ def _parse() -> argparse.ArgumentParser:
         choices=["png", "pdf", "ps", "eps", "svg", "emf", "wmf"],
         help="Output format (default: png)",
     )
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     dshddout.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser

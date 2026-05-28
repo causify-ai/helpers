@@ -19,6 +19,7 @@ import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import helpers.hio as hio
 import helpers.hmarkdown_toc as hmartoc
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     parser.add_argument("-i", "--input", action="store")
     parser.add_argument("-o", "--output", action="store", default="")
     parser.add_argument("--data_dir", action="store")

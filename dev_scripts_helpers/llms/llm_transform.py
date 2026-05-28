@@ -41,6 +41,7 @@ import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlatex as hlatex
+import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -65,8 +66,8 @@ def _parse() -> argparse.ArgumentParser:
         out_default="-",
         in_required=False,
     )
-    hparser.add_llm_prompt_arg(parser, is_required=False)
-    hparser.add_dockerized_script_arg(parser)
+    hllmcli.add_llm_prompt_arg(parser, is_required=False)
+    hdocker.add_dockerized_script_arg(parser)
     parser.add_argument(
         "-l",
         "--list",

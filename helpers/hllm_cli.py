@@ -6,6 +6,7 @@ import helpers.hllm_cli as hllmcli
 
 from __future__ import annotations
 
+import argparse
 import contextlib
 import hashlib
 import json
@@ -1113,3 +1114,150 @@ def mock_apply_llm():
 
     with mock.patch("helpers.hllm_cli.apply_llm", side_effect=_mock_apply_llm):
         yield
+
+
+# #############################################################################
+# Command line options for LLM CLI scripts.
+# #############################################################################
+
+
+def add_llm_prompt_arg(
+    parser: argparse.ArgumentParser,
+    *,
+    default_prompt: str = "",
+    is_required: bool = True,
+) -> argparse.ArgumentParser:
+    """
+    Add common command line arguments for `*llm_transform.py` scripts.
+
+    :param default_prompt: default prompt to use
+    :param is_required: whether the prompt is required
+    :return: parser with the option added
+    """
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print before/after the transform",
+    )
+    if default_prompt != "":
+        is_required = False
+    parser.add_argument(
+        "-p",
+        "--prompt",
+        required=is_required,
+        type=str,
+        help="Prompt to apply",
+        default=default_prompt,
+    )
+    parser.add_argument(
+        "-f",
+        "--fast_model",
+        action="store_true",
+        help="Use a fast LLM model vs a high-quality one",
+    )
+    return parser
+
+
+def add_llm_args(
+    parser: argparse.ArgumentParser,
+    *,
+    input_required: bool = True,
+    output_required: bool = False,
+    system_prompt_required: bool = False,
+    model_default: str = "gpt-4o-mini",
+    include_model: bool = True,
+    include_llm_executable: bool = True,
+) -> argparse.ArgumentParser:
+    """
+    Add comprehensive LLM-related command line arguments for LLM CLI scripts.
+
+    This helper function consolidates commonly used arguments for scripts that
+    process text with LLM transformations (e.g., llm_cli.py, ai_review.py).
+
+    :param input_required: whether input is required
+    :param output_required: whether output is required
+    :param system_prompt_required: whether system prompt is required
+    :param model_default: default LLM model name
+    :param include_model: whether to include --model argument
+    :param include_llm_executable: whether to include --use_llm_executable flag
+    :return: parser with LLM arguments added
+    """
+    # Input/Output options with mutually exclusive input sources.
+    input_group = parser.add_mutually_exclusive_group(required=input_required)
+    input_group.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        dest="input",
+        help="Path to the input file containing text to process, or '-' for stdin",
+    )
+    input_group.add_argument(
+        "--input_text",
+        type=str,
+        help="Text input to process directly from command line",
+    )
+    # Output option.
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        dest="output",
+        required=output_required,
+        default=None,
+        help="Path to the output file where result will be saved (use '-' to "
+        "print to screen). If not specified, writes in-place to the input file",
+    )
+    # System prompt options (mutually exclusive).
+    system_prompt_group = parser.add_mutually_exclusive_group(
+        required=system_prompt_required
+    )
+    system_prompt_group.add_argument(
+        "-p",
+        "--system_prompt",
+        type=str,
+        default=None,
+        dest="system_prompt",
+        help="Optional system prompt to guide the LLM's behavior",
+    )
+    system_prompt_group.add_argument(
+        "-pf",
+        "--system_prompt_file",
+        type=str,
+        default=None,
+        dest="system_prompt_file",
+        help="Optional path to file containing system prompt to guide the LLM's behavior",
+    )
+    import helpers.hmarkdown_select as hmarsele
+    hmarsele.add_rule_cli_arg(system_prompt_group)
+    # Model selection.
+    if include_model:
+        parser.add_argument(
+            "--model",
+            type=str,
+            default=model_default,
+            help=f"Optional model name to use (e.g., 'gpt-4', 'claude-3-opus'). "
+            f"Default: {model_default}",
+        )
+    # LLM executable option.
+    if include_llm_executable:
+        parser.add_argument(
+            "--use_llm_executable",
+            action="store_true",
+            default=False,
+            help="Use the llm CLI executable instead of the Python library",
+        )
+    # Progress bar options.
+    parser.add_argument(
+        "-b",
+        "--progress_bar",
+        action="store_true",
+        default=False,
+        help="Enable progress bar with automatic estimation (input length * 1.0)",
+    )
+    parser.add_argument(
+        "--expected_num_chars",
+        type=int,
+        default=None,
+        help="Expected number of characters in output (enables progress bar with explicit size)",
+    )
+    return parser

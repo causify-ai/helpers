@@ -62,7 +62,7 @@ def _parse() -> argparse.ArgumentParser:
         type=int,
     )
     # parser = hparser.add_dst_dir_arg(parser, dst_dir_required=True)
-    parser = hparser.add_parallel_processing_arg(parser)
+    parser = hjoblib.add_parallel_processing_arg(parser)
     parser = hparser.add_verbosity_arg(parser)
     return parser  # type: ignore
 

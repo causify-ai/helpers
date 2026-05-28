@@ -10,6 +10,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ def _parse() -> argparse.ArgumentParser:
     # )
     # Add Docker-specific arguments (e.g., --dockerized_force_rebuild,
     # --dockerized_use_sudo).
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     # Add logging verbosity parsing.
     hparser.add_verbosity_arg(parser)
     return parser

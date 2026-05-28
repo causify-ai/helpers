@@ -12,6 +12,7 @@ import argparse
 import logging
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
+import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
-    hparser.add_llm_prompt_arg(parser)
+    hllmcli.add_llm_prompt_arg(parser)
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 

@@ -8,6 +8,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 
@@ -24,7 +25,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument("-i", "--input", action="store", required=True)
     parser.add_argument("-o", "--output", action="store", default="")
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     dshddout.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser

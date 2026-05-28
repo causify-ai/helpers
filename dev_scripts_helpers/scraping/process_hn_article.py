@@ -720,7 +720,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="LLM model name to use for tagging (e.g., gpt-4, claude-3-opus)",
     )
-    hparser.add_cache_control_arg(parser)
+    hcacsimp.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -729,7 +729,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Apply --cache_mode to every @simple_cache function.
-    hparser.parse_cache_control_args(args)
+    hcacsimp.parse_cache_control_args(args)
     # Process single HN URL (JSON mode).
     if args.url:
         _create_hn_json(args.url, output_dir=args.output_dir)

@@ -46,7 +46,7 @@ def _parse() -> argparse.ArgumentParser:
         choices=["png", "pdf", "ps", "eps"],
         help="Output format (default: png)",
     )
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     hdocker.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
