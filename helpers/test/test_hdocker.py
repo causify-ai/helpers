@@ -611,6 +611,7 @@ class Test_get_docker_mount_info1(hunitest.TestCase):
         # - Prepare inputs.
         host_root = "/tmp/explicit_host_git_root_for_test"
         env = {
+            "CSFY_CI": "",
             "CSFY_ENABLE_DIND": "0",
             "CSFY_HOST_GIT_ROOT_PATH": host_root,
         }
