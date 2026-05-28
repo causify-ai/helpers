@@ -52,6 +52,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlist as hlist
 import helpers.hparser as hparser
+import helpers.hselect_action as hselsact
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
@@ -1569,12 +1570,12 @@ def _remove_not_possible_actions(actions: List[str]) -> List[str]:
 def _select_actions(args: argparse.Namespace) -> List[str]:
     valid_actions = _get_valid_actions()
     default_actions = _get_default_actions()
-    actions = hparser.select_actions(args, valid_actions, default_actions)
+    actions = hselsact.select_actions(args, valid_actions, default_actions)
     # Find the tools that are available.
     actions = _remove_not_possible_actions(actions)
     #
     add_frame = True
-    actions_as_str = hparser.actions_to_string(
+    actions_as_str = hselsact.actions_to_string(
         actions, _get_valid_actions(), add_frame
     )
     _LOG.info("\n%s", actions_as_str)
@@ -1596,7 +1597,7 @@ def _test_actions() -> None:
             num_not_poss += 1
     # Report results.
     add_frame = True
-    actions_as_str = hparser.actions_to_string(
+    actions_as_str = hselsact.actions_to_string(
         possible_actions, _get_valid_actions(), add_frame
     )
     _LOG.info("\n%s", actions_as_str)
@@ -1878,7 +1879,7 @@ def _parse() -> argparse.ArgumentParser:
         "--test_actions", action="store_true", help="Print the possible actions"
     )
     # Select actions.
-    hparser.add_action_arg(parser, _get_valid_actions(), _get_default_actions())
+    hselsact.add_action_arg(parser, _get_valid_actions(), _get_default_actions())
     #
     parser.add_argument(
         "--pedantic",

@@ -22,7 +22,9 @@ import helpers.hgit as hgit
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmartoc
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
+import helpers.hselect_action as hselsact
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.htext_protect as htexprot
@@ -700,6 +702,45 @@ def _revert_from_backup(file_path: str) -> None:
     _LOG.info("File reverted successfully")
 
 
+def _process_single_file(
+    in_file_name: str,
+    out_file_name: str,
+    args: argparse.Namespace,
+    actions: Optional[List[str]],
+) -> None:
+    """
+    Process a single file.
+
+    :param in_file_name: Input file name.
+    :param out_file_name: Output file name.
+    :param args: Parsed arguments.
+    :param actions: List of actions to perform.
+    """
+    # If the input is stdin, then user needs to specify the type.
+    if in_file_name == "-":
+        hdbg.dassert_ne(args.type, "")
+    # Create backup before processing (if processing in-place).
+    if in_file_name == out_file_name and in_file_name != "-":
+        _create_backup(in_file_name)
+    # Read input.
+    lines = hparser.from_file(in_file_name)
+    _LOG.debug("in_file_name=%s", in_file_name)
+    # Process.
+    out_lines = _perform_actions(
+        lines,
+        in_file_name,
+        actions=actions,
+        print_width=args.print_width,
+        use_dockerized_prettier=args.use_dockerized_prettier,
+        use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
+    )
+    # Write output.
+    hparser.to_file(out_lines, out_file_name)
+
+
+# #############################################################################
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -749,46 +790,10 @@ def _parser() -> argparse.ArgumentParser:
         default=False,
         help="Revert a file from its backup copy",
     )
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    hparser.add_dockerized_script_arg(parser)
+    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
-
-
-def _process_single_file(
-    in_file_name: str,
-    out_file_name: str,
-    args: argparse.Namespace,
-    actions: Optional[List[str]],
-) -> None:
-    """
-    Process a single file.
-
-    :param in_file_name: Input file name.
-    :param out_file_name: Output file name.
-    :param args: Parsed arguments.
-    :param actions: List of actions to perform.
-    """
-    # If the input is stdin, then user needs to specify the type.
-    if in_file_name == "-":
-        hdbg.dassert_ne(args.type, "")
-    # Create backup before processing (if processing in-place).
-    if in_file_name == out_file_name and in_file_name != "-":
-        _create_backup(in_file_name)
-    # Read input.
-    lines = hparser.from_file(in_file_name)
-    _LOG.debug("in_file_name=%s", in_file_name)
-    # Process.
-    out_lines = _perform_actions(
-        lines,
-        in_file_name,
-        actions=actions,
-        print_width=args.print_width,
-        use_dockerized_prettier=args.use_dockerized_prettier,
-        use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
-    )
-    # Write output.
-    hparser.to_file(out_lines, out_file_name)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -807,9 +812,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _revert_from_backup(in_file_name)
         return
     # Print actions (once for all files).
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
-    actions_as_str = hparser.actions_to_string(
+    actions_as_str = hselsact.actions_to_string(
         actions, _VALID_ACTIONS, add_frame
     )
     _LOG.info("\n%s", actions_as_str)

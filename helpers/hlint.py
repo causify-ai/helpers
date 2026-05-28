@@ -36,7 +36,7 @@ def lint_file(file_path: str) -> None:
         cmd = f"{script_path} -i {file_path}"
         hsystem.system(cmd, abort_on_error=True, suppress_output=False)
     else:
-        # Direct library call.
+        # Direct library call to lint_txt.py
         lines = hparser.from_file(file_path)
         out_lines = dshdlitx._perform_actions(lines, file_path)
         hparser.to_file(out_lines, file_path)

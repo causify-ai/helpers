@@ -63,6 +63,7 @@ from tqdm import tqdm
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hselect_action as hselsact
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -107,7 +108,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Delete the output directory before processing",
     )
     # Add actions arguments.
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -441,7 +442,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Get the selected actions.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)
     # Check system requirements.
     _check_system_requirements()

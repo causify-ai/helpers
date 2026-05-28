@@ -49,6 +49,7 @@ import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_select as hmarsele
 import helpers.hparser as hparser
+import helpers.hselect_action as hselsact
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -455,7 +456,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_input_output_args(parser, out_required=False)
     parser.add_argument(
         "--md_level",
@@ -463,7 +464,7 @@ def _parse() -> argparse.ArgumentParser:
         default=1,
         help="Header level to summarize (1=H1, 2=H2, etc.; default: 1)",
     )
-    hparser.add_md_start_end_args(parser, start_required=False)
+    hmarsele.add_select_arg(parser, required=False)
     parser.add_argument(
         "--model",
         type=str,
@@ -501,24 +502,28 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
     #
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
         "Actions selected:\n%s",
-        hparser.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
+        hselsact.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
     )
     # Handle summarize action.
-    to_summarize, actions = hparser.mark_action("summarize", actions)
+    to_summarize, actions = hselsact.mark_action("summarize", actions)
     if to_summarize:
         hdbg.dassert(args.md_level >= 1, "--md_level must be >= 1")
         out_file_name = _prepare_output_file(
             in_file_name, out_file_name, args.overwrite
         )
         lines, all_headers = _read_and_parse_markdown(in_file_name)
+        md_start = None
+        md_end = None
+        if args.select:
+            md_start, md_end = hmarsele.parse_select_arg(args.select)
         target_headers = _get_target_headers(
             all_headers,
             md_level=args.md_level,
-            md_start=args.md_start,
-            md_end=args.md_end,
+            md_start=md_start,
+            md_end=md_end,
         )
         _LOG.info(
             "Processing %d headers at level %d",
@@ -546,7 +551,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _LOG.info("Total LLM cost: $%.6f", total_cost)
         _LOG.info("Summaries written to: %s", out_file_name)
     # Handle lint action after summarization and process the output file.
-    to_lint, actions = hparser.mark_action("lint", actions)
+    to_lint, actions = hselsact.mark_action("lint", actions)
     if to_lint and not args.test:
         hlint.lint_file(out_file_name)
         _LOG.info("Linting complete: %s", out_file_name)

@@ -1,22 +1,22 @@
-In all the calls to get_files_to_process use parameters in order and not
-by name for the mandatory ones
+Fix the issue when calling rig with options like --last_commit --branch that specify a list of
+files
 
-get_files_to_process(
-    files: str,
-    from_file: str,
-    modified: bool,
-    branch: bool,
-    last_commit: bool,
-    all_: bool,
-    *,
-    # TODO(gp): Can mutually_exclusive
-    mutually_exclusive: bool = True,
-    remove_dirs: bool = False,
-    dir_name: str = ".",
-) -> List[str]:
+rig --last_commit -v DEBUG
+
+rg '^\s*(#|//)\s*TODO\(ai_gp\S*\)' . --hidden dev_scripts_helpers/system_tools/lib_rig.py helpers/hparser.py linters2/lint_cc.py -n --no-heading --color=never -g '!.git'
+
+The directory should be replaced with the list of files
+
+- When writing code you must always follow the instructions in
+  `.claude/skills/coding.rules.md`
+
+- When writing unit tests for follow the instructions in
+  `.claude/skills/testing.rules.md`
+
+- When implementing notebooks follow the instructions in
+  - `.claude/skills/notebook.rules.md`
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
-
-- Depending on the type of file to modify follow the rules described in
-	`@.claude/rules.md`
+  - When the task is complex, create a `plan.md` with 5 bullet points explaining
+    what the plan is

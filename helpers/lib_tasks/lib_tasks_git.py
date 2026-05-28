@@ -285,7 +285,13 @@ def git_add_all_untracked(ctx):  # type: ignore
 
 @task
 def git_patch_create(  # type: ignore
-    ctx, mode="diff",  files="", from_file="", modified=False, branch=False, last_commit=False,
+    ctx,
+    mode="diff",
+    files="",
+    from_file="",
+    modified=False,
+    branch=False,
+    last_commit=False,
 ):
     """
     Create a patch file for the entire repo_short_name client from the base
@@ -439,11 +445,9 @@ def git_files(  # type: ignore
         hltltaut.report_task()
     _ = ctx
     # If no filter option is specified, default to branch=True.
-    if not (modified or last_commit):
-        branch = True
-    all_ = False
     files = ""
     from_file = ""
+    all_ = False
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True

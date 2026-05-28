@@ -95,6 +95,8 @@ def parse_verbosity_args(
 # #############################################################################
 
 
+# TODO(ai_gp): -> helpers/hselect_input_output.py
+
 def add_file_selection_args(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
@@ -193,6 +195,9 @@ def parse_file_selection_args(
 # #############################################################################
 
 
+# TODO(ai_gp): Move to helpers/hcache_simple.py
+
+
 # TODO(gp): Use the ones from hcache_simple.py for DRY.
 _CACHE_MODE_CHOICES = ("REFRESH_CACHE", "DISABLE_CACHE", "HIT_CACHE_OR_ABORT")
 
@@ -251,6 +256,8 @@ def parse_cache_control_args(args: argparse.Namespace) -> None:
 # #############################################################################
 # Select actions.
 # #############################################################################
+
+# TODO(ai_gp): Move this to helpers/hselect_action.py
 
 # # Define valid and default actions.
 # valid_actions = ["download", "process", "upload", "cleanup"]
@@ -483,6 +490,8 @@ def mark_action(
 # #############################################################################
 # Command line options for input/output processing.
 # #############################################################################
+
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 # For non-dockerized scripts the following idiom is used:
 #
@@ -838,7 +847,7 @@ def parse_dst_dir_arg(args: argparse.Namespace) -> str:
 
 
 # pylint: disable=line-too-long
-# TODO(gp): These should go in hjoblib.py
+# TODO(ai_gp): These should go in hjoblib.py
 def add_parallel_processing_arg(
     parser: argparse.ArgumentParser,
     *,
@@ -1032,6 +1041,7 @@ def str_to_bool(value: str) -> bool:
 # Command line options for dockerized scripts.
 # #############################################################################
 
+# TODO(ai_gp): -> helpers/hdocker.py
 
 def add_dockerized_script_arg(
     parser: argparse.ArgumentParser,
@@ -1055,6 +1065,8 @@ def add_dockerized_script_arg(
 # #############################################################################
 # Command line options for limit range processing.
 # #############################################################################
+
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 
 def add_limit_range_arg(
@@ -1177,6 +1189,7 @@ def apply_limit_range(
 # Select multiple file input.
 # #############################################################################
 
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 # TODO(gp): Merge with input_output_args and / or add_file_selection_args?
 def add_multi_file_args(
@@ -1284,8 +1297,9 @@ def parse_multi_file_args(
 # Command line options for LLM CLI scripts.
 # #############################################################################
 
+# TODO(ai_gp): -> hllm_cli.py
 
-# TODO(ai_gp): Replace this with the more general parsing logic below.
+# TODO(ai_gp): Replace this with the more general parsing logic add_llm_args.
 def add_llm_prompt_arg(
     parser: argparse.ArgumentParser,
     *,
@@ -1392,19 +1406,8 @@ def add_llm_args(
         dest="system_prompt_file",
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
-    system_prompt_group.add_argument(
-        "-r",
-        "--rule",
-        type=str,
-        default=None,
-        dest="rule",
-        help=(
-            "Rule specification used as system prompt. Formats: "
-            "'path/to/rules.md' (whole file), "
-            "'path/to/rules.md:LINE' (header section at LINE), "
-            "'path/to/rules.md:LINE:# Section Name' (with name validation)"
-        ),
-    )
+    import helpers.hmarkdown_select as hmarsele
+    hmarsele.add_rule_cli_arg(system_prompt_group)
     # Model selection.
     if include_model:
         parser.add_argument(
@@ -1440,57 +1443,10 @@ def add_llm_args(
 
 
 # #############################################################################
-# Command line for markdown extraction and selection
-# #############################################################################
-
-
-def add_md_start_end_args(
-    parser: argparse.ArgumentParser,
-    *,
-    start_required: bool = True,
-    end_required: bool = False,
-) -> argparse.ArgumentParser:
-    """
-    Add options for markdown header range selection via --md_start and --md_end.
-
-    Both arguments accept header specifications in two formats:
-    - Full format: "## Section Title" (includes the # symbols)
-    - Partial match: "Section Title" (just the title, matches if unique)
-
-    :param parser: ArgumentParser to add arguments to
-    :param start_required: whether the start header is required (default: True)
-    :param end_required: whether the end header is required (default: False)
-    :return: ArgumentParser with the new arguments added
-    """
-    parser.add_argument(
-        "--md_start",
-        type=str,
-        required=start_required,
-        default=None,
-        help=(
-            "Starting header: either full format (e.g., '## Section 1') or "
-            "partial match (e.g., 'Section 1'). Partial match must be unique."
-        ),
-    )
-    parser.add_argument(
-        "--md_end",
-        type=str,
-        required=end_required,
-        default=None,
-        help=(
-            "Ending header: either full format (e.g., '## Section 2') or "
-            "partial match (e.g., 'Section 2'). If not provided, extracts "
-            "until the next header at the same or higher level. Partial match "
-            "must be unique."
-        ),
-    )
-    return parser
-
-
-# #############################################################################
 # Command line options for file type filtering
 # #############################################################################
 
+# TODO(ai_gp): -> helpers/hselect_input_output.py
 
 def add_file_type_filter_args(
     parser: argparse.ArgumentParser,
@@ -1550,7 +1506,9 @@ def filter_files_by_extensions(
         excluded.
     :return: Filtered list of file paths
     """
-    hdbg.dassert_lte(int(file_types_str != "") + int(skip_file_types_str != ""), 1)
+    hdbg.dassert_lte(
+        int(file_types_str != "") + int(skip_file_types_str != ""), 1
+    )
     if file_types_str == "" and skip_file_types_str == "":
         # Nothing to do.
         return files
@@ -1567,9 +1525,7 @@ def filter_files_by_extensions(
                 filtered_files.append(file_path)
     elif skip_file_types_str != "":
         skip_extensions = {
-            ext.strip()
-            for ext in skip_file_types_str.split(",")
-            if ext.strip()
+            ext.strip() for ext in skip_file_types_str.split(",") if ext.strip()
         }
         _LOG.debug("File extensions to skip: %s", skip_extensions)
         for file_path in files:

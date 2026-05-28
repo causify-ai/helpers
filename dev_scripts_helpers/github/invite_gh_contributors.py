@@ -168,7 +168,7 @@ def _parse() -> argparse.Namespace:
     parser.add_argument(
         "--org_name", required=True, help="GitHub organisation name"
     )
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser.parse_args()
 

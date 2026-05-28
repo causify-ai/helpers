@@ -72,7 +72,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Do not prompt for confirmation before executing actions",
     )
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 

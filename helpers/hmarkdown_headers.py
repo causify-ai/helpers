@@ -10,7 +10,6 @@ import re
 from typing import List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.hparser as hparser
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -661,6 +660,8 @@ def format_headers(lines: List[str], out_file_name: str, max_lev: int) -> None:
             txt_tmp.append(line)
     # TODO(gp): Remove all empty lines after a heading.
     # TODO(gp): Format title (first line capital and then small).
+    import helpers.hparser as hparser
+
     hparser.to_file(txt_tmp, out_file_name)
 
 

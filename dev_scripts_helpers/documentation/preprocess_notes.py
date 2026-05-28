@@ -30,6 +30,7 @@ import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hparser as hparser
+import helpers.hselect_action as hselsact
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -514,7 +515,7 @@ def _transform_lines(
     #
     if type_ == "slides":
         # Colorize links.
-        to_execute, actions = hparser.mark_action("process_links", actions)
+        to_execute, actions = hselsact.mark_action("process_links", actions)
         # to_execute = False
         if to_execute:
             out = hmarkdo.format_md_links_to_latex_format(out)
@@ -554,7 +555,7 @@ def _transform_lines(
             return text_out
 
         out = "\n".join(out)
-        to_execute, actions = hparser.mark_action("colorize_bullets", actions)
+        to_execute, actions = hselsact.mark_action("colorize_bullets", actions)
         if to_execute:
             out = hmarkdo.process_slides(out, _colorize_bullets)
         out = out.split("\n")
@@ -644,16 +645,16 @@ def _preprocess_lines(
         # Remove headers smaller than level 4 so that we leave only the `*`.
         out = _remove_headers(out, max_level=4)
     # Validate slide names.
-    to_execute, actions = hparser.mark_action("validate_slide_names", actions)
+    to_execute, actions = hselsact.mark_action("validate_slide_names", actions)
     if to_execute:
         _validate_slide_names(out)
     # Add duplicate slide counters.
-    to_execute, actions = hparser.mark_action("add_duplicate_counters", actions)
+    to_execute, actions = hselsact.mark_action("add_duplicate_counters", actions)
     if to_execute:
         _assert_no_existing_counters(out)
         out = _add_duplicate_slide_counters(out)
     # Validate unique slide names.
-    to_execute, actions = hparser.mark_action(
+    to_execute, actions = hselsact.mark_action(
         "validate_unique_slide_names", actions
     )
     if to_execute:
@@ -708,7 +709,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--qa", action="store_true", default=False, help="The input file is QA"
     )
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselsact.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -723,7 +724,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", hdbg.get_command_line())
     # Get the selected actions.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselsact.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)
     # Read file.
     txt = hio.from_file(args.input)

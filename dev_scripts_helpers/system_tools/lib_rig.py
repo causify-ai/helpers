@@ -39,7 +39,12 @@ def _build_ripgrep_command(
     :param files: Specific files to search in, optional list
     :return: Command list ready for subprocess
     """
-    cmd = ["rg", pattern, directory]
+    cmd = ["rg", pattern]
+    if files:
+        # Replace directory with the explicit file list.
+        cmd.extend(files)
+    else:
+        cmd.append(directory)
     if extensions:
         for ext in extensions:
             # Ensure extensions don't have a dot prefix since ripgrep expects
@@ -53,8 +58,6 @@ def _build_ripgrep_command(
             cmd.extend(["-g", f"*.{ext}"])
     # Look also in hidden files, like `.claude`.
     cmd.append("--hidden")
-    if files:
-        cmd.extend(files)
     cmd.extend(rg_opts)
     return cmd
 
@@ -86,6 +89,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         action="store_true",
         help="Search for Python class/def definitions",
     )
+    # This can't use hmarkdown_select.py functions since it's called by that.
     parser.add_argument(
         "--rule",
         dest="rule_mode",

@@ -110,7 +110,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Add Docker-specific arguments (e.g., --dockerized_force_rebuild,
     # --dockerized_use_sudo).
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     # Add logging verbosity parsing.
     hparser.add_verbosity_arg(parser)
     return parser

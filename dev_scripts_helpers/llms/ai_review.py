@@ -8,6 +8,8 @@ import dev_scripts_helpers.llms.llm_utils as dshlllut
 import dev_scripts_helpers.llms.llm_transform as dshllltr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hllm_cli as hllmcli
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -30,8 +32,8 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip the post-transforms",
     )
-    hparser.add_llm_prompt_arg(parser)
-    hparser.add_dockerized_script_arg(parser)
+    hllmcli.add_llm_prompt_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
