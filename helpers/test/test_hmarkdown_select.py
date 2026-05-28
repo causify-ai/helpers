@@ -973,3 +973,327 @@ class Test_extract_rule_from_file(hunitest.TestCase):
         rule_spec = "/nonexistent/path/to/file.md"
         with self.assertRaises(AssertionError):
             hmarsele.extract_rule_from_file(rule_spec)
+
+
+# #############################################################################
+# Test_extract_text_from_markdown
+# #############################################################################
+
+
+class Test_extract_text_from_markdown(hunitest.TestCase):
+    """
+    Test _extract_text_from_markdown function.
+    """
+
+    @staticmethod
+    def _to_lines(text: str) -> List[str]:
+        return hprint.dedent(text).strip().split("\n")
+
+    def helper(
+        self,
+        document_text: str,
+        start_header: str,
+        end_header: str | None,
+        expected_text: str,
+    ) -> None:
+        """
+        Test helper for extract_text_from_markdown_lines.
+
+        :param document_text: Full document text to extract from
+        :param start_header: Starting header (full or partial)
+        :param end_header: Ending header (full or partial) or None
+        :param expected_text: Expected extracted text
+        """
+        # Prepare inputs.
+        lines = self._to_lines(document_text)
+        # Prepare outputs.
+        expected = self._to_lines(expected_text)
+        # Run test.
+        actual = hmarsele.extract_text_from_markdown_lines(
+            lines, start_header, end_header, is_slide_format=False
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test extracting text between two headers.
+        """
+        # Prepare inputs.
+        document_text = """
+            # Introduction
+
+            This is the introduction.
+
+            # Methods
+
+            This is the methods section.
+
+            # Results
+
+            Our findings.
+            """
+        start_header = "# Methods"
+        end_header = "# Results"
+        expected_text = """
+            # Methods
+
+            This is the methods section.
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def test2(self) -> None:
+        """
+        Test extracting from header to next same-level header (implicit end).
+        """
+        # Prepare inputs.
+        document_text = """
+            # Introduction
+
+            Intro text.
+
+            # Methods
+
+            Methods text.
+
+            # Results
+
+            Results text.
+            """
+        start_header = "# Methods"
+        end_header = None
+        expected_text = """
+            # Methods
+
+            Methods text.
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def test3(self) -> None:
+        """
+        Test extracting with nested headers (## under #).
+        """
+        # Prepare inputs.
+        document_text = """
+            # Chapter 1
+
+            ## Section 1.1
+
+            Content 1.1
+
+            ## Section 1.2
+
+            Content 1.2
+
+            # Chapter 2
+            """
+        start_header = "## Section 1.1"
+        end_header = None
+        expected_text = """
+            ## Section 1.1
+
+            Content 1.1
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def test4(self) -> None:
+        """
+        Test extracting until end of file when no next same-level header.
+        """
+        # Prepare inputs.
+        document_text = """
+            # Chapter 1
+
+            ## Section 1.1
+
+            Content 1.1
+
+            # Chapter 2
+
+            Content of chapter 2
+            """
+        start_header = "## Section 1.1"
+        end_header = None
+        expected_text = """
+            ## Section 1.1
+
+            Content 1.1
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def helper_error(
+        self, document_text: str, start_header: str, end_header: str | None
+    ) -> None:
+        """
+        Test helper for extract_text_from_markdown_lines error cases.
+
+        :param document_text: Full document text to extract from
+        :param start_header: Starting header (full or partial)
+        :param end_header: Ending header (full or partial) or None
+        """
+        # Prepare inputs.
+        lines = self._to_lines(document_text)
+        # Run test and check output.
+        with self.assertRaises(Exception):
+            hmarsele.extract_text_from_markdown_lines(
+                lines, start_header, end_header, is_slide_format=False
+            )
+
+    def test5(self) -> None:
+        """
+        Test error when start header not found.
+        """
+        # Prepare inputs.
+        document_text = """
+            # Introduction
+
+            Text
+            """
+        start_header = "# Nonexistent"
+        end_header = None
+        # Run test.
+        self.helper_error(document_text, start_header, end_header)
+
+    def test6(self) -> None:
+        """
+        Test error when end header not found.
+        """
+        # Prepare inputs.
+        document_text = """
+            # Introduction
+
+            Text
+            """
+        start_header = "# Introduction"
+        end_header = "# Nonexistent"
+        # Run test.
+        self.helper_error(document_text, start_header, end_header)
+
+
+# #############################################################################
+# Test_extract_text_from_markdown_lines
+# #############################################################################
+
+
+class Test_extract_text_from_markdown_lines(hunitest.TestCase):
+    """
+    Test _extract_from_md_slides function with slide notation.
+    """
+
+    @staticmethod
+    def _to_lines(text: str) -> List[str]:
+        return hprint.dedent(text).strip().split("\n")
+
+    def helper(
+        self,
+        document_text: str,
+        start_header: str,
+        end_header: str | None,
+        expected_text: str,
+    ) -> None:
+        """
+        Test helper for extract_text_from_markdown_lines with slide format.
+
+        :param document_text: Full document text with slide notation
+        :param start_header: Starting header/slide (e.g., "* Title" or "##### Title")
+        :param end_header: Ending header/slide (optional)
+        :param expected_text: Expected extracted text
+        """
+        # Prepare inputs.
+        lines = self._to_lines(document_text)
+        # Prepare outputs.
+        expected = self._to_lines(expected_text)
+        # Run test.
+        actual = hmarsele.extract_text_from_markdown_lines(
+            lines, start_header, end_header, is_slide_format=True
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test extracting from slide using * notation, no explicit end.
+        """
+        # Prepare inputs.
+        document_text = """
+            * Introduction
+
+            This is the introduction slide.
+
+            * Methods
+
+            This is the methods slide.
+
+            * Results
+
+            Our findings.
+            """
+        start_header = "* Methods"
+        end_header = None
+        expected_text = """
+            ##### Methods
+
+            This is the methods slide.
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def test2(self) -> None:
+        """
+        Test extracting between two slides using * notation.
+        """
+        # Prepare inputs.
+        document_text = """
+            * Introduction
+
+            Intro text.
+
+            * Methods
+
+            Methods text.
+
+            * Results
+
+            Results text.
+            """
+        start_header = "* Methods"
+        end_header = "* Results"
+        expected_text = """
+            ##### Methods
+
+            Methods text.
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
+
+    def test3(self) -> None:
+        """
+        Test extracting from slide using * notation to header using # notation.
+        """
+        # Prepare inputs.
+        document_text = """
+            * Slide 1
+
+            Content of slide 1.
+
+            ##### Subsection 1.1
+
+            Content 1.1
+
+            * Slide 2
+
+            Content of slide 2.
+            """
+        start_header = "* Slide 1"
+        end_header = "##### Subsection 1.1"
+        expected_text = """
+            ##### Slide 1
+
+            Content of slide 1.
+            """
+        # Run test.
+        self.helper(document_text, start_header, end_header, expected_text)
