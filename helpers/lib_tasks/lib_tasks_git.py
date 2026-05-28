@@ -22,8 +22,7 @@ import helpers.hsystem as hsystem
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hselect_input_output as hselsio
-import helpers.hparser as hparser
+import helpers.hselect_input_output as hseinout
 import helpers.hprint as hprint
 import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
@@ -463,7 +462,7 @@ def git_files(  # type: ignore
         remove_dirs=remove_dirs,
     )
     # Filter by file type using hparser utility.
-    files_as_list = hselsio.filter_files_by_extensions(
+    files_as_list = hseinout.filter_files_by_extensions(
         files_as_list, file_types, skip_file_types
     )
     # Handle different output modes.

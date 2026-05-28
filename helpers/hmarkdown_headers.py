@@ -660,9 +660,9 @@ def format_headers(lines: List[str], out_file_name: str, max_lev: int) -> None:
             txt_tmp.append(line)
     # TODO(gp): Remove all empty lines after a heading.
     # TODO(gp): Format title (first line capital and then small).
-    import helpers.hselect_input_output as hselsio
+    import helpers.hselect_input_output as hseinout
 
-    hselsio.to_file(txt_tmp, out_file_name)
+    hseinout.to_file(txt_tmp, out_file_name)
 
 
 def modify_header_level(lines: List[str], level: int) -> List[str]:

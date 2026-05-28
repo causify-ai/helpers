@@ -49,7 +49,7 @@ from typing import List
 import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -84,7 +84,7 @@ def _extract_and_write_headers(
         )
     else:
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
-    hselsio.to_file(output_content, out_file_name)
+    hseinout.to_file(output_content, out_file_name)
     # Sanity check the headers.
     hmarkdo.sanity_check_header_list(
         header_list, warn_on_malformed=warn_on_malformed
@@ -268,7 +268,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Print to stdout by default.
     out_default = "-"
-    hselsio.add_input_output_args(parser, out_default=out_default)
+    hseinout.add_input_output_args(parser, out_default=out_default)
     parser.add_argument(
         "--mode",
         type=str,
@@ -295,10 +295,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     # Do not print information.
     verbose = False
-    hselsio.init_logger_for_input_output_transform(args, verbose=verbose)
-    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
+    hseinout.init_logger_for_input_output_transform(args, verbose=verbose)
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     #
-    input_content = hselsio.from_file(in_file_name)
+    input_content = hseinout.from_file(in_file_name)
     # Detect file type and dispatch to appropriate extraction function.
     _, ext = os.path.splitext(in_file_name)
     warn_on_malformed = args.warn_on_malformed

@@ -43,7 +43,7 @@ import helpers.hio as hio
 import helpers.hlatex as hlatex
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown as hmarkdo
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -61,7 +61,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsio.add_input_output_args(
+    hseinout.add_input_output_args(
         parser,
         in_default="-",
         out_default="-",
@@ -238,7 +238,7 @@ def process_transform(
     if prompt in input_transforms_names:
         # Read the input.
         _LOG.debug("Reading input file: %s", in_file_name)
-        txt = hselsio.from_file(in_file_name)
+        txt = hseinout.from_file(in_file_name)
         txt = "\n".join(txt)
         if prompt == "md_to_latex":
             txt = hlatex.convert_pandoc_md_to_latex(txt)
@@ -282,14 +282,14 @@ def process_transform(
             raise ValueError(f"Invalid prompt='{prompt}'")
         #
         _LOG.debug("Writing output file: %s", out_file_name)
-        hselsio.to_file(txt, out_file_name)
+        hseinout.to_file(txt, out_file_name)
         return True
     return False
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hselsio.init_logger_for_input_output_transform(args, verbose=False)
+    hseinout.init_logger_for_input_output_transform(args, verbose=False)
     # Handle --list option.
     if args.list:
         print("# Available contexts:")
@@ -314,10 +314,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if done:
         return
     # Parse files.
-    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     tag = "llm_transform"
     tmp_in_file_name, tmp_out_file_name = (
-        hselsio.adapt_input_output_args_for_dockerized_scripts(args.input, tag)
+        hseinout.adapt_input_output_args_for_dockerized_scripts(args.input, tag)
     )
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
@@ -359,7 +359,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_txt = hio.from_file(tmp_out_file_name)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    hselsio.to_file(out_txt, out_file_name)
+    hseinout.to_file(out_txt, out_file_name)
     if os.path.basename(out_file_name) == "cfile":
         print(out_txt)
 

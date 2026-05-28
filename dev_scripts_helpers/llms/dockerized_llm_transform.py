@@ -13,7 +13,7 @@ import logging
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hllm_cli as hllmcli
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsio.add_input_output_args(parser)
+    hseinout.add_input_output_args(parser)
     hllmcli.add_llm_prompt_arg(parser)
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
@@ -35,11 +35,11 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hselsio.init_logger_for_input_output_transform(args)
+    hseinout.init_logger_for_input_output_transform(args)
     # Parse files from command line.
-    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     # Read file.
-    txt = hselsio.from_file(in_file_name)
+    txt = hseinout.from_file(in_file_name)
     # Transform with LLM.
     txt_tmp = "\n".join(txt)
     prompt_tag = args.prompt
@@ -62,7 +62,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             res.extend(txt)
             res.append("# After:")
         res.extend(txt_tmp.split("\n"))
-        hselsio.to_file(res, out_file_name)
+        hseinout.to_file(res, out_file_name)
 
 
 if __name__ == "__main__":

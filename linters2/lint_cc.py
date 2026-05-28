@@ -58,7 +58,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hmarkdown_select as hmarsele
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -284,7 +284,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsio.add_file_selection_args(parser)
+    hseinout.add_file_selection_args(parser)
     action_group = parser.add_mutually_exclusive_group()
     action_group.add_argument(
         "--topic",
@@ -328,7 +328,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
         1,
         "Only one of --topic, --skill, or --rule can be used simultaneously",
     )
-    files = hselsio.parse_file_selection_args(args, remove_dirs=False)
+    files = hseinout.parse_file_selection_args(args, remove_dirs=False)
     if args.topic and len(files) != 1:
         raise ValueError("--topic can only be used with a single file")
     _LOG.info("Processing %d file(s)", len(files))

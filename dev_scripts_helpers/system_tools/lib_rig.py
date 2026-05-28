@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "positional", nargs="*", help="Positional arguments for search"
     )
-    hselsio.add_file_selection_args(parser)
+    hseinout.add_file_selection_args(parser)
     # Special search mode.
     parser.add_argument(
         "--def",

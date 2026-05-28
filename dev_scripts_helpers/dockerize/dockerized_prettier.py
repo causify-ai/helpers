@@ -36,7 +36,7 @@ import logging
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddut
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdocker as hdocker
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsio.add_input_output_args(parser)
+    hseinout.add_input_output_args(parser)
     hdocker.add_dockerized_script_arg(parser)
     dshddut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -60,8 +60,8 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     # Parse everything that can be parsed and returns the rest.
     args, cmd_opts = parser.parse_known_args()
-    hselsio.init_logger_for_input_output_transform(args)
-    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
+    hseinout.init_logger_for_input_output_transform(args)
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     if not cmd_opts:
         cmd_opts = []
     _LOG.debug("cmd_opts: %s", cmd_opts)

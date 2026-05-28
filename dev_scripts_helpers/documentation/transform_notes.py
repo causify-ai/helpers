@@ -33,7 +33,7 @@ import logging
 
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -45,7 +45,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsio.add_input_output_args(
+    hseinout.add_input_output_args(
         parser,
         in_default="-",
         in_required=False,
@@ -60,7 +60,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hselsio.init_logger_for_input_output_transform(args)
+    hseinout.init_logger_for_input_output_transform(args)
     #
     cmd = args.action
     if cmd == "list":
@@ -80,26 +80,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
         return
     max_lev = int(args.max_lev)
     #
-    in_file_name, out_file_name = hselsio.parse_input_output_args(
+    in_file_name, out_file_name = hseinout.parse_input_output_args(
         args, clear_screen=True
     )
     if cmd == "test":
         # Compute the hash of a string to test the flow.
-        txt = hselsio.from_file(in_file_name)
+        txt = hseinout.from_file(in_file_name)
         txt = "\n".join(txt)
         txt = hashlib.sha256(txt.encode("utf-8")).hexdigest()
-        hselsio.to_file(txt, out_file_name)
+        hseinout.to_file(txt, out_file_name)
     elif cmd == "format_headers":
-        txt = hselsio.from_file(in_file_name)
+        txt = hseinout.from_file(in_file_name)
         hmarkdo.format_headers(txt, out_file_name, max_lev)
     elif cmd == "increase_headers_level":
-        txt = hselsio.from_file(in_file_name)
+        txt = hseinout.from_file(in_file_name)
         txt = "\n".join(txt)
         modified_txt = hmarkdo.modify_header_level(txt, 1)
-        hselsio.to_file(modified_txt.split("\n"), out_file_name)
+        hseinout.to_file(modified_txt.split("\n"), out_file_name)
     else:
         # Read the input.
-        txt = hselsio.from_file(in_file_name)
+        txt = hseinout.from_file(in_file_name)
         txt = "\n".join(txt)
         # Process the input.
         if cmd == "toc":
@@ -137,7 +137,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         else:
             raise ValueError(f"Invalid cmd='{cmd}'")
         # Write the output.
-        hselsio.to_file(txt, out_file_name)
+        hseinout.to_file(txt, out_file_name)
 
 
 if __name__ == "__main__":

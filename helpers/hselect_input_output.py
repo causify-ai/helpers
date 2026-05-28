@@ -3,7 +3,7 @@ Select and process input/output files, handle stdin/stdout, and filter files.
 
 Import as:
 
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 """
 
 import argparse

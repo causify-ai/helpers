@@ -23,7 +23,7 @@ import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hdocker as hdocker
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
@@ -724,7 +724,7 @@ def _process_single_file(
     if in_file_name == out_file_name and in_file_name != "-":
         _create_backup(in_file_name)
     # Read input.
-    lines = hselsio.from_file(in_file_name)
+    lines = hseinout.from_file(in_file_name)
     _LOG.debug("in_file_name=%s", in_file_name)
     # Process.
     out_lines = _perform_actions(
@@ -736,7 +736,7 @@ def _process_single_file(
         use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
     )
     # Write output.
-    hselsio.to_file(out_lines, out_file_name)
+    hseinout.to_file(out_lines, out_file_name)
 
 
 # #############################################################################
@@ -747,7 +747,7 @@ def _parser() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsio.add_input_output_args(parser, in_required=False, out_required=False)
+    hseinout.add_input_output_args(parser, in_required=False, out_required=False)
     parser.add_argument(
         "--type",
         action="store",
@@ -799,15 +799,15 @@ def _parser() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hselsio.init_logger_for_input_output_transform(args)
+    hseinout.init_logger_for_input_output_transform(args)
     # Handle --revert option.
     if args.revert:
-        files = hselsio.parse_input_output_files(args)
+        files = hseinout.parse_input_output_files(args)
         if files:
             for file_path in files:
                 _revert_from_backup(file_path)
         else:
-            in_file_name, _ = hselsio.parse_input_output_args(
+            in_file_name, _ = hseinout.parse_input_output_args(
                 args, clear_screen=False
             )
             _revert_from_backup(in_file_name)
@@ -820,7 +820,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("\n%s", actions_as_str)
     # Check if processing multiple files or a single file.
-    files = hselsio.parse_input_output_files(args)
+    files = hseinout.parse_input_output_files(args)
     if files:
         # Process multiple files.
         _LOG.info("Processing %d file(s)", len(files))
@@ -832,7 +832,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _process_single_file(file_path, file_path, args, actions)
     else:
         # Process single file (original behavior).
-        in_file_name, out_file_name = hselsio.parse_input_output_args(
+        in_file_name, out_file_name = hseinout.parse_input_output_args(
             args, clear_screen=False
         )
         _process_single_file(in_file_name, out_file_name, args, actions)

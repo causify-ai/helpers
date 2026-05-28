@@ -22,7 +22,7 @@ from tabulate import tabulate
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -142,7 +142,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     files_to_process: List[str]
     if args.input_files:
-        result = hselsio.parse_input_output_files(args)
+        result = hseinout.parse_input_output_files(args)
         hdbg.dassert_ne(result, None, "parse_input_output_files returned None")
         files_to_process = cast(List[str], result)
     elif args.input_file:

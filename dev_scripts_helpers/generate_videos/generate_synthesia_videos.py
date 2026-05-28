@@ -30,7 +30,7 @@ import requests
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -166,7 +166,7 @@ def _parse() -> argparse.Namespace:
         required=False,
         help="Directory to save the videos",
     )
-    hselsio.add_limit_range_arg(parser)
+    hseinout.add_limit_range_arg(parser)
     # Flow to process a single text file.
     parser.add_argument(
         "--in_file",
@@ -286,12 +286,12 @@ def _main(args: argparse.Namespace) -> None:
             "Discovered %s text files in %s", len(discovered_slides), in_dir
         )
         # Parse limit range from command line arguments.
-        limit_range = hselsio.parse_limit_range_args(args)
+        limit_range = hseinout.parse_limit_range_args(args)
         # Apply limit range filtering to discovered slides.
         slide_tuples = [
             (slide_num, file_path) for slide_num, file_path in discovered_slides
         ]
-        filtered_slide_tuples = hselsio.apply_limit_range(
+        filtered_slide_tuples = hseinout.apply_limit_range(
             slide_tuples, limit_range, item_name="slides"
         )
         # Prepare workload.

@@ -27,7 +27,6 @@ import os
 
 import helpers.hdbg as hdbg
 import helpers.hjoblib as hjoblib
-import helpers.hselect_input_output as hselsio
 import helpers.hparser as hparser
 
 # This module contains example workloads.

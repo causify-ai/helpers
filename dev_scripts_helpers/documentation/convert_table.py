@@ -46,7 +46,7 @@ from typing import List, Tuple
 import pandas as pd
 
 import helpers.hdbg as hdbg
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -188,7 +188,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsio.add_input_output_args(parser)
+    hseinout.add_input_output_args(parser)
     parser.add_argument(
         "--input_mode",
         type=str,
@@ -214,8 +214,8 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hselsio.init_logger_for_input_output_transform(args)
-    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
+    hseinout.init_logger_for_input_output_transform(args)
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     # Detect input mode.
     if in_file_name == "-":
         hdbg.dassert_is_not(
@@ -237,7 +237,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         output_mode = args.output_mode or _detect_mode(out_file_name)
     # Read input.
-    txt = hselsio.from_file(in_file_name)
+    txt = hseinout.from_file(in_file_name)
     # Parse table.
     if input_mode == "md":
         header, rows = _parse_md_table(txt)
@@ -255,9 +255,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hsystem.to_pbcopy(result, pbcopy=True)
     else:
         if out_file_name == "-":
-            hselsio.to_file(result, "-")
+            hseinout.to_file(result, "-")
         else:
-            hselsio.to_file(result.split("\n"), out_file_name)
+            hseinout.to_file(result.split("\n"), out_file_name)
 
 
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_select as hmarsele
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.htimer as htimer
 
@@ -103,7 +103,7 @@ def _process_select_mode(
         select_start,
         select_end,
     )
-    input_lines = hselsio.from_file(input_file)
+    input_lines = hseinout.from_file(input_file)
     _, ext = os.path.splitext(input_file) if input_file != "-" else ("", "")
     is_slide_format = ext == ".txt"
     start_idx, end_idx = hmarsele.get_chunk_bounds(
@@ -139,7 +139,7 @@ def _process_select_mode(
             end_idx,
         )
     else:
-        hselsio.to_file(response, output_file)
+        hseinout.to_file(response, output_file)
     return cost
 
 
@@ -167,7 +167,7 @@ def _process_simple_input(
     if input_text is not None:
         input_str = input_text
     elif input_file == "-":
-        input_lines = hselsio.from_file(input_file)
+        input_lines = hseinout.from_file(input_file)
         input_str = "\n".join(input_lines)
     else:
         input_str = hio.from_file(input_file)
@@ -178,7 +178,7 @@ def _process_simple_input(
         use_llm_executable=use_llm_executable,
         expected_num_chars=expected_num_chars,
     )
-    hselsio.to_file(response, output_file)
+    hseinout.to_file(response, output_file)
     return cost
 
 
@@ -272,7 +272,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if input_file:
             if input_file == "-":
                 # Read from stdin.
-                input_lines = hselsio.from_file(input_file)
+                input_lines = hseinout.from_file(input_file)
                 input_content = "\n".join(input_lines)
             else:
                 input_content = hio.from_file(input_file)

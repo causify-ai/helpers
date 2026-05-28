@@ -11,8 +11,7 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
-import helpers.hselect_input_output as hselsio
-import helpers.hparser as hparser
+import helpers.hselect_input_output as hseinout
 
 _LOG = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ def lint_file(file_path: str) -> None:
         hsystem.system(cmd, abort_on_error=True, suppress_output=False)
     else:
         # Direct library call to lint_txt.py
-        lines = hselsio.from_file(file_path)
+        lines = hseinout.from_file(file_path)
         out_lines = dshdlitx._perform_actions(lines, file_path)
-        hselsio.to_file(out_lines, file_path)
+        hseinout.to_file(out_lines, file_path)
     _LOG.info("File linted successfully: %s", file_path)

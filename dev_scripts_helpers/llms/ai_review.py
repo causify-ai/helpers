@@ -10,7 +10,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hdocker as hdocker
-import helpers.hselect_input_output as hselsio
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hselsio.add_input_output_args(
+    hseinout.add_input_output_args(
         parser,
         in_default="-",
         in_required=False,
@@ -43,9 +43,9 @@ def _parse() -> argparse.ArgumentParser:
 # TODO(gp): Factor out the common code with `dockerized_llm_transform.py`.
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hselsio.init_logger_for_input_output_transform(args)
+    hseinout.init_logger_for_input_output_transform(args)
     # Parse files.
-    in_file_name, out_file_name = hselsio.parse_input_output_args(args)
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     # Check that the prompt is valid.
     hdbg.dassert_in(
         args.prompt,
@@ -66,7 +66,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_file_name = "cfile"
     tag = "ai_review"
     tmp_in_file_name, tmp_out_file_name = (
-        hselsio.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
+        hseinout.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
     )
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
@@ -96,7 +96,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_txt = hio.from_file(tmp_out_file_name)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    hselsio.to_file(out_txt, out_file_name)
+    hseinout.to_file(out_txt, out_file_name)
     if os.path.basename(out_file_name) == "cfile":
         print(out_txt)
 
