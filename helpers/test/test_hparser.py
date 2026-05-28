@@ -162,7 +162,13 @@ class Test_apply_limit_range(hunitest.TestCase):
     Test applying limit ranges to items.
     """
 
-    def helper(self, items: List, limit_range: Optional[Tuple[int, int]], expected: List, **kwargs) -> None:
+    def helper(
+        self,
+        items: List,
+        limit_range: Optional[Tuple[int, int]],
+        expected: List,
+        **kwargs,
+    ) -> None:
         """
         Test helper for `apply_limit_range()`.
 
@@ -573,7 +579,7 @@ class Test_parse_input_output_files(hunitest.TestCase):
     Test the `parse_input_output_files()` function.
     """
 
-    def _make_io_parser_args(self, args_list: List) -> "argparse.Namespace":
+    def _make_io_parser_args(self, args_list: List[str]) -> "argparse.Namespace":
         """
         Create an ArgumentParser with input/output args and parse the given list.
         """
@@ -725,7 +731,9 @@ class Test_parse_input_output_args(hunitest.TestCase):
     Test the `parse_input_output_args()` function.
     """
 
-    def helper(self, args_list: List, expected_in: str, expected_out: str) -> None:
+    def helper(
+        self, args_list: List[str], expected_in: str, expected_out: str
+    ) -> None:
         """
         Test helper for `parse_input_output_args()`.
 
@@ -800,7 +808,7 @@ class Test_from_file(hunitest.TestCase):
     Test the `from_file()` function.
     """
 
-    def helper(self, content: str, expected: List) -> None:
+    def helper(self, content: str, expected: List[str]) -> None:
         """
         Test helper for `from_file()`.
 
@@ -940,7 +948,9 @@ class Test_add_file_type_filter_args(hunitest.TestCase):
         # Prepare inputs.
         parser = argparse.ArgumentParser()
         file_types_default = "py,ipynb"
-        hparser.add_file_type_filter_args(parser, file_types_default=file_types_default)
+        hparser.add_file_type_filter_args(
+            parser, file_types_default=file_types_default
+        )
         args_list = []
         # Run test.
         args = parser.parse_args(args_list)
@@ -957,7 +967,9 @@ class Test_add_file_type_filter_args(hunitest.TestCase):
         # Prepare inputs.
         parser = argparse.ArgumentParser()
         file_types_default = "py,md"
-        hparser.add_file_type_filter_args(parser, file_types_default=file_types_default)
+        hparser.add_file_type_filter_args(
+            parser, file_types_default=file_types_default
+        )
         args_list = []
         # Run test.
         args = parser.parse_args(args_list)
@@ -1071,6 +1083,7 @@ class Test_parse_file_type_filter_args(hunitest.TestCase):
 # Test_filter_files_by_extensions
 # #############################################################################
 
+
 class Test_filter_files_by_extensions(hunitest.TestCase):
     """
     Test filtering files by their extensions.
@@ -1078,10 +1091,10 @@ class Test_filter_files_by_extensions(hunitest.TestCase):
 
     def helper(
         self,
-        files: List,
+        files: List[str],
         file_types_str: str,
         skip_file_types_str: str,
-        expected: List,
+        expected: List[str],
     ) -> None:
         """
         Test helper for `filter_files_by_extensions()`.
@@ -1092,7 +1105,9 @@ class Test_filter_files_by_extensions(hunitest.TestCase):
         :param expected: Expected filtered files
         """
         actual = hparser.filter_files_by_extensions(
-            files, file_types_str=file_types_str, skip_file_types_str=skip_file_types_str
+            files,
+            file_types_str,
+            skip_file_types_str,
         )
         self.assertEqual(actual, expected)
 
