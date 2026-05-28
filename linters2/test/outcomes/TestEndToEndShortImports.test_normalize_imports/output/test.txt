@@ -112,7 +112,7 @@
     "helpers.hlogging":"hloggin",
     "helpers.hparquet":"hparque",
     "helpers.hgit":"hgit",
-    "helpers.hcache":"hcache",
+    "helpers.hcache_simple":"hcacsimp",
     "helpers.hasyncio":"hasynci",
     "helpers.hcsv":"hcsv",
     "helpers.henv":"henv",

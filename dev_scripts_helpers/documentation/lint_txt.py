@@ -654,6 +654,52 @@ _DEFAULT_ACTIONS = [
 ]
 
 
+def _get_backup_filename(file_path: str) -> str:
+    """
+    Get the backup filename for a given file path.
+
+    Example: `.claude/skills/testing.rules.md` ->
+    `.claude/skills/tmp.lint_txt.testing.rules.md`
+
+    :param file_path: The original file path.
+    :return: The backup file path.
+    """
+    dir_name = os.path.dirname(file_path)
+    file_name = os.path.basename(file_path)
+    backup_name = f"tmp.lint_txt.{file_name}"
+    if dir_name:
+        backup_path = os.path.join(dir_name, backup_name)
+    else:
+        backup_path = backup_name
+    return backup_path
+
+
+def _create_backup(file_path: str) -> str:
+    """
+    Create a backup copy of the file.
+
+    :param file_path: The original file path.
+    :return: The backup file path.
+    """
+    backup_path = _get_backup_filename(file_path)
+    _LOG.debug("Creating backup: %s -> %s", file_path, backup_path)
+    hsystem.system(f"cp {file_path} {backup_path}")
+    return backup_path
+
+
+def _revert_from_backup(file_path: str) -> None:
+    """
+    Restore a file from its backup.
+
+    :param file_path: The original file path to restore.
+    """
+    backup_path = _get_backup_filename(file_path)
+    hdbg.dassert_file_exists(backup_path, "Backup file not found")
+    _LOG.info("Reverting from backup: %s -> %s", backup_path, file_path)
+    hsystem.system(f"cp {backup_path} {file_path}")
+    _LOG.info("File reverted successfully")
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -697,6 +743,12 @@ def _parser() -> argparse.ArgumentParser:
         dest="use_dockerized_markdown_toc",
         action="store_false",
     )
+    parser.add_argument(
+        "--revert",
+        action="store_true",
+        default=False,
+        help="Revert a file from its backup copy",
+    )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -720,6 +772,9 @@ def _process_single_file(
     # If the input is stdin, then user needs to specify the type.
     if in_file_name == "-":
         hdbg.dassert_ne(args.type, "")
+    # Create backup before processing (if processing in-place).
+    if in_file_name == out_file_name and in_file_name != "-":
+        _create_backup(in_file_name)
     # Read input.
     lines = hparser.from_file(in_file_name)
     _LOG.debug("in_file_name=%s", in_file_name)
@@ -739,6 +794,18 @@ def _process_single_file(
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args)
+    # Handle --revert option.
+    if args.revert:
+        files = hparser.parse_input_output_files(args)
+        if files:
+            for file_path in files:
+                _revert_from_backup(file_path)
+        else:
+            in_file_name, _ = hparser.parse_input_output_args(
+                args, clear_screen=False
+            )
+            _revert_from_backup(in_file_name)
+        return
     # Print actions (once for all files).
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True

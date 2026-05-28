@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.0
+#       jupytext_version: 1.19.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -27,6 +27,7 @@
 #   - [8. Runtime Property Modification](#8.-runtime-property-modification)
 #   - [9. S3 Integration](#9.-s3-integration)
 #   - [10. Binary Data with Pickle](#10.-binary-data-with-pickle)
+#   - [11. Global Caching Controls](#11.-global-caching-controls)
 #   - [Summary](#summary)
 
 # %% [markdown]
@@ -343,9 +344,7 @@ result1 = api_call("python", session_id="abc")
 elapsed1 = time.time() - start_time
 print(f"Result: {result1} (time: {elapsed1:.3f}s)")
 # Same query, different session_id - should hit cache.
-print(
-    "\nCalling with query='python', session_id='xyz' (different session_id)..."
-)
+print("\nCalling with query='python', session_id='xyz' (different session_id)...")
 start_time = time.time()
 result2 = api_call("python", session_id="xyz")
 elapsed2 = time.time() - start_time
@@ -471,6 +470,88 @@ elapsed_time = time.time() - start_time
 print("\nSecond call (from cache):")
 print(df)
 print(f"Time taken: {elapsed_time:.6f} seconds (from cache!)")
+
+# %% [markdown]
+# <a name='11.-global-caching-controls'></a>
+# ## 11. Global Caching Controls
+#
+# Three process-wide safety features let you control all decorated functions at once:
+#
+# - `enable_caching(False)`: Bypass every `@simple_cache` decorator and execute
+#   functions directly. Useful for profiling, debugging, or one-off runs where
+#   you never want to read or write cache.
+# - `enable_clear_cache(False)`: Block all `reset_*` calls to prevent accidental
+#   cache deletion during long production runs.
+# - `func_hash` tracking: A WARNING is logged on a cache hit whenever the
+#   function's source code has changed since the value was last computed.
+
+
+# %%
+# Demonstrate enable_caching: bypass cache entirely.
+@hcacsimp.simple_cache(cache_type="json")
+def multiply(x: int, y: int) -> int:
+    """
+    Return x * y.
+    """
+    _LOG.info("Computing multiply(%s, %s)", x, y)
+    return x * y
+
+
+# First call - computes and caches.
+multiply(3, 4)
+print("After first call:", hcacsimp.cache_stats_to_str("multiply"))
+
+# Disable caching globally.
+hcacsimp.enable_caching(False)
+print(f"Caching enabled: {hcacsimp.is_caching_enabled()}")
+
+# This call bypasses the cache and executes directly.
+result = multiply(3, 4)
+print(f"Result with caching disabled: {result}")
+print("Cache unchanged:", hcacsimp.cache_stats_to_str("multiply"))
+
+# Re-enable caching.
+hcacsimp.enable_caching(True)
+print(f"Caching enabled: {hcacsimp.is_caching_enabled()}")
+
+# %%
+# Demonstrate enable_clear_cache: protect against accidental deletion.
+multiply(5, 6)
+
+# Lock the cache.
+hcacsimp.enable_clear_cache(False)
+print("Cache clearing disabled.")
+try:
+    hcacsimp.reset_mem_cache("multiply")
+except RuntimeError as e:
+    print(f"Blocked as expected: {e}")
+
+# Re-enable and clear normally.
+hcacsimp.enable_clear_cache(True)
+hcacsimp.reset_mem_cache("multiply")
+print("Cache cleared after re-enabling.")
+
+# %%
+# Demonstrate func_hash: warning when function source changes.
+# The hash is stored on the first cache miss. We simulate a "source change"
+# by overwriting the stored hash with a fake value.
+
+multiply(7, 8)  # Populates cache and stores real func_hash.
+real_hash = hcacsimp.get_cache_property("multiply", "func_hash")
+print(f"Stored func_hash: {real_hash}")
+
+# Simulate a source change by overwriting the hash.
+hcacsimp.set_cache_property("multiply", "func_hash", "deadbeef" * 4)
+print("Simulated source change by overwriting func_hash.")
+
+# Next cache hit will warn that the source has changed.
+# The warning is emitted via _LOG.warning() inside the cache wrapper,
+# so it appears in the log output automatically.
+result = multiply(7, 8)
+print(f"Result returned (stale cache still served): {result}")
+
+# Restore.
+hcacsimp.set_cache_property("multiply", "func_hash", real_hash)
 
 # %% [markdown]
 # <a name='summary'></a>

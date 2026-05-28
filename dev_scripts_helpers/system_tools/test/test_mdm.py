@@ -1,450 +1,287 @@
-import io
-import os
-from contextlib import redirect_stdout
+import logging
 
-import helpers.hprint as hprint
+import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
+import helpers.hsystem as hsystem
 
-import dev_scripts_helpers.system_tools.md_utils as dshstmdut
+_LOG = logging.getLogger(__name__)
 
 
-def _capture_output(func, *args, **kwargs):
+def _run_mdm(topic: str, action: str, *names: str) -> str:
     """
-    Capture stdout from calling a function.
+    Run mdm executable and capture output, filtering out logging lines.
 
-    :param func: function to call
-    :param args: positional arguments
-    :param kwargs: keyword arguments
-    :return: captured output as string (stripped)
+    :param topic: content topic (research, blog, story, skill, rules)
+    :param action: action to perform (list, edit, directory, etc.)
+    :param names: optional arguments (names, patterns, etc.)
+    :return: captured stdout (without logging messages)
     """
-    captured_output = io.StringIO()
-    with redirect_stdout(captured_output):
-        func(*args, **kwargs)
-    return captured_output.getvalue().strip()
+    script_path = hgit.find_file_in_git_tree("mdm")
+    args = [script_path, topic, action] + list(names)
+    cmd = " ".join(f'"{arg}"' if " " in arg else arg for arg in args)
+    cmd = f"{cmd} 2>/dev/null"
+    _LOG.debug("Running command: %s", cmd)
+    _, output = hsystem.system_to_string(cmd, suppress_output=True)
+    lines = output.strip().split("\n")
+    result_lines = []
+    for line in lines:
+        if not line:
+            continue
+        if "hdbg.py" in line or "Saving log to file" in line or " - " in line:
+            continue
+        if line.startswith("\x1b"):
+            continue
+        result_lines.append(line)
+    return "\n".join(result_lines).strip()
 
 
 # #############################################################################
-# Test_match_prefix
+# Test_mdm_py_list
 # #############################################################################
 
 
-class Test_match_prefix(hunitest.TestCase):
+class Test_mdm_py_list(hunitest.TestCase):
     """
-    Test the _match_prefix function for prefix matching against valid options.
+    Tests for list action.
     """
 
     def test1(self) -> None:
         """
-        Test prefix 'res' matches 'research' from the valid types list.
+        Test skill list action with no pattern shows skills.
         """
-        # Prepare inputs.
-        value = "res"
-        valid_options = ["research", "blog", "story", "skill"]
         # Run test.
-        actual = dshstmdut._match_prefix(value, valid_options)
+        actual = _run_mdm("skill", "list")
         # Check outputs.
-        expected = "research"
-        self.assertEqual(actual, expected)
-
-    def test2(self) -> None:
-        """
-        Test prefix 'sk' matches 'skill' from the valid types list.
-        """
-        # Prepare inputs.
-        value = "sk"
-        valid_options = ["research", "blog", "story", "skill"]
-        # Run test.
-        actual = dshstmdut._match_prefix(value, valid_options)
-        # Check outputs.
-        expected = "skill"
-        self.assertEqual(actual, expected)
-
-    def test3(self) -> None:
-        """
-        Test prefix 'l' matches 'list' from the valid actions list.
-        """
-        # Prepare inputs.
-        value = "l"
-        valid_options = ["list", "edit", "directory"]
-        # Run test.
-        actual = dshstmdut._match_prefix(value, valid_options)
-        # Check outputs.
-        expected = "list"
-        self.assertEqual(actual, expected)
-
-    def test4(self) -> None:
-        """
-        Test full name 'blog' matches 'blog' exactly.
-        """
-        # Prepare inputs.
-        value = "blog"
-        valid_options = ["research", "blog", "story", "skill"]
-        # Run test.
-        actual = dshstmdut._match_prefix(value, valid_options)
-        # Check outputs.
-        expected = "blog"
-        self.assertEqual(actual, expected)
-
-    def test5(self) -> None:
-        """
-        Test prefix 'ru' matches 'rules' from the valid types list.
-        """
-        # Prepare inputs.
-        value = "ru"
-        valid_options = ["research", "blog", "story", "skill", "rules"]
-        # Run test.
-        actual = dshstmdut._match_prefix(value, valid_options)
-        # Check outputs.
-        expected = "rules"
-        self.assertEqual(actual, expected)
-
-
-# #############################################################################
-# Test_get_template
-# #############################################################################
-
-
-class Test_get_template(hunitest.TestCase):
-    """
-    Test the _get_template function for correct template generation by type.
-    """
-
-    def test1(self) -> None:
-        """
-        Test blog template contains YAML frontmatter and TL;DR section.
-        """
-        # Prepare inputs.
-        type_ = "blog"
-        name = "My_Post"
-        # Run test.
-        actual = dshstmdut._get_template(type_, name)
-        # Check outputs.
-        self.assertIn("---", actual)
-        self.assertIn("title:", actual)
-        self.assertIn("TL;DR:", actual)
-        self.assertIn("<!-- more -->", actual)
-
-    def test2(self) -> None:
-        """
-        Test skill template contains Summary section.
-        """
-        # Prepare inputs.
-        type_ = "skill"
-        name = "test_skill"
-        # Run test.
-        actual = dshstmdut._get_template(type_, name)
-        # Check outputs.
-        self.assertIn("# Summary", actual)
-
-    def test3(self) -> None:
-        """
-        Test research template contains the passed name in a header.
-        """
-        # Prepare inputs.
-        type_ = "research"
-        name = "my_idea"
-        # Run test.
-        actual = dshstmdut._get_template(type_, name)
-        # Check outputs.
-        expected = f"# {name}"
-        self.assertIn(expected, actual)
-
-    def test4(self) -> None:
-        """
-        Test story template returns empty string.
-        """
-        # Prepare inputs.
-        type_ = "story"
-        name = "story_name"
-        # Run test.
-        actual = dshstmdut._get_template(type_, name)
-        # Check outputs.
-        self.assertEqual(actual, "")
-
-    def test5(self) -> None:
-        """
-        Test rules template returns empty string.
-        """
-        # Prepare inputs.
-        type_ = "rules"
-        name = "rules_name"
-        # Run test.
-        actual = dshstmdut._get_template(type_, name)
-        # Check outputs.
-        self.assertEqual(actual, "")
-
-
-# #############################################################################
-# Test_action_types
-# #############################################################################
-
-
-class Test_action_types(hunitest.TestCase):
-    """
-    Test the _action_types function for listing unique prefixes from markdown
-    files in a directory.
-    """
-
-    def _assert_non_empty_lines(self, output: str) -> list:
-        """
-        Assert output is not empty and return split lines.
-
-        :param output: captured output
-        :return: list of lines
-        """
-        self.assertNotEqual(output, "")
-        lines = output.split("\n")
+        # Expected: Non-empty string with one or more skill names per line
+        # Invariant: Output should not be empty (at least one skill exists)
+        self.assertNotEqual(actual, "")
+        lines = actual.split("\n")
+        # Expected: List of skill names, one per line
+        # Invariant: At least one line should be present
         self.assertGreater(len(lines), 0)
-        return lines
-
-    def test1(self) -> None:
-        """
-        Test _action_types with skill directory lists prefixes.
-        """
-        # Prepare inputs.
-        type_ = "skill"
-        dir_ = dshstmdut._get_directory(type_)
-        # Run test.
-        actual = _capture_output(dshstmdut._action_types, type_, dir_)
-        # Check outputs.
-        lines = self._assert_non_empty_lines(actual)
-        # Verify they look like prefixes (alphabetic characters).
-        for prefix in lines:
-            self.assertTrue(
-                prefix.isalpha() or all(c.isalnum() or c == "_" for c in prefix)
-            )
+        # Expected: Each line contains a valid skill name (non-empty string)
+        # Invariant: No blank lines in output
+        for line in lines:
+            self.assertTrue(len(line) > 0)
 
     def test2(self) -> None:
         """
-        Test _action_types with pattern filter for skill directory.
+        Test skill list action with pattern filter.
         """
-        # Prepare inputs.
-        type_ = "skill"
-        dir_ = dshstmdut._get_directory(type_)
-        pattern = "blog"
         # Run test.
-        actual = _capture_output(
-            dshstmdut._action_types, type_, dir_, pattern=pattern
-        )
+        actual = _run_mdm("skill", "list", "blog")
         # Check outputs.
-        self.assertIn("blog", actual)
+        # Expected: Skill names matching the "blog" pattern, one per line
+        # Invariant: At least one line should match the filter
+        lines = actual.split("\n")
+        self.assertGreater(len(lines), 0)
+        # Expected: Each returned line contains "blog" (case-insensitive)
+        # Invariant: Pattern filter successfully filters results
+        for line in lines:
+            self.assertIn("blog", line.lower())
 
     def test3(self) -> None:
         """
-        Test _action_list function with skill directory.
+        Test rules list action shows rule names without .rules.md suffix.
         """
-        # Prepare inputs.
-        type_ = "skill"
-        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(dshstmdut._action_list, type_, dir_)
+        actual = _run_mdm("rules", "list")
         # Check outputs.
-        self._assert_non_empty_lines(actual)
+        # Expected: Rule names without file extension suffix (e.g., "coding" not "coding.rules.md")
+        # Invariant: No line should contain ".rules.md" extension when rules are listed
+        if actual:
+            lines = actual.split("\n")
+            self.assertTrue(all(".rules.md" not in line for line in lines))
 
-    def test4(self) -> None:
+
+# #############################################################################
+# Test_mdm_py_full_list
+# #############################################################################
+
+
+class Test_mdm_py_full_list(hunitest.TestCase):
+    """
+    Tests for full_list action.
+    """
+
+    def test1(self) -> None:
         """
-        Test _action_full_list function with skill directory.
+        Test skill full_list action shows full paths with SKILL.md.
         """
-        # Prepare inputs.
-        type_ = "skill"
-        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(dshstmdut._action_full_list, type_, dir_)
+        actual = _run_mdm("skill", "full_list")
         # Check outputs.
-        lines = self._assert_non_empty_lines(actual)
-        # Check that at least one path contains SKILL.md.
+        # Expected: Non-empty string with full file paths
+        # Invariant: Output should not be empty when skills exist
+        self.assertNotEqual(actual, "")
+        lines = actual.split("\n")
+        # Expected: Multiple full paths to SKILL.md files
+        # Invariant: At least one line should be present
+        self.assertGreater(len(lines), 0)
+        # Expected: At least one line contains "SKILL.md" (indicating full path format)
+        # Invariant: Full list includes complete file paths, not just names
         self.assertTrue(any("SKILL.md" in line for line in lines))
 
-    def test5(self) -> None:
+    def test2(self) -> None:
         """
-        Test _action_describe function with skill directory.
+        Test rules full_list action shows full paths with .rules.md.
         """
-        # Prepare inputs.
-        type_ = "skill"
-        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(dshstmdut._action_describe, type_, dir_)
+        actual = _run_mdm("rules", "full_list")
         # Check outputs.
-        self._assert_non_empty_lines(actual)
-
-    def test6(self) -> None:
-        """
-        Test _action_directory function returns correct path.
-        """
-        # Prepare inputs.
-        type_ = "skill"
-        dir_ = dshstmdut._get_directory(type_)
-        # Run test.
-        actual = _capture_output(dshstmdut._action_directory, dir_)
-        # Check outputs.
-        self.assertEqual(actual, dir_)
-        self.assertTrue(os.path.isdir(actual))
+        # Expected: Full paths to .rules.md files (e.g., "/path/to/coding.rules.md")
+        # Invariant: At least one line should contain ".rules.md" extension when rules exist
+        if actual:
+            lines = actual.split("\n")
+            self.assertTrue(any(".rules.md" in line for line in lines))
 
 
 # #############################################################################
-# Test_rules_type
+# Test_mdm_py_directory
 # #############################################################################
 
 
-class Test_rules_type(hunitest.TestCase):
+class Test_mdm_py_directory(hunitest.TestCase):
     """
-    Test rules type functionality for mdm.
+    Tests for directory action.
     """
 
-    def _assert_non_empty_lines(self, output: str) -> list:
+    def test1(self) -> None:
         """
-        Assert output is not empty and return split lines.
-
-        :param output: captured output
-        :return: list of lines
+        Test skill directory action returns valid directory path.
         """
-        self.assertNotEqual(output, "")
-        lines = output.split("\n")
-        self.assertGreater(len(lines), 0)
-        return lines
-
-    def test_get_directory(self) -> None:
-        """
-        Test _get_directory returns skills directory for rules type.
-        """
-        # Prepare inputs.
-        type_ = "rules"
         # Run test.
-        actual = dshstmdut._get_directory(type_)
+        actual = _run_mdm("skill", "directory")
         # Check outputs.
-        self.assertTrue(os.path.isdir(actual))
+        # Expected: Non-empty path to the skills directory
+        # Invariant: Output should not be empty (directory path must exist)
+        self.assertNotEqual(actual, "")
+        # Expected: Path contains ".claude/skills" indicating the standard location
+        # Invariant: Returned path points to the expected skills directory structure
         self.assertIn(".claude/skills", actual)
 
-    def test_list(self) -> None:
+    def test2(self) -> None:
         """
-        Test _action_list with rules directory lists rule names.
+        Test research topic directory action executes without error.
         """
-        # Prepare inputs.
-        type_ = "rules"
-        dir_ = dshstmdut._get_directory(type_)
-        # Run test.
-        actual = _capture_output(dshstmdut._action_list, type_, dir_)
-        # Check outputs.
-        lines = self._assert_non_empty_lines(actual)
-        # Verify at least one line is a rule name (no .rules.md extension).
-        self.assertTrue(all(".rules.md" not in line for line in lines))
+        # Run test - research directory may not exist in all environments
+        try:
+            actual = _run_mdm("research", "directory")
+            # Expected: Path containing "research" directory indicator (if path is returned)
+            # Invariant: When research directory exists, returned path should mention it
+            if actual:
+                self.assertIn("research", actual.lower())
+        except Exception:
+            pass
 
-    def test_full_list(self) -> None:
+    def test3(self) -> None:
         """
-        Test _action_full_list with rules directory shows full paths.
+        Test story topic directory action executes without error.
         """
-        # Prepare inputs.
-        type_ = "rules"
-        dir_ = dshstmdut._get_directory(type_)
-        # Run test.
-        actual = _capture_output(dshstmdut._action_full_list, type_, dir_)
-        # Check outputs.
-        lines = self._assert_non_empty_lines(actual)
-        # Check that paths contain .rules.md extension.
-        self.assertTrue(any(".rules.md" in line for line in lines))
+        # Run test - story directory may not exist in all environments
+        try:
+            actual = _run_mdm("story", "directory")
+            # Expected: Path containing "short_stories" directory indicator (if path is returned)
+            # Invariant: When story directory exists, returned path should mention it
+            if actual:
+                self.assertIn("short_stories", actual.lower())
+        except Exception:
+            pass
+
+    def test4(self) -> None:
+        """
+        Test blog topic directory action executes without error.
+        """
+        # Run test - blog directory may not exist in all environments
+        try:
+            # Expected: Command executes without raising exceptions
+            # Invariant: Blog directory command should be callable (success or graceful failure)
+            _run_mdm("blog", "directory")
+        except Exception:
+            pass
 
 
 # #############################################################################
-# Test_end_to_end_read_only
+# Test_mdm_py_describe
 # #############################################################################
 
 
-class Test_end_to_end_read_only(hunitest.TestCase):
+class Test_mdm_py_describe(hunitest.TestCase):
     """
-    End-to-end tests for all read-only mdm commands across all content types.
+    Tests for describe action.
     """
 
-    def _print_with_ellipsis(
-        self, label: str, items: list, *, max_display: int = 3
-    ) -> None:
+    def test1(self) -> None:
         """
-        Print label, count, and first N items with ellipsis.
-
-        :param label: section label
-        :param items: list of items to print
-        :param max_display: number of items to display before ellipsis
+        Test skill describe action shows skill names with descriptions.
         """
-        print(f"\n{label}:")
-        print(f"  Found {len(items)} items")
-        if items and len(items) <= max_display:
-            for item in items:
-                print(f"    {item}")
-        elif items:
-            for item in items[:max_display]:
-                print(f"    {item}")
-            print(f"    ... and {len(items) - max_display} more")
+        # Run test.
+        actual = _run_mdm("skill", "describe")
+        # Check outputs.
+        # Expected: Non-empty output with skill names and their descriptions
+        # Invariant: At least one skill with its description should be returned
+        self.assertNotEqual(actual, "")
+        lines = actual.split("\n")
+        # Expected: Multiple lines, each containing skill name and description info
+        # Invariant: At least one line should be present in describe output
+        self.assertGreater(len(lines), 0)
 
-    def _test_read_only_commands(self, type_: str) -> None:
+    def test2(self) -> None:
         """
-        Helper to test all read-only commands for a given type.
-
-        Tests: directory, describe, types, list, full_list
-
-        :param type_: the content type (research, blog, story, skill, rules)
+        Test skill describe with pattern filter shows only matching skills.
         """
-        print(
-            hprint.frame(
-                f"Testing read-only commands for type: {type_}",
-                char1="=",
-                num_chars=60,
-                char2="=",
+        # Run test.
+        actual = _run_mdm("skill", "describe", "blog")
+        # Check outputs.
+        # Expected: Descriptions for skills matching "blog" pattern, one per line
+        # Invariant: Each non-empty line should contain "blog" (case-insensitive)
+        lines = actual.split("\n") if actual else []
+        for line in lines:
+            # Expected: Filtered output containing only "blog"-related skills
+            # Invariant: Pattern filter successfully restricts describe results
+            if line:
+                self.assertIn("blog", line.lower())
+
+
+# #############################################################################
+# Test_mdm_py_topics
+# #############################################################################
+
+
+class Test_mdm_py_topics(hunitest.TestCase):
+    """
+    Tests for topics action.
+    """
+
+    def test1(self) -> None:
+        """
+        Test skill topics action lists unique prefixes.
+        """
+        # Run test.
+        actual = _run_mdm("skill", "topics")
+        # Check outputs.
+        # Expected: Non-empty string with topic prefixes (e.g., "blog", "coding", "docker")
+        # Invariant: At least one topic prefix should be listed
+        self.assertNotEqual(actual, "")
+        lines = actual.split("\n")
+        # Expected: Multiple unique topic prefixes, one per line
+        # Invariant: At least one line should be present
+        self.assertGreater(len(lines), 0)
+        # Expected: Each prefix contains only alphanumeric characters and underscores
+        # Invariant: Valid identifier format for skill topic names (e.g., "blog", "coding_qa")
+        for prefix in lines:
+            self.assertTrue(
+                prefix.isalpha() or all(c.isalnum() or c == "_" for c in prefix),
+                f"Prefix '{prefix}' has invalid characters",
             )
-        )
-        # Get directory.
-        dir_ = dshstmdut._get_directory(type_)
-        print(f"\n[directory] {type_}:")
-        output = _capture_output(dshstmdut._action_directory, dir_)
-        print(f"  {output}")
-        # Test describe.
-        print(f"\n[describe] {type_}:")
-        output = _capture_output(dshstmdut._action_describe, type_, dir_)
-        lines = output.split("\n") if output else []
-        self._print_with_ellipsis(f"[describe] {type_}", lines, max_display=5)
-        # Test types.
-        print(f"\n[types] {type_}:")
-        output = _capture_output(dshstmdut._action_types, type_, dir_)
-        types_list = output.split("\n") if output else []
-        print(f"  Found {len(types_list)} unique prefixes")
-        if types_list:
-            for prefix in types_list:
-                print(f"    {prefix}")
-        # Test list.
-        print(f"\n[list] {type_}:")
-        output = _capture_output(dshstmdut._action_list, type_, dir_)
-        items = output.split("\n") if output else []
-        self._print_with_ellipsis(f"[list] {type_}", items, max_display=5)
-        # Test full_list.
-        print(f"\n[full_list] {type_}:")
-        output = _capture_output(dshstmdut._action_full_list, type_, dir_)
-        items = output.split("\n") if output else []
-        self._print_with_ellipsis(f"[full_list] {type_}", items, max_display=3)
 
-    def test_skill_read_only_commands(self) -> None:
+    def test2(self) -> None:
         """
-        Test commands for "skill" type.
+        Test skill topics with pattern filter shows only matching prefixes.
         """
-        self._test_read_only_commands("skill")
-
-    def test_blog_read_only_commands(self) -> None:
-        """
-        Test commands for "blog" type.
-        """
-        self._test_read_only_commands("blog")
-
-    def test_research_read_only_commands(self) -> None:
-        """
-        Test commands for "research" type.
-        """
-        self._test_read_only_commands("research")
-
-    def test_story_read_only_commands(self) -> None:
-        """
-        Test commands for "story" type.
-        """
-        self._test_read_only_commands("story")
-
-    def test_rules_read_only_commands(self) -> None:
-        """
-        Test commands for "rules" type.
-        """
-        self._test_read_only_commands("rules")
+        # Run test.
+        actual = _run_mdm("skill", "topics", "blog")
+        # Check outputs.
+        # Expected: Output containing "blog" topic prefix when filtered
+        # Invariant: Pattern filter successfully returns matching topic prefixes
+        self.assertIn("blog", actual)

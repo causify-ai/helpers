@@ -15,8 +15,8 @@ import os
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 import linters.action as liaction
 import linters.utils as liutils
 
@@ -42,15 +42,16 @@ def _check_readme_is_capitalized(file_name: str) -> str:
 
 class _LintMarkdown(liaction.Action):
     def __init__(self) -> None:
-        # cmd = "find -wholename '*dev_scripts_helpers/documentation/lint_txt.py'"
-        # executable = hsystem.system_to_one_line(cmd)
-        # assert 0, executable
-        executable = "$(find -wholename '*dev_scripts_helpers/documentation/lint_txt.py')"
-        super().__init__(executable)
+        try:
+            executable = hgit.find_file_in_git_tree("lint_txt.py")
+            super().__init__(executable)
+            self._is_possible = True
+        except AssertionError:
+            super().__init__("")
+            self._is_possible = False
 
     def check_if_possible(self) -> bool:
-        check: bool = hsystem.check_exec(self._executable)
-        return check
+        return self._is_possible
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         # Applicable only to Markdown files.

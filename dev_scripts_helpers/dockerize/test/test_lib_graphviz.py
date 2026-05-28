@@ -89,4 +89,7 @@ class Test_run_dockerized_graphviz1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check outputs.
-        dshddout.assert_output_file_exists(self, out_file_path)
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )

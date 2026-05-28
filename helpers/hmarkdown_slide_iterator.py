@@ -41,8 +41,7 @@ def format_items_as_string(items: List[SlideItem]) -> str:
     return "\n".join(lines)
 
 
-# TODO(ai_gp): -> iterate_slide_lines
-def _iterate_slide_lines(
+def iterate_slide_lines(
     lines: List[str],
 ) -> Generator[SlideItem, None, None]:
     """
@@ -195,7 +194,7 @@ def read_lesson_file(file_path: str) -> Generator[SlideItem, None, None]:
     hdbg.dassert_file_exists(file_path, "Lesson file must exist")
     with open(file_path, "r") as f:
         lines = f.readlines()
-    yield from _iterate_slide_lines(lines)
+    yield from iterate_slide_lines(lines)
 
 
 def reassemble_from_items(

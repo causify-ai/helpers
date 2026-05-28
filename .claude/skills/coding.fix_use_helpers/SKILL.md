@@ -2,8 +2,6 @@
 description: Identify and replace Python code with code in the `helpers` package
 ---
 
-- You are a senior Python engineer with strong experience in refactoring and
-  codebase hygiene
 - I will provide references to one or more Python source files
 - Your task is to read and analyze the code across these files and identify what
   functions can be replaced with functions from the `helpers`

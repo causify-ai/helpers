@@ -1,5 +1,6 @@
 import argparse
 import os
+from typing import Any, Optional
 
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -258,27 +259,35 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         hio.create_dir(os.path.dirname(file_path), incremental=True)
         hio.to_file(file_path, content)
 
+    def _make_namespace_args(
+        self,
+        *,
+        files: Optional[str] = None,
+        from_files: Optional[str] = None,
+        input_: Optional[Any] = None,
+    ) -> argparse.Namespace:
+        """
+        Build an `argparse.Namespace` with the three fields used by `parse_multi_file_args()`.
+        """
+        args = argparse.Namespace()
+        args.files = files
+        args.from_files = from_files
+        args.input = input_
+        return args
+
     def test1(self) -> None:
         """
         Test parsing comma-separated file list.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        # Create test files.
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         file3 = f"{scratch_dir}/file3.txt"
         self._create_test_file(file1)
         self._create_test_file(file2)
         self._create_test_file(file3)
-        # Create namespace with files argument.
-        args = argparse.Namespace()
-        args.files = f"{file1},{file2},{file3}"
-        args.from_files = None
-        args.input = None
-        # Run test.
+        args = self._make_namespace_args(files=f"{file1},{file2},{file3}")
         actual = hparser.parse_multi_file_args(args)
-        # Check outputs.
         expected = [file1, file2, file3]
         self.assert_equal(str(actual), str(expected))
 
@@ -286,27 +295,18 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         Test parsing file containing list of files.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        # Create test files.
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         file3 = f"{scratch_dir}/file3.txt"
         self._create_test_file(file1)
         self._create_test_file(file2)
         self._create_test_file(file3)
-        # Create file list.
         list_file = f"{scratch_dir}/list.txt"
         content = f"{file1}\n{file2}\n{file3}\n"
         self._create_test_file(list_file, content)
-        # Create namespace with from_files argument.
-        args = argparse.Namespace()
-        args.files = None
-        args.from_files = list_file
-        args.input = None
-        # Run test.
+        args = self._make_namespace_args(from_files=list_file)
         actual = hparser.parse_multi_file_args(args)
-        # Check outputs.
         expected = [file1, file2, file3]
         self.assert_equal(str(actual), str(expected))
 
@@ -314,14 +314,11 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         Test parsing file with empty lines and comments.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        # Create test files.
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         self._create_test_file(file1)
         self._create_test_file(file2)
-        # Create file list with empty lines and comments.
         list_file = f"{scratch_dir}/list.txt"
         content = f"""
         # This is a comment
@@ -332,14 +329,8 @@ class Test_parse_multi_file_args(hunitest.TestCase):
 
         """
         self._create_test_file(list_file, content)
-        # Create namespace with from_files argument.
-        args = argparse.Namespace()
-        args.files = None
-        args.from_files = list_file
-        args.input = None
-        # Run test.
+        args = self._make_namespace_args(from_files=list_file)
         actual = hparser.parse_multi_file_args(args)
-        # Check outputs.
         expected = [file1, file2]
         self.assert_equal(str(actual), str(expected))
 
@@ -347,21 +338,13 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         Test parsing repeated --input arguments.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        # Create test files.
         file1 = f"{scratch_dir}/file1.txt"
         file2 = f"{scratch_dir}/file2.txt"
         self._create_test_file(file1)
         self._create_test_file(file2)
-        # Create namespace with input argument.
-        args = argparse.Namespace()
-        args.files = None
-        args.from_files = None
-        args.input = [file1, file2]
-        # Run test.
+        args = self._make_namespace_args(input_=[file1, file2])
         actual = hparser.parse_multi_file_args(args)
-        # Check outputs.
         expected = [file1, file2]
         self.assert_equal(str(actual), str(expected))
 
@@ -369,19 +352,11 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         Test that single -i/--input still works.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        # Create test file.
         file1 = f"{scratch_dir}/file1.txt"
         self._create_test_file(file1)
-        # Create namespace with input argument (single file, not list).
-        args = argparse.Namespace()
-        args.files = None
-        args.from_files = None
-        args.input = file1
-        # Run test.
+        args = self._make_namespace_args(input_=file1)
         actual = hparser.parse_multi_file_args(args)
-        # Check outputs.
         expected = [file1]
         self.assert_equal(str(actual), str(expected))
 
@@ -389,12 +364,7 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         Test that non-existent files raise error.
         """
-        # Prepare inputs.
-        args = argparse.Namespace()
-        args.files = "/nonexistent/file1.txt,/nonexistent/file2.txt"
-        args.from_files = None
-        args.input = None
-        # Run test and check output.
+        args = self._make_namespace_args(files="/nonexistent/file1.txt,/nonexistent/file2.txt")
         with self.assertRaises(AssertionError):
             hparser.parse_multi_file_args(args)
 
@@ -402,12 +372,7 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         """
         Test empty file list handling.
         """
-        # Prepare inputs.
-        args = argparse.Namespace()
-        args.files = None
-        args.from_files = None
-        args.input = None
-        # Run test and check output.
+        args = self._make_namespace_args()
         with self.assertRaises(AssertionError) as cm:
             hparser.parse_multi_file_args(args)
         act = str(cm.exception)
@@ -493,121 +458,82 @@ class Test_parse_input_output_files(hunitest.TestCase):
     Test the `parse_input_output_files()` function.
     """
 
+    def _make_io_parser_args(self, args_list: list) -> argparse.Namespace:
+        """
+        Create an ArgumentParser with input/output args and parse the given list.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_input_output_args(parser, in_required=False, out_required=False)
+        return parser.parse_args(args_list)
+
     def test1(self) -> None:
         """
         Test that None is returned when neither option is provided.
         """
-        # Prepare inputs.
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(["-i", "input.txt"])
-        # Run test.
+        args = self._make_io_parser_args(["-i", "input.txt"])
         result = hparser.parse_input_output_files(args)
-        # Check outputs.
         self.assertIsNone(result)
 
     def test2(self) -> None:
         """
         Test parsing comma-separated file list.
         """
-        # Prepare inputs.
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(
+        args = self._make_io_parser_args(
             ["--input_files", "file1.txt,file2.txt,file3.txt"]
         )
-        # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
-        # Run test.
         result = hparser.parse_input_output_files(args)
-        # Check outputs.
         self.assertEqual(result, expected)
 
     def test3(self) -> None:
         """
         Test parsing space-separated file list.
         """
-        # Prepare inputs.
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(
+        args = self._make_io_parser_args(
             ["--input_files", "file1.txt file2.txt file3.txt"]
         )
-        # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
-        # Run test.
         result = hparser.parse_input_output_files(args)
-        # Check outputs.
         self.assertEqual(result, expected)
 
     def test4(self) -> None:
         """
         Test parsing mixed comma and space separators.
         """
-        # Prepare inputs.
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(
+        args = self._make_io_parser_args(
             ["--input_files", "file1.txt,file2.txt file3.txt"]
         )
-        # Prepare outputs.
         expected = ["file1.txt", "file2.txt", "file3.txt"]
-        # Run test.
         result = hparser.parse_input_output_files(args)
-        # Check outputs.
         self.assertEqual(result, expected)
 
     def test5(self) -> None:
         """
         Test parsing single file from --input_files.
         """
-        # Prepare inputs.
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(["--input_files", "single.txt"])
-        # Run test.
+        args = self._make_io_parser_args(["--input_files", "single.txt"])
         result = hparser.parse_input_output_files(args)
-        # Check outputs.
         self.assertEqual(result, ["single.txt"])
 
     def test6(self) -> None:
         """
         Test parsing files from --from_file.
         """
-        # Prepare inputs.
         out_dir = self.get_scratch_space()
         file_list_path = os.path.join(out_dir, "files.txt")
         with open(file_list_path, "w") as f:
             f.write("file1.txt\n")
             f.write("file2.txt\n")
             f.write("file3.txt\n")
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(["--from_file", file_list_path])
-        # Prepare outputs.
+        args = self._make_io_parser_args(["--from_file", file_list_path])
         expected = ["file1.txt", "file2.txt", "file3.txt"]
-        # Run test.
         result = hparser.parse_input_output_files(args)
-        # Check outputs.
         self.assertEqual(result, expected)
 
     def test7(self) -> None:
         """
         Test parsing files from --from_file with empty lines.
         """
-        # Prepare inputs.
         out_dir = self.get_scratch_space()
         file_list_path = os.path.join(out_dir, "files.txt")
         with open(file_list_path, "w") as f:
@@ -616,29 +542,16 @@ class Test_parse_input_output_files(hunitest.TestCase):
             f.write("file2.txt\n")
             f.write("  \n")
             f.write("file3.txt\n")
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(["--from_file", file_list_path])
-        # Prepare outputs.
+        args = self._make_io_parser_args(["--from_file", file_list_path])
         expected = ["file1.txt", "file2.txt", "file3.txt"]
-        # Run test.
         result = hparser.parse_input_output_files(args)
-        # Check outputs.
         self.assertEqual(result, expected)
 
     def test8(self) -> None:
         """
         Test that FileNotFoundError is raised for non-existent file.
         """
-        # Prepare inputs.
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(["--from_file", "/nonexistent/path/files.txt"])
-        # Run test and check outputs.
+        args = self._make_io_parser_args(["--from_file", "/nonexistent/path/files.txt"])
         with self.assertRaises(FileNotFoundError):
             hparser.parse_input_output_files(args)
 
@@ -646,20 +559,13 @@ class Test_parse_input_output_files(hunitest.TestCase):
         """
         Test parsing multiple files passed as separate arguments (shell glob expansion).
         """
-        # Prepare inputs. This simulates shell expansion: `--input_files *.md`
+        # This simulates shell expansion: `--input_files *.md`
         # becomes multiple arguments: `--input_files file1.md file2.md file3.md`
-        parser = argparse.ArgumentParser()
-        hparser.add_input_output_args(
-            parser, in_required=False, out_required=False
-        )
-        args = parser.parse_args(
+        args = self._make_io_parser_args(
             ["--input_files", "file1.md", "file2.md", "file3.md"]
         )
-        # Prepare outputs.
         expected = ["file1.md", "file2.md", "file3.md"]
-        # Run test.
         result = hparser.parse_input_output_files(args)
-        # Check outputs.
         self.assertEqual(result, expected)
 
 
@@ -838,149 +744,246 @@ class Test_to_file(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_extract_rule_from_file
+# Test_add_file_type_filter_args
 # #############################################################################
 
+# TODO(ai_gp1): /coding.factor_common_code
 
-class Test_extract_rule_from_file(hunitest.TestCase):
+
+class Test_add_file_type_filter_args(hunitest.TestCase):
     """
-    Test extracting rules from markdown rule files.
+    Test adding file type filter arguments to parser.
     """
-
-    def helper_create_rule_file(self) -> str:
-        """
-        Create a test rule file with multiple sections at different levels.
-
-        :return: path to the created rule file
-        """
-        out_dir = self.get_scratch_space()
-        file_path = os.path.join(out_dir, "rules.md")
-        content = """- Document intro
-
-# Level 1 Section
-
-- Level 1 content line 1
-- Level 1 content line 2
-
-## Level 1.1 Subsection
-
-- Level 1.1 content line 1
-- Level 1.1 content line 2
-
-## Level 1.2 Subsection
-
-- Level 1.2 content
-
-# Another Level 1 Section
-
-- Another level 1 content
-"""
-        hparser.to_file(content, file_path)
-        return file_path
 
     def test1(self) -> None:
         """
-        Test extracting entire file when no line number is provided.
+        Test that correct arguments are added to parser.
         """
-        file_path = self.helper_create_rule_file()
-        rule_spec = file_path
-        actual = hparser.extract_rule_from_file(rule_spec)
-        # The content should be the full file.
-        expected = hio.from_file(file_path)
-        self.assert_equal(actual, expected)
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+        args = parser.parse_args([])
+        self.assertTrue(hasattr(args, "file_types"))
+        self.assertTrue(hasattr(args, "skip_file_types"))
+        self.assertEqual(args.file_types, "py,ipynb")
+        self.assertEqual(args.skip_file_types, "")
 
     def test2(self) -> None:
         """
-        Test extracting level-1 header section (line 3).
+        Test custom default for file_types.
         """
-        file_path = self.helper_create_rule_file()
-        rule_spec = f"{file_path}:3"
-        actual = hparser.extract_rule_from_file(rule_spec)
-        # Should extract from line 3 until the next level-1 header (line 13).
-        expected = """# Level 1 Section
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,md")
+        args = parser.parse_args([])
+        self.assertEqual(args.file_types, "py,md")
 
-- Level 1 content line 1
-- Level 1 content line 2
 
-## Level 1.1 Subsection
+# #############################################################################
+# Test_parse_file_type_filter_args
+# #############################################################################
 
-- Level 1.1 content line 1
-- Level 1.1 content line 2
 
-## Level 1.2 Subsection
+class Test_parse_file_type_filter_args(hunitest.TestCase):
+    """
+    Test parsing file type filter arguments and filtering files.
+    """
 
-- Level 1.2 content"""
-        self.assert_equal(actual, expected)
+    def test1(self) -> None:
+        """
+        Test filtering files with default file types (py,ipynb).
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+        args = parser.parse_args([])
+        files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
+        actual = hparser.parse_file_type_filter_args(args, files)
+        expected = ["file1.py", "file2.ipynb"]
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test filtering files with custom file types.
+        """
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+        args = parser.parse_args(["--file_types", "py,md,txt"])
+        files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
+        actual = hparser.parse_file_type_filter_args(args, files)
+        expected = ["file1.py", "file3.md", "file4.txt"]
+        self.assertEqual(actual, expected)
 
     def test3(self) -> None:
         """
-        Test extracting level-2 header section stops at next level-2 or level-1.
+        Test filtering with whitespace in comma-separated list.
         """
-        file_path = self.helper_create_rule_file()
-        rule_spec = f"{file_path}:8"
-        actual = hparser.extract_rule_from_file(rule_spec)
-        # Should extract from line 8 (level-2 header) to next level-2 header
-        # (line 13).
-        expected = """## Level 1.1 Subsection
-
-- Level 1.1 content line 1
-- Level 1.1 content line 2"""
-        self.assert_equal(actual, expected)
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+        args = parser.parse_args(["--file_types", "py , ipynb , md"])
+        files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
+        actual = hparser.parse_file_type_filter_args(args, files)
+        expected = ["file1.py", "file2.ipynb", "file3.md"]
+        self.assertEqual(actual, expected)
 
     def test4(self) -> None:
         """
-        Test extracting with section name validation (matching).
+        Test filtering with skip_file_types to exclude extensions.
         """
-        file_path = self.helper_create_rule_file()
-        rule_spec = f"{file_path}:3:# Level 1 Section"
-        actual = hparser.extract_rule_from_file(rule_spec)
-        # Same as test2 since the name matches.
-        expected = """# Level 1 Section
-
-- Level 1 content line 1
-- Level 1 content line 2
-
-## Level 1.1 Subsection
-
-- Level 1.1 content line 1
-- Level 1.1 content line 2
-
-## Level 1.2 Subsection
-
-- Level 1.2 content"""
-        self.assert_equal(actual, expected)
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+        args = parser.parse_args(["--skip_file_types", "txt"])
+        files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
+        actual = hparser.parse_file_type_filter_args(args, files)
+        expected = ["file1.py", "file2.ipynb", "file3.md"]
+        self.assertEqual(actual, expected)
 
     def test5(self) -> None:
         """
-        Test that section name mismatch raises ValueError.
+        Test filtering with multiple skip_file_types.
         """
-        file_path = self.helper_create_rule_file()
-        rule_spec = f"{file_path}:3:# Different Name"
-        with self.assertRaises(ValueError):
-            hparser.extract_rule_from_file(rule_spec)
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+        args = parser.parse_args(["--skip_file_types", "txt,md"])
+        files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
+        actual = hparser.parse_file_type_filter_args(args, files)
+        expected = ["file1.py", "file2.ipynb"]
+        self.assertEqual(actual, expected)
 
     def test6(self) -> None:
         """
-        Test that non-header line raises ValueError.
+        Test filtering that excludes all file types with skip.
         """
-        file_path = self.helper_create_rule_file()
-        rule_spec = f"{file_path}:4"  # This is "- Level 1 content line 1", not a header.
-        with self.assertRaises(ValueError):
-            hparser.extract_rule_from_file(rule_spec)
+        parser = argparse.ArgumentParser()
+        hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+        args = parser.parse_args(["--skip_file_types", "py,ipynb,md,txt"])
+        files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
+        actual = hparser.parse_file_type_filter_args(args, files)
+        expected: list = []
+        self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test_filter_files_by_extensions
+# #############################################################################
+
+
+class Test_filter_files_by_extensions(hunitest.TestCase):
+    """
+    Test filtering files by their extensions.
+    """
+
+    def test1(self) -> None:
+        """
+        Test filtering with no filters (empty strings) returns all files.
+        """
+        files = ["file1.py", "file2.ipynb", "file3.md"]
+        actual = hparser.filter_files_by_extensions(files, "", "")
+        expected = ["file1.py", "file2.ipynb", "file3.md"]
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test filtering with file_types to include only specific extensions.
+        """
+        files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="py,ipynb", skip_file_types_str=""
+        )
+        expected = ["file1.py", "file2.ipynb"]
+        self.assertEqual(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test filtering with skip_file_types to exclude specific extensions.
+        """
+        files = ["file1.py", "file2.ipynb", "file3.md", "file4.txt"]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="", skip_file_types_str="txt,md"
+        )
+        expected = ["file1.py", "file2.ipynb"]
+        self.assertEqual(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test filtering with single file type.
+        """
+        files = ["file1.py", "file2.ipynb", "file3.md"]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="py", skip_file_types_str=""
+        )
+        expected = ["file1.py"]
+        self.assertEqual(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Test filtering with files that have no extension (no dot).
+        """
+        files = ["file1", "file2.py", "file3.ipynb"]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="py", skip_file_types_str=""
+        )
+        expected = ["file2.py"]
+        self.assertEqual(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test filtering with whitespace in extension list.
+        """
+        files = ["file1.py", "file2.ipynb", "file3.md"]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="py , ipynb", skip_file_types_str=""
+        )
+        expected = ["file1.py", "file2.ipynb"]
+        self.assertEqual(actual, expected)
 
     def test7(self) -> None:
         """
-        Test that invalid line number raises error.
+        Test filtering with skip_file_types and multiple extensions.
         """
-        file_path = self.helper_create_rule_file()
-        rule_spec = f"{file_path}:999"  # Out of range.
-        with self.assertRaises(AssertionError):
-            hparser.extract_rule_from_file(rule_spec)
+        files = [
+            "file1.py",
+            "file2.ipynb",
+            "file3.md",
+            "file4.txt",
+            "file5.log",
+        ]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="", skip_file_types_str="txt,log,md"
+        )
+        expected = ["file1.py", "file2.ipynb"]
+        self.assertEqual(actual, expected)
 
     def test8(self) -> None:
         """
-        Test that non-existent file raises error.
+        Test filtering that results in empty list.
         """
-        rule_spec = "/nonexistent/path/to/file.md"
-        with self.assertRaises(AssertionError):
-            hparser.extract_rule_from_file(rule_spec)
+        files = ["file1.py", "file2.ipynb"]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="md,txt", skip_file_types_str=""
+        )
+        expected: list = []
+        self.assertEqual(actual, expected)
+
+    def test9(self) -> None:
+        """
+        Test filtering preserves file order.
+        """
+        files = ["z.py", "a.ipynb", "m.py", "b.ipynb", "c.py"]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="py", skip_file_types_str=""
+        )
+        expected = ["z.py", "m.py", "c.py"]
+        self.assertEqual(actual, expected)
+
+    def test10(self) -> None:
+        """
+        Test filtering with complex path names.
+        """
+        files = [
+            "path/to/file1.py",
+            "another/path/file2.ipynb",
+            "file3.md",
+        ]
+        actual = hparser.filter_files_by_extensions(
+            files, file_types_str="py,ipynb", skip_file_types_str=""
+        )
+        expected = ["path/to/file1.py", "another/path/file2.ipynb"]
+        self.assertEqual(actual, expected)

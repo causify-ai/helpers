@@ -8,25 +8,22 @@ then applies appropriate linting tools per file type.
 Examples:
 
 # Lint files in current branch vs master (default)
-> lint.py
+> lint.py --branch
 
 # Lint all modified files (Python and Jupyter)
 > lint.py --modified
 
-# Lint all files in branch vs a different base
-> lint.py --branch develop
-
-# Lint a specific directory
-> lint.py --dir ./tutorials
-
 # Lint specific files
-> lint.py --files foo.py bar.ipynb baz.md
+> lint.py --files "foo.py bar.ipynb baz.md"
 
 # Lint from a file list, Jupyter only
 > lint.py --from_file filelist.txt --file_types "ipynb"
 
 # Lint last commit
 > lint.py --last_commit
+
+# Lint all repo files
+> lint.py --all
 
 # Lint only Markdown files in modified files
 > lint.py --modified --file_types "md"
@@ -86,6 +83,38 @@ _DEFAULT_ACTIONS = [
     "normalize_import",
     "add_class_frames",
 ]
+
+
+# #############################################################################
+# Helper Functions
+# #############################################################################
+
+
+def _parse_file_extensions(
+    file_types_str: str, skip_file_types_str: str
+) -> List[str]:
+    """
+    Parse comma-separated file type strings into a list of extensions.
+
+    :param file_types_str: comma-separated string of file types to include
+        (e.g., 'py,ipynb,md')
+    :param skip_file_types_str: comma-separated string of file types to skip
+    :return: list of file extensions to process
+    """
+    if skip_file_types_str:
+        # Use all standard extensions minus skipped ones
+        all_extensions = {"py", "ipynb", "md", "txt"}
+        skip_extensions = {
+            ext.strip()
+            for ext in skip_file_types_str.split(",")
+            if ext.strip()
+        }
+        return list(all_extensions - skip_extensions)
+    else:
+        # Parse the comma-separated list of included file types
+        if not file_types_str:
+            return []
+        return [ext.strip() for ext in file_types_str.split(",") if ext.strip()]
 
 
 # #############################################################################
@@ -401,52 +430,10 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    # File selection arguments (mutually exclusive).
-    file_selection = parser.add_mutually_exclusive_group()
-    file_selection.add_argument(
-        "--modified",
-        action="store_true",
-        help="Lint files modified in current git client",
-    )
-    file_selection.add_argument(
-        "--branch",
-        nargs="?",
-        const="master",
-        type=str,
-        help="Lint files modified in current branch vs a base branch (default: master)",
-    )
-    file_selection.add_argument(
-        "-d",
-        "--dir",
-        type=str,
-        help="Lint all files in a directory",
-    )
-    file_selection.add_argument(
-        "-f",
-        "--files",
-        nargs="+",
-        type=str,
-        help="Explicit list of files to lint",
-    )
-    file_selection.add_argument(
-        "--from_file",
-        type=str,
-        help="Read file list from a file",
-    )
-    file_selection.add_argument(
-        "--last_commit",
-        action="store_true",
-        help="Lint files from last commit",
-    )
-    # File type filters.
-    parser.add_argument(
-        "--file_types",
-        type=str,
-        default="py,ipynb",
-        help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')\n"
-        "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
-        "  Default: 'py,ipynb'",
-    )
+    # File selection arguments using hparser helper.
+    hparser.add_file_selection_args(parser)
+    # File type filters using hparser helper.
+    hparser.add_file_type_filter_args(parser, file_types_default="py,ipynb")
     # Other options.
     parser.add_argument(
         "--action",
@@ -460,12 +447,6 @@ def _parse() -> argparse.ArgumentParser:
         "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
         "  pyright: Run pyright type checker\n"
         "  coverage: Run pytest coverage for test files",
-    )
-    parser.add_argument(
-        "--skip_files",
-        nargs="+",
-        type=str,
-        help="Files to skip during linting",
     )
     parser.add_argument(
         "--abort_on_error",
@@ -493,34 +474,16 @@ def _main(args: argparse.Namespace) -> int:
     :return: combined return code from all linting operations
     """
     hdbg.init_logger(args.log_level)
-    # Validate that at least one file selection option is provided.
-    has_selection = any(
-        [
-            args.modified,
-            args.branch,
-            args.dir,
-            args.files,
-            args.from_file,
-            args.last_commit,
-        ]
-    )
-    # Default to --branch if no option is specified
-    if not has_selection:
-        args.branch = "master"
-        has_selection = True
-    # Parse file_types into a list of extensions
-    file_extensions = [ext.strip() for ext in args.file_types.split(",")]
-    _LOG.info("File extensions to process: %s", file_extensions)
-    # Get files based on selection mode.
-    file_paths = llinutil.get_files_to_check(
-        args.files,
-        args.from_file,
-        args.skip_files,
-        args.dir,
-        args.modified,
-        args.last_commit,
-        args.branch,
-    )
+    # Get files based on selection mode using hparser helper.
+    file_paths = hparser.parse_file_selection_args(args, remove_dirs=False)
+    if not file_paths:
+        _LOG.warning("No files matched the selection criteria")
+        return 0
+    # Parse file type filters from arguments.
+    # TODO(gp): Simplify the call.
+    file_types_str = getattr(args, "file_types", "py,ipynb")
+    skip_file_types_str = getattr(args, "skip_file_types", "")
+    file_extensions = _parse_file_extensions(file_types_str, skip_file_types_str)
     _LOG.info("Found %d files for linting", len(file_paths))
     python_files, jupyter_files, markdown_files = _filter_files_by_type(
         file_paths,

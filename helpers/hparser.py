@@ -102,42 +102,90 @@ def add_file_selection_args(
     Add file selection arguments to a parser.
 
     Adds the following mutually exclusive arguments:
-    - --modified: Search only in files modified in the client
-    - --branch: Search only in files modified with respect to the branch point
-    - --last-commit: Search only in files part of the previous commit
-    - --all: Search all repo files
-    - --files: Search in specific files
+    - --files: Specify specific files
+    - --from_files: Select files listed in a file
+    - --modified: Select files modified in the client
+    - --branch: Select files modified with respect to the branch point
+    - --last_commit: Select files part of the previous commit
+    - --all: Select all files
 
     :param parser: ArgumentParser to add arguments to
     :return: The same parser with arguments added
     """
-    parser.add_argument(
+    file_selection = parser.add_mutually_exclusive_group()
+    # TODO(gp): Use -f and -i and --input as alternative
+    file_selection.add_argument(
+        "--files",
+        type=str,
+        help="Select specific files (space-separated list)",
+    )
+    file_selection.add_argument(
+        "--from_file",
+        type=str,
+        help="Path to file containing one file path per line",
+    )
+    file_selection.add_argument(
         "--modified",
         action="store_true",
         help="Select only files modified in the client (staged and unstaged)",
     )
-    parser.add_argument(
+    file_selection.add_argument(
         "--branch",
         action="store_true",
         help="Select only files modified with respect to the branch point",
     )
-    parser.add_argument(
-        "--last-commit",
+    file_selection.add_argument(
+        "--last_commit",
         action="store_true",
         help="Select only files part of the previous commit",
     )
-    parser.add_argument(
+    file_selection.add_argument(
         "--all",
         action="store_true",
         dest="all_files",
         help="Select all repo files",
     )
-    parser.add_argument(
-        "--files",
-        type=str,
-        help="Select specific files (space-separated list)",
-    )
     return parser
+
+
+def parse_file_selection_args(
+    args: argparse.Namespace,
+    *,
+    remove_dirs: bool = True,
+    dir_name: str = ".",
+) -> List[str]:
+    """
+    Parse file selection arguments and return list of files to process.
+
+    Handles these mutually exclusive options:
+    - --files: files specified as space-separated list
+    - --from_files: files listed in a file (one per line)
+    - --modified: files modified in the client
+    - --branch: files modified with respect to the branch point
+    - --last_commit: files part of the previous commit
+    - --all: all repo files
+
+    :param args: Parsed command-line arguments from add_file_selection_args
+    :param remove_dirs: Whether to exclude directories from results
+    :param dir_name: Directory to search (default: current directory)
+    :return: List of file paths to process
+    """
+    # Import here to avoid circular dependency.
+    import helpers.hgit as hgit
+
+    # TODO(gp): Can we use args.files?
+    files = hgit.get_files_to_process(
+        getattr(args, "files", ""),
+        getattr(args, "from_file", ""),
+        getattr(args, "modified", False),
+        getattr(args, "branch", False),
+        getattr(args, "last_commit", False),
+        getattr(args, "all_files", False),
+        mutually_exclusive=True,
+        remove_dirs=remove_dirs,
+        dir_name=dir_name,
+    )
+    return files
 
 
 # #############################################################################
@@ -201,7 +249,7 @@ def parse_cache_control_args(args: argparse.Namespace) -> None:
 
 
 # #############################################################################
-# Command line options related to selection actions.
+# Select actions.
 # #############################################################################
 
 # # Define valid and default actions.
@@ -1126,11 +1174,11 @@ def apply_limit_range(
 
 
 # #############################################################################
-# Command line options for multiple file input.
+# Select multiple file input.
 # #############################################################################
 
 
-# TODO(ai_gp): Merge with input_output_args
+# TODO(gp): Merge with input_output_args and / or add_file_selection_args?
 def add_multi_file_args(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
@@ -1273,76 +1321,6 @@ def add_llm_prompt_arg(
         help="Use a fast LLM model vs a high-quality one",
     )
     return parser
-
-
-# TODO(ai_gp): Move to dev_scripts_helpers/documentation/extract_from_md.py
-def extract_rule_from_file(rule_spec: str) -> str:
-    """
-    Extract a rule section from a rules file based on a rule specification.
-
-    :param rule_spec: rule specification in one of these formats:
-        - `path/to/file.md`: return all content
-        - `path/to/file.md:N`: extract section starting at line N (must be
-          a markdown header)
-        - `path/to/file.md:N:# Section Name`: same with header name
-          validation
-    :return: extracted rule text as a string
-    """
-    # Parse the rule specification.
-    parts = rule_spec.split(":", 2)
-    file_path = parts[0]
-    # Check file exists.
-    hdbg.dassert_file_exists(file_path, "Rule file does not exist")
-    # Read file content.
-    content = hio.from_file(file_path)
-    lines = content.splitlines()
-    # If only path provided, return full content.
-    if len(parts) == 1:
-        return content
-    # Parse line number.
-    try:
-        line_num = int(parts[1])
-    except ValueError:
-        raise ValueError(
-            "Invalid line number '%s' in rule spec: %s" % (parts[1], rule_spec)
-        )
-    # Convert to 0-based index.
-    line_idx = line_num - 1
-    hdbg.dassert_lt(
-        line_idx,
-        len(lines),
-        "Line number %d exceeds file length %d",
-        line_num,
-        len(lines),
-    )
-    # Check that the target line is a header.
-    header_line = lines[line_idx]
-    if not header_line.startswith("#"):
-        raise ValueError(
-            "Line %d is not a markdown header: '%s'" % (line_num, header_line)
-        )
-    # Validate section name if provided.
-    if len(parts) == 3:
-        expected_name = parts[2]
-        if header_line.strip() != expected_name.strip():
-            raise ValueError(
-                "Section name mismatch at line %d: expected '%s', got '%s'"
-                % (line_num, expected_name, header_line)
-            )
-    # Determine header level (number of leading '#' characters).
-    header_level = len(header_line) - len(header_line.lstrip("#"))
-    # Find the end of section (next header at same or higher level).
-    end_idx = len(lines)
-    for i in range(line_idx + 1, len(lines)):
-        line = lines[i]
-        if line.startswith("#"):
-            this_level = len(line) - len(line.lstrip("#"))
-            if this_level <= header_level:
-                end_idx = i
-                break
-    # Extract and return the section.
-    section_lines = lines[line_idx:end_idx]
-    return "\n".join(section_lines)
 
 
 def add_llm_args(
@@ -1489,13 +1467,142 @@ def add_md_start_end_args(
         type=str,
         required=start_required,
         default=None,
-        help="Starting header: either full format (e.g., '## Section 1') or partial match (e.g., 'Section 1'). Partial match must be unique.",
+        help=(
+            "Starting header: either full format (e.g., '## Section 1') or "
+            "partial match (e.g., 'Section 1'). Partial match must be unique."
+        ),
     )
     parser.add_argument(
         "--md_end",
         type=str,
         required=end_required,
         default=None,
-        help="Ending header: either full format (e.g., '## Section 2') or partial match (e.g., 'Section 2'). If not provided, extracts until the next header at the same or higher level. Partial match must be unique.",
+        help=(
+            "Ending header: either full format (e.g., '## Section 2') or "
+            "partial match (e.g., 'Section 2'). If not provided, extracts "
+            "until the next header at the same or higher level. Partial match "
+            "must be unique."
+        ),
     )
     return parser
+
+
+# #############################################################################
+# Command line options for file type filtering
+# #############################################################################
+
+
+def add_file_type_filter_args(
+    parser: argparse.ArgumentParser,
+    *,
+    file_types_default: str,
+) -> argparse.ArgumentParser:
+    """
+    Add command line arguments for filtering files by type.
+
+    Adds the following mutually exclusive arguments:
+    - `--file_types`: comma-separated list of file extensions to include
+      (e.g., 'py,ipynb,md'). Empty string means keep all extensions.
+    - `--skip_file_types`: comma-separated list of file extensions to skip
+      (e.g., 'txt'). Empty string means skip no extensions.
+
+    :param parser: ArgumentParser to add arguments to
+    :param file_types_default: default file types to process
+    :return: ArgumentParser with the arguments added
+    """
+    file_type_group = parser.add_mutually_exclusive_group()
+    file_type_group.add_argument(
+        "--file_types",
+        type=str,
+        default=file_types_default,
+        help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')\n"
+        "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
+        f"  Default: '{file_types_default}'",
+    )
+    file_type_group.add_argument(
+        "--skip_file_types",
+        type=str,
+        default="",
+        help="Comma-separated list of file extensions to skip (e.g., 'txt')\n"
+        "  Empty string means skip no extensions",
+    )
+    return parser
+
+
+def filter_files_by_extensions(
+    files: List[str],
+    file_types_str: str,
+    skip_file_types_str: str,
+) -> List[str]:
+    """
+    Filter files by their extensions based on include or exclude patterns.
+
+    This helper function can be called with strings to filter files by type,
+    making it useful for both command-line interfaces and programmatic use
+    (e.g., from invoke tasks).
+
+    :param files: List of file paths to filter
+    :param file_types_str: Comma-separated string of extensions to include
+        (e.g., 'py,ipynb,md'). If provided, only files with these extensions
+        are included.
+    :param skip_file_types_str: Comma-separated string of extensions to skip
+        (e.g., 'txt,log'). If provided, files with these extensions are
+        excluded.
+    :return: Filtered list of file paths
+    """
+    hdbg.dassert_lte(int(file_types_str != "") + int(skip_file_types_str != ""), 1)
+    if file_types_str == "" and skip_file_types_str == "":
+        # Nothing to do.
+        return files
+    filtered_files = []
+    _LOG.debug("File to process: %s", files)
+    if file_types_str != "":
+        file_extensions = {
+            ext.strip() for ext in file_types_str.split(",") if ext.strip()
+        }
+        _LOG.debug("File extensions to process: %s", file_extensions)
+        for file_path in files:
+            ext = file_path.split(".")[-1] if "." in file_path else ""
+            if ext in file_extensions:
+                filtered_files.append(file_path)
+    elif skip_file_types_str != "":
+        skip_extensions = {
+            ext.strip()
+            for ext in skip_file_types_str.split(",")
+            if ext.strip()
+        }
+        _LOG.debug("File extensions to skip: %s", skip_extensions)
+        for file_path in files:
+            ext = file_path.split(".")[-1] if "." in file_path else ""
+            if ext not in skip_extensions:
+                filtered_files.append(file_path)
+    _LOG.debug("Filtered files: %d -> %d", len(files), len(filtered_files))
+    return filtered_files
+
+
+def parse_file_type_filter_args(
+    args: argparse.Namespace,
+    files: List[str],
+) -> List[str]:
+    """
+    Parse file type filter arguments and return filtered list of files.
+
+    Parses both `--file_types` and `--skip_file_types` arguments, returning
+    the list of files to process after filtering by extension.
+
+    :param args: Parsed command line arguments from add_file_type_filter_args
+    :param files: List of file paths to filter
+    :return: List of file paths after extension filtering
+    """
+    file_types = getattr(args, "file_types", "")
+    skip_file_types = getattr(args, "skip_file_types", "")
+    # Since args have mutually exclusive defaults, if skip_file_types is set,
+    # clear file_types (which would have its default value)
+    if skip_file_types:
+        file_types = ""
+    filtered_files = filter_files_by_extensions(
+        files,
+        file_types_str=file_types,
+        skip_file_types_str=skip_file_types,
+    )
+    return filtered_files

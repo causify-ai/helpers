@@ -2,15 +2,18 @@
 description: Use this idiom for controlling logging in Jupyter notebooks
 ---
 
-- For a Jupyter notebook always use the following idiom for logging
-  ```python
-  import logging
-  # Local utility.
-  import utils
+# Important: Follow Conventions
+- Always follow the conventions and guidelines in
+  `.claude/skills/notebook.rules.md`
 
-  _LOG = logging.getLogger(__name__)
-  utils.init_logger(_LOG)
-  ```
+- Implement the instructions in 
+  `.claude/skills/notebook.rules.md` under
+  `## Use Standard Template Structure`
+
+- Use the structure from `.claude/templates/notebook.template.py` for consistent
+  notebook initialization
+
+- Use `display`
 
 - In the local utility `*_utils.py` there should be a function like
   ```
@@ -29,6 +32,3 @@ description: Use this idiom for controlling logging in Jupyter notebooks
       hnotebo.set_logger_to_print(causalml_logger)
   ```
 
-# Important: Follow Conventions
-- Always follow the conventions and guidelines in
-  `@.claude/skills/notebook.rules.md`

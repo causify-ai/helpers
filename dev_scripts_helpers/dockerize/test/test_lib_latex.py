@@ -94,7 +94,10 @@ class Test_run_dockerized_latex1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check outputs.
-        dshddout.assert_output_file_exists(self, out_file_path)
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
 
     # TODO(gp): This doesn't work since:
     # 1) `convert_latex_cmd_to_arguments()` is monkey patching with parsing the

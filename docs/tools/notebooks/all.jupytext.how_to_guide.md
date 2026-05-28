@@ -26,7 +26,7 @@
   in a sensible way
 
 - Jupytext allows to:
-  - Edit notebooks with your favorite editor (hopefully) vi or PyCharm
+  - Edit notebooks with your favorite editor (e.g., vi, emacs, or PyCharm)
   - Use a Python version of your notebook to run long computations from shell
     instead of using a notebook
   - Do a code review, diff changes, resolve conflicts using the Python code
@@ -43,8 +43,10 @@
 
   ```bash
   > jupytext --version
-  1.2.1
+  1.19.0
   ```
+
+## Configure Jupyter Notebook to Use `jupytext`
 
 - Check if you have a Jupyter config:
 
@@ -79,24 +81,25 @@
 
 ## Using Jupytext
 
-- Now when you `git add` a `.ipynb` file you always need to add also the paired
-  `.py` file
+- When you `git add` a `.ipynb` file you always need to add also the paired `.py`
+  file
 - Same thing if you rename with `git mv` or delete a notebook
   - You need to explicitly take care of renaming and deleting also the `.py`
     file
 
-## Example of uses
+## Example of Uses
 
-### Test that the conversion works {#test-that-the-conversion-works}
+### Test that the conversion works
 
 - Jupytext keeps a notebook and the paired `.py` file in sync
   ```bash
-  > jupytext Task22.ipynb --test --to py:percent --stop
-  > jupytext Task22.ipynb --test-strict --to py:percent
+  > jupytext --test --to py:percent --check <notebook>.ipynb 
+  > jupytext --test --check --to py:percent <notebook>.ipynb 
   ```
 
 ### Manual sync
 
+- To manually sync a notebook
     ```bash
     > jupytext --sync --to py:percent XYZ.ipynb
     ```
@@ -121,17 +124,19 @@
   - Go to the jupyter notebook and reload it
   - The cell you modified has changed!
 
-### Convert a notebook to script
+### Convert a Notebook to Script
 
-    ```bash
-    > jupytext --to py:percent XYZ.ipynb
-    ```
+- Convert a notebook to a script:
+  ```bash
+  > jupytext --to py:percent XYZ.ipynb
+  ```
 
-### Convert a script into a notebook
+### Convert a Script into a Notebook
 
-```bash
-> jupytext --to notebook XYZ.py
-```
+- Convert a script to a notebook
+  ```bash
+  > jupytext --to notebook XYZ.py
+  ```
 
 ### Remove metadata from a notebook
 
@@ -140,22 +145,13 @@
   > jupytext --to notebook XYZ.py
   ```
 
-### Linter
-
-- Linter automatically reformats the `.py` files and then updates the `.ipynb`
-  without losing the formatting
-  ```bash
-  > i lint --files="XYZ.py"
-  > jupytext --sync --to py:percent XYZ.py
-  ```
-
 ### Refresh all the scripts
 
-- The script `dev_scripts/notebooks/process_jupytext.py` automates some of the
-  workflow in Jupytext (see the help)
+- The script `process_jupytext.py` automates some of the workflow in Jupytext
+  (see the help)
 
-- The script `dev_scripts/notebooks/process_all_jupytext.sh` applies
+- The script `dev_scripts_helpers/notebooks/process_all_jupytext.sh` applies
   `process_jupytext.py` to all the `ipynb` files
   ```bash
-  > dev_scripts/notebooks/process_all_jupytext.sh <ACTION>
+  > process_all_jupytext.sh <ACTION>
   ```

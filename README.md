@@ -199,7 +199,6 @@ This repo includes lightweight building blocks for LLM workflows:
 - `helpers/hllm.py`: completions + structured outputs + caching modes
 - `helpers/hllm_cost.py`: cost tracking and provider cost utilities (incl. `LLMCostTracker`)
 - `helpers/hllm_cli.py`: CLI-oriented LLM workflows
-- `helpers/hchatgpt.py` / `helpers/hchatgpt_instructions.py`: utilities around assistants/instructions workflows
 
 Tutorial notebooks live under `helpers/notebooks/` (see `hllm.tutorial.py`).
 

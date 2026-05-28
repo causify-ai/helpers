@@ -2,25 +2,24 @@
 description: Apply the conventions usually not followed in the unit test
 ---
 
-- When the user passes a test file `<file>`
-  - Apply the following transformations to the code, making sure that there is
-    no change in behavior
+- When the user passes a test file `<FILE>`
 
-- All invariants and conventions are documented in
-  `.claude/skills/testing.rules.md`
+# Step 1
+- Apply the following transformations one at the time to the code in `<FILE>`
+- The transformations are from `.claude/skills/testing.rules.md` in the headers
+  - `## Dedent Strings to the Code`
+  - `## Test Method Names`
+  - `## Use Helper Methods When You Have Repetitive Tests`
+  - `## Avoid Replicated Assignment`
+  - `## Consolidate inputs and outputs`
+  - `## Assign Variables and Then Call Functions`
 
-## Key Transformations
-
-- See `.claude/skills/testing.rules.md`
-  - "## Dedent Strings to the Code"
-  - "## Test Method Names"
-  - "## Use Helper Methods When You Have Repetitive Tests"
-  - "## Avoid Replicated Assignment"
-  - "## Consolidate inputs and outputs"
-  - "## Assign Variables and Then Call Functions"
-
-- Run the skill `/coding.factor_common_code` on the file
+# Step 2
+- After step 1, run the skill `/coding.factor_common_code` on the file `<FILE>`
+  to factor out common code
 
 # Important
-- For all the code you must follow the instructions in
-  `.claude/skills/coding.rules.md`
+- Make sure that there is no change in behavior in the code
+- For all the code you must follow the instructions in:
+  - `.claude/skills/coding.rules.md`
+  - `.claude/skills/testing.rules.md`

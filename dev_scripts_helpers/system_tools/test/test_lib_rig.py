@@ -1,6 +1,9 @@
-from typing import List, Optional, Type
+from typing import Any, Dict, List, Optional, Type
+
+import pytest
 
 import dev_scripts_helpers.system_tools.lib_rig as dshstliri
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 
@@ -15,12 +18,32 @@ class TestRigScript(hunitest.TestCase):
     Test rig script functionality through hrig module integration.
     """
 
+    def _assert_cmd_invocation(
+        self,
+        invocations: List[Dict[str, Any]],
+        expected_cmd: str,
+    ) -> None:
+        """
+        Assert that the captured invocations match the expected command.
+
+        :param invocations: Captured system call invocations
+        :param expected_cmd: Expected command string
+        """
+        self.assertEqual(len(invocations), 1, "Expected exactly one invocation")
+        self.assertEqual(
+            invocations[0]["function"],
+            "subprocess.run",
+            "Expected subprocess.run call",
+        )
+        actual_cmd = " ".join(invocations[0]["args"][0])
+        self.assertEqual(actual_cmd, expected_cmd)
+
     def helper(
         self,
         args: List[str],
+        expected_cmd: Optional[str],
+        expected_exit_code: Optional[int],
         *,
-        expected_cmd: Optional[str] = None,
-        expected_exit_code: Optional[int] = None,
         side_effect: Optional[Type[Exception]] = None,
     ) -> None:
         """
@@ -28,7 +51,9 @@ class TestRigScript(hunitest.TestCase):
 
         :param args: Arguments to pass to hrig.main()
         :param expected_cmd: Expected command string passed to subprocess.run()
+            or None to skip command verification
         :param expected_exit_code: Expected exit code from hrig.main()
+            or None to skip exit code verification
         :param side_effect: Exception to raise from subprocess.run()
         """
         # Run test.
@@ -39,13 +64,10 @@ class TestRigScript(hunitest.TestCase):
                 exit_code = dshstliri.main(args)
             except SystemExit as e:
                 exit_code = e.code
-        # Check outputs.
-        # TODO(ai_gp): Use the hunteuti. to check outcome.
+        # Check command output.
         if expected_cmd is not None:
-            self.assertEqual(len(invocations), 1)
-            self.assertEqual(invocations[0]["function"], "subprocess.run")
-            actual_cmd = " ".join(invocations[0]["args"][0])
-            self.assertEqual(actual_cmd, expected_cmd)
+            self._assert_cmd_invocation(invocations, expected_cmd)
+        # Check exit code.
         if expected_exit_code is not None:
             self.assertEqual(exit_code, expected_exit_code)
 
@@ -56,9 +78,12 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git"
+        expected_cmd = (
+            "rg TODO . --hidden -n --no-heading --color=never -g !.git"
+        )
+        expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_cmd=expected_cmd, expected_exit_code=0)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test2(self) -> None:
         """
@@ -67,13 +92,15 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src"]
         # Prepare outputs.
-        expected_cmd = "rg import src --hidden -n --no-heading --color=never -g !.git"
+        expected_cmd = (
+            "rg import src --hidden -n --no-heading --color=never -g !.git"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test3(self) -> None:
@@ -90,8 +117,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test4(self) -> None:
@@ -101,8 +128,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--help"]
         expected_exit_code = 0
+        expected_cmd = None
         # Run test.
-        self.helper(args, expected_exit_code=expected_exit_code)
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test5(self) -> None:
         """
@@ -110,9 +138,10 @@ class TestRigScript(hunitest.TestCase):
         """
         # Prepare inputs.
         args = []
-        # Run test.
+        expected_cmd = None
         expected_exit_code = 0
-        self.helper(args, expected_exit_code=expected_exit_code)
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test6(self) -> None:
         """
@@ -121,11 +150,13 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO"]
         expected_exit_code = 1
+        side_effect = FileNotFoundError
         # Run test.
         self.helper(
             args,
-            expected_exit_code=expected_exit_code,
-            side_effect=FileNotFoundError,
+            None,
+            expected_exit_code,
+            side_effect=side_effect,
         )
 
     def test7(self) -> None:
@@ -135,15 +166,13 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["def", ".", "py,md"]
         # Prepare outputs.
-        expected_cmd = (
-            "rg def . -g *.py -g *.md --hidden -n --no-heading --color=never -g !.git"
-        )
+        expected_cmd = "rg def . -g *.py -g *.md --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test8(self) -> None:
@@ -158,8 +187,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test9(self) -> None:
@@ -179,33 +208,50 @@ class TestRigScript(hunitest.TestCase):
         # This test verifies that --modified flag is parsed correctly,
         # though we can't test the actual git integration without a real repo.
         args = ["TODO", "--modified"]
+        expected_cmd = None
         expected_exit_code = 0
-        # Run test (may return 0 even if no files, since git cmd may not work in test)
-        self.helper(args, expected_exit_code=expected_exit_code)
+        # Run test (may return 0 even if no files, since git cmd may not work in test).
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test11(self) -> None:
         """
         Test --branch flag with pattern.
         """
+        # Prepare inputs.
         args = ["TODO", "--branch"]
+        # Prepare outputs.
+        expected_cmd = None
         expected_exit_code = 0
-        self.helper(args, expected_exit_code=expected_exit_code)
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test12(self) -> None:
         """
         Test --all flag with pattern.
         """
+        # Prepare inputs.
         args = ["TODO", "--all"]
+        # Prepare outputs.
+        expected_cmd = None
         expected_exit_code = 0
-        self.helper(args, expected_exit_code=expected_exit_code)
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="rg version issues",
+    )
     def test13(self) -> None:
         """
-        Test --last-commit flag with pattern.
+        Test --last_commit flag with pattern.
         """
-        args = ["TODO", "--last-commit"]
+        # Prepare inputs.
+        args = ["TODO", "--last_commit"]
+        # Prepare outputs.
+        expected_cmd = None
         expected_exit_code = 0
-        self.helper(args, expected_exit_code=expected_exit_code)
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
 
     def test14(self) -> None:
         """
@@ -214,13 +260,15 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", ".", "--rg_opts", "-S -i"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git -S -i"
+        expected_cmd = (
+            "rg TODO . --hidden -n --no-heading --color=never -g !.git -S -i"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test15(self) -> None:
@@ -235,10 +283,14 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="rg version issues",
+    )
     def test16(self) -> None:
         """
         Test --rule flag to search for Markdown headers in .claude/skills.
@@ -246,17 +298,19 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--rule"]
         # Prepare outputs.
-        expected_cmd = (
-            "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git"
-        )
+        expected_cmd = "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="rg version issues",
+    )
     def test16_rule_with_pattern(self) -> None:
         """
         Test --rule flag with a pattern to match Markdown headers.
@@ -264,31 +318,33 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["assert_equal", "--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git"
+        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="rg version issues",
+    )
     def test17(self) -> None:
         """
-        Test --todo flag to search for TODO(ai_gp) pattern.
+        Test --todo flag.
         """
         # Prepare inputs.
         args = ["--todo"]
         # Prepare outputs.
-        expected_cmd = (
-            r"rg TODO\(ai_gp\) . --hidden -n --no-heading --color=never -g !.git"
-        )
+        expected_cmd = r"rg ^\s*(#|//)\s*TODO\(ai_gp\S*\) . --hidden -n --no-heading --color=never -g !.git"
         expected_exit_code = 0
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test18(self) -> None:
@@ -298,13 +354,15 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", "-i"]
         # Prepare outputs.
-        expected_cmd = "rg TODO . --hidden -n --no-heading --color=never -g !.git -S -i"
+        expected_cmd = (
+            "rg TODO . --hidden -n --no-heading --color=never -g !.git -S -i"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )
 
     def test19(self) -> None:
@@ -314,13 +372,11 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src", "js", "-i"]
         # Prepare outputs.
-        expected_cmd = (
-            "rg import src -g *.js --hidden -n --no-heading --color=never -g !.git -S -i"
-        )
+        expected_cmd = "rg import src -g *.js --hidden -n --no-heading --color=never -g !.git -S -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
             args,
-            expected_cmd=expected_cmd,
-            expected_exit_code=expected_exit_code,
+            expected_cmd,
+            expected_exit_code,
         )

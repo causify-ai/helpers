@@ -1,116 +1,144 @@
 ---
-description: Create an outline for a Jupyter notebook with visual and interactive cells for teaching concepts
+description: Create a detailed markdown outline (notebook_outline file) for a Jupyter notebook, specifying each cell's content, purpose, visuals, and interactivity to teach concepts through example and discovery
 ---
 
-- Given the passed content, you need to create a Jupyter notebook that helps a
-  college student to understand the requested concepts
+# Purpose
 
-# Goals
-- The goals for the Jupyter notebook are:
-  - Strong intuition
-  - Visual explanation
-  - Build example incrementally
-  - Use interactive widgets so that user can change the important variables and
-    see the results immediately
+- Create a comprehensive outline for an interactive Jupyter notebook that teaches
+  a concept through visualization and hands-on exploration
+- The outline describes what each cell will contain without writing any code,
+  serving as a blueprint for implementation
+- **Output**: A `notebook_outline.<tag>.md` markdown file that describes each
+  notebook cell
 
-- Do not write any code
-  - The Jupyter notebook is described in terms of a markdown
-  - Create or update the file with the script `jupyter_script.<tag>.md`
+# Core Goals
 
-# Important
-- Always follow the conventions and guidelines in
-  `.claude/skills/notebook.rules.md`
+- An effective interactive notebook outline should enable:
+  - **Strong intuition**: Help students build mental models through discovery
+  - **Visual explanation**: Use plots, diagrams, and animations to make concepts
+    concrete
+  - **Incremental building**: Start simple, add complexity layer by layer
+  - **Interactive exploration**: Let students manipulate parameters and see
+    immediate results
 
-# Format of Interactive Cells
+# Key Principles
 
-## Numbering and Structure
-- Cells should be numbered incrementally with a format `Cell i: <description>`
-- Each cell description corresponds to a **pair of cells** in the final
-  notebook:
-  1. **Markdown cell**: Contains the header and purpose explanation
-  2. **Code cell**: Contains visualization, interactive widgets, and comment box
+- **Outline format**: Describe cells in markdown structure
+  (`notebook_outline.<tag>.md`), not in code
+- **Focus on examples**: Concentrate on practical examples, not theory repetition
+  from slides
+- **Discovery over exposition**: Emphasize "what if I change this?" over "here's
+  the explanation"
+- **Build on context**: Each cell should reference and extend what came before
 
-## Content Focus
-- Focus only on examples without repeating content from the slides
-- Each cell should build incrementally on previous concepts
-- Emphasize discovery through interaction rather than explanation
+# Important Conventions
+
+- Always follow these guidelines:
+  - `.claude/skills/notebook.rules.md`: General notebook conventions
+  - `.claude/skills/markdown.rules.md`: Markdown formatting rules
+  - `.claude/skills/text.rules.md`: Bullet point conventions
+
+# Cell Outline Structure
+
+- Each cell in the outline corresponds to a pair of cells in the final notebook:
+  - **Markdown cell**: Section header and pedagogical context
+  - **Code cell**: Visualization, widgets, and explanatory text
+
+## Numbering and Naming
+
+- Number cells incrementally: `Cell 1`, `Cell 2`, etc.
+- Use descriptive titles that signal the learning objective (not just "Plot" or
+  "Widget")
+- Keep titles concise (5-7 words)
 
 ## Cell Description Template
-- Describe each cell using the following structure with bullet points:
+
+- Use this structure for each cell:
   ```markdown
-  ## Cell i: <Concise Title>
+  ## Cell i: <Concise Learning Objective>
 
   - **Purpose**: Explain the learning goal of this cell
   - **Display**: Describe what the visualization/output will show
   - **Interactive widget**:
-    - List each widget (e.g., Slider for X: 0-1)
+    - List each control (e.g., Slider for X: 0-1)
     - Explain what each widget controls
   - **Key insights**: What should students notice or learn from this cell?
   - **Comment box**: Text or annotations that explain key findings
   - **Implementation**: Which libraries and functions will be used
   ```
 
-### Purpose
-- 1-2 sentences explaining the learning objective
-- Connect to prior cells when applicable
+### Purpose (Required)
 
-### Display
-- Use bullet points to describe each visual element
-- Be specific about what students will observe
-- Include axes labels, color schemes, and layout details
+- 1-2 sentences stating the learning objective
+- If this is not the first cell, reference how it builds on prior concepts
+- Answer: "Why is this cell important?"
 
-### Interactive Widget
-- List each control by name and range/options
-- Explain the immediate effect of changing each parameter
-- Widgets should update the display in real-time
+### Display (Required)
 
-### Key Insights
-- 2-3 bullet points of what students should discover
-- Avoid repeating the purpose; focus on learning outcomes
-- Include "aha moments" or counterintuitive observations
+- Describe visual elements using bullet points
+- Be specific about student observations (not implementation details)
+- Include: axes labels, color scheme, animation behavior
+- Example: "Red line shows current sample mean, gray envelope shows ±1 std dev range"
 
-### Comment Box
-- Annotations directly in the visualization (text overlays, callouts)
-- Or a text cell explaining important takeaways
+### Interactive Widget (If Applicable)
+
+- List each control with its name and range (e.g., "Slider for mu: 0.0-1.0")
+- Explain the immediate effect of changing each parameter on the display
+- Keep widgets focused on pedagogically important parameters
+- Avoid: redundant controls, parameters students won't care about
+
+### Key Insights (Required)
+
+- List 2-3 bullet points of discoveries students should make
+- Focus on learning outcomes, not mechanics
+- Include "aha moments" and counterintuitive observations
+- Do NOT repeat the Purpose: go deeper
+
+### Comment Box (Required)
+
+- Describe text annotations overlaid on the visualization (callouts, arrows)
+- Or a summary text cell explaining important takeaways
 - Use emphasis sparingly
+- Answer: "What should students take away from this cell?"
 
-### Implementation
-- Name specific Python libraries (matplotlib, plotly, ipywidgets, etc.)
-- List key functions or classes needed
-- Include performance considerations if relevant
+### Implementation (Required)
 
-## Example
-- An example is
+- Name specific libraries (matplotlib, plotly, ipywidgets, etc.)
+- List key functions or classes (e.g., "ipywidgets.FloatSlider, matplotlib.animation")
+- Note performance considerations if relevant to the student experience
+
+# Example Outline
+
+- Here's a well-structured cell outline to emulate:
   ```markdown
-  ## Cell 1: Visual Population Distribution
+  ## Cell 1: Visualizing Population Distribution
 
   - **Purpose**: Give students a concrete visual representation of the unknown
-    population distribution
+    population distribution they're trying to infer from samples
   - **Display**:
-    - Animated visualization of a bin with marbles
-    - Marbles colored proportionally to the parameter $\mu$
-    - Real-time count of marble colors updated as slider changes
+    - Animated bin visualization with colored marbles (red vs blue)
+    - Marble colors and proportions update in real-time as slider changes
+    - Count of each color displayed above the bin
+    - Title emphasizes "True Population (Unknown)"
   - **Interactive widget**:
-    - Slider for $\mu$ (true proportion of red marbles, range 0-1)
-    - Animation speed control (optional)
+    - Slider for mu: true proportion of red marbles (0.0-1.0)
+    - Description: "Drag to change the unknown true proportion. Notice how the
+      bin looks different but you can only ever see samples from it in practice"
   - **Key insights**:
-    - Population parameters are fixed but unknown to us
-    - Small changes in $\mu$ produce visually distinct distributions
-  - **Comment box**: "This is the true population. In practice, we can't see this
-    directly—only samples from it."
-  - **Implementation**: Matplotlib for visualization, ipywidgets Slider for
-    interactivity
+    - Population parameters are fixed but hidden: we only see samples
+    - Small parameter changes produce visually distinct distributions
+    - Intuition: different populations look different when fully observed (which
+      we can't do)
+  - **Comment box**: "In practice, we never see the full population: only random
+    samples from it. This visualization shows what we're trying to infer from
+    those samples."
+  - **Implementation**: Matplotlib animation for marbles, ipywidgets FloatSlider
+    for control, matplotlib patches for marble visualization
   ```
 
-# Formatting
-- Do not use non-ascii characters
-  - E.g., use mu instead of μ
+# Formatting Rules
 
-- Do not use page separator
-
-# Important
-- When writing markdown you must follow the rules and conventions in
-  `.claude/skills/markdown.rules.md`
-
-- When writing bullet points you must follow the rules and conventions in
-  `.claude/skills/text.rules.bullet_points.md`
+- **No non-ASCII characters**: Use `mu` instead of `μ`, `alpha` instead of `α`
+- **No page separators**: Avoid `---` or similar between cells
+- **Follow markdown conventions**: See `.claude/skills/markdown.rules.md`
+- **Follow bullet point conventions**: See `.claude/skills/text.rules.md`

@@ -94,9 +94,11 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--todo",
-        dest="todo_mode",
-        action="store_true",
-        help="Search for TODO(ai_gp) patterns",
+        dest="todo_str",
+        nargs="?",
+        const="_default_",
+        default=None,
+        help="Search for TODO(<string>) patterns (optional <string> parameter"
     )
     parser.add_argument(
         "--cfile",
@@ -185,9 +187,15 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
             ripgrep_pattern = f"^#+.*{rule_filter}"
         else:
             ripgrep_pattern = "^#"
-    elif parsed.todo_mode:
-        # --todo: search for `TODO(ai_gp)` pattern.
-        ripgrep_pattern = r"TODO\(ai_gp\)"
+        # Make rule search case-insensitive by default.
+        ripgrep_opts = (ripgrep_opts + " -i").strip()
+    elif parsed.todo_str:
+        # --todo: search for `# TODO(<string>)` or `// TODO(<string>)` patterns.
+        if parsed.todo_str == "_default_":
+            todo_pattern = "ai_gp\S*"
+        else:
+            todo_pattern = parsed.todo_str
+        ripgrep_pattern = rf"^\s*(#|//)\s*TODO\({todo_pattern}\)"
         # Directory and extensions can come from positional args.
         if len(parsed.positional) > 1:
             ripgrep_dir = parsed.positional[1]
@@ -202,22 +210,19 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
                     ext,
                 )
     # Package computed components and behavioral flags into a result dictionary.
-    # TODO(ai_gp): Keep only the ones that are used downstream.
     result: Dict[str, Any] = {
         "pattern": ripgrep_pattern,
         "directory": ripgrep_dir,
         "extensions": ripgrep_extensions,
         "rg_opts": ripgrep_opts,
         "need_capture": need_capture,
-        "rule_filter": rule_filter,
+        "files": parsed.files,
+        "from_file": parsed.from_file,
         "modified": parsed.modified,
         "branch": parsed.branch,
         "last_commit": parsed.last_commit,
         "all_files": parsed.all_files,
-        "files_from_user": parsed.files,
         "dry_run": parsed.dry_run,
-        "todo_mode": parsed.todo_mode,
-        "rule_mode": parsed.rule_mode,
     }
     return result
 
@@ -267,19 +272,21 @@ def main(
     # otherwise search entire directory.
     if any(
         [
+            parsed["files"],
+            parsed["from_file"],
             parsed["modified"],
             parsed["branch"],
             parsed["last_commit"],
             parsed["all_files"],
-            parsed["files_from_user"],
         ]
     ):
         files = hgit.get_files_to_process(
-            modified=parsed["modified"],
-            branch=parsed["branch"],
-            last_commit=parsed["last_commit"],
-            all_=parsed["all_files"],
-            files_from_user=parsed["files_from_user"] or "",
+            parsed["files"],
+            parsed["from_file"],
+            parsed["modified"],
+            parsed["branch"],
+            parsed["last_commit"],
+            parsed["all_files"],
             mutually_exclusive=True,
             remove_dirs=True,
         )

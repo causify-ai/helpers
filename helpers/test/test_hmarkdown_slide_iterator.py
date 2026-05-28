@@ -18,7 +18,7 @@ import helpers.hunit_test as hunitest
 
 class Test_iterate_slide_lines(hunitest.TestCase):
     """
-    Tests for `hmarkdown_slide_iterator._iterate_slide_lines()` function.
+    Tests for `hmarkdown_slide_iterator.iterate_slide_lines()` function.
     """
 
     def helper(
@@ -36,7 +36,7 @@ class Test_iterate_slide_lines(hunitest.TestCase):
         :param expected_string: Expected string representation of items
         """
         split_lines = hprint.dedent(lines).splitlines()
-        items = list(hmaslite._iterate_slide_lines(split_lines))
+        items = list(hmaslite.iterate_slide_lines(split_lines))
         actual_string = hmaslite.format_items_as_string(items)
         expected_string = hprint.dedent(expected_string)
         self.assertEqual(actual_string, expected_string)
@@ -436,7 +436,7 @@ class Test_reassemble_from_items(hunitest.TestCase):
         :param expected_string: Expected string representation of items
         """
         split_lines = hprint.dedent(lines).splitlines()
-        items = list(hmaslite._iterate_slide_lines(split_lines))
+        items = list(hmaslite.iterate_slide_lines(split_lines))
         actual_string = hmaslite.reassemble_from_items(items)
         self.assertEqual(actual_string, lines)
 
@@ -537,7 +537,7 @@ class Test_reassemble_from_items(hunitest.TestCase):
             "More",
         ]
         # Run test.
-        items = list(hmaslite._iterate_slide_lines(split_lines))
+        items = list(hmaslite.iterate_slide_lines(split_lines))
         actual_string = hmaslite.reassemble_from_items(items)
         # Check outputs.
         expected = "* Slide 1\nContent\n   \n* Slide 2\nMore"
@@ -630,7 +630,7 @@ class Test_reassemble_from_items(hunitest.TestCase):
             "* Slide 2",
         ]
         # Run test.
-        items = list(hmaslite._iterate_slide_lines(split_lines))
+        items = list(hmaslite.iterate_slide_lines(split_lines))
         actual_string = hmaslite.reassemble_from_items(items)
         # Check outputs.
         expected = "* Slide 1\n \nContent\n  \nMore content\n   \n* Slide 2"

@@ -20,7 +20,7 @@ Basic examples:
   > rig "import" . js -i
 
 Mode options (change the search target):
-  --todo   Search for TODO(ai_gp) patterns; <pattern> is ignored
+  --todo   Search for TODO(ai_gp) patterns and variants (ai_gp1, ai_gp2, etc.); <pattern> is ignored
   --def    Search for Python class/def definitions using <pattern>
   --rule   Search for Markdown headers in .claude/skills; <dir>/<ext> ignored
 
