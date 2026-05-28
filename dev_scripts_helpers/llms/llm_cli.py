@@ -24,6 +24,7 @@ import dev_scripts_helpers.llms.llm_cli as dshllcli
 import argparse
 import logging
 import os
+from typing import Optional
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -36,6 +37,112 @@ import helpers.htimer as htimer
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
+
+
+def _get_system_prompt(args: argparse.Namespace) -> str:
+    """
+    Get system prompt from file, rule, or argument.
+    """
+    if args.system_prompt_file:
+        hdbg.dassert_ne(
+            args.system_prompt_file, "", "System prompt file cannot be empty"
+        )
+        system_prompt = hio.from_file(args.system_prompt_file)
+        _LOG.debug(
+            "Read system prompt from file: %s (%d chars)",
+            args.system_prompt_file,
+            len(system_prompt),
+        )
+    elif args.rule:
+        system_prompt = hmarsele.extract_rule_from_file(args.rule)
+        _LOG.debug(
+            "Extracted rule from spec '%s' (%d chars)",
+            args.rule,
+            len(system_prompt),
+        )
+    else:
+        system_prompt = args.system_prompt
+    return system_prompt
+
+
+def _process_select_mode(
+    args: argparse.Namespace,
+    input_file: Optional[str],
+    output_file: Optional[str],
+    system_prompt: str,
+    expected_num_chars: Optional[int],
+) -> float:
+    """
+    Process file in select mode: extract chunk, transform, reassemble.
+
+    :return: The cost of the LLM operation.
+    """
+    select_start, select_end = hmarsele.parse_select_arg(args.select)
+    _LOG.info("Select mode: extracting chunk from '%s' to '%s'", select_start, select_end)
+    input_lines = hparser.from_file(input_file)
+    _, ext = os.path.splitext(input_file) if input_file != "-" else ("", "")
+    is_slide_format = ext == ".txt"
+    start_idx, end_idx = hmarsele.get_chunk_bounds(
+        input_lines, select_start, select_end, is_slide_format=is_slide_format
+    )
+    chunk_lines = input_lines[start_idx:end_idx]
+    chunk_text = "\n".join(chunk_lines)
+    response, cost = hllmcli.apply_llm(
+        chunk_text,
+        system_prompt=system_prompt,
+        model=args.model,
+        use_llm_executable=args.use_llm_executable,
+        expected_num_chars=expected_num_chars,
+    )
+    if output_file == input_file:
+        before_lines = input_lines[:start_idx]
+        after_lines = input_lines[end_idx:]
+        before_text = "\n".join(before_lines) if before_lines else ""
+        after_text = "\n".join(after_lines) if after_lines else ""
+        if before_text and after_text:
+            new_content = before_text + "\n" + response + "\n" + after_text
+        elif before_text:
+            new_content = before_text + "\n" + response
+        elif after_text:
+            new_content = response + "\n" + after_text
+        else:
+            new_content = response
+        hio.to_file(input_file, new_content)
+        _LOG.info("Updated file in-place: %s (lines %d-%d)", input_file, start_idx + 1, end_idx)
+    else:
+        hparser.to_file(response, output_file)
+    return cost
+
+
+def _process_simple_input(
+    args: argparse.Namespace,
+    input_text: Optional[str],
+    input_file: Optional[str],
+    output_file: Optional[str],
+    system_prompt: str,
+    expected_num_chars: Optional[int],
+) -> float:
+    """
+    Process file with input_text, stdin, or print_only mode.
+
+    :return: The cost of the LLM operation.
+    """
+    if input_text is not None:
+        input_str = input_text
+    elif input_file == "-":
+        input_lines = hparser.from_file(input_file)
+        input_str = "\n".join(input_lines)
+    else:
+        input_str = hio.from_file(input_file)
+    response, cost = hllmcli.apply_llm(
+        input_str,
+        system_prompt=system_prompt,
+        model=args.model,
+        use_llm_executable=args.use_llm_executable,
+        expected_num_chars=expected_num_chars,
+    )
+    hparser.to_file(response, output_file)
+    return cost
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -102,26 +209,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         output_file = args.output
         print_only = False
     # Determine system prompt source.
-    # TODO(ai_gp): Move to a separate function.
-    if args.system_prompt_file:
-        hdbg.dassert_ne(
-            args.system_prompt_file, "", "System prompt file cannot be empty"
-        )
-        system_prompt = hio.from_file(args.system_prompt_file)
-        _LOG.debug(
-            "Read system prompt from file: %s (%d chars)",
-            args.system_prompt_file,
-            len(system_prompt),
-        )
-    elif args.rule:
-        system_prompt = hmarsele.extract_rule_from_file(args.rule)
-        _LOG.debug(
-            "Extracted rule from spec '%s' (%d chars)",
-            args.rule,
-            len(system_prompt),
-        )
-    else:
-        system_prompt = args.system_prompt
+    system_prompt = _get_system_prompt(args)
     # Parse --select if provided.
     select_start = None
     select_end = None
@@ -169,71 +257,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     memento = htimer.dtimer_start(logging.INFO, "LLM processing")
     # Handle select mode.
     if is_select_mode:
-        # TODO(ai_gp): Move to a different function.
-        # In select mode, extract chunk, transform it, then reassemble if needed.
         hdbg.dassert_is(input_text, None, "Select mode requires file input, not --input_text")
-        input_lines = hparser.from_file(input_file)
-        # Determine file type.
-        _, ext = os.path.splitext(input_file) if input_file != "-" else ("", "")
-        is_slide_format = ext == ".txt"
-        # Get chunk bounds.
-        start_idx, end_idx = hmarsele.get_chunk_bounds(
-            input_lines, select_start, select_end, is_slide_format=is_slide_format
-        )
-        # Extract chunk.
-        chunk_lines = input_lines[start_idx:end_idx]
-        chunk_text = "\n".join(chunk_lines)
-        # Process chunk with LLM.
-        response, cost = hllmcli.apply_llm(
-            chunk_text,
-            system_prompt=system_prompt,
-            model=args.model,
-            use_llm_executable=args.use_llm_executable,
-            expected_num_chars=expected_num_chars,
-        )
-        # Handle output.
-        if output_file == input_file:
-            # In-place mode: replace the chunk in the original file.
-            before_lines = input_lines[:start_idx]
-            after_lines = input_lines[end_idx:]
-            before_text = "\n".join(before_lines) if before_lines else ""
-            after_text = "\n".join(after_lines) if after_lines else ""
-            # Reconstruct file with separators.
-            if before_text and after_text:
-                new_content = before_text + "\n" + response + "\n" + after_text
-            elif before_text:
-                new_content = before_text + "\n" + response
-            elif after_text:
-                new_content = response + "\n" + after_text
-            else:
-                new_content = response
-            hio.to_file(input_file, new_content)
-            _LOG.info("Updated file in-place: %s (lines %d-%d)", input_file, start_idx + 1, end_idx)
-        else:
-            # Write chunk response to output file.
-            hparser.to_file(response, output_file)
+        cost = _process_select_mode(args, input_file, output_file, system_prompt, expected_num_chars)
     elif input_text is not None or input_file == "-" or print_only:
-        # TODO(ai_gp): Move to a separate function.
-        # If using input_text, stdin, or print_only, call apply_llm directly.
-        # Get input text.
-        if input_text is not None:
-            input_str = input_text
-        elif input_file == "-":
-            # Read from stdin.
-            input_lines = hparser.from_file(input_file)
-            input_str = "\n".join(input_lines)
-        else:
-            input_str = hio.from_file(input_file)
-        # Process with LLM.
-        response, cost = hllmcli.apply_llm(
-            input_str,
-            system_prompt=system_prompt,
-            model=args.model,
-            use_llm_executable=args.use_llm_executable,
-            expected_num_chars=expected_num_chars,
+        cost = _process_simple_input(
+            args, input_text, input_file, output_file, system_prompt, expected_num_chars
         )
-        # Handle output.
-        hparser.to_file(response, output_file)
     else:
         # Use file-based processing.
         cost = hllmcli.apply_llm_with_files(

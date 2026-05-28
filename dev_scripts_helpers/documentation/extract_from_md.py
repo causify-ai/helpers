@@ -54,81 +54,12 @@ import logging
 import os
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hmarkdown_select as hmarsele
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp): Move to hmarkdown_select and also the unit tests.
-def extract_rule_from_file(rule_spec: str) -> str:
-    """
-    Extract a rule section from a rules file based on a rule specification.
-
-    :param rule_spec: rule specification in one of these formats:
-        - `path/to/file.md`: return all content
-        - `path/to/file.md:N`: extract section starting at line N (must be
-          a markdown header)
-        - `path/to/file.md:N:# Section Name`: same with header name
-          validation
-    :return: extracted rule text as a string
-    """
-    # Parse the rule specification.
-    parts = rule_spec.split(":", 2)
-    file_path = parts[0]
-    # Check file exists.
-    hdbg.dassert_file_exists(file_path, "Rule file does not exist")
-    # Read file content.
-    content = hio.from_file(file_path)
-    lines = content.splitlines()
-    # If only path provided, return full content.
-    if len(parts) == 1:
-        return content
-    # Parse line number.
-    try:
-        line_num = int(parts[1])
-    except ValueError:
-        raise ValueError(
-            "Invalid line number '%s' in rule spec: %s" % (parts[1], rule_spec)
-        )
-    # Convert to 0-based index.
-    line_idx = line_num - 1
-    hdbg.dassert_lt(
-        line_idx,
-        len(lines),
-        "Line number %d exceeds file length %d",
-        line_num,
-        len(lines),
-    )
-    # Check that the target line is a header.
-    header_line = lines[line_idx]
-    if not header_line.startswith("#"):
-        raise ValueError(
-            "Line %d is not a markdown header: '%s'" % (line_num, header_line)
-        )
-    # Validate section name if provided.
-    if len(parts) == 3:
-        expected_name = parts[2]
-        if header_line.strip() != expected_name.strip():
-            raise ValueError(
-                "Section name mismatch at line %d: expected '%s', got '%s'"
-                % (line_num, expected_name, header_line)
-            )
-    # Determine header level (number of leading '#' characters).
-    header_level = len(header_line) - len(header_line.lstrip("#"))
-    # Find the end of section (next header at same or higher level).
-    end_idx = len(lines)
-    for i in range(line_idx + 1, len(lines)):
-        line = lines[i]
-        if line.startswith("#"):
-            this_level = len(line) - len(line.lstrip("#"))
-            if this_level <= header_level:
-                end_idx = i
-                break
-    # Extract and return the section.
-    section_lines = lines[line_idx:end_idx]
-    return "\n".join(section_lines)
 
 
 def _parse() -> argparse.ArgumentParser:

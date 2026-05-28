@@ -635,6 +635,32 @@ line3
   self.assert_equal(actual, expected, fuzzy_match=True)
   ```
 
+- Compare with text purification `self.assert_equal(..., purify_text=True)` to
+  remove implementation details (e.g., memory addresses, paths, usernames,
+  timestamps, and other machine/environment-specific details that would cause
+  test failures when run on different systems)
+  ```python
+  # Check outputs.
+  self.assert_equal(actual, expected, purify_text=True)
+  ```
+
+- Compare strings with `self.assert_equal()`
+  ```python
+  # Check outputs.
+  expected = """
+  line1
+  line2
+  """
+  self.assert_equal(actual, expected, dedent=True)
+  ```
+
+## Do Not Use `hdbg.dassert` to Test Assertions
+
+- Do not use `hdbg.dassert` since it guards production invariants and is not a
+  substitute for test assertions
+  - Always use `self.assert*` family instead
+
+## Replace Checking Invariants with `assert_equal`
 - Do not use multiple `assertIn()` calls to check individual pieces of a string
   output; instead compare the entire output with `assert_equal()`
   - **Bad** (multiple assertIn checks on parts of the output)
@@ -664,29 +690,6 @@ line3
     # Check outputs.
     self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
     ```
-
-- Compare with text purification `self.assert_equal(..., purify_text=True)` to
-  remove implementation details (e.g., memory addresses, paths, usernames,
-  timestamps, and other machine/environment-specific details that would cause
-  test failures when run on different systems)
-  ```python
-  # Check outputs.
-  self.assert_equal(actual, expected, purify_text=True)
-  ```
-
-- Compare strings with `self.assert_equal()`
-  ```python
-  # Check outputs.
-  expected = """
-  line1
-  line2
-  """
-  self.assert_equal(actual, expected, dedent=True)
-  ```
-
-- Do not use `hdbg.dassert` since it guards production invariants and is not a
-  substitute for test assertions
-  - Always use `self.assert*` family instead
 
 ## Testing Exceptions
 
