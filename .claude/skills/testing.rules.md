@@ -555,7 +555,7 @@ line3
     self.assert_equal(actual, expected, dedent=True)
     ```
 
-## Use an Expected Output
+## Use an Expected Output and `assert_equal`
 
 - Do not use assertion to check each part of the output, but convert the output
   in a human-readable representation (e.g., with `pprint.pformat`) and then
@@ -743,30 +743,10 @@ line3
       self.assertIn(expected, str(cm.exception))
   ```
 
-## Use Golden File Testing Only for Large Outputs
+## Never Use `self.check_string()
 
 - Always use `self.assert_equal()` to do a comparison of actual with the expected
   value hardwired in the code
-- The only exception is when output is large (e.g., longer than 20 lines) or
-  changes frequently use `self.check_string()` instead of `self.assert_equal()`
-  - E.g.,
-    ```python
-    def test_large_output(self) -> None:
-        """
-        Test description.
-        """
-        # Prepare inputs.
-        input_data = <value>
-        # Run test.
-        actual = function_under_test(input_data)
-        # Check outputs.
-        self.check_string(actual)
-    ```
-
-- With fuzzy matching:
-  ```python
-  self.check_string(actual, fuzzy_match=True)
-  ```
 
 # End-to-end Unit Tests for Executables
 

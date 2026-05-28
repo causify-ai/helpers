@@ -41,7 +41,6 @@ _LOG = logging.getLogger(__name__)
 
 
 def _get_system_prompt(
-    *,
     system_prompt_file: Optional[str],
     rule: Optional[str],
     system_prompt: str,
@@ -77,7 +76,6 @@ def _get_system_prompt(
 
 
 def _process_select_mode(
-    *,
     select: str,
     model: str,
     use_llm_executable: bool,
@@ -145,7 +143,6 @@ def _process_select_mode(
 
 
 def _process_simple_input(
-    *,
     model: str,
     use_llm_executable: bool,
     input_text: Optional[str],
@@ -309,33 +306,33 @@ def _main(parser: argparse.ArgumentParser) -> None:
             input_text, None, "Select mode requires file input, not --input_text"
         )
         cost = _process_select_mode(
-            select=args.select,
-            model=args.model,
-            use_llm_executable=args.use_llm_executable,
-            input_file=input_file,
-            output_file=output_file,
-            system_prompt=system_prompt,
-            expected_num_chars=expected_num_chars,
+            args.select,
+            args.model,
+            args.use_llm_executable,
+            input_file,
+            output_file,
+            system_prompt,
+            expected_num_chars,
         )
     elif input_text is not None or input_file == "-" or print_only:
         cost = _process_simple_input(
-            model=args.model,
-            use_llm_executable=args.use_llm_executable,
-            input_text=input_text,
-            input_file=input_file,
-            output_file=output_file,
-            system_prompt=system_prompt,
-            expected_num_chars=expected_num_chars,
+            args.model,
+            args.use_llm_executable,
+            input_text,
+            input_file,
+            output_file,
+            system_prompt,
+            expected_num_chars,
         )
     else:
         # Use file-based processing.
         cost = hllmcli.apply_llm_with_files(
-            input_file=input_file,
-            output_file=output_file,
-            system_prompt=system_prompt,
-            model=args.model,
-            use_llm_executable=args.use_llm_executable,
-            expected_num_chars=expected_num_chars,
+            input_file,
+            output_file,
+            system_prompt,
+            args.model,
+            args.use_llm_executable,
+            expected_num_chars,
         )
     msg, elapsed_time = htimer.dtimer_stop(memento)
     _LOG.info(msg)
