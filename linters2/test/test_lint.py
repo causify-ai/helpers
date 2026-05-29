@@ -464,6 +464,6 @@ class Test_lint_markdown_files(hunitest.TestCase):
         self.assertEqual(mock_system.call_count, 1)
         cmd = mock_system.call_args_list[0][0][0]
         self.assertIn("/fake/lint_txt.py", cmd)
-        self.assertIn("--files", cmd)
+        self.assertIn("--input_files", cmd)
         self.assertIn("doc.md", cmd)
         self.assertIn("readme.md", cmd)

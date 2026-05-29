@@ -270,10 +270,10 @@ def lint(  # type: ignore
     :param modified: lint the files modified in the current git client
     :param last_commit: lint the files modified in the previous commit
     :param branch: lint the files modified in the current branch w.r.t. master
-    :param num_threads: number of threads to use ("serial", -1, 0, 1, 2, ...)
-    :param only_format: run only the modifying actions of Linter (e.g., black)
-    :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
+    :param only_format: run only the modifying actions of Linter
+    :param only_check: run only the non-modifying actions of Linter
     """
+    _ = num_threads
     # Check if the user is in a repo root.
     hdbg.dassert(
         hgit.is_cwd_git_repo(),
@@ -282,6 +282,7 @@ def lint(  # type: ignore
     hltltaut.report_task()
     # Prepare the command line.
     lint_cmd_opts = []
+    lint_cmd_opts.append("--file_types py,ipynb,md,txt")
     # Add the file selection argument.
     hdbg.dassert_eq(
         int(len(files) > 0)
@@ -298,7 +299,7 @@ def lint(  # type: ignore
     elif len(from_file) > 0:
         lint_cmd_opts.append(f"--from_file {from_file}")
     elif len(dir_name) > 0:
-        lint_cmd_opts.append(f"--dir_name {dir_name}")
+        lint_cmd_opts.append(f"--dir {dir_name}")
     elif modified:
         lint_cmd_opts.append("--modified")
     elif last_commit:
@@ -309,8 +310,6 @@ def lint(  # type: ignore
         raise ValueError("No file selection arguments are specified")
     if len(skip_files) > 0:
         lint_cmd_opts.append(f"--skip_files {skip_files}")
-    #
-    lint_cmd_opts.append(f"--num_threads {num_threads}")
     # Add the action selection argument, if needed.
     hdbg.dassert_lte(
         int(only_format) + int(only_check),
@@ -318,16 +317,18 @@ def lint(  # type: ignore
         msg="Specify only one among --only-format, --only-check",
     )
     if only_format:
-        lint_cmd_opts.append("--only_format")
+        lint_cmd_opts.append(
+            "--action pre-commit normalize_import add_class_frames"
+        )
     elif only_check:
-        lint_cmd_opts.append("--only_check")
+        lint_cmd_opts.append("--action pyright")
     else:
-        _LOG.info("All Linter actions selected")
+        _LOG.info("All linters2 actions selected")
     # Compose the command line.
     if hserver.is_host_mac():
-        find_cmd = "$(find . -path '*linters/base.py')"
+        find_cmd = "$(find . -path '*linters2/lint.py')"
     else:
-        find_cmd = "$(find -wholename '*linters/base.py')"
+        find_cmd = "$(find -wholename '*linters2/lint.py')"
     lint_cmd_ = find_cmd + " " + hltltaut._to_single_line_cmd(lint_cmd_opts)
     docker_cmd_ = _get_lint_docker_cmd(
         base_image, lint_cmd_, stage=stage, version=version
