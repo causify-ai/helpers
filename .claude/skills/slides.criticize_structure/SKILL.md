@@ -2,11 +2,11 @@
 description: Criticize and suggest improvements for class slides
 ---
 
-- Given a Markdown file storing slides for a class (where each slide title is
-  prepended with `*`)
+- Given a Markdown file storing slides for a lecture
+  - Each slide title is prepended with `*`, e.g., `* Title`
 
 # Propose Improvements
-- Read the content and make suggestions on how to improve the class, numbering
+- Read the content and make suggestions on how to improve the slides, numbering
   each suggestion so that it's easy to refer to
   - Do not make changes but only make proposals
 

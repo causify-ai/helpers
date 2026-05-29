@@ -14,6 +14,7 @@ import dev_scripts_helpers.transform_template as dsctrske
 import argparse
 import logging
 
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -27,25 +28,25 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser)
+    hseinout.add_input_output_args(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
+    hseinout.init_logger_for_input_output_transform(args)
     # Parse files.
-    in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     _ = in_file_name, out_file_name
     # # Read file.
-    # txt = hparser.from_file(in_file_name)
+    # txt = hselsio.from_file(in_file_name)
     # # Transform.
     # txt_tmp = "\n".join(txt)
     # cfile = htrace.parse_traceback(txt_tmp)
     # cfile_as_str = htrace.cfile_to_str(cfile)
     # # Write file.
-    # hparser.to_file(cfile_as_str.split("\n"), out_file_name)
+    # hselsio.to_file(cfile_as_str.split("\n"), out_file_name)
 
 
 if __name__ == "__main__":

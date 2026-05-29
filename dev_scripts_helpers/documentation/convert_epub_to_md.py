@@ -22,6 +22,7 @@ import helpers.hdbg as hdbg
 import helpers.hlint as hlint
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hselect_action as hselacti
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import dev_scripts_helpers.documentation.documentation_utils as dshddout
 
@@ -118,7 +119,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Delete target files if they already exist",
     )
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     # Return configured parser.
     return parser
@@ -168,9 +169,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
     if not skip_figures:
         hio.create_dir(images_dir, incremental=True)
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
-    actions_as_str = hparser.actions_to_string(
+    actions_as_str = hselacti.actions_to_string(
         actions, _VALID_ACTIONS, add_frame
     )
     _LOG.info("\n%s", actions_as_str)
@@ -206,7 +207,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info("Images saved to: %s", images_dir)
     # Execute selected actions.
     # Remove junk from markdown.
-    to_execute, actions = hparser.mark_action("remove_junk", actions)
+    to_execute, actions = hselacti.mark_action("remove_junk", actions)
     if to_execute:
         _LOG.info("Removing junk from markdown...")
         content = hio.from_file(md_file)
@@ -214,7 +215,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hio.to_file(md_file, content)
         _LOG.info("Junk removed successfully")
     # Lint the markdown file.
-    to_execute, actions = hparser.mark_action("lint", actions)
+    to_execute, actions = hselacti.mark_action("lint", actions)
     if to_execute:
         _LOG.info("Linting markdown file...")
         hlint.lint_file(md_file)

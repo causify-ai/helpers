@@ -48,7 +48,7 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         help="Output image directory",
     )
-    hparser.add_dockerized_script_arg(parser)
+    hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 

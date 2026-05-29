@@ -69,7 +69,9 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
+import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
@@ -451,8 +453,8 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_multi_file_args(parser)
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hseinout.add_multi_file_args(parser)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
         "-m",
         "--model",
@@ -480,14 +482,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Get selected actions.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Ensure at least one action is specified.
     hdbg.dassert(
         len(actions) > 0,
         "At least one action must be specified using --action",
     )
     # Parse input files.
-    input_files = hparser.parse_multi_file_args(args)
+    input_files = hseinout.parse_multi_file_args(args)
     _LOG.info("Number of files to process: %d", len(input_files))
     _LOG.info("Actions to perform: %s", ", ".join(actions))
     if args.skip_lint:

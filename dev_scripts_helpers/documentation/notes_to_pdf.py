@@ -30,7 +30,9 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hopen as hopen
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
+import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
@@ -82,7 +84,7 @@ def _mark_action(
     action: str, actions: Optional[List[str]]
 ) -> Tuple[bool, Optional[List[str]]]:
     _report_phase(action)
-    to_execute, actions = hparser.mark_action(action, actions)
+    to_execute, actions = hselacti.mark_action(action, actions)
     if not to_execute:
         _append_script("## skipping this action")
     return to_execute, actions
@@ -568,9 +570,9 @@ _DEFAULT_ACTIONS = [
 def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("type=%s", args.type)
     # Print actions.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
-    actions_as_str = hparser.actions_to_string(
+    actions_as_str = hselacti.actions_to_string(
         actions, _VALID_ACTIONS, add_frame
     )
     _LOG.info("\n%s", actions_as_str)
@@ -811,8 +813,8 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use the host tools instead of the dockerized ones",
     )
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    hparser.add_dockerized_script_arg(parser)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 

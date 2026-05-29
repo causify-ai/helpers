@@ -59,6 +59,7 @@ import helpers.hdbg as hdbg
 import helpers.hlint as hlint
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
@@ -966,7 +967,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
         "--type",
         action="store",
@@ -1146,8 +1147,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Select which action(s) to run; defaults to download, format, lint.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info(hparser.actions_to_string(actions, _VALID_ACTIONS, add_frame=True))
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    _LOG.info(
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True)
+    )
     # Track which step was last executed for finalization
     last_step = 0
     # Execute each selected action in sequence.

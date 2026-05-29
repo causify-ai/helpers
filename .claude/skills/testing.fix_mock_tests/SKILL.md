@@ -20,10 +20,6 @@ description: Remove mocking approach from unit tests
     ```
 - No mocking needed because there are no external dependencies
 
-## Allow to Disable Assertion
-- Pass a parameter `skip_dassert_exists` (default `False`) to skip checking
-  `dassert_file_exists` and `dassert_dir_exists`
-
 ## Design for Dependency Injection (DI)
 - Instead of hard coding dependencies inside functions or classes, pass them in
 - **Bad approach:**

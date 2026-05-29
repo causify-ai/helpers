@@ -865,3 +865,27 @@ def open_file_on_macos(file_path: str) -> None:
         return
     subprocess.run(["open", file_path], check=True)
     _LOG.info("Opened file with macOS 'open' command: %s", file_path)
+
+
+# #############################################################################
+# Command line options for dockerized scripts.
+# #############################################################################
+
+
+def add_dockerized_script_arg(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    """
+    Add common command line arguments for dockerized scripts.
+    """
+    parser.add_argument(
+        "--dockerized_force_rebuild",
+        action="store_true",
+        help="Force to rebuild the Docker container",
+    )
+    parser.add_argument(
+        "--dockerized_use_sudo",
+        action="store_true",
+        help="Use sudo inside the container",
+    )
+    return parser

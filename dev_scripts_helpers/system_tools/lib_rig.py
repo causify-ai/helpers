@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -39,7 +40,12 @@ def _build_ripgrep_command(
     :param files: Specific files to search in, optional list
     :return: Command list ready for subprocess
     """
-    cmd = ["rg", pattern, directory]
+    cmd = ["rg", pattern]
+    if files:
+        # Replace directory with the explicit file list.
+        cmd.extend(files)
+    else:
+        cmd.append(directory)
     if extensions:
         for ext in extensions:
             # Ensure extensions don't have a dot prefix since ripgrep expects
@@ -53,8 +59,6 @@ def _build_ripgrep_command(
             cmd.extend(["-g", f"*.{ext}"])
     # Look also in hidden files, like `.claude`.
     cmd.append("--hidden")
-    if files:
-        cmd.extend(files)
     cmd.extend(rg_opts)
     return cmd
 
@@ -78,7 +82,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "positional", nargs="*", help="Positional arguments for search"
     )
-    hparser.add_file_selection_args(parser)
+    hseinout.add_file_selection_args(parser)
     # Special search mode.
     parser.add_argument(
         "--def",
@@ -86,6 +90,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         action="store_true",
         help="Search for Python class/def definitions",
     )
+    # This can't use hmarkdown_select.py functions since it's called by that.
     parser.add_argument(
         "--rule",
         dest="rule_mode",
@@ -98,7 +103,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         nargs="?",
         const="_default_",
         default=None,
-        help="Search for TODO(<string>) patterns (optional <string> parameter"
+        help="Search for TODO(<string>) patterns (optional <string> parameter",
     )
     parser.add_argument(
         "--cfile",
