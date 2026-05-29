@@ -83,7 +83,9 @@ def _process_select_mode(
     input_file: Optional[str],
     output_file: Optional[str],
     system_prompt: str,
+    modify_in_place: bool,
     expected_num_chars: Optional[int],
+    dry_run: bool = False,
 ) -> float:
     """
     Process file in select mode: extract chunk, transform, reassemble.
@@ -94,7 +96,9 @@ def _process_select_mode(
     :param input_file: Path to input file
     :param output_file: Path to output file
     :param system_prompt: System prompt for the LLM
+    :param modify_in_place: Whether to modify the input file in place
     :param expected_num_chars: Expected number of output characters for progress bar
+    :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
     """
     select_start, select_end = hmarsele.parse_select_arg(select)
@@ -111,14 +115,24 @@ def _process_select_mode(
     )
     chunk_lines = input_lines[start_idx:end_idx]
     chunk_text = "\n".join(chunk_lines)
-    response, cost = hllmcli.apply_llm(
-        chunk_text,
-        system_prompt=system_prompt,
-        model=model,
-        use_llm_executable=use_llm_executable,
-        expected_num_chars=expected_num_chars,
-    )
-    if output_file == input_file:
+    if dry_run:
+        _LOG.info("DRY RUN: Would call LLM with parameters:")
+        _LOG.info("  Input text length: %d chars", len(chunk_text))
+        _LOG.info("  System prompt length: %d chars", len(system_prompt) if system_prompt else 0)
+        _LOG.info("  Model: %s", model)
+        _LOG.info("  Use LLM executable: %s", use_llm_executable)
+        _LOG.info("  Expected output chars: %s", expected_num_chars)
+        response = ""
+        cost = 0.0
+    else:
+        response, cost = hllmcli.apply_llm(
+            chunk_text,
+            system_prompt=system_prompt,
+            model=model,
+            use_llm_executable=use_llm_executable,
+            expected_num_chars=expected_num_chars,
+        )
+    if modify_in_place and output_file == input_file:
         before_lines = input_lines[:start_idx]
         after_lines = input_lines[end_idx:]
         before_text = "\n".join(before_lines) if before_lines else ""
@@ -131,7 +145,8 @@ def _process_select_mode(
             new_content = response + "\n" + after_text
         else:
             new_content = response
-        hio.to_file(input_file, new_content)
+        if not dry_run:
+            hio.to_file(input_file, new_content)
         _LOG.info(
             "Updated file in-place: %s (lines %d-%d)",
             input_file,
@@ -139,7 +154,8 @@ def _process_select_mode(
             end_idx,
         )
     else:
-        hseinout.to_file(response, output_file)
+        if not dry_run:
+            hseinout.to_file(response, output_file)
     return cost
 
 
@@ -151,6 +167,7 @@ def _process_simple_input(
     output_file: Optional[str],
     system_prompt: str,
     expected_num_chars: Optional[int],
+    dry_run: bool = False,
 ) -> float:
     """
     Process file with input_text, stdin, or print_only mode.
@@ -162,6 +179,7 @@ def _process_simple_input(
     :param output_file: Path to output file
     :param system_prompt: System prompt for the LLM
     :param expected_num_chars: Expected number of output characters for progress bar
+    :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
     """
     if input_text is not None:
@@ -171,14 +189,25 @@ def _process_simple_input(
         input_str = "\n".join(input_lines)
     else:
         input_str = hio.from_file(input_file)
-    response, cost = hllmcli.apply_llm(
-        input_str,
-        system_prompt=system_prompt,
-        model=model,
-        use_llm_executable=use_llm_executable,
-        expected_num_chars=expected_num_chars,
-    )
-    hseinout.to_file(response, output_file)
+    if dry_run:
+        _LOG.info("DRY RUN: Would call LLM with parameters:")
+        _LOG.info("  Input text length: %d chars", len(input_str))
+        _LOG.info("  System prompt length: %d chars", len(system_prompt) if system_prompt else 0)
+        _LOG.info("  Model: %s", model)
+        _LOG.info("  Use LLM executable: %s", use_llm_executable)
+        _LOG.info("  Expected output chars: %s", expected_num_chars)
+        response = ""
+        cost = 0.0
+    else:
+        response, cost = hllmcli.apply_llm(
+            input_str,
+            system_prompt=system_prompt,
+            model=model,
+            use_llm_executable=use_llm_executable,
+            expected_num_chars=expected_num_chars,
+        )
+    if not dry_run:
+        hseinout.to_file(response, output_file)
     return cost
 
 
@@ -193,10 +222,23 @@ def _parse() -> argparse.ArgumentParser:
     hllmcli.add_llm_args(parser, input_required=True)
     hmarsele.add_select_arg(parser, required=False)
     parser.add_argument(
+        "-m",
+        "--modify_in_place",
+        action="store_true",
+        default=False,
+        help="Modify input file in place. If not specified, an output file must be provided.",
+    )
+    parser.add_argument(
         "--lint",
         action="store_true",
         default=False,
         help="Apply lint_txt.py to the output file after processing",
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        default=False,
+        help="Skip calling the LLM and show what would be done",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -256,6 +298,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Parse --select if provided.
     is_select_mode = False
+    select_start = None
+    select_end = None
     if args.select:
         select_start, select_end = hmarsele.parse_select_arg(args.select)
         is_select_mode = True
@@ -298,6 +342,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("Use LLM executable: %s", args.use_llm_executable)
     _LOG.debug("Progress bar: %s", args.progress_bar)
     _LOG.debug("Expected num chars: %s", expected_num_chars)
+    _LOG.debug("Dry run: %s", args.dry_run)
+    # Handle dry-run mode.
+    if args.dry_run:
+        _LOG.info("DRY RUN MODE: LLM will not be called")
+        _LOG.info("Configuration:")
+        _LOG.info("  Model: %s", args.model)
+        _LOG.info("  Use LLM executable: %s", args.use_llm_executable)
+        _LOG.info("  System prompt length: %d chars", len(system_prompt) if system_prompt else 0)
+        if is_select_mode:
+            _LOG.info("  Select mode: '%s' to '%s'", select_start, select_end)
+        if input_file:
+            _LOG.info("  Input file: %s", input_file)
+        if input_text:
+            _LOG.info("  Input text length: %d chars", len(input_text))
+        _LOG.info("  Output file: %s", output_file)
+        _LOG.info("DRY RUN completed with cost: $0.00")
+        return
     # Process the file.
     _LOG.info("Processing with LLM '%s'...", args.model)
     memento = htimer.dtimer_start(logging.INFO, "LLM processing")
@@ -313,6 +374,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             input_file,
             output_file,
             system_prompt,
+            args.modify_in_place,
             expected_num_chars,
         )
     elif input_text is not None or input_file == "-" or print_only:
