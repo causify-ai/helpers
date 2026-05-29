@@ -515,7 +515,7 @@ def _transform_lines(
     #
     if type_ == "slides":
         # Colorize links.
-        to_execute, actions = hselsact.mark_action("process_links", actions)
+        to_execute, actions = hselacti.mark_action("process_links", actions)
         # to_execute = False
         if to_execute:
             out = hmarkdo.format_md_links_to_latex_format(out)
