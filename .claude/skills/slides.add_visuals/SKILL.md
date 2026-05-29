@@ -5,9 +5,6 @@ description: Propose visuals for each slides
 - Given a markdown file with slides for a college class, where each slide title
   is prepended with `*`
 
-# Leave Structure Unchanged
-- Maintain the structure of the text and keep the content of the existing text
-
 # For Each Slide
 - If a slide doesn't contain a picture or a diagram (e.g., graphviz), consider
   what can be used to illustrate the concepts visually, e.g.,
@@ -24,3 +21,6 @@ description: Propose visuals for each slides
 # Ask User to Confirm and Decide
 - Make numbered list of proposed changes for the user
 - Once user confirms changes, perform the changes
+
+# Leave Structure Unchanged
+- Maintain the structure of the text and keep the content of the existing text

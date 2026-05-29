@@ -169,6 +169,31 @@ def _filter_target_files(file_names: List[str]) -> List[str]:
     return file_names_out
 
 
+# TODO(gp): Move in a more general file: probably system_interaction.
+def _is_under_dir(file_name: str, dir_name: str) -> bool:
+    """
+    Return whether a file is under the given directory.
+    """
+    subdir_names = file_name.split("/")
+    return dir_name in subdir_names
+
+
+def is_under_test_dir(file_name: str) -> bool:
+    """
+    Return whether a file is under a test directory (which is called "test").
+    """
+    return _is_under_dir(file_name, "test")
+
+
+def is_test_input_output_file(file_name: str) -> bool:
+    """
+    Return whether a file is used as input or output in a unit test.
+    """
+    ret = is_under_test_dir(file_name)
+    ret &= file_name.endswith(".txt")
+    return ret
+
+
 def _get_files(args: argparse.Namespace) -> List[str]:
     """
     Return the list of files to process given the command line arguments.
@@ -223,6 +248,47 @@ def _get_files(args: argparse.Namespace) -> List[str]:
 
 def _list_to_str(list_: List[str]) -> str:
     return "%d (%s)" % (len(list_), " ".join(list_))
+
+
+def is_py_file(file_name: str) -> bool:
+    """
+    Return whether a file is a python file.
+    """
+    return file_name.endswith(".py")
+
+
+def is_ipynb_file(file_name: str) -> bool:
+    """
+    Return whether a file is a jupyter notebook file.
+    """
+    return file_name.endswith(".ipynb")
+
+
+def from_python_to_ipynb_file(file_name: str) -> str:
+    hdbg.dassert(is_py_file(file_name))
+    ret = file_name.replace(".py", ".ipynb")
+    return ret
+
+
+def from_ipynb_to_python_file(file_name: str) -> str:
+    hdbg.dassert(is_ipynb_file(file_name))
+    ret = file_name.replace(".ipynb", ".py")
+    return ret
+
+
+def is_paired_jupytext_file(file_name: str) -> bool:
+    """
+    Return whether a file is a paired jupytext file.
+    """
+    is_paired = (
+        is_py_file(file_name)
+        and os.path.exists(from_python_to_ipynb_file(file_name))
+        or (
+            is_ipynb_file(file_name)
+            and os.path.exists(from_ipynb_to_python_file(file_name))
+        )
+    )
+    return is_paired
 
 
 def _get_files_to_lint(
@@ -327,6 +393,10 @@ class _Action:
         """
         raise NotImplementedError
 
+    # @abc.abstractmethod
+    def _execute(self, file_name: str, pedantic: int) -> List[str]:
+        raise NotImplementedError
+
     def execute(self, file_name: str, pedantic: int) -> List[str]:
         """
         Execute the action.
@@ -340,10 +410,6 @@ class _Action:
         output = self._execute(file_name, pedantic)
         _dassert_list_of_strings(output)
         return output
-
-    # @abc.abstractmethod
-    def _execute(self, file_name: str, pedantic: int) -> List[str]:
-        raise NotImplementedError
 
 
 # #############################################################################
@@ -1077,31 +1143,6 @@ class _IpynbFormat(_Action):
         return output
 
 
-# TODO(gp): Move in a more general file: probably system_interaction.
-def _is_under_dir(file_name: str, dir_name: str) -> bool:
-    """
-    Return whether a file is under the given directory.
-    """
-    subdir_names = file_name.split("/")
-    return dir_name in subdir_names
-
-
-def is_under_test_dir(file_name: str) -> bool:
-    """
-    Return whether a file is under a test directory (which is called "test").
-    """
-    return _is_under_dir(file_name, "test")
-
-
-def is_test_input_output_file(file_name: str) -> bool:
-    """
-    Return whether a file is used as input or output in a unit test.
-    """
-    ret = is_under_test_dir(file_name)
-    ret &= file_name.endswith(".txt")
-    return ret
-
-
 def is_test_code(file_name: str) -> bool:
     """
     Return whether a file contains unit test code.
@@ -1110,47 +1151,6 @@ def is_test_code(file_name: str) -> bool:
     ret &= os.path.basename(file_name).startswith("test_")
     ret &= file_name.endswith(".py")
     return ret
-
-
-def is_py_file(file_name: str) -> bool:
-    """
-    Return whether a file is a python file.
-    """
-    return file_name.endswith(".py")
-
-
-def is_ipynb_file(file_name: str) -> bool:
-    """
-    Return whether a file is a jupyter notebook file.
-    """
-    return file_name.endswith(".ipynb")
-
-
-def from_python_to_ipynb_file(file_name: str) -> str:
-    hdbg.dassert(is_py_file(file_name))
-    ret = file_name.replace(".py", ".ipynb")
-    return ret
-
-
-def from_ipynb_to_python_file(file_name: str) -> str:
-    hdbg.dassert(is_ipynb_file(file_name))
-    ret = file_name.replace(".ipynb", ".py")
-    return ret
-
-
-def is_paired_jupytext_file(file_name: str) -> bool:
-    """
-    Return whether a file is a paired jupytext file.
-    """
-    is_paired = (
-        is_py_file(file_name)
-        and os.path.exists(from_python_to_ipynb_file(file_name))
-        or (
-            is_ipynb_file(file_name)
-            and os.path.exists(from_ipynb_to_python_file(file_name))
-        )
-    )
-    return is_paired
 
 
 def is_init_py(file_name: str) -> bool:
@@ -1430,38 +1430,6 @@ class _LintMarkdown(_Action):
 
 
 # #############################################################################
-
-
-def _check_file_property(
-    actions: List[str], all_file_names: List[str], pedantic: int
-) -> Tuple[List[str], List[str]]:
-    output: List[str] = []
-    action = "check_file_property"
-    if action in actions:
-        for file_name in all_file_names:
-            class_ = _get_action_class(action)
-            output_tmp = class_.execute(file_name, pedantic)
-            _dassert_list_of_strings(output_tmp)
-            output.extend(output_tmp)
-    actions = [a for a in actions if a != action]
-    _LOG.debug("actions=%s", actions)
-    return output, actions
-
-
-def _are_git_files_changed() -> bool:
-    """
-    Check changes in the local repo.
-    If any file in the local repo changed, returns False.
-    """
-    result = True
-    changed_files = hgit.get_modified_files()
-    if changed_files:
-        _LOG.warning("Modified files: %s.", changed_files)
-        result = False
-    return result
-
-
-# #############################################################################
 # Actions.
 # #############################################################################
 
@@ -1517,21 +1485,6 @@ _VALID_ACTIONS_META: List[Tuple[str, str, str, Type[_Action]]] = [
 ]
 
 
-# joblib and caching with lru_cache don't get along, so we cache explicitly.
-_VALID_ACTIONS = None
-
-
-def _get_valid_actions() -> List[str]:
-    global _VALID_ACTIONS
-    if _VALID_ACTIONS is None:
-        _VALID_ACTIONS = list(zip(*_VALID_ACTIONS_META))[0]
-    return _VALID_ACTIONS  # type: ignore
-
-
-def _get_default_actions() -> List[str]:
-    return _get_valid_actions()
-
-
 def _get_action_class(action: str) -> _Action:
     """
     Return the function corresponding to the passed string.
@@ -1547,6 +1500,53 @@ def _get_action_class(action: str) -> _Action:
     # mypy gets confused since we are returning a class.
     obj = res()  # type: ignore
     return obj
+
+
+# #############################################################################
+
+
+def _check_file_property(
+    actions: List[str], all_file_names: List[str], pedantic: int
+) -> Tuple[List[str], List[str]]:
+    output: List[str] = []
+    action = "check_file_property"
+    if action in actions:
+        for file_name in all_file_names:
+            class_ = _get_action_class(action)
+            output_tmp = class_.execute(file_name, pedantic)
+            _dassert_list_of_strings(output_tmp)
+            output.extend(output_tmp)
+    actions = [a for a in actions if a != action]
+    _LOG.debug("actions=%s", actions)
+    return output, actions
+
+
+def _are_git_files_changed() -> bool:
+    """
+    Check changes in the local repo.
+    If any file in the local repo changed, returns False.
+    """
+    result = True
+    changed_files = hgit.get_modified_files()
+    if changed_files:
+        _LOG.warning("Modified files: %s.", changed_files)
+        result = False
+    return result
+
+
+# joblib and caching with lru_cache don't get along, so we cache explicitly.
+_VALID_ACTIONS = None
+
+
+def _get_valid_actions() -> List[str]:
+    global _VALID_ACTIONS
+    if _VALID_ACTIONS is None:
+        _VALID_ACTIONS = list(zip(*_VALID_ACTIONS_META))[0]
+    return _VALID_ACTIONS  # type: ignore
+
+
+def _get_default_actions() -> List[str]:
+    return _get_valid_actions()
 
 
 def _remove_not_possible_actions(actions: List[str]) -> List[str]:
@@ -1569,12 +1569,12 @@ def _remove_not_possible_actions(actions: List[str]) -> List[str]:
 def _select_actions(args: argparse.Namespace) -> List[str]:
     valid_actions = _get_valid_actions()
     default_actions = _get_default_actions()
-    actions = hparser.select_actions(args, valid_actions, default_actions)
+    actions = hselsact.select_actions(args, valid_actions, default_actions)
     # Find the tools that are available.
     actions = _remove_not_possible_actions(actions)
     #
     add_frame = True
-    actions_as_str = hparser.actions_to_string(
+    actions_as_str = hselsact.actions_to_string(
         actions, _get_valid_actions(), add_frame
     )
     _LOG.info("\n%s", actions_as_str)
@@ -1596,7 +1596,7 @@ def _test_actions() -> None:
             num_not_poss += 1
     # Report results.
     add_frame = True
-    actions_as_str = hparser.actions_to_string(
+    actions_as_str = hselsact.actions_to_string(
         possible_actions, _get_valid_actions(), add_frame
     )
     _LOG.info("\n%s", actions_as_str)
@@ -1878,7 +1878,7 @@ def _parse() -> argparse.ArgumentParser:
         "--test_actions", action="store_true", help="Print the possible actions"
     )
     # Select actions.
-    hparser.add_action_arg(parser, _get_valid_actions(), _get_default_actions())
+    hselsact.add_action_arg(parser, _get_valid_actions(), _get_default_actions())
     #
     parser.add_argument(
         "--pedantic",

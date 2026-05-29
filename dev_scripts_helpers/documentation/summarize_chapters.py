@@ -28,6 +28,7 @@ import helpers.hgit as hgit
 import helpers.hlint as hlint
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -147,7 +148,7 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
-    hparser.add_input_output_args(parser, in_required=False, out_required=False)
+    hseinout.add_input_output_args(parser, in_required=False, out_required=False)
     parser.add_argument(
         "--model",
         action="store",
@@ -177,7 +178,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.parse_verbosity_args(args)
     # Determine if user provided multiple input files (from --input_files or --from_file).
-    input_files = hparser.parse_input_output_files(args)
+    input_files = hseinout.parse_input_output_files(args)
     if input_files is not None:
         # Multiple files mode: automatically derive output file names and process all files.
         _LOG.info("Processing multiple files")
@@ -193,7 +194,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         # Single file mode: use explicitly provided input and output file names.
         _LOG.info("Processing single file")
-        in_file_name, out_file_name = hparser.parse_input_output_args(args)
+        in_file_name, out_file_name = hseinout.parse_input_output_args(args)
         hdbg.dassert_file_exists(in_file_name)
         _summarize_file(
             in_file_name,

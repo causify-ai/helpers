@@ -23,16 +23,164 @@ import dev_scripts_helpers.llms.llm_cli as dshllcli
 
 import argparse
 import logging
+import os
+from typing import Optional
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_select as hmarsele
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+
+
+def _get_system_prompt(
+    system_prompt_file: Optional[str],
+    rule: Optional[str],
+    system_prompt: str,
+) -> str:
+    """
+    Get system prompt from file, rule, or argument.
+
+    :param system_prompt_file: Path to file containing system prompt
+    :param rule: Rule specification to extract system prompt from
+    :param system_prompt: Default system prompt text
+    :return: The resolved system prompt
+    """
+    if system_prompt_file:
+        hdbg.dassert_ne(
+            system_prompt_file, "", "System prompt file cannot be empty"
+        )
+        result = hio.from_file(system_prompt_file)
+        _LOG.debug(
+            "Read system prompt from file: %s (%d chars)",
+            system_prompt_file,
+            len(result),
+        )
+    elif rule:
+        result = hmarsele.extract_rule_from_file(rule)
+        _LOG.debug(
+            "Extracted rule from spec '%s' (%d chars)",
+            rule,
+            len(result),
+        )
+    else:
+        result = system_prompt
+    return result
+
+
+def _process_select_mode(
+    select: str,
+    model: str,
+    use_llm_executable: bool,
+    input_file: Optional[str],
+    output_file: Optional[str],
+    system_prompt: str,
+    expected_num_chars: Optional[int],
+) -> float:
+    """
+    Process file in select mode: extract chunk, transform, reassemble.
+
+    :param select: Select specification (e.g., 'start_marker:end_marker')
+    :param model: Name of the LLM model to use
+    :param use_llm_executable: Whether to use the LLM executable
+    :param input_file: Path to input file
+    :param output_file: Path to output file
+    :param system_prompt: System prompt for the LLM
+    :param expected_num_chars: Expected number of output characters for progress bar
+    :return: The cost of the LLM operation
+    """
+    select_start, select_end = hmarsele.parse_select_arg(select)
+    _LOG.info(
+        "Select mode: extracting chunk from '%s' to '%s'",
+        select_start,
+        select_end,
+    )
+    input_lines = hseinout.from_file(input_file)
+    _, ext = os.path.splitext(input_file) if input_file != "-" else ("", "")
+    is_slide_format = ext == ".txt"
+    start_idx, end_idx = hmarsele.get_chunk_bounds(
+        input_lines, select_start, select_end, is_slide_format=is_slide_format
+    )
+    chunk_lines = input_lines[start_idx:end_idx]
+    chunk_text = "\n".join(chunk_lines)
+    response, cost = hllmcli.apply_llm(
+        chunk_text,
+        system_prompt=system_prompt,
+        model=model,
+        use_llm_executable=use_llm_executable,
+        expected_num_chars=expected_num_chars,
+    )
+    if output_file == input_file:
+        before_lines = input_lines[:start_idx]
+        after_lines = input_lines[end_idx:]
+        before_text = "\n".join(before_lines) if before_lines else ""
+        after_text = "\n".join(after_lines) if after_lines else ""
+        if before_text and after_text:
+            new_content = before_text + "\n" + response + "\n" + after_text
+        elif before_text:
+            new_content = before_text + "\n" + response
+        elif after_text:
+            new_content = response + "\n" + after_text
+        else:
+            new_content = response
+        hio.to_file(input_file, new_content)
+        _LOG.info(
+            "Updated file in-place: %s (lines %d-%d)",
+            input_file,
+            start_idx + 1,
+            end_idx,
+        )
+    else:
+        hseinout.to_file(response, output_file)
+    return cost
+
+
+def _process_simple_input(
+    model: str,
+    use_llm_executable: bool,
+    input_text: Optional[str],
+    input_file: Optional[str],
+    output_file: Optional[str],
+    system_prompt: str,
+    expected_num_chars: Optional[int],
+) -> float:
+    """
+    Process file with input_text, stdin, or print_only mode.
+
+    :param model: Name of the LLM model to use
+    :param use_llm_executable: Whether to use the LLM executable
+    :param input_text: Input text (if provided directly)
+    :param input_file: Path to input file
+    :param output_file: Path to output file
+    :param system_prompt: System prompt for the LLM
+    :param expected_num_chars: Expected number of output characters for progress bar
+    :return: The cost of the LLM operation
+    """
+    if input_text is not None:
+        input_str = input_text
+    elif input_file == "-":
+        input_lines = hseinout.from_file(input_file)
+        input_str = "\n".join(input_lines)
+    else:
+        input_str = hio.from_file(input_file)
+    response, cost = hllmcli.apply_llm(
+        input_str,
+        system_prompt=system_prompt,
+        model=model,
+        use_llm_executable=use_llm_executable,
+        expected_num_chars=expected_num_chars,
+    )
+    hseinout.to_file(response, output_file)
+    return cost
+
 
 # #############################################################################
 
@@ -42,7 +190,8 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_llm_args(parser, input_required=True)
+    hllmcli.add_llm_args(parser, input_required=True)
+    hmarsele.add_select_arg(parser, required=False)
     parser.add_argument(
         "--lint",
         action="store_true",
@@ -90,42 +239,40 @@ def _main(parser: argparse.ArgumentParser) -> None:
         output_file = input_file
         print_only = False
         _LOG.info("No output specified, writing in-place to: %s", output_file)
-    elif args.output == "":
-        hdbg.dfatal("Output file cannot be empty string")
     elif args.output == "-":
         # Print to screen.
         output_file = "-"
         print_only = True
     else:
+        # Use the specified output file.
+        hdbg.dassert_ne(args.output, "", "Output file cannot be empty string")
         output_file = args.output
         print_only = False
     # Determine system prompt source.
-    if args.system_prompt_file:
-        hdbg.dassert_ne(
-            args.system_prompt_file, "", "System prompt file cannot be empty"
+    system_prompt = _get_system_prompt(
+        system_prompt_file=args.system_prompt_file,
+        rule=args.rule,
+        system_prompt=args.system_prompt,
+    )
+    # Parse --select if provided.
+    is_select_mode = False
+    if args.select:
+        select_start, select_end = hmarsele.parse_select_arg(args.select)
+        is_select_mode = True
+        # In select mode with in-place editing, we will process the selected chunk.
+        # Later we'll handle the in-place replacement.
+        _LOG.info(
+            "Select mode: extracting chunk from '%s' to '%s'",
+            select_start,
+            select_end,
         )
-        system_prompt = hio.from_file(args.system_prompt_file)
-        _LOG.debug(
-            "Read system prompt from file: %s (%d chars)",
-            args.system_prompt_file,
-            len(system_prompt),
-        )
-    elif args.rule:
-        system_prompt = hmarsele.extract_rule_from_file(args.rule)
-        _LOG.debug(
-            "Extracted rule from spec '%s' (%d chars)",
-            args.rule,
-            len(system_prompt),
-        )
-    else:
-        system_prompt = args.system_prompt
     # Calculate expected_num_chars if progress_bar is enabled.
     if args.progress_bar and args.expected_num_chars is None:
         # Read input to get its length.
         if input_file:
             if input_file == "-":
                 # Read from stdin.
-                input_lines = hparser.from_file(input_file)
+                input_lines = hseinout.from_file(input_file)
                 input_content = "\n".join(input_lines)
             else:
                 input_content = hio.from_file(input_file)
@@ -154,32 +301,35 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Process the file.
     _LOG.info("Processing with LLM '%s'...", args.model)
     memento = htimer.dtimer_start(logging.INFO, "LLM processing")
-    # If using input_text, stdin, or print_only, call apply_llm directly.
-    if input_text is not None or input_file == "-" or print_only:
-        # Get input text.
-        if input_text is not None:
-            input_str = input_text
-        elif input_file == "-":
-            # Read from stdin.
-            input_lines = hparser.from_file(input_file)
-            input_str = "\n".join(input_lines)
-        else:
-            input_str = hio.from_file(input_file)
-        # Process with LLM.
-        response, cost = hllmcli.apply_llm(
-            input_str,
-            system_prompt=system_prompt,
-            model=args.model,
-            use_llm_executable=args.use_llm_executable,
-            expected_num_chars=expected_num_chars,
+    # Handle select mode.
+    if is_select_mode:
+        hdbg.dassert_is(
+            input_text, None, "Select mode requires file input, not --input_text"
         )
-        # Handle output.
-        hparser.to_file(response, output_file)
+        cost = _process_select_mode(
+            args.select,
+            args.model,
+            args.use_llm_executable,
+            input_file,
+            output_file,
+            system_prompt,
+            expected_num_chars,
+        )
+    elif input_text is not None or input_file == "-" or print_only:
+        cost = _process_simple_input(
+            args.model,
+            args.use_llm_executable,
+            input_text,
+            input_file,
+            output_file,
+            system_prompt,
+            expected_num_chars,
+        )
     else:
         # Use file-based processing.
         cost = hllmcli.apply_llm_with_files(
-            input_file=input_file,
-            output_file=output_file,
+            input_file,
+            output_file,
             system_prompt=system_prompt,
             model=args.model,
             use_llm_executable=args.use_llm_executable,

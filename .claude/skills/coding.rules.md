@@ -103,7 +103,7 @@
   ```python
   derived_a = ...
   operation_a(...)
-
+  #
   derived_b = ...
   operation_b(...)
   ```
@@ -122,19 +122,6 @@
     # Extract corresponding sample weights.
     w_t0 = 1 / propensity_scores[train[T] == 0, 0]
     w_t1 = 1 / propensity_scores[train[T] == 1, 1]
-    # Outcome models.
-    m0 = LGBMRegressor()
-    m1 = LGBMRegressor()
-    m0.fit(
-        train_t0[X],
-        train_t0[y],
-        sample_weight=w_t0,
-    )
-    m1.fit(
-        train_t1[X],
-        train_t1[y],
-        sample_weight=w_t1,
-    )
     ```
   - **Good**
     ```python
@@ -149,20 +136,10 @@
     train_t0 = train.query(f"{T} == 0")
     # Extract corresponding sample weights.
     w_t0 = 1 / propensity_scores[train[T] == 0, 0]
-    m0.fit(
-        train_t0[X],
-        train_t0[y],
-        sample_weight=w_t0,
-    )
     # Same for other outcome.
     m1 = LGBMRegressor()
     train_t1 = train.query(f"{T} == 1")
     w_t1 = 1 / propensity_scores[train[T] == 1, 1]
-    m1.fit(
-        train_t1[X],
-        train_t1[y],
-        sample_weight=w_t1,
-    )
     ```
 
 ## Decompose Dense Method Chain in Assignments
@@ -200,9 +177,43 @@
 
 # Error Handling and Assertions
 
-## Use Assertions From `helpers/hdbg.py`
+## Use `dassert` instead of if ... raise
 
-- Use specialized `hdbg.dassert_*` functions instead of generic `hdbg.dassert()`
+- Use `dassert` instead of if ... raise
+
+- **Bad**
+	```python
+	if not header_line.startswith("#"):
+			raise ValueError(
+					"Line %d is not a markdown header: '%s'" % (line_num, header_line)
+			)
+	```
+- **Good**
+	```
+	hdbg.dassert(header_line.startswith("#"),
+		"Line %d is not a markdown header: '%s'",
+		str(line_num, header_line)
+	)
+	```
+
+## Use `dassert` instead of `assert`
+
+- Use the proper specialized `dassert_*` from `helpers/hdbg.py` instead of a
+	Python `assert`
+
+- **Bad**
+	```
+	assert end_header_str_converted is not None
+	```
+- **Good**
+	```
+	hdbg.dassert_is_not(end_header_str_converted, None)
+	```
+
+## Use Specialized `dassert_*`
+
+- Use specialized `hdbg.dassert_*` functions from `helpers/hdbg.py`
+  instead of generic `hdbg.dassert()`
   - Choose the most specific assertion function for your check
 
 - Common specialized assertion functions:
@@ -254,7 +265,7 @@
     )
     ```
 
-## Add Message to Assertion
+## Add Message to `dassert`
 - For each `dassert_*()` assertion make sure there is a message explaining why
   the assertion is important
   - **Bad**
@@ -313,7 +324,7 @@
     )
     ```
 
-## Use `raise` Instead of `hdbg.dassert(False, ...)`
+## Use `raise` Instead of `dassert(False, ...)`
 
 - When unconditionally raising an error, use `raise` with an appropriate exception
   instead of `hdbg.dassert(False, ...)`
@@ -572,6 +583,25 @@
     # Run the script: ./standardize_book_filename.py
     # Usage: ./convert_epub_to_md.py input.epub output.md
     ```
+
+## Script Docstring Usage Examples
+
+- When writing docstrings or comments to explain how to use a script, do not use
+  the entire file path and do not prepend with `python`
+- Refer to scripts using their simple filename or relative path with `./`
+
+- **Bad**: Uses full path and `python` prefix
+  ```python
+  """
+  > python dev_scripts_helpers/llms/llm_cli.py -i some.md ...
+  """
+  ```
+- **Good**: Uses simple script name
+  ```python
+  """
+  > extract_from_md.py -i some.md ...
+  """
+  ```
 
 ## Use Standard Argument Helpers From `hparser`
 

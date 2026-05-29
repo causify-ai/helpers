@@ -123,7 +123,7 @@ def lint_check_python_files(  # type: ignore
     Compile and execute Python files checking for errors.
 
     :param --files, --from_file, --modified, --branch, --last_commit, -all:
-            Same meaning as in `get_files_to_process()`
+        Same meaning as in `get_files_to_process()`
     """
     _ = (
         python_compile,

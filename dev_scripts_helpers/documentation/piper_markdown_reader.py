@@ -28,6 +28,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown_select as hmarsele
+import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -64,7 +65,7 @@ def _read_markdown_file(file_path: str) -> str:
 
 def _extract_markdown_section(
     file_path: str,
-    md_start: str,
+    md_start: Optional[str],
     md_end: Optional[str],
 ) -> str:
     """
@@ -79,18 +80,21 @@ def _extract_markdown_section(
     :param md_end: ending header or None to auto-detect next same-level, or "END" to extract to end of file
     :return: processed content of the extracted section
     """
-    lines = hparser.from_file(file_path)
+    # Read, process, write back file.
+    lines = hseinout.from_file(file_path)
     extracted_lines = hmarsele.extract_text_from_markdown_lines(
         lines, md_start, md_end
     )
     extracted_content = "\n".join(extracted_lines)
     hio.to_file(_TMP_EXTRACT_FILE, extracted_content)
     _LOG.info("Extracted section written to '%s'", _TMP_EXTRACT_FILE)
+    # Lint.
     _LOG.info("Linting ...")
     lint_script = hgit.find_file_in_git_tree("lint_txt.py")
     cmd = f"{lint_script} -i {_TMP_EXTRACT_FILE} -w 1000"
     hsystem.system(cmd)
     _LOG.info("Linting ... done")
+    # Read back.
     processed_content = hio.from_file(_TMP_EXTRACT_FILE)
     return processed_content
 
@@ -693,15 +697,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Maximum text length per chunk (0 = no chunking)",
     )
     hparser.add_verbosity_arg(parser)
-    hparser.add_md_start_end_args(parser, start_required=False)
-    # Update --md_end help to document the special "END" value
-    for action in parser._actions:
-        if action.dest == "md_end":
-            action.help = (
-                "Ending header (e.g., '## Section 2' or 'Section 2'). "
-                "If omitted with --md_start, stops at next same-level header. "
-                "Use special value 'END' to extract to end of file."
-            )
+    hmarsele.add_select_arg(parser, required=False)
     return parser
 
 
@@ -727,11 +723,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Input file path is required",
     )
     _LOG.debug("Validations passed")
-    if args.md_start:
-        content = _extract_markdown_section(
-            args.input, args.md_start, args.md_end
-        )
-        _LOG.info("Extracted section '%s' from %s", args.md_start, args.input)
+    if args.select:
+        md_start, md_end = hmarsele.parse_select_arg(args.select)
+        content = _extract_markdown_section(args.input, md_start, md_end)
+        _LOG.info("Extracted section '%s' from %s", md_start, args.input)
     else:
         content = _read_markdown_file(args.input)
         _LOG.info("Read markdown file: %s", args.input)
