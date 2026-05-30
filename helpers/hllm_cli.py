@@ -202,6 +202,21 @@ def _calculate_cost_from_usage(
     return cost
 
 
+def _compute_text_signature(txt: str) -> str:
+    """
+    Compute a compact signature of text using first and last two words.
+
+    :param txt: text to compute signature for
+    :return: signature string (e.g., "a b ... e f") or full text if <= 4 words
+    """
+    words = txt.split()
+    if len(words) <= 4:
+        return txt
+    first_two = " ".join(words[:2])
+    last_two = " ".join(words[-2:])
+    return f"{first_two} ... {last_two}"
+
+
 def _apply_llm_via_mock(
     input_str: str,
     *,
@@ -216,7 +231,9 @@ def _apply_llm_via_mock(
     :param system_prompt: optional system prompt to use
     :return: tuple of (MD5 digest as string, cost = 0.0)
     """
-    concatenated = input_str + (system_prompt or "")
+    sig_system = _compute_text_signature(system_prompt) if system_prompt else ""
+    sig_input = _compute_text_signature(input_str)
+    concatenated = f"{sig_system}\n{sig_input}"
     digest = hashlib.md5(concatenated.encode()).hexdigest()
     return digest, 0.0
 
