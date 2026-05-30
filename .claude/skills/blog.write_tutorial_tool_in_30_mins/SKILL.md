@@ -64,13 +64,11 @@ description: Write a practical technical tutorial for engineers, covering one to
 ## Code Examples
 - Use copy-paste ready code blocks with `bash` or language-specific syntax highlighting
 - Include expected output so readers know it worked
-- For shell commands, show the prompt style:
-  ```markdown
+- For shell commands, show the prompt style, e.g.,
   - On macOS and Linux using the official installer:
     ```bash
     > curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
-  ```
 
 ## Platform Coverage
 - Focus on macOS and Linux instructions
@@ -95,10 +93,14 @@ description: Write a practical technical tutorial for engineers, covering one to
 - Use code blocks for all commands, config files, and output
 
 # Examples to Reference
-- Located in `website/docs/blog/posts/`:
-  - `uv_in_30_mins.md` — Tool intro with installation, core concepts, examples
-  - `ripgrep_in_30_mins.md` — Search tool with practical use cases
-  - `python_packaging_in_30_mins.md` — Concept-based tutorial with workflow
-  - `mdm_unified_markdown_manager.md` — Multi-tool tutorial
+- Located in `website/docs/blog/posts/`
+  - `website/docs/blog/posts/uv_in_30_mins.md`: Tool intro with installation,
+    core concepts, examples
+  - `website/docs/blog/posts/ripgrep_in_30_mins.md`: Search tool with practical
+    use cases
+  - `website/docs/blog/posts/python_packaging_in_30_mins.md`: Concept-based
+    tutorial with workflow
+  - `website/docs/blog/posts/mdm_unified_markdown_manager.md`: Multi-tool
+    tutorial
 
 - Study these for structure, tone, depth, and length.
