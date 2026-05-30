@@ -2,7 +2,7 @@ import io
 import logging
 import os
 import re
-from typing import List, Optional
+from typing import List, Optional, cast
 from unittest import mock
 
 import helpers.hdbg as hdbg
@@ -18,16 +18,30 @@ import dev_scripts_helpers.llms.llm_cli as dshlllcl
 _LOG = logging.getLogger(__name__)
 
 
-def _run_llm_cli_with_mock(argv: List[str]) -> None:
+def _run_llm_cli_with_mock(
+    argv: List[str],
+    *,
+    scratch_space: str,
+    output_basename: Optional[str] = None,
+) -> str:
     """
     Run `dshlllcl._main()` with a mocked LLM and patched `sys.argv`.
 
     :param argv: command-line argument list to inject via `mock.patch("sys.argv", ...)`
+    :param scratch_space: base directory for file operations
+    :param output_basename: if provided, reads and returns output file content
+    :return: content of output file if output_basename is provided, else None
     """
     with hllmcli.mock_apply_llm():
         parser = dshlllcl._parse()
         with mock.patch("sys.argv", argv):
             dshlllcl._main(parser)
+    if output_basename is not None:
+        output_file = os.path.join(scratch_space, output_basename)
+        ret = hio.from_file(output_file)
+    else:
+        ret = ""
+    return ret
 
 
 # #############################################################################
@@ -71,9 +85,14 @@ class Test_llm_cli_select(hunitest.TestCase):
         ]
         if output_file is not None:
             argv += ["-o", output_file]
-        _run_llm_cli_with_mock(argv)
-        read_file = output_file if output_file is not None else input_file
-        return hio.from_file(read_file)
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename=os.path.basename(output_file) if output_file else None,
+        )
+        if actual is None:
+            actual = hio.from_file(input_file)
+        return actual
 
     def test1(self) -> None:
         """
@@ -252,9 +271,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--system_prompt=Test prompt",
         ]
         # Run test with mocked LLM.
-        _run_llm_cli_with_mock(argv)
-        # Check outputs.
-        actual = hio.from_file(output_file)
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.md",
+        )
+        actual = cast(str, actual)
         expected = """
         This is a test response. How can I assist you today?
         """
@@ -274,10 +296,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--system_prompt=Test prompt",
         ]
         # Run test with mocked LLM.
-        _run_llm_cli_with_mock(argv)
-        # Check outputs.
-        # Expected: --input_text provides direct text input and transforms it.
-        actual = hio.from_file(output_file)
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.txt",
+        )
+        actual = cast(str, actual)
         expected = "Sure! Could you please provide more details about the argument you're referring to, or specify the context or topics you'd like to explore? This will help me tailor the test text accordingly."
         self.assert_equal(actual, expected)
 
@@ -297,7 +321,7 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--system_prompt=Transform",
         ]
         # Run test with mocked LLM.
-        _run_llm_cli_with_mock(argv)
+        _run_llm_cli_with_mock(argv, scratch_space=self.get_scratch_space())
         # Check outputs.
         # Expected: --modify_in_place modifies file in-place with transformed content.
         actual = hio.from_file(input_file)
@@ -320,10 +344,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             f"--system_prompt_file={prompt_file}",
         ]
         # Run test with mocked LLM.
-        _run_llm_cli_with_mock(argv)
-        # Check outputs.
-        # Expected: reads system prompt from file and uses it for transformation.
-        actual = hio.from_file(output_file)
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.txt",
+        )
+        actual = cast(str, actual)
         expected = """
         Test output
         """
@@ -345,10 +371,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             "DEBUG",
         ]
         # Run test with mocked LLM.
-        _run_llm_cli_with_mock(argv)
-        # Check outputs.
-        # Expected: verbosity level controls logging without affecting transformation.
-        actual = hio.from_file(output_file)
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.txt",
+        )
+        actual = cast(str, actual)
         expected = """
         Test input received! How can I assist you today?
         """
@@ -379,10 +407,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--system_prompt=Process",
         ]
         # Run test with mocked LLM.
-        _run_llm_cli_with_mock(argv)
-        # Check outputs.
-        # Expected: --select extracts chunk and transforms only that part.
-        actual = hio.from_file(output_file)
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.txt",
+        )
+        actual = cast(str, actual)
         expected = """
         It seems like you've mentioned "Section 2" and "Content 2" without providing additional details. Could you please elaborate on what you're looking for or provide context? This way, I can assist you more effectively!
         """
@@ -403,10 +433,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--progress_bar",
         ]
         # Run test with mocked LLM.
-        _run_llm_cli_with_mock(argv)
-        # Check outputs.
-        # Expected: --progress_bar enables progress tracking during transformation.
-        actual = hio.from_file(output_file)
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.txt",
+        )
+        actual = cast(str, actual)
         expected = "Sure! Please provide the input you'd like me to test or work with, and I'll be happy to assist you."
         self.assert_equal(actual, expected)
 
@@ -427,11 +459,15 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--system_prompt=Simple prompt",
         ]
         # Run test with mocked LLM to avoid actual API calls.
-        _run_llm_cli_with_mock(argv)
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.txt",
+        )
         # Check outputs.
         # Expected: file transformation produces output file.
         self.assertTrue(os.path.exists(output_file))
-        actual = hio.from_file(output_file)
         # Verify the LLM mock produces deterministic output.
+        actual = cast(str, actual)
         self.assertGreater(len(actual), 0)
         self.assertIn("Sure!", actual)
