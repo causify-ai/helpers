@@ -10,6 +10,9 @@
 # ]
 # ///
 
+# Note that when using uv to install `llm` on the fly, it is not configured in
+# terms of plugins and keys.
+
 r"""
 CLI script to apply LLM transformations to text files or text input.
 
@@ -27,6 +30,8 @@ import os
 import pprint
 from typing import Optional, Tuple
 
+import llm
+
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -34,6 +39,7 @@ import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_select as hmarsele
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -369,10 +375,68 @@ def _process_full_text(
     return cost
 
 
+def _is_plugin_installed(plugin_module_name: str) -> bool:
+    """
+    Check if an llm plugin is already installed via the library interface.
+
+    :param plugin_module_name: Module name of the plugin (e.g., 'llm_openrouter')
+    :return: True if plugin is installed, False otherwise
+    """
+    try:
+        llm.load_plugins()
+        for module, _ in llm.pm.list_plugin_distinfo():
+            if module.__name__ == plugin_module_name:
+                return True
+        return False
+    except Exception as e:
+        _LOG.debug("Error checking plugins: %s", e)
+        return False
+
+
+def install_models() -> None:
+    """
+    Install the llm-openrouter and llm-anthropic plugins if not already installed.
+
+    :return: Return code from the installation command
+    """
+    plugins_to_install = [
+        ("llm_openrouter", "llm install llm-openrouter"),
+        ("llm_anthropic", "llm install llm-anthropic"),
+    ]
+    for plugin_module_name, cmd in plugins_to_install:
+        if _is_plugin_installed(plugin_module_name):
+            _LOG.debug("Plugin '%s' is already installed", plugin_module_name)
+        else:
+            _LOG.warning("Installing %s plugin...", plugin_module_name)
+            hsystem.system(cmd, print_command=True, suppress_output=False)
+    #
+    cmd = "llm models"
+    hsystem.system(cmd, print_command=True, suppress_output=False)
+
+
+def execute_llm_command(llm_cmd: str, abort_on_error: bool = True) -> int:
+    """
+    Execute an arbitrary llm command.
+
+    :param llm_cmd: The llm command to execute (e.g., "llm chat --model gpt-4")
+    :param abort_on_error: Whether to abort on error
+    :return: Return code from the command
+    """
+    _LOG.info("Executing llm command: %s", llm_cmd)
+    rc = hsystem.system(llm_cmd, print_command=True, abort_on_error=abort_on_error)
+    return rc
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--llm_cmd",
+        type=str,
+        default=None,
+        help="Execute an arbitrary llm command (e.g., 'llm chat --model gpt-4')",
     )
     hllmcli.add_llm_args(parser, input_required=True)
     hmarsele.add_select_arg(parser, required=False)
@@ -407,6 +471,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if args.log_level == "INFO":
             verbosity = "CRITICAL"
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
+    install_models()
+    # Execute arbitrary llm command if provided.
+    if args.llm_cmd:
+        execute_llm_command(args.llm_cmd)
+        return
     # Determine input source and output destination.
     input_file, input_text, output_file = _get_input_output_files(
         input_arg=args.input,
