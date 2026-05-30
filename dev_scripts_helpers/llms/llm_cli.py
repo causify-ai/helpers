@@ -25,7 +25,7 @@ import argparse
 import logging
 import os
 import pprint
-from typing import Optional
+from typing import Optional, Tuple
 
 import dev_scripts_helpers.dockerize.lib_prettier as libprettier
 import helpers.hdbg as hdbg
@@ -73,8 +73,13 @@ def _get_system_prompt(
     :param system_prompt: Default system prompt text
     :return: The resolved system prompt
     """
-    # TODO(ai_gp): Add an assertion to make sure that only one option should be
-    # possible.
+    # Exactly one of the three options should be provided.
+    num_options = sum([
+        system_prompt_file is not None,
+        rule is not None,
+        bool(system_prompt),
+    ])
+    hdbg.dassert_lte(num_options, 1, "Only one system prompt option should be provided")
     if system_prompt_file:
         # Read from file.
         hdbg.dassert_ne(
@@ -258,6 +263,103 @@ def _process_full_text(
 # #############################################################################
 
 
+def _get_input_output_files(
+    *,
+    input_arg: Optional[str],
+    input_text_arg: Optional[str],
+    output_arg: Optional[str],
+    modify_in_place: bool,
+) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """
+    Determine input and output file paths.
+
+    :param input_arg: Input file path or '-' for stdin
+    :param input_text_arg: Input text from command line
+    :param output_arg: Output file path or '-' for stdout
+    :param modify_in_place: Whether to modify input file in place
+    :return: Tuple of (input_file, input_text, output_file)
+    """
+    # Determine input source.
+    if input_arg:
+        hdbg.dassert_ne(input_arg, "", "Input file cannot be empty")
+        if input_arg == "-":
+            # Read from stdin.
+            input_file = "-"
+            input_text = None
+        else:
+            # Read from file.
+            input_text = None
+            input_file = input_arg
+    else:
+        hdbg.dassert_ne(input_text_arg, "", "Input text cannot be empty")
+        input_text = input_text_arg
+        input_file = None
+    # Determine output destination.
+    if output_arg is None:
+        hdbg.dassert(
+            input_file is not None and input_file != "-",
+            "Output must be specified when using --input_text or stdin. "
+            "In-place editing only works with --input <file>",
+        )
+        if modify_in_place:
+            output_file = input_file
+        else:
+            output_file = "-"
+        _LOG.info("No output specified, writing in-place to: %s", output_file)
+    elif output_arg == "-":
+        # Print to screen.
+        output_file = "-"
+    else:
+        # Use the specified output file.
+        hdbg.dassert_ne(output_arg, "", "Output file cannot be empty string")
+        output_file = output_arg
+    return input_file, input_text, output_file
+
+
+def _get_expected_num_chars(
+    *,
+    progress_bar: bool,
+    expected_num_chars_arg: Optional[int],
+    input_file: Optional[str],
+    input_text: Optional[str],
+) -> Optional[int]:
+    """
+    Calculate expected number of output characters.
+
+    :param progress_bar: Whether progress bar is enabled
+    :param expected_num_chars_arg: Explicitly provided expected char count
+    :param input_file: Input file path (or '-' for stdin)
+    :param input_text: Input text from command line
+    :return: Expected number of output characters, or None if not needed
+    """
+    # Calculate expected_num_chars if progress_bar is enabled.
+    if progress_bar and expected_num_chars_arg is None:
+        # Read input to get its length.
+        if input_file:
+            if input_file == "-":
+                # Read from stdin.
+                input_lines = hseinout.from_file(input_file)
+                input_content = "\n".join(input_lines)
+            else:
+                input_content = hio.from_file(input_file)
+        else:
+            hdbg.dassert_is_not(input_text, None)
+            input_content = input_text
+        input_length = len(input_content)
+        expected_num_chars = int(input_length * 1.0)
+        _LOG.info(
+            "Progress bar enabled: estimated output %d chars (input: %d chars)",
+            expected_num_chars,
+            input_length,
+        )
+    elif expected_num_chars_arg is not None:
+        hdbg.dassert_lt(0, expected_num_chars_arg, "Expected char count must be positive")
+        expected_num_chars = expected_num_chars_arg
+    else:
+        expected_num_chars = None
+    return expected_num_chars
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -296,64 +398,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if args.log_level == "INFO":
             verbosity = "CRITICAL"
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
-    # TODO(ai_gp): Extract a function returning input_file and output_file.
-    # Determine input source.
-    if args.input:
-        hdbg.dassert_ne(args.input, "", "Input file cannot be empty")
-        if args.input == "-":
-            # Read from stdin.
-            input_file = "-"
-            input_text = None
-        else:
-            # Read from file.
-            input_text = None
-            input_file = args.input
-    else:
-        hdbg.dassert_ne(args.input_text, "", "Input text cannot be empty")
-        input_text = args.input_text
-        input_file = None
-    # Determine output destination.
-    if args.output is None:
-        hdbg.dassert(
-            input_file is not None and input_file != "-",
-            "Output must be specified when using --input_text or stdin. "
-            "In-place editing only works with --input <file>",
-        )
-        if args.modify_in_place:
-            output_file = input_file
-        else:
-            output_file = "-"
-        _LOG.info("No output specified, writing in-place to: %s", output_file)
-    elif args.output == "-":
-        # Print to screen.
-        output_file = "-"
-    else:
-        # Use the specified output file.
-        hdbg.dassert_ne(args.output, "", "Output file cannot be empty string")
-        output_file = args.output
-    # Calculate expected_num_chars if progress_bar is enabled.
-    if args.progress_bar and args.expected_num_chars is None:
-        # TODO(ai_gp): Extract this into a function.
-        # Read input to get its length.
-        if input_file:
-            if input_file == "-":
-                # Read from stdin.
-                input_lines = hseinout.from_file(input_file)
-                input_content = "\n".join(input_lines)
-            else:
-                input_content = hio.from_file(input_file)
-        else:
-            input_content = input_text
-        input_length = len(input_content)
-        expected_num_chars = int(input_length * 1.0)
-        _LOG.info(
-            "Progress bar enabled: estimated output %d chars (input: %d chars)",
-            expected_num_chars,
-            input_length,
-        )
-    else:
-        hdbg.dassert_lt(0, args.expected_num_chars)
-        expected_num_chars = args.expected_num_chars
+    # Determine input source and output destination.
+    input_file, input_text, output_file = _get_input_output_files(
+        input_arg=args.input,
+        input_text_arg=args.input_text,
+        output_arg=args.output,
+        modify_in_place=args.modify_in_place,
+    )
+    # Calculate expected number of output characters.
+    expected_num_chars = _get_expected_num_chars(
+        progress_bar=args.progress_bar,
+        expected_num_chars_arg=args.expected_num_chars,
+        input_file=input_file,
+        input_text=input_text,
+    )
     # Process the file.
     if args.dry_run:
         _LOG.warning("Dry run mode: LLM will not be called")
