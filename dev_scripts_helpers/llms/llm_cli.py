@@ -16,22 +16,6 @@ CLI script to apply LLM transformations to text files or text input.
 For detailed documentation, usage examples, and feature descriptions, see:
 `dev_scripts_helpers/llms/README.md`
 
-Conceptually there are several stages:
-- Read input
-    - --input <file>: it can be a file, stdin
-    - --input_text <text>
-- (Optional) Extract a chunk of input
-    - --select <token>: various selection criteria
-    - --modify_in_place
-- Select a prompt:
-    - -p: from command line
-    - -pf <file>: from a file
-    - --rule <topic>: from a `.claude/skills/<topic>.rules.md`
-    - --skill <skill>: from a `.claude/skill/<skill>/SKILL.md`
-- (Optional) A linting step (--lint)
-- An output
-    - --output: it can be a file, stdout
-
 Import as:
 
 import dev_scripts_helpers.llms.llm_cli as dshllcli
@@ -43,6 +27,7 @@ import os
 import pprint
 from typing import Optional
 
+import dev_scripts_helpers.dockerize.lib_prettier as libprettier
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hlint as hlint
@@ -54,6 +39,22 @@ import helpers.hprint as hprint
 import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
+
+# The architecture of the script has several stages:
+# - Read input:
+#     - --input <file>: it can be a file, stdin
+#     - --input_text <text>
+# - (Optional) Extract a chunk of input:
+#     - --select <token>: various selection criteria
+#     - --modify_in_place
+# - Select a prompt:
+#     - -p: from command line
+#     - -pf <file>: from a file
+#     - --rule <topic>: from a `.claude/skills/<topic>.rules.md`
+#     - --skill <skill>: from a `.claude/skill/<skill>/SKILL.md`
+# - (Optional) A linting step (--lint)
+# - Write output
+#     - --output: it can be a file, stdout
 
 
 # #############################################################################
@@ -72,7 +73,8 @@ def _get_system_prompt(
     :param system_prompt: Default system prompt text
     :return: The resolved system prompt
     """
-    # TODO(ai_gp): Only one option should be possible.
+    # TODO(ai_gp): Add an assertion to make sure that only one option should be
+    # possible.
     if system_prompt_file:
         # Read from file.
         hdbg.dassert_ne(
@@ -159,7 +161,6 @@ def _process_selected_text(
             expected_num_chars=expected_num_chars,
         )
         if lint:
-            import dev_scripts_helpers.dockerize.lib_prettier as libprettier
             file_type = "md"
             response = libprettier.prettier_on_str(response, file_type)
     # 
@@ -225,7 +226,7 @@ def _process_full_text(
         input_lines = hseinout.from_file(input_file)
         input_str = "\n".join(input_lines)
     if dry_run:
-        # TODO(ai_gp): Consider moving this inside the LLM call to generalize it.
+        # TODO(gp): Consider moving this inside the LLM call to generalize it.
         _LOG.warning("DRY RUN: Would call LLM with parameters:")
         _LOG.info("  Input text length: %d chars", len(input_str))
         _LOG.info("  System prompt length: %d chars", len(system_prompt) if system_prompt else 0)
@@ -245,7 +246,6 @@ def _process_full_text(
             expected_num_chars=expected_num_chars,
         )
         if lint:
-            import dev_scripts_helpers.dockerize.lib_prettier as libprettier
             file_type = "md"
             response = libprettier.prettier_on_str(response, file_type)
     if dry_run:
@@ -296,9 +296,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if args.log_level == "INFO":
             verbosity = "CRITICAL"
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
-    # Validate arguments.
-    if args.expected_num_chars is not None:
-        hdbg.dassert_lt(0, args.expected_num_chars)
     # TODO(ai_gp): Extract a function returning input_file and output_file.
     # Determine input source.
     if args.input:
@@ -336,6 +333,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         output_file = args.output
     # Calculate expected_num_chars if progress_bar is enabled.
     if args.progress_bar and args.expected_num_chars is None:
+        # TODO(ai_gp): Extract this into a function.
         # Read input to get its length.
         if input_file:
             if input_file == "-":
@@ -354,6 +352,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             input_length,
         )
     else:
+        hdbg.dassert_lt(0, args.expected_num_chars)
         expected_num_chars = args.expected_num_chars
     # Process the file.
     if args.dry_run:
