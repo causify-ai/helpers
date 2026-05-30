@@ -71,7 +71,6 @@ Key features:
 - Read from stdin and write to stdout
   ```bash
   > echo "What is 2+2?" | llm_cli.py --input - --output -
-  > cat input.txt | llm_cli.py -i - -o output.txt
   ```
 
 - Read from stdin and write to file

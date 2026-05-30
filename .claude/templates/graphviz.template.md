@@ -1,3 +1,4 @@
+- Maintain the structure of the text as it is
 - All graphviz dot diagram must follow the template below
   ```graphviz
   digraph <name> {
