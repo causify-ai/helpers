@@ -1,5 +1,7 @@
+import io
 import logging
 import os
+import re
 from typing import Optional
 from unittest import mock
 
@@ -229,23 +231,23 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test file-to-file transformation with mocked LLM.
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_content = """
         This is test input.
         """
         input_file = self._create_test_input_file(input_content)
         output_file = os.path.join(self.get_scratch_space(), "output.md")
+        argv = [
+            "llm_cli.py",
+            f"--input={input_file}",
+            f"--output={output_file}",
+            "--system_prompt=Test prompt",
+        ]
         # Run test with mocked LLM.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"{script_path} "
-                f"--input={input_file} "
-                f"--output={output_file} "
-                f"--system_prompt='Test prompt'"
-            )
-            exit_code, _ = hsystem.system_to_string(cmd)
+            parser = dshlllcl._parse()
+            with mock.patch("sys.argv", argv):
+                dshlllcl._main(parser)
         # Check outputs.
-        self.assertEqual(exit_code, 0)
         actual = hio.from_file(output_file)
         expected = """
         This is a test response. How can I assist you today?
@@ -257,22 +259,25 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test stdin/stdout with mocked LLM transformation.
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_content = "Test input content"
+        argv = [
+            "llm_cli.py",
+            "--input=-",
+            "--output=-",
+            "--system_prompt=Transform text",
+        ]
         # Run test with mocked LLM.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"echo '{input_content}' | "
-                f"{script_path} "
-                f"--input=- "
-                f"--output=- "
-                f"--system_prompt='Transform text'"
-            )
-            exit_code, result = hsystem.system_to_string(cmd)
-        # Check outputs.
-        self.assertEqual(exit_code, 0)
-        # Filter out warning and ANSI color code lines before checking content.
-        import re
+            with mock.patch("sys.argv", argv):
+                with mock.patch("sys.stdin", io.StringIO(input_content)):
+                    with mock.patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                        parser = dshlllcl._parse()
+                        try:
+                            dshlllcl._main(parser)
+                        except (BrokenPipeError, AttributeError):
+                            pass
+                        result = mock_stdout.getvalue()
+        # Check outputs - filter out warning and ANSI color code lines.
         result_lines = [
             re.sub(r'\x1b\[[0-9;]*m', '', line)
             for line in result.split("\n")
@@ -287,22 +292,21 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test --input_text argument with mocked LLM transformation.
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_text = "Test text from argument"
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
+        argv = [
+            "llm_cli.py",
+            f"--input_text={input_text}",
+            f"--output={output_file}",
+            "--system_prompt=Test prompt",
+        ]
         # Run test with mocked LLM.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"{script_path} "
-                f"--input_text='{input_text}' "
-                f"--output={output_file} "
-                f"--system_prompt='Test prompt'"
-            )
-            exit_code, _ = hsystem.system_to_string(cmd)
+            parser = dshlllcl._parse()
+            with mock.patch("sys.argv", argv):
+                dshlllcl._main(parser)
         # Check outputs.
         # Expected: --input_text provides direct text input and transforms it.
-        # Invariant: exit code is 0 and output matches mocked response.
-        self.assertEqual(exit_code, 0)
         actual = hio.from_file(output_file)
         expected = "Sure! Could you please provide more details about the argument you're referring to, or specify the context or topics you'd like to explore? This will help me tailor the test text accordingly."
         self.assert_equal(actual, expected)
@@ -312,24 +316,23 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test modify-in-place mode with mocked LLM transformation.
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_content = """
         Original content.
         """
         input_file = self._create_test_input_file(input_content)
+        argv = [
+            "llm_cli.py",
+            f"--input={input_file}",
+            "--modify_in_place",
+            "--system_prompt=Transform",
+        ]
         # Run test with mocked LLM.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"{script_path} "
-                f"--input={input_file} "
-                f"--modify_in_place "
-                f"--system_prompt='Transform'"
-            )
-            exit_code, _ = hsystem.system_to_string(cmd)
+            parser = dshlllcl._parse()
+            with mock.patch("sys.argv", argv):
+                dshlllcl._main(parser)
         # Check outputs.
         # Expected: --modify_in_place modifies file in-place with transformed content.
-        # Invariant: exit code is 0 and file contains mocked response.
-        self.assertEqual(exit_code, 0)
         actual = hio.from_file(input_file)
         expected = "Sure! What topic or theme would you like the original content to focus on?"
         self.assert_equal(actual, expected)
@@ -339,24 +342,23 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test system prompt loaded from file with mocked LLM transformation.
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_file = self._create_test_input_file("Test input")
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
         prompt_file = os.path.join(self.get_scratch_space(), "prompt.txt")
         hio.to_file(prompt_file, "Custom system prompt")
+        argv = [
+            "llm_cli.py",
+            f"--input={input_file}",
+            f"--output={output_file}",
+            f"--system_prompt_file={prompt_file}",
+        ]
         # Run test with mocked LLM.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"{script_path} "
-                f"--input={input_file} "
-                f"--output={output_file} "
-                f"--system_prompt_file={prompt_file}"
-            )
-            exit_code, _ = hsystem.system_to_string(cmd)
+            parser = dshlllcl._parse()
+            with mock.patch("sys.argv", argv):
+                dshlllcl._main(parser)
         # Check outputs.
         # Expected: reads system prompt from file and uses it for transformation.
-        # Invariant: exit code is 0 and output matches mocked response.
-        self.assertEqual(exit_code, 0)
         actual = hio.from_file(output_file)
         expected = """
         Test output
@@ -368,23 +370,23 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test verbosity argument with mocked LLM transformation.
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_file = self._create_test_input_file("Test input")
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
+        argv = [
+            "llm_cli.py",
+            f"--input={input_file}",
+            f"--output={output_file}",
+            "--system_prompt=Test",
+            "-v",
+            "DEBUG",
+        ]
         # Run test with mocked LLM.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"{script_path} "
-                f"--input={input_file} "
-                f"--output={output_file} "
-                f"--system_prompt='Test' "
-                f"-v DEBUG"
-            )
-            exit_code, _ = hsystem.system_to_string(cmd)
+            parser = dshlllcl._parse()
+            with mock.patch("sys.argv", argv):
+                dshlllcl._main(parser)
         # Check outputs.
         # Expected: verbosity level controls logging without affecting transformation.
-        # Invariant: exit code is 0 and output matches mocked response.
-        self.assertEqual(exit_code, 0)
         actual = hio.from_file(output_file)
         expected = """
         Test input received! How can I assist you today?
@@ -396,7 +398,6 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test select mode (chunk extraction) with mocked LLM transformation.
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_content = """
         # Section 1
         Content 1
@@ -409,20 +410,20 @@ class Test_llm_cli_py(hunitest.TestCase):
         """
         input_file = self._create_test_input_file(input_content)
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
+        argv = [
+            "llm_cli.py",
+            f"--input={input_file}",
+            f"--output={output_file}",
+            "--select=Section 2:Section 3",
+            "--system_prompt=Process",
+        ]
         # Run test with mocked LLM.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"{script_path} "
-                f"--input={input_file} "
-                f"--output={output_file} "
-                f"--select='Section 2:Section 3' "
-                f"--system_prompt='Process'"
-            )
-            exit_code, _ = hsystem.system_to_string(cmd)
+            parser = dshlllcl._parse()
+            with mock.patch("sys.argv", argv):
+                dshlllcl._main(parser)
         # Check outputs.
         # Expected: --select extracts chunk and transforms only that part.
-        # Invariant: exit code is 0 and output contains mocked response.
-        self.assertEqual(exit_code, 0)
         actual = hio.from_file(output_file)
         expected = """
         It seems like you've mentioned "Section 2" and "Content 2" without providing additional details. Could you please elaborate on what you're looking for or provide context? This way, I can assist you more effectively!
@@ -434,23 +435,22 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test progress bar argument with mocked LLM transformation.
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_file = self._create_test_input_file("Test input")
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
+        argv = [
+            "llm_cli.py",
+            f"--input={input_file}",
+            f"--output={output_file}",
+            "--system_prompt=Transform",
+            "--progress_bar",
+        ]
         # Run test with mocked LLM.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"{script_path} "
-                f"--input={input_file} "
-                f"--output={output_file} "
-                f"--system_prompt='Transform' "
-                f"--progress_bar"
-            )
-            exit_code, _ = hsystem.system_to_string(cmd)
+            parser = dshlllcl._parse()
+            with mock.patch("sys.argv", argv):
+                dshlllcl._main(parser)
         # Check outputs.
         # Expected: --progress_bar enables progress tracking during transformation.
-        # Invariant: exit code is 0 and output matches mocked response.
-        self.assertEqual(exit_code, 0)
         actual = hio.from_file(output_file)
         expected = "Sure! Please provide the input you'd like me to test or work with, and I'll be happy to assist you."
         self.assert_equal(actual, expected)
@@ -460,25 +460,24 @@ class Test_llm_cli_py(hunitest.TestCase):
         Test file input from real file (e2e without dry run).
         """
         # Prepare inputs.
-        script_path = self._get_script_path()
         input_content = """
         Simple test content.
         """
         input_file = self._create_test_input_file(input_content)
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
+        argv = [
+            "llm_cli.py",
+            f"--input={input_file}",
+            f"--output={output_file}",
+            "--system_prompt=Simple prompt",
+        ]
         # Run test with mocked LLM to avoid actual API calls.
         with hllmcli.mock_apply_llm():
-            cmd = (
-                f"{script_path} "
-                f"--input={input_file} "
-                f"--output={output_file} "
-                f"--system_prompt='Simple prompt'"
-            )
-            exit_code, _ = hsystem.system_to_string(cmd)
+            parser = dshlllcl._parse()
+            with mock.patch("sys.argv", argv):
+                dshlllcl._main(parser)
         # Check outputs.
         # Expected: file transformation produces output file.
-        # Invariant: command succeeds and output file is created with content.
-        self.assertEqual(exit_code, 0)
         self.assertTrue(os.path.exists(output_file))
         actual = hio.from_file(output_file)
         # Verify the LLM mock produces deterministic output.

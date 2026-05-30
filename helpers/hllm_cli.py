@@ -202,6 +202,25 @@ def _calculate_cost_from_usage(
     return cost
 
 
+def _apply_llm_via_mock(
+    input_str: str,
+    *,
+    system_prompt: Optional[str] = None,
+) -> Tuple[str, float]:
+    """
+    Mock LLM application for testing.
+
+    Returns a deterministic MD5 hash of the concatenated input and system prompt.
+
+    :param input_str: the input text to process
+    :param system_prompt: optional system prompt to use
+    :return: tuple of (MD5 digest as string, cost = 0.0)
+    """
+    concatenated = input_str + (system_prompt or "")
+    digest = hashlib.md5(concatenated.encode()).hexdigest()
+    return digest, 0.0
+
+
 def _apply_llm_via_library(
     input_str: str,
     *,
@@ -298,21 +317,21 @@ def apply_llm(
     *,
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
-    use_llm_executable: bool = False,
+    backend: str = "library",
     expected_num_chars: Optional[int] = None,
 ) -> Tuple[str, float]:
     """
-    Apply an LLM to process input text using either CLI executable or library.
+    Apply an LLM to process input text using specified backend.
 
-    This function provides a unified interface to call LLMs either through the
-    llm command-line executable or through the llm Python library. It supports
-    optional system prompts, model selection, and progress bars for long outputs.
+    This function provides a unified interface to call LLMs through different
+    backends: the llm command-line executable, the llm Python library, or a
+    mock backend for testing. It supports optional system prompts, model
+    selection, and progress bars for long outputs.
 
     :param input_str: the input text to process with the LLM
     :param system_prompt: optional system prompt to guide the LLM's behavior
     :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
-    :param use_llm_executable: if True, use the llm CLI executable; if False,
-        use the llm Python library
+    :param backend: backend to use ("executable", "library", or "mock")
     :param expected_num_chars: optional expected number of characters in
         output; if provided, displays a progress bar during generation
     :return: tuple of (LLM response as string, cost in dollars)
@@ -331,10 +350,11 @@ def apply_llm(
             expected_num_chars,
             "Expected number of characters must be positive",
         )
+    hdbg.dassert_in(backend, ["executable", "library", "mock"])
     _LOG.debug("Applying LLM to input text")
-    _LOG.debug("use_llm_executable=%s", use_llm_executable)
+    _LOG.debug("backend=%s", backend)
     # Route to appropriate implementation.
-    if use_llm_executable:
+    if backend == "executable":
         # Check that llm executable exists.
         hdbg.dassert(
             _check_llm_executable(),
@@ -346,7 +366,7 @@ def apply_llm(
             model=model,
             expected_num_chars=expected_num_chars,
         )
-    else:
+    elif backend == "library":
         # Check that llm library is available.
         hdbg.dassert(_LLM_AVAILABLE, "llm library not found")
         response, cost = _apply_llm_via_library(
@@ -354,6 +374,11 @@ def apply_llm(
             system_prompt=system_prompt,
             model=model,
             expected_num_chars=expected_num_chars,
+        )
+    elif backend == "mock":
+        response, cost = _apply_llm_via_mock(
+            input_str,
+            system_prompt=system_prompt,
         )
     _LOG.debug("LLM processing completed")
     return response, cost
@@ -365,7 +390,7 @@ def apply_llm_with_files(
     *,
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
-    use_llm_executable: bool = False,
+    backend: str = "library",
     expected_num_chars: Optional[int] = None,
 ) -> float:
     """
@@ -379,8 +404,7 @@ def apply_llm_with_files(
     :param output_file: path to the output file where result will be saved
     :param system_prompt: optional system prompt to guide the LLM's behavior
     :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
-    :param use_llm_executable: if True, use the llm CLI executable; if False,
-        use the llm Python library
+    :param backend: backend to use ("executable", "library", or "mock")
     :param expected_num_chars: optional expected number of characters in
         output; if provided, displays a progress bar during generation
     :return: cost in dollars
@@ -398,7 +422,7 @@ def apply_llm_with_files(
         input_str,
         system_prompt=system_prompt,
         model=model,
-        use_llm_executable=use_llm_executable,
+        backend=backend,
         expected_num_chars=expected_num_chars,
     )
     # Write output file.
@@ -1105,14 +1129,11 @@ def mock_apply_llm():
         *,
         system_prompt: Optional[str] = None,
         model: Optional[str] = None,
-        use_llm_executable: bool = False,
+        backend: str = "library",
         expected_num_chars: Optional[int] = None,
     ) -> Tuple[str, float]:
-        # Concatenate input_str and system_prompt to create digest input.
         concatenated = input_str + (system_prompt or "")
-        # Create MD5 digest of the concatenated strings.
         digest = hashlib.md5(concatenated.encode()).hexdigest()
-        # Return digest as response and zero cost.
         return digest, 0.0
 
     with mock.patch("helpers.hllm_cli.apply_llm", side_effect=_mock_apply_llm):
@@ -1161,6 +1182,7 @@ def add_llm_prompt_arg(
     return parser
 
 
+# TODO(gp): Extract / reuse the options for -i, --input_txt, ...
 def add_llm_args(
     parser: argparse.ArgumentParser,
     *,
@@ -1168,8 +1190,9 @@ def add_llm_args(
     output_required: bool = False,
     system_prompt_required: bool = False,
     model_default: str = "gpt-4o-mini",
+    # TODO(gp): These should always be available.
     include_model: bool = True,
-    include_llm_executable: bool = True,
+    include_backend: bool = True,
 ) -> argparse.ArgumentParser:
     """
     Add comprehensive LLM-related command line arguments for LLM CLI scripts.
@@ -1182,7 +1205,7 @@ def add_llm_args(
     :param system_prompt_required: whether system prompt is required
     :param model_default: default LLM model name
     :param include_model: whether to include --model argument
-    :param include_llm_executable: whether to include --use_llm_executable flag
+    :param include_backend: whether to include --backend argument
     :return: parser with LLM arguments added
     """
     # Input/Output options with mutually exclusive input sources.
@@ -1240,13 +1263,14 @@ def add_llm_args(
             help=f"Optional model name to use (e.g., 'gpt-4', 'claude-3-opus'). "
             f"Default: {model_default}",
         )
-    # LLM executable option.
-    if include_llm_executable:
+    # Backend selection.
+    if include_backend:
         parser.add_argument(
-            "--use_llm_executable",
-            action="store_true",
-            default=False,
-            help="Use the llm CLI executable instead of the Python library",
+            "--backend",
+            type=str,
+            default="library",
+            choices=["executable", "library", "mock"],
+            help="LLM backend to use: 'executable' (CLI), 'library' (Python), or 'mock' (testing)",
         )
     # Progress bar options.
     parser.add_argument(

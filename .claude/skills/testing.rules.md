@@ -767,7 +767,7 @@ line3
 - Always create test files under `self.get_scratch_space()` rather than mocking
   file access
 
-The goal is to exercise as much real code as possible, so do not mock:
+- The goal is to exercise as much real code as possible, so do not mock:
 	- filesystem operations
 	- argument parsing
 	- orchestration logic
@@ -775,15 +775,31 @@ The goal is to exercise as much real code as possible, so do not mock:
 - This keeps tests closer to real execution and validates more of the system end
   to end
 - Use realistic:
-	- directory layouts
-	- file names
-	- file contents
-	- command-line arguments
+	- Directory layouts
+	- File names
+	- File contents
+	- Command-line arguments
 
-## Run Command Instead of Calling its Main
-- Do not inject (`sys.argv = ["process_jupytext.py"] + args_list`)
-  and call the main of the script (e.g., `_main(parser)`)
-- Instead call the executable directly with a call like `hsystem.system()`
+## Call Main Directly for Simple Executables (with Mock)
+- When testing a simple end-to-end executable that doesn't require special
+  packages installed through uv, use the idiom of mocking `sys.argv` with
+  `mock.patch()` and then calling the `main()` function directly
+
+- **Good** (when executable is simple and can be called directly)
+  ```python
+  # Prepare inputs.
+  parser = your_module._parse()
+  argv = ["script_name.py", "--arg1", "value1"]
+  # Run test.
+  with mock.patch("sys.argv", argv):
+      your_module._main(parser)
+  # Check outputs.
+  # ... assertions on file system state or captured output ...
+  ```
+- This approach is suitable when:
+  - The executable is simple enough to call directly in a test
+  - You want to test the full argument parsing and main logic flow
+  - You don't need subprocess isolation for the test
 
 ## Locate Script Paths Dynamically
 - Do not hardwire paths to executable scripts in tests, instead, use

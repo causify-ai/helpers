@@ -115,11 +115,11 @@ class TestApplyLlmBase(_BaseCacheTest):
     reduce code duplication and maintain consistency.
     """
 
-    def _run_test_cases(self, use_llm_executable: bool) -> None:
+    def _run_test_cases(self, backend: str) -> None:
         """
-        Helper method to run test cases with specified interface.
+        Helper method to run test cases with specified backend.
 
-        :param use_llm_executable: if True, use CLI executable; if False, use library
+        :param backend: backend to use ("executable", "library", or "mock")
         """
         # Get scratch space for test files.
         scratch_dir = self.get_scratch_space()
@@ -134,7 +134,7 @@ class TestApplyLlmBase(_BaseCacheTest):
             hllmcli.apply_llm_with_files(
                 input_file=input_file,
                 output_file=output_file,
-                use_llm_executable=use_llm_executable,
+                backend=backend,
                 **kwargs,
             )
             # Check that output file was created.
@@ -143,11 +143,11 @@ class TestApplyLlmBase(_BaseCacheTest):
             output_content = hio.from_file(output_file)
             self.assertGreater(len(output_content), 0)
 
-    def _run_test_cases_input_text(self, use_llm_executable: bool) -> None:
+    def _run_test_cases_input_text(self, backend: str) -> None:
         """
-        Helper method to run input_text test cases with specified interface.
+        Helper method to run input_text test cases with specified backend.
 
-        :param use_llm_executable: if True, use CLI executable; if False, use library
+        :param backend: backend to use ("executable", "library", or "mock")
         """
         # Get scratch space for test files.
         scratch_dir = self.get_scratch_space()
@@ -159,9 +159,9 @@ class TestApplyLlmBase(_BaseCacheTest):
             kwargs_copy = kwargs.copy()
             input_text = kwargs_copy.pop("input_text")
             # Run test using apply_llm directly.
-            response = hllmcli.apply_llm(
+            response, _ = hllmcli.apply_llm(
                 input_text,
-                use_llm_executable=use_llm_executable,
+                backend=backend,
                 **kwargs_copy,
             )
             # Write output to file.
@@ -197,7 +197,7 @@ class Test_apply_llm_with_files1(TestApplyLlmBase):
         Tests various command-line argument combinations to ensure they
         execute without errors. Does not verify output correctness.
         """
-        self._run_test_cases(use_llm_executable=False)
+        self._run_test_cases(backend="library")
 
     @pytest.mark.skipif(
         not hllmcli._check_llm_executable(), reason="llm executable not found"
@@ -209,7 +209,7 @@ class Test_apply_llm_with_files1(TestApplyLlmBase):
         Tests various command-line argument combinations to ensure they
         execute without errors. Does not verify output correctness.
         """
-        self._run_test_cases(use_llm_executable=True)
+        self._run_test_cases(backend="executable")
 
 
 # #############################################################################
@@ -229,7 +229,7 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         Tests that input_text parameter works correctly when text is provided
         directly instead of from a file. Does not verify output correctness.
         """
-        self._run_test_cases_input_text(use_llm_executable=False)
+        self._run_test_cases_input_text(backend="library")
 
     @pytest.mark.skipif(
         not hllmcli._check_llm_executable(), reason="llm executable not found"
@@ -241,15 +241,15 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         Tests that input_text parameter works correctly when text is provided
         directly instead of from a file. Does not verify output correctness.
         """
-        self._run_test_cases_input_text(use_llm_executable=True)
+        self._run_test_cases_input_text(backend="executable")
 
     # //////////////////////////////////////////////////////////////////////////
 
-    def _run_test_cases_print_only(self, use_llm_executable: bool) -> None:
+    def _run_test_cases_print_only(self, backend: str) -> None:
         """
-        Helper method to run print_only test cases with specified interface.
+        Helper method to run print_only test cases with specified backend.
 
-        :param use_llm_executable: if True, use CLI executable; if False, use library
+        :param backend: backend to use ("executable", "library", or "mock")
         """
         # Run each test case.
         for idx, (description, kwargs) in enumerate(_TEST_CASES_PRINT_ONLY, 1):
@@ -259,9 +259,9 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
             input_text = kwargs_copy.pop("input_text")
             kwargs_copy.pop("print_only")  # Not needed for apply_llm
             # Run test using apply_llm directly - this should print to stdout.
-            response = hllmcli.apply_llm(
+            response, _ = hllmcli.apply_llm(
                 input_text,
-                use_llm_executable=use_llm_executable,
+                backend=backend,
                 **kwargs_copy,
             )
             # Print response to stdout (simulating print_only behavior).
@@ -275,7 +275,7 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         printed to screen instead of written to file. Does not verify output
         correctness.
         """
-        self._run_test_cases_print_only(use_llm_executable=False)
+        self._run_test_cases_print_only(backend="library")
 
     @pytest.mark.skipif(
         not hllmcli._check_llm_executable(), reason="llm executable not found"
@@ -288,7 +288,7 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         printed to screen instead of written to file. Does not verify output
         correctness.
         """
-        self._run_test_cases_print_only(use_llm_executable=True)
+        self._run_test_cases_print_only(backend="executable")
 
 
 # #############################################################################

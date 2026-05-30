@@ -208,7 +208,7 @@ def _get_system_prompt(
 def _process_selected_text(
     select: str,
     model: str,
-    use_llm_executable: bool,
+    backend: str,
     input_file: Optional[str],
     output_file: Optional[str],
     system_prompt: str,
@@ -222,7 +222,7 @@ def _process_selected_text(
 
     :param select: Select specification (e.g., 'start_marker:end_marker')
     :param model: Name of the LLM model to use
-    :param use_llm_executable: Whether to use the LLM executable
+    :param backend: Backend to use ("executable", "library", or "mock")
     :param input_file: Path to input file
     :param output_file: Path to output file
     :param system_prompt: System prompt for the LLM
@@ -254,7 +254,7 @@ def _process_selected_text(
             "  System prompt (%d chars):\n%s", len(system_prompt), system_prompt
         )
         _LOG.info("  Model: %s", model)
-        _LOG.info("  Use LLM executable: %s", use_llm_executable)
+        _LOG.info("  Backend: %s", backend)
         _LOG.info("  Expected output chars: %s", expected_num_chars)
         _LOG.info(
             "  Input text to be processed (%d chars):\n%s",
@@ -268,7 +268,7 @@ def _process_selected_text(
             chunk_text,
             system_prompt=system_prompt,
             model=model,
-            use_llm_executable=use_llm_executable,
+            backend=backend,
             expected_num_chars=expected_num_chars,
         )
         if lint:
@@ -307,7 +307,7 @@ def _process_selected_text(
 
 def _process_full_text(
     model: str,
-    use_llm_executable: bool,
+    backend: str,
     input_text: Optional[str],
     input_file: Optional[str],
     output_file: Optional[str],
@@ -320,7 +320,7 @@ def _process_full_text(
     Process file with input_text, stdin, or print_only mode.
 
     :param model: Name of the LLM model to use
-    :param use_llm_executable: Whether to use the LLM executable
+    :param backend: Backend to use ("executable", "library", or "mock")
     :param input_text: Input text (if provided directly)
     :param input_file: Path to input file
     :param output_file: Path to output file
@@ -345,7 +345,7 @@ def _process_full_text(
             len(system_prompt) if system_prompt else 0,
         )
         _LOG.info("  Model: %s", model)
-        _LOG.info("  Use LLM executable: %s", use_llm_executable)
+        _LOG.info("  Backend: %s", backend)
         _LOG.info("  Expected output chars: %s", expected_num_chars)
         _LOG.info("Input text to be processed:")
         _LOG.info("%s", pprint.pformat(input_str))
@@ -356,7 +356,7 @@ def _process_full_text(
             input_str,
             system_prompt=system_prompt,
             model=model,
-            use_llm_executable=use_llm_executable,
+            backend=backend,
             expected_num_chars=expected_num_chars,
         )
         if lint:
@@ -440,7 +440,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cost = _process_selected_text(
             args.select,
             args.model,
-            args.use_llm_executable,
+            args.backend,
             input_file,
             output_file,
             system_prompt,
@@ -453,7 +453,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Transform full text.
         cost = _process_full_text(
             args.model,
-            args.use_llm_executable,
+            args.backend,
             input_text,
             input_file,
             output_file,
