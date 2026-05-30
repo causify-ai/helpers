@@ -42,9 +42,11 @@ if TYPE_CHECKING:
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hmarkdown_select as hmarsele
 import helpers.hmodule as hmodule
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+
 
 _LOG = logging.getLogger(__name__)
 
@@ -1091,10 +1093,11 @@ def mock_apply_llm():
     """
     Context manager to mock `apply_llm()` for testing without calling LLM.
 
-    This provides a convenient way to mock `apply_llm()` in tests by returning
-    the digest of the concatenated `input_str` and `system_prompt` instead of
-    making an actual LLM call. This avoids expensive API calls and external
-    dependencies during testing.
+    This mocks `apply_llm()` in tests by returning the digest of the
+    concatenated `input_str` and `system_prompt` instead of making an actual
+    LLM call.
+
+    This avoids expensive API calls and external dependencies during testing.
     """
 
     def _mock_apply_llm(
@@ -1227,8 +1230,6 @@ def add_llm_args(
         dest="system_prompt_file",
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
-    import helpers.hmarkdown_select as hmarsele
-
     hmarsele.add_rule_cli_arg(system_prompt_group)
     # Model selection.
     if include_model:

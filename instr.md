@@ -1,9 +1,6 @@
-Fix the issue when calling rig with options like --last_commit --branch that specify a list of
-files
+Add 
 
-rig --last_commit -v DEBUG
-
-rg '^\s*(#|//)\s*TODO\(ai_gp\S*\)' . --hidden dev_scripts_helpers/system_tools/lib_rig.py helpers/hparser.py linters2/lint_cc.py -n --no-heading --color=never -g '!.git'
+./dev_scripts_helpers/llms/test/test_llm_cli.py
 
 The directory should be replaced with the list of files
 
