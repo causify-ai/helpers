@@ -496,106 +496,166 @@ class Test_get_input_output_files(hunitest.TestCase):
     Test _get_input_output_files() function.
     """
 
-    def test_input_file_with_output_file(self) -> None:
+    def test1(self) -> None:
         """Test standard file-to-file input/output."""
+        # Prepare inputs.
+        input_arg = "/test.md"
+        input_text_arg = None
+        output_arg = "/out.txt"
+        modify_in_place = False
+        # Run test.
         input_file, input_text, output_file = dshlllcl._get_input_output_files(
-            input_arg="/test.md",
-            input_text_arg=None,
-            output_arg="/out.txt",
-            modify_in_place=False,
+            input_arg,
+            input_text_arg,
+            output_arg,
+            modify_in_place,
         )
+        # Check outputs.
         self.assertEqual(input_file, "/test.md")
         self.assertIsNone(input_text)
         self.assertEqual(output_file, "/out.txt")
 
-    def test_input_file_stdin_to_output(self) -> None:
+    def test2(self) -> None:
         """Test stdin input with file output."""
+        # Prepare inputs.
+        input_arg = "-"
+        input_text_arg = None
+        output_arg = "/out.txt"
+        modify_in_place = False
+        # Run test.
         input_file, input_text, output_file = dshlllcl._get_input_output_files(
-            input_arg="-",
-            input_text_arg=None,
-            output_arg="/out.txt",
-            modify_in_place=False,
+            input_arg,
+            input_text_arg,
+            output_arg,
+            modify_in_place,
         )
+        # Check outputs.
         self.assertEqual(input_file, "-")
         self.assertIsNone(input_text)
         self.assertEqual(output_file, "/out.txt")
 
-    def test_input_file_no_output_modify_in_place(self) -> None:
+    def test3(self) -> None:
         """Test file input with in-place modification (no output)."""
+        # Prepare inputs.
+        input_arg = "/test.md"
+        input_text_arg = None
+        output_arg = None
+        modify_in_place = True
+        # Run test.
         input_file, input_text, output_file = dshlllcl._get_input_output_files(
-            input_arg="/test.md",
-            input_text_arg=None,
-            output_arg=None,
-            modify_in_place=True,
+            input_arg,
+            input_text_arg,
+            output_arg,
+            modify_in_place,
         )
+        # Check outputs.
         self.assertEqual(input_file, "/test.md")
         self.assertIsNone(input_text)
         self.assertEqual(output_file, "/test.md")
 
-    def test_input_file_no_output_stdout(self) -> None:
+    def test4(self) -> None:
         """Test file input with stdout output (no output flag)."""
+        # Prepare inputs.
+        input_arg = "/test.md"
+        input_text_arg = None
+        output_arg = None
+        modify_in_place = False
+        # Run test.
         input_file, input_text, output_file = dshlllcl._get_input_output_files(
-            input_arg="/test.md",
-            input_text_arg=None,
-            output_arg=None,
-            modify_in_place=False,
+            input_arg,
+            input_text_arg,
+            output_arg,
+            modify_in_place,
         )
+        # Check outputs.
         self.assertEqual(input_file, "/test.md")
         self.assertIsNone(input_text)
         self.assertEqual(output_file, "-")
 
-    def test_input_text_with_output(self) -> None:
+    def test5(self) -> None:
         """Test direct text input with file output."""
+        # Prepare inputs.
+        input_arg = None
+        input_text_arg = "Hello world"
+        output_arg = "/out.txt"
+        modify_in_place = False
+        # Run test.
         input_file, input_text, output_file = dshlllcl._get_input_output_files(
-            input_arg=None,
-            input_text_arg="Hello world",
-            output_arg="/out.txt",
-            modify_in_place=False,
+            input_arg,
+            input_text_arg,
+            output_arg,
+            modify_in_place,
         )
+        # Check outputs.
         self.assertIsNone(input_file)
         self.assertEqual(input_text, "Hello world")
         self.assertEqual(output_file, "/out.txt")
 
-    def test_input_text_no_output_fails(self) -> None:
+    def test6(self) -> None:
         """Test that input_text without output fails."""
+        # Prepare inputs.
+        input_arg = None
+        input_text_arg = "Hello world"
+        output_arg = None
+        modify_in_place = False
+        # Run test and check output.
         with self.assertRaises(AssertionError):
             dshlllcl._get_input_output_files(
-                input_arg=None,
-                input_text_arg="Hello world",
-                output_arg=None,
-                modify_in_place=False,
+                input_arg,
+                input_text_arg,
+                output_arg,
+                modify_in_place,
             )
 
-    def test_empty_input_arg_with_none_text(self) -> None:
+    def test7(self) -> None:
         """Test that empty input arg with None text is treated as no input."""
+        # Prepare inputs.
+        input_arg = ""
+        input_text_arg = None
+        output_arg = "/out.txt"
+        modify_in_place = False
+        # Run test.
         input_file, input_text, output_file = dshlllcl._get_input_output_files(
-            input_arg="",
-            input_text_arg=None,
-            output_arg="/out.txt",
-            modify_in_place=False,
+            input_arg,
+            input_text_arg,
+            output_arg,
+            modify_in_place,
         )
+        # Check outputs.
         self.assertIsNone(input_file)
         self.assertIsNone(input_text)
         self.assertEqual(output_file, "/out.txt")
 
-    def test_empty_input_text_string(self) -> None:
+    def test8(self) -> None:
         """Test that empty input_text string fails assertion."""
+        # Prepare inputs.
+        input_arg = None
+        input_text_arg = ""
+        output_arg = "/out.txt"
+        modify_in_place = False
+        # Run test and check output.
         with self.assertRaises(AssertionError):
             dshlllcl._get_input_output_files(
-                input_arg=None,
-                input_text_arg="",
-                output_arg="/out.txt",
-                modify_in_place=False,
+                input_arg,
+                input_text_arg,
+                output_arg,
+                modify_in_place,
             )
 
-    def test_empty_output_arg_fails(self) -> None:
+    def test9(self) -> None:
         """Test that empty output arg fails."""
+        # Prepare inputs.
+        input_arg = "/test.md"
+        input_text_arg = None
+        output_arg = ""
+        modify_in_place = False
+        # Run test and check output.
         with self.assertRaises(AssertionError):
             dshlllcl._get_input_output_files(
-                input_arg="/test.md",
-                input_text_arg=None,
-                output_arg="",
-                modify_in_place=False,
+                input_arg,
+                input_text_arg,
+                output_arg,
+                modify_in_place,
             )
 
 
@@ -609,71 +669,108 @@ class Test_get_expected_num_chars(hunitest.TestCase):
     Test _get_expected_num_chars() function.
     """
 
-    def test_progress_bar_disabled_returns_none(self) -> None:
+    def test1(self) -> None:
         """Test that progress bar disabled returns None."""
+        # Prepare inputs.
+        progress_bar = False
+        expected_num_chars_arg = None
+        input_file = "/test.md"
+        input_text = "test"
+        # Run test.
         result = dshlllcl._get_expected_num_chars(
-            progress_bar=False,
-            expected_num_chars_arg=None,
-            input_file="/test.md",
-            input_text="test",
+            progress_bar,
+            expected_num_chars_arg,
+            input_file,
+            input_text,
         )
+        # Check outputs.
         self.assertIsNone(result)
 
-    def test_progress_bar_with_explicit_count(self) -> None:
+    def test2(self) -> None:
         """Test progress bar with explicit character count."""
+        # Prepare inputs.
+        progress_bar = True
+        expected_num_chars_arg = 1000
+        input_file = None
+        input_text = None
+        # Run test.
         result = dshlllcl._get_expected_num_chars(
-            progress_bar=True,
-            expected_num_chars_arg=1000,
-            input_file=None,
-            input_text=None,
+            progress_bar,
+            expected_num_chars_arg,
+            input_file,
+            input_text,
         )
+        # Check outputs.
         self.assertEqual(result, 1000)
 
-    def test_progress_bar_with_file_input(self) -> None:
+    def test3(self) -> None:
         """Test progress bar calculates from file."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "test.md")
-        hio.to_file(input_file, "hello world")  # 11 chars
+        hio.to_file(input_file, "hello world")
+        progress_bar = True
+        expected_num_chars_arg = None
+        input_text = None
+        # Run test.
         result = dshlllcl._get_expected_num_chars(
-            progress_bar=True,
-            expected_num_chars_arg=None,
-            input_file=input_file,
-            input_text=None,
+            progress_bar,
+            expected_num_chars_arg,
+            input_file,
+            input_text,
         )
+        # Check outputs.
         self.assertEqual(result, 11)
 
-    def test_progress_bar_with_text_input(self) -> None:
+    def test4(self) -> None:
         """Test progress bar calculates from text."""
+        # Prepare inputs.
+        progress_bar = True
+        expected_num_chars_arg = None
+        input_file = None
+        input_text = "hello"
+        # Run test.
         result = dshlllcl._get_expected_num_chars(
-            progress_bar=True,
-            expected_num_chars_arg=None,
-            input_file=None,
-            input_text="hello",  # 5 chars
+            progress_bar,
+            expected_num_chars_arg,
+            input_file,
+            input_text,
         )
+        # Check outputs.
         self.assertEqual(result, 5)
 
-    def test_progress_bar_with_stdin_input(self) -> None:
+    def test5(self) -> None:
         """Test progress bar calculates from stdin."""
-        input_file = "-"  # stdin marker
-        # This will try to read from stdin, so we need to mock it
+        # Prepare inputs.
+        progress_bar = True
+        expected_num_chars_arg = None
+        input_file = "-"
+        input_text = None
+        # Run test with mocked stdin.
         with mock.patch("helpers.hselect_input_output.from_file") as mock_read:
-            mock_read.return_value = ["line1", "line2"]  # 11 chars with newline
+            mock_read.return_value = ["line1", "line2"]
             result = dshlllcl._get_expected_num_chars(
-                progress_bar=True,
-                expected_num_chars_arg=None,
-                input_file=input_file,
-                input_text=None,
+                progress_bar,
+                expected_num_chars_arg,
+                input_file,
+                input_text,
             )
-            # 5 + 5 + 1 (newline) = 11
-            self.assertEqual(result, 11)
+        # Check outputs.
+        self.assertEqual(result, 11)
 
-    def test_invalid_expected_num_chars(self) -> None:
+    def test6(self) -> None:
         """Test that non-positive character count fails."""
+        # Prepare inputs.
+        progress_bar = False
+        expected_num_chars_arg = 0
+        input_file = None
+        input_text = None
+        # Run test and check output.
         with self.assertRaises(AssertionError):
             dshlllcl._get_expected_num_chars(
-                progress_bar=False,
-                expected_num_chars_arg=0,
-                input_file=None,
-                input_text=None,
+                progress_bar,
+                expected_num_chars_arg,
+                input_file,
+                input_text,
             )
 
 
@@ -687,53 +784,82 @@ class Test_get_system_prompt(hunitest.TestCase):
     Test _get_system_prompt() function.
     """
 
-    def test_system_prompt_from_file(self) -> None:
+    def test1(self) -> None:
         """Test loading system prompt from file."""
+        # Prepare inputs.
         prompt_file = os.path.join(self.get_scratch_space(), "prompt.txt")
         hio.to_file(prompt_file, "Prompt from file")
+        system_prompt_file = prompt_file
+        rule = None
+        system_prompt = ""
+        # Run test.
         result = dshlllcl._get_system_prompt(
-            system_prompt_file=prompt_file,
-            rule=None,
-            system_prompt="",
+            system_prompt_file,
+            rule,
+            system_prompt,
         )
+        # Check outputs.
         self.assertEqual(result, "Prompt from file")
 
-    def test_system_prompt_from_string(self) -> None:
+    def test2(self) -> None:
         """Test using system prompt string directly."""
+        # Prepare inputs.
+        system_prompt_file = None
+        rule = None
+        system_prompt = "Custom prompt"
+        # Run test.
         result = dshlllcl._get_system_prompt(
-            system_prompt_file=None,
-            rule=None,
-            system_prompt="Custom prompt",
+            system_prompt_file,
+            rule,
+            system_prompt,
         )
+        # Check outputs.
         self.assertEqual(result, "Custom prompt")
 
-    def test_system_prompt_no_options(self) -> None:
+    def test3(self) -> None:
         """Test with no prompt options returns empty string."""
+        # Prepare inputs.
+        system_prompt_file = None
+        rule = None
+        system_prompt = ""
+        # Run test.
         result = dshlllcl._get_system_prompt(
-            system_prompt_file=None,
-            rule=None,
-            system_prompt="",
+            system_prompt_file,
+            rule,
+            system_prompt,
         )
+        # Check outputs.
         self.assertEqual(result, "")
 
-    def test_empty_system_prompt_file_treated_as_none(self) -> None:
+    def test4(self) -> None:
         """Test that empty system prompt file is treated as None."""
+        # Prepare inputs.
+        system_prompt_file = ""
+        rule = None
+        system_prompt = ""
+        # Run test.
         result = dshlllcl._get_system_prompt(
-            system_prompt_file="",
-            rule=None,
-            system_prompt="",
+            system_prompt_file,
+            rule,
+            system_prompt,
         )
+        # Check outputs.
         self.assertEqual(result, "")
 
-    def test_multiple_options_fails(self) -> None:
+    def test5(self) -> None:
         """Test that multiple prompt options fail."""
+        # Prepare inputs.
         prompt_file = os.path.join(self.get_scratch_space(), "prompt.txt")
         hio.to_file(prompt_file, "Prompt")
+        system_prompt_file = prompt_file
+        rule = None
+        system_prompt = "Also a prompt"
+        # Run test and check output.
         with self.assertRaises(AssertionError):
             dshlllcl._get_system_prompt(
-                system_prompt_file=prompt_file,
-                rule=None,
-                system_prompt="Also a prompt",
+                system_prompt_file,
+                rule,
+                system_prompt,
             )
 
 
@@ -747,99 +873,136 @@ class Test_process_selected_text(hunitest.TestCase):
     Test _process_selected_text() function.
     """
 
-    def test_select_modify_in_place(self) -> None:
+    def test1(self) -> None:
         """Test select mode with in-place modification."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "test.md")
         content = "# Header 1\nBefore\n## Section 1\nTarget\n## Section 2\nAfter"
         hio.to_file(input_file, content)
-
+        select = "Section 1:Section 2"
+        model = "test-model"
+        use_llm_executable = False
+        output_file = None
+        system_prompt = "Transform"
+        modify_in_place = True
+        lint = False
+        expected_num_chars = None
+        dry_run = False
+        # Run test.
         with hllmcli.mock_apply_llm():
             cost = dshlllcl._process_selected_text(
-                select="Section 1:Section 2",
-                model="test-model",
-                use_llm_executable=False,
-                input_file=input_file,
-                output_file=None,
-                system_prompt="Transform",
-                modify_in_place=True,
-                lint=False,
-                expected_num_chars=None,
-                dry_run=False,
+                select,
+                model,
+                use_llm_executable,
+                input_file,
+                output_file,
+                system_prompt,
+                modify_in_place,
+                lint,
+                expected_num_chars,
+                dry_run,
             )
-
+        # Check outputs.
         result = hio.from_file(input_file)
         self.assertIn("Before", result)
         self.assertIn("After", result)
         self.assertGreaterEqual(cost, 0.0)
 
-    def test_select_with_output_file(self) -> None:
+    def test2(self) -> None:
         """Test select mode writing to output file."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "input.md")
         output_file = os.path.join(self.get_scratch_space(), "output.md")
         content = "# Header\nBefore\n## Section A\nTarget\n## Section B\nAfter"
         hio.to_file(input_file, content)
-
+        select = "Section A:Section B"
+        model = "test-model"
+        use_llm_executable = False
+        system_prompt = "Transform"
+        modify_in_place = False
+        lint = False
+        expected_num_chars = None
+        dry_run = False
+        # Run test.
         with hllmcli.mock_apply_llm():
             dshlllcl._process_selected_text(
-                select="Section A:Section B",
-                model="test-model",
-                use_llm_executable=False,
-                input_file=input_file,
-                output_file=output_file,
-                system_prompt="Transform",
-                modify_in_place=False,
-                lint=False,
-                expected_num_chars=None,
-                dry_run=False,
+                select,
+                model,
+                use_llm_executable,
+                input_file,
+                output_file,
+                system_prompt,
+                modify_in_place,
+                lint,
+                expected_num_chars,
+                dry_run,
             )
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
         result = hio.from_file(output_file)
         self.assertGreater(len(result), 0)
 
-    def test_select_dry_run(self) -> None:
+    def test3(self) -> None:
         """Test select mode with dry run."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "test.md")
         hio.to_file(input_file, "# H\n## S1\nText\n## S2\nEnd")
-
+        select = "S1:S2"
+        model = "test-model"
+        use_llm_executable = False
+        output_file = None
+        system_prompt = "Transform"
+        modify_in_place = True
+        lint = False
+        expected_num_chars = None
+        dry_run = True
+        # Run test.
         cost = dshlllcl._process_selected_text(
-            select="S1:S2",
-            model="test-model",
-            use_llm_executable=False,
-            input_file=input_file,
-            output_file=None,
-            system_prompt="Transform",
-            modify_in_place=True,
-            lint=False,
-            expected_num_chars=None,
-            dry_run=True,
+            select,
+            model,
+            use_llm_executable,
+            input_file,
+            output_file,
+            system_prompt,
+            modify_in_place,
+            lint,
+            expected_num_chars,
+            dry_run,
         )
-
+        # Check outputs.
         self.assertEqual(cost, 0.0)
-        # File should not be modified in dry run
         original = hio.from_file(input_file)
         self.assertIn("Text", original)
 
-    def test_select_with_lint(self) -> None:
+    def test4(self) -> None:
         """Test select mode with linting enabled."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "test.md")
         hio.to_file(input_file, "# H\n## S\nContent here\n## E\nEnd")
         output_file = os.path.join(self.get_scratch_space(), "output.md")
-
+        select = "S:E"
+        model = "test-model"
+        use_llm_executable = False
+        system_prompt = "Transform"
+        modify_in_place = False
+        lint = True
+        expected_num_chars = None
+        dry_run = False
+        # Run test.
         with hllmcli.mock_apply_llm():
             dshlllcl._process_selected_text(
-                select="S:E",
-                model="test-model",
-                use_llm_executable=False,
-                input_file=input_file,
-                output_file=output_file,
-                system_prompt="Transform",
-                modify_in_place=False,
-                lint=True,
-                expected_num_chars=None,
-                dry_run=False,
+                select,
+                model,
+                use_llm_executable,
+                input_file,
+                output_file,
+                system_prompt,
+                modify_in_place,
+                lint,
+                expected_num_chars,
+                dry_run,
             )
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
 
 
@@ -853,86 +1016,120 @@ class Test_process_full_text(hunitest.TestCase):
     Test _process_full_text() function.
     """
 
-    def test_full_text_with_input_text(self) -> None:
+    def test1(self) -> None:
         """Test processing direct text input."""
+        # Prepare inputs.
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
-
+        model = "test-model"
+        use_llm_executable = False
+        input_text = "Hello world"
+        input_file = None
+        system_prompt = "Transform"
+        lint = False
+        expected_num_chars = None
+        dry_run = False
+        # Run test.
         with hllmcli.mock_apply_llm():
             cost = dshlllcl._process_full_text(
-                model="test-model",
-                use_llm_executable=False,
-                input_text="Hello world",
-                input_file=None,
-                output_file=output_file,
-                system_prompt="Transform",
-                lint=False,
-                expected_num_chars=None,
-                dry_run=False,
+                model,
+                use_llm_executable,
+                input_text,
+                input_file,
+                output_file,
+                system_prompt,
+                lint,
+                expected_num_chars,
+                dry_run,
             )
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
         result = hio.from_file(output_file)
         self.assertGreater(len(result), 0)
         self.assertGreaterEqual(cost, 0.0)
 
-    def test_full_text_with_file_input(self) -> None:
+    def test2(self) -> None:
         """Test processing file input."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "input.txt")
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
         hio.to_file(input_file, "Test content")
-
+        model = "test-model"
+        use_llm_executable = False
+        input_text = None
+        system_prompt = "Transform"
+        lint = False
+        expected_num_chars = None
+        dry_run = False
+        # Run test.
         with hllmcli.mock_apply_llm():
             dshlllcl._process_full_text(
-                model="test-model",
-                use_llm_executable=False,
-                input_text=None,
-                input_file=input_file,
-                output_file=output_file,
-                system_prompt="Transform",
-                lint=False,
-                expected_num_chars=None,
-                dry_run=False,
+                model,
+                use_llm_executable,
+                input_text,
+                input_file,
+                output_file,
+                system_prompt,
+                lint,
+                expected_num_chars,
+                dry_run,
             )
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
 
-    def test_full_text_dry_run(self) -> None:
+    def test3(self) -> None:
         """Test full text processing with dry run."""
+        # Prepare inputs.
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
-
+        model = "test-model"
+        use_llm_executable = False
+        input_text = "Test input"
+        input_file = None
+        system_prompt = "Transform"
+        lint = False
+        expected_num_chars = None
+        dry_run = True
+        # Run test.
         cost = dshlllcl._process_full_text(
-            model="test-model",
-            use_llm_executable=False,
-            input_text="Test input",
-            input_file=None,
-            output_file=output_file,
-            system_prompt="Transform",
-            lint=False,
-            expected_num_chars=None,
-            dry_run=True,
+            model,
+            use_llm_executable,
+            input_text,
+            input_file,
+            output_file,
+            system_prompt,
+            lint,
+            expected_num_chars,
+            dry_run,
         )
-
+        # Check outputs.
         self.assertEqual(cost, 0.0)
-        # Output file should not be created in dry run
         self.assertFalse(os.path.exists(output_file))
 
-    def test_full_text_with_lint(self) -> None:
+    def test4(self) -> None:
         """Test full text processing with linting."""
+        # Prepare inputs.
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
-
+        model = "test-model"
+        use_llm_executable = False
+        input_text = "Test content"
+        input_file = None
+        system_prompt = "Transform"
+        lint = True
+        expected_num_chars = None
+        dry_run = False
+        # Run test.
         with hllmcli.mock_apply_llm():
             dshlllcl._process_full_text(
-                model="test-model",
-                use_llm_executable=False,
-                input_text="Test content",
-                input_file=None,
-                output_file=output_file,
-                system_prompt="Transform",
-                lint=True,
-                expected_num_chars=None,
-                dry_run=False,
+                model,
+                use_llm_executable,
+                input_text,
+                input_file,
+                output_file,
+                system_prompt,
+                lint,
+                expected_num_chars,
+                dry_run,
             )
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
 
 
@@ -946,30 +1143,45 @@ class Test_parse(hunitest.TestCase):
     Test _parse() function.
     """
 
-    def test_parser_has_required_args(self) -> None:
+    def test1(self) -> None:
         """Test that parser has all required arguments."""
+        # Prepare inputs.
+        parse_args = ["-i", "test.txt", "-p", "prompt"]
+        # Run test.
         parser = dshlllcl._parse()
-        # Parse empty args to check parser structure
-        args = parser.parse_args(["-i", "test.txt", "-p", "prompt"])
+        args = parser.parse_args(parse_args)
+        # Check outputs.
         self.assertEqual(args.input, "test.txt")
         self.assertEqual(args.system_prompt, "prompt")
 
-    def test_parser_modify_in_place_default(self) -> None:
+    def test2(self) -> None:
         """Test modify_in_place default value."""
+        # Prepare inputs.
+        parse_args = ["-i", "test.txt", "-p", "prompt"]
+        # Run test.
         parser = dshlllcl._parse()
-        args = parser.parse_args(["-i", "test.txt", "-p", "prompt"])
+        args = parser.parse_args(parse_args)
+        # Check outputs.
         self.assertFalse(args.modify_in_place)
 
-    def test_parser_lint_default(self) -> None:
+    def test3(self) -> None:
         """Test lint default value."""
+        # Prepare inputs.
+        parse_args = ["-i", "test.txt", "-p", "prompt"]
+        # Run test.
         parser = dshlllcl._parse()
-        args = parser.parse_args(["-i", "test.txt", "-p", "prompt"])
+        args = parser.parse_args(parse_args)
+        # Check outputs.
         self.assertFalse(args.lint)
 
-    def test_parser_dry_run_default(self) -> None:
+    def test4(self) -> None:
         """Test dry_run default value."""
+        # Prepare inputs.
+        parse_args = ["-i", "test.txt", "-p", "prompt"]
+        # Run test.
         parser = dshlllcl._parse()
-        args = parser.parse_args(["-i", "test.txt", "-p", "prompt"])
+        args = parser.parse_args(parse_args)
+        # Check outputs.
         self.assertFalse(args.dry_run)
 
 
@@ -983,204 +1195,203 @@ class Test_main_integration(hunitest.TestCase):
     Test _main() function integration.
     """
 
-    def test_main_with_full_text_processing(self) -> None:
+    def test1(self) -> None:
         """Test _main with full text processing."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "input.txt")
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
         hio.to_file(input_file, "Test input")
-
+        argv = [
+            "llm_cli.py",
+            "-i",
+            input_file,
+            "-o",
+            output_file,
+            "-p",
+            "Test prompt",
+        ]
+        # Run test.
         with hllmcli.mock_apply_llm():
-            with mock.patch(
-                "sys.argv",
-                [
-                    "llm_cli.py",
-                    "-i",
-                    input_file,
-                    "-o",
-                    output_file,
-                    "-p",
-                    "Test prompt",
-                ],
-            ):
+            with mock.patch("sys.argv", argv):
                 parser = dshlllcl._parse()
                 dshlllcl._main(parser)
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
         result = hio.from_file(output_file)
         self.assertGreater(len(result), 0)
 
-    def test_main_with_dry_run(self) -> None:
+    def test2(self) -> None:
         """Test _main with dry run mode."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "input.txt")
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
         hio.to_file(input_file, "Test input")
-
-        with mock.patch(
-            "sys.argv",
-            [
-                "llm_cli.py",
-                "-i",
-                input_file,
-                "-o",
-                output_file,
-                "-p",
-                "Test prompt",
-                "--dry_run",
-            ],
-        ):
+        argv = [
+            "llm_cli.py",
+            "-i",
+            input_file,
+            "-o",
+            output_file,
+            "-p",
+            "Test prompt",
+            "--dry_run",
+        ]
+        # Run test.
+        with mock.patch("sys.argv", argv):
             parser = dshlllcl._parse()
             dshlllcl._main(parser)
-
-        # Output file should not be created in dry run
+        # Check outputs.
         self.assertFalse(os.path.exists(output_file))
 
-    def test_main_with_modify_in_place(self) -> None:
+    def test3(self) -> None:
         """Test _main with modify_in_place flag."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "input.txt")
         hio.to_file(input_file, "Original content")
-
+        argv = [
+            "llm_cli.py",
+            "-i",
+            input_file,
+            "-m",
+            "-p",
+            "Transform",
+        ]
+        # Run test.
         with hllmcli.mock_apply_llm():
-            with mock.patch(
-                "sys.argv",
-                [
-                    "llm_cli.py",
-                    "-i",
-                    input_file,
-                    "-m",
-                    "-p",
-                    "Transform",
-                ],
-            ):
+            with mock.patch("sys.argv", argv):
                 parser = dshlllcl._parse()
                 dshlllcl._main(parser)
-
+        # Check outputs.
         result = hio.from_file(input_file)
         self.assertNotEqual(result, "Original content")
 
-    def test_main_with_input_text(self) -> None:
+    def test4(self) -> None:
         """Test _main with --input_text argument."""
+        # Prepare inputs.
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
-
+        argv = [
+            "llm_cli.py",
+            "--input_text",
+            "Test text",
+            "-o",
+            output_file,
+            "-p",
+            "Prompt",
+        ]
+        # Run test.
         with hllmcli.mock_apply_llm():
-            with mock.patch(
-                "sys.argv",
-                [
-                    "llm_cli.py",
-                    "--input_text",
-                    "Test text",
-                    "-o",
-                    output_file,
-                    "-p",
-                    "Prompt",
-                ],
-            ):
+            with mock.patch("sys.argv", argv):
                 parser = dshlllcl._parse()
                 dshlllcl._main(parser)
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
 
-    def test_main_with_select_mode(self) -> None:
+    def test5(self) -> None:
         """Test _main with --select mode."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "input.md")
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
         content = "# Header\n## Section A\nContent A\n## Section B\nContent B"
         hio.to_file(input_file, content)
-
+        argv = [
+            "llm_cli.py",
+            "-i",
+            input_file,
+            "-o",
+            output_file,
+            "--select",
+            "Section A:Section B",
+            "-p",
+            "Transform",
+        ]
+        # Run test.
         with hllmcli.mock_apply_llm():
-            with mock.patch(
-                "sys.argv",
-                [
-                    "llm_cli.py",
-                    "-i",
-                    input_file,
-                    "-o",
-                    output_file,
-                    "--select",
-                    "Section A:Section B",
-                    "-p",
-                    "Transform",
-                ],
-            ):
+            with mock.patch("sys.argv", argv):
                 parser = dshlllcl._parse()
                 dshlllcl._main(parser)
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
 
-    def test_main_stdin_stdout_suppresses_logs(self) -> None:
+    def test6(self) -> None:
         """Test that INFO logging is suppressed for stdin/stdout."""
+        # Prepare inputs.
         input_content = "Test input"
-
-        # Create a temp file to capture logs
-        with mock.patch(
-            "sys.argv",
-            [
-                "llm_cli.py",
-                "-i",
-                "-",
-                "-o",
-                "-",
-                "-p",
-                "Transform",
-                "-v",
-                "INFO",
-            ],
-        ):
+        argv = [
+            "llm_cli.py",
+            "-i",
+            "-",
+            "-o",
+            "-",
+            "-p",
+            "Transform",
+            "-v",
+            "INFO",
+        ]
+        # Run test.
+        with mock.patch("sys.argv", argv):
             with mock.patch("sys.stdin") as mock_stdin:
                 mock_stdin.readlines.return_value = [input_content]
                 with hllmcli.mock_apply_llm():
                     parser = dshlllcl._parse()
-                    # Test that it doesn't crash when logging is suppressed
                     try:
                         dshlllcl._main(parser)
                     except (BrokenPipeError, AttributeError):
-                        # Expected when mocking stdin/stdout
                         pass
 
-    def test_main_with_progress_bar(self) -> None:
+    def test7(self) -> None:
         """Test _main with progress bar enabled."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "input.txt")
         output_file = os.path.join(self.get_scratch_space(), "output.txt")
         hio.to_file(input_file, "Test input content")
-
+        argv = [
+            "llm_cli.py",
+            "-i",
+            input_file,
+            "-o",
+            output_file,
+            "-p",
+            "Transform",
+            "--progress_bar",
+        ]
+        # Run test.
         with hllmcli.mock_apply_llm():
-            with mock.patch(
-                "sys.argv",
-                [
-                    "llm_cli.py",
-                    "-i",
-                    input_file,
-                    "-o",
-                    output_file,
-                    "-p",
-                    "Transform",
-                    "--progress_bar",
-                ],
-            ):
+            with mock.patch("sys.argv", argv):
                 parser = dshlllcl._parse()
                 dshlllcl._main(parser)
-
+        # Check outputs.
         self.assertTrue(os.path.exists(output_file))
 
-    def test_process_selected_text_before_and_after_with_content(self) -> None:
+    def test8(self) -> None:
         """Test select with content both before and after."""
+        # Prepare inputs.
         input_file = os.path.join(self.get_scratch_space(), "test.md")
         content = "Before line\n## Start\nTarget\n## End\nAfter line"
         hio.to_file(input_file, content)
-
+        select = "Start:End"
+        model = "test"
+        use_llm_executable = False
+        output_file = None
+        system_prompt = "Transform"
+        modify_in_place = True
+        lint = False
+        expected_num_chars = None
+        dry_run = False
+        # Run test.
         with hllmcli.mock_apply_llm():
             dshlllcl._process_selected_text(
-                select="Start:End",
-                model="test",
-                use_llm_executable=False,
-                input_file=input_file,
-                output_file=None,
-                system_prompt="Transform",
-                modify_in_place=True,
-                lint=False,
-                expected_num_chars=None,
-                dry_run=False,
+                select,
+                model,
+                use_llm_executable,
+                input_file,
+                output_file,
+                system_prompt,
+                modify_in_place,
+                lint,
+                expected_num_chars,
+                dry_run,
             )
-
+        # Check outputs.
         result = hio.from_file(input_file)
         self.assertIn("Before line", result)
         self.assertIn("After line", result)
