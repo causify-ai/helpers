@@ -31,13 +31,6 @@ description: Create a detailed markdown outline (notebook_outline file) for a Ju
   the explanation"
 - **Build on context**: Each cell should reference and extend what came before
 
-# Important Conventions
-
-- Always follow these guidelines:
-  - `.claude/skills/notebook.rules.md`: General notebook conventions
-  - `.claude/skills/markdown.rules.md`: Markdown formatting rules
-  - `.claude/skills/text.rules.md`: Bullet point conventions
-
 # Cell Outline Structure
 
 - Each cell in the outline corresponds to a pair of cells in the final notebook:
@@ -136,9 +129,9 @@ description: Create a detailed markdown outline (notebook_outline file) for a Ju
     for control, matplotlib patches for marble visualization
   ```
 
-# Formatting Rules
+# Important Conventions
 
-- **No non-ASCII characters**: Use `mu` instead of `μ`, `alpha` instead of `α`
-- **No page separators**: Avoid `---` or similar between cells
-- **Follow markdown conventions**: See `.claude/skills/markdown.rules.md`
-- **Follow bullet point conventions**: See `.claude/skills/text.rules.md`
+- Always follow these guidelines:
+  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions
+  - `.claude/skills/markdown.rules.md`: Markdown formatting rules
+  - `.claude/skills/text.rules.md`: Bullet point conventions

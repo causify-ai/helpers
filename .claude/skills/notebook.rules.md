@@ -270,6 +270,14 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - **Bad**: `This Shows The Distribution`
 - **Good**: `This shows the distribution`
 
+## Non-ASCII Characters
+- Avoid non-ASCII characters in code and documentation
+- Use ASCII equivalents instead:
+  - Use `mu` instead of `μ`, `alpha` instead of `α`
+  - Use `pi` instead of `π`, `lambda` instead of `λ`
+- Exception: LaTeX formulas within markdown (e.g., `$\mu$`, `$\alpha$`) are
+  acceptable
+
 # Data Processing and Visualization
 
 ## Prefer Pandas and Seaborn
