@@ -16,7 +16,9 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Second Cell: Optionally install packages on-the-fly
 - Third Cell: Notebook-specific imports and logger
 
-## Notebook-to-File Pairing
+## Utilities vs. Notebook Responsibilities
+
+### Notebook-to-File Pairing
 - Each notebook is paired with Jupytext to a Python file
 - Each notebook has a corresponding `*_utils.py` file containing the code
   corresponding to that notebook
@@ -27,6 +29,26 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
   - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
   - Paired utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+
+### Responsibility Division
+- All complexity goes in `*_utils.py`:
+  - Widget creation and state management
+  - Visualization and plotting functions
+  - Data computation and transformations
+  - Helper functions for interactive updates
+  - Documentation and parameter descriptions
+
+- In notebook cells (minimal, clear calls only):
+  - Keep notebook cells readable and pedagogically clear
+  - Move complexity and infrastructure code to utils
+  - Import and use utils functions to keep cells focused on concepts
+  - Example pattern:
+    ```python
+    # Display PDF, empirical mean, and compare with theoretical statistics.
+    utils.sample_bernoulli3()
+    ```
+
+- **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
 
 # Code Cell Design and Content
 

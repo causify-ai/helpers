@@ -30,39 +30,13 @@ description: Implement a Jupyter notebook from an outline description (including
 
 - Follow `.claude/skills/notebook.rules.md`: General notebook conventions and
   structure
-- Follow outline cell format from
-  `.claude/skills/notebook.create_outline/SKILL.md`
+- Follow outline cell format from `.claude/skills/notebook.create_outline/SKILL.md`
 - Follow `.claude/skills/coding.rules.md` for Python code in `*_utils.py` and in
   the Python cells in `.ipynb` file
 
-# Architecture: Utilities vs. Notebook
-
-## Organization Pattern
-
-- Each notebook follows a paired utility model
-  - **Notebook**:
-    - E.g., `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-  - **Jupytext paired file**:
-    - E.g., `msml610/tutorials/Lesson94-Information_Theory.py`
-  - **Associated utility file**:
-    - E.g., `msml610/tutorials/Lesson94_Information_Theory_utils.py`
-
-## Responsibility Division
-
-- All complexity goes in `*_utils.py`: 
-  - Widget creation and state management
-  - Visualization and plotting functions
-  - Data computation and transformations
-  - Helper functions for interactive updates
-  - Documentation and parameter descriptions
-
-- In notebook cells (minimal, clear calls only):
-  ```python
-  # Display PDF, empirical mean, and compare with theoretical statistics.
-  utils.sample_bernoulli3()
-  ```
-
-- **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
+- Follow `.claude/skills/notebook.rules.md`
+  `# Utilities vs. Notebook Responsibilities` for organizing utility files and
+  notebooks
 
 # Implementation Approach
 

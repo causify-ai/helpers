@@ -132,6 +132,6 @@ description: Create a detailed markdown outline (notebook_outline file) for a Ju
 # Important Conventions
 
 - Always follow these guidelines:
-  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions
+  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions, including the `Utilities vs. Notebook Responsibilities` section for organizing utility files and notebooks
   - `.claude/skills/markdown.rules.md`: Markdown formatting rules
   - `.claude/skills/text.rules.md`: Bullet point conventions
