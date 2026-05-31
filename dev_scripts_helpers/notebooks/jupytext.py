@@ -33,7 +33,7 @@ import logging
 import os
 import re
 import sys
-from typing import Tuple
+from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hselect_input_output as hseinout
@@ -42,6 +42,22 @@ import helpers.hsystem as hsystem
 import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
+
+
+def _filter_ipynb_files(files: List[str]) -> List[str]:
+    """
+    Filter files to keep only .ipynb files.
+
+    :param files: List of file paths to filter
+    :return: Filtered list containing only .ipynb files
+    """
+    ipynb_files = []
+    for file_path in files:
+        if liutils.is_ipynb_file(file_path):
+            ipynb_files.append(file_path)
+        else:
+            _LOG.warning("Skipping non-.ipynb file: %s", file_path)
+    return ipynb_files
 
 # #############################################################################
 # Pair
@@ -346,6 +362,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert(
         len(files) > 0,
         "No files selected; use --all, --files, --modified, --branch, --last_commit, or --from_file",
+    )
+    files = _filter_ipynb_files(files)
+    hdbg.dassert(
+        len(files) > 0,
+        "No .ipynb files found after filtering",
     )
     rc = 0
     for file_name in files:
