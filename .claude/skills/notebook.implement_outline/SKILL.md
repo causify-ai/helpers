@@ -8,13 +8,12 @@ description: Implement a Jupyter notebook from an outline description (including
   cell (created via `.claude/skills/notebook.create_outline/SKILL.md`)
 - **Outputs**:
   1. `.ipynb` file: Fully functional Jupyter notebook with working code,
-  visualizations, and interactive widgets
-  2. `*_utils.py` file: Reusable helper functions extracted from the notebook
-  code
+     visualizations, and interactive widgets
+  2. `.py` file: A Python file paired using `jupytext` to the `.ipynb` using
+     py:percent 
+  2. `*_utils.py` file: Reusable helper functions for the notebook code
 - **Purpose**: Implement the pedagogical design as a fully executable,
   interactive notebook
-- **Scope**: Covers both standard notebooks and interactive notebooks with
-  widgets (outline includes Widgets and Key Insights sections)
 
 # Core Workflow
 
@@ -33,32 +32,34 @@ description: Implement a Jupyter notebook from an outline description (including
   structure
 - Follow outline cell format from
   `.claude/skills/notebook.create_outline/SKILL.md`
-- Follow all project-level Python conventions (see project CLAUDE.md)
+- Follow `.claude/skills/coding.rules.md` for Python code in `*_utils.py` and in
+  the Python cells in `.ipynb` file
 
 # Architecture: Utilities vs. Notebook
 
 ## Organization Pattern
 
 - Each notebook follows a paired utility model
-  - **Notebook**: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-  - **Jupytext paired file**: `msml610/tutorials/Lesson94-Information_Theory.py`
-  - **Associated utility file**: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+  - **Notebook**:
+    - E.g., `msml610/tutorials/Lesson94-Information_Theory.ipynb`
+  - **Jupytext paired file**:
+    - E.g., `msml610/tutorials/Lesson94-Information_Theory.py`
+  - **Associated utility file**:
+    - E.g., `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 ## Responsibility Division
 
-- **In `*_utils.py`**: All complexity goes here
+- All complexity goes in `*_utils.py`: 
   - Widget creation and state management
   - Visualization and plotting functions
   - Data computation and transformations
   - Helper functions for interactive updates
   - Documentation and parameter descriptions
 
-- In notebook cells (Minimal, clear calls only):
+- In notebook cells (minimal, clear calls only):
   ```python
   # Display PDF, empirical mean, and compare with theoretical statistics.
   utils.sample_bernoulli3()
-
-  # Changing the seed generates new realizations with different empirical values.
   ```
 
 - **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
@@ -74,11 +75,6 @@ description: Implement a Jupyter notebook from an outline description (including
   - Move complexity and infrastructure code to utils
   - Import and use utils functions to keep cells focused on concepts
 
-## File Structure Example Naming Pattern
-- Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-- Jupytext paired file: `msml610/tutorials/Lesson94-Information_Theory.py`
-- Utilities file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
-
 # Reference Templates
 
 - Study these before implementing; they establish the quality bar and idioms
@@ -87,29 +83,40 @@ description: Implement a Jupyter notebook from an outline description (including
   - `.claude/templates/notebook_utils_template.py`
     - Paired utilities file with widget creation, state management, and
       visualization functions
+
+- Examples of notebooks
   - `msml610/tutorials/Lesson94_Information_Theory_utils.py`
-    - Production example with complex interactive patterns (especially
-      `plot_joint_entropy_interactive()`)
+  - Production example with complex interactive patterns (especially
+    `plot_joint_entropy_interactive()`)
 
 # Implementation Patterns
 
 ## Cell Structure in Notebook
 
-- Each cell in the outline becomes two notebook cells:
+- Each cell in the outline becomes three notebook cells:
 
   1. **Markdown cell**: Pedagogical context
      ```markdown
      ## Cell 1: Visualizing Population Distribution
      
-     Understanding the true population distribution is the foundation of statistical inference.
-     You can't observe the full population, only samples from it. Let's see what that looks like.
+     Understanding the true population distribution is the foundation of
+     statistical inference. You can't observe the full population, only samples
+     from it.
      ```
 
-  2. **Code cell**: Widget invocation
+  2. **Code cell**: Plotting / widget invocation
      ```python
      # Display the population as a bin of colored marbles.
      utils.visualize_population_distribution()
      ```
+
+  3. **Explanation cell**: A markdown cell that explains the results of the
+     previous cell using bullet points
+
+- For all the markdown cells use bullet points with nested bullets for clarity
+  and conciseness, following the rules in
+  - `.claude/skills/slides.rules.md`: rules for formatting slides
+  - `.claude/skills/text.rules.md`: rules for formatting bullet points
 
 ## Simple Interactive Widgets
 
@@ -141,7 +148,9 @@ description: Implement a Jupyter notebook from an outline description (including
 
 ```python
 def complex_entropy_interactive():
-    """Four-plot interactive widget for joint entropy exploration."""
+    """
+    Four-plot interactive widget for joint entropy exploration.
+    """
     # 1. Controls at top: sliders for each parameter + numeric input fields
     # 2. Four plots in a single row:
     #    - Joint distribution heatmap
@@ -155,60 +164,16 @@ def complex_entropy_interactive():
 
 ### Best Practices for Complex Widgets
 
-1. **Add controls first**: Both sliders (coarse adjustment) and numeric inputs (precise entry)
+1. **Add controls first**: Both sliders (coarse adjustment) and numeric inputs
+   (precise entry)
 2. **Use a single row layout**: Not 2×2 grids; arrange subplots horizontally
 3. **Information in Comments subplot**: Do NOT use `print()` statements
    - Create a text matplotlib axis or HTML widget
    - Dynamically generate explanation text based on current parameter values
    - Update it in the same callback as other plots
-4. **Legend per plot**: Add informative legends to each subplot, not just one global legend
-5. **Reference implementation**: Study `plot_joint_entropy_interactive()` in 
-   `msml610/tutorials/Lesson94_Information_Theory_utils.py` and 
-   `cell3_interactive_sample_generator()` in `notebook_utils_template.py`
-
-### Example Structure
-
-```python
-def plot_entropy_interactive(p_range=(0, 1), q_range=(0, 1)):
-    """Interactive joint entropy visualization.
-    
-    Parameters:
-      p_range, q_range: Tuples (min, max) for probability ranges
-      
-    Returns:
-      Widget container with controls and 4-plot layout
-    """
-    # Create sliders and numeric inputs
-    slider_p = FloatSlider(min=p_range[0], max=p_range[1], step=0.01, value=0.5)
-    input_p = FloatText(value=0.5)
-    # ... similar for q
-    
-    # Create figure with 4 subplots in one row
-    fig, (ax_joint, ax_entropy, ax_samples, ax_comments) = plt.subplots(
-        1, 4, figsize=(16, 4)
-    )
-    
-    # Initialize plots
-    update_plots(slider_p.value, slider_q.value, ax_joint, ax_entropy, ax_samples, ax_comments)
-    
-    # Create callback for interactivity
-    def on_change(change):
-        update_plots(slider_p.value, slider_q.value, ax_joint, ax_entropy, ax_samples, ax_comments)
-        fig.canvas.draw()
-    
-    # Wire up all controls
-    slider_p.observe(on_change, 'value')
-    slider_q.observe(on_change, 'value')
-    input_p.observe(on_change, 'value')
-    input_q.observe(on_change, 'value')
-    
-    # Create controls and return container
-    controls = VBox([HBox([slider_p, input_p]), HBox([slider_q, input_q])])
-    return VBox([controls, fig.canvas])
-```
-
-# Conventions
-- You must always follow the rules and conventions in
-  `.claude/skills/notebook.rules.md`
-- See `.claude/templates/notebook.template.py` for a complete end-to-end example
-  of implementing a notebook
+4. **Legend per plot**: Add informative legends to each subplot, not just one
+   global legend
+5. **Reference implementation**: study
+   - `plot_joint_entropy_interactive()` in
+     `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+   - `cell3_interactive_sample_generator()` in `notebook_utils_template.py`

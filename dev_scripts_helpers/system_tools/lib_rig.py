@@ -184,7 +184,8 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         ripgrep_extensions = ["py"]
     elif parsed.rule_mode:
         # --rule: search for markdown headers in `.claude/skills`.
-        ripgrep_dir = ".claude/skills"
+        git_root = hgit.find_git_root()
+        ripgrep_dir = os.path.join(git_root, ".claude", "skills")
         ripgrep_extensions = ["md"]
         # First positional arg becomes part of the regex pattern (if provided).
         if parsed.positional:

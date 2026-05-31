@@ -306,6 +306,13 @@ description: Conventions and standards for interactive Jupyter notebook structur
   ```
 - Never hard-code figure dimensions, but let callers customize size
 
+## Use plot_causal_dag() for Causal DAGs
+
+- Use `plot_causal_dag()` from `helpers_root/helpers/hgraphviz.py` when plotting
+  causal DAGs in notebooks
+- This function provides consistent styling and formatting for causal graphs
+  across all notebooks
+
 # Code Cleanup
 
 ## Remove Development Environment Cells
