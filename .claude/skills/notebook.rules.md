@@ -68,6 +68,47 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 - **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
 
+## Library Calls vs. Visualization in Package Tutorials
+- When writing a tutorial for a package:
+  - Keep the code that executes library calls and explores the API in the notebook
+    - Show how to use the library's data structures and functions
+    - Demonstrate the actual library calls and their results
+  - Keep all visualization and plotting code in the `*_utils.py` file
+    - Move complex visualizations, widgets, and formatting to utils
+    - Call visualization functions from the notebook with simple parameters
+  
+- When computation is too expensive or complex to run in the notebook:
+  - Create a small, simple example in the notebook that demonstrates the API
+    - Show the data structures and library calls clearly
+    - Keep the example lightweight so it runs quickly
+  - Move the full, complex computation into a function in `*_utils.py`
+    - This function handles the expensive computation out of view
+    - The notebook calls this function to display precomputed results
+  
+- **Example pattern**:
+  - **Bad** (visualization code embedded in notebook):
+    ```python
+    # Notebook cell with complex visualization mixed with API calls.
+    results = library.process_data(data)
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    axes[0, 0].scatter(results['x'], results['y'])
+    axes[0, 1].plot(results['trend'])
+    # ... more plotting code ...
+    ```
+  
+  - **Good** (library calls in notebook, visualization in utils):
+    ```python
+    # In notebook: show library calls clearly.
+    results = library.process_data(data)
+    utils.visualize_analysis_results(results)
+    
+    # In utils file: complex visualization separated.
+    def visualize_analysis_results(results):
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        axes[0, 0].scatter(results['x'], results['y'])
+        # ... full visualization code ...
+    ```
+
 # Code Cell Design and Content
 
 ## Single Responsibility Per Cell
@@ -563,3 +604,11 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Each section should be:
   - formatted using bullet points using `.claude/skills/text.rules.md`
   - short with no more than 3-5 bullet points
+
+# Testing Notebook
+
+- You run a command like:
+  ```
+  > docker_cmd.sh "python /git_root/tutorials/<package>/<paired python file>.py
+  ```
+  to run a notebook top to bottom and make sure it works
