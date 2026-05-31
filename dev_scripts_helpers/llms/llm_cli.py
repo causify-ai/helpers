@@ -410,8 +410,8 @@ def install_models() -> None:
             _LOG.warning("Installing %s plugin...", plugin_module_name)
             hsystem.system(cmd, print_command=True, suppress_output=False)
     #
-    cmd = "llm models"
-    hsystem.system(cmd, print_command=True, suppress_output=False)
+    #cmd = "llm models"
+    #hsystem.system(cmd, print_command=True, suppress_output=False)
 
 
 def execute_llm_command(llm_cmd: str, abort_on_error: bool = True) -> int:

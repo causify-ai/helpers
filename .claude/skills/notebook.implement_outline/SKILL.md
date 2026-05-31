@@ -95,21 +95,21 @@ description: Implement a Jupyter notebook from an outline description (including
 
 ## Cell Structure in Notebook
 
-Each cell in the outline becomes two notebook cells:
+- Each cell in the outline becomes two notebook cells:
 
-1. **Markdown cell**: Pedagogical context
-   ```markdown
-   ## Cell 1: Visualizing Population Distribution
-   
-   Understanding the true population distribution is the foundation of statistical inference.
-   You can't observe the full population, only samples from it. Let's see what that looks like.
-   ```
+  1. **Markdown cell**: Pedagogical context
+     ```markdown
+     ## Cell 1: Visualizing Population Distribution
+     
+     Understanding the true population distribution is the foundation of statistical inference.
+     You can't observe the full population, only samples from it. Let's see what that looks like.
+     ```
 
-2. **Code cell**: Widget invocation
-   ```python
-   # Display the population as a bin of colored marbles.
-   utils.visualize_population_distribution()
-   ```
+  2. **Code cell**: Widget invocation
+     ```python
+     # Display the population as a bin of colored marbles.
+     utils.visualize_population_distribution()
+     ```
 
 ## Simple Interactive Widgets
 

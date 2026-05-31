@@ -125,7 +125,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=False, report_command_line=False)
     logging.getLogger(devmduti.__name__).setLevel(args.log_level)
     topic_ = devmduti._match_prefix(args.topic, devmduti._VALID_TOPICS)
     action = devmduti._match_prefix(args.action, devmduti._VALID_ACTIONS)
