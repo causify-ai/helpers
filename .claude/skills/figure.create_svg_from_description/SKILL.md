@@ -1,5 +1,6 @@
 ---
 description: Generate a SVG code for an image or a description
+model: haiku
 ---
 
 # Task

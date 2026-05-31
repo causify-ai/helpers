@@ -1,5 +1,6 @@
 ---
 description: Move or add notebook code to a *_utils.py library file
+model: haiku
 ---
 
 You are an expert Python developer

@@ -1,5 +1,6 @@
 ---
 description: Identify and replace Python code with code in the `helpers` package
+model: haiku
 ---
 
 - I will provide references to one or more Python source files

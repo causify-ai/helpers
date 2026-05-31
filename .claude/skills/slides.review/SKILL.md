@@ -1,5 +1,6 @@
 ---
 description: Review slides and suggest fixes and improvements
+model: opus
 ---
 
 - Given a markdown file with slides about technical material

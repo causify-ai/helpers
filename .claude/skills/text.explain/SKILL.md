@@ -1,5 +1,6 @@
 ---
 description: Explain technical content preserving the same structure of the text
+model: haiku
 ---
 
 # Goal

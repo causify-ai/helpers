@@ -1,5 +1,6 @@
 ---
 description: Analyze and fix failure of tests in GitHub CI
+model: haiku
 ---
 
 # Step 1: Parse Logs

@@ -1,5 +1,6 @@
 ---
 description: Format the markdown cells of a notebook to like slides
+model: haiku
 ---
 
 - Given an interactive Jupyter notebook

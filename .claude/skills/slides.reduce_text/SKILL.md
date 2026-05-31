@@ -1,5 +1,6 @@
 ---
 description: Reduce the text in slide leaving the structure unchanged
+model: haiku
 ---
 
 # Role

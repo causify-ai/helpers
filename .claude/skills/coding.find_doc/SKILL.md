@@ -1,5 +1,6 @@
 ---
 description: Find documentation files for a given dir, file, class, or function and summarize in 3 bullet points
+model: haiku
 ---
 
 - Given the passed object (e.g., dir, file, class, function)

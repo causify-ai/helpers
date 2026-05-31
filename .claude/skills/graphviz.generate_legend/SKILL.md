@@ -1,5 +1,6 @@
 ---
 description: Generate a Graphviz legend template for causal knowledge graphs with node types and edge styles
+model: haiku
 ---
 
 ## Template Nodes

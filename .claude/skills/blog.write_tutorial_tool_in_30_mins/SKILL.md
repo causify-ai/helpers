@@ -1,5 +1,6 @@
 ---
 description: Write a practical technical tutorial for engineers, covering one tool or concept in 10-15 mins of reading time
+model: opus
 ---
 
 # Purpose

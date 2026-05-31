@@ -1,5 +1,6 @@
 ---
 description: Update a README.md
+model: haiku
 ---
 
 Update the content of the `README.md` in the passed dir `<dir>` according to the

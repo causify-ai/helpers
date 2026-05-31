@@ -1,5 +1,6 @@
 ---
 description: Convert an image of a graph into a Graphviz Dot in an accurate way
+model: haiku
 ---
 
 - Given the input image of a graph

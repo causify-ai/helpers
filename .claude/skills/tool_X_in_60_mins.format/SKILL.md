@@ -1,5 +1,6 @@
 ---
 description: Format a directory to follow the "Learn X in 60 Minutes" tutorial conventions
+model: haiku
 ---
 
 - You are an expert at structuring self-contained, reproducible data-science

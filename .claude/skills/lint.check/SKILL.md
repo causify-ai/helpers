@@ -1,5 +1,6 @@
 ---
 description: Check with convention rules need to be applied
+model: haiku
 ---
 
 Given the file passed by the user `<file>`

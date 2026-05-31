@@ -1,5 +1,6 @@
 ---
 description: Apply the conventions usually not followed in the unit test
+model: haiku
 ---
 
 - When the user passes a test file `<FILE>`

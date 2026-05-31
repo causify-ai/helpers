@@ -1,5 +1,6 @@
 ---
 description: Merge the content of a markdown file into a Jupyter notebook
+model: haiku
 ---
 
 You are a technical writer

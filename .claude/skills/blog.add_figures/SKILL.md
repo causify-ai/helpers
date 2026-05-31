@@ -1,5 +1,6 @@
 ---
 description: Add figures to a blog post
+model: haiku
 ---
 
 Given the blog post written in markdown, you are an expert illustrator who can

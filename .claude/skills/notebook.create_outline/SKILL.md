@@ -1,5 +1,6 @@
 ---
 description: Create a detailed markdown outline (notebook_outline file) for a Jupyter notebook, specifying each cell's content, purpose, visuals, and interactivity to teach concepts through example and discovery
+model: opus
 ---
 
 # Purpose

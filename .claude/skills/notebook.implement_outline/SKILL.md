@@ -1,5 +1,6 @@
 ---
 description: Implement a Jupyter notebook from an outline description (including interactive notebooks with widgets)
+model: opus
 ---
 
 ## Description

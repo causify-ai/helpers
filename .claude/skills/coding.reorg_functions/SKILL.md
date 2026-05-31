@@ -1,5 +1,6 @@
 ---
 description: Reorganize the Python functions in a file
+model: haiku
 ---
 
 # Reorganize Python Functions Within a File

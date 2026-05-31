@@ -1,5 +1,6 @@
 ---
 description: Merge git conflicts
+model: haiku
 ---
 
 # Step 1: Find the Files with Conflicts

@@ -1,5 +1,6 @@
 ---
 description: Convert formulas in text to their Latex equivalent
+model: haiku
 ---
 
 - Convert formulas to Latex leaving the structure of the text exactly the same

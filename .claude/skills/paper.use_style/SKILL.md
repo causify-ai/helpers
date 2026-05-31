@@ -1,5 +1,6 @@
 ---
 description: Write or edit an academic CS paper following formal, evidence-driven, and structured writing style
+model: opus
 ---
 
 You are a college professor in computer science and artificial intelligence and

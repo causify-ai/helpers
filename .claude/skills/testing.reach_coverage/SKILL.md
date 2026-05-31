@@ -1,5 +1,6 @@
 ---
 description: Increase unit test coverage toward 100 percent for a given function, file or files
+model: haiku
 ---
 
 Given the passed function, file, or files `<files>` increase unit test coverage

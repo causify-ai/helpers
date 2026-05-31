@@ -1,5 +1,6 @@
 ---
 description: Add end-to-end unit tests for CLI commands
+model: haiku
 ---
 
 # Goal

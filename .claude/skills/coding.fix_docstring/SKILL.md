@@ -1,5 +1,6 @@
 ---
 description: Fix Python Docstrings
+model: haiku
 ---
 
 - I will pass you one of more files `<FILES>`

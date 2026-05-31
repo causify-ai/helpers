@@ -1,5 +1,6 @@
 ---
 description: Represent a causal knowledge graph in Graphviz DOT format following visual conventions for causal inference
+model: opus
 ---
 
 You are an expert in causal inference and graphical models

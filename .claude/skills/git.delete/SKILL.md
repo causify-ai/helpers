@@ -1,5 +1,6 @@
 ---
 description: Safely remove a Python function, file, or directory from the Git repo and clean up all references
+model: haiku
 ---
 
 - Given a target `<src>` (function, file, or directory), remove it from the repo

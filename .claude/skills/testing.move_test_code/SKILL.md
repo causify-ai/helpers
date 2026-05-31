@@ -1,5 +1,6 @@
 ---
 description: Split test classes from a test file into the correct separate test files based on what function they test
+model: haiku
 ---
 
 - I will pass you a file with unit tests `<test/test_<filename>.py>`

@@ -1,5 +1,6 @@
 ---
 description: Convert formulas in the image to their Latex equivalent
+model: haiku
 ---
 
 - Convert image with a mathematical formula into the equivalent Latex

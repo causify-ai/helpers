@@ -1,5 +1,6 @@
 ---
 description: Ensure cells in a notebook are numbered consecutively with matching function names
+model: haiku
 ---
 
 Renumber cells in a Jupyter notebook consecutively and ensures all function names

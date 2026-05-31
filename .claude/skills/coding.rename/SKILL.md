@@ -1,5 +1,6 @@
 ---
 description: Rename files, functions, and variables across a codebase and update all references
+model: haiku
 ---
 
 I will give a list of files, functions, variable to rename in a codebase

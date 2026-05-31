@@ -1,5 +1,6 @@
 ---
 description: Fix slides without changing their structure
+model: haiku
 ---
 
 - Given a markdown file with slides about technical material
