@@ -232,6 +232,11 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 ## Markdown Header Structure and Naming
 
+- Every notebook must group its cells under at least one `# Part N:` header,
+  even when there is a single logical part
+- Never use a level-1 header (`#`) for an individual cell; cells always use
+  `## Cell <part>.<id>:`
+
 - Use level 1 headers (`#`) for Parts:
   - Format: `# Part XYZ: Description`
   - Parts group multiple related cells together
@@ -342,6 +347,13 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Use ASCII equivalents instead:
   - Use `mu` instead of `μ`, `alpha` instead of `α`
   - Use `pi` instead of `π`, `lambda` instead of `λ`
+- This applies to `print()` output, f-strings, and plot/axis labels too, not
+  just prose. Use ASCII equivalents:
+  - `->` and `<-` instead of arrows
+  - `~=` or `approx` instead of the approx symbol
+  - `R^2` instead of `R` with a superscript 2
+  - `in` instead of the set-membership symbol
+  - `-` instead of en-dash or em-dash
 - Exception: LaTeX formulas within markdown (e.g., `$\mu$`, `$\alpha$`) are
   acceptable
 
@@ -408,6 +420,10 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - **Remove**: `os.environ["GITHUB_ACCESS_TOKEN"] = "..."`
   - **Instead**: Pass secrets as read-only environment variables at container
     startup
+
+## Keep Introspection Lines
+- It is acceptable to keep a `func??` introspection line to display a function's
+  source or signature
 
 # Interactive Cells
 
