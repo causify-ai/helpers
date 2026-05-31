@@ -11,25 +11,12 @@ description: Create a detailed markdown outline (notebook_outline file) for a Ju
 - **Output**: A `notebook_outline.<tag>.md` markdown file that describes each
   notebook cell
 
-# Core Goals
-
-- An effective interactive notebook outline should enable:
-  - **Strong intuition**: Help students build mental models through discovery
-  - **Visual explanation**: Use plots, diagrams, and animations to make concepts
-    concrete
-  - **Incremental building**: Start simple, add complexity layer by layer
-  - **Interactive exploration**: Let students manipulate parameters and see
-    immediate results
-
 # Key Principles
 
+- Make sure to follow the section `Effective Notebook Design Principles` from the
+  file `.claude/skills/notebook.rules.md`
 - **Outline format**: Describe cells in markdown structure
   (`notebook_outline.<tag>.md`), not in code
-- **Focus on examples**: Concentrate on practical examples, not theory repetition
-  from slides
-- **Discovery over exposition**: Emphasize "what if I change this?" over "here's
-  the explanation"
-- **Build on context**: Each cell should reference and extend what came before
 
 # Cell Outline Structure
 

@@ -67,30 +67,9 @@ description: Implement a Jupyter notebook from an outline description (including
 
 ## Cell Structure in Notebook
 
-- Each cell in the outline becomes three notebook cells:
-
-  1. **Markdown cell**: Pedagogical context
-     ```markdown
-     ## Cell 1: Visualizing Population Distribution
-     
-     Understanding the true population distribution is the foundation of
-     statistical inference. You can't observe the full population, only samples
-     from it.
-     ```
-
-  2. **Code cell**: Plotting / widget invocation
-     ```python
-     # Display the population as a bin of colored marbles.
-     utils.visualize_population_distribution()
-     ```
-
-  3. **Explanation cell**: A markdown cell that explains the results of the
-     previous cell using bullet points
-
-- For all the markdown cells use bullet points with nested bullets for clarity
-  and conciseness, following the rules in
-  - `.claude/skills/slides.rules.md`: rules for formatting slides
-  - `.claude/skills/text.rules.md`: rules for formatting bullet points
+- Each cell in the outline becomes three notebook cells
+- Make sure to follow the section `Cell Triplet Structure` from the file
+  `.claude/skills/notebook.rules.md`
 
 ## Simple Interactive Widgets
 

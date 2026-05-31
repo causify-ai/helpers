@@ -2,6 +2,24 @@
 description: Conventions and standards for interactive Jupyter notebook structure, formatting, and cell organization
 ---
 
+# Effective Notebook Design Principles
+
+## Core Goals
+- An effective interactive notebook should enable:
+  - **Strong intuition**: Help students build mental models through discovery
+  - **Visual explanation**: Use plots, diagrams, and animations to make concepts
+    concrete
+  - **Incremental building**: Start simple, add complexity layer by layer
+  - **Interactive exploration**: Let students manipulate parameters and see
+    immediate results
+
+## Key Principles
+- **Focus on examples**: Concentrate on practical examples, not theory repetition
+  from slides
+- **Discovery over exposition**: Emphasize "what if I change this?" over "here's
+  the explanation"
+- **Build on context**: Each cell should reference and extend what came before
+
 # Setup and Initialization
 
 ## Use Python Style
@@ -184,6 +202,33 @@ description: Conventions and standards for interactive Jupyter notebook structur
   ```
 
 # Notebook Organization
+
+## Cell Triplet Structure
+
+- Each logical cell in a notebook is composed of three notebook cells:
+
+  1. **Markdown cell**: Pedagogical context
+     ```markdown
+     ## Cell 1: Visualizing Population Distribution
+
+     Understanding the true population distribution is the foundation of
+     statistical inference. You can't observe the full population, only samples
+     from it.
+     ```
+
+  2. **Code cell**: Plotting / widget invocation
+     ```python
+     # Display the population as a bin of colored marbles.
+     utils.visualize_population_distribution()
+     ```
+
+  3. **Explanation cell**: A markdown cell that explains the results of the
+     previous cell using bullet points
+
+- For all the markdown cells use bullet points with nested bullets for clarity
+  and conciseness, following the rules in
+  - `.claude/skills/slides.rules.md`: rules for formatting slides
+  - `.claude/skills/text.rules.md`: rules for formatting bullet points
 
 ## Markdown Header Structure and Naming
 
