@@ -1,9 +1,10 @@
-Create a script process_one_off_link_gsheet.py from the logic process_link_gsheet.py 
-to perform the following phases
+In dev_scripts_helpers/scraping/download_link_articles.py add another action
+summarize that uses llm_cli.py to summarize both the text of the article and
+the comments using the prompt from
 
-- download_gsheet_links
-- replace_article_tags
-- upload_gsheet_links
+.claude/skills/text.summarize_hn_in_bullet_points/SKILL.md
+
+Call the summarization using hsystem.system
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`

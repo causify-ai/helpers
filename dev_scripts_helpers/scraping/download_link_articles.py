@@ -17,6 +17,7 @@ This script downloads articles from a Google Sheets document and saves them
 as text files. It supports:
 1. Downloading HN comments from HackerNews submission URLs
 2. Downloading article content from article URLs
+3. Summarizing articles and comments using LLM
 
 Filenames are sanitized from the Title column with bash-unfriendly chars
 replaced with underscores.
@@ -49,13 +50,20 @@ Download from rows 1-5, skip downloading articles:
     --select_column "Url" \
     --skip-action download_article_url
 
+Summarize articles and comments for all rows:
+> download_link_articles.py \
+    --url "https://docs.google.com/spreadsheets/d/..." \
+    --action summarize
+
 Import as:
 
 import dev_scripts_helpers.scraping.download_link_articles as dssdla
 """
 
 import argparse
+import html
 import logging
+import os
 import re
 from typing import Any, Dict, List, Optional
 
@@ -70,6 +78,7 @@ import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
+import helpers.hsystem as hsystem
 import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
@@ -171,10 +180,14 @@ def _download_article_content(url: str) -> Optional[str]:
         paragraphs = soup.find_all("p")
         if paragraphs:
             # Join paragraphs with blank lines for readability.
-            text = "\n\n".join(p.get_text() for p in paragraphs)
+            text = "\n\n".join(str(p) for p in paragraphs)
         else:
             # Fallback to raw HTML if no paragraphs found.
             text = html
+        # Simplify HTML links and extract just the URLs.
+        text = _simplify_html_links(text)
+        # Extract text after link simplification.
+        text = BeautifulSoup(text, "html.parser").get_text()
         return text
     except Exception as e:
         _LOG.warning("Failed to download article from %s: %s", url, e)
@@ -200,7 +213,31 @@ def _sanitize_title_for_filename(title: str) -> str:
     return sanitized
 
 
-def add_comment_tree(comment_list: List[Dict[str, Any]], depth: int = 0) -> None:
+def _simplify_html_links(text: str) -> str:
+    """
+    Simplify HTML links by extracting just the URL and unescaping entities.
+
+    Converts: <a href="https:&#x2F;&#x2F;example.com">...</a>
+    To: https://example.com
+
+    :param text: Text containing HTML links
+    :return: Text with simplified links
+    """
+    # Match <a> tags and extract href, then replace with just the URL
+    def replace_link(match):
+        href = match.group(1)
+        # Unescape HTML entities (&#x2F; -> /)
+        unescaped = html.unescape(href)
+        return unescaped
+    # Pattern: <a href="...">...</a> - captures the href attribute
+    pattern = r'<a\s+[^>]*href=["\'](.*?)["\'][^>]*>.*?</a>'
+    simplified = re.sub(pattern, replace_link, text, flags=re.IGNORECASE | re.DOTALL)
+    return simplified
+
+
+def add_comment_tree(
+    comment_list: List[Dict[str, Any]], lines: List[str], depth: int = 0
+) -> None:
     """
     Recursively add comments to output, preserving hierarchy.
     """
@@ -213,12 +250,16 @@ def add_comment_tree(comment_list: List[Dict[str, Any]], depth: int = 0) -> None
         # Extract and format comment text, preserving line breaks.
         text = comment.get("text", "").strip()
         if text:
+            # Simplify HTML links in comment text.
+            text = _simplify_html_links(text)
+            # Unescape HTML entities (&#x27; -> ', &quot; -> ", etc.)
+            text = html.unescape(text)
             for text_line in text.split("\n"):
                 lines.append(f"{indent}{text_line}")
         lines.append("")
         # Recursively process nested replies at increasing indentation depth.
         if "replies" in comment:
-            add_comment_tree(comment["replies"], depth + 1)
+            add_comment_tree(comment["replies"], lines, depth + 1)
 
 
 def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
@@ -229,8 +270,11 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
     :return: Formatted text representation of comments
     """
     lines = []
-    add_comment_tree(comments)
-    return "\n".join(lines)
+    add_comment_tree(comments, lines)
+    text = "\n".join(lines)
+    # Simplify HTML links in comment text.
+    text = _simplify_html_links(text)
+    return text
 
 
 def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
@@ -367,6 +411,89 @@ def _download_article_urls(
         _LOG.info("Successfully saved article for: %s", title)
 
 
+def _summarize_text_with_llm(
+    input_file: str, output_file: str, *, prompt: str
+) -> None:
+    """
+    Summarize text using llm_cli.py and lint the output.
+
+    :param input_file: Path to input text file to summarize
+    :param output_file: Path to save the summary
+    :param prompt: System prompt to guide the summarization
+    """
+    _LOG.info("Summarizing: %s", input_file)
+    # Build command to call llm_cli.py with the given prompt.
+    llm_cli_path = "dev_scripts_helpers/llms/llm_cli.py"
+    cmd_parts = [
+        llm_cli_path,
+        f"--input={input_file}",
+        f"--output={output_file}",
+        f"--system_prompt={prompt}",
+        "--lint",
+    ]
+    cmd = " ".join(cmd_parts)
+    _LOG.debug("Running command: %s", cmd)
+    hsystem.system(cmd)
+    _LOG.info("Summary saved to: %s", output_file)
+
+
+def _summarize_articles_and_comments(
+    rows: List[Dict[str, Any]], *, indices: List[int]
+) -> None:
+    """
+    Summarize article text and HN comments using llm_cli.py.
+
+    Creates two summary files per article:
+    - title.text.summary.txt: Summary of the article
+    - title.hn_comments.summary.txt: Summary of HN comments
+
+    :param rows: List of data rows
+    :param indices: List of row indices to process
+    """
+    _LOG.info("Summarizing articles and comments for %d rows", len(indices))
+    # Prompts for summarization.
+    article_prompt = (
+        "Summarize the main article in 5 bullet points. "
+        "Format as plain text without markdown."
+    )
+    comments_prompt = (
+        "Analyze the Hacker News comment section. "
+        "From all comments, summarize the 5 most interesting ones based on: "
+        "1. Thought-provoking or insightful content "
+        "2. Unique perspective or uncommon knowledge "
+        "3. Sparks discussion or debate "
+        "4. Technically informative or educational "
+        "5. Controversial but well-argued. "
+        "Avoid comments that are: simple jokes, memes, very short reactions, "
+        "repetitive or low-effort. "
+        "Do not include commenter names. "
+        "Format as plain text without markdown."
+    )
+    for idx in tqdm(indices, desc="Summarizing articles and comments"):
+        row = rows[idx]
+        title = row.get("Title", "").strip()
+        hdbg.dassert(title)
+        _LOG.debug("Processing row %d: %s", idx, title)
+        # Generate sanitized filename from title.
+        sanitized_title = _sanitize_title_for_filename(title)
+        # Summarize article text if .text.txt file exists.
+        article_file = f"{sanitized_title}.text.txt"
+        hdbg.dassert_file_exists(article_file)
+        article_summary_file = f"{sanitized_title}.text.summary.txt"
+        _LOG.info("Summarizing article text for: %s", title)
+        _summarize_text_with_llm(
+            article_file, article_summary_file, prompt=article_prompt
+        )
+        # Summarize HN comments if .hn_comments.txt file exists.
+        comments_file = f"{sanitized_title}.hn_comments.txt"
+        hdbg.dassert_file_exists(comments_file)
+        comments_summary_file = f"{sanitized_title}.hn_comments.summary.txt"
+        _LOG.info("Summarizing HN comments for: %s", title)
+        _summarize_text_with_llm(
+            comments_file, comments_summary_file, prompt=comments_prompt
+        )
+
+
 # #############################################################################
 # Main
 # #############################################################################
@@ -375,6 +502,7 @@ def _download_article_urls(
 VALID_ACTIONS = [
     "download_url",
     "download_article_url",
+    "summarize",
 ]
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
@@ -479,7 +607,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _download_hn_comments(rows, indices=indices)
         elif action == "download_article_url":
             _download_article_urls(rows, indices=indices)
-    _LOG.info("Download completed")
+        elif action == "summarize":
+            _summarize_articles_and_comments(rows, indices=indices)
+    _LOG.info("Download and processing completed")
 
 
 if __name__ == "__main__":

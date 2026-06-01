@@ -17,6 +17,7 @@ import re
 from typing import Any, Dict, List
 
 import helpers.hdbg as hdbg
+import helpers.hcache_simple as hcacsimp
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -93,9 +94,12 @@ def extract_item_id(hn_url: str) -> str:
     return match.group(1)  # type: ignore
 
 
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def download_from_gsheet(url: str, output_file: str) -> str:
     """
     Download data from Google Sheets and save to a CSV file.
+
+    Results are cached to avoid redundant downloads of the same sheet.
 
     :param url: URL of the Google Sheets document
     :param output_file: Path where CSV will be saved
