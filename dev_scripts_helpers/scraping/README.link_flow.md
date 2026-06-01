@@ -146,6 +146,77 @@ syncing the processed data back to Google Sheets.
       --model gpt-4
   ```
 
+### `download_link_articles.py`
+
+#### What It Does
+
+- Downloads article content and HN comments from links stored in Google Sheets
+- Saves downloaded content to text files with bash-safe filenames derived from
+  the Title column
+- Supports filtering by column indices and column-based selection criteria
+
+- Implements two actions:
+  1. **download_url**: Downloads HN comments from HackerNews submission URLs
+  2. **download_article_url**: Downloads article content from article URLs
+
+- Features:
+  - Incremental processing with progress bars using tqdm
+  - Recursive HN comment fetching with depth limiting
+  - Article content extraction using BeautifulSoup
+  - Browser User-Agent header to avoid 403 Forbidden errors
+  - Bash-safe filename generation from article titles
+  - Column indexing with range support (e.g., "0:10" for rows 0-9)
+  - Optional filtering by non-empty cells in a specified column
+  - JSON caching for HN API calls to avoid redundant requests
+
+#### Example Usage
+
+- Download HN comments for rows 0-10 where Url column is not empty:
+  ```bash
+  > download_link_articles.py \
+      --url "$LINKS_GSHEET" \
+      --column_idx "0:10" \
+      --select_column "Url" \
+      --action download_url
+  ```
+
+- Download all (both HN comments and articles):
+  ```bash
+  > download_link_articles.py \
+      --url "$LINKS_GSHEET" \
+      --select_column "Article_url" \
+      --all
+  ```
+
+- Download article content from Article_url column:
+  ```bash
+  > download_link_articles.py \
+      --url "$LINKS_GSHEET" \
+      --select_column "Article_url" \
+      --action download_article_url
+  ```
+
+- Download from rows 0-5, skip downloading articles:
+  ```bash
+  > download_link_articles.py \
+      --url "$LINKS_GSHEET" \
+      --column_idx "0:5" \
+      --select_column "Url" \
+      --skip_action download_article_url
+  ```
+
+#### Output Files
+
+- **HN Comments**: Filename format `TITLE.hn_comments.txt`
+  - Contains recursively fetched comments with nested replies
+  - Includes comment metadata: author, score, timestamp
+  - Depth-limited to avoid excessive API calls
+
+- **Article Content**: Filename format `TITLE.text.txt`
+  - Contains extracted article text from <p> tags
+  - Falls back to raw HTML if extraction fails
+  - Uses browser User-Agent to avoid access restrictions
+
 ## Complete Workflow Example
 
 A typical workflow for enriching links from multiple sources:
@@ -160,4 +231,13 @@ A typical workflow for enriching links from multiple sources:
    > process_link_gsheet.py --url <sheet_url> --all
    ```
 
-3. Review the results in the new timestamped tabs created in Google Sheets
+3. Download HN comments for selected articles:
+   ```bash
+   > download_link_articles.py \
+       --url <sheet_url> \
+       --select_column "Url" \
+       --action download_url
+   ```
+
+4. Review the results in the new timestamped tabs created in Google Sheets and
+   examine downloaded files in the local directory
