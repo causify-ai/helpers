@@ -2,7 +2,6 @@
 
 # /// script
 # dependencies = [
-#   "pandas",
 #   "requests",
 # ]
 # ///
@@ -21,16 +20,17 @@ Example usage:
 # Download data from Google Sheets
 > update_hn_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --action download_hn_gsheet
+    -a download_hn_gsheet
 
-# Download new links from Raindrop
-> update_hn_gsheet_from_raindrop.py \
-    --action download_raindrop_data
-
-# Upload combined data back to Google Sheets
+# Run all actions
 > update_hn_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --action upload_hn_gsheet
+    --all
+
+# Skip upload action
+> update_hn_gsheet_from_raindrop.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+    -sa upload_hn_gsheet
 
 Import as:
 
@@ -38,15 +38,18 @@ import dev_scripts_helpers.scraping.update_hn_gsheet_from_raindrop as dshshufr
 """
 
 import argparse
+import csv
+import json
 import logging
 import os
+from typing import List, Dict, Any
 
-import pandas as pd
 import requests
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
@@ -70,6 +73,42 @@ def _get_tmp_file_path(filename: str, *, tmp_dir: str = DEFAULT_TMP_DIR) -> str:
     return os.path.join(tmp_dir, filename)
 
 
+def _read_csv(filepath: str) -> List[Dict[str, Any]]:
+    """
+    Read CSV file and return list of dictionaries.
+
+    Each row becomes a dictionary with column names as keys.
+
+    :param filepath: Path to CSV file
+    :return: List of row dictionaries
+    """
+    rows = []
+    with open(filepath, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+    return rows
+
+
+def _write_csv(
+    filepath: str,
+    rows: List[Dict[str, Any]],
+    *,
+    fieldnames: List[str],
+) -> None:
+    """
+    Write list of dictionaries to CSV file.
+
+    :param filepath: Path to CSV file
+    :param rows: List of row dictionaries
+    :param fieldnames: Column names in order
+    """
+    with open(filepath, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def _download_from_gsheet(url: str) -> str:
     """
     Download data from Google Sheets and save to a temporary CSV file.
@@ -88,8 +127,9 @@ def _download_from_gsheet(url: str) -> str:
     )
     hsystem.system(cmd, print_command=True)
     hdbg.dassert_path_exists(output_file)
-    df = pd.read_csv(output_file)
-    _LOG.info("Loaded %d rows and %d columns", len(df), len(df.columns))
+    rows = _read_csv(output_file)
+    num_cols = len(rows[0].keys()) if rows else 0
+    _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
     _LOG.info("Successfully downloaded and saved data")
     return output_file
 
@@ -109,9 +149,11 @@ def _download_from_raindrop() -> str:
         gsheet_csv, "Must download from gsheet first"
     )
     _LOG.info("Loading gsheet CSV to find latest timestamp")
-    df_gsheet = pd.read_csv(gsheet_csv)
-    if "timestamp" in df_gsheet.columns:
-        latest_timestamp = df_gsheet["timestamp"].max()
+    rows_gsheet = _read_csv(gsheet_csv)
+    if rows_gsheet and "timestamp" in rows_gsheet[0]:
+        latest_timestamp = max(
+            float(row.get("timestamp", 0)) for row in rows_gsheet
+        )
         _LOG.info("Latest timestamp in gsheet: %s", latest_timestamp)
     else:
         latest_timestamp = 0
@@ -144,10 +186,18 @@ def _download_from_raindrop() -> str:
                 count += 1
         url = data.get("pagination", {}).get("nextLink")
     _LOG.info("Downloaded %d new bookmarks after timestamp", count)
-    df_raindrop = pd.DataFrame(all_bookmarks)
     raindrop_csv = _get_tmp_file_path(RAINDROP_CSV_FILE)
     _LOG.info("Writing Raindrop data to CSV file: '%s'", raindrop_csv)
-    df_raindrop.to_csv(raindrop_csv, index=False)
+    if all_bookmarks:
+        fieldnames = list(all_bookmarks[0].keys())
+        rows_to_write = [
+            {k: json.dumps(v) if isinstance(v, (dict, list)) else v
+             for k, v in item.items()}
+            for item in all_bookmarks
+        ]
+        _write_csv(raindrop_csv, rows_to_write, fieldnames=fieldnames)
+    else:
+        _write_csv(raindrop_csv, [], fieldnames=[])
     return raindrop_csv
 
 
@@ -165,22 +215,24 @@ def _combine_csv_files() -> str:
     hdbg.dassert_path_exists(gsheet_csv, "gsheet CSV file not found")
     hdbg.dassert_path_exists(raindrop_csv, "raindrop CSV file not found")
     _LOG.info("Loading gsheet CSV data")
-    df_gsheet = pd.read_csv(gsheet_csv)
+    rows_gsheet = _read_csv(gsheet_csv)
     _LOG.info("Loading Raindrop CSV data")
-    df_raindrop = pd.read_csv(raindrop_csv)
+    rows_raindrop = _read_csv(raindrop_csv)
     _LOG.info(
         "Combining data: %d raindrop items, %d gsheet items",
-        len(df_raindrop),
-        len(df_gsheet),
+        len(rows_raindrop),
+        len(rows_gsheet),
     )
-    df_combined = pd.concat(
-        [df_raindrop, df_gsheet], ignore_index=True
-    )
+    rows_combined = rows_raindrop + rows_gsheet
     combined_csv = _get_tmp_file_path(COMBINED_CSV_FILE)
     _LOG.info("Writing combined data to CSV file: '%s'", combined_csv)
-    df_combined.to_csv(combined_csv, index=False)
+    if rows_combined:
+        fieldnames = list(rows_combined[0].keys())
+        _write_csv(combined_csv, rows_combined, fieldnames=fieldnames)
+    else:
+        _write_csv(combined_csv, [], fieldnames=[])
     _LOG.info(
-        "Combined CSV created with %d rows", len(df_combined)
+        "Combined CSV created with %d rows", len(rows_combined)
     )
     return combined_csv
 
@@ -198,8 +250,9 @@ def _upload_to_gsheet(url: str, *, tabname: str = "raindrop_sync") -> None:
     combined_csv = _get_tmp_file_path(COMBINED_CSV_FILE)
     hdbg.dassert_path_exists(combined_csv, "combined CSV file not found")
     _LOG.info("Reading combined CSV file: '%s'", combined_csv)
-    df = pd.read_csv(combined_csv)
-    _LOG.info("Loaded %d rows and %d columns", len(df), len(df.columns))
+    rows = _read_csv(combined_csv)
+    num_cols = len(rows[0].keys()) if rows else 0
+    _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
     _LOG.info("Writing data to tab '%s' in Google Sheet", tabname)
     cmd = (
         f"to_gsheet.py --input_file '{combined_csv}' --url '{url}' "
@@ -212,6 +265,17 @@ def _upload_to_gsheet(url: str, *, tabname: str = "raindrop_sync") -> None:
 # #############################################################################
 # Argument parsing
 # #############################################################################
+
+VALID_ACTIONS = [
+    "download_hn_gsheet",
+    "download_raindrop_data",
+    "upload_hn_gsheet",
+]
+DEFAULT_ACTIONS = [
+    "download_hn_gsheet",
+    "download_raindrop_data",
+    "upload_hn_gsheet",
+]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -226,17 +290,7 @@ def _parse() -> argparse.ArgumentParser:
         help="URL of the Google Sheets document (required for "
         "download_hn_gsheet and upload_hn_gsheet actions)",
     )
-    parser.add_argument(
-        "--action",
-        action="store",
-        required=True,
-        choices=[
-            "download_hn_gsheet",
-            "download_raindrop_data",
-            "upload_hn_gsheet",
-        ],
-        help="Action to perform",
-    )
+    hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -249,19 +303,38 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    if args.action in ["download_hn_gsheet", "upload_hn_gsheet"]:
-        hdbg.dassert_is_not(
-            args.url,
-            None,
-            "--url is required for this action"
+    actions = hselacti.select_actions(
+        args, VALID_ACTIONS, DEFAULT_ACTIONS
+    )
+    _LOG.info(
+        "Actions to execute:\n%s",
+        hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
+    )
+    actions_remaining = actions
+    while actions_remaining:
+        action = actions_remaining[0]
+        to_execute, actions_remaining = hselacti.mark_action(
+            action, actions_remaining
         )
-    if args.action == "download_hn_gsheet":
-        _download_from_gsheet(args.url)
-    elif args.action == "download_raindrop_data":
-        _download_from_raindrop()
-        _combine_csv_files()
-    elif args.action == "upload_hn_gsheet":
-        _upload_to_gsheet(args.url)
+        if not to_execute:
+            continue
+        if action == "download_hn_gsheet":
+            hdbg.dassert_is_not(
+                args.url,
+                None,
+                "--url is required for download_hn_gsheet action",
+            )
+            _download_from_gsheet(args.url)
+        elif action == "download_raindrop_data":
+            _download_from_raindrop()
+            _combine_csv_files()
+        elif action == "upload_hn_gsheet":
+            hdbg.dassert_is_not(
+                args.url,
+                None,
+                "--url is required for upload_hn_gsheet action",
+            )
+            _upload_to_gsheet(args.url)
 
 
 if __name__ == "__main__":

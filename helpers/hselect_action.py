@@ -15,6 +15,34 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
+# Use the following idiom:
+# ```python
+# # Define valid and default actions.
+# valid_actions = ["download", "process", "upload", "cleanup"]
+# default_actions = ["download", "process"]
+# # Create parser and add action arguments.
+# parser = argparse.ArgumentParser(...
+# hparser.add_action_arg(parser, valid_actions, default_actions)
+# args = parser.parse_args()
+# # Select which actions to execute based on CLI arguments.
+# actions = hparser.select_actions(args, valid_actions, default_actions)
+# # Display the selected actions in a formatted table.
+# print(hparser.actions_to_string(actions, valid_actions, add_frame=True))
+# # mark_action() handles tracking which actions remain and logs skipped ones.
+# while actions:
+#     # Current action to check
+#     action = actions[0]
+#     # Determine if this action should execute and get remaining actions
+#     # to_execute: True if action is in the list, False otherwise
+#     # actions: updated list with current action removed if to_execute=True
+#     to_execute, actions = hparser.mark_action(action, actions)
+#     if to_execute:
+#         # Execute the action
+#         if action == "download":
+#             print("Downloading data...")
+#         elif action == "process":
+# ...
+# ```
 
 def add_action_arg(
     parser: argparse.ArgumentParser,
