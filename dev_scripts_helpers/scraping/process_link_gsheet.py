@@ -17,24 +17,22 @@
 # ///
 
 """
-Process HN articles from a Google Sheets document.
+Process links and articles from a Google Sheets document.
 
 This script manages the following actions:
-1. download_gsheet_links: Download data from Google Sheets to CSV
-2. download_link_gsheet: Download data from Google Sheets to CSV (alias)
-3. update_article_url: Extract article URLs from HN links using HN API
-4. update_article_tag: Tag articles using LLM-based classification
-5. update_article_cluster: Map topics to clusters
-6. replace_article_tags: Replace old topic names with simplified names
-7. upload_link_gsheet: Upload the processed CSV back to Google Sheets
-8. upload_gsheet_links: Upload the processed CSV back to Google Sheets (alias)
+1. download_link_gsheet: Download data from Google Sheets to CSV (alias)
+2. update_article_url: Extract article URLs from HN links using HN API
+3. update_article_tag: Tag articles using LLM-based classification
+4. update_article_cluster: Map topics to clusters
+5. replace_article_tags: Replace old topic names with simplified names
+6. upload_link_gsheet: Upload the processed CSV back to Google Sheets
 
 Example usage:
 
 # Download data from Google Sheets
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --action download_gsheet_links
+    --action download_link_gsheet
 
 # Run all actions
 > process_link_gsheet.py \
@@ -45,7 +43,7 @@ Example usage:
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --action replace_article_tags \
-    --action upload_gsheet_links
+    --action upload_link_gsheet
 
 Import as:
 
@@ -478,24 +476,20 @@ def _upload_to_gsheet(url: str) -> None:
 
 # List of available pipeline actions; executed in order when --all is used.
 VALID_ACTIONS = [
-    "download_gsheet_links",
     "download_link_gsheet",
     "update_article_url",
     "update_article_tag",
     "update_article_cluster",
     "replace_article_tags",
     "upload_link_gsheet",
-    "upload_gsheet_links",
 ]
-VALID_ACTIONS = [
-    "download_gsheet_links",
+DEFAULT_ACTIONS = [
     "download_link_gsheet",
     "update_article_url",
     "update_article_tag",
     "update_article_cluster",
     #"replace_article_tags",
     "upload_link_gsheet",
-    "upload_gsheet_links",
 ]
 
 
@@ -546,7 +540,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not to_execute:
             continue
         # Dispatch to the appropriate handler based on the current action.
-        if action in ("download_gsheet_links", "download_link_gsheet"):
+        if action == "download_link_gsheet":
             hdbg.dassert_is_not(
                 args.url,
                 None,
@@ -561,7 +555,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _update_article_clusters()
         elif action == "replace_article_tags":
             _replace_article_tags()
-        elif action in ("upload_link_gsheet", "upload_gsheet_links"):
+        elif action == "upload_link_gsheet":
             hdbg.dassert_is_not(
                 args.url,
                 None,
