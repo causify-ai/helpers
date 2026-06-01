@@ -462,13 +462,12 @@ def _update_article_clusters() -> str:
     ):
         tag = row["Article_tag"].strip()
         hdbg.dassert_isinstance(tag, str)
-        hdbg.dassert_in(
-            tag,
-            topic_to_cluster,
-            f"Tag '{tag}' not found in topic_to_cluster mapping",
-        )
-        cluster = topic_to_cluster[tag]
-        row["Article_cluster"] = cluster
+        if tag in topic_to_cluster:
+            cluster = topic_to_cluster[tag]
+            row["Article_cluster"] = cluster
+        else:
+            _LOG.warning(f"Tag '{tag}' not found in topic_to_cluster mapping")
+            row["Article_cluster"] = ""
     # Write the clustered data to a new CSV file for final upload.
     clusters_csv = _get_tmp_file_path(CLUSTERS_CSV_FILE)
     _LOG.info("Writing clustered data to CSV file: '%s'", clusters_csv)

@@ -13,6 +13,8 @@ syncing the processed data back to Google Sheets.
 
 - E.g., 
   ```
+  export LINKS_GSHEET="<your-google-sheets-url>"
+  # E.g.,
   export LINKS_GSHEET=https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=1324796321#gid=1324796321
   ```
 
@@ -68,7 +70,7 @@ Sync all new bookmarks from Raindrop to Google Sheets:
 
 ```bash
 > update_hn_gsheet_from_raindrop.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --url "$LINKS_GSHEET" \
     --all
 ```
 
@@ -77,7 +79,7 @@ Run individual actions:
 ```bash
 # Just download from Google Sheets
 > update_hn_gsheet_from_raindrop.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --url "$LINKS_GSHEET" \
     --action download_hn_gsheet
 
 # Just fetch from Raindrop (requires RAINDROP_API_TOKEN env var)
@@ -94,7 +96,7 @@ Skip specific actions:
 ```bash
 # Download and combine but skip upload
 > update_hn_gsheet_from_raindrop.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --url "$LINKS_GSHEET" \
     --all \
     --skip-action upload_hn_gsheet
 ```
@@ -129,7 +131,7 @@ Features:
 - Run the complete pipeline on a Google Sheets document:
   ```bash
   > process_hn_article.py \
-      --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+      --url "$LINKS_GSHEET" \
       --all
   ```
 
@@ -138,17 +140,17 @@ Run specific actions:
 ```bash
 # Just download data from Google Sheets
 > process_hn_article.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --url "$LINKS_GSHEET" \
     --action download
 
 # Extract article URLs only
 > process_hn_article.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --url "$LINKS_GSHEET" \
     --action update_article_url
 
 # Tag articles using LLM with custom model
 > process_hn_article.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --url "$LINKS_GSHEET" \
     --action update_article_tag \
     --model gpt-4
 ```
@@ -158,7 +160,7 @@ Skip specific actions:
 ```bash
 # Run all actions except upload
 > process_hn_article.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --url "$LINKS_GSHEET" \
     --all \
     --skip-action upload
 ```
