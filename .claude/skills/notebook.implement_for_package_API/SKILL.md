@@ -3,8 +3,8 @@ description: <Brief description of what this skill does>
 ---
 
 Create a self-contained Jupyter notebook that teaches the Python package
-{PACKAGE_NAME} (for example, pgmpy) by progressively introducing its core
-primitives, mental model, and API surface
+`<PACKAGE_NAME>` by progressively introducing its core primitives, mental model,
+and API surface
 
 The notebook should be optimized for learning the library itself, not for solving
 a large real-world problem
@@ -61,8 +61,8 @@ For each important primitive:
 
 #### Template
 
-Concept
-- What this object represents
+Mental Model
+- Explain what the object "means"
 
 Smallest Construction
 ```
@@ -74,36 +74,12 @@ Inspect the Object
 python type(obj) dir(obj) 
 ```
 
-Important Attributes
-```
-python obj.attribute 
-```
-
 Important Methods
 ```
 python obj.method(...) 
 ```
 
-Mental Model
-- Explain what the object "means"
-
-### 3. API Discovery
-
-For every major class:
-
-Show:
-```
-python help(ClassName) 
-```
-
-and summarize:
-
-- Constructor
-- Key methods
-- Key properties
-- Relationships to other classes
-
-### 4. Composition Examples
+### 3. Composition Examples
 
 Build progressively:
 
@@ -121,7 +97,7 @@ Example 4:
 
 Each example should fit within roughly 10–20 lines
 
-### 5. API Patterns
+### 4. API Patterns
 
 Identify recurring patterns:
 
@@ -135,16 +111,7 @@ Identify recurring patterns:
 
 Show the smallest example of each pattern
 
-### 6. Object Relationships
-
-Create a table:
-
-| Object | Created By | Consumed By | Purpose |
-|----------|----------|----------|----------|
-
-This should help understand how the API is connected
-
-### 7. Interactive Exploration
+### 5. Interactive Exploration
 
 Provide cells that encourage experimentation:
 
@@ -158,23 +125,11 @@ and questions such as:
 - What is the default value?
 - What type is returned?
 
-### 8. Cheat Sheet
+#### Summary: The Mental Model
 
-Conclude with:
-
-#### Core Objects
-
-| Object | Purpose |
-|----------|----------|
-
-#### Most Useful Methods
-
-| Method | Purpose |
-|----------|----------|
-
-#### Typical Workflow
-
-python # shortest end-to-end example 
+Synthesize the core mental model: what are the fundamental abstractions and how
+do they fit together? This should be 2-4 sentences capturing the essence of the
+library's design. 
 
 ## Special Instructions
 
@@ -186,8 +141,8 @@ python # shortest end-to-end example
 - Prefer many tiny examples over a few large examples
 - If the library has hidden state or non-obvious behavior, explicitly inspect it
 - Whenever a class is introduced, show:
-  - construction
-  - inspection
-  - mutation
-  - interaction with another object
+  - Construction
+  - Inspection
+  - Mutation
+  - Interaction with another object
 - The notebook should feel like a guided reverse-engineering of the library's design

@@ -1,18 +1,90 @@
-# scraping_script
+# Hacker News Links Processor
 
-This directory contains tools for extracting data from Hacker News using the official API.
+## HN Gsheet
+- The list of links is stored in a Gsheet
+	https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M
 
-## Structure of the Dir
+- `Title`
+	- "Rust is not a good C replacement"
+- `Url`
+	- https://drewdevault.com/2019/03/25/Rust-is-not-a-good-C-replacement.html
+	- https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4752797
+	- https://news.ycombinator.com/item?id=40212490
+- `Timestamp`
+	- 2024-04-30 22:23:54
+- `Article_url`
+	- If it's a HN link
+	- https://medium.com/airbnb-engineering/chronon-airbnbs-ml-feature-platform-is-now-open-source-d9c4dba859e8
+- `Article_title`
+	- If it's a HN link
+	- Typically the same as `Title`
+- `Article_tag`
+	- "Automated Theorem Proving"
+- `Article_cluster`
+	- "AI"
+- `Interesting`
+	-  (1 to 5)
+- `Notes`
 
-- `test/`
-  - Unit tests and test outcomes for HN article extraction
+from_gsheet.py --url https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=1509921826#gid=1509921826 --tabname "All" --output_file file.csv
+
+## Update Gsheet from Pocket / Raindrop
+
+### Manual Download
+
+- Go to http://raindrop.io, https://app.raindrop.io/my/0
+- Export CSV / Get backup
+
+```
+id	title	note	excerpt	url	tags	created	cover	highlights	favorite
+1655820619	Ripgrep is faster than {grep, ag, Git grep, ucg, pt, sift} | Hacker News			https://news.ycombinator.com/item?id=47499245		2026-03-24T10:13:48.297Z	https://rdl.ink/render/https%3A%2F%2Fnews.ycombinator.com%2Fitem%3Fid%3D47499245		FALSE
+```
+
+### Download through API
+
+```
+> update_hn_gsheet_from_raindrop.py
+```
+
+### Update HN Gsheet
+
+- Extract data
+	- title
+	- url
+	- created
+- Read the
+
+## Complete Gsheet
+
+- Point to a Gsheet with tabs
+- Complete the missing cells
+- Save a new Gsheet
+
+Step 2\) If title is for an HN article, extract the article title and URL
+
+Extract HN articles
+dev\_scripts\_helpers/scraping\_script/extract\_hn\_article.py \--input\_file /Users/saggese/Downloads/Pocket\\ links\\ \-\\ All\\ \\(1\\).csv \--output\_file txt.csv
+
+Step 3\) Decorate with tag1, tag2
+The possible topics are [All\_links](https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=1509921826#gid=1509921826)
+
+Step 4\)
+
+| title | url | Timestamp | Article\_url | Article\_tag |
+| :---- | :---- | :---- | :---- | :---- |
+| Writing a good Claude.md | Hacker News | https://news.ycombinator.com/item?id=46098838 | 2025-12-01T03:14:33.954Z | https://www.humanlayer.dev/blog/writing-a-good-claude-md | Prompt Engineering |
+
+Step 5\) Download
+
+dev\_scripts\_helpers/google/to\_gsheet.py \--input\_file out.csv \--url https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit?gid=209574908\#gid=209574908 \--tabname Sheet7
+
+Step 6\) Read notes/papers.pocket.txt
+
 
 ## Description of Files
 
 - `extract_hn_article.py`
   - Extracts article title and URL from Hacker News submissions and optionally classifies them using LLM
-- `SorrTask396_scraping_script.ipynb`
-  - Exploratory notebook for developing HN data extraction functionality
 
 ## Description of Executables
 
