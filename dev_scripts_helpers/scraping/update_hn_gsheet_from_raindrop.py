@@ -237,7 +237,11 @@ def _combine_raindrop_with_gsheet() -> str:
     for row in rows_raindrop:
         combined_row = {col: "" for col in gsheet_columns}
         if "title" in row:
-            combined_row["Title"] = row["title"]
+            title = row["title"]
+            # Remove "| HackerNews" suffix from the title.
+            if title.endswith("| HackerNews"):
+                title = title[:-len("| HackerNews")].strip()
+            combined_row["Title"] = title
         if "url" in row:
             combined_row["Url"] = row["url"]
         if "created" in row:
@@ -306,12 +310,7 @@ VALID_ACTIONS = [
     "combine",
     "upload_hn_gsheet",
 ]
-DEFAULT_ACTIONS = [
-    "download_hn_gsheet",
-    "download_raindrop_data",
-    "combine",
-    "upload_hn_gsheet",
-]
+DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
 
 def _parse() -> argparse.ArgumentParser:
