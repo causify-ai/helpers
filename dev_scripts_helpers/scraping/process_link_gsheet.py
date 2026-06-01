@@ -29,23 +29,23 @@ This script manages four actions:
 Example usage:
 
 # Download data from Google Sheets
-> process_hn_article.py \
+> process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --action download
 
 # Run all actions
-> process_hn_article.py \
+> process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all
 
 # Skip upload action
-> process_hn_article.py \
+> process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --skip-action upload
 
 Import as:
 
-import dev_scripts_helpers.scraping.process_hn_article as dssprar
+import dev_scripts_helpers.scraping.process_link_gsheet as dslg
 """
 
 import argparse
@@ -133,7 +133,7 @@ def _get_tmp_file_path(filename: str) -> str:
     """
     Get the path for a temporary file.
     """
-    return "./tmp.process_hn_article." + filename
+    return "./tmp.process_link_gsheet." + filename
 
 
 # TODO(gp): Factor out this.
@@ -481,7 +481,7 @@ def _update_article_clusters() -> str:
     return clusters_csv
 
 
-# TODO(gp): Share with update_hn_gsheet_from_raindrop.py.
+# TODO(gp): Share with update_link_gsheet_from_raindrop.py.
 def _upload_to_gsheet(url: str) -> None:
     """
     Upload processed CSV data to Google Sheets.
@@ -490,7 +490,7 @@ def _upload_to_gsheet(url: str) -> None:
     :param tabname: Name of the tab to create/overwrite (defaults to today's date)
     """
     # Use today's date as the sheet name.
-    tabname = "process_hn_article." + datetime.datetime.now().strftime(
+    tabname = "process_link_gsheet." + datetime.datetime.now().strftime(
         "%Y-%m-%d"
     )
     # Load and validate the fully processed CSV that includes article URLs and clusters.

@@ -10,32 +10,32 @@ r"""
 Download Raindrop.io links and sync with Google Sheets.
 
 This script manages four actions:
-1. download_hn_gsheet: Download data from Google Sheets to CSV
+1. download_link_gsheet: Download data from Google Sheets to CSV
 2. download_raindrop_data: Fetch links from Raindrop.io after the latest
    timestamp and save to CSV
 3. combine: Transform and combine Raindrop data with gsheet structure
-4. upload_hn_gsheet: Upload the combined CSV to a new tab in Google Sheets
+4. upload_link_gsheet: Upload the combined CSV to a new tab in Google Sheets
 
 Example usage:
 
 # Download data from Google Sheets
-> update_hn_gsheet_from_raindrop.py \
+> update_link_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    -a download_hn_gsheet
+    -a download_link_gsheet
 
 # Run all actions
-> update_hn_gsheet_from_raindrop.py \
+> update_link_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all
 
 # Skip upload action
-> update_hn_gsheet_from_raindrop.py \
+> update_link_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    -sa upload_hn_gsheet
+    -sa upload_link_gsheet
 
 Import as:
 
-import dev_scripts_helpers.scraping.update_hn_gsheet_from_raindrop as dshshufr
+import dev_scripts_helpers.scraping.update_link_gsheet_from_raindrop as dshlufr
 """
 
 import argparse
@@ -74,7 +74,7 @@ def _get_tmp_file_path(filename: str) -> str:
     Get the path for a temporary file.
     """
     # Construct a temporary filename with a descriptive prefix for debugging.
-    return "./tmp.update_hn_gsheet_from_raindrop." + filename
+    return "./tmp.update_link_gsheet_from_raindrop." + filename
 
 
 def _read_csv(filepath: str) -> List[Dict[str, Any]]:
@@ -307,7 +307,7 @@ def _upload_to_gsheet(url: str) -> None:
     :param tabname: Name of the tab to create/overwrite (defaults to today's date)
     """
     # Use today's date as tab name.
-    tabname = "update_hn_gsheet_from_raindrop." + datetime.now().strftime(
+    tabname = "update_link_gsheet_from_raindrop." + datetime.now().strftime(
         "%Y-%m-%d"
     )
     combined_csv = _get_tmp_file_path(COMBINED_CSV_FILE)
@@ -333,10 +333,10 @@ def _upload_to_gsheet(url: str) -> None:
 
 # Define the four-step pipeline: download gsheet, download raindrop, combine, and upload.
 VALID_ACTIONS = [
-    "download_hn_gsheet",
+    "download_link_gsheet",
     "download_raindrop_data",
     "combine",
-    "upload_hn_gsheet",
+    "upload_link_gsheet",
 ]
 # By default, execute all actions in order.
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
@@ -352,7 +352,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default=None,
         help="URL of the Google Sheets document (required for "
-        "download_hn_gsheet and upload_hn_gsheet actions)",
+        "download_link_gsheet and upload_link_gsheet actions)",
     )
     hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
@@ -383,22 +383,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not to_execute:
             continue
         # Execute each action with required argument validation.
-        if action == "download_hn_gsheet":
+        if action == "download_link_gsheet":
             hdbg.dassert_is_not(
                 args.url,
                 None,
-                "--url is required for download_hn_gsheet action",
+                "--url is required for download_link_gsheet action",
             )
             _download_from_gsheet(args.url)
         elif action == "download_raindrop_data":
             _download_from_raindrop()
         elif action == "combine":
             _combine_raindrop_with_gsheet()
-        elif action == "upload_hn_gsheet":
+        elif action == "upload_link_gsheet":
             hdbg.dassert_is_not(
                 args.url,
                 None,
-                "--url is required for upload_hn_gsheet action",
+                "--url is required for upload_link_gsheet action",
             )
             _upload_to_gsheet(args.url)
 

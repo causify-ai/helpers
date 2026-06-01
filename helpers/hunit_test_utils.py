@@ -560,7 +560,7 @@ def get_parent_dirs(files: List[str]) -> List[str]:
     set. Files at the root level (with empty parent dir) are assigned to ".".
 
     Example:
-        Input: ["dev_scripts_helpers/scraping/process_hn_article.py",
+        Input: ["dev_scripts_helpers/scraping/process_link_gsheet.py",
                 "dev_scripts_helpers/scraping/test/__init__.py",
                 "helpers/hgit.py",
                 "helpers/lib_tasks_utils.py"]
