@@ -2,29 +2,30 @@
 
 ## HN Gsheet
 - The list of links is stored in a Gsheet
-	https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M
+	- E.g., https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M
 
-- `Title`
-	- "Rust is not a good C replacement"
-- `Url`
-	- https://drewdevault.com/2019/03/25/Rust-is-not-a-good-C-replacement.html
-	- https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4752797
-	- https://news.ycombinator.com/item?id=40212490
-- `Timestamp`
-	- 2024-04-30 22:23:54
-- `Article_url`
-	- If it's a HN link
-	- https://medium.com/airbnb-engineering/chronon-airbnbs-ml-feature-platform-is-now-open-source-d9c4dba859e8
-- `Article_title`
-	- If it's a HN link
-	- Typically the same as `Title`
-- `Article_tag`
-	- "Automated Theorem Proving"
-- `Article_cluster`
-	- "AI"
-- `Interesting`
-	-  (1 to 5)
-- `Notes`
+- The schema
+	- `Title`
+		- "Rust is not a good C replacement"
+	- `Url`
+		- https://drewdevault.com/2019/03/25/Rust-is-not-a-good-C-replacement.html
+		- https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4752797
+		- https://news.ycombinator.com/item?id=40212490
+	- `Timestamp`
+		- 2024-04-30 22:23:54
+	- `Article_url`
+		- If it's a HN link
+		- https://medium.com/airbnb-engineering/chronon-airbnbs-ml-feature-platform-is-now-open-source-d9c4dba859e8
+	- `Article_title`
+		- If it's a HN link
+		- Typically the same as `Title`
+	- `Article_tag`
+		- "Automated Theorem Proving"
+	- `Article_cluster`
+		- "AI"
+	- `Interesting`
+		-  (1 to 5)
+	- `Notes`
 
 from_gsheet.py --url https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=1509921826#gid=1509921826 --tabname "All" --output_file file.csv
 
@@ -35,10 +36,23 @@ from_gsheet.py --url https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia
 - Go to http://raindrop.io, https://app.raindrop.io/my/0
 - Export CSV / Get backup
 
-```
-id	title	note	excerpt	url	tags	created	cover	highlights	favorite
-1655820619	Ripgrep is faster than {grep, ag, Git grep, ucg, pt, sift} | Hacker News			https://news.ycombinator.com/item?id=47499245		2026-03-24T10:13:48.297Z	https://rdl.ink/render/https%3A%2F%2Fnews.ycombinator.com%2Fitem%3Fid%3D47499245		FALSE
-```
+- The schema is like
+	- `id`
+		- "1655820619"
+	- `title`
+		- "Ripgrep is faster than {grep, ag, Git grep, ucg, pt, sift} | Hacker News"
+	- `note`
+	- `excerpt`
+	- `url`
+		- https://news.ycombinator.com/item?id=47499245`
+	- `tags`
+	- `created`
+		- 2026-03-24T10:13:48.297Z
+	- `cover`
+		- https://rdl.ink/render/https%3A%2F%2Fnews.ycombinator.com%2Fitem%3Fid%3D47499245
+	- `highlights`
+	- `favorite`
+		- FALSE
 
 ### Download through API
 

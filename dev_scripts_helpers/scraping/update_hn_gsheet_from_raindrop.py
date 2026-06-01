@@ -2,13 +2,8 @@
 
 # /// script
 # dependencies = [
-#   "google",
-#   "googleapi",
-#   "gspread",
 #   "pandas",
-#   "pyyaml",
 #   "requests",
-#   "tqdm",
 # ]
 # ///
 
@@ -50,8 +45,8 @@ import pandas as pd
 import requests
 
 import helpers.hdbg as hdbg
-import helpers.hgoogle_drive_api as hgodrapi
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -86,16 +81,16 @@ def _download_from_gsheet(url: str) -> str:
     :return: Path to the saved CSV file
     """
     _LOG.info("Downloading data from Google Sheets")
-    credentials = hgodrapi.get_credentials()
-    _LOG.info("Google Sheet information:")
-    hgodrapi.print_info_about_google_url(url, credentials=credentials)
-    _LOG.info("Reading data from tab 'All'")
-    df = hgodrapi.from_gsheet(url, tab_name="All", credentials=credentials)
-    _LOG.info("Loaded %d rows and %d columns", len(df), len(df.columns))
     output_file = _get_tmp_file_path(GSHEET_CSV_FILE)
-    _LOG.info("Writing data to CSV file: '%s'", output_file)
-    df.to_csv(output_file, index=False)
-    _LOG.info("Successfully saved data to CSV file")
+    cmd = (
+        f"from_gsheet.py --url '{url}' --tabname 'All' "
+        f"--output_file '{output_file}' --overwrite"
+    )
+    hsystem.system(cmd, print_command=True)
+    hdbg.dassert_path_exists(output_file)
+    df = pd.read_csv(output_file)
+    _LOG.info("Loaded %d rows and %d columns", len(df), len(df.columns))
+    _LOG.info("Successfully downloaded and saved data")
     return output_file
 
 
@@ -205,22 +200,12 @@ def _upload_to_gsheet(url: str, *, tabname: str = "raindrop_sync") -> None:
     _LOG.info("Reading combined CSV file: '%s'", combined_csv)
     df = pd.read_csv(combined_csv)
     _LOG.info("Loaded %d rows and %d columns", len(df), len(df.columns))
-    credentials = hgodrapi.get_credentials()
-    _LOG.info("Google Sheet information:")
-    hgodrapi.print_info_about_google_url(url, credentials=credentials)
-    existing_tabs = hgodrapi.get_tabs_from_gsheet(
-        url, credentials=credentials
-    )
-    if tabname in existing_tabs:
-        _LOG.info("Tab '%s' already exists, will overwrite", tabname)
     _LOG.info("Writing data to tab '%s' in Google Sheet", tabname)
-    hgodrapi.to_gsheet(
-        df,
-        url,
-        tab_name=tabname,
-        freeze_rows=True,
-        credentials=credentials,
+    cmd = (
+        f"to_gsheet.py --input_file '{combined_csv}' --url '{url}' "
+        f"--tabname '{tabname}' --overwrite"
     )
+    hsystem.system(cmd, print_command=True)
     _LOG.info("Successfully wrote data to Google Sheet")
 
 
