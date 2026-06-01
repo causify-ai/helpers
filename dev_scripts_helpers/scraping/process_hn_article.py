@@ -53,15 +53,23 @@ import logging
 import re
 from typing import Any, Dict, List, Optional
 
+import pandas as pd
 import requests
+from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 import helpers.hselect_action as hselacti
 import helpers.hcache_simple as hcacsimp
 
 _LOG = logging.getLogger(__name__)
+
+_CLASSIFICATION_PROMPT = """
+Given the title and URL of an article, emit the tag among the ones below that represents
+the article best. Consider both the title and URL when making your classification.
+"""
 
 HN_CSV_FILE = "hn_gsheet.csv"
 PROCESSED_CSV_FILE = "processed_data.csv"
@@ -180,7 +188,7 @@ def _extract_item_id(hn_url: str) -> str:
     hdbg.dassert(_is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url)
     match = re.search(r"item\?id=(\d+)", hn_url)
     hdbg.dassert(match, "Could not extract item ID from: %s", hn_url)
-    return match.group(1)
+    return match.group(1)  # type: ignore
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -294,34 +302,23 @@ def _update_article_tags(
     :param batch_size: Number of articles to process in each batch
     :param model: Optional LLM model name to use
     """
-    hdbg.dassert_isinstance(df, pd.DataFrame)
     hdbg.dassert_lt(0, batch_size)
+    #
+    processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
+    hdbg.dassert_path_exists(processed_csv, "Must update article URLs first")
+    _LOG.debug("Loading CSV for tagging")
+    df = pd.read_csv(processed_csv)
     # Determine which title column to use.
-    has_article_title = "Article_title" in df.columns
-    has_title = "title" in df.columns
-    if not has_article_title and not has_title:
-        _LOG.warning(
-            "Neither Article_title nor title column found, skipping tagging"
-        )
-        return
+    hdbg.dassert_in("Article_title", df.columns)
+    hdbg.dassert_in("title", df.columns)
     # Build list of items (title + URL) for classification.
     valid_indices = []
     valid_items = []
     for idx, row in df.iterrows():
         # Get title from Article_title or fall back to title column.
         title = ""
-        if has_article_title and bool(pd.notna(row["Article_title"])):
-            article_title = str(row["Article_title"]).strip()
-            if article_title:
-                title = article_title
-        elif has_title and bool(pd.notna(row["title"])):
-            title_val = str(row["title"]).strip()
-            if title_val:
-                title = title_val
         # Get URL.
-        url = row.get("url", "")
-        if not title:
-            continue
+        url = row["url"]
         # Format as "Title: <title>\nURL: <url>".
         item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
         valid_indices.append(idx)
@@ -335,8 +332,8 @@ def _update_article_tags(
         _LOG.warning("No valid items to tag")
         return
     # Initialize Article_tag column if it doesn't exist.
-    if "Article_tag" not in df.columns:
-        df.insert(tag_col_idx, "Article_tag", "")
+    hdbg.dassert_is_in("Article_tag", df.columns)
+    tag_col_idx = df.columns.get_loc("Article_tag")
     # Process items in batches with progress bar for entire workload.
     num_batches = (len(valid_items) + batch_size - 1) // batch_size
     _LOG.info("Processing %d items in %d batches", len(valid_items), num_batches)
@@ -386,8 +383,9 @@ def _update_article_clusters() -> str:
     )
     # Map each article's tag to its corresponding cluster using the predefined topic_to_cluster dictionary.
     for idx, row in enumerate(rows):
-        tag = row.get["Article_tag"].strip()
+        tag = row["Article_tag"].strip()
         hdbg.dassert_isinstance(tag, str)
+        hdbg.dassert_is_in(tag, topic_to_cluser)
         cluster = topic_to_cluster[tag]
         _LOG.debug("Row %d: Tag '%s' maps to cluster '%s'", idx, tag, cluster)
         row["Article_cluster"] = cluster
@@ -487,7 +485,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "update_article_url":
             _update_article_urls()
         elif action == "update_article_tag":
-            _update_article_tags()
+            _update_article_tags(
+                url_col_idx + 1,
+                batch_size=10,
+            )
         elif action == "update_article_cluster":
             _update_article_clusters()
         elif action == "upload":
