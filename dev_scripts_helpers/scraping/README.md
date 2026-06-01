@@ -40,14 +40,14 @@ from_gsheet.py --url https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia
 	- `id`
 		- "1655820619"
 	- `title`
-		- "Ripgrep is faster than {grep, ag, Git grep, ucg, pt, sift} | Hacker News"
+		- "ripgrep is faster than {grep, ag, git grep, ucg, pt, sift} | hacker news"
 	- `note`
 	- `excerpt`
 	- `url`
 		- https://news.ycombinator.com/item?id=47499245`
 	- `tags`
 	- `created`
-		- 2026-03-24T10:13:48.297Z
+		- 2026-03-24t10:13:48.297z
 	- `cover`
 		- https://rdl.ink/render/https%3A%2F%2Fnews.ycombinator.com%2Fitem%3Fid%3D47499245
 	- `highlights`

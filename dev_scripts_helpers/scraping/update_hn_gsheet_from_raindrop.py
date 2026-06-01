@@ -9,11 +9,12 @@
 r"""
 Download Raindrop.io links and sync with Google Sheets.
 
-This script manages three actions:
+This script manages four actions:
 1. download_hn_gsheet: Download data from Google Sheets to CSV
 2. download_raindrop_data: Fetch links from Raindrop.io after the latest
-   timestamp and prepend them to the CSV
-3. upload_hn_gsheet: Upload the combined CSV to a new tab in Google Sheets
+   timestamp and save to CSV
+3. combine: Transform and combine Raindrop data with gsheet structure
+4. upload_hn_gsheet: Upload the combined CSV to a new tab in Google Sheets
 
 Example usage:
 
@@ -39,9 +40,9 @@ import dev_scripts_helpers.scraping.update_hn_gsheet_from_raindrop as dshshufr
 
 import argparse
 import csv
-import json
 import logging
 import os
+from datetime import datetime
 from typing import List, Dict, Any
 
 import requests
@@ -57,7 +58,6 @@ _LOG = logging.getLogger(__name__)
 # Constants
 # #############################################################################
 
-DEFAULT_TMP_DIR = "/tmp"
 GSHEET_CSV_FILE = "hn_gsheet.csv"
 RAINDROP_CSV_FILE = "raindrop_data.csv"
 COMBINED_CSV_FILE = "combined_data.csv"
@@ -68,9 +68,11 @@ COMBINED_CSV_FILE = "combined_data.csv"
 # #############################################################################
 
 
-def _get_tmp_file_path(filename: str, *, tmp_dir: str = DEFAULT_TMP_DIR) -> str:
-    """Get the path for a temporary file."""
-    return os.path.join(tmp_dir, filename)
+def _get_tmp_file_path(filename: str) -> str:
+    """
+    Get the path for a temporary file.
+    """
+    return "./tmp.update_hn_gsheet_from_raindrop." + filename
 
 
 def _read_csv(filepath: str) -> List[Dict[str, Any]]:
@@ -156,7 +158,7 @@ def _download_from_raindrop() -> str:
         )
         _LOG.info("Latest timestamp in gsheet: %s", latest_timestamp)
     else:
-        latest_timestamp = 0
+        latest_timestamp = None
         _LOG.info("No timestamp column found, fetching all bookmarks")
     raindrop_token = os.environ.get("RAINDROP_API_TOKEN")
     hdbg.dassert_is_not(
@@ -181,32 +183,43 @@ def _download_from_raindrop() -> str:
         items = data.get("items", [])
         _LOG.info("Fetched %d items from Raindrop", len(items))
         for item in items:
-            if "created" in item and item["created"] > latest_timestamp:
-                all_bookmarks.append(item)
-                count += 1
+            if "created" in item:
+                if latest_timestamp is None or float(item["created"]) > latest_timestamp:
+                    all_bookmarks.append(item)
+                    count += 1
         url = data.get("pagination", {}).get("nextLink")
     _LOG.info("Downloaded %d new bookmarks after timestamp", count)
     raindrop_csv = _get_tmp_file_path(RAINDROP_CSV_FILE)
     _LOG.info("Writing Raindrop data to CSV file: '%s'", raindrop_csv)
     if all_bookmarks:
-        fieldnames = list(all_bookmarks[0].keys())
-        rows_to_write = [
-            {k: json.dumps(v) if isinstance(v, (dict, list)) else v
-             for k, v in item.items()}
-            for item in all_bookmarks
-        ]
-        _write_csv(raindrop_csv, rows_to_write, fieldnames=fieldnames)
+        fields_to_keep = ["id", "title", "url", "created"]
+        rows_to_write = []
+        for item in all_bookmarks:
+            row = {
+                "id": item.get("_id", ""),
+                "title": item.get("title", ""),
+                "url": item.get("link", ""),
+                "created": item.get("created", ""),
+            }
+            rows_to_write.append(row)
+        _write_csv(raindrop_csv, rows_to_write, fieldnames=fields_to_keep)
     else:
         _write_csv(raindrop_csv, [], fieldnames=[])
     return raindrop_csv
 
 
-def _combine_csv_files() -> str:
+def _combine_raindrop_with_gsheet() -> str:
     """
-    Combine Raindrop data with gsheet data, prepending Raindrop data.
+    Transform and combine Raindrop data with gsheet structure.
 
-    Reads the gsheet CSV and Raindrop CSV files, concatenates them with
-    Raindrop data first, and saves the result to a combined CSV file.
+    Maps Raindrop fields to gsheet columns:
+    - title -> Title
+    - url -> Url
+    - created -> Timestamp (converted from ISO 8601 to YYYY-MM-DD HH:MM:SS)
+    - id -> discarded
+    - Other gsheet columns left empty for Raindrop rows
+
+    Raindrop data is prepended to gsheet data in the combined CSV.
 
     :return: Path to the combined CSV file
     """
@@ -214,26 +227,45 @@ def _combine_csv_files() -> str:
     raindrop_csv = _get_tmp_file_path(RAINDROP_CSV_FILE)
     hdbg.dassert_path_exists(gsheet_csv, "gsheet CSV file not found")
     hdbg.dassert_path_exists(raindrop_csv, "raindrop CSV file not found")
-    _LOG.info("Loading gsheet CSV data")
+    _LOG.info("Loading gsheet CSV to get schema")
     rows_gsheet = _read_csv(gsheet_csv)
+    gsheet_columns = list(rows_gsheet[0].keys()) if rows_gsheet else []
+    _LOG.info("Gsheet schema: %s", gsheet_columns)
     _LOG.info("Loading Raindrop CSV data")
     rows_raindrop = _read_csv(raindrop_csv)
+    rows_combined = []
+    for row in rows_raindrop:
+        combined_row = {col: "" for col in gsheet_columns}
+        if "title" in row:
+            combined_row["Title"] = row["title"]
+        if "url" in row:
+            combined_row["Url"] = row["url"]
+        if "created" in row:
+            try:
+                iso_str = row["created"].replace('Z', '+00:00')
+                dt = datetime.fromisoformat(iso_str)
+                combined_row["Timestamp"] = dt.strftime("%Y-%m-%d %H:%M:%S")
+            except (ValueError, AttributeError) as e:
+                _LOG.warning(
+                    "Failed to parse timestamp '%s': %s",
+                    row["created"],
+                    e,
+                )
+                combined_row["Timestamp"] = row["created"]
+        rows_combined.append(combined_row)
+    rows_combined.extend(rows_gsheet)
+    combined_csv = _get_tmp_file_path(COMBINED_CSV_FILE)
     _LOG.info(
         "Combining data: %d raindrop items, %d gsheet items",
         len(rows_raindrop),
         len(rows_gsheet),
     )
-    rows_combined = rows_raindrop + rows_gsheet
-    combined_csv = _get_tmp_file_path(COMBINED_CSV_FILE)
     _LOG.info("Writing combined data to CSV file: '%s'", combined_csv)
     if rows_combined:
-        fieldnames = list(rows_combined[0].keys())
-        _write_csv(combined_csv, rows_combined, fieldnames=fieldnames)
+        _write_csv(combined_csv, rows_combined, fieldnames=gsheet_columns)
     else:
-        _write_csv(combined_csv, [], fieldnames=[])
-    _LOG.info(
-        "Combined CSV created with %d rows", len(rows_combined)
-    )
+        _write_csv(combined_csv, [], fieldnames=gsheet_columns)
+    _LOG.info("Combined CSV created with %d rows", len(rows_combined))
     return combined_csv
 
 
@@ -269,11 +301,13 @@ def _upload_to_gsheet(url: str, *, tabname: str = "raindrop_sync") -> None:
 VALID_ACTIONS = [
     "download_hn_gsheet",
     "download_raindrop_data",
+    "combine",
     "upload_hn_gsheet",
 ]
 DEFAULT_ACTIONS = [
     "download_hn_gsheet",
     "download_raindrop_data",
+    "combine",
     "upload_hn_gsheet",
 ]
 
@@ -327,7 +361,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _download_from_gsheet(args.url)
         elif action == "download_raindrop_data":
             _download_from_raindrop()
-            _combine_csv_files()
+        elif action == "combine":
+            _combine_raindrop_with_gsheet()
         elif action == "upload_hn_gsheet":
             hdbg.dassert_is_not(
                 args.url,
