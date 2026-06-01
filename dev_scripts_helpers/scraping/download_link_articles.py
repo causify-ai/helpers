@@ -50,10 +50,15 @@ Download from rows 1-5, skip downloading articles:
     --select_column "Url" \
     --skip-action download_article_url
 
-Summarize articles and comments for all rows:
+Summarize articles for all rows:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
-    --action summarize
+    --action summarize_article_url
+
+Summarize HN comments for all rows:
+> download_link_articles.py \
+    --url "https://docs.google.com/spreadsheets/d/..." \
+    --action summarize_url
 
 Import as:
 
@@ -437,39 +442,24 @@ def _summarize_text_with_llm(
     _LOG.info("Summary saved to: %s", output_file)
 
 
-def _summarize_articles_and_comments(
+def _summarize_articles(
     rows: List[Dict[str, Any]], *, indices: List[int]
 ) -> None:
     """
-    Summarize article text and HN comments using llm_cli.py.
+    Summarize article text using llm_cli.py.
 
-    Creates two summary files per article:
+    Creates a summary file per article:
     - title.text.summary.txt: Summary of the article
-    - title.hn_comments.summary.txt: Summary of HN comments
 
     :param rows: List of data rows
     :param indices: List of row indices to process
     """
-    _LOG.info("Summarizing articles and comments for %d rows", len(indices))
-    # Prompts for summarization.
+    _LOG.info("Summarizing articles for %d rows", len(indices))
     article_prompt = (
         "Summarize the main article in 5 bullet points. "
         "Format as plain text without markdown."
     )
-    comments_prompt = (
-        "Analyze the Hacker News comment section. "
-        "From all comments, summarize the 5 most interesting ones based on: "
-        "1. Thought-provoking or insightful content "
-        "2. Unique perspective or uncommon knowledge "
-        "3. Sparks discussion or debate "
-        "4. Technically informative or educational "
-        "5. Controversial but well-argued. "
-        "Avoid comments that are: simple jokes, memes, very short reactions, "
-        "repetitive or low-effort. "
-        "Do not include commenter names. "
-        "Format as plain text without markdown."
-    )
-    for idx in tqdm(indices, desc="Summarizing articles and comments"):
+    for idx in tqdm(indices, desc="Summarizing articles"):
         row = rows[idx]
         title = row.get("Title", "").strip()
         hdbg.dassert(title)
@@ -484,6 +474,41 @@ def _summarize_articles_and_comments(
         _summarize_text_with_llm(
             article_file, article_summary_file, prompt=article_prompt
         )
+
+
+def _summarize_comments(
+    rows: List[Dict[str, Any]], *, indices: List[int]
+) -> None:
+    """
+    Summarize HN comments using llm_cli.py.
+
+    Creates a summary file per article:
+    - title.hn_comments.summary.txt: Summary of HN comments
+
+    :param rows: List of data rows
+    :param indices: List of row indices to process
+    """
+    _LOG.info("Summarizing comments for %d rows", len(indices))
+    comments_prompt = (
+        "Analyze the Hacker News comment section. "
+        "From all comments, summarize the 5 most interesting ones based on: "
+        "1. Thought-provoking or insightful content "
+        "2. Unique perspective or uncommon knowledge "
+        "3. Sparks discussion or debate "
+        "4. Technically informative or educational "
+        "5. Controversial but well-argued. "
+        "Avoid comments that are: simple jokes, memes, very short reactions, "
+        "repetitive or low-effort. "
+        "Do not include commenter names. "
+        "Format as plain text without markdown."
+    )
+    for idx in tqdm(indices, desc="Summarizing comments"):
+        row = rows[idx]
+        title = row.get("Title", "").strip()
+        hdbg.dassert(title)
+        _LOG.debug("Processing row %d: %s", idx, title)
+        # Generate sanitized filename from title.
+        sanitized_title = _sanitize_title_for_filename(title)
         # Summarize HN comments if .hn_comments.txt file exists.
         comments_file = f"{sanitized_title}.hn_comments.txt"
         hdbg.dassert_file_exists(comments_file)
@@ -502,7 +527,8 @@ def _summarize_articles_and_comments(
 VALID_ACTIONS = [
     "download_url",
     "download_article_url",
-    "summarize",
+    "summarize_url",
+    "summarize_article_url",
 ]
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
@@ -607,8 +633,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _download_hn_comments(rows, indices=indices)
         elif action == "download_article_url":
             _download_article_urls(rows, indices=indices)
-        elif action == "summarize":
-            _summarize_articles_and_comments(rows, indices=indices)
+        elif action == "summarize_url":
+            _summarize_comments(rows, indices=indices)
+        elif action == "summarize_article_url":
+            _summarize_articles(rows, indices=indices)
     _LOG.info("Download and processing completed")
 
 
