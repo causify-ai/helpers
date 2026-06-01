@@ -296,27 +296,24 @@ def _update_article_tags(
     *,
     batch_size: int = 10,
     model: Optional[str] = None,
-) -> None:
+) -> str:
     """
     Tag articles using LLM classification and update output file after each batch.
 
     Uses Article_title (from HN API) or title column (from input CSV), plus URL.
 
-    :param df: DataFrame containing Article_title or title column, and url column
-    :param output_file: Path to output CSV file
-    :param tag_col_idx: Index position for inserting Article_tag column
     :param batch_size: Number of articles to process in each batch
     :param model: Optional LLM model name to use
+    :return: Path to the updated CSV file
     """
     hdbg.dassert_lt(0, batch_size)
-    #
     processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
     hdbg.dassert_path_exists(processed_csv, "Must update article URLs first")
     _LOG.debug("Loading CSV for tagging")
     df = pd.read_csv(processed_csv)
-    # Determine which title column to use.
     hdbg.dassert_in("Article_title", df.columns)
     hdbg.dassert_in("Title", df.columns)
+    hdbg.dassert_in("Article_tag", df.columns)
     # Build list of items (title + URL) for classification.
     valid_indices = []
     valid_items = []
@@ -330,7 +327,7 @@ def _update_article_tags(
         if title_val is not None and pd.notna(title_val):
             title = str(title_val)
         # Get URL.
-        url_val = row.get("url")
+        url_val = row.get("Article_url")
         url = str(url_val) if url_val is not None and pd.notna(url_val) else ""
         # Format as "Title: <title>\nURL: <url>".
         item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
@@ -343,11 +340,7 @@ def _update_article_tags(
     )
     if not valid_items:
         _LOG.warning("No valid items to tag")
-        return
-    # Initialize Article_tag column if it doesn't exist.
-    hdbg.dassert_is_in("Article_tag", df.columns)
-    tag_col_idx = df.columns.get_loc("Article_tag")
-    tag_col_idx = int(tag_col_idx_result) if isinstance(tag_col_idx_result, int) else 0
+        return processed_csv
     # Process items in batches with progress bar for entire workload.
     num_batches = (len(valid_items) + batch_size - 1) // batch_size
     _LOG.info("Processing %d items in %d batches", len(valid_items), num_batches)
@@ -373,10 +366,11 @@ def _update_article_tags(
         for idx, tag in zip(batch_indices, batch_tags):
             df.at[idx, "Article_tag"] = tag.strip()
         # Update output file after each batch.
-        # TODO(ai_gp): use output_file = _get_tmp_file_path(PROCESSED_CSV_FILE)
+        output_file = _get_tmp_file_path(PROCESSED_CSV_FILE)
         _LOG.debug("Updating output file: %s", output_file)
         df.to_csv(output_file, index=False)
     _LOG.info("Finished tagging %d articles", len(valid_items))
+    return processed_csv
 
 
 def _update_article_clusters() -> str:
@@ -498,8 +492,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "update_article_url":
             _update_article_urls()
         elif action == "update_article_tag":
-            _update_article_tags(
-            )
+            _update_article_tags()
         elif action == "update_article_cluster":
             _update_article_clusters()
         elif action == "upload":
