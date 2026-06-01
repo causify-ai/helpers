@@ -59,6 +59,8 @@ import logging
 import re
 from typing import Any, Dict, List, Optional
 
+# TODO(gp): Consider using a different implementation and remove this
+# dependency.
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -82,6 +84,7 @@ def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
     :return: Item data dict or None if fetch fails
     """
     try:
+        # Query the official HN API for the item.
         api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
         _LOG.debug("Fetching HN item: %s", api_url)
         response = requests.get(api_url, timeout=10)
@@ -113,11 +116,14 @@ def _fetch_hn_comments(
     :param current_depth: Current recursion depth (internal use)
     :return: List of comment dicts with nested replies
     """
+    # Stop recursion at max depth to limit API calls and processing time.
     if current_depth >= max_depth:
         return []
+    # Fetch the item data from HN API.
     item_data = _fetch_hn_item(item_id)
     if not item_data:
         return []
+    # Extract core comment metadata from the item data.
     comment = {
         "id": item_data.get("id"),
         "by": item_data.get("by"),
@@ -125,6 +131,8 @@ def _fetch_hn_comments(
         "time": item_data.get("time"),
         "score": item_data.get("score"),
     }
+    # Recursively fetch child comments (replies) if they exist.
+    # Limit to first 10 children per comment to avoid excessive API calls.
     kids = item_data.get("kids", [])
     if kids:
         replies = []
@@ -147,21 +155,25 @@ def _download_article_content(url: str) -> Optional[str]:
     :param url: Article URL
     :return: Article text or None if download fails
     """
-    if not url:
-        return None
+    hdbg.dassert_is_not(url, None)
     _LOG.debug("Downloading article from: %s", url)
+    # Use a realistic User-Agent to avoid being blocked by many web servers.
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     try:
+        # Fetch the HTML from the URL with timeout to prevent hanging.
         response = requests.get(url, timeout=15, headers=headers)
         response.raise_for_status()
         html = response.text
+        # Parse HTML and extract article text from paragraph elements.
         soup = BeautifulSoup(html, "html.parser")
         paragraphs = soup.find_all("p")
         if paragraphs:
+            # Join paragraphs with blank lines for readability.
             text = "\n\n".join(p.get_text() for p in paragraphs)
         else:
+            # Fallback to raw HTML if no paragraphs found.
             text = html
         return text
     except Exception as e:
@@ -179,10 +191,36 @@ def _sanitize_title_for_filename(title: str) -> str:
     :param title: Title string
     :return: Sanitized filename slug
     """
+    # Replace any non-alphanumeric character (except underscore) with underscore.
     sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", title)
+    # Collapse consecutive underscores into a single underscore.
     sanitized = re.sub(r"_+", "_", sanitized)
+    # Remove leading and trailing underscores for cleaner filenames.
     sanitized = sanitized.strip("_")
     return sanitized
+
+
+def add_comment_tree(
+    comment_list: List[Dict[str, Any]], depth: int = 0
+) -> None:
+    """
+    Recursively add comments to output, preserving hierarchy.
+    """
+    for comment in comment_list:
+        # Format comment metadata: author, score, and timestamp.
+        indent = "  " * depth
+        lines.append(f"{indent}By: {comment.get('by', 'unknown')}")
+        lines.append(f"{indent}Score: {comment.get('score', 0)}")
+        lines.append(f"{indent}Time: {comment.get('time', 'unknown')}")
+        # Extract and format comment text, preserving line breaks.
+        text = comment.get("text", "").strip()
+        if text:
+            for text_line in text.split("\n"):
+                lines.append(f"{indent}{text_line}")
+        lines.append("")
+        # Recursively process nested replies at increasing indentation depth.
+        if "replies" in comment:
+            add_comment_tree(comment["replies"], depth + 1)
 
 
 def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
@@ -193,26 +231,6 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
     :return: Formatted text representation of comments
     """
     lines = []
-
-    def add_comment_tree(
-        comment_list: List[Dict[str, Any]], depth: int = 0
-    ) -> None:
-        """
-        Recursively add comments to output, preserving hierarchy.
-        """
-        for comment in comment_list:
-            indent = "  " * depth
-            lines.append(f"{indent}By: {comment.get('by', 'unknown')}")
-            lines.append(f"{indent}Score: {comment.get('score', 0)}")
-            lines.append(f"{indent}Time: {comment.get('time', 'unknown')}")
-            text = comment.get("text", "").strip()
-            if text:
-                for text_line in text.split("\n"):
-                    lines.append(f"{indent}{text_line}")
-            lines.append("")
-            if "replies" in comment:
-                add_comment_tree(comment["replies"], depth + 1)
-
     add_comment_tree(comments)
     return "\n".join(lines)
 
@@ -228,6 +246,7 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
     :param num_rows: Total number of rows available
     :return: List of 0-indexed row indices to process
     """
+    # Parse range format (e.g., "1:10").
     if ":" in row_idx_str:
         parts = row_idx_str.split(":")
         hdbg.dassert_eq(
@@ -255,8 +274,10 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
             "Row index end must be <= number of rows (%d)",
             num_rows,
         )
+        # Convert to 0-indexed: range is inclusive on both ends.
         return list(range(start - 1, end))
     else:
+        # Parse single index format (e.g., "1").
         try:
             idx = int(row_idx_str.strip())
         except ValueError:
@@ -270,6 +291,7 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
             "Row index must be <= number of rows (%d)",
             num_rows,
         )
+        # Convert to 0-indexed.
         return [idx - 1]
 
 
@@ -285,11 +307,13 @@ def _download_hn_comments(
     _LOG.info("Downloading HN comments for %d rows", len(indices))
     for idx in tqdm(indices, desc="Downloading HN comments"):
         row = rows[idx]
+        # Extract URL and title from the row.
         url = row.get("Url", "").strip()
         title = row.get("Title", "").strip()
         if not url or not title:
             _LOG.warning("Row %d missing Url or Title, skipping", idx)
             continue
+        # Validate URL is from HN and extract the submission item ID.
         try:
             if not dshslgsut.is_hackernews_url(url):
                 _LOG.info("Row %d: URL is not HN URL, skipping", idx)
@@ -299,8 +323,10 @@ def _download_hn_comments(
         except (AssertionError, AttributeError):
             _LOG.warning("Row %d: Could not extract item ID from: %s", idx, url)
             continue
+        # Fetch comments from HN API and format as readable text.
         _LOG.info("Fetching HN comments for item: %s", item_id)
         hn_comments = _fetch_hn_comments(item_id, max_depth=3)
+        # Generate filename from title and write comments to disk.
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.hn_comments.txt"
         _LOG.info("Writing HN comments to: %s", output_file)
@@ -322,18 +348,21 @@ def _download_article_urls(
     _LOG.info("Downloading articles from Article_url for %d rows", len(indices))
     for idx in tqdm(indices, desc="Downloading articles"):
         row = rows[idx]
+        # Extract article URL and title from the row.
         article_url = row.get("Article_url", "").strip()
         title = row.get("Title", "").strip()
         if not article_url or not title:
             _LOG.warning("Row %d missing Article_url or Title, skipping", idx)
             continue
         _LOG.debug("Processing row %d: %s", idx, title)
+        # Download and parse article content from the URL.
         article_content = _download_article_content(article_url)
         if not article_content:
             _LOG.warning(
                 "Row %d: Failed to download article from: %s", idx, article_url
             )
             continue
+        # Generate filename from title and write article text to disk.
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.text.txt"
         _LOG.info("Writing article content to: %s", output_file)
@@ -342,10 +371,12 @@ def _download_article_urls(
         _LOG.info("Successfully saved article for: %s", title)
 
 
+# Action configuration: defines available operations and their defaults.
 VALID_ACTIONS = [
     "download_url",
     "download_article_url",
 ]
+# By default, both actions are enabled unless user specifies --skip-action.
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
 
@@ -357,18 +388,21 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    # Required: URL of the Google Sheets document containing article links.
     parser.add_argument(
         "--url",
         action="store",
         required=True,
         help="URL of the Google Sheets document",
     )
+    # Optional: specify which rows to process (1-indexed).
     parser.add_argument(
         "--row_idx",
         action="store",
         default=None,
         help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10)",
     )
+    # Optional: filter rows by non-empty values in this column.
     parser.add_argument(
         "--select_column",
         action="store",
@@ -376,7 +410,9 @@ def _parse() -> argparse.ArgumentParser:
         help="Column name to use for filtering; only rows with non-empty cells in "
         "this column will be processed",
     )
+    # Add action selection arguments (download_url, download_article_url, etc).
     hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
+    # Add verbosity control argument.
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -388,11 +424,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hdbg.dassert_is_not(args.url, None, "--url is required")
+    # Determine which actions to execute based on command-line flags.
     actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
     _LOG.info(
         "Actions to execute:\n%s",
         hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
     )
+    # Phase 1: Download and parse the Google Sheets data.
     gsheet_csv = dshslgsut.get_tmp_file_path(
         "gsheet.csv", "download_link_articles"
     )
@@ -400,11 +438,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     rows = dshslgsut.read_csv(gsheet_csv)
     hdbg.dassert(len(rows) > 0, "No rows in downloaded CSV")
     _LOG.info("Processing %d rows from Google Sheets", len(rows))
+    # Phase 2: Determine which rows to process based on row_idx argument.
+    # Defaults to all rows if row_idx is not specified.
     if args.row_idx:
         indices = _parse_row_idx(args.row_idx, len(rows))
     else:
         indices = list(range(len(rows)))
     _LOG.info("Row indices to process: %s", indices)
+    # Phase 3: Filter rows by non-empty values in the specified column.
+    # This narrows down the set of rows to process further.
     if args.select_column:
         hdbg.dassert_in(
             args.select_column,
@@ -415,6 +457,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         filtered_indices = []
         for idx in indices:
             cell_value = rows[idx].get(args.select_column, "")
+            # Handle both string and pandas NA values correctly.
             if isinstance(cell_value, str):
                 is_nonempty = cell_value.strip() != ""
             else:
@@ -423,6 +466,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 filtered_indices.append(idx)
         indices = filtered_indices
         _LOG.info("After filtering: %d rows to process", len(indices))
+    # Phase 4: Execute selected actions in sequence.
+    # Each action processes the filtered set of rows independently.
     actions_remaining = actions
     while actions_remaining:
         action = actions_remaining[0]
