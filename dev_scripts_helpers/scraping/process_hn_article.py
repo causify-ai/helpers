@@ -197,12 +197,14 @@ def _extract_article_url(hn_url: str) -> str:
     Extract article URL from a Hacker News submission using the HN API.
 
     :param hn_url: Hacker News item URL
-    :return: Article URL
+    :return: Article URL or the HN URL if no article URL exists
     """
     hdbg.dassert_isinstance(hn_url, str)
     hdbg.dassert(_is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url)
+    _LOG.debug("Processing HN URL: %s", hn_url)
     # Extract the numeric item ID from the HN URL.
     item_id = _extract_item_id(hn_url)
+    _LOG.debug("Extracted item ID: %s", item_id)
     # Query the HN API for the item details which includes the actual article URL.
     api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
     _LOG.debug("Fetching from API: %s", api_url)
@@ -210,9 +212,16 @@ def _extract_article_url(hn_url: str) -> str:
     response.raise_for_status()
     data = response.json()
     hdbg.dassert(data, "No data returned for item: %s", item_id)
+    _LOG.debug("API response received for item %s", item_id)
     article_url = data.get("url")
-    hdbg.dassert(article_url, "No URL found for item: %s", item_id)
-    _LOG.debug("Extracted URL: %s", article_url)
+    if not article_url:
+        _LOG.debug(
+            "No URL found for item %s (type: %s), using HN URL instead",
+            item_id,
+            data.get("type", "unknown"),
+        )
+        return hn_url
+    _LOG.debug("Successfully extracted article URL: %s", article_url)
     return article_url
 
 
@@ -284,9 +293,6 @@ def _update_article_urls() -> str:
 
 
 def _update_article_tags(
-    df: pd.DataFrame,
-    output_file: str,
-    tag_col_idx: int,
     *,
     batch_size: int = 10,
     model: Optional[str] = None,
@@ -310,15 +316,22 @@ def _update_article_tags(
     df = pd.read_csv(processed_csv)
     # Determine which title column to use.
     hdbg.dassert_in("Article_title", df.columns)
-    hdbg.dassert_in("title", df.columns)
+    hdbg.dassert_in("Title", df.columns)
     # Build list of items (title + URL) for classification.
     valid_indices = []
     valid_items = []
     for idx, row in df.iterrows():
         # Get title from Article_title or fall back to title column.
         title = ""
+        article_title_val = row["Article_title"]
+        if article_title_val is not None and pd.notna(article_title_val):
+            title = str(article_title_val)
+        title_val = row["Title"]
+        if title_val is not None and pd.notna(title_val):
+            title = str(title_val)
         # Get URL.
-        url = row["url"]
+        url_val = row.get("url")
+        url = str(url_val) if url_val is not None and pd.notna(url_val) else ""
         # Format as "Title: <title>\nURL: <url>".
         item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
         valid_indices.append(idx)
@@ -334,6 +347,7 @@ def _update_article_tags(
     # Initialize Article_tag column if it doesn't exist.
     hdbg.dassert_is_in("Article_tag", df.columns)
     tag_col_idx = df.columns.get_loc("Article_tag")
+    tag_col_idx = int(tag_col_idx_result) if isinstance(tag_col_idx_result, int) else 0
     # Process items in batches with progress bar for entire workload.
     num_batches = (len(valid_items) + batch_size - 1) // batch_size
     _LOG.info("Processing %d items in %d batches", len(valid_items), num_batches)
@@ -359,6 +373,7 @@ def _update_article_tags(
         for idx, tag in zip(batch_indices, batch_tags):
             df.at[idx, "Article_tag"] = tag.strip()
         # Update output file after each batch.
+        # TODO(ai_gp): use output_file = _get_tmp_file_path(PROCESSED_CSV_FILE)
         _LOG.debug("Updating output file: %s", output_file)
         df.to_csv(output_file, index=False)
     _LOG.info("Finished tagging %d articles", len(valid_items))
@@ -373,26 +388,30 @@ def _update_article_clusters() -> str:
     # Load the CSV from the previous tagging step.
     processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
     hdbg.dassert_path_exists(processed_csv, "Must update article tags first")
-    _LOG.debug("Loading CSV to assign clusters")
+    _LOG.debug("Loading CSV to assign clusters from: %s", processed_csv)
     rows = _read_csv(processed_csv)
     hdbg.dassert(rows, "No rows in CSV: %s", processed_csv)
     columns = list(rows[0].keys()) if rows else []
+    _LOG.debug("CSV has %d rows and %d columns", len(rows), len(columns))
     hdbg.dassert_in("Article_tag", columns, "CSV must have 'Article_tag' column")
     hdbg.dassert_in(
         "Article_cluster", columns, "CSV must have 'Article_cluster' column"
     )
+    _LOG.debug("Mapping %d unique topics to clusters", len(topic_to_cluster))
     # Map each article's tag to its corresponding cluster using the predefined topic_to_cluster dictionary.
+    num_clustered = 0
     for idx, row in enumerate(rows):
         tag = row["Article_tag"].strip()
         hdbg.dassert_isinstance(tag, str)
-        hdbg.dassert_is_in(tag, topic_to_cluster)
+        hdbg.dassert_in(tag, topic_to_cluster, f"Tag '{tag}' not found in topic_to_cluster mapping")
         cluster = topic_to_cluster[tag]
         _LOG.debug("Row %d: Tag '%s' maps to cluster '%s'", idx, tag, cluster)
         row["Article_cluster"] = cluster
+        num_clustered += 1
     # Write the clustered data back to the CSV for final upload.
     _LOG.debug("Writing clustered data to CSV file: '%s'", processed_csv)
     _write_csv(processed_csv, rows, fieldnames=columns)
-    _LOG.info("Assigned clusters to %d rows to '%s'", len(rows), processed_csv)
+    _LOG.info("Assigned clusters to %d rows and wrote to '%s'", num_clustered, processed_csv)
     return processed_csv
 
 
@@ -480,8 +499,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _update_article_urls()
         elif action == "update_article_tag":
             _update_article_tags(
-                url_col_idx + 1,
-                batch_size=10,
             )
         elif action == "update_article_cluster":
             _update_article_clusters()
