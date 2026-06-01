@@ -269,7 +269,7 @@ def _combine_raindrop_with_gsheet() -> str:
     return combined_csv
 
 
-def _upload_to_gsheet(url: str, *, tabname: str = "raindrop_sync") -> None:
+def _upload_to_gsheet(url: str, *, tabname: str = None) -> None:
     """
     Upload combined CSV data to a new tab in Google Sheets.
 
@@ -277,8 +277,10 @@ def _upload_to_gsheet(url: str, *, tabname: str = "raindrop_sync") -> None:
     Google Sheet, creating the tab if it doesn't exist or overwriting it.
 
     :param url: URL of the Google Sheets document
-    :param tabname: Name of the tab to create/overwrite
+    :param tabname: Name of the tab to create/overwrite (defaults to today's date)
     """
+    if tabname is None:
+        tabname = datetime.now().strftime("%Y-%m-%d")
     combined_csv = _get_tmp_file_path(COMBINED_CSV_FILE)
     hdbg.dassert_path_exists(combined_csv, "combined CSV file not found")
     _LOG.info("Reading combined CSV file: '%s'", combined_csv)

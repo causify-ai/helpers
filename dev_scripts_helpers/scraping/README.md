@@ -57,7 +57,7 @@ from_gsheet.py --url https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia
 ### Download through API
 
 ```
-> update_hn_gsheet_from_raindrop.py
+> update_hn_gsheet_from_raindrop.py --url https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M
 ```
 
 ### Update HN Gsheet
@@ -99,8 +99,6 @@ Step 6\) Read notes/papers.pocket.txt
 
 - `extract_hn_article.py`
   - Extracts article title and URL from Hacker News submissions and optionally classifies them using LLM
-
-## Description of Executables
 
 ### `extract_hn_article.py`
 
@@ -151,3 +149,7 @@ Step 6\) Read notes/papers.pocket.txt
   > ./extract_hn_article.py --input_file input.csv --output_file output.csv --tag_articles --model gpt-4
   ```
   Uses gpt-4 model for article classification instead of the default model.
+
+# 
+
+download_hn_articles --url xxx 

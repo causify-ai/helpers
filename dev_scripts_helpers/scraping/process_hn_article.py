@@ -60,48 +60,57 @@ import helpers.hcache_simple as hcacsimp
 
 _LOG = logging.getLogger(__name__)
 
+topic_to_cluster = {
+    "AI Agents & Tool-Using Systems": "AI",
+    "Automated Theorem Proving": "AI",
+    "Causal Inference": "AI",
+    "Diffusion Models": "AI",
+    "Knowledge Graphs": "AI",
+    "LLM Reasoning": "AI",
+    "Multi-Agent Systems": "AI",
+    "Probabilistic Programming": "AI",
+    "Prompt Engineering": "AI",
+    "Self-Supervised Learning": "AI",
+    "Uncertainty & Belief Modeling": "AI",
+	#
+    "AI Infrastructure": "Data/Infra",
+    "Data Engineering & Pipelines": "Data/Infra",
+    "High-Performance Computing": "Data/Infra",
+	#
+    "Developer Tools": "Dev tools",
+    "Git and GitHub": "Dev tools",
+    "Open Source": "Dev tools",
+    "Python Ecosystem": "Dev tools",
+    "Rust and C++": "Dev tools",
+	#
+    "Quant Finance": "Finance",
+    "Trading Strategies": "Finance",
+	#
+    "Complex Systems & Network Dynamics": "Math",
+    "Mathematical Concepts": "Math",
+    "Simulation & Agent-Based Modeling": "Math",
+    "Time Series": "Math",
+    "Unconventional Computing": "Math",
+	#
+    "Careers & Professional Growth": "Business",
+    "Marketing and Sales": "Business",
+    "Organizational Behavior & Incentives": "Business",
+    "Psychology & Well-Being": "Business",
+	#
+    "Cybersecurity & Privacy": "CyberSec",
+    "Risk Management & Compliance": "CyberSec",
+	#
+    "Code Refactoring": "SwEng",
+    "Dev Productivity": "SwEng",
+    "Software Architecture": "SwEng",
+    "Software Project Management": "SwEng",
+    "System Reliability & Fault Tolerance": "SwEng",
+}
+
 # Classification prompt for article tagging.
 _CLASSIFICATION_PROMPT = """
 Given the title and URL of an article, emit the tag among the ones below that represents
 the article best. Consider both the title and URL when making your classification.
-
-AI Agents & Tool-Using Systems
-Automated Theorem Proving
-Causal Inference
-Diffusion Models
-Knowledge Graphs
-LLM Reasoning
-Multi-Agent Systems
-Probabilistic Programming
-Prompt Engineering
-Self-Supervised Learning
-Uncertainty & Belief Modeling
-AI Infrastructure
-Data Engineering & Pipelines
-High-Performance Computing
-Developer Tools
-Git and GitHub
-Open Source
-Python Ecosystem
-Rust and C++
-Quant Finance
-Trading Strategies
-Complex Systems & Network Dynamics
-Mathematical Concepts
-Simulation & Agent-Based Modeling
-Time Series
-Unconventional Computing
-Careers & Professional Growth
-Marketing and Sales
-Organizational Behavior & Incentives
-Psychology & Well-Being
-Cybersecurity & Privacy
-Risk Management & Compliance
-Code Refactoring
-Dev Productivity
-Software Architecture
-Software Project Management
-System Reliability & Fault Tolerance
 """
 
 

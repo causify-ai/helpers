@@ -2,8 +2,12 @@
 
 # /// script
 # dependencies = [
+#   "google",
+#   "googleapi",
+#   "gspread",
 #   "pandas",
 #   "pyyaml",
+#   "tqdm",
 # ]
 # ///
 

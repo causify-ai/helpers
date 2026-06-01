@@ -1,10 +1,32 @@
-Change use_llm_executable to "backend" become mode with 3 values
-- "executable" which is equivalent to use_llm_executable = True
-- "library" which is equivalent to use_llm_executable = False
-- "mock" which replaces a call to the LLM by implementing something like
-  _mock_apply_llm
+# Step 1
+In update_hn_gsheet_from_raindrop.py --action combine
 
-Replace the --use_llm_executable with --backend
+Remove from the Title field the string "| HackerNews"
+
+# Step 2
+Change 
+
+dev_scripts_helpers/scraping_script/process_hn_article.py
+--url XYZ
+
+Use an approach using from_gsheet and to_gsheet similar to update_hn_gsheet_from_raindrop.py
+
+Use --action download, update, upload
+
+Action: download
+Read the hn gsheet to a file
+
+Action: update_article_url
+Scan the rows of the CSV one by one and fill the empty cell corresponding to
+title
+If the Url is an Hackenews link then extract Article_url with one of the
+functions in ./process_hn_article.py
+
+Action: update_article_tag
+
+Action: update_article_cluster
+
+Action: upload
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`

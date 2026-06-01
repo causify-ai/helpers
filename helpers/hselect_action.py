@@ -221,7 +221,9 @@ def select_actions(
 
 
 def mark_action(
-    action: str, actions: Optional[List[str]]
+    action: str, actions: Optional[List[str]],
+    *,
+    verbosity_level: int = logging.INFO,
 ) -> Tuple[bool, Optional[List[str]]]:
     """
     Mark an action as to be executed or skipped.
@@ -235,7 +237,7 @@ def mark_action(
         to_execute = True
     else:
         to_execute = action in actions
-    _LOG.debug("\n%s", hprint.frame(f"action={action}"))
+    _LOG.log(verbosity_level, "\n%s", hprint.frame(f"action={action}"))
     if to_execute:
         if actions is not None:
             actions = [a for a in actions if a != action]
