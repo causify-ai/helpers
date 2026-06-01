@@ -357,7 +357,11 @@ def _main(parser: argparse.ArgumentParser) -> int:
             inferred_topic = _infer_topic_from_filename(file_path)
             topic_info = _get_rules_for_topic(inferred_topic)
             rc = _run_claude_code(
-                prompt, topic_str, file_path, dry_run=args.dry_run, model=args.model
+                prompt,
+                topic_str,
+                file_path,
+                dry_run=args.dry_run,
+                model=args.model,
             )
         elif args.rule:
             rule_content = hmarsele.extract_rule_from_file(args.rule)
@@ -368,7 +372,11 @@ def _main(parser: argparse.ArgumentParser) -> int:
             inferred_topic = _infer_topic_from_filename(file_path)
             topic_info = _get_rules_for_topic(inferred_topic)
             rc = _run_claude_code(
-                prompt, topic_str, file_path, dry_run=args.dry_run, model=args.model
+                prompt,
+                topic_str,
+                file_path,
+                dry_run=args.dry_run,
+                model=args.model,
             )
         else:
             if args.topic:
@@ -385,7 +393,11 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 + "questions to the user"
             )
             rc = _run_claude_code(
-                prompt, topic_str, file_path, dry_run=args.dry_run, model=args.model
+                prompt,
+                topic_str,
+                file_path,
+                dry_run=args.dry_run,
+                model=args.model,
             )
         ret |= rc
         if topic_info["run_jupytext"]:

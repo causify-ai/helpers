@@ -225,7 +225,13 @@ def _download_from_gsheet(url: str) -> str:
     # Validate the download: read the CSV and verify it has content.
     rows = _read_csv(output_file)
     num_cols = len(rows[0].keys()) if rows else 0
-    _LOG.info("Loaded %d rows and %d columns from Google Sheets '%s' into '%s'", len(rows), num_cols, url, output_file)
+    _LOG.info(
+        "Loaded %d rows and %d columns from Google Sheets '%s' into '%s'",
+        len(rows),
+        num_cols,
+        url,
+        output_file,
+    )
     return output_file
 
 
@@ -261,7 +267,9 @@ def _update_article_urls() -> str:
     processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
     _LOG.debug("Writing updated data to CSV file: '%s'", processed_csv)
     _write_csv(processed_csv, rows, fieldnames=columns)
-    _LOG.info("Updated %d rows with article URLs to '%s'", len(rows), processed_csv)
+    _LOG.info(
+        "Updated %d rows with article URLs to '%s'", len(rows), processed_csv
+    )
     return processed_csv
 
 
@@ -287,7 +295,9 @@ def _update_article_clusters() -> str:
     hdbg.dassert(rows, "No rows in CSV: %s", processed_csv)
     columns = list(rows[0].keys()) if rows else []
     hdbg.dassert_in("Article_tag", columns, "CSV must have 'Article_tag' column")
-    hdbg.dassert_in("Article_cluster", columns, "CSV must have 'Article_cluster' column")
+    hdbg.dassert_in(
+        "Article_cluster", columns, "CSV must have 'Article_cluster' column"
+    )
     # Map each article's tag to its corresponding cluster using the predefined topic_to_cluster dictionary.
     for idx, row in enumerate(rows):
         tag = row.get["Article_tag"].strip()
@@ -366,9 +376,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Resolve which actions to run based on command-line flags (--action, --all, --skip-action).
-    actions = hselacti.select_actions(
-        args, VALID_ACTIONS, DEFAULT_ACTIONS
-    )
+    actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
     _LOG.info(
         "Actions to execute:\n%s",
         hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),

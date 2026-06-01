@@ -59,6 +59,7 @@ def _filter_ipynb_files(files: List[str]) -> List[str]:
             _LOG.warning("Skipping non-.ipynb file: %s", file_path)
     return ipynb_files
 
+
 # #############################################################################
 # Pair
 # #############################################################################

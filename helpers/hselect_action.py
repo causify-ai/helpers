@@ -44,6 +44,7 @@ _LOG = logging.getLogger(__name__)
 # ...
 # ```
 
+
 def add_action_arg(
     parser: argparse.ArgumentParser,
     valid_actions: List[str],
@@ -221,7 +222,8 @@ def select_actions(
 
 
 def mark_action(
-    action: str, actions: Optional[List[str]],
+    action: str,
+    actions: Optional[List[str]],
     *,
     verbosity_level: int = logging.INFO,
 ) -> Tuple[bool, Optional[List[str]]]:

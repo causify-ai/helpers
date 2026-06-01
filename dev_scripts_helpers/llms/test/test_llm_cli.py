@@ -1,11 +1,8 @@
-import io
 import logging
 import os
-import re
 from typing import List, Optional, cast
 from unittest import mock
 
-import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
@@ -88,7 +85,9 @@ class Test_llm_cli_select(hunitest.TestCase):
         actual = _run_llm_cli_with_mock(
             argv,
             scratch_space=self.get_scratch_space(),
-            output_basename=os.path.basename(output_file) if output_file else None,
+            output_basename=os.path.basename(output_file)
+            if output_file
+            else None,
         )
         if actual is None:
             actual = hio.from_file(input_file)

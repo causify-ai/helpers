@@ -115,9 +115,7 @@ def _write_file(file_path: str, content: str) -> None:
 # #############################################################################
 
 
-def _generate_summary(
-    content: str, *, model: str, backend: str
-) -> str:
+def _generate_summary(content: str, *, model: str, backend: str) -> str:
     """
     Generate a summary of the content using the llm library or executable.
 
@@ -282,9 +280,7 @@ def _action_summarize(
     # Read the input file.
     content = _read_file(input_file)
     # Generate summary.
-    summary = _generate_summary(
-        content, model=model, backend=backend
-    )
+    summary = _generate_summary(content, model=model, backend=backend)
     # Update the summary section.
     new_content = _update_summary_section(content, summary)
     # Write the updated content.

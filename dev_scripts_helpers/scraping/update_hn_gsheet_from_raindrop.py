@@ -154,9 +154,7 @@ def _download_from_raindrop() -> str:
     """
     # Load the gsheet CSV to find the cutoff timestamp for filtering new bookmarks.
     gsheet_csv = _get_tmp_file_path(GSHEET_CSV_FILE)
-    hdbg.dassert_path_exists(
-        gsheet_csv, "Must download from gsheet first"
-    )
+    hdbg.dassert_path_exists(gsheet_csv, "Must download from gsheet first")
     _LOG.info("Loading gsheet CSV to find latest timestamp")
     rows_gsheet = _read_csv(gsheet_csv)
     # Determine the latest timestamp in existing data to avoid re-downloading duplicates.
@@ -172,9 +170,7 @@ def _download_from_raindrop() -> str:
     # Retrieve Raindrop API token from environment and validate it exists.
     raindrop_token = os.environ.get("RAINDROP_API_TOKEN")
     hdbg.dassert_is_not(
-        raindrop_token,
-        None,
-        "RAINDROP_API_TOKEN environment variable not set"
+        raindrop_token, None, "RAINDROP_API_TOKEN environment variable not set"
     )
     _LOG.info("Downloading bookmarks from Raindrop.io")
     headers = {"Authorization": f"Bearer {raindrop_token}"}
@@ -196,7 +192,10 @@ def _download_from_raindrop() -> str:
         # Filter bookmarks: keep only those created after the latest gsheet timestamp.
         for item in items:
             if "created" in item:
-                if latest_timestamp is None or float(item["created"]) > latest_timestamp:
+                if (
+                    latest_timestamp is None
+                    or float(item["created"]) > latest_timestamp
+                ):
                     all_bookmarks.append(item)
                     count += 1
         # Update URL to next page if pagination link exists.
@@ -260,7 +259,7 @@ def _combine_raindrop_with_gsheet() -> str:
             title = row["title"]
             # Remove "| HackerNews" suffix from the title.
             if title.endswith("| HackerNews"):
-                title = title[:-len("| HackerNews")].strip()
+                title = title[: -len("| HackerNews")].strip()
             combined_row["Title"] = title
         # Map Raindrop URL field directly.
         if "url" in row:
@@ -268,7 +267,7 @@ def _combine_raindrop_with_gsheet() -> str:
         # Convert Raindrop ISO 8601 timestamp to gsheet format: YYYY-MM-DD HH:MM:SS.
         if "created" in row:
             try:
-                iso_str = row["created"].replace('Z', '+00:00')
+                iso_str = row["created"].replace("Z", "+00:00")
                 dt = datetime.fromisoformat(iso_str)
                 combined_row["Timestamp"] = dt.strftime("%Y-%m-%d %H:%M:%S")
             except (ValueError, AttributeError) as e:
@@ -369,9 +368,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Determine which actions to execute based on command-line arguments.
-    actions = hselacti.select_actions(
-        args, VALID_ACTIONS, DEFAULT_ACTIONS
-    )
+    actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
     _LOG.info(
         "Actions to execute:\n%s",
         hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
