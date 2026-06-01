@@ -494,11 +494,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     for module_name in ["httpcore", "httpx", "_base_client", "_trace", "openai"]:
         logger = logging.getLogger(module_name)
         logger.setLevel(logging.CRITICAL)
-    cache_control = hcacsimp.parse_cache_control_args(args)
-    cache_dir = hcacsimp.get_cache_dir()
-    _LOG.info("Cache directory: %s", cache_dir)
-    _LOG.info("Cache control settings: %s", cache_control)
-    assert 0
+    hcacsimp.parse_cache_control_args(args)
     # Resolve which actions to run based on command-line flags (--action, --all, --skip-action).
     actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
     _LOG.info(
