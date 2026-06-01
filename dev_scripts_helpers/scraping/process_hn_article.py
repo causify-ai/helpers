@@ -61,6 +61,7 @@ from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hllm_cli as hllmcli
+import helpers.hlogging as hloggin
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 import helpers.hselect_action as hselacti
@@ -463,43 +464,6 @@ VALID_ACTIONS = [
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
 
-def add_cache_control_arg(parser: argparse.ArgumentParser) -> None:
-    """
-    Add cache control arguments to the argument parser.
-
-    :param parser: Argument parser instance
-    """
-    parser.add_argument(
-        "--use-cache",
-        action="store_true",
-        default=False,
-        help="Use cached results if available (default: False)",
-    )
-    parser.add_argument(
-        "--skip-cache",
-        action="store_true",
-        default=False,
-        help="Skip cache and force fresh fetch (default: False)",
-    )
-
-
-def parse_cache_control_args(args: argparse.Namespace) -> Dict[str, bool]:
-    """
-    Parse and validate cache control arguments.
-
-    :param args: Parsed arguments from argparse
-    :return: Dictionary with cache control settings
-    """
-    hdbg.dassert(
-        not (args.use_cache and args.skip_cache),
-        "Cannot use both --use-cache and --skip-cache",
-    )
-    return {
-        "use_cache": args.use_cache,
-        "skip_cache": args.skip_cache,
-    }
-
-
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -518,7 +482,7 @@ def _parse() -> argparse.ArgumentParser:
         help="LLM model name to use for tagging (default: gpt-4o-mini)",
     )
     hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
-    add_cache_control_arg(parser)
+    hcacsimp.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -526,8 +490,15 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    cache_control = parse_cache_control_args(args)
+    hloggin.shutup_chatty_modules(verbosity=logging.ERROR)
+    for module_name in ["httpcore", "httpx", "_base_client", "_trace", "openai"]:
+        logger = logging.getLogger(module_name)
+        logger.setLevel(logging.CRITICAL)
+    cache_control = hcacsimp.parse_cache_control_args(args)
+    cache_dir = hcacsimp.get_cache_dir()
+    _LOG.info("Cache directory: %s", cache_dir)
     _LOG.info("Cache control settings: %s", cache_control)
+    assert 0
     # Resolve which actions to run based on command-line flags (--action, --all, --skip-action).
     actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
     _LOG.info(
