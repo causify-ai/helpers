@@ -66,7 +66,6 @@ from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import dev_scripts_helpers.scraping.link_gsheet_utils as dslgu
@@ -215,15 +214,6 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def _download_from_gsheet(url: str) -> str:
-    """
-    Download data from Google Sheets and save to a temporary CSV file.
-
-    :param url: URL of the Google Sheets document
-    :return: Path to the saved CSV file
-    """
-    output_file = dslgu.get_tmp_file_path("gsheet.csv", "download_link_articles")
-    return dslgu.download_from_gsheet(url, output_file)
 
 
 def _parse_column_idx(column_idx_str: str, num_rows: int) -> List[int]:
@@ -296,11 +286,11 @@ def _download_hn_comments(rows: List[Dict[str, Any]], *, indices: List[int]) -> 
         if not url or not title:
             _LOG.warning("Row %d missing Url or Title, skipping", idx)
             continue
-        if not dslgu.is_hackernews_url(url):
-            _LOG.info("Row %d: URL is not HN URL, skipping", idx)
-            continue
-        _LOG.debug("Processing row %d: %s", idx, title)
         try:
+            if not dslgu.is_hackernews_url(url):
+                _LOG.info("Row %d: URL is not HN URL, skipping", idx)
+                continue
+            _LOG.debug("Processing row %d: %s", idx, title)
             item_id = dslgu.extract_item_id(url)
         except (AssertionError, AttributeError):
             _LOG.warning("Row %d: Could not extract item ID from: %s", idx, url)
@@ -395,8 +385,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Actions to execute:\n%s",
         hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
     )
-    gsheet_csv = _download_from_gsheet(args.url)
-    rows = _read_csv(gsheet_csv)
+    gsheet_csv = dslgu.get_tmp_file_path("gsheet.csv", "download_link_articles")
+    dslgu.download_from_gsheet(args.url, gsheet_csv)
+    rows = dslgu.read_csv(gsheet_csv)
     hdbg.dassert(len(rows) > 0, "No rows in downloaded CSV")
     _LOG.info("Processing %d rows from Google Sheets", len(rows))
     if args.column_idx:

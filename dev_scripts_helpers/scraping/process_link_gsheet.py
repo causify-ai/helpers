@@ -49,11 +49,8 @@ import dev_scripts_helpers.scraping.process_link_gsheet as dslg
 """
 
 import argparse
-import csv
 import datetime
 import logging
-import re
-from typing import Any, Dict, List
 
 import pandas as pd
 import requests
@@ -63,9 +60,9 @@ import helpers.hdbg as hdbg
 import helpers.hllm_cli as hllmcli
 import helpers.hlogging as hloggin
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 import helpers.hselect_action as hselacti
 import helpers.hcache_simple as hcacsimp
+import dev_scripts_helpers.scraping.link_gsheet_utils as dslgu
 
 _LOG = logging.getLogger(__name__)
 
@@ -129,72 +126,6 @@ the article best. Consider both the title and URL when making your classificatio
 """
 
 
-def _get_tmp_file_path(filename: str) -> str:
-    """
-    Get the path for a temporary file.
-    """
-    return "./tmp.process_link_gsheet." + filename
-
-
-# TODO(gp): Factor out this.
-def _read_csv(filepath: str) -> List[Dict[str, Any]]:
-    """
-    Read CSV file and return list of dictionaries.
-
-    Each row becomes a dictionary with column names as keys.
-
-    :param filepath: Path to CSV file
-    :return: List of row dictionaries
-    """
-    rows = []
-    with open(filepath, "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            rows.append(row)
-    return rows
-
-
-def _write_csv(
-    filepath: str,
-    rows: List[Dict[str, Any]],
-    *,
-    fieldnames: List[str],
-) -> None:
-    """
-    Write list of dictionaries to CSV file.
-
-    :param filepath: Path to CSV file
-    :param rows: List of row dictionaries
-    :param fieldnames: Column names in order
-    """
-    with open(filepath, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def _is_hackernews_url(url: str) -> bool:
-    """
-    Check if URL is a Hacker News item URL.
-
-    :param url: URL to check
-    :return: True if URL is a HN item URL
-    """
-    hdbg.dassert_isinstance(url, str)
-    return "news.ycombinator.com/item?id=" in url
-
-
-def _extract_item_id(hn_url: str) -> str:
-    """
-    Extract the item ID from a Hacker News URL.
-
-    :param hn_url: Hacker News item URL
-    :return: Item ID
-    """
-    hdbg.dassert(_is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url)
-    match = re.search(r"item\?id=(\d+)", hn_url)
-    hdbg.dassert(match, "Could not extract item ID from: %s", hn_url)
-    return match.group(1)  # type: ignore
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -206,10 +137,10 @@ def _extract_article_url(hn_url: str) -> str:
     :return: Article URL or the HN URL if no article URL exists
     """
     hdbg.dassert_isinstance(hn_url, str)
-    hdbg.dassert(_is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url)
+    hdbg.dassert(dslgu.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url)
     _LOG.debug("Processing HN URL: %s", hn_url)
     # Extract the numeric item ID from the HN URL.
-    item_id = _extract_item_id(hn_url)
+    item_id = dslgu.extract_item_id(hn_url)
     _LOG.debug("Extracted item ID: %s", item_id)
     # Query the HN API for the item details which includes the actual article URL.
     api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
@@ -238,24 +169,8 @@ def _download_from_gsheet(url: str) -> str:
     :param url: URL of the Google Sheets document
     :return: Path to the saved CSV file
     """
-    _LOG.info("Downloading data from Google Sheets")
-    # Invoke from_gsheet.py to export the 'All' sheet to a temporary CSV file.
-    output_file = _get_tmp_file_path(HN_CSV_FILE)
-    cmd = (
-        f"from_gsheet.py --url '{url}' --output_file '{output_file}' --overwrite"
-    )
-    hsystem.system(cmd, print_command=True)
-    hdbg.dassert_path_exists(output_file)
-    # Validate the download: read the CSV and verify it has content.
-    rows = _read_csv(output_file)
-    num_cols = len(rows[0].keys()) if rows else 0
-    _LOG.info(
-        "Loaded %d rows and %d columns from Google Sheets '%s' into '%s'",
-        len(rows),
-        num_cols,
-        url,
-        output_file,
-    )
+    output_file = dslgu.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
+    dslgu.download_from_gsheet(url, output_file)
     return output_file
 
 
@@ -270,10 +185,10 @@ def _update_article_urls() -> str:
     :return: Path to the updated CSV file
     """
     # Load and validate the HN CSV from the previous download step.
-    hn_csv = _get_tmp_file_path(HN_CSV_FILE)
+    hn_csv = dslgu.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(hn_csv, "Must download from gsheet first")
     _LOG.info("Loading CSV '%s' to extract article URLs", hn_csv)
-    rows = _read_csv(hn_csv)
+    rows = dslgu.read_csv(hn_csv)
     num_cols = len(rows[0].keys()) if rows else 0
     _LOG.info(
         "Loaded %d rows and %d columns from '%s'", len(rows), num_cols, hn_csv
@@ -298,7 +213,7 @@ def _update_article_urls() -> str:
         desc="Extracting article URLs",
     ):
         url = row["Url"]
-        if _is_hackernews_url(url):
+        if dslgu.is_hackernews_url(url):
             _LOG.debug(
                 "Processing row %d: Extracting from HN URL", row_indices[idx]
             )
@@ -310,9 +225,9 @@ def _update_article_urls() -> str:
             )
             row["Article_url"] = url
     # Write the updated rows with extracted article URLs to a new CSV file for the next processing stage.
-    urls_csv = _get_tmp_file_path(URLS_CSV_FILE)
+    urls_csv = dslgu.get_tmp_file_path(URLS_CSV_FILE, "process_link_gsheet")
     _LOG.info("Writing updated data to CSV file: '%s'", urls_csv)
-    _write_csv(urls_csv, rows, fieldnames=columns)
+    dslgu.write_csv(urls_csv, rows, fieldnames=columns)
     _LOG.info(
         "Wrote %d rows with %d columns to '%s'",
         len(rows),
@@ -338,7 +253,7 @@ def _update_article_tags(
     :return: Path to the updated CSV file
     """
     hdbg.dassert_lt(0, batch_size)
-    urls_csv = _get_tmp_file_path(URLS_CSV_FILE)
+    urls_csv = dslgu.get_tmp_file_path(URLS_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(urls_csv, "Must update article URLs first")
     _LOG.info("Loading CSV '%s' for tagging", urls_csv)
     df = pd.read_csv(urls_csv)
@@ -388,7 +303,7 @@ def _update_article_tags(
         num_batches,
         batch_size,
     )
-    tags_csv = _get_tmp_file_path(TAGS_CSV_FILE)
+    tags_csv = dslgu.get_tmp_file_path(TAGS_CSV_FILE, "process_link_gsheet")
     prompt = _CLASSIFICATION_PROMPT
     prompt += "\n".join(topic_to_cluster.keys())
     for batch_num in tqdm(range(num_batches), desc="Tagging articles"):
@@ -426,10 +341,10 @@ def _update_article_clusters() -> str:
     :return: Path to the updated CSV file
     """
     # Load the CSV from the previous tagging step.
-    tags_csv = _get_tmp_file_path(TAGS_CSV_FILE)
+    tags_csv = dslgu.get_tmp_file_path(TAGS_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(tags_csv, "Must update article tags first")
     _LOG.info("Loading CSV to assign clusters from: %s", tags_csv)
-    rows = _read_csv(tags_csv)
+    rows = dslgu.read_csv(tags_csv)
     hdbg.dassert(rows, "No rows in CSV: %s", tags_csv)
     columns = list(rows[0].keys()) if rows else []
     _LOG.info(
@@ -469,9 +384,9 @@ def _update_article_clusters() -> str:
             _LOG.warning(f"Tag '{tag}' not found in topic_to_cluster mapping")
             row["Article_cluster"] = ""
     # Write the clustered data to a new CSV file for final upload.
-    clusters_csv = _get_tmp_file_path(CLUSTERS_CSV_FILE)
+    clusters_csv = dslgu.get_tmp_file_path(CLUSTERS_CSV_FILE, "process_link_gsheet")
     _LOG.info("Writing clustered data to CSV file: '%s'", clusters_csv)
-    _write_csv(clusters_csv, rows, fieldnames=columns)
+    dslgu.write_csv(clusters_csv, rows, fieldnames=columns)
     _LOG.info(
         "Assigned clusters to %d rows and %d columns, wrote to '%s'",
         len(rows_to_process),
@@ -481,33 +396,18 @@ def _update_article_clusters() -> str:
     return clusters_csv
 
 
-# TODO(gp): Share with update_link_gsheet_from_raindrop.py.
 def _upload_to_gsheet(url: str) -> None:
     """
     Upload processed CSV data to Google Sheets.
 
     :param url: URL of the Google Sheets document
-    :param tabname: Name of the tab to create/overwrite (defaults to today's date)
     """
-    # Use today's date as the sheet name.
     tabname = "process_link_gsheet." + datetime.datetime.now().strftime(
         "%Y-%m-%d"
     )
-    # Load and validate the fully processed CSV that includes article URLs and clusters.
-    clusters_csv = _get_tmp_file_path(CLUSTERS_CSV_FILE)
+    clusters_csv = dslgu.get_tmp_file_path(CLUSTERS_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")
-    _LOG.info("Reading clusters CSV file: '%s'", clusters_csv)
-    rows = _read_csv(clusters_csv)
-    num_cols = len(rows[0].keys()) if rows else 0
-    _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
-    # Invoke to_gsheet.py to upload the processed data as a new sheet.
-    _LOG.info("Writing data to tab '%s' in Google Sheet", tabname)
-    cmd = (
-        f"to_gsheet.py --input_file '{clusters_csv}' --url '{url}' "
-        f"--tabname '{tabname}' --overwrite"
-    )
-    hsystem.system(cmd, print_command=True)
-    _LOG.info("Successfully wrote data to Google Sheet")
+    dslgu.upload_to_gsheet(url, clusters_csv, tabname)
 
 
 # List of available pipeline actions; executed in order when --all is used.
