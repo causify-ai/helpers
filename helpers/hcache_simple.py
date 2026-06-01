@@ -32,6 +32,7 @@ _LOG = logging.getLogger(__name__)
 
 # Disable tracing for production code.
 _LOG.trace = lambda *args, **kwargs: None
+# To enable use:
 # _LOG.trace = _LOG.debug
 
 # #############################################################################

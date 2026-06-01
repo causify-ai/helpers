@@ -1,5 +1,4 @@
-In dev_scripts_helpers/scraping/process_hn_article.py
-
+Change dev_scripts_helpers/scraping/process_hn_article.py, so that
 each action should read one csv file and save another one so that it's possible
 to run each action independently, like for update_hn_gsheet_from_raindrop.py
 

@@ -68,13 +68,10 @@ import helpers.hcache_simple as hcacsimp
 
 _LOG = logging.getLogger(__name__)
 
-_CLASSIFICATION_PROMPT = """
-Given the title and URL of an article, emit the tag among the ones below that represents
-the article best. Consider both the title and URL when making your classification.
-"""
-
 HN_CSV_FILE = "hn_gsheet.csv"
-PROCESSED_CSV_FILE = "processed_data.csv"
+URLS_CSV_FILE = "processed_data.urls.csv"
+TAGS_CSV_FILE = "processed_data.tags.csv"
+CLUSTERS_CSV_FILE = "processed_data.clusters.csv"
 
 # Map article topics to high-level cluster categories for grouping and analysis.
 topic_to_cluster = {
@@ -124,6 +121,11 @@ topic_to_cluster = {
     "System Reliability & Fault Tolerance": "SwEng",
 }
 
+
+_CLASSIFICATION_PROMPT = f"""
+Given the title and URL of an article, emit the tag among the ones below that represents
+the article best. Consider both the title and URL when making your classification.
+"""
 
 def _get_tmp_file_path(filename: str) -> str:
     """
@@ -268,14 +270,19 @@ def _update_article_urls() -> str:
     # Load and validate the HN CSV from the previous download step.
     hn_csv = _get_tmp_file_path(HN_CSV_FILE)
     hdbg.dassert_path_exists(hn_csv, "Must download from gsheet first")
-    _LOG.debug("Loading CSV '%s' to extract article URLs", hn_csv)
+    _LOG.info("Loading CSV '%s' to extract article URLs", hn_csv)
     rows = _read_csv(hn_csv)
+    num_cols = len(rows[0].keys()) if rows else 0
+    _LOG.info("Loaded %d rows and %d columns from '%s'", len(rows), num_cols, hn_csv)
     hdbg.dassert(rows, "No rows in CSV: %s", hn_csv)
     columns = list(rows[0].keys()) if rows else []
     hdbg.dassert_in("Url", columns, "CSV must have 'Url' column")
     hdbg.dassert_in("Article_url", columns, "CSV must have 'Article_url' column")
+    # Count empty cells that need to be filled
+    empty_count = sum(1 for row in rows if not (url := row.get("Article_url")) or (isinstance(url, str) and url.strip() == ""))
+    _LOG.info("Found %d empty Article_url cells to fill", empty_count)
     # Iterate through rows: for HN links, fetch the actual article URL via the HN API; for other URLs, use them as-is.
-    for idx, row in enumerate(rows):
+    for idx, row in tqdm(enumerate(rows), total=len(rows), desc="Extracting article URLs"):
         url = row["Url"]
         if _is_hackernews_url(url):
             _LOG.debug("Row %d: Extracting from HN URL", idx)
@@ -285,19 +292,19 @@ def _update_article_urls() -> str:
             _LOG.debug("Row %d: Non-HN URL, using as-is", idx)
             row["Article_url"] = url
     # Write the updated rows with extracted article URLs to a new CSV file for the next processing stage.
-    processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
-    _LOG.debug("Writing updated data to CSV file: '%s'", processed_csv)
-    _write_csv(processed_csv, rows, fieldnames=columns)
+    urls_csv = _get_tmp_file_path(URLS_CSV_FILE)
+    _LOG.info("Writing updated data to CSV file: '%s'", urls_csv)
+    _write_csv(urls_csv, rows, fieldnames=columns)
     _LOG.info(
-        "Updated %d rows with article URLs to '%s'", len(rows), processed_csv
+        "Wrote %d rows with %d columns to '%s'", len(rows), len(columns), urls_csv
     )
-    return processed_csv
+    return urls_csv
 
 
 def _update_article_tags(
+    model: str,
     *,
     batch_size: int = 10,
-    model: Optional[str] = None,
 ) -> str:
     """
     Tag articles using LLM classification and update output file after each batch.
@@ -309,12 +316,16 @@ def _update_article_tags(
     :return: Path to the updated CSV file
     """
     hdbg.dassert_lt(0, batch_size)
-    processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
-    hdbg.dassert_path_exists(processed_csv, "Must update article URLs first")
-    _LOG.debug("Loading CSV '%s' for tagging", processed_csv)
-    df = pd.read_csv(processed_csv)
+    urls_csv = _get_tmp_file_path(URLS_CSV_FILE)
+    hdbg.dassert_path_exists(urls_csv, "Must update article URLs first")
+    _LOG.info("Loading CSV '%s' for tagging", urls_csv)
+    df = pd.read_csv(urls_csv)
+    _LOG.info("Loaded %d rows and %d columns from '%s'", len(df), len(df.columns), urls_csv)
     hdbg.dassert_in("Title", df.columns)
     hdbg.dassert_in("Article_tag", df.columns)
+    # Count empty cells that need to be filled
+    empty_count = sum(1 for val in df["Article_tag"] if pd.isna(val) or str(val).strip() == "")
+    _LOG.info("Found %d empty Article_tag cells to fill", empty_count)
     # Build list of items (title + URL) for classification.
     valid_indices = []
     valid_items = []
@@ -322,11 +333,13 @@ def _update_article_tags(
         # Get title from Title column.
         title = ""
         title_val = row["Title"]
-        if title_val is not None and pd.notna(title_val):
+        if bool(pd.notna(title_val)):
             title = str(title_val)
         # Get URL.
         url_val = row.get("Article_url")
-        url = str(url_val) if url_val is not None and pd.notna(url_val) else ""
+        url = ""
+        if bool(pd.notna(url_val)):
+            url = str(url_val)
         # Format as "Title: <title>\nURL: <url>".
         item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
         valid_indices.append(idx)
@@ -338,17 +351,20 @@ def _update_article_tags(
     )
     if not valid_items:
         _LOG.warning("No valid items to tag")
-        return processed_csv
+        return urls_csv
     # Process items in batches with progress bar for entire workload.
     num_batches = (len(valid_items) + batch_size - 1) // batch_size
-    _LOG.info("Processing %d items in %d batches", len(valid_items), num_batches)
+    _LOG.info("Processing %d items in %d batches (batch size: %d)", len(valid_items), num_batches, batch_size)
+    tags_csv = _get_tmp_file_path(TAGS_CSV_FILE)
+    prompt = _CLASSIFICATION_PROMPT
+    prompt += "\n".join(topic_to_cluster.keys())
     for batch_num in tqdm(range(num_batches), desc="Tagging articles"):
         # Get batch indices.
         start_idx = batch_num * batch_size
         end_idx = min(start_idx + batch_size, len(valid_items))
         batch_items = valid_items[start_idx:end_idx]
         batch_indices = valid_indices[start_idx:end_idx]
-        _LOG.debug(
+        _LOG.info(
             "Processing batch %d/%d (%d items)",
             batch_num + 1,
             num_batches,
@@ -356,19 +372,18 @@ def _update_article_tags(
         )
         # Call LLM for this batch.
         batch_tags, _ = hllmcli.apply_llm_batch_with_shared_prompt(
-            prompt=_CLASSIFICATION_PROMPT,
+            prompt=prompt,
             input_list=batch_items,
-            model=model or "gpt-4o-mini",
+            model=model
         )
         # Update dataframe with batch results.
         for idx, tag in zip(batch_indices, batch_tags):
             df.at[idx, "Article_tag"] = tag.strip()
         # Update output file after each batch.
-        output_file = _get_tmp_file_path(PROCESSED_CSV_FILE)
-        _LOG.debug("Updating output file: %s", output_file)
-        df.to_csv(output_file, index=False)
-    _LOG.info("Finished tagging %d articles", len(valid_items))
-    return processed_csv
+        _LOG.info("Writing batch results to: %s", tags_csv)
+        df.to_csv(tags_csv, index=False)
+    _LOG.info("Finished tagging and wrote %d rows to '%s'", len(df), tags_csv)
+    return tags_csv
 
 
 def _update_article_clusters() -> str:
@@ -378,33 +393,36 @@ def _update_article_clusters() -> str:
     :return: Path to the updated CSV file
     """
     # Load the CSV from the previous tagging step.
-    processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
-    hdbg.dassert_path_exists(processed_csv, "Must update article tags first")
-    _LOG.debug("Loading CSV to assign clusters from: %s", processed_csv)
-    rows = _read_csv(processed_csv)
-    hdbg.dassert(rows, "No rows in CSV: %s", processed_csv)
+    tags_csv = _get_tmp_file_path(TAGS_CSV_FILE)
+    hdbg.dassert_path_exists(tags_csv, "Must update article tags first")
+    _LOG.info("Loading CSV to assign clusters from: %s", tags_csv)
+    rows = _read_csv(tags_csv)
+    hdbg.dassert(rows, "No rows in CSV: %s", tags_csv)
     columns = list(rows[0].keys()) if rows else []
-    _LOG.debug("CSV has %d rows and %d columns", len(rows), len(columns))
+    _LOG.info("Loaded %d rows and %d columns from '%s'", len(rows), len(columns), tags_csv)
     hdbg.dassert_in("Article_tag", columns, "CSV must have 'Article_tag' column")
     hdbg.dassert_in(
         "Article_cluster", columns, "CSV must have 'Article_cluster' column"
     )
-    _LOG.debug("Mapping %d unique topics to clusters", len(topic_to_cluster))
+    # Count empty cells that need to be filled
+    empty_count = sum(1 for row in rows if not row.get("Article_cluster") or row.get("Article_cluster").strip() == "")
+    _LOG.info("Found %d empty Article_cluster cells to fill", empty_count)
+    _LOG.info("Mapping %d unique topics to clusters", len(topic_to_cluster))
     # Map each article's tag to its corresponding cluster using the predefined topic_to_cluster dictionary.
     num_clustered = 0
-    for idx, row in enumerate(rows):
+    for _, row in tqdm(enumerate(rows), total=len(rows), desc="Assigning clusters"):
         tag = row["Article_tag"].strip()
         hdbg.dassert_isinstance(tag, str)
         hdbg.dassert_in(tag, topic_to_cluster, f"Tag '{tag}' not found in topic_to_cluster mapping")
         cluster = topic_to_cluster[tag]
-        _LOG.debug("Row %d: Tag '%s' maps to cluster '%s'", idx, tag, cluster)
         row["Article_cluster"] = cluster
         num_clustered += 1
-    # Write the clustered data back to the CSV for final upload.
-    _LOG.debug("Writing clustered data to CSV file: '%s'", processed_csv)
-    _write_csv(processed_csv, rows, fieldnames=columns)
-    _LOG.info("Assigned clusters to %d rows and wrote to '%s'", num_clustered, processed_csv)
-    return processed_csv
+    # Write the clustered data to a new CSV file for final upload.
+    clusters_csv = _get_tmp_file_path(CLUSTERS_CSV_FILE)
+    _LOG.info("Writing clustered data to CSV file: '%s'", clusters_csv)
+    _write_csv(clusters_csv, rows, fieldnames=columns)
+    _LOG.info("Assigned clusters to %d rows and %d columns, wrote to '%s'", num_clustered, len(columns), clusters_csv)
+    return clusters_csv
 
 
 # TODO(gp): Share with update_hn_gsheet_from_raindrop.py.
@@ -418,16 +436,16 @@ def _upload_to_gsheet(url: str) -> None:
     # Use today's date as the sheet name.
     tabname = "process_hn_article." + datetime.datetime.now().strftime("%Y-%m-%d")
     # Load and validate the fully processed CSV that includes article URLs and clusters.
-    processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
-    hdbg.dassert_path_exists(processed_csv, "processed CSV file not found")
-    _LOG.info("Reading processed CSV file: '%s'", processed_csv)
-    rows = _read_csv(processed_csv)
+    clusters_csv = _get_tmp_file_path(CLUSTERS_CSV_FILE)
+    hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")
+    _LOG.info("Reading clusters CSV file: '%s'", clusters_csv)
+    rows = _read_csv(clusters_csv)
     num_cols = len(rows[0].keys()) if rows else 0
     _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
     # Invoke to_gsheet.py to upload the processed data as a new sheet.
     _LOG.info("Writing data to tab '%s' in Google Sheet", tabname)
     cmd = (
-        f"to_gsheet.py --input_file '{processed_csv}' --url '{url}' "
+        f"to_gsheet.py --input_file '{clusters_csv}' --url '{url}' "
         f"--tabname '{tabname}' --overwrite"
     )
     hsystem.system(cmd, print_command=True)
@@ -445,6 +463,43 @@ VALID_ACTIONS = [
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
 
+def add_cache_control_arg(parser: argparse.ArgumentParser) -> None:
+    """
+    Add cache control arguments to the argument parser.
+
+    :param parser: Argument parser instance
+    """
+    parser.add_argument(
+        "--use-cache",
+        action="store_true",
+        default=False,
+        help="Use cached results if available (default: False)",
+    )
+    parser.add_argument(
+        "--skip-cache",
+        action="store_true",
+        default=False,
+        help="Skip cache and force fresh fetch (default: False)",
+    )
+
+
+def parse_cache_control_args(args: argparse.Namespace) -> Dict[str, bool]:
+    """
+    Parse and validate cache control arguments.
+
+    :param args: Parsed arguments from argparse
+    :return: Dictionary with cache control settings
+    """
+    hdbg.dassert(
+        not (args.use_cache and args.skip_cache),
+        "Cannot use both --use-cache and --skip-cache",
+    )
+    return {
+        "use_cache": args.use_cache,
+        "skip_cache": args.skip_cache,
+    }
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -456,7 +511,14 @@ def _parse() -> argparse.ArgumentParser:
         default=None,
         help="URL of the Google Sheets document (required for download and upload actions)",
     )
+    parser.add_argument(
+        "--model",
+        action="store",
+        default="gpt-4o-mini",
+        help="LLM model name to use for tagging (default: gpt-4o-mini)",
+    )
     hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
+    add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -464,6 +526,8 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    cache_control = parse_cache_control_args(args)
+    _LOG.info("Cache control settings: %s", cache_control)
     # Resolve which actions to run based on command-line flags (--action, --all, --skip-action).
     actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
     _LOG.info(
@@ -490,7 +554,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "update_article_url":
             _update_article_urls()
         elif action == "update_article_tag":
-            _update_article_tags()
+            _update_article_tags(args.model)
         elif action == "update_article_cluster":
             _update_article_clusters()
         elif action == "upload":
