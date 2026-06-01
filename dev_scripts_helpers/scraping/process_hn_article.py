@@ -265,6 +265,7 @@ def _update_article_urls() -> str:
 
     For HN links, extracts Article_url using HN API.
     For non-HN links, uses the URL as-is.
+    Only processes rows where Article_url is empty; skips rows with existing values.
 
     :return: Path to the updated CSV file
     """
@@ -279,18 +280,24 @@ def _update_article_urls() -> str:
     columns = list(rows[0].keys()) if rows else []
     hdbg.dassert_in("Url", columns, "CSV must have 'Url' column")
     hdbg.dassert_in("Article_url", columns, "CSV must have 'Article_url' column")
-    # Count empty cells that need to be filled
-    empty_count = sum(1 for row in rows if not (url := row.get("Article_url")) or (isinstance(url, str) and url.strip() == ""))
-    _LOG.info("Found %d empty Article_url cells to fill", empty_count)
-    # Iterate through rows: for HN links, fetch the actual article URL via the HN API; for other URLs, use them as-is.
-    for idx, row in tqdm(enumerate(rows), total=len(rows), desc="Extracting article URLs"):
+    # Create a mask of rows with empty Article_url cells.
+    rows_to_process = []
+    row_indices = []
+    for idx, row in enumerate(rows):
+        article_url = row.get("Article_url")
+        if not isinstance(article_url, str) or article_url.strip() == "":
+            rows_to_process.append(row)
+            row_indices.append(idx)
+    _LOG.info("Found %d empty Article_url cells to fill", len(rows_to_process))
+    # Process only rows with empty Article_url cells.
+    for idx, row in tqdm(enumerate(rows_to_process), total=len(rows_to_process), desc="Extracting article URLs"):
         url = row["Url"]
         if _is_hackernews_url(url):
-            _LOG.debug("Row %d: Extracting from HN URL", idx)
+            _LOG.debug("Processing row %d: Extracting from HN URL", row_indices[idx])
             article_url = _extract_article_url(url)
             row["Article_url"] = article_url
         else:
-            _LOG.debug("Row %d: Non-HN URL, using as-is", idx)
+            _LOG.debug("Processing row %d: Non-HN URL, using as-is", row_indices[idx])
             row["Article_url"] = url
     # Write the updated rows with extracted article URLs to a new CSV file for the next processing stage.
     urls_csv = _get_tmp_file_path(URLS_CSV_FILE)
@@ -311,6 +318,7 @@ def _update_article_tags(
     Tag articles using LLM classification and update output file after each batch.
 
     Uses Title column plus Article_url for classification.
+    Only processes rows where Article_tag is empty; skips rows with existing values.
 
     :param batch_size: Number of articles to process in each batch
     :param model: Optional LLM model name to use
@@ -324,27 +332,26 @@ def _update_article_tags(
     _LOG.info("Loaded %d rows and %d columns from '%s'", len(df), len(df.columns), urls_csv)
     hdbg.dassert_in("Title", df.columns)
     hdbg.dassert_in("Article_tag", df.columns)
-    # Count empty cells that need to be filled
-    empty_count = sum(1 for val in df["Article_tag"] if pd.isna(val) or str(val).strip() == "")
-    _LOG.info("Found %d empty Article_tag cells to fill", empty_count)
-    # Build list of items (title + URL) for classification.
+    # Create a mask of rows with empty Article_tag cells.
     valid_indices = []
     valid_items = []
     for idx, row in df.iterrows():
-        # Get title from Title column.
-        title = ""
-        title_val = row["Title"]
-        if bool(pd.notna(title_val)):
-            title = str(title_val)
-        # Get URL.
-        url_val = row.get("Article_url")
-        url = ""
-        if bool(pd.notna(url_val)):
-            url = str(url_val)
-        # Format as "Title: <title>\nURL: <url>".
-        item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
-        valid_indices.append(idx)
-        valid_items.append(item_text)
+        tag_val = row["Article_tag"]
+        if pd.isna(tag_val) or str(tag_val).strip() == "":
+            # Get title from Title column.
+            title = ""
+            title_val = row["Title"]
+            if bool(pd.notna(title_val)):
+                title = str(title_val)
+            # Get URL.
+            url_val = row.get("Article_url")
+            url = ""
+            if bool(pd.notna(url_val)):
+                url = str(url_val)
+            # Format as "Title: <title>\nURL: <url>".
+            item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
+            valid_indices.append(idx)
+            valid_items.append(item_text)
     _LOG.info(
         "Tagging %d articles using LLM in batches of %d",
         len(valid_items),
@@ -391,6 +398,8 @@ def _update_article_clusters() -> str:
     """
     Map article tags to clusters using topic-to-cluster mapping.
 
+    Only processes rows where Article_cluster is empty; skips rows with existing values.
+
     :return: Path to the updated CSV file
     """
     # Load the CSV from the previous tagging step.
@@ -405,24 +414,28 @@ def _update_article_clusters() -> str:
     hdbg.dassert_in(
         "Article_cluster", columns, "CSV must have 'Article_cluster' column"
     )
-    # Count empty cells that need to be filled
-    empty_count = sum(1 for row in rows if not row.get("Article_cluster") or row.get("Article_cluster").strip() == "")
-    _LOG.info("Found %d empty Article_cluster cells to fill", empty_count)
+    # Create a mask of rows with empty Article_cluster cells.
+    rows_to_process = []
+    row_indices = []
+    for idx, row in enumerate(rows):
+        cluster = row.get("Article_cluster")
+        if not cluster or cluster.strip() == "":
+            rows_to_process.append(row)
+            row_indices.append(idx)
+    _LOG.info("Found %d empty Article_cluster cells to fill", len(rows_to_process))
     _LOG.info("Mapping %d unique topics to clusters", len(topic_to_cluster))
     # Map each article's tag to its corresponding cluster using the predefined topic_to_cluster dictionary.
-    num_clustered = 0
-    for _, row in tqdm(enumerate(rows), total=len(rows), desc="Assigning clusters"):
+    for idx, row in tqdm(enumerate(rows_to_process), total=len(rows_to_process), desc="Assigning clusters"):
         tag = row["Article_tag"].strip()
         hdbg.dassert_isinstance(tag, str)
         hdbg.dassert_in(tag, topic_to_cluster, f"Tag '{tag}' not found in topic_to_cluster mapping")
         cluster = topic_to_cluster[tag]
         row["Article_cluster"] = cluster
-        num_clustered += 1
     # Write the clustered data to a new CSV file for final upload.
     clusters_csv = _get_tmp_file_path(CLUSTERS_CSV_FILE)
     _LOG.info("Writing clustered data to CSV file: '%s'", clusters_csv)
     _write_csv(clusters_csv, rows, fieldnames=columns)
-    _LOG.info("Assigned clusters to %d rows and %d columns, wrote to '%s'", num_clustered, len(columns), clusters_csv)
+    _LOG.info("Assigned clusters to %d rows and %d columns, wrote to '%s'", len(rows_to_process), len(columns), clusters_csv)
     return clusters_csv
 
 
