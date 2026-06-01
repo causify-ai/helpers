@@ -48,7 +48,7 @@ import requests
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
-import dev_scripts_helpers.scraping.link_gsheet_utils as dslgu
+import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -67,8 +67,6 @@ COMBINED_CSV_FILE = "combined_data.csv"
 # #############################################################################
 
 
-
-
 def _download_from_gsheet(url: str) -> str:
     """
     Download data from Google Sheets and save to a temporary CSV file.
@@ -79,8 +77,10 @@ def _download_from_gsheet(url: str) -> str:
     :param url: URL of the Google Sheets document
     :return: Path to the saved CSV file
     """
-    output_file = dslgu.get_tmp_file_path(GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop")
-    dslgu.download_from_gsheet(url, output_file)
+    output_file = dshslgsut.get_tmp_file_path(
+        GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop"
+    )
+    dshslgsut.download_from_gsheet(url, output_file)
     return output_file
 
 
@@ -95,10 +95,12 @@ def _download_from_raindrop() -> str:
     :return: Path to the CSV file with combined data
     """
     # Load the gsheet CSV to find the cutoff timestamp for filtering new bookmarks.
-    gsheet_csv = dslgu.get_tmp_file_path(GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop")
+    gsheet_csv = dshslgsut.get_tmp_file_path(
+        GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop"
+    )
     hdbg.dassert_path_exists(gsheet_csv, "Must download from gsheet first")
     _LOG.info("Loading gsheet CSV to find latest timestamp")
-    rows_gsheet = dslgu.read_csv(gsheet_csv)
+    rows_gsheet = dshslgsut.read_csv(gsheet_csv)
     # Determine the latest timestamp in existing data to avoid re-downloading duplicates.
     if rows_gsheet and "timestamp" in rows_gsheet[0]:
         latest_timestamp = max(
@@ -144,7 +146,9 @@ def _download_from_raindrop() -> str:
         url = data.get("pagination", {}).get("nextLink")
     _LOG.info("Downloaded %d new bookmarks after timestamp", count)
     # Extract relevant fields and write bookmarks to CSV.
-    raindrop_csv = dslgu.get_tmp_file_path(RAINDROP_CSV_FILE, "update_link_gsheet_from_raindrop")
+    raindrop_csv = dshslgsut.get_tmp_file_path(
+        RAINDROP_CSV_FILE, "update_link_gsheet_from_raindrop"
+    )
     _LOG.info("Writing Raindrop data to CSV file: '%s'", raindrop_csv)
     if all_bookmarks:
         fields_to_keep = ["id", "title", "url", "created"]
@@ -158,10 +162,10 @@ def _download_from_raindrop() -> str:
                 "created": item.get("created", ""),
             }
             rows_to_write.append(row)
-        dslgu.write_csv(raindrop_csv, rows_to_write, fieldnames=fields_to_keep)
+        dshslgsut.write_csv(raindrop_csv, rows_to_write, fieldnames=fields_to_keep)
     else:
         # If no new bookmarks, write empty CSV with appropriate structure.
-        dslgu.write_csv(raindrop_csv, [], fieldnames=[])
+        dshslgsut.write_csv(raindrop_csv, [], fieldnames=[])
     return raindrop_csv
 
 
@@ -181,16 +185,20 @@ def _combine_raindrop_with_gsheet() -> str:
     :return: Path to the combined CSV file
     """
     # Load both CSV files and extract the gsheet column schema.
-    gsheet_csv = dslgu.get_tmp_file_path(GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop")
-    raindrop_csv = dslgu.get_tmp_file_path(RAINDROP_CSV_FILE, "update_link_gsheet_from_raindrop")
+    gsheet_csv = dshslgsut.get_tmp_file_path(
+        GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop"
+    )
+    raindrop_csv = dshslgsut.get_tmp_file_path(
+        RAINDROP_CSV_FILE, "update_link_gsheet_from_raindrop"
+    )
     hdbg.dassert_path_exists(gsheet_csv, "gsheet CSV file not found")
     hdbg.dassert_path_exists(raindrop_csv, "raindrop CSV file not found")
     _LOG.info("Loading gsheet CSV to get schema")
-    rows_gsheet = dslgu.read_csv(gsheet_csv)
+    rows_gsheet = dshslgsut.read_csv(gsheet_csv)
     gsheet_columns = list(rows_gsheet[0].keys()) if rows_gsheet else []
     _LOG.info("Gsheet schema: %s", gsheet_columns)
     _LOG.info("Loading Raindrop CSV data")
-    rows_raindrop = dslgu.read_csv(raindrop_csv)
+    rows_raindrop = dshslgsut.read_csv(raindrop_csv)
     # Transform Raindrop rows to match gsheet structure: map fields and convert timestamps.
     rows_combined = []
     for row in rows_raindrop:
@@ -223,7 +231,9 @@ def _combine_raindrop_with_gsheet() -> str:
         rows_combined.append(combined_row)
     # Prepend Raindrop data (newest first) and append existing gsheet data.
     rows_combined.extend(rows_gsheet)
-    combined_csv = dslgu.get_tmp_file_path(COMBINED_CSV_FILE, "update_link_gsheet_from_raindrop")
+    combined_csv = dshslgsut.get_tmp_file_path(
+        COMBINED_CSV_FILE, "update_link_gsheet_from_raindrop"
+    )
     _LOG.info(
         "Combining data: %d raindrop items, %d gsheet items",
         len(rows_raindrop),
@@ -232,9 +242,9 @@ def _combine_raindrop_with_gsheet() -> str:
     _LOG.info("Writing combined data to CSV file: '%s'", combined_csv)
     # Write combined data preserving gsheet column order.
     if rows_combined:
-        dslgu.write_csv(combined_csv, rows_combined, fieldnames=gsheet_columns)
+        dshslgsut.write_csv(combined_csv, rows_combined, fieldnames=gsheet_columns)
     else:
-        dslgu.write_csv(combined_csv, [], fieldnames=gsheet_columns)
+        dshslgsut.write_csv(combined_csv, [], fieldnames=gsheet_columns)
     _LOG.info("Combined CSV created with %d rows", len(rows_combined))
     return combined_csv
 
@@ -251,9 +261,11 @@ def _upload_to_gsheet(url: str) -> None:
     tabname = "update_link_gsheet_from_raindrop." + datetime.now().strftime(
         "%Y-%m-%d"
     )
-    combined_csv = dslgu.get_tmp_file_path(COMBINED_CSV_FILE, "update_link_gsheet_from_raindrop")
+    combined_csv = dshslgsut.get_tmp_file_path(
+        COMBINED_CSV_FILE, "update_link_gsheet_from_raindrop"
+    )
     hdbg.dassert_path_exists(combined_csv, "combined CSV file not found")
-    dslgu.upload_to_gsheet(url, combined_csv, tabname)
+    dshslgsut.upload_to_gsheet(url, combined_csv, tabname)
 
 
 # #############################################################################

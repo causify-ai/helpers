@@ -62,7 +62,7 @@ import helpers.hlogging as hloggin
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hcache_simple as hcacsimp
-import dev_scripts_helpers.scraping.link_gsheet_utils as dslgu
+import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -126,8 +126,6 @@ the article best. Consider both the title and URL when making your classificatio
 """
 
 
-
-
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _extract_article_url(hn_url: str) -> str:
     """
@@ -137,10 +135,12 @@ def _extract_article_url(hn_url: str) -> str:
     :return: Article URL or the HN URL if no article URL exists
     """
     hdbg.dassert_isinstance(hn_url, str)
-    hdbg.dassert(dslgu.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url)
+    hdbg.dassert(
+        dshslgsut.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
+    )
     _LOG.debug("Processing HN URL: %s", hn_url)
     # Extract the numeric item ID from the HN URL.
-    item_id = dslgu.extract_item_id(hn_url)
+    item_id = dshslgsut.extract_item_id(hn_url)
     _LOG.debug("Extracted item ID: %s", item_id)
     # Query the HN API for the item details which includes the actual article URL.
     api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
@@ -169,8 +169,8 @@ def _download_from_gsheet(url: str) -> str:
     :param url: URL of the Google Sheets document
     :return: Path to the saved CSV file
     """
-    output_file = dslgu.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
-    dslgu.download_from_gsheet(url, output_file)
+    output_file = dshslgsut.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
+    dshslgsut.download_from_gsheet(url, output_file)
     return output_file
 
 
@@ -185,10 +185,10 @@ def _update_article_urls() -> str:
     :return: Path to the updated CSV file
     """
     # Load and validate the HN CSV from the previous download step.
-    hn_csv = dslgu.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
+    hn_csv = dshslgsut.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(hn_csv, "Must download from gsheet first")
     _LOG.info("Loading CSV '%s' to extract article URLs", hn_csv)
-    rows = dslgu.read_csv(hn_csv)
+    rows = dshslgsut.read_csv(hn_csv)
     num_cols = len(rows[0].keys()) if rows else 0
     _LOG.info(
         "Loaded %d rows and %d columns from '%s'", len(rows), num_cols, hn_csv
@@ -213,7 +213,7 @@ def _update_article_urls() -> str:
         desc="Extracting article URLs",
     ):
         url = row["Url"]
-        if dslgu.is_hackernews_url(url):
+        if dshslgsut.is_hackernews_url(url):
             _LOG.debug(
                 "Processing row %d: Extracting from HN URL", row_indices[idx]
             )
@@ -225,9 +225,9 @@ def _update_article_urls() -> str:
             )
             row["Article_url"] = url
     # Write the updated rows with extracted article URLs to a new CSV file for the next processing stage.
-    urls_csv = dslgu.get_tmp_file_path(URLS_CSV_FILE, "process_link_gsheet")
+    urls_csv = dshslgsut.get_tmp_file_path(URLS_CSV_FILE, "process_link_gsheet")
     _LOG.info("Writing updated data to CSV file: '%s'", urls_csv)
-    dslgu.write_csv(urls_csv, rows, fieldnames=columns)
+    dshslgsut.write_csv(urls_csv, rows, fieldnames=columns)
     _LOG.info(
         "Wrote %d rows with %d columns to '%s'",
         len(rows),
@@ -253,7 +253,7 @@ def _update_article_tags(
     :return: Path to the updated CSV file
     """
     hdbg.dassert_lt(0, batch_size)
-    urls_csv = dslgu.get_tmp_file_path(URLS_CSV_FILE, "process_link_gsheet")
+    urls_csv = dshslgsut.get_tmp_file_path(URLS_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(urls_csv, "Must update article URLs first")
     _LOG.info("Loading CSV '%s' for tagging", urls_csv)
     df = pd.read_csv(urls_csv)
@@ -303,7 +303,7 @@ def _update_article_tags(
         num_batches,
         batch_size,
     )
-    tags_csv = dslgu.get_tmp_file_path(TAGS_CSV_FILE, "process_link_gsheet")
+    tags_csv = dshslgsut.get_tmp_file_path(TAGS_CSV_FILE, "process_link_gsheet")
     prompt = _CLASSIFICATION_PROMPT
     prompt += "\n".join(topic_to_cluster.keys())
     for batch_num in tqdm(range(num_batches), desc="Tagging articles"):
@@ -341,10 +341,10 @@ def _update_article_clusters() -> str:
     :return: Path to the updated CSV file
     """
     # Load the CSV from the previous tagging step.
-    tags_csv = dslgu.get_tmp_file_path(TAGS_CSV_FILE, "process_link_gsheet")
+    tags_csv = dshslgsut.get_tmp_file_path(TAGS_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(tags_csv, "Must update article tags first")
     _LOG.info("Loading CSV to assign clusters from: %s", tags_csv)
-    rows = dslgu.read_csv(tags_csv)
+    rows = dshslgsut.read_csv(tags_csv)
     hdbg.dassert(rows, "No rows in CSV: %s", tags_csv)
     columns = list(rows[0].keys()) if rows else []
     _LOG.info(
@@ -384,9 +384,11 @@ def _update_article_clusters() -> str:
             _LOG.warning(f"Tag '{tag}' not found in topic_to_cluster mapping")
             row["Article_cluster"] = ""
     # Write the clustered data to a new CSV file for final upload.
-    clusters_csv = dslgu.get_tmp_file_path(CLUSTERS_CSV_FILE, "process_link_gsheet")
+    clusters_csv = dshslgsut.get_tmp_file_path(
+        CLUSTERS_CSV_FILE, "process_link_gsheet"
+    )
     _LOG.info("Writing clustered data to CSV file: '%s'", clusters_csv)
-    dslgu.write_csv(clusters_csv, rows, fieldnames=columns)
+    dshslgsut.write_csv(clusters_csv, rows, fieldnames=columns)
     _LOG.info(
         "Assigned clusters to %d rows and %d columns, wrote to '%s'",
         len(rows_to_process),
@@ -405,9 +407,11 @@ def _upload_to_gsheet(url: str) -> None:
     tabname = "process_link_gsheet." + datetime.datetime.now().strftime(
         "%Y-%m-%d"
     )
-    clusters_csv = dslgu.get_tmp_file_path(CLUSTERS_CSV_FILE, "process_link_gsheet")
+    clusters_csv = dshslgsut.get_tmp_file_path(
+        CLUSTERS_CSV_FILE, "process_link_gsheet"
+    )
     hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")
-    dslgu.upload_to_gsheet(url, clusters_csv, tabname)
+    dshslgsut.upload_to_gsheet(url, clusters_csv, tabname)
 
 
 # List of available pipeline actions; executed in order when --all is used.

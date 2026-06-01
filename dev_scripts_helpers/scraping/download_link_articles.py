@@ -68,7 +68,7 @@ import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
-import dev_scripts_helpers.scraping.link_gsheet_utils as dslgu
+import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -139,6 +139,7 @@ def _fetch_hn_comments(
     return [comment]
 
 
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _download_article_content(url: str) -> Optional[str]:
     """
     Download and extract article content from a URL.
@@ -193,7 +194,9 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
     """
     lines = []
 
-    def add_comment_tree(comment_list: List[Dict[str, Any]], depth: int = 0) -> None:
+    def add_comment_tree(
+        comment_list: List[Dict[str, Any]], depth: int = 0
+    ) -> None:
         """
         Recursively add comments to output, preserving hierarchy.
         """
@@ -212,8 +215,6 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
 
     add_comment_tree(comments)
     return "\n".join(lines)
-
-
 
 
 def _parse_column_idx(column_idx_str: str, num_rows: int) -> List[int]:
@@ -271,7 +272,9 @@ def _parse_column_idx(column_idx_str: str, num_rows: int) -> List[int]:
         return [idx]
 
 
-def _download_hn_comments(rows: List[Dict[str, Any]], *, indices: List[int]) -> None:
+def _download_hn_comments(
+    rows: List[Dict[str, Any]], *, indices: List[int]
+) -> None:
     """
     Download HN comments for selected rows and save to files.
 
@@ -287,11 +290,11 @@ def _download_hn_comments(rows: List[Dict[str, Any]], *, indices: List[int]) -> 
             _LOG.warning("Row %d missing Url or Title, skipping", idx)
             continue
         try:
-            if not dslgu.is_hackernews_url(url):
+            if not dshslgsut.is_hackernews_url(url):
                 _LOG.info("Row %d: URL is not HN URL, skipping", idx)
                 continue
             _LOG.debug("Processing row %d: %s", idx, title)
-            item_id = dslgu.extract_item_id(url)
+            item_id = dshslgsut.extract_item_id(url)
         except (AssertionError, AttributeError):
             _LOG.warning("Row %d: Could not extract item ID from: %s", idx, url)
             continue
@@ -306,7 +309,9 @@ def _download_hn_comments(rows: List[Dict[str, Any]], *, indices: List[int]) -> 
         _LOG.info("Successfully saved HN comments for: %s", title)
 
 
-def _download_article_urls(rows: List[Dict[str, Any]], *, indices: List[int]) -> None:
+def _download_article_urls(
+    rows: List[Dict[str, Any]], *, indices: List[int]
+) -> None:
     """
     Download article content from Article_url column and save to files.
 
@@ -324,7 +329,9 @@ def _download_article_urls(rows: List[Dict[str, Any]], *, indices: List[int]) ->
         _LOG.debug("Processing row %d: %s", idx, title)
         article_content = _download_article_content(article_url)
         if not article_content:
-            _LOG.warning("Row %d: Failed to download article from: %s", idx, article_url)
+            _LOG.warning(
+                "Row %d: Failed to download article from: %s", idx, article_url
+            )
             continue
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.text.txt"
@@ -385,9 +392,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Actions to execute:\n%s",
         hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
     )
-    gsheet_csv = dslgu.get_tmp_file_path("gsheet.csv", "download_link_articles")
-    dslgu.download_from_gsheet(args.url, gsheet_csv)
-    rows = dslgu.read_csv(gsheet_csv)
+    gsheet_csv = dshslgsut.get_tmp_file_path("gsheet.csv", "download_link_articles")
+    dshslgsut.download_from_gsheet(args.url, gsheet_csv)
+    rows = dshslgsut.read_csv(gsheet_csv)
     hdbg.dassert(len(rows) > 0, "No rows in downloaded CSV")
     _LOG.info("Processing %d rows from Google Sheets", len(rows))
     if args.column_idx:
