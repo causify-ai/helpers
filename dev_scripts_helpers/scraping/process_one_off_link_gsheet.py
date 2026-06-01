@@ -35,7 +35,7 @@ import pandas as pd
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
 import helpers.hparser as hparser
-import dev_scripts_helpers.scraping.link_gsheet_utils as dslgu
+import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -65,8 +65,10 @@ def _download_from_gsheet(url: str) -> str:
     :param url: URL of the Google Sheets document
     :return: Path to the saved CSV file
     """
-    output_file = dslgu.get_tmp_file_path(HN_CSV_FILE, "process_one_off_link_gsheet")
-    dslgu.download_from_gsheet(url, output_file)
+    output_file = dshslgsut.get_tmp_file_path(
+        HN_CSV_FILE, "process_one_off_link_gsheet"
+    )
+    dshslgsut.download_from_gsheet(url, output_file)
     return output_file
 
 
@@ -83,7 +85,9 @@ def _replace_article_tags(csv_file: str) -> str:
     _LOG.info("Loading CSV '%s' to replace topic names", csv_file)
     df = pd.read_csv(csv_file)
     hdbg.dassert_isinstance(df, pd.DataFrame, "Failed to load CSV as DataFrame")
-    hdbg.dassert_in("Article_tag", df.columns, "CSV must have 'Article_tag' column")
+    hdbg.dassert_in(
+        "Article_tag", df.columns, "CSV must have 'Article_tag' column"
+    )
     _LOG.info(
         "Loaded %d rows and %d columns from '%s'",
         len(df),
@@ -124,7 +128,7 @@ def _upload_to_gsheet(url: str, csv_file: str) -> None:
     tabname = "process_one_off_link_gsheet." + datetime.datetime.now().strftime(
         "%Y-%m-%d"
     )
-    dslgu.upload_to_gsheet(url, csv_file, tabname)
+    dshslgsut.upload_to_gsheet(url, csv_file, tabname)
 
 
 def _parse() -> argparse.ArgumentParser:

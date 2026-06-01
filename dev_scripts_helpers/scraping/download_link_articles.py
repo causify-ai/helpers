@@ -200,9 +200,7 @@ def _sanitize_title_for_filename(title: str) -> str:
     return sanitized
 
 
-def add_comment_tree(
-    comment_list: List[Dict[str, Any]], depth: int = 0
-) -> None:
+def add_comment_tree(comment_list: List[Dict[str, Any]], depth: int = 0) -> None:
     """
     Recursively add comments to output, preserving hierarchy.
     """
@@ -281,9 +279,7 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
         try:
             idx = int(row_idx_str.strip())
         except ValueError:
-            raise ValueError(
-                f"Invalid row_idx: {row_idx_str}; expected integer"
-            )
+            raise ValueError(f"Invalid row_idx: {row_idx_str}; expected integer")
         hdbg.dassert_lte(1, idx, "Row index must be >= 1 (1-indexed)")
         hdbg.dassert_lte(
             idx,
@@ -371,12 +367,15 @@ def _download_article_urls(
         _LOG.info("Successfully saved article for: %s", title)
 
 
-# Action configuration: defines available operations and their defaults.
+# #############################################################################
+# Main
+# #############################################################################
+
+
 VALID_ACTIONS = [
     "download_url",
     "download_article_url",
 ]
-# By default, both actions are enabled unless user specifies --skip-action.
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
 
