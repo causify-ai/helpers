@@ -129,8 +129,7 @@ def _download_from_gsheet(url: str) -> str:
     output_file = _get_tmp_file_path(GSHEET_CSV_FILE)
     # Invoke from_gsheet.py script to download data from Google Sheets 'All' tab.
     cmd = (
-        f"from_gsheet.py --url '{url}' "
-        f"--output_file '{output_file}' --overwrite"
+        f"from_gsheet.py --url '{url}' --output_file '{output_file}' --overwrite"
     )
     hsystem.system(cmd, print_command=True)
     hdbg.dassert_path_exists(output_file)
@@ -308,7 +307,9 @@ def _upload_to_gsheet(url: str) -> None:
     :param tabname: Name of the tab to create/overwrite (defaults to today's date)
     """
     # Use today's date as tab name.
-    tabname = "update_hn_gsheet_from_raindrop." + datetime.now().strftime("%Y-%m-%d")
+    tabname = "update_hn_gsheet_from_raindrop." + datetime.now().strftime(
+        "%Y-%m-%d"
+    )
     combined_csv = _get_tmp_file_path(COMBINED_CSV_FILE)
     hdbg.dassert_path_exists(combined_csv, "combined CSV file not found")
     _LOG.info("Reading combined CSV file: '%s'", combined_csv)

@@ -123,7 +123,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tab_name = args.tabname
     if args.use_gid:
         gid = hgodrapi._extract_gid_from_url(args.url)
-        hdbg.dassert_is_not(gid, None,
+        hdbg.dassert_is_not(
+            gid,
+            None,
             "No gid found in URL. Cannot use --use_gid flag without gid in URL: %s",
             args.url,
         )
@@ -131,7 +133,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         tab_name = hgodrapi.get_tab_name_from_gid(
             spreadsheet_id, gid, credentials=credentials
         )
-        _LOG.info("Using --use_gid flag, extracted tab name '%s' from gid '%s'", tab_name, gid)
+        _LOG.info(
+            "Using --use_gid flag, extracted tab name '%s' from gid '%s'",
+            tab_name,
+            gid,
+        )
     # Check if the tab already exists.
     existing_tabs = hgodrapi.get_tabs_from_gsheet(
         args.url, credentials=credentials

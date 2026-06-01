@@ -53,7 +53,7 @@ import csv
 import datetime
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pandas as pd
 import requests
@@ -123,10 +123,11 @@ topic_to_cluster = {
 }
 
 
-_CLASSIFICATION_PROMPT = f"""
+_CLASSIFICATION_PROMPT = """
 Given the title and URL of an article, emit the tag among the ones below that represents
 the article best. Consider both the title and URL when making your classification.
 """
+
 
 def _get_tmp_file_path(filename: str) -> str:
     """
@@ -241,8 +242,7 @@ def _download_from_gsheet(url: str) -> str:
     # Invoke from_gsheet.py to export the 'All' sheet to a temporary CSV file.
     output_file = _get_tmp_file_path(HN_CSV_FILE)
     cmd = (
-        f"from_gsheet.py --url '{url}' "
-        f"--output_file '{output_file}' --overwrite"
+        f"from_gsheet.py --url '{url}' --output_file '{output_file}' --overwrite"
     )
     hsystem.system(cmd, print_command=True)
     hdbg.dassert_path_exists(output_file)
@@ -275,7 +275,9 @@ def _update_article_urls() -> str:
     _LOG.info("Loading CSV '%s' to extract article URLs", hn_csv)
     rows = _read_csv(hn_csv)
     num_cols = len(rows[0].keys()) if rows else 0
-    _LOG.info("Loaded %d rows and %d columns from '%s'", len(rows), num_cols, hn_csv)
+    _LOG.info(
+        "Loaded %d rows and %d columns from '%s'", len(rows), num_cols, hn_csv
+    )
     hdbg.dassert(rows, "No rows in CSV: %s", hn_csv)
     columns = list(rows[0].keys()) if rows else []
     hdbg.dassert_in("Url", columns, "CSV must have 'Url' column")
@@ -290,21 +292,32 @@ def _update_article_urls() -> str:
             row_indices.append(idx)
     _LOG.info("Found %d empty Article_url cells to fill", len(rows_to_process))
     # Process only rows with empty Article_url cells.
-    for idx, row in tqdm(enumerate(rows_to_process), total=len(rows_to_process), desc="Extracting article URLs"):
+    for idx, row in tqdm(
+        enumerate(rows_to_process),
+        total=len(rows_to_process),
+        desc="Extracting article URLs",
+    ):
         url = row["Url"]
         if _is_hackernews_url(url):
-            _LOG.debug("Processing row %d: Extracting from HN URL", row_indices[idx])
+            _LOG.debug(
+                "Processing row %d: Extracting from HN URL", row_indices[idx]
+            )
             article_url = _extract_article_url(url)
             row["Article_url"] = article_url
         else:
-            _LOG.debug("Processing row %d: Non-HN URL, using as-is", row_indices[idx])
+            _LOG.debug(
+                "Processing row %d: Non-HN URL, using as-is", row_indices[idx]
+            )
             row["Article_url"] = url
     # Write the updated rows with extracted article URLs to a new CSV file for the next processing stage.
     urls_csv = _get_tmp_file_path(URLS_CSV_FILE)
     _LOG.info("Writing updated data to CSV file: '%s'", urls_csv)
     _write_csv(urls_csv, rows, fieldnames=columns)
     _LOG.info(
-        "Wrote %d rows with %d columns to '%s'", len(rows), len(columns), urls_csv
+        "Wrote %d rows with %d columns to '%s'",
+        len(rows),
+        len(columns),
+        urls_csv,
     )
     return urls_csv
 
@@ -329,7 +342,12 @@ def _update_article_tags(
     hdbg.dassert_path_exists(urls_csv, "Must update article URLs first")
     _LOG.info("Loading CSV '%s' for tagging", urls_csv)
     df = pd.read_csv(urls_csv)
-    _LOG.info("Loaded %d rows and %d columns from '%s'", len(df), len(df.columns), urls_csv)
+    _LOG.info(
+        "Loaded %d rows and %d columns from '%s'",
+        len(df),
+        len(df.columns),
+        urls_csv,
+    )
     hdbg.dassert_in("Title", df.columns)
     hdbg.dassert_in("Article_tag", df.columns)
     # Create a mask of rows with empty Article_tag cells.
@@ -349,7 +367,9 @@ def _update_article_tags(
             if bool(pd.notna(url_val)):
                 url = str(url_val)
             # Format as "Title: <title>\nURL: <url>".
-            item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
+            item_text = (
+                f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
+            )
             valid_indices.append(idx)
             valid_items.append(item_text)
     _LOG.info(
@@ -362,7 +382,12 @@ def _update_article_tags(
         return urls_csv
     # Process items in batches with progress bar for entire workload.
     num_batches = (len(valid_items) + batch_size - 1) // batch_size
-    _LOG.info("Processing %d items in %d batches (batch size: %d)", len(valid_items), num_batches, batch_size)
+    _LOG.info(
+        "Processing %d items in %d batches (batch size: %d)",
+        len(valid_items),
+        num_batches,
+        batch_size,
+    )
     tags_csv = _get_tmp_file_path(TAGS_CSV_FILE)
     prompt = _CLASSIFICATION_PROMPT
     prompt += "\n".join(topic_to_cluster.keys())
@@ -380,9 +405,7 @@ def _update_article_tags(
         )
         # Call LLM for this batch.
         batch_tags, _ = hllmcli.apply_llm_batch_with_shared_prompt(
-            prompt=prompt,
-            input_list=batch_items,
-            model=model
+            prompt=prompt, input_list=batch_items, model=model
         )
         # Update dataframe with batch results.
         for idx, tag in zip(batch_indices, batch_tags):
@@ -409,7 +432,12 @@ def _update_article_clusters() -> str:
     rows = _read_csv(tags_csv)
     hdbg.dassert(rows, "No rows in CSV: %s", tags_csv)
     columns = list(rows[0].keys()) if rows else []
-    _LOG.info("Loaded %d rows and %d columns from '%s'", len(rows), len(columns), tags_csv)
+    _LOG.info(
+        "Loaded %d rows and %d columns from '%s'",
+        len(rows),
+        len(columns),
+        tags_csv,
+    )
     hdbg.dassert_in("Article_tag", columns, "CSV must have 'Article_tag' column")
     hdbg.dassert_in(
         "Article_cluster", columns, "CSV must have 'Article_cluster' column"
@@ -422,20 +450,35 @@ def _update_article_clusters() -> str:
         if not cluster or cluster.strip() == "":
             rows_to_process.append(row)
             row_indices.append(idx)
-    _LOG.info("Found %d empty Article_cluster cells to fill", len(rows_to_process))
+    _LOG.info(
+        "Found %d empty Article_cluster cells to fill", len(rows_to_process)
+    )
     _LOG.info("Mapping %d unique topics to clusters", len(topic_to_cluster))
     # Map each article's tag to its corresponding cluster using the predefined topic_to_cluster dictionary.
-    for idx, row in tqdm(enumerate(rows_to_process), total=len(rows_to_process), desc="Assigning clusters"):
+    for idx, row in tqdm(
+        enumerate(rows_to_process),
+        total=len(rows_to_process),
+        desc="Assigning clusters",
+    ):
         tag = row["Article_tag"].strip()
         hdbg.dassert_isinstance(tag, str)
-        hdbg.dassert_in(tag, topic_to_cluster, f"Tag '{tag}' not found in topic_to_cluster mapping")
+        hdbg.dassert_in(
+            tag,
+            topic_to_cluster,
+            f"Tag '{tag}' not found in topic_to_cluster mapping",
+        )
         cluster = topic_to_cluster[tag]
         row["Article_cluster"] = cluster
     # Write the clustered data to a new CSV file for final upload.
     clusters_csv = _get_tmp_file_path(CLUSTERS_CSV_FILE)
     _LOG.info("Writing clustered data to CSV file: '%s'", clusters_csv)
     _write_csv(clusters_csv, rows, fieldnames=columns)
-    _LOG.info("Assigned clusters to %d rows and %d columns, wrote to '%s'", len(rows_to_process), len(columns), clusters_csv)
+    _LOG.info(
+        "Assigned clusters to %d rows and %d columns, wrote to '%s'",
+        len(rows_to_process),
+        len(columns),
+        clusters_csv,
+    )
     return clusters_csv
 
 
@@ -448,7 +491,9 @@ def _upload_to_gsheet(url: str) -> None:
     :param tabname: Name of the tab to create/overwrite (defaults to today's date)
     """
     # Use today's date as the sheet name.
-    tabname = "process_hn_article." + datetime.datetime.now().strftime("%Y-%m-%d")
+    tabname = "process_hn_article." + datetime.datetime.now().strftime(
+        "%Y-%m-%d"
+    )
     # Load and validate the fully processed CSV that includes article URLs and clusters.
     clusters_csv = _get_tmp_file_path(CLUSTERS_CSV_FILE)
     hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")

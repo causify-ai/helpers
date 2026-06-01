@@ -119,7 +119,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             tab_name = hgodrapi.get_tab_name_from_gid(
                 spreadsheet_id, gid, credentials=credentials
             )
-            _LOG.info("Found gid '%s' in URL, using tab name '%s'", gid, tab_name)
+            _LOG.info(
+                "Found gid '%s' in URL, using tab name '%s'", gid, tab_name
+            )
     # Read data from Google Sheet.
     if tab_name:
         _LOG.info("Reading data from tab '%s'", tab_name)
