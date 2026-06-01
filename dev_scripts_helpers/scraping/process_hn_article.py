@@ -227,7 +227,7 @@ def _download_from_gsheet(url: str) -> str:
     # Invoke from_gsheet.py to export the 'All' sheet to a temporary CSV file.
     output_file = _get_tmp_file_path(HN_CSV_FILE)
     cmd = (
-        f"from_gsheet.py --url '{url}' --tabname 'All' "
+        f"from_gsheet.py --url '{url}' "
         f"--output_file '{output_file}' --overwrite"
     )
     hsystem.system(cmd, print_command=True)
@@ -385,7 +385,7 @@ def _update_article_clusters() -> str:
     for idx, row in enumerate(rows):
         tag = row["Article_tag"].strip()
         hdbg.dassert_isinstance(tag, str)
-        hdbg.dassert_is_in(tag, topic_to_cluser)
+        hdbg.dassert_is_in(tag, topic_to_cluster)
         cluster = topic_to_cluster[tag]
         _LOG.debug("Row %d: Tag '%s' maps to cluster '%s'", idx, tag, cluster)
         row["Article_cluster"] = cluster
@@ -396,16 +396,16 @@ def _update_article_clusters() -> str:
     return processed_csv
 
 
-def _upload_to_gsheet(url: str, *, tabname: Optional[str] = None) -> None:
+# TODO(gp): Share with update_hn_gsheet_from_raindrop.py.
+def _upload_to_gsheet(url: str) -> None:
     """
     Upload processed CSV data to Google Sheets.
 
     :param url: URL of the Google Sheets document
     :param tabname: Name of the tab to create/overwrite (defaults to today's date)
     """
-    # Use today's date as the sheet name if not provided, allowing multiple dated snapshots.
-    if tabname is None:
-        tabname = datetime.datetime.now().strftime("%Y-%m-%d")
+    # Use today's date as the sheet name.
+    tabname = "process_hn_article." + datetime.datetime.now().strftime("%Y-%m-%d")
     # Load and validate the fully processed CSV that includes article URLs and clusters.
     processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
     hdbg.dassert_path_exists(processed_csv, "processed CSV file not found")
@@ -444,12 +444,6 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default=None,
         help="URL of the Google Sheets document (required for download and upload actions)",
-    )
-    parser.add_argument(
-        "--tabname",
-        action="store",
-        default=None,
-        help="Name of the tab to create/overwrite in Google Sheets (default: today's date)",
     )
     hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
@@ -497,7 +491,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 None,
                 "--url is required for upload action",
             )
-            _upload_to_gsheet(args.url, tabname=args.tabname)
+            _upload_to_gsheet(args.url)
 
 
 if __name__ == "__main__":
