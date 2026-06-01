@@ -49,7 +49,7 @@ _PYAN_OPTIONS = [
     "--no-defines",  # Hide definitions to reduce clutter.
     "--colored",  # Use colors for better visualization.
     "--grouped",  # Group by module.
-    "--annotated",  # Add annotations.
+    #"--annotated",  # Add annotations.
 ]
 
 
@@ -105,6 +105,8 @@ def _generate_callgraph_dot(
     hio.create_dir(output_dir, incremental=True)
     dot_file = os.path.join(output_dir, "callgraph.dot")
     pyan_options = " ".join(_PYAN_OPTIONS)
+    #root = hgit.find_git_root()
+    #pyan_options += f" --root {root}"
     cmd = f"pyan3 {input_file} --dot {pyan_options} > {dot_file}"
     _LOG.info("Executing: %s", cmd)
     hsystem.system(cmd)
@@ -151,16 +153,9 @@ def _open_pdf(*, pdf_file: str) -> None:
 
 
 def _parse() -> argparse.ArgumentParser:
-    git_root = hgit.find_git_root()
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "--root",
-        action="store",
-        default=git_root,
-        help=f"Git root directory (default: {git_root})",
     )
     parser.add_argument(
         "--input",
@@ -183,7 +178,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     pyan3_version = _get_pyan3_version()
     _LOG.info("Using pyan3 version: %s", pyan3_version)
-    _LOG.info("Git root: %s", args.root)
     _LOG.info("Starting call graph generation")
     _LOG.info("Input file: %s", args.input)
     _LOG.info("Output directory: %s", args.output_dir)
