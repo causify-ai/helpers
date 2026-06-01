@@ -392,7 +392,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Actions to execute:\n%s",
         hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
     )
-    gsheet_csv = dshslgsut.get_tmp_file_path("gsheet.csv", "download_link_articles")
+    gsheet_csv = dshslgsut.get_tmp_file_path(
+        "gsheet.csv", "download_link_articles"
+    )
     dshslgsut.download_from_gsheet(args.url, gsheet_csv)
     rows = dshslgsut.read_csv(gsheet_csv)
     hdbg.dassert(len(rows) > 0, "No rows in downloaded CSV")

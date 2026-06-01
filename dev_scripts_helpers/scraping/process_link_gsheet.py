@@ -488,7 +488,7 @@ DEFAULT_ACTIONS = [
     "update_article_url",
     "update_article_tag",
     "update_article_cluster",
-    #"replace_article_tags",
+    # "replace_article_tags",
     "upload_link_gsheet",
 ]
 

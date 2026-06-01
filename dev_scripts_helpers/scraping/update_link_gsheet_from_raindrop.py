@@ -162,7 +162,9 @@ def _download_from_raindrop() -> str:
                 "created": item.get("created", ""),
             }
             rows_to_write.append(row)
-        dshslgsut.write_csv(raindrop_csv, rows_to_write, fieldnames=fields_to_keep)
+        dshslgsut.write_csv(
+            raindrop_csv, rows_to_write, fieldnames=fields_to_keep
+        )
     else:
         # If no new bookmarks, write empty CSV with appropriate structure.
         dshslgsut.write_csv(raindrop_csv, [], fieldnames=[])
@@ -242,7 +244,9 @@ def _combine_raindrop_with_gsheet() -> str:
     _LOG.info("Writing combined data to CSV file: '%s'", combined_csv)
     # Write combined data preserving gsheet column order.
     if rows_combined:
-        dshslgsut.write_csv(combined_csv, rows_combined, fieldnames=gsheet_columns)
+        dshslgsut.write_csv(
+            combined_csv, rows_combined, fieldnames=gsheet_columns
+        )
     else:
         dshslgsut.write_csv(combined_csv, [], fieldnames=gsheet_columns)
     _LOG.info("Combined CSV created with %d rows", len(rows_combined))
