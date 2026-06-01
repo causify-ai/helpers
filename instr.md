@@ -1,35 +1,80 @@
-Create a script
+In /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/scraping/process_link_gsheet.py
 
-dev_scripts_helpers/scraping/download_link_articles.py
-  --url XXX
-  --column_idx IDX or START:END
-  --select_column the name of a column of the Gsheet
+Change the topics as below
 
-to download the articles stored at a certain interval or rows of the Gsheet in
-url
+# Map article topics to high-level cluster categories for grouping and analysis.
+topic_to_cluster = {
+    "AI Agents & Tool-Using Systems": "AI",
+    # -> AI Agents
+    "Automated Theorem Proving": "AI",
+    "Causal Inference": "AI",
+    "Diffusion Models": "AI",
+    "Knowledge Graphs": "AI",
+    "LLM Reasoning": "AI",
+    "Multi-Agent Systems": "AI",
+    "Probabilistic Programming": "AI",
+    "Prompt Engineering": "AI",
+    "Self-Supervised Learning": "AI",
+    "Uncertainty & Belief Modeling": "AI",
+    # -> Uncertainty Modeling
+    #
+    "AI Infrastructure": "Data/Infra",
+    "Data Engineering & Pipelines": "Data/Infra",
+    # -> Data Engineering
+    "High-Performance Computing": "Data/Infra",
+    # 
+    "Developer Tools": "Dev tools",
+    "Git and GitHub": "Dev tools",
+    # -> Git
+    "Open Source": "Dev tools",
+    "Python Ecosystem": "Dev tools",
+    "Rust and C++": "Dev tools",
+    #
+    "Quant Finance": "Finance",
+    "Trading Strategies": "Finance",
+    #
+    "Complex Systems & Network Dynamics": "Math",
+    # -> Complex Systems
+    "Mathematical Concepts": "Math",
+    "Simulation & Agent-Based Modeling": "Math",
+    # -> Simulation
+    "Time Series": "Math",
+    "Unconventional Computing": "Math",
+    #
+    "Careers & Professional Growth": "Business",
+    # -> Careers
+    "Marketing and Sales": "Business",
+    "Organizational Behavior & Incentives": "Business",
+    # -> Organizational Behavior
+    "Psychology & Well-Being": "Business",
+    # -> Psychology
+    #
+    "Cybersecurity & Privacy": "CyberSec",
+    # -> Cybersecurity
+    "Risk Management & Compliance": "CyberSec",
+    # -> Risk Management
+    #
+    "Code Refactoring": "SwEng",
+    "Dev Productivity": "SwEng",
+    "Software Architecture": "SwEng",
+    "Software Project Management": "SwEng",
+    "System Reliability & Fault Tolerance": "SwEng",
+    # -> System Reliability
+}
 
-Use the same approach as from_gsheet import from update_link_gsheet_from_raindrop.py
-to download the gsheet and use --action
 
---action download_url 
---action download_article_url
+Step 2
+Write a script to download the link_gsheet using --action and from_gsheet.py
+similar to 
+In /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/scraping/process_link_gsheet.py
 
-to download potentially 2 files (one for the hacker news comments from url
-and the article from article_url)
+--action download_link_gsheet
 
-The output files are obtained replacing all the bash unfriendly chars with _
+Create an --action replace
 
-E.g.,
-If the article title in `Title`
-ATLAS: Autoformalized Textbook Library At Scale
+Replace in the Article_tag the old names to the new ones
 
-the 2 files are
-
-ATLAS_Autoformalized_Textbook_Library_At_Scale.hn_comments.txt
-ATLAS_Autoformalized_Textbook_Library_At_Scale.text.txt
-
-For Hackernews articles download all the comments looking at the code in a past
-version of dev_scripts_helpers/scraping/process_link_gsheet.py
+Upload the 
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`

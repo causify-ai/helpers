@@ -19,19 +19,19 @@
 """
 Process HN articles from a Google Sheets document.
 
-This script manages four actions:
-1. download: Download data from Google Sheets to CSV
+This script manages five actions:
+1. download_link_gsheet: Download data from Google Sheets to CSV
 2. update_article_url: Extract article URLs from HN links using HN API
 3. update_article_tag: Tag articles using topics
 4. update_article_cluster: Map topics to clusters
-5. upload: Upload the processed CSV back to Google Sheets
+5. upload_link_gsheet: Upload the processed CSV back to Google Sheets
 
 Example usage:
 
 # Download data from Google Sheets
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --action download
+    --action download_link_gsheet
 
 # Run all actions
 > process_link_gsheet.py \
@@ -41,7 +41,7 @@ Example usage:
 # Skip upload action
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --skip-action upload
+    --skip-action upload_link_gsheet
 
 Import as:
 
@@ -74,6 +74,7 @@ CLUSTERS_CSV_FILE = "processed_data.clusters.csv"
 # Map article topics to high-level cluster categories for grouping and analysis.
 topic_to_cluster = {
     "AI Agents & Tool-Using Systems": "AI",
+    # -> AI Agents
     "Automated Theorem Proving": "AI",
     "Causal Inference": "AI",
     "Diffusion Models": "AI",
@@ -84,13 +85,16 @@ topic_to_cluster = {
     "Prompt Engineering": "AI",
     "Self-Supervised Learning": "AI",
     "Uncertainty & Belief Modeling": "AI",
+    # -> Uncertainty Modeling
     #
     "AI Infrastructure": "Data/Infra",
     "Data Engineering & Pipelines": "Data/Infra",
+    # -> Data Engineering
     "High-Performance Computing": "Data/Infra",
-    #
+    # 
     "Developer Tools": "Dev tools",
     "Git and GitHub": "Dev tools",
+    # -> Git
     "Open Source": "Dev tools",
     "Python Ecosystem": "Dev tools",
     "Rust and C++": "Dev tools",
@@ -99,24 +103,32 @@ topic_to_cluster = {
     "Trading Strategies": "Finance",
     #
     "Complex Systems & Network Dynamics": "Math",
+    # -> Complex Systems
     "Mathematical Concepts": "Math",
     "Simulation & Agent-Based Modeling": "Math",
+    # -> Simulation
     "Time Series": "Math",
     "Unconventional Computing": "Math",
     #
     "Careers & Professional Growth": "Business",
+    # -> Careers
     "Marketing and Sales": "Business",
     "Organizational Behavior & Incentives": "Business",
+    # -> Organizational Behavior
     "Psychology & Well-Being": "Business",
+    # -> Psychology
     #
     "Cybersecurity & Privacy": "CyberSec",
+    # -> Cybersecurity
     "Risk Management & Compliance": "CyberSec",
+    # -> Risk Management
     #
     "Code Refactoring": "SwEng",
     "Dev Productivity": "SwEng",
     "Software Architecture": "SwEng",
     "Software Project Management": "SwEng",
     "System Reliability & Fault Tolerance": "SwEng",
+    # -> System Reliability
 }
 
 
@@ -416,11 +428,11 @@ def _upload_to_gsheet(url: str) -> None:
 
 # List of available pipeline actions; executed in order when --all is used.
 VALID_ACTIONS = [
-    "download",
+    "download_link_gsheet",
     "update_article_url",
     "update_article_tag",
     "update_article_cluster",
-    "upload",
+    "upload_link_gsheet",
 ]
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
@@ -434,7 +446,7 @@ def _parse() -> argparse.ArgumentParser:
         "--url",
         action="store",
         default=None,
-        help="URL of the Google Sheets document (required for download and upload actions)",
+        help="URL of the Google Sheets document (required for download_link_gsheet and upload_link_gsheet actions)",
     )
     parser.add_argument(
         "--model",
@@ -472,11 +484,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not to_execute:
             continue
         # Dispatch to the appropriate handler based on the current action.
-        if action == "download":
+        if action == "download_link_gsheet":
             hdbg.dassert_is_not(
                 args.url,
                 None,
-                "--url is required for download action",
+                "--url is required for download_link_gsheet action",
             )
             _download_from_gsheet(args.url)
         elif action == "update_article_url":
@@ -485,11 +497,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _update_article_tags(args.model)
         elif action == "update_article_cluster":
             _update_article_clusters()
-        elif action == "upload":
+        elif action == "upload_link_gsheet":
             hdbg.dassert_is_not(
                 args.url,
                 None,
-                "--url is required for upload action",
+                "--url is required for upload_link_gsheet action",
             )
             _upload_to_gsheet(args.url)
 
