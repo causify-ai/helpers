@@ -6,10 +6,12 @@
 #   "google",
 #   "googleapi",
 #   "gspread",
+#   "llm",
 #   "lxml",
 #   "pandas",
 #   "pyyaml",
 #   "requests",
+#   "tokencost",
 #   "tqdm",
 # ]
 # ///
@@ -266,7 +268,7 @@ def _update_article_urls() -> str:
     # Load and validate the HN CSV from the previous download step.
     hn_csv = _get_tmp_file_path(HN_CSV_FILE)
     hdbg.dassert_path_exists(hn_csv, "Must download from gsheet first")
-    _LOG.debug("Loading CSV to extract article URLs")
+    _LOG.debug("Loading CSV '%s' to extract article URLs", hn_csv)
     rows = _read_csv(hn_csv)
     hdbg.dassert(rows, "No rows in CSV: %s", hn_csv)
     columns = list(rows[0].keys()) if rows else []
@@ -300,7 +302,7 @@ def _update_article_tags(
     """
     Tag articles using LLM classification and update output file after each batch.
 
-    Uses Article_title (from HN API) or title column (from input CSV), plus URL.
+    Uses Title column plus Article_url for classification.
 
     :param batch_size: Number of articles to process in each batch
     :param model: Optional LLM model name to use
@@ -309,20 +311,16 @@ def _update_article_tags(
     hdbg.dassert_lt(0, batch_size)
     processed_csv = _get_tmp_file_path(PROCESSED_CSV_FILE)
     hdbg.dassert_path_exists(processed_csv, "Must update article URLs first")
-    _LOG.debug("Loading CSV for tagging")
+    _LOG.debug("Loading CSV '%s' for tagging", processed_csv)
     df = pd.read_csv(processed_csv)
-    hdbg.dassert_in("Article_title", df.columns)
     hdbg.dassert_in("Title", df.columns)
     hdbg.dassert_in("Article_tag", df.columns)
     # Build list of items (title + URL) for classification.
     valid_indices = []
     valid_items = []
     for idx, row in df.iterrows():
-        # Get title from Article_title or fall back to title column.
+        # Get title from Title column.
         title = ""
-        article_title_val = row["Article_title"]
-        if article_title_val is not None and pd.notna(article_title_val):
-            title = str(article_title_val)
         title_val = row["Title"]
         if title_val is not None and pd.notna(title_val):
             title = str(title_val)
