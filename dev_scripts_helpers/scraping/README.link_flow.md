@@ -1,155 +1,191 @@
 # Hacker News Links Processor
 
-## HN Gsheet
-- The list of links is stored in a Gsheet
-	- E.g., https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M
+## Overview
 
-- The schema
-	- `Title`
-		- "Rust is not a good C replacement"
-	- `Url`
-		- https://drewdevault.com/2019/03/25/Rust-is-not-a-good-C-replacement.html
-		- https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4752797
-		- https://news.ycombinator.com/item?id=40212490
-	- `Timestamp`
-		- 2024-04-30 22:23:54
-	- `Article_url`
-		- If it's a HN link
-		- https://medium.com/airbnb-engineering/chronon-airbnbs-ml-feature-platform-is-now-open-source-d9c4dba859e8
-	- `Article_title`
-		- If it's a HN link
-		- Typically the same as `Title`
-	- `Article_tag`
-		- "Automated Theorem Proving"
-	- `Article_cluster`
-		- "AI"
-	- `Interesting`
-		-  (1 to 5)
-	- `Notes`
+This directory contains scripts for managing, processing, and enriching links
+(from Hacker News and other sources) stored in Google Sheets.
 
-from_gsheet.py --url https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=1509921826#gid=1509921826 --tabname "All" --output_file file.csv
+The workflow involves downloading links from various sources (Google Sheets,
+Raindrop.io), enriching them with article metadata and AI-generated tags, and
+syncing the processed data back to Google Sheets.
 
-## Update Gsheet from Pocket / Raindrop
+## HN Gsheet Schema
 
-### Manual Download
+- E.g., 
+  ```
+  export LINKS_GSHEET=https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=1324796321#gid=1324796321
+  ```
 
-- Go to http://raindrop.io, https://app.raindrop.io/my/0
-- Export CSV / Get backup
-
-- The schema is like
-	- `id`
-		- "1655820619"
-	- `title`
-		- "ripgrep is faster than {grep, ag, git grep, ucg, pt, sift} | hacker news"
-	- `note`
-	- `excerpt`
-	- `url`
-		- https://news.ycombinator.com/item?id=47499245`
-	- `tags`
-	- `created`
-		- 2026-03-24t10:13:48.297z
-	- `cover`
-		- https://rdl.ink/render/https%3A%2F%2Fnews.ycombinator.com%2Fitem%3Fid%3D47499245
-	- `highlights`
-	- `favorite`
-		- FALSE
-
-### Download through API
-
-```
-> update_hn_gsheet_from_raindrop.py --url https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M
-```
-
-### Update HN Gsheet
-
-- Extract data
-	- title
-	- url
-	- created
-- Read the
-
-## Complete Gsheet
-
-- Point to a Gsheet with tabs
-- Complete the missing cells
-- Save a new Gsheet
-
-Step 2\) If title is for an HN article, extract the article title and URL
-
-Extract HN articles
-dev\_scripts\_helpers/scraping\_script/extract\_hn\_article.py \--input\_file /Users/saggese/Downloads/Pocket\\ links\\ \-\\ All\\ \\(1\\).csv \--output\_file txt.csv
-
-Step 3\) Decorate with tag1, tag2
-The possible topics are [All\_links](https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=1509921826#gid=1509921826)
-
-Step 4\)
-
-| title | url | Timestamp | Article\_url | Article\_tag |
-| :---- | :---- | :---- | :---- | :---- |
-| Writing a good Claude.md | Hacker News | https://news.ycombinator.com/item?id=46098838 | 2025-12-01T03:14:33.954Z | https://www.humanlayer.dev/blog/writing-a-good-claude-md | Prompt Engineering |
-
-Step 5\) Download
-
-dev\_scripts\_helpers/google/to\_gsheet.py \--input\_file out.csv \--url https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit?gid=209574908\#gid=209574908 \--tabname Sheet7
-
-Step 6\) Read notes/papers.pocket.txt
-
+- The master Google Sheets document contains the following columns:
+  - `Title`: Article title
+    - Example: "Rust is not a good C replacement"
+  - `Url`: Source URL
+    - Can be: direct article URL, paper link, or Hacker News submission URL
+    - Examples:
+      https://drewdevault.com/2019/03/25/Rust-is-not-a-good-C-replacement.html,
+      https://news.ycombinator.com/item?id=40212490
+  - `Timestamp`: Date and time when added
+    - Format: YYYY-MM-DD HH:MM:SS
+    - Example: 2024-04-30 22:23:54
+  - `Article_url`: URL of the actual article (extracted from HN submission if applicable)
+    - Example:
+      https://medium.com/airbnb-engineering/chronon-airbnbs-ml-feature-platform-is-now-open-source-d9c4dba859e8
+  - `Article_title`: Title of the actual article (extracted from HN submission if applicable)
+    - Typically same as `Title` for HN submissions
+  - `Article_tag`: Categorized topic/tag for the article
+    - Example: "Automated Theorem Proving", "AI Infrastructure", "Python Ecosystem"
+  - `Article_cluster`: High-level cluster grouping topics
+    - Example: "AI", "Data/Infra", "Dev tools", "Finance", "Math", "Business",
+      "CyberSec", "SwEng"
+  - `Interesting`: Relevance rating (1 to 5)
+  - `Notes`: Additional notes and comments
 
 ## Description of Files
 
-- `extract_hn_article.py`
-  - Extracts article title and URL from Hacker News submissions and optionally classifies them using LLM
-
-### `extract_hn_article.py`
+### `update_hn_gsheet_from_raindrop.py`
 
 #### What It Does
 
-- Extracts submission title and original article URL from Hacker News items using the official HN Firebase API (https://hacker-news.firebaseio.com/v0/)
-- Processes CSV files with HN URLs in batches and adds Article_title and Article_url columns
-- Updates output CSV file incrementally after each batch for fault tolerance during URL extraction
-- Optionally classifies articles into predefined categories using LLM with configurable batch processing
-- Updates output CSV file incrementally after each batch during LLM tagging for fault tolerance
-- Displays progress bars for both URL extraction and LLM tagging workloads
-- Handles non-HN URLs gracefully with warnings and empty result columns
-- Uses caching to avoid redundant API calls for previously processed URLs
+Synchronizes bookmarks from Raindrop.io with a Google Sheets document. Implements a four-action pipeline:
 
-#### Examples
+1. **download_hn_gsheet**: Downloads current data from Google Sheets to CSV
+2. **download_raindrop_data**: Fetches new bookmarks from Raindrop.io API (only items created after the latest timestamp in the gsheet)
+3. **combine**: Transforms and combines Raindrop data into gsheet schema
+4. **upload_hn_gsheet**: Uploads combined data back to Google Sheets in a new timestamped tab
 
-- Process a CSV file with Hacker News URLs in a 'url' column:
+Features:
+- Incremental sync: only fetches new bookmarks by comparing timestamps
+- Field mapping: converts Raindrop fields to gsheet columns
+- Timestamp normalization: converts ISO 8601 format to YYYY-MM-DD HH:MM:SS
+- Title cleanup: strips "| HackerNews" suffix from Raindrop titles
+- Prepends new data: Raindrop bookmarks appear at the top of the gsheet
+- Automatic pagination: handles Raindrop API pagination to fetch all bookmarks
+- Fault tolerance: graceful handling of malformed timestamps
+
+#### Example Usage
+
+Sync all new bookmarks from Raindrop to Google Sheets:
+
+```bash
+> update_hn_gsheet_from_raindrop.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --all
+```
+
+Run individual actions:
+
+```bash
+# Just download from Google Sheets
+> update_hn_gsheet_from_raindrop.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --action download_hn_gsheet
+
+# Just fetch from Raindrop (requires RAINDROP_API_TOKEN env var)
+> update_hn_gsheet_from_raindrop.py \
+    --action download_raindrop_data
+
+# Combine data without uploading
+> update_hn_gsheet_from_raindrop.py \
+    --action combine
+```
+
+Skip specific actions:
+
+```bash
+# Download and combine but skip upload
+> update_hn_gsheet_from_raindrop.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --all \
+    --skip-action upload_hn_gsheet
+```
+
+Requirements:
+- `RAINDROP_API_TOKEN` environment variable must be set to authenticate with Raindrop API
+- Google Sheets URL with data in the 'All' tab
+
+### `process_hn_article.py`
+
+#### What It Does
+
+- A comprehensive pipeline for enriching and processing Hacker News articles from
+  a Google Sheets document
+- It performs five sequential actions:
+  1. **download**: Downloads data from Google Sheets to CSV
+  2. **update_article_url**: Extracts article URLs from HN links using the HN API
+  3. **update_article_tag**: Classifies articles using LLM into predefined topics
+  4. **update_article_cluster**: Maps topics to higher-level cluster categories
+  5. **upload**: Uploads processed CSV back to Google Sheets with results
+
+Features:
+- Incremental processing with progress bars using tqdm
+- Fault tolerance: only processes rows with empty target columns, skips already-processed rows
+- Caching for HN API calls to avoid redundant lookups
+- LLM batch processing with configurable batch sizes
+- Automatic output file updates after each batch during tagging
+- Creates timestamped tabs in Google Sheets for each run
+
+#### Example Usage
+
+- Run the complete pipeline on a Google Sheets document:
   ```bash
-  > ./extract_hn_article.py --input_file input.csv --output_file output.csv
-  ```
-  The output CSV will have two new columns inserted after 'url': Article_title and Article_url. URLs are processed in batches of 10 (default) with the output file updated after each batch.
-
-- Process with custom batch size for URL extraction:
-  ```bash
-  > ./extract_hn_article.py --input_file input.csv --output_file output.csv --url_batch_size 5
-  ```
-  Processes 5 URLs per batch instead of the default 10. Useful for more frequent checkpoints with large files.
-
-- Enable debug logging to see API calls and batch processing:
-  ```bash
-  > ./extract_hn_article.py --input_file input.csv --output_file output.csv -v DEBUG
+  > process_hn_article.py \
+      --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+      --all
   ```
 
-- Process CSV and classify articles using LLM:
-  ```bash
-  > ./extract_hn_article.py --input_file input.csv --output_file output.csv --tag_articles
-  ```
-  Adds Article_tag column with LLM-generated category tags from predefined list. The output file is updated after each batch, allowing recovery from interruptions.
+Run specific actions:
 
-- Process with custom batch sizes for both URL extraction and LLM tagging:
-  ```bash
-  > ./extract_hn_article.py --input_file input.csv --output_file output.csv --url_batch_size 20 --tag_articles --batch_size 5
-  ```
-  Processes 20 URLs per batch during extraction and 5 titles per LLM batch call during tagging.
+```bash
+# Just download data from Google Sheets
+> process_hn_article.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --action download
 
-- Use a specific LLM model for tagging:
-  ```bash
-  > ./extract_hn_article.py --input_file input.csv --output_file output.csv --tag_articles --model gpt-4
-  ```
-  Uses gpt-4 model for article classification instead of the default model.
+# Extract article URLs only
+> process_hn_article.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --action update_article_url
 
-# 
+# Tag articles using LLM with custom model
+> process_hn_article.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --action update_article_tag \
+    --model gpt-4
+```
 
-download_hn_articles --url xxx 
+Skip specific actions:
+
+```bash
+# Run all actions except upload
+> process_hn_article.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M" \
+    --all \
+    --skip-action upload
+```
+
+Import as module:
+
+```python
+import dev_scripts_helpers.scraping.process_hn_article as dssprar
+```
+
+## Complete Workflow Example
+
+A typical workflow for enriching links from multiple sources:
+
+1. Download links from Raindrop.io and merge with existing gsheet:
+   ```bash
+   > update_hn_gsheet_from_raindrop.py --url <sheet_url> --all
+   ```
+
+2. Process HN articles to extract URLs and classify by topic:
+   ```bash
+   > process_hn_article.py --url <sheet_url> --all
+   ```
+
+3. Review the results in the new timestamped tabs created in Google Sheets
+
+## Helper Scripts
+
+- `from_gsheet.py`: Download data from Google Sheets to CSV
+- `to_gsheet.py`: Upload CSV data to Google Sheets (creates or overwrites tabs) 
