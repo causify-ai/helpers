@@ -19,29 +19,33 @@
 """
 Process HN articles from a Google Sheets document.
 
-This script manages five actions:
-1. download_link_gsheet: Download data from Google Sheets to CSV
-2. update_article_url: Extract article URLs from HN links using HN API
-3. update_article_tag: Tag articles using topics
-4. update_article_cluster: Map topics to clusters
-5. upload_link_gsheet: Upload the processed CSV back to Google Sheets
+This script manages the following actions:
+1. download_gsheet_links: Download data from Google Sheets to CSV
+2. download_link_gsheet: Download data from Google Sheets to CSV (alias)
+3. update_article_url: Extract article URLs from HN links using HN API
+4. update_article_tag: Tag articles using LLM-based classification
+5. update_article_cluster: Map topics to clusters
+6. replace_article_tags: Replace old topic names with simplified names
+7. upload_link_gsheet: Upload the processed CSV back to Google Sheets
+8. upload_gsheet_links: Upload the processed CSV back to Google Sheets (alias)
 
 Example usage:
 
 # Download data from Google Sheets
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --action download_link_gsheet
+    --action download_gsheet_links
 
 # Run all actions
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all
 
-# Skip upload action
+# Replace topic names and upload
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --skip-action upload_link_gsheet
+    --action replace_article_tags \
+    --action upload_gsheet_links
 
 Import as:
 
@@ -73,8 +77,7 @@ CLUSTERS_CSV_FILE = "processed_data.clusters.csv"
 
 # Map article topics to high-level cluster categories for grouping and analysis.
 topic_to_cluster = {
-    "AI Agents & Tool-Using Systems": "AI",
-    # -> AI Agents
+    "AI Agents": "AI",
     "Automated Theorem Proving": "AI",
     "Causal Inference": "AI",
     "Diffusion Models": "AI",
@@ -84,17 +87,14 @@ topic_to_cluster = {
     "Probabilistic Programming": "AI",
     "Prompt Engineering": "AI",
     "Self-Supervised Learning": "AI",
-    "Uncertainty & Belief Modeling": "AI",
-    # -> Uncertainty Modeling
+    "Uncertainty Modeling": "AI",
     #
     "AI Infrastructure": "Data/Infra",
-    "Data Engineering & Pipelines": "Data/Infra",
-    # -> Data Engineering
+    "Data Engineering": "Data/Infra",
     "High-Performance Computing": "Data/Infra",
-    # 
+    #
     "Developer Tools": "Dev tools",
-    "Git and GitHub": "Dev tools",
-    # -> Git
+    "Git": "Dev tools",
     "Open Source": "Dev tools",
     "Python Ecosystem": "Dev tools",
     "Rust and C++": "Dev tools",
@@ -102,33 +102,41 @@ topic_to_cluster = {
     "Quant Finance": "Finance",
     "Trading Strategies": "Finance",
     #
-    "Complex Systems & Network Dynamics": "Math",
-    # -> Complex Systems
+    "Complex Systems": "Math",
     "Mathematical Concepts": "Math",
-    "Simulation & Agent-Based Modeling": "Math",
-    # -> Simulation
+    "Simulation": "Math",
     "Time Series": "Math",
     "Unconventional Computing": "Math",
     #
-    "Careers & Professional Growth": "Business",
-    # -> Careers
+    "Careers": "Business",
     "Marketing and Sales": "Business",
-    "Organizational Behavior & Incentives": "Business",
-    # -> Organizational Behavior
-    "Psychology & Well-Being": "Business",
-    # -> Psychology
+    "Organizational Behavior": "Business",
+    "Psychology": "Business",
     #
-    "Cybersecurity & Privacy": "CyberSec",
-    # -> Cybersecurity
-    "Risk Management & Compliance": "CyberSec",
-    # -> Risk Management
+    "Cybersecurity": "CyberSec",
+    "Risk Management": "CyberSec",
     #
     "Code Refactoring": "SwEng",
     "Dev Productivity": "SwEng",
     "Software Architecture": "SwEng",
     "Software Project Management": "SwEng",
-    "System Reliability & Fault Tolerance": "SwEng",
-    # -> System Reliability
+    "System Reliability": "SwEng",
+}
+
+# Map old topic names to new simplified names for data migration.
+old_topic_to_new_topic = {
+    "AI Agents & Tool-Using Systems": "AI Agents",
+    "Uncertainty & Belief Modeling": "Uncertainty Modeling",
+    "Data Engineering & Pipelines": "Data Engineering",
+    "Git and GitHub": "Git",
+    "Complex Systems & Network Dynamics": "Complex Systems",
+    "Simulation & Agent-Based Modeling": "Simulation",
+    "Careers & Professional Growth": "Careers",
+    "Organizational Behavior & Incentives": "Organizational Behavior",
+    "Psychology & Well-Being": "Psychology",
+    "Cybersecurity & Privacy": "Cybersecurity",
+    "Risk Management & Compliance": "Risk Management",
+    "System Reliability & Fault Tolerance": "System Reliability",
 }
 
 
@@ -410,6 +418,48 @@ def _update_article_clusters() -> str:
     return clusters_csv
 
 
+def _replace_article_tags() -> str:
+    """
+    Replace old topic names with new simplified topic names in Article_tag column.
+
+    Updates the CSV file with renamed topics using the old_topic_to_new_topic mapping.
+
+    :return: Path to the updated CSV file
+    """
+    clusters_csv = dshslgsut.get_tmp_file_path(
+        CLUSTERS_CSV_FILE, "process_link_gsheet"
+    )
+    hdbg.dassert_path_exists(clusters_csv, "Must update article clusters first")
+    _LOG.info("Loading CSV '%s' to replace topic names", clusters_csv)
+    rows = dshslgsut.read_csv(clusters_csv)
+    hdbg.dassert(rows, "No rows in CSV: %s", clusters_csv)
+    columns = list(rows[0].keys()) if rows else []
+    hdbg.dassert_in("Article_tag", columns, "CSV must have 'Article_tag' column")
+    _LOG.info(
+        "Loaded %d rows and %d columns from '%s'",
+        len(rows),
+        len(columns),
+        clusters_csv,
+    )
+    replacements_made = 0
+    for row in rows:
+        old_tag = row.get("Article_tag", "").strip()
+        if old_tag in old_topic_to_new_topic:
+            new_tag = old_topic_to_new_topic[old_tag]
+            row["Article_tag"] = new_tag
+            replacements_made += 1
+            _LOG.debug("Replaced '%s' with '%s'", old_tag, new_tag)
+    _LOG.info("Made %d topic name replacements", replacements_made)
+    dshslgsut.write_csv(clusters_csv, rows, fieldnames=columns)
+    _LOG.info(
+        "Wrote %d rows with %d columns to '%s'",
+        len(rows),
+        len(columns),
+        clusters_csv,
+    )
+    return clusters_csv
+
+
 def _upload_to_gsheet(url: str) -> None:
     """
     Upload processed CSV data to Google Sheets.
@@ -428,13 +478,25 @@ def _upload_to_gsheet(url: str) -> None:
 
 # List of available pipeline actions; executed in order when --all is used.
 VALID_ACTIONS = [
+    "download_gsheet_links",
     "download_link_gsheet",
     "update_article_url",
     "update_article_tag",
     "update_article_cluster",
+    "replace_article_tags",
     "upload_link_gsheet",
+    "upload_gsheet_links",
 ]
-DEFAULT_ACTIONS = VALID_ACTIONS[:]
+VALID_ACTIONS = [
+    "download_gsheet_links",
+    "download_link_gsheet",
+    "update_article_url",
+    "update_article_tag",
+    "update_article_cluster",
+    #"replace_article_tags",
+    "upload_link_gsheet",
+    "upload_gsheet_links",
+]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -484,11 +546,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not to_execute:
             continue
         # Dispatch to the appropriate handler based on the current action.
-        if action == "download_link_gsheet":
+        if action in ("download_gsheet_links", "download_link_gsheet"):
             hdbg.dassert_is_not(
                 args.url,
                 None,
-                "--url is required for download_link_gsheet action",
+                f"--url is required for {action} action",
             )
             _download_from_gsheet(args.url)
         elif action == "update_article_url":
@@ -497,11 +559,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _update_article_tags(args.model)
         elif action == "update_article_cluster":
             _update_article_clusters()
-        elif action == "upload_link_gsheet":
+        elif action == "replace_article_tags":
+            _replace_article_tags()
+        elif action in ("upload_link_gsheet", "upload_gsheet_links"):
             hdbg.dassert_is_not(
                 args.url,
                 None,
-                "--url is required for upload_link_gsheet action",
+                f"--url is required for {action} action",
             )
             _upload_to_gsheet(args.url)
 
