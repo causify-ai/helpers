@@ -59,6 +59,7 @@ import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 import helpers.hselect_action as hselacti
+import helpers.hcache_simple as hcacsimp
 
 _LOG = logging.getLogger(__name__)
 
@@ -182,6 +183,7 @@ def _extract_item_id(hn_url: str) -> str:
     return match.group(1)
 
 
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _extract_article_url(hn_url: str) -> str:
     """
     Extract article URL from a Hacker News submission using the HN API.
@@ -273,12 +275,96 @@ def _update_article_urls() -> str:
     return processed_csv
 
 
-def _update_article_tags() -> str:
+def _update_article_tags(
+    df: pd.DataFrame,
+    output_file: str,
+    tag_col_idx: int,
+    *,
+    batch_size: int = 10,
+    model: Optional[str] = None,
+) -> None:
     """
-    Tag articles using topic-to-cluster mapping.
+    Tag articles using LLM classification and update output file after each batch.
 
-    :return: Path to the updated CSV file
+    Uses Article_title (from HN API) or title column (from input CSV), plus URL.
+
+    :param df: DataFrame containing Article_title or title column, and url column
+    :param output_file: Path to output CSV file
+    :param tag_col_idx: Index position for inserting Article_tag column
+    :param batch_size: Number of articles to process in each batch
+    :param model: Optional LLM model name to use
     """
+    hdbg.dassert_isinstance(df, pd.DataFrame)
+    hdbg.dassert_lt(0, batch_size)
+    # Determine which title column to use.
+    has_article_title = "Article_title" in df.columns
+    has_title = "title" in df.columns
+    if not has_article_title and not has_title:
+        _LOG.warning(
+            "Neither Article_title nor title column found, skipping tagging"
+        )
+        return
+    # Build list of items (title + URL) for classification.
+    valid_indices = []
+    valid_items = []
+    for idx, row in df.iterrows():
+        # Get title from Article_title or fall back to title column.
+        title = ""
+        if has_article_title and bool(pd.notna(row["Article_title"])):
+            article_title = str(row["Article_title"]).strip()
+            if article_title:
+                title = article_title
+        elif has_title and bool(pd.notna(row["title"])):
+            title_val = str(row["title"]).strip()
+            if title_val:
+                title = title_val
+        # Get URL.
+        url = row.get("url", "")
+        if not title:
+            continue
+        # Format as "Title: <title>\nURL: <url>".
+        item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
+        valid_indices.append(idx)
+        valid_items.append(item_text)
+    _LOG.info(
+        "Tagging %d articles using LLM in batches of %d",
+        len(valid_items),
+        batch_size,
+    )
+    if not valid_items:
+        _LOG.warning("No valid items to tag")
+        return
+    # Initialize Article_tag column if it doesn't exist.
+    if "Article_tag" not in df.columns:
+        df.insert(tag_col_idx, "Article_tag", "")
+    # Process items in batches with progress bar for entire workload.
+    num_batches = (len(valid_items) + batch_size - 1) // batch_size
+    _LOG.info("Processing %d items in %d batches", len(valid_items), num_batches)
+    for batch_num in tqdm(range(num_batches), desc="Tagging articles"):
+        # Get batch indices.
+        start_idx = batch_num * batch_size
+        end_idx = min(start_idx + batch_size, len(valid_items))
+        batch_items = valid_items[start_idx:end_idx]
+        batch_indices = valid_indices[start_idx:end_idx]
+        _LOG.debug(
+            "Processing batch %d/%d (%d items)",
+            batch_num + 1,
+            num_batches,
+            len(batch_items),
+        )
+        # Call LLM for this batch.
+        batch_tags, _ = hllmcli.apply_llm_batch_with_shared_prompt(
+            prompt=_CLASSIFICATION_PROMPT,
+            input_list=batch_items,
+            model=model or "gpt-4o-mini",
+        )
+        # Update dataframe with batch results.
+        for idx, tag in zip(batch_indices, batch_tags):
+            df.at[idx, "Article_tag"] = tag.strip()
+        # Update output file after each batch.
+        _LOG.debug("Updating output file: %s", output_file)
+        df.to_csv(output_file, index=False)
+    _LOG.info("Finished tagging %d articles", len(valid_items))
 
 
 def _update_article_clusters() -> str:
