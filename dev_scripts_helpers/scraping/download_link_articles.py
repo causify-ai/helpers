@@ -88,6 +88,55 @@ import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 
+# #############################################################################
+# Text Processing Utilities
+# #############################################################################
+
+
+def _sanitize_title_for_filename(title: str) -> str:
+    """
+    Sanitize a title for use in a filename.
+
+    Replaces non-alphanumeric chars with underscores, collapses repeated
+    underscores, and strips leading/trailing underscores.
+
+    :param title: Title string
+    :return: Sanitized filename slug
+    """
+    # Replace any non-alphanumeric character (except underscore) with underscore.
+    sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", title)
+    # Collapse consecutive underscores into a single underscore.
+    sanitized = re.sub(r"_+", "_", sanitized)
+    # Remove leading and trailing underscores for cleaner filenames.
+    sanitized = sanitized.strip("_")
+    return sanitized
+
+
+def _simplify_html_links(text: str) -> str:
+    """
+    Simplify HTML links by extracting just the URL and unescaping entities.
+
+    Converts: <a href="https:&#x2F;&#x2F;example.com">...</a>
+    To: https://example.com
+
+    :param text: Text containing HTML links
+    :return: Text with simplified links
+    """
+    # Match <a> tags and extract href, then replace with just the URL
+    def replace_link(match):
+        href = match.group(1)
+        # Unescape HTML entities (&#x2F; -> /)
+        unescaped = html.unescape(href)
+        return unescaped
+    # Pattern: <a href="...">...</a> - captures the href attribute
+    pattern = r'<a\s+[^>]*href=["\'](.*?)["\'][^>]*>.*?</a>'
+    simplified = re.sub(pattern, replace_link, text, flags=re.IGNORECASE | re.DOTALL)
+    return simplified
+
+# #############################################################################
+# HN API and Data Fetching
+# #############################################################################
+
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
@@ -160,6 +209,10 @@ def _fetch_hn_comments(
         comment["replies"] = replies
     return [comment]
 
+# #############################################################################
+# Content Processing and Formatting
+# #############################################################################
+
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _download_article_content(url: str) -> Optional[str]:
@@ -199,48 +252,7 @@ def _download_article_content(url: str) -> Optional[str]:
         return None
 
 
-def _sanitize_title_for_filename(title: str) -> str:
-    """
-    Sanitize a title for use in a filename.
-
-    Replaces non-alphanumeric chars with underscores, collapses repeated
-    underscores, and strips leading/trailing underscores.
-
-    :param title: Title string
-    :return: Sanitized filename slug
-    """
-    # Replace any non-alphanumeric character (except underscore) with underscore.
-    sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", title)
-    # Collapse consecutive underscores into a single underscore.
-    sanitized = re.sub(r"_+", "_", sanitized)
-    # Remove leading and trailing underscores for cleaner filenames.
-    sanitized = sanitized.strip("_")
-    return sanitized
-
-
-def _simplify_html_links(text: str) -> str:
-    """
-    Simplify HTML links by extracting just the URL and unescaping entities.
-
-    Converts: <a href="https:&#x2F;&#x2F;example.com">...</a>
-    To: https://example.com
-
-    :param text: Text containing HTML links
-    :return: Text with simplified links
-    """
-    # Match <a> tags and extract href, then replace with just the URL
-    def replace_link(match):
-        href = match.group(1)
-        # Unescape HTML entities (&#x2F; -> /)
-        unescaped = html.unescape(href)
-        return unescaped
-    # Pattern: <a href="...">...</a> - captures the href attribute
-    pattern = r'<a\s+[^>]*href=["\'](.*?)["\'][^>]*>.*?</a>'
-    simplified = re.sub(pattern, replace_link, text, flags=re.IGNORECASE | re.DOTALL)
-    return simplified
-
-
-def add_comment_tree(
+def _add_comment_tree(
     comment_list: List[Dict[str, Any]], lines: List[str], depth: int = 0
 ) -> None:
     """
@@ -264,7 +276,7 @@ def add_comment_tree(
         lines.append("")
         # Recursively process nested replies at increasing indentation depth.
         if "replies" in comment:
-            add_comment_tree(comment["replies"], lines, depth + 1)
+            _add_comment_tree(comment["replies"], lines, depth + 1)
 
 
 def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
@@ -275,11 +287,15 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
     :return: Formatted text representation of comments
     """
     lines = []
-    add_comment_tree(comments, lines)
+    _add_comment_tree(comments, lines)
     text = "\n".join(lines)
     # Simplify HTML links in comment text.
     text = _simplify_html_links(text)
     return text
+
+# #############################################################################
+# Row Index Parsing
+# #############################################################################
 
 
 def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
@@ -338,6 +354,10 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
         )
         # Convert to 0-indexed.
         return [idx - 1]
+
+# #############################################################################
+# Download Operations
+# #############################################################################
 
 
 def _download_hn_comments(
@@ -414,6 +434,10 @@ def _download_article_urls(
         with open(output_file, "w") as f:
             f.write(article_content)
         _LOG.info("Successfully saved article for: %s", title)
+
+# #############################################################################
+# Summarization Operations
+# #############################################################################
 
 
 def _summarize_text_with_llm(
@@ -520,7 +544,7 @@ def _summarize_comments(
 
 
 # #############################################################################
-# Main
+# CLI and Entry Points
 # #############################################################################
 
 

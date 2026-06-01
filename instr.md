@@ -1,10 +1,9 @@
-In dev_scripts_helpers/scraping/download_link_articles.py add another action
-summarize that uses llm_cli.py to summarize both the text of the article and
-the comments using the prompt from
+Implement ./dev_scripts_helpers/coding_tools/pyan.sh
 
-.claude/skills/text.summarize_hn_in_bullet_points/SKILL.md
+in Python following our convention (using uv, --action, --input)
 
-Call the summarization using hsystem.system
+pyan3 $file --dot > callgraph.dot
+dot -Tpng callgraph.dot -o callgraph.png
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
