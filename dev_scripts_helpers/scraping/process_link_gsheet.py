@@ -24,8 +24,7 @@ This script manages the following actions:
 2. update_article_url: Extract article URLs from HN links using HN API
 3. update_article_tag: Tag articles using LLM-based classification
 4. update_article_cluster: Map topics to clusters
-5. replace_article_tags: Replace old topic names with simplified names
-6. upload_link_gsheet: Upload the processed CSV back to Google Sheets
+5. upload_link_gsheet: Upload the processed CSV back to Google Sheets
 
 Example usage:
 
@@ -38,12 +37,6 @@ Example usage:
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all
-
-# Replace topic names and upload
-> process_link_gsheet.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --action replace_article_tags \
-    --action upload_link_gsheet
 
 Import as:
 
@@ -119,22 +112,6 @@ topic_to_cluster = {
     "Software Architecture": "SwEng",
     "Software Project Management": "SwEng",
     "System Reliability": "SwEng",
-}
-
-# Map old topic names to new simplified names for data migration.
-old_topic_to_new_topic = {
-    "AI Agents & Tool-Using Systems": "AI Agents",
-    "Uncertainty & Belief Modeling": "Uncertainty Modeling",
-    "Data Engineering & Pipelines": "Data Engineering",
-    "Git and GitHub": "Git",
-    "Complex Systems & Network Dynamics": "Complex Systems",
-    "Simulation & Agent-Based Modeling": "Simulation",
-    "Careers & Professional Growth": "Careers",
-    "Organizational Behavior & Incentives": "Organizational Behavior",
-    "Psychology & Well-Being": "Psychology",
-    "Cybersecurity & Privacy": "Cybersecurity",
-    "Risk Management & Compliance": "Risk Management",
-    "System Reliability & Fault Tolerance": "System Reliability",
 }
 
 
@@ -416,48 +393,6 @@ def _update_article_clusters() -> str:
     return clusters_csv
 
 
-def _replace_article_tags() -> str:
-    """
-    Replace old topic names with new simplified topic names in Article_tag column.
-
-    Updates the CSV file with renamed topics using the old_topic_to_new_topic mapping.
-
-    :return: Path to the updated CSV file
-    """
-    clusters_csv = dshslgsut.get_tmp_file_path(
-        CLUSTERS_CSV_FILE, "process_link_gsheet"
-    )
-    hdbg.dassert_path_exists(clusters_csv, "Must update article clusters first")
-    _LOG.info("Loading CSV '%s' to replace topic names", clusters_csv)
-    rows = dshslgsut.read_csv(clusters_csv)
-    hdbg.dassert(rows, "No rows in CSV: %s", clusters_csv)
-    columns = list(rows[0].keys()) if rows else []
-    hdbg.dassert_in("Article_tag", columns, "CSV must have 'Article_tag' column")
-    _LOG.info(
-        "Loaded %d rows and %d columns from '%s'",
-        len(rows),
-        len(columns),
-        clusters_csv,
-    )
-    replacements_made = 0
-    for row in rows:
-        old_tag = row.get("Article_tag", "").strip()
-        if old_tag in old_topic_to_new_topic:
-            new_tag = old_topic_to_new_topic[old_tag]
-            row["Article_tag"] = new_tag
-            replacements_made += 1
-            _LOG.debug("Replaced '%s' with '%s'", old_tag, new_tag)
-    _LOG.info("Made %d topic name replacements", replacements_made)
-    dshslgsut.write_csv(clusters_csv, rows, fieldnames=columns)
-    _LOG.info(
-        "Wrote %d rows with %d columns to '%s'",
-        len(rows),
-        len(columns),
-        clusters_csv,
-    )
-    return clusters_csv
-
-
 def _upload_to_gsheet(url: str) -> None:
     """
     Upload processed CSV data to Google Sheets.
@@ -480,17 +415,9 @@ VALID_ACTIONS = [
     "update_article_url",
     "update_article_tag",
     "update_article_cluster",
-    "replace_article_tags",
     "upload_link_gsheet",
 ]
-DEFAULT_ACTIONS = [
-    "download_link_gsheet",
-    "update_article_url",
-    "update_article_tag",
-    "update_article_cluster",
-    # "replace_article_tags",
-    "upload_link_gsheet",
-]
+DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -553,8 +480,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _update_article_tags(args.model)
         elif action == "update_article_cluster":
             _update_article_clusters()
-        elif action == "replace_article_tags":
-            _replace_article_tags()
         elif action == "upload_link_gsheet":
             hdbg.dassert_is_not(
                 args.url,

@@ -23,10 +23,10 @@ replaced with underscores.
 
 Example usage:
 
-Download HN comments for rows 0-10 where the "Url" column is not empty:
+Download HN comments for rows 1-10 where the "Url" column is not empty:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
-    --column_idx "0:10" \
+    --row_idx "1:10" \
     --select_column "Url" \
     --action download_url
 
@@ -42,10 +42,10 @@ Download article content from article URLs only:
     --select_column "Article_url" \
     --action download_article_url
 
-Download from rows 0-5, skip downloading articles:
+Download from rows 1-5, skip downloading articles:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
-    --column_idx "0:5" \
+    --row_idx "1:5" \
     --select_column "Url" \
     --skip-action download_article_url
 
@@ -217,59 +217,60 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def _parse_column_idx(column_idx_str: str, num_rows: int) -> List[int]:
+def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
     """
-    Parse column_idx string and return list of row indices.
+    Parse row_idx string and return list of 0-indexed row indices.
 
-    Format: "0" (single index) or "0:10" (range, inclusive start, exclusive end).
+    Format: "1" (single 1-indexed row) or "1:10" (range, inclusive start and end).
+    Internally converts from 1-indexed to 0-indexed.
 
-    :param column_idx_str: Column index specification
+    :param row_idx_str: Row index specification (1-indexed)
     :param num_rows: Total number of rows available
-    :return: List of row indices to process
+    :return: List of 0-indexed row indices to process
     """
-    if ":" in column_idx_str:
-        parts = column_idx_str.split(":")
+    if ":" in row_idx_str:
+        parts = row_idx_str.split(":")
         hdbg.dassert_eq(
             len(parts),
             2,
-            "Column index range must be in format START:END",
+            "Row index range must be in format START:END",
         )
         try:
             start = int(parts[0].strip())
             end = int(parts[1].strip())
         except ValueError:
             raise ValueError(
-                f"Invalid column_idx range: {column_idx_str}; "
+                f"Invalid row_idx range: {row_idx_str}; "
                 "expected integers in format START:END"
             )
         hdbg.dassert_lte(
             start,
             end,
-            "Column index start must be <= end",
+            "Row index start must be <= end",
         )
-        hdbg.dassert_lte(0, start, "Column index start must be >= 0")
+        hdbg.dassert_lte(1, start, "Row index start must be >= 1 (1-indexed)")
         hdbg.dassert_lte(
             end,
             num_rows,
-            "Column index end must be <= number of rows (%d)",
+            "Row index end must be <= number of rows (%d)",
             num_rows,
         )
-        return list(range(start, end))
+        return list(range(start - 1, end))
     else:
         try:
-            idx = int(column_idx_str.strip())
+            idx = int(row_idx_str.strip())
         except ValueError:
             raise ValueError(
-                f"Invalid column_idx: {column_idx_str}; expected integer"
+                f"Invalid row_idx: {row_idx_str}; expected integer"
             )
-        hdbg.dassert_lte(0, idx, "Column index must be >= 0")
-        hdbg.dassert_lt(
+        hdbg.dassert_lte(1, idx, "Row index must be >= 1 (1-indexed)")
+        hdbg.dassert_lte(
             idx,
             num_rows,
-            "Column index must be < number of rows (%d)",
+            "Row index must be <= number of rows (%d)",
             num_rows,
         )
-        return [idx]
+        return [idx - 1]
 
 
 def _download_hn_comments(
@@ -363,10 +364,10 @@ def _parse() -> argparse.ArgumentParser:
         help="URL of the Google Sheets document",
     )
     parser.add_argument(
-        "--column_idx",
+        "--row_idx",
         action="store",
         default=None,
-        help="Column/row index or range to process (e.g., '0' or '0:10')",
+        help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10)",
     )
     parser.add_argument(
         "--select_column",
@@ -399,8 +400,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     rows = dshslgsut.read_csv(gsheet_csv)
     hdbg.dassert(len(rows) > 0, "No rows in downloaded CSV")
     _LOG.info("Processing %d rows from Google Sheets", len(rows))
-    if args.column_idx:
-        indices = _parse_column_idx(args.column_idx, len(rows))
+    if args.row_idx:
+        indices = _parse_row_idx(args.row_idx, len(rows))
     else:
         indices = list(range(len(rows)))
     _LOG.info("Row indices to process: %s", indices)
