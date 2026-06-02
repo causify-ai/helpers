@@ -19,65 +19,6 @@ import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 _LOG = logging.getLogger(__name__)
 
 
-def is_prettier_available(mode: str) -> bool:
-    """
-    Check if prettier executable is available for the given mode.
-
-    :param mode: prettier mode ("dockerized" or "global")
-    :return: True if prettier is available, False otherwise
-    """
-    if mode == "dockerized":
-        return True
-    elif mode == "global":
-        result = hsystem.system("which prettier", suppress_output=True)
-        return result == 0
-    return False
-
-
-def is_mdformat_available_global() -> bool:
-    """
-    Check if mdformat executable is available globally.
-
-    :return: True if mdformat is available globally, False otherwise
-    """
-    result = hsystem.system("which mdformat", suppress_output=True)
-    return result == 0
-
-
-def is_flowmark_available_global() -> bool:
-    """
-    Check if flowmark executable is available globally.
-
-    :return: True if flowmark is available globally, False otherwise
-    """
-    result = hsystem.system("which flowmark", suppress_output=True)
-    return result == 0
-
-
-def is_mdformat_available() -> bool:
-    """
-    Check if mdformat package is available.
-    """
-    try:
-        import mdformat  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
-
-
-def is_flowmark_available() -> bool:
-    """
-    Check if flowmark package is available.
-    """
-    try:
-        import flowmark  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
-
-
 def remove_end_of_line_periods(lines: List[str]) -> List[str]:
     """
     Remove periods at the end of each line in the given text.
@@ -593,7 +534,71 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
 
 
 # #############################################################################
-# Formatting
+# Formatting with prettier, mdformat, flowmark
+# #############################################################################
+
+
+def is_prettier_available(mode: str) -> bool:
+    """
+    Check if prettier executable is available for the given mode.
+
+    :param mode: prettier mode ("dockerized" or "global")
+    :return: True if prettier is available, False otherwise
+    """
+    if mode == "dockerized":
+        return True
+    elif mode == "global":
+        result = hsystem.system("which prettier", suppress_output=True)
+        return result == 0
+    return False
+
+
+# TODO(ai_gp): pass mode and rename is_mdformat_available
+def is_mdformat_available_global() -> bool:
+    """
+    Check if mdformat executable is available globally.
+
+    :return: True if mdformat is available globally, False otherwise
+    """
+    result = hsystem.system("which mdformat", suppress_output=True)
+    return result == 0
+
+
+# TODO(ai_gp): pass mode and rename is_flowmark_available
+def is_flowmark_available_global() -> bool:
+    """
+    Check if flowmark executable is available globally.
+
+    :return: True if flowmark is available globally, False otherwise
+    """
+    result = hsystem.system("which flowmark", suppress_output=True)
+    return result == 0
+
+
+def is_mdformat_available() -> bool:
+    """
+    Check if mdformat package is available.
+    """
+    try:
+        import mdformat  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
+def is_flowmark_available() -> bool:
+    """
+    Check if flowmark package is available.
+    """
+    try:
+        import flowmark  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
 # #############################################################################
 
 
@@ -616,6 +621,7 @@ def _format_with_prettier(
         formatted_txt = dshdlipr.prettier_on_str(txt, "md", width=width)
     else:
         # mode == "global": use global prettier executable
+        # TODO(ai_gp): Use dassert
         if not is_prettier_available("global"):
             raise RuntimeError(
                 "prettier executable not found in PATH. "
@@ -661,27 +667,23 @@ def _format_with_mdformat(
         # Save to file and call via executable
         tmp_file = "tmp.format_md.mdformat.md"
         hio.to_file(tmp_file, txt)
+        cmd_parts = [
+            "mdformat",
+            f"--wrap={width}",
+            tmp_file,
+        ]
         if mode == "uvx":
             _LOG.debug("Using mdformat via uvx for formatting")
-            cmd_parts = [
-                "uvx",
-                "mdformat",
-                f"--line-length={width}",
-                tmp_file,
-            ]
+            cmd_parts.insert(0, "uvx")
         else:
             # mode == "global": use global mdformat executable
+            # TODO(ai_gp): Use hdbg.dassert
             if not is_mdformat_available_global():
                 raise RuntimeError(
                     "mdformat executable not found in PATH. "
                     "Install mdformat or use mode='library' or mode='uvx'"
                 )
             _LOG.debug("Using global mdformat executable for formatting")
-            cmd_parts = [
-                "mdformat",
-                f"--line-length={width}",
-                tmp_file,
-            ]
         cmd = " ".join(cmd_parts)
         hsystem.system(cmd)
         formatted_txt = hio.from_file(tmp_file)
@@ -733,6 +735,7 @@ def _format_with_flowmark(
             ]
         elif mode == "global-rs":
             # Rust-based flowmark from global path
+            # TODO(ai_gp): Use dassert
             if not is_flowmark_available_global():
                 raise RuntimeError(
                     "flowmark executable not found in PATH. "
@@ -747,6 +750,7 @@ def _format_with_flowmark(
             ]
         else:
             # mode == "global": Python-based flowmark from global path
+            # TODO(ai_gp): Use dassert
             if not is_flowmark_available_global():
                 raise RuntimeError(
                     "flowmark executable not found in PATH. "

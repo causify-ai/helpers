@@ -538,7 +538,7 @@ def _perform_actions(
         if is_md_file and "backend" in kwargs and "mode" in kwargs:
             backend = kwargs.pop("backend")
             mode = kwargs.pop("mode")
-            width = kwargs.pop("width", 80)
+            width = kwargs.pop("width")
             txt = hmarform.format_md(txt, backend, mode, width=width)
         else:
             # Use prettier for all file types (e.g., tex and txt).
@@ -778,7 +778,7 @@ def _parser() -> argparse.ArgumentParser:
         "--width",
         action="store",
         type=int,
-        default=None,
+        default=80,
         help="The maximum line width for the formatted text.",
     )
     parser.add_argument(
