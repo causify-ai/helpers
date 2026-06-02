@@ -1,4 +1,11 @@
-Update helpers/test/test_hllm_cli.py to use the mock backend for llm, make a plan
+Add unit tests for
+
+_process_batches()
+mock_apply_llm()
+add_llm_prompt_arg()
+add_llm_args()
+
+in helpers/test/test_hllm_cli.py using mock backend
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`

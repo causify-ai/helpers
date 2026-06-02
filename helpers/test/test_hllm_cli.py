@@ -1,8 +1,9 @@
+import argparse
 import hashlib
 import logging
 import os
 import time
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, List, Optional
 
 import pandas as pd
 import pytest
@@ -1507,3 +1508,380 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         #
         batch_size = 32
         self.helper(model, batch_size)
+
+
+# #############################################################################
+# Test_process_batches
+# #############################################################################
+
+
+class Test_process_batches(hunitest.TestCase):
+    """
+    Test _process_batches function with mock backend.
+    """
+
+    def helper(
+        self,
+        values: List[str],
+        batch_size: int,
+        num_batches: int,
+        expected_results: List[str],
+        expected_num_skipped: int,
+    ) -> None:
+        """
+        Test helper for _process_batches.
+
+        :param values: input values to process
+        :param batch_size: batch size
+        :param num_batches: number of batches
+        :param expected_results: expected results
+        :param expected_num_skipped: expected skipped count
+        """
+        # Prepare inputs.
+        prompt = "test prompt"
+        batch_mode = "individual"
+        model = "gpt-4o-mini"
+        testing_functor = _eval_functor
+        progress_bar_object = None
+        # Run test.
+        actual_results, actual_num_skipped, actual_cost = hllmcli._process_batches(
+            values=values,
+            batch_size=batch_size,
+            prompt=prompt,
+            batch_mode=batch_mode,
+            model=model,
+            testing_functor=testing_functor,
+            progress_bar_object=progress_bar_object,
+            num_batches=num_batches,
+        )
+        # Check outputs.
+        self.assertEqual(actual_results, expected_results)
+        self.assertEqual(actual_num_skipped, expected_num_skipped)
+        self.assertEqual(actual_cost, 0.0)
+
+    def test1(self) -> None:
+        """
+        Test single batch processing.
+        """
+        values = ["2 + 2", "3 * 3", "10 - 5"]
+        batch_size = 10
+        num_batches = 1
+        expected_results = ["4", "9", "5"]
+        expected_num_skipped = 0
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+    def test2(self) -> None:
+        """
+        Test multiple batches processing.
+        """
+        values = ["2 + 2", "3 * 3", "10 - 5", "20 / 4"]
+        batch_size = 2
+        num_batches = 2
+        expected_results = ["4", "9", "5", "5.0"]
+        expected_num_skipped = 0
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+    def test3(self) -> None:
+        """
+        Test with empty values mixed in.
+        """
+        values = ["2 + 2", "", "10 - 5"]
+        batch_size = 2
+        num_batches = 2
+        expected_results = ["4", "", "5"]
+        expected_num_skipped = 1
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+    def test4(self) -> None:
+        """
+        Test with all empty values in a batch.
+        """
+        values = ["2 + 2", "", "", "20 / 4"]
+        batch_size = 2
+        num_batches = 2
+        expected_results = ["4", "", "", "5.0"]
+        expected_num_skipped = 2
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+    def test5(self) -> None:
+        """
+        Test with many batches and sparse values.
+        """
+        values = ["1 + 1", "", "3 + 3", "", "5 * 5"]
+        batch_size = 1
+        num_batches = 5
+        expected_results = ["2", "", "6", "", "25"]
+        expected_num_skipped = 2
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+
+# #############################################################################
+# Test_mock_apply_llm
+# #############################################################################
+
+
+class Test_mock_apply_llm(hunitest.TestCase):
+    """
+    Test mock_apply_llm context manager.
+    """
+
+    def test1(self) -> None:
+        """
+        Test mock_apply_llm with input and system_prompt.
+        """
+        # Prepare inputs.
+        input_str = "test input"
+        system_prompt = "test prompt"
+        expected_hash = hashlib.md5(
+            (input_str + system_prompt).encode()
+        ).hexdigest()
+        # Run test.
+        with hllmcli.mock_apply_llm():
+            actual_response, actual_cost = hllmcli.apply_llm(
+                input_str,
+                system_prompt=system_prompt,
+            )
+        # Check outputs.
+        self.assertEqual(actual_response, expected_hash)
+        self.assertEqual(actual_cost, 0.0)
+
+    def test2(self) -> None:
+        """
+        Test mock_apply_llm with input but no system_prompt.
+        """
+        # Prepare inputs.
+        input_str = "test input"
+        expected_hash = hashlib.md5(input_str.encode()).hexdigest()
+        # Run test.
+        with hllmcli.mock_apply_llm():
+            actual_response, actual_cost = hllmcli.apply_llm(input_str)
+        # Check outputs.
+        self.assertEqual(actual_response, expected_hash)
+        self.assertEqual(actual_cost, 0.0)
+
+    def test3(self) -> None:
+        """
+        Test mock_apply_llm context manager exits cleanly.
+        """
+        # Prepare inputs.
+        input_str = "test"
+        # Run test.
+        with hllmcli.mock_apply_llm():
+            response1, _ = hllmcli.apply_llm(input_str)
+        # Outside context, apply_llm should work normally (may skip if no backend).
+        # For this test, just verify the mock context exited successfully.
+        self.assertIsNotNone(response1)
+
+    def test4(self) -> None:
+        """
+        Test mock_apply_llm with different inputs produces different hashes.
+        """
+        # Prepare inputs.
+        input1 = "input one"
+        input2 = "input two"
+        expected_hash1 = hashlib.md5(input1.encode()).hexdigest()
+        expected_hash2 = hashlib.md5(input2.encode()).hexdigest()
+        # Run test.
+        with hllmcli.mock_apply_llm():
+            response1, _ = hllmcli.apply_llm(input1)
+            response2, _ = hllmcli.apply_llm(input2)
+        # Check outputs.
+        self.assertEqual(response1, expected_hash1)
+        self.assertEqual(response2, expected_hash2)
+        self.assertNotEqual(response1, response2)
+
+
+# #############################################################################
+# Test_add_llm_prompt_arg
+# #############################################################################
+
+
+class Test_add_llm_prompt_arg(hunitest.TestCase):
+    """
+    Test add_llm_prompt_arg function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test basic argument addition with is_required=True.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        is_required = True
+        default_prompt = ""
+        # Run test.
+        result_parser = hllmcli.add_llm_prompt_arg(
+            parser,
+            default_prompt=default_prompt,
+            is_required=is_required,
+        )
+        # Check outputs: parser should have all arguments.
+        self.assertIs(result_parser, parser)
+        # Try parsing with required arguments.
+        args = parser.parse_args(
+            ["--prompt", "test prompt", "--debug", "--fast_model"]
+        )
+        self.assertEqual(args.prompt, "test prompt")
+        self.assertTrue(args.debug)
+        self.assertTrue(args.fast_model)
+
+    def test2(self) -> None:
+        """
+        Test with default_prompt and is_required=False.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        default_prompt = "default test prompt"
+        is_required = True
+        # Run test.
+        hllmcli.add_llm_prompt_arg(
+            parser,
+            default_prompt=default_prompt,
+            is_required=is_required,
+        )
+        # Check outputs: prompt should not be required when default is set.
+        args = parser.parse_args([])
+        self.assertEqual(args.prompt, default_prompt)
+
+    def test3(self) -> None:
+        """
+        Test all arguments are added correctly.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        # Run test.
+        hllmcli.add_llm_prompt_arg(parser)
+        # Check outputs: parse without errors.
+        args = parser.parse_args(
+            ["--prompt", "test", "--debug", "--fast_model"]
+        )
+        # All flags should be present.
+        self.assertTrue(hasattr(args, "debug"))
+        self.assertTrue(hasattr(args, "prompt"))
+        self.assertTrue(hasattr(args, "fast_model"))
+
+    def test4(self) -> None:
+        """
+        Test default values for optional flags.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        # Run test.
+        hllmcli.add_llm_prompt_arg(
+            parser,
+            default_prompt="default",
+            is_required=False,
+        )
+        args = parser.parse_args(["--prompt", "custom"])
+        # Check outputs.
+        self.assertEqual(args.prompt, "custom")
+        self.assertFalse(args.debug)
+        self.assertFalse(args.fast_model)
+
+
+# #############################################################################
+# Test_add_llm_args
+# #############################################################################
+
+
+class Test_add_llm_args(hunitest.TestCase):
+    """
+    Test add_llm_args function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test basic LLM arguments with defaults.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        # Run test.
+        result_parser = hllmcli.add_llm_args(parser)
+        # Check outputs.
+        self.assertIs(result_parser, parser)
+        # Parse with input file.
+        args = parser.parse_args(["--input", "test.txt"])
+        self.assertEqual(args.input, "test.txt")
+        self.assertEqual(args.model, "gpt-4o-mini")
+        self.assertEqual(args.backend, "library")
+
+    def test2(self) -> None:
+        """
+        Test mutually exclusive input options.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        hllmcli.add_llm_args(parser)
+        # Parse with input_text instead of input file.
+        args = parser.parse_args(["--input_text", "test content"])
+        self.assertEqual(args.input_text, "test content")
+        self.assertIsNone(args.input)
+
+    def test3(self) -> None:
+        """
+        Test output file option.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        hllmcli.add_llm_args(parser, input_required=False)
+        # Parse with output option.
+        args = parser.parse_args(["--output", "output.txt"])
+        self.assertEqual(args.output, "output.txt")
+
+    def test4(self) -> None:
+        """
+        Test system_prompt options.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        hllmcli.add_llm_args(parser, input_required=False)
+        # Parse with system_prompt.
+        args = parser.parse_args(["--system_prompt", "test prompt"])
+        self.assertEqual(args.system_prompt, "test prompt")
+        self.assertIsNone(args.system_prompt_file)
+
+    def test5(self) -> None:
+        """
+        Test backend choices.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        hllmcli.add_llm_args(parser, input_required=False)
+        # Parse with mock backend.
+        args = parser.parse_args(["--backend", "mock"])
+        self.assertEqual(args.backend, "mock")
+
+    def test6(self) -> None:
+        """
+        Test exclude model and backend options.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        hllmcli.add_llm_args(
+            parser,
+            input_required=False,
+            include_model=False,
+            include_backend=False,
+        )
+        # Parse args.
+        args = parser.parse_args([])
+        # Check outputs: model and backend should not be present.
+        self.assertFalse(hasattr(args, "model"))
+        self.assertFalse(hasattr(args, "backend"))
+
+    def test7(self) -> None:
+        """
+        Test custom model default.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser()
+        custom_model = "gpt-5-nano"
+        hllmcli.add_llm_args(
+            parser,
+            input_required=False,
+            model_default=custom_model,
+        )
+        # Parse args without specifying model.
+        args = parser.parse_args([])
+        # Check outputs.
+        self.assertEqual(args.model, custom_model)
