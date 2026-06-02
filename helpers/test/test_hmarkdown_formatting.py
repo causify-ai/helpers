@@ -1541,26 +1541,26 @@ Text after"""
 
 class _Format_md_TestCase(hunitest.TestCase):
     """
-    Base class for testing format_md() function with different backends.
+    Base class for testing format_md() function with different tools.
 
-    Subclasses should set the backend and available_modes for their formatter.
+    Subclasses should set the tool and available_modes for their formatter.
     """
 
+    tool: Optional[str] = None
     backend: Optional[str] = None
-    mode: Optional[str] = None
 
     def helper(self, input_txt: str, width: int = 80) -> str:
         """
-        Test helper for format_md with different backends.
+        Test helper for format_md with different tools.
 
         :param input_txt: input markdown text
         :param width: line width for formatting
         :return: formatted text
         """
+        hdbg.dassert_is_not(self.tool, None)
         hdbg.dassert_is_not(self.backend, None)
-        hdbg.dassert_is_not(self.mode, None)
         formatted = hmarform.format_md(
-            input_txt, self.backend, self.mode, width=width
+            input_txt, self.tool, self.backend, width=width
         )
         return formatted
 
@@ -1604,8 +1604,14 @@ class _Format_md_TestCase(hunitest.TestCase):
         - Item 3
         """
         input_txt = hprint.dedent(input_txt)
-        # TODO(ai_gp): Use a """ multiline
-        expected_txt = "# Section\n\n- Item 1\n- Item 2\n- Item 3\n"
+        expected_txt = """
+        # Section
+
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        expected_txt = hprint.dedent(expected_txt)
         width = 80
         # Run test.
         actual = self.helper(input_txt, width)
@@ -1618,8 +1624,12 @@ class _Format_md_TestCase(hunitest.TestCase):
         """
         # Prepare inputs.
         input_txt = "This is a very long line that should be wrapped at a shorter width to test the width parameter functionality."
-        # TODO(ai_gp): Use a """ multiline
-        expected_txt = "This is a very long line that should be\nwrapped at a shorter width to test the\nwidth parameter functionality.\n"
+        expected_txt = """
+        This is a very long line that should be
+        wrapped at a shorter width to test the
+        width parameter functionality.
+        """
+        expected_txt = hprint.dedent(expected_txt)
         # Run test with different widths.
         actual = self.helper(input_txt, 40)
         # Check outputs.
@@ -1631,8 +1641,11 @@ class _Format_md_TestCase(hunitest.TestCase):
         """
         # Prepare inputs.
         input_txt = "This is a very long line that should be wrapped at a shorter width to test the width parameter functionality."
-        # TODO(ai_gp): Use a """ multiline
-        expected_txt = "This is a very long line that should be wrapped at a shorter\nwidth to test the width parameter functionality.\n"
+        expected_txt = """
+        This is a very long line that should be wrapped at a shorter
+        width to test the width parameter functionality.
+        """
+        expected_txt = hprint.dedent(expected_txt)
         # Run test with different widths.
         actual = self.helper(input_txt, 60)
         # Check outputs.
@@ -1646,11 +1659,11 @@ class _Format_md_TestCase(hunitest.TestCase):
 
 class Test_format_md_prettier1(_Format_md_TestCase):
     """
-    Test format_md() function with prettier backend.
+    Test format_md() function with prettier tool.
     """
 
-    backend = "prettier"
-    mode = "dockerized"
+    tool = "prettier"
+    backend = "dockerized"
 
 
 @pytest.mark.skipif(
@@ -1659,11 +1672,11 @@ class Test_format_md_prettier1(_Format_md_TestCase):
 )
 class Test_format_md_prettier2(_Format_md_TestCase):
     """
-    Test format_md() function with prettier backend (global mode).
+    Test format_md() function with prettier tool (global backend).
     """
 
-    backend = "prettier"
-    mode = "global"
+    tool = "prettier"
+    backend = "global"
 
 
 # #############################################################################
@@ -1672,39 +1685,39 @@ class Test_format_md_prettier2(_Format_md_TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available(), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("library"), reason="mdformat package not installed"
 )
 class Test_format_md_mdformat1(_Format_md_TestCase):
     """
-    Test format_md() function with mdformat backend (library mode).
+    Test format_md() function with mdformat tool (library backend).
     """
 
-    backend = "mdformat"
-    mode = "library"
+    tool = "mdformat"
+    backend = "library"
 
 
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available(), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("uvx"), reason="mdformat package not installed"
 )
 class Test_format_md_mdformat2(_Format_md_TestCase):
     """
-    Test format_md() function with mdformat backend (uvx mode).
+    Test format_md() function with mdformat tool (uvx backend).
     """
 
-    backend = "mdformat"
-    mode = "uvx"
+    tool = "mdformat"
+    backend = "uvx"
 
 
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available(), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("library"), reason="mdformat package not installed"
 )
 class Test_format_md_mdformat3(_Format_md_TestCase):
     """
-    Test format_md() function with mdformat backend (uvx mode alternate).
+    Test format_md() function with mdformat tool (uvx backend alternate).
     """
 
-    backend = "mdformat"
-    mode = "uvx"
+    tool = "mdformat"
+    backend = "uvx"
 
 
 # #############################################################################
@@ -1713,16 +1726,48 @@ class Test_format_md_mdformat3(_Format_md_TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available(), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("library"), reason="flowmark package not installed"
 )
 class Test_format_md_flowmark1(_Format_md_TestCase):
-    """
-    Test format_md() function with flowmark backend (library mode).
-    """
 
-    backend = "flowmark"
-    mode = "library"
+    tool = "flowmark"
+    backend = "library"
 
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("uvx"), reason="flowmark package not installed"
+)
+class Test_format_md_flowmark2(_Format_md_TestCase):
+
+    tool = "flowmark"
+    backend = "uvx"
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("global"), reason="flowmark package not installed"
+)
+class Test_format_md_flowmark3(_Format_md_TestCase):
+
+    tool = "flowmark"
+    backend = "global"
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("uvx-rs"), reason="flowmark package not installed"
+)
+class Test_format_md_flowmark4(_Format_md_TestCase):
+
+    tool = "flowmark"
+    backend = "uvx-rs"
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("global-rs"), reason="flowmark package not installed"
+)
+class Test_format_md_flowmark5(_Format_md_TestCase):
+
+    tool = "flowmark"
+    backend = "global-rs"
 
 # #############################################################################
 # Test_format_md_comparison_and_performance
@@ -1731,14 +1776,14 @@ class Test_format_md_flowmark1(_Format_md_TestCase):
 
 class Test_format_md_comparison_and_performance(hunitest.TestCase):
     """
-    Test format_md() comparison across backends and collect performance metrics.
+    Test format_md() comparison across tools and collect performance metrics.
     """
 
     def test1(self) -> None:
         """
-        Test all available backends produce valid markdown output.
+        Test all available tools produce valid markdown output.
 
-        This test compares output from multiple backends, collects timing data,
+        This test compares output from multiple tools, collects timing data,
         and saves results to output directory. Results are both printed to logs
         and saved to a JSON file in the output directory for analysis.
         """
@@ -1770,27 +1815,35 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
         input_txt = hprint.dedent(input_txt)
         output_dir = self.get_output_dir()
         hio.create_dir(output_dir, incremental=True)
-        # Test data for each backend/mode combination
+        # Test data for each tool/backend combination.
         test_cases = [
             ("prettier", "dockerized"),
         ]
-        # TODO(ai_gp): Check for prettier installed globally.
-        # Add optional backends if available.
-        if hmarform.is_mdformat_available():
-            test_cases.append(("mdformat", "library"))
-        test_cases.append(("mdformat", "uvx"))
-        if hmarform.is_flowmark_available():
-            test_cases.append(("flowmark", "library"))
-        test_cases.append(("flowmark", "uvx"))
-        # TODO(ai_gp): Check for mdformat and flowmark installed globally.
+        # Add optional tools if available.
+        tools = ["global"]
+        for tool in tools:
+            if hmarform.is_prettier_available(tool):
+                test_cases.append(("prettier", tool))
+        #
+        tools = ["library", "uvx", "global"]
+        for tool in tools:
+            if hmarform.is_mdformat_available(tool):
+                test_cases.append(("mdformat", tool))
+        #
+        tools = ["library", "uvx", "uvx-rs", "global", "global-rs"]
+        for tool in tools:
+            if hmarform.is_flowmark_available(tool):
+                test_cases.append(("flowmark", tool))
+        #
+        _LOG.debug("test_cases=%s", str(test_cases))
         results = []
-        for backend, mode in test_cases:
+        for tool, backend in test_cases:
             error_msg = None
             output = None
             elapsed_time = None
             try:
                 timer_ = htimer.Timer()
-                output = hmarform.format_md(input_txt, backend, mode, width=80)
+                output = hmarform.format_md(input_txt, tool, backend, width=80)
                 timer_.stop()
                 elapsed_time = str(timer_)
                 success = True
@@ -1800,8 +1853,8 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 elapsed_time = None
             results.append(
                 {
+                    "tool": tool,
                     "backend": backend,
-                    "mode": mode,
                     "time": elapsed_time,
                     "output_length": len(output) if output else 0,
                     "success": success,
@@ -1809,7 +1862,7 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 }
             )
             if success and output is not None:
-                self.assertGreater(len(output), 0, f"{backend}/{mode} produced empty output")
+                self.assertGreater(len(output), 0, f"{tool}/{backend} produced empty output")
         # Save results to JSON file for analysis.
         results_file = os.path.join(output_dir, "comparison_results.json")
         hio.to_file(results_file, json.dumps(results, indent=2))
@@ -1819,18 +1872,18 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
             if result["success"]:
                 _LOG.info(
                     "%s/%s completed in %s",
+                    result["tool"],
                     result["backend"],
-                    result["mode"],
                     result["time"],
                 )
             else:
                 error_msg = result.get("error", "Unknown error")
                 _LOG.info(
                     "%s/%s failed: %s",
+                    result["tool"],
                     result["backend"],
-                    result["mode"],
                     error_msg,
                 )
         # At least some tests should succeed
         successful = sum(1 for r in results if r["success"])
-        self.assertGreater(successful, 0, "At least one backend should succeed")
+        self.assertGreater(successful, 0, "At least one tool should succeed")

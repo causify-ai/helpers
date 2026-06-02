@@ -54,12 +54,6 @@ if [ "$VERBOSE" = true ]; then
     set -x
 fi
 
-# TODO(ai_gp): Merge this with the check below.
-if [[ ! "$MODEL" =~ ^(anthropic|deepseek)$ ]]; then
-    echo "Error: Invalid model '$MODEL'. Valid options are: anthropic, deepseek" >&2
-    exit 1
-fi
-
 # Rename tmux pane to CC if inside tmux, and restore on exit.
 if [ -n "$TMUX" ]; then
     OLD_PANE_TITLE=$(tmux display-message -p '#W')
@@ -79,6 +73,9 @@ elif [ "$MODEL" = "deepseek" ]; then
     export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
     export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
     export ANTHROPIC_BASE_URL=https://openrouter.ai/api
+else
+    echo "Error: Invalid model '$MODEL'" >&2
+    exit 1
 fi
 
 with_timeout() {
