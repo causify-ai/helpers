@@ -21,6 +21,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_formatting as hmarform
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hdocker as hdocker
 import helpers.hselect_input_output as hseinout
@@ -532,7 +533,16 @@ def _perform_actions(
     action = "prettier"
     if _to_execute_action(action, actions):
         txt = "\n".join(lines)
-        txt = dshdlipr.prettier_on_str(txt, file_type=extension, **kwargs)
+        # Use hmarkdown_formatting for markdown files with specified backend/mode,
+        # otherwise use the legacy prettier for other file types.
+        if is_md_file and "backend" in kwargs and "mode" in kwargs:
+            backend = kwargs.pop("backend")
+            mode = kwargs.pop("mode")
+            width = kwargs.pop("width", 80)
+            txt = hmarform.format_md(txt, backend, mode, width=width)
+        else:
+            # Use prettier for all file types (e.g., tex and txt).
+            txt = dshdlipr.prettier_on_str(txt, file_type=extension, **kwargs)
         lines = txt.split("\n")
     # Post-process text.
     action = "postprocess"
@@ -727,13 +737,21 @@ def _process_single_file(
     lines = hseinout.from_file(in_file_name)
     _LOG.debug("in_file_name=%s", in_file_name)
     # Process.
+    kwargs = {
+        "width": args.width,
+        "use_dockerized_prettier": args.use_dockerized_prettier,
+        "use_dockerized_markdown_toc": args.use_dockerized_markdown_toc,
+    }
+    # Add backend and mode if specified.
+    if args.backend is not None:
+        kwargs["backend"] = args.backend
+    if args.mode is not None:
+        kwargs["mode"] = args.mode
     out_lines = _perform_actions(
         lines,
         in_file_name,
         actions=actions,
-        width=args.print_width,
-        use_dockerized_prettier=args.use_dockerized_prettier,
-        use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
+        **kwargs,
     )
     # Write output.
     hseinout.to_file(out_lines, out_file_name)
@@ -762,6 +780,30 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
         help="The maximum line width for the formatted text.",
+    )
+    parser.add_argument(
+        "--backend",
+        action="store",
+        type=str,
+        default=None,
+        choices=["prettier", "mdformat", "flowmark"],
+        help=(
+            "The markdown formatting backend to use. "
+            "Only applies to markdown files. "
+            "Options: prettier, mdformat, flowmark"
+        ),
+    )
+    parser.add_argument(
+        "--mode",
+        action="store",
+        type=str,
+        default=None,
+        help=(
+            "The execution mode for the backend. "
+            "For prettier: 'dockerized' or 'global'. "
+            "For mdformat: 'library', 'uvx', or 'global'. "
+            "For flowmark: 'library', 'uvx-rs', 'uvx', 'global', or 'global-rs'."
+        ),
     )
     # TODO(gp): Convert to backend "global", "dockerized".
     parser.add_argument(
