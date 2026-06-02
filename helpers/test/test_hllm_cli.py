@@ -173,6 +173,39 @@ class TestApplyLlmBase(_BaseCacheTest):
             if verify_output:
                 self.assert_equal(output_content, output_content)
 
+    def _run_apply_llm_input_text_cases(
+        self,
+        test_cases: List[Tuple[str, Dict]],
+        backend: str,
+        scratch_dir: str,
+        output_prefix: str,
+    ) -> None:
+        """
+        Run input_text test cases with apply_llm.
+
+        :param test_cases: list of (description, kwargs) test case tuples
+        :param backend: backend to use ("mock" or "library")
+        :param scratch_dir: directory for output files
+        :param output_prefix: prefix for output filename (e.g., "text" for "output_text_1.txt")
+        """
+        verify_output = self._should_verify_output()
+        for idx, (description, kwargs) in enumerate(test_cases, 1):
+            _LOG.info("Running test case %d: %s with backend=%s", idx, description, backend)
+            output_file = os.path.join(scratch_dir, f"output_{output_prefix}_{idx}.txt")
+            kwargs_copy = kwargs.copy()
+            input_text = kwargs_copy.pop("input_text")
+            response, _ = hllmcli.apply_llm(
+                input_text,
+                backend=backend,
+                **kwargs_copy,
+            )
+            hio.to_file(output_file, response)
+            self.assertTrue(os.path.exists(output_file))
+            output_content = hio.from_file(output_file)
+            self.assertGreater(len(output_content), 0)
+            if verify_output:
+                self.assert_equal(output_content, output_content)
+
     def _run_test_cases_input_text(self) -> None:
         """
         Helper method to run input_text test cases with mock/real backend.
@@ -181,32 +214,13 @@ class TestApplyLlmBase(_BaseCacheTest):
         Tests with real backend only verify output exists (non-deterministic).
         """
         backend = self._get_backend()
-        verify_output = self._should_verify_output()
-        # Get scratch space for test files.
         scratch_dir = self.get_scratch_space()
-        # Run each test case.
-        for idx, (description, kwargs) in enumerate(_TEST_CASES_INPUT_TEXT, 1):
-            _LOG.info("Running test case %d: %s with backend=%s", idx, description, backend)
-            output_file = os.path.join(scratch_dir, f"output_text_{idx}.txt")
-            # Extract input_text from kwargs.
-            kwargs_copy = kwargs.copy()
-            input_text = kwargs_copy.pop("input_text")
-            # Run test using apply_llm directly.
-            response, _ = hllmcli.apply_llm(
-                input_text,
-                backend=backend,
-                **kwargs_copy,
-            )
-            # Write output to file.
-            hio.to_file(output_file, response)
-            # Check that output file was created.
-            self.assertTrue(os.path.exists(output_file))
-            # Check that output file is not empty.
-            output_content = hio.from_file(output_file)
-            self.assertGreater(len(output_content), 0)
-            # For mock backend: verify exact deterministic output.
-            if verify_output:
-                self.assert_equal(output_content, output_content)
+        self._run_apply_llm_input_text_cases(
+            _TEST_CASES_INPUT_TEXT,
+            backend,
+            scratch_dir,
+            "text",
+        )
 
 
 # #############################################################################
@@ -297,20 +311,12 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         backend = self._get_backend()
         if backend == "executable":
             scratch_dir = self.get_scratch_space()
-            for idx, (description, kwargs) in enumerate(_TEST_CASES_INPUT_TEXT, 1):
-                _LOG.info("Running test case %d: %s", idx, description)
-                kwargs_copy = kwargs.copy()
-                input_text = kwargs_copy.pop("input_text")
-                response, _ = hllmcli.apply_llm(
-                    input_text,
-                    backend="executable",
-                    **kwargs_copy,
-                )
-                output_file = os.path.join(scratch_dir, f"output_exec_text_{idx}.txt")
-                hio.to_file(output_file, response)
-                self.assertTrue(os.path.exists(output_file))
-                output_content = hio.from_file(output_file)
-                self.assertGreater(len(output_content), 0)
+            self._run_apply_llm_input_text_cases(
+                _TEST_CASES_INPUT_TEXT,
+                "executable",
+                scratch_dir,
+                "exec_text",
+            )
         else:
             self.skipTest("Executable backend not available in mock mode")
 
@@ -588,6 +594,17 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         prompt = "You are a calculator. Return only the numeric result."
         return prompt
 
+    @staticmethod
+    def _get_model_and_functor() -> Tuple[str, Optional[Callable[[str], str]]]:
+        """
+        Get model and testing functor based on backend configuration.
+
+        :return: tuple of (model, testing_functor)
+        """
+        if _RUN_REAL_LLM_BACKEND:
+            return "gpt-5-nano", None
+        return "", _eval_functor
+
     def helper(
         self,
         model: str,
@@ -627,14 +644,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         With mock backend: uses testing_functor for deterministic results.
         With real backend: uses real LLM API (requires _RUN_REAL_LLM_BACKEND=True).
         """
-        if _RUN_REAL_LLM_BACKEND:
-            model = "gpt-5-nano"
-            func = hllmcli.apply_llm_batch_individual
-            testing_functor = None
-        else:
-            model = ""
-            func = hllmcli.apply_llm_batch_individual
-            testing_functor = _eval_functor
+        model, testing_functor = self._get_model_and_functor()
+        func = hllmcli.apply_llm_batch_individual
         self.helper(
             model,
             func,
@@ -663,14 +674,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         With mock backend: uses testing_functor for deterministic results.
         With real backend: uses real LLM API (requires _RUN_REAL_LLM_BACKEND=True).
         """
-        if _RUN_REAL_LLM_BACKEND:
-            model = "gpt-5-nano"
-            func = hllmcli.apply_llm_batch_with_shared_prompt
-            testing_functor = None
-        else:
-            model = ""
-            func = hllmcli.apply_llm_batch_with_shared_prompt
-            testing_functor = _eval_functor
+        model, testing_functor = self._get_model_and_functor()
+        func = hllmcli.apply_llm_batch_with_shared_prompt
         self.helper(
             model,
             func,
@@ -699,14 +704,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         With mock backend: uses testing_functor for deterministic results.
         With real backend: uses real LLM API (requires _RUN_REAL_LLM_BACKEND=True).
         """
-        if _RUN_REAL_LLM_BACKEND:
-            model = "gpt-5-nano"
-            func = hllmcli.apply_llm_batch_combined
-            testing_functor = None
-        else:
-            model = ""
-            func = hllmcli.apply_llm_batch_combined
-            testing_functor = _eval_functor
+        model, testing_functor = self._get_model_and_functor()
+        func = hllmcli.apply_llm_batch_combined
         self.helper(
             model,
             func,
@@ -799,6 +798,22 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         self.assertGreater(elapsed_time, 0.0)
         self.assertEqual(stats, expected_stats)
 
+    @staticmethod
+    def _build_expected_stats(
+        num_items: int,
+        batch_size: int,
+        num_skipped: int,
+    ) -> Dict[str, int]:
+        """
+        Build expected stats dictionary for test assertions.
+        """
+        return {
+            "num_items": num_items,
+            "num_skipped": num_skipped,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
+            "total_cost_in_dollars": 0.0,
+        }
+
     def helper_test1(self, batch_size: int) -> None:
         """
         Test apply_llm_prompt_to_df with testing_functor that uses eval.
@@ -817,12 +832,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             }
         )
         num_items = len(df)
-        expected_stats = {
-            "num_items": num_items,
-            "num_skipped": 0,
-            "num_batches": (num_items + batch_size - 1) // batch_size,
-            "total_cost_in_dollars": 0.0,
-        }
+        expected_stats = self._build_expected_stats(num_items, batch_size, 0)
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
@@ -860,12 +870,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             }
         )
         num_items = len(df)
-        expected_stats = {
-            "num_items": num_items,
-            "num_skipped": 0,
-            "num_batches": (num_items + batch_size - 1) // batch_size,
-            "total_cost_in_dollars": 0.0,
-        }
+        expected_stats = self._build_expected_stats(num_items, batch_size, 0)
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
@@ -904,12 +909,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             }
         )
         num_items = len(df)
-        expected_stats = {
-            "num_items": num_items,
-            "num_skipped": 0,
-            "num_batches": (num_items + batch_size - 1) // batch_size,
-            "total_cost_in_dollars": 0.0,
-        }
+        expected_stats = self._build_expected_stats(num_items, batch_size, 0)
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
@@ -934,12 +934,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             }
         )
         num_items = len(df)
-        expected_stats = {
-            "num_items": num_items,
-            "num_skipped": 2,
-            "num_batches": (num_items + batch_size - 1) // batch_size,
-            "total_cost_in_dollars": 0.0,
-        }
+        expected_stats = self._build_expected_stats(num_items, batch_size, 2)
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
@@ -964,12 +959,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             }
         )
         num_items = len(df)
-        expected_stats = {
-            "num_items": num_items,
-            "num_skipped": 3,
-            "num_batches": (num_items + batch_size - 1) // batch_size,
-            "total_cost_in_dollars": 0.0,
-        }
+        expected_stats = self._build_expected_stats(num_items, batch_size, 3)
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
