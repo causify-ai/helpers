@@ -446,7 +446,9 @@ class Test_find_docker_file1(hunitest.TestCase):
 
 class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
     def _helper(self, branch_name: str, expected: str) -> None:
-        """Helper to test extract_gh_issue_number_from_branch."""
+        """
+        Helper to test extract_gh_issue_number_from_branch.
+        """
         actual = hgit.extract_gh_issue_number_from_branch(branch_name)
         self.assert_equal(str(actual), expected)
 

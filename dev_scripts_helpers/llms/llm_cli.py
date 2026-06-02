@@ -401,7 +401,9 @@ def _log_plugin_versions() -> None:
     """
     Log the versions of all installed llm plugins and packages.
     """
-    for dist in sorted(distributions(), key=lambda d: d.metadata["Name"].lower()):
+    for dist in sorted(
+        distributions(), key=lambda d: d.metadata["Name"].lower()
+    ):
         name = dist.metadata["Name"]
         if name.startswith("llm"):
             _LOG.info("Plugin '%s' version: %s", name, dist.version)

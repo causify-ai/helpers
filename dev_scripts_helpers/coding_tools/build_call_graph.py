@@ -88,9 +88,7 @@ def _check_dependencies() -> None:
         hsystem.system(check_cmd, suppress_output=True)
 
 
-def _generate_callgraph_dot(
-    input_file: str, *, output_dir: str
-) -> str:
+def _generate_callgraph_dot(input_file: str, *, output_dir: str) -> str:
     """
     Generate a callgraph DOT file using pyan3.
 
@@ -211,13 +209,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Verify that required system commands are available before proceeding.
     _check_dependencies()
     # Phase 1: Generate DOT file using pyan3.
-    dot_file = _generate_callgraph_dot(
-        args.input, output_dir=args.output_dir
-    )
+    dot_file = _generate_callgraph_dot(args.input, output_dir=args.output_dir)
     # Phase 2: Convert DOT to PDF using graphviz.
-    pdf_file = _convert_dot_to_pdf(
-        dot_file=dot_file, output_dir=args.output_dir
-    )
+    pdf_file = _convert_dot_to_pdf(dot_file=dot_file, output_dir=args.output_dir)
     # Phase 3: Open the generated PDF in the default viewer.
     _open_pdf(pdf_file=pdf_file)
     _LOG.info("Call graph generation complete: %s", pdf_file)

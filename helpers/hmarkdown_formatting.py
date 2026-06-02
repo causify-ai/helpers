@@ -55,18 +55,24 @@ def is_flowmark_available_global() -> bool:
 
 
 def is_mdformat_available() -> bool:
-    """Check if mdformat package is available."""
+    """
+    Check if mdformat package is available.
+    """
     try:
         import mdformat  # noqa: F401
+
         return True
     except ImportError:
         return False
 
 
 def is_flowmark_available() -> bool:
-    """Check if flowmark package is available."""
+    """
+    Check if flowmark package is available.
+    """
     try:
         import flowmark  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -607,9 +613,7 @@ def _format_with_prettier(
     hdbg.dassert_in(mode, ["dockerized", "global"])
     if mode == "dockerized":
         _LOG.debug("Using dockerized prettier for formatting")
-        formatted_txt = dshdlipr.prettier_on_str(
-            txt, "md", width=width
-        )
+        formatted_txt = dshdlipr.prettier_on_str(txt, "md", width=width)
     else:
         # mode == "global": use global prettier executable
         if not is_prettier_available("global"):
@@ -651,6 +655,7 @@ def _format_with_mdformat(
         # Import and use mdformat library directly
         _LOG.debug("Using mdformat library for formatting")
         import mdformat
+
         formatted_txt = mdformat.text(txt, options={"line_length": width})
     else:
         # Save to file and call via executable
@@ -696,16 +701,13 @@ def _format_with_flowmark(
     :param width: line width for formatting
     :return: formatted text
     """
-    hdbg.dassert_in(
-        mode, ["library", "uvx-rs", "uvx", "global", "global-rs"]
-    )
+    hdbg.dassert_in(mode, ["library", "uvx-rs", "uvx", "global", "global-rs"])
     if mode == "library":
         # Import and use flowmark library directly
         _LOG.debug("Using flowmark library for formatting")
         import flowmark
-        formatted_txt = flowmark.format_text(
-            txt, auto=True, line_width=width
-        )
+
+        formatted_txt = flowmark.format_text(txt, auto=True, line_width=width)
     else:
         # Save to file and call via executable
         tmp_file = "tmp.format_md.flowmark.md"
@@ -792,8 +794,9 @@ def format_md(
     )
     hdbg.dassert_lte(1, width, "Width must be at least 1")
     timer_ = htimer.Timer()
-    _LOG.debug("Formatting with backend='%s' mode='%s' width=%s",
-              backend, mode, width)
+    _LOG.debug(
+        "Formatting with backend='%s' mode='%s' width=%s", backend, mode, width
+    )
     if backend == "prettier":
         formatted_txt = _format_with_prettier(txt, mode, width)
     elif backend == "mdformat":

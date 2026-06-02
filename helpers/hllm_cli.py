@@ -17,7 +17,16 @@ import sys
 import importlib
 import pprint
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    TYPE_CHECKING,
+)
 from unittest import mock
 
 try:
@@ -90,7 +99,9 @@ def _create_token_stats(
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
         "cost_from_tokencost": float(cost_from_tokencost),
-        "cost_from_llm_library": float(cost_from_llm_library) if cost_from_llm_library is not None else None,
+        "cost_from_llm_library": float(cost_from_llm_library)
+        if cost_from_llm_library is not None
+        else None,
         "elapsed_time_in_seconds": float(elapsed_time_in_seconds),
     }
 
@@ -112,22 +123,32 @@ def _aggregate_token_stats(
         if isinstance(item, dict):
             normalized_dicts.append(item)
         elif isinstance(item, (int, float)):
-            normalized_dicts.append(_create_token_stats(cost_from_tokencost=float(item)))
+            normalized_dicts.append(
+                _create_token_stats(cost_from_tokencost=float(item))
+            )
         else:
             normalized_dicts.append(_create_token_stats())
     #
     total_input_tokens = sum(d.get("input_tokens", 0) for d in normalized_dicts)
-    total_output_tokens = sum(d.get("output_tokens", 0) for d in normalized_dicts)
-    total_cost_from_tokencost = sum(d.get("cost_from_tokencost", 0.0) for d in normalized_dicts)
+    total_output_tokens = sum(
+        d.get("output_tokens", 0) for d in normalized_dicts
+    )
+    total_cost_from_tokencost = sum(
+        d.get("cost_from_tokencost", 0.0) for d in normalized_dicts
+    )
     total_cost_from_llm_library = sum(
         d.get("cost_from_llm_library") or 0.0 for d in normalized_dicts
     )
-    total_elapsed_time = sum(d.get("elapsed_time_in_seconds", 0.0) for d in normalized_dicts)
+    total_elapsed_time = sum(
+        d.get("elapsed_time_in_seconds", 0.0) for d in normalized_dicts
+    )
     return _create_token_stats(
         input_tokens=total_input_tokens,
         output_tokens=total_output_tokens,
         cost_from_tokencost=total_cost_from_tokencost,
-        cost_from_llm_library=total_cost_from_llm_library if total_cost_from_llm_library > 0 else None,
+        cost_from_llm_library=total_cost_from_llm_library
+        if total_cost_from_llm_library > 0
+        else None,
         elapsed_time_in_seconds=total_elapsed_time,
     )
 
@@ -145,9 +166,11 @@ def _token_stats_to_float(token_stats: TokenStats) -> float:
     cost_from_llm_library = token_stats.get("cost_from_llm_library")
     if cost_from_tokencost is not None and cost_from_llm_library is not None:
         if abs(float(cost_from_tokencost) - float(cost_from_llm_library)):
-            _LOG.warning("Cost is different: "
-                        "cost_from_tokencost = %s != cost_from_llm_library = %s" %
-                            (cost_from_tokencost, cost_from_llm_library))
+            _LOG.warning(
+                "Cost is different: "
+                "cost_from_tokencost = %s != cost_from_llm_library = %s"
+                % (cost_from_tokencost, cost_from_llm_library)
+            )
     if cost_from_tokencost > 0:
         return float(cost_from_tokencost)
     #
@@ -166,7 +189,12 @@ def token_stats_to_str(token_stats: TokenStats) -> str:
     cost = _token_stats_to_float(token_stats)
     elapsed_time = token_stats.get("elapsed_time_in_seconds", 0.0)
     res = f"Cost: ${cost:.6f}, Elapsed: {elapsed_time:.2f}s ("
-    fields = ["input_tokens", "output_tokens", "cost_from_llm_library", "cost_from_tokencost"]
+    fields = [
+        "input_tokens",
+        "output_tokens",
+        "cost_from_llm_library",
+        "cost_from_tokencost",
+    ]
     for field in fields:
         val = token_stats.get(field, "na")
         res += f"{field}={val}, "
@@ -533,10 +561,7 @@ def apply_llm(
     # Route to appropriate implementation.
     if backend == "executable":
         # Check that llm executable exists.
-        hdbg.dassert(
-            _check_llm_executable(),
-            "llm executable not found"
-        )
+        hdbg.dassert(_check_llm_executable(), "llm executable not found")
         response, token_stats = _apply_llm_via_executable(
             input_str,
             system_prompt=system_prompt,
@@ -545,10 +570,7 @@ def apply_llm(
         )
     elif backend == "library":
         # Check that llm library is available.
-        hdbg.dassert(
-            _LLM_AVAILABLE,
-            "llm library not found"
-        )
+        hdbg.dassert(_LLM_AVAILABLE, "llm library not found")
         response, token_stats = _apply_llm_via_library(
             input_str,
             system_prompt=system_prompt,
@@ -851,7 +873,9 @@ def apply_llm_batch_with_shared_prompt(
                     _aggregate_token_stats(token_stats_list)
                 )
                 progress_bar_object.update(1)
-                progress_bar_object.set_postfix_str(f"Cost: ${total_cost_float:.4f}")
+                progress_bar_object.set_postfix_str(
+                    f"Cost: ${total_cost_float:.4f}"
+                )
     else:
         for input_str in input_list:
             response = testing_functor(input_str)
@@ -1127,7 +1151,9 @@ def _process_batches(
                 total_cost_float = _token_stats_to_float(
                     _aggregate_token_stats(token_stats)
                 )
-                progress_bar_object.set_postfix_str(f"Cost: ${total_cost_float:.4f}")
+                progress_bar_object.set_postfix_str(
+                    f"Cost: ${total_cost_float:.4f}"
+                )
             for idx, response in zip(batch_indices, batch_responses):
                 results[idx] = response
         else:
@@ -1224,7 +1250,9 @@ def _process_dataframe_batches(
                 total_cost_float = _token_stats_to_float(
                     _aggregate_token_stats(token_stats)
                 )
-                progress_bar_object.set_postfix_str(f"Cost: ${total_cost_float:.4f}")
+                progress_bar_object.set_postfix_str(
+                    f"Cost: ${total_cost_float:.4f}"
+                )
             for idx, response in zip(batch_indices, batch_responses):
                 df.at[idx, target_col] = response
         else:

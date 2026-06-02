@@ -11,7 +11,6 @@ import pytest
 import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
-from helpers.hllm_cli import TokenStats
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -23,7 +22,7 @@ _LOG = logging.getLogger(__name__)
 # Set to True to run tests with real LLM backend (requires API keys, slower,
 # non-deterministic).
 _RUN_REAL_LLM_BACKEND = False
-#_RUN_REAL_LLM_BACKEND = True
+# _RUN_REAL_LLM_BACKEND = True
 
 # #############################################################################
 # Test_apply_llm_with_files
@@ -156,7 +155,12 @@ class TestApplyLlmBase(_BaseCacheTest):
         hio.to_file(input_file, "2+2=")
         # Run each test case.
         for idx, (description, kwargs) in enumerate(_TEST_CASES, 1):
-            _LOG.info("Running test case %d: %s with backend=%s", idx, description, backend)
+            _LOG.info(
+                "Running test case %d: %s with backend=%s",
+                idx,
+                description,
+                backend,
+            )
             output_file = os.path.join(scratch_dir, f"output_{idx}.txt")
             # Run test.
             hllmcli.apply_llm_with_files(
@@ -191,8 +195,15 @@ class TestApplyLlmBase(_BaseCacheTest):
         """
         verify_output = self._should_verify_output()
         for idx, (description, kwargs) in enumerate(test_cases, 1):
-            _LOG.info("Running test case %d: %s with backend=%s", idx, description, backend)
-            output_file = os.path.join(scratch_dir, f"output_{output_prefix}_{idx}.txt")
+            _LOG.info(
+                "Running test case %d: %s with backend=%s",
+                idx,
+                description,
+                backend,
+            )
+            output_file = os.path.join(
+                scratch_dir, f"output_{output_prefix}_{idx}.txt"
+            )
             kwargs_copy = kwargs.copy()
             input_text = kwargs_copy.pop("input_text")
             response, _ = hllmcli.apply_llm(
@@ -332,7 +343,12 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         backend = self._get_backend()
         # Run each test case.
         for idx, (description, kwargs) in enumerate(_TEST_CASES_PRINT_ONLY, 1):
-            _LOG.info("Running test case %d: %s with backend=%s", idx, description, backend)
+            _LOG.info(
+                "Running test case %d: %s with backend=%s",
+                idx,
+                description,
+                backend,
+            )
             # Extract parameters from kwargs.
             kwargs_copy = kwargs.copy()
             input_text = kwargs_copy.pop("input_text")
@@ -369,7 +385,9 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         """
         backend = self._get_backend()
         if backend == "executable":
-            for idx, (description, kwargs) in enumerate(_TEST_CASES_PRINT_ONLY, 1):
+            for idx, (description, kwargs) in enumerate(
+                _TEST_CASES_PRINT_ONLY, 1
+            ):
                 _LOG.info("Running test case %d: %s", idx, description)
                 kwargs_copy = kwargs.copy()
                 input_text = kwargs_copy.pop("input_text")
@@ -468,7 +486,9 @@ class Test_llm1(hunitest.TestCase):
         calls the LLM API. Test is skipped with mock backend.
         """
         if not _RUN_REAL_LLM_BACKEND:
-            self.skipTest("_llm() test requires real backend (_RUN_REAL_LLM_BACKEND=True)")
+            self.skipTest(
+                "_llm() test requires real backend (_RUN_REAL_LLM_BACKEND=True)"
+            )
         hcacsimp.set_cache_property("_test_llm", "force_refresh", True)
         # Define test configurations with model-specific inputs.
         test_configs = [
@@ -498,7 +518,9 @@ class Test_llm1(hunitest.TestCase):
                 system_prompt = prompt_getter()
                 # Run test.
                 start_time = time.time()
-                response, token_stats = hllmcli._llm(system_prompt, input_str, model)
+                response, token_stats = hllmcli._llm(
+                    system_prompt, input_str, model
+                )
                 elapsed_time = time.time() - start_time
                 # Check outputs.
                 self.assertIsInstance(response, str)
@@ -766,15 +788,17 @@ class Test_process_batches(hunitest.TestCase):
         testing_functor = _eval_functor
         progress_bar_object = None
         # Run test.
-        actual_results, actual_num_skipped, actual_token_stats = hllmcli._process_batches(
-            values=values,
-            batch_size=batch_size,
-            prompt=prompt,
-            batch_mode=batch_mode,
-            model=model,
-            testing_functor=testing_functor,
-            progress_bar_object=progress_bar_object,
-            num_batches=num_batches,
+        actual_results, actual_num_skipped, actual_token_stats = (
+            hllmcli._process_batches(
+                values=values,
+                batch_size=batch_size,
+                prompt=prompt,
+                batch_mode=batch_mode,
+                model=model,
+                testing_functor=testing_functor,
+                progress_bar_object=progress_bar_object,
+                num_batches=num_batches,
+            )
         )
         # Check outputs.
         self.assertEqual(actual_results, expected_results)
@@ -792,7 +816,13 @@ class Test_process_batches(hunitest.TestCase):
         num_batches = 1
         expected_results = ["4", "9", "5"]
         expected_num_skipped = 0
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+        self.helper(
+            values,
+            batch_size,
+            num_batches,
+            expected_results,
+            expected_num_skipped,
+        )
 
     def test2(self) -> None:
         """
@@ -803,7 +833,13 @@ class Test_process_batches(hunitest.TestCase):
         num_batches = 2
         expected_results = ["4", "9", "5", "5.0"]
         expected_num_skipped = 0
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+        self.helper(
+            values,
+            batch_size,
+            num_batches,
+            expected_results,
+            expected_num_skipped,
+        )
 
     def test3(self) -> None:
         """
@@ -814,7 +850,13 @@ class Test_process_batches(hunitest.TestCase):
         num_batches = 2
         expected_results = ["4", "", "5"]
         expected_num_skipped = 1
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+        self.helper(
+            values,
+            batch_size,
+            num_batches,
+            expected_results,
+            expected_num_skipped,
+        )
 
     def test4(self) -> None:
         """
@@ -825,7 +867,13 @@ class Test_process_batches(hunitest.TestCase):
         num_batches = 2
         expected_results = ["4", "", "", "5.0"]
         expected_num_skipped = 2
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+        self.helper(
+            values,
+            batch_size,
+            num_batches,
+            expected_results,
+            expected_num_skipped,
+        )
 
     def test5(self) -> None:
         """
@@ -836,7 +884,13 @@ class Test_process_batches(hunitest.TestCase):
         num_batches = 5
         expected_results = ["2", "", "6", "", "25"]
         expected_num_skipped = 2
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+        self.helper(
+            values,
+            batch_size,
+            num_batches,
+            expected_results,
+            expected_num_skipped,
+        )
 
 
 # #############################################################################
@@ -1242,7 +1296,9 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         """
         if not _RUN_REAL_LLM_BACKEND:
             # Skip cache generation for mock backend, use existing cache.
-            self.skipTest("Cache test only runs with real backend (_RUN_REAL_LLM_BACKEND=True)")
+            self.skipTest(
+                "Cache test only runs with real backend (_RUN_REAL_LLM_BACKEND=True)"
+            )
         # Create a file with the cache content for test2 in the input directory.
         input_dir = self.get_input_dir(
             test_class_name=self.__class__.__name__,
@@ -1612,6 +1668,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         batch_size = 32
         self.helper(model, batch_size)
 
+
 # #############################################################################
 # Test_mock_apply_llm
 # #############################################################################
@@ -1753,9 +1810,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         # Run test.
         hllmcli.add_llm_prompt_arg(parser)
         # Check outputs: parse without errors.
-        args = parser.parse_args(
-            ["--prompt", "test", "--debug", "--fast_model"]
-        )
+        args = parser.parse_args(["--prompt", "test", "--debug", "--fast_model"])
         # All flags should be present.
         self.assertTrue(hasattr(args, "debug"))
         self.assertTrue(hasattr(args, "prompt"))

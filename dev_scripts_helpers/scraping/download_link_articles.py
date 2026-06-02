@@ -68,7 +68,6 @@ import dev_scripts_helpers.scraping.download_link_articles as dssdla
 import argparse
 import html
 import logging
-import os
 import re
 from typing import Any, Dict, List, Optional
 
@@ -123,16 +122,23 @@ def _simplify_html_links(text: str) -> str:
     :param text: Text containing HTML links
     :return: Text with simplified links
     """
-    # Match <a> tags and extract href, then replace with just the URL
+
     def replace_link(match):
+        """
+        Match <a> tags and extract href, then replace with just the URL.
+        """
         href = match.group(1)
         # Unescape HTML entities (&#x2F; -> /)
         unescaped = html.unescape(href)
         return unescaped
-    # Pattern: <a href="...">...</a> - captures the href attribute
+
+    # Pattern: <a href="...">...</a>: captures the href attribute.
     pattern = r'<a\s+[^>]*href=["\'](.*?)["\'][^>]*>.*?</a>'
-    simplified = re.sub(pattern, replace_link, text, flags=re.IGNORECASE | re.DOTALL)
+    simplified = re.sub(
+        pattern, replace_link, text, flags=re.IGNORECASE | re.DOTALL
+    )
     return simplified
+
 
 # #############################################################################
 # HN API and Data Fetching
@@ -209,6 +215,7 @@ def _fetch_hn_comments(
             replies.extend(kid_comments)
         comment["replies"] = replies
     return [comment]
+
 
 # #############################################################################
 # Content Processing and Formatting
@@ -294,6 +301,7 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
     text = _simplify_html_links(text)
     return text
 
+
 # #############################################################################
 # Row Index Parsing
 # #############################################################################
@@ -355,6 +363,7 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
         )
         # Convert to 0-indexed.
         return [idx - 1]
+
 
 # #############################################################################
 # Download Operations
@@ -435,6 +444,7 @@ def _download_article_urls(
         with open(output_file, "w") as f:
             f.write(article_content)
         _LOG.info("Successfully saved article for: %s", title)
+
 
 # #############################################################################
 # Summarization Operations

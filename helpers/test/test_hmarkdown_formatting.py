@@ -1416,9 +1416,7 @@ class Test_format_md_prettier(hunitest.TestCase):
     Test format_md() function with prettier backend.
     """
 
-    def helper(
-        self, input_txt: str, mode: str, width: int = 80
-    ) -> str:
+    def helper(self, input_txt: str, mode: str, *, width: int = 80) -> str:
         """
         Test helper for format_md with prettier backend.
 
@@ -1487,18 +1485,20 @@ class Test_format_md_prettier(hunitest.TestCase):
         self.assertIn("This is", actual_80)
 
 
+# #############################################################################
+# Test_format_md_mdformat
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available(),
-    reason="mdformat package not installed"
+    not hmarform.is_mdformat_available(), reason="mdformat package not installed"
 )
 class Test_format_md_mdformat(hunitest.TestCase):
     """
     Test format_md() function with mdformat backend.
     """
 
-    def helper(
-        self, input_txt: str, mode: str, width: int = 80
-    ) -> str:
+    def helper(self, input_txt: str, mode: str, width: int = 80) -> str:
         """
         Test helper for format_md with mdformat backend.
 
@@ -1551,18 +1551,20 @@ class Test_format_md_mdformat(hunitest.TestCase):
         self.assertIn("Section", actual)
 
 
+# #############################################################################
+# Test_format_md_flowmark
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available(),
-    reason="flowmark package not installed"
+    not hmarform.is_flowmark_available(), reason="flowmark package not installed"
 )
 class Test_format_md_flowmark(hunitest.TestCase):
     """
     Test format_md() function with flowmark backend.
     """
 
-    def helper(
-        self, input_txt: str, mode: str, width: int = 80
-    ) -> str:
+    def helper(self, input_txt: str, mode: str, width: int = 80) -> str:
         """
         Test helper for format_md with flowmark backend.
 
@@ -1586,6 +1588,11 @@ class Test_format_md_flowmark(hunitest.TestCase):
             self.helper(input_txt, invalid_mode, 80)
 
 
+# #############################################################################
+# Test_format_md_invalid_backend
+# #############################################################################
+
+
 class Test_format_md_invalid_backend(hunitest.TestCase):
     """
     Test format_md() function with invalid backend.
@@ -1602,6 +1609,11 @@ class Test_format_md_invalid_backend(hunitest.TestCase):
             hmarform.format_md(input_txt, "invalid_backend", "library", width=80)
 
 
+# #############################################################################
+# Test_format_md_input_validation
+# #############################################################################
+
+
 class Test_format_md_input_validation(hunitest.TestCase):
     """
     Test format_md() function input validation.
@@ -1616,7 +1628,9 @@ class Test_format_md_input_validation(hunitest.TestCase):
         invalid_width = 0
         # Run test and check error.
         with self.assertRaises(AssertionError):
-            hmarform.format_md(input_txt, "prettier", "dockerized", width=invalid_width)
+            hmarform.format_md(
+                input_txt, "prettier", "dockerized", width=invalid_width
+            )
 
     def test_negative_width_raises_error(self) -> None:
         """
@@ -1627,7 +1641,14 @@ class Test_format_md_input_validation(hunitest.TestCase):
         invalid_width = -10
         # Run test and check error.
         with self.assertRaises(AssertionError):
-            hmarform.format_md(input_txt, "prettier", "dockerized", width=invalid_width)
+            hmarform.format_md(
+                input_txt, "prettier", "dockerized", width=invalid_width
+            )
+
+
+# #############################################################################
+# Test_format_md_comparison_and_performance
+# #############################################################################
 
 
 class Test_format_md_comparison_and_performance(hunitest.TestCase):
@@ -1675,13 +1696,15 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 timer_ = htimer.Timer()
                 output = hmarform.format_md(input_txt, backend, mode, width=80)
                 timer_.stop()
-                results.append({
-                    "backend": backend,
-                    "mode": mode,
-                    "time": str(timer_),
-                    "output_length": len(output),
-                    "success": True,
-                })
+                results.append(
+                    {
+                        "backend": backend,
+                        "mode": mode,
+                        "time": str(timer_),
+                        "output_length": len(output),
+                        "success": True,
+                    }
+                )
                 # Check outputs: all should produce non-empty output
                 self.assertGreater(
                     len(output),
@@ -1696,15 +1719,20 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                     len(output),
                 )
             except Exception as e:
-                results.append({
-                    "backend": backend,
-                    "mode": mode,
-                    "error": str(e),
-                    "success": False,
-                })
-                _LOG.warning("Failed to format with %s/%s: %s", backend, mode, str(e))
+                results.append(
+                    {
+                        "backend": backend,
+                        "mode": mode,
+                        "error": str(e),
+                        "success": False,
+                    }
+                )
+                _LOG.warning(
+                    "Failed to format with %s/%s: %s", backend, mode, str(e)
+                )
         # Save results to file
         import json
+
         results_file = os.path.join(output_dir, "comparison_results.json")
         hio.to_file(results_file, json.dumps(results, indent=2))
         # Print results
