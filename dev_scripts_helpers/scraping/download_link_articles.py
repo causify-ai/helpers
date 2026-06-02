@@ -398,12 +398,16 @@ def _download_hn_comments(
         except (AssertionError, AttributeError):
             _LOG.warning("Row %d: Could not extract item ID from: %s", idx, url)
             continue
+        # Generate filename from title and check if it already exists.
+        sanitized_title = _sanitize_title_for_filename(title)
+        output_file = f"{sanitized_title}.hn_comments.txt"
+        if hio.file_exists(output_file):
+            _LOG.warning("File already exists, skipping: %s", output_file)
+            continue
         # Fetch comments from HN API and format as readable text.
         _LOG.info("Fetching HN comments for item: %s", item_id)
         hn_comments = _fetch_hn_comments(item_id, max_depth=3)
-        # Generate filename from title and write comments to disk.
-        sanitized_title = _sanitize_title_for_filename(title)
-        output_file = f"{sanitized_title}.hn_comments.txt"
+        # Write comments to disk.
         _LOG.info("Writing HN comments to: %s", output_file)
         formatted_comments = _format_hn_comments_as_text(hn_comments)
         with open(output_file, "w") as f:
@@ -430,6 +434,12 @@ def _download_article_urls(
             _LOG.warning("Row %d missing Article_url or Title, skipping", idx)
             continue
         _LOG.debug("Processing row %d: %s", idx, title)
+        # Generate filename from title and check if it already exists.
+        sanitized_title = _sanitize_title_for_filename(title)
+        output_file = f"{sanitized_title}.text.txt"
+        if hio.file_exists(output_file):
+            _LOG.warning("File already exists, skipping: %s", output_file)
+            continue
         # Download and parse article content from the URL.
         article_content = _download_article_content(article_url)
         if not article_content:
@@ -437,9 +447,7 @@ def _download_article_urls(
                 "Row %d: Failed to download article from: %s", idx, article_url
             )
             continue
-        # Generate filename from title and write article text to disk.
-        sanitized_title = _sanitize_title_for_filename(title)
-        output_file = f"{sanitized_title}.text.txt"
+        # Write article text to disk.
         _LOG.info("Writing article content to: %s", output_file)
         with open(output_file, "w") as f:
             f.write(article_content)
@@ -464,7 +472,7 @@ def _summarize_text_with_llm(
     """
     _LOG.info("Summarizing: %s", input_file)
     # Save prompt to a temporary file.
-    prompt_file = f"{output_file}.prompt.txt"
+    prompt_file = f"tmp.summarize_text_with_llm.prompt.txt"
     hio.to_file(prompt_file, prompt)
     _LOG.debug("Saved prompt to: %s", prompt_file)
     # Build command to call llm_cli.py with the given prompt file.

@@ -3,6 +3,8 @@
 # /// script
 # dependencies = [
 #   "llm",
+#   "flowmark",
+#   "mdformat",
 #   "pyyaml",
 #   "tokencost",
 #   "tqdm",
@@ -32,7 +34,6 @@ from typing import Optional, Tuple
 
 import llm
 
-import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
@@ -40,6 +41,7 @@ import helpers.hmarkdown_select as hmarsele
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+import helpers.hmarkdown_formatting as hmarform
 
 _LOG = logging.getLogger(__name__)
 
@@ -59,6 +61,21 @@ _LOG = logging.getLogger(__name__)
 # - Write output
 #     - --output: it can be a file, stdout
 
+
+# Models
+# - anthropic/claude-opus-4.8
+# - anthropic/claude-sonnet-4.6
+# - openrouter/anthropic/claude-haiku-4.5
+# - openrouter/deepseek/deepseek-v4-flash
+# - openrouter/meta-llama/llama-3.1-8b-instruct
+# - openrouter/openai/gpt-oss-120b
+# - openrouter/openai/gpt-oss-20b
+# - gpt-4o-mini
+# - anthropic/claude-haiku-4-5-20251001
+
+_LINT_BACKEND = "mdformat"
+#_LINT_BACKEND = "flowmark"
+_LINT_MODE = "library"
 
 # #############################################################################
 
@@ -278,8 +295,7 @@ def _process_selected_text(
             expected_num_chars=expected_num_chars,
         )
         if lint:
-            file_type = "md"
-            response = dshdlipr.prettier_on_str(response, file_type)
+            response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
     # Write output: either modify file in-place or write to output file.
     if modify_in_place:
         hdbg.dassert_ne(input_file, "-", "Cannot modify stdin in-place")
@@ -368,8 +384,7 @@ def _process_full_text(
             expected_num_chars=expected_num_chars,
         )
         if lint:
-            file_type = "md"
-            response = dshdlipr.prettier_on_str(response, file_type)
+            response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
     # Write output or log dry-run destination.
     if dry_run:
         _LOG.warning("DRY RUN: Would save to %s", output_file)

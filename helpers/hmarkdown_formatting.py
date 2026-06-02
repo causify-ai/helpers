@@ -707,7 +707,7 @@ def _format_with_flowmark(
         _LOG.debug("Using flowmark library for formatting")
         import flowmark
 
-        formatted_txt = flowmark.format_text(txt, auto=True, line_width=width)
+        formatted_txt = flowmark.reformat_text(txt, width=width)
     else:
         # Save to file and call via executable
         tmp_file = "tmp.format_md.flowmark.md"
@@ -767,7 +767,9 @@ def _format_with_flowmark(
 
 def format_md(
     txt: str,
+    # TODO(ai_gp): backend -> tool
     backend: str,
+    # TODO(ai_gp): -> backend
     mode: str,
     *,
     width: int = 80,

@@ -184,11 +184,17 @@ def token_stats_to_str(token_stats: TokenStats) -> str:
     Convert a token stats dictionary to a formatted string for logging.
 
     :param token_stats: token stats dictionary to convert
-    :return: formatted string with cost, token counts, and elapsed time
+    :return: formatted string with cost, token counts, elapsed time, and tokens per second
     """
     cost = _token_stats_to_float(token_stats)
     elapsed_time = token_stats.get("elapsed_time_in_seconds", 0.0)
-    res = f"Cost: ${cost:.6f}, Elapsed: {elapsed_time:.2f}s ("
+    output_tokens = token_stats.get("output_tokens", 0)
+    # Calculate tokens per second, handling zero elapsed time.
+    if elapsed_time > 0:
+        tok_per_sec = output_tokens / elapsed_time
+        res = f"Cost: ${cost:.6f}, Elapsed: {elapsed_time:.2f}s, {tok_per_sec:.2f} tok/s ("
+    else:
+        res = f"Cost: ${cost:.6f}, Elapsed: {elapsed_time:.2f}s ("
     fields = [
         "input_tokens",
         "output_tokens",
@@ -1532,7 +1538,7 @@ def add_llm_args(
         help="Optional system prompt to guide the LLM's behavior",
     )
     system_prompt_group.add_argument(
-        "-pf",
+        "--pf",
         "--system_prompt_file",
         type=str,
         default=None,
