@@ -136,6 +136,7 @@ def _token_stats_to_float(token_stats: TokenStats) -> float:
     :return: total cost in dollars as a float
     """
     cost_from_tokencost = token_stats.get("cost_from_tokencost", 0.0)
+    cost_from_llm_library = token_stats.get("cost_from_llm_library")
     if cost_from_tokencost is not None and cost_from_llm_library is not None:
         if abs(float(cost_from_tokencost) - float(cost_from_llm_library)):
             _LOG.warning("Cost is different: "
@@ -144,14 +145,22 @@ def _token_stats_to_float(token_stats: TokenStats) -> float:
     if cost_from_tokencost > 0:
         return float(cost_from_tokencost)
     #
-    cost_from_llm_library = token_stats.get("cost_from_llm_library")
     if cost_from_llm_library is not None and cost_from_llm_library > 0:
         return float(cost_from_llm_library)
     return 0.0
 
 
-# TODO(ai_gp): Add a _token_stats_to_str
-# TODO(ai_gp): Use _token_stats_to_str in _LOG.debug
+def _token_stats_to_str(token_stats: TokenStats) -> str:
+    """
+    Convert a token stats dictionary to a formatted string for logging.
+
+    :param token_stats: token stats dictionary to convert
+    :return: formatted string with cost and token counts
+    """
+    cost = _token_stats_to_float(token_stats)
+    input_tokens = token_stats.get("input_tokens", 0)
+    output_tokens = token_stats.get("output_tokens", 0)
+    return f"Cost: ${cost:.6f} (input: {input_tokens} tokens, output: {output_tokens} tokens)"
 
 
 # #############################################################################
@@ -417,12 +426,9 @@ def _apply_llm_via_library(
             usage=usage,
             model=llm_model.model_id,
         )
-        # TODO(ai_gp): Use tokenStats_to_str
         _LOG.debug(
-            "Cost: $%.6f (input: %d tokens, output: %d tokens)",
-            _token_stats_to_float(token_stats),
-            usage.input,
-            usage.output,
+            "Cost: %s",
+            _token_stats_to_str(token_stats),
         )
     return response, token_stats
 
@@ -759,7 +765,7 @@ def apply_llm_batch_individual(
     _validate_batch_inputs(prompt, input_list)
     _LOG.debug("Processing batch of %d inputs individually", len(input_list))
     responses = []
-    token_stats = []
+    token_stats_list = []
     for input_str in input_list:
         response, token_stats = _call_llm_or_test_functor(
             input_str=input_str,
@@ -768,19 +774,18 @@ def apply_llm_batch_individual(
             testing_functor=testing_functor,
         )
         responses.append(response)
-        token_stats.append(token_stats)
+        token_stats_list.append(token_stats)
         if progress_bar_object is not None:
             total_cost_float = _token_stats_to_float(
-                _aggregate_token_stats(token_stats)
+                _aggregate_token_stats(token_stats_list)
             )
             progress_bar_object.update(1)
             progress_bar_object.set_postfix_str(f"Cost: ${total_cost_float:.4f}")
-    aggregated_cost = _aggregate_token_stats(token_stats)
+    aggregated_cost = _aggregate_token_stats(token_stats_list)
     _LOG.debug("Batch processing completed")
-    # TODO(ai_gp): Use tokenStats_to_str
     _LOG.debug(
-        "Total cost for batch with individual prompt: $%.6f",
-        _token_stats_to_float(aggregated_cost),
+        "Total cost for batch with individual prompt: %s",
+        _token_stats_to_str(aggregated_cost),
     )
     return responses, aggregated_cost
 
@@ -806,7 +811,7 @@ def apply_llm_batch_with_shared_prompt(
     _validate_batch_inputs(prompt, input_list)
     _LOG.debug("Processing batch of %d inputs", len(input_list))
     responses = []
-    token_stats = []
+    token_stats_list = []
     if testing_functor is None:
         llm_model = llm.get_model(model)
         conv = llm.Conversation(model=llm_model)
@@ -819,10 +824,10 @@ def apply_llm_batch_with_shared_prompt(
                 model=model,
             )
             responses.append(response)
-            token_stats.append(token_stats)
+            token_stats_list.append(token_stats)
             if progress_bar_object is not None:
                 total_cost_float = _token_stats_to_float(
-                    _aggregate_token_stats(token_stats)
+                    _aggregate_token_stats(token_stats_list)
                 )
                 progress_bar_object.update(1)
                 progress_bar_object.set_postfix_str(f"Cost: ${total_cost_float:.4f}")
@@ -830,14 +835,14 @@ def apply_llm_batch_with_shared_prompt(
         for input_str in input_list:
             response = testing_functor(input_str)
             responses.append(response)
-            token_stats.append(_create_token_stats())
+            token_stats_list.append(_create_token_stats())
             if progress_bar_object is not None:
                 progress_bar_object.update(1)
-    aggregated_cost = _aggregate_token_stats(token_stats)
+    aggregated_cost = _aggregate_token_stats(token_stats_list)
     _LOG.debug("Batch processing completed")
     _LOG.debug(
-        "Total cost for batch with shared prompt: $%.6f",
-        _token_stats_to_float(aggregated_cost),
+        "Total cost for batch with shared prompt: %s",
+        _token_stats_to_str(aggregated_cost),
     )
     return responses, aggregated_cost
 
@@ -890,7 +895,7 @@ def apply_llm_batch_combined(
         combined_prompt += f"{idx}: {input_str}\n"
     combined_prompt += "\nReturn ONLY the JSON object, no other text."
     _LOG.debug("Combined prompt:\n%s", combined_prompt)
-    token_stats = []
+    token_stats_list = []
     # You are a calculator. Return only the numeric result.
     # ```
     # Process the following items and return results as JSON in the format:
@@ -913,7 +918,7 @@ def apply_llm_batch_combined(
             system_prompt = combined_prompt
             user_prompt = "Process the items listed above."
             response, token_stats = _llm(system_prompt, user_prompt, model)
-            token_stats.append(token_stats)
+            token_stats_list.append(token_stats)
             try:
                 # Parse JSON response.
                 # E.g.,
@@ -940,15 +945,15 @@ def apply_llm_batch_combined(
                         _LOG.warning("Missing result for index %d", idx)
                         responses.append("")
                 _LOG.debug("Successfully parsed JSON response")
-                aggregated_cost = _aggregate_token_stats(token_stats)
+                aggregated_cost = _aggregate_token_stats(token_stats_list)
                 if progress_bar_object is not None:
                     progress_bar_object.update(len(input_list))
                     progress_bar_object.set_postfix_str(
                         f"Cost: ${_token_stats_to_float(aggregated_cost):.4f}"
                     )
                 _LOG.debug(
-                    "Total cost for batch with combined prompt: $%.6f",
-                    _token_stats_to_float(aggregated_cost),
+                    "Total cost for batch with combined prompt: %s",
+                    _token_stats_to_str(aggregated_cost),
                 )
                 return responses, aggregated_cost
             except (json.JSONDecodeError, ValueError) as e:
@@ -970,10 +975,10 @@ def apply_llm_batch_combined(
         for input_str in input_list:
             response = testing_functor(input_str)
             responses.append(response)
-            token_stats.append(_create_token_stats())
+            token_stats_list.append(_create_token_stats())
             if progress_bar_object is not None:
                 progress_bar_object.update(1)
-        aggregated_cost = _aggregate_token_stats(token_stats)
+        aggregated_cost = _aggregate_token_stats(token_stats_list)
         return responses, aggregated_cost
     raise RuntimeError("Unexpected error in apply_llm_batch_combined")
 
