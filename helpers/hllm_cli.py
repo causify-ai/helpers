@@ -25,6 +25,7 @@ try:
 
     _LLM_AVAILABLE = True
 except ImportError:
+    llm = None
     _LLM_AVAILABLE = False
 
 try:

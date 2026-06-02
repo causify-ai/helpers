@@ -1,12 +1,10 @@
-Read helpers/hllm_cli.py and extend the logic to return the cost of an LLM call
-by using a dictionary with multiple pieces of info like number of input and
-completion tokens, cost computed from tokencost, cost returned from the call
-to llm library
-
-Come up with a plan but DO NOT implement any code
+Update helpers/test/test_hllm_cli.py to use the mock backend for llm, make a plan
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
+
+- When writing unit tests for follow the instructions in
+  `.claude/skills/testing.rules.md`
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

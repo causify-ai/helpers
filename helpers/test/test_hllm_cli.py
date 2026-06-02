@@ -17,8 +17,8 @@ from helpers.test.test_hcache_simple import _BaseCacheTest
 _LOG = logging.getLogger(__name__)
 
 # Disable calling LLM when testing.
-_RUN_REAL_LLM = False
-# _RUN_REAL_LLM = True
+#_RUN_REAL_LLM = False
+_RUN_REAL_LLM = True
 
 # #############################################################################
 # Test_apply_llm_with_files
@@ -375,7 +375,7 @@ class Test_llm1(hunitest.TestCase):
         verify proper handling and cost calculation. Reports results in a
         comprehensive table with time, cost, and cost-per-character metrics.
         """
-        hcacsimp.set_cache_property("_test_llm", "mode", "DISABLE_CACHE")
+        hcacsimp.set_cache_property("_test_llm", "force_refresh", True)
         # Define test configurations with model-specific inputs.
         # Questions are designed to elicit longer responses for more accurate cost
         # comparisons.
