@@ -59,7 +59,7 @@ def install_needed_modules(
     *, use_sudo: bool = True, venv_path: Optional[str] = None
 ) -> None:
     """
-    Install needed modules for LLM CLI.
+    Install needed modules for LLM CLI (llm and tokencost).
 
     :param use_sudo: whether to use sudo to install the module
     :param venv_path: path to the virtual environment
@@ -87,7 +87,9 @@ def install_needed_modules(
 
 def shutup_llm_logging() -> None:
     """
-    Shut up OpenAI logging.
+    Suppress verbose logging from OpenAI and HTTP libraries.
+
+    Reduces noise from OpenAI client, httpx, httpcore, and urllib3 loggers.
     """
     # OpenAI client logging.
     logging.getLogger("openai").setLevel(logging.WARNING)
@@ -110,10 +112,11 @@ def _check_llm_executable() -> bool:
     """
     try:
         hsystem.system("which llm", suppress_output=True)
-        _LOG.debug("llm command found.")
+        _LOG.debug("llm command found")
         return True
     except Exception:
-        _LOG.debug("llm command not found.")
+        # llm executable not found.
+        _LOG.debug("llm command not found")
         return False
 
 
@@ -127,23 +130,26 @@ def _apply_llm_via_executable(
     """
     Apply LLM using the llm CLI executable.
 
+    Invokes the llm command-line tool as a subprocess, with optional system
+    prompt and model selection. Supports streaming with progress bar if
+    expected output size is provided.
+
     :param input_str: the input text to process
     :param system_prompt: optional system prompt to use
     :param model: optional model name to use
-    :param expected_num_chars: optional expected number of characters in
-        output (used for progress bar)
+    :param expected_num_chars: optional expected number of characters in output
+        - Used to enable progress bar tracking during generation
     :return: tuple of (LLM response as string, cost in dollars)
     """
-    # Build command.
+    # Build command with system prompt and model options.
     cmd = ["llm"]
     if system_prompt:
         cmd.extend(["--system", system_prompt])
     if model:
         cmd.extend(["--model", model])
-    # Add the user prompt.
     cmd.append(input_str)
     _LOG.debug("Running command: %s", " ".join(cmd))
-    # Execute command.
+    # Execute command with or without streaming.
     if expected_num_chars:
         # Use streaming with progress bar.
         proc = subprocess.Popen(
@@ -160,7 +166,7 @@ def _apply_llm_via_executable(
         # Wait for process to complete.
         proc.wait()
         if proc.returncode != 0:
-            error_msg = proc.stderr.read() if proc.stderr else ""
+            error_msg = proc.stderr.read() if proc.stderr else ""  # type: ignore
             raise RuntimeError(
                 "llm command failed with return code: %s error: %s"
                 % (proc.returncode, error_msg)
@@ -182,6 +188,9 @@ def _calculate_cost_from_usage(
 ) -> float:
     """
     Calculate LLM cost from usage object.
+
+    Uses the tokencost library to compute total cost based on input and output
+    token counts. Returns 0.0 if tokencost library is not available.
 
     :param usage: usage object from LLM result containing input/output token counts
     :param model: model name for cost calculation
@@ -206,8 +215,13 @@ def _compute_text_signature(txt: str) -> str:
     """
     Compute a compact signature of text using first and last two words.
 
+    Returns the full text if it contains 4 or fewer words; otherwise returns
+    a compressed representation showing the first and last two words.
+
     :param txt: text to compute signature for
-    :return: signature string (e.g., "a b ... e f") or full text if <= 4 words
+    :return: signature string
+        - Format: `"first second ... last-1 last"` for long text
+        - Full text for short text (4 words or fewer)
     """
     words = txt.split()
     if len(words) <= 4:
@@ -225,7 +239,8 @@ def _apply_llm_via_mock(
     """
     Mock LLM application for testing.
 
-    Returns a deterministic MD5 hash of the concatenated input and system prompt.
+    Returns a deterministic MD5 hash of the concatenated input and system
+    prompt text. Useful for testing without making actual API calls.
 
     :param input_str: the input text to process
     :param system_prompt: optional system prompt to use
@@ -248,11 +263,14 @@ def _apply_llm_via_library(
     """
     Apply LLM using the llm Python library.
 
+    Calls the llm library directly with optional streaming and progress bar
+    support. Calculates token cost if the tokencost library is available.
+
     :param input_str: the input text to process
     :param system_prompt: optional system prompt to use
     :param model: optional model name to use
-    :param expected_num_chars: optional expected number of characters in
-        output (used for progress bar)
+    :param expected_num_chars: optional expected number of characters in output
+        - Used to enable progress bar tracking during generation
     :return: tuple of (LLM response as string, cost in dollars)
     """
     # Get the model.
@@ -367,7 +385,11 @@ def apply_llm(
             expected_num_chars,
             "Expected number of characters must be positive",
         )
-    hdbg.dassert_in(backend, ["executable", "library", "mock"])
+    hdbg.dassert_in(
+        backend,
+        ["executable", "library", "mock"],
+        "Invalid backend specified",
+    )
     _LOG.debug("Applying LLM to input text")
     _LOG.debug("backend=%s", backend)
     # Route to appropriate implementation.
@@ -375,7 +397,7 @@ def apply_llm(
         # Check that llm executable exists.
         hdbg.dassert(
             _check_llm_executable(),
-            "llm executable not found. Install it using: pip install llm",
+            "llm executable not found"
         )
         response, cost = _apply_llm_via_executable(
             input_str,
@@ -385,7 +407,10 @@ def apply_llm(
         )
     elif backend == "library":
         # Check that llm library is available.
-        hdbg.dassert(_LLM_AVAILABLE, "llm library not found")
+        hdbg.dassert(
+            _LLM_AVAILABLE,
+            "llm library not found"
+        )
         response, cost = _apply_llm_via_library(
             input_str,
             system_prompt=system_prompt,
@@ -427,9 +452,9 @@ def apply_llm_with_files(
     :return: cost in dollars
     """
     hdbg.dassert_isinstance(input_file, str)
-    hdbg.dassert_ne(input_file, "", "Input file cannot be empty")
+    hdbg.dassert_ne(input_file, "", "Input file path cannot be empty")
     hdbg.dassert_isinstance(output_file, str)
-    hdbg.dassert_ne(output_file, "", "Output file cannot be empty")
+    hdbg.dassert_ne(output_file, "", "Output file path cannot be empty")
     _LOG.debug("Reading input from file: %s", input_file)
     # Read input file.
     input_str = hio.from_file(input_file)
@@ -526,11 +551,14 @@ def _call_llm_or_test_functor(
     """
     Call LLM or testing functor if provided.
 
+    Routes to either the LLM or a testing functor. When testing_functor is
+    provided, it takes precedence and cost calculation is skipped.
+
     :param input_str: Input text to process
     :param system_prompt: System prompt (can be None)
     :param model: Model name (required for cost calculation)
-    :param testing_functor: Optional testing functor
-    :return: Tuple of (response, cost) where cost is 0.0 if not calculated
+    :param testing_functor: Optional testing functor to use instead of LLM
+    :return: Tuple of (response, cost) where cost is 0.0 for testing functor
     """
     if testing_functor is None:
         response, cost = _llm(system_prompt, input_str, model)
@@ -554,6 +582,9 @@ def _calculate_llm_cost(
 ) -> float:
     """
     Calculate the cost of an LLM call using tokencost library.
+
+    Computes the total cost based on prompt and completion text if the
+    tokencost library is available; otherwise returns 0.0.
 
     :param prompt: the prompt sent to the LLM
     :param completion: the completion returned by the LLM
@@ -674,12 +705,25 @@ def apply_llm_batch_combined(
     """
     Apply an LLM to process a batch using a single combined prompt.
 
-    This function combines all queries into a single prompt and expects
-    structured JSON output. It includes retry logic for failed JSON parsing.
+    Combines all queries into a single prompt and expects structured JSON
+    output. Includes retry logic for failed JSON parsing to ensure robust
+    processing of batch results.
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input strings to process
+    :param model: model name to use
+    :param max_retries: maximum number of retry attempts on JSON parsing failures
+    :param testing_functor: optional testing function to use instead of LLM
+    :param progress_bar_object: optional progress bar object to update
+    :return: tuple of (list of responses, total cost in dollars)
     """
     _validate_batch_inputs(prompt, input_list)
     hdbg.dassert_isinstance(max_retries, int)
-    hdbg.dassert_lt(0, max_retries)
+    hdbg.dassert_lt(
+        0,
+        max_retries,
+        "Max retries must be positive",
+    )
     _LOG.debug(
         "Processing batch of %d inputs with combined prompt", len(input_list)
     )
@@ -795,9 +839,12 @@ def get_tqdm_progress_bar() -> tqdm:
     Get the appropriate tqdm progress bar class for the current environment.
 
     Detects whether running in a Jupyter notebook or terminal and returns
-    the corresponding `tqdm` class (`tqdm.notebook.tqdm` or `tqdm`).
+    the corresponding tqdm class. Notebook environments get the specialized
+    `tqdm.notebook.tqdm` for better Jupyter integration.
 
     :return: tqdm class appropriate for the current environment
+        - `tqdm.notebook.tqdm` for Jupyter notebooks
+        - `tqdm.tqdm` for terminal environments
     """
     # Use appropriate tqdm for notebook or terminal.
     try:
@@ -825,7 +872,13 @@ def _call_batch_processor(
     """
     Call the appropriate batch processor based on batch_mode.
 
-    :param batch_mode: batch mode to use (individual, shared_prompt, combined)
+    Routes to one of three batch processing strategies: individual processing,
+    shared prompt conversation, or combined batch processing.
+
+    :param batch_mode: batch mode to use
+        - `individual`: separate LLM call for each item
+        - `shared_prompt`: conversation context across items
+        - `combined`: single call with all items as JSON
     :param prompt: system prompt to guide the LLM's behavior
     :param batch_items: list of input strings to process
     :param model: model name to use
@@ -864,10 +917,16 @@ def _process_batches(
     """
     Process a sequence of values in batches and return LLM results.
 
+    Processes values in chunks, skipping empty values and tracking progress.
+    Maintains result ordering and counts skipped items.
+
     :param values: list of values to process
     :param batch_size: number of items to process in each batch
     :param prompt: system prompt to guide the LLM's behavior
-    :param batch_mode: batch mode to use (individual, shared_prompt, combined)
+    :param batch_mode: batch mode to use
+        - `individual`: separate LLM call per item
+        - `shared_prompt`: conversation context across items
+        - `combined`: single call with all items
     :param model: model name to use
     :param testing_functor: optional functor to use for testing
     :param progress_bar_object: optional progress bar object to update
@@ -947,12 +1006,18 @@ def _process_dataframe_batches(
     """
     Process dataframe batches and update target column with LLM results.
 
+    Processes dataframe rows in batches by extracting text using the provided
+    extractor function and updating the target column with LLM results.
+
     :param df: dataframe to process (modified in place)
     :param batch_size: number of items to process in each batch
-    :param extractor: callable that extracts text from a row
+    :param extractor: callable that extracts text from a row or series
     :param target_col: name of column to store results
     :param prompt: system prompt to guide the LLM's behavior
-    :param batch_mode: batch mode to use (individual, shared_prompt, combined)
+    :param batch_mode: batch mode to use
+        - `individual`: separate LLM call per item
+        - `shared_prompt`: conversation context across items
+        - `combined`: single call with all items
     :param model: model name to use
     :param testing_functor: optional functor to use for testing
     :param progress_bar_object: optional progress bar object to update
@@ -1058,7 +1123,11 @@ def apply_llm_prompt_to_df(
     hdbg.dassert_isinstance(model, str)
     hdbg.dassert_ne(model, "", "Model cannot be empty")
     hdbg.dassert_isinstance(batch_size, int)
-    hdbg.dassert_lt(0, batch_size)
+    hdbg.dassert_lt(
+        0,
+        batch_size,
+        "Batch size must be positive",
+    )
     if dump_every_batch is not None:
         hdbg.dassert_isinstance(dump_every_batch, str)
         hdbg.dassert_ne(dump_every_batch, "", "Dump file path cannot be empty")
@@ -1134,11 +1203,14 @@ def mock_apply_llm():
     """
     Context manager to mock `apply_llm()` for testing without calling LLM.
 
-    This mocks `apply_llm()` in tests by returning the digest of the
-    concatenated `input_str` and `system_prompt` instead of making an actual
-    LLM call.
+    This mocks `apply_llm()` in tests by returning the MD5 digest of the
+    concatenated input_str and system_prompt. Avoids expensive API calls and
+    external dependencies during testing.
 
-    This avoids expensive API calls and external dependencies during testing.
+    Usage example:
+        with mock_apply_llm():
+            response, cost = apply_llm("test", system_prompt="prompt")
+            # response is MD5 hash, cost is 0.0
     """
 
     def _mock_apply_llm(
@@ -1169,8 +1241,12 @@ def add_llm_prompt_arg(
     is_required: bool = True,
 ) -> argparse.ArgumentParser:
     """
-    Add common command line arguments for `*llm_transform.py` scripts.
+    Add common command line arguments for LLM transform scripts.
 
+    Adds debug, prompt, and fast_model options to the argument parser for
+    LLM transformation scripts.
+
+    :param parser: argparse parser to add arguments to
     :param default_prompt: default prompt to use
     :param is_required: whether the prompt is required
     :return: parser with the option added
@@ -1207,22 +1283,23 @@ def add_llm_args(
     output_required: bool = False,
     system_prompt_required: bool = False,
     model_default: str = "gpt-4o-mini",
-    # TODO(gp): These should always be available.
     include_model: bool = True,
     include_backend: bool = True,
 ) -> argparse.ArgumentParser:
     """
     Add comprehensive LLM-related command line arguments for LLM CLI scripts.
 
-    This helper function consolidates commonly used arguments for scripts that
-    process text with LLM transformations (e.g., llm_cli.py, ai_review.py).
+    Consolidates commonly used arguments for scripts that process text with
+    LLM transformations (e.g., llm_cli.py, ai_review.py). Supports flexible
+    input modes (file or text), system prompts, and backend selection.
 
+    :param parser: argparse parser to add arguments to
     :param input_required: whether input is required
     :param output_required: whether output is required
     :param system_prompt_required: whether system prompt is required
     :param model_default: default LLM model name
-    :param include_model: whether to include --model argument
-    :param include_backend: whether to include --backend argument
+    :param include_model: whether to include `--model` argument
+    :param include_backend: whether to include `--backend` argument
     :return: parser with LLM arguments added
     """
     # Input/Output options with mutually exclusive input sources.

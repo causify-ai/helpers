@@ -145,7 +145,7 @@ def _get_expected_num_chars(
             else:
                 input_content = hio.from_file(input_file)
         else:
-            hdbg.dassert_is_not(input_text, None)
+            hdbg.dassert_is_not(input_text, None, "Input text must be provided")
             input_content = input_text
         input_length = len(input_content)
         expected_num_chars = int(input_length * 1.0)
@@ -239,7 +239,7 @@ def _process_selected_text(
     :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
     """
-    # Get input.
+    # Parse select specification and read input file.
     select_start, select_end = hmarsele.parse_select_arg(select)
     _LOG.info(
         "Select mode: extracting chunk from '%s' to '%s'",
@@ -247,7 +247,7 @@ def _process_selected_text(
         select_end,
     )
     input_lines = hseinout.from_file(input_file)
-    # Extract chunk.
+    # Extract chunk from input based on markers.
     _, ext = os.path.splitext(input_file) if input_file != "-" else ("", "")
     is_slide_format = ext == ".txt"
     start_idx, end_idx = hmarsele.get_chunk_bounds(
@@ -255,7 +255,7 @@ def _process_selected_text(
     )
     chunk_lines = input_lines[start_idx:end_idx]
     chunk_text = "\n".join(chunk_lines)
-    # Transform with LLM.
+    # Transform chunk with LLM or log dry-run parameters.
     if dry_run:
         _LOG.warning("DRY RUN: Would call LLM with parameters:")
         _LOG.info(
@@ -282,9 +282,9 @@ def _process_selected_text(
         if lint:
             file_type = "md"
             response = dshdlipr.prettier_on_str(response, file_type)
-    #
+    # Write output: either modify file in-place or write to output file.
     if modify_in_place:
-        hdbg.dassert_ne(input_file, "-")
+        hdbg.dassert_ne(input_file, "-", "Cannot modify stdin in-place")
         # We are processing a file in place and we have selected to modify the
         # file in place.
         before_lines = input_lines[:start_idx]
@@ -337,6 +337,7 @@ def _process_full_text(
     :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
     """
+    # Read input text from string, file, or stdin.
     if input_text is not None:
         # Use text from input string.
         input_str = input_text
@@ -344,6 +345,7 @@ def _process_full_text(
         # Read text from file or stdin.
         input_lines = hseinout.from_file(input_file)
         input_str = "\n".join(input_lines)
+    # Transform with LLM or log dry-run parameters.
     if dry_run:
         # TODO(gp): Consider moving this inside the LLM call to generalize it.
         _LOG.warning("DRY RUN: Would call LLM with parameters:")
@@ -370,6 +372,7 @@ def _process_full_text(
         if lint:
             file_type = "md"
             response = dshdlipr.prettier_on_str(response, file_type)
+    # Write output or log dry-run destination.
     if dry_run:
         _LOG.warning("DRY RUN: Would save to %s", output_file)
     else:
@@ -386,6 +389,7 @@ def _is_plugin_installed(plugin_module_name: str) -> bool:
     """
     try:
         llm.load_plugins()
+        # Check if the plugin is in the list of installed plugins.
         for module, _ in llm.pm.list_plugin_distinfo():
             if module.__name__ == plugin_module_name:
                 return True
@@ -415,15 +419,18 @@ def install_models() -> None:
         ("llm_openrouter", "llm install llm-openrouter"),
         ("llm_anthropic", "llm install llm-anthropic"),
     ]
+    # Install each plugin if not already present.
     for plugin_module_name, cmd in plugins_to_install:
         if _is_plugin_installed(plugin_module_name):
             _LOG.debug("Plugin '%s' is already installed", plugin_module_name)
         else:
             _LOG.warning("Installing %s plugin...", plugin_module_name)
             hsystem.system(cmd, print_command=True, suppress_output=False)
-    #
-    # cmd = "llm models"
-    # hsystem.system(cmd, print_command=True, suppress_output=False)
+    if False:
+        # Print available models.
+        # TODO(gp): Use the library.
+        cmd = "llm models"
+        hsystem.system(cmd, print_command=True, suppress_output=False)
 
 
 def execute_llm_command(llm_cmd: str, abort_on_error: bool = True) -> int:
@@ -500,24 +507,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
         output_arg=args.output,
         modify_in_place=args.modify_in_place,
     )
-    # Calculate expected number of output characters.
+    # Calculate expected number of output characters for progress tracking.
     expected_num_chars = _get_expected_num_chars(
         progress_bar=args.progress_bar,
         expected_num_chars_arg=args.expected_num_chars,
         input_file=input_file,
         input_text=input_text,
     )
-    # Process the file.
+    # Log processing mode.
     if args.dry_run:
         _LOG.warning("Dry run mode: LLM will not be called")
     else:
         _LOG.info("Processing with LLM '%s'...", args.model)
-    # Determine system prompt source.
+    # Resolve system prompt from file, rule, or argument.
     system_prompt = _get_system_prompt(
         system_prompt_file=args.system_prompt_file,
         rule=args.rule,
         system_prompt=args.system_prompt,
     )
+    # Process selected chunk or full text.
     if args.select:
         # Transform a selected chunk of text.
         hdbg.dassert_is(
@@ -548,7 +556,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             expected_num_chars,
             args.dry_run,
         )
-    # Log the cost.
+    # Report total cost of LLM operation.
     _LOG.info("Total cost: $%.6f", cost)
 
 

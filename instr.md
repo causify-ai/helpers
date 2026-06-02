@@ -1,9 +1,9 @@
-Implement ./dev_scripts_helpers/coding_tools/pyan.sh
+Read helpers/hllm_cli.py and extend the logic to return the cost of an LLM call
+by using a dictionary with multiple pieces of info like number of input and
+completion tokens, cost computed from tokencost, cost returned from the call
+to llm library
 
-in Python following our convention (using uv, --action, --input)
-
-pyan3 $file --dot > callgraph.dot
-dot -Tpng callgraph.dot -o callgraph.png
+Come up with a plan but DO NOT implement any code
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
