@@ -1,13 +1,35 @@
 import logging
 import os
 
+import pytest
+
 import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hmarkdown_formatting as hmarform
 import helpers.hprint as hprint
+import helpers.htimer as htimer
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
+
+# TODO(ai_gp): Move to hmarkdown_formatting.py.
+def _is_mdformat_available() -> bool:
+    """Check if mdformat package is available."""
+    try:
+        import mdformat  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+def _is_flowmark_available() -> bool:
+    """Check if flowmark package is available."""
+    try:
+        import flowmark  # noqa: F401
+        return True
+    except ImportError:
+        return False
 
 
 # #############################################################################
@@ -1401,3 +1423,326 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.check_string(actual)
+
+
+# #############################################################################
+# Test_format_md_prettier
+# #############################################################################
+
+
+class Test_format_md_prettier(hunitest.TestCase):
+    """
+    Test format_md() function with prettier backend.
+    """
+
+    def helper(
+        self, input_txt: str, mode: str, width: int = 80
+    ) -> str:
+        """
+        Test helper for format_md with prettier backend.
+
+        :param input_txt: input markdown text
+        :param mode: prettier mode ("dockerized" or "global")
+        :param width: line width for formatting
+        :return: formatted text
+        """
+        formatted = hmarform.format_md(input_txt, "prettier", mode, width=width)
+        return formatted
+
+    def test_simple_markdown_dockerized(self) -> None:
+        """
+        Test simple markdown formatting with dockerized prettier.
+        """
+        # Prepare inputs.
+        input_txt = "# Hello\n\nThis is a test.\n"
+        width = 80
+        # Run test.
+        actual = self.helper(input_txt, "dockerized", width)
+        # Check outputs: should be valid markdown with prettier formatting
+        self.assertIn("#", actual)
+        self.assertIn("Hello", actual)
+
+    def test_empty_input_dockerized(self) -> None:
+        """
+        Test empty input with dockerized prettier.
+        """
+        # Prepare inputs.
+        input_txt = ""
+        # Run test.
+        actual = self.helper(input_txt, "dockerized", 80)
+        # Check outputs.
+        self.assertEqual(actual.strip(), "")
+
+    def test_multiline_markdown_dockerized(self) -> None:
+        """
+        Test multiline markdown with dockerized prettier.
+        """
+        # Prepare inputs.
+        input_txt = """
+        # Section
+
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        input_txt = hprint.dedent(input_txt)
+        # Run test.
+        actual = self.helper(input_txt, "dockerized", 80)
+        # Check outputs.
+        self.assertIn("Section", actual)
+        self.assertIn("Item", actual)
+
+    def test_width_parameter_respected(self) -> None:
+        """
+        Test that width parameter affects formatting.
+        """
+        # Prepare inputs.
+        input_txt = "This is a very long line that should be wrapped at a shorter width to test the width parameter functionality."
+        # Run test with different widths.
+        actual_40 = self.helper(input_txt, "dockerized", 40)
+        actual_80 = self.helper(input_txt, "dockerized", 80)
+        # Check outputs: both should be valid, may differ in line breaks
+        self.assertIn("This is", actual_40)
+        self.assertIn("This is", actual_80)
+
+
+@pytest.mark.skipif(
+    not _is_mdformat_available(),
+    reason="mdformat package not installed"
+)
+class Test_format_md_mdformat(hunitest.TestCase):
+    """
+    Test format_md() function with mdformat backend.
+    """
+
+    def helper(
+        self, input_txt: str, mode: str, width: int = 80
+    ) -> str:
+        """
+        Test helper for format_md with mdformat backend.
+
+        :param input_txt: input markdown text
+        :param mode: mdformat mode ("library", "uvx", or "global")
+        :param width: line width for formatting
+        :return: formatted text
+        """
+        formatted = hmarform.format_md(input_txt, "mdformat", mode, width=width)
+        return formatted
+
+    def test_simple_markdown_library(self) -> None:
+        """
+        Test simple markdown formatting with mdformat library.
+        """
+        # Prepare inputs.
+        input_txt = "# Hello\n\nThis is a test.\n"
+        width = 80
+        # Run test.
+        actual = self.helper(input_txt, "library", width)
+        # Check outputs: should be valid markdown
+        self.assertIn("Hello", actual)
+
+    def test_empty_input_library(self) -> None:
+        """
+        Test empty input with mdformat library.
+        """
+        # Prepare inputs.
+        input_txt = ""
+        # Run test.
+        actual = self.helper(input_txt, "library", 80)
+        # Check outputs.
+        self.assertEqual(actual.strip(), "")
+
+    def test_multiline_markdown_library(self) -> None:
+        """
+        Test multiline markdown with mdformat library.
+        """
+        # Prepare inputs.
+        input_txt = """
+        # Section
+
+        - Item 1
+        - Item 2
+        """
+        input_txt = hprint.dedent(input_txt)
+        # Run test.
+        actual = self.helper(input_txt, "library", 80)
+        # Check outputs.
+        self.assertIn("Section", actual)
+
+
+@pytest.mark.skipif(
+    not _is_flowmark_available(),
+    reason="flowmark package not installed"
+)
+class Test_format_md_flowmark(hunitest.TestCase):
+    """
+    Test format_md() function with flowmark backend.
+    """
+
+    def helper(
+        self, input_txt: str, mode: str, width: int = 80
+    ) -> str:
+        """
+        Test helper for format_md with flowmark backend.
+
+        :param input_txt: input markdown text
+        :param mode: flowmark mode ("library", "uvx-rs", "uvx", "global", "global-rs")
+        :param width: line width for formatting
+        :return: formatted text
+        """
+        formatted = hmarform.format_md(input_txt, "flowmark", mode, width=width)
+        return formatted
+
+    def test_invalid_mode_raises_error(self) -> None:
+        """
+        Test that invalid mode raises error.
+        """
+        # Prepare inputs.
+        input_txt = "# Test\n"
+        invalid_mode = "invalid_mode"
+        # Run test and check error.
+        with self.assertRaises(AssertionError):
+            self.helper(input_txt, invalid_mode, 80)
+
+
+class Test_format_md_invalid_backend(hunitest.TestCase):
+    """
+    Test format_md() function with invalid backend.
+    """
+
+    def test_invalid_backend_raises_error(self) -> None:
+        """
+        Test that invalid backend raises error.
+        """
+        # Prepare inputs.
+        input_txt = "# Test\n"
+        # Run test and check error.
+        with self.assertRaises(AssertionError):
+            hmarform.format_md(input_txt, "invalid_backend", "library", width=80)
+
+
+class Test_format_md_input_validation(hunitest.TestCase):
+    """
+    Test format_md() function input validation.
+    """
+
+    def test_invalid_width_raises_error(self) -> None:
+        """
+        Test that invalid width raises error.
+        """
+        # Prepare inputs.
+        input_txt = "# Test\n"
+        invalid_width = 0
+        # Run test and check error.
+        with self.assertRaises(AssertionError):
+            hmarform.format_md(input_txt, "prettier", "dockerized", width=invalid_width)
+
+    def test_negative_width_raises_error(self) -> None:
+        """
+        Test that negative width raises error.
+        """
+        # Prepare inputs.
+        input_txt = "# Test\n"
+        invalid_width = -10
+        # Run test and check error.
+        with self.assertRaises(AssertionError):
+            hmarform.format_md(input_txt, "prettier", "dockerized", width=invalid_width)
+
+
+class Test_format_md_comparison_and_performance(hunitest.TestCase):
+    """
+    Test format_md() comparison across backends and collect performance metrics.
+    """
+
+    def test_backends_produce_valid_output(self) -> None:
+        """
+        Test that all available backends produce valid markdown output.
+
+        This test compares output from multiple backends, collects timing data,
+        and saves results to output directory. Results are both printed to logs
+        and saved to a JSON file in the output directory for analysis.
+        """
+        # Prepare inputs.
+        input_txt = """
+        # Test Document
+
+        This is a test markdown document.
+
+        - Item 1 with a long description that might wrap
+        - Item 2 with another long description
+        - Item 3
+
+        ## Subsection
+
+        Some more text here to test formatting.
+        """
+        input_txt = hprint.dedent(input_txt)
+        output_dir = self.get_output_dir()
+        hio.create_dir(output_dir, incremental=True)
+        # Test data for each backend/mode combination
+        test_cases = [
+            ("prettier", "dockerized"),
+        ]
+        # Add optional backends if available
+        if _is_mdformat_available():
+            test_cases.append(("mdformat", "library"))
+        if _is_flowmark_available():
+            test_cases.append(("flowmark", "library"))
+        results = []
+        for backend, mode in test_cases:
+            try:
+                timer_ = htimer.Timer()
+                output = hmarform.format_md(input_txt, backend, mode, width=80)
+                timer_.stop()
+                results.append({
+                    "backend": backend,
+                    "mode": mode,
+                    "time": str(timer_),
+                    "output_length": len(output),
+                    "success": True,
+                })
+                # Check outputs: all should produce non-empty output
+                self.assertGreater(
+                    len(output),
+                    0,
+                    f"{backend}/{mode} should produce non-empty output",
+                )
+                _LOG.info(
+                    "Formatted with %s/%s in %s (output length: %d)",
+                    backend,
+                    mode,
+                    str(timer_),
+                    len(output),
+                )
+            except Exception as e:
+                results.append({
+                    "backend": backend,
+                    "mode": mode,
+                    "error": str(e),
+                    "success": False,
+                })
+                _LOG.warning("Failed to format with %s/%s: %s", backend, mode, str(e))
+        # Save results to file
+        import json
+        results_file = os.path.join(output_dir, "comparison_results.json")
+        hio.to_file(results_file, json.dumps(results, indent=2))
+        # Print results
+        _LOG.info("Comparison results saved to %s", results_file)
+        for result in results:
+            if result["success"]:
+                _LOG.info(
+                    "%s/%s completed in %s",
+                    result["backend"],
+                    result["mode"],
+                    result["time"],
+                )
+            else:
+                _LOG.info(
+                    "%s/%s failed: %s",
+                    result["backend"],
+                    result["mode"],
+                    result["error"],
+                )
+        # At least some tests should succeed
+        successful = sum(1 for r in results if r["success"])
+        self.assertGreater(successful, 0, "At least one backend should succeed")

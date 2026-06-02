@@ -68,6 +68,7 @@ def _create_token_stats(
     output_tokens: int = 0,
     cost_from_tokencost: float = 0.0,
     cost_from_llm_library: Optional[float] = None,
+    elapsed_time_in_seconds: float = 0.0,
 ) -> TokenStats:
     """
     Create a cost information dictionary.
@@ -76,11 +77,13 @@ def _create_token_stats(
     :param output_tokens: number of completion/output tokens used
     :param cost_from_tokencost: cost calculated using tokencost library (dollars)
     :param cost_from_llm_library: cost from llm library if available (dollars)
+    :param elapsed_time_in_seconds: elapsed time for the LLM call in seconds
     :return: cost dictionary with all cost information
     """
     hdbg.dassert_lte(0, input_tokens)
     hdbg.dassert_lte(0, output_tokens)
     hdbg.dassert_lte(0, cost_from_tokencost)
+    hdbg.dassert_lte(0, elapsed_time_in_seconds)
     if cost_from_llm_library is not None:
         hdbg.dassert_lte(0, cost_from_llm_library)
     return {
@@ -88,6 +91,7 @@ def _create_token_stats(
         "output_tokens": output_tokens,
         "cost_from_tokencost": float(cost_from_tokencost),
         "cost_from_llm_library": float(cost_from_llm_library) if cost_from_llm_library is not None else None,
+        "elapsed_time_in_seconds": float(elapsed_time_in_seconds),
     }
 
 
@@ -97,7 +101,7 @@ def _aggregate_token_stats(
     """
     Aggregate multiple cost dictionaries into a single combined dictionary.
 
-    Sums up token counts and costs across all provided cost dictionaries.
+    Sums up token counts, costs, and elapsed times across all provided cost dictionaries.
     Handles both cost dictionaries and legacy float values for backward compatibility.
 
     :param token_stats: list of cost dictionaries or floats to aggregate
@@ -118,11 +122,13 @@ def _aggregate_token_stats(
     total_cost_from_llm_library = sum(
         d.get("cost_from_llm_library") or 0.0 for d in normalized_dicts
     )
+    total_elapsed_time = sum(d.get("elapsed_time_in_seconds", 0.0) for d in normalized_dicts)
     return _create_token_stats(
         input_tokens=total_input_tokens,
         output_tokens=total_output_tokens,
         cost_from_tokencost=total_cost_from_tokencost,
         cost_from_llm_library=total_cost_from_llm_library if total_cost_from_llm_library > 0 else None,
+        elapsed_time_in_seconds=total_elapsed_time,
     )
 
 
@@ -155,10 +161,11 @@ def token_stats_to_str(token_stats: TokenStats) -> str:
     Convert a token stats dictionary to a formatted string for logging.
 
     :param token_stats: token stats dictionary to convert
-    :return: formatted string with cost and token counts
+    :return: formatted string with cost, token counts, and elapsed time
     """
     cost = _token_stats_to_float(token_stats)
-    res = f"Cost: ${cost:.6f} ("
+    elapsed_time = token_stats.get("elapsed_time_in_seconds", 0.0)
+    res = f"Cost: ${cost:.6f}, Elapsed: {elapsed_time:.2f}s ("
     fields = ["input_tokens", "output_tokens", "cost_from_llm_library", "cost_from_tokencost"]
     for field in fields:
         val = token_stats.get(field, "na")
@@ -342,6 +349,7 @@ def _apply_llm_via_executable(
         - Used to enable progress bar tracking during generation
     :return: tuple of (LLM response as string, cost dictionary)
     """
+    start_time = time.time()
     # Build command with system prompt and model options.
     cmd = ["llm"]
     if system_prompt:
@@ -377,8 +385,9 @@ def _apply_llm_via_executable(
         # Run without progress bar.
         cmd_str = " ".join(shlex.quote(arg) for arg in cmd)
         _, response = hsystem.system_to_string(cmd_str)
+    elapsed_time = time.time() - start_time
     _LOG.debug("Cost calculation not available when using llm executable")
-    return response, _create_token_stats()
+    return response, _create_token_stats(elapsed_time_in_seconds=elapsed_time)
 
 
 def _apply_llm_via_library(
@@ -401,6 +410,7 @@ def _apply_llm_via_library(
         - Used to enable progress bar tracking during generation
     :return: tuple of (LLM response as string, cost dictionary)
     """
+    start_time = time.time()
     # Get the model.
     if model:
         llm_model = llm.get_model(model)
@@ -419,8 +429,9 @@ def _apply_llm_via_library(
                 response_parts.append(chunk_str)
                 pbar.update(len(chunk_str))
         response = "".join(response_parts)
+        elapsed_time = time.time() - start_time
         _LOG.debug("Cost calculation not available for streaming mode")
-        token_stats = _create_token_stats()
+        token_stats = _create_token_stats(elapsed_time_in_seconds=elapsed_time)
     else:
         # Run without progress bar.
         _LOG.trace("system_prompt=\n%s", system_prompt)
@@ -430,10 +441,12 @@ def _apply_llm_via_library(
         _LOG.trace("response=\n%s", response)
         # Calculate cost.
         usage = result.usage()
+        elapsed_time = time.time() - start_time
         token_stats = _calculate_cost_from_usage(
             usage=usage,
             model=llm_model.model_id,
         )
+        token_stats["elapsed_time_in_seconds"] = elapsed_time
         _LOG.debug(
             "Cost: %s",
             token_stats_to_str(token_stats),
