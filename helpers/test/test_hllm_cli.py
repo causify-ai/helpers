@@ -3,7 +3,7 @@ import hashlib
 import logging
 import os
 import time
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
 import pytest
@@ -11,6 +11,7 @@ import pytest
 import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
+from helpers.hllm_cli import TokenStats
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -497,12 +498,13 @@ class Test_llm1(hunitest.TestCase):
                 system_prompt = prompt_getter()
                 # Run test.
                 start_time = time.time()
-                response, cost = hllmcli._llm(system_prompt, input_str, model)
+                response, token_stats = hllmcli._llm(system_prompt, input_str, model)
                 elapsed_time = time.time() - start_time
                 # Check outputs.
                 self.assertIsInstance(response, str)
                 self.assertGreater(len(response), 0)
-                self.assertIsInstance(cost, float)
+                self.assertIsInstance(token_stats, dict)
+                cost = hllmcli._token_stats_to_float(token_stats)
                 self.assertGreater(cost, 0.0)
                 # Calculate cost per character and cost per 1M characters.
                 response_len = len(response)
@@ -623,7 +625,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         input_list = ["2 + 2", "3 * 3", "10 - 5", "20 / 4"]
         expected_responses = ["4", "9", "5", "5"]
         # Run the function.
-        responses, cost = func(
+        responses, token_stats = func(
             prompt=prompt,
             input_list=input_list,
             model=model,
@@ -632,6 +634,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         # Check basic properties.
         responses = [str(int(float(r))) for r in responses]
         self.assertEqual(responses, expected_responses)
+        self.assertIsInstance(token_stats, dict)
+        cost = hllmcli._token_stats_to_float(token_stats)
         if testing_functor is None:
             self.assertGreater(cost, 0.0)
         else:
@@ -762,7 +766,7 @@ class Test_process_batches(hunitest.TestCase):
         testing_functor = _eval_functor
         progress_bar_object = None
         # Run test.
-        actual_results, actual_num_skipped, actual_cost = hllmcli._process_batches(
+        actual_results, actual_num_skipped, actual_token_stats = hllmcli._process_batches(
             values=values,
             batch_size=batch_size,
             prompt=prompt,
@@ -775,6 +779,8 @@ class Test_process_batches(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(actual_results, expected_results)
         self.assertEqual(actual_num_skipped, expected_num_skipped)
+        self.assertIsInstance(actual_token_stats, dict)
+        actual_cost = hllmcli._token_stats_to_float(actual_token_stats)
         self.assertEqual(actual_cost, 0.0)
 
     def test1(self) -> None:
@@ -873,7 +879,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         df: pd.DataFrame,
         batch_size: int,
         expected_df: pd.DataFrame,
-        expected_stats: Dict[str, int],
+        expected_stats: Dict,
     ) -> None:
         """
         Test apply_llm_prompt_to_df with testing_functor that uses eval.
@@ -908,7 +914,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         num_items: int,
         batch_size: int,
         num_skipped: int,
-    ) -> Dict[str, int]:
+    ) -> Dict:
         """
         Build expected stats dictionary for test assertions.
         """
@@ -916,6 +922,8 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             "num_items": num_items,
             "num_skipped": num_skipped,
             "num_batches": (num_items + batch_size - 1) // batch_size,
+            "total_input_tokens": 0,
+            "total_output_tokens": 0,
             "total_cost_in_dollars": 0.0,
         }
 
@@ -1626,12 +1634,14 @@ class Test_mock_apply_llm(hunitest.TestCase):
         ).hexdigest()
         # Run test.
         with hllmcli.mock_apply_llm():
-            actual_response, actual_cost = hllmcli.apply_llm(
+            actual_response, actual_token_stats = hllmcli.apply_llm(
                 input_str,
                 system_prompt=system_prompt,
             )
         # Check outputs.
         self.assertEqual(actual_response, expected_hash)
+        self.assertIsInstance(actual_token_stats, dict)
+        actual_cost = hllmcli._token_stats_to_float(actual_token_stats)
         self.assertEqual(actual_cost, 0.0)
 
     def test2(self) -> None:
@@ -1643,9 +1653,11 @@ class Test_mock_apply_llm(hunitest.TestCase):
         expected_hash = hashlib.md5(input_str.encode()).hexdigest()
         # Run test.
         with hllmcli.mock_apply_llm():
-            actual_response, actual_cost = hllmcli.apply_llm(input_str)
+            actual_response, actual_token_stats = hllmcli.apply_llm(input_str)
         # Check outputs.
         self.assertEqual(actual_response, expected_hash)
+        self.assertIsInstance(actual_token_stats, dict)
+        actual_cost = hllmcli._token_stats_to_float(actual_token_stats)
         self.assertEqual(actual_cost, 0.0)
 
     def test3(self) -> None:
