@@ -150,7 +150,7 @@ def _token_stats_to_float(token_stats: TokenStats) -> float:
     return 0.0
 
 
-def _token_stats_to_str(token_stats: TokenStats) -> str:
+def token_stats_to_str(token_stats: TokenStats) -> str:
     """
     Convert a token stats dictionary to a formatted string for logging.
 
@@ -158,9 +158,13 @@ def _token_stats_to_str(token_stats: TokenStats) -> str:
     :return: formatted string with cost and token counts
     """
     cost = _token_stats_to_float(token_stats)
-    input_tokens = token_stats.get("input_tokens", 0)
-    output_tokens = token_stats.get("output_tokens", 0)
-    return f"Cost: ${cost:.6f} (input: {input_tokens} tokens, output: {output_tokens} tokens)"
+    res = f"Cost: ${cost:.6f} ("
+    fields = ["input_tokens", "output_tokens", "cost_from_llm_library", "cost_from_tokencost"]
+    for field in fields:
+        val = token_stats.get(field, "na")
+        res += f"{field}={val}, "
+    res += ")"
+    return res
 
 
 # #############################################################################
@@ -432,7 +436,7 @@ def _apply_llm_via_library(
         )
         _LOG.debug(
             "Cost: %s",
-            _token_stats_to_str(token_stats),
+            token_stats_to_str(token_stats),
         )
     return response, token_stats
 
@@ -789,7 +793,7 @@ def apply_llm_batch_individual(
     _LOG.debug("Batch processing completed")
     _LOG.debug(
         "Total cost for batch with individual prompt: %s",
-        _token_stats_to_str(aggregated_cost),
+        token_stats_to_str(aggregated_cost),
     )
     return responses, aggregated_cost
 
@@ -846,7 +850,7 @@ def apply_llm_batch_with_shared_prompt(
     _LOG.debug("Batch processing completed")
     _LOG.debug(
         "Total cost for batch with shared prompt: %s",
-        _token_stats_to_str(aggregated_cost),
+        token_stats_to_str(aggregated_cost),
     )
     return responses, aggregated_cost
 
@@ -957,7 +961,7 @@ def apply_llm_batch_combined(
                     )
                 _LOG.debug(
                     "Total cost for batch with combined prompt: %s",
-                    _token_stats_to_str(aggregated_cost),
+                    token_stats_to_str(aggregated_cost),
                 )
                 return responses, aggregated_cost
             except (json.JSONDecodeError, ValueError) as e:

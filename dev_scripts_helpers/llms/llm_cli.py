@@ -1,10 +1,8 @@
 #!/usr/bin/env -S uv run
 
-# TODO(ai_gp): Remove pandas dependency.
 # /// script
 # dependencies = [
 #   "llm",
-#   "pandas",
 #   "pyyaml",
 #   "tokencost",
 #   "tqdm",
@@ -224,7 +222,8 @@ def _process_selected_text(
     lint: bool,
     expected_num_chars: Optional[int],
     dry_run: bool,
-) -> float:
+    # TODO(ai_gp): Use hllm.TokenStats
+) -> dict:
     """
     Process file in select mode: extract chunk, transform, reassemble.
 
@@ -323,7 +322,7 @@ def _process_full_text(
     lint: bool,
     expected_num_chars: Optional[int],
     dry_run: bool,
-) -> float:
+) -> dict:
     """
     Process file with input_text, stdin, or print_only mode.
 
@@ -557,8 +556,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.dry_run,
         )
     # Report total cost of LLM operation.
-    # TODO(ai_gp): Use token_stats_to_str
-    _LOG.info("Total cost: $%.6f", cost)
+    _LOG.info("Total cost: %s", hllmcli.token_stats_to_str(cost))
 
 
 if __name__ == "__main__":
