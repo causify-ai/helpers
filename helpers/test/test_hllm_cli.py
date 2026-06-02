@@ -729,6 +729,111 @@ class Test_apply_llm_batch1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_process_batches
+# #############################################################################
+
+
+class Test_process_batches(hunitest.TestCase):
+    """
+    Test _process_batches function with mock backend.
+    """
+
+    def helper(
+        self,
+        values: List[str],
+        batch_size: int,
+        num_batches: int,
+        expected_results: List[str],
+        expected_num_skipped: int,
+    ) -> None:
+        """
+        Test helper for _process_batches.
+
+        :param values: input values to process
+        :param batch_size: batch size
+        :param num_batches: number of batches
+        :param expected_results: expected results
+        :param expected_num_skipped: expected skipped count
+        """
+        # Prepare inputs.
+        prompt = "test prompt"
+        batch_mode = "individual"
+        model = "gpt-4o-mini"
+        testing_functor = _eval_functor
+        progress_bar_object = None
+        # Run test.
+        actual_results, actual_num_skipped, actual_cost = hllmcli._process_batches(
+            values=values,
+            batch_size=batch_size,
+            prompt=prompt,
+            batch_mode=batch_mode,
+            model=model,
+            testing_functor=testing_functor,
+            progress_bar_object=progress_bar_object,
+            num_batches=num_batches,
+        )
+        # Check outputs.
+        self.assertEqual(actual_results, expected_results)
+        self.assertEqual(actual_num_skipped, expected_num_skipped)
+        self.assertEqual(actual_cost, 0.0)
+
+    def test1(self) -> None:
+        """
+        Test single batch processing.
+        """
+        values = ["2 + 2", "3 * 3", "10 - 5"]
+        batch_size = 10
+        num_batches = 1
+        expected_results = ["4", "9", "5"]
+        expected_num_skipped = 0
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+    def test2(self) -> None:
+        """
+        Test multiple batches processing.
+        """
+        values = ["2 + 2", "3 * 3", "10 - 5", "20 / 4"]
+        batch_size = 2
+        num_batches = 2
+        expected_results = ["4", "9", "5", "5.0"]
+        expected_num_skipped = 0
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+    def test3(self) -> None:
+        """
+        Test with empty values mixed in.
+        """
+        values = ["2 + 2", "", "10 - 5"]
+        batch_size = 2
+        num_batches = 2
+        expected_results = ["4", "", "5"]
+        expected_num_skipped = 1
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+    def test4(self) -> None:
+        """
+        Test with all empty values in a batch.
+        """
+        values = ["2 + 2", "", "", "20 / 4"]
+        batch_size = 2
+        num_batches = 2
+        expected_results = ["4", "", "", "5.0"]
+        expected_num_skipped = 2
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+    def test5(self) -> None:
+        """
+        Test with many batches and sparse values.
+        """
+        values = ["1 + 1", "", "3 + 3", "", "5 * 5"]
+        batch_size = 1
+        num_batches = 5
+        expected_results = ["2", "", "6", "", "25"]
+        expected_num_skipped = 2
+        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
+
+
+# #############################################################################
 # Test_apply_llm_prompt_to_df1
 # #############################################################################
 
@@ -1498,112 +1603,6 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         #
         batch_size = 32
         self.helper(model, batch_size)
-
-
-# #############################################################################
-# Test_process_batches
-# #############################################################################
-
-
-class Test_process_batches(hunitest.TestCase):
-    """
-    Test _process_batches function with mock backend.
-    """
-
-    def helper(
-        self,
-        values: List[str],
-        batch_size: int,
-        num_batches: int,
-        expected_results: List[str],
-        expected_num_skipped: int,
-    ) -> None:
-        """
-        Test helper for _process_batches.
-
-        :param values: input values to process
-        :param batch_size: batch size
-        :param num_batches: number of batches
-        :param expected_results: expected results
-        :param expected_num_skipped: expected skipped count
-        """
-        # Prepare inputs.
-        prompt = "test prompt"
-        batch_mode = "individual"
-        model = "gpt-4o-mini"
-        testing_functor = _eval_functor
-        progress_bar_object = None
-        # Run test.
-        actual_results, actual_num_skipped, actual_cost = hllmcli._process_batches(
-            values=values,
-            batch_size=batch_size,
-            prompt=prompt,
-            batch_mode=batch_mode,
-            model=model,
-            testing_functor=testing_functor,
-            progress_bar_object=progress_bar_object,
-            num_batches=num_batches,
-        )
-        # Check outputs.
-        self.assertEqual(actual_results, expected_results)
-        self.assertEqual(actual_num_skipped, expected_num_skipped)
-        self.assertEqual(actual_cost, 0.0)
-
-    def test1(self) -> None:
-        """
-        Test single batch processing.
-        """
-        values = ["2 + 2", "3 * 3", "10 - 5"]
-        batch_size = 10
-        num_batches = 1
-        expected_results = ["4", "9", "5"]
-        expected_num_skipped = 0
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
-
-    def test2(self) -> None:
-        """
-        Test multiple batches processing.
-        """
-        values = ["2 + 2", "3 * 3", "10 - 5", "20 / 4"]
-        batch_size = 2
-        num_batches = 2
-        expected_results = ["4", "9", "5", "5.0"]
-        expected_num_skipped = 0
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
-
-    def test3(self) -> None:
-        """
-        Test with empty values mixed in.
-        """
-        values = ["2 + 2", "", "10 - 5"]
-        batch_size = 2
-        num_batches = 2
-        expected_results = ["4", "", "5"]
-        expected_num_skipped = 1
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
-
-    def test4(self) -> None:
-        """
-        Test with all empty values in a batch.
-        """
-        values = ["2 + 2", "", "", "20 / 4"]
-        batch_size = 2
-        num_batches = 2
-        expected_results = ["4", "", "", "5.0"]
-        expected_num_skipped = 2
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
-
-    def test5(self) -> None:
-        """
-        Test with many batches and sparse values.
-        """
-        values = ["1 + 1", "", "3 + 3", "", "5 * 5"]
-        batch_size = 1
-        num_batches = 5
-        expected_results = ["2", "", "6", "", "25"]
-        expected_num_skipped = 2
-        self.helper(values, batch_size, num_batches, expected_results, expected_num_skipped)
-
 
 # #############################################################################
 # Test_mock_apply_llm
