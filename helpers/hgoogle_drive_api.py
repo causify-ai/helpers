@@ -1216,7 +1216,7 @@ def read_all_gsheets(
     :return: A list of DataFrames, one for each sheet.
     """
     dfs = []
-    # TODO(ai_gp): -> _all_
+    # TODO(gp): -> _all_
     if tab_names == "all":
         tab_names = get_tabs_from_gsheet(url)
     for tab_name in tab_names:

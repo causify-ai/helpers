@@ -464,7 +464,7 @@ def _summarize_text_with_llm(
         f"--input={input_file}",
         f"--output={output_file}",
         f"--pf={prompt_file}",
-        # TODO(ai_gp): Pass this.
+        # TODO(ai_gp): Pass this as a parameter.
         "--model=gpt-4o-mini",
         "--lint",
     ]

@@ -222,7 +222,7 @@ def _process_selected_text(
     lint: bool,
     expected_num_chars: Optional[int],
     dry_run: bool,
-    # TODO(ai_gp): Use hllm.TokenStats
+    # TODO(ai_gp): Use hllm.TokenStats instead of a dict everywhere
 ) -> dict:
     """
     Process file in select mode: extract chunk, transform, reassemble.
