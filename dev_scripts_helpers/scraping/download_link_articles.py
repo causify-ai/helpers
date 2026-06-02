@@ -451,13 +451,21 @@ def _summarize_text_with_llm(
     :param prompt: System prompt to guide the summarization
     """
     _LOG.info("Summarizing: %s", input_file)
-    # Build command to call llm_cli.py with the given prompt.
+    # Save prompt to a temporary file.
+    prompt_file = f"{output_file}.prompt.txt"
+    # TODO(ai_gp): Use hio.to_file
+    with open(prompt_file, "w") as f:
+        f.write(prompt)
+    _LOG.debug("Saved prompt to: %s", prompt_file)
+    # Build command to call llm_cli.py with the given prompt file.
     llm_cli_path = "dev_scripts_helpers/llms/llm_cli.py"
     cmd_parts = [
         llm_cli_path,
         f"--input={input_file}",
         f"--output={output_file}",
-        f"--system_prompt={prompt}",
+        f"--pf={prompt_file}",
+        # TODO(ai_gp): Pass this.
+        "--model=gpt-4o-mini",
         "--lint",
     ]
     cmd = " ".join(cmd_parts)

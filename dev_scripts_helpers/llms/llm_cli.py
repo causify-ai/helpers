@@ -1,5 +1,6 @@
 #!/usr/bin/env -S uv run
 
+# TODO(ai_gp): Remove pandas dependency.
 # /// script
 # dependencies = [
 #   "llm",
@@ -28,6 +29,7 @@ import argparse
 import logging
 import os
 import pprint
+from importlib.metadata import distributions, version
 from typing import Optional, Tuple
 
 import llm
@@ -393,6 +395,16 @@ def _is_plugin_installed(plugin_module_name: str) -> bool:
         return False
 
 
+def _log_plugin_versions() -> None:
+    """
+    Log the versions of all installed llm plugins and packages.
+    """
+    for dist in sorted(distributions(), key=lambda d: d.metadata["Name"].lower()):
+        name = dist.metadata["Name"]
+        if name.startswith("llm"):
+            _LOG.info("Plugin '%s' version: %s", name, dist.version)
+
+
 def install_models() -> None:
     """
     Install the llm-openrouter and llm-anthropic plugins if not already installed.
@@ -473,7 +485,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if args.log_level == "INFO":
             verbosity = "CRITICAL"
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
+    _LOG.info("llm version: %s", version("llm"))
+    _LOG.info("tokencost version: %s", version("tokencost"))
     install_models()
+    _log_plugin_versions()
     # Execute arbitrary llm command if provided.
     if args.llm_cmd:
         execute_llm_command(args.llm_cmd)
