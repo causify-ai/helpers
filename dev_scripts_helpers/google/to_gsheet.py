@@ -143,11 +143,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.url, credentials=credentials
     )
     tab_exists = tab_name in existing_tabs
-    # TODO(ai_gp): Use a dassert
-    if tab_exists and not args.overwrite:
-        hdbg.dfatal(
-            f"Tab '{tab_name}' already exists in the Google Sheet. Use --overwrite to replace it."
-        )
+    # TODO(ai_gp): Use dassert_imply
+    hdbg.dassert(
+        not tab_exists or args.overwrite,
+        f"Tab '{tab_name}' already exists in the Google Sheet. Use --overwrite to replace it.",
+    )
     # Write data to Google Sheet.
     _LOG.info("Writing data to tab '%s' in Google Sheet", tab_name)
     hgodrapi.to_gsheet(

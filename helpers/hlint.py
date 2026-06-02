@@ -16,8 +16,8 @@ import helpers.hselect_input_output as hseinout
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp): Pass an option to call executable or library.
-def lint_file(file_path: str) -> None:
+# TODO(ai_gp): Use backend = "docker", "library" instead of use_executable
+def lint_file(file_path: str, *, use_executable: bool = True) -> None:
     """
     Lint a file to ensure proper formatting.
 
@@ -25,9 +25,11 @@ def lint_file(file_path: str) -> None:
     markdown processing, and style enforcement.
 
     :param file_path: path to the file to lint
+    :param use_executable: Whether to call the lint_txt.py script (executable)
+        or use the library directly
     """
     _LOG.info("Linting file: %s", file_path)
-    if True:
+    if use_executable:
         # Find the lint_txt.py script.
         script_path = hgit.find_file_in_git_tree("lint_txt.py")
         hdbg.dassert_file_exists(script_path)

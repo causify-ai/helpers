@@ -80,6 +80,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
@@ -441,7 +442,9 @@ def _download_article_urls(
 
 
 def _summarize_text_with_llm(
-    input_file: str, output_file: str, *, prompt: str
+    input_file: str, output_file: str, 
+    # TODO(ai_gp): Make these mandatory with no default and remove the *
+    *, prompt: str, model: str = "gpt-4o-mini"
 ) -> None:
     """
     Summarize text using llm_cli.py and lint the output.
@@ -449,13 +452,12 @@ def _summarize_text_with_llm(
     :param input_file: Path to input text file to summarize
     :param output_file: Path to save the summary
     :param prompt: System prompt to guide the summarization
+    :param model: LLM model to use for summarization
     """
     _LOG.info("Summarizing: %s", input_file)
     # Save prompt to a temporary file.
     prompt_file = f"{output_file}.prompt.txt"
-    # TODO(ai_gp): Use hio.to_file
-    with open(prompt_file, "w") as f:
-        f.write(prompt)
+    hio.to_file(prompt_file, prompt)
     _LOG.debug("Saved prompt to: %s", prompt_file)
     # Build command to call llm_cli.py with the given prompt file.
     llm_cli_path = "dev_scripts_helpers/llms/llm_cli.py"
@@ -464,8 +466,7 @@ def _summarize_text_with_llm(
         f"--input={input_file}",
         f"--output={output_file}",
         f"--pf={prompt_file}",
-        # TODO(ai_gp): Pass this as a parameter.
-        "--model=gpt-4o-mini",
+        f"--model={model}",
         "--lint",
     ]
     cmd = " ".join(cmd_parts)

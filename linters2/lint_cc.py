@@ -245,10 +245,8 @@ def _run_claude_code(
     prompt: str,
     topic: str,
     file_path: str,
-    *,
-    # TODO(ai_gp): Make these parameters mandatory.
-    dry_run: bool = False,
-    model: str = model_default,
+    dry_run: bool,
+    model: str,
 ) -> int:
     """
     Run Claude Code with the given prompt.

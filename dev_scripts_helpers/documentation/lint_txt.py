@@ -731,7 +731,7 @@ def _process_single_file(
         lines,
         in_file_name,
         actions=actions,
-        print_width=args.print_width,
+        width=args.print_width,
         use_dockerized_prettier=args.use_dockerized_prettier,
         use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
     )
@@ -757,12 +757,14 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-w",
+        # TODO(ai_gp): Use --width
         "--print-width",
         action="store",
         type=int,
         default=None,
         help="The maximum line width for the formatted text.",
     )
+    # TODO(gp): Convert to backend "global", "dockerized".
     parser.add_argument(
         "--use_dockerized_prettier",
         dest="use_dockerized_prettier",

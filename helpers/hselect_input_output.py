@@ -31,8 +31,13 @@ class _SingleFilesAction(argparse.Action):
     Custom action that errors if --files is used multiple times.
     """
 
-    # TODO(ai_gp): Add type hints.
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: Any,
+        option_string: Optional[str] = None,
+    ) -> None:
         if getattr(namespace, self.dest, None) is not None:
             msg = (
                 f"{option_string} can only be specified once. "

@@ -13,25 +13,6 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp): Move to hmarkdown_formatting.py.
-def _is_mdformat_available() -> bool:
-    """Check if mdformat package is available."""
-    try:
-        import mdformat  # noqa: F401
-        return True
-    except ImportError:
-        return False
-
-
-def _is_flowmark_available() -> bool:
-    """Check if flowmark package is available."""
-    try:
-        import flowmark  # noqa: F401
-        return True
-    except ImportError:
-        return False
-
-
 # #############################################################################
 # Test_remove_end_of_line_periods1
 # #############################################################################
@@ -1507,7 +1488,7 @@ class Test_format_md_prettier(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not _is_mdformat_available(),
+    not hmarform._is_mdformat_available(),
     reason="mdformat package not installed"
 )
 class Test_format_md_mdformat(hunitest.TestCase):
@@ -1571,7 +1552,7 @@ class Test_format_md_mdformat(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not _is_flowmark_available(),
+    not hmarform._is_flowmark_available(),
     reason="flowmark package not installed"
 )
 class Test_format_md_flowmark(hunitest.TestCase):
@@ -1684,9 +1665,9 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
             ("prettier", "dockerized"),
         ]
         # Add optional backends if available
-        if _is_mdformat_available():
+        if hmarform._is_mdformat_available():
             test_cases.append(("mdformat", "library"))
-        if _is_flowmark_available():
+        if hmarform._is_flowmark_available():
             test_cases.append(("flowmark", "library"))
         results = []
         for backend, mode in test_cases:

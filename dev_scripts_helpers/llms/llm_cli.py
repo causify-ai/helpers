@@ -222,8 +222,7 @@ def _process_selected_text(
     lint: bool,
     expected_num_chars: Optional[int],
     dry_run: bool,
-    # TODO(ai_gp): Use hllm.TokenStats instead of a dict everywhere
-) -> dict:
+) -> hllmcli.TokenStats:
     """
     Process file in select mode: extract chunk, transform, reassemble.
 
@@ -269,9 +268,9 @@ def _process_selected_text(
             chunk_text,
         )
         response = ""
-        cost = 0.0
+        token_stats = {}
     else:
-        response, cost = hllmcli.apply_llm(
+        response, token_stats = hllmcli.apply_llm(
             chunk_text,
             system_prompt=system_prompt,
             model=model,
@@ -309,7 +308,7 @@ def _process_selected_text(
     else:
         if not dry_run:
             hseinout.to_file(response, output_file)
-    return cost
+    return token_stats
 
 
 def _process_full_text(
@@ -322,7 +321,7 @@ def _process_full_text(
     lint: bool,
     expected_num_chars: Optional[int],
     dry_run: bool,
-) -> dict:
+) -> hllmcli.TokenStats:
     """
     Process file with input_text, stdin, or print_only mode.
 

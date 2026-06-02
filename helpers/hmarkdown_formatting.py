@@ -19,6 +19,7 @@ import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(ai_gp): Make these is_... functions public without the _
 def _is_prettier_available(mode: str) -> bool:
     """
     Check if prettier executable is available for the given mode.
@@ -34,6 +35,7 @@ def _is_prettier_available(mode: str) -> bool:
     return False
 
 
+# TODO(gp): Consider caching this.
 def _is_mdformat_available_global() -> bool:
     """
     Check if mdformat executable is available globally.
@@ -52,6 +54,24 @@ def _is_flowmark_available_global() -> bool:
     """
     result = hsystem.system("which flowmark", suppress_output=True)
     return result == 0
+
+
+def _is_mdformat_available() -> bool:
+    """Check if mdformat package is available."""
+    try:
+        import mdformat  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+def _is_flowmark_available() -> bool:
+    """Check if flowmark package is available."""
+    try:
+        import flowmark  # noqa: F401
+        return True
+    except ImportError:
+        return False
 
 
 def remove_end_of_line_periods(lines: List[str]) -> List[str]:
@@ -590,7 +610,7 @@ def _format_with_prettier(
     if mode == "dockerized":
         _LOG.debug("Using dockerized prettier for formatting")
         formatted_txt = dshdlipr.prettier_on_str(
-            txt, "md", print_width=width
+            txt, "md", width=width
         )
     else:
         # mode == "global": use global prettier executable
