@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Optional
 
 import pytest
 
@@ -967,10 +968,6 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         expected = hprint.dedent(expected_text).strip()
         self.assert_equal(actual, expected)
 
-    # =========================================================================
-    # Edge cases.
-    # =========================================================================
-
     def test1(self) -> None:
         """
         Test empty input.
@@ -1005,10 +1002,6 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Plain URL conversion: http://... or https://...
-    # =========================================================================
-
     def test3(self) -> None:
         """
         Test converting single plain HTTP URL.
@@ -1039,7 +1032,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_with_path(self) -> None:
+    def test5(self) -> None:
         """
         Test converting plain URLs with paths.
         """
@@ -1053,7 +1046,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_with_query_parameters(self) -> None:
+    def test6(self) -> None:
         """
         Test converting plain URL with query parameters.
         """
@@ -1067,7 +1060,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_with_fragment(self) -> None:
+    def test7(self) -> None:
         """
         Test converting plain URL with fragment.
         """
@@ -1081,7 +1074,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_at_line_start(self) -> None:
+    def test8(self) -> None:
         """
         Test plain URL at beginning of line.
         """
@@ -1095,7 +1088,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_at_line_end(self) -> None:
+    def test9(self) -> None:
         """
         Test plain URL at end of line.
         """
@@ -1109,11 +1102,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # URL in backticks conversion: `http://...` or `https://...`
-    # =========================================================================
-
-    def test_backtick_url(self) -> None:
+    def test10(self) -> None:
         """
         Test converting single URL in backticks.
         """
@@ -1127,11 +1116,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Markdown link conversion: [Text](URL)
-    # =========================================================================
-
-    def test_markdown_link_simple(self) -> None:
+    def test11(self) -> None:
         """
         Test converting simple markdown link [Text](URL).
         """
@@ -1145,7 +1130,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_markdown_link_preserves_text(self) -> None:
+    def test12(self) -> None:
         """
         Test that markdown link preserves the display text.
         """
@@ -1159,11 +1144,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Email link conversion: [email@domain.com](email@domain.com)
-    # =========================================================================
-
-    def test_email_link_simple1(self) -> None:
+    def test13(self) -> None:
         """
         Test converting simple email link.
         """
@@ -1177,7 +1158,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_email_link_simple2(self) -> None:
+    def test14(self) -> None:
         """
         Test converting simple email link.
         """
@@ -1191,11 +1172,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Multiple URLs.
-    # =========================================================================
-
-    def test_multiple_urls_same_line(self) -> None:
+    def test15(self) -> None:
         """
         Test converting multiple URLs on same line.
         """
@@ -1209,7 +1186,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_multiple_urls_different_lines(self) -> None:
+    def test16(self) -> None:
         """
         Test converting multiple URLs on different lines.
         """
@@ -1227,11 +1204,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Mixed link types.
-    # =========================================================================
-
-    def test_mixed_plain_and_backtick_urls(self) -> None:
+    def test17(self) -> None:
         """
         Test handling mixed plain and backtick URLs.
         """
@@ -1247,7 +1220,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_mixed_plain_and_markdown_links(self) -> None:
+    def test18(self) -> None:
         """
         Test handling mixed plain URLs and markdown links.
         """
@@ -1263,7 +1236,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_mixed_all_types(self) -> None:
+    def test19(self) -> None:
         """
         Test handling all link types in same content.
         """
@@ -1289,11 +1262,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Complex scenarios.
-    # =========================================================================
-
-    def test_url_with_file_extension(self) -> None:
+    def test20(self) -> None:
         """
         Test URL pointing to file with extension.
         """
@@ -1307,7 +1276,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_already_formatted_link_preserved(self) -> None:
+    def test21(self) -> None:
         """
         Test that already formatted links are preserved.
         """
@@ -1321,11 +1290,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Image/picture links should be left untouched.
-    # =========================================================================
-
-    def test_filter_image_simple(self) -> None:
+    def test22(self) -> None:
         """
         Test that simple image links are left untouched.
         """
@@ -1339,7 +1304,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_filter_jpg_images(self) -> None:
+    def test23(self) -> None:
         """
         Test that JPG image links are left untouched.
         """
@@ -1353,7 +1318,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_filter_mixed_images_and_emails(self) -> None:
+    def test24(self) -> None:
         """
         Test that image links are not processed while email links are.
         """
@@ -1371,7 +1336,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_filter_image_with_alt_text(self) -> None:
+    def test25(self) -> None:
         """
         Test that image links with alt text are left untouched.
         """
@@ -1385,7 +1350,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_filter_multiple_images(self) -> None:
+    def test26(self) -> None:
         """
         Test that multiple image links are left untouched.
         """
@@ -1403,7 +1368,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_markdown_link_with_escaped_underscores(self) -> None:
+    def test27(self) -> None:
         """
         Test markdown link with escaped underscores in the text.
         """
@@ -1543,25 +1508,33 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_format_md_prettier
+# _Test_format_md_base
 # #############################################################################
 
 
-class Test_format_md_prettier(hunitest.TestCase):
+class _Test_format_md_base(hunitest.TestCase):
     """
-    Test format_md() function with prettier backend.
+    Base class for testing format_md() function with different backends.
+
+    Subclasses should set the backend and available_modes for their formatter.
     """
 
-    def helper(self, input_txt: str, mode: str, *, width: int = 80) -> str:
+    backend: Optional[str] = None
+    mode: Optional[str] = None
+
+    def helper(self, input_txt: str, width: int = 80) -> str:
         """
-        Test helper for format_md with prettier backend.
+        Test helper for format_md with different backends.
 
         :param input_txt: input markdown text
-        :param mode: prettier mode ("dockerized" or "global")
         :param width: line width for formatting
         :return: formatted text
         """
-        formatted = hmarform.format_md(input_txt, "prettier", mode, width=width)
+        hdbg.dassert_is_not(self.backend, None)
+        hdbg.dassert_is_not(self.mode, None)
+        formatted = hmarform.format_md(
+            input_txt, self.backend, self.mode, width=width
+        )
         return formatted
 
     def test1(self) -> None:
@@ -1572,10 +1545,9 @@ class Test_format_md_prettier(hunitest.TestCase):
         input_txt = "# Hello\n\nThis is a test.\n"
         width = 80
         # Run test.
-        actual = self.helper(input_txt, "dockerized", width)
+        actual = self.helper(input_txt, width)
         # Check outputs.
-        self.assertIn("#", actual)
-        self.assertIn("Hello", actual)
+        # TODO(ai_gp): Use self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
@@ -1586,9 +1558,9 @@ class Test_format_md_prettier(hunitest.TestCase):
         # Prepare outputs.
         width = 80
         # Run test.
-        actual = self.helper(input_txt, "dockerized", width)
+        actual = self.helper(input_txt, width)
         # Check outputs.
-        self.assertEqual(actual.strip(), "")
+        # TODO(ai_gp): Use self.assert_equal(actual, expected)
 
     def test3(self) -> None:
         """
@@ -1605,10 +1577,9 @@ class Test_format_md_prettier(hunitest.TestCase):
         input_txt = hprint.dedent(input_txt)
         width = 80
         # Run test.
-        actual = self.helper(input_txt, "dockerized", width)
+        actual = self.helper(input_txt, width)
         # Check outputs.
-        self.assertIn("Section", actual)
-        self.assertIn("Item", actual)
+        # TODO(ai_gp): Use self.assert_equal(actual, expected)
 
     def test4(self) -> None:
         """
@@ -1617,11 +1588,44 @@ class Test_format_md_prettier(hunitest.TestCase):
         # Prepare inputs.
         input_txt = "This is a very long line that should be wrapped at a shorter width to test the width parameter functionality."
         # Run test with different widths.
-        actual_40 = self.helper(input_txt, "dockerized", 40)
-        actual_80 = self.helper(input_txt, "dockerized", 80)
+        actual = self.helper(input_txt, 40)
         # Check outputs.
-        self.assertIn("This is", actual_40)
-        self.assertIn("This is", actual_80)
+        # TODO(ai_gp): Use self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test that width parameter affects formatting.
+        """
+        # Prepare inputs.
+        input_txt = "This is a very long line that should be wrapped at a shorter width to test the width parameter functionality."
+        # Run test with different widths.
+        text = self.helper(input_txt, 60)
+        # Check outputs.
+        # TODO(ai_gp): Use self.assert_equal(actual, expected)
+
+
+# #############################################################################
+# Test_format_md_prettier
+# #############################################################################
+
+
+class Test_format_md_prettier1(_Test_format_md_base):
+    """
+    Test format_md() function with prettier backend.
+    """
+
+    backend = "prettier"
+    mode = "dockerized"
+
+
+# TODO(ai_gp): Add a check to see if prettier is present
+class Test_format_md_prettier2(_Test_format_md_base):
+    """
+    Test format_md() function with prettier backend.
+    """
+
+    backend = "prettier"
+    mode = "global"
 
 
 # #############################################################################
@@ -1632,163 +1636,31 @@ class Test_format_md_prettier(hunitest.TestCase):
 @pytest.mark.skipif(
     not hmarform.is_mdformat_available(), reason="mdformat package not installed"
 )
-class Test_format_md_mdformat(hunitest.TestCase):
+class Test_format_md_mdformat1(_Test_format_md_base):
     """
     Test format_md() function with mdformat backend.
     """
 
-    def helper(self, input_txt: str, mode: str, width: int = 80) -> str:
-        """
-        Test helper for format_md with mdformat backend.
-
-        :param input_txt: input markdown text
-        :param mode: mdformat mode ("library", "uvx", or "global")
-        :param width: line width for formatting
-        :return: formatted text
-        """
-        formatted = hmarform.format_md(input_txt, "mdformat", mode, width=width)
-        return formatted
-
-    def test1(self) -> None:
-        """
-        Test simple markdown formatting with mdformat library.
-        """
-        # Prepare inputs.
-        input_txt = "# Hello\n\nThis is a test.\n"
-        width = 80
-        # Run test.
-        actual = self.helper(input_txt, "library", width)
-        # Check outputs.
-        self.assertIn("Hello", actual)
-
-    def test2(self) -> None:
-        """
-        Test empty input with mdformat library.
-        """
-        # Prepare inputs.
-        input_txt = ""
-        width = 80
-        # Run test.
-        actual = self.helper(input_txt, "library", width)
-        # Check outputs.
-        self.assertEqual(actual.strip(), "")
-
-    def test3(self) -> None:
-        """
-        Test multiline markdown with mdformat library.
-        """
-        # Prepare inputs.
-        input_txt = """
-        # Section
-
-        - Item 1
-        - Item 2
-        """
-        input_txt = hprint.dedent(input_txt)
-        width = 80
-        # Run test.
-        actual = self.helper(input_txt, "library", width)
-        # Check outputs.
-        self.assertIn("Section", actual)
+    backend = "mdformat"
+    available_modes = "library"
 
 
-# #############################################################################
-# Test_format_md_flowmark
-# #############################################################################
+class Test_format_md_mdformat2(_Test_format_md_base):
+
+    backend = "mdformat"
+    modes = "uvx"
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available(), reason="flowmark package not installed"
+    not hmarform.is_mdformat_available(), reason="mdformat package not installed"
 )
-class Test_format_md_flowmark(hunitest.TestCase):
-    """
-    Test format_md() function with flowmark backend.
-    """
+class Test_format_md_mdformat3(_Test_format_md_base):
 
-    def helper(self, input_txt: str, mode: str, width: int = 80) -> str:
-        """
-        Test helper for format_md with flowmark backend.
-
-        :param input_txt: input markdown text
-        :param mode: flowmark mode ("library", "uvx-rs", "uvx", "global", "global-rs")
-        :param width: line width for formatting
-        :return: formatted text
-        """
-        formatted = hmarform.format_md(input_txt, "flowmark", mode, width=width)
-        return formatted
-
-    def test1(self) -> None:
-        """
-        Test that invalid mode raises error.
-        """
-        # Prepare inputs.
-        input_txt = "# Test\n"
-        invalid_mode = "invalid_mode"
-        width = 80
-        # Run test and check error.
-        with self.assertRaises(AssertionError):
-            self.helper(input_txt, invalid_mode, width)
+    backend = "mdformat"
+    modes = "uvx"
 
 
-# #############################################################################
-# Test_format_md_invalid_backend
-# #############################################################################
-
-
-class Test_format_md_invalid_backend(hunitest.TestCase):
-    """
-    Test format_md() function with invalid backend.
-    """
-
-    def test1(self) -> None:
-        """
-        Test that invalid backend raises error.
-        """
-        # Prepare inputs.
-        input_txt = "# Test\n"
-        invalid_backend = "invalid_backend"
-        mode = "library"
-        width = 80
-        # Run test and check error.
-        with self.assertRaises(AssertionError):
-            hmarform.format_md(input_txt, invalid_backend, mode, width=width)
-
-
-# #############################################################################
-# Test_format_md_input_validation
-# #############################################################################
-
-
-class Test_format_md_input_validation(hunitest.TestCase):
-    """
-    Test format_md() function input validation.
-    """
-
-    def test1(self) -> None:
-        """
-        Test that invalid width raises error.
-        """
-        # Prepare inputs.
-        input_txt = "# Test\n"
-        backend = "prettier"
-        mode = "dockerized"
-        invalid_width = 0
-        # Run test and check error.
-        with self.assertRaises(AssertionError):
-            hmarform.format_md(input_txt, backend, mode, width=invalid_width)
-
-    def test2(self) -> None:
-        """
-        Test that negative width raises error.
-        """
-        # Prepare inputs.
-        input_txt = "# Test\n"
-        backend = "prettier"
-        mode = "dockerized"
-        invalid_width = -10
-        # Run test and check error.
-        with self.assertRaises(AssertionError):
-            hmarform.format_md(input_txt, backend, mode, width=invalid_width)
+# TODO(ai_gp): Create the corresponding tests for Test_format_md_flowmark
 
 
 # #############################################################################

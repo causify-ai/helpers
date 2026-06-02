@@ -5,40 +5,87 @@
 #   name on exit (when inside a tmux session).
 # - Runs with --dangerously-skip-permissions flag.
 # - Passes all arguments to the claude command.
-# - Usage: cc [claude_options]
+# - Usage: cc [--model {anthropic|deepseek}] [--test] [-v] [claude_options]
 # """
+
+print_help() {
+    echo "Usage: cc [OPTIONS] [claude_options]"
+    echo ""
+    echo "Options:"
+    echo "  --model {anthropic|deepseek}  Set the model provider"
+    echo "  --test                        Run diagnostics (claude doctor and /models)"
+    echo "  -v                            Enable verbose mode (set -x)"
+    echo "  --help                        Show this help message"
+    echo ""
+}
+
+# Parse command line options
+MODEL="anthropic"
+RUN_TEST=false
+VERBOSE=false
+CLAUDE_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --model)
+            MODEL="$2"
+            shift 2
+            ;;
+        --test)
+            RUN_TEST=true
+            shift
+            ;;
+        -v)
+            VERBOSE=true
+            shift
+            ;;
+        --help)
+            print_help
+            exit 0
+            ;;
+        *)
+            CLAUDE_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if [ "$VERBOSE" = true ]; then
+    set -x
+fi
+
+# TODO(ai_gp): Merge this with the check below.
+if [[ ! "$MODEL" =~ ^(anthropic|deepseek)$ ]]; then
+    echo "Error: Invalid model '$MODEL'. Valid options are: anthropic, deepseek" >&2
+    exit 1
+fi
 
 # Rename tmux pane to CC if inside tmux, and restore on exit.
 if [ -n "$TMUX" ]; then
     OLD_PANE_TITLE=$(tmux display-message -p '#W')
-    #echo "OLD_PANE_TITLE="$OLD_PANE_TITLE
     tmux rename-window "*CC*"
 fi
 
-# TODO(ai_gp): Add an option --model anthropic
-unset ANTHROPIC_DEFAULT_HAIKU_MODEL
-unset ANTHROPIC_DEFAULT_SONNET_MODEL
-unset ANTHROPIC_DEFAULT_OPUS_MODEL
-unset ANTHROPIC_BASE_URL
-unset ANTHROPIC_AUTH_TOKEN
+# Configure environment based on model choice
+if [ "$MODEL" = "anthropic" ]; then
+    unset ANTHROPIC_DEFAULT_HAIKU_MODEL
+    unset ANTHROPIC_DEFAULT_SONNET_MODEL
+    unset ANTHROPIC_DEFAULT_OPUS_MODEL
+    unset ANTHROPIC_BASE_URL
+    unset ANTHROPIC_AUTH_TOKEN
+elif [ "$MODEL" = "deepseek" ]; then
+    export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-flash
+    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
+    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
+    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
+fi
 
-# TODO(ai_gp): Add an option --model deepseek
-export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
-export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-flash
-export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
-export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
-export ANTHROPIC_BASE_URL=https://openrouter.ai/api
-
-# TODO(ai_gp): If --model is specified with an invalid string asserts
-#
-# TODO(ai_gp): Parse the command line options and print an help
-
-#TODO(ai_gp): if --test run claude "/models"
 with_timeout() {
     local secs=$1
     shift
 
-    "$@" &
+    bash -c "$*" &
     local pid=$!
 
     (
@@ -53,9 +100,13 @@ with_timeout() {
     kill "$watchdog" 2>/dev/null
     return "$status"
 }
-with_timeout 2 claude doctor
 
-claude --dangerously-skip-permissions $*
+if [ "$RUN_TEST" = true ]; then
+    with_timeout 1 claude doctor
+    with_timeout 1 'echo "/model" | claude'
+else
+    claude --dangerously-skip-permissions "${CLAUDE_ARGS[@]}"
+fi
 
 if [ -n "$TMUX" ]; then
     tmux rename-window $OLD_PANE_TITLE
