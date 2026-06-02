@@ -757,8 +757,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-w",
-        # TODO(ai_gp): Use --width
-        "--print-width",
+        "--width",
         action="store",
         type=int,
         default=None,

@@ -442,9 +442,7 @@ def _download_article_urls(
 
 
 def _summarize_text_with_llm(
-    input_file: str, output_file: str, 
-    # TODO(ai_gp): Make these mandatory with no default and remove the *
-    *, prompt: str, model: str = "gpt-4o-mini"
+    input_file: str, output_file: str, prompt: str, model: str
 ) -> None:
     """
     Summarize text using llm_cli.py and lint the output.
@@ -505,7 +503,7 @@ def _summarize_articles(
         article_summary_file = f"{sanitized_title}.text.summary.txt"
         _LOG.info("Summarizing article text for: %s", title)
         _summarize_text_with_llm(
-            article_file, article_summary_file, prompt=article_prompt
+            article_file, article_summary_file, article_prompt, "gpt-4o-mini"
         )
 
 
@@ -548,7 +546,7 @@ def _summarize_comments(
         comments_summary_file = f"{sanitized_title}.hn_comments.summary.txt"
         _LOG.info("Summarizing HN comments for: %s", title)
         _summarize_text_with_llm(
-            comments_file, comments_summary_file, prompt=comments_prompt
+            comments_file, comments_summary_file, comments_prompt, "gpt-4o-mini"
         )
 
 

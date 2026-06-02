@@ -1488,7 +1488,7 @@ class Test_format_md_prettier(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform._is_mdformat_available(),
+    not hmarform.is_mdformat_available(),
     reason="mdformat package not installed"
 )
 class Test_format_md_mdformat(hunitest.TestCase):
@@ -1552,7 +1552,7 @@ class Test_format_md_mdformat(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform._is_flowmark_available(),
+    not hmarform.is_flowmark_available(),
     reason="flowmark package not installed"
 )
 class Test_format_md_flowmark(hunitest.TestCase):
@@ -1665,9 +1665,9 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
             ("prettier", "dockerized"),
         ]
         # Add optional backends if available
-        if hmarform._is_mdformat_available():
+        if hmarform.is_mdformat_available():
             test_cases.append(("mdformat", "library"))
-        if hmarform._is_flowmark_available():
+        if hmarform.is_flowmark_available():
             test_cases.append(("flowmark", "library"))
         results = []
         for backend, mode in test_cases:

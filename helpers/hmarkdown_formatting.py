@@ -19,8 +19,7 @@ import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp): Make these is_... functions public without the _
-def _is_prettier_available(mode: str) -> bool:
+def is_prettier_available(mode: str) -> bool:
     """
     Check if prettier executable is available for the given mode.
 
@@ -35,8 +34,7 @@ def _is_prettier_available(mode: str) -> bool:
     return False
 
 
-# TODO(gp): Consider caching this.
-def _is_mdformat_available_global() -> bool:
+def is_mdformat_available_global() -> bool:
     """
     Check if mdformat executable is available globally.
 
@@ -46,7 +44,7 @@ def _is_mdformat_available_global() -> bool:
     return result == 0
 
 
-def _is_flowmark_available_global() -> bool:
+def is_flowmark_available_global() -> bool:
     """
     Check if flowmark executable is available globally.
 
@@ -56,7 +54,7 @@ def _is_flowmark_available_global() -> bool:
     return result == 0
 
 
-def _is_mdformat_available() -> bool:
+def is_mdformat_available() -> bool:
     """Check if mdformat package is available."""
     try:
         import mdformat  # noqa: F401
@@ -65,7 +63,7 @@ def _is_mdformat_available() -> bool:
         return False
 
 
-def _is_flowmark_available() -> bool:
+def is_flowmark_available() -> bool:
     """Check if flowmark package is available."""
     try:
         import flowmark  # noqa: F401
@@ -614,7 +612,7 @@ def _format_with_prettier(
         )
     else:
         # mode == "global": use global prettier executable
-        if not _is_prettier_available("global"):
+        if not is_prettier_available("global"):
             raise RuntimeError(
                 "prettier executable not found in PATH. "
                 "Install prettier or use mode='dockerized'"
@@ -668,7 +666,7 @@ def _format_with_mdformat(
             ]
         else:
             # mode == "global": use global mdformat executable
-            if not _is_mdformat_available_global():
+            if not is_mdformat_available_global():
                 raise RuntimeError(
                     "mdformat executable not found in PATH. "
                     "Install mdformat or use mode='library' or mode='uvx'"
@@ -733,7 +731,7 @@ def _format_with_flowmark(
             ]
         elif mode == "global-rs":
             # Rust-based flowmark from global path
-            if not _is_flowmark_available_global():
+            if not is_flowmark_available_global():
                 raise RuntimeError(
                     "flowmark executable not found in PATH. "
                     "Install flowmark or use mode='library' or mode='uvx'"
@@ -747,7 +745,7 @@ def _format_with_flowmark(
             ]
         else:
             # mode == "global": Python-based flowmark from global path
-            if not _is_flowmark_available_global():
+            if not is_flowmark_available_global():
                 raise RuntimeError(
                     "flowmark executable not found in PATH. "
                     "Install flowmark or use mode='library' or mode='uvx'"
