@@ -607,7 +607,9 @@ def find_skill(skill_match: str) -> str:
     """
     cmd = ["mdm", "skill", "f", skill_match]
     result = subprocess.run(cmd, capture_output=True, text=True)
-    matches = result.stdout.strip().split("\n")
+    output = result.stdout.strip()
+    output = re.sub(r'\x1b\[[0-9;]*m', '', output)
+    matches = output.split("\n")
     matches = [m.strip() for m in matches if m.strip()]
     hdbg.dassert_eq(
         len(matches),

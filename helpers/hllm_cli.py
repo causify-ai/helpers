@@ -55,6 +55,11 @@ _LOG = logging.getLogger(__name__)
 _LOG.trace = _LOG.debug
 
 
+# #############################################################################
+# Low-level utility functions
+# #############################################################################
+
+
 def install_needed_modules(
     *, use_sudo: bool = True, venv_path: Optional[str] = None
 ) -> None:
@@ -100,8 +105,28 @@ def shutup_llm_logging() -> None:
 
 
 # #############################################################################
-# Helper functions
+# Low-level utility functions
 # #############################################################################
+
+
+def _compute_text_signature(txt: str) -> str:
+    """
+    Compute a compact signature of text using first and last two words.
+
+    Returns the full text if it contains 4 or fewer words; otherwise returns
+    a compressed representation showing the first and last two words.
+
+    :param txt: text to compute signature for
+    :return: signature string
+        - Format: `"first second ... last-1 last"` for long text
+        - Full text for short text (4 words or fewer)
+    """
+    words = txt.split()
+    if len(words) <= 4:
+        return txt
+    first_two = " ".join(words[:2])
+    last_two = " ".join(words[-2:])
+    return f"{first_two} ... {last_two}"
 
 
 def _check_llm_executable() -> bool:
@@ -118,6 +143,62 @@ def _check_llm_executable() -> bool:
         # llm executable not found.
         _LOG.debug("llm command not found")
         return False
+
+
+def _calculate_cost_from_usage(
+    usage: object,
+    model: str,
+) -> float:
+    """
+    Calculate LLM cost from usage object.
+
+    Uses the tokencost library to compute total cost based on input and output
+    token counts. Returns 0.0 if tokencost library is not available.
+
+    :param usage: usage object from LLM result containing input/output token counts
+    :param model: model name for cost calculation
+    :return: total cost in dollars
+    """
+    if _TOKENCOST_AVAILABLE:
+        input_tokens = usage.input
+        output_tokens = usage.output
+        prompt_cost = tokencost.calculate_cost_by_tokens(
+            num_tokens=input_tokens, model=model, token_type="input"
+        )
+        completion_cost = tokencost.calculate_cost_by_tokens(
+            num_tokens=output_tokens, model=model, token_type="output"
+        )
+        cost = float(prompt_cost + completion_cost)
+    else:
+        cost = 0.0
+    return cost
+
+
+# #############################################################################
+# Backend implementations
+# #############################################################################
+
+
+def _apply_llm_via_mock(
+    input_str: str,
+    *,
+    system_prompt: Optional[str] = None,
+) -> Tuple[str, float]:
+    """
+    Mock LLM application for testing.
+
+    Returns a deterministic MD5 hash of the concatenated input and system
+    prompt text. Useful for testing without making actual API calls.
+
+    :param input_str: the input text to process
+    :param system_prompt: optional system prompt to use
+    :return: tuple of (MD5 digest as string, cost = 0.0)
+    """
+    sig_system = _compute_text_signature(system_prompt) if system_prompt else ""
+    sig_input = _compute_text_signature(input_str)
+    concatenated = f"{sig_system}\n{sig_input}"
+    digest = hashlib.md5(concatenated.encode()).hexdigest()
+    return digest, 0.0
 
 
 def _apply_llm_via_executable(
@@ -180,77 +261,6 @@ def _apply_llm_via_executable(
     cost = 0.0
     _LOG.debug("Cost calculation not available when using llm executable")
     return response, cost
-
-
-def _calculate_cost_from_usage(
-    usage: object,
-    model: str,
-) -> float:
-    """
-    Calculate LLM cost from usage object.
-
-    Uses the tokencost library to compute total cost based on input and output
-    token counts. Returns 0.0 if tokencost library is not available.
-
-    :param usage: usage object from LLM result containing input/output token counts
-    :param model: model name for cost calculation
-    :return: total cost in dollars
-    """
-    if _TOKENCOST_AVAILABLE:
-        input_tokens = usage.input
-        output_tokens = usage.output
-        prompt_cost = tokencost.calculate_cost_by_tokens(
-            num_tokens=input_tokens, model=model, token_type="input"
-        )
-        completion_cost = tokencost.calculate_cost_by_tokens(
-            num_tokens=output_tokens, model=model, token_type="output"
-        )
-        cost = float(prompt_cost + completion_cost)
-    else:
-        cost = 0.0
-    return cost
-
-
-def _compute_text_signature(txt: str) -> str:
-    """
-    Compute a compact signature of text using first and last two words.
-
-    Returns the full text if it contains 4 or fewer words; otherwise returns
-    a compressed representation showing the first and last two words.
-
-    :param txt: text to compute signature for
-    :return: signature string
-        - Format: `"first second ... last-1 last"` for long text
-        - Full text for short text (4 words or fewer)
-    """
-    words = txt.split()
-    if len(words) <= 4:
-        return txt
-    first_two = " ".join(words[:2])
-    last_two = " ".join(words[-2:])
-    return f"{first_two} ... {last_two}"
-
-
-def _apply_llm_via_mock(
-    input_str: str,
-    *,
-    system_prompt: Optional[str] = None,
-) -> Tuple[str, float]:
-    """
-    Mock LLM application for testing.
-
-    Returns a deterministic MD5 hash of the concatenated input and system
-    prompt text. Useful for testing without making actual API calls.
-
-    :param input_str: the input text to process
-    :param system_prompt: optional system prompt to use
-    :return: tuple of (MD5 digest as string, cost = 0.0)
-    """
-    sig_system = _compute_text_signature(system_prompt) if system_prompt else ""
-    sig_input = _compute_text_signature(input_str)
-    concatenated = f"{sig_system}\n{sig_input}"
-    digest = hashlib.md5(concatenated.encode()).hexdigest()
-    return digest, 0.0
 
 
 def _apply_llm_via_library(
@@ -317,7 +327,7 @@ def _apply_llm_via_library(
 
 
 # #############################################################################
-# Main functions
+# Core public API
 # #############################################################################
 
 # Overview of `apply_llm*` functions:
@@ -475,7 +485,7 @@ def apply_llm_with_files(
 
 
 # #############################################################################
-# Batch processing
+# Batch processing helpers
 # #############################################################################
 
 
@@ -599,6 +609,39 @@ def _calculate_llm_cost(
         total_cost = 0.0
     # Convert to float to ensure consistent type.
     return float(total_cost)
+
+
+# TODO(gp): Move it somewhere else.
+def get_tqdm_progress_bar() -> tqdm:
+    """
+    Get the appropriate tqdm progress bar class for the current environment.
+
+    Detects whether running in a Jupyter notebook or terminal and returns
+    the corresponding tqdm class. Notebook environments get the specialized
+    `tqdm.notebook.tqdm` for better Jupyter integration.
+
+    :return: tqdm class appropriate for the current environment
+        - `tqdm.notebook.tqdm` for Jupyter notebooks
+        - `tqdm.tqdm` for terminal environments
+    """
+    # Use appropriate tqdm for notebook or terminal.
+    try:
+        from IPython import get_ipython
+
+        if get_ipython() is not None:
+            from tqdm.notebook import tqdm as notebook_tqdm
+
+            tqdm_progress = notebook_tqdm
+        else:
+            tqdm_progress = tqdm
+    except ImportError:
+        tqdm_progress = tqdm
+    return tqdm_progress
+
+
+# #############################################################################
+# Batch processing implementations
+# #############################################################################
 
 
 def apply_llm_batch_individual(
@@ -831,34 +874,8 @@ def apply_llm_batch_combined(
 
 
 # #############################################################################
-
-
-# TODO(gp): Move it somewhere else.
-def get_tqdm_progress_bar() -> tqdm:
-    """
-    Get the appropriate tqdm progress bar class for the current environment.
-
-    Detects whether running in a Jupyter notebook or terminal and returns
-    the corresponding tqdm class. Notebook environments get the specialized
-    `tqdm.notebook.tqdm` for better Jupyter integration.
-
-    :return: tqdm class appropriate for the current environment
-        - `tqdm.notebook.tqdm` for Jupyter notebooks
-        - `tqdm.tqdm` for terminal environments
-    """
-    # Use appropriate tqdm for notebook or terminal.
-    try:
-        from IPython import get_ipython
-
-        if get_ipython() is not None:
-            from tqdm.notebook import tqdm as notebook_tqdm
-
-            tqdm_progress = notebook_tqdm
-        else:
-            tqdm_progress = tqdm
-    except ImportError:
-        tqdm_progress = tqdm
-    return tqdm_progress
+# Batch orchestration
+# #############################################################################
 
 
 def _call_batch_processor(
@@ -987,10 +1004,10 @@ def _process_batches(
 
 
 # #############################################################################
+# Dataframe processing
+# #############################################################################
 
 
-# TODO(gp): Merge this into _process_batches by extracting the things first
-# with extractor and the column in one shot.
 def _process_dataframe_batches(
     df: pd.DataFrame,
     batch_size: int,
@@ -1230,7 +1247,7 @@ def mock_apply_llm():
 
 
 # #############################################################################
-# Command line options for LLM CLI scripts.
+# CLI argument handling
 # #############################################################################
 
 
