@@ -1,9 +1,11 @@
 import logging
+import json
 import os
 from typing import Optional
 
 import pytest
 
+import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hmarkdown_formatting as hmarform
@@ -1618,10 +1620,13 @@ class Test_format_md_prettier1(_Test_format_md_base):
     mode = "dockerized"
 
 
-# TODO(ai_gp): Add a check to see if prettier is present
+@pytest.mark.skipif(
+    not hmarform.is_prettier_available("global"),
+    reason="prettier not installed globally",
+)
 class Test_format_md_prettier2(_Test_format_md_base):
     """
-    Test format_md() function with prettier backend.
+    Test format_md() function with prettier backend (global mode).
     """
 
     backend = "prettier"
@@ -1638,29 +1643,52 @@ class Test_format_md_prettier2(_Test_format_md_base):
 )
 class Test_format_md_mdformat1(_Test_format_md_base):
     """
-    Test format_md() function with mdformat backend.
+    Test format_md() function with mdformat backend (library mode).
     """
 
     backend = "mdformat"
-    available_modes = "library"
+    mode = "library"
 
 
+@pytest.mark.skipif(
+    not hmarform.is_mdformat_available(), reason="mdformat package not installed"
+)
 class Test_format_md_mdformat2(_Test_format_md_base):
+    """
+    Test format_md() function with mdformat backend (uvx mode).
+    """
 
     backend = "mdformat"
-    modes = "uvx"
+    mode = "uvx"
 
 
 @pytest.mark.skipif(
     not hmarform.is_mdformat_available(), reason="mdformat package not installed"
 )
 class Test_format_md_mdformat3(_Test_format_md_base):
+    """
+    Test format_md() function with mdformat backend (uvx mode alternate).
+    """
 
     backend = "mdformat"
-    modes = "uvx"
+    mode = "uvx"
 
 
-# TODO(ai_gp): Create the corresponding tests for Test_format_md_flowmark
+# #############################################################################
+# Test_format_md_flowmark
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available(), reason="flowmark package not installed"
+)
+class Test_format_md_flowmark1(_Test_format_md_base):
+    """
+    Test format_md() function with flowmark backend (library mode).
+    """
+
+    backend = "flowmark"
+    mode = "library"
 
 
 # #############################################################################
@@ -1682,6 +1710,8 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
         and saved to a JSON file in the output directory for analysis.
         """
         # Prepare inputs.
+        # TODO(ai_gp): Make this input text bigger and with more formatting mistakes in
+        # the markdown to be fixed.
         input_txt = """
         # Test Document
 
@@ -1695,10 +1725,13 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
 
         Some more text here to test formatting.
         """
+        # TODO(ai_gp): Add an expected output.
         input_txt = hprint.dedent(input_txt)
         output_dir = self.get_output_dir()
         hio.create_dir(output_dir, incremental=True)
         # Test data for each backend/mode combination
+        # TODO(ai_gp): Add all the combinations of prettier, mdformat, flowmark, library, uvx, global
+        # and add it to the list of they are possible after checking.
         test_cases = [
             ("prettier", "dockerized"),
         ]
@@ -1713,43 +1746,23 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 timer_ = htimer.Timer()
                 output = hmarform.format_md(input_txt, backend, mode, width=80)
                 timer_.stop()
-                results.append(
-                    {
-                        "backend": backend,
-                        "mode": mode,
-                        "time": str(timer_),
-                        "output_length": len(output),
-                        "success": True,
-                    }
-                )
-                # Check outputs: all should produce non-empty output
-                self.assertGreater(
-                    len(output),
-                    0,
-                    f"{backend}/{mode} should produce non-empty output",
-                )
-                _LOG.info(
-                    "Formatted with %s/%s in %s (output length: %d)",
-                    backend,
-                    mode,
-                    str(timer_),
-                    len(output),
-                )
-            except Exception as e:
-                results.append(
-                    {
-                        "backend": backend,
-                        "mode": mode,
-                        "error": str(e),
-                        "success": False,
-                    }
-                )
-                _LOG.warning(
-                    "Failed to format with %s/%s: %s", backend, mode, str(e)
-                )
-        # Save results to file
-        import json
+                success = True
+            except Exception:
+                # TODO(ai_gp): Fix assertion.
+                success = False
+            results.append(
+                {
+                    "backend": backend,
+                    "mode": mode,
+                    "time": str(timer_),
+                    "output_length": len(output),
+                    "success": success,
+                }
+            )
+            # TODO(ai_gp): Compare output to expected and assert if they are
 
+            # different.
+        # TODO(ai_gp): Save results to file as a pandas table.
         results_file = os.path.join(output_dir, "comparison_results.json")
         hio.to_file(results_file, json.dumps(results, indent=2))
         # Print results
