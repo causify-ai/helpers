@@ -714,25 +714,21 @@ def _format_with_flowmark(
         # Save to file and call via executable
         tmp_file = "tmp.format_md.flowmark.md"
         hio.to_file(tmp_file, txt)
+        opts = ["--auto", f"-w {width}", tmp_file]
         if mode == "uvx-rs":
             _LOG.debug("Using flowmark via uvx-rs for formatting")
             cmd_parts = [
                 "uvx",
                 "--from",
                 "uv:flowmark",
-                "--auto",
-                f"--line-width={width}",
-                tmp_file,
             ]
         elif mode == "uvx":
             _LOG.debug("Using flowmark via uvx for formatting")
             cmd_parts = [
                 "uvx",
                 "flowmark",
-                "--auto",
-                f"--line-width={width}",
-                tmp_file,
             ]
+            cmd_pars.extend(opts)
         elif mode == "global-rs":
             # Rust-based flowmark from global path
             # TODO(ai_gp): Use dassert
@@ -744,9 +740,6 @@ def _format_with_flowmark(
             _LOG.debug("Using global flowmark (Rust) executable for formatting")
             cmd_parts = [
                 "flowmark",
-                "--auto",
-                f"--line-width={width}",
-                tmp_file,
             ]
         else:
             # mode == "global": Python-based flowmark from global path
@@ -759,10 +752,8 @@ def _format_with_flowmark(
             _LOG.debug("Using global flowmark executable for formatting")
             cmd_parts = [
                 "flowmark",
-                "--auto",
-                f"--line-width={width}",
-                tmp_file,
             ]
+            cmd_pars.extend(opts)
         cmd = " ".join(cmd_parts)
         hsystem.system(cmd)
         formatted_txt = hio.from_file(tmp_file)
