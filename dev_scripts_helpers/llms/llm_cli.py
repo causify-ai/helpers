@@ -63,18 +63,18 @@ _LOG = logging.getLogger(__name__)
 
 
 # Models
+# - anthropic/claude-haiku-4-5-20251001
 # - anthropic/claude-opus-4.8
 # - anthropic/claude-sonnet-4.6
+# - gpt-4o-mini
 # - openrouter/anthropic/claude-haiku-4.5
 # - openrouter/deepseek/deepseek-v4-flash
 # - openrouter/meta-llama/llama-3.1-8b-instruct
 # - openrouter/openai/gpt-oss-120b
 # - openrouter/openai/gpt-oss-20b
-# - gpt-4o-mini
-# - anthropic/claude-haiku-4-5-20251001
 
-_LINT_BACKEND = "mdformat"
-#_LINT_BACKEND = "flowmark"
+#_LINT_BACKEND = "mdformat"
+_LINT_BACKEND = "flowmark"
 _LINT_MODE = "library"
 
 # #############################################################################

@@ -15,6 +15,46 @@ if [ -n "$TMUX" ]; then
     tmux rename-window "*CC*"
 fi
 
+# TODO(ai_gp): Add an option --model anthropic
+unset ANTHROPIC_DEFAULT_HAIKU_MODEL
+unset ANTHROPIC_DEFAULT_SONNET_MODEL
+unset ANTHROPIC_DEFAULT_OPUS_MODEL
+unset ANTHROPIC_BASE_URL
+unset ANTHROPIC_AUTH_TOKEN
+
+# TODO(ai_gp): Add an option --model deepseek
+export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
+export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-flash
+export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
+export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
+export ANTHROPIC_BASE_URL=https://openrouter.ai/api
+
+# TODO(ai_gp): If --model is specified with an invalid string asserts
+#
+# TODO(ai_gp): Parse the command line options and print an help
+
+#TODO(ai_gp): if --test run claude "/models"
+with_timeout() {
+    local secs=$1
+    shift
+
+    "$@" &
+    local pid=$!
+
+    (
+        sleep "$secs"
+        kill "$pid" 2>/dev/null
+    ) &
+    local watchdog=$!
+
+    wait "$pid"
+    local status=$?
+
+    kill "$watchdog" 2>/dev/null
+    return "$status"
+}
+with_timeout 2 claude doctor
+
 claude --dangerously-skip-permissions $*
 
 if [ -n "$TMUX" ]; then
