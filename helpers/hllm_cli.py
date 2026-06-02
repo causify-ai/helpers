@@ -270,13 +270,17 @@ def _calculate_cost_from_usage(
     input_tokens = usage.input
     output_tokens = usage.output
     if _TOKENCOST_AVAILABLE:
-        prompt_cost = tokencost.calculate_cost_by_tokens(
-            num_tokens=input_tokens, model=model, token_type="input"
-        )
-        completion_cost = tokencost.calculate_cost_by_tokens(
-            num_tokens=output_tokens, model=model, token_type="output"
-        )
-        cost = float(prompt_cost + completion_cost)
+        try:
+            prompt_cost = tokencost.calculate_cost_by_tokens(
+                num_tokens=input_tokens, model=model, token_type="input"
+            )
+            completion_cost = tokencost.calculate_cost_by_tokens(
+                num_tokens=output_tokens, model=model, token_type="output"
+            )
+            cost = float(prompt_cost + completion_cost)
+        except KeyError as e:
+            _LOG.debug("Can't find tokencost cost: %s", str(e))
+            cost = 0.0
     else:
         cost = 0.0
     return _create_token_stats(

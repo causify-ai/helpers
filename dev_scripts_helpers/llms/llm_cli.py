@@ -557,6 +557,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.dry_run,
         )
     # Report total cost of LLM operation.
+    # TODO(ai_gp): Use token_stats_to_str
     _LOG.info("Total cost: $%.6f", cost)
 
 
