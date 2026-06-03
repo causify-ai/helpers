@@ -1004,7 +1004,7 @@ def init_logger(
         assert hasattr(logging, "_checkLevel")
         verbosity = logging._checkLevel(verbosity)
     else:
-        hdbg.dassert_isinstance(verbosity, int)
+        dassert_isinstance(verbosity, int)
     # From https://stackoverflow.com/questions/14058453
     root_logger = logging.getLogger()
     # Set verbosity for all loggers.

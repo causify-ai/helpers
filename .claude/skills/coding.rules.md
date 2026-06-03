@@ -440,6 +440,60 @@
 - Make sure all the functions have a REST comments in docstrings
   - Add docstrings to functions and file that are missing
 
+## Use Verbatim to Refer to Python Objects
+
+- When referring to Python objects (e.g., variables, classes, and functions) in
+  comments and docstrings use verbatim included in backticks
+  - For functions also include a call, e.g., `func()`
+
+- Example (variable in comment):
+  - **Bad**
+    ```python
+    # Increment the variable num_counter.
+    ```
+  - **Good**
+    ```python
+    # Increment the variable `num_counter`
+    ```
+
+- Example (function in comment):
+  - **Bad**
+    ```
+    # Create a curated list from get_md_colors.
+    ```
+  - **Good**
+    ```
+    # Create a curated list from `get_md_colors()`.
+    ```
+
+- Example (variable in docstring):
+  - **Bad**
+    ```python
+    """
+    Increment the variable num_counter.
+    """
+    ```
+  - **Good**
+    ```python
+    """
+    Increment the variable `num_counter`.
+    """
+    ```
+
+- Example (function in docstring):
+  - **Bad**
+    ```
+    """
+    Test helper for standardize_filename().
+    """
+    ```
+  - **Good**
+    ```
+    """
+    Test helper for `standardize_filename()`.
+    """
+    ```
+
 # Comments
 
 ## Add Comments Liberally
@@ -525,7 +579,7 @@
     def colorize_bullet_points_in_slide(
     ```
 
-# Functions
+# Function Design
 
 ## Minimize Default Values of None in Function Interfaces
 
@@ -843,61 +897,7 @@
     pattern = re.compile(quote_pattern, re.VERBOSE)
     ```
 
-## Use Verbatim to Refer to Python Objects
-
-- When referring to Python objects (e.g., variables, classes, and functions) in
-  comments and docstrings use verbatim included in backticks
-  - For functions also include a call, e.g., `func()`
-
-- Example (variable in comment):
-  - **Bad**
-    ```python
-    # Increment the variable num_counter.
-    ```
-  - **Good**
-    ```python
-    # Increment the variable `num_counter`
-    ```
-
-- Example (function in comment):
-  - **Bad**
-    ```
-    # Create a curated list from get_md_colors.
-    ```
-  - **Good**
-    ```
-    # Create a curated list from `get_md_colors()`.
-    ```
-
-- Example (variable in docstring):
-  - **Bad**
-    ```python
-    """
-    Increment the variable num_counter.
-    """
-    ```
-  - **Good**
-    ```python
-    """
-    Increment the variable `num_counter`.
-    """
-    ```
-
-- Example (function in docstring):
-  - **Bad**
-    ```
-    """
-    Test helper for standardize_filename().
-    """
-    ```
-  - **Good**
-    ```
-    """
-    Test helper for `standardize_filename()`.
-    """
-    ```
-
-# Executing System Calls
+# System Integration
 
 ## Use `hsystem`
 

@@ -1,8 +1,3 @@
-# Step 1
-
-Add an option --stat_file to llm_cli.py to save a json of the stats from running
-a call to a model
-
 # Step 2
 Create a script llm_compare.py that accepts an option
 --models "xyz,abc,..." where xyz and abc and so on are models
