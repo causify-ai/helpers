@@ -565,6 +565,7 @@ def is_mdformat_available(backend: str) -> bool:
     if backend == "library":
         try:
             import mdformat  # noqa: F401
+
             return True
         except ImportError:
             return False
@@ -588,6 +589,7 @@ def is_flowmark_available(backend: str) -> bool:
     if backend == "library":
         try:
             import flowmark  # noqa: F401
+
             return True
         except ImportError:
             return False
@@ -625,7 +627,7 @@ def _format_with_prettier(
         # backend == "global": use global prettier executable.
         hdbg.dassert(
             is_prettier_available("global"),
-            "prettier executable not found in PATH."
+            "prettier executable not found in PATH.",
         )
         _LOG.debug("Using global prettier executable for formatting")
         tmp_file = "tmp.format_md.prettier.md"
@@ -681,7 +683,7 @@ def _format_with_mdformat(
         elif backend == "global":
             hdbg.dassert(
                 is_mdformat_available(backend),
-                "mdformat executable not found in PATH."
+                "mdformat executable not found in PATH.",
             )
             _LOG.debug("Using global mdformat executable for formatting")
         else:
@@ -719,11 +721,7 @@ def _format_with_flowmark(
         opts = ["--auto", f"-w {width}", tmp_file]
         if backend == "uvx-rs":
             _LOG.debug("Using flowmark via uvx-rs for formatting")
-            cmd_parts = [
-                "uvx",
-                "--from flowmark",
-                "flowmark"
-            ]
+            cmd_parts = ["uvx", "--from flowmark", "flowmark"]
         elif backend == "uvx":
             _LOG.debug("Using flowmark via uvx for formatting")
             cmd_parts = [
@@ -735,7 +733,7 @@ def _format_with_flowmark(
             # Rust-based flowmark from global path.
             hdbg.dassert(
                 is_flowmark_available(backend),
-                "flowmark executable not found in PATH."
+                "flowmark executable not found in PATH.",
             )
             _LOG.debug("Using global flowmark (Rust) executable for formatting")
             cmd_parts = [
@@ -744,7 +742,7 @@ def _format_with_flowmark(
         elif backend == "global":
             hdbg.dassert(
                 is_flowmark_available(backend),
-                "flowmark executable not found in PATH."
+                "flowmark executable not found in PATH.",
             )
             _LOG.debug("Using global flowmark executable for formatting")
             cmd_parts = [

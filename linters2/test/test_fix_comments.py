@@ -378,5 +378,3 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
             pass
         '''
         self.helper(content, expected)
-
-

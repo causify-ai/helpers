@@ -27,9 +27,7 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
     Test the remove_end_of_line_periods function.
     """
 
-    def helper(
-        self, input_text: str, expected_text: str
-    ) -> None:
+    def helper(self, input_text: str, expected_text: str) -> None:
         """
         Test helper for remove_end_of_line_periods.
 
@@ -210,61 +208,57 @@ class Test_md_clean_up1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code into a helper function
 class Test_remove_code_delimiters1(hunitest.TestCase):
     """
     Test the remove_code_delimiters function.
     """
 
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Test helper for remove_code_delimiters.
+
+        :param content: Input content with code delimiters
+        :param expected: Expected output after removing delimiters
+        """
+        content = hprint.dedent(content)
+        lines = content.split("\n")
+        actual_lines = hmarform.remove_code_delimiters(lines)
+        actual = "\n".join(actual_lines)
+        self.assert_equal(actual, expected, dedent=True)
+
     def test1(self) -> None:
         """
         Test basic code block removal.
         """
-        # Prepare inputs.
         content = r"""
         ```python
         def hello_world():
             print("Hello, World!")
         ```
         """
-        content = hprint.dedent(content)
-        lines = content.split("\n")
-        # Prepare outputs.
         expected = r"""
         def hello_world():
             print("Hello, World!")
         """
-        # Run test.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
     def test2(self) -> None:
         """
         Test code block with empty lines at start and end.
         """
-        # Prepare inputs.
         in_dir_name = self.get_input_dir()
         input_file_path = os.path.join(in_dir_name, "test.txt")
         content = hio.from_file(input_file_path)
-        lines = content.split("\n")
-        # Prepare outputs.
         expected = r"""
         def check_empty_lines():
             print("Check empty lines are present!")
         """
-        # Run test.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
     def test3(self) -> None:
         """
         Test markdown with headings, Python and YAML blocks.
         """
-        # Prepare inputs.
         content = r"""
         # Section 1
 
@@ -292,9 +286,6 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         - Sustainable solutions
         ```
         """
-        content = hprint.dedent(content)
-        lines = content.split("\n")
-        # Prepare outputs.
         expected = r"""
         # Section 1
 
@@ -322,11 +313,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         - Sustainable solutions
 
         """
-        # Run test.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
     def test4(self) -> None:
         """
@@ -342,34 +329,23 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
-        # TODO(ai_gp): Replace with self.assert_equal and an expected var.
         self.check_string(actual)
 
     def test5(self) -> None:
         """
         Test empty string input.
         """
-        # Prepare inputs.
         content = ""
-        lines = content.split("\n") if content else []
-        # Prepare outputs.
         expected = ""
-        # Run test.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
     def test6(self) -> None:
         """
         Test Python and markdown code block together.
         """
-        # Prepare inputs.
         in_dir_name = self.get_input_dir()
         input_file_path = os.path.join(in_dir_name, "test.txt")
         content = hio.from_file(input_file_path)
-        lines = content.split("\n")
-        # Prepare outputs.
         expected = r"""
         def no_start_python():
             print("No mention of python at the start")
@@ -379,11 +355,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
             A markdown paragraph contains
             delimiters that needs to be removed.
         """
-        # Run test.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
 
 # #############################################################################
@@ -1391,43 +1363,49 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code in a helper
 class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
     """
     Test the function to add prettier-ignore comments around div blocks.
     """
 
+    def helper(self, input_txt: str, expected_txt: str) -> None:
+        """
+        Test helper for add_prettier_ignore_to_div_blocks.
+
+        :param input_txt: Input text with div blocks
+        :param expected_txt: Expected output with prettier-ignore comments
+        """
+        txt = hprint.dedent(input_txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        actual = hprint.dedent(actual, remove_lead_trail_empty_lines_=True)
+        expected = hprint.dedent(
+            expected_txt, remove_lead_trail_empty_lines_=True
+        )
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Test simple div block with two colons.
         """
-        # Prepare inputs.
-        txt = """
+        input_txt = """
         ::::
         :::
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        expected = """
+        expected_txt = """
         <!-- prettier-ignore-start -->
         ::::
         :::
         <!-- prettier-ignore-end -->
         """
-        actual = hprint.dedent(actual, remove_lead_trail_empty_lines_=True)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        self.helper(input_txt, expected_txt)
 
     def test2(self) -> None:
         """
         Test multiple div blocks in the same content.
         """
-        # Prepare inputs.
-        txt = """
+        input_txt = """
         Some text before
 
         ::::
@@ -1440,13 +1418,7 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
 
         Some text after
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
-        actual = "\n".join(actual_lines)
-        # Check output.
-        expected = """
+        expected_txt = """
         Some text before
 
 
@@ -1466,9 +1438,7 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
 
 
         Some text after"""
-        actual = hprint.dedent(actual, remove_lead_trail_empty_lines_=True)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        self.helper(input_txt, expected_txt)
 
 
 # #############################################################################
@@ -1476,18 +1446,30 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code in a helper
 class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
     """
     Test the function to remove prettier-ignore comments from div blocks.
     """
 
+    def helper(self, input_txt: str, expected_txt: str) -> None:
+        """
+        Test helper for remove_prettier_ignore_from_div_blocks.
+
+        :param input_txt: Input text with prettier-ignore comments
+        :param expected_txt: Expected output with comments removed
+        """
+        txt = hprint.dedent(input_txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        expected = hprint.dedent(expected_txt)
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Test removing prettier-ignore from simple div block.
         """
-        # Prepare inputs.
-        txt = """
+        input_txt = """
 
         <!-- prettier-ignore-start -->
         ::::
@@ -1495,24 +1477,16 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         <!-- prettier-ignore-end -->
 
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        expected = """
+        expected_txt = """
         ::::
         :::"""
-        expected = hprint.dedent(expected)
-        self.assert_equal(actual, expected)
+        self.helper(input_txt, expected_txt)
 
     def test2(self) -> None:
         """
         Test removing prettier-ignore from multiple div blocks.
         """
-        # Prepare inputs.
-        txt = """
+        input_txt = """
         Text before
 
         <!-- prettier-ignore-start -->
@@ -1529,13 +1503,7 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
 
         Text after
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        expected = """
+        expected_txt = """
         Text before
         ::::
         ::::{.column width=40%}
@@ -1544,8 +1512,7 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         ::::{.column width=60%}
         Text after
         """
-        expected = hprint.dedent(expected)
-        self.assert_equal(actual, expected)
+        self.helper(input_txt, expected_txt)
 
 
 # #############################################################################
@@ -1667,7 +1634,7 @@ class _Format_md_TestCase(abc.ABC):
 
 
 # #############################################################################
-# Test_format_md_prettier
+# Test_format_md_prettier1
 # #############################################################################
 
 
@@ -1678,6 +1645,11 @@ class Test_format_md_prettier1(_Format_md_TestCase, hunitest.TestCase):
 
     tool = "prettier"
     backend = "dockerized"
+
+
+# #############################################################################
+# Test_format_md_prettier2
+# #############################################################################
 
 
 @pytest.mark.skipif(
@@ -1694,12 +1666,13 @@ class Test_format_md_prettier2(_Format_md_TestCase, hunitest.TestCase):
 
 
 # #############################################################################
-# Test_format_md_mdformat
+# Test_format_md_mdformat1
 # #############################################################################
 
 
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("library"), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("library"),
+    reason="mdformat package not installed",
 )
 class Test_format_md_mdformat1(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1710,8 +1683,14 @@ class Test_format_md_mdformat1(_Format_md_TestCase, hunitest.TestCase):
     backend = "library"
 
 
+# #############################################################################
+# Test_format_md_mdformat2
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("uvx"), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("uvx"),
+    reason="mdformat package not installed",
 )
 class Test_format_md_mdformat2(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1722,8 +1701,14 @@ class Test_format_md_mdformat2(_Format_md_TestCase, hunitest.TestCase):
     backend = "uvx"
 
 
+# #############################################################################
+# Test_format_md_mdformat3
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("library"), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("library"),
+    reason="mdformat package not installed",
 )
 class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1735,53 +1720,74 @@ class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
 
 
 # #############################################################################
-# Test_format_md_flowmark
+# Test_format_md_flowmark1
 # #############################################################################
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("library"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("library"),
+    reason="flowmark package not installed",
 )
 class Test_format_md_flowmark1(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "library"
 
 
+# #############################################################################
+# Test_format_md_flowmark2
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("uvx"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("uvx"),
+    reason="flowmark package not installed",
 )
 class Test_format_md_flowmark2(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "uvx"
 
 
+# #############################################################################
+# Test_format_md_flowmark3
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("global"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("global"),
+    reason="flowmark package not installed",
 )
 class Test_format_md_flowmark3(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "global"
 
 
+# #############################################################################
+# Test_format_md_flowmark4
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("uvx-rs"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("uvx-rs"),
+    reason="flowmark package not installed",
 )
 class Test_format_md_flowmark4(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "uvx-rs"
 
 
+# #############################################################################
+# Test_format_md_flowmark5
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("global-rs"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("global-rs"),
+    reason="flowmark package not installed",
 )
 class Test_format_md_flowmark5(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "global-rs"
+
 
 # #############################################################################
 # Test_format_md_comparison_and_performance
@@ -1876,7 +1882,9 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 }
             )
             if success and output is not None:
-                self.assertGreater(len(output), 0, f"{tool}/{backend} produced empty output")
+                self.assertGreater(
+                    len(output), 0, f"{tool}/{backend} produced empty output"
+                )
         # Save results to JSON file for analysis.
         results_file = os.path.join(output_dir, "comparison_results.json")
         hio.to_file(results_file, json.dumps(results, indent=2))
