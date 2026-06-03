@@ -960,7 +960,7 @@ def get_command_line() -> str:
 # TODO(gp): maybe replace "force_verbose_format" and "force_print_format" with
 #  a "mode" in ("auto", "verbose", "print")
 def init_logger(
-    verbosity: int = logging.INFO,
+    verbosity: Union[int, str] = logging.INFO,
     use_exec_path: bool = False,
     log_filename: Optional[str] = None,
     force_verbose_format: bool = False,
@@ -1003,6 +1003,8 @@ def init_logger(
         dassert(hasattr(logging, "_checkLevel"))
         assert hasattr(logging, "_checkLevel")
         verbosity = logging._checkLevel(verbosity)
+    else:
+        hdbg.dassert_isinstance(verbosity, int)
     # From https://stackoverflow.com/questions/14058453
     root_logger = logging.getLogger()
     # Set verbosity for all loggers.

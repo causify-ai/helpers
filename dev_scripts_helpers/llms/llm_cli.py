@@ -82,11 +82,11 @@ _LINT_MODE = "library"
 
 
 def _get_input_output_files(
-    input_arg: Optional[str],
-    input_text_arg: Optional[str],
-    output_arg: Optional[str],
+    input_arg: str,
+    input_text_arg: str,
+    output_arg: str,
     modify_in_place: bool,
-) -> Tuple[Optional[str], Optional[str], str]:
+) -> Tuple[str, str, str]:
     """
     Determine input and output file paths.
 
@@ -98,23 +98,23 @@ def _get_input_output_files(
     """
     # Determine input source.
     if input_arg:
-        hdbg.dassert_ne(input_arg, "", "Input file cannot be empty")
         if input_arg == "-":
             # Read from stdin.
             input_file = "-"
-            input_text = None
+            input_text = ""
         else:
             # Read from file.
-            input_text = None
+            input_text = ""
             input_file = input_arg
     else:
         hdbg.dassert_ne(input_text_arg, "", "Input text cannot be empty")
         input_text = input_text_arg
-        input_file = None
+        input_file = ""
     # Determine output destination.
-    if output_arg is None:
+    if not output_arg:
+        # TODO(ai_gp): Use a dassert_imply
         hdbg.dassert(
-            input_file is not None and input_file != "-",
+            input_file and input_file != "-",
             "Output must be specified when using --input_text or stdin. "
             "In-place editing only works with --input <file>",
         )
@@ -137,8 +137,8 @@ def _get_expected_num_chars(
     *,
     progress_bar: bool,
     expected_num_chars_arg: Optional[int],
-    input_file: Optional[str],
-    input_text: Optional[str],
+    input_file: str,
+    input_text: str,
 ) -> Optional[int]:
     """
     Calculate expected number of output characters.
@@ -159,8 +159,8 @@ def _get_expected_num_chars(
                 input_content = "\n".join(input_lines)
             else:
                 input_content = hio.from_file(input_file)
-        elif input_text is not None:
-            hdbg.dassert_is_not(input_text, None, "Input text must be provided")
+        elif input_text:
+            hdbg.dassert_ne(input_text, "", "Input text must be provided")
             input_content = input_text
         else:
             raise ValueError("Invalid input combination")
@@ -256,8 +256,8 @@ def _process_selected_text(
     select: str,
     model: str,
     backend: str,
-    input_file: Optional[str],
-    output_file: Optional[str],
+    input_file: str,
+    output_file: str,
     system_prompt: str,
     modify_in_place: bool,
     max_chars: int,
@@ -288,6 +288,7 @@ def _process_selected_text(
         select_start,
         select_end,
     )
+    hdbg.dassert_ne(input_file, "", "Input file is required for select mode")
     input_lines = hseinout.from_file(input_file)
     # Extract chunk from input based on markers.
     _, ext = os.path.splitext(input_file) if input_file != "-" else ("", "")
@@ -353,6 +354,7 @@ def _process_selected_text(
         )
     else:
         if not dry_run:
+            hdbg.dassert_ne(output_file, "", "Output file is required")
             hseinout.to_file(response, output_file)
     return token_stats
 
@@ -360,9 +362,9 @@ def _process_selected_text(
 def _process_full_text(
     model: str,
     backend: str,
-    input_text: Optional[str],
-    input_file: Optional[str],
-    output_file: Optional[str],
+    input_text: str,
+    input_file: str,
+    output_file: str,
     system_prompt: str,
     max_chars: int,
     lint: bool,
@@ -385,11 +387,12 @@ def _process_full_text(
     :return: The cost of the LLM operation
     """
     # Read input text from string, file, or stdin.
-    if input_text is not None:
+    if input_text:
         # Use text from input string.
         input_str = input_text
     else:
         # Read text from file or stdin.
+        hdbg.dassert_ne(input_file, "", "Input file is required when input_text is empty")
         input_lines = hseinout.from_file(input_file)
         input_str = "\n".join(input_lines)
     # Apply max_chars limit if specified.
@@ -410,7 +413,7 @@ def _process_full_text(
         _LOG.info("Input text to be processed:")
         _LOG.info("%s", pprint.pformat(input_str))
         response = ""
-        cost = 0.0
+        cost = {}
     else:
         response, cost = hllmcli.apply_llm(
             input_str,
@@ -572,10 +575,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Calculate expected number of output characters for progress tracking.
     expected_num_chars = _get_expected_num_chars(
-        progress_bar=args.progress_bar,
-        expected_num_chars_arg=args.expected_num_chars,
-        input_file=input_file,
-        input_text=input_text,
+        args.progress_bar,
+        args.expected_num_chars,
+        input_file,
+        input_text,
     )
     # Log processing mode.
     if args.dry_run:
