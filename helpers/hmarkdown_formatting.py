@@ -12,6 +12,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarslid
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.htimer as htimer
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
@@ -600,8 +601,6 @@ def is_flowmark_available(backend: str) -> bool:
         raise ValueError("Invalid backend='%s'" % backend)
 
 
-
-
 # #############################################################################
 
 
@@ -622,7 +621,7 @@ def _format_with_prettier(
     if backend == "dockerized":
         _LOG.debug("Using dockerized prettier for formatting")
         formatted_txt = dshdlipr.prettier_on_str(txt, "md", width=width)
-    else:
+    elif backend == "global":
         # backend == "global": use global prettier executable.
         hdbg.dassert(
             is_prettier_available("global"),
@@ -636,11 +635,14 @@ def _format_with_prettier(
             f"--print-width={width}",
             "--parser=markdown",
             "--prose-wrap=always",
-            f"--write={tmp_file}",
+            "--write",
+            tmp_file,
         ]
         cmd = " ".join(cmd_parts)
         hsystem.system(cmd)
         formatted_txt = hio.from_file(tmp_file)
+    else:
+        raise ValueError("Invalid backend='%s'" % backend)
     return formatted_txt
 
 
@@ -663,7 +665,7 @@ def _format_with_mdformat(
         _LOG.debug("Using mdformat library for formatting")
         import mdformat
 
-        formatted_txt = mdformat.text(txt, options={"line_length": width})
+        formatted_txt = mdformat.text(txt, options={"wrap": width})
     else:
         # Save to file and call via executable.
         tmp_file = "tmp.format_md.mdformat.md"
@@ -676,13 +678,14 @@ def _format_with_mdformat(
         if backend == "uvx":
             _LOG.debug("Using mdformat via uvx for formatting")
             cmd_parts.insert(0, "uvx")
-        else:
-            # backend == "global": use global mdformat executable.
+        elif backend == "global":
             hdbg.dassert(
                 is_mdformat_available(backend),
                 "mdformat executable not found in PATH."
             )
             _LOG.debug("Using global mdformat executable for formatting")
+        else:
+            raise ValueError("Invalid backend='%s'" % backend)
         cmd = " ".join(cmd_parts)
         hsystem.system(cmd)
         formatted_txt = hio.from_file(tmp_file)
@@ -718,8 +721,8 @@ def _format_with_flowmark(
             _LOG.debug("Using flowmark via uvx-rs for formatting")
             cmd_parts = [
                 "uvx",
-                "--from",
-                "uv:flowmark",
+                "--from flowmark",
+                "flowmark"
             ]
         elif backend == "uvx":
             _LOG.debug("Using flowmark via uvx for formatting")
@@ -738,8 +741,7 @@ def _format_with_flowmark(
             cmd_parts = [
                 "flowmark",
             ]
-        else:
-            # backend == "global": Python-based flowmark from global path.
+        elif backend == "global":
             hdbg.dassert(
                 is_flowmark_available(backend),
                 "flowmark executable not found in PATH."
@@ -748,7 +750,9 @@ def _format_with_flowmark(
             cmd_parts = [
                 "flowmark",
             ]
-            cmd_parts.extend(opts)
+        else:
+            raise ValueError("Invalid backend='%s'" % backend)
+        cmd_parts.extend(opts)
         cmd = " ".join(cmd_parts)
         hsystem.system(cmd)
         formatted_txt = hio.from_file(tmp_file)
@@ -776,6 +780,7 @@ def format_md(
     :param width: line width for text wrapping (default: 80)
     :return: formatted markdown text
     """
+    _LOG.debug(hprint.to_str("tool backend width"))
     hdbg.dassert_isinstance(txt, str)
     hdbg.dassert_in(
         tool,

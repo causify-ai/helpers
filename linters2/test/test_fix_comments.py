@@ -8,6 +8,7 @@ import linters2.fix_comments as lficom
 # #############################################################################
 
 
+
 class Test_convert_single_line_docstrings(hunitest.TestCase):
     def helper(self, content: str, expected: str) -> None:
         """
@@ -28,10 +29,12 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test converting function docstring with double quotes.
         """
+        # lint: disable=fix_comments
         content = '''
         def _is_mdformat_available() -> bool:
             """Check if mdformat package is available."""
         '''
+        # lint: enable=fix_comments
         expected = '''
         def _is_mdformat_available() -> bool:
             """
@@ -44,10 +47,12 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test converting class docstring with double quotes.
         """
+        # lint: disable=fix_comments
         content = '''
         class Is_mdformat_available:
             """Check if mdformat package is available."""
         '''
+        # lint: enable=fix_comments
         expected = '''
         class Is_mdformat_available:
             """
@@ -60,6 +65,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test converting function with different indentation levels.
         """
+        # lint: disable=fix_comments
         content = '''
         def func1():
             """Short docstring."""
@@ -70,6 +76,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
                 """Method docstring."""
                 pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         def func1():
             """
@@ -90,6 +97,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test converting multiple functions in one file.
         """
+        # lint: disable=fix_comments
         content = '''
         def func1():
             """First function."""
@@ -99,6 +107,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
             """Second function."""
             pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         def func1():
             """
@@ -133,11 +142,13 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test converting docstring with single quotes.
         """
+        # lint: disable=fix_comments
         content = """
         def func1():
             '''Single quote docstring.'''
             pass
         """
+        # lint: enable=fix_comments
         expected = """
         def func1():
             '''
@@ -151,6 +162,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test handling module-level docstring.
         """
+        # lint: disable=fix_comments
         content = '''
         """Module docstring."""
 
@@ -158,6 +170,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
             """Function docstring."""
             pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         """
         Module docstring.
@@ -175,11 +188,13 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test converting docstring with special characters.
         """
+        # lint: disable=fix_comments
         content = '''
         def func1():
             """Check if obj -> str conversion works."""
             pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         def func1():
             """
@@ -193,11 +208,13 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test converting docstring with code examples.
         """
+        # lint: disable=fix_comments
         content = '''
         def func1():
             """Return x=5, y=10."""
             pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         def func1():
             """
@@ -211,6 +228,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test file with mix of single and multi-line docstrings.
         """
+        # lint: disable=fix_comments
         content = '''
         def func1():
             """Single line."""
@@ -227,6 +245,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
             """Another single line."""
             pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         def func1():
             """
@@ -253,6 +272,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test converting nested class methods.
         """
+        # lint: disable=fix_comments
         content = '''
         class Outer:
             """Outer class."""
@@ -264,6 +284,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
                     """Method docstring."""
                     pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         class Outer:
             """
@@ -302,11 +323,13 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test docstring with newline character in content (escaped).
         """
+        # lint: disable=fix_comments
         content = '''
         def func1():
             """Line1\\nLine2."""
             pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         def func1():
             """
@@ -320,11 +343,13 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test docstring with trailing whitespace (should be normalized).
         """
+        # lint: disable=fix_comments
         content = '''
         def func1():
             """Docstring with trailing space.   """
             pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         def func1():
             """
@@ -338,11 +363,13 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test very long docstring that remains single-line.
         """
+        # lint: disable=fix_comments
         content = '''
         def func1():
             """This is a very long docstring that explains something in great detail."""
             pass
         '''
+        # lint: enable=fix_comments
         expected = '''
         def func1():
             """
@@ -351,3 +378,5 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
             pass
         '''
         self.helper(content, expected)
+
+

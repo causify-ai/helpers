@@ -1,3 +1,4 @@
+import abc
 import logging
 import json
 import os
@@ -209,6 +210,7 @@ class Test_md_clean_up1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code into a helper function
 class Test_remove_code_delimiters1(hunitest.TestCase):
     """
     Test the remove_code_delimiters function.
@@ -1389,6 +1391,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code in a helper
 class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
     """
     Test the function to add prettier-ignore comments around div blocks.
@@ -1415,7 +1418,9 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
         :::
         <!-- prettier-ignore-end -->
         """
-        self.assert_equal(actual, expected, dedent=True)
+        actual = hprint.dedent(actual, remove_lead_trail_empty_lines_=True)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
@@ -1441,7 +1446,8 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
         actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check output.
-        expected = """Some text before
+        expected = """
+        Some text before
 
 
         <!-- prettier-ignore-start -->
@@ -1460,7 +1466,9 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
 
 
         Some text after"""
-        self.assert_equal(actual, expected, dedent=True)
+        actual = hprint.dedent(actual, remove_lead_trail_empty_lines_=True)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -1468,6 +1476,7 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code in a helper
 class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
     """
     Test the function to remove prettier-ignore comments from div blocks.
@@ -1492,8 +1501,10 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
-        expected = """::::
-:::"""
+        expected = """
+        ::::
+        :::"""
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
     def test2(self) -> None:
@@ -1524,13 +1535,16 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
-        expected = """Text before
-::::
-::::{.column width=40%}
-Middle text
-:::columns
-::::{.column width=60%}
-Text after"""
+        expected = """
+        Text before
+        ::::
+        ::::{.column width=40%}
+        Middle text
+        :::columns
+        ::::{.column width=60%}
+        Text after
+        """
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
 
@@ -1539,7 +1553,7 @@ Text after"""
 # #############################################################################
 
 
-class _Format_md_TestCase(hunitest.TestCase):
+class _Format_md_TestCase(abc.ABC):
     """
     Base class for testing format_md() function with different tools.
 
@@ -1657,7 +1671,7 @@ class _Format_md_TestCase(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_format_md_prettier1(_Format_md_TestCase):
+class Test_format_md_prettier1(_Format_md_TestCase, hunitest.TestCase):
     """
     Test format_md() function with prettier tool.
     """
@@ -1670,7 +1684,7 @@ class Test_format_md_prettier1(_Format_md_TestCase):
     not hmarform.is_prettier_available("global"),
     reason="prettier not installed globally",
 )
-class Test_format_md_prettier2(_Format_md_TestCase):
+class Test_format_md_prettier2(_Format_md_TestCase, hunitest.TestCase):
     """
     Test format_md() function with prettier tool (global backend).
     """
@@ -1687,7 +1701,7 @@ class Test_format_md_prettier2(_Format_md_TestCase):
 @pytest.mark.skipif(
     not hmarform.is_mdformat_available("library"), reason="mdformat package not installed"
 )
-class Test_format_md_mdformat1(_Format_md_TestCase):
+class Test_format_md_mdformat1(_Format_md_TestCase, hunitest.TestCase):
     """
     Test format_md() function with mdformat tool (library backend).
     """
@@ -1699,7 +1713,7 @@ class Test_format_md_mdformat1(_Format_md_TestCase):
 @pytest.mark.skipif(
     not hmarform.is_mdformat_available("uvx"), reason="mdformat package not installed"
 )
-class Test_format_md_mdformat2(_Format_md_TestCase):
+class Test_format_md_mdformat2(_Format_md_TestCase, hunitest.TestCase):
     """
     Test format_md() function with mdformat tool (uvx backend).
     """
@@ -1711,7 +1725,7 @@ class Test_format_md_mdformat2(_Format_md_TestCase):
 @pytest.mark.skipif(
     not hmarform.is_mdformat_available("library"), reason="mdformat package not installed"
 )
-class Test_format_md_mdformat3(_Format_md_TestCase):
+class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
     """
     Test format_md() function with mdformat tool (uvx backend alternate).
     """
@@ -1728,7 +1742,7 @@ class Test_format_md_mdformat3(_Format_md_TestCase):
 @pytest.mark.skipif(
     not hmarform.is_flowmark_available("library"), reason="flowmark package not installed"
 )
-class Test_format_md_flowmark1(_Format_md_TestCase):
+class Test_format_md_flowmark1(_Format_md_TestCase, hunitest.TestCase):
 
     tool = "flowmark"
     backend = "library"
@@ -1737,7 +1751,7 @@ class Test_format_md_flowmark1(_Format_md_TestCase):
 @pytest.mark.skipif(
     not hmarform.is_flowmark_available("uvx"), reason="flowmark package not installed"
 )
-class Test_format_md_flowmark2(_Format_md_TestCase):
+class Test_format_md_flowmark2(_Format_md_TestCase, hunitest.TestCase):
 
     tool = "flowmark"
     backend = "uvx"
@@ -1746,7 +1760,7 @@ class Test_format_md_flowmark2(_Format_md_TestCase):
 @pytest.mark.skipif(
     not hmarform.is_flowmark_available("global"), reason="flowmark package not installed"
 )
-class Test_format_md_flowmark3(_Format_md_TestCase):
+class Test_format_md_flowmark3(_Format_md_TestCase, hunitest.TestCase):
 
     tool = "flowmark"
     backend = "global"
@@ -1755,7 +1769,7 @@ class Test_format_md_flowmark3(_Format_md_TestCase):
 @pytest.mark.skipif(
     not hmarform.is_flowmark_available("uvx-rs"), reason="flowmark package not installed"
 )
-class Test_format_md_flowmark4(_Format_md_TestCase):
+class Test_format_md_flowmark4(_Format_md_TestCase, hunitest.TestCase):
 
     tool = "flowmark"
     backend = "uvx-rs"
@@ -1764,7 +1778,7 @@ class Test_format_md_flowmark4(_Format_md_TestCase):
 @pytest.mark.skipif(
     not hmarform.is_flowmark_available("global-rs"), reason="flowmark package not installed"
 )
-class Test_format_md_flowmark5(_Format_md_TestCase):
+class Test_format_md_flowmark5(_Format_md_TestCase, hunitest.TestCase):
 
     tool = "flowmark"
     backend = "global-rs"

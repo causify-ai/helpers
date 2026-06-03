@@ -18,6 +18,29 @@ import helpers.hparser as hparser
 import linters.action as liaction
 
 
+def _should_skip_line(
+    line: str,
+    in_skip_block: bool,
+) -> Tuple[bool, bool]:
+    """
+    Check if a line should be skipped due to lint directives.
+
+    :param line: current line of text being processed
+    :param in_skip_block: flag indicating if currently in a skip block
+    :return: tuple of (should_skip, in_skip_block) - whether to skip the line
+        and the updated skip state
+    """
+    should_skip = False
+    if "# lint: disable=fix_comments" in line:
+        hdbg.dassert(not in_skip_block)
+        in_skip_block = True
+    if "# lint: enable=fix_comments" in line:
+        hdbg.dassert(in_skip_block)
+        in_skip_block = False
+        should_skip = True
+    return should_skip, in_skip_block
+
+
 def _find_single_line_docstrings(
     lines: List[str],
 ) -> List[Tuple[int, str, int]]:
@@ -29,13 +52,18 @@ def _find_single_line_docstrings(
         where quote_type is triple double or single quotes
     """
     results = []
+    in_skip_block = False
     for line_num, line in enumerate(lines):
+        should_skip, in_skip_block = _should_skip_line(line, in_skip_block)
+        if should_skip:
+            continue
         # Match single-line docstrings with """ or '''
         match = re.search(r'^(\s*)("""|\'\'\')(.*?)\2\s*$', line)
         if match:
             indentation = len(match.group(1))
             quote_type = match.group(2)
             results.append((line_num, quote_type, indentation))
+    hdbg.dassert(not in_skip_block)
     return results
 
 
