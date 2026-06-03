@@ -81,15 +81,12 @@ _LINT_MODE = "library"
 # #############################################################################
 
 
-# TODO(ai_gp): Do not use * and remove the call by name.
-# TODO(ai_gp): Make the typehints stricter, e.g., no Optional if it's not possible.
 def _get_input_output_files(
-    *,
     input_arg: Optional[str],
     input_text_arg: Optional[str],
     output_arg: Optional[str],
     modify_in_place: bool,
-) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+) -> Tuple[Optional[str], Optional[str], str]:
     """
     Determine input and output file paths.
 
@@ -568,10 +565,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         return
     # Determine input source and output destination.
     input_file, input_text, output_file = _get_input_output_files(
-        input_arg=args.input,
-        input_text_arg=args.input_text,
-        output_arg=args.output,
-        modify_in_place=args.modify_in_place,
+        args.input,
+        args.input_text,
+        args.output,
+        args.modify_in_place,
     )
     # Calculate expected number of output characters for progress tracking.
     expected_num_chars = _get_expected_num_chars(
@@ -587,9 +584,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info("Processing with LLM '%s'...", args.model)
     # Resolve system prompt from file, rule, or argument.
     system_prompt = _get_system_prompt(
-        system_prompt_file=args.system_prompt_file,
-        rule=args.rule,
-        system_prompt=args.system_prompt,
+        args.system_prompt_file,
+        args.rule,
+        args.system_prompt,
     )
     # Process selected chunk or full text.
     if args.select:
