@@ -26,6 +26,7 @@ import dev_scripts_helpers.llms.llm_cli as dshllcli
 """
 
 import argparse
+import json
 import logging
 import os
 import pprint
@@ -80,6 +81,8 @@ _LINT_MODE = "library"
 # #############################################################################
 
 
+# TODO(ai_gp): Do not use * and remove the call by name.
+# TODO(ai_gp): Make the typehints stricter, e.g., no Optional if it's not possible.
 def _get_input_output_files(
     *,
     input_arg: Optional[str],
@@ -159,9 +162,11 @@ def _get_expected_num_chars(
                 input_content = "\n".join(input_lines)
             else:
                 input_content = hio.from_file(input_file)
-        else:
+        elif input_text is not None:
             hdbg.dassert_is_not(input_text, None, "Input text must be provided")
             input_content = input_text
+        else:
+            raise ValueError("Invalid input combination")
         input_length = len(input_content)
         expected_num_chars = int(input_length * 1.0)
         _LOG.info(
@@ -177,6 +182,28 @@ def _get_expected_num_chars(
     else:
         expected_num_chars = None
     return expected_num_chars
+
+
+def _limit_input_text(
+    text: str,
+    max_chars: int,
+) -> str:
+    """
+    Limit input text to max_chars and print a warning if truncated.
+
+    :param text: Input text to limit
+    :param max_chars: Maximum number of characters, or None for no limit
+    :return: Text limited to max_chars, or original text if no limit
+    """
+    hdbg.dassert_lte(1, max_chars)
+    if len(text) <= max_chars:
+        return text
+    _LOG.warning(
+        "Input text truncated from %d to %d chars",
+        len(text),
+        max_chars,
+    )
+    return text[:max_chars]
 
 
 def _get_system_prompt(
@@ -236,6 +263,7 @@ def _process_selected_text(
     output_file: Optional[str],
     system_prompt: str,
     modify_in_place: bool,
+    max_chars: int,
     lint: bool,
     expected_num_chars: Optional[int],
     dry_run: bool,
@@ -250,6 +278,8 @@ def _process_selected_text(
     :param output_file: Path to output file
     :param system_prompt: System prompt for the LLM
     :param modify_in_place: Whether to modify the input file in place
+    :param max_chars: Maximum number of input characters to process, or None for no limit
+    :param lint: Whether to lint the output after processing
     :param expected_num_chars: Expected number of output characters for progress bar
     :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
@@ -270,6 +300,9 @@ def _process_selected_text(
     )
     chunk_lines = input_lines[start_idx:end_idx]
     chunk_text = "\n".join(chunk_lines)
+    # Apply max_chars limit if specified.
+    if max_chars:
+        chunk_text = _limit_input_text(chunk_text, max_chars)
     # Transform chunk with LLM or log dry-run parameters.
     if dry_run:
         _LOG.warning("DRY RUN: Would call LLM with parameters:")
@@ -334,6 +367,7 @@ def _process_full_text(
     input_file: Optional[str],
     output_file: Optional[str],
     system_prompt: str,
+    max_chars: int,
     lint: bool,
     expected_num_chars: Optional[int],
     dry_run: bool,
@@ -347,6 +381,8 @@ def _process_full_text(
     :param input_file: Path to input file
     :param output_file: Path to output file
     :param system_prompt: System prompt for the LLM
+    :param max_chars: Maximum number of input characters to process, or None for no limit
+    :param lint: Whether to lint the output after processing
     :param expected_num_chars: Expected number of output characters for progress bar
     :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
@@ -359,6 +395,9 @@ def _process_full_text(
         # Read text from file or stdin.
         input_lines = hseinout.from_file(input_file)
         input_str = "\n".join(input_lines)
+    # Apply max_chars limit if specified.
+    if max_chars:
+        input_str = _limit_input_text(input_str, max_chars)
     # Transform with LLM or log dry-run parameters.
     if dry_run:
         # TODO(gp): Consider moving this inside the LLM call to generalize it.
@@ -495,6 +534,18 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Skip calling the LLM and show what would be done",
     )
+    parser.add_argument(
+        "--max_chars",
+        type=int,
+        default=None,
+        help="Limit input to max_chars characters",
+    )
+    parser.add_argument(
+        "--stat_file",
+        type=str,
+        default=None,
+        help="Path to save stats as JSON file",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -554,6 +605,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             output_file,
             system_prompt,
             args.modify_in_place,
+            args.max_chars,
             args.lint,
             expected_num_chars,
             args.dry_run,
@@ -567,12 +619,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
             input_file,
             output_file,
             system_prompt,
+            args.max_chars,
             args.lint,
             expected_num_chars,
             args.dry_run,
         )
     # Report total cost of LLM operation.
     _LOG.info("Total cost: %s", hllmcli.token_stats_to_str(cost))
+    # Save stats to file if requested.
+    if args.stat_file:
+        hio.to_file(args.stat_file, json.dumps(cost, indent=2))
+        _LOG.info("Stats saved to: %s", args.stat_file)
 
 
 if __name__ == "__main__":

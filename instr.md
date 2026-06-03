@@ -1,10 +1,29 @@
-- In linters2/fix_comments.py add directives to enable / disable the check
-  # lint: disable=fix_comments
+# Step 1
 
-  # lint: enable=fix_comments
+Add an option --stat_file to llm_cli.py to save a json of the stats from running
+a call to a model
 
-  Update the unit tests to use those directives around the unit tests that would
-  be otherwise changed by linters2/fix_comments.py
+# Step 2
+Create a script llm_compare.py that accepts an option
+--models "xyz,abc,..." where xyz and abc and so on are models
+or --models_from_file with a file storing model codes on each line
+
+--output_dir
+
+Call llm_cli.py with the same options that were not parsed
+that runs the same workload with different models by calling
+llm_cli.py, saving the results in output_dir/{model}.output.txt
+
+--stat_file $output_dir/{model}.stat.txt
+
+Then read all the stats and create a table of
+
+model
+costs
+time elapsed
+length of output
+file
+
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
