@@ -728,7 +728,6 @@ def _format_with_flowmark(
                 "uvx",
                 "flowmark",
             ]
-            cmd_parts.extend(opts)
         elif backend == "global-rs":
             # Rust-based flowmark from global path.
             hdbg.dassert(

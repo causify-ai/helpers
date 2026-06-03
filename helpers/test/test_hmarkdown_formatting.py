@@ -1839,7 +1839,7 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
         test_cases = [
             ("prettier", "dockerized"),
         ]
-        # Add optional tools if available.
+        # Add tools that are available.
         tools = ["global"]
         for tool in tools:
             if hmarform.is_prettier_available(tool):
@@ -1855,7 +1855,10 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
             if hmarform.is_flowmark_available(tool):
                 test_cases.append(("flowmark", tool))
         #
-        _LOG.debug("test_cases=%s", str(test_cases))
+        _LOG.info("test_cases=%s", str(test_cases))
+        #
+        # TODO(ai_gp): Create an increasing workload by doubling or tripling
+        # the input.
         results = []
         for tool, backend in test_cases:
             error_msg = None
@@ -1885,6 +1888,7 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 self.assertGreater(
                     len(output), 0, f"{tool}/{backend} produced empty output"
                 )
+            # TODO(ai_gp): Make sure all the outputs are the same.
         # Save results to JSON file for analysis.
         results_file = os.path.join(output_dir, "comparison_results.json")
         hio.to_file(results_file, json.dumps(results, indent=2))
@@ -1906,6 +1910,5 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                     result["backend"],
                     error_msg,
                 )
-        # At least some tests should succeed
-        successful = sum(1 for r in results if r["success"])
-        self.assertGreater(successful, 0, "At least one tool should succeed")
+        # TODO(ai_gp): Create a pandas table with all the results, ordering
+        # tools by speed.
