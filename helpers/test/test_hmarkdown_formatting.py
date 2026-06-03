@@ -1858,14 +1858,14 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 test_cases.append(("flowmark", tool))
         #
         _LOG.info("test_cases=%s", str(test_cases))
-        # TODO(ai_gp): Add also input size. Use both input and output size in KB
         workload_multipliers = [1, 1e2, 1e3, 1e4]
         workload_multipliers = map(int, workload_multipliers)
         results = []
         all_outputs = {}
         for multiplier in workload_multipliers:
             workload_input = input_txt * multiplier
-            _LOG.info("# multiplier=%s: len=%s KB", multiplier, len(workload_input) / 1024)
+            input_size_kb = len(workload_input) / 1024
+            _LOG.info("# multiplier=%s: len=%s KB", multiplier, input_size_kb)
             all_outputs[multiplier] = {}
             for tool, backend in test_cases:
                 error_msg = None
@@ -1888,8 +1888,9 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                         "workload_multiplier": multiplier,
                         "tool": tool,
                         "backend": backend,
+                        "input_size_kb": input_size_kb,
                         "time": elapsed_time,
-                        "output_length": len(output) if output else 0,
+                        "output_size_kb": len(output) / 1024 if output else 0,
                         "success": success,
                         "error": error_msg,
                     }
