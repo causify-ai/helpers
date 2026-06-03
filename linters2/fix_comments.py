@@ -31,14 +31,13 @@ def _should_skip_line(
     :return: tuple of (should_skip, in_skip_block) - whether to skip the line
         and the updated skip state
     """
-    should_skip = False
     if "# lint: disable=fix_comments" in line:
         hdbg.dassert(not in_skip_block)
         in_skip_block = True
     if "# lint: enable=fix_comments" in line:
         hdbg.dassert(in_skip_block)
         in_skip_block = False
-        should_skip = True
+    should_skip = in_skip_block
     return should_skip, in_skip_block
 
 
