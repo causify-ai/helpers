@@ -32,8 +32,6 @@ import pprint
 from importlib.metadata import distributions, version
 from typing import Optional, Tuple
 
-import llm
-
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
@@ -400,6 +398,8 @@ def _is_plugin_installed(plugin_module_name: str) -> bool:
     :param plugin_module_name: Module name of the plugin (e.g., 'llm_openrouter')
     :return: True if plugin is installed, False otherwise
     """
+    import llm
+
     try:
         llm.load_plugins()
         # Check if the plugin is in the list of installed plugins.
