@@ -1682,7 +1682,7 @@ class Test_format_md_prettier1(_Format_md_TestCase, hunitest.TestCase):
 
 @pytest.mark.skipif(
     not hmarform.is_prettier_available("global"),
-    reason="prettier not installed globally",
+    reason="prettier global not installed",
 )
 class Test_format_md_prettier2(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1699,7 +1699,7 @@ class Test_format_md_prettier2(_Format_md_TestCase, hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("library"), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("library"), reason="mdformat library not installed"
 )
 class Test_format_md_mdformat1(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1711,7 +1711,7 @@ class Test_format_md_mdformat1(_Format_md_TestCase, hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("uvx"), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("uvx"), reason="mdformat uvx not installed"
 )
 class Test_format_md_mdformat2(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1723,7 +1723,7 @@ class Test_format_md_mdformat2(_Format_md_TestCase, hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("library"), reason="mdformat package not installed"
+    not hmarform.is_mdformat_available("global"), reason="mdformat global not installed"
 )
 class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1731,7 +1731,7 @@ class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
     """
 
     tool = "mdformat"
-    backend = "uvx"
+    backend = "global"
 
 
 # #############################################################################
@@ -1740,7 +1740,7 @@ class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("library"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("library"), reason="flowmark library not installed"
 )
 class Test_format_md_flowmark1(_Format_md_TestCase, hunitest.TestCase):
 
@@ -1749,7 +1749,7 @@ class Test_format_md_flowmark1(_Format_md_TestCase, hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("uvx"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("uvx"), reason="flowmark uvx not installed"
 )
 class Test_format_md_flowmark2(_Format_md_TestCase, hunitest.TestCase):
 
@@ -1758,7 +1758,7 @@ class Test_format_md_flowmark2(_Format_md_TestCase, hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("global"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("global"), reason="flowmark global not installed"
 )
 class Test_format_md_flowmark3(_Format_md_TestCase, hunitest.TestCase):
 
@@ -1767,7 +1767,7 @@ class Test_format_md_flowmark3(_Format_md_TestCase, hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("uvx-rs"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("uvx-rs"), reason="flowmark uvx-rs not installed"
 )
 class Test_format_md_flowmark4(_Format_md_TestCase, hunitest.TestCase):
 
@@ -1776,7 +1776,7 @@ class Test_format_md_flowmark4(_Format_md_TestCase, hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("global-rs"), reason="flowmark package not installed"
+    not hmarform.is_flowmark_available("global-rs"), reason="flowmark global-rs not installed"
 )
 class Test_format_md_flowmark5(_Format_md_TestCase, hunitest.TestCase):
 
