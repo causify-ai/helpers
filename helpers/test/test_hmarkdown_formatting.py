@@ -4,6 +4,7 @@ import json
 import os
 from typing import Optional
 
+import pandas as pd
 import pytest
 
 import helpers.hdbg as hdbg
@@ -1817,9 +1818,10 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
         - Item 2 with another long description
         - Item 3
 
+
         ## Subsection
 
-        Some more text here to test formatting.
+        Some more text here to test formatting. Some more text here to test formatting. Some more text here to test formatting. Some more text here to test formatting. Some more text here to test formatting.
 
         Here is more content with formatting issues:
         -   Inconsistent list spacing
@@ -1856,39 +1858,67 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 test_cases.append(("flowmark", tool))
         #
         _LOG.info("test_cases=%s", str(test_cases))
-        #
-        # TODO(ai_gp): Create an increasing workload by doubling or tripling
-        # the input.
+        # TODO(ai_gp): Add also input size. Use both input and output size in KB
+        workload_multipliers = [1, 1e2, 1e3, 1e4]
+        workload_multipliers = map(int, workload_multipliers)
         results = []
-        for tool, backend in test_cases:
-            error_msg = None
-            output = None
-            elapsed_time = None
-            try:
-                timer_ = htimer.Timer()
-                output = hmarform.format_md(input_txt, tool, backend, width=80)
-                timer_.stop()
-                elapsed_time = str(timer_)
-                success = True
-            except Exception as e:
-                success = False
-                error_msg = str(e)
+        all_outputs = {}
+        for multiplier in workload_multipliers:
+            workload_input = input_txt * multiplier
+            _LOG.info("# multiplier=%s: len=%s KB", multiplier, len(workload_input) / 1024)
+            all_outputs[multiplier] = {}
+            for tool, backend in test_cases:
+                error_msg = None
+                output = None
                 elapsed_time = None
-            results.append(
-                {
-                    "tool": tool,
-                    "backend": backend,
-                    "time": elapsed_time,
-                    "output_length": len(output) if output else 0,
-                    "success": success,
-                    "error": error_msg,
-                }
-            )
-            if success and output is not None:
-                self.assertGreater(
-                    len(output), 0, f"{tool}/{backend} produced empty output"
+                try:
+                    timer_ = htimer.Timer()
+                    output = hmarform.format_md(
+                        workload_input, tool, backend, width=80
+                    )
+                    timer_.stop()
+                    elapsed_time = str(timer_)
+                    success = True
+                except Exception as e:
+                    success = False
+                    error_msg = str(e)
+                    elapsed_time = None
+                results.append(
+                    {
+                        "workload_multiplier": multiplier,
+                        "tool": tool,
+                        "backend": backend,
+                        "time": elapsed_time,
+                        "output_length": len(output) if output else 0,
+                        "success": success,
+                        "error": error_msg,
+                    }
                 )
-            # TODO(ai_gp): Make sure all the outputs are the same.
+                if success and output is not None:
+                    self.assertGreater(
+                        len(output),
+                        0,
+                        f"{tool}/{backend} produced empty output",
+                    )
+                    all_outputs[multiplier][f"{tool}/{backend}"] = output
+        # Check if all outputs are identical for each multiplier.
+        output_differences = {}
+        for multiplier in workload_multipliers:
+            _LOG.info("Checking output for multipler=%s", multiplier)
+            outputs = list(all_outputs[multiplier].values())
+            if outputs and len(outputs) > 1:
+                first_output = outputs[0]
+                differences = []
+                for tool_backend, output in all_outputs[multiplier].items():
+                    if output != first_output:
+                        differences.append(tool_backend)
+                if differences:
+                    output_differences[multiplier] = differences
+                    _LOG.info(
+                        "Output differences at multiplier=%s: %s",
+                        multiplier,
+                        differences,
+                    )
         # Save results to JSON file for analysis.
         results_file = os.path.join(output_dir, "comparison_results.json")
         hio.to_file(results_file, json.dumps(results, indent=2))
@@ -1897,7 +1927,8 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
         for result in results:
             if result["success"]:
                 _LOG.info(
-                    "%s/%s completed in %s",
+                    "multiplier=%s %s/%s completed in %s",
+                    result["workload_multiplier"],
                     result["tool"],
                     result["backend"],
                     result["time"],
@@ -1905,10 +1936,19 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
             else:
                 error_msg = result.get("error", "Unknown error")
                 _LOG.info(
-                    "%s/%s failed: %s",
+                    "multiplier=%s %s/%s failed: %s",
+                    result["workload_multiplier"],
                     result["tool"],
                     result["backend"],
                     error_msg,
                 )
-        # TODO(ai_gp): Create a pandas table with all the results, ordering
-        # tools by speed.
+        # Create pandas table with results ordered by speed.
+        df = pd.DataFrame(results)
+        df_sorted = df.sort_values(
+            by=["workload_multiplier", "time"], ascending=[True, True]
+        )
+        _LOG.info("Results table:\n%s", df_sorted.to_string(index=False))
+        # Save table to CSV for analysis.
+        table_file = os.path.join(output_dir, "comparison_results.csv")
+        df_sorted.to_csv(table_file, index=False)
+        _LOG.info("Results table saved to %s", table_file)
