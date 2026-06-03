@@ -300,14 +300,14 @@ def find_header_from_input(
     header_list: hmarhead.HeaderList,
     header_input: str,
 ) -> Tuple[hmarhead.HeaderInfo, int]:
-    """
+    r"""
     Find a header from user input with flexible matching.
 
     Supports multiple input formats:
     - Line number: "42" (1-based line number)
     - Slide format: "* Slide Title" (matches level-5 header with prefix)
     - Full header format: "## Title" (matches level-exact header with prefix)
-    - Regex pattern: "^\\* Title$" (Python regex matching full header line)
+    - Regex pattern: "^\* Title$" (Python regex matching full header line)
     - Substring: "Title" (matches anywhere in title, must be unique)
 
     :param header_list: list of HeaderInfo objects
@@ -319,13 +319,13 @@ def find_header_from_input(
     hdbg.dassert_ne(header_input, "", "Header input cannot be empty")
     header_input = header_input.strip()
     header_info = None
-    # Check if input is a line number
+    # Check if input is a line number.
     if header_input.isdigit():
         line_num = int(header_input)
         header_info = _find_header_by_line_number(header_list, line_num)
         hdbg.dassert_is_not(header_info, None, "No header at line %d", line_num)
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
-    # Check if input is slide format (* Title)
+    # Check if input is slide format (* Title).
     elif header_input.startswith("*"):
         title = header_input[1:].strip()
         header_info = find_header_by_level_and_prefix(
@@ -335,7 +335,7 @@ def find_header_from_input(
             header_info, None, "No slide matches: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
-    # Check if input is full header format (# Title)
+    # Check if input is full header format (# Title).
     elif header_input.startswith("#"):
         level, title = parse_header_string(header_input)
         header_info = find_header_by_level_and_prefix(header_list, level, title)
@@ -343,15 +343,15 @@ def find_header_from_input(
             header_info, None, "No header matches: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
-    # Check if input is regex pattern (^ anchor)
+    # Check if input is regex pattern (^ anchor).
     elif header_input.startswith("^"):
         header_info = find_header_by_regex(header_list, header_input)
         hdbg.dassert_is_not(
             header_info, None, "No header matches regex: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
-    # Default: substring matching
     else:
+        # Default: substring matching.
         header_info = find_header_by_substring_title(header_list, header_input)
         hdbg.dassert_is_not(
             header_info, None, "No header matches: '%s'", header_input
@@ -359,7 +359,7 @@ def find_header_from_input(
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     hdbg.dassert_is_not(header_info, None)
-    _LOG.info(
+    _LOG.debug(
         f"found header at line {header_info.line_number}: {header_info.description}"
     )
     return header_info, header_info.level
@@ -465,6 +465,7 @@ def get_chunk_bounds(
             header_list, start_header_str_converted
         )
         start_idx = start_header_info.line_number - 1
+    _LOG.info("start_idx=%s", start_idx)
     # Determine end index.
     if end_header_str is None:
         if start_header_str is None:
@@ -509,6 +510,7 @@ def get_chunk_bounds(
                 header_list, start_header_info, end_header_str_converted
             )
             end_idx = len(lines_converted) if end_line is None else end_line
+    _LOG.info("end_idx=%s", end_idx)
     return start_idx, end_idx
 
 
@@ -557,7 +559,7 @@ def extract_text_from_markdown_lines(
     while extracted_lines and extracted_lines[-1].strip() == "":
         extracted_lines.pop()
     num_lines = len(extracted_lines)
-    _LOG.info(f"selection:{start_idx + 1}-{end_idx} ({num_lines} lines)")
+    _LOG.debug(f"selection:{start_idx + 1}-{end_idx} ({num_lines} lines)")
     return extracted_lines
 
 
@@ -605,7 +607,9 @@ def find_skill(skill_match: str) -> str:
     """
     cmd = ["mdm", "skill", "f", skill_match]
     result = subprocess.run(cmd, capture_output=True, text=True)
-    matches = result.stdout.strip().split("\n")
+    output = result.stdout.strip()
+    output = re.sub(r"\x1b\[[0-9;]*m", "", output)
+    matches = output.split("\n")
     matches = [m.strip() for m in matches if m.strip()]
     hdbg.dassert_eq(
         len(matches),
@@ -743,5 +747,5 @@ def extract_rule_from_file(rule_spec: str) -> str:
     # Extract and return the section.
     section_lines = lines[line_idx:end_idx]
     num_lines = len(section_lines)
-    _LOG.info(f"{file_path}:{line_num}-{end_idx} ({num_lines} lines)")
+    _LOG.debug(f"{file_path}:{line_num}-{end_idx} ({num_lines} lines)")
     return "\n".join(section_lines)

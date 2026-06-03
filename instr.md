@@ -1,20 +1,16 @@
-Fix the issue when calling rig with options like --last_commit --branch that specify a list of
-files
+- In linters2/fix_comments.py add directives to enable / disable the check
+  # lint: disable=fix_comments
 
-rig --last_commit -v DEBUG
+  # lint: enable=fix_comments
 
-rg '^\s*(#|//)\s*TODO\(ai_gp\S*\)' . --hidden dev_scripts_helpers/system_tools/lib_rig.py helpers/hparser.py linters2/lint_cc.py -n --no-heading --color=never -g '!.git'
-
-The directory should be replaced with the list of files
+  Update the unit tests to use those directives around the unit tests that would
+  be otherwise changed by linters2/fix_comments.py
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
 
 - When writing unit tests for follow the instructions in
   `.claude/skills/testing.rules.md`
-
-- When implementing notebooks follow the instructions in
-  - `.claude/skills/notebook.rules.md`
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications

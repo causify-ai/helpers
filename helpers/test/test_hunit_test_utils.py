@@ -642,7 +642,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
         """
         # Prepare inputs.
         files = [
-            "dev_scripts_helpers/scraping/process_hn_article.py",
+            "dev_scripts_helpers/scraping/process_link_gsheet.py",
             "helpers/hgit.py",
             "helpers/lib_tasks_utils.py",
         ]
@@ -660,7 +660,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
         """
         # Prepare inputs.
         files = [
-            "dev_scripts_helpers/scraping/process_hn_article.py",
+            "dev_scripts_helpers/scraping/process_link_gsheet.py",
             "dev_scripts_helpers/scraping/test/__init__.py",
             "helpers/hgit.py",
             "helpers/lib_tasks_utils.py",

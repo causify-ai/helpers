@@ -1,5 +1,6 @@
 ---
 description: Criticize and suggest improvements for class slides
+model: opus
 ---
 
 - Given a Markdown file storing slides for a lecture

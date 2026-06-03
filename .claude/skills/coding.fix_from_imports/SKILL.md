@@ -1,5 +1,6 @@
 ---
 description: Replace "from X import Y" style imports with "import X" and update usages throughout a file
+model: haiku
 ---
 
 - Replace any Python statement like `from X import Y` with the form `import X`

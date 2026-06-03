@@ -115,15 +115,13 @@ def _write_file(file_path: str, content: str) -> None:
 # #############################################################################
 
 
-def _generate_summary(
-    content: str, *, model: str, use_llm_executable: bool
-) -> str:
+def _generate_summary(content: str, *, model: str, backend: str) -> str:
     """
     Generate a summary of the content using the llm library or executable.
 
     :param content: text content to summarize
     :param model: LLM model to use
-    :param use_llm_executable: whether to use llm CLI executable or Python library
+    :param backend: backend to use ("executable", "library", or "mock")
     :return: generated summary
     """
     _LOG.info("Generating summary using model: %s", model)
@@ -133,11 +131,11 @@ def _generate_summary(
     20 words
     """
     # Call apply_llm from hllm_cli.
-    summary = hllmcli.apply_llm(
+    summary, _ = hllmcli.apply_llm(
         content,
         system_prompt=system_prompt,
         model=model,
-        use_llm_executable=use_llm_executable,
+        backend=backend,
     )
     # Clean up summary.
     summary = summary.strip()
@@ -267,7 +265,7 @@ def _action_summarize(
     input_file: str,
     *,
     model: str,
-    use_llm_executable: bool,
+    backend: str,
     skip_lint: bool,
 ) -> None:
     """
@@ -275,16 +273,14 @@ def _action_summarize(
 
     :param input_file: path to input markdown file
     :param model: LLM model to use
-    :param use_llm_executable: whether to use llm CLI executable
+    :param backend: backend to use ("executable", "library", or "mock")
     :param skip_lint: if True, skip linting the file
     """
     _LOG.info("Action: summarize")
     # Read the input file.
     content = _read_file(input_file)
     # Generate summary.
-    summary = _generate_summary(
-        content, model=model, use_llm_executable=use_llm_executable
-    )
+    summary = _generate_summary(content, model=model, backend=backend)
     # Update the summary section.
     new_content = _update_summary_section(content, summary)
     # Write the updated content.
@@ -303,7 +299,7 @@ def _action_update_content(
     input_file: str,
     *,
     model: str,
-    use_llm_executable: bool,
+    backend: str,
     skip_lint: bool,
 ) -> None:
     """
@@ -311,7 +307,7 @@ def _action_update_content(
 
     :param input_file: path to input markdown file
     :param model: LLM model to use
-    :param use_llm_executable: whether to use llm CLI executable
+    :param backend: backend to use ("executable", "library", or "mock")
     :param skip_lint: if True, skip linting the file
     """
     _LOG.info("Action: update_content")
@@ -334,11 +330,11 @@ def _action_update_content(
     expected_num_chars = int(input_size * 1.2)
     # Apply LLM to update the content.
     _LOG.info("Applying LLM to update markdown content")
-    updated_content = hllmcli.apply_llm(
+    updated_content, _ = hllmcli.apply_llm(
         input_content,
         system_prompt=system_prompt,
         model=model,
-        use_llm_executable=use_llm_executable,
+        backend=backend,
         expected_num_chars=expected_num_chars,
     )
     # Write output file.
@@ -387,7 +383,7 @@ def _action_apply_style(
     input_file: str,
     *,
     model: str,
-    use_llm_executable: bool,
+    backend: str,
     skip_lint: bool,
 ) -> None:
     """
@@ -395,7 +391,7 @@ def _action_apply_style(
 
     :param input_file: path to input markdown file
     :param model: LLM model to use
-    :param use_llm_executable: whether to use llm CLI executable
+    :param backend: backend to use ("executable", "library", or "mock")
     :param skip_lint: if True, skip linting the file
     """
     _LOG.info("Action: apply_style")
@@ -411,11 +407,11 @@ def _action_apply_style(
     expected_num_chars = int(input_size * 1.2)
     # Apply LLM to format the content.
     _LOG.info("Applying LLM to format markdown content")
-    formatted_content = hllmcli.apply_llm(
+    formatted_content, _ = hllmcli.apply_llm(
         input_content,
         system_prompt=system_prompt,
         model=model,
-        use_llm_executable=use_llm_executable,
+        backend=backend,
         expected_num_chars=expected_num_chars,
     )
     # Write output file.
@@ -463,10 +459,11 @@ def _parse() -> argparse.ArgumentParser:
         help="LLM model to use (default: gpt-4o-mini)",
     )
     parser.add_argument(
-        "--use_llm_executable",
-        action="store_true",
-        default=False,
-        help="Use llm CLI executable instead of Python library (default: False)",
+        "--backend",
+        type=str,
+        default="library",
+        choices=["executable", "library", "mock"],
+        help="LLM backend to use: 'executable' (CLI), 'library' (Python), or 'mock' (testing)",
     )
     parser.add_argument(
         "--skip_lint",
@@ -513,21 +510,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _action_summarize(
                     input_file,
                     model=args.model,
-                    use_llm_executable=args.use_llm_executable,
+                    backend=args.backend,
                     skip_lint=args.skip_lint,
                 )
             elif action == "update_content":
                 _action_update_content(
                     input_file,
                     model=args.model,
-                    use_llm_executable=args.use_llm_executable,
+                    backend=args.backend,
                     skip_lint=args.skip_lint,
                 )
             elif action == "apply_style":
                 _action_apply_style(
                     input_file,
                     model=args.model,
-                    use_llm_executable=args.use_llm_executable,
+                    backend=args.backend,
                     skip_lint=args.skip_lint,
                 )
             elif action == "lint":

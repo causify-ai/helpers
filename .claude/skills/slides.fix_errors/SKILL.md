@@ -1,13 +1,28 @@
 ---
 description: Fix slides without changing their structure
+model: haiku
 ---
 
-- Given a markdown file with slides for a college class, where each slide title
-  is prepended with `*`
+- Given a markdown file with slides about technical material
+
+- A slide title is prepended with `*` and has hierarchical bullets
+  - E.g.,
+    ```
+    * How Can a Node Be Influenced by Its Children?
+
+    - A **descendant can influence its ancestor** indirectly through _"explaining
+      away"_
+      - Evidence about the descendant can change what you believe about the
+        ancestor through dependent paths
+      - Information flows both ways in Bayesian networks
+    ```
 
 # Leave Structure Unchanged
-- Maintain the structure of the text and keep the content of the existing text
+- Do not change the structure of the text (e.g., in terms of title, bullet structure,
+  div fenced blocks)
+- Maintain the content of the existing text
+- Do not add periods at the end of phrases
 
 # Fix Mistakes
 - Fix English grammar
-- Fix any mistake only if you are sure about the correction
+- Fix any conceptual mistake only if you are sure about the correction

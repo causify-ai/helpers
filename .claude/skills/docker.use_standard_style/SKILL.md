@@ -1,5 +1,6 @@
 ---
 description: Align Docker files in a project directory to the standard project template style
+model: haiku
 ---
 
 - You are an expert of Docker and Docker compose

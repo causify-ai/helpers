@@ -32,6 +32,7 @@ _LOG = logging.getLogger(__name__)
 
 # Disable tracing for production code.
 _LOG.trace = lambda *args, **kwargs: None
+# To enable use:
 # _LOG.trace = _LOG.debug
 
 # #############################################################################
@@ -2101,6 +2102,15 @@ def simple_cache(
                             "Auto-syncing cache to S3 for '%s'", func_name
                         )
                         _upload_cache_to_s3(func_name)
+                # Print info about the cache.
+                cache_file = _get_cache_file_name(func_name)
+                cache_type = get_cache_property(func_name, "type")
+                _LOG.debug(
+                    "Allocating cache for '%s': file='%s' type='%s'",
+                    func_name,
+                    cache_file,
+                    cache_type,
+                )
             return value
 
         return wrapper
@@ -2129,7 +2139,7 @@ def add_cache_control_arg(
         default=None,
         choices=list(_VALID_CACHE_MODES),
         help=(
-            "Override cache behavior for all @simple_cache functions. "
+            "Override cache behavior for all cache functions. "
             "REFRESH_CACHE repopulates, DISABLE_CACHE bypasses, "
             "HIT_CACHE_OR_ABORT raises on miss."
         ),
@@ -2138,7 +2148,7 @@ def add_cache_control_arg(
         "--cache_debug",
         action="store_true",
         help=(
-            "Log at WARNING level for every @simple_cache call whether the "
+            "Log at WARNING level for every cache call whether the "
             "result was served from cache, computed on miss, or recomputed "
             "because of `cache_mode`"
         ),
@@ -2148,8 +2158,7 @@ def add_cache_control_arg(
 
 def parse_cache_control_args(args: argparse.Namespace) -> None:
     """
-    Apply `--cache_mode`,  `--cache_debug` by setting the process-wide
-    globals.
+    Apply `--cache_mode`, `--cache_debug` by setting the process-wide globals.
     """
     mode = getattr(args, "cache_mode", None)
     if mode is not None:

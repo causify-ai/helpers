@@ -12,12 +12,12 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 import helpers.hselect_input_output as hseinout
+import dev_scripts_helpers.documentation.lint_txt as dshdlitx
 
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp): Pass an option to call executable or library.
-def lint_file(file_path: str) -> None:
+def lint_file(file_path: str, *, backend: str = "docker") -> None:
     """
     Lint a file to ensure proper formatting.
 
@@ -25,9 +25,12 @@ def lint_file(file_path: str) -> None:
     markdown processing, and style enforcement.
 
     :param file_path: path to the file to lint
+    :param backend: Backend to use for linting: "docker" (call lint_txt.py script)
+        or "library" (use the library directly)
     """
+    hdbg.dassert_in(backend, ["docker", "library"])
     _LOG.info("Linting file: %s", file_path)
-    if True:
+    if backend == "docker":
         # Find the lint_txt.py script.
         script_path = hgit.find_file_in_git_tree("lint_txt.py")
         hdbg.dassert_file_exists(script_path)

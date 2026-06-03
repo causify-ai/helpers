@@ -40,6 +40,9 @@ Examples:
 # Run add_class_frames only on Python files
 > lint.py --modified --file_types "py" --action add_class_frames
 
+# Run fix_comments only on Python files to convert single-line docstrings
+> lint.py --modified --file_types "py" --action fix_comments
+
 # Run pyright type-checker on modified Python files (including paired jupytext)
 > lint.py --modified --file_types "py" --action pyright
 
@@ -70,6 +73,7 @@ _VALID_ACTIONS = set(
     [
         "add_class_frames",
         "coverage",
+        "fix_comments",
         "fix_pyright",
         "normalize_import",
         "pre-commit",
@@ -83,6 +87,7 @@ _DEFAULT_ACTIONS = [
     "pre-commit",
     "normalize_import",
     "add_class_frames",
+    "fix_comments",
 ]
 
 
@@ -128,7 +133,10 @@ def _run_linting_actions(
     actions: Optional[List[str]] = None,
 ) -> int:
     """
-    Run common linting actions (pre-commit, normalize_import, add_class_frames).
+    Run common linting actions.
+
+    Actions include: pre-commit, normalize_import, add_class_frames,
+    fix_comments, pyright, and fix_pyright.
 
     :param files_str: Space-separated string of file paths
     :param abort_on_error: whether to abort on first error
@@ -148,6 +156,7 @@ def _run_linting_actions(
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
+    # TODO(gp): Consider moving these actions inside pre-commit itself.
     if "normalize_import" in actions:
         print(hprint.frame("linters2/normalize_import.py", char1="="))
         cmd = (
@@ -165,6 +174,16 @@ def _run_linting_actions(
         cmd = (
             f"linters2/add_class_frames.py --no_report_command_line {files_str}"
         )
+        _LOG.debug("> %s", cmd)
+        ret |= hsystem.system(
+            cmd,
+            print_command=False,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
+    if "fix_comments" in actions:
+        print(hprint.frame("Running linters2/fix_comments.py", char1="="))
+        cmd = f"linters2/fix_comments.py --no_report_command_line {files_str}"
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
             cmd,
@@ -273,7 +292,7 @@ def _lint_python_files(
     :param file_paths: Python files to lint
     :param abort_on_error: whether to abort on first error
     :param actions: list of actions to perform (pre-commit, normalize_import,
-    add_class_frames, pyright, coverage)
+        add_class_frames, pyright, coverage)
         - If None, all actions except coverage are performed
     :return: combined return code (OR of all command return codes)
     """
@@ -311,8 +330,8 @@ def _lint_jupyter_files(
 
     :param file_paths: Jupyter notebook files to lint
     :param abort_on_error: whether to abort on first error
-    :param actions: list of actions to perform (pre-commit, normalize_import, add_class_frames, sync_jupytext);
-                   if None, all actions are performed
+    :param actions: list of actions to perform (pre-commit, normalize_import,
+        add_class_frames, sync_jupytext); if None, all actions are performed
     :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
@@ -443,6 +462,7 @@ def _parse() -> argparse.ArgumentParser:
         "  pre-commit: Run pre-commit linters\n"
         "  normalize_import: Normalize import statements\n"
         "  add_class_frames: Add class frame decorators\n"
+        "  fix_comments: Convert single-line docstrings to multi-line format\n"
         "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
         "  pyright: Run pyright type checker\n"
         "  coverage: Run pytest coverage for test files",

@@ -22,8 +22,30 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# File selection arguments
+# _SingleFilesAction
 # #############################################################################
+
+
+class _SingleFilesAction(argparse.Action):
+    """
+    Custom action that errors if --files is used multiple times.
+    """
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: Any,
+        option_string: Optional[str] = None,
+    ) -> None:
+        if getattr(namespace, self.dest, None) is not None:
+            msg = (
+                f"{option_string} can only be specified once. "
+                "Use a single argument with space-separated files: "
+                f'{option_string} "file1.py file2.py file3.py"'
+            )
+            parser.error(msg)
+        setattr(namespace, self.dest, values)
 
 
 def add_file_selection_args(
@@ -46,8 +68,8 @@ def add_file_selection_args(
     file_selection = parser.add_mutually_exclusive_group()
     file_selection.add_argument(
         "--files",
-        type=str,
-        help="Select specific files (space-separated list)",
+        action=_SingleFilesAction,
+        help="Select specific files (space-separated list in a single argument)",
     )
     file_selection.add_argument(
         "--from_file",

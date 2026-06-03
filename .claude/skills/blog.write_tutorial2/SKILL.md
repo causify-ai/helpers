@@ -1,5 +1,6 @@
 ---
 description: Write a blog post about a machine learning library or technique for a technical audience
+model: opus
 ---
 
 You are a technical writer specializing in writing blog posts about machine

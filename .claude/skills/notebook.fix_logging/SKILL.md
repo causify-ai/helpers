@@ -1,5 +1,6 @@
 ---
 description: Use this idiom for controlling logging in Jupyter notebooks
+model: haiku
 ---
 
 # Important: Follow Conventions

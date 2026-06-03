@@ -309,7 +309,7 @@ def _summarize_text(
             input_str=text,
             system_prompt=system_prompt,
             model=model,
-            use_llm_executable=False,
+            backend="library",
         )
         _LOG.debug("LLM cost: $%.6f", cost)
     return summary, cost

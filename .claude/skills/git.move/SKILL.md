@@ -1,5 +1,6 @@
 ---
 description: Move a file or directory in the Git repo and update all references to it
+model: haiku
 ---
 
 - Given a source path `<src>` and destination path `<dst>` in the current Git

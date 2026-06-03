@@ -1,5 +1,6 @@
 ---
 description: Add a rule to the set of rules
+model: haiku
 ---
 
 - The user passes:

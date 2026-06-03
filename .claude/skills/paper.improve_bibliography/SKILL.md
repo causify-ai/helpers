@@ -1,5 +1,6 @@
 ---
 description: Add relevant bibliography entries to a LaTeX academic paper and reference them in the text
+model: haiku
 ---
 
 - You are a college professor in computer science and artificial intelligence

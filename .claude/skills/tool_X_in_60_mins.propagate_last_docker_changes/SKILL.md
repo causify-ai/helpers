@@ -1,5 +1,6 @@
 ---
 description: Propagate the last change in the Docker system for project_template to all the projects
+model: haiku
 ---
 
 $SRC_DIR=class_project/project_template

@@ -1,5 +1,6 @@
 ---
 description: Fix function call sites to pass positional args by position and assign constants to intermediate variables
+model: haiku
 ---
 
 - I will pass you a file

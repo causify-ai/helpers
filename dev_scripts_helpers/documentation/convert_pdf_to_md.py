@@ -438,7 +438,7 @@ def _pdf_to_markdown(
     markdown_content = dshdlipr.prettier_on_str(
         markdown_content,
         file_type="md",
-        print_width=80,
+        width=80,
     )
     # Write formatted markdown to file.
     with open(md_path, "w", encoding="utf-8") as f:
@@ -510,18 +510,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    # Execute convert action.
-    # TODO(ai_gp): Use the --action functions in hparser.py
-    if "convert" in actions:
-        _pdf_to_markdown(
-            pdf_path=args.input,
-            output_dir=args.output,
-            skip_figures=args.skip_figures,
-            overwrite=args.overwrite,
-        )
-    # Execute remove_junk action for cleanup.
-    if "remove_junk" in actions:
-        _remove_junk(pdf_path=args.input, output_dir=args.output)
+    # Execute actions.
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if to_execute:
+            if action == "convert":
+                _pdf_to_markdown(
+                    pdf_path=args.input,
+                    output_dir=args.output,
+                    skip_figures=args.skip_figures,
+                    overwrite=args.overwrite,
+                )
+            elif action == "remove_junk":
+                _remove_junk(pdf_path=args.input, output_dir=args.output)
 
 
 if __name__ == "__main__":

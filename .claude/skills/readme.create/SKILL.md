@@ -1,5 +1,6 @@
 ---
 description: Write a README.md for a directory with sections for structure, files, and executable descriptions
+model: haiku
 ---
 
 - You are an expert technical writer specializing in software documentation

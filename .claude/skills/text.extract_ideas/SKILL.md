@@ -1,5 +1,6 @@
 ---
 description: Extract the most interesting ideas from the text
+model: opus
 ---
 
 You are an expert reader and critical thinker

@@ -1676,7 +1676,10 @@ def _parse_failed_tests(
     failed_tests = []
     num_failed = num_passed = 0
     for line in txt.split("\n"):
-        # Remove non printable characters.
+        _LOG.debug("line=%s", line)
+        # Remove ANSI color codes (both ESC-based and bracket notation).
+        line = re.sub(r"\x1b\[[0-9;]*m|\[[0-9;]*m", "", line)
+        # Remove other non-printable characters.
         line = re.sub(r"[^\x20-\x7E]", "", line)
         # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
         m = re.search(r"^(FAILED|ERROR) (\S+) -", line)
@@ -1727,8 +1730,10 @@ def pytest_failed(
     _ = ctx
     hlitauti.report_task()
     # Read file.
+    _LOG.info("Reading %s", file_name)
     txt = hio.from_file(file_name)
     # Extract info.
+    _LOG.info("Parsing %s", file_name)
     failed_tests, _, _ = _parse_failed_tests(txt, only_file, only_class)
     print("\n".join(failed_tests))
     # Write the repro in a file.

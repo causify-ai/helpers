@@ -618,20 +618,8 @@
 
 ## Use Action Idiom
 
-- When using actions in a script use the functions in `helpers/hparser.py`
-  ```python
-  def add_action_arg(
-  def actions_to_string(
-  def select_actions(
-  def mark_action(
-  ```
-
-- E.g.,
-
-  ```python
-  actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-  hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-  ```
+- When using actions in a script use the code and idiom from
+  `./helpers/hselect_action.py`
 
 ## Use Limit Range Idiom
 

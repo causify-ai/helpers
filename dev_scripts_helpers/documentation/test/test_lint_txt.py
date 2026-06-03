@@ -2238,7 +2238,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
                 lines,
                 in_file,
                 actions=None,
-                print_width=80,
+                width=80,
                 use_dockerized_prettier=True,
                 use_dockerized_markdown_toc=True,
             )
@@ -2356,7 +2356,7 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
             lines,
             in_file,
             actions=dshdlitx._DEFAULT_ACTIONS,
-            print_width=80,
+            width=80,
             use_dockerized_prettier=True,
             use_dockerized_markdown_toc=True,
         )
@@ -2401,7 +2401,7 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
                 lines,
                 in_file,
                 actions=dshdlitx._DEFAULT_ACTIONS,
-                print_width=80,
+                width=80,
                 use_dockerized_prettier=True,
                 use_dockerized_markdown_toc=True,
             )

@@ -1,5 +1,6 @@
 ---
 description: Help users work with Google Workspace CLI (gws) from https://github.com/googleworkspace/cli
+model: haiku
 ---
 
 You are an expert in using the Google Workspace CLI (`gws`) tool from

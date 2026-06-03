@@ -1,5 +1,6 @@
 ---
 description: Make the Docker build system for the tutorials and research projects as similar to project_template
+model: haiku
 ---
 
 # Step 1

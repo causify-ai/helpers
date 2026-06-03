@@ -973,21 +973,21 @@ class Test_extract_rule_from_file(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test that section name mismatch raises AssertionError.
+        Test that section name mismatch raises ValueError.
         """
         file_path = self.helper_create_rule_file()
         rule_spec = f"{file_path}:3:# Different Name"
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             hmarsele.extract_rule_from_file(rule_spec)
 
     def test6(self) -> None:
         """
-        Test that non-header line raises AssertionError.
+        Test that non-header line raises ValueError.
         """
         file_path = self.helper_create_rule_file()
         # This is "- Level 1 content line 1", not a header.
         rule_spec = f"{file_path}:4"
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             hmarsele.extract_rule_from_file(rule_spec)
 
     def test7(self) -> None:

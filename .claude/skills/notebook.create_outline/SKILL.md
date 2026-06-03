@@ -1,5 +1,6 @@
 ---
 description: Create a detailed markdown outline (notebook_outline file) for a Jupyter notebook, specifying each cell's content, purpose, visuals, and interactivity to teach concepts through example and discovery
+model: opus
 ---
 
 # Purpose
@@ -11,32 +12,12 @@ description: Create a detailed markdown outline (notebook_outline file) for a Ju
 - **Output**: A `notebook_outline.<tag>.md` markdown file that describes each
   notebook cell
 
-# Core Goals
-
-- An effective interactive notebook outline should enable:
-  - **Strong intuition**: Help students build mental models through discovery
-  - **Visual explanation**: Use plots, diagrams, and animations to make concepts
-    concrete
-  - **Incremental building**: Start simple, add complexity layer by layer
-  - **Interactive exploration**: Let students manipulate parameters and see
-    immediate results
-
 # Key Principles
 
+- Make sure to follow the section `Effective Notebook Design Principles` from the
+  file `.claude/skills/notebook.rules.md`
 - **Outline format**: Describe cells in markdown structure
   (`notebook_outline.<tag>.md`), not in code
-- **Focus on examples**: Concentrate on practical examples, not theory repetition
-  from slides
-- **Discovery over exposition**: Emphasize "what if I change this?" over "here's
-  the explanation"
-- **Build on context**: Each cell should reference and extend what came before
-
-# Important Conventions
-
-- Always follow these guidelines:
-  - `.claude/skills/notebook.rules.md`: General notebook conventions
-  - `.claude/skills/markdown.rules.md`: Markdown formatting rules
-  - `.claude/skills/text.rules.md`: Bullet point conventions
 
 # Cell Outline Structure
 
@@ -136,9 +117,9 @@ description: Create a detailed markdown outline (notebook_outline file) for a Ju
     for control, matplotlib patches for marble visualization
   ```
 
-# Formatting Rules
+# Important Conventions
 
-- **No non-ASCII characters**: Use `mu` instead of `μ`, `alpha` instead of `α`
-- **No page separators**: Avoid `---` or similar between cells
-- **Follow markdown conventions**: See `.claude/skills/markdown.rules.md`
-- **Follow bullet point conventions**: See `.claude/skills/text.rules.md`
+- Always follow these guidelines:
+  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions, including the `Utilities vs. Notebook Responsibilities` section for organizing utility files and notebooks
+  - `.claude/skills/markdown.rules.md`: Markdown formatting rules
+  - `.claude/skills/text.rules.md`: Bullet point conventions

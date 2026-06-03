@@ -1,16 +1,17 @@
 ---
 description: Ensure cells in a notebook are numbered consecutively with matching function names
+model: haiku
 ---
 
-This skill renumbers cells in a Jupyter notebook consecutively and ensures all
-function names are synchronized with cell headers
+Renumber cells in a Jupyter notebook consecutively and ensures all function names
+are synchronized with cell headers
 
 ## Rules Reference
 - Make sure to follow the sections on notebook organization and utility file
   structure from `.claude/skills/notebook.rules.md`:
-  - "Notebook Organization" (Markdown Header Structure and Naming, Sequential
+  - `## Notebook Organization` (Markdown Header Structure and Naming, Sequential
     Cell Numbering)
-  - "Utility File Organization" (Sync Function Names with Cell Numbers, Organize
+  - `## Utility File Organization` (Sync Function Names with Cell Numbers, Organize
     Code by Cell Order)
 
 ## Workflow

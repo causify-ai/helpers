@@ -66,6 +66,8 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+model_default = "claude-haiku-4-5-20251001"
+
 
 def _get_rules_for_topic(topic: str) -> Dict:
     """
@@ -243,8 +245,8 @@ def _run_claude_code(
     prompt: str,
     topic: str,
     file_path: str,
-    *,
-    dry_run: bool = False,
+    dry_run: bool,
+    model: str,
 ) -> int:
     """
     Run Claude Code with the given prompt.
@@ -253,9 +255,11 @@ def _run_claude_code(
     :param topic: Topic for logging purposes
     :param file_path: File to process
     :param dry_run: If True, print command but don't execute
+    :param model: Model to use for Claude invocation
     :return: Return code (0 on success, or subprocess return code)
     """
     hdbg.dassert_file_exists(file_path)
+    _LOG.info("Using model: %s", model)
     _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
@@ -264,6 +268,8 @@ def _run_claude_code(
         "-p",
         "--dangerously-skip-permissions",
         "--output-format=text",
+        "--model",
+        model,
         f"'Execute the file {prompt_file}'",
     ]
     cmd = " ".join(cmd_parts)
@@ -271,7 +277,7 @@ def _run_claude_code(
     if dry_run:
         _LOG.info("Dry run: command not executed")
         return 0
-    _LOG.debug("Executing: %s", " ".join(cmd_parts[:4]))
+    _LOG.debug("Executing: %s", " ".join(cmd_parts[:6]))
     result = subprocess.run(cmd_parts, capture_output=False)
     return result.returncode
 
@@ -304,6 +310,13 @@ def _parse() -> argparse.ArgumentParser:
         "--dry_run",
         action="store_true",
         help="Print the command but don't execute",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=model_default,
+        help=f"Optional model name to use (e.g., 'gpt-4', 'claude-3-opus'). "
+        f"Default: {model_default}",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -342,7 +355,11 @@ def _main(parser: argparse.ArgumentParser) -> int:
             inferred_topic = _infer_topic_from_filename(file_path)
             topic_info = _get_rules_for_topic(inferred_topic)
             rc = _run_claude_code(
-                prompt, topic_str, file_path, dry_run=args.dry_run
+                prompt,
+                topic_str,
+                file_path,
+                dry_run=args.dry_run,
+                model=args.model,
             )
         elif args.rule:
             rule_content = hmarsele.extract_rule_from_file(args.rule)
@@ -353,7 +370,11 @@ def _main(parser: argparse.ArgumentParser) -> int:
             inferred_topic = _infer_topic_from_filename(file_path)
             topic_info = _get_rules_for_topic(inferred_topic)
             rc = _run_claude_code(
-                prompt, topic_str, file_path, dry_run=args.dry_run
+                prompt,
+                topic_str,
+                file_path,
+                dry_run=args.dry_run,
+                model=args.model,
             )
         else:
             if args.topic:
@@ -370,7 +391,11 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 + "questions to the user"
             )
             rc = _run_claude_code(
-                prompt, topic_str, file_path, dry_run=args.dry_run
+                prompt,
+                topic_str,
+                file_path,
+                dry_run=args.dry_run,
+                model=args.model,
             )
         ret |= rc
         if topic_info["run_jupytext"]:

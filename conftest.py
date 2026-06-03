@@ -86,12 +86,12 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         import helpers.henv as henv
 
         _WARNING = "\033[33mWARNING\033[0m"
-        # Skip expensive system signature during collection-only mode
-        if not config.option.collectonly:
-            try:
-                print(henv.get_system_signature()[0])
-            except Exception:
-                print(f"\n{_WARNING}: Can't print system_signature")
+        # Skip expensive system signature during collection-only mode.
+        # if not config.option.collectonly:
+        #     try:
+        #         print(henv.get_system_signature()[0])
+        #     except Exception:
+        #         print(f"\n{_WARNING}: Can't print system_signature")
         if config.getoption("--update_outcomes"):
             print(f"\n{_WARNING}: Updating test outcomes")
             hut.set_update_tests(True)
