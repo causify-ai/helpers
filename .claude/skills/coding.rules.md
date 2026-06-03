@@ -12,10 +12,6 @@
 
 - Use the coding style in `.claude/templates/coding.template.py`
 
-## Use * for Default Parameters
-
-- Use `*` to mark which parameters in functions should be default parameters
-
 ## Use `typing` Module Style for Type Hints
 
 - Use type hints from the `typing` module instead of newer PEP 604 syntax
@@ -529,6 +525,139 @@
     def colorize_bullet_points_in_slide(
     ```
 
+# Functions
+
+## Minimize Default Values of None in Function Interfaces
+
+- In function signatures and class constructors, avoid `None` as default values to
+  minimize `Optional` types in type hints
+- Use meaningful default values of the same type instead to keep interfaces
+  simpler and reduce the need for `Optional`
+
+- **Bad**: Using `None` defaults creates `Optional` type requirements
+  ```python
+  def process(
+      data: Dict[str, str],
+      *,
+      timeout: Optional[int] = None,
+      name: Optional[str] = None,
+  ) -> str:
+      if timeout is None:
+          timeout = 30
+      if name is None:
+          name = "default"
+      ...
+  ```
+- **Good**: Use meaningful type-matching defaults
+  ```python
+  def process(
+      data: Dict[str, str],
+      *,
+      timeout: int = 30,
+      name: str = "",
+  ) -> str:
+      ...
+  ```
+
+- This pattern applies to:
+  - Function parameters and return types
+  - Class constructor arguments
+  - Dataclass field definitions
+  - Any interface that accepts arguments with defaults
+
+- Choose meaningful defaults based on the parameter type:
+  - For strings: use `""` (empty string)
+  - For integers: use `-1`, `0`, or another sentinel that makes semantic sense
+  - For booleans: use `False` or `True` based on intended semantics
+  - For paths: use `""` or consider making the parameter required
+
+## Use `*` to Force Keyword Arguments for Optional Parameters
+
+- Default values should be rare exceptions: only use them when 99.9% of all calls
+  need the same value
+- For optional parameters
+  - always use a default value
+  - use `*` to force keyword argument passing
+- This makes the API more explicit and prevents silent surprises when defaults
+  change
+
+- **Bad**: Optional parameters with defaults are too convenient to ignore
+  ```python
+  def analyze(
+      data: List[str],
+      verbose: bool = False,
+      timeout: int = 30,
+      output_format: str = "json",
+  ) -> Dict[str, Any]:
+      ...
+  ```
+- **Good**: Force keyword arguments for optional parameters using `*`
+  ```python
+  def analyze(
+      data: List[str],
+      *,
+      verbose: bool = False,
+      timeout: int = 30,
+      output_format: str = "json",
+  ) -> Dict[str, Any]:
+      ...
+  ```
+
+## Use Default Values Very Rarely in Interfaces
+
+- Only provide defaults when the parameter is truly optional and the default
+  applies to 99.9% of use cases and make them 
+  ```python
+  def connect(
+      host: str,
+      port: int,
+      *,
+      ssl: bool = True,  # Almost all connections use SSL
+      timeout: int = 30, # timeout is required to be explicit
+  ) -> Connection:
+      ...
+  ```
+
+- Parameters with default must be keyword-only parameters (after a `*`)
+
+- Benefits of using `*`:
+  - Callers must explicitly state their intention via keyword arguments
+  - Reduces brittleness when adding new parameters to existing functions
+  - Makes APIs more discoverable and self-documenting
+  - Prevents accidental reliance on defaults that may change in maintenance
+
+## Call Functions With Position Arguments for Required, Keywords for Optional
+
+- When calling functions, follow this convention:
+  - Use positional arguments for mandatory parameters only
+  - Use keyword arguments (by name) for all parameters that have default values
+- This makes calls explicit and self-documenting, matching the function definition style
+
+- **Bad**: Using positional arguments for optional parameters hides intent
+  ```python
+  # Define
+  def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
+      ...
+  
+  # Call - implicit about which parameters have defaults
+  result = analyze(data_list, False, 60)
+  ```
+- **Good**: Use position for required, keywords for optional
+  ```python
+  # Define
+  def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
+      ...
+  
+  # Call - explicit about optional parameters
+  result = analyze(data_list, verbose=False, timeout=60)
+  ```
+
+- Apply this pattern consistently:
+  - Mandatory parameters (no default): use position
+  - Optional parameters (has default): use keyword argument with name
+  - If a function uses `*` to force keywords, the call naturally follows this
+    pattern
+
 # Logging
 
 ## Use _LOG
@@ -636,6 +765,36 @@
   - **Bad**: `--cache-reset`, `--max-iterations`, `--output-dir`
 - This applies to both long-form argument names and the attribute names assigned
   by argparse (which converts `_` to `_` in the namespace)
+
+## Use Single Types With Meaningful Defaults for Parser Inputs
+
+- When defining parser arguments, use a single consistent type (e.g., `str`, `int`)
+  with a meaningful default value to represent "not set" instead of `None`
+- This simplifies type hints and avoids `Optional` types throughout your code
+
+- **Bad**: Using `None` as default creates `Optional` type requirements
+  ```python
+  parser.add_argument("--name", type=str, default=None)
+  parser.add_argument("--count", type=int, default=None)
+  
+  def _main(args: argparse.Namespace) -> None:
+      name: Optional[str] = args.name
+      count: Optional[int] = args.count
+  ```
+- **Good**: Use meaningful defaults to keep single types
+  ```python
+  parser.add_argument("--name", type=str, default="")
+  parser.add_argument("--count", type=int, default=-1)
+  
+  def _main(args: argparse.Namespace) -> None:
+      name: str = args.name
+      count: int = args.count
+  ```
+
+- Choose meaningful defaults based on the argument type:
+  - For strings: use `""` (empty string)
+  - For integers: use `-1` (or another sentinel like `0`)
+  - For paths: use `""` (empty string) or handle validation in the parser
 
 ## Create Dirs
 

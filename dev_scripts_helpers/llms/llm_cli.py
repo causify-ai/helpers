@@ -134,7 +134,6 @@ def _get_input_output_files(
 
 
 def _get_expected_num_chars(
-    *,
     progress_bar: bool,
     expected_num_chars_arg: Optional[int],
     input_file: str,
