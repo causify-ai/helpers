@@ -1,24 +1,10 @@
-# Step 2
-Create a script llm_compare.py that accepts an option
---models "xyz,abc,..." where xyz and abc and so on are models
-or --models_from_file with a file storing model codes on each line
+Split ./dev_scripts_helpers/llms/llm_cli.py into a lib_llm_cli.py
+with the library functions, leaving only _main and _parse in
+llm_cli.py so that there is a clear separation between CLI
+and code implementing it
 
---output_dir
-
-Call llm_cli.py with the same options that were not parsed
-that runs the same workload with different models by calling
-llm_cli.py, saving the results in output_dir/{model}.output.txt
-
---stat_file $output_dir/{model}.stat.txt
-
-Then read all the stats and create a table of
-
-model
-costs
-time elapsed
-length of output
-file
-
+Split the code in ./dev_scripts_helpers/llms/test/test_llm_cli.py
+to follow the conventions, testing lib vs CLI
 
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`

@@ -9,13 +9,15 @@ model: opus
 
 # Step 1: Select Rules
 - Given the file passed by the user `<FILE>`
-- Read the following rules which maps file types to the set of rules to use
- `@.claude/rules.md`  
-- Find what files of rules `<RULE_FILE>` apply to the file passed by the user
-- Print the file that needs to be used as
-  ```
-  Rules: <RULE_FILE>
-  ```
+- If the user specifies a set of rules apply those
+- Otherwise read the following rules which maps file types to the set of rules to
+  use
+   `@.claude/rules.md`  
+  - Find what files of rules `<RULE_FILE>` apply to the file passed by the user
+  - Print the file that needs to be used as
+    ```
+    Rules: <RULE_FILE>
+    ```
 
 # Step 2: Read Rules
 - Read that file `<RULE_FILE>`

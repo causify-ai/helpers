@@ -90,8 +90,6 @@ def _run_llm_cli(
     return True, ""
 
 
-
-
 def _build_comparison_table(
     models: List[str],
     output_dir: str,

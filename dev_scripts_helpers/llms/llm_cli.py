@@ -549,12 +549,52 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    verbosity = args.log_level
+def _llm_cli(
+    input_arg: str,
+    input_text_arg: str,
+    output_arg: str,
+    modify_in_place: bool,
+    progress_bar: bool,
+    expected_num_chars_arg: Optional[int],
+    log_level: str,
+    dry_run: bool,
+    model: str,
+    backend: str,
+    system_prompt_file: Optional[str],
+    rule: Optional[str],
+    system_prompt_arg: str,
+    select: str,
+    lint: bool,
+    max_chars: Optional[int],
+    stat_file: Optional[str],
+    llm_cmd: Optional[str],
+) -> None:
+    """
+    Execute the LLM command processing logic.
+
+    :param input_arg: Input file path or '-' for stdin
+    :param input_text_arg: Input text from command line
+    :param output_arg: Output file path or '-' for stdout
+    :param modify_in_place: Whether to modify input file in place
+    :param progress_bar: Whether to show progress bar
+    :param expected_num_chars_arg: Explicitly provided expected char count
+    :param log_level: Logging verbosity level
+    :param dry_run: If True, skip calling the LLM
+    :param model: Name of the LLM model to use
+    :param backend: Backend to use ("executable", "library", or "mock")
+    :param system_prompt_file: Path to file containing system prompt
+    :param rule: Rule specification for system prompt
+    :param system_prompt_arg: System prompt text
+    :param select: Select specification (e.g., 'start_marker:end_marker')
+    :param lint: Whether to lint the output
+    :param max_chars: Maximum number of input characters to process
+    :param stat_file: Path to save stats as JSON file
+    :param llm_cmd: Arbitrary llm command to execute
+    """
+    verbosity = log_level
     # Suppress logging when using stdin/stdout unless DEBUG is requested.
-    if args.input == "-" and args.output == "-":
-        if args.log_level == "INFO":
+    if input_arg == "-" and output_arg == "-":
+        if log_level == "INFO":
             verbosity = "CRITICAL"
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
     _LOG.info("llm version: %s", version("llm"))
@@ -562,73 +602,97 @@ def _main(parser: argparse.ArgumentParser) -> None:
     install_models()
     _log_plugin_versions()
     # Execute arbitrary llm command if provided.
-    if args.llm_cmd:
-        execute_llm_command(args.llm_cmd)
+    if llm_cmd:
+        execute_llm_command(llm_cmd)
         return
     # Determine input source and output destination.
     input_file, input_text, output_file = _get_input_output_files(
-        args.input,
-        args.input_text,
-        args.output,
-        args.modify_in_place,
+        input_arg,
+        input_text_arg,
+        output_arg,
+        modify_in_place,
     )
     # Calculate expected number of output characters for progress tracking.
     expected_num_chars = _get_expected_num_chars(
-        args.progress_bar,
-        args.expected_num_chars,
+        progress_bar,
+        expected_num_chars_arg,
         input_file,
         input_text,
     )
     # Log processing mode.
-    if args.dry_run:
+    if dry_run:
         _LOG.warning("Dry run mode: LLM will not be called")
     else:
-        _LOG.info("Processing with LLM '%s'...", args.model)
+        _LOG.info("Processing with LLM '%s'...", model)
     # Resolve system prompt from file, rule, or argument.
     system_prompt = _get_system_prompt(
-        args.system_prompt_file,
-        args.rule,
-        args.system_prompt,
+        system_prompt_file,
+        rule,
+        system_prompt_arg,
     )
     # Process selected chunk or full text.
-    if args.select:
+    if select:
         # Transform a selected chunk of text.
-        hdbg.dassert_is(
-            input_text, None, "Select mode requires file input, not --input_text"
+        hdbg.dassert(
+            not input_text, "Select mode requires file input, not --input_text"
         )
         token_stats = _process_selected_text(
-            args.select,
-            args.model,
-            args.backend,
+            select,
+            model,
+            backend,
             input_file,
             output_file,
             system_prompt,
-            args.modify_in_place,
-            args.max_chars,
-            args.lint,
+            modify_in_place,
+            max_chars,
+            lint,
             expected_num_chars,
-            args.dry_run,
+            dry_run,
         )
     else:
         # Transform full text.
         token_stats = _process_full_text(
-            args.model,
-            args.backend,
+            model,
+            backend,
             input_text,
             input_file,
             output_file,
             system_prompt,
-            args.max_chars,
-            args.lint,
+            max_chars,
+            lint,
             expected_num_chars,
-            args.dry_run,
+            dry_run,
         )
     # Report total cost of LLM operation.
     _LOG.info("Total cost: %s", token_stats.to_str())
     # Save stats to file if requested.
-    if args.stat_file:
-        token_stats.to_file(args.stat_file)
-        _LOG.info("Stats saved to: %s", args.stat_file)
+    if stat_file:
+        token_stats.to_file(stat_file)
+        _LOG.info("Stats saved to: %s", stat_file)
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    _llm_cli(
+        args.input,
+        args.input_text,
+        args.output,
+        args.modify_in_place,
+        args.progress_bar,
+        args.expected_num_chars,
+        args.log_level,
+        args.dry_run,
+        args.model,
+        args.backend,
+        args.system_prompt_file,
+        args.rule,
+        args.system_prompt,
+        args.select,
+        args.lint,
+        args.max_chars,
+        args.stat_file,
+        args.llm_cmd,
+    )
 
 
 if __name__ == "__main__":
