@@ -1385,20 +1385,18 @@ def apply_llm_prompt_to_df(
 # Testing utilities
 # #############################################################################
 
-# with mock_apply_llm():
-#     # Code that calls apply_llm() will now return mocked values
-#     response, cost = apply_llm(
-#         "some input",
-#         system_prompt="some prompt",
-#     )
-#     # response will be the MD5 hash of "some inputsome prompt"
-#     # cost will be TokenStats() with zeros
-#
 # Example in a test:
+# ```
 # def test_my_function(self):
 #     with mock_apply_llm():
-#         result = my_function_that_calls_apply_llm()
-#         self.assertEqual(result, expected_value)
+#         # Code that calls apply_llm() will now return mocked values
+#         response, token_stats = apply_llm(
+#             "some input",
+#             system_prompt="some prompt",
+#         )
+#         # `response` will be the MD5 hash of "some inputsome prompt"
+#         # `token_stats` will be TokenStats() with zeros.
+# ```
 
 
 @contextlib.contextmanager
@@ -1409,13 +1407,6 @@ def mock_apply_llm():
     This mocks `apply_llm()` in tests by returning the MD5 digest of the
     concatenated input_str and system_prompt. Avoids expensive API calls and
     external dependencies during testing.
-
-    Usage example:
-    ```
-    with mock_apply_llm():
-        response, token_stats = apply_llm("test", system_prompt="prompt")
-        # response is MD5 hash, token_stats is TokenStats()
-    ```
     """
 
     def _mock_apply_llm(
