@@ -820,6 +820,31 @@
 - This applies to both long-form argument names and the attribute names assigned
   by argparse (which converts `_` to `_` in the namespace)
 
+## Use Mutually Exclusive Groups for Conflicting Options
+
+- When options are mutually exclusive, use `add_mutually_exclusive_group()` to
+  enforce the constraint in argparse instead of validating manually in code
+- This provides automatic conflict detection and generates proper help text
+
+- **Bad**: Manual validation for mutually exclusive options
+  ```python
+  parser.add_argument("--input_file", type=str, default="")
+  parser.add_argument("--input_text", type=str, default="")
+  
+  def _main(args: argparse.Namespace) -> None:
+      if args.input_file and args.input_text:
+          raise ValueError("Cannot specify both --input_file and --input_text")
+      if not args.input_file and not args.input_text:
+          raise ValueError("Must specify either --input_file or --input_text")
+  ```
+- **Good**: Use `add_mutually_exclusive_group()` in parser
+  ```python
+  input_group = parser.add_mutually_exclusive_group(required=True)
+  input_group.add_argument("--input_file", type=str, default="")
+  input_group.add_argument("--input_text", type=str, default="")
+  # Argument validation is handled automatically by argparse
+  ```
+
 ## Use Single Types With Meaningful Defaults for Parser Inputs
 
 - When defining parser arguments, use a single consistent type (e.g., `str`, `int`)
