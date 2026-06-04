@@ -17,7 +17,7 @@ import json
 import logging
 import os
 import shlex
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 
@@ -95,10 +95,10 @@ def _read_stat_file(stat_file: str) -> Dict[str, Any]:
     """
     Read and parse a statistics JSON file.
 
-    :param stat_file: Path to stat file
-    :return: Parsed JSON dict or None if file doesn't exist
+    :param stat_file: Path to stat file (must exist)
+    :return: Parsed JSON dict with statistics
     """
-    hdbg.dassert_file_exists(stat_file)
+    hdbg.dassert_file_exists(stat_file, "Stat file must exist")
     content = hio.from_file(stat_file)
     return json.loads(content)
 
@@ -118,10 +118,10 @@ def _build_comparison_table(
     """
     rows = []
     for model in models:
-        hdbg.dassert_in(model, results)
+        hdbg.dassert_in(model, results, "Model must be in results")
         success, _ = results[model]
         if not success:
-            # Use default values.
+            # Use default values for failed models.
             rows.append({
                 "model": model,
                 "costs": None,
@@ -131,14 +131,18 @@ def _build_comparison_table(
                 "status": "FAILED",
             })
             continue
+        # Build file paths for successful models.
         output_file = os.path.join(output_dir, f"{model}.output.txt")
         stat_file = os.path.join(output_dir, f"{model}.stat.txt")
-        # 
+        # Load statistics from JSON file.
         stat_data = _read_stat_file(stat_file)
-        hdbg.dassert_file_exists(output_file)
+        # Extract metrics from output file and statistics.
+        hdbg.dassert_file_exists(output_file, "Output file must exist")
         output_length = os.path.getsize(output_file)
-        costs = stat_data.get("cost_from_tokencost")
-        costs = stat_data.get("cost_from_llm_library")
+        # TODO(ai_gp): Save both.
+        costs = stat_data.get("cost_from_tokencost") or stat_data.get(
+            "cost_from_llm_library"
+        )
         elapsed_time = stat_data.get("elapsed_time_in_seconds")
         rows.append({
             "model": model,
@@ -180,10 +184,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
             abort_on_error=args.abort_on_error,
         )
         results[model] = (success, exc)
-
+        # TODO(ai_gp): Use dassert_imply
         if not success and args.abort_on_error:
             _LOG.error("Aborting due to error in model '%s'", model)
-            raise exc if exc else RuntimeError(f"Model '{model}' failed")
+            raise RuntimeError(exc or f"Model '{model}' failed")
 
     df = _build_comparison_table(models, output_dir, results)
 
