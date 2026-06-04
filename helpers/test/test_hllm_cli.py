@@ -12,6 +12,7 @@ import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 from helpers.test.test_hcache_simple import _BaseCacheTest
@@ -23,6 +24,7 @@ _LOG = logging.getLogger(__name__)
 # non-deterministic).
 # _RUN_REAL_LLM_BACKEND = False
 _RUN_REAL_LLM_BACKEND = True
+
 
 # #############################################################################
 # Test_apply_llm_with_files
@@ -249,7 +251,6 @@ class Test_apply_llm_with_files1(TestApplyLlmBase):
     With real backend, verifies only that output is produced.
     """
 
-    # TODO(ai_gp): Not sure it's needed.
     def setUp(self) -> None:
         """
         Set up test by resetting cache property for apply_llm.
@@ -258,8 +259,6 @@ class Test_apply_llm_with_files1(TestApplyLlmBase):
         specified in its decorator, not stale JSON cache from previous runs.
         """
         super().setUp()
-        # Reset the cache property to ensure pickle cache type is used.
-        # This is needed because the old JSON cache file may exist on disk.
         hcacsimp.reset_cache_property()
 
     def test_library(self) -> None:
@@ -314,7 +313,6 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
     Test apply_llm with input_text parameter using mock or real backend.
     """
 
-    # TODO(ai_gp2): Not sure it's needed.
     def setUp(self) -> None:
         """
         Set up test by resetting cache property for apply_llm.
@@ -323,7 +321,6 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         specified in its decorator, not stale JSON cache from previous runs.
         """
         super().setUp()
-        # Reset the cache property to ensure pickle cache type is used.
         hcacsimp.reset_cache_property()
 
     def test1_library(self) -> None:
@@ -356,8 +353,6 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
             )
         else:
             self.skipTest("Executable backend not available in mock mode")
-
-    # //////////////////////////////////////////////////////////////////////////
 
     def _run_test_cases_print_only(self) -> None:
         """
@@ -501,6 +496,8 @@ class Test_llm1(hunitest.TestCase):
         prompt = hprint.dedent(prompt)
         return prompt
 
+    @pytest.mark.skipif(not _RUN_REAL_LLM_BACKEND, 
+                        reason="Test requires _RUN_REAL_LLM_BACKEND=True")
     def test1(self) -> None:
         """
         Test _llm() with multiple models and prompt lengths.
@@ -510,11 +507,6 @@ class Test_llm1(hunitest.TestCase):
         real LLM backend since _llm() is an internal function that always
         calls the LLM API. Test is skipped with mock backend.
         """
-        # TODO(ai_gp): Use a decorator.
-        if not _RUN_REAL_LLM_BACKEND:
-            self.skipTest(
-                "_llm() test requires real backend (_RUN_REAL_LLM_BACKEND=True)"
-            )
         hcacsimp.set_cache_property("_test_llm", "force_refresh", True)
         # Define test configurations with model-specific inputs.
         test_configs = [
@@ -667,7 +659,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         :param func: batch processing function to test
         :param testing_functor: optional testing functor for mocking
         """
-        _LOG.trace(hprint.to_str("model func testing_functor"))
+        _LOG.debug(hprint.to_str("model func testing_functor"))
         # Create test inputs.
         prompt = self.get_test_prompt()
         input_list = ["2 + 2", "3 * 3", "10 - 5", "20 / 4"]
@@ -942,17 +934,19 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         if isinstance(obj, pd.Series):
             # Extract from DataFrame row.
             if "expression" in obj.index:
-                expr = obj["expression"]
+                expr = obj.loc["expression"]
                 # Handle None, NaN, or empty string.
-                if pd.isna(expr) or expr == "":
+                if expr is None or (isinstance(expr, float) and pd.isna(expr)):
                     return ""
-                return str(expr)
+                expr_str = str(expr)
+                return expr_str if expr_str else ""
             return ""
         else:
             # Already a string.
-            if pd.isna(obj) or obj == "":
+            if obj is None or (isinstance(obj, float) and pd.isna(obj)):
                 return ""
-            return str(obj)
+            obj_str = str(obj)
+            return obj_str if obj_str else ""
 
     def helper(
         self,
@@ -1286,8 +1280,13 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         )
         return df
 
-    # TODO(ai_gp): Add docstring.
     def run_cached_apply_llm_prompt_to_df(self) -> None:
+        """
+        Helper method to run apply_llm_prompt_to_df with cached test data.
+
+        This method is used by both test1 and test2 to run the same
+        apply_llm_prompt_to_df logic with different cache configurations.
+        """
         prompt = self.get_test_prompt()
         df = self.create_test_df()
         prompt = self.get_test_prompt()
@@ -1313,6 +1312,8 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         )
         self.assert_equal(str(result_df), str(expected_df))
 
+    @pytest.mark.skipif(not _RUN_REAL_LLM_BACKEND, 
+                        reason="Test requires _RUN_REAL_LLM_BACKEND=True")
     def test1(self) -> None:
         """
         Warm up cache by calling apply_llm and save cache to file.
@@ -1321,12 +1322,6 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         then saves the cache to a file for use in subsequent tests.
         With real backend, this generates the cache from actual LLM calls.
         """
-        # TODO(ai_gp): Use a decorator.
-        if not _RUN_REAL_LLM_BACKEND:
-            # Skip cache generation for mock backend, use existing cache.
-            self.skipTest(
-                "Cache test only runs with real backend (_RUN_REAL_LLM_BACKEND=True)"
-            )
         # Create a file with the cache content for test2 in the input directory.
         input_dir = self.get_input_dir(
             test_class_name=self.__class__.__name__,
@@ -1342,10 +1337,11 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         hcacsimp.sanity_check_function_cache(
             func_cache_data, assert_on_empty=True
         )
-        # TODO(ai_gp): Make a call to hsystem.system cp to change the name of the file from
-        # helpers/test/outcomes/Test_apply_llm_prompt_to_df2.test2/input/tmp.cache_simple._llm.pkl
-        # to
-        # helpers/test/outcomes/Test_apply_llm_prompt_to_df2.test2/input/cache_simple._llm.pkl
+        # Rename the temporary cache file to remove the "tmp." prefix.
+        tmp_cache_file = os.path.join(input_dir, "tmp.cache_simple._llm.pkl")
+        hdbg.dassert_file_exists(tmp_cache_file)
+        final_cache_file = os.path.join(input_dir, "cache_simple._llm.pkl")
+        hsystem.system(f"mv {tmp_cache_file} {final_cache_file}")
 
 
     def test2(self) -> None:
@@ -1375,19 +1371,6 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
             func_cache_data, assert_on_empty=True
         )
         _LOG.debug("Loaded func_cache_data=\n%s", func_cache_data)
-        # TODO(ai_gp): Check how to do this better.
-        # Convert cached token_stats from dict to TokenStats objects.
-        # This handles compatibility with old JSON cache format that stored
-        # dicts instead of TokenStats dataclass instances.
-        for key, value in func_cache_data.items():
-            if isinstance(value, list) and len(value) == 2:
-                response, token_stats = value
-                if isinstance(token_stats, dict):
-                    # Convert dict to TokenStats object
-                    func_cache_data[key] = [
-                        response,
-                        hllmcli.TokenStats(**token_stats)
-                    ]
         hcacsimp.mock_cache_from_disk("_llm", func_cache_data)
         try:
             # Set abort_on_cache_miss to ensure we don't hit the LLM API.
@@ -1527,9 +1510,9 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         df = pd.DataFrame({"description": industries})
 
         # Extractor function to get text from DataFrame row.
-        def extractor(obj):
+        def extractor(obj: object) -> str:
             if isinstance(obj, pd.Series):
-                return obj["description"]
+                return str(obj["description"])
             return str(obj)
 
         # For mock backend, use testing functor for deterministic results.
@@ -1605,19 +1588,19 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
             match_df["Match"] = (
                 match_df[first_batch_mode] == match_df[batch_mode]
             )
-            all_match = match_df["Match"].all()
+            all_match = bool(match_df["Match"].all())
             if not all_match:
                 _LOG.error(
                     "Results mismatch between '%s' and '%s':\n%s",
                     first_batch_mode,
                     batch_mode,
                     match_df,
-                )
-        _LOG.info(
-            "Results match between '%s' and '%s'",
-            first_batch_mode,
-            batch_mode,
-        )
+            )
+            _LOG.info(
+                "Results match between '%s' and '%s'",
+                first_batch_mode,
+                batch_mode,
+            )
         # Create comparison DataFrame.
         comparison_df = pd.DataFrame(results)
         # Add relative metrics compared to individual mode.
