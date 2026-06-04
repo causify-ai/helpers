@@ -23,6 +23,7 @@ import pandas as pd
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -89,18 +90,6 @@ def _run_llm_cli(
     return True, ""
 
 
-# TODO(ai_gp): Move this file close to the TokenStats function
-# like token_states_from_file and token_states_to_file
-def _read_stat_file(stat_file: str) -> Dict[str, Any]:
-    """
-    Read and parse a statistics JSON file (from TokenStats).
-
-    :param stat_file: Path to stat file (must exist)
-    :return: Parsed JSON dict with statistics
-    """
-    hdbg.dassert_file_exists(stat_file, "Stat file must exist")
-    content = hio.from_file(stat_file)
-    return json.loads(content)
 
 
 def _build_comparison_table(
@@ -136,27 +125,19 @@ def _build_comparison_table(
         output_file = os.path.join(output_dir, f"{model}.output.txt")
         stat_file = os.path.join(output_dir, f"{model}.stat.txt")
         # Load statistics from JSON file.
-        stat_data = _read_stat_file(stat_file)
+        stat_data = hllmcli.TokenStats.from_file(stat_file)
         # Extract metrics from output file and statistics.
         hdbg.dassert_file_exists(output_file, "Output file must exist")
         output_length = os.path.getsize(output_file)
-        # TODO(ai_gp): Make a copy of stat_data and add more data.
-        cost_from_tokencost = stat_data.get("cost_from_tokencost")
-        cost_from_llm_library = stat_data.get("cost_from_llm_library")
-        costs = {
-            "cost_from_tokencost": cost_from_tokencost,
-            "cost_from_llm_library": cost_from_llm_library,
-        }
-        elapsed_time = stat_data.get("elapsed_time_in_seconds")
         rows.append({
             "model": model,
-            "costs": costs,
-            "time_elapsed": elapsed_time,
+            "cost_from_tokencost": stat_data.cost_from_tokencost,
+            "cost_from_llm_library": stat_data.cost_from_llm_library,
+            "time_elapsed": stat_data.elapsed_time_in_seconds,
             "output_length": output_length,
             "file": output_file,
             "status": "SUCCESS",
         })
-
     df = pd.DataFrame(rows)
     return df
 

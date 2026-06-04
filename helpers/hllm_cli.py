@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import dataclasses
 import hashlib
 import json
 import logging
@@ -17,10 +18,10 @@ import sys
 import importlib
 import pprint
 import time
+from dataclasses import dataclass
 from typing import (
     Any,
     Callable,
-    Dict,
     List,
     Optional,
     Tuple,
@@ -69,151 +70,156 @@ _LOG.trace = _LOG.debug
 # Cost tracking data structures
 # #############################################################################
 
-# TODO(ai_gp): Turn this into a class and move the function inside.
-TokenStats = Dict[str, Any]
 
-
-def _create_token_stats(
-    input_tokens: int = 0,
-    output_tokens: int = 0,
-    cost_from_tokencost: float = 0.0,
-    cost_from_llm_library: Optional[float] = None,
-    elapsed_time_in_seconds: float = 0.0,
-) -> TokenStats:
+@dataclass
+class TokenStats:
     """
-    Create a cost information dictionary.
+    Token usage and cost statistics for LLM operations.
 
-    :param input_tokens: number of input/prompt tokens used
-    :param output_tokens: number of completion/output tokens used
-    :param cost_from_tokencost: cost calculated using tokencost library (dollars)
-    :param cost_from_llm_library: cost from llm library if available (dollars)
-    :param elapsed_time_in_seconds: elapsed time for the LLM call in seconds
-    :return: cost dictionary with all cost information
+    Tracks input/output tokens, costs from multiple sources, and elapsed time.
     """
-    hdbg.dassert_lte(0, input_tokens)
-    hdbg.dassert_lte(0, output_tokens)
-    hdbg.dassert_lte(0, cost_from_tokencost)
-    hdbg.dassert_lte(0, elapsed_time_in_seconds)
-    if cost_from_llm_library is not None:
-        hdbg.dassert_lte(0, cost_from_llm_library)
-    return {
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "cost_from_tokencost": float(cost_from_tokencost),
-        "cost_from_llm_library": float(cost_from_llm_library)
-        if cost_from_llm_library is not None
-        else None,
-        "elapsed_time_in_seconds": float(elapsed_time_in_seconds),
-    }
 
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost_from_tokencost: float = 0.0
+    # TODO(ai_gp): Use only float with a default of 0.0
+    cost_from_llm_library: Optional[float] = None
+    elapsed_time_in_seconds: float = 0.0
 
-def _aggregate_token_stats(
-    token_stats: List[Union[TokenStats, float]],
-) -> TokenStats:
-    """
-    Aggregate multiple cost dictionaries into a single combined dictionary.
+    def __post_init__(self) -> None:
+        """
+        Validate TokenStats after initialization.
+        """
+        self.check()
 
-    Sums up token counts, costs, and elapsed times across all provided cost dictionaries.
-    Handles both cost dictionaries and legacy float values for backward compatibility.
+    def check(self) -> None:
+        """
+        Ensure all numeric values are non-negative and properly typed.
+        """
+        hdbg.dassert_lte(0, self.input_tokens)
+        hdbg.dassert_lte(0, self.output_tokens)
+        hdbg.dassert_lte(0, self.cost_from_tokencost)
+        hdbg.dassert_lte(0, self.elapsed_time_in_seconds)
+        if self.cost_from_llm_library is not None:
+            hdbg.dassert_lte(0, self.cost_from_llm_library)
+        # Ensure proper types.
+        self.input_tokens = int(self.input_tokens)
+        self.output_tokens = int(self.output_tokens)
+        self.cost_from_tokencost = float(self.cost_from_tokencost)
+        self.elapsed_time_in_seconds = float(self.elapsed_time_in_seconds)
+        if self.cost_from_llm_library is not None:
+            self.cost_from_llm_library = float(self.cost_from_llm_library)
 
-    :param token_stats: list of cost dictionaries or floats to aggregate
-    :return: aggregated cost dictionary with summed values
-    """
-    normalized_dicts = []
-    for item in token_stats:
-        if isinstance(item, dict):
-            normalized_dicts.append(item)
-        elif isinstance(item, (int, float)):
-            normalized_dicts.append(
-                _create_token_stats(cost_from_tokencost=float(item))
-            )
+    def to_float(self) -> float:
+        """
+        Convert TokenStats to a single float value (for backward compatibility).
+
+        Uses the tokencost cost if available, otherwise uses the llm_library cost.
+
+        :return: total cost in dollars as a float
+        """
+        if (
+            self.cost_from_tokencost is not None
+            and self.cost_from_llm_library is not None
+        ):
+            if abs(float(self.cost_from_tokencost) - float(self.cost_from_llm_library)):
+                _LOG.warning(
+                    "Cost is different: "
+                    "cost_from_tokencost = %s != cost_from_llm_library = %s"
+                    % (self.cost_from_tokencost, self.cost_from_llm_library)
+                )
+        if self.cost_from_tokencost > 0:
+            return float(self.cost_from_tokencost)
+        #
+        if self.cost_from_llm_library is not None and self.cost_from_llm_library > 0:
+            return float(self.cost_from_llm_library)
+        return 0.0
+
+    def to_str(self) -> str:
+        """
+        Convert TokenStats to a formatted string for logging.
+
+        :return: formatted string with cost, token counts, elapsed time, and tokens per second
+        """
+        cost = self.to_float()
+        elapsed_time = self.elapsed_time_in_seconds
+        output_tokens = self.output_tokens
+        # Format cost: $ for >= $1, cents for $0.0001-$1, u$ for < $0.0001
+        if cost >= 1.0:
+            cost_str = f"${cost:.6f}"
+        elif cost >= 0.0001:
+            cost_str = f"{cost * 100:.2f}c"
         else:
-            normalized_dicts.append(_create_token_stats())
-    #
-    total_input_tokens = sum(d.get("input_tokens", 0) for d in normalized_dicts)
-    total_output_tokens = sum(
-        d.get("output_tokens", 0) for d in normalized_dicts
-    )
-    total_cost_from_tokencost = sum(
-        d.get("cost_from_tokencost", 0.0) for d in normalized_dicts
-    )
-    total_cost_from_llm_library = sum(
-        d.get("cost_from_llm_library") or 0.0 for d in normalized_dicts
-    )
-    total_elapsed_time = sum(
-        d.get("elapsed_time_in_seconds", 0.0) for d in normalized_dicts
-    )
-    return _create_token_stats(
-        input_tokens=total_input_tokens,
-        output_tokens=total_output_tokens,
-        cost_from_tokencost=total_cost_from_tokencost,
-        cost_from_llm_library=total_cost_from_llm_library
-        if total_cost_from_llm_library > 0
-        else None,
-        elapsed_time_in_seconds=total_elapsed_time,
-    )
+            cost_str = f"{cost * 1e6:.2f}u$"
+        # Calculate tokens per second, handling zero elapsed time.
+        if elapsed_time > 0:
+            tok_per_sec = output_tokens / elapsed_time
+            res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s, {tok_per_sec:.2f} tok/s ("
+        else:
+            res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s ("
+        fields = [
+            "input_tokens",
+            "output_tokens",
+            "cost_from_llm_library",
+            "cost_from_tokencost",
+        ]
+        for field in fields:
+            val = getattr(self, field, "na")
+            res += f"{field}={val}, "
+        res += ")"
+        return res
 
+    @classmethod
+    def aggregate(cls, token_stats_list: List[TokenStats]) -> TokenStats:
+        """
+        Aggregate multiple TokenStats into a single combined instance.
 
-def _token_stats_to_float(token_stats: TokenStats) -> float:
-    """
-    Convert a cost dictionary to a single float value (for backward compatibility).
+        Sums up token counts, costs, and elapsed times across all provided stats.
 
-    Uses the tokencost cost if available, otherwise uses the llm_library cost.
+        :param token_stats_list: list of TokenStats to aggregate
+        :return: aggregated TokenStats with summed values
+        """
+        total_input_tokens = sum(ts.input_tokens for ts in token_stats_list)
+        total_output_tokens = sum(ts.output_tokens for ts in token_stats_list)
+        total_cost_from_tokencost = sum(
+            ts.cost_from_tokencost for ts in token_stats_list
+        )
+        total_cost_from_llm_library = sum(
+            ts.cost_from_llm_library or 0.0 for ts in token_stats_list
+        )
+        total_elapsed_time = sum(ts.elapsed_time_in_seconds for ts in token_stats_list)
+        return cls(
+            input_tokens=total_input_tokens,
+            output_tokens=total_output_tokens,
+            cost_from_tokencost=total_cost_from_tokencost,
+            cost_from_llm_library=total_cost_from_llm_library
+            if total_cost_from_llm_library > 0
+            else None,
+            elapsed_time_in_seconds=total_elapsed_time,
+        )
 
-    :param token_stats: cost dictionary to convert
-    :return: total cost in dollars as a float
-    """
-    cost_from_tokencost = token_stats.get("cost_from_tokencost", 0.0)
-    cost_from_llm_library = token_stats.get("cost_from_llm_library")
-    if cost_from_tokencost is not None and cost_from_llm_library is not None:
-        if abs(float(cost_from_tokencost) - float(cost_from_llm_library)):
-            _LOG.warning(
-                "Cost is different: "
-                "cost_from_tokencost = %s != cost_from_llm_library = %s"
-                % (cost_from_tokencost, cost_from_llm_library)
-            )
-    if cost_from_tokencost > 0:
-        return float(cost_from_tokencost)
-    #
-    if cost_from_llm_library is not None and cost_from_llm_library > 0:
-        return float(cost_from_llm_library)
-    return 0.0
+    @classmethod
+    def from_file(cls, file_path: str) -> TokenStats:
+        """
+        Load TokenStats from a JSON file.
 
+        :param file_path: path to file containing TokenStats JSON
+        :return: TokenStats instance loaded from file
+        """
+        hdbg.dassert_file_exists(file_path, "Stat file must exist")
+        content = hio.from_file(file_path)
+        data = json.loads(content)
+        return cls(**data)
 
-def token_stats_to_str(token_stats: TokenStats) -> str:
-    """
-    Convert a token stats dictionary to a formatted string for logging.
+    def to_file(self, file_path: str) -> None:
+        """
+        Save TokenStats to a JSON file.
 
-    :param token_stats: token stats dictionary to convert
-    :return: formatted string with cost, token counts, elapsed time, and tokens per second
-    """
-    cost = _token_stats_to_float(token_stats)
-    elapsed_time = token_stats.get("elapsed_time_in_seconds", 0.0)
-    output_tokens = token_stats.get("output_tokens", 0)
-    # Format cost: $ for >= $1, cents for $0.0001-$1, u$ for < $0.0001
-    if cost >= 1.0:
-        cost_str = f"${cost:.6f}"
-    elif cost >= 0.0001:
-        cost_str = f"{cost * 100:.2f}c"
-    else:
-        cost_str = f"{cost * 1e6:.2f}u$"
-    # Calculate tokens per second, handling zero elapsed time.
-    if elapsed_time > 0:
-        tok_per_sec = output_tokens / elapsed_time
-        res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s, {tok_per_sec:.2f} tok/s ("
-    else:
-        res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s ("
-    fields = [
-        "input_tokens",
-        "output_tokens",
-        "cost_from_llm_library",
-        "cost_from_tokencost",
-    ]
-    for field in fields:
-        val = token_stats.get(field, "na")
-        res += f"{field}={val}, "
-    res += ")"
-    return res
+        :param file_path: path where JSON file will be saved
+        """
+        data = dataclasses.asdict(self)
+        json_str = json.dumps(data, indent=2)
+        hio.to_file(file_path, json_str)
 
 
 # #############################################################################
@@ -309,16 +315,18 @@ def _check_llm_executable() -> bool:
 def _calculate_cost_from_usage(
     usage: object,
     model: str,
+    elapsed_time_in_seconds: float = 0.0,
 ) -> TokenStats:
     """
     Calculate LLM cost from usage object.
 
     Uses the tokencost library to compute total cost based on input and output
-    token counts. Returns a cost dictionary with token counts and costs.
+    token counts. Returns a TokenStats instance with token counts and costs.
 
     :param usage: usage object from LLM result containing input/output token counts
     :param model: model name for cost calculation
-    :return: cost dictionary with input_tokens, output_tokens, cost_from_tokencost
+    :param elapsed_time_in_seconds: elapsed time for the LLM call in seconds
+    :return: TokenStats instance with input_tokens, output_tokens, cost_from_tokencost
     """
     input_tokens = usage.input
     output_tokens = usage.output
@@ -336,10 +344,11 @@ def _calculate_cost_from_usage(
             cost = 0.0
     else:
         cost = 0.0
-    return _create_token_stats(
+    return TokenStats(
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         cost_from_tokencost=cost,
+        elapsed_time_in_seconds=elapsed_time_in_seconds,
     )
 
 
@@ -361,13 +370,13 @@ def _apply_llm_via_mock(
 
     :param input_str: the input text to process
     :param system_prompt: optional system prompt to use
-    :return: tuple of (MD5 digest as string, cost dictionary with zeros)
+    :return: tuple of (MD5 digest as string, TokenStats with zeros)
     """
     sig_system = _compute_text_signature(system_prompt) if system_prompt else ""
     sig_input = _compute_text_signature(input_str)
     concatenated = f"{sig_system}\n{sig_input}"
     digest = hashlib.md5(concatenated.encode()).hexdigest()
-    return digest, _create_token_stats()
+    return digest, TokenStats()
 
 
 def _apply_llm_via_executable(
@@ -389,7 +398,7 @@ def _apply_llm_via_executable(
     :param model: optional model name to use
     :param expected_num_chars: optional expected number of characters in output
         - Used to enable progress bar tracking during generation
-    :return: tuple of (LLM response as string, cost dictionary)
+    :return: tuple of (LLM response as string, TokenStats instance)
     """
     start_time = time.time()
     # Build command with system prompt and model options.
@@ -429,7 +438,7 @@ def _apply_llm_via_executable(
         _, response = hsystem.system_to_string(cmd_str)
     elapsed_time = time.time() - start_time
     _LOG.debug("Cost calculation not available when using llm executable")
-    return response, _create_token_stats(elapsed_time_in_seconds=elapsed_time)
+    return response, TokenStats(elapsed_time_in_seconds=elapsed_time)
 
 
 def _apply_llm_via_library(
@@ -450,7 +459,7 @@ def _apply_llm_via_library(
     :param model: optional model name to use
     :param expected_num_chars: optional expected number of characters in output
         - Used to enable progress bar tracking during generation
-    :return: tuple of (LLM response as string, cost dictionary)
+    :return: tuple of (LLM response as string, TokenStats instance)
     """
     start_time = time.time()
     # Get the model.
@@ -473,7 +482,7 @@ def _apply_llm_via_library(
         response = "".join(response_parts)
         elapsed_time = time.time() - start_time
         _LOG.debug("Cost calculation not available for streaming mode")
-        token_stats = _create_token_stats(elapsed_time_in_seconds=elapsed_time)
+        token_stats = TokenStats(elapsed_time_in_seconds=elapsed_time)
     else:
         # Run without progress bar.
         _LOG.trace("system_prompt=\n%s", system_prompt)
@@ -487,11 +496,11 @@ def _apply_llm_via_library(
         token_stats = _calculate_cost_from_usage(
             usage=usage,
             model=llm_model.model_id,
+            elapsed_time_in_seconds=elapsed_time,
         )
-        token_stats["elapsed_time_in_seconds"] = elapsed_time
         _LOG.debug(
             "Cost: %s",
-            token_stats_to_str(token_stats),
+            token_stats.to_str(),
         )
     return response, token_stats
 
@@ -526,7 +535,7 @@ def _apply_llm_via_library(
 #   - Supports all three batch modes and incremental progress saving
 
 
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
+@hcacsimp.simple_cache(cache_type="pickle", write_through=True)
 def apply_llm(
     input_str: str,
     *,
@@ -549,7 +558,7 @@ def apply_llm(
     :param backend: backend to use ("executable", "library", or "mock")
     :param expected_num_chars: optional expected number of characters in
         output; if provided, displays a progress bar during generation
-    :return: tuple of (LLM response as string, cost dictionary)
+    :return: tuple of (LLM response as string, TokenStats instance)
     """
     hdbg.dassert_isinstance(input_str, str)
     hdbg.dassert_ne(input_str, "", "Input string cannot be empty")
@@ -623,7 +632,7 @@ def apply_llm_with_files(
     :param backend: backend to use ("executable", "library", or "mock")
     :param expected_num_chars: optional expected number of characters in
         output; if provided, displays a progress bar during generation
-    :return: cost dictionary
+    :return: TokenStats instance
     """
     hdbg.dassert_isinstance(input_file, str)
     hdbg.dassert_ne(input_file, "", "Input file path cannot be empty")
@@ -682,7 +691,7 @@ def _validate_batch_inputs(
         )
 
 
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
+@hcacsimp.simple_cache(cache_type="pickle", write_through=True)
 def _llm(
     system_prompt: str,
     input_str: str,
@@ -694,7 +703,7 @@ def _llm(
     :param system_prompt: system prompt to guide the LLM's behavior
     :param input_str: the input text to process
     :param model: model name to use
-    :return: tuple of (LLM response as string, cost dictionary)
+    :return: tuple of (LLM response as string, TokenStats instance)
     """
     hdbg.dassert_isinstance(system_prompt, str, "System prompt must be a string")
     _LOG.trace("system_prompt=\n%s", system_prompt)
@@ -732,13 +741,13 @@ def _call_llm_or_test_functor(
     :param system_prompt: System prompt (can be None)
     :param model: Model name (required for cost calculation)
     :param testing_functor: Optional testing functor to use instead of LLM
-    :return: Tuple of (response, token_stats) where token_stats is zeros for testing functor
+    :return: Tuple of (response, TokenStats) where TokenStats is zeros for testing functor
     """
     if testing_functor is None:
         response, token_stats = _llm(system_prompt, input_str, model)
     else:
         response = testing_functor(input_str)
-        token_stats = _create_token_stats()
+        token_stats = TokenStats()
     return response, token_stats
 
 
@@ -817,7 +826,7 @@ def apply_llm_batch_individual(
     :param model: model name to use
     :param testing_functor: optional testing function to use instead of LLM
     :param progress_bar_object: optional progress bar object to update
-    :return: tuple of (list of responses, aggregated cost dictionary)
+    :return: tuple of (list of responses, aggregated TokenStats)
     """
     _validate_batch_inputs(prompt, input_list)
     _LOG.debug("Processing batch of %d inputs individually", len(input_list))
@@ -833,16 +842,14 @@ def apply_llm_batch_individual(
         responses.append(response)
         token_stats_list.append(token_stats)
         if progress_bar_object is not None:
-            total_cost_float = _token_stats_to_float(
-                _aggregate_token_stats(token_stats_list)
-            )
+            total_cost_float = TokenStats.aggregate(token_stats_list).to_float()
             progress_bar_object.update(1)
             progress_bar_object.set_postfix_str(f"Cost: ${total_cost_float:.4f}")
-    aggregated_cost = _aggregate_token_stats(token_stats_list)
+    aggregated_cost = TokenStats.aggregate(token_stats_list)
     _LOG.debug("Batch processing completed")
     _LOG.debug(
         "Total cost for batch with individual prompt: %s",
-        token_stats_to_str(aggregated_cost),
+        aggregated_cost.to_str(),
     )
     return responses, aggregated_cost
 
@@ -863,7 +870,7 @@ def apply_llm_batch_with_shared_prompt(
     :param model: model name to use
     :param testing_functor: optional testing function to use instead of LLM
     :param progress_bar_object: optional progress bar object to update
-    :return: tuple of (list of responses, aggregated cost dictionary)
+    :return: tuple of (list of responses, aggregated TokenStats)
     """
     _validate_batch_inputs(prompt, input_list)
     _LOG.debug("Processing batch of %d inputs", len(input_list))
@@ -883,9 +890,7 @@ def apply_llm_batch_with_shared_prompt(
             responses.append(response)
             token_stats_list.append(token_stats)
             if progress_bar_object is not None:
-                total_cost_float = _token_stats_to_float(
-                    _aggregate_token_stats(token_stats_list)
-                )
+                total_cost_float = TokenStats.aggregate(token_stats_list).to_float()
                 progress_bar_object.update(1)
                 progress_bar_object.set_postfix_str(
                     f"Cost: ${total_cost_float:.4f}"
@@ -894,14 +899,14 @@ def apply_llm_batch_with_shared_prompt(
         for input_str in input_list:
             response = testing_functor(input_str)
             responses.append(response)
-            token_stats_list.append(_create_token_stats())
+            token_stats_list.append(TokenStats())
             if progress_bar_object is not None:
                 progress_bar_object.update(1)
-    aggregated_cost = _aggregate_token_stats(token_stats_list)
+    aggregated_cost = TokenStats.aggregate(token_stats_list)
     _LOG.debug("Batch processing completed")
     _LOG.debug(
         "Total cost for batch with shared prompt: %s",
-        token_stats_to_str(aggregated_cost),
+        aggregated_cost.to_str(),
     )
     return responses, aggregated_cost
 
@@ -928,7 +933,7 @@ def apply_llm_batch_combined(
     :param max_retries: maximum number of retry attempts on JSON parsing failures
     :param testing_functor: optional testing function to use instead of LLM
     :param progress_bar_object: optional progress bar object to update
-    :return: tuple of (list of responses, aggregated cost dictionary)
+    :return: tuple of (list of responses, aggregated TokenStats)
     """
     _validate_batch_inputs(prompt, input_list)
     hdbg.dassert_isinstance(max_retries, int)
@@ -1004,15 +1009,15 @@ def apply_llm_batch_combined(
                         _LOG.warning("Missing result for index %d", idx)
                         responses.append("")
                 _LOG.debug("Successfully parsed JSON response")
-                aggregated_cost = _aggregate_token_stats(token_stats_list)
+                aggregated_cost = TokenStats.aggregate(token_stats_list)
                 if progress_bar_object is not None:
                     progress_bar_object.update(len(input_list))
                     progress_bar_object.set_postfix_str(
-                        f"Cost: ${_token_stats_to_float(aggregated_cost):.4f}"
+                        f"Cost: ${aggregated_cost.to_float():.4f}"
                     )
                 _LOG.debug(
                     "Total cost for batch with combined prompt: %s",
-                    token_stats_to_str(aggregated_cost),
+                    aggregated_cost.to_str(),
                 )
                 return responses, aggregated_cost
             except (json.JSONDecodeError, ValueError) as e:
@@ -1034,10 +1039,10 @@ def apply_llm_batch_combined(
         for input_str in input_list:
             response = testing_functor(input_str)
             responses.append(response)
-            token_stats_list.append(_create_token_stats())
+            token_stats_list.append(TokenStats())
             if progress_bar_object is not None:
                 progress_bar_object.update(1)
-        aggregated_cost = _aggregate_token_stats(token_stats_list)
+        aggregated_cost = TokenStats.aggregate(token_stats_list)
         return responses, aggregated_cost
     raise RuntimeError("Unexpected error in apply_llm_batch_combined")
 
@@ -1070,7 +1075,7 @@ def _call_batch_processor(
     :param model: model name to use
     :param testing_functor: optional testing functor to use instead of LLM
     :param progress_bar_object: optional progress bar object to update
-    :return: tuple of (list of responses, cost dictionary)
+    :return: tuple of (list of responses, TokenStats)
     """
     if batch_mode == "individual":
         func = apply_llm_batch_individual
@@ -1117,7 +1122,7 @@ def _process_batches(
     :param testing_functor: optional functor to use for testing
     :param progress_bar_object: optional progress bar object to update
     :param num_batches: total number of batches to process
-    :return: tuple of (list of results, number of skipped items, aggregated cost dictionary)
+    :return: tuple of (list of results, number of skipped items, aggregated TokenStats)
     """
     results = [""] * len(values)
     num_skipped = 0
@@ -1137,9 +1142,7 @@ def _process_batches(
                 results[global_idx] = ""
                 num_skipped += 1
                 if progress_bar_object is not None:
-                    total_cost_float = _token_stats_to_float(
-                        _aggregate_token_stats(token_stats)
-                    )
+                    total_cost_float = TokenStats.aggregate(token_stats).to_float()
                     progress_bar_object.update(1)
                     progress_bar_object.set_postfix_str(
                         f"Cost: ${total_cost_float:.4f}"
@@ -1162,9 +1165,7 @@ def _process_batches(
             )
             token_stats.append(batch_token_stats)
             if progress_bar_object is not None:
-                total_cost_float = _token_stats_to_float(
-                    _aggregate_token_stats(token_stats)
-                )
+                total_cost_float = TokenStats.aggregate(token_stats).to_float()
                 progress_bar_object.set_postfix_str(
                     f"Cost: ${total_cost_float:.4f}"
                 )
@@ -1177,7 +1178,7 @@ def _process_batches(
                 num_batches,
                 len(batch_slice),
             )
-    aggregated_cost = _aggregate_token_stats(token_stats)
+    aggregated_cost = TokenStats.aggregate(token_stats)
     return results, num_skipped, aggregated_cost
 
 
@@ -1217,7 +1218,7 @@ def _process_dataframe_batches(
     :param testing_functor: optional functor to use for testing
     :param progress_bar_object: optional progress bar object to update
     :param num_batches: total number of batches to process
-    :return: tuple of (number of skipped items, aggregated cost dictionary)
+    :return: tuple of (number of skipped items, aggregated TokenStats)
     """
     num_skipped = 0
     token_stats = []
@@ -1236,9 +1237,7 @@ def _process_dataframe_batches(
                 df.at[idx, target_col] = ""
                 num_skipped += 1
                 if progress_bar_object is not None:
-                    total_cost_float = _token_stats_to_float(
-                        _aggregate_token_stats(token_stats)
-                    )
+                    total_cost_float = TokenStats.aggregate(token_stats).to_float()
                     progress_bar_object.update(1)
                     progress_bar_object.set_postfix_str(
                         f"Cost: ${total_cost_float:.4f}"
@@ -1261,9 +1260,7 @@ def _process_dataframe_batches(
             )
             token_stats.append(batch_token_stats)
             if progress_bar_object is not None:
-                total_cost_float = _token_stats_to_float(
-                    _aggregate_token_stats(token_stats)
-                )
+                total_cost_float = TokenStats.aggregate(token_stats).to_float()
                 progress_bar_object.set_postfix_str(
                     f"Cost: ${total_cost_float:.4f}"
                 )
@@ -1276,7 +1273,7 @@ def _process_dataframe_batches(
                 num_batches,
                 len(rows),
             )
-    aggregated_cost = _aggregate_token_stats(token_stats)
+    aggregated_cost = TokenStats.aggregate(token_stats)
     return num_skipped, aggregated_cost
 
 
@@ -1295,7 +1292,7 @@ def apply_llm_prompt_to_df(
     tag: str = "Processing",
     testing_functor: Optional[Callable[[str], str]] = None,
     use_sys_stderr: bool = False,
-) -> Tuple[pd.DataFrame, Dict[str, int]]:
+) -> Tuple[pd.DataFrame, dict]:
     """
     Apply an LLM to process a dataframe column using the same system prompt.
 
@@ -1375,9 +1372,9 @@ def apply_llm_prompt_to_df(
         "num_items": num_items,
         "num_skipped": num_skipped,
         "num_batches": num_batches,
-        "total_input_tokens": token_stats.get("input_tokens", 0),
-        "total_output_tokens": token_stats.get("output_tokens", 0),
-        "total_cost_in_dollars": _token_stats_to_float(token_stats),
+        "total_input_tokens": token_stats.input_tokens,
+        "total_output_tokens": token_stats.output_tokens,
+        "total_cost_in_dollars": token_stats.to_float(),
         "elapsed_time_in_seconds": elapsed_time,
     }
     _LOG.info("Processing completed:\n%s", pprint.pformat(stats))
@@ -1395,7 +1392,7 @@ def apply_llm_prompt_to_df(
 #         system_prompt="some prompt",
 #     )
 #     # response will be the MD5 hash of "some inputsome prompt"
-#     # cost will be 0.0
+#     # cost will be TokenStats() with zeros
 #
 # Example in a test:
 # def test_my_function(self):
@@ -1414,9 +1411,11 @@ def mock_apply_llm():
     external dependencies during testing.
 
     Usage example:
-        with mock_apply_llm():
-            response, token_stats = apply_llm("test", system_prompt="prompt")
-            # response is MD5 hash, token_stats is {"input_tokens": 0, ...}
+    ```
+    with mock_apply_llm():
+        response, token_stats = apply_llm("test", system_prompt="prompt")
+        # response is MD5 hash, token_stats is TokenStats()
+    ```
     """
 
     def _mock_apply_llm(
@@ -1429,7 +1428,7 @@ def mock_apply_llm():
     ) -> Tuple[str, TokenStats]:
         concatenated = input_str + (system_prompt or "")
         digest = hashlib.md5(concatenated.encode()).hexdigest()
-        return digest, _create_token_stats()
+        return digest, TokenStats()
 
     with mock.patch("helpers.hllm_cli.apply_llm", side_effect=_mock_apply_llm):
         yield

@@ -315,7 +315,7 @@ def _process_selected_text(
             chunk_text,
         )
         response = ""
-        token_stats = {}
+        token_stats = hllmcli.TokenStats()
     else:
         response, token_stats = hllmcli.apply_llm(
             chunk_text,
@@ -412,9 +412,9 @@ def _process_full_text(
         _LOG.info("Input text to be processed:")
         _LOG.info("%s", pprint.pformat(input_str))
         response = ""
-        cost = {}
+        token_stats = {}
     else:
-        response, cost = hllmcli.apply_llm(
+        response, token_stats = hllmcli.apply_llm(
             input_str,
             system_prompt=system_prompt,
             model=model,
@@ -428,7 +428,7 @@ def _process_full_text(
         _LOG.warning("DRY RUN: Would save to %s", output_file)
     else:
         hseinout.to_file(response, output_file)
-    return cost
+    return token_stats
 
 
 def _is_plugin_installed(plugin_module_name: str) -> bool:
@@ -596,7 +596,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hdbg.dassert_is(
             input_text, None, "Select mode requires file input, not --input_text"
         )
-        cost = _process_selected_text(
+        token_stats = _process_selected_text(
             args.select,
             args.model,
             args.backend,
@@ -611,7 +611,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
     else:
         # Transform full text.
-        cost = _process_full_text(
+        token_stats = _process_full_text(
             args.model,
             args.backend,
             input_text,
@@ -624,10 +624,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.dry_run,
         )
     # Report total cost of LLM operation.
-    _LOG.info("Total cost: %s", hllmcli.token_stats_to_str(cost))
+    _LOG.info("Total cost: %s", token_stats.to_str())
     # Save stats to file if requested.
     if args.stat_file:
-        hio.to_file(args.stat_file, json.dumps(cost, indent=2))
+        token_stats.to_file(args.stat_file)
         _LOG.info("Stats saved to: %s", args.stat_file)
 
 

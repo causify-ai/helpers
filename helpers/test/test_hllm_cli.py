@@ -21,8 +21,8 @@ _LOG = logging.getLogger(__name__)
 # Run tests with mock backend by default (fast, deterministic).
 # Set to True to run tests with real LLM backend (requires API keys, slower,
 # non-deterministic).
-_RUN_REAL_LLM_BACKEND = False
-# _RUN_REAL_LLM_BACKEND = True
+# _RUN_REAL_LLM_BACKEND = False
+_RUN_REAL_LLM_BACKEND = True
 
 # #############################################################################
 # Test_apply_llm_with_files
@@ -249,6 +249,19 @@ class Test_apply_llm_with_files1(TestApplyLlmBase):
     With real backend, verifies only that output is produced.
     """
 
+    # TODO(ai_gp): Not sure it's needed.
+    def setUp(self) -> None:
+        """
+        Set up test by resetting cache property for apply_llm.
+
+        This ensures the apply_llm function uses pickle cache type as
+        specified in its decorator, not stale JSON cache from previous runs.
+        """
+        super().setUp()
+        # Reset the cache property to ensure pickle cache type is used.
+        # This is needed because the old JSON cache file may exist on disk.
+        hcacsimp.reset_cache_property()
+
     def test_library(self) -> None:
         """
         Test multiple command-line configurations using default backend.
@@ -300,6 +313,18 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
     """
     Test apply_llm with input_text parameter using mock or real backend.
     """
+
+    # TODO(ai_gp2): Not sure it's needed.
+    def setUp(self) -> None:
+        """
+        Set up test by resetting cache property for apply_llm.
+
+        This ensures the apply_llm function uses pickle cache type as
+        specified in its decorator, not stale JSON cache from previous runs.
+        """
+        super().setUp()
+        # Reset the cache property to ensure pickle cache type is used.
+        hcacsimp.reset_cache_property()
 
     def test1_library(self) -> None:
         """
@@ -485,6 +510,7 @@ class Test_llm1(hunitest.TestCase):
         real LLM backend since _llm() is an internal function that always
         calls the LLM API. Test is skipped with mock backend.
         """
+        # TODO(ai_gp): Use a decorator.
         if not _RUN_REAL_LLM_BACKEND:
             self.skipTest(
                 "_llm() test requires real backend (_RUN_REAL_LLM_BACKEND=True)"
@@ -525,8 +551,8 @@ class Test_llm1(hunitest.TestCase):
                 # Check outputs.
                 self.assertIsInstance(response, str)
                 self.assertGreater(len(response), 0)
-                self.assertIsInstance(token_stats, dict)
-                cost = hllmcli._token_stats_to_float(token_stats)
+                self.assertIsInstance(token_stats, hllmcli.TokenStats)
+                cost = token_stats.to_float()
                 self.assertGreater(cost, 0.0)
                 # Calculate cost per character and cost per 1M characters.
                 response_len = len(response)
@@ -656,8 +682,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         # Check basic properties.
         responses = [str(int(float(r))) for r in responses]
         self.assertEqual(responses, expected_responses)
-        self.assertIsInstance(token_stats, dict)
-        cost = hllmcli._token_stats_to_float(token_stats)
+        self.assertIsInstance(token_stats, hllmcli.TokenStats)
+        cost = token_stats.to_float()
         if testing_functor is None:
             self.assertGreater(cost, 0.0)
         else:
@@ -803,8 +829,8 @@ class Test_process_batches(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(actual_results, expected_results)
         self.assertEqual(actual_num_skipped, expected_num_skipped)
-        self.assertIsInstance(actual_token_stats, dict)
-        actual_cost = hllmcli._token_stats_to_float(actual_token_stats)
+        self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
+        actual_cost = actual_token_stats.to_float()
         self.assertEqual(actual_cost, 0.0)
 
     def test1(self) -> None:
@@ -1260,6 +1286,7 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         )
         return df
 
+    # TODO(ai_gp): Add docstring.
     def run_cached_apply_llm_prompt_to_df(self) -> None:
         prompt = self.get_test_prompt()
         df = self.create_test_df()
@@ -1294,6 +1321,7 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         then saves the cache to a file for use in subsequent tests.
         With real backend, this generates the cache from actual LLM calls.
         """
+        # TODO(ai_gp): Use a decorator.
         if not _RUN_REAL_LLM_BACKEND:
             # Skip cache generation for mock backend, use existing cache.
             self.skipTest(
@@ -1314,25 +1342,30 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         hcacsimp.sanity_check_function_cache(
             func_cache_data, assert_on_empty=True
         )
+        # TODO(ai_gp): Make a call to hsystem.system cp to change the name of the file from
+        # helpers/test/outcomes/Test_apply_llm_prompt_to_df2.test2/input/tmp.cache_simple._llm.pkl
+        # to
+        # helpers/test/outcomes/Test_apply_llm_prompt_to_df2.test2/input/cache_simple._llm.pkl
+
 
     def test2(self) -> None:
         """
-        Test apply_llm_prompt_to_df with mocked cache.
+        Test apply_llm_prompt_to_df with mocked cache from `test1`.
 
-        This test
-        - loads the cache file created in test1
-        - mocks the cache with the data from the cache file
-        - verifies that apply_llm_prompt_to_df uses the cached values without
+        This test:
+        - Loads the cache file created in test1
+        - Mocks the cache with the data from the cache file
+        - Verifies that apply_llm_prompt_to_df uses the cached values without
           hitting the LLM API.
         """
         # Prepare inputs.
-        # # Set up temporary cache directory.
+        # Set up temporary cache directory.
         scratch_dir = self.get_scratch_space()
         hcacsimp.set_cache_dir(scratch_dir)
         # Load the saved cache file from test2's input directory.
         input_dir = self.get_input_dir()
-        # Load the cache data from the cache file.
-        cache_file = os.path.join(input_dir, "tmp.cache_simple._llm.json")
+        # Load the cache data from the cache file generated by `test1`.
+        cache_file = os.path.join(input_dir, "cache_simple._llm.pkl")
         _LOG.debug("cache_file=%s", cache_file)
         func_cache_data = hcacsimp._load_func_cache_data_from_file(
             cache_file, "json"
@@ -1342,6 +1375,19 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
             func_cache_data, assert_on_empty=True
         )
         _LOG.debug("Loaded func_cache_data=\n%s", func_cache_data)
+        # TODO(ai_gp): Check how to do this better.
+        # Convert cached token_stats from dict to TokenStats objects.
+        # This handles compatibility with old JSON cache format that stored
+        # dicts instead of TokenStats dataclass instances.
+        for key, value in func_cache_data.items():
+            if isinstance(value, list) and len(value) == 2:
+                response, token_stats = value
+                if isinstance(token_stats, dict):
+                    # Convert dict to TokenStats object
+                    func_cache_data[key] = [
+                        response,
+                        hllmcli.TokenStats(**token_stats)
+                    ]
         hcacsimp.mock_cache_from_disk("_llm", func_cache_data)
         try:
             # Set abort_on_cache_miss to ensure we don't hit the LLM API.
@@ -1490,7 +1536,6 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         if not _RUN_REAL_LLM_BACKEND:
             # Mock functor that returns a deterministic hash of the input.
             testing_functor = lambda x: hashlib.md5(x.encode()).hexdigest()
-
         # Test each batch mode.
         batch_modes = ["individual", "shared_prompt", "combined"]
         results = []
@@ -1697,8 +1742,8 @@ class Test_mock_apply_llm(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(actual_response, expected_hash)
-        self.assertIsInstance(actual_token_stats, dict)
-        actual_cost = hllmcli._token_stats_to_float(actual_token_stats)
+        self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
+        actual_cost = actual_token_stats.to_float()
         self.assertEqual(actual_cost, 0.0)
 
     def test2(self) -> None:
@@ -1713,8 +1758,8 @@ class Test_mock_apply_llm(hunitest.TestCase):
             actual_response, actual_token_stats = hllmcli.apply_llm(input_str)
         # Check outputs.
         self.assertEqual(actual_response, expected_hash)
-        self.assertIsInstance(actual_token_stats, dict)
-        actual_cost = hllmcli._token_stats_to_float(actual_token_stats)
+        self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
+        actual_cost = actual_token_stats.to_float()
         self.assertEqual(actual_cost, 0.0)
 
     def test3(self) -> None:
