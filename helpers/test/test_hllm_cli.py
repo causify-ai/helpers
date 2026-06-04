@@ -8,6 +8,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 import pandas as pd
 import pytest
 
+import helpers.hdbg as hdbg
 import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
@@ -22,8 +23,8 @@ _LOG = logging.getLogger(__name__)
 # Run tests with mock backend by default (fast, deterministic).
 # Set to True to run tests with real LLM backend (requires API keys, slower,
 # non-deterministic).
-# _RUN_REAL_LLM_BACKEND = False
-_RUN_REAL_LLM_BACKEND = True
+_RUN_REAL_LLM_BACKEND = False
+# _RUN_REAL_LLM_BACKEND = True
 
 
 # #############################################################################
@@ -1343,7 +1344,6 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         final_cache_file = os.path.join(input_dir, "cache_simple._llm.pkl")
         hsystem.system(f"mv {tmp_cache_file} {final_cache_file}")
 
-
     def test2(self) -> None:
         """
         Test apply_llm_prompt_to_df with mocked cache from `test1`.
@@ -1364,7 +1364,7 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         cache_file = os.path.join(input_dir, "cache_simple._llm.pkl")
         _LOG.debug("cache_file=%s", cache_file)
         func_cache_data = hcacsimp._load_func_cache_data_from_file(
-            cache_file, "json"
+            cache_file, "pickle"
         )
         _LOG.debug("func_cache_data=%s", func_cache_data)
         hcacsimp.sanity_check_function_cache(
