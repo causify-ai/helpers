@@ -93,7 +93,7 @@ def _run_llm_cli(
 # like token_states_from_file and token_states_to_file
 def _read_stat_file(stat_file: str) -> Dict[str, Any]:
     """
-    Read and parse a statistics JSON file.
+    Read and parse a statistics JSON file (from TokenStats).
 
     :param stat_file: Path to stat file (must exist)
     :return: Parsed JSON dict with statistics
@@ -121,6 +121,7 @@ def _build_comparison_table(
         hdbg.dassert_in(model, results, "Model must be in results")
         success, _ = results[model]
         if not success:
+            # TODO(ai_gp): Start from an empty TokenStats.
             # Use default values for failed models.
             rows.append({
                 "model": model,
@@ -139,10 +140,13 @@ def _build_comparison_table(
         # Extract metrics from output file and statistics.
         hdbg.dassert_file_exists(output_file, "Output file must exist")
         output_length = os.path.getsize(output_file)
-        # TODO(ai_gp): Save both.
-        costs = stat_data.get("cost_from_tokencost") or stat_data.get(
-            "cost_from_llm_library"
-        )
+        # TODO(ai_gp): Make a copy of stat_data and add more data.
+        cost_from_tokencost = stat_data.get("cost_from_tokencost")
+        cost_from_llm_library = stat_data.get("cost_from_llm_library")
+        costs = {
+            "cost_from_tokencost": cost_from_tokencost,
+            "cost_from_llm_library": cost_from_llm_library,
+        }
         elapsed_time = stat_data.get("elapsed_time_in_seconds")
         rows.append({
             "model": model,
@@ -160,22 +164,16 @@ def _build_comparison_table(
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-
     _LOG.info("Starting LLM model comparison")
-
     models = _load_models(args.models, args.models_from_file)
-
     output_dir = args.output_dir
     hio.create_dir(output_dir, True)
     _LOG.info("Output directory: %s", output_dir)
-
     _LOG.info("Running %d models with commands: %s", len(models), args.llm_cli_cmds)
-
     results = {}
     for model in models:
         output_file = os.path.join(output_dir, f"{model}.output.txt")
         stat_file = os.path.join(output_dir, f"{model}.stat.txt")
-
         success, exc = _run_llm_cli(
             model=model,
             llm_cli_cmds=args.llm_cli_cmds,
@@ -184,16 +182,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
             abort_on_error=args.abort_on_error,
         )
         results[model] = (success, exc)
-        # TODO(ai_gp): Use dassert_imply
         if not success and args.abort_on_error:
             _LOG.error("Aborting due to error in model '%s'", model)
-            raise RuntimeError(exc or f"Model '{model}' failed")
-
+        hdbg.dassert_imply(
+            args.abort_on_error,
+            success,
+            exc or f"Model '{model}' failed",
+        )
     df = _build_comparison_table(models, output_dir, results)
-
     csv_file = os.path.join(output_dir, "comparison.csv")
     df.to_csv(csv_file, index=False)
-
     _LOG.info("Comparison Results:\n%s", df.to_string(index=False))
     _LOG.info("Results saved to CSV: %s", csv_file)
 

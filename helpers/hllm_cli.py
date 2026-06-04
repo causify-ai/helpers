@@ -69,6 +69,7 @@ _LOG.trace = _LOG.debug
 # Cost tracking data structures
 # #############################################################################
 
+# TODO(ai_gp): Turn this into a class and move the function inside.
 TokenStats = Dict[str, Any]
 
 
