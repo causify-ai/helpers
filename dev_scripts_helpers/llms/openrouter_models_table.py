@@ -489,8 +489,7 @@ def _build_rows(
         output_cost = float(api_data["output_cost"])
         context = int(api_data["context_length"])
         # Format.
-        # TODO(ai_gp): Use the actual values and remove the corresponding
-        # formatting function.
+        # TODO(ai_gp): Use the actual values.
         #input_cost_str = _format_cost(input_cost)
         #output_cost_str = _format_cost(output_cost)
         #context_str = _format_context(context)
@@ -505,8 +504,9 @@ def _build_rows(
         # Extract correct keys from benchmarks dict.
         coding_bench = benchmarks.get("coding_score")
         intelligence_bench = benchmarks.get("intelligence_score")
-        coding_index_str = _format_benchmark(coding_bench)
-        intelligence_str = _format_benchmark(intelligence_bench)
+        # TODO(ai_gp): Use the actual values.
+        #coding_index_str = _format_benchmark(coding_bench)
+        #intelligence_str = _format_benchmark(intelligence_bench)
         # Fetch throughput and compute efficiency metric.
         to_exec_throughput, actions_copy = hselacti.mark_action(
             "fetch_openrouter_throughput", actions_copy
@@ -517,6 +517,7 @@ def _build_rows(
                 raise ValueError("model_id=%s -> throghput=%s" %( model_id, throughput))
         else:
             throughput = None
+        # TODO(ai_gp): Use the actual values.
         speed_tok_s_str = f"{throughput:.0f}" if throughput and throughput > 0 else ""
         efficiency_str = _format_efficiency(
             coding_bench, throughput, input_cost, output_cost
@@ -628,6 +629,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Coding_IQ", "General_IQ", "Efficiency"
     ]
     # Assemble and display the table.
+    # TODO(ai_gp): Use the formatting function for each column.
+    #input_cost_str = _format_cost(input_cost)
+    #output_cost_str = _format_cost(output_cost)
+    #context_str = _format_context(context)
+    #coding_index_str = _format_benchmark(coding_bench)
+    #intelligence_str = _format_benchmark(intelligence_bench)
     table = pd.DataFrame(data=rows, columns=columns)  # type: ignore
     print(table.to_string())
 
