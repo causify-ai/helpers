@@ -1,6 +1,0 @@
-#!/bin/bash
-# """
-# Run `rig --cfile` to capture output to quickfix file and open in vim.
-# """
-
-rig --cfile "$@"

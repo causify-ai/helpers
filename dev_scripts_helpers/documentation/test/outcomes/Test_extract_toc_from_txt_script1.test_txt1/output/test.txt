@@ -1,6 +1,0 @@
-- Introduction
-  - Background
-  - Motivation
-- Methods
-  - Data Collection
-- Results

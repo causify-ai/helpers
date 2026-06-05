@@ -1,5 +1,0 @@
-#!/bin/bash -e
-
-cmd='vim -c "cfile ./linter_warnings.txt"'
-echo "> $cmd"
-eval $cmd

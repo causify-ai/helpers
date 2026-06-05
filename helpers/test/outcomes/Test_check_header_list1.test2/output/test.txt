@@ -1,3 +1,0 @@
-Consecutive headers increase by more than one level:
-  HeaderInfo(1, 'Chapter 1', 1)
-  HeaderInfo(3, 'Subsection 1.1.1', 6)

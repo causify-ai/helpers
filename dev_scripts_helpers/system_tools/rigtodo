@@ -1,6 +1,0 @@
-#!/bin/bash
-# """
-# Run rig --todo to search for TODO(ai_gp) patterns.
-# """
-
-rig --todo "$@"

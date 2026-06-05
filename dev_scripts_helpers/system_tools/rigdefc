@@ -1,6 +1,0 @@
-#!/bin/bash
-# """
-# Look for definition of a Python function or class.
-# """
-
-rig --def --cfile "$@" 

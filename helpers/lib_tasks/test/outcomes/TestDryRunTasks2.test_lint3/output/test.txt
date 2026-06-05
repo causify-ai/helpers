@@ -1,1 +1,0 @@
-call('./linters2/lint.py --file_types py,ipynb,md,txt --files /app/amp/helpers/test/test_lib_tasks.py')
