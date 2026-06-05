@@ -14,9 +14,10 @@ deepseek/deepseek-v4-pro
 ```
 
 Usage:
-> openrouter_models_table.py --models models.txt
-> openrouter_models_table.py --models models.txt -v DEBUG
-> openrouter_models_table.py --models models.txt -a fetch_aa_benchmarks -a fetch_openrouter_throughput
+> openrouter_models_table.py --models_from_file models.txt
+> openrouter_models_table.py --models_from_file models.txt -v DEBUG
+> openrouter_models_table.py --models_from_file models.txt -a fetch_aa_benchmarks -a fetch_openrouter_throughput
+> openrouter_models_table.py --models_list "google/gemini-3.1-pro-preview deepseek/deepseek-v4-pro"
 
 The script fetches
 - Pricing and context from the OpenRouter API (https://openrouter.ai/api/v1/models)
@@ -426,7 +427,7 @@ def _format_efficiency(
 # #############################################################################
 
 
-def _read_model_ids(models_file: str) -> List[str]:
+def _read_model_ids_from_file(models_file: str) -> List[str]:
     """
     Read model IDs from a text file, one per line.
 
@@ -445,7 +446,22 @@ def _read_model_ids(models_file: str) -> List[str]:
             model_ids.append(line)
     hdbg.dassert_lt(0, len(model_ids), "Models file must contain at least one model ID")
     _LOG.info("Read %d model IDs from %s", len(model_ids), models_file)
-    _LOG.debug("_read_model_ids return (first one):\n%s", pprint.pformat(model_ids[:1]))
+    _LOG.debug("Return (first one):\n%s", pprint.pformat(model_ids[:1]))
+    return model_ids
+
+
+def _read_model_ids_from_list(models_list_str: str) -> List[str]:
+    """
+    Parse model IDs from a space-separated string.
+
+    :param models_list_str: Space-separated model IDs
+    :return: List of model ID strings
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    model_ids = models_list_str.split()
+    hdbg.dassert_lt(0, len(model_ids), "Must provide at least one model ID")
+    _LOG.info("Parsed %d model IDs from list", len(model_ids))
+    _LOG.debug("Return (first one):\n%s", pprint.pformat(model_ids[:1]))
     return model_ids
 
 
@@ -473,6 +489,8 @@ def _build_rows(
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_is_not(actions, None)
+    if actions is None:
+        actions = []
     rows: List[List[str]] = []
     for model_id in model_ids:
         _LOG.debug("Processing %s", model_id)
@@ -572,14 +590,17 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # TODO(ai_gp): Add an options like "--models" to specify a list of models
-    # as a space separated list.
-    # TODO(ai_gp): Rename --models_from_file
-    parser.add_argument(
-        "--models",
+    # Create mutually exclusive group for model input sources.
+    models_group = parser.add_mutually_exclusive_group(required=True)
+    models_group.add_argument(
+        "--models_from_file",
         type=str,
-        required=True,
         help="Path to a text file with one OpenRouter model ID per line",
+    )
+    models_group.add_argument(
+        "--models_list",
+        type=str,
+        help="Space-separated list of OpenRouter model IDs",
     )
     valid_actions = [
         "fetch_aa_benchmarks",
@@ -615,8 +636,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     default_actions = valid_actions
     actions = hselacti.select_actions(args, valid_actions, default_actions)
     print(hselacti.actions_to_string(actions, valid_actions, add_frame=True))
-    # Read the models from the file.
-    model_ids = _read_model_ids(args.models)
+    # Read the models from file or list.
+    if args.models_from_file:
+        model_ids = _read_model_ids_from_file(args.models_from_file)
+    else:
+        model_ids = _read_model_ids_from_list(args.models_list)
     _LOG.debug("model_ids=%s", str(model_ids))
     # Fetch all models from the OpenRouter API.
     api_lookup = _fetch_models_from_api()

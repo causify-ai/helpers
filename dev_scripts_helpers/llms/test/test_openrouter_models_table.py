@@ -28,7 +28,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         # Use DISABLE_CACHE to bypass caching entirely (no cache reads or writes).
         cmd = (
             f"{executable} "
-            f"--models={models_file} "
+            f"--models_from_file={models_file} "
             f"--cache_mode=DISABLE_CACHE"
         )
         exit_code, result = hsystem.system_to_string(
