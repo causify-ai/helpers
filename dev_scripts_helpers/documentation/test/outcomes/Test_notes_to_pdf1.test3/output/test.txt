@@ -22,4 +22,3 @@ docker run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN 
 # cleanup_after
 ## skipping this action
 output_txt:
-None

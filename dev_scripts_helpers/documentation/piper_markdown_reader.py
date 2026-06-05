@@ -65,8 +65,8 @@ def _read_markdown_file(file_path: str) -> str:
 
 def _extract_markdown_section(
     file_path: str,
-    md_start: Optional[str],
-    md_end: Optional[str],
+    md_start: str,
+    md_end: str,
 ) -> str:
     """
     Extract a markdown section, write to tmp file, run lint_txt.py.

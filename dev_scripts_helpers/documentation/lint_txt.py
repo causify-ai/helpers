@@ -743,9 +743,9 @@ def _process_single_file(
         "use_dockerized_markdown_toc": args.use_dockerized_markdown_toc,
     }
     # Add backend and mode if specified.
-    if args.backend is not None:
+    if args.backend:
         kwargs["backend"] = args.backend
-    if args.mode is not None:
+    if args.mode:
         kwargs["mode"] = args.mode
     out_lines = _perform_actions(
         lines,
@@ -785,7 +785,7 @@ def _parser() -> argparse.ArgumentParser:
         "--backend",
         action="store",
         type=str,
-        default=None,
+        default="",
         choices=["prettier", "mdformat", "flowmark"],
         help=(
             "The markdown formatting backend to use. "
@@ -797,7 +797,7 @@ def _parser() -> argparse.ArgumentParser:
         "--mode",
         action="store",
         type=str,
-        default=None,
+        default="",
         help=(
             "The execution mode for the backend. "
             "For prettier: 'dockerized' or 'global'. "

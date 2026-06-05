@@ -762,14 +762,14 @@ class Test_extract_section(hunitest.TestCase):
         self,
         lines_str: str,
         section_name: str,
-        expected_str: Optional[str],
+        expected_str: str,
     ) -> None:
         """
         Test helper for _extract_section.
 
         :param lines_str: input text with dedent applied
         :param section_name: section name to extract
-        :param expected_str: expected extracted text or None
+        :param expected_str: expected extracted text
         """
         # Prepare inputs.
         lines_str_dedented = hprint.dedent(lines_str)
@@ -781,16 +781,13 @@ class Test_extract_section(hunitest.TestCase):
         # Run test.
         actual = dshdprno._extract_section(lines, section_name)
         # Check outputs.
-        if expected_str is None:
-            self.assertEqual(actual, None)
-        else:
-            expected_str_dedented = hprint.dedent(expected_str)
-            expected = (
-                expected_str_dedented.strip().split("\n")
-                if expected_str_dedented.strip()
-                else []
-            )
-            self.assertEqual(actual, expected)
+        expected_str_dedented = hprint.dedent(expected_str)
+        expected = (
+            expected_str_dedented.strip().split("\n")
+            if expected_str_dedented.strip()
+            else []
+        )
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
@@ -846,10 +843,15 @@ class Test_extract_section(hunitest.TestCase):
         Content B
         """
         section_name = "Section C"
-        # Prepare outputs.
-        expected_str = None
-        # Run test.
-        self.helper(lines_str, section_name, expected_str)
+        # Run the extraction directly and check for None.
+        lines_str_dedented = hprint.dedent(lines_str)
+        lines = (
+            lines_str_dedented.strip().split("\n")
+            if lines_str_dedented.strip()
+            else []
+        )
+        actual = dshdprno._extract_section(lines, section_name)
+        self.assertEqual(actual, None)
 
     def test4(self) -> None:
         """

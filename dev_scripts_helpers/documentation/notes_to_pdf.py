@@ -477,7 +477,7 @@ def _copy_to_output(file_in: str, output: str) -> str:
 
 
 def _copy_to_gdrive(
-    file_name: str, ext: str, input_: str, gdrive_dir: Optional[str]
+    file_name: str, ext: str, input_: str, gdrive_dir: str
 ) -> None:
     """
     Copy the processed file to Google Drive.

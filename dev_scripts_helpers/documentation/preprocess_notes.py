@@ -677,7 +677,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("-i", "--input", action="store", type=str, required=True)
-    parser.add_argument("-o", "--output", action="store", type=str, default=None)
+    parser.add_argument("-o", "--output", action="store", type=str, default="")
     parser.add_argument(
         "--type",
         required=True,

@@ -259,8 +259,8 @@ def _generate_images(
 
 
 def _generate_images_from_file(
-    prompt: Optional[str],
-    input_file: Optional[str],
+    prompt: str,
+    input_file: str,
     style: str,
     dst_dir: str,
     count: int,

@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from typing import Callable, List, Optional
+from typing import Callable, List
 
 import pytest
 
@@ -1905,14 +1905,14 @@ class Test_lint_txt2(hunitest.TestCase):
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         return txt
 
-    def helper(self, txt: str, expected: Optional[str], file_name: str) -> str:
+    def helper(self, txt: str, expected: str, file_name: str) -> str:
         """
         Helper function to process the given text and compare the result with
         the expected output.
 
         :param txt: The text to be processed.
         :param expected: The expected output after processing the text.
-            If None, no comparison is made.
+            If empty string, no comparison is made.
         :param file_name: The name of the file to be used for
             processing.
         :return: The processed text.
@@ -1935,7 +1935,7 @@ class Test_lint_txt2(hunitest.TestCase):
     @pytest.mark.slow
     def test1(self) -> None:
         txt = _get_text1()
-        expected = None
+        expected = ""
         file_name = "test.txt"
         actual = self.helper(txt, expected, file_name)
         self.check_string(actual)

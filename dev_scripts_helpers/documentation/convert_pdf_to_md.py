@@ -32,7 +32,7 @@ import logging
 import os
 import re
 import shutil
-from typing import cast, Dict, List, Optional, Tuple
+from typing import cast, Dict, List, Tuple
 
 import fitz
 from tqdm import tqdm
@@ -332,7 +332,7 @@ def _extract_text_with_formatting(
 def _pdf_to_markdown(
     *,
     pdf_path: str,
-    output_dir: Optional[str],
+    output_dir: str,
     skip_figures: bool = False,
     overwrite: bool = False,
 ) -> None:
