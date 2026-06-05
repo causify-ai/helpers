@@ -18,6 +18,7 @@ model: haiku
   - Keep all comments as short and precise as possible
   - Avoid obvious line-by-line comments
   - Do not restate the code in English
+- Do not remove any comment, only add new ones when needed
 - Follow the rules in `.claude/skills/coding.rules.md` `# Comments`
 
 ## Add Functions to Track Entering in a Function
@@ -35,7 +36,7 @@ model: haiku
 ## Add `_LOG.debug` to Track the Resulting Values of a Function
 - Refactor code to avoid more than one `return` statement when possible
 - Instrument the code to print the exit value of a function
-  ```
+  ```python
   _LOG.debug("return=%s", ...)
   ```
 
