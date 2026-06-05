@@ -27,6 +27,7 @@ import argparse
 import json
 import logging
 import os
+import pprint
 import re
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
@@ -91,6 +92,8 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
                 lookup[model_slug] = model
     _LOG.info("Fetched %d models from Artificial Analysis API",
               len(lookup))
+    _LOG.debug("_fetch_all_aa_models result (first 3 items):\n%s",
+               pprint.pformat(dict(list(lookup.items())[:3])))
     return lookup
 
 
@@ -102,55 +105,48 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     :return: Dict with "coding", "intelligence", "agentic", "coding_index"
         benchmark scores
     """
-    try:
-        aa_models = _fetch_all_aa_models()
-        # Try exact match first (case-insensitive), then partial match.
-        model_name_lower = model_name.lower()
-        model = None
-        if model_name_lower in aa_models:
-            model = aa_models[model_name_lower]
-        elif model_name in aa_models:
-            model = aa_models[model_name]
-        else:
-            for aa_name, aa_model in aa_models.items():
-                if (isinstance(aa_name, str) and
-                    (model_name.lower() in aa_name or
-                     aa_name in model_name.lower())):
-                    model = aa_model
-                    break
-        # Extract benchmark scores from model's evaluations.
-        coding_score = None
-        intelligence_score = None
-        agentic_score = None
-        coding_index = None
-        if model and isinstance(model, dict):
-            evaluations = model.get("evaluations", {})
-            if isinstance(evaluations, dict):
-                intelligence_score = evaluations.get(
-                    "artificial_analysis_intelligence_index"
-                )
-                agentic_score = evaluations.get(
-                    "artificial_analysis_agentic_coding_index"
-                )
-                coding_score = evaluations.get(
-                    "artificial_analysis_coding_index"
-                )
-            coding_index = coding_score
-        return {
-            "coding": coding_score,
-            "intelligence": intelligence_score,
-            "agentic": agentic_score,
-            "coding_index": coding_index,
-        }
-    except Exception as e:
-        _LOG.warning("Failed to fetch AA benchmarks for %s: %s",
-                     model_name, e)
-        return {
-            "coding": None,
-            "intelligence": None,
-            "agentic": None,
-            "coding_index": None,
-        }
+    aa_models = _fetch_all_aa_models()
+    # Try exact match first (case-insensitive), then partial match.
+    model_name_lower = model_name.lower()
+    model = None
+    if model_name_lower in aa_models:
+        model = aa_models[model_name_lower]
+    elif model_name in aa_models:
+        model = aa_models[model_name]
+    else:
+        for aa_name, aa_model in aa_models.items():
+            if (isinstance(aa_name, str) and
+                (model_name.lower() in aa_name or
+                 aa_name in model_name.lower())):
+                model = aa_model
+                break
+    # Extract benchmark scores from model's evaluations.
+    coding_score = None
+    intelligence_score = None
+    agentic_score = None
+    coding_index = None
+    if model and isinstance(model, dict):
+        evaluations = model.get("evaluations", {})
+        if isinstance(evaluations, dict):
+            intelligence_score = evaluations.get(
+                "artificial_analysis_intelligence_index"
+            )
+            agentic_score = evaluations.get(
+                "artificial_analysis_agentic_coding_index"
+            )
+            coding_score = evaluations.get(
+                "artificial_analysis_coding_index"
+            )
+        coding_index = coding_score
+    result = {
+        "coding": coding_score,
+        "intelligence": intelligence_score,
+        "agentic": agentic_score,
+        "coding_index": coding_index,
+    }
+    _LOG.debug("_fetch_aa_benchmarks(%s) result:\n%s",
+               model_name, pprint.pformat(result))
+    return result
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -188,8 +184,12 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
                 throughput = float(match.group(1))
                 _LOG.info("Found throughput for %s: %f", model_id,
                          throughput)
+                _LOG.debug("_fetch_openrouter_throughput(%s) result: %s",
+                           model_id, throughput)
                 return throughput
         _LOG.debug("No throughput found for %s", model_id)
+        _LOG.debug("_fetch_openrouter_throughput(%s) result: None",
+                   model_id)
         return None
     except Exception as e:
         _LOG.warning("Failed to fetch throughput for %s: %s", model_id, e)
@@ -207,6 +207,7 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
     """
     api_key = os.environ.get("OPENROUTER_API_KEY")
+    # TODO(ai_gp): Make it a d
     if not api_key:
         _LOG.debug("OPENROUTER_API_KEY not set; skipping per-model usage stats")
         return {}
@@ -243,6 +244,8 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
                     }
         _LOG.info("Fetched per-model usage for %d models",
                   len(per_model_usage))
+        _LOG.debug("_fetch_openrouter_per_model_usage result (first 3 items):\n%s",
+                   pprint.pformat(dict(list(per_model_usage.items())[:3])))
         return per_model_usage
     except Exception as e:
         _LOG.warning("Failed to fetch per-model usage stats: %s", e)
@@ -297,6 +300,8 @@ def _fetch_openrouter_usage() -> Dict[str, Any]:
         result["weekly"],
         result["monthly"]
     )
+    _LOG.debug("_fetch_openrouter_usage result:\n%s",
+               pprint.pformat(result))
     return result
 
 
@@ -314,8 +319,10 @@ def _format_usage(usage_dict: Dict[str, Any]) -> str:
     weekly = usage_dict.get("weekly", 0)
     monthly = usage_dict.get("monthly", 0)
 
-    return (f"Daily: ${daily:.4f} | Weekly: ${weekly:.4f} | "
-            f"Monthly: ${monthly:.4f}")
+    result = (f"Daily: ${daily:.4f} | Weekly: ${weekly:.4f} | "
+              f"Monthly: ${monthly:.4f}")
+    _LOG.debug("_format_usage result:\n%s", result)
+    return result
 
 # #############################################################################
 # Formatting and table display
@@ -379,6 +386,8 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
         canonical_slug: Optional[str] = m.get("canonical_slug")
         if canonical_slug:
             lookup[canonical_slug] = lookup[model_id]
+    _LOG.debug("_fetch_models_from_api result (first 3 items):\n%s",
+               pprint.pformat(dict(list(lookup.items())[:3])))
     return lookup
 
 
@@ -399,6 +408,7 @@ def _read_model_ids(models_file: str) -> List[str]:
             model_ids.append(line)
     hdbg.dassert_lt(0, len(model_ids), "Models file must contain at least one model ID")
     _LOG.info("Read %d model IDs from %s", len(model_ids), models_file)
+    _LOG.debug("_read_model_ids result:\n%s", pprint.pformat(model_ids))
     return model_ids
 
 
@@ -412,11 +422,13 @@ def _format_context(ctx: int) -> str:
     :return: Human-readable string representation
     """
     if ctx >= 1_000_000:
-        return f"{ctx / 1_000_000:.0f}M"
+        result = f"{ctx / 1_000_000:.0f}M"
     elif ctx >= 1_000:
-        return f"{ctx // 1_000}K"
+        result = f"{ctx // 1_000}K"
     else:
-        return str(ctx)
+        result = str(ctx)
+    _LOG.debug("_format_context(%s) result: %s", ctx, result)
+    return result
 
 
 def _format_cost(cost: float) -> str:
@@ -429,15 +441,17 @@ def _format_cost(cost: float) -> str:
     :return: Formatted cost string with appropriate precision
     """
     if cost == 0:
-        return "0"
+        result = "0"
     elif cost < 0.01:
-        return f"{cost:.4f}"
+        result = f"{cost:.4f}"
     elif cost < 1:
-        return f"{cost:.3f}"
+        result = f"{cost:.3f}"
     elif cost < 10:
-        return f"{cost:.2f}"
+        result = f"{cost:.2f}"
     else:
-        return f"{cost:.1f}"
+        result = f"{cost:.1f}"
+    _LOG.debug("_format_cost(%s) result: %s", cost, result)
+    return result
 
 
 def _format_benchmark(score: Optional[float]) -> str:
@@ -448,8 +462,11 @@ def _format_benchmark(score: Optional[float]) -> str:
     :return: Formatted string or empty string if None
     """
     if score is None:
-        return ""
-    return f"{score:.1f}"
+        result = ""
+    else:
+        result = f"{score:.1f}"
+    _LOG.debug("_format_benchmark(%s) result: %s", score, result)
+    return result
 
 
 def _format_efficiency(
@@ -464,12 +481,23 @@ def _format_efficiency(
     :return: Formatted string or "N/A" if fields are missing
     """
     if coding_score is None or throughput is None:
-        return "N/A"
-    total_cost = input_cost + output_cost
-    if total_cost == 0:
-        return "N/A"
-    efficiency = coding_score * throughput / total_cost
-    return f"{efficiency:.0f}"
+        result = "N/A"
+    else:
+        total_cost = input_cost + output_cost
+        if total_cost == 0:
+            result = "N/A"
+        else:
+            efficiency = coding_score * throughput / total_cost
+            result = f"{efficiency:.0f}"
+    _LOG.debug(
+        "_format_efficiency(coding=%s, throughput=%s, input=%s, output=%s) result: %s",
+        coding_score,
+        throughput,
+        input_cost,
+        output_cost,
+        result
+    )
+    return result
 
 
 def _build_rows(
@@ -543,6 +571,8 @@ def _build_rows(
             efficiency_str,
         ]
         rows.append(row)
+    _LOG.debug("_build_rows result (first 3 rows):\n%s",
+               pprint.pformat(rows[:3]))
     return rows
 
 
@@ -572,6 +602,8 @@ def _format_table(rows: List[List[str]]) -> str:
         df.iloc[:, i] = df.iloc[:, i].apply(format_cell)
     # Generate table string using pandas.
     table_str = df.to_string(index=False)
+    _LOG.debug("_format_table result (first 500 chars):\n%s",
+               table_str[:500])
     return table_str
 
 
