@@ -143,6 +143,7 @@ def _generate_summary(content: str, *, model: str, backend: str) -> str:
     return summary
 
 
+# TODO(ai_gp): -> Tuple[int, int] and return -1, -1 in case there is no match.
 def _find_summary_section(content: str) -> Tuple[Optional[int], Optional[int]]:
     """
     Find the Summary section in the content.
@@ -170,6 +171,7 @@ def _find_summary_section(content: str) -> Tuple[Optional[int], Optional[int]]:
     return start_pos, end_pos
 
 
+# TODO(ai_gp): -> int and return -1 in case there is no match.
 def _find_tocstop_position(content: str) -> Optional[int]:
     """
     Find the position right after the <!-- tocstop --> tag.

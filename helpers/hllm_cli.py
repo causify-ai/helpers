@@ -721,7 +721,7 @@ def _llm(
 
 def _call_llm_or_test_functor(
     input_str: str,
-    system_prompt: Optional[str],
+    system_prompt: str,
     model: str,
     testing_functor: Optional[Callable[[str], str]],
 ) -> Tuple[str, TokenStats]:

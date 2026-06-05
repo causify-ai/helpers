@@ -127,7 +127,9 @@ def _get_target_headers(
     all_headers: List[Tuple[int, str, int]],
     *,
     md_level: int,
+    # TODO(ai_gp): use str = ""
     md_start: Optional[str],
+    # TODO(ai_gp): use str = ""
     md_end: Optional[str],
 ) -> List[Tuple[int, str, int]]:
     """
@@ -317,6 +319,7 @@ def _summarize_text(
 
 def _prepare_output_file(
     in_file_name: str,
+    # TODO(ai_gp): use str and use "" instead of None
     out_file_name: Optional[str],
     overwrite: bool,
 ) -> str:
