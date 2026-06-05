@@ -72,8 +72,7 @@ def add_select_arg(
         "--select",
         type=str,
         required=required,
-        # TODO(ai_gp): default=""
-        default=None,
+        default="",
         help=(
             "Select text range as START:END. Examples: "
             "'## Section 1:## Section 2', 'Section 1:Section 2', ':END', "
@@ -90,28 +89,27 @@ def add_select_arg(
 # #############################################################################
 
 
-# TODO(ai_gp): Return Tuple[str, str] using "" instead of None
-def parse_select_arg(select_str: str) -> Tuple[Optional[str], Optional[str]]:
+def parse_select_arg(select_str: str) -> Tuple[str, str]:
     """
     Parse a --select argument into (start, end) components.
 
     Formats:
     - "START:END" -> ("START", "END")
-    - ":END" -> (None, "END"): extract from file beginning
-    - "START:" -> ("START", None): extract until next same-level header
+    - ":END" -> ("", "END"): extract from file beginning
+    - "START:" -> ("START", ""): extract until next same-level header
     - "START:END" where END is "END" -> ("START", "END"): extract from START to EOF
-    - "START" (no colon) -> ("START", None): extract until next same-level header
+    - "START" (no colon) -> ("START", ""): extract until next same-level header
 
     :param select_str: the --select argument value
-    :return: tuple of (start, end) where each can be None or a string
+    :return: tuple of (start, end) where empty string represents None
     """
     hdbg.dassert_isinstance(select_str, str, "select_str must be a string")
     hdbg.dassert_ne(select_str, "", "Select string cannot be empty")
     if ":" not in select_str:
-        return select_str, None
+        return select_str, ""
     parts = select_str.split(":", 1)
-    start = parts[0] if parts[0].strip() else None
-    end = parts[1] if parts[1].strip() else None
+    start = parts[0] if parts[0].strip() else ""
+    end = parts[1] if parts[1].strip() else ""
     return start, end
 
 
@@ -371,20 +369,18 @@ def find_header_from_input(
 def find_end_line(
     header_list: hmarhead.HeaderList,
     start_header_info: hmarhead.HeaderInfo,
-    # TODO(ai_gp): Use str and use "" instead of None
-    end_header_input: Optional[str],
-# TODO(ai_gp): -> int and return -1 instead of None
-) -> Optional[int]:
+    end_header_input: str,
+) -> int:
     """
     Find the line number where the text extraction should end.
 
-    If end_header_input is provided, find that header. Otherwise, find the
+    If end_header_input is non-empty, find that header. Otherwise, find the
     next header at the same or higher level (fewer or equal # symbols).
 
     :param header_list: list of HeaderInfo objects
     :param start_header_info: the start header
-    :param end_header_input: header input (full format or partial match) or None to auto-detect
-    :return: line number where extraction ends (exclusive)
+    :param end_header_input: header input (full format or partial match) or empty string to auto-detect
+    :return: line number where extraction ends (exclusive), or -1 to extract to EOF
     """
     hdbg.dassert_isinstance(header_list, list, "header_list must be a list")
     hdbg.dassert_isinstance(
@@ -401,7 +397,7 @@ def find_end_line(
     hdbg.dassert_is_not(start_idx, None, "Start header not found in header list")
     hdbg.dassert_isinstance(start_idx, int)
     # If an explicit end header is provided, use it directly.
-    if end_header_input is not None:
+    if end_header_input != "":
         end_header_info, _ = find_header_from_input(
             header_list, end_header_input
         )
@@ -411,14 +407,13 @@ def find_end_line(
         candidate_header = header_list[i]
         if candidate_header.level <= start_header_info.level:
             return candidate_header.line_number - 1
-    return None
+    return -1
 
 
 def get_chunk_bounds(
     lines: List[str],
-    # TODO(ai_gp): Use str and "" instead of None
-    start_header_str: Optional[str],
-    end_header_str: Optional[str],
+    start_header_str: str,
+    end_header_str: str,
     is_slide_format: bool = False,
 ) -> Tuple[int, int]:
     """
@@ -429,7 +424,7 @@ def get_chunk_bounds(
     you need to know positions to replace.
 
     :param lines: list of lines in the input file
-    :param start_header_str: starting header (or None for file beginning)
+    :param start_header_str: starting header (or empty string for file beginning)
     :param end_header_str: ending header (optional), or "END" for end of file
     :param is_slide_format: whether the input is in slide format (*.txt)
     :return: tuple of (start_idx, end_idx) where indices are 0-based
@@ -444,28 +439,28 @@ def get_chunk_bounds(
         lines_converted, max_level=10, sanity_check=sanity_check
     )
     # Prepare converted header strings if needed.
-    start_header_str_converted = None
-    end_header_str_converted = None
-    if start_header_str is not None:
+    start_header_str_converted = ""
+    end_header_str_converted = ""
+    if start_header_str != "":
         start_header_str_converted = start_header_str
         if is_slide_format and start_header_str.startswith("*"):
             start_header_str_converted = hmarslid.convert_slide_to_markdown(
                 [start_header_str]
             )[0]
-    if end_header_str is not None and end_header_str != "END":
+    if end_header_str != "" and end_header_str != "END":
         end_header_str_converted = end_header_str
         if is_slide_format and end_header_str.startswith("*"):
             end_header_str_converted = hmarslid.convert_slide_to_markdown(
                 [end_header_str]
             )[0]
     # Determine start index.
-    if start_header_str is None:
+    if start_header_str == "":
         start_idx = 0
     else:
-        hdbg.dassert_is_not(
+        hdbg.dassert_ne(
             start_header_str_converted,
-            None,
-            "start_header_str_converted must not be None",
+            "",
+            "start_header_str_converted must not be empty",
         )
         start_header_info, _ = find_header_from_input(
             header_list, start_header_str_converted
@@ -473,30 +468,30 @@ def get_chunk_bounds(
         start_idx = start_header_info.line_number - 1
     _LOG.info("start_idx=%s", start_idx)
     # Determine end index.
-    if end_header_str is None:
-        if start_header_str is None:
+    if end_header_str == "":
+        if start_header_str == "":
             end_idx = len(lines_converted)
         else:
             # Auto-detect: find next same-level header.
-            hdbg.dassert_is_not(
+            hdbg.dassert_ne(
                 start_header_str_converted,
-                None,
-                "start_header_str_converted must not be None",
+                "",
+                "start_header_str_converted must not be empty",
             )
             start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
             )
-            end_line = find_end_line(header_list, start_header_info, None)
-            end_idx = len(lines_converted) if end_line is None else end_line
+            end_line = find_end_line(header_list, start_header_info, "")
+            end_idx = len(lines_converted) if end_line == -1 else end_line
     elif end_header_str == "END":
         end_idx = len(lines_converted)
     else:
-        hdbg.dassert_is_not(
+        hdbg.dassert_ne(
             end_header_str_converted,
-            None,
-            "end_header_str_converted must not be None",
+            "",
+            "end_header_str_converted must not be empty",
         )
-        if start_header_str is None:
+        if start_header_str == "":
             # Extract from beginning to explicit end header.
             end_header_info, _ = find_header_from_input(
                 header_list, end_header_str_converted
@@ -504,10 +499,10 @@ def get_chunk_bounds(
             end_idx = end_header_info.line_number - 1
         else:
             # Extract from start header to explicit end header.
-            hdbg.dassert_is_not(
+            hdbg.dassert_ne(
                 start_header_str_converted,
-                None,
-                "start_header_str_converted must not be None",
+                "",
+                "start_header_str_converted must not be empty",
             )
             start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
@@ -515,16 +510,15 @@ def get_chunk_bounds(
             end_line = find_end_line(
                 header_list, start_header_info, end_header_str_converted
             )
-            end_idx = len(lines_converted) if end_line is None else end_line
+            end_idx = len(lines_converted) if end_line == -1 else end_line
     _LOG.info("end_idx=%s", end_idx)
     return start_idx, end_idx
 
 
 def extract_text_from_markdown_lines(
     lines: List[str],
-    # TODO(ai_gp): Use str and "" instead of None
-    start_header_str: Optional[str],
-    end_header_str: Optional[str],
+    start_header_str: str,
+    end_header_str: str,
     is_slide_format: bool = False,
 ) -> List[str]:
     """
@@ -544,12 +538,12 @@ def extract_text_from_markdown_lines(
     - Substring: "Section 1" (matches anywhere in title)
 
     Special handling:
-    - start_header_str=None: Extract from beginning of file
+    - start_header_str="": Extract from beginning of file
     - end_header_str="END": Extract to end of file
-    - end_header_str=None: Extract until next same-level header
+    - end_header_str="": Extract until next same-level header
 
     :param lines: list of lines in the input file
-    :param start_header_str: starting header (or None for file beginning)
+    :param start_header_str: starting header (or empty string for file beginning)
     :param end_header_str: ending header (optional), or "END" for end of file
     :param is_slide_format: whether the input is in slide format (*.txt)
     :return: extracted lines with trailing blank lines removed
@@ -591,8 +585,7 @@ def add_rule_cli_arg(
         "-r",
         "--rule",
         type=str,
-        # TODO(ai_gp): default=""
-        default=None,
+        default="",
         dest="rule",
         help=(
             hprint.dedent("""

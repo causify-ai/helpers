@@ -521,11 +521,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         md_start = ""
         md_end = ""
         if args.select:
-            md_start_parsed, md_end_parsed = hmarsele.parse_select_arg(args.select)
-            if md_start_parsed is not None:
-                md_start = md_start_parsed
-            if md_end_parsed is not None:
-                md_end = md_end_parsed
+            md_start, md_end = hmarsele.parse_select_arg(args.select)
         target_headers = _get_target_headers(
             all_headers,
             md_level=args.md_level,
