@@ -22,10 +22,11 @@ Usage:
 The script fetches data from multiple sources and displays a comparison table.
 
 Available data sources:
-- Pricing and context from the OpenRouter API (openrouter_pricing)
-- Benchmark data from the Artificial Analysis API (aa_benchmarks)
-- Throughput metrics from OpenRouter model pages (openrouter_throughput)
-- Per-model usage statistics from OpenRouter rankings API (openrouter_per_model_usage)
+- `openrouter_pricing`: Pricing and context from the OpenRouter API
+- `aa_benchmarks`: Benchmark data from the Artificial Analysis API
+- `openrouter_throughput`: Throughput metrics from OpenRouter model pages
+- `openrouter_per_model_usage`: Per-model usage statistics from OpenRouter
+  rankings API
 
 Use action selection flags to control which data sources are queried:
 - `-a/--action`: Select specific actions to run
@@ -288,7 +289,6 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     :param model_name: Model name to search for
     :return: Dict with "coding_score", "intelligence_score"
         benchmark scores
-
     """
     _LOG.debug(hprint.func_signature_to_str())
     aa_models = _fetch_all_aa_models()
