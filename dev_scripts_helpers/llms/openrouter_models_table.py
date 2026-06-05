@@ -1,21 +1,26 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
+
+# /// script
+# dependencies = ["pandas"]
+# ///
 
 """
 Fetch OpenRouter model pricing and metadata, then display a comparison table.
 
 The input is a text file with one OpenRouter model ID per line, e.g.:
-
-    google/gemini-3.1-pro-preview
-    deepseek/deepseek-v4-pro
+```
+google/gemini-3.1-pro-preview
+deepseek/deepseek-v4-pro
+```
 
 Usage:
+> openrouter_models_table.py --models models.txt
+> openrouter_models_table.py --models models.txt -v DEBUG
 
-    > openrouter_models_table.py --models models.txt
-    > openrouter_models_table.py --models models.txt -v DEBUG
-
-The script fetches pricing and context from the OpenRouter API
-(https://openrouter.ai/api/v1/models). It also fetches benchmark data from
-the Artificial Analysis API, including the Artificial Analysis Coding Index.
+The script fetches
+- pricing and context from the OpenRouter API (https://openrouter.ai/api/v1/models)
+- benchmark data from the Artificial Analysis API, including the Artificial
+  Analysis Coding Index.
 """
 
 import argparse
@@ -26,6 +31,8 @@ import re
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
+import pandas as pd
+
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -33,73 +40,58 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
-# Module-level cache for AA models.
-# #############################################################################
-
-_aa_models_cache: Optional[Dict[str, Dict[str, Any]]] = None
-
-# #############################################################################
 # API fetching functions
 # #############################################################################
 
 
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
     """
-    Fetch all models from Artificial Analysis API with optional API key.
+    Fetch all models from Artificial Analysis API with API key.
 
     Uses the direct endpoint: https://artificialanalysis.ai/api/v2/data/llms/models
-    Caches the result to avoid repeated API calls within a session.
 
     :return: Dict mapping model name/slug to full model data including benchmarks
     """
-    global _aa_models_cache
-    if _aa_models_cache is not None:
-        return _aa_models_cache
-    try:
-        url = "https://artificialanalysis.ai/api/v2/data/llms/models"
-        api_key = os.environ.get("ARTIFICIAL_ANALYSIS_API_KEY")
-        # Prepare request with User-Agent header and optional API key.
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36"
-            )
-        }
-        if api_key:
-            headers["x-api-key"] = api_key
-        # Fetch and parse API response.
-        request = urllib.request.Request(url, headers=headers)
-        response = urllib.request.urlopen(request, timeout=30)
-        response_data = json.loads(response.read().decode("utf-8"))
-        # Extract models list from response, handling various response formats.
-        if isinstance(response_data, dict):
-            models_list = response_data.get("data", [])
-        elif isinstance(response_data, list):
-            models_list = response_data
-        else:
-            models_list = []
-        if not isinstance(models_list, list):
-            models_list = []
-        # Build lookup dict indexed by model name and slug for flexible matching.
-        lookup: Dict[str, Dict[str, Any]] = {}
-        for model in models_list:
-            if isinstance(model, dict):
-                model_name = model.get("name", "")
-                model_slug = model.get("slug", "")
-                if model_name:
-                    lookup[model_name.lower()] = model
-                    lookup[model_name] = model
-                if model_slug:
-                    lookup[model_slug.lower()] = model
-                    lookup[model_slug] = model
-        _LOG.info("Fetched %d models from Artificial Analysis API",
-                  len(lookup))
-        _aa_models_cache = lookup
-        return lookup
-    except Exception as e:
-        _LOG.warning("Failed to fetch AA models: %s", e)
-        _aa_models_cache = {}
-        return {}
+    url = "https://artificialanalysis.ai/api/v2/data/llms/models"
+    api_key = os.environ.get("ARTIFICIAL_ANALYSIS_API_KEY")
+    # Prepare request with User-Agent header and optional API key.
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36"
+        )
+    }
+    if api_key:
+        headers["x-api-key"] = api_key
+    # Fetch and parse API response.
+    request = urllib.request.Request(url, headers=headers)
+    response = urllib.request.urlopen(request, timeout=30)
+    response_data = json.loads(response.read().decode("utf-8"))
+    # Extract models list from response, handling various response formats.
+    if isinstance(response_data, dict):
+        models_list = response_data.get("data", [])
+    elif isinstance(response_data, list):
+        models_list = response_data
+    else:
+        models_list = []
+    if not isinstance(models_list, list):
+        models_list = []
+    # Build lookup dict indexed by model name and slug for flexible matching.
+    lookup: Dict[str, Dict[str, Any]] = {}
+    for model in models_list:
+        if isinstance(model, dict):
+            model_name = model.get("name", "")
+            model_slug = model.get("slug", "")
+            if model_name:
+                lookup[model_name.lower()] = model
+                lookup[model_name] = model
+            if model_slug:
+                lookup[model_slug.lower()] = model
+                lookup[model_slug] = model
+    _LOG.info("Fetched %d models from Artificial Analysis API",
+              len(lookup))
+    return lookup
 
 
 def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
@@ -204,22 +196,22 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
         return None
 
 
-def _fetch_openrouter_usage() -> Dict[str, Any]:
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     """
-    Fetch usage statistics from OpenRouter API.
+    Fetch per-model usage statistics from OpenRouter rankings API.
 
+    Uses the endpoint: https://openrouter.ai/api/v1/datasets/rankings/daily
     Requires OPENROUTER_API_KEY environment variable.
 
-    :return: Dict with usage statistics including 'daily', 'weekly', and
-        'monthly' keys if available, or empty dict on error
+    :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
     """
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        _LOG.debug("OPENROUTER_API_KEY not set; skipping per-model usage stats")
+        return {}
     try:
-        api_key = os.environ.get("OPENROUTER_API_KEY")
-        if not api_key:
-            _LOG.warning("OPENROUTER_API_KEY not set; cannot fetch usage stats")
-            return {}
-        # Fetch usage data from OpenRouter auth key endpoint.
-        url = "https://openrouter.ai/api/v1/auth/key"
+        url = "https://openrouter.ai/api/v1/datasets/rankings/daily"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "User-Agent": (
@@ -230,33 +222,82 @@ def _fetch_openrouter_usage() -> Dict[str, Any]:
         request = urllib.request.Request(url, headers=headers)
         response = urllib.request.urlopen(request, timeout=30)
         data = json.loads(response.read().decode("utf-8"))
-        # Validate and extract usage data from API response.
-        if "data" not in data:
-            _LOG.warning("Unexpected API response format for usage")
-            return {}
-        api_data = data["data"]
-        if not isinstance(api_data, dict):
-            _LOG.warning("API data is not a dict: %s", type(api_data))
-            return {}
-        usage = api_data.get("usage")
-        if not isinstance(usage, dict):
-            usage = {}
-        # Build result dict with daily, weekly, monthly usage.
-        result = {
-            "daily": usage.get("daily", 0),
-            "weekly": usage.get("weekly", 0),
-            "monthly": usage.get("monthly", 0),
-        }
-        _LOG.info(
-            "Fetched OpenRouter usage: daily=%s, weekly=%s, monthly=%s",
-            result["daily"],
-            result["weekly"],
-            result["monthly"]
-        )
-        return result
+        # Extract per-model usage from API response.
+        per_model_usage: Dict[str, Dict[str, Any]] = {}
+        if isinstance(data, dict):
+            rankings = data.get("data", [])
+        elif isinstance(data, list):
+            rankings = data
+        else:
+            rankings = []
+        # Build lookup indexed by model ID with weekly and monthly token counts.
+        for ranking in rankings:
+            if isinstance(ranking, dict):
+                model_id = ranking.get("model_id", "")
+                week_tokens = ranking.get("tokens_week", 0)
+                month_tokens = ranking.get("tokens_month", 0)
+                if model_id:
+                    per_model_usage[model_id] = {
+                        "week_tokens": week_tokens,
+                        "month_tokens": month_tokens,
+                    }
+        _LOG.info("Fetched per-model usage for %d models",
+                  len(per_model_usage))
+        return per_model_usage
     except Exception as e:
-        _LOG.warning("Failed to fetch OpenRouter usage: %s", e)
+        _LOG.warning("Failed to fetch per-model usage stats: %s", e)
         return {}
+
+
+def _fetch_openrouter_usage() -> Dict[str, Any]:
+    """
+    Fetch usage statistics from OpenRouter API.
+
+    Requires OPENROUTER_API_KEY environment variable.
+
+    :return: Dict with usage statistics including 'daily', 'weekly', and
+        'monthly' keys if available, or empty dict on error
+    """
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        _LOG.warning("OPENROUTER_API_KEY not set; cannot fetch usage stats")
+        return {}
+    # Fetch usage data from OpenRouter auth key endpoint.
+    url = "https://openrouter.ai/api/v1/auth/key"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36"
+        )
+    }
+    request = urllib.request.Request(url, headers=headers)
+    response = urllib.request.urlopen(request, timeout=30)
+    data = json.loads(response.read().decode("utf-8"))
+    # Validate and extract usage data from API response.
+    if "data" not in data:
+        _LOG.warning("Unexpected API response format for usage")
+        return {}
+    api_data = data["data"]
+    if not isinstance(api_data, dict):
+        _LOG.warning("API data is not a dict: %s", type(api_data))
+        return {}
+    usage = api_data.get("usage")
+    if not isinstance(usage, dict):
+        usage = {}
+    # Build result dict with daily, weekly, monthly usage.
+    result = {
+        "daily": usage.get("daily", 0),
+        "weekly": usage.get("weekly", 0),
+        "monthly": usage.get("monthly", 0),
+    }
+    _LOG.info(
+        "Fetched OpenRouter usage: daily=%s, weekly=%s, monthly=%s",
+        result["daily"],
+        result["weekly"],
+        result["monthly"]
+    )
+    return result
 
 
 def _format_usage(usage_dict: Dict[str, Any]) -> str:
@@ -289,6 +330,8 @@ _COLUMNS: List[Tuple[str, int, str]] = [
     ("Output $/1M", 12, ">"),
     ("Context", 10, ">"),
     ("Speed tok/s", 12, ">"),
+    ("Week Tokens", 12, ">"),
+    ("Month Tokens", 12, ">"),
     ("Coding Index", 12, ">"),
     ("Intelligence", 12, ">"),
     ("Agentic", 12, ">"),
@@ -476,6 +519,13 @@ def _build_rows(
         efficiency_str = _format_efficiency(
             coding_bench, throughput, input_cost, output_cost
         )
+        # Fetch per-model usage statistics.
+        per_model_usage = _fetch_openrouter_per_model_usage()
+        usage_data = per_model_usage.get(model_id, {})
+        week_tokens = usage_data.get("week_tokens", 0)
+        month_tokens = usage_data.get("month_tokens", 0)
+        week_tokens_str = f"{week_tokens:,}" if week_tokens > 0 else ""
+        month_tokens_str = f"{month_tokens:,}" if month_tokens > 0 else ""
         # Assemble row with all fields in column order.
         row = [
             name,
@@ -484,6 +534,8 @@ def _build_rows(
             output_cost_str,
             context_str,
             speed_tok_s_str,
+            week_tokens_str,
+            month_tokens_str,
             coding_index_str,
             intelligence_str,
             agentic_str,
@@ -496,40 +548,31 @@ def _build_rows(
 
 def _format_table(rows: List[List[str]]) -> str:
     """
-    Format rows as a human-readable table with aligned columns.
+    Format rows as a human-readable table with aligned columns using pandas.
 
     :param rows: List of rows from _build_rows()
     :return: Formatted table string
     """
-    # Format header row with column names and separator line.
-    header: List[str] = []
-    separators: List[str] = []
-    for col_name, width, align in _COLUMNS:
-        truncated = col_name[:width]
-        if align == ">":
-            header.append(truncated.rjust(width))
-        else:
-            header.append(truncated.ljust(width))
-        separators.append("-" * width)
-    header_line = " | ".join(header)
-    sep_line = "-+-".join(separators)
-    lines = [header_line, sep_line]
-    # Format data rows with proper alignment and truncation.
-    for row in rows:
-        cells: List[str] = []
-        for i, (col_name, width, align) in enumerate(_COLUMNS):
-            cell = row[i]
-            if cell is None:
-                cell = ""
-            cell = str(cell)
-            if len(cell) > width:
-                cell = cell[: width - 1] + "…"
+    # Extract column names and create DataFrame.
+    column_names: List[str] = [col_name for col_name, _, _ in _COLUMNS]
+    df: pd.DataFrame = pd.DataFrame(rows)
+    df.columns = column_names  # type: ignore
+    # Format each column with proper alignment and width constraints.
+    for i, (_, width, align) in enumerate(_COLUMNS):
+        # Truncate and align cells in this column.
+        def format_cell(cell: Any) -> str:
+            cell_str = str(cell) if cell is not None else ""
+            if len(cell_str) > width:
+                cell_str = cell_str[:width - 1] + "…"
             if align == ">":
-                cells.append(cell.rjust(width))
+                return cell_str.rjust(width)
             else:
-                cells.append(cell.ljust(width))
-        lines.append(" | ".join(cells))
-    return "\n".join(lines)
+                return cell_str.ljust(width)
+        # Apply formatting to this column.
+        df.iloc[:, i] = df.iloc[:, i].apply(format_cell)
+    # Generate table string using pandas.
+    table_str = df.to_string(index=False)
+    return table_str
 
 
 # #############################################################################
