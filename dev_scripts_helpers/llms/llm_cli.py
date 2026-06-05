@@ -30,7 +30,7 @@ import argparse
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_select as hmarsele
 import helpers.hparser as hparser
-import dev_scripts_helpers.llms.lib_llm_cli as dshlibllmcli
+import dev_scripts_helpers.llms.lib_llm_cli as dshllllcl
 
 # The architecture of the script has several stages:
 # - Read input:
@@ -118,7 +118,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     :param parser: Argument parser configured by `_parse()`
     """
     args = parser.parse_args()
-    dshlibllmcli._llm_cli(
+    dshllllcl._llm_cli(
         args.input or "",
         args.input_text or "",
         args.output or "",

@@ -182,7 +182,9 @@ class Test_colorize_backticks(hunitest.TestCase):
         Test multiple backtick-wrapped words with underscores.
         """
         # Prepare inputs.
-        txt_in = "Use `_private_func` or `public_var` for different access levels."
+        txt_in = (
+            "Use `_private_func` or `public_var` for different access levels."
+        )
         # Prepare outputs.
         expected = r"Use \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{public\_var}} for different access levels."
         # Run test.
@@ -227,7 +229,9 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         actual = dshdprno._transform_lines(txt_in_lines, type_, is_qa=False)
         actual = "\n".join(actual)
         # Check outputs.
-        expected = hprint.dedent(expected_str, remove_lead_trail_empty_lines_=True)
+        expected = hprint.dedent(
+            expected_str, remove_lead_trail_empty_lines_=True
+        )
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -1562,9 +1566,7 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         toc_type = "remove_headers"
         is_qa = False
         # Run test.
-        actual = dshdprno._preprocess_lines(
-            lines, type_, toc_type, is_qa
-        )
+        actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
         actual_str = "\n".join(actual)
         # Check outputs.
         expected_dict = {
@@ -1759,9 +1761,7 @@ class Test_transform_lines_actions(hunitest.TestCase):
             "- Bullet point 2",
         ]
         # Run test.
-        self.helper(
-            lines, type_, is_qa, expected, actions=actions
-        )
+        self.helper(lines, type_, is_qa, expected, actions=actions)
 
 
 # #############################################################################

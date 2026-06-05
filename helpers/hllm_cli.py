@@ -20,7 +20,6 @@ import pprint
 import time
 from dataclasses import dataclass
 from typing import (
-    Any,
     Callable,
     List,
     Optional,
@@ -67,7 +66,7 @@ _LOG.trace = _LOG.debug
 
 
 # #############################################################################
-# Cost tracking data structures
+# TokenStats
 # #############################################################################
 
 
@@ -115,11 +114,11 @@ class TokenStats:
 
         :return: total cost in dollars as a float
         """
-        if (
-            self.cost_from_tokencost > 0
-            and self.cost_from_llm_library > 0
-        ):
-            if abs(float(self.cost_from_tokencost) - float(self.cost_from_llm_library)):
+        if self.cost_from_tokencost > 0 and self.cost_from_llm_library > 0:
+            if abs(
+                float(self.cost_from_tokencost)
+                - float(self.cost_from_llm_library)
+            ):
                 _LOG.warning(
                     "Cost is different: "
                     "cost_from_tokencost = %s != cost_from_llm_library = %s"
@@ -183,7 +182,9 @@ class TokenStats:
         total_cost_from_llm_library = sum(
             ts.cost_from_llm_library for ts in token_stats_list
         )
-        total_elapsed_time = sum(ts.elapsed_time_in_seconds for ts in token_stats_list)
+        total_elapsed_time = sum(
+            ts.elapsed_time_in_seconds for ts in token_stats_list
+        )
         return cls(
             input_tokens=total_input_tokens,
             output_tokens=total_output_tokens,
@@ -884,7 +885,9 @@ def apply_llm_batch_with_shared_prompt(
             responses.append(response)
             token_stats_list.append(token_stats)
             if progress_bar_object is not None:
-                total_cost_float = TokenStats.aggregate(token_stats_list).to_float()
+                total_cost_float = TokenStats.aggregate(
+                    token_stats_list
+                ).to_float()
                 progress_bar_object.update(1)
                 progress_bar_object.set_postfix_str(
                     f"Cost: ${total_cost_float:.4f}"
@@ -1136,7 +1139,9 @@ def _process_batches(
                 results[global_idx] = ""
                 num_skipped += 1
                 if progress_bar_object is not None:
-                    total_cost_float = TokenStats.aggregate(token_stats).to_float()
+                    total_cost_float = TokenStats.aggregate(
+                        token_stats
+                    ).to_float()
                     progress_bar_object.update(1)
                     progress_bar_object.set_postfix_str(
                         f"Cost: ${total_cost_float:.4f}"
@@ -1231,7 +1236,9 @@ def _process_dataframe_batches(
                 df.at[idx, target_col] = ""
                 num_skipped += 1
                 if progress_bar_object is not None:
-                    total_cost_float = TokenStats.aggregate(token_stats).to_float()
+                    total_cost_float = TokenStats.aggregate(
+                        token_stats
+                    ).to_float()
                     progress_bar_object.update(1)
                     progress_bar_object.set_postfix_str(
                         f"Cost: ${total_cost_float:.4f}"

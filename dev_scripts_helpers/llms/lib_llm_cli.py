@@ -290,7 +290,9 @@ def _process_selected_text(
             system_prompt=system_prompt if system_prompt != "" else None,
             model=model,
             backend=backend,
-            expected_num_chars=expected_num_chars if expected_num_chars != 0 else None,
+            expected_num_chars=expected_num_chars
+            if expected_num_chars != 0
+            else None,
         )
         if lint:
             response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
@@ -361,7 +363,9 @@ def _process_full_text(
         input_str = input_text
     else:
         # Read text from file or stdin.
-        hdbg.dassert_ne(input_file, "", "Input file is required when input_text is empty")
+        hdbg.dassert_ne(
+            input_file, "", "Input file is required when input_text is empty"
+        )
         input_lines = hseinout.from_file(input_file)
         input_str = "\n".join(input_lines)
     # Apply max_chars limit if specified.
@@ -389,7 +393,9 @@ def _process_full_text(
             system_prompt=system_prompt if system_prompt != "" else None,
             model=model,
             backend=backend,
-            expected_num_chars=expected_num_chars if expected_num_chars != -1 else None,
+            expected_num_chars=expected_num_chars
+            if expected_num_chars != -1
+            else None,
         )
         if lint:
             response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)

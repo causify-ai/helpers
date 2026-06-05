@@ -160,7 +160,9 @@ def _get_target_headers(
         )
         if match is not None:
             start_idx = next(
-                i for i, h in enumerate(target_headers) if h[1] == match.description
+                i
+                for i, h in enumerate(target_headers)
+                if h[1] == match.description
             )
             target_headers = target_headers[start_idx:]
     # Apply end boundary if specified: find matching header and slice up to there.
@@ -174,7 +176,9 @@ def _get_target_headers(
         )
         if match is not None:
             end_idx = next(
-                i for i, h in enumerate(target_headers) if h[1] == match.description
+                i
+                for i, h in enumerate(target_headers)
+                if h[1] == match.description
             )
             target_headers = target_headers[: end_idx + 1]
     return target_headers

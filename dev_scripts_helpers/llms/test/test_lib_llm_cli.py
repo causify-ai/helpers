@@ -5,7 +5,7 @@ import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.llms.lib_llm_cli as dshlibllmcli
+import dev_scripts_helpers.llms.lib_llm_cli as dshllllcl
 
 
 def _run_lib_llm_cli_with_mock(
@@ -35,7 +35,7 @@ def _run_lib_llm_cli_with_mock(
         else:
             output_path = ""
             modify_in_place = True
-        dshlibllmcli._process_selected_text(
+        dshllllcl._process_selected_text(
             select,
             model="test-model",
             backend="mock",
@@ -215,7 +215,7 @@ class Test_get_system_prompt(hunitest.TestCase):
         # Prepare outputs.
         expected = "Test prompt"
         # Run test.
-        actual = dshlibllmcli._get_system_prompt(
+        actual = dshllllcl._get_system_prompt(
             system_prompt_file,
             rule,
             system_prompt,
@@ -236,7 +236,7 @@ class Test_get_system_prompt(hunitest.TestCase):
         # Prepare outputs.
         expected = "File-based prompt"
         # Run test.
-        actual = dshlibllmcli._get_system_prompt(
+        actual = dshllllcl._get_system_prompt(
             system_prompt_file,
             rule,
             system_prompt,
@@ -265,7 +265,7 @@ class Test_limit_input_text(hunitest.TestCase):
         # Prepare outputs.
         expected = "Short text"
         # Run test.
-        actual = dshlibllmcli._limit_input_text(text, max_chars)
+        actual = dshllllcl._limit_input_text(text, max_chars)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -279,7 +279,7 @@ class Test_limit_input_text(hunitest.TestCase):
         # Prepare outputs.
         expected = "This is a "
         # Run test.
-        actual = dshlibllmcli._limit_input_text(text, max_chars)
+        actual = dshllllcl._limit_input_text(text, max_chars)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -309,7 +309,7 @@ class Test_get_input_output_files(hunitest.TestCase):
         expected_output_file = "-"
         # Run test.
         actual_input_file, actual_input_text, actual_output_file = (
-            dshlibllmcli._get_input_output_files(
+            dshllllcl._get_input_output_files(
                 input_arg,
                 input_text_arg,
                 output_arg,
@@ -336,7 +336,7 @@ class Test_get_input_output_files(hunitest.TestCase):
         expected_output_file = "output.txt"
         # Run test.
         actual_input_file, actual_input_text, actual_output_file = (
-            dshlibllmcli._get_input_output_files(
+            dshllllcl._get_input_output_files(
                 input_arg,
                 input_text_arg,
                 output_arg,

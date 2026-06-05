@@ -1049,8 +1049,7 @@ def _save_cache_dict_to_disk(
 
 
 def _load_func_cache_data_from_file(
-    file_name: str,
-    cache_type: str
+    file_name: str, cache_type: str
 ) -> _FunctionCacheType:
     """
     Load the function cache data from a file.
@@ -1596,7 +1595,7 @@ def reset_mem_cache(func_name: str = "") -> None:
     # Abort if clearing has been disabled via `enable_clear_cache(False)`.
     hdbg.dassert(
         _IS_CLEAR_CACHE_ENABLED,
-        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it",
     )
     # Handle None as empty string.
     if func_name is None:
@@ -1613,9 +1612,7 @@ def reset_mem_cache(func_name: str = "") -> None:
         del _CACHE[func_name]
 
 
-def reset_disk_cache(
-    func_name: str = "", interactive: bool = True
-) -> None:
+def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
     """
     Reset the disk cache for a given function name.
 
@@ -1636,7 +1633,7 @@ def reset_disk_cache(
     # Abort if clearing has been disabled via `enable_clear_cache(False)`.
     hdbg.dassert(
         _IS_CLEAR_CACHE_ENABLED,
-        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it",
     )
     # Handle None as empty string.
     if func_name is None:
@@ -1700,7 +1697,7 @@ def reset_cache(func_name: str = "", interactive: bool = True) -> None:
     # Abort if clearing has been disabled via `enable_clear_cache(False)`.
     hdbg.dassert(
         _IS_CLEAR_CACHE_ENABLED,
-        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
+        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it",
     )
     # Handle None as empty string.
     if func_name is None:

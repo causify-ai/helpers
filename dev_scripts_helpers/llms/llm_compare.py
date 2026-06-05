@@ -13,11 +13,10 @@ import dev_scripts_helpers.llms.llm_compare as dshllcmp
 """
 
 import argparse
-import json
 import logging
 import os
 import shlex
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 import pandas as pd
 
@@ -47,7 +46,9 @@ def _load_models(
         content = hio.from_file(models_from_file_arg)
         models = [m.strip() for m in content.strip().split("\n") if m.strip()]
     else:
-        raise RuntimeError("Either --models or --models_from_file must be provided")
+        raise RuntimeError(
+            "Either --models or --models_from_file must be provided"
+        )
     hdbg.dassert_lt(0, len(models), "At least one model must be provided")
     _LOG.info("Loaded %d models: %s", len(models), models)
     return models
@@ -81,7 +82,9 @@ def _run_llm_cli(
     _LOG.debug("Command: %s", cmd)
     rc = hsystem.system(cmd, print_command=False, abort_on_error=False)
     if rc != 0:
-        error_msg = f"llm_cli.py failed with return code {rc} for model '{model}'"
+        error_msg = (
+            f"llm_cli.py failed with return code {rc} for model '{model}'"
+        )
         _LOG.error(error_msg)
         if abort_on_error:
             raise RuntimeError(error_msg)
@@ -110,14 +113,16 @@ def _build_comparison_table(
         if not success:
             # TODO(ai_gp): Start from an empty TokenStats.
             # Use default values for failed models.
-            rows.append({
-                "model": model,
-                "costs": None,
-                "time_elapsed": None,
-                "output_length": None,
-                "file": None,
-                "status": "FAILED",
-            })
+            rows.append(
+                {
+                    "model": model,
+                    "costs": None,
+                    "time_elapsed": None,
+                    "output_length": None,
+                    "file": None,
+                    "status": "FAILED",
+                }
+            )
             continue
         # Build file paths for successful models.
         output_file = os.path.join(output_dir, f"{model}.output.txt")
@@ -127,15 +132,17 @@ def _build_comparison_table(
         # Extract metrics from output file and statistics.
         hdbg.dassert_file_exists(output_file, "Output file must exist")
         output_length = os.path.getsize(output_file)
-        rows.append({
-            "model": model,
-            "cost_from_tokencost": stat_data.cost_from_tokencost,
-            "cost_from_llm_library": stat_data.cost_from_llm_library,
-            "time_elapsed": stat_data.elapsed_time_in_seconds,
-            "output_length": output_length,
-            "file": output_file,
-            "status": "SUCCESS",
-        })
+        rows.append(
+            {
+                "model": model,
+                "cost_from_tokencost": stat_data.cost_from_tokencost,
+                "cost_from_llm_library": stat_data.cost_from_llm_library,
+                "time_elapsed": stat_data.elapsed_time_in_seconds,
+                "output_length": output_length,
+                "file": output_file,
+                "status": "SUCCESS",
+            }
+        )
     df = pd.DataFrame(rows)
     return df
 
@@ -148,7 +155,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     output_dir = args.output_dir
     hio.create_dir(output_dir, True)
     _LOG.info("Output directory: %s", output_dir)
-    _LOG.info("Running %d models with commands: %s", len(models), args.llm_cli_cmds)
+    _LOG.info(
+        "Running %d models with commands: %s", len(models), args.llm_cli_cmds
+    )
     results = {}
     for model in models:
         output_file = os.path.join(output_dir, f"{model}.output.txt")

@@ -1,12 +1,11 @@
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import linters2.fix_comments as lficom
+import linters2.fix_comments as lfixcomm
 
 
 # #############################################################################
 # Test_convert_single_line_docstrings
 # #############################################################################
-
 
 
 class Test_convert_single_line_docstrings(hunitest.TestCase):
@@ -20,7 +19,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # Initialize the input file contents.
         content = hprint.dedent(content)
         # Run.
-        actual = "\n".join(lficom.convert_single_line_docstrings(content))
+        actual = "\n".join(lfixcomm.convert_single_line_docstrings(content))
         expected = hprint.dedent(expected)
         # Check.
         self.assert_equal(actual, expected)
@@ -308,14 +307,14 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test file with no docstrings.
         """
-        content = '''
+        content = """
         def func1():
             x = 1
             return x
 
         class MyClass:
             pass
-        '''
+        """
         expected = content
         self.helper(content, expected)
 

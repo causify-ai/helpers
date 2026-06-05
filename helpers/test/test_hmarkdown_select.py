@@ -685,9 +685,7 @@ class Test_get_chunk_bounds(hunitest.TestCase):
             "More",
         ]
         # Run test.
-        start_idx, end_idx = hmarsele.get_chunk_bounds(
-            lines, "Section 1.1", ""
-        )
+        start_idx, end_idx = hmarsele.get_chunk_bounds(lines, "Section 1.1", "")
         # Check outputs: should stop before Section 1.2.
         self.assertEqual(start_idx, 3)
         self.assertEqual(end_idx, 6)
@@ -705,9 +703,7 @@ class Test_get_chunk_bounds(hunitest.TestCase):
             "Content",
         ]
         # Run test.
-        start_idx, end_idx = hmarsele.get_chunk_bounds(
-            lines, "", "Section 1.1"
-        )
+        start_idx, end_idx = hmarsele.get_chunk_bounds(lines, "", "Section 1.1")
         # Check outputs: should start from line 0.
         self.assertEqual(start_idx, 0)
         self.assertEqual(end_idx, 3)

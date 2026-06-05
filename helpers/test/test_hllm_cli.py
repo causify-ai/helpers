@@ -497,8 +497,10 @@ class Test_llm1(hunitest.TestCase):
         prompt = hprint.dedent(prompt)
         return prompt
 
-    @pytest.mark.skipif(not _RUN_REAL_LLM_BACKEND, 
-                        reason="Test requires _RUN_REAL_LLM_BACKEND=True")
+    @pytest.mark.skipif(
+        not _RUN_REAL_LLM_BACKEND,
+        reason="Test requires _RUN_REAL_LLM_BACKEND=True",
+    )
     def test1(self) -> None:
         """
         Test _llm() with multiple models and prompt lengths.
@@ -1313,8 +1315,10 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         )
         self.assert_equal(str(result_df), str(expected_df))
 
-    @pytest.mark.skipif(not _RUN_REAL_LLM_BACKEND, 
-                        reason="Test requires _RUN_REAL_LLM_BACKEND=True")
+    @pytest.mark.skipif(
+        not _RUN_REAL_LLM_BACKEND,
+        reason="Test requires _RUN_REAL_LLM_BACKEND=True",
+    )
     def test1(self) -> None:
         """
         Warm up cache by calling apply_llm and save cache to file.
@@ -1595,7 +1599,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
                     first_batch_mode,
                     batch_mode,
                     match_df,
-            )
+                )
             _LOG.info(
                 "Results match between '%s' and '%s'",
                 first_batch_mode,
