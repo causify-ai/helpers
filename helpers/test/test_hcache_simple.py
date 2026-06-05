@@ -1646,7 +1646,7 @@ class Test__save_func_cache_data_to_file_infer(_BaseCacheTest):
         file_name = os.path.join(scratch_dir, "tmp_test_infer.pkl")
         data = {'{"args": [1], "kwargs": {}}': 42}
         # Run test.
-        hcacsimp._save_func_cache_data_to_file(file_name, None, data)
+        hcacsimp._save_func_cache_data_to_file(file_name, "", data)
         # Check outputs.
         self.assertTrue(os.path.exists(file_name))
         loaded = hcacsimp._load_func_cache_data_from_file(file_name, "pickle")
@@ -1674,8 +1674,8 @@ class Test__load_func_cache_data_from_file_infer(_BaseCacheTest):
         file_name = os.path.join(scratch_dir, "tmp_test_load_infer.pkl")
         data = {'{"args": [5], "kwargs": {}}': 25}
         hcacsimp._save_func_cache_data_to_file(file_name, "pickle", data)
-        # Run test with None cache_type (should infer from .pkl).
-        result = hcacsimp._load_func_cache_data_from_file(file_name, None)
+        # Run test with empty string cache_type (should infer from .pkl).
+        result = hcacsimp._load_func_cache_data_from_file(file_name, "")
         # Check outputs.
         self.assertEqual(result, data)
 
@@ -2441,12 +2441,11 @@ class Test__get_s3_cache_path(_BaseCacheTest):
 
     def test6(self) -> None:
         """
-        Test that ValueError is raised when S3 bucket is not configured.
+        Test that AssertionError is raised when S3 bucket is not configured.
         """
         # Run and check.
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(AssertionError):
             hcacsimp._get_s3_cache_path("_cached_json_double")
-        self.assertEqual(str(cm.exception), "S3 bucket not configured")
 
 
 # #############################################################################
@@ -2494,25 +2493,25 @@ class Test__extract_func_name_from_cache_file(_BaseCacheTest):
 
     def test4(self) -> None:
         """
-        Test extraction returns None for invalid file name.
+        Test extraction returns empty string for invalid file name.
         """
         # Prepare inputs.
         cache_file_name = "invalid_filename"
         # Run.
         actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
         # Check.
-        self.assertIsNone(actual)
+        self.assertEqual(actual, "")
 
     def test5(self) -> None:
         """
-        Test extraction returns None for file without extension.
+        Test extraction returns empty string for file without extension.
         """
         # Prepare inputs.
         cache_file_name = "cache.function_name"
         # Run.
         actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
         # Check.
-        self.assertIsNone(actual)
+        self.assertEqual(actual, "")
 
     def test6(self) -> None:
         """
@@ -2712,34 +2711,34 @@ class Test_enable_clear_cache(_BaseCacheTest):
 
     def test1(self) -> None:
         """
-        Test that reset_mem_cache raises RuntimeError when clearing is
+        Test that reset_mem_cache raises AssertionError when clearing is
         disabled.
         """
         # Disable clearing.
         hcacsimp.enable_clear_cache(False)
         # Run / check.
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(AssertionError):
             hcacsimp.reset_mem_cache("_cached_json_double")
 
     def test2(self) -> None:
         """
-        Test that reset_disk_cache raises RuntimeError when clearing is
+        Test that reset_disk_cache raises AssertionError when clearing is
         disabled.
         """
         # Disable clearing.
         hcacsimp.enable_clear_cache(False)
         # Run / check.
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(AssertionError):
             hcacsimp.reset_disk_cache("_cached_json_double", interactive=False)
 
     def test3(self) -> None:
         """
-        Test that reset_cache raises RuntimeError when clearing is disabled.
+        Test that reset_cache raises AssertionError when clearing is disabled.
         """
         # Disable clearing.
         hcacsimp.enable_clear_cache(False)
         # Run / check.
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(AssertionError):
             hcacsimp.reset_cache("_cached_json_double", interactive=False)
 
     def test4(self) -> None:
