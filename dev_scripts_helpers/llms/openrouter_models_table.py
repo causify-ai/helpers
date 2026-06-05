@@ -422,6 +422,26 @@ def _format_efficiency(
     return result
 
 
+def _format_table(table: pd.DataFrame) -> pd.DataFrame:
+    """
+    Format table columns using appropriate formatting functions.
+
+    :param table: DataFrame with raw unformatted data
+    :return: DataFrame with formatted string columns
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    table = table.copy()
+    table["Input_Cost"] = table["Input_Cost"].apply(_format_cost)
+    table["Output_Cost"] = table["Output_Cost"].apply(_format_cost)
+    table["Context"] = table["Context"].apply(_format_context)
+    table["Speed_(tok/s)"] = table["Speed_(tok/s)"].apply(
+        lambda x: _format_benchmark(x) if x is not None else ""
+    )
+    table["Coding_IQ"] = table["Coding_IQ"].apply(_format_benchmark)
+    table["General_IQ"] = table["General_IQ"].apply(_format_benchmark)
+    return table
+
+
 # #############################################################################
 # Data Processing Layer
 # #############################################################################
@@ -471,7 +491,7 @@ def _build_rows(
     actions: Optional[List[str]],
     *,
     abort_on_na: bool = True
-) -> List[List[str]]:
+) -> List[List[Any]]:
     """
     Build table rows from model IDs and API data.
 
@@ -485,7 +505,7 @@ def _build_rows(
     :param api_lookup: Dict from _fetch_models_from_api() with pricing and context
     :param actions: List of selected actions to execute. If None, executes all actions.
         Skipped actions result in empty values for their corresponding columns.
-    :return: List of rows, where each row is a list of formatted cell strings
+    :return: List of rows with raw unformatted data
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_is_not(actions, None)
@@ -522,8 +542,6 @@ def _build_rows(
         )
         if to_exec_throughput:
             throughput = _fetch_openrouter_throughput(model_id)
-            if abort_on_na and throughput is None:
-                raise ValueError("model_id=%s -> throghput=%s" %( model_id, throughput))
         else:
             throughput = None
         efficiency_str = _format_efficiency(
@@ -641,12 +659,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     ]
     # Assemble and display the table.
     table = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    # TODO(ai_gp): Use the formatting function for each column of the table
-    #_format_cost(input_cost)
-    #_format_cost(output_cost)
-    #_format_context(context)
-    #_format_benchmark(coding_bench)
-    #_format_benchmark(intelligence_bench)
+    table = _format_table(table)
     print(table.to_string())
 
 
