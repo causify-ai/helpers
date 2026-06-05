@@ -22,9 +22,11 @@ import argparse
 import json
 import logging
 import os
+import re
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
@@ -152,6 +154,55 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
         }
 
 
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
+    """
+    Fetch throughput (tokens/sec) from OpenRouter page for a model.
+
+    Scrapes the model detail page and extracts throughput information.
+
+    :param model_id: OpenRouter model ID (e.g., "google/gemini-3.1-pro-preview")
+    :return: Throughput in tokens/sec or None if not found
+    """
+    try:
+        # Construct OpenRouter URL
+        url = f"https://openrouter.ai/{model_id}"
+        _LOG.debug("Fetching throughput from %s", url)
+
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36"
+            )
+        }
+
+        request = urllib.request.Request(url, headers=headers)
+        response = urllib.request.urlopen(request, timeout=30)
+        html_content = response.read().decode("utf-8")
+
+        # Try to find throughput pattern in HTML
+        # Look for patterns like "123 tokens/sec", "123 tok/s", "throughput: 123"
+        patterns = [
+            r'(\d+(?:\.\d+)?)\s*tokens?/\s*s(?:ec)?',
+            r'(\d+(?:\.\d+)?)\s*tok/s',
+            r'throughput["\s:]+(\d+(?:\.\d+)?)',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, html_content, re.IGNORECASE)
+            if match:
+                throughput = float(match.group(1))
+                _LOG.info("Found throughput for %s: %f", model_id,
+                         throughput)
+                return throughput
+
+        _LOG.debug("No throughput found for %s", model_id)
+        return None
+    except Exception as e:
+        _LOG.warning("Failed to fetch throughput for %s: %s", model_id, e)
+        return None
+
+
 def _fetch_openrouter_usage() -> Dict[str, Any]:
     """
     Fetch usage statistics from OpenRouter API.
@@ -185,7 +236,12 @@ def _fetch_openrouter_usage() -> Dict[str, Any]:
             return {}
 
         api_data = data["data"]
-        usage = api_data.get("usage", {})
+        if not isinstance(api_data, dict):
+            _LOG.warning("API data is not a dict: %s", type(api_data))
+            return {}
+        usage = api_data.get("usage")
+        if not isinstance(usage, dict):
+            usage = {}
 
         result = {
             "daily": usage.get("daily", 0),
@@ -234,9 +290,9 @@ _COLUMNS: List[Tuple[str, int, str]] = [
     ("Context", 10, ">"),
     ("Speed tok/s", 12, ">"),
     ("Coding Index", 12, ">"),
-    ("Speed", 8, ">"),
-    ("Agentic Coding (1-5)", 20, ">"),
-    ("Notes", 40, "<"),
+    ("Intelligence", 12, ">"),
+    ("Agentic", 12, ">"),
+    ("Coding", 12, ">"),
     ("Efficiency", 12, ">"),
 ]
 
@@ -331,23 +387,35 @@ def _format_cost(cost: float) -> str:
         return f"{cost:.1f}"
 
 
+def _format_benchmark(score: Optional[float]) -> str:
+    """
+    Format a benchmark score for display.
+
+    :param score: Benchmark score or None
+    :return: Formatted string or empty string if None
+    """
+    if score is None:
+        return ""
+    return f"{score:.1f}"
+
+
 def _format_efficiency(
-    agentic_score: Optional[float],
-    speed: Optional[float],
+    coding_score: Optional[float],
+    throughput: Optional[float],
     input_cost: float,
     output_cost: float,
 ) -> str:
     """
-    Compute Efficiency = Agentic_Score × Speed / (Input + Output Cost).
+    Compute Efficiency = Coding_Score × Throughput / (Input + Output Cost).
 
-    :return: Formatted string or "N/A" if subjective fields are missing
+    :return: Formatted string or "N/A" if fields are missing
     """
-    if agentic_score is None or speed is None:
+    if coding_score is None or throughput is None:
         return "N/A"
     total_cost = input_cost + output_cost
     if total_cost == 0:
         return "N/A"
-    efficiency = agentic_score * speed / total_cost
+    efficiency = coding_score * throughput / total_cost
     return f"{efficiency:.0f}"
 
 
@@ -383,34 +451,33 @@ def _build_rows(
             input_cost = 0.0
             output_cost = 0.0
         # Fetch AA benchmarks
-        coding_index_bench = None
-        if api_data is not None:
-            coding_index_bench = api_data.get("coding_index_bench")
-        if coding_index_bench is None:
-            benchmarks = _fetch_aa_benchmarks(name)
-            coding_index_bench = benchmarks.get("coding_index")
-            if api_data is not None:
-                api_data["coding_index_bench"] = coding_index_bench
-        coding_index_str = (f"{coding_index_bench:.1f}"
-                            if coding_index_bench else "")
-        # Subjective fields (left blank for manual fill-in).
-        speed_tok_s = ""
-        speed = ""
-        agentic_coding = ""
-        notes = ""
+        benchmarks = _fetch_aa_benchmarks(name)
+        coding_index_bench = benchmarks.get("coding_index")
+        intelligence_bench = benchmarks.get("intelligence")
+        agentic_bench = benchmarks.get("agentic")
+        coding_bench = benchmarks.get("coding")
+        coding_index_str = _format_benchmark(coding_index_bench)
+        intelligence_str = _format_benchmark(intelligence_bench)
+        agentic_str = _format_benchmark(agentic_bench)
+        coding_str = _format_benchmark(coding_bench)
+        # Fetch throughput data
+        throughput = _fetch_openrouter_throughput(model_id)
+        speed_tok_s_str = f"{throughput:.0f}" if throughput and throughput > 0 else ""
         # Compute efficiency.
-        efficiency_str = _format_efficiency(None, None, input_cost, output_cost)
+        efficiency_str = _format_efficiency(
+            coding_bench, throughput, input_cost, output_cost
+        )
         row = [
             name,
             model_id,
             input_cost_str,
             output_cost_str,
             context_str,
-            speed_tok_s,
+            speed_tok_s_str,
             coding_index_str,
-            speed,
-            agentic_coding,
-            notes,
+            intelligence_str,
+            agentic_str,
+            coding_str,
             efficiency_str,
         ]
         rows.append(row)
@@ -482,9 +549,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
 
-    if args.show_usage:
-        usage = _fetch_openrouter_usage()
-        print("OpenRouter API Usage Statistics:")
+    # Always display usage stats
+    usage = _fetch_openrouter_usage()
+    if usage:
+        print("OpenRouter API Usage Statistics (Aggregated):")
         print(_format_usage(usage))
         print()
 
