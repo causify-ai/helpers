@@ -452,7 +452,9 @@ def _read_model_ids(models_file: str) -> List[str]:
 def _build_rows(
     model_ids: List[str],
     api_lookup: Dict[str, Dict[str, Any]],
-    actions: Optional[List[str]] = None,
+    actions: Optional[List[str]],
+    *,
+    abort_on_na: bool = True
 ) -> List[List[str]]:
     """
     Build table rows from model IDs and API data.
@@ -470,11 +472,15 @@ def _build_rows(
     :return: List of rows, where each row is a list of formatted cell strings
     """
     _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_is_not(actions, None)
     rows: List[List[str]] = []
     for model_id in model_ids:
         _LOG.debug("Processing %s", model_id)
-        actions_copy = list(actions) if actions else None
+        actions_copy = list(actions)
         # Extract pricing and context from OpenRouter API.
+        if model_id not in api_lookup:
+            _LOG.warning("Can't find '%s' in the OpenRouter API data: skipping")
+            continue
         hdbg.dassert_in(model_id, api_lookup)
         api_data = api_lookup[model_id]
         #
@@ -483,9 +489,11 @@ def _build_rows(
         output_cost = float(api_data["output_cost"])
         context = int(api_data["context_length"])
         # Format.
-        input_cost_str = _format_cost(input_cost)
-        output_cost_str = _format_cost(output_cost)
-        context_str = _format_context(context)
+        # TODO(ai_gp): Use the actual values and remove the corresponding
+        # formatting function.
+        #input_cost_str = _format_cost(input_cost)
+        #output_cost_str = _format_cost(output_cost)
+        #context_str = _format_context(context)
         # Fetch and format benchmark scores from Artificial Analysis.
         to_exec_benchmarks, actions_copy = hselacti.mark_action(
             "fetch_aa_benchmarks", actions_copy
@@ -497,18 +505,16 @@ def _build_rows(
         # Extract correct keys from benchmarks dict.
         coding_bench = benchmarks.get("coding_score")
         intelligence_bench = benchmarks.get("intelligence_score")
-        agentic_bench = None
-        coding_index_bench = None
-        coding_index_str = _format_benchmark(coding_index_bench)
+        coding_index_str = _format_benchmark(coding_bench)
         intelligence_str = _format_benchmark(intelligence_bench)
-        agentic_str = _format_benchmark(agentic_bench)
-        coding_str = _format_benchmark(coding_bench)
         # Fetch throughput and compute efficiency metric.
         to_exec_throughput, actions_copy = hselacti.mark_action(
             "fetch_openrouter_throughput", actions_copy
         )
         if to_exec_throughput:
             throughput = _fetch_openrouter_throughput(model_id)
+            if abort_on_na and throughput is None:
+                raise ValueError("model_id=%s -> throghput=%s" %( model_id, throughput))
         else:
             throughput = None
         speed_tok_s_str = f"{throughput:.0f}" if throughput and throughput > 0 else ""
@@ -540,14 +546,11 @@ def _build_rows(
             month_tokens_str,
             coding_index_str,
             intelligence_str,
-            agentic_str,
-            coding_str,
             efficiency_str,
         ]
         _LOG.debug("row=%s", row)
         rows.append(row)
-    _LOG.debug("_build_rows return (first 1):\n%s",
-               pprint.pformat(rows[:1]))
+    _LOG.debug("Return (first 1):\n%s", pprint.pformat(rows[:1]))
     return rows
 
 
@@ -620,10 +623,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Process the data.
     rows = _build_rows(model_ids, api_lookup, actions)
     columns = [
-        "Name", "Model ID", "Input Cost", "Output Cost", "Context",
-        "Speed (tok/s)", "Week Tokens", "Month Tokens",
-        "Coding Index", "General Intelligence", "Agentic Intelligence",
-        "Coding", "Efficiency"
+        "Name", "Model_ID", "Input_Cost", "Output_Cost", "Context",
+        "Speed_(tok/s)", "Week_Tokens", "Month_Tokens",
+        "Coding_IQ", "General_IQ", "Efficiency"
     ]
     # Assemble and display the table.
     table = pd.DataFrame(data=rows, columns=columns)  # type: ignore
