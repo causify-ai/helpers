@@ -18,8 +18,8 @@ Usage:
 > openrouter_models_table.py --models models.txt -v DEBUG
 
 The script fetches
-- pricing and context from the OpenRouter API (https://openrouter.ai/api/v1/models)
-- benchmark data from the Artificial Analysis API, including the Artificial
+- Pricing and context from the OpenRouter API (https://openrouter.ai/api/v1/models)
+- Benchmark data from the Artificial Analysis API, including the Artificial
   Analysis Coding Index.
 """
 
@@ -86,8 +86,10 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
         canonical_slug: Optional[str] = m.get("canonical_slug")
         if canonical_slug:
             lookup[canonical_slug] = lookup[model_id]
-    _LOG.debug("_fetch_models_from_api result (first 3 items):\n%s",
-               pprint.pformat(dict(list(lookup.items())[:3])))
+    hdbg.dassert_lte(1, len(lookup.keys()))
+    _LOG.debug("_fetch_models_from_api result (first items):\n%s",
+               pprint.pformat(lookup[lookup.keys()[0]]))
+    assert 0
     return lookup
 
 
@@ -528,8 +530,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Path to a text file with one OpenRouter model ID per line",
     )
-    # TODO(ai_gp): Use helpers/hcache_simple.py add_cache_control_arg and
-    # parse_cache_control_args
+    hcacsimp.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -545,22 +546,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Handle cache control options.
-    if args.disable_cache:
-        hcacsimp.enable_caching(False)
-        _LOG.info("Caching disabled via --disable-cache")
-    if args.refresh_cache:
-        hcacsimp.set_global_cache_mode("REFRESH_CACHE")
-        _LOG.info("Cache refresh enabled via --refresh-cache")
-    # Display usage stats from OpenRouter API.
-    # Build model comparison table.
+    hcacsimp.parse_cache_control_args(args)
     model_ids = _read_model_ids(args.models)
     api_lookup = _fetch_models_from_api()
     rows = _build_rows(model_ids, api_lookup)
     columns = [
         "Name", "Model ID", "Input Cost", "Output Cost", "Context",
         "Speed (tok/s)", "Week Tokens", "Month Tokens",
-        "Coding Index", "Intelligence", "Agentic", "Coding",
+        "Coding Index", "General Intelligence", "Agentic Intelligence"
         "Efficiency"
     ]
     table = pd.DataFrame(rows, columns=columns)
