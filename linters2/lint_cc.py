@@ -331,9 +331,9 @@ def _main(parser: argparse.ArgumentParser) -> int:
     # Select files.
     num_exclusive = sum(
         [
-            args.topic is not None,
-            args.skill is not None,
-            args.rule is not None,
+            bool(args.topic),
+            bool(args.skill),
+            bool(args.rule),
         ]
     )
     hdbg.dassert_lte(
