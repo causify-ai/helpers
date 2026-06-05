@@ -130,6 +130,11 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         action="store_true",
         help="Print the ripgrep command and exit without running it",
     )
+    parser.add_argument(
+        "--print_files",
+        action="store_true",
+        help="Only report matching files, sorted and unique",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -198,7 +203,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
     elif parsed.todo_str:
         # --todo: search for `# TODO(<string>)` or `// TODO(<string>)` patterns.
         if parsed.todo_str == "_default_":
-            todo_pattern = "ai_gp\S*"
+            todo_pattern = r"ai_gp\S*"
         else:
             todo_pattern = parsed.todo_str
         ripgrep_pattern = rf"^\s*(#|//)\s*TODO\({todo_pattern}\)"
@@ -229,6 +234,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         "last_commit": parsed.last_commit,
         "all_files": parsed.all_files,
         "dry_run": parsed.dry_run,
+        "print_files": parsed.print_files,
     }
     return result
 
@@ -271,6 +277,18 @@ def main(
         "-g",
         "!.git",
     ]
+    # If --print_files is set, show only file names and adjust options.
+    if parsed["print_files"]:
+        # Override some options for file listing.
+        rg_opts = [
+            # Only show file names.
+            "-l",
+            # Plain output without ANSI colors.
+            "--color=never",
+            # Exclude .git directory from search.
+            "-g",
+            "!.git",
+        ]
     # Append user-provided ripgrep options if any.
     if parsed["rg_opts"]:
         rg_opts.extend(parsed["rg_opts"].split())
@@ -315,7 +333,21 @@ def main(
         return 0
     # Run the command using system call and capture output.
     try:
-        if parsed["need_capture"]:
+        if parsed["print_files"]:
+            # Capture output, sort and deduplicate.
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.stdout:
+                # Sort and deduplicate the file names.
+                files = sorted(set(result.stdout.strip().split("\n")))
+                for f in files:
+                    print(f)
+            return result.returncode
+        elif parsed["need_capture"]:
             # For piping to tee, use shell=True with the string command.
             cmd_str = cmd_str + " 2>&1 | tee cfile"
             result = subprocess.run(cmd_str, shell=True, text=True)

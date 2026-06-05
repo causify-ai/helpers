@@ -1,11 +1,11 @@
-In
-
-./helpers/hcache_simple.py
-
 Apply these changes
 
 .claude/skills/coding.rules.md:848 ## Use Single Types With Meaningful Defaults for Parser Inputs
 .claude/skills/coding.rules.md:584 ## Minimize Default Values of None in Function Interfaces
+
+In
+
+./dev_scripts_helpers/documentation/convert_pdf_to_md.py
 
 The goal is to replace in the functions
 Optional[str] = None with str = ""

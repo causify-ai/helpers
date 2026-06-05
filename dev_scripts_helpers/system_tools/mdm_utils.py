@@ -231,7 +231,7 @@ def _list_markdown_files(
     dir_: str,
     topic_: str,
     *,
-    pattern: Optional[str] = None,
+    pattern: str = "",
     full_path: bool = False,
 ) -> None:
     """
@@ -445,7 +445,7 @@ def _find_file_for_edit(topic_: str, dir_: str, name: str) -> str:
 
 
 def _action_list(
-    topic_: str, dir_: str, *, pattern: Optional[str] = None
+    topic_: str, dir_: str, *, pattern: str = ""
 ) -> None:
     """
     List markdown files in a directory (concise format).
@@ -463,7 +463,7 @@ def _action_list(
 
 
 def _action_full_list(
-    topic_: str, dir_: str, *, pattern: Optional[str] = None
+    topic_: str, dir_: str, *, pattern: str = ""
 ) -> None:
     """
     List markdown files in a directory (full paths).
@@ -539,7 +539,7 @@ def _get_description(file_path: str) -> str:
 
 
 def _action_describe(
-    topic_: str, dir_: str, *, pattern: Optional[str] = None
+    topic_: str, dir_: str, *, pattern: str = ""
 ) -> None:
     """
     List markdown files with their description from YAML front matter.
@@ -632,7 +632,7 @@ def _action_directory(dir_: str) -> None:
 
 
 def _action_topics(
-    topic_: str, dir_: str, *, pattern: Optional[str] = None
+    topic_: str, dir_: str, *, pattern: str = ""
 ) -> None:
     """
     List unique prefixes before the first dot from markdown file names.
