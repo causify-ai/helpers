@@ -66,24 +66,32 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
 
         request = urllib.request.Request(url, headers=headers)
         response = urllib.request.urlopen(request, timeout=30)
-        data = json.loads(response.read().decode("utf-8"))
+        response_data = json.loads(response.read().decode("utf-8"))
 
         # Build lookup dict by model name
         lookup: Dict[str, Dict[str, Any]] = {}
-        if isinstance(data, dict) and "models" in data:
-            models_list = data["models"]
-        elif isinstance(data, list):
-            models_list = data
+        # Extract models list from response structure
+        if isinstance(response_data, dict):
+            models_list = response_data.get("data", [])
+        elif isinstance(response_data, list):
+            models_list = response_data
         else:
+            models_list = []
+
+        if not isinstance(models_list, list):
             models_list = []
 
         for model in models_list:
             if isinstance(model, dict):
                 # Index by multiple keys for flexible matching
                 model_name = model.get("name", "")
+                model_slug = model.get("slug", "")
                 if model_name:
                     lookup[model_name.lower()] = model
                     lookup[model_name] = model
+                if model_slug:
+                    lookup[model_slug.lower()] = model
+                    lookup[model_slug] = model
 
         _LOG.info("Fetched %d models from Artificial Analysis API",
                   len(lookup))
@@ -114,13 +122,13 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
 
         # Try exact match first (case-insensitive)
         model_name_lower = model_name.lower()
+        model = None
         if model_name_lower in aa_models:
             model = aa_models[model_name_lower]
         elif model_name in aa_models:
             model = aa_models[model_name]
         else:
             # Try partial match
-            model = None
             for aa_name, aa_model in aa_models.items():
                 if (isinstance(aa_name, str) and
                     (model_name.lower() in aa_name or
@@ -129,13 +137,21 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
                     break
 
         if model and isinstance(model, dict):
-            benchmarks = model.get("benchmarks", {})
-            coding_score = benchmarks.get("coding")
-            intelligence_score = benchmarks.get("intelligence")
-            agentic_score = benchmarks.get("agentic")
-            coding_index = model.get("artificial_analysis_coding_index")
-            if coding_index is not None:
-                coding_index = float(coding_index)
+            # Extract from evaluations (AA API field names)
+            evaluations = model.get("evaluations", {})
+            if isinstance(evaluations, dict):
+                # AA uses "_index" suffix for evaluation metrics
+                intelligence_score = evaluations.get(
+                    "artificial_analysis_intelligence_index"
+                )
+                agentic_score = evaluations.get(
+                    "artificial_analysis_agentic_coding_index"
+                )
+                coding_score = evaluations.get(
+                    "artificial_analysis_coding_index"
+                )
+            # coding_index is the same as coding_score in AA API
+            coding_index = coding_score
 
         return {
             "coding": coding_score,
