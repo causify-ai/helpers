@@ -486,7 +486,7 @@ def _copy_to_gdrive(
     :param ext: The extension of the file to be copied
     """
     hdbg.dassert(not ext.startswith("."), "Invalid file_name='%s'", file_name)
-    if gdrive_dir is None:
+    if not gdrive_dir:
         gdrive_dir = "/Users/saggese/GoogleDrive/pdf_notes"
     # Copy.
     hdbg.dassert_dir_exists(gdrive_dir)
@@ -804,7 +804,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--gdrive_dir",
         action="store",
-        default=None,
+        default="",
         help="Directory where to save the output to share on Google Drive",
     )
     parser.add_argument(

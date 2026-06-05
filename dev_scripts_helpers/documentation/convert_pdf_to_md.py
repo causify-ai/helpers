@@ -480,7 +480,7 @@ def _parse() -> argparse.ArgumentParser:
         "--output",
         required=False,
         type=str,
-        default=None,
+        default="",
         help="Output directory for markdown and images (default: same directory as input)",
     )
     parser.add_argument(

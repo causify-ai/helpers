@@ -10,6 +10,13 @@ Apply these changes
 In
 
 ./dev_scripts_helpers/documentation/convert_pdf_to_md.py
+./dev_scripts_helpers/documentation/generate_images.py
+./dev_scripts_helpers/documentation/notes_to_pdf.py
+./dev_scripts_helpers/documentation/piper_markdown_reader.py
+./dev_scripts_helpers/documentation/test/test_lint_txt.py
+./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
+./dev_scripts_helpers/documentation/test/test_preprocess_notes.py
+
 
 The goal is to replace in the functions
 - Optional[str] = None with str = ""
