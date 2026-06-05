@@ -55,7 +55,7 @@ _DEFAULT_ACTIONS = ["convert", "remove_junk"]
 # #############################################################################
 
 
-def _remove_junk(*, pdf_path: str, output_dir: Optional[str] = None) -> None:
+def _remove_junk(*, pdf_path: str, output_dir: str = "") -> None:
     """
     Remove artifacts from PDF conversion including page markers and page numbers.
 
@@ -69,7 +69,7 @@ def _remove_junk(*, pdf_path: str, output_dir: Optional[str] = None) -> None:
     """
     hdbg.dassert_file_exists(pdf_path, "PDF file does not exist")
     # Derive output directory from input file location when not specified.
-    if output_dir is None:
+    if not output_dir:
         output_dir = os.path.dirname(os.path.abspath(pdf_path))
     if not output_dir:
         output_dir = "."
