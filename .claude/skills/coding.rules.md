@@ -621,7 +621,7 @@
 
 - Choose meaningful defaults based on the parameter type:
   - For strings: use `""` (empty string)
-  - For integers: use `-1`, `0`, or another sentinel that makes semantic sense
+  - For integers: use `0`, `-1`, or another sentinel that makes semantic sense
   - For booleans: use `False` or `True` based on intended semantics
   - For paths: use `""` or consider making the parameter required
 
@@ -863,7 +863,7 @@
 - **Good**: Use meaningful defaults to keep single types
   ```python
   parser.add_argument("--name", type=str, default="")
-  parser.add_argument("--count", type=int, default=-1)
+  parser.add_argument("--count", type=int, default=0)
   
   def _main(args: argparse.Namespace) -> None:
       name: str = args.name
@@ -872,7 +872,7 @@
 
 - Choose meaningful defaults based on the argument type:
   - For strings: use `""` (empty string)
-  - For integers: use `-1` (or another sentinel like `0`)
+  - For integers: use `0` (or another sentinel like `-1`)
   - For paths: use `""` (empty string) or handle validation in the parser
 
 ## Create Dirs

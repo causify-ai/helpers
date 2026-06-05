@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Optional
+from typing import List
 from unittest import mock
 
 import helpers.hgit as hgit
@@ -19,7 +19,7 @@ def _run_llm_cli_with_mock(
     argv: List[str],
     *,
     scratch_space: str,
-    output_basename: Optional[str] = None,
+    output_basename: str = "",
 ) -> str:
     """
     Run `dshlllcl._main()` with a mocked LLM and patched `sys.argv`.
@@ -33,7 +33,7 @@ def _run_llm_cli_with_mock(
         parser = dshlllcl._parse()
         with mock.patch("sys.argv", argv):
             dshlllcl._main(parser)
-    if output_basename is not None:
+    if output_basename:
         output_file = os.path.join(scratch_space, output_basename)
         ret = hio.from_file(output_file)
     else:

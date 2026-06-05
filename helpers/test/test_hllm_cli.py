@@ -1922,7 +1922,7 @@ class Test_add_llm_args(hunitest.TestCase):
         # Parse with system_prompt.
         args = parser.parse_args(["--system_prompt", "test prompt"])
         self.assertEqual(args.system_prompt, "test prompt")
-        self.assertIsNone(args.system_prompt_file)
+        self.assertEqual(args.system_prompt_file, "")
 
     def test5(self) -> None:
         """

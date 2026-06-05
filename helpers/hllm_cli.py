@@ -82,8 +82,7 @@ class TokenStats:
     input_tokens: int = 0
     output_tokens: int = 0
     cost_from_tokencost: float = 0.0
-    # TODO(ai_gp): Use only float with a default of 0.0
-    cost_from_llm_library: Optional[float] = None
+    cost_from_llm_library: float = 0.0
     elapsed_time_in_seconds: float = 0.0
 
     def __post_init__(self) -> None:
@@ -100,15 +99,13 @@ class TokenStats:
         hdbg.dassert_lte(0, self.output_tokens)
         hdbg.dassert_lte(0, self.cost_from_tokencost)
         hdbg.dassert_lte(0, self.elapsed_time_in_seconds)
-        if self.cost_from_llm_library is not None:
-            hdbg.dassert_lte(0, self.cost_from_llm_library)
+        hdbg.dassert_lte(0, self.cost_from_llm_library)
         # Ensure proper types.
         self.input_tokens = int(self.input_tokens)
         self.output_tokens = int(self.output_tokens)
         self.cost_from_tokencost = float(self.cost_from_tokencost)
         self.elapsed_time_in_seconds = float(self.elapsed_time_in_seconds)
-        if self.cost_from_llm_library is not None:
-            self.cost_from_llm_library = float(self.cost_from_llm_library)
+        self.cost_from_llm_library = float(self.cost_from_llm_library)
 
     def to_float(self) -> float:
         """
@@ -119,8 +116,8 @@ class TokenStats:
         :return: total cost in dollars as a float
         """
         if (
-            self.cost_from_tokencost is not None
-            and self.cost_from_llm_library is not None
+            self.cost_from_tokencost > 0
+            and self.cost_from_llm_library > 0
         ):
             if abs(float(self.cost_from_tokencost) - float(self.cost_from_llm_library)):
                 _LOG.warning(
@@ -130,8 +127,7 @@ class TokenStats:
                 )
         if self.cost_from_tokencost > 0:
             return float(self.cost_from_tokencost)
-        #
-        if self.cost_from_llm_library is not None and self.cost_from_llm_library > 0:
+        if self.cost_from_llm_library > 0:
             return float(self.cost_from_llm_library)
         return 0.0
 
@@ -185,16 +181,14 @@ class TokenStats:
             ts.cost_from_tokencost for ts in token_stats_list
         )
         total_cost_from_llm_library = sum(
-            ts.cost_from_llm_library or 0.0 for ts in token_stats_list
+            ts.cost_from_llm_library for ts in token_stats_list
         )
         total_elapsed_time = sum(ts.elapsed_time_in_seconds for ts in token_stats_list)
         return cls(
             input_tokens=total_input_tokens,
             output_tokens=total_output_tokens,
             cost_from_tokencost=total_cost_from_tokencost,
-            cost_from_llm_library=total_cost_from_llm_library
-            if total_cost_from_llm_library > 0
-            else None,
+            cost_from_llm_library=total_cost_from_llm_library,
             elapsed_time_in_seconds=total_elapsed_time,
         )
 
@@ -228,7 +222,7 @@ class TokenStats:
 
 
 def install_needed_modules(
-    *, use_sudo: bool = True, venv_path: Optional[str] = None
+    *, use_sudo: bool = True, venv_path: str = ""
 ) -> None:
     """
     Install needed modules for LLM CLI (llm and tokencost).
@@ -360,7 +354,7 @@ def _calculate_cost_from_usage(
 def _apply_llm_via_mock(
     input_str: str,
     *,
-    system_prompt: Optional[str] = None,
+    system_prompt: str = "",
 ) -> Tuple[str, TokenStats]:
     """
     Mock LLM application for testing.
@@ -382,9 +376,9 @@ def _apply_llm_via_mock(
 def _apply_llm_via_executable(
     input_str: str,
     *,
-    system_prompt: Optional[str] = None,
-    model: Optional[str] = None,
-    expected_num_chars: Optional[int] = None,
+    system_prompt: str = "",
+    model: str = "",
+    expected_num_chars: int = 0,
 ) -> Tuple[str, TokenStats]:
     """
     Apply LLM using the llm CLI executable.
@@ -410,7 +404,7 @@ def _apply_llm_via_executable(
     cmd.append(input_str)
     _LOG.debug("Running command: %s", " ".join(cmd))
     # Execute command with or without streaming.
-    if expected_num_chars:
+    if expected_num_chars > 0:
         # Use streaming with progress bar.
         proc = subprocess.Popen(
             cmd,
@@ -444,9 +438,9 @@ def _apply_llm_via_executable(
 def _apply_llm_via_library(
     input_str: str,
     *,
-    system_prompt: Optional[str] = None,
-    model: Optional[str] = None,
-    expected_num_chars: Optional[int] = None,
+    system_prompt: str = "",
+    model: str = "",
+    expected_num_chars: int = 0,
 ) -> Tuple[str, TokenStats]:
     """
     Apply LLM using the llm Python library.
@@ -469,7 +463,7 @@ def _apply_llm_via_library(
         llm_model = llm.get_model()
     _LOG.debug("Using model: %s", llm_model.model_id)
     # Execute with or without progress bar.
-    if expected_num_chars:
+    if expected_num_chars > 0:
         # Use streaming with progress bar.
         response_parts = []
         with tqdm(total=expected_num_chars, unit="char") as pbar:
@@ -539,10 +533,10 @@ def _apply_llm_via_library(
 def apply_llm(
     input_str: str,
     *,
-    system_prompt: Optional[str] = None,
-    model: Optional[str] = None,
+    system_prompt: str = "",
+    model: str = "",
     backend: str = "library",
-    expected_num_chars: Optional[int] = None,
+    expected_num_chars: int = 0,
 ) -> Tuple[str, TokenStats]:
     """
     Apply an LLM to process input text using specified backend.
@@ -562,12 +556,12 @@ def apply_llm(
     """
     hdbg.dassert_isinstance(input_str, str)
     hdbg.dassert_ne(input_str, "", "Input string cannot be empty")
-    if system_prompt is not None:
+    if system_prompt:
         hdbg.dassert_isinstance(system_prompt, str)
-    if model is not None:
+    if model:
         hdbg.dassert_isinstance(model, str)
         hdbg.dassert_ne(model, "", "Model cannot be empty string")
-    if expected_num_chars is not None:
+    if expected_num_chars > 0:
         hdbg.dassert_isinstance(expected_num_chars, int)
         hdbg.dassert_lt(
             0,
@@ -613,10 +607,10 @@ def apply_llm_with_files(
     input_file: str,
     output_file: str,
     *,
-    system_prompt: Optional[str] = None,
-    model: Optional[str] = None,
+    system_prompt: str = "",
+    model: str = "",
     backend: str = "library",
-    expected_num_chars: Optional[int] = None,
+    expected_num_chars: int = 0,
 ) -> TokenStats:
     """
     Apply an LLM to process text from an input file and save to output file.
@@ -1288,7 +1282,7 @@ def apply_llm_prompt_to_df(
     *,
     model: str,
     batch_size: int = 50,
-    dump_every_batch: Optional[str] = None,
+    dump_every_batch: str = "",
     tag: str = "Processing",
     testing_functor: Optional[Callable[[str], str]] = None,
     use_sys_stderr: bool = False,
@@ -1329,7 +1323,7 @@ def apply_llm_prompt_to_df(
         batch_size,
         "Batch size must be positive",
     )
-    if dump_every_batch is not None:
+    if dump_every_batch:
         hdbg.dassert_isinstance(dump_every_batch, str)
         hdbg.dassert_ne(dump_every_batch, "", "Dump file path cannot be empty")
     # Create target column if it doesn't exist.
@@ -1412,10 +1406,10 @@ def mock_apply_llm():
     def _mock_apply_llm(
         input_str: str,
         *,
-        system_prompt: Optional[str] = None,
-        model: Optional[str] = None,
+        system_prompt: str = "",
+        model: str = "",
         backend: str = "library",
-        expected_num_chars: Optional[int] = None,
+        expected_num_chars: int = 0,
     ) -> Tuple[str, TokenStats]:
         concatenated = input_str + (system_prompt or "")
         digest = hashlib.md5(concatenated.encode()).hexdigest()
@@ -1519,7 +1513,7 @@ def add_llm_args(
         type=str,
         dest="output",
         required=output_required,
-        default=None,
+        default="",
         help="Path to the output file where result will be saved (use '-' to "
         "print to screen). If not specified, writes in-place to the input file",
     )
@@ -1531,7 +1525,7 @@ def add_llm_args(
         "-p",
         "--system_prompt",
         type=str,
-        default=None,
+        default="",
         dest="system_prompt",
         help="Optional system prompt to guide the LLM's behavior",
     )
@@ -1539,7 +1533,7 @@ def add_llm_args(
         "--pf",
         "--system_prompt_file",
         type=str,
-        default=None,
+        default="",
         dest="system_prompt_file",
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
@@ -1573,7 +1567,7 @@ def add_llm_args(
     parser.add_argument(
         "--expected_num_chars",
         type=int,
-        default=None,
+        default=0,
         help="Expected number of characters in output (enables progress bar with explicit size)",
     )
     return parser
