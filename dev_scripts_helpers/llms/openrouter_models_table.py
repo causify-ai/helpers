@@ -30,14 +30,13 @@ import os
 import pprint
 import re
 import urllib.request
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -88,8 +87,7 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
             lookup[canonical_slug] = lookup[model_id]
     hdbg.dassert_lte(1, len(lookup.keys()))
     _LOG.debug("_fetch_models_from_api result (first items):\n%s",
-               pprint.pformat(lookup[lookup.keys()[0]]))
-    assert 0
+               pprint.pformat(lookup[list(lookup.keys())[0]]))
     return lookup
 
 
@@ -388,23 +386,6 @@ def _format_efficiency(
     return result
 
 
-def _format_usage(usage_dict: Dict[str, Any]) -> str:
-    """
-    Format usage statistics as a readable string.
-
-    :param usage_dict: Dict with 'daily', 'weekly', 'monthly' keys
-    :return: Formatted usage string
-    """
-    hdbg.dassert_isinstance(usage_dict, dict, "usage_dict must be a dict")
-    daily = usage_dict.get("daily", 0)
-    weekly = usage_dict.get("weekly", 0)
-    monthly = usage_dict.get("monthly", 0)
-    result = (f"Daily: ${daily:.4f} | Weekly: ${weekly:.4f} | "
-              f"Monthly: ${monthly:.4f}")
-    _LOG.debug("_format_usage result:\n%s", result)
-    return result
-
-
 # #############################################################################
 # Data Processing Layer
 # #############################################################################
@@ -553,7 +534,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     columns = [
         "Name", "Model ID", "Input Cost", "Output Cost", "Context",
         "Speed (tok/s)", "Week Tokens", "Month Tokens",
-        "Coding Index", "General Intelligence", "Agentic Intelligence"
+        "Coding Index", "General Intelligence", "Agentic Intelligence",
         "Efficiency"
     ]
     table = pd.DataFrame(rows, columns=columns)
