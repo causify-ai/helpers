@@ -37,6 +37,7 @@ import pandas as pd
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai_gp): Use hcache_simple to cache
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
     """
     Fetch all models from the OpenRouter API.
@@ -144,7 +145,7 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
     """
     api_key = os.environ.get("OPENROUTER_API_KEY")
-    # TODO(ai_gp): Use a dassert
+    hdbg.dassert(api_key, "OPENROUTER_API_KEY environment variable must be set")
     url = "https://openrouter.ai/api/v1/datasets/rankings/daily"
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -239,7 +240,7 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
     return lookup
 
 
-# TODO(ai_gp): Add a cache
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     """
     Fetch benchmark data from Artificial Analysis API using cached models.
@@ -392,9 +393,7 @@ def _format_usage(usage_dict: Dict[str, Any]) -> str:
     :param usage_dict: Dict with 'daily', 'weekly', 'monthly' keys
     :return: Formatted usage string
     """
-    # TODO(ai_gp): Use a dassert
-    if not usage_dict:
-        return "Usage stats unavailable"
+    hdbg.dassert_isinstance(usage_dict, dict, "usage_dict must be a dict")
     daily = usage_dict.get("daily", 0)
     weekly = usage_dict.get("weekly", 0)
     monthly = usage_dict.get("monthly", 0)
@@ -529,6 +528,8 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Path to a text file with one OpenRouter model ID per line",
     )
+    # TODO(ai_gp): Use helpers/hcache_simple.py add_cache_control_arg and
+    # parse_cache_control_args
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -544,13 +545,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Handle cache control options.
+    if args.disable_cache:
+        hcacsimp.enable_caching(False)
+        _LOG.info("Caching disabled via --disable-cache")
+    if args.refresh_cache:
+        hcacsimp.set_global_cache_mode("REFRESH_CACHE")
+        _LOG.info("Cache refresh enabled via --refresh-cache")
     # Display usage stats from OpenRouter API.
     # Build model comparison table.
     model_ids = _read_model_ids(args.models)
     api_lookup = _fetch_models_from_api()
     rows = _build_rows(model_ids, api_lookup)
-    # TODO(ai_gp): Create table and print it using pandas
-    print(table)
+    columns = [
+        "Name", "Model ID", "Input Cost", "Output Cost", "Context",
+        "Speed (tok/s)", "Week Tokens", "Month Tokens",
+        "Coding Index", "Intelligence", "Agentic", "Coding",
+        "Efficiency"
+    ]
+    table = pd.DataFrame(rows, columns=columns)
+    print(table.to_string())
 
 
 if __name__ == "__main__":
