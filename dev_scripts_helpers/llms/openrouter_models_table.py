@@ -434,11 +434,14 @@ def _format_table(table: pd.DataFrame) -> pd.DataFrame:
     table["Input_Cost"] = table["Input_Cost"].apply(_format_cost)
     table["Output_Cost"] = table["Output_Cost"].apply(_format_cost)
     table["Context"] = table["Context"].apply(_format_context)
-    table["Speed_(tok/s)"] = table["Speed_(tok/s)"].apply(
-        lambda x: _format_benchmark(x) if x is not None else ""
-    )
-    table["Coding_IQ"] = table["Coding_IQ"].apply(_format_benchmark)
-    table["General_IQ"] = table["General_IQ"].apply(_format_benchmark)
+    if "Speed_(tok/s)" in table.columns:
+        table["Speed_(tok/s)"] = table["Speed_(tok/s)"].apply(
+            lambda x: _format_benchmark(x) if x is not None else ""
+        )
+    if "Coding_IQ" in table.columns:
+        table["Coding_IQ"] = table["Coding_IQ"].apply(_format_benchmark)
+    if "General_IQ" in table.columns:
+        table["General_IQ"] = table["General_IQ"].apply(_format_benchmark)
     return table
 
 
@@ -485,97 +488,180 @@ def _read_model_ids_from_list(models_list_str: str) -> List[str]:
     return model_ids
 
 
-def _build_rows(
+def _build_base_dataframe(
     model_ids: List[str],
     api_lookup: Dict[str, Dict[str, Any]],
-    actions: Optional[List[str]],
-    *,
-    abort_on_na: bool = True
-) -> List[List[Any]]:
+) -> pd.DataFrame:
     """
-    Build table rows from model IDs and API data.
-
-    Optionally fetches benchmark data, throughput, and usage statistics based
-    on the selected actions. Available actions are:
-    - "fetch_aa_benchmarks": Fetch benchmark scores from Artificial Analysis
-    - "fetch_openrouter_throughput": Fetch throughput (tokens/sec) from OpenRouter
-    - "fetch_openrouter_per_model_usage": Fetch usage statistics (tokens/week/month)
+    Build base dataframe with OpenRouter pricing and context data.
 
     :param model_ids: List of model IDs from the input file
     :param api_lookup: Dict from _fetch_models_from_api() with pricing and context
-    :param actions: List of selected actions to execute. If None, executes all actions.
-        Skipped actions result in empty values for their corresponding columns.
-    :return: List of rows with raw unformatted data
+    :return: DataFrame with base model data (Name, Model_ID, Input_Cost, etc.)
     """
     _LOG.debug(hprint.func_signature_to_str())
-    hdbg.dassert_is_not(actions, None)
-    if actions is None:
-        actions = []
-    rows: List[List[str]] = []
+    rows: List[List[Any]] = []
     for model_id in model_ids:
         _LOG.debug("Processing %s", model_id)
-        actions_copy = list(actions)
-        # Extract pricing and context from OpenRouter API.
         if model_id not in api_lookup:
-            _LOG.warning("Can't find '%s' in the OpenRouter API data: skipping")
+            _LOG.warning("Can't find '%s' in the OpenRouter API data: skipping",
+                        model_id)
             continue
-        hdbg.dassert_in(model_id, api_lookup)
         api_data = api_lookup[model_id]
-        #
         name = str(api_data["name"])
         input_cost = float(api_data["input_cost"])
         output_cost = float(api_data["output_cost"])
         context = int(api_data["context_length"])
-        # Fetch and format benchmark scores from Artificial Analysis.
-        to_exec_benchmarks, actions_copy = hselacti.mark_action(
-            "fetch_aa_benchmarks", actions_copy
-        )
-        if to_exec_benchmarks:
-            benchmarks = _fetch_aa_benchmarks(name)
-        else:
-            benchmarks = {}
-        # Extract correct keys from benchmarks dict.
-        coding_bench = benchmarks.get("coding_score")
-        intelligence_bench = benchmarks.get("intelligence_score")
-        to_exec_throughput, actions_copy = hselacti.mark_action(
-            "fetch_openrouter_throughput", actions_copy
-        )
-        if to_exec_throughput:
-            throughput = _fetch_openrouter_throughput(model_id)
-        else:
-            throughput = None
-        efficiency_str = _format_efficiency(
-            coding_bench, throughput, input_cost, output_cost
-        )
-        # Fetch per-model usage statistics.
-        to_exec_usage, actions_copy = hselacti.mark_action(
-            "fetch_openrouter_per_model_usage", actions_copy
-        )
-        if to_exec_usage:
-            per_model_usage = _fetch_openrouter_per_model_usage()
-        else:
-            per_model_usage = {}
-        usage_data = per_model_usage.get(model_id, {})
-        week_tokens = usage_data.get("week_tokens", 0)
-        month_tokens = usage_data.get("month_tokens", 0)
-        # Assemble row with all fields in column order.
         row = [
             name,
             model_id,
             input_cost,
             output_cost,
             context,
-            throughput,
-            week_tokens,
-            month_tokens,
-            coding_bench,
-            intelligence_bench,
-            efficiency_str,
         ]
         _LOG.debug("row=%s", row)
         rows.append(row)
-    _LOG.debug("Return (first 1):\n%s", pprint.pformat(rows[:1]))
-    return rows
+    columns = [
+        "Name", "Model_ID", "Input_Cost", "Output_Cost", "Context",
+    ]
+    df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    _LOG.info("Built base dataframe with %d rows", len(df))
+    return df
+
+
+def _build_aa_benchmarks_dataframe(
+    model_ids: List[str],
+    api_lookup: Dict[str, Dict[str, Any]],
+) -> pd.DataFrame:
+    """
+    Build dataframe with Artificial Analysis benchmark scores.
+
+    :param model_ids: List of model IDs from the input file
+    :param api_lookup: Dict from _fetch_models_from_api()
+    :return: DataFrame with Model_ID and benchmark columns
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    rows: List[List[Any]] = []
+    for model_id in model_ids:
+        _LOG.debug("Fetching AA benchmarks for %s", model_id)
+        if model_id not in api_lookup:
+            _LOG.debug("Skipping %s (not in API lookup)", model_id)
+            continue
+        api_data = api_lookup[model_id]
+        name = str(api_data["name"])
+        benchmarks = _fetch_aa_benchmarks(name)
+        coding_score = benchmarks.get("coding_score")
+        intelligence_score = benchmarks.get("intelligence_score")
+        row = [
+            model_id,
+            coding_score,
+            intelligence_score,
+        ]
+        _LOG.debug("row=%s", row)
+        rows.append(row)
+    columns = ["Model_ID", "Coding_IQ", "General_IQ"]
+    df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    _LOG.info("Built AA benchmarks dataframe with %d rows", len(df))
+    return df
+
+
+def _build_openrouter_throughput_dataframe(
+    model_ids: List[str],
+) -> pd.DataFrame:
+    """
+    Build dataframe with OpenRouter throughput data.
+
+    :param model_ids: List of model IDs from the input file
+    :return: DataFrame with Model_ID and throughput column
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    rows: List[List[Any]] = []
+    for model_id in model_ids:
+        _LOG.debug("Fetching throughput for %s", model_id)
+        throughput = _fetch_openrouter_throughput(model_id)
+        row = [
+            model_id,
+            throughput,
+        ]
+        _LOG.debug("row=%s", row)
+        rows.append(row)
+    columns = ["Model_ID", "Speed_(tok/s)"]
+    df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    _LOG.info("Built throughput dataframe with %d rows", len(df))
+    return df
+
+
+def _build_openrouter_per_model_usage_dataframe(
+    model_ids: List[str],
+) -> pd.DataFrame:
+    """
+    Build dataframe with OpenRouter per-model usage statistics.
+
+    :param model_ids: List of model IDs from the input file
+    :return: DataFrame with Model_ID and usage columns
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    per_model_usage = _fetch_openrouter_per_model_usage()
+    rows: List[List[Any]] = []
+    for model_id in model_ids:
+        _LOG.debug("Fetching usage for %s", model_id)
+        usage_data = per_model_usage.get(model_id, {})
+        week_tokens = usage_data.get("week_tokens", 0)
+        month_tokens = usage_data.get("month_tokens", 0)
+        row = [
+            model_id,
+            week_tokens,
+            month_tokens,
+        ]
+        _LOG.debug("row=%s", row)
+        rows.append(row)
+    columns = ["Model_ID", "Week_Tokens", "Month_Tokens"]
+    df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    _LOG.info("Built per-model usage dataframe with %d rows", len(df))
+    return df
+
+
+def _merge_dataframes(
+    base_df: pd.DataFrame,
+    dataframes: List[pd.DataFrame],
+) -> pd.DataFrame:
+    """
+    Merge action-specific dataframes with the base dataframe.
+
+    :param base_df: Base dataframe with pricing and context
+    :param dataframes: List of action-specific dataframes to merge
+    :return: Merged dataframe
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    result = base_df.copy()
+    for df in dataframes:
+        result = result.merge(df, on="Model_ID", how="left")
+    _LOG.info("Merged dataframe has %d rows and %d columns",
+              len(result), len(result.columns))
+    return result
+
+
+def calc_efficiency(row: pd.Series) -> str:
+    coding_iq_val = row["Coding_IQ"]
+    speed_val = row["Speed_(tok/s)"]
+    # TODO(ai_gp): Use numpy vector approach and get nans automatically.
+    coding_iq: Optional[float] = (
+        None if coding_iq_val is None or (
+            isinstance(coding_iq_val, float) and
+            pd.isna(coding_iq_val)
+        ) else float(coding_iq_val)
+    )
+    speed: Optional[float] = (
+        None if speed_val is None or (
+            isinstance(speed_val, float) and
+            pd.isna(speed_val)
+        ) else float(speed_val)
+    )
+    input_cost = float(row["Input_Cost"])
+    output_cost = float(row["Output_Cost"])
+    # TODO(ai_gp): Add the formatting in _format_table.
+    return _format_efficiency(coding_iq, speed, input_cost,
+                             output_cost)
 
 
 # #############################################################################
@@ -650,15 +736,36 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Fetch all models from the OpenRouter API.
     api_lookup = _fetch_models_from_api()
     _LOG.debug("api_lookup=%s", api_lookup.keys())
-    # Process the data.
-    rows = _build_rows(model_ids, api_lookup, actions)
-    columns = [
-        "Name", "Model_ID", "Input_Cost", "Output_Cost", "Context",
-        "Speed_(tok/s)", "Week_Tokens", "Month_Tokens",
-        "Coding_IQ", "General_IQ", "Efficiency"
-    ]
-    # Assemble and display the table.
-    table = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    # Build base dataframe with pricing and context.
+    table = _build_base_dataframe(model_ids, api_lookup)
+    # Build and merge action-specific dataframes.
+    dataframes_to_merge: List[pd.DataFrame] = []
+    actions_copy = list(actions)
+    to_exec_benchmarks, actions_copy = hselacti.mark_action(
+        "fetch_aa_benchmarks", actions_copy
+    )
+    if to_exec_benchmarks:
+        benchmarks_df = _build_aa_benchmarks_dataframe(model_ids, api_lookup)
+        dataframes_to_merge.append(benchmarks_df)
+    to_exec_throughput, actions_copy = hselacti.mark_action(
+        "fetch_openrouter_throughput", actions_copy
+    )
+    if to_exec_throughput:
+        throughput_df = _build_openrouter_throughput_dataframe(model_ids)
+        dataframes_to_merge.append(throughput_df)
+    to_exec_usage, actions_copy = hselacti.mark_action(
+        "fetch_openrouter_per_model_usage", actions_copy
+    )
+    if to_exec_usage:
+        usage_df = _build_openrouter_per_model_usage_dataframe(model_ids)
+        dataframes_to_merge.append(usage_df)
+    # Merge all dataframes.
+    if dataframes_to_merge:
+        table = _merge_dataframes(table, dataframes_to_merge)
+    # Add efficiency column if possible.
+    if "Coding_IQ" in table.columns and "Speed_(tok/s)" in table.columns:
+        table["Efficiency"] = table.apply(calc_efficiency, axis=1)
+    # Format and display the table.
     table = _format_table(table)
     print(table.to_string())
 
