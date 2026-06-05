@@ -106,7 +106,7 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
         if canonical_slug:
             lookup[canonical_slug] = lookup[model_id]
     hdbg.dassert_lte(1, len(lookup.keys()))
-    _LOG.debug("_fetch_models_from_api result (first items):\n%s",
+    _LOG.debug("Result (first items):\n%s",
                pprint.pformat(lookup[list(lookup.keys())[0]]))
     return lookup
 
@@ -145,12 +145,11 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
             throughput = float(match.group(1))
             _LOG.info("Found throughput for %s: %f", model_id,
                      throughput)
-            _LOG.debug("_fetch_openrouter_throughput(%s) return=%s",
+            _LOG.debug("%s -> return=%s",
                        model_id, throughput)
             return throughput
     _LOG.debug("No throughput found for %s", model_id)
-    _LOG.debug("_fetch_openrouter_throughput(%s) return=None",
-               model_id)
+    _LOG.debug("%s -> return=None", model_id)
     return None
 
 
@@ -200,7 +199,7 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
                 }
     _LOG.info("Fetched per-model usage for %d models",
               len(per_model_usage))
-    _LOG.debug("_fetch_openrouter_per_model_usage return (first one):\n%s",
+    _LOG.debug("Return (first one):\n%s",
                pprint.pformat(dict(list(per_model_usage.items())[:1])))
     return per_model_usage
 
@@ -258,8 +257,8 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
                 lookup[model_slug] = model
     _LOG.info("Fetched %d models from Artificial Analysis API",
               len(lookup))
-    _LOG.debug("_fetch_all_aa_models return (first 3):\n%s",
-               pprint.pformat(dict(list(lookup.items())[:3])))
+    _LOG.debug("Return (first one):\n%s",
+               pprint.pformat(dict(list(lookup.items())[:1])))
     return lookup
 
 
@@ -333,7 +332,7 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
         "coding_score": coding_score,
         "intelligence_score": intelligence_score,
     }
-    _LOG.debug("_fetch_aa_benchmarks(%s) return:\n%s",
+    _LOG.debug("%s -> return:\n%s",
                model_name, pprint.pformat(result))
     return result
 
@@ -364,7 +363,6 @@ def _format_cost(cost: float) -> str:
         result = f"{cost:.2f}"
     else:
         result = f"{cost:.1f}"
-    _LOG.debug("_format_cost return: %s", result)
     return result
 
 
@@ -383,7 +381,6 @@ def _format_context(ctx: int) -> str:
         result = f"{ctx // 1_000}K"
     else:
         result = str(ctx)
-    _LOG.debug("_format_context(%s) result: %s", ctx, result)
     return result
 
 
@@ -398,7 +395,6 @@ def _format_benchmark(score: Optional[float]) -> str:
         result = ""
     else:
         result = f"{score:.1f}"
-    _LOG.debug("_format_benchmark(%s) result: %s", score, result)
     return result
 
 
@@ -422,14 +418,6 @@ def _format_efficiency(
         else:
             efficiency = coding_score * throughput / total_cost
             result = f"{efficiency:.0f}"
-    _LOG.debug(
-        "_format_efficiency(coding=%s, throughput=%s, input=%s, output=%s) result: %s",
-        coding_score,
-        throughput,
-        input_cost,
-        output_cost,
-        result
-    )
     return result
 
 
@@ -558,8 +546,8 @@ def _build_rows(
         ]
         _LOG.debug("row=%s", row)
         rows.append(row)
-    _LOG.debug("_build_rows return (first 3):\n%s",
-               pprint.pformat(rows[:3]))
+    _LOG.debug("_build_rows return (first 1):\n%s",
+               pprint.pformat(rows[:1]))
     return rows
 
 
