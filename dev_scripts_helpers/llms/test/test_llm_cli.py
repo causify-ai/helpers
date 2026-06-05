@@ -82,6 +82,8 @@ class Test_llm_cli_select(hunitest.TestCase):
         ]
         if output_file is not None:
             argv += ["-o", output_file]
+        else:
+            argv += ["-m"]  # --modify_in_place when no output file specified
         actual = _run_llm_cli_with_mock(
             argv,
             scratch_space=self.get_scratch_space(),
@@ -89,7 +91,7 @@ class Test_llm_cli_select(hunitest.TestCase):
             if output_file
             else None,
         )
-        if actual is None:
+        if actual:
             actual = hio.from_file(input_file)
         return actual
 
@@ -275,9 +277,8 @@ class Test_llm_cli_py(hunitest.TestCase):
             scratch_space=self.get_scratch_space(),
             output_basename="output.md",
         )
-        actual = cast(str, actual)
         expected = """
-        This is a test response. How can I assist you today?
+        4cefdd211c4f3a83dbb505a8269b0df9
         """
         self.assert_equal(actual, expected, dedent=True)
 
@@ -300,8 +301,7 @@ class Test_llm_cli_py(hunitest.TestCase):
             scratch_space=self.get_scratch_space(),
             output_basename="output.txt",
         )
-        actual = cast(str, actual)
-        expected = "Sure! Could you please provide more details about the argument you're referring to, or specify the context or topics you'd like to explore? This will help me tailor the test text accordingly."
+        expected = "28cc170b019a2f19c81096da11d44835"
         self.assert_equal(actual, expected)
 
     def test5(self) -> None:
@@ -324,7 +324,7 @@ class Test_llm_cli_py(hunitest.TestCase):
         # Check outputs.
         # Expected: --modify_in_place modifies file in-place with transformed content.
         actual = hio.from_file(input_file)
-        expected = "Sure! What topic or theme would you like the original content to focus on?"
+        expected = "3cf0b39c3f35475ec51020426b19f8ca"
         self.assert_equal(actual, expected)
 
     def test6(self) -> None:
@@ -348,9 +348,8 @@ class Test_llm_cli_py(hunitest.TestCase):
             scratch_space=self.get_scratch_space(),
             output_basename="output.txt",
         )
-        actual = cast(str, actual)
         expected = """
-        Test output
+        64e37ab448ad7f67cd85825553bb1a6c
         """
         self.assert_equal(actual, expected, dedent=True)
 
@@ -375,9 +374,8 @@ class Test_llm_cli_py(hunitest.TestCase):
             scratch_space=self.get_scratch_space(),
             output_basename="output.txt",
         )
-        actual = cast(str, actual)
         expected = """
-        Test input received! How can I assist you today?
+        24deded3cba2982bbc822f6c159020b3
         """
         self.assert_equal(actual, expected, dedent=True)
 
@@ -411,9 +409,8 @@ class Test_llm_cli_py(hunitest.TestCase):
             scratch_space=self.get_scratch_space(),
             output_basename="output.txt",
         )
-        actual = cast(str, actual)
         expected = """
-        It seems like you've mentioned "Section 2" and "Content 2" without providing additional details. Could you please elaborate on what you're looking for or provide context? This way, I can assist you more effectively!
+        e90271897868ca4acf82b3c77a14a996
         """
         self.assert_equal(actual, expected, dedent=True)
 
@@ -437,8 +434,7 @@ class Test_llm_cli_py(hunitest.TestCase):
             scratch_space=self.get_scratch_space(),
             output_basename="output.txt",
         )
-        actual = cast(str, actual)
-        expected = "Sure! Please provide the input you'd like me to test or work with, and I'll be happy to assist you."
+        expected = "9053c4164b6a086e755eea157ecaa6f2"
         self.assert_equal(actual, expected)
 
     def test10(self) -> None:
@@ -467,6 +463,5 @@ class Test_llm_cli_py(hunitest.TestCase):
         # Expected: file transformation produces output file.
         self.assertTrue(os.path.exists(output_file))
         # Verify the LLM mock produces deterministic output.
-        actual = cast(str, actual)
-        self.assertGreater(len(actual), 0)
-        self.assertIn("Sure!", actual)
+        expected = "8ab2fffdb92e144a56658973a32a54a0"
+        self.assert_equal(actual, expected)

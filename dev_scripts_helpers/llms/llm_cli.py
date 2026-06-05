@@ -26,12 +26,11 @@ import dev_scripts_helpers.llms.llm_cli as dshllcli
 """
 
 import argparse
-import json
 import logging
 import os
 import pprint
 from importlib.metadata import distributions, version
-from typing import Optional, Tuple
+from typing import Tuple
 
 import llm
 
@@ -135,21 +134,22 @@ def _get_input_output_files(
 
 def _get_expected_num_chars(
     progress_bar: bool,
-    expected_num_chars_arg: Optional[int],
+    expected_num_chars_arg: int,
     input_file: str,
     input_text: str,
-) -> Optional[int]:
+) -> int:
     """
     Calculate expected number of output characters.
 
     :param progress_bar: Whether progress bar is enabled
-    :param expected_num_chars_arg: Explicitly provided expected char count
+    :param expected_num_chars_arg: Explicitly provided expected char count (0
+        if not provided)
     :param input_file: Input file path (or '-' for stdin)
     :param input_text: Input text from command line
-    :return: Expected number of output characters, or None if not needed
+    :return: Expected number of output characters, or 0 if not needed
     """
     # Calculate expected_num_chars if progress_bar is enabled.
-    if progress_bar and expected_num_chars_arg is None:
+    if progress_bar and expected_num_chars_arg:
         # Read input to get its length.
         if input_file:
             if input_file == "-":
@@ -170,13 +170,13 @@ def _get_expected_num_chars(
             expected_num_chars,
             input_length,
         )
-    elif expected_num_chars_arg is not None:
+    elif expected_num_chars_arg:
         hdbg.dassert_lt(
             0, expected_num_chars_arg, "Expected char count must be positive"
         )
         expected_num_chars = expected_num_chars_arg
     else:
-        expected_num_chars = None
+        expected_num_chars = 0
     return expected_num_chars
 
 
@@ -203,23 +203,25 @@ def _limit_input_text(
 
 
 def _get_system_prompt(
-    system_prompt_file: Optional[str],
-    rule: Optional[str],
+    system_prompt_file: str,
+    rule: str,
     system_prompt: str,
 ) -> str:
     """
     Get system prompt from file, rule, or argument.
 
-    :param system_prompt_file: Path to file containing system prompt
-    :param rule: Rule specification to extract system prompt from
+    :param system_prompt_file: Path to file containing system prompt (empty
+        string if not provided)
+    :param rule: Rule specification to extract system prompt from (empty string
+        if not provided)
     :param system_prompt: Default system prompt text
     :return: The resolved system prompt
     """
     # Exactly one of the three options should be provided.
     num_options = sum(
         [
-            system_prompt_file is not None,
-            rule is not None,
+            bool(system_prompt_file),
+            bool(rule),
             bool(system_prompt),
         ]
     )
@@ -261,7 +263,7 @@ def _process_selected_text(
     modify_in_place: bool,
     max_chars: int,
     lint: bool,
-    expected_num_chars: Optional[int],
+    expected_num_chars: int,
     dry_run: bool,
 ) -> hllmcli.TokenStats:
     """
@@ -274,9 +276,11 @@ def _process_selected_text(
     :param output_file: Path to output file
     :param system_prompt: System prompt for the LLM
     :param modify_in_place: Whether to modify the input file in place
-    :param max_chars: Maximum number of input characters to process, or None for no limit
+    :param max_chars: Maximum number of input characters to process (0 for no
+        limit)
     :param lint: Whether to lint the output after processing
-    :param expected_num_chars: Expected number of output characters for progress bar
+    :param expected_num_chars: Expected number of output characters for
+        progress bar (0 if not applicable)
     :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
     """
@@ -319,10 +323,10 @@ def _process_selected_text(
     else:
         response, token_stats = hllmcli.apply_llm(
             chunk_text,
-            system_prompt=system_prompt,
+            system_prompt=system_prompt if system_prompt != "" else None,
             model=model,
             backend=backend,
-            expected_num_chars=expected_num_chars,
+            expected_num_chars=expected_num_chars if expected_num_chars != 0 else None,
         )
         if lint:
             response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
@@ -367,7 +371,7 @@ def _process_full_text(
     system_prompt: str,
     max_chars: int,
     lint: bool,
-    expected_num_chars: Optional[int],
+    expected_num_chars: int,
     dry_run: bool,
 ) -> hllmcli.TokenStats:
     """
@@ -379,9 +383,11 @@ def _process_full_text(
     :param input_file: Path to input file
     :param output_file: Path to output file
     :param system_prompt: System prompt for the LLM
-    :param max_chars: Maximum number of input characters to process, or None for no limit
+    :param max_chars: Maximum number of input characters to process (0 for no
+        limit)
     :param lint: Whether to lint the output after processing
-    :param expected_num_chars: Expected number of output characters for progress bar
+    :param expected_num_chars: Expected number of output characters for
+        progress bar (0 if not applicable)
     :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
     """
@@ -412,14 +418,14 @@ def _process_full_text(
         _LOG.info("Input text to be processed:")
         _LOG.info("%s", pprint.pformat(input_str))
         response = ""
-        token_stats = {}
+        token_stats = hllmcli.TokenStats()
     else:
         response, token_stats = hllmcli.apply_llm(
             input_str,
-            system_prompt=system_prompt,
+            system_prompt=system_prompt if system_prompt != "" else None,
             model=model,
             backend=backend,
-            expected_num_chars=expected_num_chars,
+            expected_num_chars=expected_num_chars if expected_num_chars != -1 else None,
         )
         if lint:
             response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
@@ -509,7 +515,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--llm_cmd",
         type=str,
-        default=None,
+        default="",
         help="Execute an arbitrary llm command (e.g., 'llm chat --model gpt-4')",
     )
     hllmcli.add_llm_args(parser, input_required=True)
@@ -536,13 +542,13 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--max_chars",
         type=int,
-        default=None,
+        default=0,
         help="Limit input to max_chars characters",
     )
     parser.add_argument(
         "--stat_file",
         type=str,
-        default=None,
+        default="",
         help="Path to save stats as JSON file",
     )
     hparser.add_verbosity_arg(parser)
@@ -555,19 +561,19 @@ def _llm_cli(
     output_arg: str,
     modify_in_place: bool,
     progress_bar: bool,
-    expected_num_chars_arg: Optional[int],
+    expected_num_chars_arg: int,
     log_level: str,
     dry_run: bool,
     model: str,
     backend: str,
-    system_prompt_file: Optional[str],
-    rule: Optional[str],
+    system_prompt_file: str,
+    rule: str,
     system_prompt_arg: str,
     select: str,
     lint: bool,
-    max_chars: Optional[int],
-    stat_file: Optional[str],
-    llm_cmd: Optional[str],
+    max_chars: int,
+    stat_file: str,
+    llm_cmd: str,
 ) -> None:
     """
     Execute the LLM command processing logic.
@@ -577,19 +583,25 @@ def _llm_cli(
     :param output_arg: Output file path or '-' for stdout
     :param modify_in_place: Whether to modify input file in place
     :param progress_bar: Whether to show progress bar
-    :param expected_num_chars_arg: Explicitly provided expected char count
+    :param expected_num_chars_arg: Explicitly provided expected char count (0
+        if not provided)
     :param log_level: Logging verbosity level
     :param dry_run: If True, skip calling the LLM
     :param model: Name of the LLM model to use
     :param backend: Backend to use ("executable", "library", or "mock")
-    :param system_prompt_file: Path to file containing system prompt
-    :param rule: Rule specification for system prompt
+    :param system_prompt_file: Path to file containing system prompt (empty
+        string if not provided)
+    :param rule: Rule specification for system prompt (empty string if not
+        provided)
     :param system_prompt_arg: System prompt text
     :param select: Select specification (e.g., 'start_marker:end_marker')
     :param lint: Whether to lint the output
-    :param max_chars: Maximum number of input characters to process
-    :param stat_file: Path to save stats as JSON file
-    :param llm_cmd: Arbitrary llm command to execute
+    :param max_chars: Maximum number of input characters to process (0 for no
+        limit)
+    :param stat_file: Path to save stats as JSON file (empty string if not
+        provided)
+    :param llm_cmd: Arbitrary llm command to execute (empty string if not
+        provided)
     """
     verbosity = log_level
     # Suppress logging when using stdin/stdout unless DEBUG is requested.
@@ -602,7 +614,7 @@ def _llm_cli(
     install_models()
     _log_plugin_versions()
     # Execute arbitrary llm command if provided.
-    if llm_cmd:
+    if llm_cmd != "":
         execute_llm_command(llm_cmd)
         return
     # Determine input source and output destination.
@@ -666,7 +678,7 @@ def _llm_cli(
     # Report total cost of LLM operation.
     _LOG.info("Total cost: %s", token_stats.to_str())
     # Save stats to file if requested.
-    if stat_file:
+    if stat_file != "":
         token_stats.to_file(stat_file)
         _LOG.info("Stats saved to: %s", stat_file)
 
@@ -674,9 +686,9 @@ def _llm_cli(
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     _llm_cli(
-        args.input,
-        args.input_text,
-        args.output,
+        args.input or "",
+        args.input_text or "",
+        args.output or "",
         args.modify_in_place,
         args.progress_bar,
         args.expected_num_chars,
@@ -684,10 +696,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.dry_run,
         args.model,
         args.backend,
-        args.system_prompt_file,
-        args.rule,
-        args.system_prompt,
-        args.select,
+        args.system_prompt_file or "",
+        args.rule or "",
+        args.system_prompt or "",
+        args.select or "",
         args.lint,
         args.max_chars,
         args.stat_file,
