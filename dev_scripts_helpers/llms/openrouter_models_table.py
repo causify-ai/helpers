@@ -158,7 +158,6 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     """
     Fetch per-model usage statistics from OpenRouter rankings API.
 
-    Uses the endpoint: https://openrouter.ai/api/v1/datasets/rankings/daily
     Requires OPENROUTER_API_KEY environment variable.
 
     :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
@@ -167,7 +166,7 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     api_key = os.environ.get("OPENROUTER_API_KEY")
     hdbg.dassert(api_key, "OPENROUTER_API_KEY environment variable must be set")
     # Get the data.
-    url = "https://openrouter.ai/api/v1/datasets/rankings/daily"
+    url = "https://openrouter.ai/api/v1/datasets/rankings-daily"
     headers = {
         "Authorization": f"Bearer {api_key}",
         "User-Agent": (
@@ -175,6 +174,7 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
             "AppleWebKit/537.36"
         )
     }
+    _LOG.debug("url=%s", url)
     request = urllib.request.Request(url, headers=headers)
     response = urllib.request.urlopen(request, timeout=30)
     data = json.loads(response.read().decode("utf-8"))
