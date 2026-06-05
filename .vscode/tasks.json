@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Load Quickfix",
+      "type": "shell",
+      "command": "cat cfile",
+      "problemMatcher": {
+        "owner": "cfile",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*?):(\\d+):(.+:.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
+      }
+    }
+  ]
+}

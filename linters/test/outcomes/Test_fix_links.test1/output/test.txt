@@ -1,0 +1,29 @@
+# linter warnings
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:25: '/docs/markdown_example.md' does not exist
+
+# linted file
+- Markdown-style link with a text label
+  - [Here](/helpers/hdbg.py)
+
+- Markdown-style link with a text label in backticks
+  - [`hdbg`](/helpers/hdbg.py)
+
+- Markdown-style link with a path label
+  - [/helpers/hdbg.py](/helpers/hdbg.py)
+
+- Markdown-style link with a path label in backticks
+  - [`/helpers/hdbg.py`](/helpers/hdbg.py)
+
+- Markdown-style link with a path label with a dot at the start
+  - [/helpers/test/test_hdbg.py](/helpers/test/test_hdbg.py)
+
+- Markdown-style link with a path label without the slash at the start
+  - [/helpers/test/test_hdbg.py](/helpers/test/test_hdbg.py)
+
+- Markdown-style link with a path label in backticks without the slash at the start
+  - [`/helpers/test/test_hdbg.py`](/helpers/test/test_hdbg.py)
+
+- Markdown-style link with a directory beginning with a dot
+  - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)
+
+Markdown link: [Valid Markdown Link](/docs/markdown_example.md)

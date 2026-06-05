@@ -1,0 +1,39 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.7.1
+#   kernelspec:
+#     display_name: Python [conda env:.conda-amp_develop] *
+#     language: python
+#     name: conda-env-.conda-amp_develop-py
+# ---
+
+# %% [markdown]
+# ## Imports
+
+# %%
+# %load_ext autoreload
+# %autoreload 2
+
+import logging
+import pprint
+
+import tqdm.notebook as tqdm
+
+import helpers.dbg as dbg
+import helpers.env as env
+import helpers.printing as prnt
+
+# %%
+print(env.get_system_signature()[0])
+
+prnt.config_notebook()
+
+dbg.init_logger(verbosity=logging.INFO)
+
+_LOG = logging.getLogger(__name__)

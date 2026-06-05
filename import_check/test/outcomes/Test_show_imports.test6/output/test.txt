@@ -1,0 +1,10 @@
+strict digraph {
+	subgraph cluster_input {
+		graph [compound=true label=input]
+		node [style=filled]
+		color=darkslategray		"input.file1" [label=file1 color=cyan3 labelfontcolor=darkslategray shape=oval]
+		"input.file2" [label=file2 color=cyan3 labelfontcolor=darkslategray shape=oval]
+	}
+	"input.file1" -> "input.file2"
+	"input.file2" -> "input.file1"
+}

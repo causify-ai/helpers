@@ -1,0 +1,4 @@
+#!/bin/bash
+# Equivalent to `alias it="invoke traceback"`.
+
+invoke traceback $*

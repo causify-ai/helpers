@@ -1,0 +1,569 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.1
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# CONTENTS:
+# - [hcache_simple Tutorial](#hcache_simple-tutorial)
+#   - [Imports](#imports)
+#   - [1. Basic Caching](#1.-basic-caching)
+#   - [2. Cache Performance Monitoring](#2.-cache-performance-monitoring)
+#   - [3. Cache Management](#3.-cache-management)
+#   - [4. Dynamic Runtime Parameters](#4.-dynamic-runtime-parameters)
+#   - [5. Configurable Cache Locations](#5.-configurable-cache-locations)
+#   - [6. Per-Function Configuration](#6.-per-function-configuration)
+#   - [7. Excluding Keys from Cache](#7.-excluding-keys-from-cache)
+#   - [8. Runtime Property Modification](#8.-runtime-property-modification)
+#   - [9. S3 Integration](#9.-s3-integration)
+#   - [10. Binary Data with Pickle](#10.-binary-data-with-pickle)
+#   - [11. Global Caching Controls](#11.-global-caching-controls)
+#   - [Summary](#summary)
+
+# %% [markdown]
+# <a name='hcache_simple-tutorial'></a>
+# # hcache_simple Tutorial
+#
+# This tutorial demonstrates the `hcache_simple` module - a lightweight caching system with memory, disk, and S3 storage.
+#
+# **Key Features:**
+# - Simple decorator-based caching
+# - Memory and disk persistence (JSON or pickle)
+# - S3 sync for team cache sharing
+# - Per-function configuration
+# - Performance monitoring
+# - Auto-pull from S3 on first cache miss
+
+# %% [markdown]
+# <a name='imports'></a>
+# ## Imports
+
+# %%
+import logging
+import os
+import tempfile
+import time
+
+import pandas as pd
+
+import helpers.hcache_simple as hcacsimp
+import helpers.hdbg as hdbg
+
+hdbg.init_logger(verbosity=logging.INFO)
+_LOG = logging.getLogger(__name__)
+
+# %% [markdown]
+# <a name='1.-basic-caching'></a>
+# ## 1. Basic Caching
+#
+# The `@simple_cache` decorator caches function results automatically.
+#
+# - First call: Computes result and stores in cache
+# - Subsequent calls: Returns cached result instantly
+# - Cache is stored in memory and on disk (JSON format)
+
+
+# %%
+@hcacsimp.simple_cache(cache_type="json")
+def expensive_computation(x: int) -> int:
+    """
+    Simulate expensive computation.
+    """
+    _LOG.info("Computing result for x=%s (this takes 2 seconds)...", x)
+    time.sleep(2)
+    return x**2
+
+
+# %%
+# First call - computes and caches.
+print("First call with x=5:")
+start_time = time.time()
+result = expensive_computation(5)
+elapsed_time = time.time() - start_time
+print(f"Result: {result}")
+print(f"Time taken: {elapsed_time:.3f} seconds\n")
+# Second call - returns from cache instantly.
+print("Second call with x=5 (from cache):")
+start_time = time.time()
+result = expensive_computation(5)
+elapsed_time = time.time() - start_time
+print(f"Result: {result}")
+print(f"Time taken: {elapsed_time:.6f} seconds (much faster!)")
+
+# %% [markdown]
+# <a name='2.-cache-performance-monitoring'></a>
+# ## 2. Cache Performance Monitoring
+#
+# Track cache efficiency with performance metrics:
+# - **hits**: Number of times result was retrieved from cache
+# - **misses**: Number of times function had to compute result
+# - **tot**: Total number of function calls
+# - **hit_rate**: Percentage of cache hits
+
+# %%
+# Enable performance monitoring.
+hcacsimp.enable_cache_perf("expensive_computation")
+# Make some calls.
+expensive_computation(10)  # Miss - first call with x=10.
+expensive_computation(10)  # Hit - cached result.
+expensive_computation(10)  # Hit - cached result.
+expensive_computation(20)  # Miss - first call with x=20.
+# Check performance stats.
+print("\nPerformance Statistics:")
+print(hcacsimp.get_cache_perf_stats("expensive_computation"))
+
+# %% [markdown]
+# <a name='3.-cache-management'></a>
+# ## 3. Cache Management
+#
+# Control cache lifecycle with these operations:
+# - `flush_cache_to_disk()`: Write memory cache to disk
+# - `reset_mem_cache()`: Clear memory cache (keeps disk cache)
+# - `force_cache_from_disk()`: Reload cache from disk
+# - `cache_stats_to_str()`: View cache statistics
+
+# %%
+# View current cache state.
+print("Cache statistics:")
+print(hcacsimp.cache_stats_to_str("expensive_computation"))
+# Flush to disk (ensure persistence).
+hcacsimp.flush_cache_to_disk("expensive_computation")
+print("\nFlushed to disk")
+# Clear memory cache.
+hcacsimp.reset_mem_cache("expensive_computation")
+print("Memory cache cleared")
+print(hcacsimp.cache_stats_to_str("expensive_computation"))
+# Reload from disk.
+hcacsimp.force_cache_from_disk("expensive_computation")
+print("\nReloaded from disk")
+print(hcacsimp.cache_stats_to_str("expensive_computation"))
+
+# %% [markdown]
+# <a name='4.-dynamic-runtime-parameters'></a>
+# ## 4. Dynamic Runtime Parameters
+#
+# Control caching behavior per function call:
+# - `force_refresh=True`: Bypass cache and recompute
+# - `abort_on_cache_miss=True`: Raise error if not in cache
+# - `report_on_cache_miss=True`: Log warning on cache miss
+
+
+# %%
+@hcacsimp.simple_cache(cache_type="json")
+def data_processor(data: str) -> str:
+    """
+    Process data string.
+    """
+    _LOG.info("Processing: %s", data)
+    time.sleep(1)
+    return data.upper()
+
+
+# %%
+# Normal call - caches result.
+start_time = time.time()
+result = data_processor("hello")
+elapsed_time = time.time() - start_time
+print(f"First call: {result} (time: {elapsed_time:.3f}s)")
+# Cached call - returns instantly.
+start_time = time.time()
+result = data_processor("hello")
+elapsed_time = time.time() - start_time
+print(f"Cached call: {result} (time: {elapsed_time:.6f}s - from cache!)")
+# Force refresh - recomputes even though cached.
+result = data_processor("hello", force_refresh=True)
+print(f"Force refresh: {result}")
+# Report on cache miss.
+result = data_processor("world", report_on_cache_miss=True)
+print(f"With report: {result}")
+
+# %%
+# Abort on cache miss - raises ValueError if not cached.
+try:
+    result = data_processor("new_value", abort_on_cache_miss=True)
+except ValueError as e:
+    print(f"Cache miss error: {e}")
+
+# %% [markdown]
+# <a name='5.-configurable-cache-locations'></a>
+# ## 5. Configurable Cache Locations
+#
+# Customize where cache files are stored globally:
+# - `set_cache_dir()`: Change cache directory
+# - `set_cache_file_prefix()`: Change cache file prefix
+
+# %%
+# Set custom cache directory.
+cache_dir = tempfile.mkdtemp()
+hcacsimp.set_cache_dir(cache_dir)
+print(f"Cache directory set to: {cache_dir}")
+# Set custom prefix.
+hcacsimp.set_cache_file_prefix("my_project")
+print("Cache file prefix set to: my_project")
+
+
+# New cached function will use these settings.
+@hcacsimp.simple_cache(cache_type="json")
+def custom_location_func(x: int) -> int:
+    return x * 3
+
+
+# Call function.
+result = custom_location_func(7)
+# Verify cache file location.
+cache_files = [f for f in os.listdir(cache_dir) if "my_project" in f]
+print(f"\nCache files created: {cache_files}")
+
+# %% [markdown]
+# <a name='6.-per-function-configuration'></a>
+# ## 6. Per-Function Configuration
+#
+# Override global settings for specific functions:
+# - Each function can have its own cache directory
+# - Each function can have its own cache prefix
+# - Useful for organizing different types of caches
+
+
+# %%
+@hcacsimp.simple_cache(
+    cache_type="json",
+    cache_dir="/tmp/function_a_cache",
+    cache_prefix="func_a",
+)
+def function_a(x: int) -> int:
+    return x + 100
+
+
+@hcacsimp.simple_cache(
+    cache_type="json",
+    cache_dir="/tmp/function_b_cache",
+    cache_prefix="func_b",
+)
+def function_b(x: int) -> int:
+    return x + 200
+
+
+# %%
+# Call both functions - each uses its own cache location.
+result_a = function_a(5)
+result_b = function_b(5)
+print(f"function_a(5) = {result_a}")
+print(f"function_b(5) = {result_b}")
+# Verify separate cache files.
+print("\nfunction_a cache location:")
+cache_file_a = hcacsimp._get_cache_file_name("function_a")
+print(f"  Cache file: {cache_file_a}")
+print("\nfunction_b cache location:")
+cache_file_b = hcacsimp._get_cache_file_name("function_b")
+print(f"  Cache file: {cache_file_b}")
+
+# %% [markdown]
+# <a name='7.-excluding-keys-from-cache'></a>
+# ## 7. Excluding Keys from Cache
+#
+# Some parameters should not affect cache lookup:
+# - Session IDs
+# - Logger objects
+# - Timestamps
+# - Random seeds (when you want same result)
+#
+# Use `exclude_keys` to ignore these parameters.
+
+
+# %%
+@hcacsimp.simple_cache(
+    cache_type="json",
+    exclude_keys=["session_id", "timestamp"],
+)
+def api_call(query: str, session_id: str, timestamp: float) -> str:
+    """
+    Simulate API call where session_id and timestamp don't affect result.
+    """
+    _LOG.info("Making API call for query: %s", query)
+    time.sleep(1)
+    return f"Response for: {query}"
+
+
+# %%
+# These calls have different session_id and timestamp but return cached result.
+start_time = time.time()
+result1 = api_call("search python", session_id="abc123", timestamp=1.0)
+elapsed_time = time.time() - start_time
+print(f"First call: {result1} (time: {elapsed_time:.3f}s)")
+start_time = time.time()
+result2 = api_call("search python", session_id="xyz789", timestamp=2.0)
+elapsed_time = time.time() - start_time
+print(
+    f"Second call (from cache despite different session/timestamp): {result2} (time: {elapsed_time:.6f}s)"
+)
+# Different query triggers cache miss.
+result3 = api_call("search java", session_id="abc123", timestamp=1.0)
+print(f"Third call (different query, cache miss): {result3}")
+
+
+# %% [markdown]
+# <a name='8.-runtime-property-modification'></a>
+# ## 8. Runtime Property Modification
+#
+# All decorator parameters are stored as properties and can be modified at runtime.
+# This allows you to change cache behavior without redecorating functions.
+#
+# **Common use cases:**
+# - Disable write-through temporarily for performance
+# - Add/remove keys from exclusion list
+# - Enable/disable S3 sync dynamically
+
+
+# %%
+@hcacsimp.simple_cache(cache_type="json", exclude_keys=["session_id"])
+def api_call(query: str, session_id: str) -> str:
+    """
+    Simulate API call where session_id doesn't affect result.
+    """
+    _LOG.info("Making API call for query=%s", query)
+    time.sleep(1)
+    return f"Result for: {query}"
+
+
+# %%
+# Demonstrate initial exclude_keys behavior.
+print("Initial exclude_keys: ['session_id']")
+print("Calling with query='python', session_id='abc'...")
+start_time = time.time()
+result1 = api_call("python", session_id="abc")
+elapsed1 = time.time() - start_time
+print(f"Result: {result1} (time: {elapsed1:.3f}s)")
+# Same query, different session_id - should hit cache.
+print("\nCalling with query='python', session_id='xyz' (different session_id)...")
+start_time = time.time()
+result2 = api_call("python", session_id="xyz")
+elapsed2 = time.time() - start_time
+print(f"Result: {result2} (time: {elapsed2:.6f}s - cache hit!)")
+
+# %%
+# Now modify exclude_keys to REMOVE session_id from exclusion.
+print("\nModifying exclude_keys to [] (empty - don't exclude session_id)")
+hcacsimp.set_cache_property("api_call", "exclude_keys", [])
+# Verify change.
+exclude_keys_after = hcacsimp.get_cache_property("api_call", "exclude_keys")
+print(f"exclude_keys now: {exclude_keys_after}")
+# Now same query with different session_id creates NEW cache entry.
+print(
+    "\nCalling with query='python', session_id='new123' (after modification)..."
+)
+start_time = time.time()
+result3 = api_call("python", session_id="new123")
+elapsed3 = time.time() - start_time
+print(f"Result: {result3} (time: {elapsed3:.3f}s - cache miss, computed new!)")
+
+# %% [markdown]
+# <a name='9.-s3-integration'></a>
+# ## 9. S3 Integration
+#
+# **Note:** These examples are commented out because they require AWS credentials.
+# Uncomment and configure to use S3 caching.
+#
+# **S3 as Third Storage Layer:**
+# - S3 is integrated into the cache lookup as the third tier: Memory → Disk → S3
+# - When `get_cache()` is called, it automatically checks all three layers
+# - A cache "miss" only occurs if key not found in ANY layer
+#
+# **S3 Features:**
+# - `auto_sync_s3=True`: Automatically upload cache updates to S3
+# - Auto-pull: Automatically checks S3 as part of cache lookup (one-time per function)
+# - Manual cache operations: Use `push_cache_to_s3()` to manually upload, `pull_cache_from_s3()` to manually download and `sync_cache_with_s3()` to manually cache files between S3 and disk
+#
+# **Usage:**
+# 1. Configure S3 globally or per-function
+# 2. First call on any machine computes and uploads to S3
+# 3. Other machines automatically check S3 during cache lookup
+# 4. Updates are automatically synced to S3 (if `auto_sync_s3=True`)
+
+# %%
+# # Global S3 configuration (applies to all cached functions).
+# hcacsimp.set_s3_bucket("s3://my-team-bucket")
+# hcacsimp.set_s3_prefix("cache/shared")
+# hcacsimp.set_aws_profile("my-aws-profile")
+#
+# @hcacsimp.simple_cache(
+#     cache_type="json",
+#     auto_sync_s3=True,  # Auto-upload to S3 after cache updates on disk.
+# )
+# def expensive_llm_call(prompt: str) -> str:
+#     """
+#     Simulate expensive LLM API call.
+#     """
+#     time.sleep(3)
+#     return f"LLM response to: {prompt}"
+#
+# # First call on any machine - computes and uploads to S3.
+# result = expensive_llm_call("Summarize this document")
+# print(f"Result: {result}")
+#
+# # On another machine - S3 is automatically checked during cache lookup.
+# # get_cache() checks: memory → disk → S3.
+# result = expensive_llm_call("Summarize this document")
+# print(f"Result from cache: {result}")
+
+# %%
+# # Per-function S3 configuration (overrides global settings).
+# @hcacsimp.simple_cache(
+#     cache_type="json",
+#     s3_bucket="s3://project-specific-bucket",
+#     s3_prefix="cache/llm",
+#     aws_profile="project-profile",
+#     auto_sync_s3=True,
+# )
+# def project_specific_cache(data: str) -> str:
+#     return f"Processed: {data}"
+#
+# result = project_specific_cache("test data")
+
+# %% [markdown]
+# <a name='10.-binary-data-with-pickle'></a>
+# ## 10. Binary Data with Pickle
+#
+# For complex Python objects (DataFrames, models, etc.), use pickle format:
+# - `cache_type="pickle"`: Stores any Python object
+# - Supports DataFrames, numpy arrays, custom classes, etc.
+# - Trade-off: Not human-readable like JSON
+
+
+# %%
+@hcacsimp.simple_cache(cache_type="pickle")
+def create_dataframe(rows: int) -> pd.DataFrame:
+    """
+    Create a DataFrame (can't be cached as JSON easily).
+    """
+    _LOG.info("Creating DataFrame with %s rows...", rows)
+    time.sleep(1)
+    return pd.DataFrame(
+        {
+            "id": range(rows),
+            "value": [x**2 for x in range(rows)],
+        }
+    )
+
+
+# %%
+# First call - computes and caches DataFrame.
+start_time = time.time()
+df = create_dataframe(5)
+elapsed_time = time.time() - start_time
+print("First call:")
+print(df)
+print(f"Time taken: {elapsed_time:.3f} seconds")
+# Second call - returns cached DataFrame instantly.
+start_time = time.time()
+df = create_dataframe(5)
+elapsed_time = time.time() - start_time
+print("\nSecond call (from cache):")
+print(df)
+print(f"Time taken: {elapsed_time:.6f} seconds (from cache!)")
+
+# %% [markdown]
+# <a name='11.-global-caching-controls'></a>
+# ## 11. Global Caching Controls
+#
+# Three process-wide safety features let you control all decorated functions at once:
+#
+# - `enable_caching(False)`: Bypass every `@simple_cache` decorator and execute
+#   functions directly. Useful for profiling, debugging, or one-off runs where
+#   you never want to read or write cache.
+# - `enable_clear_cache(False)`: Block all `reset_*` calls to prevent accidental
+#   cache deletion during long production runs.
+# - `func_hash` tracking: A WARNING is logged on a cache hit whenever the
+#   function's source code has changed since the value was last computed.
+
+
+# %%
+# Demonstrate enable_caching: bypass cache entirely.
+@hcacsimp.simple_cache(cache_type="json")
+def multiply(x: int, y: int) -> int:
+    """
+    Return x * y.
+    """
+    _LOG.info("Computing multiply(%s, %s)", x, y)
+    return x * y
+
+
+# First call - computes and caches.
+multiply(3, 4)
+print("After first call:", hcacsimp.cache_stats_to_str("multiply"))
+
+# Disable caching globally.
+hcacsimp.enable_caching(False)
+print(f"Caching enabled: {hcacsimp.is_caching_enabled()}")
+
+# This call bypasses the cache and executes directly.
+result = multiply(3, 4)
+print(f"Result with caching disabled: {result}")
+print("Cache unchanged:", hcacsimp.cache_stats_to_str("multiply"))
+
+# Re-enable caching.
+hcacsimp.enable_caching(True)
+print(f"Caching enabled: {hcacsimp.is_caching_enabled()}")
+
+# %%
+# Demonstrate enable_clear_cache: protect against accidental deletion.
+multiply(5, 6)
+
+# Lock the cache.
+hcacsimp.enable_clear_cache(False)
+print("Cache clearing disabled.")
+try:
+    hcacsimp.reset_mem_cache("multiply")
+except RuntimeError as e:
+    print(f"Blocked as expected: {e}")
+
+# Re-enable and clear normally.
+hcacsimp.enable_clear_cache(True)
+hcacsimp.reset_mem_cache("multiply")
+print("Cache cleared after re-enabling.")
+
+# %%
+# Demonstrate func_hash: warning when function source changes.
+# The hash is stored on the first cache miss. We simulate a "source change"
+# by overwriting the stored hash with a fake value.
+
+multiply(7, 8)  # Populates cache and stores real func_hash.
+real_hash = hcacsimp.get_cache_property("multiply", "func_hash")
+print(f"Stored func_hash: {real_hash}")
+
+# Simulate a source change by overwriting the hash.
+hcacsimp.set_cache_property("multiply", "func_hash", "deadbeef" * 4)
+print("Simulated source change by overwriting func_hash.")
+
+# Next cache hit will warn that the source has changed.
+# The warning is emitted via _LOG.warning() inside the cache wrapper,
+# so it appears in the log output automatically.
+result = multiply(7, 8)
+print(f"Result returned (stale cache still served): {result}")
+
+# Restore.
+hcacsimp.set_cache_property("multiply", "func_hash", real_hash)
+
+# %% [markdown]
+# <a name='summary'></a>
+# ## Summary
+#
+# The `hcache_simple` module provides:
+# - **Easy caching**: Just add `@simple_cache` decorator
+# - **Multiple storage layers**: Memory (fast) → Disk (persistent) → S3 (shared)
+# - **Flexible configuration**: Global and per-function settings
+# - **Runtime modification**: Change cache behavior without redecorating functions
+# - **Performance monitoring**: Track cache efficiency
+# - **Team collaboration**: Share caches via S3 with auto-pull
+# - **Format support**: JSON (human-readable) or pickle (binary)
+#
+# For full documentation, see: `docs/tools/helpers/all.hcache_simple.explanation.md`

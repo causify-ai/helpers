@@ -1,0 +1,23 @@
+# Test created for helpers.test.test_hplayback.get_result_assert_equal.
+
+import helpers.hpandas as hpandas
+import helpers.hunit_test as hunitest
+import jsonpickle
+import pandas as pd
+import config_root.config as cconfi
+
+
+class TestGetResultAssertEqual(hunitest.TestCase):
+    def test1(self) -> None:
+        # Define input variables.
+        a = r'{"py/object": "datetime.date", "__reduce__": [{"py/type": "datetime.date"}, ["B98BAQ=="]]}'
+        a = jsonpickle.decode(a)
+        b = r'{"py/object": "datetime.date", "__reduce__": [{"py/type": "datetime.date"}, ["B9wBAQ=="]]}'
+        b = jsonpickle.decode(b)
+        # Call function to test.
+        actual = get_result_assert_equal(a=a, b=b)
+        # Define expected output.
+        expected = r'{"py/reduce": [{"py/type": "datetime.timedelta"}, {"py/tuple": [1096, 0, 0]}]}'
+        expected = jsonpickle.decode(expected)
+        # Compare actual and expected output.
+        self.assertEqual(actual, expected)

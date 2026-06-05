@@ -1,0 +1,18 @@
+def func1():
+    """
+    First function.
+
+    ```
+    foo
+    ```
+    """
+
+
+def func2():
+    """
+    Second function.
+
+    ```
+    foo
+    ```
+    """

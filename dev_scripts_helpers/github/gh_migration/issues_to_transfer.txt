@@ -1,0 +1,7 @@
+# You can mix ranges and single IDs; commas or spaces both work.
+# Words like "closed" in a line are ignored; the script filters by --state anyway.
+13107
+#closed 1001-2000
+# single extras:
+# abc
+# xyz

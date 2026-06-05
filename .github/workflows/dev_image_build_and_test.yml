@@ -1,0 +1,23 @@
+name: Dev image build and test
+on:
+  # Run weekly on Monday at 6 AM UTC.
+  schedule:
+    - cron: '0 6 * * 1'
+  # Run manually.
+  workflow_dispatch:
+# Set up permissions for OIDC authentication.
+permissions:
+  # This is required for actions/checkout and creating branches/commits.
+  contents: write
+  # This is required for pulling the Docker image from GHCR.
+  packages: read
+  # This is required for creating issues and PRs.
+  pull-requests: write
+  issues: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  dev_image_build_and_test:
+    uses: ./.github/workflows/common_dev_image_build.yml
+    secrets: inherit

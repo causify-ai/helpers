@@ -1,0 +1,82 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sample title}
+\author{John Smith}
+\date{December 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Here is the beginning.
+
+```mermaid
+graph TD
+  runnable_repo[runnable repo 1]
+  runnable_repo_2[runnable repo 2]
+  runnable_repo_3[runnable repo 3]
+
+  runnable_repo --> helpers_sub_repo_1[helpers sub-repo]
+  runnable_repo --> others[...]
+
+  runnable_repo_2 --> helpers_sub_repo_2[helpers sub-repo]
+  runnable_repo_2 --> others_2[...]
+
+  runnable_repo_3 --> helpers_sub_repo_3[helpers sub-repo]
+  runnable_repo_3 --> others_3[...]
+
+  helper_repo[helper repo]
+  helpers_sub_repo_1 -.-> helper_repo
+  helpers_sub_repo_2 -.-> helper_repo
+  helpers_sub_repo_3 -.-> helper_repo
+
+  style helpers_sub_repo_1 fill:transparent, stroke-dasharray: 5 5
+  style helpers_sub_repo_2 fill:transparent, stroke-dasharray: 5 5
+  style helpers_sub_repo_3 fill:transparent, stroke-dasharray: 5 5
+```
+
+Another one:
+
+```mermaid
+graph TD
+  runnable_repo[runnable repo]
+  runnable_repo --> helpers_sub_repo[helpers sub-repo]
+  runnable_repo --> devops[devops]
+  runnable_repo --> runnable_dir_1[runnable dir 1]
+  runnable_repo --> runnable_dir_2[runnable dir 2]
+  runnable_repo --> runnable_dir_n[runnable dir n]
+  runnable_repo --> others[...]
+
+  runnable_dir_1 --> runnable_dir_1_devops[devops]
+  runnable_dir_2 --> runnable_dir_2_devops[devops]
+  runnable_dir_n --> runnable_dir_3_devops[devops]
+
+  style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
+```
+
+Not a diagram:
+
+```ansi
+types/  # standardized types (see data model above)
+loader/  # adapts all vendor loaders to a common interface
+vendors/
+   kibot/
+      extractor/
+      transformer/
+      loader/
+      types/  # vendor specific types
+      config.py  # s3 paths, credentials for vendor
+   eoddata/
+      extractor/
+      transformer/
+      loader/
+      types/
+      config.py
+```
+
+The end.
+
+\end{document}

@@ -1,0 +1,32 @@
+name: Publish MkDocs
+on:
+  # Run manually.
+  workflow_dispatch:
+  # Run once a day at 1:00 am UTC even if there are no commits.
+  schedule:
+    - cron: "0 1 */1 * *"
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      - name: Install MkDocs
+        run: pip install mkdocs mkdocs-material mkdocs-graphviz
+      - name: Update PYTHONPATH
+        run: echo "PYTHONPATH=${{ github.workspace }}:${{ github.workspace }}/helpers" >> $GITHUB_ENV
+      - name: Preprocess MkDocs
+        run: |
+          ./docs_mkdocs/preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs
+      - run: mkdocs gh-deploy --force
+        working-directory: ./tmp.mkdocs

@@ -1,0 +1,57 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(python *)",
+      "Bash(bash ./tmp.pytest_repro.*.sh)",
+      "WebFetch(domain:*)",
+      "Bash(gh pr view:*)",
+      "Bash(python3 *)"
+    ],
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
+  },
+  "model": "haiku",
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude Code is waiting for your input\" with title \"Claude Code Idle\" sound name \"Glass\"'"
+          }
+        ]
+      },
+      {
+        "matcher": "elicitation_dialog",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude Code needs your response\" with title \"Claude Code Dialog\" sound name \"Glass\"'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": ".claude/statusline.sh"
+  },
+  "spinnerTipsEnabled": false
+}

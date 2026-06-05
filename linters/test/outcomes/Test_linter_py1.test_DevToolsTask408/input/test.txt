@@ -1,0 +1,11 @@
+
+import logging
+
+import helpers.hdbg as hdbg
+
+_LOG = logging.getLogger(__name__)
+
+s = "hello"
+a = "Checking {}".format(s)
+_LOG.debug("Checking '%s'.", s)
+hdbg.dassert(s.startswith("h"), "Checking '%s'.", s)

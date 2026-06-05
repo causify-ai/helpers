@@ -1,0 +1,22 @@
+{
+    "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"10 + 15\", \"gpt-5-nano\"], \"kwargs\": {}}": [
+        "25",
+        {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cost_from_tokencost": 3.195e-05,
+            "cost_from_llm_library": null,
+            "elapsed_time_in_seconds": 0.0
+        }
+    ],
+    "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"2 + 3\", \"gpt-5-nano\"], \"kwargs\": {}}": [
+        "5",
+        {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cost_from_tokencost": 3.195e-05,
+            "cost_from_llm_library": null,
+            "elapsed_time_in_seconds": 0.0
+        }
+    ]
+}

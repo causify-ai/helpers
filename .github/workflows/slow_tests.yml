@@ -1,0 +1,37 @@
+name: Slow tests
+on:
+  # Run on every PR to master that is ready to review (i.e., not draft).
+  pull_request:
+    # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - master
+  # Run for every change in master.
+  push:
+    branches:
+      # Comment this out to run when committing on the branch.
+      - master
+  # Run manually.
+  workflow_dispatch:
+  schedule:
+    # Run this once a day even if there are no commits.
+    - cron:  '0 0 */1 * *'
+# Set up permissions for OIDC authentication.
+permissions:
+  # This is required for requesting the OIDC JWT.
+  id-token: write
+  # This is required for actions/checkout.
+  contents: read
+  # This is required for pulling the Docker image from GHCR.
+  packages: read
+  # This is required for posting the status of the job when triggered manually.
+  statuses: write    
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  run_slow_tests:
+    uses: ./.github/workflows/common_run_tests.yml
+    with:
+      test-name: run_slow_tests
+    secrets: inherit

@@ -1,0 +1,24 @@
+defaults:
+  - model: linear
+  - _self_
+
+# Pipeline settings
+pipeline_name: "training_pipeline"
+output_dir: "./outputs"
+
+# Data configuration
+data:
+  data_path: "/app/data/market_data.csv"
+  features: ["close", "volume", "vwap"]
+  target: "returns"
+
+# Training configuration
+training:
+  batch_size: 32
+  num_epochs: 100
+  shuffle: true
+  validation_split: 0.2
+
+# Optional settings
+seed: 42
+debug: false

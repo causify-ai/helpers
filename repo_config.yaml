@@ -1,0 +1,37 @@
+repo_info:
+  # Name of the repo, like in `//helpers`, `//amp`.
+  repo_name: helpers
+  # Account name of the repo on GitHub, e.g., `causify-ai`, `gpsaggese`.
+  github_repo_account: causify-ai
+  # Host name of the repo on GitHub, e.g., `github.com`.
+  github_host_name: github.com
+  # List of words that are not allowed in the repo for security reasons.
+  invalid_words:
+  # Prefix of the issue in the repo, e.g., `HelpersTask`, `CmampTask`.
+  issue_prefix: HelpersTask
+  # Enable git-commit hooks.
+  enable_git_commit_hook: True
+
+docker_info:
+  # Base name of the docker image, e.g., `helpers`.
+  docker_image_name: helpers
+  use_sibling_container_in_unit_tests: True
+  release_team: dev_system
+
+s3_bucket_info:
+  unit_test_bucket_name: s3://cryptokaizen-unit-test
+  html_bucket_name: s3://cryptokaizen-html
+  html_ip: http://172.30.2.44
+  shared_configs_bucket_name:
+    prod:
+    preprod:
+    test:
+
+container_registry_info:
+  ecr: 623860924167.dkr.ecr.eu-north-1.amazonaws.com
+  ghcr: ghcr.io/causify-ai
+
+runnable_dir_info:
+  use_helpers_as_nested_module: False
+  venv_tag: helpers
+  dir_suffix: helpers

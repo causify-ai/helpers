@@ -1,0 +1,6 @@
+#!/bin/bash
+# """
+# Run rig --todo --cfile to search for TODOs and open results in vim quickfix.
+# """
+
+rig --todo --cfile "$@"

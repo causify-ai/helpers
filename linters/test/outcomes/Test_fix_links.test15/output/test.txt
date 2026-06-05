@@ -1,0 +1,19 @@
+# linter warnings
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test15/tmp.scratch/test_html_img_links.md:2: 'import_check/example/output/basic.png' does not follow the format 'figs/test_html_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test15/tmp.scratch/test_html_img_links.md:5: 'import_check/example/output/basic.png' does not follow the format 'figs/test_html_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test15/tmp.scratch/test_html_img_links.md:8: '/import_check/example/output/basic.png' does not follow the format 'figs/test_html_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test15/tmp.scratch/test_html_img_links.md:11: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test_html_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test15/tmp.scratch/test_html_img_links.md:11: '/iiimport_check/example/output/basicccc.png' does not exist
+
+# linted file
+- HTML-style figure pointer
+  - <img src="import_check/example/output/basic.png">
+
+- HTML-style figure pointer with an attribute
+  <img src="import_check/example/output/basic.png" style="" />
+
+- HTML-style figure pointer with a slash at the start
+  - <img src="/import_check/example/output/basic.png">
+
+- HTML-style figure pointer that does not exist
+  - <img src="/iiimport_check/example/output/basicccc.png">

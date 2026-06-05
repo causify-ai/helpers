@@ -1,0 +1,3 @@
+pull_request:
+  enabled: true
+  mode: auto  # Options: 'auto', 'request', or 'off'

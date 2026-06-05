@@ -1,0 +1,14 @@
+strict digraph {
+	numpy [label=numpy color=red shape=folder]
+	subgraph input {
+		graph [compound=true label=input]
+		node [style=filled]
+		color=darkslategray		"input.subdir1" [label="input.subdir1" color=cadetblue labelfontcolor=darkslategray shape=folder]
+		"input.subdir2" [label="input.subdir2" color=cadetblue labelfontcolor=darkslategray shape=folder]
+	}
+	input -> numpy
+	"input.subdir1" -> input
+	"input.subdir1" -> numpy
+	"input.subdir2" -> input
+	"input.subdir2" -> numpy
+}

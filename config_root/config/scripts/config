@@ -1,0 +1,179 @@
+#!/usr/bin/env python
+
+"""
+Manage hierarchical DAG configurations: create templates, validate,
+merge, set/get keys, diff, and generate parameter sweeps.
+
+USAGE:
+  config template --builder CLASS_PATH [--out FILE]
+  config validate --config FILE --builder CLASS_PATH [--dag FILE]
+  config merge BASE.yaml OVERRIDE.yaml ... [--out FILE]
+  config set --config FILE --key KEY_PATH --value VALUE [--out FILE]
+  config get --config FILE --key KEY_PATH
+  config diff CONFIG1 CONFIG2
+  config sweep --config FILE --grid GRID_FILE [--out-dir DIR]
+
+EXIT CODES:
+  0   Success
+  1   DUMMY placeholders found
+  2   Unknown config keys
+  3   Parse error
+"""
+
+import argparse
+import logging
+import sys
+
+import config_root.config.scripts.config_script_utils as crcscsut
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+
+_LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Parser
+# #############################################################################
+
+
+def _parse() -> argparse.ArgumentParser:
+    """
+    Create argument parser for config commands.
+    """
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    # Create subparsers.
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+    subparsers.required = True
+    # Template subcommand.
+    template_parser = subparsers.add_parser("template", help="Print config template")
+    template_parser.add_argument(
+        "--builder",
+        required=True,
+        help="Builder class path (e.g., module.ClassName)",
+    )
+    template_parser.add_argument("--out", help="Output file (default: stdout)")
+    # Validate subcommand.
+    validate_parser = subparsers.add_parser("validate", help="Validate config")
+    validate_parser.add_argument(
+        "--config",
+        required=True,
+        help="Config file to validate",
+    )
+    validate_parser.add_argument(
+        "--builder",
+        help="Builder class path for additional validation",
+    )
+    validate_parser.add_argument(
+        "--dag",
+        help="DAG file for validation (optional)",
+    )
+    # Merge subcommand.
+    merge_parser = subparsers.add_parser("merge", help="Merge configs")
+    merge_parser.add_argument(
+        "configs",
+        nargs="+",
+        help="Config files to merge (2+)",
+    )
+    merge_parser.add_argument("--out", help="Output file (default: stdout)")
+    # Set subcommand.
+    set_parser = subparsers.add_parser("set", help="Set config key")
+    set_parser.add_argument(
+        "--config",
+        required=True,
+        help="Config file",
+    )
+    set_parser.add_argument(
+        "--key",
+        required=True,
+        help="Key to set (dot notation: a.b.c)",
+    )
+    set_parser.add_argument(
+        "--value",
+        required=True,
+        help="Value to set",
+    )
+    set_parser.add_argument("--out", help="Output file (default: update input)")
+    # Get subcommand.
+    get_parser = subparsers.add_parser("get", help="Get config key")
+    get_parser.add_argument(
+        "--config",
+        required=True,
+        help="Config file",
+    )
+    get_parser.add_argument(
+        "--key",
+        required=True,
+        help="Key to get (dot notation: a.b.c)",
+    )
+    # Diff subcommand.
+    diff_parser = subparsers.add_parser("diff", help="Diff two configs")
+    diff_parser.add_argument(
+        "config1",
+        help="First config file",
+    )
+    diff_parser.add_argument(
+        "config2",
+        help="Second config file",
+    )
+    # Sweep subcommand.
+    sweep_parser = subparsers.add_parser(
+        "sweep",
+        help="Generate sweep configs",
+    )
+    sweep_parser.add_argument(
+        "--config",
+        required=True,
+        help="Base config file",
+    )
+    sweep_parser.add_argument(
+        "--grid",
+        required=True,
+        help="Grid file (YAML with lists)",
+    )
+    sweep_parser.add_argument(
+        "--out-dir",
+        required=True,
+        help="Output directory",
+    )
+    # Global arguments.
+    hparser.add_verbosity_arg(parser)
+    return parser
+
+
+# #############################################################################
+# Main
+# #############################################################################
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Main entry point for config script.
+    """
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Dispatch to command handler.
+    command = args.command
+    if command == "template":
+        exit_code = crcscsut.cmd_template(args)
+    elif command == "validate":
+        exit_code = crcscsut.cmd_validate(args)
+    elif command == "merge":
+        exit_code = crcscsut.cmd_merge(args)
+    elif command == "set":
+        exit_code = crcscsut.cmd_set(args)
+    elif command == "get":
+        exit_code = crcscsut.cmd_get(args)
+    elif command == "diff":
+        exit_code = crcscsut.cmd_diff(args)
+    elif command == "sweep":
+        exit_code = crcscsut.cmd_sweep(args)
+    else:
+        hdbg.dfatal("Unknown command", command)
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    _main(_parse())

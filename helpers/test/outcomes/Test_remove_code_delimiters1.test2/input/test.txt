@@ -1,0 +1,7 @@
+
+```python
+
+def check_empty_lines():
+    print("Check empty lines are present!")
+
+```

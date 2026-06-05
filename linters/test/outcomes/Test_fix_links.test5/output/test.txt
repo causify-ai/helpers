@@ -1,0 +1,16 @@
+# linter warnings
+
+
+# linted file
+# Reference test file
+
+- [Introduction](#introduction)
+- [Hyphen test](#hyphen-test)
+
+## Introduction
+
+A test header with one word in the reference file.
+
+## Hyphen test
+
+A test to check two words header in the reference file.

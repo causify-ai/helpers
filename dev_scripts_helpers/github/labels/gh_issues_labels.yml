@@ -1,0 +1,68 @@
+# Priority Labels.
+- name: P0
+  description: High priority - needs immediate attention
+  color: "#ff0000"
+- name: P1
+  description: Medium priority - address after P0 items
+  color: "#0052cc"
+- name: P2
+  description: Low priority - schedule as resources allow
+  color: "#2d3094"
+# Issue Types.
+- name: Blocking
+  description: This issue needs to be worked on immediately
+  color: "#e11d21"
+- name: Bug
+  description: Something isn't working
+  color: "#d73a4a"
+- name: Enhancement
+  description: New feature or request for improvement
+  color: "#a2eeef"
+- name: Epic
+  description: Large initiative containing multiple issues
+  color: "#465ff9"
+- name: Design
+  description: Technical design decisions and architecture
+  color: "#cc33cc"
+- name: Documentation
+  description: Improvements or additions to documentation
+  color: "#0075ca"
+- name: Cleanup
+  description: Code cleanup, refactoring, or technical debt
+  color: "#c5def5"
+- name: Customer
+  description: Customer related activities with billable hours
+  color: "#ff9001"
+- name: Readings
+  description: Reading a book, article and getting familiar with code
+  color: "#cd9be1"
+# Pull Request Guidelines.
+- name: PR for authors
+  description: The PR needs changes
+  color: "#eb35f3"
+- name: PR for integrators
+  description: The PR needs to be reviewed and possibly merged
+  color: "#fac906"
+- name: PR for reviewers
+  description: The PR needs to be reviewed by RPs
+  color: "#006b75"
+# Issue Status.
+- name: Paused
+  description: An issue was started and then stopped
+  color: "#cccccc"
+- name: To close
+  description: An issue can be potentially closed
+  color: "#e6e6e6"
+# Contribution Types.
+- name: Good first issue
+  description: Simple tasks for newcomers
+  color: "#7057ff"
+- name: Good second issue
+  description: Slightly more demanding tasks for newcomers
+  color: '#5F5187'
+- name: Outsource
+  description: Anybody can do it
+  color: "#919ebe"
+- name: Bounty
+  description: Help wanted
+  color: '#008672'

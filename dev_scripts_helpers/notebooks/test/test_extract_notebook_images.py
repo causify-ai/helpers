@@ -1,0 +1,57 @@
+import logging
+import os
+
+import pytest
+
+import dev_scripts_helpers.notebooks.extract_notebook_images as dshnenoim
+import helpers.hunit_test as hunitest
+
+_LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_run_dockerized_notebook_image_extractor1
+# #############################################################################
+
+
+@pytest.mark.superslow("~42 sec.")
+class Test_run_dockerized_notebook_image_extractor1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test the `_run_dockerized_notebook_image_extractor()` function.
+
+        - Get the test notebook from the input directory
+        - Run the Docker container to extract images
+        - Verify that the expected output files are produced
+        """
+        # Prepare the input and output.
+        input_dir = self.get_input_dir()
+        src_test_notebook = os.path.join(
+            input_dir, "test_notebook_image_extractor.ipynb"
+        )
+        output_dir = self.get_output_dir()
+        # Run the container.
+        dshnenoim._run_dockerized_extract_notebook_images(
+            notebook_path=src_test_notebook,
+            output_dir=output_dir,
+            force_rebuild=False,
+            use_sudo=False,
+        )
+        for item in output_dir.iterdir():
+            _LOG.info("Output file: %s", item)
+        # Check output.
+        expected_files = [
+            "test1.png",
+            "test2.png",
+            "test3.png",
+            "test4.png",
+            "test5.png",
+            "test6.png",
+        ]
+        for filename in expected_files:
+            expected_file = output_dir / filename
+            self.assertTrue(
+                os.path.exists(expected_file),
+                f"Expected file '{expected_file}' not found!",
+            )

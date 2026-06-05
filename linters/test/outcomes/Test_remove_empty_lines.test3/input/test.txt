@@ -1,0 +1,61 @@
+import os
+import numpy as np
+import pandas as pd
+
+from typing import List, Tuple
+
+def check_largest(a: int, b: int) -> None:
+    """
+    Display largest among two numbers.
+
+    :param a: first number to compare
+    :param b: second number to compare
+    """
+
+    print("Inside check_largest()")
+    if a > b:
+
+        print(a, "is largest")
+    elif b > a:
+
+        print(b, "is largest")
+    else:
+
+        print("Both are same")
+
+class Calculator:
+
+    def add(self, a: int, b: int) -> int:
+        """
+        Return the sum of 2 numbers.
+
+        :param a: first number
+        :param b: second number
+        :return: sum of 2 numbers
+        """
+
+        print("Inside function add()")
+
+        return a + b
+
+    def subtract(self, a: int, b: int) -> int:
+        """
+        Return the difference of 2 numbers.
+
+        :param a: first number
+        :param b: second number
+        :return: difference of 2 numbers
+        """
+
+        print("Inside function subtract()")
+
+        return a - b
+
+a = 10
+b = 5
+
+check_largest(a, b)
+
+calc = Calculator()
+print(calc.add(a, b))
+print(calc.subtract(a, b))

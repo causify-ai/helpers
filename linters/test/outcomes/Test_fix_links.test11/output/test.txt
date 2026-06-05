@@ -1,0 +1,15 @@
+# linter warnings
+
+
+# linted file
+Links inside fenced block that should not be formatted:
+```
+https://example.com/inside-fenced-block
+http://github.com/user/repo
+```
+
+Another fenced block with different language:
+```python
+url = "https://example.com/python-url"
+response = requests.get("https://api.github.com/users")
+```

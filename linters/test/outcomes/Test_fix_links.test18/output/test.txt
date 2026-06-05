@@ -1,0 +1,17 @@
+# linter warnings
+
+
+# linted file
+- Markdown-style link with an http GH company link
+  - [/helpers/hgit.py](/helpers/hgit.py)
+
+- Markdown-style link with an http GH company link and a text label
+  - [Here](/helpers/hgit.py)
+
+- Markdown-style link with an http external link
+  - [AirFlow UI](http://172.30.2.44:8090/home).
+
+- Markdown-style link with backticks in the square brackets and external http link
+  - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
+
+External Markdown link: [External Markdown Link](https://example.com)

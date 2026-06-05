@@ -1,0 +1,7 @@
+Text before
+::::
+::::{.column width=40%}
+Middle text
+:::columns
+::::{.column width=60%}
+Text after

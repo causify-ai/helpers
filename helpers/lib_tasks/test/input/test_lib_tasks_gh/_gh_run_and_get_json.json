@@ -1,0 +1,228 @@
+[
+  {
+    "args": [
+      "gh pr list --state 'open' --json id --repo causify-ai/helpers"
+    ],
+    "kwargs": {},
+    "result": [
+      {
+        "id": "PR_kwDOMcIW9s7c9Wad"
+      },
+      {
+        "id": "PR_kwDOMcIW9s7csJCt"
+      },
+      {
+        "id": "PR_kwDOMcIW9s7comN5"
+      },
+      {
+        "id": "PR_kwDOMcIW9s7bO5RF"
+      },
+      {
+        "id": "PR_kwDOMcIW9s7a1Ngp"
+      },
+      {
+        "id": "PR_kwDOMcIW9s7RgCVh"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6ylqd8"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6utjWK"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6oFQlo"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6msdG7"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6k8XWo"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6jH_SA"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6i1cWV"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6h6K_1"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6goafS"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6gcSc9"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6fgLlu"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6cznDZ"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6bygVU"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6YtE1s"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6Xgigz"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6Wfq9G"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6WX93S"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6VqPSu"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6U3XdA"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6Uq5US"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6SWwDY"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6L7yN1"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6LWnCK"
+      },
+      {
+        "id": "PR_kwDOMcIW9s6IzN9G"
+      }
+    ]
+  },
+  {
+    "args": [
+      "gh workflow list --json name --repo causify-ai/helpers"
+    ],
+    "kwargs": {},
+    "result": [
+      {
+        "name": ".github/workflows/common_dev_image_build.yml"
+      },
+      {
+        "name": "Common Dev Image Release"
+      },
+      {
+        "name": "Common Linter"
+      },
+      {
+        "name": "Common Run Tests"
+      },
+      {
+        "name": "Test coverage"
+      },
+      {
+        "name": "Fast tests"
+      },
+      {
+        "name": "Gitleaks Scan"
+      },
+      {
+        "name": "Check if the Linter was run"
+      },
+      {
+        "name": "Publish MkDocs"
+      },
+      {
+        "name": "Slow tests"
+      },
+      {
+        "name": "Superslow tests"
+      },
+      {
+        "name": "Copilot code review"
+      },
+      {
+        "name": "Dependency Graph"
+      },
+      {
+        "name": "CodeQL"
+      },
+      {
+        "name": "pages-build-deployment"
+      }
+    ]
+  },
+  {
+    "args": [
+      "gh workflow list --json id,name --repo causify-ai/helpers"
+    ],
+    "kwargs": {},
+    "result": [
+      {
+        "id": 204808849,
+        "name": ".github/workflows/common_dev_image_build.yml"
+      },
+      {
+        "id": 204808850,
+        "name": "Common Dev Image Release"
+      },
+      {
+        "id": 154465644,
+        "name": "Common Linter"
+      },
+      {
+        "id": 153854831,
+        "name": "Common Run Tests"
+      },
+      {
+        "id": 157419305,
+        "name": "Test coverage"
+      },
+      {
+        "id": 112219205,
+        "name": "Fast tests"
+      },
+      {
+        "id": 140718160,
+        "name": "Gitleaks Scan"
+      },
+      {
+        "id": 112219204,
+        "name": "Check if the Linter was run"
+      },
+      {
+        "id": 173364077,
+        "name": "Publish MkDocs"
+      },
+      {
+        "id": 112219207,
+        "name": "Slow tests"
+      },
+      {
+        "id": 112267440,
+        "name": "Superslow tests"
+      },
+      {
+        "id": 202727377,
+        "name": "Copilot code review"
+      },
+      {
+        "id": 272973930,
+        "name": "Dependency Graph"
+      },
+      {
+        "id": 203442516,
+        "name": "CodeQL"
+      },
+      {
+        "id": 172889512,
+        "name": "pages-build-deployment"
+      }
+    ]
+  },
+  {
+    "args": [
+      "\n    gh run list         --json conclusion,status,url,workflowName         --repo causify-ai/helpers         --branch master         --limit 1         --workflow \"204808849\"\n    "
+    ],
+    "kwargs": {},
+    "result": []
+  }
+]

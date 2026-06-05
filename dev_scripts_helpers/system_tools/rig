@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+"""
+rig - Ripgrep search wrapper with smart defaults and mode shortcuts.
+
+Interface:
+  rig <pattern> [<dir>] [<ext>] [--options]
+  - <pattern>: Search pattern (optional when a mode flag like --todo is used)
+  - <dir>: Directory to search (default: current directory `.`)
+  - <ext>: File extension filter, e.g. `py` or `py,md` (requires <dir>)
+
+Basic examples:
+  # Search for "TODO" in Python files in src directory.
+  > rig "TODO" src py
+  # Search for "TODO" in all files in src directory.
+  > rig "TODO" src
+  # Search for "TODO" in all files in current directory.
+  > rig "TODO"
+  # Case-insensitive search in JavaScript files.
+  > rig "import" . js -i
+
+Mode options (change the search target):
+  --todo   Search for TODO(ai_gp) patterns and variants (ai_gp1, ai_gp2, etc.); <pattern> is ignored
+  --def    Search for Python class/def definitions using <pattern>
+  --rule   Search for Markdown headers in .claude/skills; <dir>/<ext> ignored
+
+Output options:
+  --cfile       Capture output to file 'cfile' and open in vim with ':cfile cfile'
+  --print_files Only report matching files, sorted and unique
+  -i            Expand to -S -i for ripgrep (smart-case + ignore-case)
+"""
+
+import dev_scripts_helpers.system_tools.lib_rig as lib_rig
+
+if __name__ == "__main__":
+    exit(lib_rig.main(description=__doc__))

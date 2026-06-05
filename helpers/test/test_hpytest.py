@@ -1,0 +1,228 @@
+import io
+import os
+import pprint
+import re
+from contextlib import redirect_stdout
+
+import pytest
+
+# TODO(heanh): add `junitparser` in `//helpers` image.
+pytest.importorskip("junitparser")
+
+import helpers.hio as hio  # noqa: E402
+import helpers.hpytest as hpytest  # noqa: E402
+import helpers.hunit_test as hunitest  # noqa: E402
+
+
+def _strip_color_codes(text: str) -> str:
+    """
+    Remove ANSI color escape codes from text.
+
+    :param text: text to strip the color codes from
+    :return: text with the color codes removed
+    """
+    # Remove ANSI escape codes.
+    txt = re.sub(r"\033\[[0-9;]*m", "", text)
+    return txt
+
+
+# #############################################################################
+# Test_JUnitReporter
+# #############################################################################
+
+
+class Test_JUnitReporter(hunitest.TestCase):
+    """
+    Test scenario where there are passed, skipped tests with leads to `PASSED`
+    result.
+    """
+
+    def helper(self) -> hpytest.JUnitReporter:
+        """
+        Helper function to create a `JUnitReporter` object.
+
+        :return: `JUnitReporter` object
+        """
+        xml_str = """
+        <testsuites>
+            <testsuite name="dummy-test-suite-1" errors="0" failures="0" skipped="1" tests="2" time="2" timestamp="2025-01-01T12:00:00.000000+00:00" hostname="dummy-host">
+                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_dummy_function" time="1" />
+                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_another_function" time="1">
+                    <skipped type="pytest.skip" message="Dummy skip message for testing purposes.">/app/dummy/test/test_module.py:25: Dummy skip message for testing purposes.</skipped>
+                </testcase>
+            </testsuite>
+            <testsuite name="dummy-test-suite-2" errors="0" failures="0" skipped="0" tests="0" time="1" timestamp="2025-01-01T12:01:00.000000+00:00" hostname="dummy-host" />
+        </testsuites>
+        """
+        input_dir = self.get_scratch_space()
+        input_file_path = os.path.join(input_dir, "test.xml")
+        hio.to_file(input_file_path, xml_str)
+        reporter = hpytest.JUnitReporter(input_file_path)
+        return reporter
+
+    def test_parse(self) -> None:
+        """
+        Test parsing the JUnit XML file.
+        """
+        reporter = self.helper()
+        reporter.parse()
+        actual = pprint.pformat(reporter.overall_stats)
+        expected = r"""
+        {'error': 0,
+        'failed': 0,
+        'passed': 1,
+        'skipped': 1,
+        'total_tests': 2,
+        'total_time': 3.0}
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_print_summary(self) -> None:
+        """
+        Test printing the summary of the results from JUnit XML file.
+        """
+        reporter = self.helper()
+        reporter.parse()
+        captured_output = io.StringIO()
+        with redirect_stdout(captured_output):
+            reporter.print_summary()
+        actual = captured_output.getvalue()
+        actual = _strip_color_codes(actual)
+        expected = r"""
+        ======================================================================
+        collected 2 items
+
+        ======================================================================
+        Test: dummy-test-suite-1
+        Timestamp: 2025-01-01T12:00:00.000000+00:00
+        ----------------------------------------------------------------------
+        dummy.test.test_module.DummyTestCase::test_dummy_function PASSED (1.000s)
+        dummy.test.test_module.DummyTestCase::test_another_function SKIPPED (1.000s)
+        Summary: 1 passed, 1 skipped in 2.000s
+
+        ======================================================================
+        Test: dummy-test-suite-2
+        Timestamp: 2025-01-01T12:01:00.000000+00:00
+        ----------------------------------------------------------------------
+        Summary: no tests in 1.000s
+
+        ======================================================================
+        Summary: 1 passed, 1 skipped in 3.00s
+        Result: PASSED
+        """
+        self.assert_equal(
+            actual,
+            expected,
+            dedent=True,
+            fuzzy_match=True,
+        )
+
+
+# #############################################################################
+# Test_JUnitReporter2
+# #############################################################################
+
+
+class Test_JUnitReporter2(hunitest.TestCase):
+    """
+    Test scenario where there are passed, error, failed, and skipped tests with
+    leads to `FAILED` result.
+    """
+
+    def helper(self) -> hpytest.JUnitReporter:
+        """
+        Helper function to create a `JUnitReporter` object.
+
+        :return: `JUnitReporter` object
+        """
+        xml_str = """
+        <testsuites>
+            <testsuite name="dummy-test-suite-1" errors="0" failures="0" skipped="1" tests="2" time="2" timestamp="2025-01-01T12:00:00.000000+00:00" hostname="dummy-host">
+                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_dummy_function" time="1" />
+                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_another_function" time="1">
+                    <skipped type="pytest.skip" message="Dummy skip message for testing purposes.">/app/dummy/test/test_module.py:25: Dummy skip message for testing purposes.</skipped>
+                </testcase>
+            </testsuite>
+            <testsuite name="dummy-test-suite-2" errors="1" failures="1" skipped="0" tests="3" time="3" timestamp="2025-01-01T12:01:00.000000+00:00" hostname="dummy-host">
+                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_passed_function" time="1" />
+                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_failed_function" time="1">
+                    <failure type="AssertionError" message="Dummy failure message for testing purposes.">/app/dummy/test/test_module.py:30: Dummy failure message for testing purposes.</failure>
+                </testcase>
+                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_error_function" time="1">
+                    <error type="RuntimeError" message="Dummy error message for testing purposes.">/app/dummy/test/test_module.py:35: Dummy error message for testing purposes.</error>
+                </testcase>
+            </testsuite>
+            <testsuite name="dummy-test-suite-3" errors="0" failures="0" skipped="0" tests="0" time="1" timestamp="2025-01-01T12:02:00.000000+00:00" hostname="dummy-host" />
+        </testsuites>
+        """
+        input_dir = self.get_scratch_space()
+        input_file_path = os.path.join(input_dir, "test.xml")
+        hio.to_file(input_file_path, xml_str)
+        reporter = hpytest.JUnitReporter(input_file_path)
+        return reporter
+
+    def test_parse(self) -> None:
+        """
+        Test parsing the JUnit XML file.
+        """
+        reporter = self.helper()
+        reporter.parse()
+        actual = pprint.pformat(reporter.overall_stats)
+        expected = r"""
+        {'error': 1,
+        'failed': 1,
+        'passed': 2,
+        'skipped': 1,
+        'total_tests': 5,
+        'total_time': 6.0}
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_print_summary(self) -> None:
+        """
+        Test printing the summary of the results from JUnit XML file.
+        """
+        reporter = self.helper()
+        reporter.parse()
+        captured_output = io.StringIO()
+        with redirect_stdout(captured_output):
+            reporter.print_summary()
+        actual = captured_output.getvalue()
+        actual = _strip_color_codes(actual)
+        expected = r"""
+        ======================================================================
+        collected 5 items
+
+        ======================================================================
+        Test: dummy-test-suite-1
+        Timestamp: 2025-01-01T12:00:00.000000+00:00
+        ----------------------------------------------------------------------
+        dummy.test.test_module.DummyTestCase::test_dummy_function PASSED (1.000s)
+        dummy.test.test_module.DummyTestCase::test_another_function SKIPPED (1.000s)
+        Summary: 1 passed, 1 skipped in 2.000s
+
+        ======================================================================
+        Test: dummy-test-suite-2
+        Timestamp: 2025-01-01T12:01:00.000000+00:00
+        ----------------------------------------------------------------------
+        dummy.test.test_module.DummyTestCase::test_passed_function PASSED (1.000s)
+        dummy.test.test_module.DummyTestCase::test_failed_function FAILED (1.000s)
+        dummy.test.test_module.DummyTestCase::test_error_function ERROR (1.000s)
+        Summary: 1 passed, 1 failed, 1 error in 3.000s
+
+        ======================================================================
+        Test: dummy-test-suite-3
+        Timestamp: 2025-01-01T12:02:00.000000+00:00
+        ----------------------------------------------------------------------
+        Summary: no tests in 1.000s
+
+        ======================================================================
+        Summary: 2 passed, 1 failed, 1 error, 1 skipped in 6.00s
+        Result: FAILED
+        """
+        self.assert_equal(
+            actual,
+            expected,
+            dedent=True,
+            fuzzy_match=True,
+        )

@@ -1,0 +1,24 @@
+script_txt:
+#/bin/bash -xe
+# cleanup_before
+## skipping this action
+# preprocess_notes
+$GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.filter_by_header.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none
+# render_images
+$GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.render_image.txt
+# run_pandoc
+docker run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME -e OPENAI_API_KEY -e OPENROUTER_API_KEY -e QUANDL_API_KEY --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app tmp.pandoc_texlive.arm64.xxxxxxxx /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.tex --template /dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s -t latex
+# latex
+cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch
+docker run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME -e OPENAI_API_KEY -e OPENROUTER_API_KEY -e QUANDL_API_KEY --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app tmp.latex.arm64.xxxxxxxx pdflatex -output-directory /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.tex
+# latex again
+# compress_pdf
+## skipping this action
+\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/output.pdf
+# copy_to_gdrive
+## skipping this action
+# open
+## skipping this action
+# cleanup_after
+## skipping this action
+output_txt:
