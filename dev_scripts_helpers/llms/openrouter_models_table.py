@@ -41,7 +41,149 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
-# API fetching functions
+# API Fetching Layer: OpenRouter
+# #############################################################################
+
+
+# TODO(ai_gp): Use hcache_simple to cache
+def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
+    """
+    Fetch all models from the OpenRouter API.
+
+    :return: Dict mapping model ID (e.g. "google/gemini-3.1-pro-preview")
+        to a dict with keys "name", "input_cost", "output_cost",
+        "context_length"
+    """
+    url = "https://openrouter.ai/api/v1/models"
+    _LOG.debug("Fetching models from %s", url)
+    with urllib.request.urlopen(url, timeout=30) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    hdbg.dassert_in("data", data, "API response must contain 'data' key")
+    models_list: List[Dict[str, Any]] = data["data"]
+    _LOG.info("Fetched %d models from OpenRouter API", len(models_list))
+    # Build lookup dict indexed by model ID and canonical slug.
+    lookup: Dict[str, Dict[str, Any]] = {}
+    for m in models_list:
+        model_id: str = m["id"]
+        # Extract and convert pricing from per-token to per-1M-tokens.
+        pricing: Dict[str, str] = m.get("pricing", {})
+        prompt_cost = float(pricing.get("prompt", 0))
+        completion_cost = float(pricing.get("completion", 0))
+        input_cost = prompt_cost * 1_000_000
+        output_cost = completion_cost * 1_000_000
+        # Extract model metadata.
+        context_length: int = m.get("context_length", 0)
+        name: str = m.get("name", model_id)
+        lookup[model_id] = {
+            "name": name,
+            "input_cost": input_cost,
+            "output_cost": output_cost,
+            "context_length": context_length,
+            "coding_index_bench": None,
+        }
+        # Also index by canonical slug for flexible lookups.
+        canonical_slug: Optional[str] = m.get("canonical_slug")
+        if canonical_slug:
+            lookup[canonical_slug] = lookup[model_id]
+    _LOG.debug("_fetch_models_from_api result (first 3 items):\n%s",
+               pprint.pformat(dict(list(lookup.items())[:3])))
+    return lookup
+
+
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
+    """
+    Fetch throughput (tokens/sec) from OpenRouter page for a model.
+
+    Scrapes the model detail page and extracts throughput information.
+
+    :param model_id: OpenRouter model ID (e.g., "google/gemini-3.1-pro-preview")
+    :return: Throughput in tokens/sec or None if not found
+    """
+    url = f"https://openrouter.ai/{model_id}"
+    _LOG.debug("Fetching throughput from %s", url)
+    # Fetch HTML content with User-Agent header.
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36"
+        )
+    }
+    request = urllib.request.Request(url, headers=headers)
+    response = urllib.request.urlopen(request, timeout=30)
+    html_content = response.read().decode("utf-8")
+    # Try to match throughput patterns in HTML content.
+    patterns = [
+        r'(\d+(?:\.\d+)?)\s*tokens?/\s*s(?:ec)?',
+        r'(\d+(?:\.\d+)?)\s*tok/s',
+        r'throughput["\s:]+(\d+(?:\.\d+)?)',
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, html_content, re.IGNORECASE)
+        if match:
+            throughput = float(match.group(1))
+            _LOG.info("Found throughput for %s: %f", model_id,
+                     throughput)
+            _LOG.debug("_fetch_openrouter_throughput(%s) result: %s",
+                       model_id, throughput)
+            return throughput
+    _LOG.debug("No throughput found for %s", model_id)
+    _LOG.debug("_fetch_openrouter_throughput(%s) result: None",
+               model_id)
+    return None
+
+
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
+    """
+    Fetch per-model usage statistics from OpenRouter rankings API.
+
+    Uses the endpoint: https://openrouter.ai/api/v1/datasets/rankings/daily
+    Requires OPENROUTER_API_KEY environment variable.
+
+    :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
+    """
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    # TODO(ai_gp): Use a dassert
+    url = "https://openrouter.ai/api/v1/datasets/rankings/daily"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36"
+        )
+    }
+    request = urllib.request.Request(url, headers=headers)
+    response = urllib.request.urlopen(request, timeout=30)
+    data = json.loads(response.read().decode("utf-8"))
+    # Extract per-model usage from API response.
+    per_model_usage: Dict[str, Dict[str, Any]] = {}
+    if isinstance(data, dict):
+        rankings = data.get("data", [])
+    elif isinstance(data, list):
+        rankings = data
+    else:
+        rankings = []
+    # Build lookup indexed by model ID with weekly and monthly token counts.
+    for ranking in rankings:
+        if isinstance(ranking, dict):
+            model_id = ranking.get("model_id", "")
+            week_tokens = ranking.get("tokens_week", 0)
+            month_tokens = ranking.get("tokens_month", 0)
+            if model_id:
+                per_model_usage[model_id] = {
+                    "week_tokens": week_tokens,
+                    "month_tokens": month_tokens,
+                }
+    _LOG.info("Fetched per-model usage for %d models",
+              len(per_model_usage))
+    _LOG.debug("_fetch_openrouter_per_model_usage result (first 3 items):\n%s",
+               pprint.pformat(dict(list(per_model_usage.items())[:3])))
+    return per_model_usage
+
+
+# #############################################################################
+# API Fetching Layer: Artificial Analysis
 # #############################################################################
 
 
@@ -97,6 +239,7 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
     return lookup
 
 
+# TODO(ai_gp): Add a cache
 def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     """
     Fetch benchmark data from Artificial Analysis API using cached models.
@@ -149,286 +292,9 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     return result
 
 
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
-def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
-    """
-    Fetch throughput (tokens/sec) from OpenRouter page for a model.
-
-    Scrapes the model detail page and extracts throughput information.
-
-    :param model_id: OpenRouter model ID (e.g., "google/gemini-3.1-pro-preview")
-    :return: Throughput in tokens/sec or None if not found
-    """
-    try:
-        url = f"https://openrouter.ai/{model_id}"
-        _LOG.debug("Fetching throughput from %s", url)
-        # Fetch HTML content with User-Agent header.
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36"
-            )
-        }
-        request = urllib.request.Request(url, headers=headers)
-        response = urllib.request.urlopen(request, timeout=30)
-        html_content = response.read().decode("utf-8")
-        # Try to match throughput patterns in HTML content.
-        patterns = [
-            r'(\d+(?:\.\d+)?)\s*tokens?/\s*s(?:ec)?',
-            r'(\d+(?:\.\d+)?)\s*tok/s',
-            r'throughput["\s:]+(\d+(?:\.\d+)?)',
-        ]
-        for pattern in patterns:
-            match = re.search(pattern, html_content, re.IGNORECASE)
-            if match:
-                throughput = float(match.group(1))
-                _LOG.info("Found throughput for %s: %f", model_id,
-                         throughput)
-                _LOG.debug("_fetch_openrouter_throughput(%s) result: %s",
-                           model_id, throughput)
-                return throughput
-        _LOG.debug("No throughput found for %s", model_id)
-        _LOG.debug("_fetch_openrouter_throughput(%s) result: None",
-                   model_id)
-        return None
-    except Exception as e:
-        _LOG.warning("Failed to fetch throughput for %s: %s", model_id, e)
-        return None
-
-
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
-def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
-    """
-    Fetch per-model usage statistics from OpenRouter rankings API.
-
-    Uses the endpoint: https://openrouter.ai/api/v1/datasets/rankings/daily
-    Requires OPENROUTER_API_KEY environment variable.
-
-    :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
-    """
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    # TODO(ai_gp): Make it a d
-    if not api_key:
-        _LOG.debug("OPENROUTER_API_KEY not set; skipping per-model usage stats")
-        return {}
-    try:
-        url = "https://openrouter.ai/api/v1/datasets/rankings/daily"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36"
-            )
-        }
-        request = urllib.request.Request(url, headers=headers)
-        response = urllib.request.urlopen(request, timeout=30)
-        data = json.loads(response.read().decode("utf-8"))
-        # Extract per-model usage from API response.
-        per_model_usage: Dict[str, Dict[str, Any]] = {}
-        if isinstance(data, dict):
-            rankings = data.get("data", [])
-        elif isinstance(data, list):
-            rankings = data
-        else:
-            rankings = []
-        # Build lookup indexed by model ID with weekly and monthly token counts.
-        for ranking in rankings:
-            if isinstance(ranking, dict):
-                model_id = ranking.get("model_id", "")
-                week_tokens = ranking.get("tokens_week", 0)
-                month_tokens = ranking.get("tokens_month", 0)
-                if model_id:
-                    per_model_usage[model_id] = {
-                        "week_tokens": week_tokens,
-                        "month_tokens": month_tokens,
-                    }
-        _LOG.info("Fetched per-model usage for %d models",
-                  len(per_model_usage))
-        _LOG.debug("_fetch_openrouter_per_model_usage result (first 3 items):\n%s",
-                   pprint.pformat(dict(list(per_model_usage.items())[:3])))
-        return per_model_usage
-    except Exception as e:
-        _LOG.warning("Failed to fetch per-model usage stats: %s", e)
-        return {}
-
-
-def _fetch_openrouter_usage() -> Dict[str, Any]:
-    """
-    Fetch usage statistics from OpenRouter API.
-
-    Requires OPENROUTER_API_KEY environment variable.
-
-    :return: Dict with usage statistics including 'daily', 'weekly', and
-        'monthly' keys if available, or empty dict on error
-    """
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not api_key:
-        _LOG.warning("OPENROUTER_API_KEY not set; cannot fetch usage stats")
-        return {}
-    # Fetch usage data from OpenRouter auth key endpoint.
-    url = "https://openrouter.ai/api/v1/auth/key"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36"
-        )
-    }
-    request = urllib.request.Request(url, headers=headers)
-    response = urllib.request.urlopen(request, timeout=30)
-    data = json.loads(response.read().decode("utf-8"))
-    # Validate and extract usage data from API response.
-    if "data" not in data:
-        _LOG.warning("Unexpected API response format for usage")
-        return {}
-    api_data = data["data"]
-    if not isinstance(api_data, dict):
-        _LOG.warning("API data is not a dict: %s", type(api_data))
-        return {}
-    usage = api_data.get("usage")
-    if not isinstance(usage, dict):
-        usage = {}
-    # Build result dict with daily, weekly, monthly usage.
-    result = {
-        "daily": usage.get("daily", 0),
-        "weekly": usage.get("weekly", 0),
-        "monthly": usage.get("monthly", 0),
-    }
-    _LOG.info(
-        "Fetched OpenRouter usage: daily=%s, weekly=%s, monthly=%s",
-        result["daily"],
-        result["weekly"],
-        result["monthly"]
-    )
-    _LOG.debug("_fetch_openrouter_usage result:\n%s",
-               pprint.pformat(result))
-    return result
-
-
-def _format_usage(usage_dict: Dict[str, Any]) -> str:
-    """
-    Format usage statistics as a readable string.
-
-    :param usage_dict: Dict with 'daily', 'weekly', 'monthly' keys
-    :return: Formatted usage string
-    """
-    if not usage_dict:
-        return "Usage stats unavailable"
-
-    daily = usage_dict.get("daily", 0)
-    weekly = usage_dict.get("weekly", 0)
-    monthly = usage_dict.get("monthly", 0)
-
-    result = (f"Daily: ${daily:.4f} | Weekly: ${weekly:.4f} | "
-              f"Monthly: ${monthly:.4f}")
-    _LOG.debug("_format_usage result:\n%s", result)
-    return result
-
 # #############################################################################
-# Formatting and table display
+# Formatting Layer
 # #############################################################################
-
-# Column definitions for the comparison table.
-# Each entry is (header_name, width, alignment).
-_COLUMNS: List[Tuple[str, int, str]] = [
-    ("Model", 30, "<"),
-    ("OpenRouter Model ID", 40, "<"),
-    ("Input $/1M", 12, ">"),
-    ("Output $/1M", 12, ">"),
-    ("Context", 10, ">"),
-    ("Speed tok/s", 12, ">"),
-    ("Week Tokens", 12, ">"),
-    ("Month Tokens", 12, ">"),
-    ("Coding Index", 12, ">"),
-    ("Intelligence", 12, ">"),
-    ("Agentic", 12, ">"),
-    ("Coding", 12, ">"),
-    ("Efficiency", 12, ">"),
-]
-
-
-def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
-    """
-    Fetch all models from the OpenRouter API.
-
-    :return: Dict mapping model ID (e.g. "google/gemini-3.1-pro-preview")
-        to a dict with keys "name", "input_cost", "output_cost",
-        "context_length"
-    """
-    url = "https://openrouter.ai/api/v1/models"
-    _LOG.debug("Fetching models from %s", url)
-    with urllib.request.urlopen(url, timeout=30) as response:
-        data = json.loads(response.read().decode("utf-8"))
-    hdbg.dassert_in("data", data, "API response must contain 'data' key")
-    models_list: List[Dict[str, Any]] = data["data"]
-    _LOG.info("Fetched %d models from OpenRouter API", len(models_list))
-    # Build lookup dict indexed by model ID and canonical slug.
-    lookup: Dict[str, Dict[str, Any]] = {}
-    for m in models_list:
-        model_id: str = m["id"]
-        # Extract and convert pricing from per-token to per-1M-tokens.
-        pricing: Dict[str, str] = m.get("pricing", {})
-        prompt_cost = float(pricing.get("prompt", 0))
-        completion_cost = float(pricing.get("completion", 0))
-        input_cost = prompt_cost * 1_000_000
-        output_cost = completion_cost * 1_000_000
-        # Extract model metadata.
-        context_length: int = m.get("context_length", 0)
-        name: str = m.get("name", model_id)
-        lookup[model_id] = {
-            "name": name,
-            "input_cost": input_cost,
-            "output_cost": output_cost,
-            "context_length": context_length,
-            "coding_index_bench": None,
-        }
-        # Also index by canonical slug for flexible lookups.
-        canonical_slug: Optional[str] = m.get("canonical_slug")
-        if canonical_slug:
-            lookup[canonical_slug] = lookup[model_id]
-    _LOG.debug("_fetch_models_from_api result (first 3 items):\n%s",
-               pprint.pformat(dict(list(lookup.items())[:3])))
-    return lookup
-
-
-def _read_model_ids(models_file: str) -> List[str]:
-    """
-    Read model IDs from a text file, one per line.
-
-    :param models_file: Path to the file
-    :return: List of model ID strings
-    """
-    hdbg.dassert_file_exists(models_file, "Models file must exist")
-    model_ids: List[str] = []
-    with open(models_file, "r") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            model_ids.append(line)
-    hdbg.dassert_lt(0, len(model_ids), "Models file must contain at least one model ID")
-    _LOG.info("Read %d model IDs from %s", len(model_ids), models_file)
-    _LOG.debug("_read_model_ids result:\n%s", pprint.pformat(model_ids))
-    return model_ids
-
-
-def _format_context(ctx: int) -> str:
-    """
-    Format context length as human-readable string.
-
-    Converts context length to human-readable format (e.g., "128K", "1M").
-
-    :param ctx: Context length in tokens
-    :return: Human-readable string representation
-    """
-    if ctx >= 1_000_000:
-        result = f"{ctx / 1_000_000:.0f}M"
-    elif ctx >= 1_000:
-        result = f"{ctx // 1_000}K"
-    else:
-        result = str(ctx)
-    _LOG.debug("_format_context(%s) result: %s", ctx, result)
-    return result
 
 
 def _format_cost(cost: float) -> str:
@@ -451,6 +317,25 @@ def _format_cost(cost: float) -> str:
     else:
         result = f"{cost:.1f}"
     _LOG.debug("_format_cost(%s) result: %s", cost, result)
+    return result
+
+
+def _format_context(ctx: int) -> str:
+    """
+    Format context length as human-readable string.
+
+    Converts context length to human-readable format (e.g., "128K", "1M").
+
+    :param ctx: Context length in tokens
+    :return: Human-readable string representation
+    """
+    if ctx >= 1_000_000:
+        result = f"{ctx / 1_000_000:.0f}M"
+    elif ctx >= 1_000:
+        result = f"{ctx // 1_000}K"
+    else:
+        result = str(ctx)
+    _LOG.debug("_format_context(%s) result: %s", ctx, result)
     return result
 
 
@@ -498,6 +383,51 @@ def _format_efficiency(
         result
     )
     return result
+
+
+def _format_usage(usage_dict: Dict[str, Any]) -> str:
+    """
+    Format usage statistics as a readable string.
+
+    :param usage_dict: Dict with 'daily', 'weekly', 'monthly' keys
+    :return: Formatted usage string
+    """
+    # TODO(ai_gp): Use a dassert
+    if not usage_dict:
+        return "Usage stats unavailable"
+    daily = usage_dict.get("daily", 0)
+    weekly = usage_dict.get("weekly", 0)
+    monthly = usage_dict.get("monthly", 0)
+    result = (f"Daily: ${daily:.4f} | Weekly: ${weekly:.4f} | "
+              f"Monthly: ${monthly:.4f}")
+    _LOG.debug("_format_usage result:\n%s", result)
+    return result
+
+
+# #############################################################################
+# Data Processing Layer
+# #############################################################################
+
+
+def _read_model_ids(models_file: str) -> List[str]:
+    """
+    Read model IDs from a text file, one per line.
+
+    :param models_file: Path to the file
+    :return: List of model ID strings
+    """
+    hdbg.dassert_file_exists(models_file, "Models file must exist")
+    model_ids: List[str] = []
+    with open(models_file, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            model_ids.append(line)
+    hdbg.dassert_lt(0, len(model_ids), "Models file must contain at least one model ID")
+    _LOG.info("Read %d model IDs from %s", len(model_ids), models_file)
+    _LOG.debug("_read_model_ids result:\n%s", pprint.pformat(model_ids))
+    return model_ids
 
 
 def _build_rows(
@@ -576,39 +506,8 @@ def _build_rows(
     return rows
 
 
-def _format_table(rows: List[List[str]]) -> str:
-    """
-    Format rows as a human-readable table with aligned columns using pandas.
-
-    :param rows: List of rows from _build_rows()
-    :return: Formatted table string
-    """
-    # Extract column names and create DataFrame.
-    column_names: List[str] = [col_name for col_name, _, _ in _COLUMNS]
-    df: pd.DataFrame = pd.DataFrame(rows)
-    df.columns = column_names  # type: ignore
-    # Format each column with proper alignment and width constraints.
-    for i, (_, width, align) in enumerate(_COLUMNS):
-        # Truncate and align cells in this column.
-        def format_cell(cell: Any) -> str:
-            cell_str = str(cell) if cell is not None else ""
-            if len(cell_str) > width:
-                cell_str = cell_str[:width - 1] + "…"
-            if align == ">":
-                return cell_str.rjust(width)
-            else:
-                return cell_str.ljust(width)
-        # Apply formatting to this column.
-        df.iloc[:, i] = df.iloc[:, i].apply(format_cell)
-    # Generate table string using pandas.
-    table_str = df.to_string(index=False)
-    _LOG.debug("_format_table result (first 500 chars):\n%s",
-               table_str[:500])
-    return table_str
-
-
 # #############################################################################
-# Script entry point
+# CLI / Entry Point
 # #############################################################################
 
 
@@ -630,12 +529,6 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Path to a text file with one OpenRouter model ID per line",
     )
-    parser.add_argument(
-        "--show-usage",
-        action="store_true",
-        help="Fetch and display OpenRouter API usage statistics "
-             "(requires OPENROUTER_API_KEY)",
-    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -652,16 +545,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Display usage stats from OpenRouter API.
-    usage = _fetch_openrouter_usage()
-    if usage:
-        print("OpenRouter API Usage Statistics (Aggregated):")
-        print(_format_usage(usage))
-        print()
     # Build model comparison table.
     model_ids = _read_model_ids(args.models)
     api_lookup = _fetch_models_from_api()
     rows = _build_rows(model_ids, api_lookup)
-    table = _format_table(rows)
+    # TODO(ai_gp): Create table and print it using pandas
     print(table)
 
 
