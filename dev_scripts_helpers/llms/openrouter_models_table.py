@@ -277,6 +277,8 @@ def _format_usage(usage_dict: Dict[str, Any]) -> str:
             f"Monthly: ${monthly:.4f}")
 
 # #############################################################################
+# Formatting and table display
+# #############################################################################
 
 # Column definitions for the comparison table.
 # Each entry is (header_name, width, alignment).
@@ -528,6 +530,11 @@ def _format_table(rows: List[List[str]]) -> str:
                 cells.append(cell.ljust(width))
         lines.append(" | ".join(cells))
     return "\n".join(lines)
+
+
+# #############################################################################
+# Script entry point
+# #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
