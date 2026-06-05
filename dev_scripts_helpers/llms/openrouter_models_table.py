@@ -16,11 +16,20 @@ deepseek/deepseek-v4-pro
 Usage:
 > openrouter_models_table.py --models models.txt
 > openrouter_models_table.py --models models.txt -v DEBUG
+> openrouter_models_table.py --models models.txt -a fetch_aa_benchmarks -a fetch_openrouter_throughput
 
 The script fetches
 - Pricing and context from the OpenRouter API (https://openrouter.ai/api/v1/models)
 - Benchmark data from the Artificial Analysis API, including the Artificial
-  Analysis Coding Index.
+  Analysis Coding Index
+- Throughput metrics from OpenRouter model pages
+- Per-model usage statistics from OpenRouter rankings API
+
+Use action selection flags to control which data sources are queried:
+- `-a/--action`: Select specific actions to run
+- `-sa/--skip_action`: Skip specific actions from the default set
+- `-e/--enable`: Enable additional actions beyond defaults
+- `--all`: Run all available actions (default behavior)
 """
 
 import argparse
@@ -37,6 +46,8 @@ import pandas as pd
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
+import helpers.hprint as hprint
+import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
@@ -51,9 +62,17 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
     Fetch all models from the OpenRouter API.
 
     :return: Dict mapping model ID (e.g. "google/gemini-3.1-pro-preview")
+        ```
+        {'coding_index_bench': None,
+         'context_length': 128000,
+         'input_cost': 0.0,
+         'name': 'NVIDIA: Nemotron 3.5 Content Safety (free)',
+         'output_cost': 0.0}
+        ```
         to a dict with keys "name", "input_cost", "output_cost",
         "context_length"
     """
+    # Read the data from OpenRouter about those models.
     url = "https://openrouter.ai/api/v1/models"
     _LOG.debug("Fetching models from %s", url)
     with urllib.request.urlopen(url, timeout=30) as response:
@@ -101,9 +120,9 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
     :param model_id: OpenRouter model ID (e.g., "google/gemini-3.1-pro-preview")
     :return: Throughput in tokens/sec or None if not found
     """
+    # Fetch HTML content with User-Agent header.
     url = f"https://openrouter.ai/{model_id}"
     _LOG.debug("Fetching throughput from %s", url)
-    # Fetch HTML content with User-Agent header.
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -144,8 +163,10 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
 
     :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
     """
+    _LOG.debug("# _fetch_openrouter_per_model_usage")
     api_key = os.environ.get("OPENROUTER_API_KEY")
     hdbg.dassert(api_key, "OPENROUTER_API_KEY environment variable must be set")
+    # Get the data.
     url = "https://openrouter.ai/api/v1/datasets/rankings/daily"
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -197,6 +218,7 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
 
     :return: Dict mapping model name/slug to full model data including benchmarks
     """
+    _LOG.debug("# _fetch_all_aa_models")
     url = "https://artificialanalysis.ai/api/v2/data/llms/models"
     api_key = os.environ.get("ARTIFICIAL_ANALYSIS_API_KEY")
     # Prepare request with User-Agent header and optional API key.
@@ -248,7 +270,9 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     :param model_name: Model name to search for
     :return: Dict with "coding", "intelligence", "agentic", "coding_index"
         benchmark scores
+
     """
+    _LOG.debug("# _fetch_aa_benchmarks")
     aa_models = _fetch_all_aa_models()
     # Try exact match first (case-insensitive), then partial match.
     model_name_lower = model_name.lower()
@@ -269,24 +293,49 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     intelligence_score = None
     agentic_score = None
     coding_index = None
+    # {'gpt-oss-120b': {'evaluations': {'aime': None,
+    #                                   'aime_25': 0.934416666666667,
+    #                                   'artificial_analysis_coding_index': 28.6,
+    #                                   'artificial_analysis_intelligence_index': 33.3,
+    #                                   'artificial_analysis_math_index': 93.4,
+    #                                   'gpqa': 0.782,
+    #                                   'hle': 0.185,
+    #                                   'ifbench': 0.689795918367347,
+    #                                   'lcr': 0.506666666,
+    #                                   'livecodebench': 0.878,
+    #                                   'math_500': None,
+    #                                   'mmlu_pro': 0.808,
+    #                                   'scicode': 0.389,
+    #                                   'tau2': 0.657894736842105,
+    #                                   'terminalbench_hard': 0.234848484848485},
+    #                   'id': 'f0083258-8646-45b8-8082-7aaf6c2ea82a',
+    #                   'median_output_tokens_per_second': 362.317,
+    #                   'median_time_to_first_answer_token': 6.037,
+    #                   'median_time_to_first_token_seconds': 0.517,
+    #                   'model_creator': {'id': 'e67e56e3-15cd-43db-b679-da4660a69f41',
+    #                                     'name': 'OpenAI',
+    #                                     'slug': 'openai'},
+    #                   'name': 'gpt-oss-120b (high)',
+    #                   'pricing': {'price_1m_blended_3_to_1': 0.262,
+    #                               'price_1m_input_tokens': 0.15,
+    #                               'price_1m_output_tokens': 0.6},
+    #                   'release_date': '2025-08-05',
+    #                   'slug': 'gpt-oss-120b'},
     if model and isinstance(model, dict):
         evaluations = model.get("evaluations", {})
         if isinstance(evaluations, dict):
             intelligence_score = evaluations.get(
                 "artificial_analysis_intelligence_index"
             )
-            agentic_score = evaluations.get(
-                "artificial_analysis_agentic_coding_index"
-            )
+            #agentic_score = evaluations.get(
+            #    "artificial_analysis_agentic_coding_index"
+            #)
             coding_score = evaluations.get(
                 "artificial_analysis_coding_index"
             )
-        coding_index = coding_score
     result = {
-        "coding": coding_score,
-        "intelligence": intelligence_score,
-        "agentic": agentic_score,
-        "coding_index": coding_index,
+        "coding_score": coding_score,
+        "intelligence_score": intelligence_score,
     }
     _LOG.debug("_fetch_aa_benchmarks(%s) result:\n%s",
                model_name, pprint.pformat(result))
@@ -415,52 +464,77 @@ def _read_model_ids(models_file: str) -> List[str]:
 def _build_rows(
     model_ids: List[str],
     api_lookup: Dict[str, Dict[str, Any]],
+    actions: Optional[List[str]] = None,
 ) -> List[List[str]]:
     """
     Build table rows from model IDs and API data.
 
+    Optionally fetches benchmark data, throughput, and usage statistics based
+    on the selected actions. Available actions are:
+    - "fetch_aa_benchmarks": Fetch benchmark scores from Artificial Analysis
+    - "fetch_openrouter_throughput": Fetch throughput (tokens/sec) from OpenRouter
+    - "fetch_openrouter_per_model_usage": Fetch usage statistics (tokens/week/month)
+
     :param model_ids: List of model IDs from the input file
-    :param api_lookup: Dict from _fetch_models_from_api()
+    :param api_lookup: Dict from _fetch_models_from_api() with pricing and context
+    :param actions: List of selected actions to execute. If None, executes all actions.
+        Skipped actions result in empty values for their corresponding columns.
     :return: List of rows, where each row is a list of formatted cell strings
     """
+    _LOG.debug
     rows: List[List[str]] = []
     for model_id in model_ids:
+        _LOG.debug("Processing %s", model_id)
+        actions_copy = list(actions) if actions else None
         # Extract pricing and context from OpenRouter API.
+        hdbg.dassert_in(model_id, api_lookup)
         api_data = api_lookup.get(model_id)
-        if api_data is not None:
-            name = str(api_data["name"])
-            input_cost = float(api_data["input_cost"])
-            output_cost = float(api_data["output_cost"])
-            context = int(api_data["context_length"])
-            input_cost_str = _format_cost(input_cost)
-            output_cost_str = _format_cost(output_cost)
-            context_str = _format_context(context)
-        else:
-            _LOG.warning("Model ID '%s' not found in OpenRouter API", model_id)
-            name = model_id
-            input_cost_str = "N/A"
-            output_cost_str = "N/A"
-            context_str = "N/A"
-            input_cost = 0.0
-            output_cost = 0.0
+        #
+        name = str(api_data["name"])
+        input_cost = float(api_data["input_cost"])
+        output_cost = float(api_data["output_cost"])
+        context = int(api_data["context_length"])
+        # Format.
+        input_cost_str = _format_cost(input_cost)
+        output_cost_str = _format_cost(output_cost)
+        context_str = _format_context(context)
         # Fetch and format benchmark scores from Artificial Analysis.
-        benchmarks = _fetch_aa_benchmarks(name)
+        to_exec_benchmarks, actions_copy = hselacti.mark_action(
+            "fetch_aa_benchmarks", actions_copy
+        )
+        if to_exec_benchmarks:
+            benchmarks = _fetch_aa_benchmarks(name)
+        else:
+            benchmarks = {}
         coding_index_bench = benchmarks.get("coding_index")
         intelligence_bench = benchmarks.get("intelligence")
         agentic_bench = benchmarks.get("agentic")
         coding_bench = benchmarks.get("coding")
+        # Format.
         coding_index_str = _format_benchmark(coding_index_bench)
         intelligence_str = _format_benchmark(intelligence_bench)
         agentic_str = _format_benchmark(agentic_bench)
         coding_str = _format_benchmark(coding_bench)
         # Fetch throughput and compute efficiency metric.
-        throughput = _fetch_openrouter_throughput(model_id)
+        to_exec_throughput, actions_copy = hselacti.mark_action(
+            "fetch_openrouter_throughput", actions_copy
+        )
+        if to_exec_throughput:
+            throughput = _fetch_openrouter_throughput(model_id)
+        else:
+            throughput = None
         speed_tok_s_str = f"{throughput:.0f}" if throughput and throughput > 0 else ""
         efficiency_str = _format_efficiency(
             coding_bench, throughput, input_cost, output_cost
         )
         # Fetch per-model usage statistics.
-        per_model_usage = _fetch_openrouter_per_model_usage()
+        to_exec_usage, actions_copy = hselacti.mark_action(
+            "fetch_openrouter_per_model_usage", actions_copy
+        )
+        if to_exec_usage:
+            per_model_usage = _fetch_openrouter_per_model_usage()
+        else:
+            per_model_usage = {}
         usage_data = per_model_usage.get(model_id, {})
         week_tokens = usage_data.get("week_tokens", 0)
         month_tokens = usage_data.get("month_tokens", 0)
@@ -482,7 +556,9 @@ def _build_rows(
             coding_str,
             efficiency_str,
         ]
+        _LOG.debug("row=%s", row)
         rows.append(row)
+        assert 0
     _LOG.debug("_build_rows result (first 3 rows):\n%s",
                pprint.pformat(rows[:3]))
     return rows
@@ -505,12 +581,22 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    # TODO(ai_gp): Add an options like "--models" to specify a list of models
+    # as a space separated list.
+    # TODO(ai_gp): Rename --models_from_file
     parser.add_argument(
         "--models",
         type=str,
         required=True,
         help="Path to a text file with one OpenRouter model ID per line",
     )
+    valid_actions = [
+        "fetch_aa_benchmarks",
+        "fetch_openrouter_throughput",
+        "fetch_openrouter_per_model_usage",
+    ]
+    default_actions = valid_actions
+    hselacti.add_action_arg(parser, valid_actions, default_actions)
     hcacsimp.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -525,18 +611,34 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
     :param parser: Configured argument parser
     """
+    # Parse command line options.
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hcacsimp.parse_cache_control_args(args)
+    # Process the actions.
+    valid_actions = [
+        "fetch_aa_benchmarks",
+        "fetch_openrouter_throughput",
+        "fetch_openrouter_per_model_usage",
+    ]
+    default_actions = valid_actions
+    actions = hselacti.select_actions(args, valid_actions, default_actions)
+    print(hselacti.actions_to_string(actions, valid_actions, add_frame=True))
+    # Read the models from the file.
     model_ids = _read_model_ids(args.models)
+    _LOG.debug("model_ids=%s", str(model_ids))
+    # Fetch all models from the OpenRouter API.
     api_lookup = _fetch_models_from_api()
-    rows = _build_rows(model_ids, api_lookup)
+    _LOG.debug("api_lookup=%s", api_lookup.keys())
+    # Process the data.
+    rows = _build_rows(model_ids, api_lookup, actions)
     columns = [
         "Name", "Model ID", "Input Cost", "Output Cost", "Context",
         "Speed (tok/s)", "Week Tokens", "Month Tokens",
         "Coding Index", "General Intelligence", "Agentic Intelligence",
-        "Efficiency"
+        "Coding", "Efficiency"
     ]
+    # Assemble the data.
     table = pd.DataFrame(rows, columns=columns)
     print(table.to_string())
 
