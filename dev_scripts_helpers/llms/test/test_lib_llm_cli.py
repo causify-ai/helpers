@@ -55,11 +55,11 @@ def _run_lib_llm_cli_with_mock(
 
 
 # #############################################################################
-# Test_lib_llm_cli_selected_text
+# Test_selected_text
 # #############################################################################
 
 
-class Test_lib_llm_cli_selected_text(hunitest.TestCase):
+class Test_selected_text(hunitest.TestCase):
     """
     Test lib_llm_cli.py selected text processing.
     """
@@ -195,11 +195,11 @@ class Test_lib_llm_cli_selected_text(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lib_llm_cli_get_system_prompt
+# Test_get_system_prompt
 # #############################################################################
 
 
-class Test_lib_llm_cli_get_system_prompt(hunitest.TestCase):
+class Test_get_system_prompt(hunitest.TestCase):
     """
     Test `_get_system_prompt()` function.
     """
@@ -246,11 +246,11 @@ class Test_lib_llm_cli_get_system_prompt(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lib_llm_cli_limit_input_text
+# Test_limit_input_text
 # #############################################################################
 
 
-class Test_lib_llm_cli_limit_input_text(hunitest.TestCase):
+class Test_limit_input_text(hunitest.TestCase):
     """
     Test `_limit_input_text()` function.
     """
@@ -285,11 +285,11 @@ class Test_lib_llm_cli_limit_input_text(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lib_llm_cli_get_input_output_files
+# Test_get_input_output_files
 # #############################################################################
 
 
-class Test_lib_llm_cli_get_input_output_files(hunitest.TestCase):
+class Test_get_input_output_files(hunitest.TestCase):
     """
     Test `_get_input_output_files()` function.
     """
