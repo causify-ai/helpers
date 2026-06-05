@@ -19,12 +19,13 @@ Usage:
 > openrouter_models_table.py --models_from_file models.txt -a fetch_aa_benchmarks -a fetch_openrouter_throughput
 > openrouter_models_table.py --models_list "google/gemini-3.1-pro-preview deepseek/deepseek-v4-pro"
 
-The script fetches
-- Pricing and context from the OpenRouter API (https://openrouter.ai/api/v1/models)
-- Benchmark data from the Artificial Analysis API, including the Artificial
-  Analysis Coding Index
-- Throughput metrics from OpenRouter model pages
-- Per-model usage statistics from OpenRouter rankings API
+The script fetches data from multiple sources and displays a comparison table.
+
+Available data sources:
+- Pricing and context from the OpenRouter API (openrouter_pricing)
+- Benchmark data from the Artificial Analysis API (aa_benchmarks)
+- Throughput metrics from OpenRouter model pages (openrouter_throughput)
+- Per-model usage statistics from OpenRouter rankings API (openrouter_per_model_usage)
 
 Use action selection flags to control which data sources are queried:
 - `-a/--action`: Select specific actions to run
@@ -117,7 +118,8 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
     """
     Fetch throughput (tokens/sec) from OpenRouter page for a model.
 
-    Scrapes the model detail page and extracts throughput information.
+    Scrapes the model detail page and extracts throughput information from
+    embedded JSON data.
 
     :param model_id: OpenRouter model ID (e.g., "google/gemini-3.1-pro-preview")
     :return: Throughput in tokens/sec or None if not found
@@ -134,21 +136,15 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
     request = urllib.request.Request(url, headers=headers)
     response = urllib.request.urlopen(request, timeout=30)
     html_content = response.read().decode("utf-8")
-    # Try multiple regex patterns to extract throughput from HTML page.
-    patterns = [
-        r'(\d+(?:\.\d+)?)\s*tokens?/\s*s(?:ec)?',
-        r'(\d+(?:\.\d+)?)\s*tok/s',
-        r'throughput["\s:]+(\d+(?:\.\d+)?)',
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, html_content, re.IGNORECASE)
-        if match:
-            throughput = float(match.group(1))
-            _LOG.info("Found throughput for %s: %f", model_id,
-                     throughput)
-            _LOG.debug("%s -> return=%s",
-                       model_id, throughput)
-            return throughput
+    # Extract p50_throughput from embedded JSON data in HTML.
+    # The OpenRouter page embeds JSON with escaped quotes like:
+    # \"p50_throughput\":43
+    match = re.search(r'\\"p50_throughput\\":(\d+(?:\.\d+)?)', html_content)
+    if match:
+        throughput = float(match.group(1))
+        _LOG.info("Found throughput for %s: %f", model_id, throughput)
+        _LOG.debug("%s -> return=%s", model_id, throughput)
+        return throughput
     _LOG.debug("No throughput found for %s", model_id)
     _LOG.debug("%s -> return=None", model_id)
     return None
@@ -264,6 +260,27 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _normalize_model_name(name: str) -> str:
+    """
+    Normalize model name for consistent matching across naming conventions.
+
+    Handles multiple naming formats:
+    - OpenRouter ID format: "provider/model-name" (e.g. "anthropic/claude-opus-4.7")
+    - OpenRouter API name format: "Provider: Model Name" (e.g. "Anthropic: Claude Opus 4.7")
+    - Artificial Analysis format: slug with dashes (e.g. "claude-opus-4-7")
+
+    :param name: Model name to normalize
+    :return: Normalized name (e.g. "claude-opus-4-7")
+    """
+    normalized = name
+    if "/" in normalized:
+        normalized = normalized.split("/", 1)[1]
+    if ":" in normalized:
+        normalized = normalized.split(":", 1)[1].strip()
+    normalized = normalized.replace(" ", "-").replace(".", "-").lower()
+    return normalized
+
+
 def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     """
     Fetch benchmark data from Artificial Analysis API using cached models.
@@ -277,16 +294,26 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     aa_models = _fetch_all_aa_models()
     # Try exact match first (case-insensitive), then substring match.
     model_name_lower = model_name.lower()
+    model_name_normalized = _normalize_model_name(model_name)
     model = None
+    # Try direct lookups first.
     if model_name_lower in aa_models:
         model = aa_models[model_name_lower]
     elif model_name in aa_models:
         model = aa_models[model_name]
+    elif model_name_normalized in aa_models:
+        model = aa_models[model_name_normalized]
     else:
         for aa_name, aa_model in aa_models.items():
-            if (isinstance(aa_name, str) and
-                (model_name.lower() in aa_name or
-                 aa_name in model_name.lower())):
+            if not isinstance(aa_name, str):
+                continue
+            aa_name_normalized = _normalize_model_name(aa_name)
+            # Try normalized comparison first, then substring match
+            if (model_name_normalized == aa_name_normalized or
+                model_name_normalized in aa_name or
+                aa_name_normalized in model_name_normalized or
+                model_name.lower() in aa_name or
+                aa_name in model_name.lower()):
                 model = aa_model
                 break
     # Extract benchmark scores from model's evaluations dict.
@@ -431,9 +458,12 @@ def _format_table(table: pd.DataFrame) -> pd.DataFrame:
     """
     _LOG.debug(hprint.func_signature_to_str())
     table = table.copy()
-    table["Input_Cost"] = table["Input_Cost"].apply(_format_cost)
-    table["Output_Cost"] = table["Output_Cost"].apply(_format_cost)
-    table["Context"] = table["Context"].apply(_format_context)
+    if "Input_Cost" in table.columns:
+        table["Input_Cost"] = table["Input_Cost"].apply(_format_cost)
+    if "Output_Cost" in table.columns:
+        table["Output_Cost"] = table["Output_Cost"].apply(_format_cost)
+    if "Context" in table.columns:
+        table["Context"] = table["Context"].apply(_format_context)
     if "Speed_(tok/s)" in table.columns:
         table["Speed_(tok/s)"] = table["Speed_(tok/s)"].apply(
             lambda x: _format_benchmark(x) if x is not None else ""
@@ -488,21 +518,38 @@ def _read_model_ids_from_list(models_list_str: str) -> List[str]:
     return model_ids
 
 
-def _build_base_dataframe(
+def _build_model_ids_dataframe(
+    model_ids: List[str],
+) -> pd.DataFrame:
+    """
+    Build minimal dataframe with just model IDs for merging purposes.
+
+    :param model_ids: List of model IDs from the input file
+    :return: DataFrame with Model_ID column
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    data = [[model_id] for model_id in model_ids]
+    columns = ["Model_ID"]
+    df = pd.DataFrame(data=data, columns=columns)  # type: ignore
+    _LOG.info("Built model IDs dataframe with %d rows", len(df))
+    return df
+
+
+def _build_openrouter_pricing_dataframe(
     model_ids: List[str],
     api_lookup: Dict[str, Dict[str, Any]],
 ) -> pd.DataFrame:
     """
-    Build base dataframe with OpenRouter pricing and context data.
+    Build dataframe with OpenRouter pricing and context data.
 
     :param model_ids: List of model IDs from the input file
     :param api_lookup: Dict from _fetch_models_from_api() with pricing and context
-    :return: DataFrame with base model data (Name, Model_ID, Input_Cost, etc.)
+    :return: DataFrame with Model_ID, Name, Input_Cost, Output_Cost, and Context
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
     for model_id in model_ids:
-        _LOG.debug("Processing %s", model_id)
+        _LOG.debug("Fetching pricing for %s", model_id)
         if model_id not in api_lookup:
             _LOG.warning("Can't find '%s' in the OpenRouter API data: skipping",
                         model_id)
@@ -513,8 +560,8 @@ def _build_base_dataframe(
         output_cost = float(api_data["output_cost"])
         context = int(api_data["context_length"])
         row = [
-            name,
             model_id,
+            name,
             input_cost,
             output_cost,
             context,
@@ -522,10 +569,10 @@ def _build_base_dataframe(
         _LOG.debug("row=%s", row)
         rows.append(row)
     columns = [
-        "Name", "Model_ID", "Input_Cost", "Output_Cost", "Context",
+        "Model_ID", "Name", "Input_Cost", "Output_Cost", "Context",
     ]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    _LOG.info("Built base dataframe with %d rows", len(df))
+    _LOG.info("Built OpenRouter pricing dataframe with %d rows", len(df))
     return df
 
 
@@ -642,9 +689,10 @@ def _merge_dataframes(
 
 
 def calc_efficiency(row: pd.Series) -> str:
+    if "Input_Cost" not in row.index or "Output_Cost" not in row.index:
+        return "N/A"
     coding_iq_val = row["Coding_IQ"]
     speed_val = row["Speed_(tok/s)"]
-    # TODO(ai_gp): Use numpy vector approach and get nans automatically.
     coding_iq: Optional[float] = (
         None if coding_iq_val is None or (
             isinstance(coding_iq_val, float) and
@@ -659,7 +707,6 @@ def calc_efficiency(row: pd.Series) -> str:
     )
     input_cost = float(row["Input_Cost"])
     output_cost = float(row["Output_Cost"])
-    # TODO(ai_gp): Add the formatting in _format_table.
     return _format_efficiency(coding_iq, speed, input_cost,
                              output_cost)
 
@@ -694,9 +741,10 @@ def _parse() -> argparse.ArgumentParser:
         help="Space-separated list of OpenRouter model IDs",
     )
     valid_actions = [
-        "fetch_aa_benchmarks",
-        "fetch_openrouter_throughput",
-        "fetch_openrouter_per_model_usage",
+        "openrouter_pricing",
+        "aa_benchmarks",
+        "openrouter_throughput",
+        "openrouter_per_model_usage",
     ]
     default_actions = valid_actions
     hselacti.add_action_arg(parser, valid_actions, default_actions)
@@ -720,9 +768,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hcacsimp.parse_cache_control_args(args)
     # Select which data sources to query based on command-line actions.
     valid_actions = [
-        "fetch_aa_benchmarks",
-        "fetch_openrouter_throughput",
-        "fetch_openrouter_per_model_usage",
+        "openrouter_pricing",
+        "aa_benchmarks",
+        "openrouter_throughput",
+        "openrouter_per_model_usage",
     ]
     default_actions = valid_actions
     actions = hselacti.select_actions(args, valid_actions, default_actions)
@@ -733,28 +782,42 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         model_ids = _read_model_ids_from_list(args.models_list)
     _LOG.debug("model_ids=%s", str(model_ids))
-    # Fetch all models from the OpenRouter API.
-    api_lookup = _fetch_models_from_api()
-    _LOG.debug("api_lookup=%s", api_lookup.keys())
-    # Build base dataframe with pricing and context.
-    table = _build_base_dataframe(model_ids, api_lookup)
+    # Start with minimal dataframe containing just model IDs.
+    table = _build_model_ids_dataframe(model_ids)
     # Build and merge action-specific dataframes.
     dataframes_to_merge: List[pd.DataFrame] = []
     actions_copy = list(actions)
+    # Check which actions need API data.
+    needs_api_data = (
+        "openrouter_pricing" in actions or
+        "aa_benchmarks" in actions
+    )
+    api_lookup: Dict[str, Dict[str, Any]] = {}
+    if needs_api_data:
+        api_lookup = _fetch_models_from_api()
+        _LOG.debug("api_lookup=%s", api_lookup.keys())
+    # Build pricing dataframe.
+    to_exec_pricing, actions_copy = hselacti.mark_action(
+        "openrouter_pricing", actions_copy
+    )
+    if to_exec_pricing:
+        pricing_df = _build_openrouter_pricing_dataframe(model_ids, api_lookup)
+        dataframes_to_merge.append(pricing_df)
+    # Build benchmarks dataframe.
     to_exec_benchmarks, actions_copy = hselacti.mark_action(
-        "fetch_aa_benchmarks", actions_copy
+        "aa_benchmarks", actions_copy
     )
     if to_exec_benchmarks:
         benchmarks_df = _build_aa_benchmarks_dataframe(model_ids, api_lookup)
         dataframes_to_merge.append(benchmarks_df)
     to_exec_throughput, actions_copy = hselacti.mark_action(
-        "fetch_openrouter_throughput", actions_copy
+        "openrouter_throughput", actions_copy
     )
     if to_exec_throughput:
         throughput_df = _build_openrouter_throughput_dataframe(model_ids)
         dataframes_to_merge.append(throughput_df)
     to_exec_usage, actions_copy = hselacti.mark_action(
-        "fetch_openrouter_per_model_usage", actions_copy
+        "openrouter_per_model_usage", actions_copy
     )
     if to_exec_usage:
         usage_df = _build_openrouter_per_model_usage_dataframe(model_ids)
@@ -762,8 +825,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Merge all dataframes.
     if dataframes_to_merge:
         table = _merge_dataframes(table, dataframes_to_merge)
-    # Add efficiency column if possible.
-    if "Coding_IQ" in table.columns and "Speed_(tok/s)" in table.columns:
+    # Add efficiency column if all required columns are present.
+    if (
+        "Coding_IQ" in table.columns and
+        "Speed_(tok/s)" in table.columns and
+        "Input_Cost" in table.columns and
+        "Output_Cost" in table.columns
+    ):
         table["Efficiency"] = table.apply(calc_efficiency, axis=1)
     # Format and display the table.
     table = _format_table(table)
