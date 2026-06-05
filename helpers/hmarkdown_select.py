@@ -72,11 +72,13 @@ def add_select_arg(
         "--select",
         type=str,
         required=required,
+        # TODO(ai_gp): default=""
         default=None,
         help=(
             "Select text range as START:END. Examples: "
             "'## Section 1:## Section 2', 'Section 1:Section 2', ':END', "
-            "'START:' (extracts until next same-level header), 'START' (extracts until next same-level header), "
+            "'START:' (extracts until next same-level header), "
+            "'START' (extracts until next same-level header), "
             "or 'START:END' (where END is 'END' for EOF). "
             "START/END can be a header (with # or * prefix), title substring, "
             "or line number."
@@ -88,6 +90,7 @@ def add_select_arg(
 # #############################################################################
 
 
+# TODO(ai_gp): Return Tuple[str, str] using "" instead of None
 def parse_select_arg(select_str: str) -> Tuple[Optional[str], Optional[str]]:
     """
     Parse a --select argument into (start, end) components.
@@ -368,7 +371,9 @@ def find_header_from_input(
 def find_end_line(
     header_list: hmarhead.HeaderList,
     start_header_info: hmarhead.HeaderInfo,
+    # TODO(ai_gp): Use str and use "" instead of None
     end_header_input: Optional[str],
+# TODO(ai_gp): -> int and return -1 instead of None
 ) -> Optional[int]:
     """
     Find the line number where the text extraction should end.
@@ -411,6 +416,7 @@ def find_end_line(
 
 def get_chunk_bounds(
     lines: List[str],
+    # TODO(ai_gp): Use str and "" instead of None
     start_header_str: Optional[str],
     end_header_str: Optional[str],
     is_slide_format: bool = False,
@@ -516,6 +522,7 @@ def get_chunk_bounds(
 
 def extract_text_from_markdown_lines(
     lines: List[str],
+    # TODO(ai_gp): Use str and "" instead of None
     start_header_str: Optional[str],
     end_header_str: Optional[str],
     is_slide_format: bool = False,
@@ -584,6 +591,7 @@ def add_rule_cli_arg(
         "-r",
         "--rule",
         type=str,
+        # TODO(ai_gp): default=""
         default=None,
         dest="rule",
         help=(

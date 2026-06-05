@@ -62,7 +62,7 @@ import dev_scripts_helpers.documentation.update_md as dsdoupmd
 import argparse
 import logging
 import re
-from typing import Optional, Tuple
+from typing import Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -143,13 +143,12 @@ def _generate_summary(content: str, *, model: str, backend: str) -> str:
     return summary
 
 
-# TODO(ai_gp): -> Tuple[int, int] and return -1, -1 in case there is no match.
-def _find_summary_section(content: str) -> Tuple[Optional[int], Optional[int]]:
+def _find_summary_section(content: str) -> Tuple[int, int]:
     """
     Find the Summary section in the content.
 
     :param content: markdown content
-    :return: tuple of (start_pos, end_pos) or (None, None) if not found
+    :return: tuple of (start_pos, end_pos) or (-1, -1) if not found
     """
     _LOG.debug("Searching for existing Summary section")
     # Look for "# Summary" header.
@@ -157,7 +156,7 @@ def _find_summary_section(content: str) -> Tuple[Optional[int], Optional[int]]:
     match = re.search(pattern, content, re.MULTILINE)
     if not match:
         _LOG.debug("No Summary section found")
-        return None, None
+        return -1, -1
     # Find the start of the summary section.
     start_pos = match.start()
     # Find the end of the summary section (next # header or end of file).
@@ -171,20 +170,19 @@ def _find_summary_section(content: str) -> Tuple[Optional[int], Optional[int]]:
     return start_pos, end_pos
 
 
-# TODO(ai_gp): -> int and return -1 in case there is no match.
-def _find_tocstop_position(content: str) -> Optional[int]:
+def _find_tocstop_position(content: str) -> int:
     """
     Find the position right after the <!-- tocstop --> tag.
 
     :param content: markdown content
-    :return: position after tocstop tag, or None if not found
+    :return: position after tocstop tag, or -1 if not found
     """
     _LOG.debug("Searching for <!-- tocstop --> tag")
     pattern = r"<!-- tocstop -->"
     match = re.search(pattern, content, re.IGNORECASE)
     if not match:
         _LOG.debug("No <!-- tocstop --> tag found")
-        return None
+        return -1
     # Return position after the tag and any following newlines.
     end_pos = match.end()
     # Skip any trailing whitespace/newlines after the tag.
@@ -214,11 +212,11 @@ def _update_summary_section(content: str, summary: str) -> str:
     tocstop_pos = _find_tocstop_position(content)
     # Check if Summary section exists.
     summary_start, summary_end = _find_summary_section(content)
-    if tocstop_pos is not None:
+    if tocstop_pos != -1:
         # Place summary after tocstop tag.
         _LOG.info("Placing Summary section after <!-- tocstop --> tag")
         # If there's an existing summary section, remove it first.
-        if summary_start is not None:
+        if summary_start != -1:
             # Special handling: if summary is before tocstop, we need to be careful
             # not to remove the TOC section itself.
             if summary_start < tocstop_pos:
@@ -250,7 +248,7 @@ def _update_summary_section(content: str, summary: str) -> str:
         new_content = (
             content[:tocstop_pos] + new_summary_section + content[tocstop_pos:]
         )
-    elif summary_start is not None:
+    elif summary_start != -1:
         # Replace existing summary (no tocstop).
         _LOG.info("Replacing existing Summary section")
         new_content = (
