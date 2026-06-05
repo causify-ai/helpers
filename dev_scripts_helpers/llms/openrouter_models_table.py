@@ -506,11 +506,6 @@ def _build_rows(
         input_cost = float(api_data["input_cost"])
         output_cost = float(api_data["output_cost"])
         context = int(api_data["context_length"])
-        # Format.
-        # TODO(ai_gp): Use the actual values.
-        #input_cost_str = _format_cost(input_cost)
-        #output_cost_str = _format_cost(output_cost)
-        #context_str = _format_context(context)
         # Fetch and format benchmark scores from Artificial Analysis.
         to_exec_benchmarks, actions_copy = hselacti.mark_action(
             "fetch_aa_benchmarks", actions_copy
@@ -522,10 +517,6 @@ def _build_rows(
         # Extract correct keys from benchmarks dict.
         coding_bench = benchmarks.get("coding_score")
         intelligence_bench = benchmarks.get("intelligence_score")
-        # TODO(ai_gp): Use the actual values.
-        #coding_index_str = _format_benchmark(coding_bench)
-        #intelligence_str = _format_benchmark(intelligence_bench)
-        # Fetch throughput and compute efficiency metric.
         to_exec_throughput, actions_copy = hselacti.mark_action(
             "fetch_openrouter_throughput", actions_copy
         )
@@ -535,8 +526,6 @@ def _build_rows(
                 raise ValueError("model_id=%s -> throghput=%s" %( model_id, throughput))
         else:
             throughput = None
-        # TODO(ai_gp): Use the actual values.
-        speed_tok_s_str = f"{throughput:.0f}" if throughput and throughput > 0 else ""
         efficiency_str = _format_efficiency(
             coding_bench, throughput, input_cost, output_cost
         )
@@ -551,20 +540,18 @@ def _build_rows(
         usage_data = per_model_usage.get(model_id, {})
         week_tokens = usage_data.get("week_tokens", 0)
         month_tokens = usage_data.get("month_tokens", 0)
-        week_tokens_str = f"{week_tokens:,}" if week_tokens > 0 else ""
-        month_tokens_str = f"{month_tokens:,}" if month_tokens > 0 else ""
         # Assemble row with all fields in column order.
         row = [
             name,
             model_id,
-            input_cost_str,
-            output_cost_str,
-            context_str,
-            speed_tok_s_str,
-            week_tokens_str,
-            month_tokens_str,
-            coding_index_str,
-            intelligence_str,
+            input_cost,
+            output_cost,
+            context,
+            throughput,
+            week_tokens,
+            month_tokens,
+            coding_bench,
+            intelligence_bench,
             efficiency_str,
         ]
         _LOG.debug("row=%s", row)
@@ -653,13 +640,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Coding_IQ", "General_IQ", "Efficiency"
     ]
     # Assemble and display the table.
-    # TODO(ai_gp): Use the formatting function for each column.
-    #input_cost_str = _format_cost(input_cost)
-    #output_cost_str = _format_cost(output_cost)
-    #context_str = _format_context(context)
-    #coding_index_str = _format_benchmark(coding_bench)
-    #intelligence_str = _format_benchmark(intelligence_bench)
     table = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    # TODO(ai_gp): Use the formatting function for each column of the table
+    #_format_cost(input_cost)
+    #_format_cost(output_cost)
+    #_format_context(context)
+    #_format_benchmark(coding_bench)
+    #_format_benchmark(intelligence_bench)
     print(table.to_string())
 
 
