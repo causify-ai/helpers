@@ -146,9 +146,9 @@ def parse_file_selection_args(
 def add_input_output_args(
     parser: argparse.ArgumentParser,
     *,
-    in_default: Optional[str] = None,
+    in_default: str = "",
     in_required: bool = True,
-    out_default: Optional[str] = None,
+    out_default: str = "",
     out_required: bool = False,
 ) -> argparse.ArgumentParser:
     """
@@ -187,14 +187,14 @@ def add_input_output_args(
     parser.add_argument(
         "--input_files",
         nargs="+",
-        default=None,
+        default="",
         help="One or more files (space-separated, shell globs supported) or comma-separated list",
     )
     parser.add_argument(
         "--from_file",
         action="store",
         type=str,
-        default=None,
+        default="",
         help="Path to a file containing a list of files to process (one per line)",
     )
     return parser
@@ -242,7 +242,7 @@ def parse_input_output_args(
     """
     in_file_name = args.input
     out_file_name = args.output
-    if out_file_name is None:
+    if not out_file_name:
         out_file_name = in_file_name
     if in_file_name != "-":
         if clear_screen:
@@ -352,7 +352,7 @@ def adapt_input_output_args_for_dockerized_scripts(
 def add_dst_dir_arg(
     parser: argparse.ArgumentParser,
     dst_dir_required: bool,
-    dst_dir_default: Optional[str] = None,
+    dst_dir_default: str = "",
 ) -> argparse.ArgumentParser:
     """
     Add command line options related to destination directory.

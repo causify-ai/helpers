@@ -7,7 +7,7 @@ import helpers.hmarkdown_headers as hmarhead
 import dataclasses
 import logging
 import re
-from typing import List, Match, Optional, Tuple, cast
+from typing import List, Match, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -340,7 +340,7 @@ def extract_section_from_markdown(
     _LOG.debug(hprint.to_str("lines"))
     extracted_lines = []
     # Level of the current header being processed.
-    current_level: Optional[int] = None
+    current_level = 0
     # Flag to indicate if we're inside the desired section.
     inside_section: bool = False
     found = False
@@ -359,8 +359,7 @@ def extract_section_from_markdown(
             # Handle the end of the desired section when encountering another
             # header.
             if inside_section:
-                hdbg.dassert_is_not(current_level, None)
-                current_level = cast(int, current_level)
+                hdbg.dassert_ne(current_level, 0)
                 if header_level <= current_level:
                     break
             # Check if the current line is the desired header.

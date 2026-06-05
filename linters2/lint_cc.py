@@ -295,14 +295,14 @@ def _parse() -> argparse.ArgumentParser:
     action_group.add_argument(
         "--topic",
         type=str,
-        default=None,
+        default="",
         help="Claude Code skill topic (e.g., 'coding.format'). "
         "Can only be used with a single file.",
     )
     action_group.add_argument(
         "--skill",
         type=str,
-        default=None,
+        default="",
         help="Execute a skill on selected files. E.g., `coding.fix_inline`",
     )
     hmarsele.add_rule_cli_arg(action_group)

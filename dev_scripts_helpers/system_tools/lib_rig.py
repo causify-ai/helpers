@@ -63,7 +63,7 @@ def _build_ripgrep_command(
     return cmd
 
 
-def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
+def parse(description: str = "") -> argparse.ArgumentParser:
     """
     Create and return ArgumentParser for rig utility.
 
@@ -73,7 +73,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     :param description: Custom description for help output (defaults to module docstring)
     :return: Configured ArgumentParser instance
     """
-    if description is None:
+    if not description:
         description = __doc__
     parser = argparse.ArgumentParser(
         description=description,
@@ -102,7 +102,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         dest="todo_str",
         nargs="?",
         const="_default_",
-        default=None,
+        default="",
         help="Search for TODO(<string>) patterns (optional <string> parameter",
     )
     parser.add_argument(
@@ -241,7 +241,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
 
 def main(
     args: Optional[List[str]] = None,
-    description: Optional[str] = None,
+    description: str = "",
 ) -> int:
     """
     Main entry point for rig utility.

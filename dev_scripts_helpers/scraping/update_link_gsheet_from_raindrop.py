@@ -295,7 +295,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--url",
         action="store",
-        default=None,
+        default="",
         help="URL of the Google Sheets document (required for "
         "download_link_gsheet and upload_link_gsheet actions)",
     )

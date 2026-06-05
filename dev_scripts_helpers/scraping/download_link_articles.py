@@ -223,12 +223,12 @@ def _fetch_hn_comments(
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
-def _download_article_content(url: str) -> Optional[str]:
+def _download_article_content(url: str) -> str:
     """
     Download and extract article content from a URL.
 
     :param url: Article URL
-    :return: Article text or None if download fails
+    :return: Article text or empty string if download fails
     """
     hdbg.dassert_is_not(url, None)
     _LOG.debug("Downloading article from: %s", url)
@@ -257,7 +257,7 @@ def _download_article_content(url: str) -> Optional[str]:
         return text
     except Exception as e:
         _LOG.warning("Failed to download article from %s: %s", url, e)
-        return None
+        return ""
 
 
 def _add_comment_tree(
@@ -601,14 +601,14 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--row_idx",
         action="store",
-        default=None,
+        default="",
         help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10)",
     )
     # Optional: filter rows by non-empty values in this column.
     parser.add_argument(
         "--select_column",
         action="store",
-        default=None,
+        default="",
         help="Column name to use for filtering; only rows with non-empty cells in "
         "this column will be processed",
     )
