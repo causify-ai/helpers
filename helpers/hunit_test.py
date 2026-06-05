@@ -228,7 +228,7 @@ def diff_files(
     file_name1: str,
     file_name2: str,
     *,
-    tag: Optional[str] = None,
+    tag: str = "",
     abort_on_exit: bool = True,
     dst_dir: str = ".",
     error_msg: str = "",
@@ -407,7 +407,7 @@ def assert_equal(
     purify_expected_text: bool = False,
     fuzzy_match: bool = False,
     ignore_line_breaks: bool = False,
-    split_max_len: Optional[int] = None,
+    split_max_len: int = 0,
     sort: bool = False,
     abort_on_error: bool = True,
     dst_dir: str = ".",
@@ -627,7 +627,7 @@ def get_dir_signature(
     include_file_content: bool,
     *,
     remove_dir_name: bool = False,
-    num_lines: Optional[int] = None,
+    num_lines: int = 0,
 ) -> str:
     """
     Compute a string with the content of the files in `dir_name`.
@@ -710,12 +710,12 @@ def get_dir_signature(
             txt_tmp = txt_tmp.split("\n")
             # Filter lines, if needed.
             txt.append(f"num_lines={len(txt_tmp)}")
-            if num_lines is not None:
+            if num_lines:
                 hdbg.dassert_lte(1, num_lines)
                 txt_tmp = txt_tmp[:num_lines]
             txt.append("'''\n" + "\n".join(txt_tmp) + "\n'''")
     else:
-        hdbg.dassert_is(num_lines, None)
+        hdbg.dassert_eq(num_lines, 0)
     # Concat everything in a single string.
     result = "\n".join(txt)
     return result
@@ -752,7 +752,7 @@ def diff_strings(
     string1: str,
     string2: str,
     *,
-    tag: Optional[str] = None,
+    tag: str = "",
     abort_on_exit: bool = True,
     dst_dir: str = ".",
 ) -> None:
@@ -770,7 +770,7 @@ def diff_strings(
     file_name2 = f"{dst_dir}/tmp.string2.txt"
     hio.to_file(file_name2, string2)
     # Compare with diff_files.
-    if tag is None:
+    if not tag:
         tag = "string1 vs string2"
     diff_files(
         file_name1,
@@ -784,7 +784,7 @@ def diff_strings(
 def diff_df_monotonic(
     df: "pd.DataFrame",
     *,
-    tag: Optional[str] = None,
+    tag: str = "",
     abort_on_exit: bool = True,
     dst_dir: str = ".",
 ) -> None:
@@ -918,7 +918,7 @@ class TestCase(unittest.TestCase):
         if _HAS_MATPLOTLIB:
             plt.show = lambda: 0
         # Name of the dir with artifacts for this test.
-        self._scratch_dir: Optional[str] = None
+        self._scratch_dir: str = ""
         # The base directory is the one including the class under test.
         self._base_dir_name = os.path.dirname(inspect.getfile(self.__class__))
         _LOG.debug("base_dir_name=%s", self._base_dir_name)
@@ -1015,8 +1015,8 @@ class TestCase(unittest.TestCase):
     def _get_current_path(
         self,
         use_only_class_name: bool,
-        test_class_name: Optional[str],
-        test_method_name: Optional[str],
+        test_class_name: str,
+        test_method_name: str,
         use_absolute_path: bool,
     ) -> str:
         """
@@ -1029,14 +1029,14 @@ class TestCase(unittest.TestCase):
 
         The parameters have the same meaning as in `get_input_dir()`.
         """
-        if test_class_name is None:
+        if not test_class_name:
             test_class_name = self.__class__.__name__
         if use_only_class_name:
             # Use only class name.
             dir_name = test_class_name
         else:
             # Use both class and test method.
-            if test_method_name is None:
+            if not test_method_name:
                 test_method_name = self._testMethodName
             dir_name = f"{test_class_name}.{test_method_name}"
         if use_absolute_path:
@@ -1051,8 +1051,8 @@ class TestCase(unittest.TestCase):
         self,
         *,
         use_only_test_class: bool = False,
-        test_class_name: Optional[str] = None,
-        test_method_name: Optional[str] = None,
+        test_class_name: str = "",
+        test_method_name: str = "",
         use_absolute_path: bool = True,
     ) -> str:
         """
@@ -1083,8 +1083,8 @@ class TestCase(unittest.TestCase):
     def get_output_dir(
         self,
         *,
-        test_class_name: Optional[str] = None,
-        test_method_name: Optional[str] = None,
+        test_class_name: str = "",
+        test_method_name: str = "",
     ) -> str:
         """
         Return the path of the directory storing output data for this test
@@ -1111,8 +1111,8 @@ class TestCase(unittest.TestCase):
     def get_scratch_space(
         self,
         *,
-        test_class_name: Optional[str] = None,
-        test_method_name: Optional[str] = None,
+        test_class_name: str = "",
+        test_method_name: str = "",
         use_absolute_path: bool = True,
     ) -> str:
         """
@@ -1121,7 +1121,7 @@ class TestCase(unittest.TestCase):
         The directory is also created and cleaned up based on whether
         the incremental behavior is enabled or not.
         """
-        if self._scratch_dir is None:
+        if not self._scratch_dir:
             # Create the dir on the first invocation on a given test.
             use_only_test_class = False
             dir_name = self._get_current_path(
@@ -1142,8 +1142,8 @@ class TestCase(unittest.TestCase):
     def get_s3_scratch_dir(
         self,
         *,
-        test_class_name: Optional[str] = None,
-        test_method_name: Optional[str] = None,
+        test_class_name: str = "",
+        test_method_name: str = "",
     ) -> str:
         """
         Return the path of a directory storing scratch data on S3 for this
@@ -1179,8 +1179,8 @@ class TestCase(unittest.TestCase):
         self,
         *,
         use_only_test_class: bool = False,
-        test_class_name: Optional[str] = None,
-        test_method_name: Optional[str] = None,
+        test_class_name: str = "",
+        test_method_name: str = "",
         use_absolute_path: bool = False,
     ) -> str:
         """
@@ -1225,7 +1225,7 @@ class TestCase(unittest.TestCase):
         purify_expected_text: bool = False,
         fuzzy_match: bool = False,
         ignore_line_breaks: bool = False,
-        split_max_len: Optional[int] = None,
+        split_max_len: int = 0,
         sort: bool = False,
         abort_on_error: bool = True,
         dst_dir: str = ".",
@@ -1247,8 +1247,8 @@ class TestCase(unittest.TestCase):
         )
         # Get the current dir name.
         use_only_test_class = False
-        test_class_name = None
-        test_method_name = None
+        test_class_name = ""
+        test_method_name = ""
         use_absolute_path = True
         dir_name = self._get_current_path(
             use_only_test_class,
@@ -1364,8 +1364,8 @@ class TestCase(unittest.TestCase):
         self,
         tag: str,
         *,
-        test_class_name: Optional[str] = None,
-        test_method_name: Optional[str] = None,
+        test_class_name: str = "",
+        test_method_name: str = "",
     ) -> Tuple[str, str]:
         """
         Get the directory and file name for the golden outcome file.
@@ -1409,14 +1409,14 @@ class TestCase(unittest.TestCase):
         purify_text: bool = False,
         fuzzy_match: bool = False,
         ignore_line_breaks: bool = False,
-        split_max_len: Optional[int] = None,
+        split_max_len: int = 0,
         sort: bool = False,
         use_gzip: bool = False,
         tag: str = "test",
         abort_on_error: bool = True,
         action_on_missing_golden: str = _ACTION_ON_MISSING_GOLDEN,
-        test_class_name: Optional[str] = None,
-        test_method_name: Optional[str] = None,
+        test_class_name: str = "",
+        test_method_name: str = "",
     ) -> Tuple[bool, bool, Optional[bool]]:
         """
         Check the actual outcome of a test against the expected outcome
@@ -1706,7 +1706,7 @@ class TestCase(unittest.TestCase):
                         purify_text=False,
                         fuzzy_match=False,
                         ignore_line_breaks=False,
-                        split_max_len=None,
+                        split_max_len=0,
                         sort=False,
                         abort_on_error=abort_on_error,
                         error_msg=self._error_msg,
@@ -1745,10 +1745,10 @@ class TestCase(unittest.TestCase):
     def check_df_output(
         self,
         actual_df: "pd.DataFrame",
-        expected_length: Optional[int],
-        expected_column_names: Optional[List[str]],
-        expected_column_unique_values: Optional[Dict[str, List[Any]]],
-        expected_signature: str,
+        expected_length: int = -1,
+        expected_column_names: Optional[List[str]] = None,
+        expected_column_unique_values: Optional[Dict[str, List[Any]]] = None,
+        expected_signature: str = "",
     ) -> None:
         """
         Verify that actual outcome dataframe matches the expected one.
@@ -1768,7 +1768,7 @@ class TestCase(unittest.TestCase):
         import helpers.hpandas as hpandas
 
         hdbg.dassert_isinstance(actual_df, pd.DataFrame)
-        if expected_length:
+        if expected_length >= 0:
             # Verify that the output length is correct.
             actual_length = actual_df.shape[0]
             self.assert_equal(str(actual_length), str(expected_length))
@@ -1813,9 +1813,9 @@ class TestCase(unittest.TestCase):
     def check_srs_output(
         self,
         actual_srs: "pd.Series",
-        expected_length: Optional[int],
-        expected_unique_values: Optional[List[Any]],
-        expected_signature: str,
+        expected_length: int = -1,
+        expected_unique_values: Optional[List[Any]] = None,
+        expected_signature: str = "",
     ) -> None:
         """
         Verify that actual outcome series matches the expected one.
@@ -1832,7 +1832,7 @@ class TestCase(unittest.TestCase):
         import helpers.hpandas as hpandas
 
         hdbg.dassert_isinstance(actual_srs, pd.Series)
-        if expected_length:
+        if expected_length >= 0:
             # Verify that output length is correct.
             self.assert_equal(str(actual_srs.shape[0]), str(expected_length))
         if expected_unique_values:
