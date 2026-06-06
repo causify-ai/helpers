@@ -36,6 +36,7 @@ Use action selection flags to control which data sources are queried:
 """
 
 import argparse
+import datetime
 import json
 import logging
 import os
@@ -277,9 +278,6 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
         ```
     """
     _LOG.debug(hprint.func_signature_to_str())
-    # TODO(ai_gp): Move it up
-    from datetime import datetime, timedelta
-
     api_key = os.environ.get("OPENROUTER_API_KEY")
     hdbg.dassert(api_key, "OPENROUTER_API_KEY environment variable must be set")
     # Get the data.
@@ -302,9 +300,9 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     else:
         rankings = []
     per_model_usage: Dict[str, Dict[str, Any]] = {}
-    today = datetime.now().date()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
+    today = datetime.datetime.now().date()
+    week_ago = today - datetime.timedelta(days=7)
+    month_ago = today - datetime.timedelta(days=30)
     for ranking in rankings:
         if not isinstance(ranking, dict):
             continue
@@ -319,7 +317,7 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
         date_str = ranking.get("date", "")
         if not date_str:
             continue
-        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
         if model_permaslug not in per_model_usage:
             per_model_usage[model_permaslug] = {
                 "week_tokens": 0,
@@ -411,7 +409,6 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
     return lookup
 
 
-# TODO(ai_gp): Remove empty lines and add comments to code blocks.
 def _build_openrouter_id_to_permaslug(
     api_lookup: Dict[str, Dict[str, Any]],
     available_permaslugs: Optional[List[str]] = None,
@@ -428,61 +425,66 @@ def _build_openrouter_id_to_permaslug(
     """
     _LOG.debug(hprint.func_signature_to_str())
     result: Dict[OpenRouterId, OpenRouterPermaslug] = {}
-
     hdbg.dassert(available_permaslugs,
         "No available permaslugs provided")
-
     for model_id in api_lookup.keys():
+        # Skip entries without provider prefix (e.g., canonical_slug aliases).
         if "/" not in model_id:
             continue
-
         model_id_lower = model_id.lower()
         best_match = None
         best_match_score = 0
-
+        # Try multiple matching strategies in order of confidence:
+        # 1. Full model ID substring match (highest confidence)
+        # 2. Model name exact match after splitting by "/"
+        # 3. Model name substring match
+        # 4. Normalized fuzzy match
+        # 5. Normalized substring match (lowest confidence)
         for permaslug in available_permaslugs:
             permaslug_lower = permaslug.lower()
-
+            # Strategy 1: Check if full model_id appears in permaslug (e.g.,
+            # "openai/gpt-4-omni" contains "openai/gpt-4-omni" exactly).
             if model_id_lower in permaslug_lower:
                 best_match = permaslug
                 best_match_score = 3
                 break
-
+            # Strategy 2: Extract and compare just the model names after "/" to handle
+            # different provider prefixes (e.g., "gpt-4-omni" == "gpt-4-omni").
             _, model_name = model_id.split("/", 1)
             if "/" in permaslug:
                 _, permaslug_name = permaslug.split("/", 1)
             else:
                 permaslug_name = permaslug
-
             if model_name.lower() == permaslug_name.lower():
                 best_match = permaslug
                 best_match_score = 3
                 break
-
+            # Strategy 3: Substring match on model names (handles partial names).
             if model_name.lower() in permaslug_name.lower():
                 if best_match_score < 2:
                     best_match = permaslug
                     best_match_score = 2
-
+            # Strategy 4 & 5: Normalize both strings (remove versions, dates) for
+            # fuzzy matching. Handles "claude-3.5" == "claude-3-5" after normalization.
             normalized_model = _normalize_for_fuzzy_matching(model_id)
             normalized_perma = _normalize_for_fuzzy_matching(permaslug)
-
             if normalized_model == normalized_perma:
                 if best_match_score < 2:
                     best_match = permaslug
                     best_match_score = 2
             elif (normalized_model in normalized_perma and
                   len(normalized_model) > 5):
+                # Only accept short normalized names as substrings if they're long
+                # enough (>5 chars) to avoid false positives (e.g., "gpt" matching
+                # "gpt-4-omni", "gpt-4-vision", etc.).
                 if best_match_score < 1:
                     best_match = permaslug
                     best_match_score = 1
-
         if best_match:
             result[model_id] = best_match
             _LOG.debug("Mapped %s -> %s (score=%f)", model_id, best_match, best_match_score)
         else:
             _LOG.debug("No permaslug match found for %s", model_id)
-
     _LOG.info("Built permaslug mapping with %d entries", len(result))
     return result
 
