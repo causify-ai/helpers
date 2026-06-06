@@ -54,6 +54,13 @@ import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
+
+# There are several representations of model names:
+# - Short model name: "claude-opus-4.7"
+# - Short OpenRouter ID: "google/gemini-3.1-pro-preview" (provider/model-name)
+# - Full versioned OpenRouter ID: "anthropic/claude-4.7-opus-20260416"
+# - Artificial Analysis slug: "claude-opus-4-7"
+
 OpenRouterId = str
 AaSlug = str
 OpenRouterPermaslug = str
@@ -132,9 +139,16 @@ def _build_short_to_full_model_map() -> Dict[str, str]:
     Build a mapping from short model names to full OpenRouter API model names.
 
     :return: Dict mapping short names (case-insensitive) to full model IDs
+        ```
+        {
+            'claude-opus-4.7': 'anthropic/claude-4.7-opus-20260416',
+            'google/gemini-3.1-pro-preview': 'google/gemini-3.1-pro-preview'
+        }
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     models = _fetch_models_from_api()
+    # Build the map.
     short_to_full: Dict[str, str] = {}
     for model_id in models.keys():
         if "/" not in model_id:
@@ -156,6 +170,11 @@ def _normalize_for_fuzzy_matching(name: str) -> str:
 
     :param name: Model name to normalize
     :return: Normalized lowercase name for fuzzy comparison
+        "claude-opus-4.7" -> "claude-opus"
+        "claude-4.7-opus-20260416" -> "claude-opus"
+        "gemini-2.5-pro" -> "gemini-pro"
+        "google/gemini-3.1-pro-preview" -> "gemini-pro-preview"
+        "anthropic/claude-opus-4.7" -> "claude-opus"
     """
     name = name.lower()
     if "/" in name:
@@ -175,6 +194,10 @@ def _normalize_for_aa_lookup(name: str) -> AaSlug:
 
     :param name: Model name in any format
     :return: Normalized slug format
+        "anthropic/claude-opus-4.7" -> "claude-opus-4-7"
+        "Anthropic: Claude Opus 4.7" -> "claude-opus-4-7"
+        "claude-opus-4.7" -> "claude-opus-4-7"
+        "claude-opus-4-7" -> "claude-opus-4-7"
     """
     normalized = name
     if "/" in normalized:
@@ -183,6 +206,11 @@ def _normalize_for_aa_lookup(name: str) -> AaSlug:
         normalized = normalized.split(":", 1)[1].strip()
     normalized = normalized.replace(" ", "-").replace(".", "-").lower()
     return normalized
+
+
+# #############################################################################
+# Fetch data
+# #############################################################################
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -383,6 +411,7 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
     return lookup
 
 
+# TODO(ai_gp): Remove empty lines and add comments to code blocks.
 def _build_openrouter_id_to_permaslug(
     api_lookup: Dict[str, Dict[str, Any]],
     available_permaslugs: Optional[List[str]] = None,
@@ -400,9 +429,8 @@ def _build_openrouter_id_to_permaslug(
     _LOG.debug(hprint.func_signature_to_str())
     result: Dict[OpenRouterId, OpenRouterPermaslug] = {}
 
-    if not available_permaslugs:
-        _LOG.info("No available permaslugs provided, returning empty mapping")
-        return result
+    hdbg.dassert(available_permaslugs,
+        "No available permaslugs provided")
 
     for model_id in api_lookup.keys():
         if "/" not in model_id:
@@ -496,6 +524,9 @@ def _fetch_aa_benchmarks(aa_slug: AaSlug) -> Dict[str, Optional[float]]:
 
     :param aa_slug: AA slug (e.g., "claude-opus-4-7")
     :return: Dict with "coding_score" and "intelligence_score" (None if not found)
+        ```
+        {'coding_score': None, 'intelligence_score': None}
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     aa_models = _fetch_all_aa_models()
@@ -846,6 +877,12 @@ def _build_openrouter_pricing_dataframe(
     :param model_ids: List of full OpenRouter IDs (e.g., "openai/gpt-4-omni")
     :param api_lookup: Dict from _fetch_models_from_api() with pricing/context
     :return: DataFrame with columns: Model_ID, Name, Input_Cost, Output_Cost, Context
+        ```
+        Model_ID | Name | Input_Cost | Output_Cost | Context
+        ---
+        openai/gpt-4-omni | "OpenAI: GPT-4 Omni" | 2.5 | 10.0 | 128000
+        anthropic/claude-opus | "Anthropic: Claude Opus" | 3.0 | 15.0 | 200000
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
@@ -894,6 +931,12 @@ def _build_aa_benchmarks_dataframe(
     :param model_ids: List of full OpenRouter IDs
     :param id_to_aa_slug: Prebuilt mapping from _build_openrouter_id_to_aa_slug()
     :return: DataFrame with columns: Model_ID, Coding_IQ, General_IQ
+        ```
+        Model_ID | Coding_IQ | General_IQ
+        ---
+        openai/gpt-4-omni | 75.2 | 88.5
+        anthropic/claude-opus | 72.3 | 85.2
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
@@ -929,6 +972,13 @@ def _build_openrouter_throughput_dataframe(
 
     :param model_ids: List of full OpenRouter model IDs
     :return: DataFrame with columns: Model_ID, Speed_(tok/s) (in tokens/second)
+        ```
+        Model_ID | Speed_(tok/s)
+        ---
+        openai/gpt-4-omni | 25.5
+        anthropic/claude-opus | 18.2
+        deepseek/deepseek-chat | None
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
@@ -961,6 +1011,12 @@ def _build_openrouter_per_model_usage_dataframe(
     :param id_to_permaslug: Prebuilt mapping from _build_openrouter_id_to_permaslug()
     :param per_model_usage: Pre-fetched usage data from _fetch_openrouter_per_model_usage()
     :return: DataFrame with columns: Model_ID, Week_Tokens, Month_Tokens
+        ```
+        Model_ID | Week_Tokens | Month_Tokens
+        ---
+        gpt-4-omni | 1234567890 | 5678901234
+        claude-opus | 987654321 | 4567890123
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     _LOG.debug("id_to_permaslug has %d entries", len(id_to_permaslug))
