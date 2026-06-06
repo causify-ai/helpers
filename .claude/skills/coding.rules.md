@@ -440,6 +440,46 @@
 - Make sure all the functions have a REST comments in docstrings
   - Add docstrings to functions and file that are missing
 
+## Add Input/Output Examples to Docstrings When Non-Obvious
+
+- Include concrete examples of inputs and outputs in function docstrings when
+  the expected data types or formats are not immediately apparent from the
+  signature or parameter names
+- Use examples in these scenarios:
+  - Complex data structures (nested dicts, custom objects, specific formats)
+  - Transformations where the output differs significantly from the input
+  - Edge cases or special values that need clarification
+  - When parameter purposes or expected ranges are ambiguous
+
+- **Bad**: Vague description without examples for complex transformation
+  ````python
+  def transform_data(raw_input):
+      """
+      Transform raw input into normalized format.
+      
+      :param raw_input: Input data to transform
+      :return: Transformed data
+      """
+  ````
+- **Good**: Clear examples showing input/output for complex transformation
+  ````python
+  def transform_data(raw_input):
+      """
+      Transform raw input into normalized format.
+      
+      :param raw_input: Dict with keys 'name', 'age', 'salary'
+          Example:
+          ```
+          {'name': 'Alice', 'age': '30', 'salary': '50000.00'}
+          ```
+      :return: Dict with normalized values (strings to proper types)
+          Example:
+          ```
+          {'name': 'Alice', 'age': 30, 'salary': 50000.0}
+          ```
+      """
+  ````
+
 ## Use Verbatim to Refer to Python Objects
 
 - When referring to Python objects (e.g., variables, classes, and functions) in

@@ -55,26 +55,34 @@ import helpers.hselect_action as hselacti
 _LOG = logging.getLogger(__name__)
 
 
+# There are several representation of model names
+# - Short model name: "claude-opus-4.7"
+# - Short OpenRouter ID: "google/gemini-3.1-pro-preview" (provider/model-name)
+# - Full versioned OpenRouter ID: "anthropic/claude-4.7-opus-20260416"
+# - Artificial Analysis: "claude-opus-4-7"
+
 # #############################################################################
 # API Fetching Layer: OpenRouter
 # #############################################################################
 
 
+# @functools.lru_cache
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
     """
     Fetch all models from the OpenRouter API.
 
     :return: Dict mapping model ID (e.g. "google/gemini-3.1-pro-preview")
+        to a dict with structure:
         ```
-        {'coding_index_bench': None,
-         'context_length': 128000,
-         'input_cost': 0.0,
-         'name': 'NVIDIA: Nemotron 3.5 Content Safety (free)',
-         'output_cost': 0.0}
+        {
+            'name': 'Google: Gemini 3.1 Pro Preview',
+            'input_cost': 0.075,  # per 1M tokens
+            'output_cost': 0.3,   # per 1M tokens
+            'context_length': 128000,
+            'coding_index_bench': None
+        }
         ```
-        to a dict with keys "name", "input_cost", "output_cost",
-        "context_length"
     """
     _LOG.debug(hprint.func_signature_to_str())
     url = "https://openrouter.ai/api/v1/models"
@@ -126,14 +134,17 @@ def _build_short_to_full_model_map() -> Dict[str, str]:
     """
     Build a mapping from short model names to full OpenRouter API model names.
 
-    Fetches all models from OpenRouter API and creates a map of short names
-    (e.g., "claude-opus-4.7") to full versioned names (e.g.,
-    "anthropic/claude-4.7-opus-20260416").
-
-    :return: Dict mapping short names to full model IDs
+    :return: Dict mapping short names (case-insensitive) to full model IDs
+        ```
+        {
+            'claude-opus-4.7': 'anthropic/claude-4.7-opus-20260416',
+            'google/gemini-3.1-pro-preview': 'google/gemini-3.1-pro-preview'
+        }
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     models = _fetch_models_from_api()
+    # Build the map.
     short_to_full: Dict[str, str] = {}
     for model_id in models.keys():
         if "/" not in model_id:
@@ -146,15 +157,17 @@ def _build_short_to_full_model_map() -> Dict[str, str]:
 
 def _normalize_model_name_for_matching(name: str) -> str:
     """
-    Normalize a model name by removing version suffixes and dates for matching.
+    Normalize a model name by removing version suffixes and dates for fuzzy matching.
 
-    Converts:
-    - "claude-opus-4.7" to "claude-opus"
-    - "claude-4.7-opus-20260416" to "claude-opus"
-    - "gemini-2.5-pro" to "gemini-pro"
+    Removes version numbers, dates, and provider prefixes to enable fuzzy matching.
 
     :param name: Model name to normalize
-    :return: Normalized name for comparison
+    :return: Normalized lowercase name for fuzzy comparison
+        "claude-opus-4.7" -> "claude-opus"
+        "claude-4.7-opus-20260416" -> "claude-opus"
+        "gemini-2.5-pro" -> "gemini-pro"
+        "google/gemini-3.1-pro-preview" -> "gemini-pro-preview"
+        "anthropic/claude-opus-4.7" -> "claude-opus"
     """
     name = name.lower()
     if "/" in name:
@@ -172,9 +185,10 @@ def _resolve_model_name(short_name: str, short_to_full: Dict[str, str]) -> str:
     Tries exact match first, then fuzzy matching by removing version suffixes
     and dates to find the closest match.
 
-    :param short_name: Model name (short or full)
+    :param short_name: Model name (short, full OpenRouter ID, or unrecognized)
     :param short_to_full: Mapping of short names to full model IDs
     :return: Full model ID or original name if no match found
+        "claude-opus-4.7" -> 'anthropic/claude-4.7-opus-20260416'
     """
     _LOG.debug(hprint.func_signature_to_str())
     short_lower = short_name.lower()
@@ -197,11 +211,14 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
     """
     Fetch throughput (tokens/sec) from OpenRouter page for a model.
 
-    Scrapes the model detail page and extracts throughput information from
-    embedded JSON data.
+    Scrapes the OpenRouter model detail page and extracts throughput information
+    from embedded JSON data (p50_throughput metric).
 
-    :param model_id: OpenRouter model ID (e.g., "google/gemini-3.1-pro-preview")
-    :return: Throughput in tokens/sec or None if not found
+    :param model_id: Full OpenRouter model ID (must contain "/" separator)
+        - Full OpenRouter ID: "google/gemini-3.1-pro-preview" or
+          "anthropic/claude-4.7-opus-20260416" (provider/model-name)
+    :return: Throughput in tokens/sec (float) or None if not found
+        E.g., 25.5  # tokens per second (50th percentile)
     """
     _LOG.debug(hprint.func_signature_to_str())
     url = f"https://openrouter.ai/{model_id}"
@@ -235,9 +252,22 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
 
     The API returns daily rankings data over the past 30 days. This function
     aggregates total_tokens by model and date range to compute weekly and
-    monthly usage statistics.
+    monthly usage statistics. Uses model_permaslug as the key.
 
-    :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
+    :return: Dict mapping model permaslug to usage stats with
+        'week_tokens' (past 7 days) and 'month_tokens' (past 30 days)
+        ```
+        {
+            "gpt-4-omni": {
+                "week_tokens": 1234567890,
+                "month_tokens": 5678901234
+            },
+            "claude-3-opus": {
+                "week_tokens": 987654321,
+                "month_tokens": 4567890123
+            }
+        }
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     # TODO(ai_gp): Move it up
@@ -312,7 +342,24 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
 
     Uses the direct endpoint: https://artificialanalysis.ai/api/v2/data/llms/models
 
-    :return: Dict mapping model name/slug to full model data including benchmarks
+    :return: Dict mapping model slug/name (lowercase) to full model data with benchmarks
+        ```
+        {
+            "name": "Claude 3.5 Opus",
+            "slug": "claude-opus-3-5",
+            "evaluations": {
+                "artificial_analysis_coding_index": 72.3,
+                "artificial_analysis_intelligence_index": 85.2,
+                "mmlu_pro": 0.92,
+                ...
+            },
+            "pricing": {
+                "price_1m_input_tokens": 3.0,
+                "price_1m_output_tokens": 15.0,
+                ...
+            }
+        }
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     url = "https://artificialanalysis.ai/api/v2/data/llms/models"
@@ -360,15 +407,14 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _normalize_model_name(name: str) -> str:
     """
-    Normalize model name for consistent matching across naming conventions.
+    Normalize model name for consistent matching across all naming conventions.
 
-    Handles multiple naming formats:
-    - OpenRouter ID format: "provider/model-name" (e.g. "anthropic/claude-opus-4.7")
-    - OpenRouter API name format: "Provider: Model Name" (e.g. "Anthropic: Claude Opus 4.7")
-    - Artificial Analysis format: slug with dashes (e.g. "claude-opus-4-7")
-
-    :param name: Model name to normalize
-    :return: Normalized name (e.g. "claude-opus-4-7")
+    :param name: Model name in any of the three formats
+    :return: Normalized slug format (lowercase, dashes, no dots)
+        "anthropic/claude-opus-4.7" -> "claude-opus-4-7"
+        "Anthropic: Claude Opus 4.7" -> "claude-opus-4-7"
+        "claude-opus-4.7" -> "claude-opus-4-7"
+        "claude-opus-4-7" -> "claude-opus-4-7"
     """
     normalized = name
     if "/" in normalized:
@@ -383,9 +429,11 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     """
     Fetch benchmark data from Artificial Analysis API using cached models.
 
-    :param model_name: Model name to search for
-    :return: Dict with "coding_score", "intelligence_score"
-        benchmark scores
+    :param model_name: Model name in OpenRouter or AA format
+    :return: Dict with "coding_score" and "intelligence_score" (None if not found)
+        ```
+        {'coding_score': None, 'intelligence_score': None}
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     aa_models = _fetch_all_aa_models()
@@ -470,10 +518,17 @@ def _format_cost(cost: float) -> str:
     """
     Format cost per 1M tokens with appropriate precision.
 
-    Adjusts decimal places based on the magnitude of the cost value.
+    Adjusts decimal places based on the magnitude of the cost value to keep
+    numbers readable while preserving precision.
 
-    :param cost: Cost per 1M tokens
-    :return: Formatted cost string with appropriate precision
+    :param cost: Cost value per 1M tokens (float)
+    :return: Formatted cost string with 0-4 decimal places based on magnitude
+        0.0 -> "0"
+        0.000075 -> "0.0001"
+        0.003 -> "0.003"
+        0.5 -> "0.50"
+        2.5 -> "2.50"
+        15.0 -> "15.0"
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Choose precision based on cost magnitude to keep values readable.
@@ -494,10 +549,17 @@ def _format_context(ctx: int) -> str:
     """
     Format context length as human-readable string.
 
-    Converts context length to human-readable format (e.g., "128K", "1M").
+    Converts context length to human-readable format with appropriate units.
 
-    :param ctx: Context length in tokens
-    :return: Human-readable string representation
+    :param ctx: Context length in tokens (integer)
+    :return: Human-readable string with K (thousands) or M (millions) suffix
+        0 -> "0"
+        500 -> "500"
+        4000 -> "4K"
+        128000 -> "128K"
+        1000000 -> "1M"
+        2000000 -> "2M"
+
     """
     if ctx >= 1_000_000:
         result = f"{ctx / 1_000_000:.0f}M"
@@ -512,8 +574,13 @@ def _format_benchmark(score: Optional[float]) -> str:
     """
     Format a benchmark score for display.
 
-    :param score: Benchmark score or None
-    :return: Formatted string or empty string if None
+    :param score: Benchmark score value or None
+    :return: Formatted string with 1 decimal place, or empty string if None
+        None -> ""
+        0.0 -> "0.0"
+        0.782 -> "0.8"
+        72.345 -> "72.3"
+        92.999 -> "93.0"
     """
     if score is None:
         result = ""
@@ -529,9 +596,16 @@ def _format_efficiency(
     output_cost: float,
 ) -> str:
     """
-    Compute Efficiency = Coding_Score × Throughput / (Input + Output Cost).
+    Compute Efficiency metric = (Coding_Score × Throughput) / (Input_Cost + Output_Cost).
 
-    :return: Formatted string or "N/A" if fields are missing
+    Efficiency measures performance-per-dollar: higher scores are better.
+    Formula helps identify models with good quality and speed at low cost.
+
+    :param coding_score: Artificial Analysis coding index score (0-100 scale)
+    :param throughput: Throughput in tokens/sec
+    :param input_cost: Input cost per 1M tokens
+    :param output_cost: Output cost per 1M tokens
+    :return: Formatted integer string, "N/A" if data is missing or cost is zero
     """
     if coding_score is None or throughput is None:
         result = "N/A"
@@ -549,8 +623,25 @@ def _format_table(table: pd.DataFrame) -> pd.DataFrame:
     """
     Format table columns using appropriate formatting functions.
 
-    :param table: DataFrame with raw unformatted data
-    :return: DataFrame with formatted string columns
+    Applies formatting to numerical columns for display:
+    - Input_Cost, Output_Cost: formatted via _format_cost()
+    - Context: formatted via _format_context()
+    - Speed_(tok/s): formatted via _format_benchmark()
+    - Coding_IQ, General_IQ: formatted via _format_benchmark()
+
+    :param table: DataFrame with raw numerical data
+        ```
+        Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
+        ---
+        openai/... | 0.003 | 0.015 | 128000 | 25.5 | 72.3
+        ```
+
+    :return: DataFrame with formatted string columns for display
+        ```
+        Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
+        ---
+        openai/... | "0.003" | "0.015" | "128K" | "25.5" | "72.3"
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     table = table.copy()
@@ -580,11 +671,22 @@ def _read_model_ids_from_file(models_file: str) -> List[str]:
     """
     Read model IDs from a text file, one per line.
 
-    Supports both short names (e.g., "claude-opus-4.7") and full names
-    (e.g., "anthropic/claude-4.7-opus-20260416").
+    Supports both short and full model name formats:
+    - Short name: "claude-opus-4.7"
+    - Full OpenRouter ID: "anthropic/claude-4.7-opus-20260416"
+    - Short OpenRouter ID: "google/gemini-3.1-pro-preview"
 
-    :param models_file: Path to the file
-    :return: List of model ID strings
+    File format:
+    - One model ID per line
+    - Lines starting with '#' are comments and ignored
+    - Empty lines are ignored
+
+    :param models_file: Path to the text file
+    :return: List of model ID strings (comments and empty lines filtered out)
+        - E.g.,
+        ```
+        ['claude-opus-4.7', 'google/gemini-3.1-pro-preview', 'openai/gpt-4-omni']
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_file_exists(models_file, "Models file must exist")
@@ -608,9 +710,6 @@ def _read_model_ids_from_list(models_list_str: str) -> List[str]:
     """
     Parse model IDs from a space-separated string.
 
-    Supports both short names (e.g., "claude-opus-4.7") and full names
-    (e.g., "anthropic/claude-4.7-opus-20260416").
-
     :param models_list_str: Space-separated model IDs
     :return: List of model ID strings
     """
@@ -627,10 +726,21 @@ def _resolve_model_ids(model_ids: List[str]) -> List[str]:
     Resolve short model names to their full OpenRouter API versions.
 
     For each model ID, tries to match it to the full versioned name used by
-    the OpenRouter API. If no match is found, returns the original name.
+    the OpenRouter API using exact and fuzzy matching. If no match is found,
+    returns the original name.
 
-    :param model_ids: List of model IDs (short or full names)
-    :return: List of resolved model IDs
+    Input formats:
+    - Short name: "claude-opus-4.7"
+    - Short OpenRouter ID: "google/gemini-3.1-pro-preview"
+    - Full OpenRouter ID: "anthropic/claude-4.7-opus-20260416"
+
+    Output format:
+    - Full OpenRouter ID: "anthropic/claude-4.7-opus-20260416"
+
+    :param model_ids: List of model IDs (any mix of short/full names)
+        E.g., `["claude-opus-4.7", "gpt-4o"]`
+    :return: List of resolved full OpenRouter IDs
+        E.g., `['anthropic/claude-4.7-opus-20260416', 'openai/gpt-4-omni']`
     """
     _LOG.debug(hprint.func_signature_to_str())
     _LOG.info("Building model name resolution map...")
@@ -650,8 +760,15 @@ def _build_model_ids_dataframe(
     """
     Build minimal dataframe with just model IDs for merging purposes.
 
-    :param model_ids: List of model IDs from the input file
-    :return: DataFrame with Model_ID column
+    Creates a base dataframe to which other dataframes (pricing, benchmarks,
+    throughput, usage) are merged using the Model_ID column.
+
+    Input format:
+    - Full OpenRouter ID: "google/gemini-3.1-pro-preview" or
+      "anthropic/claude-4.7-opus-20260416"
+
+    :param model_ids: List of resolved model IDs (full OpenRouter format)
+    :return: DataFrame with single Model_ID column
     """
     _LOG.debug(hprint.func_signature_to_str())
     data = [[model_id] for model_id in model_ids]
@@ -668,9 +785,18 @@ def _build_openrouter_pricing_dataframe(
     """
     Build dataframe with OpenRouter pricing and context data.
 
-    :param model_ids: List of model IDs from the input file
-    :param api_lookup: Dict from _fetch_models_from_api() with pricing and context
-    :return: DataFrame with Model_ID, Name, Input_Cost, Output_Cost, and Context
+    Fetches pricing information from the OpenRouter API lookup dict.
+    Costs are stored per 1M tokens (not per-token).
+
+    :param model_ids: List of full OpenRouter IDs (e.g., "openai/gpt-4-omni")
+    :param api_lookup: Dict from _fetch_models_from_api() with pricing/context
+    :return: DataFrame with columns: Model_ID, Name, Input_Cost, Output_Cost, Context
+        ```
+        Model_ID | Name | Input_Cost | Output_Cost | Context
+        ---
+        openai/gpt-4-omni | "OpenAI: GPT-4 Omni" | 2.5 | 10.0 | 128000
+        anthropic/claude-opus | "Anthropic: Claude Opus" | 3.0 | 15.0 | 200000
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
@@ -714,9 +840,18 @@ def _build_aa_benchmarks_dataframe(
     """
     Build dataframe with Artificial Analysis benchmark scores.
 
-    :param model_ids: List of model IDs from the input file
-    :param api_lookup: Dict from _fetch_models_from_api()
-    :return: DataFrame with Model_ID and benchmark columns
+    Fetches benchmark scores from the Artificial Analysis API by model name.
+    Scores come from the OpenRouter API name field (e.g., "Anthropic: Claude Opus").
+
+    :param model_ids: List of resolved full OpenRouter model IDs
+    :param api_lookup: Dict from _fetch_models_from_api() with display names
+    :return: DataFrame with columns: Model_ID, Coding_IQ, General_IQ
+        ```
+        Model_ID | Coding_IQ | General_IQ
+        ---
+        openai/gpt-4-omni | 75.2 | 88.5
+        anthropic/claude-opus | 72.3 | 85.2
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
@@ -749,8 +884,17 @@ def _build_openrouter_throughput_dataframe(
     """
     Build dataframe with OpenRouter throughput data.
 
-    :param model_ids: List of model IDs from the input file
-    :return: DataFrame with Model_ID and throughput column
+    Fetches p50_throughput metric (50th percentile) from OpenRouter model pages.
+
+    :param model_ids: List of resolved full OpenRouter model IDs
+    :return: DataFrame with columns: Model_ID, Speed_(tok/s) (in tokens/second)
+        ```
+        Model_ID | Speed_(tok/s)
+        ---
+        openai/gpt-4-omni | 25.5
+        anthropic/claude-opus | 18.2
+        deepseek/deepseek-chat | None
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
@@ -775,8 +919,18 @@ def _build_openrouter_per_model_usage_dataframe(
     """
     Build dataframe with OpenRouter per-model usage statistics.
 
-    :param model_ids: List of model IDs from the input file
-    :return: DataFrame with Model_ID and usage columns
+    Fetches usage data from OpenRouter rankings API and aggregates by date range.
+    Note: Uses model_permaslug (from rankings API) which may differ from full
+    OpenRouter model IDs.
+
+    :param model_ids: List of resolved full OpenRouter model IDs
+    :return: DataFrame with columns: Model_ID, Week_Tokens, Month_Tokens
+        ```
+        Model_ID | Week_Tokens | Month_Tokens
+        ---
+        gpt-4-omni | 1234567890 | 5678901234
+        claude-opus | 987654321 | 4567890123
+        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     per_model_usage = _fetch_openrouter_per_model_usage()
@@ -806,9 +960,12 @@ def _merge_dataframes(
     """
     Merge action-specific dataframes with the base dataframe.
 
-    :param base_df: Base dataframe with pricing and context
-    :param dataframes: List of action-specific dataframes to merge
-    :return: Merged dataframe
+    Performs left join on Model_ID column to combine data from multiple sources.
+    Dataframes are merged in order provided.
+
+    :param base_df: Base dataframe with Model_ID (typically from pricing action)
+    :param dataframes: List of action-specific dataframes (benchmarks, throughput, usage)
+    :return: Merged dataframe with all columns from all input dataframes
     """
     _LOG.debug(hprint.func_signature_to_str())
     result = base_df.copy()
@@ -823,6 +980,17 @@ def _merge_dataframes(
 
 
 def calc_efficiency(row: pd.Series) -> str:
+    """
+    Calculate efficiency score for a model row (applied via DataFrame.apply).
+
+    Efficiency = (Coding_IQ × Speed_(tok/s)) / (Input_Cost + Output_Cost)
+
+    This function is used as a callback for DataFrame.apply(axis=1) to compute
+    efficiency across all rows.
+
+    :param row: pandas Series representing a single model row
+    :return: Formatted efficiency string or "N/A" if data missing
+    """
     if "Input_Cost" not in row.index or "Output_Cost" not in row.index:
         return "N/A"
     coding_iq_val = row["Coding_IQ"]
@@ -937,7 +1105,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if to_exec_pricing:
         pricing_df = _build_openrouter_pricing_dataframe(model_ids, api_lookup)
-        _LOG.info("OpenRouter Pricing DataFrame:\n%s", pricing_df.to_string())
+        _LOG.debug("OpenRouter Pricing DataFrame:\n%s", pricing_df.to_string())
         dataframes_to_merge.append(pricing_df)
     # Build benchmarks dataframe.
     to_exec_benchmarks, actions_copy = hselacti.mark_action(
@@ -945,26 +1113,30 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if to_exec_benchmarks:
         benchmarks_df = _build_aa_benchmarks_dataframe(model_ids, api_lookup)
-        _LOG.info("AA Benchmarks DataFrame:\n%s", benchmarks_df.to_string())
+        _LOG.debug("AA Benchmarks DataFrame:\n%s", benchmarks_df.to_string())
         dataframes_to_merge.append(benchmarks_df)
     to_exec_throughput, actions_copy = hselacti.mark_action(
         "openrouter_throughput", actions_copy
     )
     if to_exec_throughput:
         throughput_df = _build_openrouter_throughput_dataframe(model_ids)
-        _LOG.info("OpenRouter Throughput DataFrame:\n%s", throughput_df.to_string())
+        _LOG.debug(
+            "OpenRouter Throughput DataFrame:\n%s", throughput_df.to_string()
+        )
         dataframes_to_merge.append(throughput_df)
     to_exec_usage, actions_copy = hselacti.mark_action(
         "openrouter_per_model_usage", actions_copy
     )
     if to_exec_usage:
         usage_df = _build_openrouter_per_model_usage_dataframe(model_ids)
-        _LOG.info("OpenRouter Per-Model Usage DataFrame:\n%s", usage_df.to_string())
+        _LOG.debug(
+            "OpenRouter Per-Model Usage DataFrame:\n%s", usage_df.to_string()
+        )
         dataframes_to_merge.append(usage_df)
     # Merge all dataframes.
     if dataframes_to_merge:
         table = _merge_dataframes(table, dataframes_to_merge)
-        _LOG.info("Merged DataFrame:\n%s", table.to_string())
+        _LOG.debug("Merged DataFrame:\n%s", table.to_string())
     # Add efficiency column if all required columns are present.
     if (
         "Coding_IQ" in table.columns

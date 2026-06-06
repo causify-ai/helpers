@@ -936,6 +936,20 @@ def dassert_related_params(
 
 
 # #############################################################################
+# Command line.
+# #############################################################################
+
+
+# Sample at the beginning of time before we start fiddling with command line
+# args.
+_CMD_LINE = " ".join(arg for arg in sys.argv)
+
+
+def get_command_line() -> str:
+    return _CMD_LINE
+
+
+# #############################################################################
 # Logger.
 # #############################################################################
 
@@ -1103,19 +1117,7 @@ def get_logger_verbosity() -> int:
     return root_logger.getEffectiveLevel()
 
 
-# #############################################################################
-# Command line.
-# #############################################################################
-
-
-# Sample at the beginning of time before we start fiddling with command line
-# args.
-_CMD_LINE = " ".join(arg for arg in sys.argv)
 _EXEC_NAME = os.path.abspath(sys.argv[0])
-
-
-def get_command_line() -> str:
-    return _CMD_LINE
 
 
 def get_exec_name() -> str:
