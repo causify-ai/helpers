@@ -54,12 +54,9 @@ import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
-
-# There are several representation of model names
-# - Short model name: "claude-opus-4.7"
-# - Short OpenRouter ID: "google/gemini-3.1-pro-preview" (provider/model-name)
-# - Full versioned OpenRouter ID: "anthropic/claude-4.7-opus-20260416"
-# - Artificial Analysis: "claude-opus-4-7"
+OpenRouterId = str
+AaSlug = str
+OpenRouterPermaslug = str
 
 # #############################################################################
 # API Fetching Layer: OpenRouter
@@ -135,39 +132,30 @@ def _build_short_to_full_model_map() -> Dict[str, str]:
     Build a mapping from short model names to full OpenRouter API model names.
 
     :return: Dict mapping short names (case-insensitive) to full model IDs
-        ```
-        {
-            'claude-opus-4.7': 'anthropic/claude-4.7-opus-20260416',
-            'google/gemini-3.1-pro-preview': 'google/gemini-3.1-pro-preview'
-        }
-        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     models = _fetch_models_from_api()
-    # Build the map.
     short_to_full: Dict[str, str] = {}
     for model_id in models.keys():
         if "/" not in model_id:
             continue
-        provider, model_name = model_id.split("/", 1)
+        _, model_name = model_id.split("/", 1)
         short_to_full[model_name.lower()] = model_id
         short_to_full[model_id.lower()] = model_id
     return short_to_full
 
 
-def _normalize_model_name_for_matching(name: str) -> str:
+def _normalize_for_fuzzy_matching(name: str) -> str:
     """
     Normalize a model name by removing version suffixes and dates for fuzzy matching.
 
     Removes version numbers, dates, and provider prefixes to enable fuzzy matching.
 
+    Internal helper only—called at the input boundary in
+    _normalize_input_to_openrouter_ids.
+
     :param name: Model name to normalize
     :return: Normalized lowercase name for fuzzy comparison
-        "claude-opus-4.7" -> "claude-opus"
-        "claude-4.7-opus-20260416" -> "claude-opus"
-        "gemini-2.5-pro" -> "gemini-pro"
-        "google/gemini-3.1-pro-preview" -> "gemini-pro-preview"
-        "anthropic/claude-opus-4.7" -> "claude-opus"
     """
     name = name.lower()
     if "/" in name:
@@ -178,32 +166,23 @@ def _normalize_model_name_for_matching(name: str) -> str:
     return name.strip()
 
 
-def _resolve_model_name(short_name: str, short_to_full: Dict[str, str]) -> str:
+def _normalize_for_aa_lookup(name: str) -> AaSlug:
     """
-    Resolve a short model name to its full OpenRouter API version.
+    Normalize model name to Artificial Analysis slug format.
 
-    Tries exact match first, then fuzzy matching by removing version suffixes
-    and dates to find the closest match.
+    Converts any model name representation to the AA slug format (lowercase,
+    dashes, no dots). Called once during mapping table construction.
 
-    :param short_name: Model name (short, full OpenRouter ID, or unrecognized)
-    :param short_to_full: Mapping of short names to full model IDs
-    :return: Full model ID or original name if no match found
-        "claude-opus-4.7" -> 'anthropic/claude-4.7-opus-20260416'
+    :param name: Model name in any format
+    :return: Normalized slug format
     """
-    _LOG.debug(hprint.func_signature_to_str())
-    short_lower = short_name.lower()
-    if short_lower in short_to_full:
-        return short_to_full[short_lower]
-    if short_name in short_to_full:
-        return short_to_full[short_name]
-    normalized = _normalize_model_name_for_matching(short_name)
-    for short, full in short_to_full.items():
-        full_normalized = _normalize_model_name_for_matching(full)
-        if normalized in full_normalized or full_normalized in normalized:
-            _LOG.info("Matched '%s' to '%s' via fuzzy match", short_name, full)
-            return full
-    _LOG.debug("No match found for '%s', returning original", short_name)
-    return short_name
+    normalized = name
+    if "/" in normalized:
+        normalized = normalized.split("/", 1)[1]
+    if ":" in normalized:
+        normalized = normalized.split(":", 1)[1].strip()
+    normalized = normalized.replace(" ", "-").replace(".", "-").lower()
+    return normalized
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -404,96 +383,125 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
     return lookup
 
 
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
-def _normalize_model_name(name: str) -> str:
+def _build_openrouter_id_to_permaslug(
+    api_lookup: Dict[str, Dict[str, Any]],
+    available_permaslugs: Optional[List[str]] = None,
+) -> Dict[OpenRouterId, OpenRouterPermaslug]:
     """
-    Normalize model name for consistent matching across all naming conventions.
+    Build mapping from full OpenRouter ID to permaslug (for rankings API).
 
-    :param name: Model name in any of the three formats
-    :return: Normalized slug format (lowercase, dashes, no dots)
-        "anthropic/claude-opus-4.7" -> "claude-opus-4-7"
-        "Anthropic: Claude Opus 4.7" -> "claude-opus-4-7"
-        "claude-opus-4.7" -> "claude-opus-4-7"
-        "claude-opus-4-7" -> "claude-opus-4-7"
+    Since canonical_slug is not available in the API, uses fuzzy matching against
+    available permaslugs from the rankings API. Matches by normalized model name.
+
+    :param api_lookup: Dict from _fetch_models_from_api()
+    :param available_permaslugs: List of permaslugs from rankings API (optional)
+    :return: Dict mapping OpenRouterId to OpenRouterPermaslug
     """
-    normalized = name
-    if "/" in normalized:
-        normalized = normalized.split("/", 1)[1]
-    if ":" in normalized:
-        normalized = normalized.split(":", 1)[1].strip()
-    normalized = normalized.replace(" ", "-").replace(".", "-").lower()
-    return normalized
+    _LOG.debug(hprint.func_signature_to_str())
+    result: Dict[OpenRouterId, OpenRouterPermaslug] = {}
+
+    if not available_permaslugs:
+        _LOG.info("No available permaslugs provided, returning empty mapping")
+        return result
+
+    for model_id in api_lookup.keys():
+        if "/" not in model_id:
+            continue
+
+        model_id_lower = model_id.lower()
+        best_match = None
+        best_match_score = 0
+
+        for permaslug in available_permaslugs:
+            permaslug_lower = permaslug.lower()
+
+            if model_id_lower in permaslug_lower:
+                best_match = permaslug
+                best_match_score = 3
+                break
+
+            _, model_name = model_id.split("/", 1)
+            if "/" in permaslug:
+                _, permaslug_name = permaslug.split("/", 1)
+            else:
+                permaslug_name = permaslug
+
+            if model_name.lower() == permaslug_name.lower():
+                best_match = permaslug
+                best_match_score = 3
+                break
+
+            if model_name.lower() in permaslug_name.lower():
+                if best_match_score < 2:
+                    best_match = permaslug
+                    best_match_score = 2
+
+            normalized_model = _normalize_for_fuzzy_matching(model_id)
+            normalized_perma = _normalize_for_fuzzy_matching(permaslug)
+
+            if normalized_model == normalized_perma:
+                if best_match_score < 2:
+                    best_match = permaslug
+                    best_match_score = 2
+            elif (normalized_model in normalized_perma and
+                  len(normalized_model) > 5):
+                if best_match_score < 1:
+                    best_match = permaslug
+                    best_match_score = 1
+
+        if best_match:
+            result[model_id] = best_match
+            _LOG.debug("Mapped %s -> %s (score=%f)", model_id, best_match, best_match_score)
+        else:
+            _LOG.debug("No permaslug match found for %s", model_id)
+
+    _LOG.info("Built permaslug mapping with %d entries", len(result))
+    return result
 
 
-def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
+def _build_openrouter_id_to_aa_slug(
+    api_lookup: Dict[str, Dict[str, Any]],
+    aa_models: Dict[str, Dict[str, Any]],
+) -> Dict[OpenRouterId, AaSlug]:
     """
-    Fetch benchmark data from Artificial Analysis API using cached models.
+    Build mapping from OpenRouter ID to Artificial Analysis slug.
 
-    :param model_name: Model name in OpenRouter or AA format
+    Iterates OR models, normalizes each OR display name to AA slug format,
+    and looks up in the AA dict. All matching happens here once.
+
+    :param api_lookup: Dict from _fetch_models_from_api()
+    :param aa_models: Dict from _fetch_all_aa_models()
+    :return: Dict mapping OpenRouterId to AaSlug (or None if not found)
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    result: Dict[OpenRouterId, AaSlug] = {}
+    for model_id, data in api_lookup.items():
+        if "/" not in model_id:
+            continue
+        or_display_name = str(data.get("name", ""))
+        aa_slug = _normalize_for_aa_lookup(or_display_name)
+        if aa_slug in aa_models:
+            result[model_id] = aa_slug
+            _LOG.debug("Matched OR id %s to AA slug %s", model_id, aa_slug)
+        else:
+            _LOG.debug("No AA match for OR id %s (tried slug %s)", model_id, aa_slug)
+    return result
+
+
+def _fetch_aa_benchmarks(aa_slug: AaSlug) -> Dict[str, Optional[float]]:
+    """
+    Fetch benchmark data from Artificial Analysis API by slug.
+
+    Direct slug lookup, no fuzzy matching. Slug must already be in AA format.
+
+    :param aa_slug: AA slug (e.g., "claude-opus-4-7")
     :return: Dict with "coding_score" and "intelligence_score" (None if not found)
-        ```
-        {'coding_score': None, 'intelligence_score': None}
-        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     aa_models = _fetch_all_aa_models()
-    # Try exact match first (case-insensitive), then substring match.
-    model_name_lower = model_name.lower()
-    model_name_normalized = _normalize_model_name(model_name)
-    model = None
-    # Try direct lookups first.
-    if model_name_lower in aa_models:
-        model = aa_models[model_name_lower]
-    elif model_name in aa_models:
-        model = aa_models[model_name]
-    elif model_name_normalized in aa_models:
-        model = aa_models[model_name_normalized]
-    else:
-        for aa_name, aa_model in aa_models.items():
-            if not isinstance(aa_name, str):
-                continue
-            aa_name_normalized = _normalize_model_name(aa_name)
-            # Try normalized comparison first, then substring match
-            if (
-                model_name_normalized == aa_name_normalized
-                or model_name_normalized in aa_name
-                or aa_name_normalized in model_name_normalized
-                or model_name.lower() in aa_name
-                or aa_name in model_name.lower()
-            ):
-                model = aa_model
-                break
-    # Extract benchmark scores from model's evaluations dict.
+    model = aa_models.get(aa_slug)
     coding_score = None
     intelligence_score = None
-    # {'gpt-oss-120b': {'evaluations': {'aime': None,
-    #                                   'aime_25': 0.934416666666667,
-    #                                   'artificial_analysis_coding_index': 28.6,
-    #                                   'artificial_analysis_intelligence_index': 33.3,
-    #                                   'artificial_analysis_math_index': 93.4,
-    #                                   'gpqa': 0.782,
-    #                                   'hle': 0.185,
-    #                                   'ifbench': 0.689795918367347,
-    #                                   'lcr': 0.506666666,
-    #                                   'livecodebench': 0.878,
-    #                                   'math_500': None,
-    #                                   'mmlu_pro': 0.808,
-    #                                   'scicode': 0.389,
-    #                                   'tau2': 0.657894736842105,
-    #                                   'terminalbench_hard': 0.234848484848485},
-    #                   'id': 'f0083258-8646-45b8-8082-7aaf6c2ea82a',
-    #                   'median_output_tokens_per_second': 362.317,
-    #                   'median_time_to_first_answer_token': 6.037,
-    #                   'median_time_to_first_token_seconds': 0.517,
-    #                   'model_creator': {'id': 'e67e56e3-15cd-43db-b679-da4660a69f41',
-    #                                     'name': 'OpenAI',
-    #                                     'slug': 'openai'},
-    #                   'name': 'gpt-oss-120b (high)',
-    #                   'pricing': {'price_1m_blended_3_to_1': 0.262,
-    #                               'price_1m_input_tokens': 0.15,
-    #                               'price_1m_output_tokens': 0.6},
-    #                   'release_date': '2025-08-05',
-    #                   'slug': 'gpt-oss-120b'},
     if model and isinstance(model, dict):
         evaluations = model.get("evaluations", {})
         if isinstance(evaluations, dict):
@@ -505,7 +513,7 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
         "coding_score": coding_score,
         "intelligence_score": intelligence_score,
     }
-    _LOG.debug("%s -> return:\n%s", model_name, pprint.pformat(result))
+    _LOG.debug("%s -> return:\n%s", aa_slug, pprint.pformat(result))
     return result
 
 
@@ -569,6 +577,31 @@ def _format_context(ctx: int) -> str:
     return result
 
 
+def _format_tokens(tokens: int) -> str:
+    """
+    Format token count as human-readable string.
+
+    Converts token counts to human-readable format with appropriate units.
+
+    :param tokens: Token count (integer)
+    :return: Human-readable string with B (billions), M (millions), or K (thousands) suffix
+        0 -> "0"
+        500 -> "500"
+        1500000 -> "1.5M"
+        1500000000 -> "1.5B"
+        1234567890123 -> "1234.6B"
+    """
+    if tokens >= 1_000_000_000:
+        result = f"{tokens / 1_000_000_000:.1f}B"
+    elif tokens >= 1_000_000:
+        result = f"{tokens / 1_000_000:.1f}M"
+    elif tokens >= 1_000:
+        result = f"{tokens // 1_000}K"
+    else:
+        result = str(tokens)
+    return result
+
+
 def _format_benchmark(score: Optional[float]) -> str:
     """
     Format a benchmark score for display.
@@ -625,6 +658,7 @@ def _format_table(table: pd.DataFrame) -> pd.DataFrame:
     Applies formatting to numerical columns for display:
     - Input_Cost, Output_Cost: formatted via _format_cost()
     - Context: formatted via _format_context()
+    - Week_Tokens, Month_Tokens: formatted via _format_tokens()
     - Speed_(tok/s): formatted via _format_benchmark()
     - Coding_IQ, General_IQ: formatted via _format_benchmark()
 
@@ -650,6 +684,14 @@ def _format_table(table: pd.DataFrame) -> pd.DataFrame:
         table["Output_Cost"] = table["Output_Cost"].apply(_format_cost)
     if "Context" in table.columns:
         table["Context"] = table["Context"].apply(_format_context)
+    if "Week_Tokens" in table.columns:
+        table["Week_Tokens"] = table["Week_Tokens"].apply(
+            lambda x: _format_tokens(int(x)) if x and x > 0 else "0"
+        )
+    if "Month_Tokens" in table.columns:
+        table["Month_Tokens"] = table["Month_Tokens"].apply(
+            lambda x: _format_tokens(int(x)) if x and x > 0 else "0"
+        )
     if "Speed_(tok/s)" in table.columns:
         table["Speed_(tok/s)"] = table["Speed_(tok/s)"].apply(
             lambda x: _format_benchmark(x) if x is not None else ""
@@ -720,13 +762,13 @@ def _read_model_ids_from_list(models_list_str: str) -> List[str]:
     return model_ids
 
 
-def _resolve_model_ids(model_ids: List[str]) -> List[str]:
+def _normalize_input_to_openrouter_ids(model_ids: List[str]) -> List[OpenRouterId]:
     """
     Resolve short model names to their full OpenRouter API versions.
 
-    For each model ID, tries to match it to the full versioned name used by
-    the OpenRouter API using exact and fuzzy matching. If no match is found,
-    returns the original name.
+    This is the sole boundary where user-supplied strings (in any format) are
+    converted to canonical OpenRouterId (full versioned OR ID). All functions
+    downstream work with OpenRouterId exclusively.
 
     Input formats:
     - Short name: "claude-opus-4.7"
@@ -737,16 +779,30 @@ def _resolve_model_ids(model_ids: List[str]) -> List[str]:
     - Full OpenRouter ID: "anthropic/claude-4.7-opus-20260416"
 
     :param model_ids: List of model IDs (any mix of short/full names)
-        E.g., `["claude-opus-4.7", "gpt-4o"]`
     :return: List of resolved full OpenRouter IDs
-        E.g., `['anthropic/claude-4.7-opus-20260416', 'openai/gpt-4-omni']`
     """
     _LOG.debug(hprint.func_signature_to_str())
     _LOG.info("Building model name resolution map...")
     short_to_full = _build_short_to_full_model_map()
-    resolved_ids: List[str] = []
+    resolved_ids: List[OpenRouterId] = []
     for model_id in model_ids:
-        resolved = _resolve_model_name(model_id, short_to_full)
+        short_lower = model_id.lower()
+        if short_lower in short_to_full:
+            resolved = short_to_full[short_lower]
+        elif model_id in short_to_full:
+            resolved = short_to_full[model_id]
+        else:
+            normalized = _normalize_for_fuzzy_matching(model_id)
+            resolved = None
+            for full_value in short_to_full.values():
+                full_normalized = _normalize_for_fuzzy_matching(full_value)
+                if normalized in full_normalized or full_normalized in normalized:
+                    _LOG.info("Matched '%s' to '%s' via fuzzy match", model_id, full_value)
+                    resolved = full_value
+                    break
+            if resolved is None:
+                resolved = model_id
+                _LOG.debug("No match found for '%s', returning original", model_id)
         if resolved != model_id:
             _LOG.info("Resolved '%s' -> '%s'", model_id, resolved)
         resolved_ids.append(resolved)
@@ -778,7 +834,7 @@ def _build_model_ids_dataframe(
 
 
 def _build_openrouter_pricing_dataframe(
-    model_ids: List[str],
+    model_ids: List[OpenRouterId],
     api_lookup: Dict[str, Dict[str, Any]],
 ) -> pd.DataFrame:
     """
@@ -790,12 +846,6 @@ def _build_openrouter_pricing_dataframe(
     :param model_ids: List of full OpenRouter IDs (e.g., "openai/gpt-4-omni")
     :param api_lookup: Dict from _fetch_models_from_api() with pricing/context
     :return: DataFrame with columns: Model_ID, Name, Input_Cost, Output_Cost, Context
-        ```
-        Model_ID | Name | Input_Cost | Output_Cost | Context
-        ---
-        openai/gpt-4-omni | "OpenAI: GPT-4 Omni" | 2.5 | 10.0 | 128000
-        anthropic/claude-opus | "Anthropic: Claude Opus" | 3.0 | 15.0 | 200000
-        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
@@ -833,35 +883,27 @@ def _build_openrouter_pricing_dataframe(
 
 
 def _build_aa_benchmarks_dataframe(
-    model_ids: List[str],
-    api_lookup: Dict[str, Dict[str, Any]],
+    model_ids: List[OpenRouterId],
+    id_to_aa_slug: Dict[OpenRouterId, AaSlug],
 ) -> pd.DataFrame:
     """
     Build dataframe with Artificial Analysis benchmark scores.
 
-    Fetches benchmark scores from the Artificial Analysis API by model name.
-    Scores come from the OpenRouter API name field (e.g., "Anthropic: Claude Opus").
+    Uses prebuilt mapping from OpenRouterId to AA slug for direct lookups.
 
-    :param model_ids: List of resolved full OpenRouter model IDs
-    :param api_lookup: Dict from _fetch_models_from_api() with display names
+    :param model_ids: List of full OpenRouter IDs
+    :param id_to_aa_slug: Prebuilt mapping from _build_openrouter_id_to_aa_slug()
     :return: DataFrame with columns: Model_ID, Coding_IQ, General_IQ
-        ```
-        Model_ID | Coding_IQ | General_IQ
-        ---
-        openai/gpt-4-omni | 75.2 | 88.5
-        anthropic/claude-opus | 72.3 | 85.2
-        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
     for model_id in model_ids:
         _LOG.debug("Fetching AA benchmarks for %s", model_id)
-        if model_id not in api_lookup:
-            _LOG.debug("Skipping %s (not in API lookup)", model_id)
+        aa_slug = id_to_aa_slug.get(model_id)
+        if not aa_slug:
+            _LOG.debug("No AA slug mapping for %s, skipping", model_id)
             continue
-        api_data = api_lookup[model_id]
-        name = str(api_data["name"])
-        benchmarks = _fetch_aa_benchmarks(name)
+        benchmarks = _fetch_aa_benchmarks(aa_slug)
         coding_score = benchmarks.get("coding_score")
         intelligence_score = benchmarks.get("intelligence_score")
         row = [
@@ -878,22 +920,15 @@ def _build_aa_benchmarks_dataframe(
 
 
 def _build_openrouter_throughput_dataframe(
-    model_ids: List[str],
+    model_ids: List[OpenRouterId],
 ) -> pd.DataFrame:
     """
     Build dataframe with OpenRouter throughput data.
 
     Fetches p50_throughput metric (50th percentile) from OpenRouter model pages.
 
-    :param model_ids: List of resolved full OpenRouter model IDs
+    :param model_ids: List of full OpenRouter model IDs
     :return: DataFrame with columns: Model_ID, Speed_(tok/s) (in tokens/second)
-        ```
-        Model_ID | Speed_(tok/s)
-        ---
-        openai/gpt-4-omni | 25.5
-        anthropic/claude-opus | 18.2
-        deepseek/deepseek-chat | None
-        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     rows: List[List[Any]] = []
@@ -913,30 +948,39 @@ def _build_openrouter_throughput_dataframe(
 
 
 def _build_openrouter_per_model_usage_dataframe(
-    model_ids: List[str],
+    model_ids: List[OpenRouterId],
+    id_to_permaslug: Dict[OpenRouterId, OpenRouterPermaslug],
+    per_model_usage: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> pd.DataFrame:
     """
     Build dataframe with OpenRouter per-model usage statistics.
 
-    Fetches usage data from OpenRouter rankings API and aggregates by date range.
-    Note: Uses model_permaslug (from rankings API) which may differ from full
-    OpenRouter model IDs.
+    Uses prebuilt permaslug mapping to translate full OR IDs to rankings API keys.
 
-    :param model_ids: List of resolved full OpenRouter model IDs
+    :param model_ids: List of full OpenRouter model IDs
+    :param id_to_permaslug: Prebuilt mapping from _build_openrouter_id_to_permaslug()
+    :param per_model_usage: Pre-fetched usage data from _fetch_openrouter_per_model_usage()
     :return: DataFrame with columns: Model_ID, Week_Tokens, Month_Tokens
-        ```
-        Model_ID | Week_Tokens | Month_Tokens
-        ---
-        gpt-4-omni | 1234567890 | 5678901234
-        claude-opus | 987654321 | 4567890123
-        ```
     """
     _LOG.debug(hprint.func_signature_to_str())
-    per_model_usage = _fetch_openrouter_per_model_usage()
+    _LOG.debug("id_to_permaslug has %d entries", len(id_to_permaslug))
+    if per_model_usage is None:
+        per_model_usage = _fetch_openrouter_per_model_usage()
+    if per_model_usage is None:
+        per_model_usage = {}
+    _LOG.debug("per_model_usage has %d entries", len(per_model_usage))
+    _LOG.debug("Available permaslugs: %s", list(per_model_usage.keys())[:10])
     rows: List[List[Any]] = []
     for model_id in model_ids:
         _LOG.debug("Fetching usage for %s", model_id)
-        usage_data = per_model_usage.get(model_id, {})
+        permaslug = id_to_permaslug.get(model_id)
+        _LOG.debug("  permaslug=%s", permaslug)
+        if permaslug:
+            usage_data = per_model_usage.get(permaslug, {})
+            _LOG.debug("  usage_data=%s", usage_data)
+        else:
+            _LOG.debug("  No permaslug mapping found for %s", model_id)
+            usage_data = {}
         week_tokens = usage_data.get("week_tokens", 0)
         month_tokens = usage_data.get("month_tokens", 0)
         row = [
@@ -1081,23 +1125,40 @@ def _main(parser: argparse.ArgumentParser) -> None:
         model_ids = _read_model_ids_from_file(args.models_from_file)
     else:
         model_ids = _read_model_ids_from_list(args.models_list)
-    # Resolve short model names to full OpenRouter API versions.
-    model_ids = _resolve_model_ids(model_ids)
+    # Normalize to canonical OpenRouter IDs (boundary: only place with fuzzy logic).
+    model_ids = _normalize_input_to_openrouter_ids(model_ids)
     _LOG.debug("model_ids=%s", str(model_ids))
     # Start with minimal dataframe containing just model IDs.
     table = _build_model_ids_dataframe(model_ids)
     _LOG.info("Model IDs DataFrame:\n%s", table.to_string())
+    # Build mapping tables once (needed by multiple dataframe builders).
+    api_lookup: Dict[str, Dict[str, Any]] = {}
+    aa_models: Dict[str, Dict[str, Any]] = {}
+    id_to_aa_slug: Dict[OpenRouterId, AaSlug] = {}
+    id_to_permaslug: Dict[OpenRouterId, OpenRouterPermaslug] = {}
+    per_model_usage_raw: Dict[str, Dict[str, Any]] = {}
+    needs_api_data = (
+        "openrouter_pricing" in actions
+        or "aa_benchmarks" in actions
+        or "openrouter_per_model_usage" in actions
+    )
+    if needs_api_data:
+        api_lookup = _fetch_models_from_api()
+        _LOG.debug("api_lookup has %d entries", len(api_lookup))
+    if "aa_benchmarks" in actions:
+        aa_models = _fetch_all_aa_models()
+        id_to_aa_slug = _build_openrouter_id_to_aa_slug(api_lookup, aa_models)
+        _LOG.debug("id_to_aa_slug has %d entries", len(id_to_aa_slug))
+    if "openrouter_per_model_usage" in actions:
+        per_model_usage_raw = _fetch_openrouter_per_model_usage()
+        available_permaslugs = list(per_model_usage_raw.keys())
+        id_to_permaslug = _build_openrouter_id_to_permaslug(
+            api_lookup, available_permaslugs
+        )
+        _LOG.debug("id_to_permaslug has %d entries", len(id_to_permaslug))
     # Build and merge action-specific dataframes.
     dataframes_to_merge: List[pd.DataFrame] = []
     actions_copy = list(actions)
-    # Check which actions need API data.
-    needs_api_data = (
-        "openrouter_pricing" in actions or "aa_benchmarks" in actions
-    )
-    api_lookup: Dict[str, Dict[str, Any]] = {}
-    if needs_api_data:
-        api_lookup = _fetch_models_from_api()
-        _LOG.debug("api_lookup=%s", api_lookup.keys())
     # Build pricing dataframe.
     to_exec_pricing, actions_copy = hselacti.mark_action(
         "openrouter_pricing", actions_copy
@@ -1111,7 +1172,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "aa_benchmarks", actions_copy
     )
     if to_exec_benchmarks:
-        benchmarks_df = _build_aa_benchmarks_dataframe(model_ids, api_lookup)
+        benchmarks_df = _build_aa_benchmarks_dataframe(model_ids, id_to_aa_slug)
         _LOG.debug("AA Benchmarks DataFrame:\n%s", benchmarks_df.to_string())
         dataframes_to_merge.append(benchmarks_df)
     to_exec_throughput, actions_copy = hselacti.mark_action(
@@ -1127,7 +1188,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "openrouter_per_model_usage", actions_copy
     )
     if to_exec_usage:
-        usage_df = _build_openrouter_per_model_usage_dataframe(model_ids)
+        usage_df = _build_openrouter_per_model_usage_dataframe(
+            model_ids, id_to_permaslug, per_model_usage_raw if per_model_usage_raw else None
+        )
         _LOG.debug(
             "OpenRouter Per-Model Usage DataFrame:\n%s", usage_df.to_string()
         )
