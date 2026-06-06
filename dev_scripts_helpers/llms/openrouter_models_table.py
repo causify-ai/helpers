@@ -156,11 +156,15 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     """
     Fetch per-model usage statistics from OpenRouter rankings API.
 
-    Requires OPENROUTER_API_KEY environment variable.
+    The API returns daily rankings data over the past 30 days. This function
+    aggregates total_tokens by model and date range to compute weekly and
+    monthly usage statistics.
 
     :return: Dict mapping model ID to usage stats with 'week_tokens' and 'month_tokens'
     """
     _LOG.debug(hprint.func_signature_to_str())
+    # TODO(ai_gp): Move it up
+    from datetime import datetime, timedelta
     api_key = os.environ.get("OPENROUTER_API_KEY")
     hdbg.dassert(api_key, "OPENROUTER_API_KEY environment variable must be set")
     # Get the data.
@@ -183,18 +187,34 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
         rankings = data
     else:
         rankings = []
-    # Extract weekly and monthly token usage by model ID.
     per_model_usage: Dict[str, Dict[str, Any]] = {}
+    today = datetime.now().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
     for ranking in rankings:
-        if isinstance(ranking, dict):
-            model_id = ranking.get("model_id", "")
-            week_tokens = ranking.get("tokens_week", 0)
-            month_tokens = ranking.get("tokens_month", 0)
-            if model_id:
-                per_model_usage[model_id] = {
-                    "week_tokens": week_tokens,
-                    "month_tokens": month_tokens,
-                }
+        if not isinstance(ranking, dict):
+            continue
+        model_permaslug = ranking.get("model_permaslug", "")
+        if not model_permaslug:
+            continue
+        total_tokens_str = ranking.get("total_tokens", "0")
+        try:
+            total_tokens = int(total_tokens_str)
+        except (ValueError, TypeError):
+            total_tokens = 0
+        date_str = ranking.get("date", "")
+        if not date_str:
+            continue
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        if model_permaslug not in per_model_usage:
+            per_model_usage[model_permaslug] = {
+                "week_tokens": 0,
+                "month_tokens": 0,
+            }
+        if date >= week_ago:
+            per_model_usage[model_permaslug]["week_tokens"] += total_tokens
+        if date >= month_ago:
+            per_model_usage[model_permaslug]["month_tokens"] += total_tokens
     _LOG.info("Fetched per-model usage for %d models",
               len(per_model_usage))
     _LOG.debug("Return (first one):\n%s",
