@@ -1,0 +1,11 @@
+anthropic/claude-4.8-opus-20260528
+anthropic/claude-4.7-opus-20260416
+anthropic/claude-4.6-sonnet-20260217
+anthropic/claude-4.5-sonnet-20250929
+deepseek/deepseek-v4-pro-20260423
+deepseek/deepseek-v4-flash-20260423
+deepseek/deepseek-chat-v3.1
+google/gemini-3.5-flash-20260519
+google/gemini-2.5-pro
+google/gemini-3.1-pro-preview-20260219
+meta-llama/llama-3.1-405b-instruct

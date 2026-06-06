@@ -55,6 +55,82 @@ import helpers.hselect_action as hselacti
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
+# Model Name Mapping
+# #############################################################################
+
+
+def _build_short_to_full_model_map() -> Dict[str, str]:
+    """
+    Build a mapping from short model names to full OpenRouter API model names.
+
+    Fetches all models from OpenRouter API and creates a map of short names
+    (e.g., "claude-opus-4.7") to full versioned names (e.g.,
+    "anthropic/claude-4.7-opus-20260416").
+
+    :return: Dict mapping short names to full model IDs
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    models = _fetch_models_from_api()
+    short_to_full: Dict[str, str] = {}
+    for model_id in models.keys():
+        if "/" not in model_id:
+            continue
+        provider, model_name = model_id.split("/", 1)
+        short_to_full[model_name.lower()] = model_id
+        short_to_full[model_id.lower()] = model_id
+    return short_to_full
+
+
+def _resolve_model_name(short_name: str,
+                        short_to_full: Dict[str, str]) -> str:
+    """
+    Resolve a short model name to its full OpenRouter API version.
+
+    Tries exact match first, then fuzzy matching by removing version suffixes
+    and dates to find the closest match.
+
+    :param short_name: Model name (short or full)
+    :param short_to_full: Mapping of short names to full model IDs
+    :return: Full model ID or original name if no match found
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    short_lower = short_name.lower()
+    if short_lower in short_to_full:
+        return short_to_full[short_lower]
+    if short_name in short_to_full:
+        return short_to_full[short_name]
+    normalized = _normalize_model_name_for_matching(short_name)
+    for short, full in short_to_full.items():
+        full_normalized = _normalize_model_name_for_matching(full)
+        if normalized in full_normalized or full_normalized in normalized:
+            _LOG.info("Matched '%s' to '%s' via fuzzy match", short_name, full)
+            return full
+    _LOG.debug("No match found for '%s', returning original", short_name)
+    return short_name
+
+
+def _normalize_model_name_for_matching(name: str) -> str:
+    """
+    Normalize a model name by removing version suffixes and dates for matching.
+
+    Converts:
+    - "claude-opus-4.7" to "claude-opus"
+    - "claude-4.7-opus-20260416" to "claude-opus"
+    - "gemini-2.5-pro" to "gemini-pro"
+
+    :param name: Model name to normalize
+    :return: Normalized name for comparison
+    """
+    name = name.lower()
+    if "/" in name:
+        name = name.split("/", 1)[1]
+    name = re.sub(r'-\d+\.\d+(-\w+)?(-\d{8})?', '', name)
+    name = re.sub(r'v\d+(\.\d+)?', '', name)
+    name = re.sub(r'-\d{8}', '', name)
+    return name.strip()
+
+
+# #############################################################################
 # API Fetching Layer: OpenRouter
 # #############################################################################
 
@@ -504,6 +580,9 @@ def _read_model_ids_from_file(models_file: str) -> List[str]:
     """
     Read model IDs from a text file, one per line.
 
+    Supports both short names (e.g., "claude-opus-4.7") and full names
+    (e.g., "anthropic/claude-4.7-opus-20260416").
+
     :param models_file: Path to the file
     :return: List of model ID strings
     """
@@ -527,6 +606,9 @@ def _read_model_ids_from_list(models_list_str: str) -> List[str]:
     """
     Parse model IDs from a space-separated string.
 
+    Supports both short names (e.g., "claude-opus-4.7") and full names
+    (e.g., "anthropic/claude-4.7-opus-20260416").
+
     :param models_list_str: Space-separated model IDs
     :return: List of model ID strings
     """
@@ -536,6 +618,28 @@ def _read_model_ids_from_list(models_list_str: str) -> List[str]:
     _LOG.info("Parsed %d model IDs from list", len(model_ids))
     _LOG.debug("Return (first one):\n%s", pprint.pformat(model_ids[:1]))
     return model_ids
+
+
+def _resolve_model_ids(model_ids: List[str]) -> List[str]:
+    """
+    Resolve short model names to their full OpenRouter API versions.
+
+    For each model ID, tries to match it to the full versioned name used by
+    the OpenRouter API. If no match is found, returns the original name.
+
+    :param model_ids: List of model IDs (short or full names)
+    :return: List of resolved model IDs
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.info("Building model name resolution map...")
+    short_to_full = _build_short_to_full_model_map()
+    resolved_ids: List[str] = []
+    for model_id in model_ids:
+        resolved = _resolve_model_name(model_id, short_to_full)
+        if resolved != model_id:
+            _LOG.info("Resolved '%s' -> '%s'", model_id, resolved)
+        resolved_ids.append(resolved)
+    return resolved_ids
 
 
 def _build_model_ids_dataframe(
@@ -801,6 +905,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         model_ids = _read_model_ids_from_file(args.models_from_file)
     else:
         model_ids = _read_model_ids_from_list(args.models_list)
+    # Resolve short model names to full OpenRouter API versions.
+    model_ids = _resolve_model_ids(model_ids)
     _LOG.debug("model_ids=%s", str(model_ids))
     # Start with minimal dataframe containing just model IDs.
     table = _build_model_ids_dataframe(model_ids)
