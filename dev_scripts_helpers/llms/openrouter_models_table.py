@@ -54,81 +54,6 @@ import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
 
-# #############################################################################
-# Model Name Mapping
-# #############################################################################
-
-
-def _build_short_to_full_model_map() -> Dict[str, str]:
-    """
-    Build a mapping from short model names to full OpenRouter API model names.
-
-    Fetches all models from OpenRouter API and creates a map of short names
-    (e.g., "claude-opus-4.7") to full versioned names (e.g.,
-    "anthropic/claude-4.7-opus-20260416").
-
-    :return: Dict mapping short names to full model IDs
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    models = _fetch_models_from_api()
-    short_to_full: Dict[str, str] = {}
-    for model_id in models.keys():
-        if "/" not in model_id:
-            continue
-        provider, model_name = model_id.split("/", 1)
-        short_to_full[model_name.lower()] = model_id
-        short_to_full[model_id.lower()] = model_id
-    return short_to_full
-
-
-def _resolve_model_name(short_name: str,
-                        short_to_full: Dict[str, str]) -> str:
-    """
-    Resolve a short model name to its full OpenRouter API version.
-
-    Tries exact match first, then fuzzy matching by removing version suffixes
-    and dates to find the closest match.
-
-    :param short_name: Model name (short or full)
-    :param short_to_full: Mapping of short names to full model IDs
-    :return: Full model ID or original name if no match found
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    short_lower = short_name.lower()
-    if short_lower in short_to_full:
-        return short_to_full[short_lower]
-    if short_name in short_to_full:
-        return short_to_full[short_name]
-    normalized = _normalize_model_name_for_matching(short_name)
-    for short, full in short_to_full.items():
-        full_normalized = _normalize_model_name_for_matching(full)
-        if normalized in full_normalized or full_normalized in normalized:
-            _LOG.info("Matched '%s' to '%s' via fuzzy match", short_name, full)
-            return full
-    _LOG.debug("No match found for '%s', returning original", short_name)
-    return short_name
-
-
-def _normalize_model_name_for_matching(name: str) -> str:
-    """
-    Normalize a model name by removing version suffixes and dates for matching.
-
-    Converts:
-    - "claude-opus-4.7" to "claude-opus"
-    - "claude-4.7-opus-20260416" to "claude-opus"
-    - "gemini-2.5-pro" to "gemini-pro"
-
-    :param name: Model name to normalize
-    :return: Normalized name for comparison
-    """
-    name = name.lower()
-    if "/" in name:
-        name = name.split("/", 1)[1]
-    name = re.sub(r'-\d+\.\d+(-\w+)?(-\d{8})?', '', name)
-    name = re.sub(r'v\d+(\.\d+)?', '', name)
-    name = re.sub(r'-\d{8}', '', name)
-    return name.strip()
-
 
 # #############################################################################
 # API Fetching Layer: OpenRouter
@@ -185,9 +110,86 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
         if canonical_slug:
             lookup[canonical_slug] = lookup[model_id]
     hdbg.dassert_lte(1, len(lookup.keys()))
-    _LOG.debug("Result (first items):\n%s",
-               pprint.pformat(lookup[list(lookup.keys())[0]]))
+    _LOG.debug(
+        "Result (first items):\n%s",
+        pprint.pformat(lookup[list(lookup.keys())[0]]),
+    )
     return lookup
+
+
+# #############################################################################
+# Model Name Mapping
+# #############################################################################
+
+
+def _build_short_to_full_model_map() -> Dict[str, str]:
+    """
+    Build a mapping from short model names to full OpenRouter API model names.
+
+    Fetches all models from OpenRouter API and creates a map of short names
+    (e.g., "claude-opus-4.7") to full versioned names (e.g.,
+    "anthropic/claude-4.7-opus-20260416").
+
+    :return: Dict mapping short names to full model IDs
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    models = _fetch_models_from_api()
+    short_to_full: Dict[str, str] = {}
+    for model_id in models.keys():
+        if "/" not in model_id:
+            continue
+        provider, model_name = model_id.split("/", 1)
+        short_to_full[model_name.lower()] = model_id
+        short_to_full[model_id.lower()] = model_id
+    return short_to_full
+
+
+def _normalize_model_name_for_matching(name: str) -> str:
+    """
+    Normalize a model name by removing version suffixes and dates for matching.
+
+    Converts:
+    - "claude-opus-4.7" to "claude-opus"
+    - "claude-4.7-opus-20260416" to "claude-opus"
+    - "gemini-2.5-pro" to "gemini-pro"
+
+    :param name: Model name to normalize
+    :return: Normalized name for comparison
+    """
+    name = name.lower()
+    if "/" in name:
+        name = name.split("/", 1)[1]
+    name = re.sub(r"-\d+\.\d+(-\w+)?(-\d{8})?", "", name)
+    name = re.sub(r"v\d+(\.\d+)?", "", name)
+    name = re.sub(r"-\d{8}", "", name)
+    return name.strip()
+
+
+def _resolve_model_name(short_name: str, short_to_full: Dict[str, str]) -> str:
+    """
+    Resolve a short model name to its full OpenRouter API version.
+
+    Tries exact match first, then fuzzy matching by removing version suffixes
+    and dates to find the closest match.
+
+    :param short_name: Model name (short or full)
+    :param short_to_full: Mapping of short names to full model IDs
+    :return: Full model ID or original name if no match found
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    short_lower = short_name.lower()
+    if short_lower in short_to_full:
+        return short_to_full[short_lower]
+    if short_name in short_to_full:
+        return short_to_full[short_name]
+    normalized = _normalize_model_name_for_matching(short_name)
+    for short, full in short_to_full.items():
+        full_normalized = _normalize_model_name_for_matching(full)
+        if normalized in full_normalized or full_normalized in normalized:
+            _LOG.info("Matched '%s' to '%s' via fuzzy match", short_name, full)
+            return full
+    _LOG.debug("No match found for '%s', returning original", short_name)
+    return short_name
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -206,8 +208,7 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
     _LOG.debug("Fetching throughput from %s", url)
     headers = {
         "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         )
     }
     request = urllib.request.Request(url, headers=headers)
@@ -241,6 +242,7 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     _LOG.debug(hprint.func_signature_to_str())
     # TODO(ai_gp): Move it up
     from datetime import datetime, timedelta
+
     api_key = os.environ.get("OPENROUTER_API_KEY")
     hdbg.dassert(api_key, "OPENROUTER_API_KEY environment variable must be set")
     # Get the data.
@@ -248,9 +250,8 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     headers = {
         "Authorization": f"Bearer {api_key}",
         "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36"
-        )
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        ),
     }
     _LOG.debug("url=%s", url)
     request = urllib.request.Request(url, headers=headers)
@@ -291,10 +292,11 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
             per_model_usage[model_permaslug]["week_tokens"] += total_tokens
         if date >= month_ago:
             per_model_usage[model_permaslug]["month_tokens"] += total_tokens
-    _LOG.info("Fetched per-model usage for %d models",
-              len(per_model_usage))
-    _LOG.debug("Return (first one):\n%s",
-               pprint.pformat(dict(list(per_model_usage.items())[:1])))
+    _LOG.info("Fetched per-model usage for %d models", len(per_model_usage))
+    _LOG.debug(
+        "Return (first one):\n%s",
+        pprint.pformat(dict(list(per_model_usage.items())[:1])),
+    )
     return per_model_usage
 
 
@@ -318,8 +320,7 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
     # Prepare request with User-Agent header and optional API key.
     headers = {
         "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         )
     }
     if api_key:
@@ -349,10 +350,10 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
             if model_slug:
                 lookup[model_slug.lower()] = model
                 lookup[model_slug] = model
-    _LOG.info("Fetched %d models from Artificial Analysis API",
-              len(lookup))
-    _LOG.debug("Return (first one):\n%s",
-               pprint.pformat(dict(list(lookup.items())[:1])))
+    _LOG.info("Fetched %d models from Artificial Analysis API", len(lookup))
+    _LOG.debug(
+        "Return (first one):\n%s", pprint.pformat(dict(list(lookup.items())[:1]))
+    )
     return lookup
 
 
@@ -405,11 +406,13 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
                 continue
             aa_name_normalized = _normalize_model_name(aa_name)
             # Try normalized comparison first, then substring match
-            if (model_name_normalized == aa_name_normalized or
-                model_name_normalized in aa_name or
-                aa_name_normalized in model_name_normalized or
-                model_name.lower() in aa_name or
-                aa_name in model_name.lower()):
+            if (
+                model_name_normalized == aa_name_normalized
+                or model_name_normalized in aa_name
+                or aa_name_normalized in model_name_normalized
+                or model_name.lower() in aa_name
+                or aa_name in model_name.lower()
+            ):
                 model = aa_model
                 break
     # Extract benchmark scores from model's evaluations dict.
@@ -449,15 +452,12 @@ def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
             intelligence_score = evaluations.get(
                 "artificial_analysis_intelligence_index"
             )
-            coding_score = evaluations.get(
-                "artificial_analysis_coding_index"
-            )
+            coding_score = evaluations.get("artificial_analysis_coding_index")
     result = {
         "coding_score": coding_score,
         "intelligence_score": intelligence_score,
     }
-    _LOG.debug("%s -> return:\n%s",
-               model_name, pprint.pformat(result))
+    _LOG.debug("%s -> return:\n%s", model_name, pprint.pformat(result))
     return result
 
 
@@ -596,7 +596,9 @@ def _read_model_ids_from_file(models_file: str) -> List[str]:
             if not line or line.startswith("#"):
                 continue
             model_ids.append(line)
-    hdbg.dassert_lt(0, len(model_ids), "Models file must contain at least one model ID")
+    hdbg.dassert_lt(
+        0, len(model_ids), "Models file must contain at least one model ID"
+    )
     _LOG.info("Read %d model IDs from %s", len(model_ids), models_file)
     _LOG.debug("Return (first one):\n%s", pprint.pformat(model_ids[:1]))
     return model_ids
@@ -675,8 +677,9 @@ def _build_openrouter_pricing_dataframe(
     for model_id in model_ids:
         _LOG.debug("Fetching pricing for %s", model_id)
         if model_id not in api_lookup:
-            _LOG.warning("Can't find '%s' in the OpenRouter API data: skipping",
-                        model_id)
+            _LOG.warning(
+                "Can't find '%s' in the OpenRouter API data: skipping", model_id
+            )
             continue
         api_data = api_lookup[model_id]
         name = str(api_data["name"])
@@ -693,7 +696,11 @@ def _build_openrouter_pricing_dataframe(
         _LOG.debug("row=%s", row)
         rows.append(row)
     columns = [
-        "Model_ID", "Name", "Input_Cost", "Output_Cost", "Context",
+        "Model_ID",
+        "Name",
+        "Input_Cost",
+        "Output_Cost",
+        "Context",
     ]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
     _LOG.info("Built OpenRouter pricing dataframe with %d rows", len(df))
@@ -807,8 +814,11 @@ def _merge_dataframes(
     result = base_df.copy()
     for df in dataframes:
         result = result.merge(df, on="Model_ID", how="left")
-    _LOG.info("Merged dataframe has %d rows and %d columns",
-              len(result), len(result.columns))
+    _LOG.info(
+        "Merged dataframe has %d rows and %d columns",
+        len(result),
+        len(result.columns),
+    )
     return result
 
 
@@ -818,21 +828,20 @@ def calc_efficiency(row: pd.Series) -> str:
     coding_iq_val = row["Coding_IQ"]
     speed_val = row["Speed_(tok/s)"]
     coding_iq: Optional[float] = (
-        None if coding_iq_val is None or (
-            isinstance(coding_iq_val, float) and
-            pd.isna(coding_iq_val)
-        ) else float(coding_iq_val)
+        None
+        if coding_iq_val is None
+        or (isinstance(coding_iq_val, float) and pd.isna(coding_iq_val))
+        else float(coding_iq_val)
     )
     speed: Optional[float] = (
-        None if speed_val is None or (
-            isinstance(speed_val, float) and
-            pd.isna(speed_val)
-        ) else float(speed_val)
+        None
+        if speed_val is None
+        or (isinstance(speed_val, float) and pd.isna(speed_val))
+        else float(speed_val)
     )
     input_cost = float(row["Input_Cost"])
     output_cost = float(row["Output_Cost"])
-    return _format_efficiency(coding_iq, speed, input_cost,
-                             output_cost)
+    return _format_efficiency(coding_iq, speed, input_cost, output_cost)
 
 
 # #############################################################################
@@ -910,13 +919,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("model_ids=%s", str(model_ids))
     # Start with minimal dataframe containing just model IDs.
     table = _build_model_ids_dataframe(model_ids)
+    _LOG.info("Model IDs DataFrame:\n%s", table.to_string())
     # Build and merge action-specific dataframes.
     dataframes_to_merge: List[pd.DataFrame] = []
     actions_copy = list(actions)
     # Check which actions need API data.
     needs_api_data = (
-        "openrouter_pricing" in actions or
-        "aa_benchmarks" in actions
+        "openrouter_pricing" in actions or "aa_benchmarks" in actions
     )
     api_lookup: Dict[str, Dict[str, Any]] = {}
     if needs_api_data:
@@ -928,6 +937,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if to_exec_pricing:
         pricing_df = _build_openrouter_pricing_dataframe(model_ids, api_lookup)
+        _LOG.info("OpenRouter Pricing DataFrame:\n%s", pricing_df.to_string())
         dataframes_to_merge.append(pricing_df)
     # Build benchmarks dataframe.
     to_exec_benchmarks, actions_copy = hselacti.mark_action(
@@ -935,28 +945,32 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if to_exec_benchmarks:
         benchmarks_df = _build_aa_benchmarks_dataframe(model_ids, api_lookup)
+        _LOG.info("AA Benchmarks DataFrame:\n%s", benchmarks_df.to_string())
         dataframes_to_merge.append(benchmarks_df)
     to_exec_throughput, actions_copy = hselacti.mark_action(
         "openrouter_throughput", actions_copy
     )
     if to_exec_throughput:
         throughput_df = _build_openrouter_throughput_dataframe(model_ids)
+        _LOG.info("OpenRouter Throughput DataFrame:\n%s", throughput_df.to_string())
         dataframes_to_merge.append(throughput_df)
     to_exec_usage, actions_copy = hselacti.mark_action(
         "openrouter_per_model_usage", actions_copy
     )
     if to_exec_usage:
         usage_df = _build_openrouter_per_model_usage_dataframe(model_ids)
+        _LOG.info("OpenRouter Per-Model Usage DataFrame:\n%s", usage_df.to_string())
         dataframes_to_merge.append(usage_df)
     # Merge all dataframes.
     if dataframes_to_merge:
         table = _merge_dataframes(table, dataframes_to_merge)
+        _LOG.info("Merged DataFrame:\n%s", table.to_string())
     # Add efficiency column if all required columns are present.
     if (
-        "Coding_IQ" in table.columns and
-        "Speed_(tok/s)" in table.columns and
-        "Input_Cost" in table.columns and
-        "Output_Cost" in table.columns
+        "Coding_IQ" in table.columns
+        and "Speed_(tok/s)" in table.columns
+        and "Input_Cost" in table.columns
+        and "Output_Cost" in table.columns
     ):
         table["Efficiency"] = table.apply(calc_efficiency, axis=1)
     # Format and display the table.

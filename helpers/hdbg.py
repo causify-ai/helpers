@@ -936,20 +936,6 @@ def dassert_related_params(
 
 
 # #############################################################################
-# Command line.
-# #############################################################################
-
-
-# Sample at the beginning of time before we start fiddling with command line
-# args.
-_CMD_LINE = " ".join(arg for arg in sys.argv)
-
-
-def get_command_line() -> str:
-    return _CMD_LINE
-
-
-# #############################################################################
 # Logger.
 # #############################################################################
 

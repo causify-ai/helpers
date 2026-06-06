@@ -7,6 +7,11 @@ import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 
+# #############################################################################
+# Test_openrouter_models_table_py
+# #############################################################################
+
+
 # TODO(ai_gp): Run /factor_common_code
 class Test_openrouter_models_table_py(hunitest.TestCase):
     """
@@ -32,9 +37,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             f"--models_from_file={models_file} "
             f"--cache_mode=DISABLE_CACHE"
         )
-        exit_code, result = hsystem.system_to_string(
-            cmd, abort_on_error=True
-        )
+        exit_code, result = hsystem.system_to_string(cmd, abort_on_error=True)
         # Check outputs.
         # Expected from command: script attempts to run and fetch data
         # This test validates the script structure and argument parsing
@@ -59,9 +62,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             f"-a openrouter_pricing "
             f"--cache_mode=DISABLE_CACHE"
         )
-        _, result = hsystem.system_to_string(
-            cmd, abort_on_error=True
-        )
+        _, result = hsystem.system_to_string(cmd, abort_on_error=True)
         # Should have Model_ID and pricing columns
         self.assertIn("Model_ID", result)
         self.assertIn("Input_Cost", result)
@@ -85,9 +86,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             f"-a openrouter_throughput "
             f"--cache_mode=DISABLE_CACHE"
         )
-        _, result = hsystem.system_to_string(
-            cmd, abort_on_error=True
-        )
+        _, result = hsystem.system_to_string(cmd, abort_on_error=True)
         # Should have Model_ID and Speed columns
         self.assertIn("Model_ID", result)
         self.assertIn("Speed_(tok/s)", result)
@@ -109,9 +108,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             f"-a aa_benchmarks "
             f"--cache_mode=DISABLE_CACHE"
         )
-        _, result = hsystem.system_to_string(
-            cmd, abort_on_error=True
-        )
+        _, result = hsystem.system_to_string(cmd, abort_on_error=True)
         # Should have Model_ID and benchmark columns
         self.assertIn("Model_ID", result)
         self.assertIn("Coding_IQ", result)
@@ -134,9 +131,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             f"-a openrouter_per_model_usage "
             f"--cache_mode=DISABLE_CACHE"
         )
-        _, result = hsystem.system_to_string(
-            cmd, abort_on_error=True
-        )
+        _, result = hsystem.system_to_string(cmd, abort_on_error=True)
         # Should have Model_ID and usage columns
         self.assertIn("Model_ID", result)
         self.assertIn("Week_Tokens", result)
@@ -160,9 +155,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             f"-a aa_benchmarks "
             f"--cache_mode=DISABLE_CACHE"
         )
-        _, result = hsystem.system_to_string(
-            cmd, abort_on_error=True
-        )
+        _, result = hsystem.system_to_string(cmd, abort_on_error=True)
         # Should have columns from both actions
         self.assertIn("Model_ID", result)
         self.assertIn("Input_Cost", result)
@@ -184,9 +177,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             f"--models_from_file={models_file} "
             f"--cache_mode=DISABLE_CACHE"
         )
-        _, result = hsystem.system_to_string(
-            cmd, abort_on_error=True
-        )
+        _, result = hsystem.system_to_string(cmd, abort_on_error=True)
         # Should have columns from all actions
         self.assertIn("Model_ID", result)
         self.assertIn("Input_Cost", result)
