@@ -480,6 +480,49 @@
       """
   ````
 
+- **Good**
+  ````python
+  def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
+    """
+    Fetch benchmark data from Artificial Analysis API using cached models.
+
+    :param model_name: Model name in OpenRouter or AA format
+    :return: Dict with "coding_score" and "intelligence_score" (None if not found)
+        ```
+        {'coding_score': None, 'intelligence_score': None}
+        ```
+    """
+  ````
+
+- **Good**
+  ````python
+  def _format_table(table: pd.DataFrame) -> pd.DataFrame:
+    """
+    Format table columns using appropriate formatting functions.
+
+    Applies formatting to numerical columns for display:
+    - Input_Cost, Output_Cost: formatted via _format_cost()
+    - Context: formatted via _format_context()
+    - Speed_(tok/s): formatted via _format_benchmark()
+    - Coding_IQ, General_IQ: formatted via _format_benchmark()
+
+    :param table: DataFrame with raw numerical data
+        ```
+        Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
+        ---
+        openai/... | 0.003 | 0.015 | 128000 | 25.5 | 72.3
+        ```
+
+    :return: DataFrame with formatted string columns for display
+        ```
+        Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
+        ---
+        openai/... | "0.003" | "0.015" | "128K" | "25.5" | "72.3"
+        ```
+    """
+  ````
+
+
 ## Use Verbatim to Refer to Python Objects
 
 - When referring to Python objects (e.g., variables, classes, and functions) in

@@ -559,7 +559,6 @@ def _format_context(ctx: int) -> str:
         128000 -> "128K"
         1000000 -> "1M"
         2000000 -> "2M"
-
     """
     if ctx >= 1_000_000:
         result = f"{ctx / 1_000_000:.0f}M"
