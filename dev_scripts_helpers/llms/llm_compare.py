@@ -32,18 +32,32 @@ _LOG = logging.getLogger(__name__)
 
 
 @hcaches.simple_cache()
+def _download_gutenberg_book(url: str, book_name: str) -> str:
+    """
+    Download a book from Project Gutenberg.
+
+    :param url: Full URL to the book text file
+    :param book_name: Human-readable name of the book (for logging)
+    :return: Text content of the book
+    """
+    headers = {"User-Agent": "Mozilla/5.0"}
+    _LOG.info("Downloading %s from %s", book_name, url)
+    r = requests.get(url, headers=headers, timeout=30)
+    r.raise_for_status()
+    return r.text
+
+
+@hcaches.simple_cache()
 def _download_gutenberg_pride_prejudice() -> str:
     """
     Download Pride and Prejudice (Project Gutenberg #1342).
 
     Uses caching to avoid re-downloading on subsequent calls.
     """
-    url = "https://www.gutenberg.org/files/1342/1342-0.txt"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    _LOG.info("Downloading Pride and Prejudice from %s", url)
-    r = requests.get(url, headers=headers, timeout=30)
-    r.raise_for_status()
-    return r.text
+    return _download_gutenberg_book(
+        "https://www.gutenberg.org/files/1342/1342-0.txt",
+        "Pride and Prejudice",
+    )
 
 
 @hcaches.simple_cache()
@@ -53,12 +67,44 @@ def _download_gutenberg_war_of_worlds() -> str:
 
     Uses caching to avoid re-downloading on subsequent calls.
     """
-    url = "https://www.gutenberg.org/files/36/36-0.txt"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    _LOG.info("Downloading The War of the Worlds from %s", url)
-    r = requests.get(url, headers=headers, timeout=30)
-    r.raise_for_status()
-    return r.text
+    return _download_gutenberg_book(
+        "https://www.gutenberg.org/files/36/36-0.txt",
+        "The War of the Worlds",
+    )
+
+
+def _create_summarization_benchmark(
+    download_func,
+    text_source_name: str,
+    output_file_name: str,
+) -> Tuple[str, str]:
+    """
+    Create a summarization benchmark from downloaded text.
+
+    :param download_func: Callable that downloads and returns text
+    :param text_source_name: Name of the text source (for logging)
+    :param output_file_name: Name for the output prompt file in /tmp
+    :return: Tuple of (extracted_text, llm_cli_cmds)
+    """
+    # Download with caching.
+    full_text = download_func()
+    # Extract first 1000 words from the text.
+    words = full_text.split()
+    text = " ".join(words[:1000])
+    _LOG.info("Extracted %d words from %s", len(words[:1000]), text_source_name)
+    # Create summarization prompt.
+    prompt = (
+        f"Please summarize the following text concisely in 2-3 sentences:\n\n"
+        f"{text}"
+    )
+    # Save prompt to file.
+    benchmark_file = f"/tmp/{output_file_name}"
+    hio.to_file(benchmark_file, prompt)
+    _LOG.info("Benchmark prompt saved to %s", benchmark_file)
+    # Build llm_cli commands using file input.
+    llm_cli_cmds = f'--input {shlex.quote(benchmark_file)}'
+    _LOG.debug("Command line: llm_cli %s", llm_cli_cmds)
+    return text, llm_cli_cmds
 
 
 def _benchmark_summarization1() -> Tuple[str, str]:
@@ -71,29 +117,14 @@ def _benchmark_summarization1() -> Tuple[str, str]:
 
     :return: Tuple of (text_to_summarize, llm_cli_cmds)
     """
-    # Download with caching.
-    full_text = _download_gutenberg_pride_prejudice()
-    # Extract first 1000 words from the text.
-    words = full_text.split()
-    text = " ".join(words[:1000])
-    _LOG.info("Extracted %d words from Pride and Prejudice", len(words[:1000]))
-    # Create summarization prompt.
-    prompt = (
-        f"Please summarize the following text concisely in 2-3 sentences:\n\n"
-        f"{text}"
+    return _create_summarization_benchmark(
+        _download_gutenberg_pride_prejudice,
+        "Pride and Prejudice",
+        "summarization1_prompt.txt",
     )
-    # Save prompt to file.
-    benchmark_file = "/tmp/summarization1_prompt.txt"
-    hio.to_file(benchmark_file, prompt)
-    _LOG.info("Benchmark prompt saved to %s", benchmark_file)
-    # Build llm_cli commands using file input.
-    llm_cli_cmds = f'--input {shlex.quote(benchmark_file)}'
-    _LOG.debug("Command line: llm_cli %s", llm_cli_cmds)
-    return text, llm_cli_cmds
 
 
-# TODO(ai_gp): -> _benchmark_summarization2
-def _benchmark_summarization_war_of_worlds() -> Tuple[str, str]:
+def _benchmark_summarization2() -> Tuple[str, str]:
     """
     Summarization benchmark: The War of the Worlds (Project Gutenberg #36).
 
@@ -103,25 +134,11 @@ def _benchmark_summarization_war_of_worlds() -> Tuple[str, str]:
 
     :return: Tuple of (text_to_summarize, llm_cli_cmds)
     """
-    # Download with caching.
-    full_text = _download_gutenberg_war_of_worlds()
-    # Extract first 1000 words from the text.
-    words = full_text.split()
-    text = " ".join(words[:1000])
-    _LOG.info("Extracted %d words from War of the Worlds", len(words[:1000]))
-    # Create summarization prompt.
-    prompt = (
-        f"Please summarize the following text concisely in 2-3 sentences:\n\n"
-        f"{text}"
+    return _create_summarization_benchmark(
+        _download_gutenberg_war_of_worlds,
+        "War of the Worlds",
+        "summarization2_prompt.txt",
     )
-    # Save prompt to file.
-    benchmark_file = "/tmp/summarization_war_of_worlds_prompt.txt"
-    hio.to_file(benchmark_file, prompt)
-    _LOG.info("Benchmark prompt saved to %s", benchmark_file)
-    # Build llm_cli commands using file input.
-    llm_cli_cmds = f'--input {shlex.quote(benchmark_file)}'
-    _LOG.debug("Command line: llm_cli %s", llm_cli_cmds)
-    return text, llm_cli_cmds
 
 
 def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
@@ -133,7 +150,7 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     """
     benchmarks = {
         "summarization1": _benchmark_summarization1,
-        "summarization_war_of_worlds": _benchmark_summarization_war_of_worlds,
+        "summarization2": _benchmark_summarization2,
     }
     hdbg.dassert_in(
         benchmark_name,
@@ -144,6 +161,19 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     )
     _LOG.info("Loading benchmark: %s", benchmark_name)
     return benchmarks[benchmark_name]()
+
+
+def _get_model_files(output_dir: str, model: str) -> Tuple[str, str]:
+    """
+    Get output and stat file paths for a model.
+
+    :param output_dir: Output directory
+    :param model: Model code
+    :return: Tuple of (output_file_path, stat_file_path)
+    """
+    output_file = os.path.join(output_dir, f"{model}.output.txt")
+    stat_file = os.path.join(output_dir, f"{model}.stat.txt")
+    return output_file, stat_file
 
 
 def _load_models(
@@ -242,8 +272,7 @@ def _build_comparison_table(
             )
             continue
         # Build file paths for successful models.
-        output_file = os.path.join(output_dir, f"{model}.output.txt")
-        stat_file = os.path.join(output_dir, f"{model}.stat.txt")
+        output_file, stat_file = _get_model_files(output_dir, model)
         # Load statistics from JSON file.
         stat_data = hllmcli.TokenStats.from_file(stat_file)
         # Extract metrics from output file and statistics.
@@ -286,8 +315,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     results = {}
     for model in models:
-        output_file = os.path.join(output_dir, f"{model}.output.txt")
-        stat_file = os.path.join(output_dir, f"{model}.stat.txt")
+        output_file, stat_file = _get_model_files(output_dir, model)
         success, exc = _run_llm_cli(
             model=model,
             llm_cli_cmds=llm_cli_cmds,
