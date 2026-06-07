@@ -113,16 +113,28 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     return prompt_file, llm_cli_cmds
 
 
-def _get_model_files(output_dir: str, model: str) -> Tuple[str, str]:
+def _get_model_files(
+    output_dir: str, model: str, benchmark: str = ""
+) -> Tuple[str, str]:
     """
     Get output and stat file paths for a model.
 
     :param output_dir: Output directory
     :param model: Model code
+    :param benchmark: Benchmark name (optional, e.g., 'summarization1')
     :return: Tuple of (output_file_path, stat_file_path)
     """
-    output_file = os.path.join(output_dir, f"{model}.output.txt")
-    stat_file = os.path.join(output_dir, f"{model}.stat.txt")
+    model_basename = os.path.basename(model)
+    if benchmark:
+        output_file = os.path.join(
+            output_dir, f"{benchmark}.{model_basename}.output.txt"
+        )
+        stat_file = os.path.join(
+            output_dir, f"{benchmark}.{model_basename}.stat.txt"
+        )
+    else:
+        output_file = os.path.join(output_dir, f"{model_basename}.output.txt")
+        stat_file = os.path.join(output_dir, f"{model_basename}.stat.txt")
     return output_file, stat_file
 
 
@@ -177,7 +189,7 @@ def _run_llm_cli(
         f"--stat_file {shlex.quote(stat_file)} "
     )
     _LOG.info("Running model '%s'...", model)
-    _LOG.debug("Command: %s", cmd)
+    _LOG.info("Command: %s", cmd)
     rc = hsystem.system(cmd, print_command=False, abort_on_error=False)
     if rc != 0:
         error_msg = (
@@ -195,6 +207,7 @@ def _build_comparison_table(
     models: List[str],
     output_dir: str,
     results: Dict[str, Tuple[bool, str]],
+    benchmark: str = "",
 ) -> pd.DataFrame:
     """
     Build a comparison table from model results.
@@ -202,6 +215,7 @@ def _build_comparison_table(
     :param models: List of model codes that were run
     :param output_dir: Output directory containing results
     :param results: Dict mapping model to (success, error) tuple
+    :param benchmark: Benchmark name (optional, e.g., 'summarization1')
     :return: DataFrame with comparison data
     """
     rows = []
@@ -223,7 +237,7 @@ def _build_comparison_table(
             )
             continue
         # Build file paths for successful models.
-        output_file, stat_file = _get_model_files(output_dir, model)
+        output_file, stat_file = _get_model_files(output_dir, model, benchmark)
         # Load statistics from JSON file.
         stat_data = hllmcli.TokenStats.from_file(stat_file)
         # Extract metrics from output file and statistics.
@@ -265,8 +279,30 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Running %d models with commands: %s", len(models), llm_cli_cmds
     )
     results = {}
+    benchmark_name = args.benchmark if args.benchmark else ""
     for model in models:
-        output_file, stat_file = _get_model_files(output_dir, model)
+        output_file, stat_file = _get_model_files(
+            output_dir, model, benchmark_name
+        )
+        if os.path.exists(output_file):
+            stat_data = hllmcli.TokenStats.from_file(stat_file)
+            tokens_per_sec = 0.0
+            if stat_data.elapsed_time_in_seconds > 0:
+                total_tokens = (
+                    stat_data.input_tokens + stat_data.output_tokens
+                )
+                tokens_per_sec = total_tokens / stat_data.elapsed_time_in_seconds
+            _LOG.warning(
+                "Skipping model '%s' - output file already exists: %s "
+                "(input_tokens=%d, output_tokens=%d, tokens/sec=%.2f)",
+                model,
+                output_file,
+                stat_data.input_tokens,
+                stat_data.output_tokens,
+                tokens_per_sec,
+            )
+            results[model] = (True, "")
+            continue
         success, exc = _run_llm_cli(
             model=model,
             llm_cli_cmds=llm_cli_cmds,
@@ -283,7 +319,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             exc or "Model failed: %s",
             model,
         )
-    df = _build_comparison_table(models, output_dir, results)
+    df = _build_comparison_table(
+        models, output_dir, results, benchmark_name
+    )
     csv_file = os.path.join(output_dir, "comparison.csv")
     df.to_csv(csv_file, index=False)
     _LOG.info("Comparison Results:\n%s", df.to_string(index=False))

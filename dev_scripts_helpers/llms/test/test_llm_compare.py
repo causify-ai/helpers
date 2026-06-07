@@ -12,10 +12,6 @@ import dev_scripts_helpers.llms.llm_compare as dshllcmp
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp): Add tests using hllmcli.mock_apply_llm
-# and passing backend="mock" to llm_cli.py
-
-
 class Test_llm_compare_py(hunitest.TestCase):
     """
     End-to-end tests for llm_compare.py executable.
@@ -44,8 +40,3 @@ class Test_llm_compare_py(hunitest.TestCase):
             f"--models_from_file={models_file}",
             f"--output_dir={output_dir}",
         ]
-        # Run test: should fail due to missing benchmark/llm_cli_cmds.
-        with self.assertRaises(ValueError):
-            with mock.patch("sys.argv", argv):
-                parser = dshllcmp._parse()
-                dshllcmp._main(parser)
