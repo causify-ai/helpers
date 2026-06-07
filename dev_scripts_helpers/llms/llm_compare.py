@@ -19,7 +19,9 @@ import shlex
 from typing import Dict, List, Tuple
 
 import pandas as pd
+import requests
 
+import helpers.hcache_simple as hcaches
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
@@ -27,6 +29,121 @@ import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+
+@hcaches.simple_cache()
+def _download_gutenberg_pride_prejudice() -> str:
+    """
+    Download Pride and Prejudice (Project Gutenberg #1342).
+
+    Uses caching to avoid re-downloading on subsequent calls.
+    """
+    url = "https://www.gutenberg.org/files/1342/1342-0.txt"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    _LOG.info("Downloading Pride and Prejudice from %s", url)
+    r = requests.get(url, headers=headers, timeout=30)
+    r.raise_for_status()
+    return r.text
+
+
+@hcaches.simple_cache()
+def _download_gutenberg_war_of_worlds() -> str:
+    """
+    Download The War of the Worlds (Project Gutenberg #36).
+
+    Uses caching to avoid re-downloading on subsequent calls.
+    """
+    url = "https://www.gutenberg.org/files/36/36-0.txt"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    _LOG.info("Downloading The War of the Worlds from %s", url)
+    r = requests.get(url, headers=headers, timeout=30)
+    r.raise_for_status()
+    return r.text
+
+
+def _benchmark_summarization1() -> Tuple[str, str]:
+    """
+    Summarization1 benchmark: Pride and Prejudice (Project Gutenberg #1342).
+
+    Downloads Jane Austen's Pride and Prejudice from Project Gutenberg and
+    creates a summarization prompt for LLMs to process. Downloads are cached
+    with hcache_simple.
+
+    :return: Tuple of (text_to_summarize, llm_cli_cmds)
+    """
+    # Download with caching.
+    full_text = _download_gutenberg_pride_prejudice()
+    # Extract first 1000 words from the text.
+    words = full_text.split()
+    text = " ".join(words[:1000])
+    _LOG.info("Extracted %d words from Pride and Prejudice", len(words[:1000]))
+    # Create summarization prompt.
+    prompt = (
+        f"Please summarize the following text concisely in 2-3 sentences:\n\n"
+        f"{text}"
+    )
+    # Save prompt to file.
+    benchmark_file = "/tmp/summarization1_prompt.txt"
+    hio.to_file(benchmark_file, prompt)
+    _LOG.info("Benchmark prompt saved to %s", benchmark_file)
+    # Build llm_cli commands using file input.
+    llm_cli_cmds = f'--input {shlex.quote(benchmark_file)}'
+    _LOG.debug("Command line: llm_cli %s", llm_cli_cmds)
+    return text, llm_cli_cmds
+
+
+# TODO(ai_gp): -> _benchmark_summarization2
+def _benchmark_summarization_war_of_worlds() -> Tuple[str, str]:
+    """
+    Summarization benchmark: The War of the Worlds (Project Gutenberg #36).
+
+    Downloads H.G. Wells' The War of the Worlds from Project Gutenberg and
+    creates a summarization prompt for LLMs to process. Downloads are cached
+    with hcache_simple.
+
+    :return: Tuple of (text_to_summarize, llm_cli_cmds)
+    """
+    # Download with caching.
+    full_text = _download_gutenberg_war_of_worlds()
+    # Extract first 1000 words from the text.
+    words = full_text.split()
+    text = " ".join(words[:1000])
+    _LOG.info("Extracted %d words from War of the Worlds", len(words[:1000]))
+    # Create summarization prompt.
+    prompt = (
+        f"Please summarize the following text concisely in 2-3 sentences:\n\n"
+        f"{text}"
+    )
+    # Save prompt to file.
+    benchmark_file = "/tmp/summarization_war_of_worlds_prompt.txt"
+    hio.to_file(benchmark_file, prompt)
+    _LOG.info("Benchmark prompt saved to %s", benchmark_file)
+    # Build llm_cli commands using file input.
+    llm_cli_cmds = f'--input {shlex.quote(benchmark_file)}'
+    _LOG.debug("Command line: llm_cli %s", llm_cli_cmds)
+    return text, llm_cli_cmds
+
+
+def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
+    """
+    Get benchmark by name and return text and llm_cli commands.
+
+    :param benchmark_name: Name of the benchmark (e.g., 'summarization1')
+    :return: Tuple of (text_to_summarize, llm_cli_cmds)
+    """
+    benchmarks = {
+        "summarization1": _benchmark_summarization1,
+        "summarization_war_of_worlds": _benchmark_summarization_war_of_worlds,
+    }
+    hdbg.dassert_in(
+        benchmark_name,
+        benchmarks,
+        "Unknown benchmark '%s', must be one of: %s",
+        benchmark_name,
+        ", ".join(benchmarks.keys()),
+    )
+    _LOG.info("Loading benchmark: %s", benchmark_name)
+    return benchmarks[benchmark_name]()
 
 
 def _load_models(
@@ -71,9 +188,9 @@ def _run_llm_cli(
     :param abort_on_error: Whether to raise on error
     :return: (success, exception) tuple
     """
+    # TODO(ai_gp): Use hgit.find_in_git for llm_clu
     cmd = (
-        f"python3 -m dev_scripts_helpers.llms.llm_cli "
-        f"{llm_cli_cmds} "
+        f"llm_cli {llm_cli_cmds} "
         f"--model {shlex.quote(model)} "
         f"--output {shlex.quote(output_file)} "
         f"--stat_file {shlex.quote(stat_file)}"
@@ -151,12 +268,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("Starting LLM model comparison")
+    # Determine llm_cli_cmds from benchmark or direct argument.
+    if args.benchmark:
+        _, llm_cli_cmds = _get_benchmark(args.benchmark)
+    elif args.llm_cli_cmds:
+        llm_cli_cmds = args.llm_cli_cmds
+    else:
+        raise ValueError(
+            "Either --benchmark or --llm_cli_cmds must be provided"
+        )
     models = _load_models(args.models, args.models_from_file)
     output_dir = args.output_dir
     hio.create_dir(output_dir, True)
     _LOG.info("Output directory: %s", output_dir)
     _LOG.info(
-        "Running %d models with commands: %s", len(models), args.llm_cli_cmds
+        "Running %d models with commands: %s", len(models), llm_cli_cmds
     )
     results = {}
     for model in models:
@@ -164,7 +290,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         stat_file = os.path.join(output_dir, f"{model}.stat.txt")
         success, exc = _run_llm_cli(
             model=model,
-            llm_cli_cmds=args.llm_cli_cmds,
+            llm_cli_cmds=llm_cli_cmds,
             output_file=output_file,
             stat_file=stat_file,
             abort_on_error=args.abort_on_error,
@@ -175,7 +301,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hdbg.dassert_imply(
             args.abort_on_error,
             success,
-            exc or f"Model '{model}' failed",
+            exc or "Model failed: %s",
+            model,
         )
     df = _build_comparison_table(models, output_dir, results)
     csv_file = os.path.join(output_dir, "comparison.csv")
@@ -205,8 +332,14 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--llm_cli_cmds",
         type=str,
-        required=True,
+        default="",
         help="Arguments to pass to llm_cli.py (e.g., '--input input.txt --input_text \"...')",
+    )
+    parser.add_argument(
+        "--benchmark",
+        type=str,
+        default="",
+        help="Benchmark to run (e.g., 'summarization1')",
     )
     parser.add_argument(
         "--output_dir",
