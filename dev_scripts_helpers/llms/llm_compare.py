@@ -47,7 +47,6 @@ def _download_gutenberg_book(url: str, book_name: str) -> str:
     return r.text
 
 
-@hcaches.simple_cache()
 def _download_gutenberg_pride_prejudice() -> str:
     """
     Download Pride and Prejudice (Project Gutenberg #1342).
@@ -60,7 +59,6 @@ def _download_gutenberg_pride_prejudice() -> str:
     )
 
 
-@hcaches.simple_cache()
 def _download_gutenberg_war_of_worlds() -> str:
     """
     Download The War of the Worlds (Project Gutenberg #36).
@@ -148,6 +146,13 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     :param benchmark_name: Name of the benchmark (e.g., 'summarization1')
     :return: Tuple of (text_to_summarize, llm_cli_cmds)
     """
+    # TODO(ai_gp): Based on benchmark_name call
+    # _create_summarization_benchmark
+    # with
+    # "https://www.gutenberg.org/files/1342/1342-0.txt"
+    # adding a comment that is "Pride and Prejudice", or the other one
+    # Remove _benchmark_summarization1 and _benchmark_summarization2
+    # save the file as summarization1.txt
     benchmarks = {
         "summarization1": _benchmark_summarization1,
         "summarization2": _benchmark_summarization2,
