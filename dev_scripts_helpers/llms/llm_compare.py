@@ -23,6 +23,7 @@ import requests
 
 import helpers.hcache_simple as hcaches
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
@@ -47,40 +48,14 @@ def _download_gutenberg_book(url: str, book_name: str) -> str:
     return r.text
 
 
-def _download_gutenberg_pride_prejudice() -> str:
-    """
-    Download Pride and Prejudice (Project Gutenberg #1342).
-
-    Uses caching to avoid re-downloading on subsequent calls.
-    """
-    return _download_gutenberg_book(
-        "https://www.gutenberg.org/files/1342/1342-0.txt",
-        "Pride and Prejudice",
-    )
-
-
-def _download_gutenberg_war_of_worlds() -> str:
-    """
-    Download The War of the Worlds (Project Gutenberg #36).
-
-    Uses caching to avoid re-downloading on subsequent calls.
-    """
-    return _download_gutenberg_book(
-        "https://www.gutenberg.org/files/36/36-0.txt",
-        "The War of the Worlds",
-    )
-
-
 def _create_summarization_benchmark(
     download_func,
-    text_source_name: str,
     output_file_name: str,
 ) -> Tuple[str, str]:
     """
     Create a summarization benchmark from downloaded text.
 
     :param download_func: Callable that downloads and returns text
-    :param text_source_name: Name of the text source (for logging)
     :param output_file_name: Name for the output prompt file in /tmp
     :return: Tuple of (extracted_text, llm_cli_cmds)
     """
@@ -89,8 +64,9 @@ def _create_summarization_benchmark(
     # Extract first 1000 words from the text.
     words = full_text.split()
     text = " ".join(words[:1000])
-    _LOG.info("Extracted %d words from %s", len(words[:1000]), text_source_name)
+    _LOG.info("Extracted %d words", len(words[:1000]))
     # Create summarization prompt.
+    # TODO(ai_gp): Save the prompt in tmp.llm_compare.prompt.txt
     prompt = (
         f"Please summarize the following text concisely in 2-3 sentences:\n\n"
         f"{text}"
@@ -102,41 +78,8 @@ def _create_summarization_benchmark(
     # Build llm_cli commands using file input.
     llm_cli_cmds = f'--input {shlex.quote(benchmark_file)}'
     _LOG.debug("Command line: llm_cli %s", llm_cli_cmds)
+    # TODO(ai_gp): return file to summarize and file with prompt
     return text, llm_cli_cmds
-
-
-def _benchmark_summarization1() -> Tuple[str, str]:
-    """
-    Summarization1 benchmark: Pride and Prejudice (Project Gutenberg #1342).
-
-    Downloads Jane Austen's Pride and Prejudice from Project Gutenberg and
-    creates a summarization prompt for LLMs to process. Downloads are cached
-    with hcache_simple.
-
-    :return: Tuple of (text_to_summarize, llm_cli_cmds)
-    """
-    return _create_summarization_benchmark(
-        _download_gutenberg_pride_prejudice,
-        "Pride and Prejudice",
-        "summarization1_prompt.txt",
-    )
-
-
-def _benchmark_summarization2() -> Tuple[str, str]:
-    """
-    Summarization benchmark: The War of the Worlds (Project Gutenberg #36).
-
-    Downloads H.G. Wells' The War of the Worlds from Project Gutenberg and
-    creates a summarization prompt for LLMs to process. Downloads are cached
-    with hcache_simple.
-
-    :return: Tuple of (text_to_summarize, llm_cli_cmds)
-    """
-    return _create_summarization_benchmark(
-        _download_gutenberg_war_of_worlds,
-        "War of the Worlds",
-        "summarization2_prompt.txt",
-    )
 
 
 def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
@@ -146,16 +89,17 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     :param benchmark_name: Name of the benchmark (e.g., 'summarization1')
     :return: Tuple of (text_to_summarize, llm_cli_cmds)
     """
-    # TODO(ai_gp): Based on benchmark_name call
-    # _create_summarization_benchmark
-    # with
-    # "https://www.gutenberg.org/files/1342/1342-0.txt"
-    # adding a comment that is "Pride and Prejudice", or the other one
-    # Remove _benchmark_summarization1 and _benchmark_summarization2
-    # save the file as summarization1.txt
     benchmarks = {
-        "summarization1": _benchmark_summarization1,
-        "summarization2": _benchmark_summarization2,
+        "summarization1": (
+            "https://www.gutenberg.org/files/1342/1342-0.txt",
+            "Pride and Prejudice",
+            "summarization1_prompt.txt",
+        ),
+        "summarization2": (
+            "https://www.gutenberg.org/files/36/36-0.txt",
+            "War of the Worlds",
+            "summarization2_prompt.txt",
+        ),
     }
     hdbg.dassert_in(
         benchmark_name,
@@ -165,7 +109,12 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
         ", ".join(benchmarks.keys()),
     )
     _LOG.info("Loading benchmark: %s", benchmark_name)
-    return benchmarks[benchmark_name]()
+    url, text_source_name, output_file_name = benchmarks[benchmark_name]
+    # TODO(ai_gp): Download _download_gutenberg_book(url) and save it
+    # in "tmp.llm_compare.input_text.txt"
+    return _create_summarization_benchmark(
+        , text_source_name, output_file_name
+    )
 
 
 def _get_model_files(output_dir: str, model: str) -> Tuple[str, str]:
@@ -223,9 +172,10 @@ def _run_llm_cli(
     :param abort_on_error: Whether to raise on error
     :return: (success, exception) tuple
     """
-    # TODO(ai_gp): Use hgit.find_in_git for llm_clu
+    # TODO(ai_gp): Use hgit.find_file_in_git_tree
+    llm_cli_path = hgit.find_file("llm_cli")
     cmd = (
-        f"llm_cli {llm_cli_cmds} "
+        f"{shlex.quote(llm_cli_path)} {llm_cli_cmds} "
         f"--model {shlex.quote(model)} "
         f"--output {shlex.quote(output_file)} "
         f"--stat_file {shlex.quote(stat_file)}"
@@ -263,13 +213,13 @@ def _build_comparison_table(
         hdbg.dassert_in(model, results, "Model must be in results")
         success, _ = results[model]
         if not success:
-            # TODO(ai_gp): Start from an empty TokenStats.
-            # Use default values for failed models.
+            stat_data = hllmcli.TokenStats()
             rows.append(
                 {
                     "model": model,
-                    "costs": None,
-                    "time_elapsed": None,
+                    "cost_from_tokencost": stat_data.cost_from_tokencost,
+                    "cost_from_llm_library": stat_data.cost_from_llm_library,
+                    "time_elapsed": stat_data.elapsed_time_in_seconds,
                     "output_length": None,
                     "file": None,
                     "status": "FAILED",
