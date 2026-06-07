@@ -9,24 +9,27 @@ import helpers.hunit_test as hunitest
 
 import pandas as pd
 
-import helpers.hunit_test as hunitest
+import dev_scripts_helpers.llms.openrouter_models_table as dshlomota
 
-import dev_scripts_helpers.llms.openrouter_models_table as omt
+# #############################################################################
+# Test_normalize_for_fuzzy_matching
+# #############################################################################
 
 
 class Test_normalize_for_fuzzy_matching(hunitest.TestCase):
     """
-    Test normalization of model names for fuzzy matching.
+    Test `_normalize_for_fuzzy_matching()` for normalization of model names for
+    fuzzy matching.
     """
 
     def helper(self, name: str, expected: str) -> None:
         """
-        Test helper for _normalize_for_fuzzy_matching.
+        Test helper for `_normalize_for_fuzzy_matching()`.
 
         :param name: Input model name
         :param expected: Expected normalized output
         """
-        actual = omt._normalize_for_fuzzy_matching(name)
+        actual = dshlomota._normalize_for_fuzzy_matching(name)
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -86,9 +89,15 @@ class Test_normalize_for_fuzzy_matching(hunitest.TestCase):
         self.helper(name, expected)
 
 
+# #############################################################################
+# Test_normalize_for_aa_lookup
+# #############################################################################
+
+
 class Test_normalize_for_aa_lookup(hunitest.TestCase):
     """
-    Test normalization of model names to Artificial Analysis slug format.
+    Test `_normalize_for_aa_lookup()` for normalization of model names to
+    Artificial Analysis slug format.
     """
 
     def helper(self, name: str, expected: str) -> None:
@@ -98,7 +107,7 @@ class Test_normalize_for_aa_lookup(hunitest.TestCase):
         :param name: Input model name
         :param expected: Expected AA slug format
         """
-        actual = omt._normalize_for_aa_lookup(name)
+        actual = dshlomota._normalize_for_aa_lookup(name)
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -150,6 +159,9 @@ class Test_normalize_for_aa_lookup(hunitest.TestCase):
         self.helper(name, expected)
 
 
+# #############################################################################
+# Test_build_model_ids_dataframe
+# #############################################################################
 
 
 class Test_build_model_ids_dataframe(hunitest.TestCase):
@@ -162,10 +174,13 @@ class Test_build_model_ids_dataframe(hunitest.TestCase):
         Test building dataframe with single model.
         """
         model_ids = ["google/gemini-3.1-pro-preview"]
-        actual = omt._build_model_ids_dataframe(model_ids)
+        actual = dshlomota._build_model_ids_dataframe(model_ids)
+        # TODO(ai_gp): Check the output with self.assert_equal
         self.assertEqual(len(actual), 1)
         self.assertEqual(list(actual.columns), ["Model_ID"])
-        self.assertEqual(actual.iloc[0]["Model_ID"], "google/gemini-3.1-pro-preview")
+        self.assertEqual(
+            actual.iloc[0]["Model_ID"], "google/gemini-3.1-pro-preview"
+        )
 
     def test2(self) -> None:
         """
@@ -176,10 +191,16 @@ class Test_build_model_ids_dataframe(hunitest.TestCase):
             "anthropic/claude-opus-4.7",
             "openai/gpt-4-omni",
         ]
-        actual = omt._build_model_ids_dataframe(model_ids)
+        actual = dshlomota._build_model_ids_dataframe(model_ids)
+        # TODO(ai_gp): Check the output with self.assert_equal
         self.assertEqual(len(actual), 3)
         self.assertEqual(list(actual.columns), ["Model_ID"])
         self.assertEqual(list(actual["Model_ID"]), model_ids)
+
+
+# #############################################################################
+# Test_merge_dataframes
+# #############################################################################
 
 
 class Test_merge_dataframes(hunitest.TestCase):
@@ -204,14 +225,18 @@ class Test_merge_dataframes(hunitest.TestCase):
                 "Output_Cost": [5.0, 10.0],
             }
         )
-        actual = omt._merge_dataframes(base_df, [pricing_df])
+        actual = dshlomota._merge_dataframes(base_df, [pricing_df])
         self.assertEqual(len(actual), 2)
-        self.assertEqual(list(actual.columns), [
-            "Model_ID",
-            "Name",
-            "Input_Cost",
-            "Output_Cost",
-        ])
+        self.assertEqual(
+            list(actual.columns),
+            [
+                "Model_ID",
+                "Name",
+                "Input_Cost",
+                "Output_Cost",
+            ],
+        )
+        # TODO(ai_gp): Check the output with self.assert_equal
         self.assertEqual(actual.iloc[0]["Input_Cost"], 1.0)
         self.assertEqual(actual.iloc[1]["Output_Cost"], 10.0)
 
@@ -228,14 +253,23 @@ class Test_merge_dataframes(hunitest.TestCase):
         df2 = pd.DataFrame(
             {"Model_ID": ["model1", "model2"], "Speed": [25.5, 18.2]}
         )
-        actual = omt._merge_dataframes(base_df, [df1, df2])
+        actual = dshlomota._merge_dataframes(base_df, [df1, df2])
+        # TODO(ai_gp): Check the output with self.assert_equal
         self.assertEqual(len(actual), 2)
-        self.assertEqual(list(actual.columns), [
-            "Model_ID",
-            "Name",
-            "Cost",
-            "Speed",
-        ])
+        self.assertEqual(
+            list(actual.columns),
+            [
+                "Model_ID",
+                "Name",
+                "Cost",
+                "Speed",
+            ],
+        )
+
+
+# #############################################################################
+# Test_build_openrouter_id_to_aa_slug
+# #############################################################################
 
 
 class Test_build_openrouter_id_to_aa_slug(hunitest.TestCase):
@@ -248,35 +282,26 @@ class Test_build_openrouter_id_to_aa_slug(hunitest.TestCase):
         Test building mapping with matching models.
         """
         api_lookup = {
-            "anthropic/claude-opus-4.7": {
-                "name": "Anthropic: Claude Opus 4.7"
-            },
-            "openai/gpt-4-omni": {
-                "name": "OpenAI: GPT-4 Omni"
-            },
+            "anthropic/claude-opus-4.7": {"name": "Anthropic: Claude Opus 4.7"},
+            "openai/gpt-4-omni": {"name": "OpenAI: GPT-4 Omni"},
         }
         aa_models = {
             "claude-opus-4-7": {"name": "Claude Opus 4.7"},
             "gpt-4-omni": {"name": "GPT-4 Omni"},
         }
-        actual = omt._build_openrouter_id_to_aa_slug(api_lookup, aa_models)
-        self.assertEqual(
-            actual["anthropic/claude-opus-4.7"],
-            "claude-opus-4-7"
-        )
+        actual = dshlomota._build_openrouter_id_to_aa_slug(api_lookup, aa_models)
+        # TODO(ai_gp): Check the output with self.assert_equal
+        self.assertEqual(actual["anthropic/claude-opus-4.7"], "claude-opus-4-7")
         self.assertEqual(actual["openai/gpt-4-omni"], "gpt-4-omni")
 
     def test2(self) -> None:
         """
         Test building mapping with non-matching models.
         """
-        api_lookup = {
-            "unknown/model-xyz": {"name": "Unknown Model XYZ"}
-        }
-        aa_models = {
-            "claude-opus-4-7": {"name": "Claude Opus 4.7"}
-        }
-        actual = omt._build_openrouter_id_to_aa_slug(api_lookup, aa_models)
+        api_lookup = {"unknown/model-xyz": {"name": "Unknown Model XYZ"}}
+        aa_models = {"claude-opus-4-7": {"name": "Claude Opus 4.7"}}
+        actual = dshlomota._build_openrouter_id_to_aa_slug(api_lookup, aa_models)
+        # TODO(ai_gp): Check the output with self.assert_equal
         self.assertEqual(len(actual), 0)
 
     def test3(self) -> None:
@@ -292,14 +317,21 @@ class Test_build_openrouter_id_to_aa_slug(hunitest.TestCase):
         aa_models = {
             "gemini-3-1-pro-preview": {"name": "Gemini 3.1 Pro Preview"}
         }
-        actual = omt._build_openrouter_id_to_aa_slug(api_lookup, aa_models)
+        actual = dshlomota._build_openrouter_id_to_aa_slug(api_lookup, aa_models)
+        # TODO(ai_gp): Check the output with self.assert_equal
         self.assertEqual(len(actual), 1)
         self.assertIn("google/gemini-3.1-pro-preview", actual)
 
 
+# #############################################################################
+# Test_build_openrouter_id_to_permaslug
+# #############################################################################
+
+
 class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
     """
-    Test building mapping from OpenRouter ID to permaslug.
+    Test `_build_openrouter_id_to_permaslug()` for building mapping from
+    OpenRouter ID to permaslug.
     """
 
     def test1(self) -> None:
@@ -310,9 +342,11 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
             "openai/gpt-4-omni": {"name": "GPT-4 Omni"},
         }
         available_permaslugs = ["openai/gpt-4-omni"]
-        actual = omt._build_openrouter_id_to_permaslug(
+        actual = dshlomota._build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
+        # TODO(ai_gp): Assign to expected and then call assertEqual for all the
+        # functions in this class.
         self.assertEqual(actual["openai/gpt-4-omni"], "openai/gpt-4-omni")
 
     def test2(self) -> None:
@@ -323,7 +357,7 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
             "openai/gpt-4-omni": {"name": "GPT-4 Omni"},
         }
         available_permaslugs = ["gpt-4-omni"]
-        actual = omt._build_openrouter_id_to_permaslug(
+        actual = dshlomota._build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
         self.assertEqual(actual["openai/gpt-4-omni"], "gpt-4-omni")
@@ -336,7 +370,7 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
             "unknown/model-xyz": {"name": "Unknown Model"},
         }
         available_permaslugs = ["gpt-4-omni", "claude-opus"]
-        actual = omt._build_openrouter_id_to_permaslug(
+        actual = dshlomota._build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
         self.assertEqual(len(actual), 0)
@@ -350,12 +384,11 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
             "canonical-slug": {"name": "Some Model"},
         }
         available_permaslugs = ["gpt-4-omni", "some-model"]
-        actual = omt._build_openrouter_id_to_permaslug(
+        actual = dshlomota._build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
         self.assertEqual(len(actual), 1)
         self.assertIn("openai/gpt-4-omni", actual)
-
 
 
 # #############################################################################
@@ -363,6 +396,8 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Disable and run manually since this requires a key and connects
+# to third party APIs.
 class Test_openrouter_models_table_py(hunitest.TestCase):
     """
     End-to-end tests for openrouter_models_table.py executable.
@@ -385,6 +420,8 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         self,
         models_file: str,
         executable: str,
+        # TODO(ai_gp): Use None to avoid to assign to a mutable.
+        *,
         actions: List[str] = [],
     ) -> str:
         """
@@ -421,8 +458,11 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         Test with single action: openrouter_pricing.
         """
         models_file, executable = self._setup_test()
-        result = self._run_script(models_file, executable, actions=["openrouter_pricing"])
+        result = self._run_script(
+            models_file, executable, actions=["openrouter_pricing"]
+        )
         # Should have Model_ID and pricing columns
+        # TODO(ai_gp): _LOG.info the output for all these tests.
         self.assertIn("Model_ID", result)
         self.assertIn("Input_Cost", result)
         self.assertIn("Output_Cost", result)
@@ -433,7 +473,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         Test with single action: openrouter_throughput.
         """
         models_file, executable = self._setup_test()
-        result = self._run_script(models_file, executable, actions=["openrouter_throughput"])
+        result = self._run_script(
+            models_file, executable, actions=["openrouter_throughput"]
+        )
         # Should have Model_ID and Speed columns
         self.assertIn("Model_ID", result)
         self.assertIn("Speed_(tok/s)", result)
@@ -443,7 +485,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         Test with single action: aa_benchmarks.
         """
         models_file, executable = self._setup_test()
-        result = self._run_script(models_file, executable, actions=["aa_benchmarks"])
+        result = self._run_script(
+            models_file, executable, actions=["aa_benchmarks"]
+        )
         # Should have Model_ID and benchmark columns
         self.assertIn("Model_ID", result)
         self.assertIn("Coding_IQ", result)
@@ -454,7 +498,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         Test with single action: openrouter_per_model_usage.
         """
         models_file, executable = self._setup_test()
-        result = self._run_script(models_file, executable, actions=["openrouter_per_model_usage"])
+        result = self._run_script(
+            models_file, executable, actions=["openrouter_per_model_usage"]
+        )
         # Should have Model_ID and usage columns
         self.assertIn("Model_ID", result)
         self.assertIn("Week_Tokens", result)

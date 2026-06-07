@@ -425,8 +425,7 @@ def _build_openrouter_id_to_permaslug(
     """
     _LOG.debug(hprint.func_signature_to_str())
     result: Dict[OpenRouterId, OpenRouterPermaslug] = {}
-    hdbg.dassert(available_permaslugs,
-        "No available permaslugs provided")
+    hdbg.dassert(available_permaslugs, "No available permaslugs provided")
     for model_id in api_lookup.keys():
         # Skip entries without provider prefix (e.g., canonical_slug aliases).
         if "/" not in model_id:
@@ -472,8 +471,10 @@ def _build_openrouter_id_to_permaslug(
                 if best_match_score < 2:
                     best_match = permaslug
                     best_match_score = 2
-            elif (normalized_model in normalized_perma and
-                  len(normalized_model) > 5):
+            elif (
+                normalized_model in normalized_perma
+                and len(normalized_model) > 5
+            ):
                 # Only accept short normalized names as substrings if they're long
                 # enough (>5 chars) to avoid false positives (e.g., "gpt" matching
                 # "gpt-4-omni", "gpt-4-vision", etc.).
@@ -482,7 +483,12 @@ def _build_openrouter_id_to_permaslug(
                     best_match_score = 1
         if best_match:
             result[model_id] = best_match
-            _LOG.debug("Mapped %s -> %s (score=%f)", model_id, best_match, best_match_score)
+            _LOG.debug(
+                "Mapped %s -> %s (score=%f)",
+                model_id,
+                best_match,
+                best_match_score,
+            )
         else:
             _LOG.debug("No permaslug match found for %s", model_id)
     _LOG.info("Built permaslug mapping with %d entries", len(result))
@@ -514,7 +520,9 @@ def _build_openrouter_id_to_aa_slug(
             result[model_id] = aa_slug
             _LOG.debug("Matched OR id %s to AA slug %s", model_id, aa_slug)
         else:
-            _LOG.debug("No AA match for OR id %s (tried slug %s)", model_id, aa_slug)
+            _LOG.debug(
+                "No AA match for OR id %s (tried slug %s)", model_id, aa_slug
+            )
     return result
 
 
@@ -795,7 +803,9 @@ def _read_model_ids_from_list(models_list_str: str) -> List[str]:
     return model_ids
 
 
-def _normalize_input_to_openrouter_ids(model_ids: List[str]) -> List[OpenRouterId]:
+def _normalize_input_to_openrouter_ids(
+    model_ids: List[str],
+) -> List[OpenRouterId]:
     """
     Resolve short model names to their full OpenRouter API versions.
 
@@ -829,13 +839,22 @@ def _normalize_input_to_openrouter_ids(model_ids: List[str]) -> List[OpenRouterI
             resolved = None
             for full_value in short_to_full.values():
                 full_normalized = _normalize_for_fuzzy_matching(full_value)
-                if normalized in full_normalized or full_normalized in normalized:
-                    _LOG.info("Matched '%s' to '%s' via fuzzy match", model_id, full_value)
+                if (
+                    normalized in full_normalized
+                    or full_normalized in normalized
+                ):
+                    _LOG.info(
+                        "Matched '%s' to '%s' via fuzzy match",
+                        model_id,
+                        full_value,
+                    )
                     resolved = full_value
                     break
             if resolved is None:
                 resolved = model_id
-                _LOG.debug("No match found for '%s', returning original", model_id)
+                _LOG.debug(
+                    "No match found for '%s', returning original", model_id
+                )
         if resolved != model_id:
             _LOG.info("Resolved '%s' -> '%s'", model_id, resolved)
         resolved_ids.append(resolved)
@@ -1247,7 +1266,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if to_exec_usage:
         usage_df = _build_openrouter_per_model_usage_dataframe(
-            model_ids, id_to_permaslug, per_model_usage_raw if per_model_usage_raw else None
+            model_ids,
+            id_to_permaslug,
+            per_model_usage_raw if per_model_usage_raw else None,
         )
         _LOG.debug(
             "OpenRouter Per-Model Usage DataFrame:\n%s", usage_df.to_string()
