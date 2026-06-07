@@ -1,6 +1,6 @@
 ---
 description: Identify and refactor duplicated code blocks into shared functions across Python files
-model: sonnet
+model: haiku
 ---
 
 # Role

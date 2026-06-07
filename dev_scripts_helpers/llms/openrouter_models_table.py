@@ -506,6 +506,8 @@ def _build_openrouter_id_to_permaslug(
     """
     _LOG.debug(hprint.func_signature_to_str())
     result: Dict[OpenRouterId, OpenRouterPermaslug] = {}
+    if available_permaslugs is None:
+        return result
     hdbg.dassert(available_permaslugs, "No available permaslugs provided")
     for model_id in api_lookup.keys():
         # Skip entries without provider prefix (e.g., canonical_slug aliases).
@@ -822,6 +824,11 @@ def _format_table(table: pd.DataFrame) -> pd.DataFrame:
         table["Coding_IQ"] = table["Coding_IQ"].apply(_format_benchmark)
     if "General_IQ" in table.columns:
         table["General_IQ"] = table["General_IQ"].apply(_format_benchmark)
+    # Remove Short_Name and Name columns from final output.
+    if "Short_Name" in table.columns:
+        table = table.drop(columns=["Short_Name"])
+    if "Name" in table.columns:
+        table = table.drop(columns=["Name"])
     return table
 
 
@@ -963,6 +970,44 @@ def _build_model_ids_dataframe(
     columns = ["Model_ID"]
     df = pd.DataFrame(data=data, columns=columns)  # type: ignore
     _LOG.info("Built model IDs dataframe with %d rows", len(df))
+    return df
+
+
+def _build_model_identifiers_dataframe(
+    model_ids: List[OpenRouterId],
+    id_to_aa_slug: Dict[OpenRouterId, AaSlug],
+    id_to_permaslug: Dict[OpenRouterId, OpenRouterPermaslug],
+) -> pd.DataFrame:
+    """
+    Build dataframe with alternative model identifiers.
+
+    Adds columns for different representations of the same model:
+    - Short_Name: extracted from full ID (e.g., "claude-opus-4.7")
+    - AA_Slug: Artificial Analysis slug (e.g., "claude-opus-4-7")
+    - Permaslug: OpenRouter rankings API slug (e.g., "claude-3-opus")
+
+    :param model_ids: List of full OpenRouter model IDs
+    :param id_to_aa_slug: Prebuilt mapping from OpenRouterId to AaSlug
+    :param id_to_permaslug: Prebuilt mapping from OpenRouterId to Permaslug
+    :return: DataFrame with columns: Model_ID, Short_Name, AA_Slug, Permaslug
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    rows: List[List[Any]] = []
+    for model_id in model_ids:
+        short_name = model_id.split("/", 1)[1] if "/" in model_id else model_id
+        aa_slug = id_to_aa_slug.get(model_id, "")
+        permaslug = id_to_permaslug.get(model_id, "")
+        row = [
+            model_id,
+            short_name,
+            aa_slug,
+            permaslug,
+        ]
+        _LOG.debug("row=%s", row)
+        rows.append(row)
+    columns = ["Model_ID", "Short_Name", "AA_Slug", "Permaslug"]
+    df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    _LOG.info("Built model identifiers dataframe with %d rows", len(df))
     return df
 
 
@@ -1318,7 +1363,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "openrouter_pricing",
         "aa_benchmarks",
         "openrouter_throughput",
-        "openrouter_benchmarks",
+        #"openrouter_benchmarks",
         "openrouter_per_model_usage",
     ]
     default_actions = valid_actions
@@ -1335,11 +1380,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Start with minimal dataframe containing just model IDs.
     table = _build_model_ids_dataframe(model_ids)
     _LOG.info("Model IDs DataFrame:\n%s", table.to_string())
+    # Initialize mapping dicts (may be empty if not needed for actions).
+    id_to_aa_slug = {}
+    id_to_permaslug = {}
     # Build mapping tables once (needed by multiple dataframe builders).
     api_lookup: Dict[str, Dict[str, Any]] = {}
     aa_models: Dict[str, Dict[str, Any]] = {}
-    id_to_aa_slug: Dict[OpenRouterId, AaSlug] = {}
-    id_to_permaslug: Dict[OpenRouterId, OpenRouterPermaslug] = {}
     per_model_usage_raw: Dict[str, Dict[str, Any]] = {}
     needs_api_data = (
         "openrouter_pricing" in actions
@@ -1360,9 +1406,27 @@ def _main(parser: argparse.ArgumentParser) -> None:
             api_lookup, available_permaslugs
         )
         _LOG.debug("id_to_permaslug has %d entries", len(id_to_permaslug))
+    # Always build identifiers for better visibility (even if not explicitly requested).
+    if not id_to_aa_slug and api_lookup:
+        aa_models = _fetch_all_aa_models()
+        id_to_aa_slug = _build_openrouter_id_to_aa_slug(api_lookup, aa_models)
+        _LOG.debug("id_to_aa_slug (from identifiers) has %d entries", len(id_to_aa_slug))
+    if not id_to_permaslug and api_lookup:
+        per_model_usage_raw = _fetch_openrouter_per_model_usage()
+        available_permaslugs = list(per_model_usage_raw.keys())
+        id_to_permaslug = _build_openrouter_id_to_permaslug(
+            api_lookup, available_permaslugs
+        )
+        _LOG.debug("id_to_permaslug (from identifiers) has %d entries", len(id_to_permaslug))
     # Build and merge action-specific dataframes.
     dataframes_to_merge: List[pd.DataFrame] = []
     actions_copy = list(actions)
+    # Build identifiers dataframe (always include for reference).
+    identifiers_df = _build_model_identifiers_dataframe(
+        model_ids, id_to_aa_slug, id_to_permaslug
+    )
+    _LOG.debug("Model Identifiers DataFrame:\n%s", identifiers_df.to_string())
+    dataframes_to_merge.append(identifiers_df)
     # Build pricing dataframe.
     to_exec_pricing, actions_copy = hselacti.mark_action(
         "openrouter_pricing", actions_copy
@@ -1379,6 +1443,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         benchmarks_df = _build_aa_benchmarks_dataframe(model_ids, id_to_aa_slug)
         _LOG.debug("AA Benchmarks DataFrame:\n%s", benchmarks_df.to_string())
         dataframes_to_merge.append(benchmarks_df)
+    #
     to_exec_throughput, actions_copy = hselacti.mark_action(
         "openrouter_throughput", actions_copy
     )
@@ -1388,6 +1453,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "OpenRouter Throughput DataFrame:\n%s", throughput_df.to_string()
         )
         dataframes_to_merge.append(throughput_df)
+    #
     to_exec_benchmarks_or, actions_copy = hselacti.mark_action(
         "openrouter_benchmarks", actions_copy
     )
