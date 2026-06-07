@@ -1,7 +1,7 @@
 import logging
 import os
 import pprint
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import pandas as pd
 import pytest
@@ -329,9 +329,9 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
         actual = dshlomota._build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
-        expected = {"openai/gpt-4-omni": "openai/gpt-4-omni"}
-        # TODO(ai_gp): Use pprint and assert_equal
-        self.assertEqual(actual, expected)
+        actual_string = pprint.pformat(actual)
+        expected_string = pprint.pformat({"openai/gpt-4-omni": "openai/gpt-4-omni"})
+        self.assert_equal(actual_string, expected_string)
 
     def test2(self) -> None:
         """
@@ -344,9 +344,9 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
         actual = dshlomota._build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
-        # TODO(ai_gp): Use pprint and assert_equal
-        expected = {"openai/gpt-4-omni": "gpt-4-omni"}
-        self.assertEqual(actual, expected)
+        actual_string = pprint.pformat(actual)
+        expected_string = pprint.pformat({"openai/gpt-4-omni": "gpt-4-omni"})
+        self.assert_equal(actual_string, expected_string)
 
     def test3(self) -> None:
         """
@@ -359,9 +359,9 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
         actual = dshlomota._build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
-        # TODO(ai_gp): Use pprint and assert_equal
-        expected: Dict[str, str] = {}
-        self.assertEqual(actual, expected)
+        actual_string = pprint.pformat(actual)
+        expected_string = pprint.pformat({})
+        self.assert_equal(actual_string, expected_string)
 
     def test4(self) -> None:
         """
@@ -375,9 +375,9 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
         actual = dshlomota._build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
-        expected = {"openai/gpt-4-omni": "gpt-4-omni"}
-        # TODO(ai_gp): Use pprint and assert_equal
-        self.assertEqual(actual, expected)
+        actual_string = pprint.pformat(actual)
+        expected_string = pprint.pformat({"openai/gpt-4-omni": "gpt-4-omni"})
+        self.assert_equal(actual_string, expected_string)
 
 
 # #############################################################################
@@ -431,6 +431,28 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         _, result = hsystem.system_to_string(cmd, abort_on_error=True)
         return result
 
+    def _check_output_columns_and_rows(
+        self,
+        result: str,
+        expected_columns: List[str],
+        expected_num_rows: int = 1,
+    ) -> None:
+        """
+        Check that the output contains expected columns and the right number of
+        data rows.
+
+        :param result: Script output string
+        :param expected_columns: Column names that should appear in the output
+        :param expected_num_rows: Expected number of data rows
+        """
+        for col in expected_columns:
+            self.assertIn(col, result)
+        # Count data rows by looking for lines with the model ID pattern.
+        # The model ID "google/gemini-3.1-pro-preview" appears once per data row.
+        model_id = "google/gemini-3.1-pro-preview"
+        num_rows = result.count(model_id)
+        self.assertEqual(num_rows, expected_num_rows)
+
     def test1(self) -> None:
         """
         Test with single model, cache disabled, and no external API calls.
@@ -442,8 +464,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         # Expected from command: script attempts to run and fetch data
         # This test validates the script structure and argument parsing
         # If APIs are available, output should contain expected columns
-        self.assertIn("Name", result)
-        self.assertIn("Model_ID", result)
+        self._check_output_columns_and_rows(
+            result, ["Name", "Model_ID", "Input_Cost", "Output_Cost"]
+        )
 
     def test2(self) -> None:
         """
@@ -454,12 +477,11 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             models_file, executable, actions=["openrouter_pricing"]
         )
         _LOG.info("Result:\n%s", result)
-        # TODO(ai_gp): Check columns and rows for all the functions in this class
-        # Should have Model_ID and pricing columns
-        self.assertIn("Model_ID", result)
-        self.assertIn("Input_Cost", result)
-        self.assertIn("Output_Cost", result)
-        self.assertIn("Context", result)
+        # Check columns and rows.
+        self._check_output_columns_and_rows(
+            result,
+            ["Model_ID", "Input_Cost", "Output_Cost", "Context"],
+        )
 
     def test3(self) -> None:
         """
@@ -471,8 +493,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         )
         _LOG.info("Result:\n%s", result)
         # Should have Model_ID and Speed columns
-        self.assertIn("Model_ID", result)
-        self.assertIn("Speed_(tok/s)", result)
+        self._check_output_columns_and_rows(
+            result, ["Model_ID", "Speed_(tok/s)"]
+        )
 
     def test4(self) -> None:
         """
@@ -484,9 +507,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         )
         _LOG.info("Result:\n%s", result)
         # Should have Model_ID and benchmark columns
-        self.assertIn("Model_ID", result)
-        self.assertIn("Coding_IQ", result)
-        self.assertIn("General_IQ", result)
+        self._check_output_columns_and_rows(
+            result, ["Model_ID", "Coding_IQ", "General_IQ"]
+        )
 
     def test5(self) -> None:
         """
@@ -498,9 +521,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         )
         _LOG.info("Result:\n%s", result)
         # Should have Model_ID and usage columns
-        self.assertIn("Model_ID", result)
-        self.assertIn("Week_Tokens", result)
-        self.assertIn("Month_Tokens", result)
+        self._check_output_columns_and_rows(
+            result, ["Model_ID", "Week_Tokens", "Month_Tokens"]
+        )
 
     def test6(self) -> None:
         """
@@ -514,9 +537,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         )
         _LOG.info("Result:\n%s", result)
         # Should have columns from both actions
-        self.assertIn("Model_ID", result)
-        self.assertIn("Input_Cost", result)
-        self.assertIn("Coding_IQ", result)
+        self._check_output_columns_and_rows(
+            result, ["Model_ID", "Input_Cost", "Coding_IQ"]
+        )
 
     def test7(self) -> None:
         """
@@ -526,8 +549,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         result = self._run_script(models_file, executable)
         _LOG.info("Result:\n%s", result)
         # Should have columns from all actions
-        self.assertIn("Model_ID", result)
-        self.assertIn("Input_Cost", result)
-        self.assertIn("Speed_(tok/s)", result)
-        self.assertIn("Coding_IQ", result)
-        self.assertIn("Week_Tokens", result)
+        self._check_output_columns_and_rows(
+            result,
+            ["Model_ID", "Input_Cost", "Speed_(tok/s)", "Coding_IQ", "Week_Tokens"],
+        )

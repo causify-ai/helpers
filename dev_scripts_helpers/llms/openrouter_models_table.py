@@ -25,6 +25,8 @@ Available data sources:
 - `openrouter_pricing`: Pricing and context from the OpenRouter API
 - `aa_benchmarks`: Benchmark data from the Artificial Analysis API
 - `openrouter_throughput`: Throughput metrics from OpenRouter model pages
+- `openrouter_benchmarks`: Benchmark indices (Intelligence, Coding, Agentic) from
+  OpenRouter model benchmarks pages
 - `openrouter_per_model_usage`: Per-model usage statistics from OpenRouter
   rankings API
 
@@ -254,6 +256,74 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _fetch_openrouter_benchmarks(model_id: str) -> Dict[str, Optional[float]]:
+    """
+    Fetch benchmark indices from OpenRouter model benchmarks page.
+
+    Scrapes the OpenRouter model benchmarks page and extracts benchmark scores
+    (Intelligence Index, Coding Index, Agentic Index) from embedded data.
+
+    :param model_id: Full OpenRouter model ID (must contain "/" separator)
+        - Full OpenRouter ID: "google/gemini-3.1-pro-preview" or
+          "anthropic/claude-4.7-opus-20260416" (provider/model-name)
+    :return: Dict with "intelligence_index", "coding_index", "agentic_index"
+        ```
+        {
+            'intelligence_index': 11.8,
+            'coding_index': 4.9,
+            'agentic_index': 5.5
+        }
+        ```
+        Returns None for missing values.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    url = f"https://openrouter.ai/{model_id}/benchmarks"
+    _LOG.debug("Fetching benchmarks from %s", url)
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        )
+    }
+    request = urllib.request.Request(url, headers=headers)
+    try:
+        response = urllib.request.urlopen(request, timeout=30)
+        html_content = response.read().decode("utf-8")
+    except Exception as e:
+        _LOG.debug("Failed to fetch benchmarks page for %s: %s", model_id, e)
+        return {
+            "intelligence_index": None,
+            "coding_index": None,
+            "agentic_index": None,
+        }
+    intelligence_index = None
+    coding_index = None
+    agentic_index = None
+    patterns = {
+        "intelligence_index": r"Intelligence\s+Index[^0-9]*(\d+(?:\.\d+)?)",
+        "coding_index": r"Coding\s+Index[^0-9]*(\d+(?:\.\d+)?)",
+        "agentic_index": r"Agentic\s+Index[^0-9]*(\d+(?:\.\d+)?)",
+    }
+    for key, pattern in patterns.items():
+        match = re.search(pattern, html_content, re.IGNORECASE)
+        if match:
+            value = float(match.group(1))
+            if key == "intelligence_index":
+                intelligence_index = value
+            elif key == "coding_index":
+                coding_index = value
+            elif key == "agentic_index":
+                agentic_index = value
+            _LOG.debug("Found %s for %s: %f", key, model_id, value)
+    result = {
+        "intelligence_index": intelligence_index,
+        "coding_index": coding_index,
+        "agentic_index": agentic_index,
+    }
+    _LOG.debug("%s -> return:\n%s", model_id, pprint.pformat(result))
+    return result
+
+
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
     """
     Fetch per-model usage statistics from OpenRouter rankings API.
@@ -382,8 +452,19 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
     response = urllib.request.urlopen(request, timeout=30)
     response_data = json.loads(response.read().decode("utf-8"))
     # Handle flexible API response format and normalize to list.
+    # Cache may wrap data under function signature key, so unwrap if needed.
     if isinstance(response_data, dict):
         models_list = response_data.get("data", [])
+        # If no "data" key and dict has non-empty values, check if this is
+        # a cache wrapper by looking for the first non-string key value.
+        if not models_list and response_data:
+            first_value = next(iter(response_data.values()), None)
+            if (
+                first_value is not None
+                and isinstance(first_value, dict)
+                and not isinstance(first_value, list)
+            ):
+                models_list = list(first_value.values())
     elif isinstance(response_data, list):
         models_list = response_data
     else:
@@ -1073,6 +1154,50 @@ def _build_openrouter_per_model_usage_dataframe(
     return df
 
 
+def _build_openrouter_benchmarks_dataframe(
+    model_ids: List[OpenRouterId],
+) -> pd.DataFrame:
+    """
+    Build dataframe with OpenRouter benchmark indices.
+
+    Fetches benchmark data (Intelligence Index, Coding Index, Agentic Index)
+    from OpenRouter model benchmarks pages.
+
+    :param model_ids: List of full OpenRouter model IDs
+    :return: DataFrame with columns: Model_ID, Intelligence_Index, Coding_Index, Agentic_Index
+        ```
+        Model_ID | Intelligence_Index | Coding_Index | Agentic_Index
+        ---
+        meta-llama/llama-3.1-8b-instruct | 11.8 | 4.9 | 5.5
+        ```
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    rows: List[List[Any]] = []
+    for model_id in model_ids:
+        _LOG.debug("Fetching benchmarks for %s", model_id)
+        benchmarks = _fetch_openrouter_benchmarks(model_id)
+        intelligence_index = benchmarks.get("intelligence_index")
+        coding_index = benchmarks.get("coding_index")
+        agentic_index = benchmarks.get("agentic_index")
+        row = [
+            model_id,
+            intelligence_index,
+            coding_index,
+            agentic_index,
+        ]
+        _LOG.debug("row=%s", row)
+        rows.append(row)
+    columns = [
+        "Model_ID",
+        "Intelligence_Index",
+        "Coding_Index",
+        "Agentic_Index",
+    ]
+    df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    _LOG.info("Built OpenRouter benchmarks dataframe with %d rows", len(df))
+    return df
+
+
 def _merge_dataframes(
     base_df: pd.DataFrame,
     dataframes: List[pd.DataFrame],
@@ -1165,6 +1290,7 @@ def _parse() -> argparse.ArgumentParser:
         "openrouter_pricing",
         "aa_benchmarks",
         "openrouter_throughput",
+        "openrouter_benchmarks",
         "openrouter_per_model_usage",
     ]
     default_actions = valid_actions
@@ -1192,6 +1318,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "openrouter_pricing",
         "aa_benchmarks",
         "openrouter_throughput",
+        "openrouter_benchmarks",
         "openrouter_per_model_usage",
     ]
     default_actions = valid_actions
@@ -1261,6 +1388,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "OpenRouter Throughput DataFrame:\n%s", throughput_df.to_string()
         )
         dataframes_to_merge.append(throughput_df)
+    to_exec_benchmarks_or, actions_copy = hselacti.mark_action(
+        "openrouter_benchmarks", actions_copy
+    )
+    if to_exec_benchmarks_or:
+        benchmarks_or_df = _build_openrouter_benchmarks_dataframe(model_ids)
+        _LOG.debug(
+            "OpenRouter Benchmarks DataFrame:\n%s", benchmarks_or_df.to_string()
+        )
+        dataframes_to_merge.append(benchmarks_or_df)
     to_exec_usage, actions_copy = hselacti.mark_action(
         "openrouter_per_model_usage", actions_copy
     )
