@@ -33,10 +33,11 @@ import llm
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
+import helpers.hmarkdown_formatting as hmarform
 import helpers.hmarkdown_select as hmarsele
+import helpers.hprint as hprint
 import helpers.hselect_input_output as hseinout
 import helpers.hsystem as hsystem
-import helpers.hmarkdown_formatting as hmarform
 
 _LOG = logging.getLogger(__name__)
 
@@ -59,7 +60,8 @@ def _get_input_output_files(
     :param modify_in_place: Whether to modify input file in place
     :return: Tuple of (input_file, input_text, output_file)
     """
-    # Determine input source.
+    _LOG.debug(hprint.func_signature_to_str())
+    # Resolve input source: stdin, file path, or inline text.
     if input_arg:
         if input_arg == "-":
             # Read from stdin.
@@ -73,7 +75,7 @@ def _get_input_output_files(
         hdbg.dassert_ne(input_text_arg, "", "Input text cannot be empty")
         input_text = input_text_arg
         input_file = ""
-    # Determine output destination.
+    # Resolve output destination: file, stdout, or in-place edit of input.
     if not output_arg:
         # TODO(ai_gp): Use a dassert_imply
         hdbg.dassert(
@@ -93,6 +95,7 @@ def _get_input_output_files(
         # Use the specified output file.
         hdbg.dassert_ne(output_arg, "", "Output file cannot be empty string")
         output_file = output_arg
+    _LOG.debug(hprint.to_str("input_file input_text output_file"))
     return input_file, input_text, output_file
 
 
@@ -105,6 +108,9 @@ def _get_expected_num_chars(
     """
     Calculate expected number of output characters.
 
+    Estimates output size for progress bar, either from input length
+    or an explicit argument.
+
     :param progress_bar: Whether progress bar is enabled
     :param expected_num_chars_arg: Explicitly provided expected char count (0
         if not provided)
@@ -112,7 +118,8 @@ def _get_expected_num_chars(
     :param input_text: Input text from command line
     :return: Expected number of output characters, or 0 if not needed
     """
-    # Calculate expected_num_chars if progress_bar is enabled.
+    _LOG.debug(hprint.func_signature_to_str())
+    # Estimate output size from input when progress bar is enabled.
     if progress_bar and expected_num_chars_arg:
         # Read input to get its length.
         if input_file:
@@ -141,6 +148,7 @@ def _get_expected_num_chars(
         expected_num_chars = expected_num_chars_arg
     else:
         expected_num_chars = 0
+    _LOG.debug("return=%s", expected_num_chars)
     return expected_num_chars
 
 
@@ -155,15 +163,20 @@ def _limit_input_text(
     :param max_chars: Maximum number of characters, or None for no limit
     :return: Text limited to max_chars, or original text if no limit
     """
+    _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_lte(1, max_chars)
+    # Truncate text if it exceeds the character limit.
     if len(text) <= max_chars:
+        _LOG.debug("return=%s", len(text))
         return text
     _LOG.warning(
         "Input text truncated from %d to %d chars",
         len(text),
         max_chars,
     )
-    return text[:max_chars]
+    truncated_text = text[:max_chars]
+    _LOG.debug("return=%s", len(truncated_text))
+    return truncated_text
 
 
 def _get_system_prompt(
@@ -181,6 +194,7 @@ def _get_system_prompt(
     :param system_prompt: Default system prompt text
     :return: The resolved system prompt
     """
+    _LOG.debug(hprint.func_signature_to_str())
     # Exactly one of the three options should be provided.
     num_options = sum(
         [
@@ -204,7 +218,7 @@ def _get_system_prompt(
             len(result),
         )
     elif rule:
-        # Use a rule.
+        # Extract system prompt from a rule specification.
         result = hmarsele.extract_rule_from_file(rule)
         _LOG.debug(
             "Extracted rule from spec '%s' (%d chars)",
@@ -212,8 +226,9 @@ def _get_system_prompt(
             len(result),
         )
     else:
-        # Use the string.
+        # Use the provided string directly.
         result = system_prompt
+    _LOG.debug("return=system_prompt (%d chars)", len(result))
     return result
 
 
@@ -248,7 +263,8 @@ def _process_selected_text(
     :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
     """
-    # Parse select specification and read input file.
+    _LOG.debug(hprint.func_signature_to_str())
+    # Parse select markers and read input file.
     select_start, select_end = hmarsele.parse_select_arg(select)
     _LOG.info(
         "Select mode: extracting chunk from '%s' to '%s'",
@@ -257,7 +273,7 @@ def _process_selected_text(
     )
     hdbg.dassert_ne(input_file, "", "Input file is required for select mode")
     input_lines = hseinout.from_file(input_file)
-    # Extract chunk from input based on markers.
+    # Locate the chunk boundaries from the select markers.
     _, ext = os.path.splitext(input_file) if input_file != "-" else ("", "")
     is_slide_format = ext == ".txt"
     start_idx, end_idx = hmarsele.get_chunk_bounds(
@@ -265,10 +281,10 @@ def _process_selected_text(
     )
     chunk_lines = input_lines[start_idx:end_idx]
     chunk_text = "\n".join(chunk_lines)
-    # Apply max_chars limit if specified.
+    # Cap input size to avoid exceeding the LLM's context window.
     if max_chars:
         chunk_text = _limit_input_text(chunk_text, max_chars)
-    # Transform chunk with LLM or log dry-run parameters.
+    # Transform chunk via LLM, or log what would be processed in a dry run.
     if dry_run:
         _LOG.warning("DRY RUN: Would call LLM with parameters:")
         _LOG.info(
@@ -296,11 +312,10 @@ def _process_selected_text(
         )
         if lint:
             response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
-    # Write output: either modify file in-place or write to output file.
+    # Reassemble the file: replace the selected chunk with the LLM response.
     if modify_in_place:
         hdbg.dassert_ne(input_file, "-", "Cannot modify stdin in-place")
-        # We are processing a file in place and we have selected to modify the
-        # file in place.
+        # Splice the response between the unchanged before/after portions.
         before_lines = input_lines[:start_idx]
         after_lines = input_lines[end_idx:]
         before_text = "\n".join(before_lines) if before_lines else ""
@@ -322,9 +337,11 @@ def _process_selected_text(
             end_idx,
         )
     else:
+        # Write to the specified output file.
         if not dry_run:
             hdbg.dassert_ne(output_file, "", "Output file is required")
             hseinout.to_file(response, output_file)
+    _LOG.debug("return=token_stats")
     return token_stats
 
 
@@ -357,7 +374,8 @@ def _process_full_text(
     :param dry_run: If True, skip calling the LLM and show what would be done
     :return: The cost of the LLM operation
     """
-    # Read input text from string, file, or stdin.
+    _LOG.debug(hprint.func_signature_to_str())
+    # Read input from string argument, file path, or stdin.
     if input_text:
         # Use text from input string.
         input_str = input_text
@@ -368,10 +386,10 @@ def _process_full_text(
         )
         input_lines = hseinout.from_file(input_file)
         input_str = "\n".join(input_lines)
-    # Apply max_chars limit if specified.
+    # Cap input size to avoid exceeding the LLM's context window.
     if max_chars:
         input_str = _limit_input_text(input_str, max_chars)
-    # Transform with LLM or log dry-run parameters.
+    # Transform text via LLM, or log what would be processed in a dry run.
     if dry_run:
         # TODO(gp): Consider moving this inside the LLM call to generalize it.
         _LOG.warning("DRY RUN: Would call LLM with parameters:")
@@ -399,11 +417,12 @@ def _process_full_text(
         )
         if lint:
             response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
-    # Write output or log dry-run destination.
+    # Write transformed output (or log when dry-running).
     if dry_run:
         _LOG.warning("DRY RUN: Would save to %s", output_file)
     else:
         hseinout.to_file(response, output_file)
+    _LOG.debug(hprint.to_str("token_stats"))
     return token_stats
 
 
@@ -414,12 +433,16 @@ def _is_plugin_installed(plugin_module_name: str) -> bool:
     :param plugin_module_name: Module name of the plugin (e.g., 'llm_openrouter')
     :return: True if plugin is installed, False otherwise
     """
+    _LOG.debug(hprint.func_signature_to_str())
     try:
+        # Load all plugins and scan for the requested module.
         llm.load_plugins()
         # Check if the plugin is in the list of installed plugins.
         for module, _ in llm.pm.list_plugin_distinfo():
             if module.__name__ == plugin_module_name:
+                _LOG.debug("return=True")
                 return True
+        _LOG.debug("return=False")
         return False
     except Exception as e:
         _LOG.debug("Error checking plugins: %s", e)
@@ -430,6 +453,7 @@ def _log_plugin_versions() -> None:
     """
     Log the versions of all installed llm plugins and packages.
     """
+    # Log version for every installed distribution whose name starts with "llm".
     for dist in sorted(
         distributions(), key=lambda d: d.metadata["Name"].lower()
     ):
@@ -444,11 +468,11 @@ def install_models() -> None:
 
     :return: Return code from the installation command
     """
+    # Install each required plugin only if missing from the installed set.
     plugins_to_install = [
         ("llm_openrouter", "llm install llm-openrouter"),
         ("llm_anthropic", "llm install llm-anthropic"),
     ]
-    # Install each plugin if not already present.
     for plugin_module_name, cmd in plugins_to_install:
         if _is_plugin_installed(plugin_module_name):
             _LOG.debug("Plugin '%s' is already installed", plugin_module_name)
@@ -470,10 +494,12 @@ def execute_llm_command(llm_cmd: str, abort_on_error: bool = True) -> int:
     :param abort_on_error: Whether to abort on error
     :return: Return code from the command
     """
+    _LOG.debug(hprint.func_signature_to_str())
     _LOG.info("Executing llm command: %s", llm_cmd)
     rc = hsystem.system(
         llm_cmd, print_command=True, abort_on_error=abort_on_error
     )
+    _LOG.debug("return=%s", rc)
     return rc
 
 
@@ -500,6 +526,10 @@ def _llm_cli(
     """
     Execute the LLM command processing logic.
 
+    Orchestrates the full pipeline: logger setup, model plugin
+    installation, input file resolution, LLM transformation, and
+    output persistence.
+
     :param input_arg: Input file path or '-' for stdin
     :param input_text_arg: Input text from command line
     :param output_arg: Output file path or '-' for stdout
@@ -525,8 +555,10 @@ def _llm_cli(
     :param llm_cmd: Arbitrary llm command to execute (empty string if not
         provided)
     """
+    _LOG.debug(hprint.func_signature_to_str())
     verbosity = log_level
-    # Suppress logging when using stdin/stdout unless DEBUG is requested.
+    # Suppress informational logging during stdin-to-stdout pipe unless
+    # the user requested DEBUG output.
     if input_arg == "-" and output_arg == "-":
         if log_level == "INFO":
             verbosity = "CRITICAL"
@@ -535,18 +567,18 @@ def _llm_cli(
     _LOG.info("tokencost version: %s", version("tokencost"))
     install_models()
     _log_plugin_versions()
-    # Execute arbitrary llm command if provided.
+    # Short-circuit: execute a raw llm command and exit.
     if llm_cmd != "":
         execute_llm_command(llm_cmd)
         return
-    # Determine input source and output destination.
+    # Resolve input source and output destination.
     input_file, input_text, output_file = _get_input_output_files(
         input_arg,
         input_text_arg,
         output_arg,
         modify_in_place,
     )
-    # Calculate expected number of output characters for progress tracking.
+    # Estimate output size for progress-bar rendering.
     expected_num_chars = _get_expected_num_chars(
         progress_bar,
         expected_num_chars_arg,
@@ -558,15 +590,16 @@ def _llm_cli(
         _LOG.warning("Dry run mode: LLM will not be called")
     else:
         _LOG.info("Processing with LLM '%s'...", model)
-    # Resolve system prompt from file, rule, or argument.
+    # Resolve system prompt from the highest-priority source.
     system_prompt = _get_system_prompt(
         system_prompt_file,
         rule,
         system_prompt_arg,
     )
-    # Process selected chunk or full text.
+    # Route to the appropriate processing path: select or full-text.
     if select:
-        # Transform a selected chunk of text.
+        # Transform a selected chunk (e.g., between markers), then
+        # reassemble the surrounding file content.
         hdbg.dassert(
             not input_text, "Select mode requires file input, not --input_text"
         )
@@ -584,7 +617,7 @@ def _llm_cli(
             dry_run,
         )
     else:
-        # Transform full text.
+        # Transform the entire input (text, file, or stdin).
         token_stats = _process_full_text(
             model,
             backend,
@@ -597,9 +630,9 @@ def _llm_cli(
             expected_num_chars,
             dry_run,
         )
-    # Report total cost of LLM operation.
+    # Report token usage and cost.
     _LOG.info("Total cost: %s", token_stats.to_str())
-    # Save stats to file if requested.
+    # Persist usage statistics to a JSON file when requested.
     if stat_file != "":
         token_stats.to_file(stat_file)
         _LOG.info("Stats saved to: %s", stat_file)

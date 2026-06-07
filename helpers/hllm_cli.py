@@ -83,12 +83,15 @@ class TokenStats:
     cost_from_tokencost: float = 0.0
     cost_from_llm_library: float = 0.0
     elapsed_time_in_seconds: float = 0.0
+    tokens_per_second: float = 0.0
 
     def __post_init__(self) -> None:
         """
         Validate TokenStats after initialization.
         """
         self.check()
+        # Compute tokens_per_second from the other fields.
+        self.tokens_per_second = self._compute_tokens_per_second()
 
     def check(self) -> None:
         """
@@ -99,12 +102,23 @@ class TokenStats:
         hdbg.dassert_lte(0, self.cost_from_tokencost)
         hdbg.dassert_lte(0, self.elapsed_time_in_seconds)
         hdbg.dassert_lte(0, self.cost_from_llm_library)
+        hdbg.dassert_lte(0, self.tokens_per_second)
         # Ensure proper types.
         self.input_tokens = int(self.input_tokens)
         self.output_tokens = int(self.output_tokens)
         self.cost_from_tokencost = float(self.cost_from_tokencost)
         self.elapsed_time_in_seconds = float(self.elapsed_time_in_seconds)
         self.cost_from_llm_library = float(self.cost_from_llm_library)
+        self.tokens_per_second = float(self.tokens_per_second)
+
+    def _compute_tokens_per_second(self) -> float:
+        """
+        Compute tokens per second from input_tokens, output_tokens, and elapsed_time_in_seconds.
+        """
+        total_tokens = self.input_tokens + self.output_tokens
+        if self.elapsed_time_in_seconds > 0:
+            return total_tokens / self.elapsed_time_in_seconds
+        return 0.0
 
     def to_float(self) -> float:
         """
@@ -138,7 +152,6 @@ class TokenStats:
         """
         cost = self.to_float()
         elapsed_time = self.elapsed_time_in_seconds
-        output_tokens = self.output_tokens
         # Format cost: $ for >= $1, cents for $0.0001-$1, u$ for < $0.0001
         if cost >= 1.0:
             cost_str = f"${cost:.6f}"
@@ -146,10 +159,9 @@ class TokenStats:
             cost_str = f"{cost * 100:.2f}c"
         else:
             cost_str = f"{cost * 1e6:.2f}u$"
-        # Calculate tokens per second, handling zero elapsed time.
-        if elapsed_time > 0:
-            tok_per_sec = output_tokens / elapsed_time
-            res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s, {tok_per_sec:.2f} tok/s ("
+        # Show tokens per second when elapsed time is positive.
+        if self.tokens_per_second > 0:
+            res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s, {self.tokens_per_second:.2f} tok/s ("
         else:
             res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s ("
         fields = [
@@ -185,12 +197,15 @@ class TokenStats:
         total_elapsed_time = sum(
             ts.elapsed_time_in_seconds for ts in token_stats_list
         )
+        # tokens_per_second is computed in __post_init__, so pass 0.0 and let
+        # the constructor derive it from the aggregated totals.
         return cls(
             input_tokens=total_input_tokens,
             output_tokens=total_output_tokens,
             cost_from_tokencost=total_cost_from_tokencost,
             cost_from_llm_library=total_cost_from_llm_library,
             elapsed_time_in_seconds=total_elapsed_time,
+            tokens_per_second=0.0,
         )
 
     @classmethod
@@ -213,6 +228,8 @@ class TokenStats:
         :param file_path: path where JSON file will be saved
         """
         data = dataclasses.asdict(self)
+        # Ensure tokens_per_second is always computed from the other fields.
+        data["tokens_per_second"] = self._compute_tokens_per_second()
         json_str = json.dumps(data, indent=2)
         hio.to_file(file_path, json_str)
 

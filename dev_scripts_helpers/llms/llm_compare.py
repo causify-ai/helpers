@@ -79,7 +79,7 @@ def _create_summarization_benchmark(
     hio.to_file(benchmark_file, full_prompt)
     _LOG.info("Benchmark prompt saved to %s", benchmark_file)
     _LOG.debug(hprint.to_str("benchmark_file"))
-    return input_text_file, benchmark_file
+    return benchmark_file, benchmark_file
 
 
 def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
@@ -308,12 +308,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Skip already-completed models so re-runs are idempotent.
         if os.path.exists(output_file):
             stat_data = hllmcli.TokenStats.from_file(stat_file)
-            tokens_per_sec = 0.0
-            if stat_data.elapsed_time_in_seconds > 0:
-                total_tokens = (
-                    stat_data.input_tokens + stat_data.output_tokens
-                )
-                tokens_per_sec = total_tokens / stat_data.elapsed_time_in_seconds
+            tokens_per_sec = stat_data.tokens_per_second
             _LOG.warning(
                 "Skipping model '%s' - output file already exists: %s "
                 "(input_tokens=%d, output_tokens=%d, tokens/sec=%.2f)",
