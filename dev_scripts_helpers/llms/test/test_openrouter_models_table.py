@@ -477,7 +477,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         # This test validates the script structure and argument parsing
         # If APIs are available, output should contain expected columns
         self._check_output_columns_and_rows(
-            result, ["Name", "Model_ID", "Input_Cost", "Output_Cost"]
+            result, ["Short_Name", "Input_Cost", "Output_Cost"]
         )
 
     def test2(self) -> None:
@@ -492,7 +492,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         # Check columns and rows.
         self._check_output_columns_and_rows(
             result,
-            ["Model_ID", "Input_Cost", "Output_Cost", "Context"],
+            ["Short_Name", "Input_Cost", "Output_Cost", "Context"],
         )
 
     def test3(self) -> None:
@@ -504,9 +504,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             models_file, executable, actions=["openrouter_throughput"]
         )
         _LOG.info("Result:\n%s", result)
-        # Should have Model_ID and Speed columns
+        # Should have Short_Name and Speed columns
         self._check_output_columns_and_rows(
-            result, ["Model_ID", "Speed_(tok/s)"]
+            result, ["Short_Name", "Speed"]
         )
 
     def test4(self) -> None:
@@ -518,9 +518,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             models_file, executable, actions=["aa_benchmarks"]
         )
         _LOG.info("Result:\n%s", result)
-        # Should have Model_ID and benchmark columns
+        # Should have Short_Name and benchmark columns
         self._check_output_columns_and_rows(
-            result, ["Model_ID", "Coding_IQ", "General_IQ"]
+            result, ["Short_Name", "Coding_IQ", "General_IQ"]
         )
 
     def test5(self) -> None:
@@ -532,9 +532,9 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
             models_file, executable, actions=["openrouter_per_model_usage"]
         )
         _LOG.info("Result:\n%s", result)
-        # Should have Model_ID and usage columns
+        # Should have Short_Name and usage columns
         self._check_output_columns_and_rows(
-            result, ["Model_ID", "Week_Tokens", "Month_Tokens"]
+            result, ["Short_Name", "Week_toks", "Month_toks"]
         )
 
     def test6(self) -> None:
@@ -550,7 +550,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         _LOG.info("Result:\n%s", result)
         # Should have columns from both actions
         self._check_output_columns_and_rows(
-            result, ["Model_ID", "Input_Cost", "Coding_IQ"]
+            result, ["Short_Name", "Input_Cost", "Coding_IQ"]
         )
 
     def test7(self) -> None:
@@ -563,5 +563,5 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         # Should have columns from all actions
         self._check_output_columns_and_rows(
             result,
-            ["Model_ID", "Input_Cost", "Speed_(tok/s)", "Coding_IQ", "Week_Tokens"],
+            ["Short_Name", "Input_Cost", "Speed", "Coding_IQ", "Week_toks"],
         )

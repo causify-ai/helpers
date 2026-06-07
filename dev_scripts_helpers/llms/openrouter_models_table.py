@@ -99,7 +99,7 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
         data = json.loads(response.read().decode("utf-8"))
     hdbg.dassert_in("data", data, "API response must contain 'data' key")
     models_list: List[Dict[str, Any]] = data["data"]
-    _LOG.info("Fetched %d models from OpenRouter API", len(models_list))
+    _LOG.debug("Fetched %d models from OpenRouter API", len(models_list))
     # Build lookup dict indexed by model ID and canonical slug.
     lookup: Dict[str, Dict[str, Any]] = {}
     for m in models_list:
@@ -229,8 +229,8 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
     """
     Fetch throughput (tokens/sec) from OpenRouter page for a model.
 
-    Scrapes the OpenRouter model detail page and extracts throughput information
-    from embedded JSON data (p50_throughput metric).
+    Scrapes the OpenRouter model detail page and extracts throughput
+    information from embedded JSON data (p50_throughput metric).
 
     :param model_id: Full OpenRouter model ID (must contain "/" separator)
         - Full OpenRouter ID: "google/gemini-3.1-pro-preview" or
@@ -255,7 +255,7 @@ def _fetch_openrouter_throughput(model_id: str) -> Optional[float]:
     match = re.search(r'\\"p50_throughput\\":(\d+(?:\.\d+)?)', html_content)
     if match:
         throughput = float(match.group(1))
-        _LOG.info("Found throughput for %s: %f", model_id, throughput)
+        _LOG.debug("Found throughput for %s: %f", model_id, throughput)
         _LOG.debug("%s -> return=%s", model_id, throughput)
         return throughput
     _LOG.debug("No throughput found for %s", model_id)
@@ -405,7 +405,7 @@ def _fetch_openrouter_per_model_usage() -> Dict[str, Dict[str, Any]]:
             per_model_usage[model_permaslug]["week_tokens"] += total_tokens
         if date >= month_ago:
             per_model_usage[model_permaslug]["month_tokens"] += total_tokens
-    _LOG.info("Fetched per-model usage for %d models", len(per_model_usage))
+    _LOG.debug("Fetched per-model usage for %d models", len(per_model_usage))
     _LOG.debug(
         "Return (first one):\n%s",
         pprint.pformat(dict(list(per_model_usage.items())[:1])),
@@ -491,7 +491,7 @@ def _fetch_all_aa_models() -> Dict[str, Dict[str, Any]]:
             if model_slug:
                 lookup[model_slug.lower()] = model
                 lookup[model_slug] = model
-    _LOG.info("Fetched %d models from Artificial Analysis API", len(lookup))
+    _LOG.debug("Fetched %d models from Artificial Analysis API", len(lookup))
     _LOG.debug(
         "Return (first one):\n%s", pprint.pformat(dict(list(lookup.items())[:1]))
     )
@@ -582,7 +582,7 @@ def _build_openrouter_id_to_permaslug(
             )
         else:
             _LOG.debug("No permaslug match found for %s", model_id)
-    _LOG.info("Built permaslug mapping with %d entries", len(result))
+    _LOG.debug("Built permaslug mapping with %d entries", len(result))
     return result
 
 
@@ -760,7 +760,7 @@ def _format_efficiency(
     output_cost: float,
 ) -> str:
     """
-    Compute Efficiency metric = (Coding_Score × Throughput) / (Input_Cost + Output_Cost).
+    Compute Efficiency metric = (Coding_Score × Throughput) / (In_Cost + Out_Cost).
 
     Efficiency measures performance-per-dollar: higher scores are better.
     Formula helps identify models with good quality and speed at low cost.
@@ -788,55 +788,57 @@ def _format_table(table: pd.DataFrame) -> pd.DataFrame:
     Format table columns using appropriate formatting functions.
 
     Applies formatting to numerical columns for display:
-    - Input_Cost, Output_Cost: formatted via _format_cost()
+    - In_Cost, Out_Cost: formatted via _format_cost()
     - Context: formatted via _format_context()
-    - Week_Tokens, Month_Tokens: formatted via _format_tokens()
-    - Speed_(tok/s): formatted via _format_benchmark()
+    - Week_Toks, Month_Toks: formatted via _format_tokens()
+    - Speed: formatted via _format_benchmark()
     - Coding_IQ, General_IQ: formatted via _format_benchmark()
 
     :param table: DataFrame with raw numerical data
         ```
-        Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
+        Model_ID | In_Cost | Out_Cost | Context | Speed | Coding_IQ
         ---
         openai/... | 0.003 | 0.015 | 128000 | 25.5 | 72.3
         ```
 
     :return: DataFrame with formatted string columns for display
         ```
-        Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
+        Model_ID | In_Cost | Out_Cost | Context | Speed | Coding_IQ
         ---
         openai/... | "0.003" | "0.015" | "128K" | "25.5" | "72.3"
         ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     table = table.copy()
-    if "Input_Cost" in table.columns:
-        table["Input_Cost"] = table["Input_Cost"].apply(_format_cost)
-    if "Output_Cost" in table.columns:
-        table["Output_Cost"] = table["Output_Cost"].apply(_format_cost)
+    if "In_Cost" in table.columns:
+        table["In_Cost"] = table["In_Cost"].apply(_format_cost)
+    if "Out_Cost" in table.columns:
+        table["Out_Cost"] = table["Out_Cost"].apply(_format_cost)
     if "Context" in table.columns:
         table["Context"] = table["Context"].apply(_format_context)
-    if "Week_Tokens" in table.columns:
-        table["Week_Tokens"] = table["Week_Tokens"].apply(
+    if "Week_Toks" in table.columns:
+        table["Week_Toks"] = table["Week_Toks"].apply(
             lambda x: _format_tokens(int(x)) if x and x > 0 else "0"
         )
-    if "Month_Tokens" in table.columns:
-        table["Month_Tokens"] = table["Month_Tokens"].apply(
+    if "Month_Toks" in table.columns:
+        table["Month_Toks"] = table["Month_Toks"].apply(
             lambda x: _format_tokens(int(x)) if x and x > 0 else "0"
         )
-    if "Speed_(tok/s)" in table.columns:
-        table["Speed_(tok/s)"] = table["Speed_(tok/s)"].apply(
+    if "Speed" in table.columns:
+        table["Speed"] = table["Speed"].apply(
             lambda x: _format_benchmark(x) if x is not None else ""
         )
     if "Coding_IQ" in table.columns:
         table["Coding_IQ"] = table["Coding_IQ"].apply(_format_benchmark)
     if "General_IQ" in table.columns:
         table["General_IQ"] = table["General_IQ"].apply(_format_benchmark)
-    # Remove Short_Name and Name columns from final output.
+    # Remove Short_Name, Name, and Model_ID columns from final output.
     if "Short_Name" in table.columns:
         table = table.drop(columns=["Short_Name"])
     if "Name" in table.columns:
         table = table.drop(columns=["Name"])
+    if "Model_ID" in table.columns:
+        table = table.drop(columns=["Model_ID"])
     return table
 
 
@@ -879,7 +881,7 @@ def _read_model_ids_from_file(models_file: str) -> List[str]:
     hdbg.dassert_lt(
         0, len(model_ids), "Models file must contain at least one model ID"
     )
-    _LOG.info("Read %d model IDs from %s", len(model_ids), models_file)
+    _LOG.debug("Read %d model IDs from %s", len(model_ids), models_file)
     _LOG.debug("Return (first one):\n%s", pprint.pformat(model_ids[:1]))
     return model_ids
 
@@ -894,7 +896,7 @@ def _read_model_ids_from_list(models_list_str: str) -> List[str]:
     _LOG.debug(hprint.func_signature_to_str())
     model_ids = models_list_str.split()
     hdbg.dassert_lt(0, len(model_ids), "Must provide at least one model ID")
-    _LOG.info("Parsed %d model IDs from list", len(model_ids))
+    _LOG.debug("Parsed %d model IDs from list", len(model_ids))
     _LOG.debug("Return (first one):\n%s", pprint.pformat(model_ids[:1]))
     return model_ids
 
@@ -921,7 +923,7 @@ def _normalize_input_to_openrouter_ids(
     :return: List of resolved full OpenRouter IDs
     """
     _LOG.debug(hprint.func_signature_to_str())
-    _LOG.info("Building model name resolution map...")
+    _LOG.debug("Building model name resolution map...")
     short_to_full = _build_short_to_full_model_map()
     resolved_ids: List[OpenRouterId] = []
     for model_id in model_ids:
@@ -939,7 +941,7 @@ def _normalize_input_to_openrouter_ids(
                     normalized in full_normalized
                     or full_normalized in normalized
                 ):
-                    _LOG.info(
+                    _LOG.debug(
                         "Matched '%s' to '%s' via fuzzy match",
                         model_id,
                         full_value,
@@ -952,7 +954,7 @@ def _normalize_input_to_openrouter_ids(
                     "No match found for '%s', returning original", model_id
                 )
         if resolved != model_id:
-            _LOG.info("Resolved '%s' -> '%s'", model_id, resolved)
+            _LOG.debug("Resolved '%s' -> '%s'", model_id, resolved)
         resolved_ids.append(resolved)
     return resolved_ids
 
@@ -977,7 +979,7 @@ def _build_model_ids_dataframe(
     data = [[model_id] for model_id in model_ids]
     columns = ["Model_ID"]
     df = pd.DataFrame(data=data, columns=columns)  # type: ignore
-    _LOG.info("Built model IDs dataframe with %d rows", len(df))
+    _LOG.debug("Built model IDs dataframe with %d rows", len(df))
     return df
 
 
@@ -1015,7 +1017,7 @@ def _build_model_identifiers_dataframe(
         rows.append(row)
     columns = ["Model_ID", "Short_Name", "AA_Slug", "Permaslug"]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    _LOG.info("Built model identifiers dataframe with %d rows", len(df))
+    _LOG.debug("Built model identifiers dataframe with %d rows", len(df))
     return df
 
 
@@ -1031,9 +1033,9 @@ def _build_openrouter_pricing_dataframe(
 
     :param model_ids: List of full OpenRouter IDs (e.g., "openai/gpt-4-omni")
     :param api_lookup: Dict from _fetch_models_from_api() with pricing/context
-    :return: DataFrame with columns: Model_ID, Name, Input_Cost, Output_Cost, Context
+    :return: DataFrame with columns: Model_ID, Name, In_Cost, Out_Cost, Context
         ```
-        Model_ID | Name | Input_Cost | Output_Cost | Context
+        Model_ID | Name | In_Cost | Out_Cost | Context
         ---
         openai/gpt-4-omni | "OpenAI: GPT-4 Omni" | 2.5 | 10.0 | 128000
         anthropic/claude-opus | "Anthropic: Claude Opus" | 3.0 | 15.0 | 200000
@@ -1065,12 +1067,12 @@ def _build_openrouter_pricing_dataframe(
     columns = [
         "Model_ID",
         "Name",
-        "Input_Cost",
-        "Output_Cost",
+        "In_Cost",
+        "Out_Cost",
         "Context",
     ]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    _LOG.info("Built OpenRouter pricing dataframe with %d rows", len(df))
+    _LOG.debug("Built OpenRouter pricing dataframe with %d rows", len(df))
     return df
 
 
@@ -1107,7 +1109,7 @@ def _build_metadata_dataframe(
         rows.append(row)
     columns = ["Model_ID", "Released"]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    _LOG.info("Built metadata dataframe with %d rows", len(df))
+    _LOG.debug("Built metadata dataframe with %d rows", len(df))
     return df
 
 
@@ -1150,7 +1152,7 @@ def _build_aa_benchmarks_dataframe(
         rows.append(row)
     columns = ["Model_ID", "Coding_IQ", "General_IQ"]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    _LOG.info("Built AA benchmarks dataframe with %d rows", len(df))
+    _LOG.debug("Built AA benchmarks dataframe with %d rows", len(df))
     return df
 
 
@@ -1163,9 +1165,9 @@ def _build_openrouter_throughput_dataframe(
     Fetches p50_throughput metric (50th percentile) from OpenRouter model pages.
 
     :param model_ids: List of full OpenRouter model IDs
-    :return: DataFrame with columns: Model_ID, Speed_(tok/s) (in tokens/second)
+    :return: DataFrame with columns: Model_ID, Speed (in tokens/second)
         ```
-        Model_ID | Speed_(tok/s)
+        Model_ID | Speed
         ---
         openai/gpt-4-omni | 25.5
         anthropic/claude-opus | 18.2
@@ -1183,9 +1185,9 @@ def _build_openrouter_throughput_dataframe(
         ]
         _LOG.debug("row=%s", row)
         rows.append(row)
-    columns = ["Model_ID", "Speed_(tok/s)"]
+    columns = ["Model_ID", "Speed"]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    _LOG.info("Built throughput dataframe with %d rows", len(df))
+    _LOG.debug("Built throughput dataframe with %d rows", len(df))
     return df
 
 
@@ -1202,9 +1204,9 @@ def _build_openrouter_per_model_usage_dataframe(
     :param model_ids: List of full OpenRouter model IDs
     :param id_to_permaslug: Prebuilt mapping from _build_openrouter_id_to_permaslug()
     :param per_model_usage: Pre-fetched usage data from _fetch_openrouter_per_model_usage()
-    :return: DataFrame with columns: Model_ID, Week_Tokens, Month_Tokens
+    :return: DataFrame with columns: Model_ID, Week_Toks, Month_Toks
         ```
-        Model_ID | Week_Tokens | Month_Tokens
+        Model_ID | Week_Toks | Month_Toks
         ---
         gpt-4-omni | 1234567890 | 5678901234
         claude-opus | 987654321 | 4567890123
@@ -1238,9 +1240,9 @@ def _build_openrouter_per_model_usage_dataframe(
         ]
         _LOG.debug("row=%s", row)
         rows.append(row)
-    columns = ["Model_ID", "Week_Tokens", "Month_Tokens"]
+    columns = ["Model_ID", "Week_Toks", "Month_Toks"]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    _LOG.info("Built per-model usage dataframe with %d rows", len(df))
+    _LOG.debug("Built per-model usage dataframe with %d rows", len(df))
     return df
 
 
@@ -1284,7 +1286,7 @@ def _build_openrouter_benchmarks_dataframe(
         "Agentic_Index",
     ]
     df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
-    _LOG.info("Built OpenRouter benchmarks dataframe with %d rows", len(df))
+    _LOG.debug("Built OpenRouter benchmarks dataframe with %d rows", len(df))
     return df
 
 
@@ -1321,7 +1323,7 @@ def _merge_dataframes(
                     list(dup_models),
                 )
         result = result.merge(df, on="Model_ID", how="left")
-    _LOG.info(
+    _LOG.debug(
         "Merged dataframe has %d rows and %d columns",
         len(result),
         len(result.columns),
@@ -1339,7 +1341,7 @@ def calc_efficiency(row: pd.Series) -> str:
     """
     Calculate efficiency score for a model row (applied via DataFrame.apply).
 
-    Efficiency = (Coding_IQ × Speed_(tok/s)) / (Input_Cost + Output_Cost)
+    Efficiency = (Coding_IQ × Speed) / (In_Cost + Out_Cost)
 
     This function is used as a callback for DataFrame.apply(axis=1) to compute
     efficiency across all rows.
@@ -1347,10 +1349,10 @@ def calc_efficiency(row: pd.Series) -> str:
     :param row: pandas Series representing a single model row
     :return: Formatted efficiency string or "N/A" if data missing
     """
-    if "Input_Cost" not in row.index or "Output_Cost" not in row.index:
+    if "In_Cost" not in row.index or "Out_Cost" not in row.index:
         return "N/A"
     coding_iq_val = row["Coding_IQ"]
-    speed_val = row["Speed_(tok/s)"]
+    speed_val = row["Speed"]
     coding_iq: Optional[float] = (
         None
         if coding_iq_val is None
@@ -1363,8 +1365,8 @@ def calc_efficiency(row: pd.Series) -> str:
         or (isinstance(speed_val, float) and pd.isna(speed_val))
         else float(speed_val)
     )
-    input_cost = float(row["Input_Cost"])
-    output_cost = float(row["Output_Cost"])
+    input_cost = float(row["In_Cost"])
+    output_cost = float(row["Out_Cost"])
     return _format_efficiency(coding_iq, speed, input_cost, output_cost)
 
 
@@ -1462,7 +1464,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("model_ids (after dedup)=%s", str(model_ids))
     # Start with minimal dataframe containing just model IDs.
     table = _build_model_ids_dataframe(model_ids)
-    _LOG.info("Model IDs DataFrame:\n%s", table.to_string())
+    _LOG.debug("Model IDs DataFrame:\n%s", table.to_string())
     # Initialize mapping dicts (may be empty if not needed for actions).
     id_to_aa_slug = {}
     id_to_permaslug = {}
@@ -1577,9 +1579,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Add efficiency column if all required columns are present.
     if (
         "Coding_IQ" in table.columns
-        and "Speed_(tok/s)" in table.columns
-        and "Input_Cost" in table.columns
-        and "Output_Cost" in table.columns
+        and "Speed" in table.columns
+        and "In_Cost" in table.columns
+        and "Out_Cost" in table.columns
     ):
         table["Efficiency"] = table.apply(calc_efficiency, axis=1)
     # Format and display the table.
