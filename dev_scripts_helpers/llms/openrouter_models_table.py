@@ -23,6 +23,7 @@ The script fetches data from multiple sources and displays a comparison table.
 
 Available data sources:
 - `openrouter_pricing`: Pricing and context from the OpenRouter API
+- `metadata`: Release date from OpenRouter API
 - `aa_benchmarks`: Benchmark data from the Artificial Analysis API
 - `openrouter_throughput`: Throughput metrics from OpenRouter model pages
 - `openrouter_benchmarks`: Benchmark indices (Intelligence, Coding, Agentic) from
@@ -113,11 +114,18 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
         # Extract model metadata.
         context_length: int = m.get("context_length", 0)
         name: str = m.get("name", model_id)
+        created_timestamp: Optional[int] = m.get("created")
+        created_date = None
+        if created_timestamp:
+            created_date = datetime.datetime.fromtimestamp(
+                created_timestamp
+            ).strftime("%Y-%m-%d")
         lookup[model_id] = {
             "name": name,
             "input_cost": input_cost,
             "output_cost": output_cost,
             "context_length": context_length,
+            "created_date": created_date,
             "coding_index_bench": None,
         }
         # Create alias by canonical slug to support flexible model lookups.
@@ -1066,6 +1074,43 @@ def _build_openrouter_pricing_dataframe(
     return df
 
 
+def _build_metadata_dataframe(
+    model_ids: List[OpenRouterId],
+    api_lookup: Dict[str, Dict[str, Any]],
+) -> pd.DataFrame:
+    """
+    Build dataframe with model metadata (release date).
+
+    :param model_ids: List of full OpenRouter model IDs
+    :param api_lookup: Dict from _fetch_models_from_api()
+    :return: DataFrame with columns: Model_ID, Released
+        ```
+        Model_ID | Released
+        ---
+        openai/gpt-4-omni | 2024-04-09
+        meta-llama/llama-2-7b | 2023-07-18
+        ```
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    rows: List[List[Any]] = []
+    for model_id in model_ids:
+        _LOG.debug("Fetching metadata for %s", model_id)
+        if model_id not in api_lookup:
+            continue
+        api_data = api_lookup[model_id]
+        released = api_data.get("created_date")
+        row = [
+            model_id,
+            released,
+        ]
+        _LOG.debug("row=%s", row)
+        rows.append(row)
+    columns = ["Model_ID", "Released"]
+    df = pd.DataFrame(data=rows, columns=columns)  # type: ignore
+    _LOG.info("Built metadata dataframe with %d rows", len(df))
+    return df
+
+
 def _build_aa_benchmarks_dataframe(
     model_ids: List[OpenRouterId],
     id_to_aa_slug: Dict[OpenRouterId, AaSlug],
@@ -1246,6 +1291,7 @@ def _build_openrouter_benchmarks_dataframe(
 def _merge_dataframes(
     base_df: pd.DataFrame,
     dataframes: List[pd.DataFrame],
+    num_input_models: int,
 ) -> pd.DataFrame:
     """
     Merge action-specific dataframes with the base dataframe.
@@ -1255,16 +1301,36 @@ def _merge_dataframes(
 
     :param base_df: Base dataframe with Model_ID (typically from pricing action)
     :param dataframes: List of action-specific dataframes (benchmarks, throughput, usage)
+    :param num_input_models: Number of input models for validation
     :return: Merged dataframe with all columns from all input dataframes
     """
     _LOG.debug(hprint.func_signature_to_str())
     result = base_df.copy()
     for df in dataframes:
+        _LOG.debug(
+            "Before merge: result has %d rows, df has %d rows",
+            len(result),
+            len(df),
+        )
+        if "Model_ID" in df.columns:
+            dup_mask = df.duplicated(subset=["Model_ID"], keep=False)
+            if dup_mask.any():
+                dup_models = df.loc[dup_mask, "Model_ID"].unique()
+                _LOG.warning(
+                    "Dataframe has duplicate Model_IDs: %s",
+                    list(dup_models),
+                )
         result = result.merge(df, on="Model_ID", how="left")
     _LOG.info(
         "Merged dataframe has %d rows and %d columns",
         len(result),
         len(result.columns),
+    )
+    hdbg.dassert_lte(
+        len(result),
+        num_input_models,
+        f"Merged dataframe has {len(result)} rows but only {num_input_models} "
+        f"input models."
     )
     return result
 
@@ -1333,6 +1399,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     valid_actions = [
         "openrouter_pricing",
+        "metadata",
         "aa_benchmarks",
         "openrouter_throughput",
         "openrouter_benchmarks",
@@ -1361,6 +1428,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Select which data sources to query based on command-line actions.
     valid_actions = [
         "openrouter_pricing",
+        "metadata",
         "aa_benchmarks",
         "openrouter_throughput",
         #"openrouter_benchmarks",
@@ -1376,7 +1444,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
         model_ids = _read_model_ids_from_list(args.models_list)
     # Normalize to canonical OpenRouter IDs (boundary: only place with fuzzy logic).
     model_ids = _normalize_input_to_openrouter_ids(model_ids)
-    _LOG.debug("model_ids=%s", str(model_ids))
+    _LOG.debug("model_ids (before dedup)=%s", str(model_ids))
+    # Deduplicate resolved model IDs while preserving order.
+    seen = set()
+    unique_model_ids = []
+    for model_id in model_ids:
+        if model_id not in seen:
+            unique_model_ids.append(model_id)
+            seen.add(model_id)
+    if len(unique_model_ids) < len(model_ids):
+        _LOG.warning(
+            "Resolved model IDs had duplicates: %d input models -> %d unique models",
+            len(model_ids),
+            len(unique_model_ids),
+        )
+    model_ids = unique_model_ids
+    _LOG.debug("model_ids (after dedup)=%s", str(model_ids))
     # Start with minimal dataframe containing just model IDs.
     table = _build_model_ids_dataframe(model_ids)
     _LOG.info("Model IDs DataFrame:\n%s", table.to_string())
@@ -1389,6 +1472,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     per_model_usage_raw: Dict[str, Dict[str, Any]] = {}
     needs_api_data = (
         "openrouter_pricing" in actions
+        or "metadata" in actions
         or "aa_benchmarks" in actions
         or "openrouter_per_model_usage" in actions
     )
@@ -1435,6 +1519,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
         pricing_df = _build_openrouter_pricing_dataframe(model_ids, api_lookup)
         _LOG.debug("OpenRouter Pricing DataFrame:\n%s", pricing_df.to_string())
         dataframes_to_merge.append(pricing_df)
+    # Build metadata dataframe (release date, parameters).
+    to_exec_metadata, actions_copy = hselacti.mark_action(
+        "metadata", actions_copy
+    )
+    if to_exec_metadata:
+        metadata_df = _build_metadata_dataframe(model_ids, api_lookup)
+        _LOG.debug("Metadata DataFrame:\n%s", metadata_df.to_string())
+        dataframes_to_merge.append(metadata_df)
     # Build benchmarks dataframe.
     to_exec_benchmarks, actions_copy = hselacti.mark_action(
         "aa_benchmarks", actions_copy
@@ -1478,7 +1570,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         dataframes_to_merge.append(usage_df)
     # Merge all dataframes.
     if dataframes_to_merge:
-        table = _merge_dataframes(table, dataframes_to_merge)
+        table = _merge_dataframes(
+            table, dataframes_to_merge, num_input_models=len(model_ids)
+        )
         _LOG.debug("Merged DataFrame:\n%s", table.to_string())
     # Add efficiency column if all required columns are present.
     if (
