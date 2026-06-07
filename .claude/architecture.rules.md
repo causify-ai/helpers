@@ -157,15 +157,21 @@
 - **Good**: Explicit data flow through stages
   ```python
   def download():
-      """Fetch data from source."""
+      """
+      Fetch data from source.
+      """
       return fetch_from_api()
 
   def process(data):
-      """Transform data."""
+      """
+      Transform data.
+      """
       return transform(data)
 
   def upload(data):
-      """Save data to destination."""
+      """
+      Save data to destination.
+      """
       save_to_storage(data)
 
   # In orchestration:
@@ -245,19 +251,27 @@
 - **Good**: Modular stages with action selection
   ```python
   def _download():
-      """Download data from source."""
+      """
+      Download data from source.
+      """
       return fetch_from_api()
 
   def _process(data):
-      """Transform and validate data."""
+      """
+      Transform and validate data.
+      """
       return transform(data)
 
   def _upload(data):
-      """Upload processed data to destination."""
+      """
+      Upload processed data to destination.
+      """
       save_to_storage(data)
 
   def _cleanup():
-      """Remove temporary files and state."""
+      """
+      Remove temporary files and state.
+      """
       remove_temp_files()
   ```
 
@@ -286,7 +300,9 @@
 - **Good**: Simple signature with semantic grouping
   ```python
   def transform(data, config):
-      """Apply transformations specified in config."""
+      """
+      Apply transformations specified in config.
+      """
       ...
 
   # Config encapsulates related options
@@ -331,7 +347,9 @@
       patience: int = 5
 
   def run_analysis(data, config):
-      """Run analysis with specified configuration."""
+      """
+      Run analysis with specified configuration.
+      """
       ...
   ```
 
@@ -374,7 +392,9 @@
 - **Bad**: Modifying input in-place
   ```python
   def normalize(df):
-      """Normalize dataframe in-place."""
+      """
+      Normalize dataframe in-place.
+      """
       df["value"] = (df["value"] - df["value"].mean()) / df["value"].std()
       return df
   ```
@@ -382,7 +402,9 @@
 - **Good**: Return normalized copy
   ```python
   def normalize(df):
-      """Return normalized copy of dataframe."""
+      """
+      Return normalized copy of dataframe.
+      """
       df_norm = df.copy()
       df_norm["value"] = (df_norm["value"] - df_norm["value"].mean()) / df_norm["value"].std()
       return df_norm
@@ -593,11 +615,15 @@
 - **Good**: Easy to test, infrastructure separate
   ```python
   def process(data):
-      """Pure function, easy to test."""
+      """
+      Pure function, easy to test.
+      """
       return transform(data)
 
   def _main(args):
-      """Infrastructure layer, harder to test but simple."""
+      """
+      Infrastructure layer, harder to test but simple.
+      """
       data = read_input(args.input_file)
       result = process(data)
       write_output(result, args.output_file)

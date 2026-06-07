@@ -614,11 +614,11 @@
 - In comments always use `: ` instead of ` - `
   - **Bad**
     ```
-    # Check outputs.` - Result verification
+    # Check outputs - Result verification
     ```
   - **Good**
     ```
-    # Check outputs.`: Result verification
+    # Check outputs: Result verification
     ```
 
 ## Convert Empty Lines and Empty Comments in Block Comments
