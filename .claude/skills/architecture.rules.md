@@ -213,7 +213,7 @@
       print(hselacti.actions_to_string(actions, valid_actions, add_frame=True))
 
       # Execute selected actions.
-      data: Optional[Any] = None
+      data: Any = None
       while actions:
           action = actions[0]
           to_execute, actions = hselacti.mark_action(action, actions)
@@ -376,6 +376,12 @@
       median: float
 
   def analyze(data: Any) -> Statistics:
+      """
+      Return summary statistics for the given data.
+
+      :param data: Input data to analyze
+      :return: Statistics dataclass with mean, std, count, median
+      """
       return Statistics(
           mean=...,
           std=...,
@@ -460,9 +466,15 @@
 - **Good**: Explicit data flow through function return values
   ```python
   def stage1() -> Any:
+      """
+      Fetch data from source.
+      """
       return fetch()
 
   def stage2(data: Any) -> Any:
+      """
+      Transform fetched data.
+      """
       return transform(data)
 
   # In orchestration:
@@ -495,6 +507,12 @@
       timestamps: List[datetime]
 
   def analyze(series: TimeSeries) -> Any:
+      """
+      Analyze time series data.
+
+      :param series: TimeSeries with values, indices, and timestamps
+      :return: Analysis result
+      """
       ...
   ```
 
@@ -522,13 +540,20 @@
 - **Good**: Validate only at entry point
   ```python
   def _main(args: argparse.Namespace) -> None:
+      """
+      Orchestration layer: validate inputs at boundary, then delegate.
+      """
       if not args.url:  # Validate at boundary
           raise ValueError("URL required")
       data = download(args.url)  # Inner layer assumes valid input
       ...
 
   def download(url: str) -> Any:
-      # Assume url is valid; no redundant validation.
+      """
+      Infrastructure layer: fetch data from URL.
+      
+      Assumes validated input; no redundant validation.
+      """
       ...
   ```
 
@@ -549,6 +574,9 @@
 - **Good**: Check constraints at entry point
   ```python
   def _main(args: argparse.Namespace) -> None:
+      """
+      Orchestration layer: validate configuration before processing.
+      """
       if args.output_dir and not args.format:
           raise ValueError("--format is required when --output_dir is specified")
       # Continue with validated configuration.
@@ -619,13 +647,13 @@
 
 - **Good**: Easy to test, infrastructure separate
   ```python
-  def process(data):
+  def process(data: Any) -> Any:
       """
       Pure function, easy to test.
       """
       return transform(data)
 
-  def _main(args):
+  def _main(args: argparse.Namespace) -> None:
       """
       Infrastructure layer, harder to test but simple.
       """
@@ -643,14 +671,14 @@
 - **Good test structure**:
   ```python
   # Test pure business logic
-  def test_process():
+  def test_process() -> None:
       data = {"values": [1, 2, 3]}
       result = process(data)
       assert result["mean"] == 2.0
 
   # Test infrastructure with mocks
   @patch("some_module.read_input")
-  def test_main_with_mocked_io(mock_read):
+  def test_main_with_mocked_io(mock_read: MagicMock) -> None:
       mock_read.return_value = {"values": [1, 2, 3]}
       # Test orchestration layer
   ```

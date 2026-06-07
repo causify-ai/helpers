@@ -105,10 +105,11 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     _LOG.info("Loading benchmark: %s", benchmark_name)
     url, text_source_name = benchmarks[benchmark_name]
     # Download the book and create the benchmark.
-    _, prompt_file, llm_cli_cmds = _create_summarization_benchmark(
+    _, prompt_file = _create_summarization_benchmark(
         url, text_source_name,
-        output_file_name
     )
+    # Generate llm_cli commands from the prompt file.
+    llm_cli_cmds = f'--input {shlex.quote(prompt_file)}'
     return prompt_file, llm_cli_cmds
 
 
@@ -168,7 +169,7 @@ def _run_llm_cli(
     :return: (success, exception) tuple
     """
     # Find llm_cli in the git tree.
-    llm_cli_path = hgit.find_file_in_git_tree("llm_cli")
+    llm_cli_path = hgit.find_file_in_git_tree("llm_cli.py")
     cmd = (
         f"{shlex.quote(llm_cli_path)} {llm_cli_cmds} "
         f"--model {shlex.quote(model)} "
