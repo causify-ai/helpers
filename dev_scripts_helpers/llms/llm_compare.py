@@ -50,14 +50,13 @@ def _download_gutenberg_book(url: str, book_name: str) -> str:
 
 def _create_summarization_benchmark(
     url: str, book_name: str,
-    output_file_name: str,
-) -> Tuple[str, str, str]:
+) -> Tuple[str, str]:
     """
     Create a summarization benchmark from downloaded text.
 
-    :param download_func: Callable that downloads and returns text
-    :param output_file_name: Name for the output prompt file in /tmp
-    :return: (input_text_file, prompt_file, llm_cli_cmds)
+    :param url: Full URL to the book text file
+    :param book_name: Human-readable name of the book (for logging)
+    :return: (input_text_file, prompt_file)
     """
     # Download with caching.
     full_text = _download_gutenberg_book(url, book_name)
@@ -70,7 +69,6 @@ def _create_summarization_benchmark(
     hio.to_file(input_text_file, text)
     _LOG.info("Input text saved to %s", input_text_file)
     # Create summarization prompt.
-    # TODO(ai_gp): Save the prompt in tmp.llm_compare.prompt.txt
     prompt = (
         f"Please summarize the following text concisely in 3  markdown bullet points:\n\n"
     )
@@ -78,12 +76,7 @@ def _create_summarization_benchmark(
     benchmark_file = "tmp.llm_compare.prompt.txt"
     hio.to_file(benchmark_file, prompt)
     _LOG.info("Benchmark prompt saved to %s", benchmark_file)
-    # TODO(ai_gp): Do not return llm_cli_cmds but generate it in place from
-    # benchmark_file.
-    # Build llm_cli commands using file input.
-    llm_cli_cmds = f'--input {shlex.quote(benchmark_file)}'
-    _LOG.debug("Command line: llm_cli %s", llm_cli_cmds)
-    return input_text_file, benchmark_file, llm_cli_cmds
+    return input_text_file, benchmark_file
 
 
 def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:

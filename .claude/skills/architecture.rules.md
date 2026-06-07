@@ -322,15 +322,16 @@
 - **Bad**: Many optional parameters scattered across signature
   ```python
   def run_analysis(
-      data,
-      model_type="linear",
-      learning_rate=0.01,
-      max_iterations=100,
-      batch_size=32,
-      regularization=0.1,
-      early_stopping=True,
-      patience=5,
-  ):
+      data: Any,
+      *,
+      model_type: str = "linear",
+      learning_rate: float = 0.01,
+      max_iterations: int = 100,
+      batch_size: int = 32,
+      regularization: float = 0.1,
+      early_stopping: bool = True,
+      patience: int = 5,
+  ) -> Any:
       ...
   ```
 
@@ -346,7 +347,7 @@
       early_stopping: bool = True
       patience: int = 5
 
-  def run_analysis(data, config):
+  def run_analysis(data: Any, config: AnalysisConfig) -> Any:
       """
       Run analysis with specified configuration.
       """
@@ -361,7 +362,7 @@
 
 - **Bad**: Implicit tuple with unclear ordering
   ```python
-  def analyze(data):
+  def analyze(data: Any) -> Tuple[float, float, int, float]:
       return mean, std, count, median  # What's the order?
   ```
 
@@ -374,7 +375,7 @@
       count: int
       median: float
 
-  def analyze(data) -> Statistics:
+  def analyze(data: Any) -> Statistics:
       return Statistics(
           mean=...,
           std=...,
@@ -391,7 +392,7 @@
 
 - **Bad**: Modifying input in-place
   ```python
-  def normalize(df):
+  def normalize(df: pd.DataFrame) -> pd.DataFrame:
       """
       Normalize dataframe in-place.
       """
@@ -401,7 +402,7 @@
 
 - **Good**: Return normalized copy
   ```python
-  def normalize(df):
+  def normalize(df: pd.DataFrame) -> pd.DataFrame:
       """
       Return normalized copy of dataframe.
       """
@@ -420,7 +421,7 @@
 
 - **Bad**: Implicit data dependencies
   ```python
-  def process():
+  def process() -> Any:
       # Where does data come from? How is it structured?
       ...
   ```
@@ -445,23 +446,23 @@
 
 - **Bad**: Using global variable for pipeline state
   ```python
-  _pipeline_data = None
+  _pipeline_data: Optional[Any] = None
 
-  def stage1():
+  def stage1() -> None:
       global _pipeline_data
       _pipeline_data = fetch()
 
-  def stage2():
+  def stage2() -> None:
       global _pipeline_data
       _pipeline_data = transform(_pipeline_data)
   ```
 
 - **Good**: Explicit data flow through function return values
   ```python
-  def stage1():
+  def stage1() -> Any:
       return fetch()
 
-  def stage2(data):
+  def stage2(data: Any) -> Any:
       return transform(data)
 
   # In orchestration:
@@ -476,7 +477,11 @@
 
 - **Bad**: Passing related values separately
   ```python
-  def analyze(values, indices, timestamps):
+  def analyze(
+      values: List[float],
+      indices: List[int],
+      timestamps: List[datetime],
+  ) -> Any:
       # What's the relationship between these?
       ...
   ```
@@ -489,7 +494,7 @@
       indices: List[int]
       timestamps: List[datetime]
 
-  def analyze(series: TimeSeries):
+  def analyze(series: TimeSeries) -> Any:
       ...
   ```
 
@@ -503,12 +508,12 @@
 
 - **Bad**: Validating at every layer
   ```python
-  def download(url):
+  def download(url: str) -> Any:
       if not url:  # Redundant validation
           raise ValueError("URL required")
       ...
 
-  def fetch(url):
+  def fetch(url: str) -> Any:
       if not url:  # Redundant validation
           raise ValueError("URL required")
       ...
@@ -516,14 +521,14 @@
 
 - **Good**: Validate only at entry point
   ```python
-  def _main(args):
+  def _main(args: argparse.Namespace) -> None:
       if not args.url:  # Validate at boundary
           raise ValueError("URL required")
       data = download(args.url)  # Inner layer assumes valid input
       ...
 
-  def download(url):
-      # Assume url is valid; no redundant validation
+  def download(url: str) -> Any:
+      # Assume url is valid; no redundant validation.
       ...
   ```
 
@@ -535,18 +540,18 @@
 
 - **Bad**: Silent failures or late error detection
   ```python
-  def process(config):
+  def process(config: Any) -> None:
       if config.output_dir and not config.format:
-          # Deep in the code, hard to debug
+          # Deep in the code, hard to debug.
           raise ValueError("Format required when output_dir is set")
   ```
 
 - **Good**: Check constraints at entry point
   ```python
-  def _main(args):
+  def _main(args: argparse.Namespace) -> None:
       if args.output_dir and not args.format:
           raise ValueError("--format is required when --output_dir is specified")
-      # Continue with validated configuration
+      # Continue with validated configuration.
   ```
 
 # Naming and Organization
@@ -571,26 +576,26 @@
 - **Bad**: Unrelated functions in one module
   ```python
   # hutils.py
-  def download_data():
+  def download_data() -> Any:
       ...
-  def train_model():
+  def train_model() -> Any:
       ...
-  def generate_report():
+  def generate_report() -> Any:
       ...
   ```
 
 - **Good**: Separate modules by responsibility
   ```python
   # hdownload.py - data fetching
-  def download_data():
+  def download_data() -> Any:
       ...
 
   # hmodel.py - ML training
-  def train_model():
+  def train_model() -> Any:
       ...
 
   # hreport.py - report generation
-  def generate_report():
+  def generate_report() -> Any:
       ...
   ```
 
