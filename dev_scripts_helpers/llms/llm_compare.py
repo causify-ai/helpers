@@ -42,79 +42,81 @@ def _download_gutenberg_book(url: str, book_name: str) -> str:
     :return: Text content of the book
     """
     headers = {"User-Agent": "Mozilla/5.0"}
-    _LOG.info("Downloading %s from %s", book_name, url)
+    _LOG.info("Downloading '%s' from '%s'", book_name, url)
     r = requests.get(url, headers=headers, timeout=30)
     r.raise_for_status()
     return r.text
 
 
 def _create_summarization_benchmark(
-    download_func,
+    url: str, book_name: str,
     output_file_name: str,
-) -> Tuple[str, str]:
+) -> Tuple[str, str, str]:
     """
     Create a summarization benchmark from downloaded text.
 
     :param download_func: Callable that downloads and returns text
     :param output_file_name: Name for the output prompt file in /tmp
-    :return: Tuple of (extracted_text, llm_cli_cmds)
+    :return: (input_text_file, prompt_file, llm_cli_cmds)
     """
     # Download with caching.
-    full_text = download_func()
+    full_text = _download_gutenberg_book(url, book_name)
     # Extract first 1000 words from the text.
     words = full_text.split()
     text = " ".join(words[:1000])
     _LOG.info("Extracted %d words", len(words[:1000]))
+    # Save the full input text for reference.
+    input_text_file = "tmp.llm_compare.input_text.txt"
+    hio.to_file(input_text_file, text)
+    _LOG.info("Input text saved to %s", input_text_file)
     # Create summarization prompt.
     # TODO(ai_gp): Save the prompt in tmp.llm_compare.prompt.txt
     prompt = (
-        f"Please summarize the following text concisely in 2-3 sentences:\n\n"
-        f"{text}"
+        f"Please summarize the following text concisely in 3  markdown bullet points:\n\n"
     )
     # Save prompt to file.
-    benchmark_file = f"/tmp/{output_file_name}"
+    benchmark_file = "tmp.llm_compare.prompt.txt"
     hio.to_file(benchmark_file, prompt)
     _LOG.info("Benchmark prompt saved to %s", benchmark_file)
+    # TODO(ai_gp): Do not return llm_cli_cmds but generate it in place from
+    # benchmark_file.
     # Build llm_cli commands using file input.
     llm_cli_cmds = f'--input {shlex.quote(benchmark_file)}'
     _LOG.debug("Command line: llm_cli %s", llm_cli_cmds)
-    # TODO(ai_gp): return file to summarize and file with prompt
-    return text, llm_cli_cmds
+    return input_text_file, benchmark_file, llm_cli_cmds
 
 
 def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     """
-    Get benchmark by name and return text and llm_cli commands.
+    Get benchmark by name and return llm_cli commands.
 
     :param benchmark_name: Name of the benchmark (e.g., 'summarization1')
-    :return: Tuple of (text_to_summarize, llm_cli_cmds)
+    :return: Tuple of (prompt_file, llm_cli_cmds)
     """
     benchmarks = {
         "summarization1": (
             "https://www.gutenberg.org/files/1342/1342-0.txt",
             "Pride and Prejudice",
-            "summarization1_prompt.txt",
         ),
         "summarization2": (
             "https://www.gutenberg.org/files/36/36-0.txt",
             "War of the Worlds",
-            "summarization2_prompt.txt",
         ),
     }
     hdbg.dassert_in(
         benchmark_name,
         benchmarks,
-        "Unknown benchmark '%s', must be one of: %s",
-        benchmark_name,
+        "Unknown benchmark must be one of: %s",
         ", ".join(benchmarks.keys()),
     )
     _LOG.info("Loading benchmark: %s", benchmark_name)
-    url, text_source_name, output_file_name = benchmarks[benchmark_name]
-    # TODO(ai_gp): Download _download_gutenberg_book(url) and save it
-    # in "tmp.llm_compare.input_text.txt"
-    return _create_summarization_benchmark(
-        , text_source_name, output_file_name
+    url, text_source_name = benchmarks[benchmark_name]
+    # Download the book and create the benchmark.
+    download_func = lambda: _download_gutenberg_book(url, text_source_name)
+    _, prompt_file, llm_cli_cmds = _create_summarization_benchmark(
+        download_func, output_file_name
     )
+    return prompt_file, llm_cli_cmds
 
 
 def _get_model_files(output_dir: str, model: str) -> Tuple[str, str]:
@@ -172,8 +174,8 @@ def _run_llm_cli(
     :param abort_on_error: Whether to raise on error
     :return: (success, exception) tuple
     """
-    # TODO(ai_gp): Use hgit.find_file_in_git_tree
-    llm_cli_path = hgit.find_file("llm_cli")
+    # Find llm_cli in the git tree.
+    llm_cli_path = hgit.find_file_in_git_tree("llm_cli")
     cmd = (
         f"{shlex.quote(llm_cli_path)} {llm_cli_cmds} "
         f"--model {shlex.quote(model)} "

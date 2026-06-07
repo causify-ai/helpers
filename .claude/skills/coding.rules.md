@@ -805,6 +805,21 @@
   issues
   - Always use lazy % formatting in logging functions
 
+## Enclose Variables in Single Quotes in Log Messages
+
+- When logging messages that include variable values for user display, enclose
+  variables in single quotes to make them visually distinct from surrounding text
+- This improves readability and helps users identify actual values in log output
+
+- **Bad**: Variables not visually distinct
+  ```python
+  _LOG.info("Downloading %s from %s", book_name, url)
+  ```
+- **Good**: Variables enclosed in single quotes
+  ```python
+  _LOG.info("Downloading '%s' from '%s'", book_name, url)
+  ```
+
 # Script Development
 
 ## Use Script Template
