@@ -194,17 +194,17 @@
   import helpers.hselect_action as hselacti
   import helpers.hparser as hparser
 
-  def _parse():
+  def _parse() -> argparse.ArgumentParser:
       parser = argparse.ArgumentParser(...)
-      # Define valid and default actions
+      # Define valid and default actions.
       valid_actions = ["download", "process", "upload", "cleanup"]
       default_actions = ["download", "process", "upload"]
       hselacti.add_action_arg(parser, valid_actions, default_actions)
       hparser.add_verbosity_arg(parser)
       return parser
 
-  def _main(args):
-      # Select which actions to execute
+  def _main(args: argparse.Namespace) -> None:
+      # Select which actions to execute.
       actions = hselacti.select_actions(
           args,
           valid_actions=["download", "process", "upload", "cleanup"],
@@ -212,8 +212,8 @@
       )
       print(hselacti.actions_to_string(actions, valid_actions, add_frame=True))
 
-      # Execute selected actions
-      data = None
+      # Execute selected actions.
+      data: Optional[Any] = None
       while actions:
           action = actions[0]
           to_execute, actions = hselacti.mark_action(action, actions)
@@ -241,7 +241,7 @@
 
 - **Bad**: Monolithic script function
   ```python
-  def run():
+  def run() -> None:
       download()
       process()
       upload()
@@ -250,25 +250,25 @@
 
 - **Good**: Modular stages with action selection
   ```python
-  def _download():
+  def _download() -> Any:
       """
       Download data from source.
       """
       return fetch_from_api()
 
-  def _process(data):
+  def _process(data: Any) -> Any:
       """
       Transform and validate data.
       """
       return transform(data)
 
-  def _upload(data):
+  def _upload(data: Any) -> None:
       """
       Upload processed data to destination.
       """
       save_to_storage(data)
 
-  def _cleanup():
+  def _cleanup() -> None:
       """
       Remove temporary files and state.
       """
@@ -286,26 +286,26 @@
 - **Bad**: Complex signature with many parameters
   ```python
   def transform(
-      data,
-      scale=True,
-      normalize=True,
-      remove_outliers=True,
-      handle_missing="mean",
-      log_transform=False,
-      na_filter=None,
-  ):
+      data: Any,
+      scale: bool = True,
+      normalize: bool = True,
+      remove_outliers: bool = True,
+      handle_missing: str = "mean",
+      log_transform: bool = False,
+      na_filter: Optional[str] = None,
+  ) -> Any:
       ...
   ```
 
 - **Good**: Simple signature with semantic grouping
   ```python
-  def transform(data, config):
+  def transform(data: Any, config: TransformConfig) -> Any:
       """
       Apply transformations specified in config.
       """
       ...
 
-  # Config encapsulates related options
+  # Config encapsulates related options.
   config = TransformConfig(
       scale=True,
       normalize=True,

@@ -112,9 +112,9 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     _LOG.info("Loading benchmark: %s", benchmark_name)
     url, text_source_name = benchmarks[benchmark_name]
     # Download the book and create the benchmark.
-    download_func = lambda: _download_gutenberg_book(url, text_source_name)
     _, prompt_file, llm_cli_cmds = _create_summarization_benchmark(
-        download_func, output_file_name
+        url, text_source_name,
+        output_file_name
     )
     return prompt_file, llm_cli_cmds
 
