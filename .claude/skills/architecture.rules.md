@@ -22,7 +22,7 @@
 
 - **Bad**: Mixing layers creates tight coupling and makes testing difficult
   ```python
-  def process_data(input_file):
+  def process_data(input_file: str) -> None:
       # File I/O mixed with business logic
       with open(input_file) as f:
           data = json.load(f)
@@ -33,20 +33,20 @@
 
 - **Good**: Clear separation with defined interfaces between layers
   ```python
-  def _read_input(input_file):
+  def _read_input(input_file: str) -> Any:
       """
       Infrastructure layer: file I/O.
       """
       with open(input_file) as f:
           return json.load(f)
 
-  def process_data(data):
+  def process_data(data: Any) -> Any:
       """
       Business logic layer: core computation.
       """
       return complex_calculation(data)
 
-  def _main(args):
+  def _main(args: argparse.Namespace) -> Any:
       """
       Orchestration layer: coordinate layers.
       """
@@ -66,7 +66,7 @@
 
 - **Bad**: Business logic depends on file system
   ```python
-  def analyze_dataset(dataset_path):
+  def analyze_dataset(dataset_path: str) -> Any:
       """
       Core analysis mixed with I/O.
       """
@@ -76,13 +76,13 @@
 
 - **Good**: Business logic accepts data, I/O in separate layer
   ```python
-  def analyze_dataset(df):
+  def analyze_dataset(df: pd.DataFrame) -> Any:
       """
       Pure business logic: independent of data source.
       """
       return df.describe()
 
-  def _main(args):
+  def _main(args: argparse.Namespace) -> None:
       """
       I/O layer calls business logic.
       """
@@ -98,7 +98,7 @@
 
 - **Bad**: Large, tightly coupled interface
   ```python
-  def process(context):
+  def process(context: Any) -> None:
       # Requires knowledge of context structure.
       context.data = transform(context.data)
       context.log(f"Processed {context.count} items")
@@ -107,7 +107,7 @@
 
 - **Good**: Small, focused interface
   ```python
-  def process(data):
+  def process(data: Any) -> Any:
       """
       Accept only what's needed, return only what's needed.
       """
@@ -141,34 +141,34 @@
 
 - **Bad**: Implicit dependencies between stages
   ```python
-  def download():
+  def download() -> None:
       global data
       data = fetch_from_api()
 
-  def process():
+  def process() -> None:
       global data
-      data = transform(data)  # Depends on download being called first
+      data = transform(data)  # Depends on `download()` being called first.
 
-  def upload():
+  def upload() -> None:
       global data
-      save_to_storage(data)  # Depends on process being called first
+      save_to_storage(data)  # Depends on `process()` being called first.
   ```
 
 - **Good**: Explicit data flow through stages
   ```python
-  def download():
+  def download() -> Any:
       """
       Fetch data from source.
       """
       return fetch_from_api()
 
-  def process(data):
+  def process(data: Any) -> Any:
       """
       Transform data.
       """
       return transform(data)
 
-  def upload(data):
+  def upload(data: Any) -> None:
       """
       Save data to destination.
       """
