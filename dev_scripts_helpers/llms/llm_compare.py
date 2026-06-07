@@ -65,16 +65,14 @@ def _create_summarization_benchmark(
     text = " ".join(words[:1000])
     _LOG.info("Extracted %d words", len(words[:1000]))
     # Save the full input text for reference.
-    input_text_file = "tmp.llm_compare.input_text.txt"
-    hio.to_file(input_text_file, text)
-    _LOG.info("Input text saved to %s", input_text_file)
-    # Create summarization prompt.
-    prompt = (
-        f"Please summarize the following text concisely in 3  markdown bullet points:\n\n"
+    # Create summarization prompt with text included.
+    prompt_instruction = (
+        f"Please summarize the following text concisely in 3 markdown bullet points:\n\n"
     )
-    # Save prompt to file.
+    full_prompt = f"{prompt_instruction}{text}"
+    # Save prompt with text to file.
     benchmark_file = "tmp.llm_compare.prompt.txt"
-    hio.to_file(benchmark_file, prompt)
+    hio.to_file(benchmark_file, full_prompt)
     _LOG.info("Benchmark prompt saved to %s", benchmark_file)
     return input_text_file, benchmark_file
 
