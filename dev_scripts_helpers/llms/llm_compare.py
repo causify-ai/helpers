@@ -174,7 +174,7 @@ def _run_llm_cli(
         f"{shlex.quote(llm_cli_path)} {llm_cli_cmds} "
         f"--model {shlex.quote(model)} "
         f"--output {shlex.quote(output_file)} "
-        f"--stat_file {shlex.quote(stat_file)}"
+        f"--stat_file {shlex.quote(stat_file)} "
     )
     _LOG.info("Running model '%s'...", model)
     _LOG.debug("Command: %s", cmd)
@@ -309,12 +309,6 @@ def _parse() -> argparse.ArgumentParser:
         help="Path to file with one model code per line",
     )
     parser.add_argument(
-        "--llm_cli_cmds",
-        type=str,
-        default="",
-        help="Arguments to pass to llm_cli.py (e.g., '--input input.txt --input_text \"...')",
-    )
-    parser.add_argument(
         "--benchmark",
         type=str,
         default="",
@@ -331,6 +325,12 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help="Abort on first model error (default: skip failed models)",
+    )
+    parser.add_argument(
+        "--llm_cli_cmds",
+        type=str,
+        default="",
+        help="Arguments to pass to llm_cli.py (e.g., '--input input.txt --input_text \"...')",
     )
     hparser.add_verbosity_arg(parser)
     return parser
