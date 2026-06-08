@@ -21,7 +21,7 @@ model: haiku
       *,
       model: str,
       batch_size: int = 50,
-      dump_every_batch: Optional[str] = None,
+      dump_every_batch: str = "",
       tag: str = "Processing",
       testing_functor: Optional[Callable[[str], str]] = None,
       use_sys_stderr: bool = False,
