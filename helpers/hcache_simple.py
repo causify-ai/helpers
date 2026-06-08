@@ -2031,19 +2031,19 @@ def simple_cache(
                 # TODO(gp): If the func hash has changed, the cache should be
                 # invalidated.
                 # TODO(gp): This warning should print only once.
-                # stored_hash = get_cache_property(func_name, "func_hash")
-                # if stored_hash:
-                #     current_hash = _compute_func_hash(func)
-                #     if current_hash != stored_hash:
-                #         _LOG.warning(
-                #             "Function '%s' source code has changed since "
-                #             "this value was cached (stored_hash=%s, "
-                #             "current_hash=%s). Clear the cache manually "
-                #             "if you need fresh results.",
-                #             func_name,
-                #             stored_hash,
-                #             current_hash,
-                #         )
+                stored_hash = get_cache_property(func_name, "func_hash")
+                if stored_hash:
+                    current_hash = _compute_func_hash(func)
+                    if current_hash != stored_hash:
+                        _LOG.warning(
+                            "Function '%s' source code has changed since "
+                            "this value was cached (stored_hash=%s, "
+                            "current_hash=%s). Clear the cache manually "
+                            "if you need fresh results.",
+                            func_name,
+                            stored_hash,
+                            current_hash,
+                        )
             else:
                 _LOG.trace("Cache miss for key='%s'", cache_key)
                 # Update the performance stats.
