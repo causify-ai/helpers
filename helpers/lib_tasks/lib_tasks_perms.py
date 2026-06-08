@@ -12,7 +12,7 @@ import stat
 from typing import Dict, List, Tuple
 
 import tqdm
-from invoke import task
+from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
