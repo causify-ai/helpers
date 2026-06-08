@@ -1,12 +1,11 @@
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import linters2.fix_comments as lficom
+import linters2.fix_comments as lfixcomm
 
 
 # #############################################################################
 # Test_convert_single_line_docstrings
 # #############################################################################
-
 
 
 class Test_convert_single_line_docstrings(hunitest.TestCase):
@@ -20,7 +19,7 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # Initialize the input file contents.
         content = hprint.dedent(content)
         # Run.
-        actual = "\n".join(lficom.convert_single_line_docstrings(content))
+        actual = "\n".join(lfixcomm.convert_single_line_docstrings(content))
         expected = hprint.dedent(expected)
         # Check.
         self.assert_equal(actual, expected)
@@ -32,7 +31,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def _is_mdformat_available() -> bool:
-            """Check if mdformat package is available."""
+            """
+            Check if mdformat package is available.
+            """
         '''
         # lint: enable=fix_comments
         expected = '''
@@ -50,7 +51,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         class Is_mdformat_available:
-            """Check if mdformat package is available."""
+            """
+            Check if mdformat package is available.
+            """
         '''
         # lint: enable=fix_comments
         expected = '''
@@ -68,12 +71,16 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def func1():
-            """Short docstring."""
+            """
+            Short docstring.
+            """
             pass
 
         class MyClass:
             def method(self):
-                """Method docstring."""
+                """
+                Method docstring.
+                """
                 pass
         '''
         # lint: enable=fix_comments
@@ -100,11 +107,15 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def func1():
-            """First function."""
+            """
+            First function.
+            """
             pass
 
         def func2():
-            """Second function."""
+            """
+            Second function.
+            """
             pass
         '''
         # lint: enable=fix_comments
@@ -145,7 +156,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = """
         def func1():
-            '''Single quote docstring.'''
+            '''
+            Single quote docstring.
+            '''
             pass
         """
         # lint: enable=fix_comments
@@ -164,10 +177,14 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         # lint: disable=fix_comments
         content = '''
-        """Module docstring."""
+        """
+        Module docstring.
+        """
 
         def func1():
-            """Function docstring."""
+            """
+            Function docstring.
+            """
             pass
         '''
         # lint: enable=fix_comments
@@ -191,7 +208,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def func1():
-            """Check if obj -> str conversion works."""
+            """
+            Check if obj -> str conversion works.
+            """
             pass
         '''
         # lint: enable=fix_comments
@@ -211,7 +230,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def func1():
-            """Return x=5, y=10."""
+            """
+            Return x=5, y=10.
+            """
             pass
         '''
         # lint: enable=fix_comments
@@ -231,7 +252,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def func1():
-            """Single line."""
+            """
+            Single line.
+            """
             pass
 
         def func2():
@@ -242,7 +265,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
             pass
 
         def func3():
-            """Another single line."""
+            """
+            Another single line.
+            """
             pass
         '''
         # lint: enable=fix_comments
@@ -275,13 +300,19 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         class Outer:
-            """Outer class."""
+            """
+            Outer class.
+            """
 
             class Inner:
-                """Inner class."""
+                """
+                Inner class.
+                """
 
                 def method(self):
-                    """Method docstring."""
+                    """
+                    Method docstring.
+                    """
                     pass
         '''
         # lint: enable=fix_comments
@@ -308,14 +339,14 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         """
         Test file with no docstrings.
         """
-        content = '''
+        content = """
         def func1():
             x = 1
             return x
 
         class MyClass:
             pass
-        '''
+        """
         expected = content
         self.helper(content, expected)
 
@@ -326,7 +357,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def func1():
-            """Line1\\nLine2."""
+            """
+            Line1\\nLine2.
+            """
             pass
         '''
         # lint: enable=fix_comments
@@ -346,7 +379,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def func1():
-            """Docstring with trailing space.   """
+            """
+            Docstring with trailing space.
+            """
             pass
         '''
         # lint: enable=fix_comments
@@ -366,7 +401,9 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
         # lint: disable=fix_comments
         content = '''
         def func1():
-            """This is a very long docstring that explains something in great detail."""
+            """
+            This is a very long docstring that explains something in great detail.
+            """
             pass
         '''
         # lint: enable=fix_comments
@@ -378,5 +415,3 @@ class Test_convert_single_line_docstrings(hunitest.TestCase):
             pass
         '''
         self.helper(content, expected)
-
-

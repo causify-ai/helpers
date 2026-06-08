@@ -472,7 +472,7 @@ def _summarize_text_with_llm(
     """
     _LOG.info("Summarizing: %s", input_file)
     # Save prompt to a temporary file.
-    prompt_file = f"tmp.summarize_text_with_llm.prompt.txt"
+    prompt_file = "tmp.summarize_text_with_llm.prompt.txt"
     hio.to_file(prompt_file, prompt)
     _LOG.debug("Saved prompt to: %s", prompt_file)
     # Build command to call llm_cli.py with the given prompt file.

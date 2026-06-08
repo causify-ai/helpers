@@ -549,8 +549,9 @@ def is_prettier_available(backend: str) -> bool:
     if backend == "dockerized":
         return True
     elif backend == "global":
-        result = hsystem.system("which prettier", suppress_output=True,
-                                abort_on_error=False)
+        result = hsystem.system(
+            "which prettier", suppress_output=True, abort_on_error=False
+        )
         return result == 0
     else:
         raise ValueError("Invalid backend='%s'" % backend)
@@ -566,16 +567,19 @@ def is_mdformat_available(backend: str) -> bool:
     if backend == "library":
         try:
             import mdformat  # noqa: F401
+
             return True
         except ImportError:
             return False
     elif backend == "uvx":
-        result = hsystem.system("which uvx", suppress_output=True,
-                                abort_on_error=False)
+        result = hsystem.system(
+            "which uvx", suppress_output=True, abort_on_error=False
+        )
         return result == 0
     elif backend == "global":
-        result = hsystem.system("which mdformat", suppress_output=True,
-                                abort_on_error=False)
+        result = hsystem.system(
+            "which mdformat", suppress_output=True, abort_on_error=False
+        )
         return result == 0
     else:
         raise ValueError("Invalid backend='%s'" % backend)
@@ -591,14 +595,19 @@ def is_flowmark_available(backend: str) -> bool:
     if backend == "library":
         try:
             import flowmark  # noqa: F401
+
             return True
         except ImportError:
             return False
     elif backend in ("uvx-rs", "uvx"):
-        result = hsystem.system("which uvx", suppress_output=True, abort_on_error=False)
+        result = hsystem.system(
+            "which uvx", suppress_output=True, abort_on_error=False
+        )
         return result == 0
     elif backend in ("global", "global-rs"):
-        result = hsystem.system("which flowmark", suppress_output=True, abort_on_error=False)
+        result = hsystem.system(
+            "which flowmark", suppress_output=True, abort_on_error=False
+        )
         return result == 0
     else:
         raise ValueError("Invalid backend='%s'" % backend)
@@ -628,7 +637,7 @@ def _format_with_prettier(
         # backend == "global": use global prettier executable.
         hdbg.dassert(
             is_prettier_available("global"),
-            "prettier executable not found in PATH."
+            "prettier executable not found in PATH.",
         )
         _LOG.debug("Using global prettier executable for formatting")
         tmp_file = "tmp.format_md.prettier.md"
@@ -684,7 +693,7 @@ def _format_with_mdformat(
         elif backend == "global":
             hdbg.dassert(
                 is_mdformat_available(backend),
-                "mdformat executable not found in PATH."
+                "mdformat executable not found in PATH.",
             )
             _LOG.debug("Using global mdformat executable for formatting")
         else:
@@ -722,11 +731,7 @@ def _format_with_flowmark(
         opts = ["--auto", f"-w {width}", tmp_file]
         if backend == "uvx-rs":
             _LOG.debug("Using flowmark via uvx-rs for formatting")
-            cmd_parts = [
-                "uvx",
-                "--from flowmark",
-                "flowmark"
-            ]
+            cmd_parts = ["uvx", "--from flowmark", "flowmark"]
         elif backend == "uvx":
             _LOG.debug("Using flowmark via uvx for formatting")
             cmd_parts = [
@@ -738,7 +743,7 @@ def _format_with_flowmark(
             # Rust-based flowmark from global path.
             hdbg.dassert(
                 is_flowmark_available(backend),
-                "flowmark executable not found in PATH."
+                "flowmark executable not found in PATH.",
             )
             _LOG.debug("Using global flowmark (Rust) executable for formatting")
             cmd_parts = [
@@ -747,7 +752,7 @@ def _format_with_flowmark(
         elif backend == "global":
             hdbg.dassert(
                 is_flowmark_available(backend),
-                "flowmark executable not found in PATH."
+                "flowmark executable not found in PATH.",
             )
             _LOG.debug("Using global flowmark executable for formatting")
             cmd_parts = [

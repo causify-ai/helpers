@@ -27,9 +27,7 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
     Test the remove_end_of_line_periods function.
     """
 
-    def helper(
-        self, input_text: str, expected_text: str
-    ) -> None:
+    def helper(self, input_text: str, expected_text: str) -> None:
         """
         Test helper for remove_end_of_line_periods.
 
@@ -1667,7 +1665,7 @@ class _Format_md_TestCase(abc.ABC):
 
 
 # #############################################################################
-# Test_format_md_prettier
+# Test_format_md_prettier1
 # #############################################################################
 
 
@@ -1678,6 +1676,11 @@ class Test_format_md_prettier1(_Format_md_TestCase, hunitest.TestCase):
 
     tool = "prettier"
     backend = "dockerized"
+
+
+# #############################################################################
+# Test_format_md_prettier2
+# #############################################################################
 
 
 @pytest.mark.skipif(
@@ -1694,12 +1697,13 @@ class Test_format_md_prettier2(_Format_md_TestCase, hunitest.TestCase):
 
 
 # #############################################################################
-# Test_format_md_mdformat
+# Test_format_md_mdformat1
 # #############################################################################
 
 
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("library"), reason="mdformat library not installed"
+    not hmarform.is_mdformat_available("library"),
+    reason="mdformat library not installed",
 )
 class Test_format_md_mdformat1(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1710,8 +1714,14 @@ class Test_format_md_mdformat1(_Format_md_TestCase, hunitest.TestCase):
     backend = "library"
 
 
+# #############################################################################
+# Test_format_md_mdformat2
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("uvx"), reason="mdformat uvx not installed"
+    not hmarform.is_mdformat_available("uvx"),
+    reason="mdformat uvx not installed",
 )
 class Test_format_md_mdformat2(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1722,8 +1732,14 @@ class Test_format_md_mdformat2(_Format_md_TestCase, hunitest.TestCase):
     backend = "uvx"
 
 
+# #############################################################################
+# Test_format_md_mdformat3
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_mdformat_available("global"), reason="mdformat global not installed"
+    not hmarform.is_mdformat_available("global"),
+    reason="mdformat global not installed",
 )
 class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
     """
@@ -1735,53 +1751,74 @@ class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
 
 
 # #############################################################################
-# Test_format_md_flowmark
+# Test_format_md_flowmark1
 # #############################################################################
 
 
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("library"), reason="flowmark library not installed"
+    not hmarform.is_flowmark_available("library"),
+    reason="flowmark library not installed",
 )
 class Test_format_md_flowmark1(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "library"
 
 
+# #############################################################################
+# Test_format_md_flowmark2
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("uvx"), reason="flowmark uvx not installed"
+    not hmarform.is_flowmark_available("uvx"),
+    reason="flowmark uvx not installed",
 )
 class Test_format_md_flowmark2(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "uvx"
 
 
+# #############################################################################
+# Test_format_md_flowmark3
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("global"), reason="flowmark global not installed"
+    not hmarform.is_flowmark_available("global"),
+    reason="flowmark global not installed",
 )
 class Test_format_md_flowmark3(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "global"
 
 
+# #############################################################################
+# Test_format_md_flowmark4
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("uvx-rs"), reason="flowmark uvx-rs not installed"
+    not hmarform.is_flowmark_available("uvx-rs"),
+    reason="flowmark uvx-rs not installed",
 )
 class Test_format_md_flowmark4(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "uvx-rs"
 
 
+# #############################################################################
+# Test_format_md_flowmark5
+# #############################################################################
+
+
 @pytest.mark.skipif(
-    not hmarform.is_flowmark_available("global-rs"), reason="flowmark global-rs not installed"
+    not hmarform.is_flowmark_available("global-rs"),
+    reason="flowmark global-rs not installed",
 )
 class Test_format_md_flowmark5(_Format_md_TestCase, hunitest.TestCase):
-
     tool = "flowmark"
     backend = "global-rs"
+
 
 # #############################################################################
 # Test_format_md_comparison_and_performance
@@ -1876,7 +1913,9 @@ class Test_format_md_comparison_and_performance(hunitest.TestCase):
                 }
             )
             if success and output is not None:
-                self.assertGreater(len(output), 0, f"{tool}/{backend} produced empty output")
+                self.assertGreater(
+                    len(output), 0, f"{tool}/{backend} produced empty output"
+                )
         # Save results to JSON file for analysis.
         results_file = os.path.join(output_dir, "comparison_results.json")
         hio.to_file(results_file, json.dumps(results, indent=2))

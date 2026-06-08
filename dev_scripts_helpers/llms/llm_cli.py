@@ -71,7 +71,7 @@ _LOG = logging.getLogger(__name__)
 # - openrouter/openai/gpt-oss-120b
 # - openrouter/openai/gpt-oss-20b
 
-#_LINT_BACKEND = "mdformat"
+# _LINT_BACKEND = "mdformat"
 _LINT_BACKEND = "flowmark"
 _LINT_MODE = "library"
 

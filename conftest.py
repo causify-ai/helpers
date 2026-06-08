@@ -83,7 +83,6 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
 
     def pytest_collection_modifyitems(config: Any, items: Any) -> None:
         _ = items
-        import helpers.henv as henv
 
         _WARNING = "\033[33mWARNING\033[0m"
         # Skip expensive system signature during collection-only mode.
