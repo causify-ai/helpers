@@ -15,8 +15,8 @@ def send_email(
     subject: str,
     message: str,
     to_adr: str,
-    email_address: Optional[str] = None,
-    email_password: Optional[str] = None,
+    email_address: str = "",
+    email_password: str = "",
     html: bool = False,
 ) -> None:
     """
@@ -29,9 +29,9 @@ def send_email(
     """
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
-    if email_address is None:
+    if email_address == "":
         email_address = os.environ["AM_EMAIL_ADDRESS"]
-    if email_password is None:
+    if email_password == "":
         email_password = os.environ["AM_EMAIL_PASSWORD"]
     server.login(email_address, email_password)
     msg = emmult.MIMEMultipart()

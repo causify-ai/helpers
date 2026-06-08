@@ -126,7 +126,7 @@ def _calculate_stats(
     base_commit_sha: str,
     head_commit_sha: str,
     head_branch_name: str,
-    build_url: Optional[str] = None,
+    build_url: str = "",
 ) -> Tuple[int, str]:
     """
     Compute the statistics from the linter when run on a branch vs master.

@@ -27,7 +27,7 @@ FIG_SIZE = (20, 5)
 def get_multiple_plots(
     num_plots: int,
     num_cols: int,
-    y_scale: Optional[float] = None,
+    y_scale: float = 0.0,
     *args: Any,
     **kwargs: Any,
 ) -> Tuple[mpl.figure.Figure, np.array]:
@@ -78,7 +78,7 @@ def save_fig(
     file_name: str,
     *,
     print_markdown: bool = False,
-    path_prefix: Optional[str] = None,
+    path_prefix: str = "",
 ) -> None:
     """
     Save matplotlib figure to file and optionally print markdown reference.

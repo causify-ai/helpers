@@ -284,7 +284,7 @@ def is_dev4() -> bool:
     return is_dev4_
 
 
-def is_host_mac(*, version: Optional[str] = None) -> bool:
+def is_host_mac(*, version: str = "") -> bool:
     """
     Return whether we are running on macOS and, optionally, on a specific
     version.

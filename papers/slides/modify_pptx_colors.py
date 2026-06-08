@@ -112,7 +112,7 @@ def _modify_presentation(
     *,
     bg_color_hex: str = _DEFAULT_BG_COLOR,
     text_color_hex: str = _DEFAULT_TEXT_COLOR,
-    background_image: Optional[str] = None,
+    background_image: str = "",
 ) -> None:
     """
     Modify presentation colors and background.
@@ -203,7 +203,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--background",
         action="store",
-        default=None,
+        default="",
         help="Background image file path (overrides --bg_color if provided)",
     )
     hparser.add_verbosity_arg(parser)

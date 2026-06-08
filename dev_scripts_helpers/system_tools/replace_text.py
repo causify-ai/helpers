@@ -502,7 +502,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--dst_dir",
         action="store",
-        default=None,
+        default="",
         help="Change dir before replacing",
     )
     parser.add_argument(
@@ -514,7 +514,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--filter_by",
         action="store",
-        default=None,
+        default="",
         type=str,
         help="Regex to filter file names by",
     )
@@ -569,25 +569,25 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--only_dirs",
         action="append",
-        default=None,
+        default="",
         help="Space-separated list of directories to process",
     )
     parser.add_argument(
         "--only_files",
         action="store",
-        default=None,
+        default="",
         help="Space-separated list of files to process",
     )
     parser.add_argument(
         "--exclude_files",
         action="store",
-        default=None,
+        default="",
         help="Space-separated list of files to exclude from replacements",
     )
     parser.add_argument(
         "--exclude_dirs",
         action="store",
-        default=None,
+        default="",
         help="Space-separated dir to exclude from replacements",
     )
     hparser.add_verbosity_arg(parser)

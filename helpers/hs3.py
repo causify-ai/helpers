@@ -282,7 +282,7 @@ def listdir(
     *,
     exclude_git_dirs: bool = True,
     aws_profile: Optional[AwsProfile] = None,
-    maxdepth: Optional[int] = None,
+    maxdepth: int = 0,
 ) -> List[str]:
     """
     Counterpart to `hio.listdir` with S3 support.
@@ -372,7 +372,7 @@ def to_file(
     lines: str,
     file_name: str,
     *,
-    mode: Optional[str] = None,
+    mode: str = "wb",
     force_flush: bool = False,
     aws_profile: Optional[AwsProfile] = None,
 ) -> None:
@@ -395,7 +395,6 @@ def to_file(
         # Inspect file name and path.
         hio.dassert_is_valid_file_name(file_name)
         s3fs_ = get_s3fs(aws_profile)
-        mode = "wb" if mode is None else mode
         # Open S3 file. `rb` is the default mode for S3.
         with s3fs_.open(file_name, mode) as s3_file:
             if file_name.endswith((".gz", ".gzip")):
@@ -1014,7 +1013,7 @@ def copy_data_from_s3_to_local_dir(
 def retrieve_archived_data_from_s3(
     s3_file_path: str,
     dst_dir: str,
-    aws_profile: Optional[str] = None,
+    aws_profile: str = "",
     incremental: bool = True,
 ) -> str:
     """
@@ -1098,7 +1097,7 @@ def expand_archived_data(src_tgz_file: str, dst_dir: str) -> str:
 
 
 def get_s3_bucket_from_stage(
-    stage: str, *, add_suffix: Optional[str] = None
+    stage: str, *, add_suffix: str = ""
 ) -> str:
     """
     Retrieve the S3 bucket name based on the provided deployment stage.

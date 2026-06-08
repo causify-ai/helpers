@@ -524,7 +524,7 @@ def convert_to_dataframe(configs: Iterable[crococon.Config]) -> pd.DataFrame:
 
 
 def build_config_diff_dataframe(
-    config_dict: collections.OrderedDict, tag_col: Optional[str] = None
+    config_dict: collections.OrderedDict, tag_col: str = ""
 ) -> pd.DataFrame:
     """
     Create a dataframe of config diffs.

@@ -221,7 +221,7 @@ def convert_csv_dir_to_pq_dir(
     pq_dir: str,
     *,
     normalizer: Optional[Callable] = None,
-    header: Optional[int] = None,
+    header: int = 0,
 ) -> None:
     """
     Apply `convert_csv_to_pq()` to all files in `csv_dir`.
@@ -302,7 +302,7 @@ def convert_csv_to_dict(path_to_csv: str, remove_nans: bool) -> Dict[Any, Any]:
 
 # TODO(gp): path_to_csv -> file_name
 def save_csv_as_json(
-    path_to_csv: str, remove_nans: bool, path_to_json: Optional[str] = None
+    path_to_csv: str, remove_nans: bool, path_to_json: str = hio.change_filename_extension(
 ) -> None:
     """
     Convert the df from a CSV into a dict and save it into a JSON file.

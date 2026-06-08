@@ -293,7 +293,7 @@ def system(
     blocking: bool = True,
     wrapper: Optional[Any] = None,
     output_file: Optional[Any] = None,
-    num_error_lines: Optional[int] = None,
+    num_error_lines: int = 0,
     tee: bool = False,
     dry_run: bool = False,
     log_level: Union[int, str] = logging.DEBUG,
@@ -513,7 +513,7 @@ def select_result_file_from_list(
 
 def system_to_files(
     cmd: str,
-    dir_name: Optional[str] = None,
+    dir_name: str = "",
     remove_files_non_present: bool = False,
     mode: str = "return_all_results",
 ) -> List[str]:
@@ -525,7 +525,7 @@ def system_to_files(
         the filesystem
     :param mode: like in `select_result_file_from_list()`
     """
-    if dir_name is None:
+    if dir_name == "":
         dir_name = "."
     hdbg.dassert_dir_exists(dir_name)
     cmd = f"cd {dir_name} && {cmd}"
@@ -805,11 +805,11 @@ def _find_git_root(path: str = ".") -> str:
 # End copy.
 
 
-def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
+def find_file_in_repo(file_name: str, *, root_dir: str = "") -> str:
     """
     Find file in the repo.
     """
-    if root_dir is None:
+    if root_dir == "":
         root_dir = _find_git_root()
     _, file_name_out = system_to_one_line(
         rf"find {root_dir} -name {file_name} -not -path '*/\.git/*'"

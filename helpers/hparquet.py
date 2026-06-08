@@ -380,7 +380,7 @@ def generate_parquet_files(
     freq: str = "1H",
     output_type: str = "basic",
     partition_mode: str = "by_date",
-    custom_partition_cols: Optional[str] = None,
+    custom_partition_cols: str = "",
     reset_index: bool = False,
 ) -> None:
     """
@@ -484,7 +484,7 @@ def from_parquet(
     *,
     columns: Optional[List[str]] = None,
     filters: Optional[List[Any]] = None,
-    n_rows: Optional[int] = None,
+    n_rows: int = 0,
     schema: Optional[List[Tuple[str, pa.DataType]]] = None,
     log_level: int = logging.DEBUG,
     report_stats: bool = False,
@@ -1185,7 +1185,7 @@ def list_and_merge_pq_files(
     *,
     file_name: str = "data.parquet",
     aws_profile: hs3.AwsProfile = None,
-    drop_duplicates_mode: Optional[str] = None,
+    drop_duplicates_mode: str = "",
 ) -> None:
     """
     Merge all files of the Parquet dataset.

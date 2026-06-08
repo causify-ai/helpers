@@ -215,7 +215,7 @@ class RepoConfig:
         self._data = data
 
     @classmethod
-    def from_file(cls, file_name: Optional[str] = None) -> "RepoConfig":
+    def from_file(cls, file_name: str = RepoConfig._get_repo_config_file()) -> "RepoConfig":
         """
         Return the text of the code stored in `repo_config.yaml`.
         """

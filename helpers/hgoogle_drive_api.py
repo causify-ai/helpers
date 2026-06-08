@@ -42,7 +42,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def install_needed_modules(
-    *, use_sudo: bool = True, venv_path: Optional[str] = None
+    *, use_sudo: bool = True, venv_path: str = ""
 ) -> None:
     """
     Install needed modules for Google Drive API.
@@ -85,7 +85,7 @@ def install_needed_modules(
 
 def get_credentials(
     *,
-    service_key_path: Optional[str] = None,
+    service_key_path: str = "",
 ) -> "goasea.Credentials":
     """
     Get credentials for Google API with service account key.
@@ -148,7 +148,7 @@ def _get_gsheet_id(
     credentials: "goasea.Credentials",
     sheet_id: str,
     *,
-    tab_name: Optional[str] = None,
+    tab_name: str = "",
 ) -> str:
     """
     Get the sheet ID from the sheet name in a Google Sheets document.
@@ -336,7 +336,7 @@ def _freeze_rows_in_gsheet(
     sheet_id: str,
     num_rows_to_freeze: int,
     *,
-    tab_name: Optional[str] = None,
+    tab_name: str = "",
     bold: bool = True,
 ) -> None:
     """
@@ -406,9 +406,9 @@ def _set_row_height_in_gsheet(
     sheet_id: str,
     height: int,
     *,
-    start_index: Optional[int] = None,
-    end_index: Optional[int] = None,
-    tab_name: Optional[str] = None,
+    start_index: int = 0,
+    end_index: int = 0,
+    tab_name: str = "",
 ) -> None:
     """
     Set the height for rows in the given Google sheet.
@@ -483,7 +483,7 @@ def _set_text_wrapping_clip_in_gsheet(
     credentials: "goasea.Credentials",
     sheet_id: str,
     *,
-    tab_name: Optional[str] = None,
+    tab_name: str = "",
 ) -> None:
     """
     Set text wrapping to "CLIP" for all columns in the given Google sheet.
@@ -546,7 +546,7 @@ def _set_text_wrapping_clip_in_gsheet(
 def from_gsheet(
     url: str,
     *,
-    tab_name: Optional[str] = None,
+    tab_name: str = "",
     credentials: Optional["goasea.Credentials"] = None,
 ) -> pd.DataFrame:
     """
@@ -775,7 +775,7 @@ def create_empty_google_file(
     gfile_name: str,
     gdrive_folder_id: str,
     *,
-    user: Optional[str] = None,
+    user: str = "",
     credentials: Optional["goasea.Credentials"] = None,
 ) -> str:
     """
@@ -1083,7 +1083,7 @@ def get_google_path_from_url(
 def print_info_about_google_url(
     url: str,
     *,
-    tab_name: Optional[str] = None,
+    tab_name: str = "",
     credentials: Optional["goasea.Credentials"] = None,
 ) -> None:
     """

@@ -36,7 +36,7 @@ class _SingleFilesAction(argparse.Action):
         parser: argparse.ArgumentParser,
         namespace: argparse.Namespace,
         values: Any,
-        option_string: Optional[str] = None,
+        option_string: str = "",
     ) -> None:
         if getattr(namespace, self.dest, None) is not None:
             msg = (

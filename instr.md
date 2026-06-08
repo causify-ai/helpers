@@ -1,41 +1,67 @@
 # Step 1
-- Run pyright and save the result to pyright.before.txt
+Find all the files for which these commands match
+rig "default=None" . py
+and create a file files1.md
+
+Find all the files for which these commands match
+rig "Optional.str." . py 
+and create a file files2.md
+
+Run pyright on the files1.md and files2.md and save the result to a pyright.before.txt
 
 # Step 2
-Apply these changes
 
-.claude/skills/coding.rules.md:848 ## Use Single Types With Meaningful Defaults for Parser Inputs
-.claude/skills/coding.rules.md:584 ## Minimize Default Values of None in Function Interfaces
+Replace default=None with default="" in files1.md
 
-In
+# Step 3
 
-./dev_scripts_helpers/documentation/convert_pdf_to_md.py
-./dev_scripts_helpers/documentation/generate_images.py
-./dev_scripts_helpers/documentation/notes_to_pdf.py
-./dev_scripts_helpers/documentation/piper_markdown_reader.py
-./dev_scripts_helpers/documentation/test/test_lint_txt.py
-./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
-./dev_scripts_helpers/documentation/test/test_preprocess_notes.py
+For all the files in files2.md
 
+## Minimize Default Values of None in Function Interfaces
 
-The goal is to replace in the functions
-- Optional[str] = None with str = ""
-- Optional[int] with a suitable default int = XYZ
+- In function signatures and class constructors, avoid `None` as default values to
+  minimize `Optional` types in type hints
+- Use meaningful default values of the same type instead to keep interfaces
+  simpler and reduce the need for `Optional`
 
-- Replace in
+- **Bad**: Using `None` defaults creates `Optional` type requirements
+  ```python
+  def process(
+      data: Dict[str, str],
+      *,
+      timeout: Optional[int] = None,
+      name: Optional[str] = None,
+  ) -> str:
+      if timeout is None:
+          timeout = 30
+      if name is None:
+          name = "default"
+      ...
+  ```
+- **Good**: Use meaningful type-matching defaults
+  ```python
+  def process(
+      data: Dict[str, str],
+      *,
+      timeout: int = 30,
+      name: str = "",
+  ) -> str:
+      ...
+  ```
 
-    parser.add_argument(
-        "-o",
-        "--output",
-        required=False,
-        type=str,
-        default=None,
-        help="Output directory for markdown and images (default: same directory as input)",
-    )
+- This pattern applies to:
+  - Function parameters and return types
+  - Class constructor arguments
+  - Dataclass field definitions
+  - Any interface that accepts arguments with defaults
 
-default=None with default="" so that input parameters are only strings
+- Choose meaningful defaults based on the parameter type:
+  - For strings: use `""` (empty string)
+  - For integers: use `0`, `-1`, or another sentinel that makes semantic sense
+  - For booleans: use `False` or `True` based on intended semantics
+  - For paths: use `""` or consider making the parameter required
 
-# Step 3: Verification
+# Step 4: Verification
 
 - grep the code for Optional[str] and Optional[int] and make sure there is no
   instance

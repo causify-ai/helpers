@@ -739,7 +739,7 @@ def _get_best_workflow_run(
     workflow_name: str,
     workflow_runs: List[Dict[str, Any]],
     *,
-    preferred_event: Optional[str] = None,
+    preferred_event: str = "",
 ) -> Optional[Dict[str, Any]]:
     """
     Pick the best available workflow run:
@@ -1104,7 +1104,7 @@ def render_repo_workflow_status_table(
 
 
 def get_workflow_run_ids(
-    repo_path: str, workflow_id: str, *, older_than_days: Optional[int] = None
+    repo_path: str, workflow_id: str, *, older_than_days: int = 0
 ) -> List[str]:
     """
     Get workflow run IDs, optionally filtering by age.

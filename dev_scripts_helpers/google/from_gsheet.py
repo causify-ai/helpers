@@ -76,7 +76,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tabname",
         action="store",
-        default=None,
+        default="",
         help="Name of the tab to read from (default: first tab)",
     )
     parser.add_argument(

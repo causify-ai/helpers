@@ -60,7 +60,7 @@ _LOG = logging.getLogger(__name__)
 def _get_openai_daily_cost(
     date: datetime.date,
     *,
-    api_key: Optional[str] = None,
+    api_key: str = os.environ.get("OPENAI_API_KEY"),
 ) -> Optional[float]:
     """
     Fetch daily cost from OpenAI Costs API.
@@ -127,7 +127,7 @@ def _get_openai_daily_cost(
 def _get_anthropic_daily_cost(
     date: datetime.date,
     *,
-    api_key: Optional[str] = None,
+    api_key: str = os.environ.get("ANTHROPIC_KEY"),
 ) -> Optional[float]:
     """
     Fetch daily cost from Anthropic Admin API.

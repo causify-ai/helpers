@@ -35,7 +35,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--cmd",
         action="store",
-        default=None,
+        default="",
         type=str,
         help="Command to execute",
     )

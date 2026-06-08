@@ -101,7 +101,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--collect_from_repo",
         action="store",
-        default=None,
+        default="",
         metavar="PATH",
         help=(
             "If set, walk PATH (the repository root) and rsync every "
@@ -112,7 +112,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mkdocs_dir",
         action="store",
-        default=None,
+        default="",
         metavar="PATH",
         help=(
             "Directory containing mkdocs.yml, overrides/, and docs/ assets "
@@ -489,7 +489,7 @@ The page you're looking for doesn't exist or has been moved.
 
 
 def _copy_assets_and_styles(
-    output_dir: str, mkdocs_dir: Optional[str] = None
+    output_dir: str, mkdocs_dir: str = ""
 ) -> None:
     """
     Copy assets and styles from the input directory to the output directory.

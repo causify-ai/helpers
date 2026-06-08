@@ -268,7 +268,7 @@ def _get_branch_next_name_linear_scan(
 def get_branch_next_name(
     dir_name: str = ".",
     *,
-    curr_branch_name: Optional[str] = None,
+    curr_branch_name: str = "",
     log_verb: int = logging.DEBUG,
     method: str = "auto",
 ) -> str:
@@ -295,7 +295,7 @@ def get_branch_next_name(
         method, ["auto", "github_api", "linear_scan"], "Invalid method specified"
     )
     # Try GitHub API method first (faster) if requested or on auto mode.
-    next_name: Optional[str] = None
+    next_name: str = ""
     if method in ("auto", "github_api"):
         next_name = _get_branch_next_name_via_github_api(
             curr_branch_name,
@@ -506,7 +506,7 @@ def find_git_root(path: str = ".") -> str:
 # TODO(gp): There are several functions doing the same work.
 # helpers_root/helpers/hgit.py:827:def find_file_in_git_tree(
 # helpers_root/helpers/hsystem.py:757:def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
-def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
+def find_file(file_name: str, *, dir_path: str = "") -> str:
     """
     Find a file within a directory hierarchy, excluding version control and cache dirs.
 
@@ -517,7 +517,7 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     :param dir_path: the directory to start the search from (defaults to git root)
     :return: the first absolute path to the file found
     """
-    if dir_path is None:
+    if dir_path == "":
         dir_path = find_git_root()
     _LOG.debug(hprint.to_str("dir_path"))
     cmd = (
@@ -1160,7 +1160,7 @@ def get_path_from_git_root(
     file_name: str,
     super_module: bool,
     *,
-    git_root: Optional[str] = None,
+    git_root: str = "",
 ) -> str:
     """
     Get the path of `file_name` from the root of the Git client.
@@ -1742,7 +1742,7 @@ def git_log(num_commits: int = 5, my_commits: bool = False) -> str:
 
 
 def git_stash_push(
-    prefix: str, msg: Optional[str] = None, log_level: int = logging.DEBUG
+    prefix: str, msg: str = "", log_level: int = logging.DEBUG
 ) -> Tuple[str, bool]:
     """
     Stash current changes with a timestamped, labeled message.
@@ -1869,7 +1869,7 @@ def git_push_tag(
 
 
 def git_describe(
-    match: Optional[str] = None, log_level: int = logging.DEBUG
+    match: str = "", log_level: int = logging.DEBUG
 ) -> str:
     """
     Return the most recent git tag, or abbreviated commit hash if no tags exist.

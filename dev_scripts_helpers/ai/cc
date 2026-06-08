@@ -70,8 +70,8 @@ if [ "$MODEL" = "anthropic" ]; then
 elif [ "$MODEL" = "deepseek" ]; then
     export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
     export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-flash
-    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
-    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
+    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/claude-opus-4-8
+    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/claude-sonnet-4-6
     export ANTHROPIC_BASE_URL=https://openrouter.ai/api
 else
     echo "Error: Invalid model '$MODEL'" >&2

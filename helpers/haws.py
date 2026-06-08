@@ -34,7 +34,7 @@ AWS_PROFILE = {
 
 
 def get_session(
-    aws_profile: str, *, region: Optional[str] = None
+    aws_profile: str, *, region: str = ""
 ) -> boto3.session.Session:
     """
     Return connected Boto3 session.
@@ -61,7 +61,7 @@ def get_session(
 
 
 def get_service_client(
-    aws_profile: str, service_name: str, *, region: Optional[str] = None
+    aws_profile: str, service_name: str, *, region: str = ""
 ) -> BaseClient:
     """
     Return client to work with desired service in the specific region.
@@ -89,7 +89,7 @@ def get_service_resource(aws_profile: str, service_name: str) -> ServiceResource
 
 # TODO(Toma): Deprecate in favor of `get_service_client`.
 def get_ecs_client(
-    aws_profile: str, *, region: Optional[str] = None
+    aws_profile: str, *, region: str = ""
 ) -> BaseClient:
     """
     Return client to work with Elastic Container Service in the specific
@@ -103,7 +103,7 @@ def get_ecs_client(
 
 
 def get_task_definition_image_url(
-    task_definition_name: str, environment: str, *, region: Optional[str] = None
+    task_definition_name: str, environment: str, *, region: str = ""
 ) -> str:
     """
     Get ECS task definition by name and return only image URL.
@@ -126,7 +126,7 @@ def get_task_definition_image_url(
 
 
 def is_task_definition_exists(
-    task_definition_name: str, *, region: Optional[str] = None
+    task_definition_name: str, *, region: str = ""
 ) -> bool:
     """
     Check if a task definition exists in the specified region.
@@ -153,7 +153,7 @@ def update_task_definition(
     task_definition_name: str,
     new_image_url: str,
     *,
-    region: Optional[str] = None,
+    region: str = "",
     environment: str,
 ) -> None:
     """

@@ -475,7 +475,7 @@ class PrintableMixin:
 # TODO(gp): CleanUp. This is for testing and should be in hobject_test.py.
 # TODO(gp): -> check_object_signature
 def test_object_signature(
-    self_: Any, obj: Any, *, remove_lines_regex: Optional[str] = None
+    self_: Any, obj: Any, *, remove_lines_regex: str = ""
 ) -> None:
     """
     Print a string representation of an object using both `str()` and `repr()`.

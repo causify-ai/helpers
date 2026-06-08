@@ -91,8 +91,8 @@ class GitHubAPI:
     def __init__(
         self,
         *,
-        access_token: Optional[str] = None,
-        base_url: Optional[str] = None,
+        access_token: str = "",
+        base_url: str = "",
     ):
         """
         Initialize the GitHub API client.
@@ -1778,7 +1778,7 @@ def get_contributors_for_repo(
     org: str,
     repo: str,
     *,
-    top_n: Optional[int] = None,
+    top_n: int = 0,
 ) -> List[str]:
     """
     Fetch GitHub usernames of contributors to a repository.
@@ -1881,7 +1881,7 @@ def visualize_user_metric_comparison(
     stats: pd.DataFrame,
     *,
     score_type: Literal["z", "percentile"] = "z",
-    top_n: Optional[int] = None,
+    top_n: int = 0,
 ) -> None:
     """
     Visualize user performance across all available metrics using z-scores or

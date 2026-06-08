@@ -40,7 +40,7 @@ def _call_get_files_to_process(
     all_: bool = False,
     mutually_exclusive: bool = True,
     remove_dirs: bool = False,
-    dir_name: Optional[str] = None,
+    dir_name: str = "",
 ) -> List[str]:
     """
     Call get_files_to_process with default values.

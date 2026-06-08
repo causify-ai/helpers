@@ -129,7 +129,7 @@ def convert_df_to_png(
     table_conversion: str = "kaleido",
     dpi: int = 300,
     print_markdown: bool = False,
-    markdown_path_prefix: Optional[str] = None,
+    markdown_path_prefix: str = "",
 ) -> None:
     """
     Convert a dataframe to a PNG image file.
@@ -209,8 +209,8 @@ def display_df(
     index: bool = True,
     inline_index: bool = False,
     max_lines: Optional[int] = 5,
-    tag: Optional[str] = None,
-    mode: Optional[str] = None,
+    tag: str = "",
+    mode: str = "",
     as_txt: bool = False,
     log_level: int = logging.INFO,
 ) -> None:

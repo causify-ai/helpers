@@ -325,7 +325,7 @@ def _parse_slide_range(slide_range: str) -> List[int]:
 
 def _discover_slide_files(
     in_dir: str,
-    slide_range: Optional[str] = None,
+    slide_range: str = "",
     slide_configs: Optional[Dict[int, SlideConfig]] = None,
 ) -> List[Tuple[int, str]]:
     """

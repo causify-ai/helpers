@@ -65,7 +65,7 @@ def iterate_slide_lines(
     """
     hdbg.dassert_isinstance(lines, list)
     current_item_lines: List[str] = []
-    current_item_type: Optional[str] = None
+    current_item_type = ""
     current_item_start_line: int = 0
     in_comment_block = False
     accumulating_comment_block = False

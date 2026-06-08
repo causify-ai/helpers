@@ -955,7 +955,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--out_filename",
         type=str,
-        default=None,
+        default="",
         help="Write output to 'out_filename'",
     )
     hparser.add_verbosity_arg(parser)

@@ -20,7 +20,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _pytest_show_artifacts(
-    dir_name: str, *, tag: Optional[str] = None
+    dir_name: str, *, tag: str = ""
 ) -> List[str]:
     hdbg.dassert_ne(dir_name, "")
     hdbg.dassert_dir_exists(dir_name)

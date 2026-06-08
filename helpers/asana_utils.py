@@ -26,7 +26,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class EnhancedAsanaAnalytics:
-    def __init__(self, access_token: Optional[str] = None) -> None:
+    def __init__(self, access_token: str = "") -> None:
         # Get token from parameter or environment variable.
         token = access_token or os.getenv("ASANA_ACCESS_TOKEN")
         if not token:
@@ -45,7 +45,7 @@ class EnhancedAsanaAnalytics:
         self.projects_api = asana.ProjectsApi(self.api_client)
         self.custom_fields_api = asana.CustomFieldsApi(self.api_client)
 
-    def get_workspace_gid(self, workspace_name: Optional[str] = None) -> str:
+    def get_workspace_gid(self, workspace_name: str = "") -> str:
         """
         Get the workspace GID by name or return the first available workspace.
 
@@ -902,7 +902,7 @@ class EnhancedAsanaAnalytics:
 
 
 def list_workspace_users(
-    workspace_name: str, *, access_token: Optional[str] = None
+    workspace_name: str, *, access_token: str = ""
 ) -> List[str]:
     """
     Get all usernames in a workspace.
@@ -929,7 +929,7 @@ def get_user_by_name(
     workspace_name: str,
     username: str,
     *,
-    access_token: Optional[str] = None,
+    access_token: str = "",
 ) -> Optional[Dict[str, Any]]:
     """
     Get a specific user by their name in a workspace.
@@ -957,7 +957,7 @@ def create_kibana_ready_dataset(
     *,
     project_names: Optional[List[str]] = None,
     team_mapping: Optional[Dict[str, str]] = None,
-    access_token: Optional[str] = None,
+    access_token: str = "",
     user_list: Optional[List[str]] = None,
     include_comments: bool = False,
 ) -> Dict[str, pd.DataFrame]:
@@ -1051,7 +1051,7 @@ def create_kibana_ready_dataset(
 
 
 def save_to_ndjson(
-    df: pd.DataFrame, filepath: str, index_name: Optional[str] = None
+    df: pd.DataFrame, filepath: str, index_name: str = ""
 ) -> None:
     """
     Save DataFrame to NDJSON format for Kibana/OpenSearch bulk upload.

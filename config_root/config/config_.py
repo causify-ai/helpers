@@ -694,9 +694,9 @@ class Config:
         key: CompoundKey,
         val: Any,
         *,
-        update_mode: Optional[str] = None,
-        clobber_mode: Optional[str] = None,
-        report_mode: Optional[str] = None,
+        update_mode: str = "",
+        clobber_mode: str = "",
+        report_mode: str = "",
     ) -> None:
         """
         Set / update `key` to `val`, equivalent to `dict[key] = val`.
@@ -724,7 +724,7 @@ class Config:
         self,
         key: CompoundKey,
         *,
-        report_mode: Optional[str] = None,
+        report_mode: str = "",
         mark_key_as_used: bool = False,
     ) -> Any:
         """
@@ -754,7 +754,7 @@ class Config:
         self,
         key: CompoundKey,
         *,
-        report_mode: Optional[str] = None,
+        report_mode: str = "",
     ) -> bool:
         """
         Return whether `key` is marked as used.
@@ -773,7 +773,7 @@ class Config:
         return self._config.to_string(mode)
 
     def check_unused_variables(
-        self, *, unused_variables_mode: Optional[str] = None
+        self, *, unused_variables_mode: str = ""
     ) -> List[str]:
         """
         Check if variables in the config were not used.
@@ -873,7 +873,7 @@ class Config:
         default_value: Optional[Any] = _NO_VALUE_SPECIFIED,
         expected_type: Optional[Any] = _NO_VALUE_SPECIFIED,
         *,
-        report_mode: Optional[str] = None,
+        report_mode: str = "",
     ) -> Any:
         """
         Equivalent to `dict.get(key, default_val)`.
@@ -911,9 +911,9 @@ class Config:
         self,
         config: "Config",
         *,
-        update_mode: Optional[str] = None,
-        clobber_mode: Optional[str] = None,
-        report_mode: Optional[str] = None,
+        update_mode: str = "",
+        clobber_mode: str = "",
+        report_mode: str = "",
     ) -> None:
         """
         Equivalent to `dict.update(config)`.

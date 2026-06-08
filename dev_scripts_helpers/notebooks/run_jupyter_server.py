@@ -105,7 +105,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--port",
         action="store",
-        default=None,
+        default="",
         help="Override the default port to use",
     )
     hparser.add_verbosity_arg(parser)

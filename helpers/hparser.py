@@ -26,7 +26,7 @@ def add_bool_arg(
     name: str,
     *,
     default_value: bool = False,
-    help_: Optional[str] = None,
+    help_: str = "",
 ) -> argparse.ArgumentParser:
     """
     Add options to a parser like `--xyz` and `--no_xyz`, controlled by

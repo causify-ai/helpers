@@ -110,7 +110,7 @@ def _build_run_command_line(
     tee_to_file: bool,
     n_threads: str,
     *,
-    allure_dir: Optional[str] = None,
+    allure_dir: str = "",
 ) -> str:
     """
     Build the pytest run command.
@@ -304,7 +304,7 @@ def _run_tests(
     git_clean_: bool,
     *,
     start_coverage_script: bool = False,
-    allure_dir: Optional[str] = None,
+    allure_dir: str = "",
     # TODO(Grisha): do we need to expose ctx kwargs to the invoke targets?
     # E.g., to `run_fast_tests`. See CmTask3602 "All tests fail".
     **ctx_run_kwargs: Any,
@@ -1483,7 +1483,7 @@ def _run(
     cmd: str,
     *,
     abort_on_error: bool = False,
-    output_file: Optional[str] = None,
+    output_file: str = "",
     tee: bool = False,
 ) -> int:
     rc = hsystem.system(

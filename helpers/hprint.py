@@ -67,12 +67,10 @@ def clear_screen() -> None:
     print((chr(27) + "[2J"))
 
 
-def line(char: Optional[str] = None, num_chars: Optional[int] = None) -> str:
+def line(char: str = "#", num_chars: int = 80) -> str:
     """
     Return a line with the desired character.
     """
-    char = "#" if char is None else char
-    num_chars = 80 if num_chars is None else num_chars
     return char * num_chars
 
 
@@ -105,9 +103,9 @@ def pprint_color(obj: Any, *, tag: Optional[str] = None, sep: str = "") -> None:
 def frame(
     message: str,
     *,
-    char1: Optional[str] = None,
-    num_chars: Optional[int] = None,
-    char2: Optional[str] = None,
+    char1: str = "#",
+    num_chars: int = 80,
+    char2: str = "",
     thickness: int = 1,
     level: int = 0,
 ) -> str:
@@ -790,7 +788,7 @@ def format_list(
     list_: List[Any],
     *,
     sep: str = " ",
-    max_n: Optional[int] = None,
+    max_n: int = 10,
     tag: Optional[str] = None,
 ) -> str:
     # sep = ", "

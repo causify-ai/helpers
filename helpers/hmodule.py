@@ -75,7 +75,7 @@ def install_module_if_not_present(
     package_name: Union[Optional[str], List[str], None] = None,
     use_sudo: bool = True,
     use_activate: bool = False,
-    venv_path: Optional[str] = None,
+    venv_path: str = "",
     quiet: bool = True,
 ) -> None:
     r"""

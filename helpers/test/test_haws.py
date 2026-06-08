@@ -242,7 +242,7 @@ class Test_update_task_definition(Haws_test_case):
 
 class Test_get_ecs_client(Haws_test_case):
     def mock_aws_client(
-        self, mock_get_session: umock.Mock, *, region: Optional[str] = None
+        self, mock_get_session: umock.Mock, *, region: str = ""
     ) -> None:
         aws_profile = "__mock__"
         test_cluster_name = "test-cluster"

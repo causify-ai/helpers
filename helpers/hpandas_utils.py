@@ -179,7 +179,7 @@ def df_to_str(
     print_nan_info: bool = False,
     print_memory_usage: bool = False,
     memory_usage_mode: str = "human_readable",
-    tag: Optional[str] = None,
+    tag: str = "",
     max_columns: int = 10000,
     max_colwidth: int = 2000,
     max_rows: int = 500,

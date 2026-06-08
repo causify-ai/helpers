@@ -108,7 +108,7 @@ def get_changelog_version(
         directory
     :param file_name: changelog file name
     """
-    version: Optional[str] = None
+    version: str = ""
     supermodule = True
     root_dir = _get_client_root(supermodule)
     # Note: for `amp` as submodule one should pass `container_dir_name` relative
@@ -131,7 +131,7 @@ def get_container_version() -> Optional[str]:
 
     :return: container code version from the env var
     """
-    container_version: Optional[str] = None
+    container_version: str = ""
     if hserver.is_inside_docker():
         env_var = "AM_CONTAINER_VERSION"
         if env_var not in os.environ:

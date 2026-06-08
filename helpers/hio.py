@@ -58,7 +58,7 @@ def listdir(
     use_relative_paths: bool,
     *,
     exclude_git_dirs: bool = True,
-    maxdepth: Optional[int] = None,
+    maxdepth: int = 0,
 ) -> List[str]:
     """
     Find all files and subdirectories under `directory` that match `pattern`.
@@ -466,7 +466,7 @@ def to_file(
     file_name: str,
     txt: str,
     use_gzip: bool = False,
-    mode: Optional[str] = None,
+    mode: str = "",
     force_flush: bool = False,
 ) -> None:
     """
@@ -607,7 +607,7 @@ def remove_extension(
         extension,
     )
     #
-    ret: Optional[str] = None
+    ret = ""
     if check_has_extension:
         hdbg.dassert(
             filename.endswith(extension),

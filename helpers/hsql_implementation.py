@@ -352,7 +352,7 @@ def create_database(
     connection: DbConnection,
     dbname: str,
     *,
-    overwrite: Optional[bool] = None,
+    overwrite: bool = False,
 ) -> None:
     """
     Create empty database.
@@ -446,8 +446,8 @@ def get_tables_size(
 def execute_query_to_df(
     connection: DbConnection,
     query: str,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
+    limit: int = 0,
+    offset: int = 0,
     use_timer: bool = False,
     profile: bool = False,
     verbose: bool = False,
@@ -917,7 +917,7 @@ async def wait_for_change_in_number_of_rows(
     table_name: str,
     poll_kwargs: Dict[str, Any],
     *,
-    tag: Optional[str] = None,
+    tag: str = "",
 ) -> int:
     """
     Wait until the number of rows in a table changes.

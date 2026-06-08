@@ -470,7 +470,7 @@ def execute_only_on_dev_csfy() -> None:
         pytest.skip("Only run on dev CSFY")
 
 
-def execute_only_on_mac(*, version: Optional[str] = None) -> None:
+def execute_only_on_mac(*, version: str = "") -> None:
     is_host_mac_ = hserver.is_host_mac()
     if version:
         is_host_mac_ = hserver.is_host_mac_version(version)

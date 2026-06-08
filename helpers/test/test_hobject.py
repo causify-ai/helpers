@@ -32,7 +32,7 @@ class _Obj_to_str_TestCase(abc.ABC):
         """
         ...
 
-    def helper(self, *, expected: Optional[str] = None, **kwargs: Any) -> None:
+    def helper(self, *, expected: str = "", **kwargs: Any) -> None:
         obj = self.get_object()
         hdbg.dassert_is_not(obj, None)
         #

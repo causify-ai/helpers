@@ -25,7 +25,7 @@ class SlackNotifier:
     Send notifications to Slack channels using bot tokens.
     """
 
-    def __init__(self, bot_token: Optional[str] = None) -> None:
+    def __init__(self, bot_token: str = "") -> None:
         """
         Initialize Slack notifier.
 
