@@ -142,6 +142,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Check.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
+        #assert 0, txt
         self.check_string(txt, purify_text=True)
 
     @pytest.mark.superslow
