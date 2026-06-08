@@ -549,7 +549,7 @@ def is_prettier_available(backend: str) -> bool:
     if backend == "dockerized":
         return True
     elif backend == "global":
-        result = hsystem.system("which prettier", suppress_output=True)
+        result = hsystem.system("which prettier", suppress_output=True, abort_on_error=False)
         return result == 0
     else:
         raise ValueError("Invalid backend='%s'" % backend)
@@ -570,10 +570,10 @@ def is_mdformat_available(backend: str) -> bool:
         except ImportError:
             return False
     elif backend == "uvx":
-        result = hsystem.system("which uvx", suppress_output=True)
+        result = hsystem.system("which uvx", suppress_output=True, abort_on_error=False)
         return result == 0
     elif backend == "global":
-        result = hsystem.system("which mdformat", suppress_output=True)
+        result = hsystem.system("which mdformat", suppress_output=True, abort_on_error=False)
         return result == 0
     else:
         raise ValueError("Invalid backend='%s'" % backend)
@@ -594,10 +594,10 @@ def is_flowmark_available(backend: str) -> bool:
         except ImportError:
             return False
     elif backend in ("uvx-rs", "uvx"):
-        result = hsystem.system("which uvx", suppress_output=True)
+        result = hsystem.system("which uvx", suppress_output=True, abort_on_error=False)
         return result == 0
     elif backend in ("global", "global-rs"):
-        result = hsystem.system("which flowmark", suppress_output=True)
+        result = hsystem.system("which flowmark", suppress_output=True, abort_on_error=False)
         return result == 0
     else:
         raise ValueError("Invalid backend='%s'" % backend)
