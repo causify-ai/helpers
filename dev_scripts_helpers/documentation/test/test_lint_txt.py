@@ -1960,7 +1960,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test3(self) -> None:
         """
@@ -2054,7 +2054,7 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test6(self) -> None:
         """
@@ -2098,7 +2098,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test8(self) -> None:
         """
@@ -2136,7 +2136,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test9(self) -> None:
         """
@@ -2248,7 +2248,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="CsfyIssue8889")
+    @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
     @pytest.mark.superslow
     def test1(self) -> None:
         """

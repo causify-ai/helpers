@@ -3,19 +3,13 @@ import os
 import unittest.mock as umock
 from typing import Generator, List
 
-import pytest
-
-import helpers.hserver as hserver
-
-if not hserver.is_inside_docker():
-    pytest.skip("Skipping: tests require dev container", allow_module_level=True)
-
-
 import boto3
 import moto
+import pytest
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
+import helpers.hserver as hserver
 import helpers.lib_tasks.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks.lib_tasks_docker_release as hltadore
 import helpers.lib_tasks.test.test_lib_tasks as httestlib
@@ -54,6 +48,10 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
 
 
 @pytest.mark.need_dev_container
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class _DockerFlowTestHelper(hunitest.TestCase):
     """
     Helper test class to perform common setup, teardown logic and assertion
@@ -155,6 +153,10 @@ class _DockerFlowTestHelper(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_build_local_image1(_DockerFlowTestHelper):
     """
     Test building a local Docker image.
@@ -247,11 +249,19 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_build_prod_image1(_DockerFlowTestHelper):
     """
     Test building a prod Docker image.
     """
 
+    @pytest.mark.skipif(
+        hserver.is_host_mac(),
+        reason="CsfyIssue8889",
+    )
     def test_single_arch_prod_image1(self) -> None:
         """
         Test building with single architecture.
@@ -370,6 +380,10 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
+    @pytest.mark.skipif(
+        hserver.is_host_mac(),
+        reason="CsfyIssue8889",
+    )
     def test_candidate_user_tag1(self) -> None:
         """
         Test building with candidate mode using user tag.
@@ -414,6 +428,10 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
     """
     Test tagging and pushing a multi-architecture Docker image.
@@ -469,6 +487,10 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_tag_push_multi_build_local_image_as_dev1(
     _DockerFlowTestHelper
 ):
@@ -528,6 +550,10 @@ class Test_docker_tag_push_multi_build_local_image_as_dev1(
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_release_dev_image1(_DockerFlowTestHelper):
     """
     Test releasing a dev Docker image.
@@ -590,6 +616,10 @@ class Test_docker_release_prod_image1(_DockerFlowTestHelper):
     Test releasing a prod Docker image.
     """
 
+    @pytest.mark.skipif(
+        hserver.is_host_mac(),
+        reason="CsfyIssue8889",
+    )
     def test_aws_ecr1(self) -> None:
         """
         Test releasing the prod image to AWS ECR.
