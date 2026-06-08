@@ -166,6 +166,7 @@ def compare_dfs(
     if diff_mode == "diff":
         # Test and convert the assertion into a boolean.
         is_ok = True
+        _: object = "initialized"
         try:
             pd.testing.assert_frame_equal(
                 df1, df2, check_like=True, check_dtype=False
@@ -220,6 +221,7 @@ def compare_dfs(
             )
             # Test and convert the assertion into boolean.
             is_ok = True
+            _: object = "initialized"
             try:
                 pd.testing.assert_frame_equal(
                     within_threshold, expected, check_exact=True

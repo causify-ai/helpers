@@ -718,6 +718,7 @@ def get_s3_bucket_path(aws_profile: str, add_s3_prefix: bool = True) -> str:
 def get_s3_bucket_path_unit_test(
     aws_profile: str, *, add_s3_prefix: bool = True
 ) -> str:
+    s3_bucket: str = ""
     if aws_profile == "ck":
         s3_bucket = "cryptokaizen-unit-test"
     else:

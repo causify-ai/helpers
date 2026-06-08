@@ -44,18 +44,18 @@ def get_df_signature(df: pd.DataFrame, num_rows: int = 6) -> str:
     testing purposes.
     """
     hdbg.dassert_isinstance(df, pd.DataFrame)
-    text: List[str] = [f"df.shape={str(df.shape)}"]
+    text_list: List[str] = [f"df.shape={str(df.shape)}"]
     with pd.option_context(
         "display.max_colwidth", int(1e6), "display.max_columns", None
     ):
         # If dataframe size exceeds number of rows, show only subset in form of
         # first and last rows. Otherwise, whole dataframe is shown.
         if len(df) > num_rows:
-            text.append(f"df.head=\n{df.head(num_rows // 2)}")
-            text.append(f"df.tail=\n{df.tail(num_rows // 2)}")
+            text_list.append(f"df.head=\n{df.head(num_rows // 2)}")
+            text_list.append(f"df.tail=\n{df.tail(num_rows // 2)}")
         else:
-            text.append(f"df.full=\n{df}")
-    text: str = "\n".join(text)
+            text_list.append(f"df.full=\n{df}")
+    text = "\n".join(text_list)
     return text
 
 

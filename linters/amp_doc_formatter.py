@@ -149,6 +149,7 @@ class _DocFormatter(liaction.Action):
         updated_lines: List[str] = []
         skipped_id = 0
         removed_blocks_storage: Dict[str, List[str]] = {}
+        skipped_lines: List[str] = []
         for i, line in enumerate(lines):
             if i not in code_block_indices and i + 1 in code_block_indices:
                 # Initialize objects for a new code block.

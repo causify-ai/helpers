@@ -150,6 +150,8 @@ def _generate_images(
         # model = "dall-e-3"
         model = "gpt-image-1"
     # Set size and quality based on model.
+    quality = ""
+    size = ""
     if model == "dall-e-2":
         size = "1024x1024"  # DALL-E 2 supports 256x256, 512x512, 1024x1024.
     elif model == "dall-e-3":

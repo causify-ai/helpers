@@ -63,10 +63,10 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-
 # #############################################################################
 # OverlayConfig
 # #############################################################################
+
 
 # Data structures for plan configuration.
 class OverlayConfig:
@@ -82,10 +82,10 @@ class OverlayConfig:
         self.duration = duration  # "fill" or "normal"
 
 
-
 # #############################################################################
 # SlideConfig
 # #############################################################################
+
 
 class SlideConfig:
     """
@@ -869,6 +869,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         f"Output file must have .mp4 extension: {out_file}",
     )
     # Parse resolution.
+    width, height = 0, 0
     try:
         width, height = map(int, args.resolution.split("x"))
     except ValueError:

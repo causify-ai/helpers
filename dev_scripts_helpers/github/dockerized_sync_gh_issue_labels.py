@@ -32,6 +32,7 @@ try:
 except ModuleNotFoundError:
     _module = "pygithub"
     print(_WARNING + f": Can't find {_module}: continuing")
+    github = None  # type: ignore
 
 _LOG = logging.getLogger(__name__)
 
@@ -54,9 +55,6 @@ class Label:
         self._description = description
         # Remove '#' prefix from hex code if present.
         self._color = color.lstrip("#")
-
-    def __repr__(self):
-        return f"label(name='{self.name}', description='{self.description}', color='{self.color}')"
 
     # #########################################################################
     # Label loading/saving
@@ -129,6 +127,9 @@ class Label:
             "color": self._color,
         }
 
+    def __repr__(self):
+        return f"label(name='{self.name}', description='{self.description}', color='{self.color}')"
+
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -184,6 +185,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     labels_map = {label.name.strip().lower(): label for label in labels}
     token = os.environ[args.token_env_var]
     hdbg.dassert(token)
+    hdbg.dassert_ne(
+        github, None, "github module not available: install pygithub"
+    )
     # Initialize GH client.
     client = github.Github(token)
     repo = client.get_repo(f"{args.owner}/{args.repo}")
