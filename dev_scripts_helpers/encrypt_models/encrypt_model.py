@@ -237,7 +237,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--build_target",
-        default="",
+        default=None,
         choices=["linux/arm64", "linux/amd64", "linux/amd64,linux/arm64"],
         type=str,
         help="Specify cross-build options for Docker container",
@@ -245,14 +245,14 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output_dir",
         required=False,
-        default="",
+        default=None,
         type=str,
         help="Encrypted model output directory",
     )
     parser.add_argument(
         "--release_dir",
         required=False,
-        default="",
+        default=None,
         type=str,
         help="Encrypted model release directory",
     )

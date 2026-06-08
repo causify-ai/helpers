@@ -226,7 +226,7 @@ def _convert_google_path_to_local_path(
 def convert_url_to_local_path(
     url: str,
     *,
-    account: str = "causify",
+    account: Optional[str] = None,
     credentials: Optional["goasea.Credentials"] = None,
 ) -> str:
     """
@@ -287,7 +287,7 @@ def convert_url_to_local_path(
 def convert_file_name_to_local_path(
     file_name: str,
     *,
-    account: str = "",
+    account: Optional[str] = None,
 ) -> str:
     """
     Convert a file or folder name to a local file system path by searching in Google Drive accounts.

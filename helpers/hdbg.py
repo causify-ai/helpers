@@ -144,7 +144,7 @@ def _dfatal(
 
 def dassert(
     cond: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -162,7 +162,7 @@ def dassert(
 def dassert_eq(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -175,7 +175,7 @@ def dassert_eq(
 def dassert_ne(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -188,7 +188,7 @@ def dassert_ne(
 def dassert_imply(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -206,7 +206,7 @@ def dassert_imply(
 def dassert_lt(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -219,7 +219,7 @@ def dassert_lt(
 def dassert_lte(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -235,7 +235,7 @@ def dassert_lgt(
     upper_bound: float,
     lower_bound_closed: bool,
     upper_bound_closed: bool,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -258,7 +258,7 @@ def dassert_lgt(
 
 
 def dassert_is_proportion(
-    x: float, msg: str = "", *args: Any, only_warning: bool = False
+    x: float, msg: Optional[str] = None, *args: Any, only_warning: bool = False
 ) -> None:
     """
     Assert that `0 <= x <= 1`.
@@ -285,7 +285,7 @@ def dassert_is_proportion(
 def dassert_in(
     value: Any,
     valid_values: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -298,7 +298,7 @@ def dassert_in(
 def dassert_not_in(
     value: Any,
     valid_values: Iterable[Any],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -316,7 +316,7 @@ def dassert_not_in(
 def dassert_is(
     val1: Optional[str],
     val2: Optional[Any],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -329,7 +329,7 @@ def dassert_is(
 def dassert_is_not(
     val1: Any,
     val2: Optional[Any],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -342,7 +342,7 @@ def dassert_is_not(
 def dassert_type_is(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -357,7 +357,7 @@ def dassert_type_is(
 def dassert_type_in(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -371,7 +371,7 @@ def dassert_type_in(
 def dassert_isinstance(
     val1: Any,
     val2: Union[type, Iterable[type]],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -384,7 +384,7 @@ def dassert_isinstance(
 def dassert_issubclass(
     val1: Any,
     val2: Union[type, Iterable[type]],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -402,7 +402,7 @@ def dassert_issubclass(
 
 def dassert_is_integer(
     val: Union[int, float],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -423,7 +423,7 @@ def dassert_is_integer(
 
 def dassert_callable(
     func: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -476,7 +476,7 @@ def _set_to_str(set_: Set[Any], thr: Optional[int] = 20) -> str:
 def dassert_set_eq(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -502,7 +502,7 @@ def dassert_set_eq(
 def dassert_is_subset(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -524,7 +524,7 @@ def dassert_is_subset(
 def dassert_not_intersection(
     val1: Any,
     val2: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -546,7 +546,7 @@ def dassert_not_intersection(
 
 def dassert_is_iterable(
     val: Any,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -568,7 +568,7 @@ def dassert_is_iterable(
 
 def dassert_no_duplicates(
     val1: Iterable[Any],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -592,7 +592,7 @@ def dassert_no_duplicates(
 def dassert_is_sorted(
     val1: Union[List, Tuple],
     sort_kwargs: Optional[Dict[Any, Any]] = None,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -615,7 +615,7 @@ def dassert_is_sorted(
 def dassert_eq_all(
     val1: Iterable[Any],
     val2: Iterable[Any],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -655,7 +655,7 @@ def _get_first_type(obj: Iterable, tag: str) -> Type:
 def dassert_all_attributes_are_same(
     list_: List[Any],
     attribute_name: str,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -679,7 +679,7 @@ def dassert_array_has_same_type_element(
     obj1: Any,
     obj2: Any,
     only_first_elem: bool,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -713,7 +713,7 @@ def dassert_container_type(
     obj: Any,
     container_type: Optional[Any],
     elem_type: Optional[Any],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -743,7 +743,7 @@ def dassert_container_type(
 # TODO(gp): @all Replace calls to this with calls to `dassert_container_type()`.
 def dassert_list_of_strings(
     list_: List[str],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -755,7 +755,7 @@ def dassert_list_of_strings(
 
 def dassert_all_defined_or_all_None(
     vals: List[Any],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -777,7 +777,7 @@ def dassert_all_defined_or_all_None(
 
 def dassert_path_exists(
     path: str,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -790,7 +790,7 @@ def dassert_path_exists(
 
 def dassert_path_not_exists(
     path: str,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -804,7 +804,7 @@ def dassert_path_not_exists(
 
 def dassert_file_exists(
     file_name: str,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -828,7 +828,7 @@ def dassert_file_exists(
 
 def dassert_dir_exists(
     dir_name: str,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -899,7 +899,7 @@ def dassert_is_path_abs(path: str, only_warning: bool = False) -> None:
 def dassert_related_params(
     params: Dict[str, Any],
     mode: str,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -962,7 +962,7 @@ def get_command_line() -> str:
 def init_logger(
     verbosity: Union[int, str] = logging.INFO,
     use_exec_path: bool = False,
-    log_filename: str = "",
+    log_filename: Optional[str] = None,
     force_verbose_format: bool = False,
     force_print_format: bool = False,
     force_white: bool = True,
@@ -1091,7 +1091,7 @@ def init_logger(
 
 
 def set_logger_verbosity(
-    verbosity: int, module_name: str = ""
+    verbosity: int, module_name: Optional[str] = None
 ) -> None:
     """
     Change the verbosity of the logging after the initialization.

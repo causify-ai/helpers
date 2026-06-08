@@ -559,7 +559,7 @@ def add_fitted_text_box(
 def generate_animation_values(
     mode: str,
     sweep_variable: str,
-    const_variable: str = "",
+    const_variable: Optional[str] = None,
     const_value: Optional[Any] = None,
     *,
     n_steps: int = 11,

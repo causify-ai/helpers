@@ -237,9 +237,9 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     # Parse arguments.
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", required=True)
-    parser.add_argument("--data-dir", default="")
-    parser.add_argument("--template", default="")
-    parser.add_argument("--extract-media", default="")
+    parser.add_argument("--data-dir", default=None)
+    parser.add_argument("--template", default=None)
+    parser.add_argument("--extract-media", default=None)
     # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd_list)
     _LOG.debug(hprint.to_str("args unknown_args"))

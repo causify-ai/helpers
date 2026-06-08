@@ -59,7 +59,7 @@ def _parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "-m", default="", dest="message", help="Add message to commit"
+        "-m", default=None, dest="message", help="Add message to commit"
     )
     hparser.add_verbosity_arg(parser)
     return parser

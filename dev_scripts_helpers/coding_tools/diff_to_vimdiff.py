@@ -391,14 +391,14 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--select_files",
         action="store",
-        default="",
+        default=None,
         help="Specify a file that contains the files to actually consider "
         "for the diff",
     )
     parser.add_argument(
         "--ignore_files",
         action="store",
-        default="",
+        default=None,
         help="Regex to skip certain files",
     )
     parser.add_argument(

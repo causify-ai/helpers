@@ -189,7 +189,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--user", action="store", default="", help="Impersonate a user"
+        "--user", action="store", default=None, help="Impersonate a user"
     )
     hparser.add_verbosity_arg(parser)
     return parser

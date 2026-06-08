@@ -32,7 +32,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _find_test_files(
-    dir_name: str = "", use_absolute_path: bool = False
+    dir_name: Optional[str] = None, use_absolute_path: bool = False
 ) -> List[str]:
     """
     Find all the files containing test code in `abs_dir`.

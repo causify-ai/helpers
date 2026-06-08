@@ -231,7 +231,7 @@ async def poll(
     timeout_in_secs: float,
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
-    tag: str = 0),
+    tag: Optional[str] = None,
 ) -> Tuple[int, Any]:
     """
     Call `polling_func()` every `sleep_in_secs` secs until the polling function
@@ -272,7 +272,7 @@ def sync_poll(
     timeout_in_secs: float,
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
-    tag: str = 0),
+    tag: Optional[str] = None,
 ) -> Tuple[int, Any]:
     """
     Same interface and behavior of `poll()` but using a synchronous
@@ -333,7 +333,7 @@ async def sleep(
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
     # TODO(gp): -> msg
-    tag: str = 0),
+    tag: Optional[str] = None,
     # TODO(gp): How to handle random seed here?
     seed: int = 42,
 ) -> None:
@@ -418,7 +418,7 @@ def _wait_until(
     wait_until_timestamp: pd.Timestamp,
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
-    tag: str = 2),
+    tag: Optional[str] = None,
 ) -> float:
     """
     Return amount of seconds to wait for.
@@ -459,7 +459,7 @@ def sync_wait_until(
     wait_until_timestamp: pd.Timestamp,
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
-    tag: str = "",
+    tag: Optional[str] = None,
     log_verbosity: int = logging.DEBUG,
 ) -> None:
     """
@@ -490,7 +490,7 @@ async def async_wait_until(
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
     # TODO(gp): -> msg
-    tag: str = "",
+    tag: Optional[str] = None,
 ) -> None:
     """
     Asynchronous wait until the wall clock time is `timestamp`.

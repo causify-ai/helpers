@@ -232,7 +232,7 @@ def _parse() -> argparse.ArgumentParser:
         "--target_dir",
         action="store",
         type=str,
-        default="",
+        default=None,
         help="Dir where to save the HTML file",
     )
     parser.add_argument(

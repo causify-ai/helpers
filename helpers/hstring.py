@@ -58,8 +58,8 @@ def to_ascii(text: str) -> str:
 def diff_strings(
     txt1: str,
     txt2: str,
-    txt1_descr: str = "",
-    txt2_descr: str = "",
+    txt1_descr: Optional[str] = None,
+    txt2_descr: Optional[str] = None,
     width: int = 130,
 ) -> str:
     # Write file.

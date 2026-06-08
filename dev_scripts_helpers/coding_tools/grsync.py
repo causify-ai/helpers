@@ -166,7 +166,7 @@ def _main():
     parser.add_argument(
         "--dst_dir",
         action="store",
-        default="",
+        default=None,
         help="Remote directory to sync",
     )
     parser.add_argument(

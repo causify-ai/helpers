@@ -80,7 +80,7 @@ def split_list_in_tasks(
     n: int,
     *,
     keep_order: bool = False,
-    num_elems_per_task: int = 0,
+    num_elems_per_task: Optional[int] = None,
 ) -> List[List[Any]]:
     """
     Split a list in tasks based on the number of threads or elements per
@@ -251,7 +251,7 @@ def validate_workload(workload: Workload) -> bool:
 
 
 def randomize_workload(
-    workload: Workload, *, seed: int = 0
+    workload: Workload, *, seed: Optional[int] = None
 ) -> Workload:
     validate_workload(workload)
     # Parse the workload.
@@ -267,7 +267,7 @@ def randomize_workload(
 
 
 def reverse_workload(
-    workload: Workload, *, seed: int = 0
+    workload: Workload, *, seed: Optional[int] = None
 ) -> Workload:
     """
     Reverse the workload.
@@ -889,7 +889,7 @@ def register_s3fs_store_backend() -> None:
 def add_parallel_processing_arg(
     parser: argparse.ArgumentParser,
     *,
-    num_threads_default: str = "",
+    num_threads_default: Optional[str] = None,
 ) -> argparse.ArgumentParser:
     """
     Add parallel processing args.
@@ -951,7 +951,7 @@ def add_parallel_processing_arg(
         "--num_func_per_task",
         action="store",
         type=int,
-        default="",
+        default=None,
         help="Number of function execute in a (parallel) task of the workload. `None` means automatically decided by the function",
     )
     parser.add_argument(

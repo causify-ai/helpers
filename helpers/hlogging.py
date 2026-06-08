@@ -244,7 +244,7 @@ class _LocalTimeZoneFormatter:
         return dt
 
     def formatTime(
-        self, record: logging.LogRecord, datefmt: str = ""
+        self, record: logging.LogRecord, datefmt: Optional[str] = None
     ) -> str:
         dt = self.converter(record.created)
         if datefmt:

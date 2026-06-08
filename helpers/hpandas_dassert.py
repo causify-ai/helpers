@@ -44,7 +44,7 @@ def _get_index(obj: Union[pd.Index, pd.DataFrame, pd.Series]) -> pd.Index:
 
 def dassert_index_is_datetime(
     obj: Union[pd.Index, pd.DataFrame, pd.Series],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
 ) -> None:
     """
@@ -65,7 +65,7 @@ def dassert_index_is_datetime(
 
 def dassert_unique_index(
     obj: Union[pd.Index, pd.DataFrame, pd.Series],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
 ) -> None:
     """
@@ -91,7 +91,7 @@ def dassert_unique_index(
 
 def dassert_increasing_index(
     obj: Union[pd.Index, pd.DataFrame, pd.Series],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
 ) -> None:
     """
@@ -136,7 +136,7 @@ def dassert_increasing_index(
 
 def dassert_strictly_increasing_index(
     obj: Union[pd.Index, pd.DataFrame, pd.Series],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
 ) -> None:
     """
@@ -151,7 +151,7 @@ def dassert_strictly_increasing_index(
 
 def dassert_monotonic_index(
     obj: Union[pd.Index, pd.DataFrame, pd.Series],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
 ) -> None:
     """
@@ -273,7 +273,7 @@ def dassert_axes_equal(
 def dassert_series_type_is(
     srs: pd.Series,
     type_: type,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
 ) -> None:
     """
@@ -292,7 +292,7 @@ def dassert_series_type_is(
 def dassert_series_type_in(
     srs: pd.Series,
     types: List[type],
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
 ) -> None:
     """
@@ -327,7 +327,7 @@ def dassert_approx_eq(
     val2: Any,
     rtol: float = 1e-05,
     atol: float = 1e-08,
-    msg: str = "",
+    msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
@@ -351,7 +351,7 @@ def dassert_approx_eq(
 
 
 def dassert_is_days(
-    timedelta: pd.Timedelta, *, min_num_days: int = 0
+    timedelta: pd.Timedelta, *, min_num_days: Optional[int] = None
 ) -> None:
     """
     Assert that a timedelta represents an integer number of days.

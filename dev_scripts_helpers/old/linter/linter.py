@@ -1802,7 +1802,7 @@ def _parse() -> argparse.ArgumentParser:
         nargs="?",
         type=int,
         const=1,
-        default="",
+        default=None,
         help="Select files modified in previous 'n' user git commit",
     )
     parser.add_argument(

@@ -310,7 +310,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Test the install step without requirements",
     )
     parser.add_argument(
-        "--python_version", default="", type=str, action="store"
+        "--python_version", default=None, type=str, action="store"
     )
     # TODO(gp): Use the action approach from helpers.parser.
     parser.add_argument("--skip_delete_env", action="store_true")

@@ -67,7 +67,7 @@ def get_config_list_from_builder(config_builder: str) -> crcocoli.ConfigList:
 
 def get_notebook_config(
     *,
-    config_file_path: str = "",
+    config_file_path: Optional[str] = None,
     # TODO(Grisha): it's more general to do `dst_region: Optional[str] = None`,
     # where `None` means keep the original region and any other value means
     # replace the original region with the `dst_region`.

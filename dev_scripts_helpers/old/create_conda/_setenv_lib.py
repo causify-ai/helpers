@@ -272,11 +272,11 @@ def parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-o",
         "--output_file",
-        default="",
+        default=None,
         help="File to write. None for stdout",
     )
     parser.add_argument(
-        "-e", "--conda_env", default="", help="Select the conda env to use."
+        "-e", "--conda_env", default=None, help="Select the conda env to use."
     )
     hparser.add_verbosity_arg(parser)
     # To capture some dummy command options (e.g., "bell-style none") passed by

@@ -140,10 +140,10 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("--incremental", action="store_true")
     parser.add_argument("--dry_run", action="store_true")
     parser.add_argument(
-        "--src_dir", action="store", default="", help="Source dir"
+        "--src_dir", action="store", default=None, help="Source dir"
     )
     parser.add_argument(
-        "--dst_dir", action="store", default="", help="Destination dir"
+        "--dst_dir", action="store", default=None, help="Destination dir"
     )
     hparser.add_verbosity_arg(parser)
     return parser

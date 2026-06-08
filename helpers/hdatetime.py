@@ -551,7 +551,7 @@ def set_current_bar_timestamp(
 
 
 def str_to_timestamp(
-    timestamp_as_str: str, tz: str, *, datetime_format: str = ""
+    timestamp_as_str: str, tz: str, *, datetime_format: Optional[str] = None
 ) -> pd.Timestamp:
     """
     Convert timestamp as string to `pd.Timestamp`.
@@ -666,7 +666,7 @@ def _shift_to_period_end(  # pylint: disable=too-many-return-statements
 
 
 def _determine_date_format(
-    date: str, date_standard: str = ""
+    date: str, date_standard: Optional[str] = None
 ) -> Optional[Tuple[str, Callable[[str], str]]]:
     """
     Determine date format for cases when `pd.to_datetime` fails.
@@ -774,7 +774,7 @@ def _determine_date_format(
 
 
 def to_generalized_datetime(
-    dates: Union[pd.Series, pd.Index], date_standard: str = ""
+    dates: Union[pd.Series, pd.Index], date_standard: Optional[str] = None
 ) -> Union[pd.Series, pd.Index]:
     """
     Convert string dates to datetime.
