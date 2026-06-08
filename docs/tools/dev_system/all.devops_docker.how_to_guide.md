@@ -71,8 +71,7 @@
 
 2. Other containers that are lightweight and used only by one person can be
    built on the fly using `docker compose` / `docker build`.
-
-- E.g., the `infra` container, containers to run a simple tools
+   - E.g., the `infra` container, containers to run a simple tools
 
 3. Sometimes we install a dependency on the fly from inside the code, when it's
    needed only rarely and it doesn't justify being added to the Docker container

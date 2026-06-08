@@ -187,6 +187,83 @@ class Test_purify_text1(hunitest.TestCase):
         self.check_helper(txt, expected)
 
 
+    def test13(self) -> None:
+        """
+        Test purification of a full docker run command with API keys,
+        paths, and docker image name.
+        """
+        # Prepare inputs.
+        txt = (
+            "docker run --rm --user $(id -u):$(id -g)"
+            " -e AM_CONTAINER_VERSION"
+            " -e ARTIFICIAL_ANALYSIS_API_KEY"
+            " -e CSFY_AWS_ACCESS_KEY_ID"
+            " -e CSFY_AWS_DEFAULT_REGION"
+            " -e CSFY_AWS_PROFILE"
+            " -e CSFY_AWS_S3_BUCKET"
+            " -e CSFY_AWS_SECRET_ACCESS_KEY"
+            " -e CSFY_AWS_SESSION_TOKEN"
+            " -e CSFY_CI -e CSFY_ECR_BASE_PATH"
+            " -e CSFY_ENABLE_DIND"
+            " -e CSFY_FORCE_TEST_FAIL"
+            " -e CSFY_GIT_ROOT_PATH"
+            " -e CSFY_HELPERS_ROOT_PATH"
+            " -e CSFY_HOST_GIT_ROOT_PATH"
+            " -e CSFY_HOST_NAME"
+            " -e CSFY_HOST_OS_NAME"
+            " -e CSFY_HOST_OS_VERSION"
+            " -e CSFY_HOST_USER_NAME"
+            " -e CSFY_REPO_CONFIG_CHECK"
+            " -e CSFY_REPO_CONFIG_PATH"
+            " -e CSFY_TELEGRAM_TOKEN"
+            " -e CSFY_USE_HELPERS_AS_NESTED_MODULE"
+            " -e OPENAI_API_KEY"
+            " -e OPENROUTER_API_KEY"
+            " -e QUANDL_API_KEY"
+            " --workdir /app"
+            " --mount type=bind,source=/Users/saggese/src/notes1,target=/app"
+            " tmp.latex.aarch64.417056b0"
+            " pdflatex -output-directory"
+            " /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch"
+            " --interaction=nonstopmode --halt-on-error --shell-escape"
+            " /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.tex"
+        )
+        # Prepare outputs.
+        expected = (
+            "docker run --rm --user $(id -u):$(id -g)"
+            " -e AM_CONTAINER_VERSION"
+            " -e CSFY_AWS_ACCESS_KEY_ID"
+            " -e CSFY_AWS_DEFAULT_REGION"
+            " -e CSFY_AWS_PROFILE"
+            " -e CSFY_AWS_S3_BUCKET"
+            " -e CSFY_AWS_SECRET_ACCESS_KEY"
+            " -e CSFY_AWS_SESSION_TOKEN"
+            " -e CSFY_CI -e CSFY_ECR_BASE_PATH"
+            " -e CSFY_ENABLE_DIND"
+            " -e CSFY_FORCE_TEST_FAIL"
+            " -e CSFY_GIT_ROOT_PATH"
+            " -e CSFY_HELPERS_ROOT_PATH"
+            " -e CSFY_HOST_GIT_ROOT_PATH"
+            " -e CSFY_HOST_NAME"
+            " -e CSFY_HOST_OS_NAME"
+            " -e CSFY_HOST_OS_VERSION"
+            " -e CSFY_HOST_USER_NAME"
+            " -e CSFY_REPO_CONFIG_CHECK"
+            " -e CSFY_REPO_CONFIG_PATH"
+            " -e CSFY_TELEGRAM_TOKEN"
+            " -e CSFY_USE_HELPERS_AS_NESTED_MODULE"
+            " --workdir /app"
+            " --mount type=bind,source=$GIT_ROOT,target=/app"
+            " tmp.latex.aarch64.xxxxxxxx"
+            " pdflatex -output-directory"
+            " /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch"
+            " --interaction=nonstopmode --halt-on-error --shell-escape"
+            " /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.tex"
+        )
+        # Run test.
+        self.check_helper(txt, expected)
+
+
 # #############################################################################
 # Test_purify_directory_paths1
 # #############################################################################
@@ -961,6 +1038,122 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         text_purifier = huntepur.TextPurifier()
         actual = text_purifier.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_purify_from_docker_env_vars1
+# #############################################################################
+
+
+class Test_purify_from_docker_env_vars1(hunitest.TestCase):
+    """
+    Test removal of `-e ENV_VAR` from docker command lines.
+    """
+
+    def check_helper(
+        self, txt: str, expected: str, suffixes=None
+    ) -> None:
+        text_purifier = huntepur.TextPurifier()
+        if suffixes is None:
+            actual = text_purifier.purify_from_docker_env_vars(txt)
+        else:
+            actual = text_purifier.purify_from_docker_env_vars(
+                txt, env_var_suffixes=suffixes
+            )
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Remove `-e OPENAI_API_KEY` from a docker command (default suffix).
+        """
+        # Prepare inputs.
+        txt = (
+            "docker run --rm -e CSFY_AWS_PROFILE -e OPENAI_API_KEY -e CSFY_ECR_BASE_PATH"
+        )
+        # Prepare outputs.
+        expected = "docker run --rm -e CSFY_AWS_PROFILE -e CSFY_ECR_BASE_PATH"
+        # Run test.
+        self.check_helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Remove `-e OPENAI_API_KEY=sk-abc123` with a value.
+        """
+        # Prepare inputs.
+        txt = "docker run --rm -e CSFY_AWS_PROFILE -e OPENAI_API_KEY=sk-abc123"
+        # Prepare outputs.
+        expected = "docker run --rm -e CSFY_AWS_PROFILE"
+        # Run test.
+        self.check_helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Remove multiple `-e *_API_KEY` flags from a docker command.
+        """
+        # Prepare inputs.
+        txt = (
+            "docker run --rm -e OPENAI_API_KEY -e SYNTHESIA_API_KEY -e CSFY_ECR_BASE_PATH"
+        )
+        # Prepare outputs.
+        expected = "docker run --rm -e CSFY_ECR_BASE_PATH"
+        # Run test.
+        self.check_helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        No matching env vars: text should be unchanged.
+        """
+        # Prepare inputs.
+        txt = "docker run --rm -e CSFY_AWS_PROFILE -e CSFY_ECR_BASE_PATH"
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.check_helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Non-docker text without `-e` flags should be unchanged.
+        """
+        # Prepare inputs.
+        txt = "import helpers.hunit_test as hunitest"
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.check_helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Remove env vars matching a custom suffix.
+        """
+        # Prepare inputs.
+        txt = "docker run --rm -e CSFY_AWS_PROFILE -e CSFY_ECR_BASE_PATH"
+        # Prepare outputs.
+        expected = "docker run --rm -e CSFY_AWS_PROFILE"
+        # Run test.
+        suffixes = ["ECR_BASE_PATH"]
+        self.check_helper(txt, expected, suffixes=suffixes)
+
+    def test7(self) -> None:
+        """
+        Empty string should be unchanged.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.check_helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Text with only non-matching `-e` flags should be unchanged.
+        """
+        # Prepare inputs.
+        txt = "-e CSFY_AWS_PROFILE -e CSFY_ECR_BASE_PATH"
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
