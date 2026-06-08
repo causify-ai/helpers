@@ -42,6 +42,7 @@ try:
 
     _TOKENCOST_AVAILABLE = True
 except ImportError:
+    tokencost = None  # type: ignore[possibly-unbound]
     _TOKENCOST_AVAILABLE = False
 
 from tqdm import tqdm
@@ -593,6 +594,9 @@ def apply_llm(
     )
     _LOG.debug("Applying LLM to input text")
     _LOG.debug("backend=%s", backend)
+    # Initialize variables to satisfy pyright's possibly-unbound check.
+    response = ""
+    token_stats = TokenStats()
     # Route to appropriate implementation.
     if backend == "executable":
         # Check that llm executable exists.

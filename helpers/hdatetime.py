@@ -21,7 +21,7 @@ import pandas as pd  # noqa: E402 # pylint: disable=wrong-import-position
 # TODO(gp): Check if dateutils is equivalent to `pytz` or better so we can simplify
 #  the dependencies.
 try:
-    import pytz
+    import pytz  # type: ignore[possibly-unbound]
 except ModuleNotFoundError:
     _module = "pytz"
     print(_WARNING + f": Can't find {_module}: continuing")

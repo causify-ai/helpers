@@ -544,6 +544,7 @@ def _parallel_execute_decorator(
             txt.append(f"exception='{str(e)}'")
             res = None
             error = True
+            exception = None
             _LOG.error("Execution failed")
     # Save information about the execution of the function.
     elapsed_time = ts.elapsed_time

@@ -18,13 +18,13 @@ from typing import List, Optional, Union
 # Keep try-except to avoid `ModuleNotFoundError` in CI/CD (HelpersTask #1183).
 try:
     # Authentication for Google API to produce credentials.
-    import google.oauth2.service_account as goasea
+    import google.oauth2.service_account as goasea  # type: ignore[possibly-unbound]
 
     # Google API client for service objects (e.g., Drive, Sheets, etc.)
-    import googleapiclient.discovery as godisc
+    import googleapiclient.discovery as godisc  # type: ignore[possibly-unbound]
 
     # Built on top of Google API to simplify interactions with Google Sheets.
-    import gspread
+    import gspread  # type: ignore[possibly-unbound]
 
     _GOOGLE_API_AVAILABLE = True
 except ImportError:

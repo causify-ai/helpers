@@ -356,7 +356,7 @@ def _get_psutil_info() -> str:
     Get system resource information using psutil.
     """
     try:
-        import psutil
+        import psutil  # type: ignore[possibly-unbound]
 
         has_psutil = True
     except ModuleNotFoundError as e:
@@ -438,6 +438,7 @@ def _get_package_info() -> Tuple[str, int]:
             version = _get_library_version(lib)
         except OSError as e:
             print(_WARNING + ": " + str(e))
+            version = "?"
         if version.startswith("ERROR"):
             failed_imports += 1
         packages.append((lib, version))

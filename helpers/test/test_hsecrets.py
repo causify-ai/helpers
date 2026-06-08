@@ -1,7 +1,7 @@
 # TODO(gp): Use pytest.import_skip instead of all this machinery.
 _HAS_MOTO = True
 try:
-    import moto
+    import moto  # type: ignore[possibly-unbound]
 except ImportError:
     # `moto` may not be installed in a non-cmamp repo, so we skip it (see "DevTools376:
     # Break 2022-02-22").

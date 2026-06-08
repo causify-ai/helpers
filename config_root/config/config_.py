@@ -454,6 +454,7 @@ class _OrderedConfig(_OrderedDictType):
         txt = []
         for key, (marked_as_used, writer, val) in self.items():
             # 1) Process key.
+            key_as_str = ""
             if mode == "only_values":
                 key_as_str = str(key)
             elif mode == "verbose":

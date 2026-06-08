@@ -869,6 +869,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         f"Output file must have .mp4 extension: {out_file}",
     )
     # Parse resolution.
+    width, height = 0, 0
     try:
         width, height = map(int, args.resolution.split("x"))
     except ValueError:

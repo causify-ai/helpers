@@ -58,6 +58,7 @@ def _get_github_url(
     abs_file_path = os.path.abspath(file_path)
     _LOG.debug("Absolute file path: %s", abs_file_path)
     # Compute relative path from git root.
+    relative_path = ""
     if abs_file_path.startswith(git_root):
         relative_path = os.path.relpath(abs_file_path, git_root)
     else:

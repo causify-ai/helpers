@@ -49,14 +49,14 @@ import helpers.repo_config_utils as hrecouti
 _WARNING = "\033[33mWARNING\033[0m"
 
 try:
-    import numpy as np
+    import numpy as np  # type: ignore[possibly-unbound]
 
     _HAS_NUMPY = True
 except ImportError as e:
     print(_WARNING + ": " + str(e))
     _HAS_NUMPY = False
 try:
-    import pandas as pd
+    import pandas as pd  # type: ignore[possibly-unbound]
 
     _HAS_PANDAS = True
 except ImportError as e:
@@ -64,7 +64,7 @@ except ImportError as e:
     _HAS_PANDAS = False
 
 try:
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # type: ignore[possibly-unbound]
 
     _HAS_MATPLOTLIB = True
 except ImportError as e:

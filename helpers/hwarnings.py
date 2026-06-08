@@ -76,7 +76,7 @@ warnings.filterwarnings(
 # TODO(gp): Add this TqdmExperimentalWarning
 
 try:
-    import pandas as pd
+    import pandas as pd  # type: ignore[possibly-unbound]
 
     _HAS_PANDAS = True
 except ImportError:

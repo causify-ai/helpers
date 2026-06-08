@@ -349,7 +349,8 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
     Convert the `repo_short_name` from command line (e.g., "current", "amp",
     "lm") to the repo_short_name full name without host name.
     """
-    repo_full_name_with_host: str
+    repo_full_name_with_host: str = ""
+    ret_repo_short_name: str = ""
     if repo_short_name == "current":
         # Get the repo name from the current repo.
         repo_full_name_with_host = hgit.get_repo_full_name_from_dirname(
