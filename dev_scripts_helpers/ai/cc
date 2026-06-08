@@ -67,9 +67,21 @@ if [ "$MODEL" = "anthropic" ]; then
     unset ANTHROPIC_DEFAULT_OPUS_MODEL
     unset ANTHROPIC_BASE_URL
     unset ANTHROPIC_AUTH_TOKEN
+elif [ "$MODEL" = "openrouter_anthropic" ]; then
+    export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL=anthropic/claude-haiku-4.5
+    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
+    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
+    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
 elif [ "$MODEL" = "deepseek" ]; then
     export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
     export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-flash
+    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
+    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
+    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
+elif [ "$MODEL" = "deepseek-pro" ]; then
+    export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-pro
     export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
     export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
     export ANTHROPIC_BASE_URL=https://openrouter.ai/api
