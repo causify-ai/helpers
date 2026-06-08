@@ -529,6 +529,8 @@ def _parallel_execute_decorator(
     with htimer.TimedScope(
         logging.DEBUG, f"Execute '{workload_func_str}'"
     ) as ts:
+        # Initialize `exception` before the try block to satisfy the type checker.
+        exception: Optional[BaseException] = None
         try:
             if processify_func:
                 _LOG.debug("Using processify")
@@ -544,7 +546,6 @@ def _parallel_execute_decorator(
             txt.append(f"exception='{str(e)}'")
             res = None
             error = True
-            exception = None
             _LOG.error("Execution failed")
     # Save information about the execution of the function.
     elapsed_time = ts.elapsed_time
@@ -568,11 +569,11 @@ def _parallel_execute_decorator(
         _LOG.error(txt)
         if abort_on_error:
             _LOG.error("Aborting since abort_on_error=%s", abort_on_error)
-            raise exception  # noqa: F821  # type: ignore[possibly-unbound]
+            raise exception  # noqa: F821
         _LOG.error(
             "Continuing execution since abort_on_error=%s", abort_on_error
         )
-        res = str(exception)  # type: ignore[possibly-unbound]
+        res = str(exception)
     else:
         # The execution was successful.
         pass
