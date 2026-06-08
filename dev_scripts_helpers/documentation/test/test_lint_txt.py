@@ -2318,7 +2318,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
         )
         type_ = "tex"
         use_script = True
-        cmd_opts = "--print-width 80"
+        cmd_opts = "--width 80"
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test3.

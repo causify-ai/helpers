@@ -80,6 +80,8 @@ def _extract_markdown_section(
     :param md_end: ending header or None to auto-detect next same-level, or "END" to extract to end of file
     :return: processed content of the extracted section
     """
+    hdbg.dassert_isinstance(md_start, str)
+    hdbg.dassert_isinstance(md_end, str)
     # Read, process, write back file.
     lines = hseinout.from_file(file_path)
     extracted_lines = hmarsele.extract_text_from_markdown_lines(
