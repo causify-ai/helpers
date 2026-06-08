@@ -115,7 +115,7 @@ def get_credentials(
         "https://www.googleapis.com/auth/drive",
         "https://www.googleapis.com/auth/spreadsheets",
     ]
-    creds = goasea.Credentials.from_service_account_file(
+    creds = goasea.Credentials.from_service_account_file(  # type: ignore[possibly-unbound]
         service_key_path, scopes=scopes
     )
     return creds
@@ -138,7 +138,7 @@ def get_sheets_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     # Ensure credentials are provided.
     hdbg.dassert(credentials, "The 'credentials' parameter must be provided")
     # Build the Sheets service.
-    sheets_service = godisc.build(
+    sheets_service = godisc.build(  # type: ignore[possibly-unbound]
         "sheets", "v4", credentials=credentials, cache_discovery=False
     )
     return sheets_service
@@ -194,7 +194,7 @@ def get_gsheet_name(
     if credentials is None:
         credentials = get_credentials()
     # TODO(ai): Should we use the Sheets API instead?
-    client = gspread.authorize(credentials)
+    client = gspread.authorize(credentials)  # type: ignore[possibly-unbound]
     spreadsheet = client.open_by_url(url)
     tab_name = spreadsheet.title
     _LOG.debug("Retrieved sheet name: '%s'", tab_name)
@@ -215,7 +215,7 @@ def get_tabs_from_gsheet(
     """
     if credentials is None:
         credentials = get_credentials()
-    client = gspread.authorize(credentials)
+    client = gspread.authorize(credentials)  # type: ignore[possibly-unbound]
     spreadsheet = client.open_by_url(url)
     return [sheet.title for sheet in spreadsheet.worksheets()]
 
@@ -560,7 +560,7 @@ def from_gsheet(
     """
     if credentials is None:
         credentials = get_credentials()
-    client = gspread.authorize(credentials)
+    client = gspread.authorize(credentials)  # type: ignore[possibly-unbound]
     spreadsheet = client.open_by_url(url)
     if tab_name is None:
         # Read the first sheet.
@@ -596,12 +596,12 @@ def to_gsheet(
     """
     if credentials is None:
         credentials = get_credentials()
-    client = gspread.authorize(credentials)
+    client = gspread.authorize(credentials)  # type: ignore[possibly-unbound]
     spreadsheet = client.open_by_url(url)
     # Try to get existing worksheet or create new one.
     try:
         worksheet = spreadsheet.worksheet(tab_name)
-    except gspread.exceptions.WorksheetNotFound:
+    except gspread.exceptions.WorksheetNotFound:  # type: ignore[possibly-unbound]
         _LOG.debug(
             "Tab '%s' not found, creating a new tab with that name",
             tab_name,
@@ -658,7 +658,7 @@ def _get_gdrive_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     # Ensure credentials are provided.
     hdbg.dassert(credentials, "The 'credentials' parameter must be provided")
     # Build the drive service.
-    gdrive_service = godisc.build(
+    gdrive_service = godisc.build(  # type: ignore[possibly-unbound]
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
     return gdrive_service
@@ -681,7 +681,7 @@ def _create_new_google_document(
     if doc_type not in ["sheets", "docs"]:
         raise ValueError("Invalid doc_type. Must be 'sheets' or 'docs'.")
     # Build the service for the respective document type.
-    service = godisc.build(
+    service = godisc.build(  # type: ignore[possibly-unbound]
         doc_type,
         "v4" if doc_type == "sheets" else "v1",
         credentials=credentials,
@@ -721,7 +721,7 @@ def move_gfile_to_dir(
     """
     if credentials is None:
         credentials = get_credentials()
-    service = godisc.build(
+    service = godisc.build(  # type: ignore[possibly-unbound]
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
     res = (
@@ -755,7 +755,7 @@ def share_google_file(
         credentials = get_credentials()
     # Build the Google Drive service using the provided credentials.
     # TODO(gp): -> get_gdrive_service
-    service = godisc.build(
+    service = godisc.build(  # type: ignore[possibly-unbound]
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
     # Create the permission.
@@ -848,7 +848,7 @@ def create_or_overwrite_with_timestamp(
         credentials = get_credentials()
     # Authenticate with Google APIs using the provided credentials.
     # TODO(gp): -> get_gdrive_service
-    drive_service = godisc.build("drive", "v3", credentials=credentials)
+    drive_service = godisc.build("drive", "v3", credentials=credentials)  # type: ignore[possibly-unbound]
     if file_type == "sheets":
         mime_type = "application/vnd.google-apps.spreadsheet"
     elif file_type == "docs":
@@ -920,7 +920,7 @@ def create_google_drive_folder(
         credentials = get_credentials()
     # Build the Google Drive service using the provided credentials.
     # TODO(gp): -> get_gdrive_service
-    service = godisc.build(
+    service = godisc.build(  # type: ignore[possibly-unbound]
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
     # Define the metadata for the new folder.
@@ -946,7 +946,7 @@ def _get_folders_in_gdrive(*, credentials: "goasea.Credentials") -> list:
     """
     # Build the Google Drive service using the provided credentials.
     # TODO(gp): -> get_gdrive_service
-    service = godisc.build(
+    service = godisc.build(  # type: ignore[possibly-unbound]
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
     # Make the API request to list folders.

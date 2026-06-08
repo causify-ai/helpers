@@ -72,11 +72,12 @@ def find_service(
     service_name: str, tunnel_info: list
 ) -> Tuple[str, str, int, int]:
     found_service = False
+    ret: Tuple[str, str, int, int] = ()
     for service in tunnel_info:
         if service_name == parse_service(service)["service_name"]:
             hdbg.dassert(not found_service)
             found_service = True
-            ret: Tuple[str, str, int, int] = service
+            ret = service
     hdbg.dassert(found_service)
     return ret
 

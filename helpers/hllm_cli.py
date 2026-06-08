@@ -345,10 +345,10 @@ def _calculate_cost_from_usage(
     output_tokens = usage.output
     if _TOKENCOST_AVAILABLE:
         try:
-            prompt_cost = tokencost.calculate_cost_by_tokens(
+            prompt_cost = tokencost.calculate_cost_by_tokens(  # type: ignore[possibly-unbound]
                 num_tokens=input_tokens, model=model, token_type="input"
             )
-            completion_cost = tokencost.calculate_cost_by_tokens(
+            completion_cost = tokencost.calculate_cost_by_tokens(  # type: ignore[possibly-unbound]
                 num_tokens=output_tokens, model=model, token_type="output"
             )
             cost = float(prompt_cost + completion_cost)
@@ -784,8 +784,12 @@ def _calculate_llm_cost(
     :return: total cost in dollars
     """
     if _TOKENCOST_AVAILABLE:
-        prompt_cost = tokencost.calculate_prompt_cost(prompt, model)
-        completion_cost = tokencost.calculate_completion_cost(completion, model)
+        prompt_cost = tokencost.calculate_prompt_cost(  # type: ignore[possibly-unbound]
+            prompt, model
+        )
+        completion_cost = tokencost.calculate_completion_cost(  # type: ignore[possibly-unbound]
+            completion, model
+        )
         total_cost = prompt_cost + completion_cost
     else:
         total_cost = 0.0
@@ -1103,7 +1107,8 @@ def _call_batch_processor(
         func = apply_llm_batch_combined
     else:
         hdbg.dfatal("Invalid batch mode: %s", batch_mode)
-    batch_responses, batch_token_stats = func(
+    # pyright cannot infer that func is always assigned because hdbg.dfatal raises.
+    batch_responses, batch_token_stats = func(  # type: ignore[possibly-unbound]
         prompt=prompt,
         input_list=batch_items,
         model=model,

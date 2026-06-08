@@ -118,6 +118,7 @@ def _load_class(class_path: str) -> type:
     if len(parts) != 2:
         hdbg.dfatal(f"Invalid class path: {class_path}")
     module_path, class_name = parts
+    cls = None  # type: ignore[assignment]
     try:
         module = importlib.import_module(module_path)
         cls = getattr(module, class_name)

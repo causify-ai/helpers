@@ -835,6 +835,7 @@ def docker_build_prod_image(  # type: ignore
         image_versioned_prod = hlitadoc.get_image(
             base_image, "prod", latest_version
         )
+        head_hash: str
         if not tag:
             head_hash = hgit.get_head_hash(short_hash=True)
         else:
@@ -878,7 +879,7 @@ def docker_build_prod_image(  # type: ignore
     """
     hlitauti.run(ctx, cmd)
     if candidate:
-        _LOG.info("Head hash: %s", head_hash)
+        _LOG.info("Head hash: %s", head_hash)  # type: ignore[possibly-unbound]
         _list_image(ctx, image_versioned_prod)
     else:
         # Tag versioned image as latest prod image.

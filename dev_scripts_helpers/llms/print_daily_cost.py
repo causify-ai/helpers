@@ -235,11 +235,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             hdbg.dfatal("Invalid date format. Use YYYY-MM-DD format.")
     else:
         target_date = datetime.date.today()
-    _LOG.info("Fetching costs for date: %s", target_date)
+    _LOG.info("Fetching costs for date: %s", target_date)  # type: ignore[possibly-unbound]
     # Fetch costs from both providers.
     costs = {}
-    costs["OpenAI"] = _get_openai_daily_cost(target_date)
-    costs["Anthropic"] = _get_anthropic_daily_cost(target_date)
+    costs["OpenAI"] = _get_openai_daily_cost(target_date)  # type: ignore[possibly-unbound]
+    costs["Anthropic"] = _get_anthropic_daily_cost(target_date)  # type: ignore[possibly-unbound]
     # Format and print results.
     table = _format_cost_table(costs)
     print(table)

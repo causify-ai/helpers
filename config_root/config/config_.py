@@ -749,6 +749,7 @@ class Config:
             # hence the broad `except` statement. All non-Config exceptions
             # are reported separately.
             self._raise_exception(e, key, report_mode)
+            raise
         return ret
 
     def get_marked_as_used(
@@ -768,6 +769,7 @@ class Config:
         except Exception as e:
             report_mode = self._resolve_report_mode(report_mode)
             self._raise_exception(e, key, report_mode)
+            raise
         return ret
 
     def to_string(self, mode: str) -> str:

@@ -32,6 +32,7 @@ try:
 except ModuleNotFoundError:
     _module = "pygithub"
     print(_WARNING + f": Can't find {_module}: continuing")
+    github = None  # type: ignore
 
 _LOG = logging.getLogger(__name__)
 
@@ -184,6 +185,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     labels_map = {label.name.strip().lower(): label for label in labels}
     token = os.environ[args.token_env_var]
     hdbg.dassert(token)
+    hdbg.dassert_ne(github, None, "github module not available: install pygithub")
     # Initialize GH client.
     client = github.Github(token)
     repo = client.get_repo(f"{args.owner}/{args.repo}")

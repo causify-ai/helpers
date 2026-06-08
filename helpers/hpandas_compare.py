@@ -221,6 +221,7 @@ def compare_dfs(
             )
             # Test and convert the assertion into boolean.
             is_ok = True
+            _: object = "initialized"
             try:
                 pd.testing.assert_frame_equal(
                     within_threshold, expected, check_exact=True

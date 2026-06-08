@@ -969,6 +969,8 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
             if m:
                 test_output_start = i + 1
                 break
+        else:
+            test_output_start = 0
         lines_test_output = lines[test_output_start:]
         #
         actual = "\n".join([line_cmd] + lines_test_output)

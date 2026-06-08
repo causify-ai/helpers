@@ -240,6 +240,7 @@ def _parse_diff_output(
                 *dirs[1:], _get_symbolic_filepath(dir1, dir2, m.group(2))
             )
             # Determine the direction.
+            sign = ""
             if "$DIR1" in dir_:
                 sign = "<"
             elif "$DIR2" in dir_:

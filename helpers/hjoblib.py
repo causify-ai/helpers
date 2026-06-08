@@ -568,11 +568,11 @@ def _parallel_execute_decorator(
         _LOG.error(txt)
         if abort_on_error:
             _LOG.error("Aborting since abort_on_error=%s", abort_on_error)
-            raise exception  # noqa: F821
+            raise exception  # noqa: F821  # type: ignore[possibly-unbound]
         _LOG.error(
             "Continuing execution since abort_on_error=%s", abort_on_error
         )
-        res = str(exception)
+        res = str(exception)  # type: ignore[possibly-unbound]
     else:
         # The execution was successful.
         pass
