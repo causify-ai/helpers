@@ -314,7 +314,7 @@ class _OrderedConfig(_OrderedDictType):
             if is_key_present:
                 # Key already exists, thus we need to assert.
                 marked_as_used, writer, old_val = super().__getitem__(key)
-                msg = []
+                msg: List[str] = []
                 msg.append(
                     f"Trying to overwrite old value '{old_val}' with new value '{val}'"
                     f" for key '{key}' when update_mode={update_mode}"

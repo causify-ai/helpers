@@ -7,6 +7,7 @@
 
 ## Phase 1 — Mechanical Annotation Fixes 🟢 (2-3 hours)
 
+DONE
 ### Cluster A: `str` ↔ `List[str]` (~30 errors)
 Variable typed as `List[str]` assigned `str`, or vice versa. Pure copy-paste / naming collision.
 

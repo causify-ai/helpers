@@ -1269,7 +1269,7 @@ def _get_docker_compose_cmd(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # - Get the base Docker command.
-    docker_cmd_ = _get_docker_base_cmd(
+    docker_cmd_: List[str] = _get_docker_base_cmd(
         base_image,
         stage,
         version,
@@ -1326,8 +1326,8 @@ def _get_docker_compose_cmd(
             hsystem.system_to_string(docker_config_cmd_as_str)[1],
         )
     # Print the config for debugging purpose.
-    docker_cmd_: str = hlitauti.to_multi_line_cmd(docker_cmd_)
-    return docker_cmd_
+    docker_cmd_str: str = hlitauti.to_multi_line_cmd(docker_cmd_)
+    return docker_cmd_str
 
 
 # ////////////////////////////////////////////////////////////////////////////////
