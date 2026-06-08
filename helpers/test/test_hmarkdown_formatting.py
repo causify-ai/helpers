@@ -1795,6 +1795,7 @@ class Test_format_md_flowmark5(_Format_md_TestCase, hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow
 class Test_format_md_comparison_and_performance(hunitest.TestCase):
     """
     Test format_md() comparison across tools and collect performance metrics.
