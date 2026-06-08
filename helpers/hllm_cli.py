@@ -86,6 +86,15 @@ class TokenStats:
     elapsed_time_in_seconds: float = 0.0
     tokens_per_second: float = 0.0
 
+    def _compute_tokens_per_second(self) -> float:
+        """
+        Compute tokens per second from input_tokens, output_tokens, and elapsed_time_in_seconds.
+        """
+        total_tokens = self.input_tokens + self.output_tokens
+        if self.elapsed_time_in_seconds > 0:
+            return total_tokens / self.elapsed_time_in_seconds
+        return 0.0
+
     def __post_init__(self) -> None:
         """
         Validate TokenStats after initialization.
@@ -111,15 +120,6 @@ class TokenStats:
         self.elapsed_time_in_seconds = float(self.elapsed_time_in_seconds)
         self.cost_from_llm_library = float(self.cost_from_llm_library)
         self.tokens_per_second = float(self.tokens_per_second)
-
-    def _compute_tokens_per_second(self) -> float:
-        """
-        Compute tokens per second from input_tokens, output_tokens, and elapsed_time_in_seconds.
-        """
-        total_tokens = self.input_tokens + self.output_tokens
-        if self.elapsed_time_in_seconds > 0:
-            return total_tokens / self.elapsed_time_in_seconds
-        return 0.0
 
     def to_float(self) -> float:
         """

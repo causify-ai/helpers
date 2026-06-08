@@ -36,6 +36,7 @@ def jit(f: Callable[..., RT]) -> Callable[..., RT]:
         # pyright doesn't know that `numba` will resolve to the module when
         # `use_numba` is True, since the import is lazy/conditional.
         import numba as _numba  # type: ignore[import-untyped]
+
         wrapper: Callable[..., RT] = _numba.jit(f)
     else:
 

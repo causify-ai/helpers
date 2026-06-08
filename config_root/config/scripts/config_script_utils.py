@@ -3,7 +3,7 @@ Utility functions for config script.
 
 Import as:
 
-import config_root.config.scripts.config_script_utils as crcscsut
+import config_root.config.scripts.config_script_utils as crcscscut
 """
 
 import argparse
@@ -50,16 +50,21 @@ def _load_config(path: str) -> crococon.Config:
     return config
 
 
-def _save_config(config: crococon.Config, path: str) -> None:
+def _convert_to_dict(obj: Any) -> Any:
     """
-    Save a config to YAML file.
+    Recursively convert OrderedDict to regular dict.
 
-    :param config: Config object
-    :param path: path to YAML file to write
+    :param obj: object to convert
+    :return: converted object
     """
-    yaml_text = _config_to_yaml(config)
-    hio.to_file(path, yaml_text)
-    _LOG.info("Saved config to '%s'", path)
+    if isinstance(obj, collections.OrderedDict):
+        return {k: _convert_to_dict(v) for k, v in obj.items()}
+    elif isinstance(obj, dict):
+        return {k: _convert_to_dict(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return type(obj)(_convert_to_dict(v) for v in obj)
+    else:
+        return obj
 
 
 def _config_to_yaml(config: crococon.Config) -> str:
@@ -76,21 +81,16 @@ def _config_to_yaml(config: crococon.Config) -> str:
     return yaml_text
 
 
-def _convert_to_dict(obj: Any) -> Any:
+def _save_config(config: crococon.Config, path: str) -> None:
     """
-    Recursively convert OrderedDict to regular dict.
+    Save a config to YAML file.
 
-    :param obj: object to convert
-    :return: converted object
+    :param config: Config object
+    :param path: path to YAML file to write
     """
-    if isinstance(obj, collections.OrderedDict):
-        return {k: _convert_to_dict(v) for k, v in obj.items()}
-    elif isinstance(obj, dict):
-        return {k: _convert_to_dict(v) for k, v in obj.items()}
-    elif isinstance(obj, (list, tuple)):
-        return type(obj)(_convert_to_dict(v) for v in obj)
-    else:
-        return obj
+    yaml_text = _config_to_yaml(config)
+    hio.to_file(path, yaml_text)
+    _LOG.info("Saved config to '%s'", path)
 
 
 def _yaml_to_config(text: str) -> crococon.Config:

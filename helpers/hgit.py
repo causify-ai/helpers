@@ -1742,7 +1742,9 @@ def git_log(num_commits: int = 5, my_commits: bool = False) -> str:
 
 
 def git_stash_push(
-    prefix: str, msg: Optional[str] = None, log_level: Union[int, str] = logging.DEBUG
+    prefix: str,
+    msg: Optional[str] = None,
+    log_level: Union[int, str] = logging.DEBUG,
 ) -> Tuple[str, bool]:
     """
     Stash current changes with a timestamped, labeled message.
@@ -1782,7 +1784,9 @@ def git_stash_push(
     return tag, was_stashed
 
 
-def git_stash_apply(mode: str, log_level: Union[int, str] = logging.DEBUG) -> None:
+def git_stash_apply(
+    mode: str, log_level: Union[int, str] = logging.DEBUG
+) -> None:
     """
     Apply or pop the most recent git stash.
 

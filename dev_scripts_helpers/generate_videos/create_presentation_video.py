@@ -63,10 +63,10 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-
 # #############################################################################
 # OverlayConfig
 # #############################################################################
+
 
 # Data structures for plan configuration.
 class OverlayConfig:
@@ -82,10 +82,10 @@ class OverlayConfig:
         self.duration = duration  # "fill" or "normal"
 
 
-
 # #############################################################################
 # SlideConfig
 # #############################################################################
+
 
 class SlideConfig:
     """

@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks.lib_tasks_docker as hltltado
 """
 
 import functools
@@ -29,7 +29,7 @@ import helpers.hsecrets as hsecret
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
-import helpers.lib_tasks.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_utils as hltltaut
 import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
@@ -117,7 +117,7 @@ def _docker_login_ecr() -> None:
     """
     Log in the AM Docker repo_short_name on AWS.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     if hserver.is_inside_ci():
         _LOG.warning("Running inside GitHub Action: skipping `docker_login`")
         return
@@ -149,7 +149,7 @@ def _docker_login_ecr() -> None:
             env_var = "CSFY_ECR_BASE_PATH"
         else:
             env_var = f"{profile.upper()}_ECR_BASE_PATH"
-        ecr_base_path = hlitauti.get_default_param(env_var)
+        ecr_base_path = hltltaut.get_default_param(env_var)
         # TODO(Nikola): Remove `_get_aws_cli_version()` and use only `aws ecr get-login-password`
         #  as it is present in both versions of `awscli`.
         cmd = (
@@ -178,7 +178,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
         - "aws_ecr.ck": private AWS CK ECR
     """
     _ = ctx
-    hlitauti.report_task()
+    hltltaut.report_task()
     # No login required as the `helpers` and `tutorials` images are accessible
     # on the public DockerHub registry.
     if not hserver.is_dev_csfy() and hrecouti.get_repo_config().get_name() in [
@@ -202,12 +202,12 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     """
     List images in the logged in repo_short_name.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     docker_login(ctx)
     # TODO(gp): Move this to a var ECR_BASE_PATH="CSFY_ECR_BASE_PATH" in repo_config.py.
-    ecr_base_path = hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
+    ecr_base_path = hltltaut.get_default_param("CSFY_ECR_BASE_PATH")
     docker_exec = _get_docker_exec(sudo)
-    hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
+    hltltaut.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
 
 
 # ////////////////////////////////////////////////////////////////////////////////
@@ -311,9 +311,9 @@ def _get_base_image(base_image: str) -> str:
     if base_image == "":
         # TODO(gp): Use os.path.join.
         base_image = (
-            hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
+            hltltaut.get_default_param("CSFY_ECR_BASE_PATH")
             + "/"
-            + hlitauti.get_default_param("BASE_IMAGE")
+            + hltltaut.get_default_param("BASE_IMAGE")
         )
     _dassert_is_base_image_name_valid(base_image)
     return base_image
@@ -428,7 +428,7 @@ def docker_ps(ctx, sudo=False):  # type: ignore
     2ece37303ec9  gp    *****....:latest  "./docker_build/entry.sh"  5 seconds ago  Up 4 seconds         user_space
     ```
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # pylint: enable=line-too-long
     fmt = (
         r"""table {{.ID}}\t{{.Label "user"}}\t{{.Image}}\t{{.Command}}"""
@@ -437,8 +437,8 @@ def docker_ps(ctx, sudo=False):  # type: ignore
     )
     docker_exec = _get_docker_exec(sudo)
     cmd = f"{docker_exec} ps --format='{fmt}'"
-    cmd = hlitauti._to_single_line_cmd(cmd)
-    hlitauti.run(ctx, cmd)
+    cmd = hltltaut._to_single_line_cmd(cmd)
+    hltltaut.run(ctx, cmd)
 
 
 def _get_last_container_id(sudo: bool) -> str:
@@ -473,7 +473,7 @@ def docker_stats(  # type: ignore
     :param all: report stats for all the containers
     """
     # pylint: enable=line-too-long
-    hlitauti.report_task(txt=hprint.to_str("all"))
+    hltltaut.report_task(txt=hprint.to_str("all"))
     _ = ctx
     fmt = (
         r"table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
@@ -517,7 +517,7 @@ def docker_kill(  # type: ignore
     :param all: kill all the containers (be careful!)
     :param sudo: use sudo for the Docker commands
     """
-    hlitauti.report_task(txt=hprint.to_str("all"))
+    hltltaut.report_task(txt=hprint.to_str("all"))
     docker_exec = _get_docker_exec(sudo)
     # Last container.
     opts = "-l"
@@ -527,10 +527,10 @@ def docker_kill(  # type: ignore
         opts = "-a"
     # Print the containers that will be terminated.
     cmd = f"{docker_exec} ps {opts}"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Kill.
     cmd = f"{docker_exec} rm -f $({docker_exec} ps {opts} -q)"
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 # docker system prune
@@ -585,7 +585,7 @@ def _docker_pull(
     _LOG.info("image='%s'", image)
     dassert_is_image_name_valid(image)
     cmd = f"docker pull {image}"
-    hlitauti.run(ctx, cmd, pty=True)
+    hltltaut.run(ctx, cmd, pty=True)
 
 
 @task
@@ -595,7 +595,7 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
     :param skip_pull: if True skip pulling the docker image
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     if stage == "local":
         _LOG.warning("Setting skip_pull to True for local stage")
         skip_pull = True
@@ -616,7 +616,7 @@ def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     :param stage: stage of the Docker image
     :param version: version of the Docker image
     """
-    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
+    base_image = hltltaut.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
     _LOG.debug("base_image=%s", base_image)
     _docker_pull(ctx, base_image, stage, version)
 
@@ -1038,8 +1038,8 @@ def _get_docker_compose_files(
         docker_compose_files.extend(extra_docker_compose_files)
     # Add the compose files from the global params.
     key = "DOCKER_COMPOSE_FILES"
-    if hlitauti.has_default_param(key):
-        docker_compose_files.append(hlitauti.get_default_param(key))
+    if hltltaut.has_default_param(key):
+        docker_compose_files.append(hltltaut.get_default_param(key))
     #
     _LOG.debug(hprint.to_str("docker_compose_files"))
     for docker_compose in docker_compose_files:
@@ -1138,9 +1138,9 @@ def _get_container_name(service_name: str) -> str:
     # Get dir name.
     project_dir = hgit.get_project_dirname()
     # Get Docker image base name.
-    image_name = hlitauti.get_default_param("BASE_IMAGE")
+    image_name = hltltaut.get_default_param("BASE_IMAGE")
     # Get current timestamp.
-    current_timestamp = hlitauti.get_ET_timestamp()
+    current_timestamp = hltltaut.get_ET_timestamp()
     # Build container name.
     container_name = f"{linux_user}.{image_name}.{service_name}.{project_dir}.{current_timestamp}"
     _LOG.debug(
@@ -1319,14 +1319,14 @@ def _get_docker_compose_cmd(
         {service_name}""")
     # Print the config for debugging purpose.
     if print_docker_config:
-        docker_config_cmd_as_str = hlitauti.to_multi_line_cmd(docker_config_cmd)
+        docker_config_cmd_as_str = hltltaut.to_multi_line_cmd(docker_config_cmd)
         _LOG.debug("docker_config_cmd=\n%s", docker_config_cmd_as_str)
         _LOG.debug(
             "docker_config=\n%s",
             hsystem.system_to_string(docker_config_cmd_as_str)[1],
         )
     # Print the config for debugging purpose.
-    docker_cmd_str: str = hlitauti.to_multi_line_cmd(docker_cmd_)
+    docker_cmd_str: str = hltltaut.to_multi_line_cmd(docker_cmd_)
     return docker_cmd_str
 
 
@@ -1355,7 +1355,7 @@ def _docker_cmd(
         hs3.generate_aws_files()
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
-    rc: Optional[int] = hlitauti.run(
+    rc: Optional[int] = hltltaut.run(
         ctx, docker_cmd_, pty=True, **ctx_run_kwargs
     )
     return rc
@@ -1383,7 +1383,7 @@ def docker_bash(  # type: ignore
     :param skip_pull: if True skip pulling the docker image
     """
     _LOG.debug(hprint.func_signature_to_str("ctx"))
-    hlitauti.report_task(container_dir_name=container_dir_name)
+    hltltaut.report_task(container_dir_name=container_dir_name)
     #
     cmd = "bash"
     docker_cmd_ = _get_docker_compose_cmd(
@@ -1421,7 +1421,7 @@ def docker_cmd(  # type: ignore
         compose file
     :param use_bash: run command through a shell
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
+    hltltaut.report_task(container_dir_name=container_dir_name)
     hdbg.dassert_ne(cmd, "")
     # TODO(gp): Do we need to overwrite the entrypoint?
     docker_cmd_ = _get_docker_compose_cmd(
@@ -1491,7 +1491,7 @@ def docker_jupyter(  # type: ignore
         port
     :param skip_pull: if True skip pulling the docker image
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
+    hltltaut.report_task(container_dir_name=container_dir_name)
     if port is None:
         if auto_assign_port:
             uid = os.getuid()
@@ -1563,7 +1563,7 @@ def docker_dash_app(  # type: ignore
         number of the repo (e.g., 4 for `~/src/amp4`) to get a unique
         port
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
+    hltltaut.report_task(container_dir_name=container_dir_name)
     if port is None:
         if auto_assign_port:
             uid = os.getuid()
