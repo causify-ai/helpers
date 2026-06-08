@@ -1,5 +1,6 @@
 ---
 description: Reorganize a markdown file to use bullet points and ensure all fenced code blocks have syntax labels
+model: haiku
 ---
 
 Given a markdown file passed from the user apply the transformations below

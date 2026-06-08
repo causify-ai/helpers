@@ -1,0 +1,5 @@
+openai/gpt-oss-120b
+openai/gpt-oss-20b
+qwen/qwen3-32b
+meta-llama/llama-3.3-70b-instruct
+meta-llama/llama-3.1-8b-instruct

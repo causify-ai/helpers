@@ -1528,7 +1528,7 @@ def slide_improve() -> _PROMPT_OUT:
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
     - Fix the English grammar
-    - Fix any mistake only if you are sure about the correction.
+    - Fix any mistake only if you are sure about the correction
 
     Print only the markdown without any explanation.
     """

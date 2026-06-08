@@ -1,5 +1,4 @@
 {
-  "model": "haiku",
   "permissions": {
     "allow": [
       "Bash(find:*)",
@@ -16,6 +15,7 @@
       "Bash(git push:*)"
     ]
   },
+  "model": "haiku",
   "hooks": {
     "Notification": [
       {

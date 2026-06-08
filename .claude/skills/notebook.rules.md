@@ -2,6 +2,24 @@
 description: Conventions and standards for interactive Jupyter notebook structure, formatting, and cell organization
 ---
 
+# Effective Notebook Design Principles
+
+## Core Goals
+- An effective interactive notebook should enable:
+  - **Strong intuition**: Help students build mental models through discovery
+  - **Visual explanation**: Use plots, diagrams, and animations to make concepts
+    concrete
+  - **Incremental building**: Start simple, add complexity layer by layer
+  - **Interactive exploration**: Let students manipulate parameters and see
+    immediate results
+
+## Key Principles
+- **Focus on examples**: Concentrate on practical examples, not theory repetition
+  from slides
+- **Discovery over exposition**: Emphasize "what if I change this?" over "here's
+  the explanation"
+- **Build on context**: Each cell should reference and extend what came before
+
 # Setup and Initialization
 
 ## Use Python Style
@@ -16,7 +34,9 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Second Cell: Optionally install packages on-the-fly
 - Third Cell: Notebook-specific imports and logger
 
-## Notebook-to-File Pairing
+## Utilities vs. Notebook Responsibilities
+
+### Notebook-to-File Pairing
 - Each notebook is paired with Jupytext to a Python file
 - Each notebook has a corresponding `*_utils.py` file containing the code
   corresponding to that notebook
@@ -27,6 +47,67 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
   - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
   - Paired utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+
+### Responsibility Division
+- All complexity goes in `*_utils.py`:
+  - Widget creation and state management
+  - Visualization and plotting functions
+  - Data computation and transformations
+  - Helper functions for interactive updates
+  - Documentation and parameter descriptions
+
+- In notebook cells (minimal, clear calls only):
+  - Keep notebook cells readable and pedagogically clear
+  - Move complexity and infrastructure code to utils
+  - Import and use utils functions to keep cells focused on concepts
+  - Example pattern:
+    ```python
+    # Display PDF, empirical mean, and compare with theoretical statistics.
+    utils.sample_bernoulli3()
+    ```
+
+- **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
+
+## Library Calls vs. Visualization in Package Tutorials
+- When writing a tutorial for a package:
+  - Keep the code that executes library calls and explores the API in the notebook
+    - Show how to use the library's data structures and functions
+    - Demonstrate the actual library calls and their results
+  - Keep all visualization and plotting code in the `*_utils.py` file
+    - Move complex visualizations, widgets, and formatting to utils
+    - Call visualization functions from the notebook with simple parameters
+  
+- When computation is too expensive or complex to run in the notebook:
+  - Create a small, simple example in the notebook that demonstrates the API
+    - Show the data structures and library calls clearly
+    - Keep the example lightweight so it runs quickly
+  - Move the full, complex computation into a function in `*_utils.py`
+    - This function handles the expensive computation out of view
+    - The notebook calls this function to display precomputed results
+  
+- **Example pattern**:
+  - **Bad** (visualization code embedded in notebook):
+    ```python
+    # Notebook cell with complex visualization mixed with API calls.
+    results = library.process_data(data)
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    axes[0, 0].scatter(results['x'], results['y'])
+    axes[0, 1].plot(results['trend'])
+    # ... more plotting code ...
+    ```
+  
+  - **Good** (library calls in notebook, visualization in utils):
+    ```python
+    # In notebook: show library calls clearly.
+    results = library.process_data(data)
+    utils.visualize_analysis_results(results)
+    
+    # In utils file: complex visualization separated.
+    def visualize_analysis_results(results):
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        axes[0, 0].scatter(results['x'], results['y'])
+        # ... full visualization code ...
+    ```
 
 # Code Cell Design and Content
 
@@ -163,7 +244,39 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 # Notebook Organization
 
+## Cell Triplet Structure
+
+- Each logical cell in a notebook is composed of three notebook cells:
+
+  1. **Markdown cell**: Pedagogical context
+     ```markdown
+     ## Cell 1: Visualizing Population Distribution
+
+     Understanding the true population distribution is the foundation of
+     statistical inference. You can't observe the full population, only samples
+     from it.
+     ```
+
+  2. **Code cell**: Plotting / widget invocation
+     ```python
+     # Display the population as a bin of colored marbles.
+     utils.visualize_population_distribution()
+     ```
+
+  3. **Explanation cell**: A markdown cell that explains the results of the
+     previous cell using bullet points
+
+- For all the markdown cells use bullet points with nested bullets for clarity
+  and conciseness, following the rules in
+  - `.claude/skills/slides.rules.md`: rules for formatting slides
+  - `.claude/skills/text.rules.md`: rules for formatting bullet points
+
 ## Markdown Header Structure and Naming
+
+- Every notebook must group its cells under at least one `# Part N:` header,
+  even when there is a single logical part
+- Never use a level-1 header (`#`) for an individual cell; cells always use
+  `## Cell <part>.<id>:`
 
 - Use level 1 headers (`#`) for Parts:
   - Format: `# Part XYZ: Description`
@@ -270,6 +383,21 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - **Bad**: `This Shows The Distribution`
 - **Good**: `This shows the distribution`
 
+## Non-ASCII Characters
+- Avoid non-ASCII characters in code and documentation
+- Use ASCII equivalents instead:
+  - Use `mu` instead of `μ`, `alpha` instead of `α`
+  - Use `pi` instead of `π`, `lambda` instead of `λ`
+- This applies to `print()` output, f-strings, and plot/axis labels too, not
+  just prose. Use ASCII equivalents:
+  - `->` and `<-` instead of arrows
+  - `~=` or `approx` instead of the approx symbol
+  - `R^2` instead of `R` with a superscript 2
+  - `in` instead of the set-membership symbol
+  - `-` instead of en-dash or em-dash
+- Exception: LaTeX formulas within markdown (e.g., `$\mu$`, `$\alpha$`) are
+  acceptable
+
 # Data Processing and Visualization
 
 ## Prefer Pandas and Seaborn
@@ -306,6 +434,13 @@ description: Conventions and standards for interactive Jupyter notebook structur
   ```
 - Never hard-code figure dimensions, but let callers customize size
 
+## Use plot_causal_dag() for Causal DAGs
+
+- Use `plot_causal_dag()` from `helpers_root/helpers/hgraphviz.py` when plotting
+  causal DAGs in notebooks
+- This function provides consistent styling and formatting for causal graphs
+  across all notebooks
+
 # Code Cleanup
 
 ## Remove Development Environment Cells
@@ -326,6 +461,10 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - **Remove**: `os.environ["GITHUB_ACCESS_TOKEN"] = "..."`
   - **Instead**: Pass secrets as read-only environment variables at container
     startup
+
+## Keep Introspection Lines
+- It is acceptable to keep a `func??` introspection line to display a function's
+  source or signature
 
 # Interactive Cells
 
@@ -465,3 +604,11 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Each section should be:
   - formatted using bullet points using `.claude/skills/text.rules.md`
   - short with no more than 3-5 bullet points
+
+# Testing Notebook
+
+- You run a command like:
+  ```
+  > docker_cmd.sh "python /git_root/tutorials/<package>/<paired python file>.py
+  ```
+  to run a notebook top to bottom and make sure it works

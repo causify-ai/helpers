@@ -247,6 +247,56 @@ def _extract_file_id_from_url(url: str) -> str:
     return file_id
 
 
+def _extract_gid_from_url(url: str) -> Optional[str]:
+    """
+    Extract the gid (sheet ID) from a Google Sheets URL.
+
+    E.g.,
+    https://docs.google.com/spreadsheets/d/FILE_ID/edit?gid=123#gid=123
+    -> "123"
+
+    :param url: URL of the Google Sheets file.
+    :return: gid extracted from the URL, or None if not present.
+    """
+    pattern = r"[?#&]gid=([0-9]+)"
+    match = re.search(pattern, url)
+    if match:
+        gid = match.group(1)
+        _LOG.debug("Extracted gid: '%s' from URL: '%s'", gid, url)
+        return gid
+    _LOG.debug("No gid found in URL: '%s'", url)
+    return None
+
+
+def get_tab_name_from_gid(
+    spreadsheet_id: str,
+    gid: str,
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
+) -> str:
+    """
+    Get the tab name from a gid (sheet ID) in a Google Sheets document.
+
+    :param spreadsheet_id: ID of the Google Sheet document.
+    :param gid: Sheet ID (gid) to look up.
+    :param credentials: Google credentials object.
+    :return: Name of the sheet with the given gid.
+    :raises ValueError: If no sheet with the given gid is found.
+    """
+    if credentials is None:
+        credentials = get_credentials()
+    sheets_service = get_sheets_service(credentials)
+    sheet_metadata = (
+        sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    )
+    sheets = sheet_metadata.get("sheets", [])
+    for sheet in sheets:
+        properties = sheet.get("properties", {})
+        if str(properties.get("sheetId")) == str(gid):
+            return properties.get("title")
+    raise ValueError(f"Sheet with gid '{gid}' not found in spreadsheet.")
+
+
 def get_gsheet_tab_url(
     url: str,
     tab_name: str,
@@ -1166,7 +1216,7 @@ def read_all_gsheets(
     :return: A list of DataFrames, one for each sheet.
     """
     dfs = []
-    # TODO(ai_gp): -> _all_
+    # TODO(gp): -> _all_
     if tab_names == "all":
         tab_names = get_tabs_from_gsheet(url)
     for tab_name in tab_names:

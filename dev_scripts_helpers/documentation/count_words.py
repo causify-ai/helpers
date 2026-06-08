@@ -48,7 +48,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--input_files",
         nargs="+",
-        default=None,
+        default="",
         help="One or more files (space-separated) or comma-separated list",
     )
     hparser.add_verbosity_arg(parser)

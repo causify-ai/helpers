@@ -72,11 +72,12 @@ def add_select_arg(
         "--select",
         type=str,
         required=required,
-        default=None,
+        default="",
         help=(
             "Select text range as START:END. Examples: "
             "'## Section 1:## Section 2', 'Section 1:Section 2', ':END', "
-            "'START:' (extracts until next same-level header), 'START' (extracts until next same-level header), "
+            "'START:' (extracts until next same-level header), "
+            "'START' (extracts until next same-level header), "
             "or 'START:END' (where END is 'END' for EOF). "
             "START/END can be a header (with # or * prefix), title substring, "
             "or line number."
@@ -88,27 +89,27 @@ def add_select_arg(
 # #############################################################################
 
 
-def parse_select_arg(select_str: str) -> Tuple[Optional[str], Optional[str]]:
+def parse_select_arg(select_str: str) -> Tuple[str, str]:
     """
     Parse a --select argument into (start, end) components.
 
     Formats:
     - "START:END" -> ("START", "END")
-    - ":END" -> (None, "END"): extract from file beginning
-    - "START:" -> ("START", None): extract until next same-level header
+    - ":END" -> ("", "END"): extract from file beginning
+    - "START:" -> ("START", ""): extract until next same-level header
     - "START:END" where END is "END" -> ("START", "END"): extract from START to EOF
-    - "START" (no colon) -> ("START", None): extract until next same-level header
+    - "START" (no colon) -> ("START", ""): extract until next same-level header
 
     :param select_str: the --select argument value
-    :return: tuple of (start, end) where each can be None or a string
+    :return: tuple of (start, end) where empty string represents None
     """
     hdbg.dassert_isinstance(select_str, str, "select_str must be a string")
     hdbg.dassert_ne(select_str, "", "Select string cannot be empty")
     if ":" not in select_str:
-        return select_str, None
+        return select_str, ""
     parts = select_str.split(":", 1)
-    start = parts[0] if parts[0].strip() else None
-    end = parts[1] if parts[1].strip() else None
+    start = parts[0] if parts[0].strip() else ""
+    end = parts[1] if parts[1].strip() else ""
     return start, end
 
 
@@ -300,14 +301,14 @@ def find_header_from_input(
     header_list: hmarhead.HeaderList,
     header_input: str,
 ) -> Tuple[hmarhead.HeaderInfo, int]:
-    """
+    r"""
     Find a header from user input with flexible matching.
 
     Supports multiple input formats:
     - Line number: "42" (1-based line number)
     - Slide format: "* Slide Title" (matches level-5 header with prefix)
     - Full header format: "## Title" (matches level-exact header with prefix)
-    - Regex pattern: "^\\* Title$" (Python regex matching full header line)
+    - Regex pattern: "^\* Title$" (Python regex matching full header line)
     - Substring: "Title" (matches anywhere in title, must be unique)
 
     :param header_list: list of HeaderInfo objects
@@ -319,13 +320,13 @@ def find_header_from_input(
     hdbg.dassert_ne(header_input, "", "Header input cannot be empty")
     header_input = header_input.strip()
     header_info = None
-    # Check if input is a line number
+    # Check if input is a line number.
     if header_input.isdigit():
         line_num = int(header_input)
         header_info = _find_header_by_line_number(header_list, line_num)
         hdbg.dassert_is_not(header_info, None, "No header at line %d", line_num)
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
-    # Check if input is slide format (* Title)
+    # Check if input is slide format (* Title).
     elif header_input.startswith("*"):
         title = header_input[1:].strip()
         header_info = find_header_by_level_and_prefix(
@@ -335,7 +336,7 @@ def find_header_from_input(
             header_info, None, "No slide matches: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
-    # Check if input is full header format (# Title)
+    # Check if input is full header format (# Title).
     elif header_input.startswith("#"):
         level, title = parse_header_string(header_input)
         header_info = find_header_by_level_and_prefix(header_list, level, title)
@@ -343,15 +344,15 @@ def find_header_from_input(
             header_info, None, "No header matches: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
-    # Check if input is regex pattern (^ anchor)
+    # Check if input is regex pattern (^ anchor).
     elif header_input.startswith("^"):
         header_info = find_header_by_regex(header_list, header_input)
         hdbg.dassert_is_not(
             header_info, None, "No header matches regex: '%s'", header_input
         )
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
-    # Default: substring matching
     else:
+        # Default: substring matching.
         header_info = find_header_by_substring_title(header_list, header_input)
         hdbg.dassert_is_not(
             header_info, None, "No header matches: '%s'", header_input
@@ -359,7 +360,7 @@ def find_header_from_input(
         hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     hdbg.dassert_isinstance(header_info, hmarhead.HeaderInfo)
     hdbg.dassert_is_not(header_info, None)
-    _LOG.info(
+    _LOG.debug(
         f"found header at line {header_info.line_number}: {header_info.description}"
     )
     return header_info, header_info.level
@@ -368,18 +369,18 @@ def find_header_from_input(
 def find_end_line(
     header_list: hmarhead.HeaderList,
     start_header_info: hmarhead.HeaderInfo,
-    end_header_input: Optional[str],
-) -> Optional[int]:
+    end_header_input: str,
+) -> int:
     """
     Find the line number where the text extraction should end.
 
-    If end_header_input is provided, find that header. Otherwise, find the
+    If end_header_input is non-empty, find that header. Otherwise, find the
     next header at the same or higher level (fewer or equal # symbols).
 
     :param header_list: list of HeaderInfo objects
     :param start_header_info: the start header
-    :param end_header_input: header input (full format or partial match) or None to auto-detect
-    :return: line number where extraction ends (exclusive)
+    :param end_header_input: header input (full format or partial match) or empty string to auto-detect
+    :return: line number where extraction ends (exclusive), or -1 to extract to EOF
     """
     hdbg.dassert_isinstance(header_list, list, "header_list must be a list")
     hdbg.dassert_isinstance(
@@ -396,7 +397,7 @@ def find_end_line(
     hdbg.dassert_is_not(start_idx, None, "Start header not found in header list")
     hdbg.dassert_isinstance(start_idx, int)
     # If an explicit end header is provided, use it directly.
-    if end_header_input is not None:
+    if end_header_input != "":
         end_header_info, _ = find_header_from_input(
             header_list, end_header_input
         )
@@ -406,13 +407,13 @@ def find_end_line(
         candidate_header = header_list[i]
         if candidate_header.level <= start_header_info.level:
             return candidate_header.line_number - 1
-    return None
+    return -1
 
 
 def get_chunk_bounds(
     lines: List[str],
-    start_header_str: Optional[str],
-    end_header_str: Optional[str],
+    start_header_str: str,
+    end_header_str: str,
     is_slide_format: bool = False,
 ) -> Tuple[int, int]:
     """
@@ -423,7 +424,7 @@ def get_chunk_bounds(
     you need to know positions to replace.
 
     :param lines: list of lines in the input file
-    :param start_header_str: starting header (or None for file beginning)
+    :param start_header_str: starting header (or empty string for file beginning)
     :param end_header_str: ending header (optional), or "END" for end of file
     :param is_slide_format: whether the input is in slide format (*.txt)
     :return: tuple of (start_idx, end_idx) where indices are 0-based
@@ -438,58 +439,59 @@ def get_chunk_bounds(
         lines_converted, max_level=10, sanity_check=sanity_check
     )
     # Prepare converted header strings if needed.
-    start_header_str_converted = None
-    end_header_str_converted = None
-    if start_header_str is not None:
+    start_header_str_converted = ""
+    end_header_str_converted = ""
+    if start_header_str != "":
         start_header_str_converted = start_header_str
         if is_slide_format and start_header_str.startswith("*"):
             start_header_str_converted = hmarslid.convert_slide_to_markdown(
                 [start_header_str]
             )[0]
-    if end_header_str is not None and end_header_str != "END":
+    if end_header_str != "" and end_header_str != "END":
         end_header_str_converted = end_header_str
         if is_slide_format and end_header_str.startswith("*"):
             end_header_str_converted = hmarslid.convert_slide_to_markdown(
                 [end_header_str]
             )[0]
     # Determine start index.
-    if start_header_str is None:
+    if start_header_str == "":
         start_idx = 0
     else:
-        hdbg.dassert_is_not(
+        hdbg.dassert_ne(
             start_header_str_converted,
-            None,
-            "start_header_str_converted must not be None",
+            "",
+            "start_header_str_converted must not be empty",
         )
         start_header_info, _ = find_header_from_input(
             header_list, start_header_str_converted
         )
         start_idx = start_header_info.line_number - 1
+    _LOG.info("start_idx=%s", start_idx)
     # Determine end index.
-    if end_header_str is None:
-        if start_header_str is None:
+    if end_header_str == "":
+        if start_header_str == "":
             end_idx = len(lines_converted)
         else:
             # Auto-detect: find next same-level header.
-            hdbg.dassert_is_not(
+            hdbg.dassert_ne(
                 start_header_str_converted,
-                None,
-                "start_header_str_converted must not be None",
+                "",
+                "start_header_str_converted must not be empty",
             )
             start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
             )
-            end_line = find_end_line(header_list, start_header_info, None)
-            end_idx = len(lines_converted) if end_line is None else end_line
+            end_line = find_end_line(header_list, start_header_info, "")
+            end_idx = len(lines_converted) if end_line == -1 else end_line
     elif end_header_str == "END":
         end_idx = len(lines_converted)
     else:
-        hdbg.dassert_is_not(
+        hdbg.dassert_ne(
             end_header_str_converted,
-            None,
-            "end_header_str_converted must not be None",
+            "",
+            "end_header_str_converted must not be empty",
         )
-        if start_header_str is None:
+        if start_header_str == "":
             # Extract from beginning to explicit end header.
             end_header_info, _ = find_header_from_input(
                 header_list, end_header_str_converted
@@ -497,10 +499,10 @@ def get_chunk_bounds(
             end_idx = end_header_info.line_number - 1
         else:
             # Extract from start header to explicit end header.
-            hdbg.dassert_is_not(
+            hdbg.dassert_ne(
                 start_header_str_converted,
-                None,
-                "start_header_str_converted must not be None",
+                "",
+                "start_header_str_converted must not be empty",
             )
             start_header_info, _ = find_header_from_input(
                 header_list, start_header_str_converted
@@ -508,14 +510,15 @@ def get_chunk_bounds(
             end_line = find_end_line(
                 header_list, start_header_info, end_header_str_converted
             )
-            end_idx = len(lines_converted) if end_line is None else end_line
+            end_idx = len(lines_converted) if end_line == -1 else end_line
+    _LOG.info("end_idx=%s", end_idx)
     return start_idx, end_idx
 
 
 def extract_text_from_markdown_lines(
     lines: List[str],
-    start_header_str: Optional[str],
-    end_header_str: Optional[str],
+    start_header_str: str,
+    end_header_str: str,
     is_slide_format: bool = False,
 ) -> List[str]:
     """
@@ -535,12 +538,12 @@ def extract_text_from_markdown_lines(
     - Substring: "Section 1" (matches anywhere in title)
 
     Special handling:
-    - start_header_str=None: Extract from beginning of file
+    - start_header_str="": Extract from beginning of file
     - end_header_str="END": Extract to end of file
-    - end_header_str=None: Extract until next same-level header
+    - end_header_str="": Extract until next same-level header
 
     :param lines: list of lines in the input file
-    :param start_header_str: starting header (or None for file beginning)
+    :param start_header_str: starting header (or empty string for file beginning)
     :param end_header_str: ending header (optional), or "END" for end of file
     :param is_slide_format: whether the input is in slide format (*.txt)
     :return: extracted lines with trailing blank lines removed
@@ -557,7 +560,7 @@ def extract_text_from_markdown_lines(
     while extracted_lines and extracted_lines[-1].strip() == "":
         extracted_lines.pop()
     num_lines = len(extracted_lines)
-    _LOG.info(f"selection:{start_idx + 1}-{end_idx} ({num_lines} lines)")
+    _LOG.debug(f"selection:{start_idx + 1}-{end_idx} ({num_lines} lines)")
     return extracted_lines
 
 
@@ -582,7 +585,7 @@ def add_rule_cli_arg(
         "-r",
         "--rule",
         type=str,
-        default=None,
+        default="",
         dest="rule",
         help=(
             hprint.dedent("""
@@ -605,7 +608,9 @@ def find_skill(skill_match: str) -> str:
     """
     cmd = ["mdm", "skill", "f", skill_match]
     result = subprocess.run(cmd, capture_output=True, text=True)
-    matches = result.stdout.strip().split("\n")
+    output = result.stdout.strip()
+    output = re.sub(r"\x1b\[[0-9;]*m", "", output)
+    matches = output.split("\n")
     matches = [m.strip() for m in matches if m.strip()]
     hdbg.dassert_eq(
         len(matches),
@@ -743,5 +748,5 @@ def extract_rule_from_file(rule_spec: str) -> str:
     # Extract and return the section.
     section_lines = lines[line_idx:end_idx]
     num_lines = len(section_lines)
-    _LOG.info(f"{file_path}:{line_num}-{end_idx} ({num_lines} lines)")
+    _LOG.debug(f"{file_path}:{line_num}-{end_idx} ({num_lines} lines)")
     return "\n".join(section_lines)

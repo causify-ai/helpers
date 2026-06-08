@@ -1,5 +1,6 @@
 ---
 description: Fix Python imports of large packages needed only for few functions in a module
+model: haiku
 ---
 
 - I will pass you one of more files `<FILES>` and one or more packages `<PACKAGES>` that

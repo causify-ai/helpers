@@ -1,5 +1,6 @@
 ---
 description: Run failing tests and update expected variables to match actual output from pytest
+model: haiku
 ---
 
 # Step 1

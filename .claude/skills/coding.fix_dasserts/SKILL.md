@@ -1,5 +1,6 @@
 ---
 description: Fix dassert in Python code
+model: haiku
 ---
 
 - I will pass you one of more files `<FILES>`

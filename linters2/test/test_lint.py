@@ -143,10 +143,11 @@ class Test_run_linting_actions(hunitest.TestCase):
     Test _run_linting_actions command dispatcher.
     """
 
+    # TODO(ai_gp): Use the new mock for system.
     @umock.patch("helpers.hsystem.system")
     def test1(self, mock_system: umock.MagicMock) -> None:
         """
-        All default actions — 3 calls to system for py files.
+        All default actions: 4 calls to system for py files.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -159,11 +160,12 @@ class Test_run_linting_actions(hunitest.TestCase):
         )
         # Check outputs.
         self.assertEqual(ret, 0)
-        self.assertEqual(mock_system.call_count, 3)
+        self.assertEqual(mock_system.call_count, 4)
         calls = [call[0][0] for call in mock_system.call_args_list]
         self.assertIn("pre-commit run --files", calls[0])
         self.assertIn("normalize_import.py", calls[1])
         self.assertIn("add_class_frames.py", calls[2])
+        self.assertIn("fix_comments.py", calls[3])
         for call_cmd in calls:
             self.assertIn("file1.py file2.py", call_cmd)
 
@@ -214,7 +216,7 @@ class Test_run_linting_actions(hunitest.TestCase):
         mock_system returns non-zero — return code is OR-combined.
         """
         # Prepare inputs.
-        mock_system.side_effect = [0, 1, 0]
+        mock_system.side_effect = [0, 1, 0, 0]
         files_str = "file1.py"
         # Run test.
         ret = lilint._run_linting_actions(
@@ -275,7 +277,7 @@ class Test_lint_python_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        Two .py files, default actions — 3 calls with filenames.
+        Two .py files, default actions — 4 calls with filenames.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -288,7 +290,7 @@ class Test_lint_python_files(hunitest.TestCase):
         )
         # Check outputs.
         self.assertEqual(ret, 0)
-        self.assertEqual(mock_system.call_count, 3)
+        self.assertEqual(mock_system.call_count, 4)
         calls = [call[0][0] for call in mock_system.call_args_list]
         for call_cmd in calls:
             self.assertIn("foo.py", call_cmd)
@@ -346,7 +348,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        Two notebooks, default actions — 3 shared calls.
+        Two notebooks, default actions — 4 shared calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -359,11 +361,12 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         )
         # Check outputs.
         self.assertEqual(ret, 0)
-        self.assertEqual(mock_system.call_count, 3)
+        self.assertEqual(mock_system.call_count, 4)
         calls = [call[0][0] for call in mock_system.call_args_list]
         self.assertIn("pre-commit run --files", calls[0])
         self.assertIn("normalize_import.py", calls[1])
         self.assertIn("add_class_frames.py", calls[2])
+        self.assertIn("fix_comments.py", calls[3])
 
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:

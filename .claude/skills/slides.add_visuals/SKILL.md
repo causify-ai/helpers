@@ -1,5 +1,6 @@
 ---
 description: Propose visuals for each slides
+model: haiku
 ---
 
 - Given a markdown file with slides for a college class, where each slide title

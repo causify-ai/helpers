@@ -50,7 +50,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--src_dir", action="store", default=".")
-    parser.add_argument("--src_file", action="store", default=None)
+    parser.add_argument("--src_file", action="store", default="")
     parser.add_argument(
         "--dst_file",
         action="store",
@@ -71,7 +71,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     file_names = [
         f for f in file_names if not os.path.basename(f).startswith("tmp")
     ]
-    if args.src_file is not None:
+    if args.src_file:
         file_names = [args.src_file]
     # file_names = ["dev_scripts/git/gb"]
     # file_names = ["./dev_scripts/_setenv_amp.py"]

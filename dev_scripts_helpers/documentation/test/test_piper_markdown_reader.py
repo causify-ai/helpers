@@ -99,7 +99,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = dshdpmare._extract_markdown_section(in_file, "# Methods", None)
+        result = dshdpmare._extract_markdown_section(in_file, "# Methods", "")
         # Check outputs.
         self.assert_equal(result, expected)
 
@@ -109,7 +109,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         in_file = self._create_input_file()
         with self.assertRaises(Exception):
-            dshdpmare._extract_markdown_section(in_file, "# Nonexistent", None)
+            dshdpmare._extract_markdown_section(in_file, "# Nonexistent", "")
 
     def test4(self) -> None:
         """
@@ -124,7 +124,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = dshdpmare._extract_markdown_section(in_file, "Results", None)
+        result = dshdpmare._extract_markdown_section(in_file, "Results", "")
         # Check outputs.
         self.assert_equal(result, expected)
 

@@ -204,7 +204,7 @@ class TestTestCase1(hunitest.TestCase):
         )
         # Compute the signature from the dir.
         actual = hunitest.get_dir_signature(
-            tmp_dir, include_file_content=True, num_lines=None
+            tmp_dir, include_file_content=True, num_lines=0
         )
         text_purifier = huntepur.TextPurifier()
         actual = text_purifier.purify_txt_from_client(actual)
@@ -917,7 +917,7 @@ class Test_get_dir_signature1(hunitest.TestCase):
     def helper(self, include_file_content: bool) -> str:
         in_dir = self.get_input_dir()
         actual = hunitest.get_dir_signature(
-            in_dir, include_file_content, num_lines=None
+            in_dir, include_file_content, num_lines=0
         )
         text_purifier = huntepur.TextPurifier()
         actual = text_purifier.purify_txt_from_client(actual)

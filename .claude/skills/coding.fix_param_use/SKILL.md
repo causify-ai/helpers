@@ -1,5 +1,6 @@
 ---
 description: Fix function call sites to pass positional args by position and assign constants to intermediate variables
+model: haiku
 ---
 
 - I will pass you a file
@@ -20,7 +21,7 @@ description: Fix function call sites to pass positional args by position and ass
       *,
       model: str,
       batch_size: int = 50,
-      dump_every_batch: Optional[str] = None,
+      dump_every_batch: str = "",
       tag: str = "Processing",
       testing_functor: Optional[Callable[[str], str]] = None,
       use_sys_stderr: bool = False,

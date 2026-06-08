@@ -25,8 +25,9 @@ Mode options (change the search target):
   --rule   Search for Markdown headers in .claude/skills; <dir>/<ext> ignored
 
 Output options:
-  --cfile  Capture output to file 'cfile' and open in vim with ':cfile cfile'
-  -i       Expand to -S -i for ripgrep (smart-case + ignore-case)
+  --cfile       Capture output to file 'cfile' and open in vim with ':cfile cfile'
+  --print_files Only report matching files, sorted and unique
+  -i            Expand to -S -i for ripgrep (smart-case + ignore-case)
 """
 
 import dev_scripts_helpers.system_tools.lib_rig as lib_rig

@@ -49,7 +49,7 @@ import logging
 import os
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -119,7 +119,7 @@ class PodcastDownloader(ABC):
         pass
 
     @abstractmethod
-    def _extract_metadata(self, html: str) -> Tuple[str, str, Optional[str]]:
+    def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
         """
         Extract metadata from HTML (date, podcast title, guest name).
 
@@ -154,7 +154,7 @@ class PodcastDownloader(ABC):
         *,
         date: str,
         podcast_title: str,
-        guest_name: Optional[str] = None,
+        guest_name: str = "",
     ) -> str:
         """
         Create normalized output filename: YYYY-MM-DD_podcast-title_guest.txt.
@@ -251,7 +251,7 @@ class LexFridmanDownloader(PodcastDownloader):
         transcript = "\n\n".join(lines)
         return transcript
 
-    def _extract_metadata(self, html: str) -> Tuple[str, str, Optional[str]]:
+    def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
         """
         Extract metadata from lexfridman.com HTML.
 
@@ -269,7 +269,7 @@ class LexFridmanDownloader(PodcastDownloader):
         else:
             date = "unknown"
         # Extract guest name from title (usually "Guest Name - Lex Fridman #...").
-        guest_name = None
+        guest_name = ""
         if " - Lex" in title:
             guest_name = title.split(" - Lex")[0].strip()
         return date, "lex-fridman", guest_name
@@ -316,7 +316,7 @@ class DwarkeshDownloader(PodcastDownloader):
         transcript = "\n\n".join(lines)
         return transcript
 
-    def _extract_metadata(self, html: str) -> Tuple[str, str, Optional[str]]:
+    def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
         """
         Extract metadata from dwarkesh.com HTML.
 
@@ -333,7 +333,7 @@ class DwarkeshDownloader(PodcastDownloader):
             date = str(date_tag.get("content", "unknown"))
         else:
             date = "unknown"
-        guest_name = title if title != "Dwarkesh" else None
+        guest_name = title if title != "Dwarkesh" else ""
         return date, "dwarkesh", guest_name
 
 
@@ -380,7 +380,7 @@ class PodcastTranscriptDownloader(PodcastDownloader):
         transcript = "\n\n".join(lines)
         return transcript
 
-    def _extract_metadata(self, html: str) -> Tuple[str, str, Optional[str]]:
+    def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
         """
         Extract metadata from podcasttranscript.ai HTML.
 
@@ -448,7 +448,7 @@ class PodscriptsDownloader(PodcastDownloader):
         transcript = "\n".join(lines)
         return transcript
 
-    def _extract_metadata(self, html: str) -> Tuple[str, str, Optional[str]]:
+    def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
         """
         Extract metadata from podscripts.co HTML.
 
@@ -971,32 +971,32 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--type",
         action="store",
-        default=None,
+        default="",
         choices=_VALID_TYPES,
         help="The podcast source type (required for download/all)",
     )
     parser.add_argument(
         "--title",
         action="store",
-        default=None,
+        default="",
         help="The podcast slug/identifier (required for download/all)",
     )
     parser.add_argument(
         "--transcript",
         action="store",
-        default=None,
+        default="",
         help="Path to raw transcript file (required for format)",
     )
     parser.add_argument(
         "--url",
         action="store",
-        default=None,
+        default="",
         help="Original podcast URL (required for format, auto-derived for all)",
     )
     parser.add_argument(
         "--output",
         action="store",
-        default=None,
+        default="",
         help="Output markdown file path (required for download/format/all). Intermediate files saved to <OUTPUT>.tmp/",
     )
     hparser.add_verbosity_arg(parser)
@@ -1010,19 +1010,19 @@ def _run_download(args: argparse.Namespace) -> None:
     :param args: parsed command-line arguments with type, title, output
     :raises AssertionError: if required args (type, title, output) are missing
     """
-    hdbg.dassert_is_not(
+    hdbg.dassert_ne(
         args.type,
-        None,
+        "",
         "--type is required for download action",
     )
-    hdbg.dassert_is_not(
+    hdbg.dassert_ne(
         args.title,
-        None,
+        "",
         "--title is required for download action",
     )
-    hdbg.dassert_is_not(
+    hdbg.dassert_ne(
         args.output,
-        None,
+        "",
         "--output is required for download action",
     )
     temp_dir = _get_temp_dir(args.output)
@@ -1049,9 +1049,9 @@ def _run_format(args: argparse.Namespace) -> None:
     :param args: parsed command-line arguments with output
     :raises AssertionError: if required arg (output) is missing
     """
-    hdbg.dassert_is_not(
+    hdbg.dassert_ne(
         args.output,
-        None,
+        "",
         "--output is required for format action",
     )
     # Read from the download step's output
@@ -1096,9 +1096,9 @@ def _run_lint(args: argparse.Namespace) -> None:
     :param args: parsed command-line arguments with output
     :raises AssertionError: if required arg (output) is missing
     """
-    hdbg.dassert_is_not(
+    hdbg.dassert_ne(
         args.output,
-        None,
+        "",
         "--output is required for lint action",
     )
     # Read from the format step's output

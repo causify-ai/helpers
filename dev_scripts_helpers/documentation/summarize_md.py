@@ -36,7 +36,7 @@ import argparse
 import hashlib
 import logging
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 from markdown_it import MarkdownIt
 from tqdm import tqdm
@@ -127,8 +127,8 @@ def _get_target_headers(
     all_headers: List[Tuple[int, str, int]],
     *,
     md_level: int,
-    md_start: Optional[str],
-    md_end: Optional[str],
+    md_start: str = "",
+    md_end: str = "",
 ) -> List[Tuple[int, str, int]]:
     """
     Filter headers by level and optional start/end boundaries.
@@ -150,7 +150,7 @@ def _get_target_headers(
         sorted(set(h[0] for h in all_headers)),
     )
     # Apply start boundary if specified: find matching header and slice from there.
-    if md_start is not None:
+    if md_start != "":
         header_list = [
             hmarhead.HeaderInfo(h[0], h[1], h[2] + 1) for h in target_headers
         ]
@@ -158,12 +158,15 @@ def _get_target_headers(
         hdbg.dassert_is_not(
             match, None, "No header matches --md_start: '%s'", md_start
         )
-        start_idx = next(
-            i for i, h in enumerate(target_headers) if h[1] == match.description
-        )
-        target_headers = target_headers[start_idx:]
+        if match is not None:
+            start_idx = next(
+                i
+                for i, h in enumerate(target_headers)
+                if h[1] == match.description
+            )
+            target_headers = target_headers[start_idx:]
     # Apply end boundary if specified: find matching header and slice up to there.
-    if md_end is not None:
+    if md_end != "":
         header_list = [
             hmarhead.HeaderInfo(h[0], h[1], h[2] + 1) for h in target_headers
         ]
@@ -171,10 +174,13 @@ def _get_target_headers(
         hdbg.dassert_is_not(
             match, None, "No header matches --md_end: '%s'", md_end
         )
-        end_idx = next(
-            i for i, h in enumerate(target_headers) if h[1] == match.description
-        )
-        target_headers = target_headers[: end_idx + 1]
+        if match is not None:
+            end_idx = next(
+                i
+                for i, h in enumerate(target_headers)
+                if h[1] == match.description
+            )
+            target_headers = target_headers[: end_idx + 1]
     return target_headers
 
 
@@ -309,7 +315,7 @@ def _summarize_text(
             input_str=text,
             system_prompt=system_prompt,
             model=model,
-            use_llm_executable=False,
+            backend="library",
         )
         _LOG.debug("LLM cost: $%.6f", cost)
     return summary, cost
@@ -317,8 +323,8 @@ def _summarize_text(
 
 def _prepare_output_file(
     in_file_name: str,
-    out_file_name: Optional[str],
-    overwrite: bool,
+    out_file_name: str = "",
+    overwrite: bool = False,
 ) -> str:
     """
     Prepare output file path and handle existing file.
@@ -331,7 +337,7 @@ def _prepare_output_file(
     :param overwrite: Whether to overwrite existing output file
     :return: Path to output file
     """
-    if out_file_name == in_file_name or out_file_name is None:
+    if out_file_name == in_file_name or out_file_name == "":
         if in_file_name.endswith(".md"):
             out_file_name = in_file_name[:-3] + ".summary.md"
         else:
@@ -516,8 +522,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             in_file_name, out_file_name, args.overwrite
         )
         lines, all_headers = _read_and_parse_markdown(in_file_name)
-        md_start = None
-        md_end = None
+        md_start = ""
+        md_end = ""
         if args.select:
             md_start, md_end = hmarsele.parse_select_arg(args.select)
         target_headers = _get_target_headers(

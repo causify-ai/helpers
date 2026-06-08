@@ -17,7 +17,7 @@ import dev_scripts_helpers.notebooks.run_notebook as dsnoruno
 import argparse
 import logging
 import os
-from typing import Optional, Union
+from typing import Union
 
 import dataflow_amp.core.backtest.dataflow_backtest_utils as dtfbdtfbaut
 import nbformat
@@ -47,7 +47,7 @@ def _run_notebook(
     #
     incremental: bool,
     num_attempts: int,
-) -> Optional[int]:
+) -> int:
     """
     Run a notebook for a specific `Config`.
 
@@ -111,7 +111,7 @@ def _run_notebook(
     #  system_interaction.
     # Try running the notebook up to `num_attempts` times.
     hdbg.dassert_lte(1, num_attempts)
-    rc: Optional[int] = None
+    rc = 0
     for n in range(1, num_attempts + 1):
         if n > 1:
             _LOG.warning(

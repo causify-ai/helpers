@@ -1,5 +1,6 @@
 ---
 description: Suggest the top 5 improvements for an academic paper to increase its impact
+model: opus
 ---
 
 - Come up with the top 5 suggestions on how to improve the paper and make it

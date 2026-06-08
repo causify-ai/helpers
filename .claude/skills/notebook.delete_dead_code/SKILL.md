@@ -1,5 +1,6 @@
 ---
 description: Remove all the dead code in a Jupyter notebook and in the paired utility file
+model: haiku
 ---
 
 - Read `.claude/skills/notebook.rules.md`

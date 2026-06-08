@@ -8,6 +8,8 @@ import logging
 from typing import Any, Dict, Generator, List, Optional
 
 import helpers.hdbg as hdbg
+
+# TODO(gp): Can we import this without circular imports.
 from helpers.hmarkdown_comments import process_comment_block
 from helpers.hmarkdown_headers import is_markdown_line_separator
 

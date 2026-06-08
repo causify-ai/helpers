@@ -48,7 +48,7 @@ import mimetypes
 import os
 import pprint
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import google.genai as genai
 import google.genai.types as genai_types
@@ -230,8 +230,8 @@ def _generate_video_for_scene(
     *,
     resolution: str = "1080p",
     aspect_ratio: str = "16:9",
-    default_duration_in_seconds: Optional[int] = None,
-    image_file: Optional[str] = None,
+    default_duration_in_seconds: int = 0,
+    image_file: str = "",
     dry_run: bool = False,
 ) -> str:
     """
@@ -256,7 +256,7 @@ def _generate_video_for_scene(
     narration = scene["narration"]
     negative_prompt = scene.get("negative_prompt", "").strip()
     duration_in_seconds = scene["duration_in_secs"]
-    if default_duration_in_seconds is not None:
+    if default_duration_in_seconds:
         duration_in_seconds = default_duration_in_seconds
     hdbg.dassert_lte(1, duration_in_seconds)
     hdbg.dassert_lte(duration_in_seconds, 8)
@@ -360,7 +360,7 @@ def _generate_videos_from_scenes(
     low_res: bool,
     dry_run: bool,
     *,
-    image_file: Optional[str] = None,
+    image_file: str = "",
 ) -> List[str]:
     """
     Generate videos for all scenes.

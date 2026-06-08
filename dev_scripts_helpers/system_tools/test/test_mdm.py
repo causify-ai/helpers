@@ -1,4 +1,5 @@
 import logging
+import re
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
@@ -29,7 +30,8 @@ def _run_mdm(topic: str, action: str, *names: str) -> str:
             continue
         if "hdbg.py" in line or "Saving log to file" in line or " - " in line:
             continue
-        if line.startswith("\x1b"):
+        line = re.sub(r"\x1b\[[0-9;]*m", "", line)
+        if not line:
             continue
         result_lines.append(line)
     return "\n".join(result_lines).strip()

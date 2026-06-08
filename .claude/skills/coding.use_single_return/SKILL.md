@@ -1,5 +1,6 @@
 ---
 description: Make sure that all the functions have a single return statement
+model: haiku
 ---
 
 - I will pass you one of more files `<FILES>`

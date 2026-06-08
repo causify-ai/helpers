@@ -1,5 +1,6 @@
 ---
 description: Find mistakes and provide improvements for a text
+model: opus
 ---
 
 # Purpose

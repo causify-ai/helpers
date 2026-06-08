@@ -1,5 +1,6 @@
 ---
 description: Explain a lecture slide
+model: haiku
 ---
 
 # Role

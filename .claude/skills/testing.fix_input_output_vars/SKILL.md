@@ -1,5 +1,6 @@
 ---
 description: Fix the input / output variables of a test
+model: haiku
 ---
 
 # Goal

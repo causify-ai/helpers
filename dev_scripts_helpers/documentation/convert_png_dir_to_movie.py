@@ -182,7 +182,7 @@ def _parse() -> argparse.ArgumentParser:
         "--output_file",
         type=str,
         required=False,
-        default=None,
+        default="",
         help="Path to output file (either .mp4 or .gif). If not specified, uses video.mp4 in the input directory.",
     )
     parser.add_argument(
@@ -210,7 +210,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         fps,
     )
     # If output_file is not specified, use default video.mp4 in input_dir.
-    if output_file is None:
+    if not output_file:
         output_file = os.path.join(input_dir, "video.mp4")
         _LOG.info("No output file specified, using default: '%s'", output_file)
     # Determine output format from file extension.

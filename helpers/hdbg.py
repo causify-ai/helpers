@@ -960,7 +960,7 @@ def get_command_line() -> str:
 # TODO(gp): maybe replace "force_verbose_format" and "force_print_format" with
 #  a "mode" in ("auto", "verbose", "print")
 def init_logger(
-    verbosity: int = logging.INFO,
+    verbosity: Union[int, str] = logging.INFO,
     use_exec_path: bool = False,
     log_filename: Optional[str] = None,
     force_verbose_format: bool = False,
@@ -1003,6 +1003,8 @@ def init_logger(
         dassert(hasattr(logging, "_checkLevel"))
         assert hasattr(logging, "_checkLevel")
         verbosity = logging._checkLevel(verbosity)
+    else:
+        dassert_isinstance(verbosity, int)
     # From https://stackoverflow.com/questions/14058453
     root_logger = logging.getLogger()
     # Set verbosity for all loggers.
@@ -1115,19 +1117,7 @@ def get_logger_verbosity() -> int:
     return root_logger.getEffectiveLevel()
 
 
-# #############################################################################
-# Command line.
-# #############################################################################
-
-
-# Sample at the beginning of time before we start fiddling with command line
-# args.
-_CMD_LINE = " ".join(arg for arg in sys.argv)
 _EXEC_NAME = os.path.abspath(sys.argv[0])
-
-
-def get_command_line() -> str:
-    return _CMD_LINE
 
 
 def get_exec_name() -> str:

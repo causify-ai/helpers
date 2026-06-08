@@ -18,6 +18,7 @@ import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
 
@@ -222,7 +223,7 @@ def prettier(
     out_file_path: str,
     file_type: str,
     *,
-    print_width: Optional[int] = None,
+    width: Optional[int] = None,
     use_dockerized_prettier: bool = True,
     # TODO(gp): Remove this.
     **kwargs: Any,
@@ -233,21 +234,23 @@ def prettier(
     :param in_file_path: The path to the input file.
     :param out_file_path: The path to the output file.
     :param file_type: The type of file to be formatted, e.g., `md` or `tex`.
-    :param print_width: The maximum line width for the formatted text.
+    :param width: The maximum line width for the formatted text.
         If None, the default width is used.
     :param use_dockerized_prettier: Whether to use a Dockerized version
         of Prettier.
     :return: The formatted text.
     """
     _LOG.debug(hprint.func_signature_to_str())
+    timer_ = htimer.Timer()
     hdbg.dassert_in(file_type, ["md", "tex", "txt"])
-    if print_width is None:
+    if width is None:
         if file_type == "tex":
-            print_width = 72
+            # TODO(gp): Is this difference meaninful?
+            width = 72
         elif file_type == "md":
-            print_width = 80
+            width = 80
         elif file_type == "txt":
-            print_width = 80
+            width = 80
         else:
             raise ValueError(f"Invalid file type: {file_type}")
     # Build command options.
@@ -260,10 +263,10 @@ def prettier(
         cmd_opts.append("--parser markdown")
     else:
         raise ValueError(f"Invalid file type: {file_type}")
-    hdbg.dassert_lte(1, print_width)
+    hdbg.dassert_lte(1, width)
     cmd_opts.extend(
         [
-            f"--print-width {print_width}",
+            f"--print-width {width}",
             "--prose-wrap always",
             f"--tab-width {tab_width}",
             "--use-tabs false",
@@ -315,6 +318,8 @@ def prettier(
         txt = "\n".join(lines)
         #
         txt = hio.to_file(out_file_path, txt)
+    timer_.stop()
+    _LOG.info("prettier time=%s", str(timer_))
 
 
 def prettier_on_str(
@@ -326,6 +331,7 @@ def prettier_on_str(
     """
     Wrap `prettier()` to work on strings.
     """
+    timer_ = htimer.Timer()
     _LOG.debug("txt=\n%s", txt)
     hdbg.dassert_isinstance(txt, str)
     # Save string as input.
@@ -339,4 +345,6 @@ def prettier_on_str(
     txt = hio.from_file(tmp_file_name)
     _LOG.debug("After prettier txt=\n%s", txt)
     # os.remove(tmp_file_name)
+    timer_.stop()
+    _LOG.info("prettier_on_str time=%s", str(timer_))
     return txt  # type: ignore

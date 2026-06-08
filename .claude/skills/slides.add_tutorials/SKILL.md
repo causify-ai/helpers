@@ -1,5 +1,6 @@
 ---
 description: Add a tutorial for lecture slides
+model: haiku
 ---
 
 # Role

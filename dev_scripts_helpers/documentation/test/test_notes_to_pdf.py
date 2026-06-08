@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from typing import Optional, Tuple
+from typing import Tuple
 
 import pytest
 
@@ -52,7 +52,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
     # TODO(gp): Run this calling directly the code and not executing the script.
     def run_notes_to_pdf(
         self, in_file: str, type_: str, cmd_opts: str
-    ) -> Tuple[Optional[str], Optional[str]]:
+    ) -> Tuple[str, str]:
         """
         Run the `notes_to_pdf.py` script with the specified options.
 
@@ -103,11 +103,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         else:
             raise ValueError(f"Invalid type_='{type_}'")
         # Check the content of the file, if needed.
-        output_txt: Optional[str] = None
+        output_txt = ""
         if os.path.exists(out_file):
             output_txt = hio.from_file(out_file)
         # Read generated script with all the commands.
-        script_txt: Optional[str] = None
+        script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
         return script_txt, output_txt
@@ -124,8 +124,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Run the script.
         script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
         # Check.
-        self.assertEqual(script_txt, None)
-        self.assertEqual(output_txt, None)
+        self.assertEqual(script_txt, "")
+        self.assertEqual(output_txt, "")
 
     @pytest.mark.superslow
     def test2(self) -> None:
