@@ -611,6 +611,10 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_release_prod_image1(_DockerFlowTestHelper):
     """
     Test releasing a prod Docker image.
@@ -670,6 +674,10 @@ class Test_docker_release_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
     """
     Test releasing a multi-arch dev Docker image.
@@ -784,6 +792,10 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
     """
     Test rolling back a dev Docker image.
@@ -819,6 +831,10 @@ class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
     """
     Test rolling back a prod Docker image.
@@ -854,6 +870,10 @@ class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_push_prod_candidate_image1(_DockerFlowTestHelper):
     """
     Test pushing a prod candidate Docker image.
@@ -885,6 +905,10 @@ class Test_docker_push_prod_candidate_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
     """
     Test releasing a multi-arch prod Docker image.
@@ -944,6 +968,10 @@ class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
     """
     Test creating a candidate Docker image.
@@ -1034,6 +1062,10 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
     """
     Test updating a prod task definition to the desired version.
@@ -1242,6 +1274,10 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
     """
     Test tagging and pushing dev image from a base registry to multiple registries.
@@ -1361,6 +1397,10 @@ class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="Skipping: tests require dev container",
+)
 class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
     """
     Test the complete periodic dev image release workflow.
