@@ -34,6 +34,7 @@ def remove_prefix(string: str, prefix: str, assert_on_error: bool = True) -> str
             raise RuntimeError(
                 f"string='{string}' doesn't start with prefix ='{prefix}'"
             )
+        res = string
     return res
 
 

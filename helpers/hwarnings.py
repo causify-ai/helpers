@@ -76,7 +76,7 @@ warnings.filterwarnings(
 # TODO(gp): Add this TqdmExperimentalWarning
 
 try:
-    import pandas as pd
+    import pandas as pd  # type: ignore[possibly-unbound]
 
     _HAS_PANDAS = True
 except ImportError:
@@ -84,7 +84,7 @@ except ImportError:
 
 
 if _HAS_PANDAS:
-    pd.set_option("mode.chained_assignment", None)
+    pd.set_option("mode.chained_assignment", None)  # type: ignore[possibly-unbound]
     # TODO(gp): We should fix the issues and re-enable.
     # See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
     #   row["net_cost"] -= cost
@@ -110,7 +110,7 @@ if _HAS_PANDAS:
     #  cond = value in valid_values
     warnings.filterwarnings(
         action,
-        category=pd.errors.PerformanceWarning,
+        category=pd.errors.PerformanceWarning,  # type: ignore[possibly-unbound]
         module=".*hdbg.py.*",
         lineno=309,
         append=False,
@@ -140,7 +140,7 @@ if _HAS_PANDAS:
     # cond = value in valid_values
     warnings.filterwarnings(
         action,
-        category=pd.errors.PerformanceWarning,
+        category=pd.errors.PerformanceWarning,  # type: ignore[possibly-unbound]
         module=".*hdbg.py.*",
         lineno=309,
         append=False,

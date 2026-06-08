@@ -396,7 +396,7 @@ def _preprocess_regression(
 def ols_regress(
     df: pd.DataFrame,
     predicted_var: str,
-    predictor_vars: str,
+    predictor_vars: Union[str, List[str]],
     intercept: bool,
     print_model_stats: bool = True,
     tsplot: bool = False,

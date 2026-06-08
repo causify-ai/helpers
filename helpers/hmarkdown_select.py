@@ -276,6 +276,8 @@ def find_header_by_regex(
         compiled_pattern = re.compile(pattern)
     except re.error as e:
         hdbg.dassert(False, "Invalid regex pattern '%s': %s", pattern, str(e))
+        # Pyright: dassert raises but we need to satisfy the type checker.
+        compiled_pattern = None  # type: ignore[assignment]
     matches = []
     for header_info in header_list:
         # Reconstruct the full header line.

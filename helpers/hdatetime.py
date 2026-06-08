@@ -21,7 +21,7 @@ import pandas as pd  # noqa: E402 # pylint: disable=wrong-import-position
 # TODO(gp): Check if dateutils is equivalent to `pytz` or better so we can simplify
 #  the dependencies.
 try:
-    import pytz
+    import pytz  # type: ignore[possibly-unbound]
 except ModuleNotFoundError:
     _module = "pytz"
     print(_WARNING + f": Can't find {_module}: continuing")
@@ -179,7 +179,7 @@ def dassert_has_UTC_tz(datetime_: StrictDatetime) -> None:
     """
     Assert that the passed timestamp is UTC.
     """
-    tz_zones = (pytz.timezone("UTC").zone,)
+    tz_zones = (pytz.timezone("UTC").zone,)  # type: ignore[possibly-unbound]
     dassert_has_specified_tz(datetime_, tz_zones)
 
 
@@ -188,8 +188,8 @@ def dassert_has_ET_tz(datetime_: StrictDatetime) -> None:
     Assert that the passed timestamp is Eastern Time (ET).
     """
     tz_zones = (
-        pytz.timezone("US/Eastern").zone,
-        pytz.timezone("America/New_York").zone,
+        pytz.timezone("US/Eastern").zone,  # type: ignore[possibly-unbound]
+        pytz.timezone("America/New_York").zone,  # type: ignore[possibly-unbound]
     )
     dassert_has_specified_tz(datetime_, tz_zones)
 
@@ -327,7 +327,7 @@ def get_UTC_tz() -> datetime.tzinfo:
     """
     Return the UTC timezone.
     """
-    return pytz.timezone("UTC")
+    return pytz.timezone("UTC")  # type: ignore[possibly-unbound]
 
 
 def get_ET_tz() -> datetime.tzinfo:
@@ -338,7 +338,7 @@ def get_ET_tz() -> datetime.tzinfo:
     # It appears that "America/New_York" is to be preferred over "US/Eastern".
     # https://www.iana.org/time-zones
     # https://en.wikipedia.org/wiki/Tz_database
-    return pytz.timezone("America/New_York")
+    return pytz.timezone("America/New_York")  # type: ignore[possibly-unbound]
 
 
 # Function returning the current (true, replayed, simulated) wall-clock time as a

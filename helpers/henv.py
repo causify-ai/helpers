@@ -356,7 +356,7 @@ def _get_psutil_info() -> str:
     Get system resource information using psutil.
     """
     try:
-        import psutil
+        import psutil  # type: ignore[possibly-unbound]
 
         has_psutil = True
     except ModuleNotFoundError as e:
@@ -364,14 +364,14 @@ def _get_psutil_info() -> str:
         has_psutil = False
     txt_tmp = []
     if has_psutil:
-        txt_tmp.append(f"cpu count={psutil.cpu_count()}")
-        if hasattr(psutil, "cpu_freq") and psutil.cpu_freq is not None:
-            txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")
+        txt_tmp.append(f"cpu count={psutil.cpu_count()}")  # type: ignore[possibly-unbound]
+        if hasattr(psutil, "cpu_freq") and psutil.cpu_freq is not None:  # type: ignore[possibly-unbound]
+            txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")  # type: ignore[possibly-unbound]
         else:
             txt_tmp.append("cpu freq=unavailable")
         # TODO(gp): Report in MB or GB.
-        txt_tmp.append(f"memory={str(psutil.virtual_memory())}")
-        txt_tmp.append(f"disk usage={str(psutil.disk_usage('/'))}")
+        txt_tmp.append(f"memory={str(psutil.virtual_memory())}")  # type: ignore[possibly-unbound]
+        txt_tmp.append(f"disk usage={str(psutil.disk_usage('/'))}")  # type: ignore[possibly-unbound]
     else:
         txt_tmp.append("psutil is not installed")
     #
@@ -438,6 +438,7 @@ def _get_package_info() -> Tuple[str, int]:
             version = _get_library_version(lib)
         except OSError as e:
             print(_WARNING + ": " + str(e))
+            version = "?"
         if version.startswith("ERROR"):
             failed_imports += 1
         packages.append((lib, version))

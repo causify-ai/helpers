@@ -1665,6 +1665,7 @@ def _run_linter(
             "Using num_threads='%s' since there is a single file", num_threads
         )
     output: List[str] = []
+    output_tmp: List[str] = []
     if num_threads == "serial":
         for file_name in file_names:
             output_tmp = _lint(file_name, actions, pedantic, args.debug)

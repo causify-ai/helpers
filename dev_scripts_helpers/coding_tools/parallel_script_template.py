@@ -74,6 +74,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     randomize = args.randomize
     # randomize = False
     seed = args.seed
+    workload = ""
     if args.workload == "success":
         workload = helpers.test.test_joblib_helpers.get_workload1(
             randomize, seed=seed

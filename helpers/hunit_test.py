@@ -49,14 +49,14 @@ import helpers.repo_config_utils as hrecouti
 _WARNING = "\033[33mWARNING\033[0m"
 
 try:
-    import numpy as np
+    import numpy as np  # type: ignore[possibly-unbound]
 
     _HAS_NUMPY = True
 except ImportError as e:
     print(_WARNING + ": " + str(e))
     _HAS_NUMPY = False
 try:
-    import pandas as pd
+    import pandas as pd  # type: ignore[possibly-unbound]
 
     _HAS_PANDAS = True
 except ImportError as e:
@@ -64,7 +64,7 @@ except ImportError as e:
     _HAS_PANDAS = False
 
 try:
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # type: ignore[possibly-unbound]
 
     _HAS_MATPLOTLIB = True
 except ImportError as e:
@@ -196,7 +196,7 @@ def convert_info_to_string(info: Mapping) -> str:
     """
     output = []
     # Provide context for full representation of `pd.Series` in info.
-    with pd.option_context(
+    with pd.option_context(  # type: ignore[possibly-unbound]
         "display.max_colwidth",
         int(1e6),
         "display.max_columns",
@@ -817,7 +817,7 @@ def get_pd_default_values() -> "pd._config.config.DictWrapper":
     """
     import copy
 
-    vals = copy.deepcopy(pd.options)
+    vals = copy.deepcopy(pd.options)  # type: ignore[possibly-unbound]
     return vals
 
 
@@ -868,7 +868,7 @@ def set_pd_default_values() -> None:
         if isinstance(new_val, dict):
             continue
         full_key = f"{section}.{key}"
-        old_val = pd.get_option(full_key)
+        old_val = pd.get_option(full_key)  # type: ignore[possibly-unbound]
         if old_val != new_val:
             _LOG.debug(
                 "-> Assigning a different value: full_key=%s, "
@@ -877,7 +877,7 @@ def set_pd_default_values() -> None:
                 old_val,
                 new_val,
             )
-        pd.set_option(full_key, new_val)
+        pd.set_option(full_key, new_val)  # type: ignore[possibly-unbound]
 
 
 # If a golden outcome is missing asserts (instead of updating golden and adding
@@ -913,10 +913,10 @@ class TestCase(unittest.TestCase):
         random.seed(random_seed)
         if _HAS_NUMPY:
             _LOG.debug("Resetting np.random.seed to %s", random_seed)
-            np.random.seed(random_seed)
+            np.random.seed(random_seed)  # type: ignore[possibly-unbound]
         # Disable matplotlib plotting by overwriting the `show` function.
         if _HAS_MATPLOTLIB:
-            plt.show = lambda: 0
+            plt.show = lambda: 0  # type: ignore[possibly-unbound]
         # Name of the dir with artifacts for this test.
         self._scratch_dir: str = ""
         # The base directory is the one including the class under test.
@@ -959,11 +959,11 @@ class TestCase(unittest.TestCase):
                 pass
         # Recover the original default pandas options.
         if _HAS_PANDAS:
-            pd.options = self._old_pd_options
+            pd.options = self._old_pd_options  # type: ignore[possibly-unbound]
         # Force matplotlib to close plots to decouple tests.
         if _HAS_MATPLOTLIB:
-            plt.close()
-            plt.clf()
+            plt.close()  # type: ignore[possibly-unbound]
+            plt.clf()  # type: ignore[possibly-unbound]
         # Delete the scratch dir, if needed.
         if self._scratch_dir and os.path.exists(self._scratch_dir):
             if False:
@@ -1297,13 +1297,13 @@ class TestCase(unittest.TestCase):
         self.assertEqual(actual.columns.to_list(), expected.columns.to_list())
         # Often the output of a failing assertion is difficult to parse
         # so we resort to our special `assert_equal()`.
-        if not np.allclose(actual, expected, **kwargs):
+        if not np.allclose(actual, expected, **kwargs):  # type: ignore[possibly-unbound]
             import helpers.hpandas as hpandas
 
             self.assert_equal(
                 hpandas.df_to_str(actual), hpandas.df_to_str(expected)
             )
-        np.testing.assert_allclose(actual, expected, **kwargs)
+        np.testing.assert_allclose(actual, expected, **kwargs)  # type: ignore[possibly-unbound]
 
     # ///////////////////////////////////////////////////////////////////////
 
@@ -1591,9 +1591,9 @@ class TestCase(unittest.TestCase):
         hdbg.dassert_lte(0, err_threshold)
         hdbg.dassert_lte(err_threshold, 1.0)
         # Load the expected df from file.
-        expected = pd.read_csv(file_name, index_col=0)
+        expected = pd.read_csv(file_name, index_col=0)  # type: ignore[possibly-unbound]
         _LOG.debug("expected=\n%s", expected)
-        hdbg.dassert_isinstance(expected, pd.DataFrame)
+        hdbg.dassert_isinstance(expected, pd.DataFrame)  # type: ignore[possibly-unbound]
         ret = True
         # Compare columns.
         if actual.columns.tolist() != expected.columns.tolist():
@@ -1606,13 +1606,13 @@ class TestCase(unittest.TestCase):
         # From https://numpy.org/doc/stable/reference/generated/numpy.allclose.html
         # absolute(a - b) <= (atol + rtol * absolute(b))
         # absolute(a - b) / absolute(b)) <= rtol
-        is_close = np.allclose(
+        is_close = np.allclose(  # type: ignore[possibly-unbound]
             actual, expected, rtol=err_threshold, equal_nan=True
         )
         if not is_close:
             _LOG.error("Dataframe values are not close")
             if actual.shape == expected.shape:
-                close_mask = np.isclose(actual, expected, equal_nan=True)
+                close_mask = np.isclose(actual, expected, equal_nan=True)  # type: ignore[possibly-unbound]
                 #
                 msg = f"actual=\n{actual}"
                 self._to_error(msg)
@@ -1620,18 +1620,18 @@ class TestCase(unittest.TestCase):
                 msg = f"expected=\n{expected}"
                 self._to_error(msg)
                 #
-                actual_masked = np.where(close_mask, np.nan, actual)
+                actual_masked = np.where(close_mask, np.nan, actual)  # type: ignore[possibly-unbound]
                 msg = f"actual_masked=\n{actual_masked}"
                 self._to_error(msg)
                 #
-                expected_masked = np.where(close_mask, np.nan, expected)
+                expected_masked = np.where(close_mask, np.nan, expected)  # type: ignore[possibly-unbound]
                 msg = f"expected_masked=\n{expected_masked}"
                 self._to_error(msg)
                 #
-                err = np.abs((actual_masked - expected_masked) / expected_masked)
+                err = np.abs((actual_masked - expected_masked) / expected_masked)  # type: ignore[possibly-unbound]
                 msg = f"err=\n{err}"
                 self._to_error(msg)
-                max_err = np.nanmax(np.nanmax(err))
+                max_err = np.nanmax(np.nanmax(err))  # type: ignore[possibly-unbound]
                 msg = "max_err=%.3f" % max_err
                 self._to_error(msg)
             else:
@@ -1658,7 +1658,7 @@ class TestCase(unittest.TestCase):
         Like `check_string()` but for pandas dataframes, instead of strings.
         """
         _LOG.debug(hprint.to_str("err_threshold tag abort_on_error"))
-        hdbg.dassert_isinstance(actual, pd.DataFrame)
+        hdbg.dassert_isinstance(actual, pd.DataFrame)  # type: ignore[possibly-unbound]
         #
         dir_name, file_name = self._get_golden_outcome_file_name(tag)
         _LOG.debug("file_name=%s", file_name)
@@ -1767,7 +1767,7 @@ class TestCase(unittest.TestCase):
         # TODO(Grisha): get rid of `hpandas` dependency.
         import helpers.hpandas as hpandas
 
-        hdbg.dassert_isinstance(actual_df, pd.DataFrame)
+        hdbg.dassert_isinstance(actual_df, pd.DataFrame)  # type: ignore[possibly-unbound]
         if expected_length >= 0:
             # Verify that the output length is correct.
             actual_length = actual_df.shape[0]
@@ -1831,7 +1831,7 @@ class TestCase(unittest.TestCase):
         # requirements. See CmTask6613 for details.
         import helpers.hpandas as hpandas
 
-        hdbg.dassert_isinstance(actual_srs, pd.Series)
+        hdbg.dassert_isinstance(actual_srs, pd.Series)  # type: ignore[possibly-unbound]
         if expected_length >= 0:
             # Verify that output length is correct.
             self.assert_equal(str(actual_srs.shape[0]), str(expected_length))

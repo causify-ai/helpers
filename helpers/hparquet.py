@@ -538,7 +538,7 @@ def from_parquet(
                 "aws_profile must be a string for S3 operations",
             )
             last_pq_file = hs3.get_latest_pq_in_s3_dir(file_name, aws_profile)
-            file = s3_filesystem.open(last_pq_file, "rb")
+            file = s3_filesystem.open(last_pq_file, "rb")  # type: ignore[possibly-unbound]
             # Load the data.
             parquet_file = pq.ParquetFile(file)
             # Get the head of the data.
@@ -1274,7 +1274,7 @@ def list_and_merge_pq_files(
             control_column = "volume"
         else:
             hdbg.dfatal("Supported drop duplicates modes: ohlcv, bid_ask")
-        data = hdatafr.remove_duplicates(data, duplicate_columns, control_column)
+        data = hdatafr.remove_duplicates(data, duplicate_columns, control_column)  # type: ignore[possibly-unbound]
         # Remove all old files and write the new, merged one.
         if filesystem:
             filesystem.rm(folder, recursive=True)

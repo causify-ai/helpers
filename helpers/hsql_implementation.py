@@ -483,10 +483,10 @@ def execute_query_to_df(
             print(e.pgerror)
             raise e
     if use_timer:
-        htimer.dtimer_stop(idx)
+        htimer.dtimer_stop(idx)  # type: ignore[possibly-unbound]
     if profile:
-        _LOG.info("df=%s", df)
-    return df
+        _LOG.info("df=%s", df)  # type: ignore[possibly-unbound]
+    return df  # type: ignore[possibly-unbound]
 
 
 def head_table(
