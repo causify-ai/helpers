@@ -75,7 +75,12 @@ class S3Mock_TestCase(hunitest.TestCase):
         if self.binance_secret is None:
             import helpers.hsecrets as hsecret
 
-            self.binance_secret = hsecret.get_secret("binance.preprod.trading.1")
+            try:
+                self.binance_secret = hsecret.get_secret("binance.preprod.trading.1")
+            except Exception:
+                # Secret may not exist or be marked for deletion. Skip silently
+                # as it's not currently used in the tests.
+                pass
         # Start boto3 mock.
         self.mock_s3.start()
         # Start AWS credentials mock. Must be started after moto mock,

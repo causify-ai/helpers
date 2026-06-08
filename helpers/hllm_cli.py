@@ -192,7 +192,7 @@ class TokenStats:
             ts.cost_from_tokencost for ts in token_stats_list
         )
         total_cost_from_llm_library = sum(
-            ts.cost_from_llm_library for ts in token_stats_list
+            (ts.cost_from_llm_library or 0.0) for ts in token_stats_list
         )
         total_elapsed_time = sum(
             ts.elapsed_time_in_seconds for ts in token_stats_list

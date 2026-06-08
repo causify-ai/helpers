@@ -3,12 +3,16 @@ import os
 from typing import List
 from unittest import mock
 
+import pytest
+
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+
+pytest.importorskip("llm")
 import dev_scripts_helpers.llms.llm_cli as dshlllcl
 
 
