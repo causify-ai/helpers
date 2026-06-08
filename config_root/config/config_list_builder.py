@@ -77,6 +77,8 @@ def get_period(period: str) -> Tuple[pd.Timestamp, pd.Timestamp]:
     date_pattern = r"\d{4}[-]\d{2}[-]\d{2}"
     # E.g., `2022-01-01_2022-02-01`.
     period_pattern = rf"{date_pattern}[_]{date_pattern}$"
+    start_datetime = None  # type: ignore[assignment]
+    end_datetime = None  # type: ignore[assignment]
     if period == "2days":
         start_datetime = datetime.datetime(2020, 1, 6)
         end_datetime = datetime.datetime(2020, 1, 7)
@@ -148,6 +150,7 @@ def set_asset_id(
         used to enforce a use patter like "create a template config and then
         overwrite DUMMY values only once".
     """
+    update_mode = None  # type: ignore[assignment]
     try:
         # Save original update mode and allow overwriting of dummies.
         update_mode = config.update_mode

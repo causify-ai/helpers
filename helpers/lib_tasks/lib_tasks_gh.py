@@ -263,7 +263,9 @@ def gh_workflow_list(  # type: ignore
                 # to the `PATH` (when inside the container) so we can just use
                 # them without specifying the full path.
                 helpers_root_dir = hgit.find_helpers_root()
-                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                file_path = (
+                    f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                )
                 cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
@@ -349,7 +351,8 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
     Convert the `repo_short_name` from command line (e.g., "current", "amp",
     "lm") to the repo_short_name full name without host name.
     """
-    repo_full_name_with_host: str
+    repo_full_name_with_host: str = ""
+    ret_repo_short_name: str = ""
     if repo_short_name == "current":
         # Get the repo name from the current repo.
         repo_full_name_with_host = hgit.get_repo_full_name_from_dirname(
@@ -957,7 +960,9 @@ def gh_get_overall_build_status_for_repo(
     return overall_status
 
 
-def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str]:
+def gh_get_workflow_type_names(
+    repo_name: str, *, sort: bool = True
+) -> List[str]:
     """
     Get a list of workflow names for a given repo.
 

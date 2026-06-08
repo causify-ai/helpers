@@ -280,9 +280,9 @@ def from_file(file_name: str) -> List[str]:
 
     If file_name is "pb" and the platform is macOS, read from clipboard.
     """
+    txt = []
     if file_name == "-":
         _LOG.info("Reading from stdin")
-        txt = []
         for line in sys.stdin:
             txt.append(line.rstrip("\n"))
     elif file_name == "pb":
@@ -452,6 +452,8 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     hdbg.dassert_eq(
         len(parts), 2, "Limit format must be X:Y, got: %s", limit_str
     )
+    start = 0
+    end = 0
     try:
         start = int(parts[0])
         end = int(parts[1])

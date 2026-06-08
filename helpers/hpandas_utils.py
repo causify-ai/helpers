@@ -355,6 +355,8 @@ def df_to_str(
     if not hsystem.is_running_in_ipynb():
         out.append(df_as_str)
         txt = "\n".join(out)
+    else:
+        txt = ""
     return txt
 
 

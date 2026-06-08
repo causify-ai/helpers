@@ -14,11 +14,13 @@ import dev_scripts_helpers.git.git_hooks.utils as dshgghout
 
 def _main():
     message_file = sys.argv[1]
+    f = None
     try:
         f = open(message_file, "r")
         commit_message = f.read()
     finally:
-        f.close()
+        if f is not None:
+            f.close()
     # We might not need every commit message to start with the issue number as
     # it is already in the branch and PR name.
     # regex = r"^Merge\sbranch|#(\d+)\s\S+"
