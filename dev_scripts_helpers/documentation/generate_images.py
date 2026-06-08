@@ -116,9 +116,9 @@ def _generate_images(
     *,
     low_res: bool = False,
     progress_bar: Optional[tqdm] = None,
-    reference_image: Optional[str] = None,
+    reference_image: str = "",
     dry_run: bool = False,
-    model_name: Optional[str] = None,
+    model_name: str = "",
 ) -> None:
     """
     Generate images using OpenAI API and save to destination directory.
@@ -134,7 +134,7 @@ def _generate_images(
     :param model_name: model to use (dall-e-2, dall-e-3, gpt-image-1)
     """
     # Set image parameters based on reference image and model selection.
-    use_reference = reference_image is not None
+    use_reference = reference_image != ""
     if model_name:
         # Use explicitly specified model.
         model = model_name
@@ -259,17 +259,17 @@ def _generate_images(
 
 
 def _generate_images_from_file(
-    prompt: Optional[str],
-    input_file: Optional[str],
+    prompt: str,
+    input_file: str,
     style: str,
     dst_dir: str,
     count: int,
     *,
     low_res: bool = False,
-    reference_image: Optional[str] = None,
+    reference_image: str = "",
     dry_run: bool = False,
     no_backup: bool = False,
-    model_name: Optional[str] = None,
+    model_name: str = "",
 ) -> None:
     """
     Generate images from prompts (command line or file) and save to directory.

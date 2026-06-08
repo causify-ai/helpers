@@ -14,6 +14,12 @@
 r"""
 Download data from a Google Sheets document and save it as a CSV file.
 
+Tab Selection:
+- If the URL contains a gid (e.g., ?gid=123#gid=123), the script automatically
+  downloads that specific tab, even if --tabname is not specified.
+- Use --tabname to override the gid and download a different tab.
+- If no gid is in the URL and no --tabname is provided, downloads the first tab.
+
 Example usage:
 
 # Download first tab to CSV
@@ -21,18 +27,22 @@ Example usage:
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
     --output_file data.csv
 
-# Download specific tab to CSV
+# Download specific tab by name
 > from_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
     --tabname "my_data" \
     --output_file data.csv
 
-# Overwrite existing file
+# Automatically download tab from gid in URL (no --tabname needed)
 > from_gsheet.py \
-    --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
-    --tabname "my_data" \
-    --output_file data.csv \
-    --overwrite
+    --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit?gid=123#gid=123" \
+    --output_file data.csv
+
+# Override gid with explicit tab name
+> from_gsheet.py \
+    --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit?gid=123#gid=123" \
+    --tabname "different_tab" \
+    --output_file data.csv
 
 Import as:
 
@@ -99,14 +109,27 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Print information about the Google Sheet.
     _LOG.info("Google Sheet information:")
     hgodrapi.print_info_about_google_url(args.url, credentials=credentials)
+    # Determine tab name
+    tab_name = args.tabname
+    if not tab_name:
+        # If not provided, check if URL has a gid.
+        gid = hgodrapi._extract_gid_from_url(args.url)
+        if gid:
+            spreadsheet_id = hgodrapi._extract_file_id_from_url(args.url)
+            tab_name = hgodrapi.get_tab_name_from_gid(
+                spreadsheet_id, gid, credentials=credentials
+            )
+            _LOG.info(
+                "Found gid '%s' in URL, using tab name '%s'", gid, tab_name
+            )
     # Read data from Google Sheet.
-    if args.tabname:
-        _LOG.info("Reading data from tab '%s'", args.tabname)
+    if tab_name:
+        _LOG.info("Reading data from tab '%s'", tab_name)
     else:
-        _LOG.info("Reading data from first tab")
+        _LOG.warning("Reading data from first tab")
     df = hgodrapi.from_gsheet(
         args.url,
-        tab_name=args.tabname,
+        tab_name=tab_name,
         credentials=credentials,
     )
     _LOG.info("Loaded %d rows and %d columns", len(df), len(df.columns))

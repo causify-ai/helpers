@@ -1,5 +1,6 @@
 ---
 description: Review Python files for bugs, suggest fixes, and provide test cases
+model: opus
 ---
 
 - You are a senior Python engineer

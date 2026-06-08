@@ -32,6 +32,7 @@ _LOG = logging.getLogger(__name__)
 
 # Disable tracing for production code.
 _LOG.trace = lambda *args, **kwargs: None
+# To enable use:
 # _LOG.trace = _LOG.debug
 
 # #############################################################################
@@ -78,25 +79,25 @@ if "_CACHE" not in globals():
 # to flip all cached functions into refresh/disable/hit-or-abort mode from a
 # single switch (see `hparser.add_cache_control_arg`).
 _VALID_CACHE_MODES = ("REFRESH_CACHE", "DISABLE_CACHE", "HIT_CACHE_OR_ABORT")
-_GLOBAL_CACHE_MODE: Optional[str] = None
+_GLOBAL_CACHE_MODE: str = ""
 
 
-def set_global_cache_mode(mode: Optional[str]) -> None:
+def set_global_cache_mode(mode: str) -> None:
     """
     Set the process-wide default `cache_mode`.
 
     :param mode: one of `REFRESH_CACHE`, `DISABLE_CACHE`,
-        `HIT_CACHE_OR_ABORT`, or `None` to clear
+        `HIT_CACHE_OR_ABORT`, or `""` to clear
     """
     global _GLOBAL_CACHE_MODE
-    if mode is not None:
+    if mode != "":
         hdbg.dassert_in(mode, _VALID_CACHE_MODES)
     _GLOBAL_CACHE_MODE = mode
 
 
-def get_global_cache_mode() -> Optional[str]:
+def get_global_cache_mode() -> str:
     """
-    Return the process-wide default `cache_mode`, or `None` if unset.
+    Return the process-wide default `cache_mode`, or `""` if unset.
     """
     return _GLOBAL_CACHE_MODE
 
@@ -359,7 +360,7 @@ def get_cache_file_prefix() -> str:
 # Create global variable for S3 bucket.
 if "_S3_BUCKET" not in globals():
     _LOG.trace("Creating _S3_BUCKET")
-    _S3_BUCKET: Optional[str] = None
+    _S3_BUCKET: str = ""
 
 # Create global variable for S3 prefix.
 if "_S3_PREFIX" not in globals():
@@ -394,11 +395,11 @@ def set_s3_bucket(bucket: str) -> None:
     _LOG.trace("Setting _S3_BUCKET to %s", _S3_BUCKET)
 
 
-def get_s3_bucket() -> Optional[str]:
+def get_s3_bucket() -> str:
     """
     Get the S3 bucket for cache storage.
 
-    :return: S3 bucket name with s3:// prefix, or None if not configured
+    :return: S3 bucket name with s3:// prefix, or "" if not configured
     """
     return _S3_BUCKET
 
@@ -545,17 +546,18 @@ def _infer_cache_type_from_path(file_path: str) -> str:
 
 def _save_func_cache_data_to_file(
     file_name: str,
-    cache_type: Optional[str],
+    cache_type: str,
     func_cache_data: _FunctionCacheType,
 ) -> None:
     """
     Save the function cache data to a file.
 
     :param file_name: The name of the file.
+    :param cache_type: The cache type ("json", "pickle", or "" to infer).
     :param func_cache_data: The function cache data to save.
     """
     # Infer cache type from file extension if not set.
-    if cache_type is None:
+    if cache_type == "":
         cache_type = _infer_cache_type_from_path(file_name)
     hio.create_enclosing_dir(file_name, incremental=True)
     _LOG.trace("Saving to '%s'", file_name)
@@ -772,19 +774,19 @@ def _get_cache_file_name(func_name: str) -> str:
 
 def _list_s3_cached_func_names(
     bucket: str,
-    prefix: Optional[str],
+    prefix: str,
     aws_profile: str,
 ) -> List[str]:
     """
     List names of functions cached in S3 bucket.
 
     :param bucket: S3 bucket path (e.g., "s3://my-bucket")
-    :param prefix: S3 prefix path (e.g., "cache/shared")
+    :param prefix: S3 prefix path (e.g., "cache/shared"), or "" for none
     :param aws_profile: AWS profile name
     :return: names of functions cached in S3 bucket
     """
     # Build S3 directory path.
-    if prefix:
+    if prefix != "":
         s3_dir = f"{bucket}/{prefix}"
     else:
         s3_dir = bucket
@@ -808,7 +810,7 @@ def _list_s3_cached_func_names(
     return out
 
 
-def _check_s3_configured(func_name: Optional[str] = None) -> bool:
+def _check_s3_configured(func_name: str = "") -> bool:
     """
     Check if S3 is properly configured.
 
@@ -823,7 +825,7 @@ def _check_s3_configured(func_name: Optional[str] = None) -> bool:
             return True
     # Check if global bucket is defined.
     bucket = get_s3_bucket()
-    if bucket is None:
+    if bucket == "":
         _LOG.warning("S3 bucket not configured - use set_s3_bucket()")
         return False
     return True
@@ -1047,17 +1049,17 @@ def _save_cache_dict_to_disk(
 
 
 def _load_func_cache_data_from_file(
-    file_name: str, cache_type: Optional[str]
+    file_name: str, cache_type: str
 ) -> _FunctionCacheType:
     """
     Load the function cache data from a file.
 
     :param file_name: the name of the file
-    :param cache_type: the type of the cache
+    :param cache_type: the type of the cache ("json", "pickle", or "" to infer)
     :return: the function cache data
     """
     # Infer cache type from file extension if not set.
-    if cache_type is None:
+    if cache_type == "":
         cache_type = _infer_cache_type_from_path(file_name)
     # Load data.
     _LOG.trace("Loading from '%s'", file_name)
@@ -1116,8 +1118,7 @@ def _build_s3_cache_path_for_type(func_name: str, cache_type: str) -> str:
             bucket = f"s3://{bucket}"
     else:
         bucket = get_s3_bucket()
-    if bucket is None:
-        raise ValueError("S3 bucket not configured")
+    hdbg.dassert_ne(bucket, "", "S3 bucket not configured")
     # Check for per-function S3 prefix, otherwise use global.
     s3_prefix = get_cache_property(func_name, "s3_prefix")
     if not s3_prefix:
@@ -1158,8 +1159,7 @@ def _get_s3_cache_path(func_name: str) -> str:
             bucket = f"s3://{bucket}"
     else:
         bucket = get_s3_bucket()
-    if bucket is None:
-        raise ValueError("S3 bucket not configured")
+    hdbg.dassert_ne(bucket, "", "S3 bucket not configured")
     # Check for per-function S3 prefix, otherwise use global.
     s3_prefix = get_cache_property(func_name, "s3_prefix")
     if not s3_prefix:
@@ -1172,7 +1172,7 @@ def _get_s3_cache_path(func_name: str) -> str:
     return s3_path
 
 
-def _extract_func_name_from_cache_file(cache_file_name: str) -> Optional[str]:
+def _extract_func_name_from_cache_file(cache_file_name: str) -> str:
     """
     Extract function name from cache file name.
 
@@ -1180,13 +1180,13 @@ def _extract_func_name_from_cache_file(cache_file_name: str) -> Optional[str]:
 
     :param cache_file_name: the cache file name (e.g.,
         "cache.my_func.json")
-    :return: the function name, or None if pattern does not match
+    :return: the function name, or "" if pattern does not match
     """
     pattern = r"^(.+)\.([^\.]+)\.(?:json|pkl)$"
     match = re.match(pattern, cache_file_name)
     if match:
         return match.group(2)
-    return None
+    return ""
 
 
 def _upload_cache_to_s3(func_name: str) -> None:
@@ -1303,7 +1303,7 @@ def _download_cache_from_s3(func_name: str) -> bool:
 
 
 def cache_stats_to_str(
-    func_name: Optional[str] = "",
+    func_name: str = "",
 ) -> Optional["pd.DataFrame"]:  # noqa: F821
     """
     Print the cache stats.
@@ -1367,7 +1367,7 @@ def get_mem_cache(func_name: str) -> _FunctionCacheType:
     return mem_cache
 
 
-def flush_cache_to_disk(func_name: Optional[str] = "") -> None:
+def flush_cache_to_disk(func_name: str = "") -> None:
     """
     Flush the memory cache to disk and update the memory cache.
 
@@ -1420,7 +1420,7 @@ def push_cache_to_s3(func_name: str = "") -> None:
         _upload_cache_to_s3(func_name_tmp)
 
 
-def force_cache_from_disk(func_name: Optional[str] = "") -> None:
+def force_cache_from_disk(func_name: str = "") -> None:
     """
     Force loading the cache from disk and update the memory cache.
 
@@ -1584,7 +1584,7 @@ def get_cache(func_name: str) -> _FunctionCacheType:
 # Functions to reset cache (both memory and disk).
 
 
-def reset_mem_cache(func_name: Optional[str] = "") -> None:
+def reset_mem_cache(func_name: str = "") -> None:
     """
     Reset the memory cache for a given function.
 
@@ -1593,10 +1593,10 @@ def reset_mem_cache(func_name: Optional[str] = "") -> None:
     """
     _LOG.trace(hprint.func_signature_to_str())
     # Abort if clearing has been disabled via `enable_clear_cache(False)`.
-    if not _IS_CLEAR_CACHE_ENABLED:
-        raise RuntimeError(
-            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
-        )
+    hdbg.dassert(
+        _IS_CLEAR_CACHE_ENABLED,
+        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it",
+    )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1612,9 +1612,7 @@ def reset_mem_cache(func_name: Optional[str] = "") -> None:
         del _CACHE[func_name]
 
 
-def reset_disk_cache(
-    func_name: Optional[str] = "", interactive: bool = True
-) -> None:
+def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
     """
     Reset the disk cache for a given function name.
 
@@ -1633,10 +1631,10 @@ def reset_disk_cache(
     """
     _LOG.trace(hprint.func_signature_to_str())
     # Abort if clearing has been disabled via `enable_clear_cache(False)`.
-    if not _IS_CLEAR_CACHE_ENABLED:
-        raise RuntimeError(
-            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
-        )
+    hdbg.dassert(
+        _IS_CLEAR_CACHE_ENABLED,
+        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it",
+    )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1677,7 +1675,7 @@ def reset_disk_cache(
         os.remove(file_name)
 
 
-def reset_cache(func_name: Optional[str] = "", interactive: bool = True) -> None:
+def reset_cache(func_name: str = "", interactive: bool = True) -> None:
     """
     Reset both memory and disk cache for a given function.
 
@@ -1697,10 +1695,10 @@ def reset_cache(func_name: Optional[str] = "", interactive: bool = True) -> None
     """
     _LOG.trace(hprint.func_signature_to_str())
     # Abort if clearing has been disabled via `enable_clear_cache(False)`.
-    if not _IS_CLEAR_CACHE_ENABLED:
-        raise RuntimeError(
-            "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it"
-        )
+    hdbg.dassert(
+        _IS_CLEAR_CACHE_ENABLED,
+        "Cache clearing is disabled: call `enable_clear_cache(True)` to allow it",
+    )
     # Handle None as empty string.
     if func_name is None:
         func_name = ""
@@ -1834,10 +1832,10 @@ def simple_cache(
     cache_type: str = "json",
     write_through: bool = True,
     exclude_keys: Optional[List[str]] = None,
-    cache_dir: Optional[str] = None,
-    cache_prefix: Optional[str] = None,
-    s3_bucket: Optional[str] = None,
-    s3_prefix: Optional[str] = None,
+    cache_dir: str = "",
+    cache_prefix: str = "",
+    s3_bucket: str = "",
+    s3_prefix: str = "",
     aws_profile: str = "ck",
     auto_sync_s3: bool = False,
 ) -> Callable[..., Any]:
@@ -1906,16 +1904,16 @@ def simple_cache(
         )
         set_cache_property(func_name, "exclude_keys", exclude_keys_list)
         # Store per-function cache settings.
-        if cache_dir is not None:
+        if cache_dir:
             set_cache_property(func_name, "cache_dir", cache_dir)
-        if cache_prefix is not None:
+        if cache_prefix:
             set_cache_property(func_name, "cache_prefix", cache_prefix)
         # Store per-function S3 settings.
-        if s3_bucket is not None:
+        if s3_bucket:
             set_cache_property(func_name, "s3_bucket", s3_bucket)
-        if s3_prefix is not None:
+        if s3_prefix:
             set_cache_property(func_name, "s3_prefix", s3_prefix)
-        if aws_profile is not None:
+        if aws_profile:
             set_cache_property(func_name, "aws_profile", aws_profile)
         set_cache_property(func_name, "auto_sync_s3", auto_sync_s3)
 
@@ -1982,7 +1980,7 @@ def simple_cache(
                 cache_mode = _GLOBAL_CACHE_MODE
             # `cache_mode` is a special keyword argument to control caching
             # behavior.
-            if cache_mode is not None:
+            if cache_mode != "":
                 _LOG.trace("cache_mode=%s", cache_mode)
                 if cache_mode == "REFRESH_CACHE":
                     # Force to refresh the cache.
@@ -2030,19 +2028,22 @@ def simple_cache(
                 # support it, the hash would need to be stored per cache entry
                 # (inside the JSON/pickle file alongside the value) rather than
                 # as a single per-function property.
-                stored_hash = get_cache_property(func_name, "func_hash")
-                if stored_hash:
-                    current_hash = _compute_func_hash(func)
-                    if current_hash != stored_hash:
-                        _LOG.warning(
-                            "Function '%s' source code has changed since "
-                            "this value was cached (stored_hash=%s, "
-                            "current_hash=%s). Clear the cache manually "
-                            "if you need fresh results.",
-                            func_name,
-                            stored_hash,
-                            current_hash,
-                        )
+                # TODO(gp): If the func hash has changed, the cache should be
+                # invalidated.
+                # TODO(gp): This warning should print only once.
+                # stored_hash = get_cache_property(func_name, "func_hash")
+                # if stored_hash:
+                #     current_hash = _compute_func_hash(func)
+                #     if current_hash != stored_hash:
+                #         _LOG.warning(
+                #             "Function '%s' source code has changed since "
+                #             "this value was cached (stored_hash=%s, "
+                #             "current_hash=%s). Clear the cache manually "
+                #             "if you need fresh results.",
+                #             func_name,
+                #             stored_hash,
+                #             current_hash,
+                #         )
             else:
                 _LOG.trace("Cache miss for key='%s'", cache_key)
                 # Update the performance stats.
@@ -2101,6 +2102,15 @@ def simple_cache(
                             "Auto-syncing cache to S3 for '%s'", func_name
                         )
                         _upload_cache_to_s3(func_name)
+                # Print info about the cache.
+                cache_file = _get_cache_file_name(func_name)
+                cache_type = get_cache_property(func_name, "type")
+                _LOG.debug(
+                    "Allocating cache for '%s': file='%s' type='%s'",
+                    func_name,
+                    cache_file,
+                    cache_type,
+                )
             return value
 
         return wrapper
@@ -2126,10 +2136,10 @@ def add_cache_control_arg(
     parser.add_argument(
         "--cache_mode",
         action="store",
-        default=None,
+        default="",
         choices=list(_VALID_CACHE_MODES),
         help=(
-            "Override cache behavior for all @simple_cache functions. "
+            "Override cache behavior for all cache functions. "
             "REFRESH_CACHE repopulates, DISABLE_CACHE bypasses, "
             "HIT_CACHE_OR_ABORT raises on miss."
         ),
@@ -2138,7 +2148,7 @@ def add_cache_control_arg(
         "--cache_debug",
         action="store_true",
         help=(
-            "Log at WARNING level for every @simple_cache call whether the "
+            "Log at WARNING level for every cache call whether the "
             "result was served from cache, computed on miss, or recomputed "
             "because of `cache_mode`"
         ),
@@ -2148,8 +2158,7 @@ def add_cache_control_arg(
 
 def parse_cache_control_args(args: argparse.Namespace) -> None:
     """
-    Apply `--cache_mode`,  `--cache_debug` by setting the process-wide
-    globals.
+    Apply `--cache_mode`, `--cache_debug` by setting the process-wide globals.
     """
     mode = getattr(args, "cache_mode", None)
     if mode is not None:

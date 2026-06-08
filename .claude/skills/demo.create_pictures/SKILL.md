@@ -1,5 +1,6 @@
 ---
 description: Generate image prompts for each slide in a storyboard and create a demo_images.md file
+model: haiku
 ---
 
 # Step 1)

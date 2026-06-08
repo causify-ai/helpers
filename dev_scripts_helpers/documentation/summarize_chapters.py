@@ -101,7 +101,7 @@ def _summarize_file(
     output_file: str,
     *,
     model: str,
-    use_llm_executable: bool = False,
+    backend: str = "library",
     lint: bool = False,
 ) -> None:
     """
@@ -113,7 +113,7 @@ def _summarize_file(
     :param input_file: path to input markdown file
     :param output_file: path to output markdown file
     :param model: LLM model name to use
-    :param use_llm_executable: if True, use llm CLI executable
+    :param backend: backend to use ("executable", "library", or "mock")
     :param lint: if True, run lint_txt.py on the output file
     """
     _LOG.debug("Summarizing file: %s", input_file)
@@ -128,7 +128,7 @@ def _summarize_file(
         input_str=input_content,
         system_prompt=system_prompt,
         model=model,
-        use_llm_executable=use_llm_executable,
+        backend=backend,
     )
     _LOG.debug("LLM processing completed with cost: $%.6f", cost)
     # Write the summarized content to the output file.
@@ -149,6 +149,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
     hseinout.add_input_output_args(parser, in_required=False, out_required=False)
+    # TODO(gp): Use the factored out parser code.
     parser.add_argument(
         "--model",
         action="store",
@@ -156,9 +157,11 @@ def _parse() -> argparse.ArgumentParser:
         help="LLM model to use (default: gpt-4o)",
     )
     parser.add_argument(
-        "--use_llm_executable",
-        action="store_true",
-        help="Use llm CLI executable instead of Python library",
+        "--backend",
+        type=str,
+        default="library",
+        choices=["executable", "library", "mock"],
+        help="LLM backend to use: 'executable' (CLI), 'library' (Python), or 'mock' (testing)",
     )
     parser.add_argument(
         "--lint",
@@ -188,7 +191,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 input_file,
                 output_file,
                 model=args.model,
-                use_llm_executable=args.use_llm_executable,
+                backend=args.backend,
                 lint=args.lint,
             )
     else:
@@ -200,7 +203,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             in_file_name,
             out_file_name,
             model=args.model,
-            use_llm_executable=args.use_llm_executable,
+            backend=args.backend,
             lint=args.lint,
         )
     _LOG.info("Done")

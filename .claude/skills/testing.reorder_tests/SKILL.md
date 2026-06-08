@@ -1,5 +1,6 @@
 ---
 description: Reorganize the test classes to match the order of the code they test
+model: haiku
 ---
 
 - I will pass you a file with unit tests `<test/test_<filename>.py>`

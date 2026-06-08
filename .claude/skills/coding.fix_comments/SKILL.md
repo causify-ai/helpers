@@ -1,5 +1,6 @@
 ---
 description: Update docstrings and comments in a Python file without changing logic
+model: haiku
 ---
 
 - Given the passed Python file

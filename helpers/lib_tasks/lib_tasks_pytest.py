@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks.lib_tasks_pytest as hlitapyt
+import helpers.lib_tasks.lib_tasks_pytest as hltltapy
 """
 
 import json
@@ -25,9 +25,9 @@ import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htraceback as htraceb
-import helpers.lib_tasks.lib_tasks_docker as hlitadoc
-import helpers.lib_tasks.lib_tasks_lint as hlitalin
-import helpers.lib_tasks.lib_tasks_utils as hlitauti
+import helpers.lib_tasks.lib_tasks_docker as hltltado
+import helpers.lib_tasks.lib_tasks_lint as hltltali
+import helpers.lib_tasks.lib_tasks_utils as hltltaut
 import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
@@ -75,11 +75,11 @@ def run_blank_tests(ctx, stage="dev", version=""):  # type: ignore
     """
     (ONLY CI/CD) Test that pytest in the container works.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     _ = ctx
     base_image = ""
     cmd = '"pytest -h >/dev/null"'
-    docker_cmd_ = hlitadoc._get_docker_compose_cmd(
+    docker_cmd_ = hltltado._get_docker_compose_cmd(
         base_image, stage, version, cmd
     )
     hsystem.system(docker_cmd_, abort_on_error=False, suppress_output=False)
@@ -239,7 +239,7 @@ def _run_test_cmd(
     """
     if collect_only:
         # Clean files.
-        hlitauti.run(ctx, "rm -rf ./.coverage*")
+        hltltaut.run(ctx, "rm -rf ./.coverage*")
     # Run.
     base_image = ""
     # We need to add some " to pass the string as it is to the container.
@@ -248,13 +248,13 @@ def _run_test_cmd(
     # exposing port 5432 on localhost (of the server), when running dind we
     # need to switch back to bridge. See CmTask988.
     extra_env_vars = ["NETWORK_MODE=bridge"]
-    docker_cmd_ = hlitadoc._get_docker_compose_cmd(
+    docker_cmd_ = hltltado._get_docker_compose_cmd(
         base_image, stage, version, cmd, extra_env_vars=extra_env_vars
     )
     _LOG.info("cmd=%s", docker_cmd_)
     # We can't use `hsystem.system()` because of buffering of the output,
     # losing formatting and so on, so we stick to executing through `ctx`.
-    rc: Optional[int] = hlitadoc._docker_cmd(
+    rc: Optional[int] = hltltado._docker_cmd(
         ctx, docker_cmd_, skip_pull=skip_pull, **ctx_run_kwargs
     )
     # Print message about coverage.
@@ -314,7 +314,7 @@ def _run_tests(
     """
     if git_clean_:
         cmd = "invoke git_clean --fix-perms"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
     # Build the command line.
     cmd = _build_run_command_line(
         test_list_name,
@@ -500,7 +500,7 @@ def run_fast_tests(  # type: ignore
         plugin will be installed on-the-fly and results will be generated
         and saved to the specified directory
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     hdbg.dassert(
         not (run_only_test_list and skip_test_list),
         "You can't specify both --run_only_test_list and --skip_test_list",
@@ -551,7 +551,7 @@ def run_slow_tests(  # type: ignore
 
     Same params as `invoke run_fast_tests`.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     test_list_name = "slow_tests"
     # Convert cmd line marker lists to a pytest marker list.
     custom_marker = _get_custom_marker(
@@ -598,7 +598,7 @@ def run_superslow_tests(  # type: ignore
 
     Same params as `invoke run_fast_tests`.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     test_list_name = "superslow_tests"
     # Convert cmd line marker lists to a pytest marker list.
     custom_marker = _get_custom_marker(
@@ -643,7 +643,7 @@ def run_fast_slow_tests(  # type: ignore
 
     Same params as `invoke run_fast_tests`.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Run fast tests but do not fail on error.
     test_lists = "fast_tests,slow_tests"
     custom_marker = ""
@@ -686,7 +686,7 @@ def run_fast_slow_superslow_tests(  # type: ignore
 
     Same params as `invoke run_fast_tests`.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Run fast tests but do not fail on error.
     test_lists = "fast_tests,slow_tests,superslow_tests"
     custom_marker = ""
@@ -721,9 +721,9 @@ def run_qa_tests(  # type: ignore
     :param version: version to tag the image and code with
     :param stage: select a specific stage for the Docker image
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     #
-    qa_test_fn = hlitauti.get_default_param("QA_TEST_FUNCTION")
+    qa_test_fn = hltltaut.get_default_param("QA_TEST_FUNCTION")
     # Run the call back function.
     rc = qa_test_fn(ctx, stage, version)
     if not rc:
@@ -839,13 +839,13 @@ def run_coverage_report(  # type: ignore
     # TODO(Grisha): allow user to specify which tests to run.
     # Run fast tests for the target dir and collect coverage results.
     fast_tests_cmd = f"invoke run_fast_tests --coverage -p {target_dir}"
-    hlitauti.run(ctx, fast_tests_cmd, use_system=False)
+    hltltaut.run(ctx, fast_tests_cmd, use_system=False)
     fast_tests_coverage_file = ".coverage_fast_tests"
     create_fast_tests_file_cmd = f"mv .coverage {fast_tests_coverage_file}"
     hsystem.system(create_fast_tests_file_cmd)
     # Run slow tests for the target dir and collect coverage results.
     slow_tests_cmd = f"invoke run_slow_tests --coverage -p {target_dir}"
-    hlitauti.run(ctx, slow_tests_cmd, use_system=False)
+    hltltaut.run(ctx, slow_tests_cmd, use_system=False)
     slow_tests_coverage_file = ".coverage_slow_tests"
     create_slow_tests_file_cmd = f"mv .coverage {slow_tests_coverage_file}"
     hsystem.system(create_slow_tests_file_cmd)
@@ -894,7 +894,7 @@ def run_coverage_report(  # type: ignore
     # installed outside docker.
     full_report_cmd = " && ".join(report_cmd)
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
-    hlitauti.run(ctx, docker_cmd_)
+    hltltaut.run(ctx, docker_cmd_)
     if publish_html_on_s3:
         # Publish HTML report on S3.
         _publish_html_coverage_report_on_s3(aws_profile)
@@ -965,9 +965,9 @@ def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):  # typ
         "-p",
         target_dir,
     ]
-    test_cmd = hlitauti.to_multi_line_cmd(test_cmd_parts)
+    test_cmd = hltltaut.to_multi_line_cmd(test_cmd_parts)
     # Run the tests under coverage.
-    hlitauti.run(ctx, test_cmd, use_system=False)
+    hltltaut.run(ctx, test_cmd, use_system=False)
     hdbg.dassert_file_exists(".coverage")
     # Compute which files/dirs to include and omit in the report.
     include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
@@ -992,7 +992,7 @@ def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):  # typ
     report_cmd.append("coverage xml -o coverage.xml")
     full_report_cmd = " && ".join(report_cmd)
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
-    hlitauti.run(ctx, docker_cmd_)
+    hltltaut.run(ctx, docker_cmd_)
 
 
 @task
@@ -1020,7 +1020,7 @@ def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False):  #
         coverage_cmd = ["coverage", "run", "--parallel-mode", "-m", "pytest"]
         # Add target directory.
         coverage_cmd.append(target_dir)
-        test_cmd = hlitauti.to_multi_line_cmd(coverage_cmd)
+        test_cmd = hltltaut.to_multi_line_cmd(coverage_cmd)
         _LOG.debug("About to run command: {test_cmd}")
         # Run tests with coverage tracking directly.
         hsystem.system(test_cmd, abort_on_error=True)
@@ -1087,7 +1087,7 @@ def traceback(ctx, log_name="tmp.pytest_script.txt", purify=True):  # type: igno
     :param log_name: the file with the traceback
     :param purify: purify the filenames from client (e.g., from running inside Docker)
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     #
     dst_cfile = "cfile"
     hio.delete_file(dst_cfile)
@@ -1103,11 +1103,11 @@ def traceback(ctx, log_name="tmp.pytest_script.txt", purify=True):  # type: igno
     else:
         cmd.append("--no_purify_from_client")
     cmd = " ".join(cmd)
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
     # Read and navigate the cfile with vim.
     if os.path.exists(dst_cfile):
         cmd = 'vim -c "cfile cfile"'
-        hlitauti.run(ctx, cmd, pty=True)
+        hltltaut.run(ctx, cmd, pty=True)
     else:
         _LOG.warning("Can't find %s", dst_cfile)
 
@@ -1122,7 +1122,7 @@ def pytest_clean(ctx):  # type: ignore
     """
     Clean pytest artifacts.
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     _ = ctx
     import helpers.hpytest as hpytest
 
@@ -1193,7 +1193,7 @@ def pytest_repro(  # type: ignore
     :param create_script: create a script to run the tests
     :return: commands to reproduce pytest failures at the requested granularity level
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     _ = ctx
     # Read file.
     _LOG.info("Reading file_name='%s'", file_name)
@@ -1341,7 +1341,7 @@ def pytest_rename_test(ctx, old_test_class_name, new_test_class_name):  # type: 
     :param old_test_class_name: old class name
     :param new_test_class_name: new class name
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     _ = ctx
     root_dir = os.getcwd()
     # `lib_tasks` is used from outside the Docker container in the thin dev
@@ -1378,11 +1378,11 @@ def pytest_find_unused_goldens(  # type: ignore
 
     :param dir_name: the head dir to start the check from
     """
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Remove the log file.
     if os.path.exists(out_file_name):
         cmd = f"rm {out_file_name}"
-        hlitauti.run(ctx, cmd)
+        hltltaut.run(ctx, cmd)
     # Prepare the command line.
     amp_abs_path = hgit.get_amp_abs_path()
     amp_path = amp_abs_path.replace(
@@ -1392,15 +1392,15 @@ def pytest_find_unused_goldens(  # type: ignore
         amp_path, "dev_scripts/find_unused_golden_files.py"
     ).lstrip("/")
     docker_cmd_opts = [f"--dir_name {dir_name}"]
-    docker_cmd_ = f"{script_path} " + hlitauti._to_single_line_cmd(
+    docker_cmd_ = f"{script_path} " + hltltaut._to_single_line_cmd(
         docker_cmd_opts
     )
     # Execute command line.
     base_image = ""
-    cmd = hlitalin._get_lint_docker_cmd(base_image, docker_cmd_, stage, version)
+    cmd = hltltali._get_lint_docker_cmd(base_image, docker_cmd_, stage, version)
     cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}"
     # Run.
-    hlitauti.run(ctx, cmd)
+    hltltaut.run(ctx, cmd)
 
 
 # #############################################################################
@@ -1471,7 +1471,7 @@ def pytest_compare_logs(  # type: ignore
     script_txt = f"vimdiff {file1_tmp} {file2_tmp}"
     msg = "To diff run:"
     hio.create_executable_script(script_file_name, script_txt, msg=msg)
-    hlitauti.run(ctx, script_file_name, dry_run=dry_run, pty=True)
+    hltltaut.run(ctx, script_file_name, dry_run=dry_run, pty=True)
 
 
 # #############################################################################
@@ -1676,7 +1676,10 @@ def _parse_failed_tests(
     failed_tests = []
     num_failed = num_passed = 0
     for line in txt.split("\n"):
-        # Remove non printable characters.
+        _LOG.debug("line=%s", line)
+        # Remove ANSI color codes (both ESC-based and bracket notation).
+        line = re.sub(r"\x1b\[[0-9;]*m|\[[0-9;]*m", "", line)
+        # Remove other non-printable characters.
         line = re.sub(r"[^\x20-\x7E]", "", line)
         # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
         m = re.search(r"^(FAILED|ERROR) (\S+) -", line)
@@ -1725,10 +1728,12 @@ def pytest_failed(
     ctx, only_file=False, only_class=False, file_name="tmp.pytest_script.txt"
 ):  # type: ignore
     _ = ctx
-    hlitauti.report_task()
+    hltltaut.report_task()
     # Read file.
+    _LOG.info("Reading %s", file_name)
     txt = hio.from_file(file_name)
     # Extract info.
+    _LOG.info("Parsing %s", file_name)
     failed_tests, _, _ = _parse_failed_tests(txt, only_file, only_class)
     print("\n".join(failed_tests))
     # Write the repro in a file.

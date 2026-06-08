@@ -1,10 +1,18 @@
+import abc
 import logging
+import json
 import os
+from typing import Optional
 
+import pandas as pd
+import pytest
+
+import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hmarkdown_formatting as hmarform
 import helpers.hprint as hprint
+import helpers.htimer as htimer
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -16,72 +24,109 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
+    """
+    Test the remove_end_of_line_periods function.
+    """
+
     def helper(self, input_text: str, expected_text: str) -> None:
-        # Prepare inputs.
+        """
+        Test helper for remove_end_of_line_periods.
+
+        :param input_text: Input text with potential periods at end of lines
+        :param expected_text: Expected text after removing end-of-line periods
+        """
         input_text = hprint.dedent(input_text).strip()
         expected_text = hprint.dedent(expected_text).strip()
         lines = input_text.split("\n")
-        # Run test.
         actual_lines = hmarform.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
-        # Check outputs.
         self.assertEqual(actual, expected_text)
 
-    def test_standard_case(self) -> None:
+    def test1(self) -> None:
+        """
+        Test standard case with periods at end of lines.
+        """
+        # Prepare inputs.
         input_text = """
         Hello.
         World.
         This is a test.
         """
+        # Prepare outputs.
         expected_text = """
         Hello
         World
         This is a test
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_no_periods(self) -> None:
+    def test2(self) -> None:
+        """
+        Test input without periods.
+        """
+        # Prepare inputs.
         input_text = """
         Hello
         World
         This is a test
         """
+        # Prepare outputs.
         expected_text = """
         Hello
         World
         This is a test
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_multiple_periods(self) -> None:
+    def test3(self) -> None:
+        """
+        Test multiple periods at end of lines.
+        """
+        # Prepare inputs.
         input_text = """
         Line 1.....
         Line 2.....
         End.
         """
+        # Prepare outputs.
         expected_text = """
         Line 1
         Line 2
         End
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_empty_string(self) -> None:
+    def test4(self) -> None:
+        """
+        Test empty string input.
+        """
+        # Prepare inputs.
         input_text = ""
+        # Prepare outputs.
         expected_text = ""
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_leading_and_trailing_periods(self) -> None:
+    def test5(self) -> None:
+        """
+        Test leading and trailing periods.
+        """
+        # Prepare inputs.
         input_text = """
         .Line 1.
         .Line 2.
         ..End..
         """
+        # Prepare outputs.
         expected_text = """
         .Line 1
         .Line 2
         ..End
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
 
@@ -91,7 +136,14 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
 
 
 class Test_md_clean_up1(hunitest.TestCase):
+    """
+    Test the md_clean_up function.
+    """
+
     def test1(self) -> None:
+        """
+        Test markdown cleanup with LaTeX math expressions.
+        """
         # Prepare inputs.
         txt = r"""
         **States**:
@@ -158,53 +210,56 @@ class Test_md_clean_up1(hunitest.TestCase):
 
 
 class Test_remove_code_delimiters1(hunitest.TestCase):
+    """
+    Test the remove_code_delimiters function.
+    """
+
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Test helper for remove_code_delimiters.
+
+        :param content: Input content with code delimiters
+        :param expected: Expected output after removing delimiters
+        """
+        content = hprint.dedent(content)
+        lines = content.split("\n")
+        actual_lines = hmarform.remove_code_delimiters(lines)
+        actual = "\n".join(actual_lines)
+        self.assert_equal(actual, expected, dedent=True)
+
     def test1(self) -> None:
         """
-        Test a basic example.
+        Test basic code block removal.
         """
-        # Prepare inputs.
         content = r"""
         ```python
         def hello_world():
             print("Hello, World!")
         ```
         """
-        content = hprint.dedent(content)
-        lines = content.split("\n")
-        # Call function.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check output.
         expected = r"""
         def hello_world():
             print("Hello, World!")
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
     def test2(self) -> None:
         """
-        Test an example with empty lines at the start and end.
+        Test code block with empty lines at start and end.
         """
-        # Prepare inputs.
         in_dir_name = self.get_input_dir()
         input_file_path = os.path.join(in_dir_name, "test.txt")
         content = hio.from_file(input_file_path)
-        lines = content.split("\n")
-        # Call function.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check output.
         expected = r"""
         def check_empty_lines():
             print("Check empty lines are present!")
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
     def test3(self) -> None:
         """
-        Test a markdown with headings, Python and yaml blocks.
+        Test markdown with headings, Python and YAML blocks.
         """
-        # Prepare inputs.
         content = r"""
         # Section 1
 
@@ -232,12 +287,6 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         - Sustainable solutions
         ```
         """
-        content = hprint.dedent(content)
-        lines = content.split("\n")
-        # Call function.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check output.
         expected = r"""
         # Section 1
 
@@ -265,11 +314,11 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         - Sustainable solutions
 
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
     def test4(self) -> None:
         """
-        Test another markdown with headings and multiple indent Python blocks.
+        Test markdown with multiple indented Python blocks.
         """
         # Prepare inputs.
         in_dir_name = self.get_input_dir()
@@ -277,39 +326,27 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hio.from_file(input_file_path)
         content = hprint.dedent(content)
         lines = content.split("\n")
-        # Call function.
+        # Run test.
         actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
-        # Check output.
-        self.check_string(actual, dedent=True)
+        # Check outputs.
+        self.check_string(actual)
 
     def test5(self) -> None:
         """
-        Test an empty string.
+        Test empty string input.
         """
-        # Prepare inputs.
         content = ""
-        lines = content.split("\n") if content else []
-        # Call function.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check output.
         expected = ""
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
     def test6(self) -> None:
         """
-        Test a Python and immediate markdown code block.
+        Test Python and markdown code block together.
         """
-        # Prepare inputs.
         in_dir_name = self.get_input_dir()
         input_file_path = os.path.join(in_dir_name, "test.txt")
         content = hio.from_file(input_file_path)
-        lines = content.split("\n")
-        # Call function.
-        actual_lines = hmarform.remove_code_delimiters(lines)
-        actual = "\n".join(actual_lines)
-        # Check output.
         expected = r"""
         def no_start_python():
             print("No mention of python at the start")
@@ -319,7 +356,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
             A markdown paragraph contains
             delimiters that needs to be removed.
         """
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(content, expected)
 
 
 # #############################################################################
@@ -328,13 +365,20 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 
 
 class Test_format_markdown_slide(hunitest.TestCase):
+    """
+    Test the format_markdown_slide function.
+    """
+
     def helper(self, input_text: str, expected_text: str) -> None:
-        # Prepare inputs.
+        """
+        Test helper for format_markdown_slide.
+
+        :param input_text: Input markdown with slide markup
+        :param expected_text: Expected formatted output
+        """
         lines = hprint.dedent(input_text).strip().split("\n")
-        # Run test.
         actual = hmarform.format_markdown_slide(lines)
         actual = "\n".join(actual)
-        # Check outputs.
         expected = hprint.dedent(expected_text).strip()
         _LOG.debug("actual=\n%s", actual)
         _LOG.debug("expected=\n%s", expected)
@@ -342,13 +386,15 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test formatting a simple slide with bullets.
+        Test simple slide with bullets.
         """
+        # Prepare inputs.
         input_text = """
         * Slide title
         - First bullet
         - Second bullet
         """
+        # Prepare outputs.
         expected_text = """
         * Slide Title
 
@@ -356,12 +402,14 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
         - Second bullet
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
     def test2(self) -> None:
         """
-        Test formatting multiple slides.
+        Test multiple slides.
         """
+        # Prepare inputs.
         input_text = """
         * First slide
         - Point A
@@ -370,6 +418,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         - Point X
         - Point Y
         """
+        # Prepare outputs.
         expected_text = """
         * First Slide
 
@@ -382,12 +431,14 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
         - Point Y
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
     def test3(self) -> None:
         """
-        Test formatting slides with nested bullets.
+        Test slides with nested bullets.
         """
+        # Prepare inputs.
         input_text = """
         * Main slide
         - First level
@@ -395,6 +446,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
           - Another nested
         - Second level
         """
+        # Prepare outputs.
         expected_text = """
         * Main Slide
 
@@ -404,51 +456,60 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
         - Second level
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
     def test4(self) -> None:
         """
-        Test formatting empty input.
+        Test empty input.
         """
         # Prepare inputs.
         input_text = """
         """
-        # Check outputs.
+        # Prepare outputs.
         expected_text = """
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
     def test5(self) -> None:
         """
-        Test formatting slide title capitalization.
+        Test slide title capitalization.
         """
+        # Prepare inputs.
         input_text = """
         * mixed case slide title
         - Point one
         """
+        # Prepare outputs.
         expected_text = """
         * Mixed Case Slide Title
 
         - Point one
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
     def test6(self) -> None:
         """
-        Test formatting slide with only title, no bullet points.
+        Test slide with only title, no bullets.
         """
+        # Prepare inputs.
         input_text = """
         * Solo slide title
         """
+        # Prepare outputs.
         expected_text = """
         * Solo Slide Title
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
     def test7(self) -> None:
         """
-        Test formatting slide with deeply nested bullets.
+        Test slide with deeply nested bullets.
         """
+        # Prepare inputs.
         input_text = """
         * Main slide
         - Level 1
@@ -457,6 +518,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
               - Level 4
         - Back to level 1
         """
+        # Prepare outputs.
         expected_text = """
         * Main Slide
 
@@ -467,12 +529,14 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
         - Back to level 1
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
     def test8(self) -> None:
         """
-        Test formatting slide with nested bullets and special formatting.
+        Test slide with nested bullets and special formatting.
         """
+        # Prepare inputs.
         input_text = r"""
         * What Are Data Analytics?
         - **Collections of data**
@@ -497,6 +561,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
           - E.g., predictive model to anticipate customer churn based on behavioral data
         """
+        # Prepare outputs.
         expected_text = r"""
         * What Are Data Analytics?
 
@@ -520,12 +585,14 @@ class Test_format_markdown_slide(hunitest.TestCase):
           - Statistical representations to forecast, explain phenomena
           - E.g., predictive model to anticipate customer churn based on behavioral data
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
     def test9(self) -> None:
         """
-        This reproduces a broken behavior of prettier with fenced divs.
+        Test prettier div blocks behavior.
         """
+        # Prepare inputs.
         input_text = r"""
         * Incremental vs Iterative
         ::: columns
@@ -565,6 +632,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         ::::
         :::
         """
+        # Prepare outputs.
         expected_text = r"""
         * Incremental vs Iterative
         ::: columns
@@ -595,6 +663,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         ::::
         :::
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
 
@@ -604,17 +673,24 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
 
 class Test_format_figures(hunitest.TestCase):
+    """
+    Test the format_figures function.
+    """
+
     def helper(self, input_text: str, expected_text: str) -> None:
-        # Prepare inputs.
+        """
+        Test helper for format_figures.
+
+        :param input_text: Input markdown text with figures
+        :param expected_text: Expected formatted output
+        """
         lines = hprint.dedent(input_text).strip().split("\n")
-        # Run test.
         actual_lines = hmarform.format_figures(lines)
         actual = "\n".join(actual_lines)
-        # Check outputs.
         expected = hprint.dedent(expected_text).strip()
         self.assert_equal(actual, expected)
 
-    def test_basic_text_with_figures(self) -> None:
+    def test1(self) -> None:
         """
         Test converting basic text with figures to column format.
         """
@@ -656,10 +732,11 @@ class Test_format_figures(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_no_figures_no_change(self) -> None:
+    def test2(self) -> None:
         """
-        Test that text without figures remains unchanged.
+        Test text without figures remains unchanged.
         """
+        # Prepare inputs.
         input_text = """
         - **Row-based DBs**
           - E.g., MySQL, Postgres
@@ -668,6 +745,7 @@ class Test_format_figures(hunitest.TestCase):
           - E.g., Amazon Redshift, Snowflake
           - Better data compression
         """
+        # Prepare outputs.
         expected_text = """
         - **Row-based DBs**
           - E.g., MySQL, Postgres
@@ -676,12 +754,14 @@ class Test_format_figures(hunitest.TestCase):
           - E.g., Amazon Redshift, Snowflake
           - Better data compression
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_already_in_columns_format_no_change(self) -> None:
+    def test3(self) -> None:
         """
-        Test that text already in columns format remains unchanged.
+        Test text already in columns format remains unchanged.
         """
+        # Prepare inputs.
         input_text = """
         ::: columns
         :::: {.column width=65%}
@@ -693,6 +773,7 @@ class Test_format_figures(hunitest.TestCase):
         ::::
         :::
         """
+        # Prepare outputs.
         expected_text = """
         ::: columns
         :::: {.column width=65%}
@@ -704,12 +785,14 @@ class Test_format_figures(hunitest.TestCase):
         ::::
         :::
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_single_figure(self) -> None:
+    def test4(self) -> None:
         """
         Test converting text with a single figure.
         """
+        # Prepare inputs.
         input_text = """
         - **Important concept**
           - This is the main point
@@ -717,6 +800,7 @@ class Test_format_figures(hunitest.TestCase):
 
         ![](path/to/image.png)
         """
+        # Prepare outputs.
         expected_text = """
         ::: columns
         :::: {.column width=65%}
@@ -730,12 +814,14 @@ class Test_format_figures(hunitest.TestCase):
         ::::
         :::
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_mixed_content_with_figures(self) -> None:
+    def test5(self) -> None:
         """
         Test converting mixed content including text and figures.
         """
+        # Prepare inputs.
         input_text = """
         ## Section header
 
@@ -754,6 +840,7 @@ class Test_format_figures(hunitest.TestCase):
 
         ![](image2.png)
         """
+        # Prepare outputs.
         expected_text = """
         ::: columns
         :::: {.column width=65%}
@@ -778,20 +865,25 @@ class Test_format_figures(hunitest.TestCase):
         ::::
         :::
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_empty_input(self) -> None:
+    def test6(self) -> None:
         """
-        Test that empty input returns empty output.
+        Test empty input returns empty output.
         """
+        # Prepare inputs.
         input_text = ""
+        # Prepare outputs.
         expected_text = ""
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_with_slide_title(self) -> None:
+    def test7(self) -> None:
         """
-        Test that slide title is left unchanged.
+        Test slide title is left unchanged.
         """
+        # Prepare inputs.
         input_text = """
         * VCS: How to Track Data
 
@@ -804,6 +896,7 @@ class Test_format_figures(hunitest.TestCase):
 
         ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
         """
+        # Prepare outputs.
         expected_text = """
         * VCS: How to Track Data
         ::: columns
@@ -821,6 +914,7 @@ class Test_format_figures(hunitest.TestCase):
         ::::
         :::
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
 
@@ -830,7 +924,17 @@ class Test_format_figures(hunitest.TestCase):
 
 
 class Test_format_md_links_to_latex_format(hunitest.TestCase):
+    """
+    Test the format_md_links_to_latex_format function.
+    """
+
     def helper(self, input_text: str, expected_text: str) -> None:
+        """
+        Test helper for format_md_links_to_latex_format.
+
+        :param input_text: Input markdown with links
+        :param expected_text: Expected formatted output
+        """
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
@@ -840,21 +944,18 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         expected = hprint.dedent(expected_text).strip()
         self.assert_equal(actual, expected)
 
-    # =========================================================================
-    # Edge cases.
-    # =========================================================================
-
-    def test_empty_input(self) -> None:
+    def test1(self) -> None:
         """
         Test empty input.
         """
         # Prepare inputs.
         input_text = ""
+        # Prepare outputs.
         expected_text = ""
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_no_links(self) -> None:
+    def test2(self) -> None:
         """
         Test content without any links.
         """
@@ -866,6 +967,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         - No links here
         - Just plain content
         """
+        # Prepare outputs.
         expected_text = """
         # Important Notes
 
@@ -876,11 +978,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Plain URL conversion: http://... or https://...
-    # =========================================================================
-
-    def test_plain_http_url(self) -> None:
+    def test3(self) -> None:
         """
         Test converting single plain HTTP URL.
         """
@@ -888,13 +986,14 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         input_text = """
         Visit http://example.com
         """
+        # Prepare outputs.
         expected_text = r"""
         Visit [\textcolor{blue}{\underline{http://example.com}}](http://example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_https_url(self) -> None:
+    def test4(self) -> None:
         """
         Test converting single plain HTTPS URL.
         """
@@ -902,13 +1001,14 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         input_text = """
         Visit https://example.com
         """
+        # Prepare outputs.
         expected_text = r"""
         Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_with_path(self) -> None:
+    def test5(self) -> None:
         """
         Test converting plain URLs with paths.
         """
@@ -922,7 +1022,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_with_query_parameters(self) -> None:
+    def test6(self) -> None:
         """
         Test converting plain URL with query parameters.
         """
@@ -936,7 +1036,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_with_fragment(self) -> None:
+    def test7(self) -> None:
         """
         Test converting plain URL with fragment.
         """
@@ -950,7 +1050,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_at_line_start(self) -> None:
+    def test8(self) -> None:
         """
         Test plain URL at beginning of line.
         """
@@ -964,7 +1064,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_plain_url_at_line_end(self) -> None:
+    def test9(self) -> None:
         """
         Test plain URL at end of line.
         """
@@ -978,11 +1078,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # URL in backticks conversion: `http://...` or `https://...`
-    # =========================================================================
-
-    def test_backtick_url(self) -> None:
+    def test10(self) -> None:
         """
         Test converting single URL in backticks.
         """
@@ -996,11 +1092,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Markdown link conversion: [Text](URL)
-    # =========================================================================
-
-    def test_markdown_link_simple(self) -> None:
+    def test11(self) -> None:
         """
         Test converting simple markdown link [Text](URL).
         """
@@ -1014,7 +1106,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_markdown_link_preserves_text(self) -> None:
+    def test12(self) -> None:
         """
         Test that markdown link preserves the display text.
         """
@@ -1028,11 +1120,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Email link conversion: [email@domain.com](email@domain.com)
-    # =========================================================================
-
-    def test_email_link_simple1(self) -> None:
+    def test13(self) -> None:
         """
         Test converting simple email link.
         """
@@ -1046,7 +1134,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_email_link_simple2(self) -> None:
+    def test14(self) -> None:
         """
         Test converting simple email link.
         """
@@ -1060,11 +1148,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Multiple URLs.
-    # =========================================================================
-
-    def test_multiple_urls_same_line(self) -> None:
+    def test15(self) -> None:
         """
         Test converting multiple URLs on same line.
         """
@@ -1078,7 +1162,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_multiple_urls_different_lines(self) -> None:
+    def test16(self) -> None:
         """
         Test converting multiple URLs on different lines.
         """
@@ -1096,11 +1180,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Mixed link types.
-    # =========================================================================
-
-    def test_mixed_plain_and_backtick_urls(self) -> None:
+    def test17(self) -> None:
         """
         Test handling mixed plain and backtick URLs.
         """
@@ -1116,7 +1196,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_mixed_plain_and_markdown_links(self) -> None:
+    def test18(self) -> None:
         """
         Test handling mixed plain URLs and markdown links.
         """
@@ -1132,7 +1212,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_mixed_all_types(self) -> None:
+    def test19(self) -> None:
         """
         Test handling all link types in same content.
         """
@@ -1158,11 +1238,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Complex scenarios.
-    # =========================================================================
-
-    def test_url_with_file_extension(self) -> None:
+    def test20(self) -> None:
         """
         Test URL pointing to file with extension.
         """
@@ -1176,7 +1252,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_already_formatted_link_preserved(self) -> None:
+    def test21(self) -> None:
         """
         Test that already formatted links are preserved.
         """
@@ -1190,11 +1266,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    # =========================================================================
-    # Image/picture links should be left untouched.
-    # =========================================================================
-
-    def test_filter_image_simple(self) -> None:
+    def test22(self) -> None:
         """
         Test that simple image links are left untouched.
         """
@@ -1208,7 +1280,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_filter_jpg_images(self) -> None:
+    def test23(self) -> None:
         """
         Test that JPG image links are left untouched.
         """
@@ -1222,7 +1294,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_filter_mixed_images_and_emails(self) -> None:
+    def test24(self) -> None:
         """
         Test that image links are not processed while email links are.
         """
@@ -1240,7 +1312,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_filter_image_with_alt_text(self) -> None:
+    def test25(self) -> None:
         """
         Test that image links with alt text are left untouched.
         """
@@ -1254,7 +1326,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_filter_multiple_images(self) -> None:
+    def test26(self) -> None:
         """
         Test that multiple image links are left untouched.
         """
@@ -1272,7 +1344,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
-    def test_markdown_link_with_escaped_underscores(self) -> None:
+    def test27(self) -> None:
         """
         Test markdown link with escaped underscores in the text.
         """
@@ -1297,29 +1369,44 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
     Test the function to add prettier-ignore comments around div blocks.
     """
 
-    def test_simple_div_block(self) -> None:
+    def helper(self, input_txt: str, expected_txt: str) -> None:
         """
-        Test a simple div block with two colons.
+        Test helper for add_prettier_ignore_to_div_blocks.
+
+        :param input_txt: Input text with div blocks
+        :param expected_txt: Expected output with prettier-ignore comments
         """
-        # Prepare inputs.
-        txt = """
+        txt = hprint.dedent(input_txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        actual = hprint.dedent(actual, remove_lead_trail_empty_lines_=True)
+        expected = hprint.dedent(
+            expected_txt, remove_lead_trail_empty_lines_=True
+        )
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test simple div block with two colons.
+        """
+        input_txt = """
         ::::
         :::
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        self.check_string(actual)
+        expected_txt = """
+        <!-- prettier-ignore-start -->
+        ::::
+        :::
+        <!-- prettier-ignore-end -->
+        """
+        self.helper(input_txt, expected_txt)
 
-    def test_multiple_div_blocks(self) -> None:
+    def test2(self) -> None:
         """
         Test multiple div blocks in the same content.
         """
-        # Prepare inputs.
-        txt = """
+        input_txt = """
         Some text before
 
         ::::
@@ -1332,13 +1419,27 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
 
         Some text after
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        self.check_string(actual)
+        expected_txt = """
+        Some text before
+
+
+        <!-- prettier-ignore-start -->
+        ::::
+        ::::{.column width=40%}
+        <!-- prettier-ignore-end -->
+
+
+        Middle text
+
+
+        <!-- prettier-ignore-start -->
+        :::columns
+        ::::{.column width=60%}
+        <!-- prettier-ignore-end -->
+
+
+        Some text after"""
+        self.helper(input_txt, expected_txt)
 
 
 # #############################################################################
@@ -1351,12 +1452,25 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
     Test the function to remove prettier-ignore comments from div blocks.
     """
 
-    def test_remove_simple_block(self) -> None:
+    def helper(self, input_txt: str, expected_txt: str) -> None:
         """
-        Test removing prettier-ignore from a simple div block.
+        Test helper for remove_prettier_ignore_from_div_blocks.
+
+        :param input_txt: Input text with prettier-ignore comments
+        :param expected_txt: Expected output with comments removed
         """
-        # Prepare inputs.
-        txt = """
+        txt = hprint.dedent(input_txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        expected = hprint.dedent(expected_txt)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test removing prettier-ignore from simple div block.
+        """
+        input_txt = """
 
         <!-- prettier-ignore-start -->
         ::::
@@ -1364,20 +1478,16 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         <!-- prettier-ignore-end -->
 
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        self.check_string(actual)
+        expected_txt = """
+        ::::
+        :::"""
+        self.helper(input_txt, expected_txt)
 
-    def test_remove_multiple_blocks(self) -> None:
+    def test2(self) -> None:
         """
         Test removing prettier-ignore from multiple div blocks.
         """
-        # Prepare inputs.
-        txt = """
+        input_txt = """
         Text before
 
         <!-- prettier-ignore-start -->
@@ -1394,10 +1504,452 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
 
         Text after
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        lines = txt.split("\n")
+        expected_txt = """
+        Text before
+        ::::
+        ::::{.column width=40%}
+        Middle text
+        :::columns
+        ::::{.column width=60%}
+        Text after
+        """
+        self.helper(input_txt, expected_txt)
+
+
+# #############################################################################
+# _Format_md_TestCase
+# #############################################################################
+
+
+class _Format_md_TestCase(abc.ABC):
+    """
+    Base class for testing format_md() function with different tools.
+
+    Subclasses should set the tool and available_modes for their formatter.
+    """
+
+    tool: Optional[str] = None
+    backend: Optional[str] = None
+
+    def helper(self, input_txt: str, width: int = 80) -> str:
+        """
+        Test helper for format_md with different tools.
+
+        :param input_txt: input markdown text
+        :param width: line width for formatting
+        :return: formatted text
+        """
+        hdbg.dassert_is_not(self.tool, None)
+        hdbg.dassert_is_not(self.backend, None)
+        formatted = hmarform.format_md(
+            input_txt, self.tool, self.backend, width=width
+        )
+        return formatted
+
+    def test1(self) -> None:
+        """
+        Test simple markdown formatting with dockerized prettier.
+        """
+        # Prepare inputs.
+        input_txt = "# Hello\n\nThis is a test.\n"
+        expected_txt = input_txt
+        width = 80
         # Run test.
-        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
-        actual = "\n".join(actual_lines)
+        actual = self.helper(input_txt, width)
         # Check outputs.
-        self.check_string(actual)
+        self.assert_equal(actual, expected_txt)
+
+    def test2(self) -> None:
+        """
+        Test empty input with dockerized prettier.
+        """
+        # Prepare inputs.
+        input_txt = ""
+        expected_txt = input_txt
+        # Prepare outputs.
+        width = 80
+        # Run test.
+        actual = self.helper(input_txt, width)
+        # Check outputs.
+        self.assert_equal(actual, expected_txt)
+
+    def test3(self) -> None:
+        """
+        Test multiline markdown with dockerized prettier.
+        """
+        # Prepare inputs.
+        input_txt = """
+        # Section
+
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        input_txt = hprint.dedent(input_txt)
+        expected_txt = """
+        # Section
+
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        expected_txt = hprint.dedent(expected_txt)
+        width = 80
+        # Run test.
+        actual = self.helper(input_txt, width)
+        # Check outputs.
+        self.assert_equal(actual, expected_txt)
+
+    def test4(self) -> None:
+        """
+        Test that width parameter affects formatting.
+        """
+        # Prepare inputs.
+        input_txt = "This is a very long line that should be wrapped at a shorter width to test the width parameter functionality."
+        expected_txt = """
+        This is a very long line that should be
+        wrapped at a shorter width to test the
+        width parameter functionality.
+        """
+        expected_txt = hprint.dedent(expected_txt)
+        # Run test with different widths.
+        actual = self.helper(input_txt, 40)
+        # Check outputs.
+        self.assert_equal(actual, expected_txt)
+
+    def test5(self) -> None:
+        """
+        Test that width parameter affects formatting with wider width.
+        """
+        # Prepare inputs.
+        input_txt = "This is a very long line that should be wrapped at a shorter width to test the width parameter functionality."
+        expected_txt = """
+        This is a very long line that should be wrapped at a shorter
+        width to test the width parameter functionality.
+        """
+        expected_txt = hprint.dedent(expected_txt)
+        # Run test with different widths.
+        actual = self.helper(input_txt, 60)
+        # Check outputs.
+        self.assert_equal(actual, expected_txt)
+
+
+# #############################################################################
+# Test_format_md_prettier1
+# #############################################################################
+
+
+class Test_format_md_prettier1(_Format_md_TestCase, hunitest.TestCase):
+    """
+    Test format_md() function with prettier tool.
+    """
+
+    tool = "prettier"
+    backend = "dockerized"
+
+
+# #############################################################################
+# Test_format_md_prettier2
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_prettier_available("global"),
+    reason="prettier not installed globally",
+)
+class Test_format_md_prettier2(_Format_md_TestCase, hunitest.TestCase):
+    """
+    Test format_md() function with prettier tool (global backend).
+    """
+
+    tool = "prettier"
+    backend = "global"
+
+
+# #############################################################################
+# Test_format_md_mdformat1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_mdformat_available("library"),
+    reason="mdformat package not installed",
+)
+class Test_format_md_mdformat1(_Format_md_TestCase, hunitest.TestCase):
+    """
+    Test format_md() function with mdformat tool (library backend).
+    """
+
+    tool = "mdformat"
+    backend = "library"
+
+
+# #############################################################################
+# Test_format_md_mdformat2
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_mdformat_available("uvx"),
+    reason="mdformat package not installed",
+)
+class Test_format_md_mdformat2(_Format_md_TestCase, hunitest.TestCase):
+    """
+    Test format_md() function with mdformat tool (uvx backend).
+    """
+
+    tool = "mdformat"
+    backend = "uvx"
+
+
+# #############################################################################
+# Test_format_md_mdformat3
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_mdformat_available("library"),
+    reason="mdformat package not installed",
+)
+class Test_format_md_mdformat3(_Format_md_TestCase, hunitest.TestCase):
+    """
+    Test format_md() function with mdformat tool (uvx backend alternate).
+    """
+
+    tool = "mdformat"
+    backend = "uvx"
+
+
+# #############################################################################
+# Test_format_md_flowmark1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("library"),
+    reason="flowmark package not installed",
+)
+class Test_format_md_flowmark1(_Format_md_TestCase, hunitest.TestCase):
+    tool = "flowmark"
+    backend = "library"
+
+
+# #############################################################################
+# Test_format_md_flowmark2
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("uvx"),
+    reason="flowmark package not installed",
+)
+class Test_format_md_flowmark2(_Format_md_TestCase, hunitest.TestCase):
+    tool = "flowmark"
+    backend = "uvx"
+
+
+# #############################################################################
+# Test_format_md_flowmark3
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("global"),
+    reason="flowmark package not installed",
+)
+class Test_format_md_flowmark3(_Format_md_TestCase, hunitest.TestCase):
+    tool = "flowmark"
+    backend = "global"
+
+
+# #############################################################################
+# Test_format_md_flowmark4
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("uvx-rs"),
+    reason="flowmark package not installed",
+)
+class Test_format_md_flowmark4(_Format_md_TestCase, hunitest.TestCase):
+    tool = "flowmark"
+    backend = "uvx-rs"
+
+
+# #############################################################################
+# Test_format_md_flowmark5
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hmarform.is_flowmark_available("global-rs"),
+    reason="flowmark package not installed",
+)
+class Test_format_md_flowmark5(_Format_md_TestCase, hunitest.TestCase):
+    tool = "flowmark"
+    backend = "global-rs"
+
+
+# #############################################################################
+# Test_format_md_comparison_and_performance
+# #############################################################################
+
+
+class Test_format_md_comparison_and_performance(hunitest.TestCase):
+    """
+    Test format_md() comparison across tools and collect performance metrics.
+    """
+
+    def test1(self) -> None:
+        """
+        Test all available tools produce valid markdown output.
+
+        This test compares output from multiple tools, collects timing data,
+        and saves results to output directory. Results are both printed to logs
+        and saved to a JSON file in the output directory for analysis.
+        """
+        # Prepare inputs.
+        input_txt = """
+        # Test Document
+
+        This is a test markdown document.
+
+        - Item 1 with a long description that might wrap
+        - Item 2 with another long description
+        - Item 3
+
+
+        ## Subsection
+
+        Some more text here to test formatting. Some more text here to test formatting. Some more text here to test formatting. Some more text here to test formatting. Some more text here to test formatting.
+
+        Here is more content with formatting issues:
+        -   Inconsistent list spacing
+        -    Extra spaces
+
+        **Bold text**  and *italic text* should be properly formatted.
+
+        ```python
+        def example():
+            return "Code should be preserved"
+        ```
+        """
+        input_txt = hprint.dedent(input_txt)
+        output_dir = self.get_output_dir()
+        hio.create_dir(output_dir, incremental=True)
+        # Test data for each tool/backend combination.
+        test_cases = [
+            ("prettier", "dockerized"),
+        ]
+        # Add tools that are available.
+        tools = ["global"]
+        for tool in tools:
+            if hmarform.is_prettier_available(tool):
+                test_cases.append(("prettier", tool))
+        #
+        tools = ["library", "uvx", "global"]
+        for tool in tools:
+            if hmarform.is_mdformat_available(tool):
+                test_cases.append(("mdformat", tool))
+        #
+        tools = ["library", "uvx", "uvx-rs", "global", "global-rs"]
+        for tool in tools:
+            if hmarform.is_flowmark_available(tool):
+                test_cases.append(("flowmark", tool))
+        #
+        _LOG.info("test_cases=%s", str(test_cases))
+        workload_multipliers = [1, 1e2, 1e3, 1e4]
+        workload_multipliers = map(int, workload_multipliers)
+        results = []
+        all_outputs = {}
+        for multiplier in workload_multipliers:
+            workload_input = input_txt * multiplier
+            input_size_kb = len(workload_input) / 1024
+            _LOG.info("# multiplier=%s: len=%s KB", multiplier, input_size_kb)
+            all_outputs[multiplier] = {}
+            for tool, backend in test_cases:
+                error_msg = None
+                output = None
+                elapsed_time = None
+                try:
+                    timer_ = htimer.Timer()
+                    output = hmarform.format_md(
+                        workload_input, tool, backend, width=80
+                    )
+                    timer_.stop()
+                    elapsed_time = str(timer_)
+                    success = True
+                except Exception as e:
+                    success = False
+                    error_msg = str(e)
+                    elapsed_time = None
+                results.append(
+                    {
+                        "workload_multiplier": multiplier,
+                        "tool": tool,
+                        "backend": backend,
+                        "input_size_kb": input_size_kb,
+                        "time": elapsed_time,
+                        "output_size_kb": len(output) / 1024 if output else 0,
+                        "success": success,
+                        "error": error_msg,
+                    }
+                )
+                if success and output is not None:
+                    self.assertGreater(
+                        len(output),
+                        0,
+                        f"{tool}/{backend} produced empty output",
+                    )
+                    all_outputs[multiplier][f"{tool}/{backend}"] = output
+        # Check if all outputs are identical for each multiplier.
+        output_differences = {}
+        for multiplier in workload_multipliers:
+            _LOG.info("Checking output for multipler=%s", multiplier)
+            outputs = list(all_outputs[multiplier].values())
+            if outputs and len(outputs) > 1:
+                first_output = outputs[0]
+                differences = []
+                for tool_backend, output in all_outputs[multiplier].items():
+                    if output != first_output:
+                        differences.append(tool_backend)
+                if differences:
+                    output_differences[multiplier] = differences
+                    _LOG.info(
+                        "Output differences at multiplier=%s: %s",
+                        multiplier,
+                        differences,
+                    )
+        # Save results to JSON file for analysis.
+        results_file = os.path.join(output_dir, "comparison_results.json")
+        hio.to_file(results_file, json.dumps(results, indent=2))
+        # Print results
+        _LOG.info("Comparison results saved to %s", results_file)
+        for result in results:
+            if result["success"]:
+                _LOG.info(
+                    "multiplier=%s %s/%s completed in %s",
+                    result["workload_multiplier"],
+                    result["tool"],
+                    result["backend"],
+                    result["time"],
+                )
+            else:
+                error_msg = result.get("error", "Unknown error")
+                _LOG.info(
+                    "multiplier=%s %s/%s failed: %s",
+                    result["workload_multiplier"],
+                    result["tool"],
+                    result["backend"],
+                    error_msg,
+                )
+        # Create pandas table with results ordered by speed.
+        df = pd.DataFrame(results)
+        df_sorted = df.sort_values(
+            by=["workload_multiplier", "time"], ascending=[True, True]
+        )
+        _LOG.info("Results table:\n%s", df_sorted.to_string(index=False))
+        # Save table to CSV for analysis.
+        table_file = os.path.join(output_dir, "comparison_results.csv")
+        df_sorted.to_csv(table_file, index=False)
+        _LOG.info("Results table saved to %s", table_file)

@@ -1,5 +1,6 @@
 ---
 description: Format the markdown cells of an interactive notebook
+model: haiku
 ---
 
 - Given an interactive Jupyter notebook

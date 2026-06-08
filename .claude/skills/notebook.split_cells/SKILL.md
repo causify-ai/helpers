@@ -1,5 +1,6 @@
 ---
 description: Split Jupyter notebook cells so each cell performs only one logical task
+model: haiku
 ---
 
 - Make sure that each code cell in a Jupyter notebook performs only one

@@ -1,5 +1,6 @@
 ---
 description: Find unused packages in requirements.txt that are not needed by the project code
+model: haiku
 ---
 
 - You are an expert of Docker

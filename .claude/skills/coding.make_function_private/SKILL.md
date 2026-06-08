@@ -1,5 +1,6 @@
 ---
 description: Identify functions not called externally and rename them with a leading underscore to make them private
+model: haiku
 ---
 
 For each function and class in the passed Python file, check if it's a function

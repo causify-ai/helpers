@@ -63,7 +63,7 @@ def _build_ripgrep_command(
     return cmd
 
 
-def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
+def parse(description: str = "") -> argparse.ArgumentParser:
     """
     Create and return ArgumentParser for rig utility.
 
@@ -73,7 +73,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
     :param description: Custom description for help output (defaults to module docstring)
     :return: Configured ArgumentParser instance
     """
-    if description is None:
+    if not description:
         description = __doc__
     parser = argparse.ArgumentParser(
         description=description,
@@ -102,7 +102,7 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         dest="todo_str",
         nargs="?",
         const="_default_",
-        default=None,
+        default="",
         help="Search for TODO(<string>) patterns (optional <string> parameter",
     )
     parser.add_argument(
@@ -129,6 +129,11 @@ def parse(description: Optional[str] = None) -> argparse.ArgumentParser:
         "--dry_run",
         action="store_true",
         help="Print the ripgrep command and exit without running it",
+    )
+    parser.add_argument(
+        "--print_files",
+        action="store_true",
+        help="Only report matching files, sorted and unique",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -184,7 +189,8 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         ripgrep_extensions = ["py"]
     elif parsed.rule_mode:
         # --rule: search for markdown headers in `.claude/skills`.
-        ripgrep_dir = ".claude/skills"
+        git_root = hgit.find_git_root()
+        ripgrep_dir = os.path.join(git_root, ".claude", "skills")
         ripgrep_extensions = ["md"]
         # First positional arg becomes part of the regex pattern (if provided).
         if parsed.positional:
@@ -197,7 +203,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
     elif parsed.todo_str:
         # --todo: search for `# TODO(<string>)` or `// TODO(<string>)` patterns.
         if parsed.todo_str == "_default_":
-            todo_pattern = "ai_gp\S*"
+            todo_pattern = r"ai_gp\S*"
         else:
             todo_pattern = parsed.todo_str
         ripgrep_pattern = rf"^\s*(#|//)\s*TODO\({todo_pattern}\)"
@@ -228,13 +234,14 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         "last_commit": parsed.last_commit,
         "all_files": parsed.all_files,
         "dry_run": parsed.dry_run,
+        "print_files": parsed.print_files,
     }
     return result
 
 
 def main(
     args: Optional[List[str]] = None,
-    description: Optional[str] = None,
+    description: str = "",
 ) -> int:
     """
     Main entry point for rig utility.
@@ -270,6 +277,18 @@ def main(
         "-g",
         "!.git",
     ]
+    # If --print_files is set, show only file names and adjust options.
+    if parsed["print_files"]:
+        # Override some options for file listing.
+        rg_opts = [
+            # Only show file names.
+            "-l",
+            # Plain output without ANSI colors.
+            "--color=never",
+            # Exclude .git directory from search.
+            "-g",
+            "!.git",
+        ]
     # Append user-provided ripgrep options if any.
     if parsed["rg_opts"]:
         rg_opts.extend(parsed["rg_opts"].split())
@@ -314,7 +333,21 @@ def main(
         return 0
     # Run the command using system call and capture output.
     try:
-        if parsed["need_capture"]:
+        if parsed["print_files"]:
+            # Capture output, sort and deduplicate.
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.stdout:
+                # Sort and deduplicate the file names.
+                files = sorted(set(result.stdout.strip().split("\n")))
+                for f in files:
+                    print(f)
+            return result.returncode
+        elif parsed["need_capture"]:
             # For piping to tee, use shell=True with the string command.
             cmd_str = cmd_str + " 2>&1 | tee cfile"
             result = subprocess.run(cmd_str, shell=True, text=True)

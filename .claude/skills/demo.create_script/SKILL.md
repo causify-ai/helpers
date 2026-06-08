@@ -1,5 +1,6 @@
 ---
 description: Create a 15-slide presentation storyboard script for a narrated explainer video
+model: haiku
 ---
 
 Use the information given to create the script of a presentation / storyboard

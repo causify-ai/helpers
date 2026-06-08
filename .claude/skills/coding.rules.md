@@ -12,10 +12,6 @@
 
 - Use the coding style in `.claude/templates/coding.template.py`
 
-## Use * for Default Parameters
-
-- Use `*` to mark which parameters in functions should be default parameters
-
 ## Use `typing` Module Style for Type Hints
 
 - Use type hints from the `typing` module instead of newer PEP 604 syntax
@@ -444,6 +440,143 @@
 - Make sure all the functions have a REST comments in docstrings
   - Add docstrings to functions and file that are missing
 
+## Add Input/Output Examples to Docstrings When Non-Obvious
+
+- Include concrete examples of inputs and outputs in function docstrings when
+  the expected data types or formats are not immediately apparent from the
+  signature or parameter names
+- Use examples in these scenarios:
+  - Complex data structures (nested dicts, custom objects, specific formats)
+  - Transformations where the output differs significantly from the input
+  - Edge cases or special values that need clarification
+  - When parameter purposes or expected ranges are ambiguous
+
+- **Bad**: Vague description without examples for complex transformation
+  ````python
+  def transform_data(raw_input):
+      """
+      Transform raw input into normalized format.
+      
+      :param raw_input: Input data to transform
+      :return: Transformed data
+      """
+  ````
+- **Good**: Clear examples showing input/output for complex transformation
+  ````python
+  def transform_data(raw_input):
+      """
+      Transform raw input into normalized format.
+      
+      :param raw_input: Dict with keys 'name', 'age', 'salary'
+          Example:
+          ```
+          {'name': 'Alice', 'age': '30', 'salary': '50000.00'}
+          ```
+      :return: Dict with normalized values (strings to proper types)
+          Example:
+          ```
+          {'name': 'Alice', 'age': 30, 'salary': 50000.0}
+          ```
+      """
+  ````
+
+- **Good**
+  ````python
+  def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
+    """
+    Fetch benchmark data from Artificial Analysis API using cached models.
+
+    :param model_name: Model name in OpenRouter or AA format
+    :return: Dict with "coding_score" and "intelligence_score" (None if not found)
+        ```
+        {'coding_score': None, 'intelligence_score': None}
+        ```
+    """
+  ````
+
+- **Good**
+  ````python
+  def _format_table(table: pd.DataFrame) -> pd.DataFrame:
+    """
+    Format table columns using appropriate formatting functions.
+
+    Applies formatting to numerical columns for display:
+    - Input_Cost, Output_Cost: formatted via _format_cost()
+    - Context: formatted via _format_context()
+    - Speed_(tok/s): formatted via _format_benchmark()
+    - Coding_IQ, General_IQ: formatted via _format_benchmark()
+
+    :param table: DataFrame with raw numerical data
+        ```
+        Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
+        ---
+        openai/... | 0.003 | 0.015 | 128000 | 25.5 | 72.3
+        ```
+
+    :return: DataFrame with formatted string columns for display
+        ```
+        Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
+        ---
+        openai/... | "0.003" | "0.015" | "128K" | "25.5" | "72.3"
+        ```
+    """
+  ````
+
+
+## Use Verbatim to Refer to Python Objects
+
+- When referring to Python objects (e.g., variables, classes, and functions) in
+  comments and docstrings use verbatim included in backticks
+  - For functions also include a call, e.g., `func()`
+
+- Example (variable in comment):
+  - **Bad**
+    ```python
+    # Increment the variable num_counter.
+    ```
+  - **Good**
+    ```python
+    # Increment the variable `num_counter`
+    ```
+
+- Example (function in comment):
+  - **Bad**
+    ```
+    # Create a curated list from get_md_colors.
+    ```
+  - **Good**
+    ```
+    # Create a curated list from `get_md_colors()`.
+    ```
+
+- Example (variable in docstring):
+  - **Bad**
+    ```python
+    """
+    Increment the variable num_counter.
+    """
+    ```
+  - **Good**
+    ```python
+    """
+    Increment the variable `num_counter`.
+    """
+    ```
+
+- Example (function in docstring):
+  - **Bad**
+    ```
+    """
+    Test helper for standardize_filename().
+    """
+    ```
+  - **Good**
+    ```
+    """
+    Test helper for `standardize_filename()`.
+    """
+    ```
+
 # Comments
 
 ## Add Comments Liberally
@@ -481,11 +614,11 @@
 - In comments always use `: ` instead of ` - `
   - **Bad**
     ```
-    # Check outputs.` - Result verification
+    # Check outputs - Result verification
     ```
   - **Good**
     ```
-    # Check outputs.`: Result verification
+    # Check outputs: Result verification
     ```
 
 ## Convert Empty Lines and Empty Comments in Block Comments
@@ -529,6 +662,139 @@
     def colorize_bullet_points_in_slide(
     ```
 
+# Function Design
+
+## Minimize Default Values of None in Function Interfaces
+
+- In function signatures and class constructors, avoid `None` as default values to
+  minimize `Optional` types in type hints
+- Use meaningful default values of the same type instead to keep interfaces
+  simpler and reduce the need for `Optional`
+
+- **Bad**: Using `None` defaults creates `Optional` type requirements
+  ```python
+  def process(
+      data: Dict[str, str],
+      *,
+      timeout: Optional[int] = None,
+      name: Optional[str] = None,
+  ) -> str:
+      if timeout is None:
+          timeout = 30
+      if name is None:
+          name = "default"
+      ...
+  ```
+- **Good**: Use meaningful type-matching defaults
+  ```python
+  def process(
+      data: Dict[str, str],
+      *,
+      timeout: int = 30,
+      name: str = "",
+  ) -> str:
+      ...
+  ```
+
+- This pattern applies to:
+  - Function parameters and return types
+  - Class constructor arguments
+  - Dataclass field definitions
+  - Any interface that accepts arguments with defaults
+
+- Choose meaningful defaults based on the parameter type:
+  - For strings: use `""` (empty string)
+  - For integers: use `0`, `-1`, or another sentinel that makes semantic sense
+  - For booleans: use `False` or `True` based on intended semantics
+  - For paths: use `""` or consider making the parameter required
+
+## Use `*` to Force Keyword Arguments for Optional Parameters
+
+- Default values should be rare exceptions: only use them when 99.9% of all calls
+  need the same value
+- For optional parameters
+  - always use a default value
+  - use `*` to force keyword argument passing
+- This makes the API more explicit and prevents silent surprises when defaults
+  change
+
+- **Bad**: Optional parameters with defaults are too convenient to ignore
+  ```python
+  def analyze(
+      data: List[str],
+      verbose: bool = False,
+      timeout: int = 30,
+      output_format: str = "json",
+  ) -> Dict[str, Any]:
+      ...
+  ```
+- **Good**: Force keyword arguments for optional parameters using `*`
+  ```python
+  def analyze(
+      data: List[str],
+      *,
+      verbose: bool = False,
+      timeout: int = 30,
+      output_format: str = "json",
+  ) -> Dict[str, Any]:
+      ...
+  ```
+
+## Use Default Values Very Rarely in Interfaces
+
+- Only provide defaults when the parameter is truly optional and the default
+  applies to 99.9% of use cases and make them 
+  ```python
+  def connect(
+      host: str,
+      port: int,
+      *,
+      ssl: bool = True,  # Almost all connections use SSL
+      timeout: int = 30, # timeout is required to be explicit
+  ) -> Connection:
+      ...
+  ```
+
+- Parameters with default must be keyword-only parameters (after a `*`)
+
+- Benefits of using `*`:
+  - Callers must explicitly state their intention via keyword arguments
+  - Reduces brittleness when adding new parameters to existing functions
+  - Makes APIs more discoverable and self-documenting
+  - Prevents accidental reliance on defaults that may change in maintenance
+
+## Call Functions With Position Arguments for Required, Keywords for Optional
+
+- When calling functions, follow this convention:
+  - Use positional arguments for mandatory parameters only
+  - Use keyword arguments (by name) for all parameters that have default values
+- This makes calls explicit and self-documenting, matching the function definition style
+
+- **Bad**: Using positional arguments for optional parameters hides intent
+  ```python
+  # Define
+  def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
+      ...
+  
+  # Call - implicit about which parameters have defaults
+  result = analyze(data_list, False, 60)
+  ```
+- **Good**: Use position for required, keywords for optional
+  ```python
+  # Define
+  def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
+      ...
+  
+  # Call - explicit about optional parameters
+  result = analyze(data_list, verbose=False, timeout=60)
+  ```
+
+- Apply this pattern consistently:
+  - Mandatory parameters (no default): use position
+  - Optional parameters (has default): use keyword argument with name
+  - If a function uses `*` to force keywords, the call naturally follows this
+    pattern
+
 # Logging
 
 ## Use _LOG
@@ -538,6 +804,21 @@
 - Use `_LOG.debug` to add debugging info that can help a programmer to track the
   issues
   - Always use lazy % formatting in logging functions
+
+## Enclose Variables in Single Quotes in Log Messages
+
+- When logging messages that include variable values for user display, enclose
+  variables in single quotes to make them visually distinct from surrounding text
+- This improves readability and helps users identify actual values in log output
+
+- **Bad**: Variables not visually distinct
+  ```python
+  _LOG.info("Downloading %s from %s", book_name, url)
+  ```
+- **Good**: Variables enclosed in single quotes
+  ```python
+  _LOG.info("Downloading '%s' from '%s'", book_name, url)
+  ```
 
 # Script Development
 
@@ -618,20 +899,8 @@
 
 ## Use Action Idiom
 
-- When using actions in a script use the functions in `helpers/hparser.py`
-  ```python
-  def add_action_arg(
-  def actions_to_string(
-  def select_actions(
-  def mark_action(
-  ```
-
-- E.g.,
-
-  ```python
-  actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-  hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-  ```
+- When using actions in a script use the code and idiom from
+  `./helpers/hselect_action.py`
 
 ## Use Limit Range Idiom
 
@@ -648,6 +917,61 @@
   - **Bad**: `--cache-reset`, `--max-iterations`, `--output-dir`
 - This applies to both long-form argument names and the attribute names assigned
   by argparse (which converts `_` to `_` in the namespace)
+
+## Use Mutually Exclusive Groups for Conflicting Options
+
+- When options are mutually exclusive, use `add_mutually_exclusive_group()` to
+  enforce the constraint in argparse instead of validating manually in code
+- This provides automatic conflict detection and generates proper help text
+
+- **Bad**: Manual validation for mutually exclusive options
+  ```python
+  parser.add_argument("--input_file", type=str, default="")
+  parser.add_argument("--input_text", type=str, default="")
+  
+  def _main(args: argparse.Namespace) -> None:
+      if args.input_file and args.input_text:
+          raise ValueError("Cannot specify both --input_file and --input_text")
+      if not args.input_file and not args.input_text:
+          raise ValueError("Must specify either --input_file or --input_text")
+  ```
+- **Good**: Use `add_mutually_exclusive_group()` in parser
+  ```python
+  input_group = parser.add_mutually_exclusive_group(required=True)
+  input_group.add_argument("--input_file", type=str, default="")
+  input_group.add_argument("--input_text", type=str, default="")
+  # Argument validation is handled automatically by argparse
+  ```
+
+## Use Single Types With Meaningful Defaults for Parser Inputs
+
+- When defining parser arguments, use a single consistent type (e.g., `str`, `int`)
+  with a meaningful default value to represent "not set" instead of `None`
+- This simplifies type hints and avoids `Optional` types throughout your code
+
+- **Bad**: Using `None` as default creates `Optional` type requirements
+  ```python
+  parser.add_argument("--name", type=str, default=None)
+  parser.add_argument("--count", type=int, default=None)
+  
+  def _main(args: argparse.Namespace) -> None:
+      name: Optional[str] = args.name
+      count: Optional[int] = args.count
+  ```
+- **Good**: Use meaningful defaults to keep single types
+  ```python
+  parser.add_argument("--name", type=str, default="")
+  parser.add_argument("--count", type=int, default=0)
+  
+  def _main(args: argparse.Namespace) -> None:
+      name: str = args.name
+      count: int = args.count
+  ```
+
+- Choose meaningful defaults based on the argument type:
+  - For strings: use `""` (empty string)
+  - For integers: use `0` (or another sentinel like `-1`)
+  - For paths: use `""` (empty string) or handle validation in the parser
 
 ## Create Dirs
 
@@ -696,61 +1020,7 @@
     pattern = re.compile(quote_pattern, re.VERBOSE)
     ```
 
-## Use Verbatim to Refer to Python Objects
-
-- When referring to Python objects (e.g., variables, classes, and functions) in
-  comments and docstrings use verbatim included in backticks
-  - For functions also include a call, e.g., `func()`
-
-- Example (variable in comment):
-  - **Bad**
-    ```python
-    # Increment the variable num_counter.
-    ```
-  - **Good**
-    ```python
-    # Increment the variable `num_counter`
-    ```
-
-- Example (function in comment):
-  - **Bad**
-    ```
-    # Create a curated list from get_md_colors.
-    ```
-  - **Good**
-    ```
-    # Create a curated list from `get_md_colors()`.
-    ```
-
-- Example (variable in docstring):
-  - **Bad**
-    ```python
-    """
-    Increment the variable num_counter.
-    """
-    ```
-  - **Good**
-    ```python
-    """
-    Increment the variable `num_counter`.
-    """
-    ```
-
-- Example (function in docstring):
-  - **Bad**
-    ```
-    """
-    Test helper for standardize_filename().
-    """
-    ```
-  - **Good**
-    ```
-    """
-    Test helper for `standardize_filename()`.
-    """
-    ```
-
-# Executing System Calls
+# System Integration
 
 ## Use `hsystem`
 

@@ -767,7 +767,7 @@ line3
 - Always create test files under `self.get_scratch_space()` rather than mocking
   file access
 
-The goal is to exercise as much real code as possible, so do not mock:
+- The goal is to exercise as much real code as possible, so do not mock:
 	- filesystem operations
 	- argument parsing
 	- orchestration logic
@@ -775,15 +775,31 @@ The goal is to exercise as much real code as possible, so do not mock:
 - This keeps tests closer to real execution and validates more of the system end
   to end
 - Use realistic:
-	- directory layouts
-	- file names
-	- file contents
-	- command-line arguments
+	- Directory layouts
+	- File names
+	- File contents
+	- Command-line arguments
 
-## Run Command Instead of Calling its Main
-- Do not inject (`sys.argv = ["process_jupytext.py"] + args_list`)
-  and call the main of the script (e.g., `_main(parser)`)
-- Instead call the executable directly with a call like `hsystem.system()`
+## Call Main Directly for Simple Executables (with Mock)
+- When testing a simple end-to-end executable that doesn't require special
+  packages installed through uv, use the idiom of mocking `sys.argv` with
+  `mock.patch()` and then calling the `main()` function directly
+
+- **Good** (when executable is simple and can be called directly)
+  ```python
+  # Prepare inputs.
+  parser = your_module._parse()
+  argv = ["script_name.py", "--arg1", "value1"]
+  # Run test.
+  with mock.patch("sys.argv", argv):
+      your_module._main(parser)
+  # Check outputs.
+  # ... assertions on file system state or captured output ...
+  ```
+- This approach is suitable when:
+  - The executable is simple enough to call directly in a test
+  - You want to test the full argument parsing and main logic flow
+  - You don't need subprocess isolation for the test
 
 ## Locate Script Paths Dynamically
 - Do not hardwire paths to executable scripts in tests, instead, use
@@ -862,6 +878,45 @@ The goal is to exercise as much real code as possible, so do not mock:
   Status: SUCCESS
   """
   self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+  ```
+
+## Mock LLM APIs
+
+- When testing code that calls LLM APIs (e.g., OpenAI, Claude), use
+  `hllmcli.mock_apply_llm()` to mock the API calls and pass `--backend mock`
+  via the command line to disable real API calls
+- This avoids:
+  - Real API costs and rate limits during testing
+  - Dependency on network connectivity or API keys
+  - Non-deterministic responses from live models
+
+- This enables running end-to-end tests that exercise the full code path
+  (argument parsing, orchestration, file I/O) without needing a real LLM
+  backend
+
+### Via `hllmcli.mock_apply_llm`
+
+- **In end-to-end test code**: use `hllmcli.mock_apply_llm()` as a context
+  manager to mock `apply_llm()` calls:
+  # Example in a test:
+  ```
+  def test_my_function(self):
+      with mock_apply_llm():
+          # Code that calls apply_llm() will now return mocked values
+          response, token_stats = apply_llm(
+              "some input",
+              system_prompt="some prompt",
+          )
+          # `response` will be the MD5 hash of "some inputsome prompt"
+          # `token_stats` will be TokenStats() with zeros.
+  ```
+
+## Via `--backend mock`
+
+- **From the command line**: pass `--backend mock` as a CLI argument to skip
+  real LLM API calls:
+  ```bash
+  > script.py --backend mock
   ```
 
 # Mocking

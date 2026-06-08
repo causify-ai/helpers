@@ -1,5 +1,6 @@
 ---
 description: Convert "What It Does" and "Examples" sections in a README from headers to bullet point format
+model: haiku
 ---
 
 1) Convert

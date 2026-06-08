@@ -193,14 +193,14 @@ def _parse() -> argparse.ArgumentParser:
         "--input_mode",
         type=str,
         choices=["md", "csv", "tsv"],
-        default=None,
+        default="",
         help="Input format when using stdin (required if -i is -)",
     )
     parser.add_argument(
         "--output_mode",
         type=str,
         choices=["md", "csv", "tsv"],
-        default=None,
+        default="",
         help="Output format when using stdout (required if -o is -)",
     )
     parser.add_argument(
@@ -218,9 +218,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     # Detect input mode.
     if in_file_name == "-":
-        hdbg.dassert_is_not(
+        hdbg.dassert(
             args.input_mode,
-            None,
             "--input_mode is required when input is stdin (-)",
         )
         input_mode = args.input_mode
@@ -228,9 +227,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         input_mode = args.input_mode or _detect_mode(in_file_name)
     # Detect output mode.
     if out_file_name == "-" or args.pbcopy:
-        hdbg.dassert_is_not(
+        hdbg.dassert(
             args.output_mode,
-            None,
             "--output_mode is required when output is stdout (-) or --pbcopy is set",
         )
         output_mode = args.output_mode

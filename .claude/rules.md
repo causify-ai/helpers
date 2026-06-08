@@ -4,6 +4,10 @@ conventions and templates
 Based on the files that you need to operate, read and follow the corresponding
 rules
 
+## Architecture
+- For designing software architecture and organizing code you MUST follow:
+  - The rules in `architecture.rules.md`
+
 ## Coding
 - For writing Python file (files with a `.py` extension) you MUST follow:
   - The rules `.claude/skills/coding.rules.md`

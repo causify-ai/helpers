@@ -1,5 +1,6 @@
 ---
 description: Describe a diagram for a technical book, from either an image or a concept
+model: opus
 ---
 
 # Role

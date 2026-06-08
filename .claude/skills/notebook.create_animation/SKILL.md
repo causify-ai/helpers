@@ -1,5 +1,6 @@
 ---
 description: Create an animation from an ipywidget interact function using a description
+model: haiku
 ---
 
 - Given the function passed that can go in `ipywidget.interact()` create an

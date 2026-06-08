@@ -182,7 +182,9 @@ class Test_colorize_backticks(hunitest.TestCase):
         Test multiple backtick-wrapped words with underscores.
         """
         # Prepare inputs.
-        txt_in = "Use `_private_func` or `public_var` for different access levels."
+        txt_in = (
+            "Use `_private_func` or `public_var` for different access levels."
+        )
         # Prepare outputs.
         expected = r"Use \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{public\_var}} for different access levels."
         # Run test.
@@ -227,7 +229,9 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         actual = dshdprno._transform_lines(txt_in_lines, type_, is_qa=False)
         actual = "\n".join(actual)
         # Check outputs.
-        expected = hprint.dedent(expected_str, remove_lead_trail_empty_lines_=True)
+        expected = hprint.dedent(
+            expected_str, remove_lead_trail_empty_lines_=True
+        )
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -762,14 +766,14 @@ class Test_extract_section(hunitest.TestCase):
         self,
         lines_str: str,
         section_name: str,
-        expected_str: Optional[str],
+        expected_str: str,
     ) -> None:
         """
         Test helper for _extract_section.
 
         :param lines_str: input text with dedent applied
         :param section_name: section name to extract
-        :param expected_str: expected extracted text or None
+        :param expected_str: expected extracted text
         """
         # Prepare inputs.
         lines_str_dedented = hprint.dedent(lines_str)
@@ -781,16 +785,13 @@ class Test_extract_section(hunitest.TestCase):
         # Run test.
         actual = dshdprno._extract_section(lines, section_name)
         # Check outputs.
-        if expected_str is None:
-            self.assertEqual(actual, None)
-        else:
-            expected_str_dedented = hprint.dedent(expected_str)
-            expected = (
-                expected_str_dedented.strip().split("\n")
-                if expected_str_dedented.strip()
-                else []
-            )
-            self.assertEqual(actual, expected)
+        expected_str_dedented = hprint.dedent(expected_str)
+        expected = (
+            expected_str_dedented.strip().split("\n")
+            if expected_str_dedented.strip()
+            else []
+        )
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
@@ -846,10 +847,15 @@ class Test_extract_section(hunitest.TestCase):
         Content B
         """
         section_name = "Section C"
-        # Prepare outputs.
-        expected_str = None
-        # Run test.
-        self.helper(lines_str, section_name, expected_str)
+        # Run the extraction directly and check for None.
+        lines_str_dedented = hprint.dedent(lines_str)
+        lines = (
+            lines_str_dedented.strip().split("\n")
+            if lines_str_dedented.strip()
+            else []
+        )
+        actual = dshdprno._extract_section(lines, section_name)
+        self.assertEqual(actual, None)
 
     def test4(self) -> None:
         """
@@ -1560,9 +1566,7 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         toc_type = "remove_headers"
         is_qa = False
         # Run test.
-        actual = dshdprno._preprocess_lines(
-            lines, type_, toc_type, is_qa
-        )
+        actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
         actual_str = "\n".join(actual)
         # Check outputs.
         expected_dict = {
@@ -1757,9 +1761,7 @@ class Test_transform_lines_actions(hunitest.TestCase):
             "- Bullet point 2",
         ]
         # Run test.
-        self.helper(
-            lines, type_, is_qa, expected, actions=actions
-        )
+        self.helper(lines, type_, is_qa, expected, actions=actions)
 
 
 # #############################################################################

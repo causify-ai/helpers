@@ -1,5 +1,6 @@
 ---
 description: Implement all TODO(ai_gp) items in a file including renames, code updates, and update references
+model: haiku
 ---
 
 # Goal

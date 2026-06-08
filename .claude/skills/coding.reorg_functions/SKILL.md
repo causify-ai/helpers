@@ -1,15 +1,17 @@
 ---
 description: Reorganize the Python functions in a file
+model: haiku
 ---
 
 # Reorganize Python Functions Within a File
 
-Reorganize the Python functions in the user-provided file according to the
-following rules.
+- Reorganize the Python functions in the user-provided file according to the
+  following rules
 
 ## Organize Functions Into Logical Layers
 
-- Group related functions into sections separated by headers in the following format:
+- Group related functions into sections separated by headers in the following
+  format:
   ```python
   # #############################################################################
   # <Layer Description>
@@ -75,14 +77,15 @@ following rules.
 
 ## Preserve Behavior Exactly
 
-- Do not modify functionality, logic, signatures, control flow, side effects, or semantics
+- Do not modify functionality, logic, signatures, control flow, side effects, or
+  semantics
 - The resulting code must behave identically to the original.
 
 ## Move Code Only
 
-- The refactor must be structural only.
-  Allowed changes:
+- The refactor must be structural only
 
+- Allowed changes:
   - Reordering functions
   - Adding section headers
   - Renaming internal/private functions consistently

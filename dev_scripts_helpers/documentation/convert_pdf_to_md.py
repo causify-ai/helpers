@@ -32,7 +32,7 @@ import logging
 import os
 import re
 import shutil
-from typing import cast, Dict, List, Optional, Tuple
+from typing import cast, Dict, List, Tuple
 
 import fitz
 from tqdm import tqdm
@@ -55,7 +55,7 @@ _DEFAULT_ACTIONS = ["convert", "remove_junk"]
 # #############################################################################
 
 
-def _remove_junk(*, pdf_path: str, output_dir: Optional[str] = None) -> None:
+def _remove_junk(*, pdf_path: str, output_dir: str = "") -> None:
     """
     Remove artifacts from PDF conversion including page markers and page numbers.
 
@@ -69,7 +69,7 @@ def _remove_junk(*, pdf_path: str, output_dir: Optional[str] = None) -> None:
     """
     hdbg.dassert_file_exists(pdf_path, "PDF file does not exist")
     # Derive output directory from input file location when not specified.
-    if output_dir is None:
+    if not output_dir:
         output_dir = os.path.dirname(os.path.abspath(pdf_path))
     if not output_dir:
         output_dir = "."
@@ -332,7 +332,7 @@ def _extract_text_with_formatting(
 def _pdf_to_markdown(
     *,
     pdf_path: str,
-    output_dir: Optional[str],
+    output_dir: str,
     skip_figures: bool = False,
     overwrite: bool = False,
 ) -> None:
@@ -438,7 +438,7 @@ def _pdf_to_markdown(
     markdown_content = dshdlipr.prettier_on_str(
         markdown_content,
         file_type="md",
-        print_width=80,
+        width=80,
     )
     # Write formatted markdown to file.
     with open(md_path, "w", encoding="utf-8") as f:
@@ -480,7 +480,7 @@ def _parse() -> argparse.ArgumentParser:
         "--output",
         required=False,
         type=str,
-        default=None,
+        default="",
         help="Output directory for markdown and images (default: same directory as input)",
     )
     parser.add_argument(
@@ -510,18 +510,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    # Execute convert action.
-    # TODO(ai_gp): Use the --action functions in hparser.py
-    if "convert" in actions:
-        _pdf_to_markdown(
-            pdf_path=args.input,
-            output_dir=args.output,
-            skip_figures=args.skip_figures,
-            overwrite=args.overwrite,
-        )
-    # Execute remove_junk action for cleanup.
-    if "remove_junk" in actions:
-        _remove_junk(pdf_path=args.input, output_dir=args.output)
+    # Execute actions.
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if to_execute:
+            if action == "convert":
+                _pdf_to_markdown(
+                    pdf_path=args.input,
+                    output_dir=args.output,
+                    skip_figures=args.skip_figures,
+                    overwrite=args.overwrite,
+                )
+            elif action == "remove_junk":
+                _remove_junk(pdf_path=args.input, output_dir=args.output)
 
 
 if __name__ == "__main__":

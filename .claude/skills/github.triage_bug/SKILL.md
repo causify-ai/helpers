@@ -1,5 +1,6 @@
 ---
 description: Triage GitHub Issue
+model: opus
 ---
 
 I will give you a GitHub issue ${ISSUE_NUM} and optionally a repo

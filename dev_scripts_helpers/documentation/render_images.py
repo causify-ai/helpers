@@ -842,7 +842,7 @@ def _parse() -> argparse.ArgumentParser:
         "-o",
         "--output",
         type=str,
-        default=None,
+        default="",
         help="Path to the output file",
     )
     # Add multi-file arguments.
@@ -852,7 +852,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--dst_dir",
         type=str,
-        default=None,
+        default="",
         help="Directory where rendered images will be saved. If not specified, "
         "defaults to <input_file>.figs (e.g., 'doc.md' -> 'doc.md.figs')",
     )
@@ -987,7 +987,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             # Render in-place.
             out_file = in_files[0]
     # Compute default dst_dir if not specified.
-    if args.dst_dir is None:
+    if not args.dst_dir:
         # For multi-file mode, use first input file to determine default.
         default_dst_dir = f"{in_files[0]}.figs"
         _LOG.info("No --dst_dir specified, using default: %s", default_dst_dir)
@@ -1021,7 +1021,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             # For multi-file mode, compute dst_dir per file if using default.
             if len(in_files) > 1:
                 out_file = in_file
-                if args.dst_dir is None:
+                if not args.dst_dir:
                     dst_dir = f"{in_file}.figs"
                 else:
                     hdbg.dfatal(

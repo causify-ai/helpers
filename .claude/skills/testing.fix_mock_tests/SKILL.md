@@ -1,5 +1,6 @@
 ---
 description: Remove mocking approach from unit tests
+model: haiku
 ---
 
 # Goal

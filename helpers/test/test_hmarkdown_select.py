@@ -53,7 +53,7 @@ class Test_parse_select_arg(hunitest.TestCase):
         # Run test.
         start, end = hmarsele.parse_select_arg(select_str)
         # Check outputs.
-        self.assertIsNone(start)
+        self.assertEqual(start, "")
         self.assertEqual(end, "Section 2")
 
     def test3(self) -> None:
@@ -66,7 +66,7 @@ class Test_parse_select_arg(hunitest.TestCase):
         start, end = hmarsele.parse_select_arg(select_str)
         # Check outputs.
         self.assertEqual(start, "Section 1")
-        self.assertIsNone(end)
+        self.assertEqual(end, "")
 
     def test4(self) -> None:
         """
@@ -78,7 +78,7 @@ class Test_parse_select_arg(hunitest.TestCase):
         start, end = hmarsele.parse_select_arg(select_str)
         # Check outputs.
         self.assertEqual(start, "Section 1")
-        self.assertIsNone(end)
+        self.assertEqual(end, "")
 
     def test5(self) -> None:
         """
@@ -584,7 +584,7 @@ class Test_find_end_line(hunitest.TestCase):
             ]
         )
         start_header = header_list[1]
-        end_header_input = None
+        end_header_input = ""
         # Run test.
         end_line = hmarsele.find_end_line(
             header_list, start_header, end_header_input
@@ -594,7 +594,7 @@ class Test_find_end_line(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test end line is None when no next same-level header.
+        Test end line is -1 when no next same-level header.
         """
         # Prepare inputs.
         header_list = _build_header_list(
@@ -605,13 +605,13 @@ class Test_find_end_line(hunitest.TestCase):
             ]
         )
         start_header = header_list[1]
-        end_header_input = None
+        end_header_input = ""
         # Run test.
         end_line = hmarsele.find_end_line(
             header_list, start_header, end_header_input
         )
         # Check outputs.
-        self.assertIsNone(end_line)
+        self.assertEqual(end_line, -1)
 
     def test4(self) -> None:
         """
@@ -627,7 +627,7 @@ class Test_find_end_line(hunitest.TestCase):
             ]
         )
         start_header = header_list[1]
-        end_header_input = None
+        end_header_input = ""
         # Run test.
         end_line = hmarsele.find_end_line(
             header_list, start_header, end_header_input
@@ -685,16 +685,14 @@ class Test_get_chunk_bounds(hunitest.TestCase):
             "More",
         ]
         # Run test.
-        start_idx, end_idx = hmarsele.get_chunk_bounds(
-            lines, "Section 1.1", None
-        )
+        start_idx, end_idx = hmarsele.get_chunk_bounds(lines, "Section 1.1", "")
         # Check outputs: should stop before Section 1.2.
         self.assertEqual(start_idx, 3)
         self.assertEqual(end_idx, 6)
 
     def test3(self) -> None:
         """
-        Test getting bounds with None start (from beginning).
+        Test getting bounds with empty start (from beginning).
         """
         # Prepare inputs.
         lines = [
@@ -705,9 +703,7 @@ class Test_get_chunk_bounds(hunitest.TestCase):
             "Content",
         ]
         # Run test.
-        start_idx, end_idx = hmarsele.get_chunk_bounds(
-            lines, None, "Section 1.1"
-        )
+        start_idx, end_idx = hmarsele.get_chunk_bounds(lines, "", "Section 1.1")
         # Check outputs: should start from line 0.
         self.assertEqual(start_idx, 0)
         self.assertEqual(end_idx, 3)
@@ -797,7 +793,7 @@ class Test_extract_text_from_markdown_lines2(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test that None end_header still auto-detects next same-level header.
+        Test that empty end_header still auto-detects next same-level header.
         """
         # Prepare inputs.
         lines = [
@@ -818,16 +814,16 @@ class Test_extract_text_from_markdown_lines2(hunitest.TestCase):
             "## Section 1.1",
             "Content",
         ]
-        # Run test: extract with None (should stop at "## Section 1.2").
+        # Run test: extract with empty string (should stop at "## Section 1.2").
         actual = hmarsele.extract_text_from_markdown_lines(
-            lines, "Section 1.1", None
+            lines, "Section 1.1", ""
         )
         # Check outputs.
         self.assertEqual(actual, expected)
 
     def test4(self) -> None:
         """
-        Test extracting from beginning of file (start_header_str=None).
+        Test extracting from beginning of file (start_header_str="").
         """
         # Prepare inputs.
         lines = [
@@ -847,7 +843,7 @@ class Test_extract_text_from_markdown_lines2(hunitest.TestCase):
         ]
         # Run test: extract from beginning to "Section 1.1" (excluding it).
         actual = hmarsele.extract_text_from_markdown_lines(
-            lines, None, "Section 1.1"
+            lines, "", "Section 1.1"
         )
         # Check outputs.
         self.assertEqual(actual, expected)
@@ -973,21 +969,21 @@ class Test_extract_rule_from_file(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test that section name mismatch raises AssertionError.
+        Test that section name mismatch raises ValueError.
         """
         file_path = self.helper_create_rule_file()
         rule_spec = f"{file_path}:3:# Different Name"
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             hmarsele.extract_rule_from_file(rule_spec)
 
     def test6(self) -> None:
         """
-        Test that non-header line raises AssertionError.
+        Test that non-header line raises ValueError.
         """
         file_path = self.helper_create_rule_file()
         # This is "- Level 1 content line 1", not a header.
         rule_spec = f"{file_path}:4"
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             hmarsele.extract_rule_from_file(rule_spec)
 
     def test7(self) -> None:
@@ -1027,7 +1023,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         self,
         document_text: str,
         start_header: str,
-        end_header: str | None,
+        end_header: str,
         expected_text: str,
     ) -> None:
         """
@@ -1035,7 +1031,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
 
         :param document_text: Full document text to extract from
         :param start_header: Starting header (full or partial)
-        :param end_header: Ending header (full or partial) or None
+        :param end_header: Ending header (full or partial) or empty string
         :param expected_text: Expected extracted text
         """
         # Prepare inputs.
@@ -1096,7 +1092,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             Results text.
             """
         start_header = "# Methods"
-        end_header = None
+        end_header = ""
         expected_text = """
             # Methods
 
@@ -1124,7 +1120,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             # Chapter 2
             """
         start_header = "## Section 1.1"
-        end_header = None
+        end_header = ""
         expected_text = """
             ## Section 1.1
 
@@ -1150,7 +1146,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             Content of chapter 2
             """
         start_header = "## Section 1.1"
-        end_header = None
+        end_header = ""
         expected_text = """
             ## Section 1.1
 
@@ -1160,14 +1156,14 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
         self.helper(document_text, start_header, end_header, expected_text)
 
     def helper_error(
-        self, document_text: str, start_header: str, end_header: str | None
+        self, document_text: str, start_header: str, end_header: str
     ) -> None:
         """
         Test helper for extract_text_from_markdown_lines error cases.
 
         :param document_text: Full document text to extract from
         :param start_header: Starting header (full or partial)
-        :param end_header: Ending header (full or partial) or None
+        :param end_header: Ending header (full or partial) or empty string
         """
         # Prepare inputs.
         lines = self._to_lines(document_text)
@@ -1188,7 +1184,7 @@ class Test_extract_text_from_markdown(hunitest.TestCase):
             Text
             """
         start_header = "# Nonexistent"
-        end_header = None
+        end_header = ""
         # Run test.
         self.helper_error(document_text, start_header, end_header)
 
@@ -1226,7 +1222,7 @@ class Test_extract_text_from_markdown_lines1(hunitest.TestCase):
         self,
         document_text: str,
         start_header: str,
-        end_header: str | None,
+        end_header: str,
         expected_text: str,
     ) -> None:
         """
@@ -1234,7 +1230,7 @@ class Test_extract_text_from_markdown_lines1(hunitest.TestCase):
 
         :param document_text: Full document text with slide notation
         :param start_header: Starting header/slide (e.g., "* Title" or "##### Title")
-        :param end_header: Ending header/slide (optional)
+        :param end_header: Ending header/slide (optional) or empty string
         :param expected_text: Expected extracted text
         """
         # Prepare inputs.
@@ -1267,7 +1263,7 @@ class Test_extract_text_from_markdown_lines1(hunitest.TestCase):
             Our findings.
             """
         start_header = "* Methods"
-        end_header = None
+        end_header = ""
         expected_text = """
             ##### Methods
 

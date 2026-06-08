@@ -1,5 +1,6 @@
 ---
-description: Rules to write bullet lists in markdown or text files
+description: Summarize text in markdown bullet points
+model: haiku
 ---
 
 Given the file passed by the user, follow the formatting rules in

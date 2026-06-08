@@ -1,5 +1,6 @@
 ---
 description: Run pyright on Python files and fix the reported lints
+model: haiku
 ---
 
 Given a list of files `<FILES>`

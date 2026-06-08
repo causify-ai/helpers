@@ -1,5 +1,6 @@
 ---
 description: Propose solutions to make a Docker container faster and smaller without changing its functionality
+model: haiku
 ---
 
 - You are an expert of Docker

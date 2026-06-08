@@ -1,5 +1,6 @@
 ---
 description: Gather information about books
+model: haiku
 ---
 
 - Given information about books (either a partially complete table or a list of
