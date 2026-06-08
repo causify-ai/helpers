@@ -444,8 +444,8 @@ class _OrderedConfig(_OrderedDictType):
                     f" for key '{key}' when update_mode={update_mode}"
                 )
                 msg.append("self=\n" + hprint.indent(str(self)))
-                msg = "\n".join(msg)
-                raise OverwriteError(msg)
+                msg_as_str = "\n".join(msg)
+                raise OverwriteError(msg_as_str)
             else:
                 # Key doesn't exist, thus assign the value.
                 assign_new_value = True
@@ -462,8 +462,8 @@ class _OrderedConfig(_OrderedDictType):
                     f"Value '{old_val}' for key '{key}' already exists."
                     f" Not overwriting with '{val}' since update_mode={update_mode}"
                 )
-                msg = "\n".join(msg)
-                _LOG.warning(msg)
+                msg_as_str = "\n".join(msg)
+                _LOG.warning(msg_as_str)
                 assign_new_value = False
             else:
                 # Key doesn't exist, thus assign the value.
@@ -501,8 +501,8 @@ class _OrderedConfig(_OrderedDictType):
                         f" for key '{key}' with clobber_mode={clobber_mode}"
                     )
                     msg.append("self=\n" + hprint.indent(str(self)))
-                    msg = "\n".join(msg)
-                    raise ClobberError(msg)
+                    msg_as_str = "\n".join(msg)
+                    raise ClobberError(msg_as_str)
         else:
             raise RuntimeError(f"Invalid clobber_mode='{clobber_mode}'")
         # 3) Assign the value, if needed.
