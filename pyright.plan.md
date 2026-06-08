@@ -7,8 +7,7 @@
 
 ## Phase 1 — Mechanical Annotation Fixes 🟢 (2-3 hours)
 
-DONE
-### Cluster A: `str` ↔ `List[str]` (~30 errors)
+DONE ### Cluster A: `str` ↔ `List[str]` (~30 errors)
 Variable typed as `List[str]` assigned `str`, or vice versa. Pure copy-paste / naming collision.
 
 **Fix:** One annotation swap per file. One minute each.
@@ -29,7 +28,7 @@ Function declared `-> str` returns `str | None`, or `str | None` argument passed
 
 **Hotspots:** `hparquet.py`, `hprint.py`, `hs3.py`, `hpandas_utils.py`, `hpytest.py`, `hunit_test.py`, `repo_config_utils.py`, `hversion.py`, many `test_*.py` files.
 
-### Cluster C: `Literal['echo']` vs `int` (2 errors)
+DONE ### Cluster C: `Literal['echo']` vs `int` (2 errors)
 `dev_scripts_helpers/git/gup.py:53,65` — string log level passed where `int` expected.
 
 **Fix:** Change `'echo'` to the numeric log level constant.
@@ -38,7 +37,7 @@ Function declared `-> str` returns `str | None`, or `str | None` argument passed
 
 ## Phase 2 — Possibly-Unbound Variables 🟡 (2-3 hours)
 
-### Cluster D (~120 errors across 40 files)
+DONE ### Cluster D (~120 errors across 40 files)
 
 **Pattern:** Variable assigned inside conditional branches, one branch skips it, then used after the block.
 

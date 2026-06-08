@@ -529,6 +529,8 @@ def _parallel_execute_decorator(
     with htimer.TimedScope(
         logging.DEBUG, f"Execute '{workload_func_str}'"
     ) as ts:
+        # Initialize `exception` before the try block to satisfy the type checker.
+        exception: Optional[BaseException] = None
         try:
             if processify_func:
                 _LOG.debug("Using processify")
