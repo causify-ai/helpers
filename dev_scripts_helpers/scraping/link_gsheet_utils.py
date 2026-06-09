@@ -109,7 +109,9 @@ def download_from_gsheet(url: str, output_file: str) -> str:
     cmd = (
         f"from_gsheet.py --url '{url}' --output_file '{output_file}' --overwrite"
     )
+    _LOG.debug("cmd=%s", cmd)
     hsystem.system(cmd, print_command=True)
+    _LOG.debug("Downloaded from Google Sheets %s to %s", url, output_file)
     hdbg.dassert_path_exists(output_file)
     rows = read_csv(output_file)
     num_cols = len(rows[0].keys()) if rows else 0
