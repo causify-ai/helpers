@@ -251,12 +251,12 @@ class Test_purify_text1(hunitest.TestCase):
             " -e CSFY_REPO_CONFIG_PATH"
             " -e CSFY_TELEGRAM_TOKEN"
             " -e CSFY_USE_HELPERS_AS_NESTED_MODULE"
-            " --workdir /app"
+            " --workdir $GIT_ROOT"
             " tmp.latex.aarch64.xxxxxxxx"
             " pdflatex -output-directory"
-            " /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch"
+            " $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch"
             " --interaction=nonstopmode --halt-on-error --shell-escape"
-            " /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.tex"
+            " $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.tex"
         )
         # Run test.
         self.check_helper(txt, expected)
