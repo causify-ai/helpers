@@ -8,7 +8,7 @@ import datetime
 import logging
 import os
 import re
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import helpers.hgit as hgit
 import helpers.hintrospection as hintros
@@ -64,6 +64,7 @@ class TextPurifier:
         txt = self.purify_parquet_file_names(txt)
         txt = self.purify_helpers(txt)
         txt = self.purify_docker_image_name(txt)
+        txt = self.purify_from_docker_env_vars(txt)
         return txt
 
     def purify_directory_paths(self, txt: str) -> str:
@@ -427,6 +428,33 @@ class TextPurifier:
             txt,
             flags=re.MULTILINE | re.VERBOSE,
         )
+        return txt
+
+    def purify_from_docker_env_vars(
+        self,
+        txt: str,
+        env_var_suffixes: Optional[List[str]] = None,
+    ) -> str:
+        """
+        Remove `-e VAR_NAME` or `-e VAR_NAME=VALUE` from docker command lines.
+
+        This removes env vars that match the given suffixes from docker run
+        command lines. E.g., `-e OPENAI_API_KEY` or `-e OPENAI_API_KEY=sk-...`.
+
+        :param txt: input text containing docker commands
+        :param env_var_suffixes: suffixes used to select env vars to remove.
+            E.g., `["_API_KEY"]` matches `OPENAI_API_KEY`, `SYNTHESIA_API_KEY`,
+            etc. If None, defaults to `["_API_KEY"]`.
+        :return: text with matching docker env var flags removed
+        """
+        if env_var_suffixes is None:
+            env_var_suffixes = ["_API_KEY"]
+        for suffix in env_var_suffixes:
+            # Match ` -e VAR` (with leading space) where VAR ends with the
+            # suffix, optionally followed by `=VALUE`.
+            # E.g., ` -e OPENAI_API_KEY`, ` -e OPENAI_API_KEY=sk-abc123`.
+            pattern = rf" -e \w*{re.escape(suffix)}(?:=\S*)?"
+            txt = re.sub(pattern, "", txt)
         return txt
 
     def purify_file_names(self, file_names: List[str]) -> List[str]:
