@@ -20,12 +20,8 @@ This document contains all the rules that must be followed when writing a blog
   - **authors**: List format with username(s)
   - **date**: Use YYYY-MM-DD format
   - **description**: Usually left empty
-  - **categories**: Common categories include:
-    - Business
-    - Causal AI
-    - Startup
-    - Causal News
-    - Causal ELI5
+  - **draft**: `true` or `false` (use `true` for unpublished drafts)
+  - **categories**: Must match the categories defined in `website/mkdocs.yml`
 
 ## TL;DR Section
 - Immediately after the front matter, add a TL;DR (or TLDR):

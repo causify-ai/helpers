@@ -23,36 +23,13 @@ model: haiku
 - For each file apply all the following rules and report violations as described
   below
 
-## Check File Exists
-- Make sure the front matter matches the right format
-  ```
-  ---
-  title: ...
-  draft: true / false
-  authors:
-    - gpsaggese
-  date: 2025-06-01
-  categories:
-    - Causal AI
-    ...
-  ---
-  ```
-- Make sure everything is correct
-  - The title is catchy and good
-  - The date matches when the file was first created
-  - The categories are appropriate and match the ones in `website/mkdocs.yml`
+## Check Front Matter
+- Make sure to follow the section `# Blog Document Structure` from the file
+  `.claude/skills/blog.rules.md`
 
-## Check That Has a TLDR
-- Make sure that there is a TL;DR in the format below right after the front
-  matter
-  - E.g.,
-    ```
-    TL;DR: Running blind experiments is expensive. Bayesian Optimization predicts
-    where to look next and saves you millions.
-
-    <!-- more -->
-    ```
-- If not report as a violation as described later
+## Check That Has a TL;DR
+- Make sure to follow the section `# Blog Document Structure` from the file
+  `.claude/skills/blog.rules.md`
 
 ## Check for Other Violations
 - Use the rules in `.claude/skills/blog.rules.md` to look for clear violations
