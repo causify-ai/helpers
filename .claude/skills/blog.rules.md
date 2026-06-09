@@ -18,10 +18,12 @@ This document contains all the rules that must be followed when writing a blog
   where
   - **title**: Use double quotes, capitalize major words
   - **authors**: List format with username(s)
+    - Must match the list in `website/docs/.authors.yml`
   - **date**: Use YYYY-MM-DD format
   - **description**: Usually left empty
   - **draft**: `true` or `false` (use `true` for unpublished drafts)
-  - **categories**: Must match the categories defined in `website/mkdocs.yml`
+  - **categories**:
+    - Must match the categories defined in `website/mkdocs.yml`
 
 ## TL;DR Section
 - Immediately after the front matter, add a TL;DR (or TLDR):
@@ -37,6 +39,11 @@ This document contains all the rules that must be followed when writing a blog
   it
 
 # Writing Style
+
+## Formatting Rules
+- Follow the rules in
+  - `.claude/skills/markdown.rules.md`
+  - `.claude/skills/text.rules.md`
 
 ## Tone and Audience
 - Avoid slang and overly casual language
@@ -54,3 +61,9 @@ This document contains all the rules that must be followed when writing a blog
 - Be direct and avoid unnecessary jargon
 - Use concrete examples to illustrate abstract concepts
 - Aim for clarity and brevity
+
+## Beautify
+- Run a command to format the code for proper visualization
+  ```
+  > prettier --tab-width 4 <FILE> -w
+  ```

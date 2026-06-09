@@ -19,48 +19,13 @@ model: haiku
 - For each file apply all the following rules and report violations as described
   below
 
-## Check File Exists
-- Make sure the referred file links exists
-  - E.g., 
-    ```
-    - For all the code you must follow the instructions in
-      - `.claude/skills/coding.rules.md`
-      - `.claude/skills/testing.rules.md`
-    ```
-    the files `.claude/skills/coding.rules.md` and `.claude/skills/testing.rules.md`
-    must exist
-- If not report as a violation as described later
-
-## Check that Frontmatter is Correct
-- Make sure that each `<SKILL.md>` file has a description and a model in the
-  YAML frontmatter
-  - **Bad**
-    ```
-    ---
-    description: Check the references in all the skill files
-    ---
-    ```
-  - **Good**
-    ```
-    ---
-    description: Check the references in all the skill files
-    model: haiku
-    ---
-    ```
-- If not report as a violation as described later
+## Check Files Existence
+- Make sure that the file follows the section `## File Format` from the file
+  `.claude/skills/skill.rules.md`
 
 ## Check Header References
-- When there are references to files and specific headers make sure they exist
-  - E.g., 
-    ```
-    - Write comments using the style from `.claude/skills/coding.rules.md`
-      `# Documentation and Comments`
-    ```
-    you can run
-    ```
-    > grep -q '^# Documentation and Comments$' .claude/skills/coding.rules.md
-    ```
-- If not report as a violation as described later
+- Make sure that the file follows the section `## References and Dependencies` from the file
+  `.claude/skills/skill.rules.md`
 
 ## Check for Other Violations
 - Use the rules in `.claude/skills/skill.rules.md` to look for clear violations

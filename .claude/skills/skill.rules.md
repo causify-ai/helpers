@@ -23,6 +23,21 @@
   ---
   ```
 
+- **Required fields**: Both `description` and `model` are required:
+  - **Bad**: missing `model`
+    ```yaml
+    ---
+    description: Check the references in all the skill files
+    ---
+    ```
+  - **Good**: both fields present
+    ```yaml
+    ---
+    description: Check the references in all the skill files
+    model: haiku
+    ---
+    ```
+
 - **Guidelines for description**:
   - Use imperative verb: "Format Python code", "Write unit tests", "Create
     slides"
@@ -175,6 +190,22 @@
 
 - All references in the skills should be to existing files
 - If there is a non-existing reference try to find it
+
+### Header References
+
+- When a skill references a specific header in another file, the header must
+  exist
+- E.g., if a skill says:
+  ```
+  - Write comments using the style from `.claude/skills/coding.rules.md`
+    `# Documentation and Comments`
+  ```
+  then the file `.claude/skills/coding.rules.md` must contain the header
+  `# Documentation and Comments`
+  - Verify that exists with:
+    ```bash
+    > grep -q '^# Documentation and Comments$' .claude/skills/coding.rules.md
+    ```
 
 # Guidelines and Decisions
 
