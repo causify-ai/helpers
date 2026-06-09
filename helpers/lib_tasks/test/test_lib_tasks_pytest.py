@@ -13,7 +13,7 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import helpers.lib_tasks.lib_tasks_pytest as hlitapyt
+import helpers.lib_tasks.lib_tasks_pytest as hltltapy
 import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 hserver, "is_inside_ci", return_value=is_inside_ci_return_value
             ),
         ):
-            actual = hlitapyt._build_run_command_line(
+            actual = hltltapy._build_run_command_line(
                 "fast_tests",
                 custom_marker,
                 pytest_opts,
@@ -173,7 +173,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 hserver, "is_inside_ci", return_value=is_inside_ci_return_value
             ),
         ):
-            actual = hlitapyt._build_run_command_line(
+            actual = hltltapy._build_run_command_line(
                 "fast_tests",
                 custom_marker,
                 pytest_opts,
@@ -282,7 +282,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         #
-        actual = hlitapyt._build_run_command_line(
+        actual = hltltapy._build_run_command_line(
             test_list_name,
             custom_marker,
             pytest_opts,
@@ -326,7 +326,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 hserver, "is_inside_ci", return_value=is_inside_ci_return_value
             ),
         ):
-            actual = hlitapyt._build_run_command_line(
+            actual = hltltapy._build_run_command_line(
                 "fast_tests",
                 custom_marker,
                 pytest_opts,
@@ -422,7 +422,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 hserver, "is_inside_ci", return_value=is_inside_ci_return_value
             ),
         ):
-            actual = hlitapyt._build_run_command_line(
+            actual = hltltapy._build_run_command_line(
                 "fast_tests",
                 custom_marker,
                 pytest_opts,
@@ -514,7 +514,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 hserver, "is_inside_ci", return_value=is_inside_ci_return_value
             ),
         ):
-            actual = hlitapyt._build_run_command_line(
+            actual = hltltapy._build_run_command_line(
                 "fast_tests",
                 custom_marker,
                 pytest_opts,
@@ -614,11 +614,11 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 hserver, "is_inside_ci", return_value=is_inside_ci_return_value
             ),
         ):
-            custom_marker = hlitapyt._get_custom_marker(
+            custom_marker = hltltapy._get_custom_marker(
                 run_only_test_list=run_only_test_list,
                 skip_test_list=skip_test_list,
             )
-            actual = hlitapyt._build_run_command_line(
+            actual = hltltapy._build_run_command_line(
                 "fast_tests",
                 custom_marker,
                 pytest_opts,
@@ -692,7 +692,7 @@ class Test_pytest_repro1(hunitest.TestCase):
             self.get_scratch_space(), "tmp.pytest_repro.sh"
         )
         ctx = httestlib._build_mock_context_returning_ok()
-        actual = hlitapyt.pytest_repro(
+        actual = hltltapy.pytest_repro(
             ctx, mode=mode, file_name=file_name, script_name=script_name
         )
         hdbg.dassert_isinstance(actual, str)
@@ -969,6 +969,8 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
             if m:
                 test_output_start = i + 1
                 break
+        else:
+            test_output_start = 0
         lines_test_output = lines[test_output_start:]
         #
         actual = "\n".join([line_cmd] + lines_test_output)
@@ -1085,7 +1087,7 @@ class Test_pytest_failed1(hunitest.TestCase):
         exp_num_passed: int,
     ) -> None:
         act_failed_tests, act_num_failed, act_num_passed = (
-            hlitapyt._parse_failed_tests(txt, only_file, only_class)
+            hltltapy._parse_failed_tests(txt, only_file, only_class)
         )
         act_failed_tests = "\n".join(act_failed_tests)
         self.assert_equal(

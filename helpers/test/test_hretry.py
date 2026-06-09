@@ -125,6 +125,9 @@ class Test_retry2(hunitest.TestCase):
         with self.assertRaises(ValueError) as fail:
             with htimer.TimedScope(logging.INFO, "async_retry_loop") as ts:
                 asyncio.run(func())
+        # pyright doesn't infer that `ts` is bound here because the with
+        # statement can raise; however `TimedScope.__exit__` always runs.
+        assert isinstance(ts, htimer.TimedScope)  # type: ignore[possibly-unbound]
         self.assertEqual(round(ts.elapsed_time, 1), 3.3)
         actual = str(fail.exception)
         expected = "Simulated expected error"

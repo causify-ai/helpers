@@ -132,6 +132,7 @@ def _modify_presentation(
     # Convert colors.
     text_rgb = _hex_to_rgb(text_color_hex)
     _LOG.info("Using text color: %s (RGB: %s)", text_color_hex, text_rgb)
+    bg_rgb = None
     if background_image is not None:
         _LOG.info("Using background image: %s", background_image)
     else:
@@ -145,6 +146,9 @@ def _modify_presentation(
         if background_image is not None:
             _set_slide_background_image(slide, prs, background_image)
         else:
+            # pyright: bg_rgb is always set in this branch since
+            # background_image is None (same guard as above).
+            assert bg_rgb is not None
             _set_slide_background(slide, bg_rgb)
         # Update text colors.
         for shape in slide.shapes:

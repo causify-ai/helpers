@@ -92,7 +92,7 @@ def open_file(file_name: str) -> None:
     hdbg.dassert_path_exists(file_name)
     # Get opening command.
     os_name = hsystem.get_os_name()
-    cmd: Optional[str]
+    cmd: Optional[str] = None
     if extension == "pdf":
         cmd = _cmd_open_pdf(file_name, os_name)
     elif extension == "html":

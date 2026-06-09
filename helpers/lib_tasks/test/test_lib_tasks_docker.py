@@ -9,6 +9,7 @@ import pytest
 
 import helpers.hgit as hgit
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_purification as huntepur
 import helpers.lib_tasks.lib_tasks_docker as hlitadoc
@@ -68,7 +69,7 @@ class Test_generate_compose_file1(hunitest.TestCase):
         txt_tmp = hunitest.filter_text(
             "CSFY_USE_HELPERS_AS_NESTED_MODULE", txt_tmp
         )
-        txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
+        txt_tmp = hunitest.filter_text("_API_KEY", txt_tmp)
         txt.append(txt_tmp)
         #
         txt = "\n".join(txt)
@@ -94,7 +95,9 @@ class Test_generate_compose_file1(hunitest.TestCase):
     @pytest.mark.skipif(
         hgit.is_in_amp_as_submodule(), reason="Only run in amp directly"
     )
-    @pytest.mark.skipif(sys.platform == "darwin", reason="")
+    @pytest.mark.skipif(
+        hserver.is_host_mac(), reason="Docker compose mismatch"
+    )
     def test4(self) -> None:
         self.helper(stage="dev")
 
@@ -168,13 +171,15 @@ class Test_generate_compose_file2(hunitest.TestCase):
             )
         # Remove all the env variables that are function of the host.
         txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
-        txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
+        txt_tmp = hunitest.filter_text("_API_KEY", txt_tmp)
         txt.append(txt_tmp)
         #
         txt = "\n".join(txt)
         self.check_string(txt)
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="")
+    @pytest.mark.skipif(
+        hserver.is_host_mac(), reason="Docker compose mismatch"
+    )
     def test1(self) -> None:
         """
         Check that file is generated correctly when the repo is `//cmamp`.
@@ -186,7 +191,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_is_in_helpers_as_supermodule=False,
         )
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="")
+    @pytest.mark.skipif(
+        hserver.is_host_mac(), reason="Docker compose mismatch"
+    )
     def test2(self) -> None:
         """
         Check that file is generated correctly when the repo is `//helpers`.
@@ -198,7 +205,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_is_in_helpers_as_supermodule=True,
         )
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="")
+    @pytest.mark.skipif(
+        hserver.is_host_mac(), reason="Docker compose mismatch"
+    )
     def test3(self) -> None:
         """
         Check that file is generated correctly when the repo is `//cmamp` and
@@ -211,7 +220,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_is_in_helpers_as_supermodule=False,
         )
 
-    @pytest.mark.skipif(sys.platform == "darwin", reason="")
+    @pytest.mark.skipif(
+        hserver.is_host_mac(), reason="Docker compose mismatch"
+    )
     def test4(self) -> None:
         """
         Check that file is generated correctly when the repo is `//orange`.
@@ -222,9 +233,6 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_find_helpers_root="/data/dummy/src/orange1/amp/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -426,9 +434,6 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_dassert_is_image_name_valid1
 # #############################################################################
 
@@ -463,9 +468,6 @@ class Test_dassert_is_image_name_valid1(hunitest.TestCase):
         for image in invalid_images:
             with self.assertRaises(AssertionError):
                 hlitadoc.dassert_is_image_name_valid(image)
-
-
-# #############################################################################
 
 
 # #############################################################################

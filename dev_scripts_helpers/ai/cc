@@ -71,6 +71,8 @@ if [ "$MODEL" = "" ]; then
 else
     if [ "$MODEL" = "deepseek" ]; then
         MODEL="deepseek/deepseek-v4-flash"
+    elif [ "$MODEL" = "deepseek-pro" ]; then
+        MODEL="deepseek/deepseek-v4-pro"
     fi;
     # Models
     # - anthropic/claude-haiku-4-5-20251001

@@ -179,6 +179,7 @@ def _get_template(topic_: str, name: str) -> str:
     :param name: the name to include in the template
     :return: template string
     """
+    result = ""
     if topic_ == "blog":
         today = date.today().isoformat()
         text = f"""

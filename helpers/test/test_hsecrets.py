@@ -1,7 +1,7 @@
 # TODO(gp): Use pytest.import_skip instead of all this machinery.
 _HAS_MOTO = True
 try:
-    import moto
+    import moto  # type: ignore[possibly-unbound]
 except ImportError:
     # `moto` may not be installed in a non-cmamp repo, so we skip it (see "DevTools376:
     # Break 2022-02-22").
@@ -53,7 +53,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestGetSecret(hunitest.TestCase):
-        @moto.mock_aws
+        @moto.mock_aws  # type: ignore[possibly-unbound]
         def test_get_secret(self) -> None:
             """
             Verify that the secret can be retrieved correctly.
@@ -69,7 +69,7 @@ if _HAS_MOTO:
             )
             self.assertDictEqual(hsecret.get_secret(secret_name), secret)
 
-        @moto.mock_aws
+        @moto.mock_aws  # type: ignore[possibly-unbound]
         @pytest.mark.skip(
             reason="TODO(Juraj): Temporarily disabled in #Cmtask10068."
         )
@@ -94,7 +94,7 @@ if _HAS_MOTO:
                 actual = str(rte)
                 self.assert_equal(actual, expected, fuzzy_match=True)
 
-        @moto.mock_aws
+        @moto.mock_aws  # type: ignore[possibly-unbound]
         @pytest.mark.skip(
             reason="TODO(Juraj): Temporarily disabled in #Cmtask10068."
         )
@@ -130,7 +130,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestStoreSecret(hunitest.TestCase):
-        @moto.mock_aws
+        @moto.mock_aws  # type: ignore[possibly-unbound]
         def test_store_secret1(self) -> None:
             """
             Verify that a secret can be stored correctly.
@@ -157,7 +157,7 @@ if _HAS_MOTO:
         reason="TODO(Juraj): Temporarily disabled in #Cmtask10068."
     )
     class TestLockSecret(hunitest.TestCase):
-        @moto.mock_aws
+        @moto.mock_aws  # type: ignore[possibly-unbound]
         def test_lock_secret(self) -> None:
             """
             Verify that the lock secret function locks the key.
@@ -188,7 +188,7 @@ if _HAS_MOTO:
         reason="TODO(Juraj): Temporarily disabled in #Cmtask10068."
     )
     class TestUpdateUsedby(hunitest.TestCase):
-        @moto.mock_aws
+        @moto.mock_aws  # type: ignore[possibly-unbound]
         def test1(self) -> None:
             """
             Verify that update_usedby updates value in secrets manager.

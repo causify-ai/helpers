@@ -130,8 +130,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
     # Get the ipynb files to add a TOC to.
+    files_to_process = []
     if args.input_files:
-        files_to_process = []
         for input_file in args.input_files:
             hdbg.dassert_path_exists(input_file)
             hdbg.dassert_file_extension(input_file, ".ipynb")

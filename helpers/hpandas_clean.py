@@ -51,7 +51,7 @@ def drop_duplicates(
         hdbg.dassert_lte(1, len(column_subset), "Columns subset cannot be empty")
     if use_index:
         # Add dummy index column to use it for duplicates detection.
-        index_col_name = "use_index_col"
+        index_col_name: str = "use_index_col"
         hdbg.dassert_not_in(index_col_name, data.columns.tolist())
         column_subset.insert(0, index_col_name)
         data[index_col_name] = data.index
@@ -60,7 +60,7 @@ def drop_duplicates(
     # Clean up the temporary index column if it was added.
     if use_index:
         # Remove dummy index column.
-        data_no_dups = data_no_dups.drop([index_col_name], axis=1)
+        data_no_dups = data_no_dups.drop([index_col_name], axis=1)  # type: ignore[possibly-unbound]
     # Report the change.
     num_rows_after = data_no_dups.shape[0]
     if num_rows_before != num_rows_after:

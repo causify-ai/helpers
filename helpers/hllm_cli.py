@@ -42,6 +42,7 @@ try:
 
     _TOKENCOST_AVAILABLE = True
 except ImportError:
+    tokencost = None  # type: ignore[possibly-unbound]
     _TOKENCOST_AVAILABLE = False
 
 from tqdm import tqdm
@@ -85,6 +86,15 @@ class TokenStats:
     elapsed_time_in_seconds: float = 0.0
     tokens_per_second: float = 0.0
 
+    def _compute_tokens_per_second(self) -> float:
+        """
+        Compute tokens per second from input_tokens, output_tokens, and elapsed_time_in_seconds.
+        """
+        total_tokens = self.input_tokens + self.output_tokens
+        if self.elapsed_time_in_seconds > 0:
+            return total_tokens / self.elapsed_time_in_seconds
+        return 0.0
+
     def __post_init__(self) -> None:
         """
         Validate TokenStats after initialization.
@@ -110,15 +120,6 @@ class TokenStats:
         self.elapsed_time_in_seconds = float(self.elapsed_time_in_seconds)
         self.cost_from_llm_library = float(self.cost_from_llm_library)
         self.tokens_per_second = float(self.tokens_per_second)
-
-    def _compute_tokens_per_second(self) -> float:
-        """
-        Compute tokens per second from input_tokens, output_tokens, and elapsed_time_in_seconds.
-        """
-        total_tokens = self.input_tokens + self.output_tokens
-        if self.elapsed_time_in_seconds > 0:
-            return total_tokens / self.elapsed_time_in_seconds
-        return 0.0
 
     def to_float(self) -> float:
         """
@@ -344,10 +345,10 @@ def _calculate_cost_from_usage(
     output_tokens = usage.output
     if _TOKENCOST_AVAILABLE:
         try:
-            prompt_cost = tokencost.calculate_cost_by_tokens(
+            prompt_cost = tokencost.calculate_cost_by_tokens(  # type: ignore[possibly-unbound]
                 num_tokens=input_tokens, model=model, token_type="input"
             )
-            completion_cost = tokencost.calculate_cost_by_tokens(
+            completion_cost = tokencost.calculate_cost_by_tokens(  # type: ignore[possibly-unbound]
                 num_tokens=output_tokens, model=model, token_type="output"
             )
             cost = float(prompt_cost + completion_cost)
@@ -593,6 +594,9 @@ def apply_llm(
     )
     _LOG.debug("Applying LLM to input text")
     _LOG.debug("backend=%s", backend)
+    # Initialize variables to satisfy pyright's possibly-unbound check.
+    response = ""
+    token_stats = TokenStats()
     # Route to appropriate implementation.
     if backend == "executable":
         # Check that llm executable exists.
@@ -780,8 +784,12 @@ def _calculate_llm_cost(
     :return: total cost in dollars
     """
     if _TOKENCOST_AVAILABLE:
-        prompt_cost = tokencost.calculate_prompt_cost(prompt, model)
-        completion_cost = tokencost.calculate_completion_cost(completion, model)
+        prompt_cost = tokencost.calculate_prompt_cost(  # type: ignore[possibly-unbound]
+            prompt, model
+        )
+        completion_cost = tokencost.calculate_completion_cost(  # type: ignore[possibly-unbound]
+            completion, model
+        )
         total_cost = prompt_cost + completion_cost
     else:
         total_cost = 0.0
@@ -1099,7 +1107,8 @@ def _call_batch_processor(
         func = apply_llm_batch_combined
     else:
         hdbg.dfatal("Invalid batch mode: %s", batch_mode)
-    batch_responses, batch_token_stats = func(
+    # pyright cannot infer that func is always assigned because hdbg.dfatal raises.
+    batch_responses, batch_token_stats = func(  # type: ignore[possibly-unbound]
         prompt=prompt,
         input_list=batch_items,
         model=model,

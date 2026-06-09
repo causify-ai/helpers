@@ -526,7 +526,7 @@ def _transform_lines(
             *,
             slide_title: str = "",
             slide_line_number: int = 0,
-        ) -> str:
+        ) -> List[str]:
             """
             Color bullet points in the slide.
 
@@ -534,7 +534,7 @@ def _transform_lines(
             :param slide_title: title of the slide (for error reporting)
             :param slide_line_number: line number where slide starts (for error
                 reporting)
-            :return: colorized slide text
+            :return: colorized slide text as a list of lines
             """
             slide_text_str = "\n".join(slide_text)
             if not hmarkdo.has_color_command(slide_text_str):
@@ -554,11 +554,11 @@ def _transform_lines(
             text_out = text_out.split("\n")
             return text_out
 
-        out = "\n".join(out)
+        out_str = "\n".join(out)
         to_execute, actions = hselacti.mark_action("colorize_bullets", actions)
         if to_execute:
-            out = hmarkdo.process_slides(out, _colorize_bullets)
-        out = out.split("\n")
+            out_str = hmarkdo.process_slides(out_str, _colorize_bullets)
+        out = out_str.split("\n")
     # out = out.split("\n")
     out_tmp = []
     for line in out:

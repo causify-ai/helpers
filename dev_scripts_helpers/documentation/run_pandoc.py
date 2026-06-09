@@ -55,6 +55,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt = hseinout.from_file(in_file_name)
     # Transform.
     txt_tmp = "\n".join(txt)
+    txt_out = ""
     if args.action == "convert_md_to_latex":
         txt_out = hlatex.convert_pandoc_md_to_latex(txt_tmp)
     else:

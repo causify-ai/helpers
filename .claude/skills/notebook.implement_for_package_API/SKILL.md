@@ -1,5 +1,5 @@
 ---
-description: <Brief description of what this skill does>
+description: Create a notebook to present the API of a package
 ---
 
 Create a self-contained Jupyter notebook that teaches the Python package
@@ -28,6 +28,15 @@ a large real-world problem
 
 ## Notebook Structure
 
+### Name of the Notebook
+- The name of the notebook `<FILE>` is either specified directly by the user or
+  it is generated as:
+  ```
+  tutorials/<PACKAGE_NAME>/<PACKAGE_NAME>.<ID>.API.<description>.ipynb
+  ```
+- E.g., for the package `pgmpy` and for probabilistic inference the name can
+  be `tutorials/pgmpy/pgmpy.01.API.probabilistic_inference.ipynb`
+
 ### Use Standard Template Structure
 - Use the structure from `.claude/templates/notebook.template.py` for consistent
   notebook initialization
@@ -46,8 +55,6 @@ a large real-world problem
   - `.claude/skills/slides.rules.md`: rules for formatting slides
   - `.claude/skills/text.rules.md`: rules for formatting bullet points
 
-<<<<<<< Updated upstream
-=======
 - Do not use emdashes, but replace them with `:`
   - **Bad**
     ```
@@ -65,7 +72,7 @@ a large real-world problem
   .claude/skills/notebook.implement_for_package_API/SKILL.md
   ```
 
-### Do not Use Print
+### Use Pandas Dataframes and not Print
 
 - Use pandas dataframes for tables and do not create tables using `print`
   - **Bad**
@@ -88,8 +95,6 @@ a large real-world problem
     display(tags_df)
     ```
 
-
->>>>>>> Stashed changes
 ### 1. Library Overview
 
 Briefly explain:
@@ -190,3 +195,14 @@ library's design.
   - Mutation
   - Interaction with another object
 - The notebook should feel like a guided reverse-engineering of the library's design
+
+## Verification
+- Create paired Python
+  ```
+  > jupytext.py --action pair --files <FILE>.ipynb
+  ```
+- Make sure that the notebook runs end-to-end
+  ```
+  > cd tutorial/<PACKAGE_NAME>
+  > docker_cmd.sh "python /git_root/tutorials/<PACKAGE_NAME>/<FILE>.py"
+  ```
