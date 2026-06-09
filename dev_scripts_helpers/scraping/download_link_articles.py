@@ -399,6 +399,8 @@ def _download_hn_comments(
     :param indices: List of row indices to process
     """
     _LOG.debug(hprint.to_str("len(indices)"))
+    print(rows)
+    assert 0
     _LOG.info("Downloading HN comments for %d rows", len(indices))
     for idx in tqdm(indices, desc="Downloading HN comments"):
         row = rows[idx]
@@ -662,6 +664,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     gsheet_csv = dshslgsut.get_tmp_file_path(
         "gsheet.csv", "download_link_articles"
     )
+    _LOG.debug("Downloading from Google Sheets %s to %s", args.url, gsheet_csv)
     dshslgsut.download_from_gsheet(args.url, gsheet_csv)
     rows = dshslgsut.read_csv(gsheet_csv)
     hdbg.dassert(len(rows) > 0, "No rows in downloaded CSV")
