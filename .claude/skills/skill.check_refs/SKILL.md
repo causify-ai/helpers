@@ -68,7 +68,7 @@ model: haiku
 
 # Step 4: Report Violations
 
-- Report all the violations in a file `tmp.skill.check_links.md` using the format
+- Report all the violations in a file `cfile` using the format
   `.claude/skills/cfile.rules.md`
 
 # Step 5: Ask Users Whether to Fix the Problems

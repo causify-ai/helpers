@@ -40,7 +40,7 @@ model: haiku
 - Make sure everything is correct
   - The title is catchy and good
   - The date matches when the file was first created
-  - The categories are appropriate
+  - The categories are appropriate and match the ones in `website/mkdocs.yml`
 
 ## Check That Has a TLDR
 - Make sure that there is a TL;DR in the format below right after the front
@@ -60,7 +60,7 @@ model: haiku
 
 # Step 4: Report Violations
 
-- Report all the violations in a file `tmp.blog.format.md` using the format in
+- Report all the violations in a file `cfile` using the format in
   `.claude/skills/cfile.rules.md`
 
 # Step 5: Ask Users Whether to Fix the Problems
