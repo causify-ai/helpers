@@ -61,21 +61,34 @@ if [ -n "$TMUX" ]; then
 fi
 
 # Configure environment based on model choice
-if [ "$MODEL" = "anthropic" ]; then
+if [ "$MODEL" = "" ]; then
+    echo "Anthropic setup"
     unset ANTHROPIC_DEFAULT_HAIKU_MODEL
     unset ANTHROPIC_DEFAULT_SONNET_MODEL
     unset ANTHROPIC_DEFAULT_OPUS_MODEL
     unset ANTHROPIC_BASE_URL
     unset ANTHROPIC_AUTH_TOKEN
-elif [ "$MODEL" = "deepseek" ]; then
+else
+    if [ "$MODEL" = "deepseek" ]; then
+        MODEL="deepseek/deepseek-v4-flash"
+    fi;
+    # Models
+    # - anthropic/claude-haiku-4-5-20251001
+    # - anthropic/claude-opus-4.8
+    # - anthropic/claude-sonnet-4.6
+    # - gpt-4o-mini
+    # - openrouter/anthropic/claude-haiku-4.5
+    # - openrouter/deepseek/deepseek-v4-flash
+    # - openrouter/deepseek/deepseek-v4-pro
+    # - openrouter/meta-llama/llama-3.1-8b-instruct
+    # - openrouter/openai/gpt-oss-120b
+    # - openrouter/openai/gpt-oss-20b
+    echo "MODEL=$MODEL"
     export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
-    export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-flash
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL=$MODEL
     export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
     export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
     export ANTHROPIC_BASE_URL=https://openrouter.ai/api
-else
-    echo "Error: Invalid model '$MODEL'" >&2
-    exit 1
 fi
 
 with_timeout() {

@@ -46,6 +46,50 @@ a large real-world problem
   - `.claude/skills/slides.rules.md`: rules for formatting slides
   - `.claude/skills/text.rules.md`: rules for formatting bullet points
 
+<<<<<<< Updated upstream
+=======
+- Do not use emdashes, but replace them with `:`
+  - **Bad**
+    ```
+    ## Primitive 1: `list_datasets()` — The Catalog
+    ```
+  - **Good**
+    ```
+    ## Primitive 1: `list_datasets()`: The Catalog
+    ```
+
+### Follow the Template
+
+- The template is:
+  ```
+  .claude/skills/notebook.implement_for_package_API/SKILL.md
+  ```
+
+### Do not Use Print
+
+- Use pandas dataframes for tables and do not create tables using `print`
+  - **Bad**
+    ```
+    print(f"{'Property':<25} {'sachs_discrete':<20} {'galton_stature':<20}")
+    print("-" * 65)
+    for key in sachs_tags:
+        print(f"{key:<25} {str(sachs_tags[key]):<20} {str(galton_tags[key]):<20}")
+    ```
+  - **Good**
+    ```
+    # Build a comparison DataFrame from the tags dictionaries.
+    tags_df = pd.DataFrame(
+        {
+            "Property": list(sachs_tags.keys()),
+            "sachs_discrete": [str(sachs_tags[k]) for k in sachs_tags],
+            "galton_stature": [str(galton_tags[k]) for k in sachs_tags],
+        }
+    )
+    display(tags_df)
+    ```
+
+
+>>>>>>> Stashed changes
 ### 1. Library Overview
 
 Briefly explain:

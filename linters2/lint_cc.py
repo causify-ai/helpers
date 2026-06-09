@@ -263,13 +263,18 @@ def _run_claude_code(
     _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
+    # Set env vars for the claude command to use OpenRouter.
+    env = os.environ.copy()
+    env["ANTHROPIC_AUTH_TOKEN"] = os.environ.get("OPENROUTER_API_KEY", "")
+    env["ANTHROPIC_DEFAULT_HAIKU_MODEL"] = model
+    env["ANTHROPIC_DEFAULT_OPUS_MODEL"] = "anthropic/opus-4.8"
+    env["ANTHROPIC_DEFAULT_SONNET_MODEL"] = "anthropic/sonnet-4.6"
+    env["ANTHROPIC_BASE_URL"] = "https://openrouter.ai/api"
     cmd_parts = [
         "claude",
         "-p",
-        "--dangerously-skip-permissions",
         "--output-format=text",
-        "--model",
-        model,
+        "--dangerously-skip-permissions",
         f"'Execute the file {prompt_file}'",
     ]
     cmd = " ".join(cmd_parts)
@@ -278,7 +283,7 @@ def _run_claude_code(
         _LOG.info("Dry run: command not executed")
         return 0
     _LOG.debug("Executing: %s", " ".join(cmd_parts[:6]))
-    result = subprocess.run(cmd_parts, capture_output=False)
+    result = subprocess.run(cmd_parts, capture_output=False, env=env)
     return result.returncode
 
 

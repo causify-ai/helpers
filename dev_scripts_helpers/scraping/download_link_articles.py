@@ -81,6 +81,7 @@ from tqdm import tqdm
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
@@ -103,12 +104,14 @@ def _sanitize_title_for_filename(title: str) -> str:
     :param title: Title string
     :return: Sanitized filename slug
     """
+    _LOG.debug(hprint.func_signature_to_str())
     # Replace any non-alphanumeric character (except underscore) with underscore.
     sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", title)
     # Collapse consecutive underscores into a single underscore.
     sanitized = re.sub(r"_+", "_", sanitized)
     # Remove leading and trailing underscores for cleaner filenames.
     sanitized = sanitized.strip("_")
+    _LOG.debug(hprint.to_str("sanitized"))
     return sanitized
 
 
@@ -122,6 +125,7 @@ def _simplify_html_links(text: str) -> str:
     :param text: Text containing HTML links
     :return: Text with simplified links
     """
+    _LOG.debug(hprint.func_signature_to_str())
 
     def replace_link(match):
         """
@@ -137,6 +141,7 @@ def _simplify_html_links(text: str) -> str:
     simplified = re.sub(
         pattern, replace_link, text, flags=re.IGNORECASE | re.DOTALL
     )
+    _LOG.debug("simplified=%d chars", len(simplified))
     return simplified
 
 
@@ -153,6 +158,8 @@ def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
     :param item_id: HN item ID
     :return: Item data dict or None if fetch fails
     """
+    _LOG.debug(hprint.func_signature_to_str())
+    result = None
     try:
         # Query the official HN API for the item.
         api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
@@ -160,16 +167,16 @@ def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
         response = requests.get(api_url, timeout=10)
         response.raise_for_status()
         data = response.json()
-        if not data:
+        if data:
+            result = data
+        else:
             _LOG.warning("No data returned for item: %s", item_id)
-            return None
-        return data
     except requests.RequestException as e:
         _LOG.warning("API request failed for item %s: %s", item_id, e)
-        return None
     except Exception as e:
         _LOG.warning("Error fetching item %s: %s", item_id, e)
-        return None
+    _LOG.debug("return=%s", result is not None)
+    return result
 
 
 def _fetch_hn_comments(
@@ -186,35 +193,40 @@ def _fetch_hn_comments(
     :param current_depth: Current recursion depth (internal use)
     :return: List of comment dicts with nested replies
     """
-    # Stop recursion at max depth to limit API calls and processing time.
+    _LOG.debug(hprint.to_str("item_id current_depth"))
+    # Guard: stop recursion at max depth to limit API calls and processing time.
     if current_depth >= max_depth:
-        return []
-    # Fetch the item data from HN API.
-    item_data = _fetch_hn_item(item_id)
-    if not item_data:
-        return []
-    # Extract core comment metadata from the item data.
-    comment = {
-        "id": item_data.get("id"),
-        "by": item_data.get("by"),
-        "text": item_data.get("text", ""),
-        "time": item_data.get("time"),
-        "score": item_data.get("score"),
-    }
-    # Recursively fetch child comments (replies) if they exist.
-    # Limit to first 10 children per comment to avoid excessive API calls.
-    kids = item_data.get("kids", [])
-    if kids:
-        replies = []
-        for kid_id in kids[:10]:
-            kid_comments = _fetch_hn_comments(
-                str(kid_id),
-                max_depth=max_depth,
-                current_depth=current_depth + 1,
-            )
-            replies.extend(kid_comments)
-        comment["replies"] = replies
-    return [comment]
+        result = []
+    else:
+        # Fetch the item data from HN API.
+        item_data = _fetch_hn_item(item_id)
+        if not item_data:
+            result = []
+        else:
+            # Extract core comment metadata from the item data.
+            comment = {
+                "id": item_data.get("id"),
+                "by": item_data.get("by"),
+                "text": item_data.get("text", ""),
+                "time": item_data.get("time"),
+                "score": item_data.get("score"),
+            }
+            # Recursively fetch child comments (replies) if they exist.
+            # Limit to first 10 children per comment to avoid excessive API calls.
+            kids = item_data.get("kids", [])
+            if kids:
+                replies = []
+                for kid_id in kids[:10]:
+                    kid_comments = _fetch_hn_comments(
+                        str(kid_id),
+                        max_depth=max_depth,
+                        current_depth=current_depth + 1,
+                    )
+                    replies.extend(kid_comments)
+                comment["replies"] = replies
+            result = [comment]
+    _LOG.debug(hprint.to_str("len(result)"))
+    return result
 
 
 # #############################################################################
@@ -231,11 +243,12 @@ def _download_article_content(url: str) -> str:
     :return: Article text or empty string if download fails
     """
     hdbg.dassert_is_not(url, None)
-    _LOG.debug("Downloading article from: %s", url)
+    _LOG.debug(hprint.func_signature_to_str())
     # Use a realistic User-Agent to avoid being blocked by many web servers.
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
+    result = ""
     try:
         # Fetch the HTML from the URL with timeout to prevent hanging.
         response = requests.get(url, timeout=15, headers=headers)
@@ -253,11 +266,11 @@ def _download_article_content(url: str) -> str:
         # Simplify HTML links and extract just the URLs.
         text = _simplify_html_links(text)
         # Extract text after link simplification.
-        text = BeautifulSoup(text, "html.parser").get_text()
-        return text
+        result = BeautifulSoup(text, "html.parser").get_text()
     except Exception as e:
         _LOG.warning("Failed to download article from %s: %s", url, e)
-        return ""
+    _LOG.debug(hprint.to_str("len(result)"))
+    return result
 
 
 def _add_comment_tree(
@@ -266,6 +279,7 @@ def _add_comment_tree(
     """
     Recursively add comments to output, preserving hierarchy.
     """
+    _LOG.debug(hprint.func_signature_to_str())
     for comment in comment_list:
         # Format comment metadata: author, score, and timestamp.
         indent = "  " * depth
@@ -294,11 +308,13 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
     :param comments: List of comment dicts with nested replies
     :return: Formatted text representation of comments
     """
+    _LOG.debug(hprint.func_signature_to_str())
     lines = []
     _add_comment_tree(comments, lines)
     text = "\n".join(lines)
     # Simplify HTML links in comment text.
     text = _simplify_html_links(text)
+    _LOG.debug(hprint.to_str("len(text)"))
     return text
 
 
@@ -318,6 +334,7 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
     :param num_rows: Total number of rows available
     :return: List of 0-indexed row indices to process
     """
+    _LOG.debug(hprint.to_str("row_idx_str num_rows"))
     # Parse range format (e.g., "1:10").
     if ":" in row_idx_str:
         parts = row_idx_str.split(":")
@@ -347,7 +364,7 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
             num_rows,
         )
         # Convert to 0-indexed: range is inclusive on both ends.
-        return list(range(start - 1, end))
+        indices = list(range(start - 1, end))
     else:
         # Parse single index format (e.g., "1").
         try:
@@ -362,7 +379,9 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
             num_rows,
         )
         # Convert to 0-indexed.
-        return [idx - 1]
+        indices = [idx - 1]
+    _LOG.debug(hprint.to_str("indices"))
+    return indices
 
 
 # #############################################################################
@@ -379,6 +398,7 @@ def _download_hn_comments(
     :param rows: List of data rows
     :param indices: List of row indices to process
     """
+    _LOG.debug(hprint.to_str("len(indices)"))
     _LOG.info("Downloading HN comments for %d rows", len(indices))
     for idx in tqdm(indices, desc="Downloading HN comments"):
         row = rows[idx]
@@ -424,6 +444,7 @@ def _download_article_urls(
     :param rows: List of data rows
     :param indices: List of row indices to process
     """
+    _LOG.debug(hprint.to_str("len(indices)"))
     _LOG.info("Downloading articles from Article_url for %d rows", len(indices))
     for idx in tqdm(indices, desc="Downloading articles"):
         row = rows[idx]
@@ -470,6 +491,7 @@ def _summarize_text_with_llm(
     :param prompt: System prompt to guide the summarization
     :param model: LLM model to use for summarization
     """
+    _LOG.debug(hprint.to_str("input_file output_file model"))
     _LOG.info("Summarizing: %s", input_file)
     # Save prompt to a temporary file.
     prompt_file = "tmp.summarize_text_with_llm.prompt.txt"
@@ -503,6 +525,7 @@ def _summarize_articles(
     :param rows: List of data rows
     :param indices: List of row indices to process
     """
+    _LOG.debug(hprint.to_str("len(indices)"))
     _LOG.info("Summarizing articles for %d rows", len(indices))
     article_prompt = (
         "Summarize the main article in 5 bullet points. "
@@ -537,6 +560,7 @@ def _summarize_comments(
     :param rows: List of data rows
     :param indices: List of row indices to process
     """
+    _LOG.debug(hprint.to_str("len(indices)"))
     _LOG.info("Summarizing comments for %d rows", len(indices))
     comments_prompt = (
         "Analyze the Hacker News comment section. "
@@ -586,6 +610,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     Parse command-line arguments.
     """
+    _LOG.debug(hprint.func_signature_to_str())
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -623,6 +648,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     Main entry point.
     """
+    _LOG.debug(hprint.func_signature_to_str())
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hdbg.dassert_is_not(args.url, None, "--url is required")
