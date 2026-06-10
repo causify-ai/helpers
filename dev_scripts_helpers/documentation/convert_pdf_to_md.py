@@ -25,6 +25,24 @@ Usage:
 
 # Clean an existing markdown file (remove PDF conversion artifacts).
 > convert_pdf_to_md.py --input document.pdf --action remove_junk
+
+# Run prettier formatter on the markdown file.
+> convert_pdf_to_md.py --input document.pdf --action lint
+
+# Run all actions in sequence (convert, remove_junk, lint).
+> convert_pdf_to_md.py --input document.pdf --output output_dir
+
+Available actions (one or more can be specified via --action):
+
+  - convert: Extract text and images from the PDF and generate a Markdown
+    file with embedded image references.
+
+  - remove_junk: Post-process an already-converted Markdown file to remove
+    artifacts from PDF conversion, including HTML page-marker comments
+    ("<!-- Page 12 -->"), standalone page-number headings ("### 11"), and
+    excessive blank lines.
+
+  - lint: Run the prettier formatter on the generated Markdown file
 """
 
 import argparse
@@ -46,58 +64,7 @@ import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
-# Constants
-# #############################################################################
-
-_VALID_ACTIONS = ["convert", "remove_junk"]
-_DEFAULT_ACTIONS = ["convert", "remove_junk"]
-
-# #############################################################################
-
-
-def _remove_junk(*, pdf_path: str, output_dir: str = "") -> None:
-    """
-    Remove artifacts from PDF conversion including page markers and page numbers.
-
-    Removes:
-    - HTML comments like "<!-- Page 12 -->"
-    - Standalone page number headings like "### 11"
-    - Excessive blank lines
-
-    :param pdf_path: Path to input PDF file (used to derive markdown file name)
-    :param output_dir: Directory containing the markdown file; defaults to input file's directory
-    """
-    hdbg.dassert_file_exists(pdf_path, "PDF file does not exist")
-    # Derive output directory from input file location when not specified.
-    if not output_dir:
-        output_dir = os.path.dirname(os.path.abspath(pdf_path))
-    if not output_dir:
-        output_dir = "."
-    # Compute markdown path using the PDF stem.
-    pdf_stem = os.path.splitext(os.path.basename(pdf_path))[0]
-    md_filename = pdf_stem + ".md"
-    md_path = os.path.join(output_dir, md_filename)
-    hdbg.dassert_file_exists(md_path, "Markdown file does not exist")
-    # Read the markdown file content.
-    with open(md_path, "r", encoding="utf-8") as f:
-        content = f.read()
-    original_content = content
-    # Remove HTML page marker comments like "<!-- Page 12 -->".
-    content = re.sub(r"<!--\s*Page\s+\d+\s*-->\n*", "", content)
-    # Remove standalone page number headings such as "### 11".
-    content = re.sub(r"^#+\s+\d+\s*$", "", content, flags=re.MULTILINE)
-    # Remove excessive blank lines (more than 2 consecutive newlines).
-    content = re.sub(r"\n\n\n+", "\n\n", content)
-    content = content.strip() + "\n"
-    # Write cleaned content back to file if changes were made.
-    if content != original_content:
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(content)
-        _LOG.info("Removed PDF junk from: %s", os.path.abspath(md_path))
-    else:
-        _LOG.info("No PDF junk found in: %s", os.path.abspath(md_path))
-
-
+# Convert to PDF
 # #############################################################################
 
 
@@ -456,6 +423,99 @@ def _pdf_to_markdown(
 
 
 # #############################################################################
+# Remove junk
+# #############################################################################
+
+
+def _remove_junk(*, pdf_path: str, output_dir: str = "") -> None:
+    """
+    Remove artifacts from PDF conversion including page markers and page numbers.
+
+    Removes:
+    - HTML comments like "<!-- Page 12 -->"
+    - Standalone page number headings like "### 11"
+    - Excessive blank lines
+
+    :param pdf_path: Path to input PDF file (used to derive markdown file name)
+    :param output_dir: Directory containing the markdown file; defaults to input file's directory
+    """
+    hdbg.dassert_file_exists(pdf_path, "PDF file does not exist")
+    # Derive output directory from input file location when not specified.
+    if not output_dir:
+        output_dir = os.path.dirname(os.path.abspath(pdf_path))
+    if not output_dir:
+        output_dir = "."
+    # Compute markdown path using the PDF stem.
+    pdf_stem = os.path.splitext(os.path.basename(pdf_path))[0]
+    md_filename = pdf_stem + ".md"
+    md_path = os.path.join(output_dir, md_filename)
+    hdbg.dassert_file_exists(md_path, "Markdown file does not exist")
+    # Read the markdown file content.
+    with open(md_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    original_content = content
+    # Remove HTML page marker comments like "<!-- Page 12 -->".
+    content = re.sub(r"<!--\s*Page\s+\d+\s*-->\n*", "", content)
+    # Remove standalone page number headings such as "### 11".
+    content = re.sub(r"^#+\s+\d+\s*$", "", content, flags=re.MULTILINE)
+    # Remove excessive blank lines (more than 2 consecutive newlines).
+    content = re.sub(r"\n\n\n+", "\n\n", content)
+    content = content.strip() + "\n"
+    # Write cleaned content back to file if changes were made.
+    if content != original_content:
+        with open(md_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        _LOG.info("Removed PDF junk from: %s", os.path.abspath(md_path))
+    else:
+        _LOG.info("No PDF junk found in: %s", os.path.abspath(md_path))
+
+
+# #############################################################################
+# Lint
+# #############################################################################
+
+
+def _lint(*, pdf_path: str, output_dir: str = "") -> None:
+    """
+    Run prettier formatter on the generated Markdown file.
+
+    Re-formats the markdown output (line-wrapping, prose-wrap, consistent
+    formatting) using the Dockerized prettier pipeline. This is useful as a
+    standalone step after conversion or manual editing.
+
+    :param pdf_path: Path to input PDF file (used to derive markdown file name)
+    :param output_dir: Directory containing the markdown file; defaults to
+        input file's directory
+    """
+    hdbg.dassert_file_exists(pdf_path, "PDF file does not exist")
+    # Derive output directory from input file location when not specified.
+    if not output_dir:
+        output_dir = os.path.dirname(os.path.abspath(pdf_path))
+    if not output_dir:
+        output_dir = "."
+    # Compute markdown path using the PDF stem.
+    pdf_stem = os.path.splitext(os.path.basename(pdf_path))[0]
+    md_filename = pdf_stem + ".md"
+    md_path = os.path.join(output_dir, md_filename)
+    hdbg.dassert_file_exists(md_path, "Markdown file does not exist")
+    # Read the markdown file content.
+    with open(md_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    # Format via prettier.
+    _LOG.info("Running prettier on: %s", os.path.abspath(md_path))
+    formatted = dshdlipr.prettier_on_str(content, file_type="md", width=80)
+    # Write formatted content back to file.
+    with open(md_path, "w", encoding="utf-8") as f:
+        f.write(formatted)
+    _LOG.info("Formatted markdown file: %s", os.path.abspath(md_path))
+
+
+# #############################################################################
+# CLI
+# #############################################################################
+
+_VALID_ACTIONS = ["convert", "remove_junk", "lint"]
+_DEFAULT_ACTIONS = ["convert", "remove_junk", "lint"]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -502,8 +562,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     Execute the main script logic for PDF to markdown conversion.
 
-    Parses command-line arguments and executes selected actions (convert and/or
-    remove_junk) based on user input.
+    Parses command-line arguments and executes selected actions (convert,
+    remove_junk, and/or lint) based on user input.
 
     :param parser: Configured `ArgumentParser` instance
     """
@@ -524,7 +584,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 )
             elif action == "remove_junk":
                 _remove_junk(pdf_path=args.input, output_dir=args.output)
-
+            elif action == "lint":
+                _lint(pdf_path=args.input, output_dir=args.output)
 
 if __name__ == "__main__":
     _main(_parse())
