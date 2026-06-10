@@ -3,8 +3,10 @@ description: Criticize and suggest improvements for class slides
 model: opus
 ---
 
-- Given a Markdown file storing slides for a lecture
-  - Each slide title is prepended with `*`, e.g., `* Title`
+- Given a markdown file with slides, criticize and suggest improvements
+
+- Read `.claude/skills/slides.rules.md` and follow strictly the conventions and
+  rules
 
 # Propose Improvements
 - Read the content and make suggestions on how to improve the slides, numbering
@@ -13,7 +15,7 @@ model: opus
 
 ## Change Order of Slides
 - Propose how to organize the slides in a different flow, separating cohesive
-  chunks with level 1 and 2 headers
+  chunks with level 1 `# ...`, 2 headers `## ...`, and slides `* ...`
   - E.g.,
     ```
     # Topic 1

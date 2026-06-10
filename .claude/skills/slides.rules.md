@@ -73,10 +73,6 @@
 - Each slide contains bullet points arranged in a hierarchical structure
   - Every line starts with a bullet point
   - Do not use period at the end of a phrase
-- Use italic and add quotes for questions:
-  ```markdown
-  _"If we lower prices by 10%, will revenue increase?"_
-  ```
 
 ## Use Bold for Slide Sections
 
@@ -103,7 +99,7 @@
     - ...
   ```
 
-- Example
+### Example
   ```markdown
   * Individual Treatment Effect
   - **Definition**: the impact of the treatment $T$ on the outcome $Y$ for an
@@ -119,7 +115,8 @@
     causal inference
     - Represent it in theory, but can't recover it from data
   ```
-- Example
+
+### Example
   ```markdown
   * Potential Outcomes
   - Aka "counterfactuals"
@@ -147,6 +144,9 @@
 ## Use Italic
 - Use _italic_ (`_text_`) for:
   - Quoted statements
+    ```markdown
+    _"If we lower prices by 10%, will revenue increase?"_
+    ```
   - Key terms
   - Important concepts
   - Emphasized definitions
@@ -195,6 +195,42 @@ Use these commands consistently across all slides:
 - `\perp`: Independence (perpendicular symbol)
 - `\vx`, `\vy`: Vectors (if defined in preamble)
 
+### Color-Coded Variables in Equations
+
+- Color variables to highlight different parts and make multi-step derivations
+  easier to follow
+- Wrap each variable in a color command:
+
+  | Command        | Use For                                                     |
+  | -------------- | ----------------------------------------------------------- |
+  | `\blue{...}`   | Variables being isolated, subtracted, or primary focus      |
+  | `\red{...}`    | Variables being substituted or replaced                     |
+  | `\green{...}`  | Results, children nodes                                     |
+  | `\gray{...}`   | Already-processed terms, less relevant parts                |
+  | `\violet{...}` | Variables outside the main variable set, secondary groups   |
+  | `\teal{...}`   | Additional grouped variables                                |
+  | `\olive{...}`  | Further grouped variables                                   |
+  | `\orange{...}` | Supplementary variables                                     |
+  | `\brown{...}`  | Hidden or unobservable variables (e.g., in causal diagrams) |
+  | `\black{...}`  | Explicitly black text (override inherited color)            |
+
+- Example — showing variable elimination step by step:
+  ```latex
+  \Pr(\blue{x_1, ..., x_{n-1}}, \red{x_n})
+  = \Pr(\red{x_n} | \blue{x_{n-1}, ..., x_1}) \Pr(\blue{x_{n-1}, ..., x_1})
+  ```
+
+- Example — multi-line elimination with distinct colors:
+  ```latex
+  \begin{align*}
+  & \Pr(\gray{x_1}, \violet{x_2}, ..., \teal{x_{n-2}}, \olive{x_{n-1}}, \orange{x_n}) \\
+  & = \Pr(\orange{x_n} | x_{n-1}, ..., x_1) \Pr(x_{n-1}, ..., x_1) \\
+  & = \Pr(\orange{x_n} | x_{n-1}, ..., x_1)
+  \Pr(\olive{x_{n-1}} | x_{n-2}, ..., x_1) \Pr(x_{n-2}, ..., x_1) \\
+  & = ...
+  \end{align*}
+  ```
+
 ### Spacing and Breaks
 
 - Use comments (`//`) for internal notes (not rendered in output)
@@ -220,6 +256,38 @@ Use these commands consistently across all slides:
   \endgroup
   ```
 - Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
+
+### Latex Equation Style
+
+- For complex LaTeX expressions, use indentation and line breaks to visually
+  represent the nesting structure of operators, expectations, sums, integrals,
+  conditionals, and other hierarchical constructs
+  - Avoid placing the entire expression on a single line when it contains
+    multiple nested levels
+  - Align major operators and indent subordinate expressions to make the
+    mathematical structure easier to read
+  - Keep all equations in standard Markdown LaTeX blocks ($$ ... $$)
+  - **Bad** (everything on one line)
+    ```latex
+    $$
+    a^* = \arg\max_{a \in \mathcal{A}} \EE_{\theta \sim \Pr(\theta | \mathcal{D})}
+          \left[ \EE_{Y \sim \Pr(Y | do(a), \theta)}[U(Y)] \right]
+    $$
+    ```
+  - **Good** (indentation reflects nesting)
+    ```latex
+    $$
+    a^*
+      = \arg\max_{a \in \mathcal{A}}
+          \EE_{\theta \sim \Pr(\theta | \mathcal{D})}
+          \left[
+            \EE_{Y \sim \Pr(Y | do(a), \theta)}[U(Y)]
+          \right]
+    $$
+    ```
+
+- The goal is to make the hierarchical structure of the expression immediately
+  apparent while preserving the Latex expression
 
 # Visual Elements and Diagrams
 
@@ -247,14 +315,28 @@ Use these commands consistently across all slides:
 
 - Color palette (use consistently throughout all diagrams):
 
-| Color      | Code      | Use For                                |
-| ---------- | --------- | -------------------------------------- |
-| Red/Pink   | `#F4A6A6` | Agents, actors, primary entities       |
-| Orange     | `#FFD1A6` | Input data, sources                    |
-| Green      | `#B2E2B2` | Processed data, environments           |
-| Teal       | `#A0D6D1` | Algorithms, processes, transformations |
-| Light Blue | `#A6E7F4` | Parameters, configuration, settings    |
-| Blue       | `#A6C8F4` | Outputs, results, final states         |
+| Color       | Code      | Use For                                |
+| ----------- | --------- | -------------------------------------- |
+| Red/Pink    | `#F4A6A6` | Agents, actors, primary entities       |
+| Orange      | `#FFD1A6` | Input data, sources                    |
+| Green       | `#B2E2B2` | Processed data, environments           |
+| Teal        | `#A0D6D1` | Algorithms, processes, transformations |
+| Light Blue  | `#A6E7F4` | Parameters, configuration, settings    |
+| Blue        | `#A6C8F4` | Outputs, results, final states         |
+| Purple      | `#C6A6F4` | External entities, mixed dependencies  |
+
+### Annotating Nodes with Probability Expressions
+
+- Use `xlabel` to display conditional probability expressions inline on GraphViz
+  nodes:
+  ```graphviz
+  Rain [label="Rain", fillcolor="#A6C8F4", xlabel="P(R | W)"];
+  ```
+  - The `xlabel` text appears outside the node box, not inside
+  - Use it to annotate Bayesian network nodes with their CPT expressions:
+    - Source nodes: `xlabel="P(W)"`
+    - Conditional nodes: `xlabel="P(R | W)"`, `xlabel="P(G | R, S)"`
+    - Nodes with known probabilities: `xlabel="P(B) = 0.001"`
 
 - Example:
   ```graphviz
