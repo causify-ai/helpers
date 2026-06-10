@@ -69,7 +69,9 @@ if [ "$MODEL" = "" ]; then
     unset ANTHROPIC_BASE_URL
     unset ANTHROPIC_AUTH_TOKEN
 else
-    if [ "$MODEL" = "deepseek" ]; then
+    if [ "$MODEL" = "openrouter_anthropic" ] || [ "$MODEL" = "oranth" ]; then
+        MODEL="anthropic/claude-haiku-4.5"
+    elif [ "$MODEL" = "deepseek" ]; then
         MODEL="deepseek/deepseek-v4-flash"
     elif [ "$MODEL" = "deepseek-pro" ]; then
         MODEL="deepseek/deepseek-v4-pro"
@@ -88,8 +90,8 @@ else
     echo "MODEL=$MODEL"
     export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
     export ANTHROPIC_DEFAULT_HAIKU_MODEL=$MODEL
-    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
-    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
+    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/claude-opus-4.8
+    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/claude-sonnet-4.6
     export ANTHROPIC_BASE_URL=https://openrouter.ai/api
 fi
 

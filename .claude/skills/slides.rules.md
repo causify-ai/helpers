@@ -22,6 +22,46 @@
 - **Reference prior knowledge**: "As we saw in [previous topic]..."
 - **Contrast approaches**: Show what doesn't work vs what does
 
+## Problem-Solution Arc
+- Introduce hard topics as a `**Problem**` $\to$ `**(Naive) Solution**` $\to$
+  `**Solution**` progression so students see why the final approach is needed
+- Make the naive solution's weaknesses explicit with `Cons:` sub-bullets, then
+  let the real solution address them
+- Example arc (from Lesson 06.1):
+  - Slide 1: `**Problem**`: logic-based AI fails under uncertainty (partial
+    observability, non-determinism, ...)
+  - Slide 2: `**(Naive) Solution**`: belief states + exhaustive rules, each with
+    a `Cons:` line
+  - Slide 3: `**Solution**`: combine _probability_ and _utility functions_
+
+## Recurring Running Example
+- Carry one concrete example across many slides to build intuition incrementally,
+  varying the question asked of it
+  - E.g., the "Garden World" ($Rain$, $Sprinkler$, $WetGrass$, $Weather$) is
+    reused to illustrate conditional independence, explaining away, marginal vs
+    conditional dependence, and sampling
+- Reuse the identical diagram across slides that revisit the same example so the
+  student anchors on a stable picture
+- Pair each abstract concept with at least one domain example beyond the running
+  one (e.g., medical diagnosis, finance, car insurance) to show generality
+
+## Defining Terms
+- When a concept has multiple common names, list them up front with an `Aka:`
+  bullet before the definition:
+  ```markdown
+  * Bayesian Networks: Definition
+  - Aka:
+    - "Bayes nets"
+    - "Belief networks"
+    - "Graphical models" (somehow a broader class of statistical models)
+  ```
+- Introduce notation inline by binding each symbol to a quoted plain-language
+  meaning:
+  ```markdown
+  - $Rain$ = _"it rains"_
+  - $WetGrass$ = _"the grass is wet"_
+  ```
+
 ## Slide Density Guidelines
 - Maximum 5-7 bullet points per slide (excluding sub-points)
 - Maximum 2-3 lines per bullet point
@@ -80,15 +120,41 @@
   for pedagogical structure like in the following:
   - **Definition**: A definition of a concept
   - **Question**: A question to introduce a problem
+  - **Goal**: What we are trying to achieve before describing how
+  - **Problem**: A difficulty or open issue that motivates a solution
   - **Solution**: A solution to a previously introduced problem
+  - **(Naive) Solution**: A first, flawed attempt whose cons motivate a better one
   - **Remark**: A simple but useful fact
+  - **Fact**: A statement asserted as true, used without proof
+  - **Note**: A side comment or caveat worth flagging
+  - **Theorem**: A central, proven result
+  - **Proof**: The argument establishing a theorem (often numbered steps)
   - **Proposition**: A result worth stating, but not as central as a theorem
   - **Lemma**: stepping stone used to prove a bigger result
   - **Claim**: A smaller assertion inside a proof or argument
   - **Intuition**: Explains the "why it makes sense"
+  - **Key idea** / **Key Insight**: The single most important takeaway
+  - **Algorithm**: A step-by-step procedure (often with **Input**/**Output**)
+  - **Input** / **Output**: What an algorithm consumes and produces
+  - **Pros** / **Cons**: Advantages and disadvantages of an approach
+  - **Limitations**: Conditions under which the approach fails or is weak
+  - **Purpose**: Why a method or tool exists
   - **Example**: Concrete illustration
   - **Counterexample**: Shows what doesn't work
   - **Interpretation**: What the result means in context
+
+- A bold label can take a parenthetical qualifier to narrow its meaning, e.g.,
+  `**(Naive) Solution**`, `**(unconditionally) independent**`
+
+- Use a numbered list under a bold label when the sub-points are an ordered
+  procedure or an enumerated set; use bullets otherwise:
+  ```markdown
+  - **Problem**: Real-world agents face _uncertainty_ from:
+    1. Partial observability
+       - Agent can't see the full state of the world
+    2. Non-determinism
+       - Actions don't always have predictable outcomes
+  ```
 
 - Template:
   ```markdown
@@ -186,14 +252,29 @@
 Use these commands consistently across all slides:
 
 - `$\Pr(...)$`: Probability
-- `$\Pr(... | ...)$`: Conditional probability (do not use `\mid`)
+- `$\Pr(... | ...)$`: Conditional probability (use `|`, do not use `\mid`)
 - `$\EE[...]$`: Expectation (mean)
 - `$\VV[...]$`: Variance
 - `$\mathcal{X}$`: Sets or spaces (use calligraphic)
 - `\defeq`: "Defined as"
 - `\iff`: "If and only if"
-- `\perp`: Independence (perpendicular symbol)
-- `\vx`, `\vy`: Vectors (if defined in preamble)
+- `\implies`: Logical implication ($X \implies Y$)
+- `\land`, `\lor`, `\lnot`: Logical and / or / not
+- `\perp`: Conditional independence, e.g., `$X \perp Y | Z$`
+- `\not\perp`: Dependence, e.g., `$Rain \not\perp Sprinkler$`
+- `\cancel{...}`: Cross out conditioning variables made irrelevant, e.g.,
+  `$\Pr(Call | Alarm, \cancel{Fire, Toast}) = \Pr(Call | Alarm)$`
+- `Parents(X_i)`, `parents(X_i)`: parent set of a node in a Bayesian network
+- `\vx`, `\vy`, `\vE`, `\ve`: Vectors (if defined in preamble)
+- `\alpha` as a normalization constant in inference, e.g.,
+  `$\Pr(X | \ve) = \alpha \Pr(X, \ve)$`
+
+- Express conditional independence statements compactly, optionally pairing the
+  `\perp` form with its factorization or an arrow form:
+  ```markdown
+  $$Rain \perp Sprinkler | Weather$$
+  $$Rain \not\perp Sprinkler \iff Rain \leftrightarrow Sprinkler$$
+  ```
 
 ### Color-Coded Variables in Equations
 
@@ -522,3 +603,104 @@ Use these commands consistently across all slides:
 
   - **Key takeaway**: [what students should learn from this]
   ```
+
+## Theorem / Proof Slide
+- Use for stating a result and deriving it in numbered steps
+  ```markdown
+  * <Theorem Name>
+  - **Theorem**: [statement of the result, with the conditions it holds under]
+
+  - **Proof**
+  1. **<First step name>** [what is done and why]
+     $$
+     [equation for step 1, with \blue{}/\red{} colors to track variables]
+     $$
+  2. Apply the same formula **recursively** until [termination condition]
+     \begin{align*}
+     & [line 1] \\
+     & = [line 2] \\
+     & = ... \\
+     & = [closed form] \\
+     \end{align*}
+  ```
+- Real example (from Lesson 06.2 — chain rule): isolate one variable per step,
+  color it to show what is being peeled off, and end at a product/closed form
+
+## Worked Computation Slide
+- Use for a `**Problem**` $\to$ `**Solution**` numeric or symbolic derivation
+  tied to a diagram
+  ```markdown
+  * <Topic>: Example
+  ::: columns
+  :::: {.column width=60%}
+  - **Problem**: [what to compute, stated in words and symbols]
+  ::::
+  :::: {.column width=35%}
+  ```graphviz
+  [the network the computation refers to]
+  ```
+  ::::
+  :::
+
+  - **Solution**
+  - [express the target as a product of CPTs / conditional probabilities]
+    \begin{align*}
+    & \Pr(\text{query}) \\
+    & = \Pr(\cdot | \cdot) \cdot \\
+    & \hspace{1cm} \Pr(\cdot | \cdot) \cdot \\
+    & \hspace{1cm} ... \\
+    \end{align*}
+  ```
+- Use `\hspace{1cm}` to indent continuation lines of a long product so factors
+  align visually
+
+## Annotated-Diagram Slide (Target / Roles)
+- Use when classifying the nodes of a diagram into roles (e.g., a Markov
+  blanket: target, parents, children, spouses)
+- Color the bold role labels to match the node `fillcolor` in the diagram so the
+  text and picture reinforce each other:
+  ```markdown
+  * Markov Blanket: <Domain> Example
+  ::: columns
+  :::: {.column width=30%}
+  - Consider [the system]
+  ::::
+  :::: {.column width=70%}
+  ```graphviz
+  [diagram with role-colored nodes]
+  ```
+  ::::
+  :::
+  - **\red{Target node}**
+    - $X$ — [the variable of interest]
+  - **\blue{Parent nodes}**
+    - [direct causes / influences of $X$]
+  - **\green{Children nodes}**
+    - [outcomes directly influenced by $X$]
+  - [closing takeaway: knowing these roles is sufficient to predict $X$]
+  ```
+- Reuse this same template across multiple domains (medical, economic, finance)
+  to show the abstraction generalizes — only the nodes change, not the structure
+
+## Node-Coloring Legend Slide
+- When a complex diagram uses fill colors to encode variable categories, state
+  the legend in bold colored labels above the diagram:
+  ```markdown
+  * <Topic>: <System> (2/2)
+  - **\blue{Blue nodes}**: [category, e.g., observable inputs]
+  - **\brown{Brown nodes}**: [category, e.g., hidden / unobservable variables]
+  - **\violet{Violet nodes}**: [category, e.g., target variables]
+  ```graphviz
+  [large multi-node network using those fill colors]
+  ```
+  ```
+- Split a large worked system across two slides — `(1/2)` for the textual
+  problem setup, `(2/2)` for the full diagram
+
+## Multi-Slide Continuation
+- For a topic that spans several slides, repeat the same `* <Title>` verbatim on
+  each slide rather than numbering them, OR append `(1/2)`, `(2/2)` when the
+  parts are explicitly sequential halves of one whole
+- Keep the running-example diagram identical across the continuation slides;
+  vary only the surrounding text and the conditional-independence question being
+  asked

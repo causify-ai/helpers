@@ -29,6 +29,86 @@ _LOG = logging.getLogger(__name__)
 # Docker utilities
 # #############################################################################
 
+# Global override for Docker engine (allows tests to set it programmatically).
+_DOCKER_ENGINE = ""
+
+
+def set_docker_engine(engine: str) -> None:
+    """
+    Set a global override for the Docker engine.
+
+    :param engine: Engine name ("docker", "apple", or empty string to use env var)
+    """
+    global _DOCKER_ENGINE
+    _DOCKER_ENGINE = engine
+
+
+def get_docker_engine() -> str:
+    """
+    Get the Docker engine to use ("docker" or "apple").
+
+    Reads from the global override if set, otherwise from the CSFY_DOCKER_ENGINE
+    environment variable (default: "docker").
+
+    :return: Engine name ("docker" or "apple")
+    :raises AssertionError: If CSFY_DOCKER_ENGINE is set to an invalid value
+    """
+    if _DOCKER_ENGINE != "":
+        return _DOCKER_ENGINE
+    engine = os.environ.get("CSFY_DOCKER_ENGINE", "docker")
+    hdbg.dassert_in(
+        engine,
+        ["docker", "apple"],
+        "Invalid CSFY_DOCKER_ENGINE value",
+    )
+    return engine
+
+
+def get_docker_command() -> str:
+    """
+    Get the Docker command string based on the current engine.
+
+    :return: "docker" for docker engine, "container" for apple engine
+    :raises ValueError: If the engine is invalid
+    """
+    engine = get_docker_engine()
+    if engine == "docker":
+        return "docker"
+    elif engine == "apple":
+        return "container"
+    else:
+        raise ValueError(f"Invalid engine='{engine}'")
+
+
+def is_docker_running() -> bool:
+    """
+    Check if the Docker engine is currently running.
+
+    For docker engine: runs `docker version` and checks for "failed to connect".
+    For apple engine: runs `container ls` and checks for "interrupted" and
+    "XPC connection error".
+
+    :return: True if the engine is running, False otherwise
+    """
+    engine = get_docker_engine()
+    if engine == "docker":
+        rc, output = hsystem.system_to_string(
+            "docker version", abort_on_error=False
+        )
+        is_running = rc == 0 and "failed to connect" not in output
+    elif engine == "apple":
+        rc, output = hsystem.system_to_string(
+            "container ls", abort_on_error=False
+        )
+        is_running = (
+            rc == 0
+            and "interrupted" not in output
+            and "XPC connection error" not in output
+        )
+    else:
+        raise ValueError(f"Invalid engine='{engine}'")
+    return is_running
+
 
 # TODO(gp): This is a function of the architecture. Move to the repo_config.py
 # or the config file.
@@ -51,7 +131,7 @@ def get_docker_executable(use_sudo: bool) -> str:
     Get the Docker executable with / without sudo, if needed.
     """
     executable = "sudo " if use_sudo else ""
-    executable += "docker"
+    executable += get_docker_command()
     return executable
 
 
@@ -119,22 +199,26 @@ def container_exists(container_name: str, use_sudo: bool) -> Tuple[bool, str]:
 
 def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     """
-    Check if a Docker image already exists by executing a command like:
+    Check if a Docker image already exists.
+
+    Uses `image inspect` which works for both Docker and Apple's
+    container CLI.
 
     ```
-    > docker images tmp.prettier -aq
-    aed8a5ce33a9
+    > docker image inspect tmp.prettier
     ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
-    cmd = f"{executable} image ls --filter reference={image_name} -q"
-    _, image_id = hsystem.system_to_one_line(cmd)
-    image_id = image_id.rstrip("\n")
-    exists = image_id != ""
-    _LOG.debug(hprint.to_str("exists image_id"))
-    return exists, image_id
+    # `image inspect` returns 0 if the image exists, 1 otherwise.
+    cmd = f"{executable} image inspect {image_name}"
+    rc, output = hsystem.system_to_string(
+        cmd, abort_on_error=False, suppress_output=True
+    )
+    exists = rc == 0
+    _LOG.debug(hprint.to_str("exists"))
+    return exists, ""
 
 
 def container_rm(container_name: str, use_sudo: bool) -> None:
@@ -235,7 +319,7 @@ def check_image_compatibility_with_current_arch(
     if not has_image:
         _LOG.warning("Image '%s' not found: trying to pull it", image_name)
         if pull_image_if_needed:
-            cmd = f"docker pull {image_name}"
+            cmd = f"{get_docker_command()} pull {image_name}"
             hsystem.system(cmd)
         else:
             hdbg.dfatal("Image '%s' not found", image_name)
@@ -290,7 +374,7 @@ def wait_for_file_in_docker(
     _LOG.debug("Waiting for file: %s:%s", container_id, docker_file_path)
     start_time = time.time()
     while not os.path.exists(out_file_path):
-        cmd = f"docker cp {container_id}:{docker_file_path} {out_file_path}"
+        cmd = f"{get_docker_command()} cp {container_id}:{docker_file_path} {out_file_path}"
         hsystem.system(cmd)
         if time.time() - start_time > timeout_in_secs:
             raise ValueError(
