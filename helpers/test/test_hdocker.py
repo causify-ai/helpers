@@ -1,5 +1,6 @@
 import logging
 import os
+import platform
 import unittest.mock as umock
 from typing import List, Optional, Tuple
 
@@ -726,6 +727,20 @@ class Test_get_docker_command1(hunitest.TestCase):
         hdocker.set_docker_engine(override_engine)
         with umock.patch.dict(os.environ, env, clear=False):
             actual = hdocker.get_docker_command()
+        # Check outputs.
+        expected = "container"
+        self.assertEqual(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test default engine on macOS (no env var) returns 'container'.
+        """
+        # Prepare inputs.
+        env = {}
+        # Run test.
+        with umock.patch.object(platform, "system", return_value="Darwin"):
+            with umock.patch.dict(os.environ, env, clear=False):
+                actual = hdocker.get_docker_command()
         # Check outputs.
         expected = "container"
         self.assertEqual(actual, expected)

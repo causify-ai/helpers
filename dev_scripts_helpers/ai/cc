@@ -5,28 +5,48 @@
 #   name on exit (when inside a tmux session).
 # - Runs with --dangerously-skip-permissions flag.
 # - Passes all arguments to the claude command.
-# - Usage: cc [--model {anthropic|deepseek}] [--test] [-v] [claude_options]
+# - Usage: cc [--anth|--or_anth|--ds|--dsp|--model MODEL_STR] [--test] [-v] [claude_options]
 # """
 
 print_help() {
     echo "Usage: cc [OPTIONS] [claude_options]"
     echo ""
     echo "Options:"
-    echo "  --model {anthropic|deepseek}  Set the model provider"
-    echo "  --test                        Run diagnostics (claude doctor and /models)"
-    echo "  -v                            Enable verbose mode (set -x)"
-    echo "  --help                        Show this help message"
+    echo "  --anth              Use Anthropic directly (default, clear OpenRouter env vars)"
+    echo "  --or_anth           Use anthropic/claude-haiku-4.5 via OpenRouter"
+    echo "  --ds                Use deepseek/deepseek-v4-flash via OpenRouter"
+    echo "  --dsp               Use deepseek/deepseek-v4-pro via OpenRouter"
+    echo "  --model MODEL_STR   Use the specified model through OpenRouter"
+    echo "  --test              Run diagnostics (claude doctor and /models)"
+    echo "  -v                  Enable verbose mode (set -x)"
+    echo "  --help              Show this help message"
     echo ""
 }
 
 # Parse command line options
-MODEL="anthropic"
+MODEL="deepseek/deepseek-v4-flash"
 RUN_TEST=false
 VERBOSE=false
 CLAUDE_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --anth)
+            MODEL=""
+            shift
+            ;;
+        --or_anth)
+            MODEL="anthropic/claude-haiku-4.5"
+            shift
+            ;;
+        --ds)
+            MODEL="deepseek/deepseek-v4-flash"
+            shift
+            ;;
+        --dsp)
+            MODEL="deepseek/deepseek-v4-pro"
+            shift
+            ;;
         --model)
             MODEL="$2"
             shift 2
@@ -60,14 +80,9 @@ if [ -n "$TMUX" ]; then
     tmux rename-window "*CC*"
 fi
 
-# TODO(ai_gp)
-# If --anth use Anthropic default removing all the env var
-# If --or_anth use MODEL="anthropic/claude-haiku-4.5" from open router
-# If --ds use MODEL="deepseek/deepseek-v4-flash"
-# If --dsp use MODEL="deepseek/deepseek-v4-pro"
-# If --model use the specified model through openrouter
-
-# Configure environment based on model choice
+# Configure environment based on model choice.
+# Empty MODEL = use Anthropic directly (clear OpenRouter env vars).
+# Non-empty MODEL = use that model through OpenRouter.
 if [ "$MODEL" = "" ]; then
     echo "Anthropic setup"
     unset ANTHROPIC_DEFAULT_HAIKU_MODEL
@@ -76,24 +91,6 @@ if [ "$MODEL" = "" ]; then
     unset ANTHROPIC_BASE_URL
     unset ANTHROPIC_AUTH_TOKEN
 else
-    if [ "$MODEL" = "openrouter_anthropic" ] || [ "$MODEL" = "oranth" ]; then
-        MODEL="anthropic/claude-haiku-4.5"
-    elif [ "$MODEL" = "deepseek" ]; then
-        MODEL="deepseek/deepseek-v4-flash"
-    elif [ "$MODEL" = "deepseek-pro" ]; then
-        MODEL="deepseek/deepseek-v4-pro"
-    fi;
-    # Models
-    # - anthropic/claude-haiku-4-5-20251001
-    # - anthropic/claude-opus-4.8
-    # - anthropic/claude-sonnet-4.6
-    # - gpt-4o-mini
-    # - openrouter/anthropic/claude-haiku-4.5
-    # - openrouter/deepseek/deepseek-v4-flash
-    # - openrouter/deepseek/deepseek-v4-pro
-    # - openrouter/meta-llama/llama-3.1-8b-instruct
-    # - openrouter/openai/gpt-oss-120b
-    # - openrouter/openai/gpt-oss-20b
     echo "MODEL=$MODEL"
     export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
     export ANTHROPIC_DEFAULT_HAIKU_MODEL=$MODEL

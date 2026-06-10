@@ -29,6 +29,27 @@ _LOG = logging.getLogger(__name__)
 # Docker utilities
 # #############################################################################
 
+# # CSFY_DOCKER_ENGINE architecture
+# The codebase supports two container engines selectable via the
+# `CSFY_DOCKER_ENGINE` environment variable:
+#
+# - "docker": Use the standard `docker` CLI (Linux default).
+# - "apple": Use the native macOS `container` CLI (macOS default).
+#
+# The engines differ in some CLI semantics
+#
+# ## --entrypoint
+#
+#   | Semantics              | docker CLI        | container CLI (apple)   |
+#   |------------------------|-------------------|-------------------------|
+#   | --entrypoint ''        | Clears ENTRYPOINT | Ignored                 |
+#   | --entrypoint /bin/bash | Sets ENTRYPOINT   | Sets ENTRYPOINT         |
+#   | Mount flag             | --mount           | --mount                 |
+#
+# - Callers must be engine-aware when overriding entrypoints
+# - For details, see `build_and_run_docker_cmd()` and the Dockerfile
+#   `ENTRYPOINT` configuration in individual `lib_*.py` modules
+
 # Global override for Docker engine (allows tests to set it programmatically).
 _DOCKER_ENGINE = ""
 
