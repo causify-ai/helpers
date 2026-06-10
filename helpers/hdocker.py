@@ -47,19 +47,27 @@ def get_docker_engine() -> str:
     """
     Get the Docker engine to use ("docker" or "apple").
 
-    Reads from the global override if set, otherwise from the CSFY_DOCKER_ENGINE
-    environment variable (default: "docker").
+    Reads from the global override if set, otherwise from the
+    `CSFY_DOCKER_ENGINE` environment variable. If the env var is not set,
+    auto-detects based on the platform: "apple" on macOS, "docker" on Linux.
 
     :return: Engine name ("docker" or "apple")
-    :raises AssertionError: If CSFY_DOCKER_ENGINE is set to an invalid value
+    :raises AssertionError: If the engine value is invalid
     """
     if _DOCKER_ENGINE != "":
         return _DOCKER_ENGINE
-    engine = os.environ.get("CSFY_DOCKER_ENGINE", "docker")
+    engine = os.environ.get("CSFY_DOCKER_ENGINE")
+    if engine is None:
+        # Auto-detect: use "apple" on macOS, "docker" otherwise.
+        if platform.system() == "Darwin":
+            engine = "apple"
+        else:
+            engine = "docker"
     hdbg.dassert_in(
         engine,
         ["docker", "apple"],
-        "Invalid CSFY_DOCKER_ENGINE value",
+        "Invalid engine value: '%s'",
+        engine,
     )
     return engine
 

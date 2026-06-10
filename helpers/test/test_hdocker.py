@@ -666,13 +666,14 @@ class Test_get_docker_command1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test default engine (no env var) returns 'docker'.
+        Test default engine on Linux (no env var) returns 'docker'.
         """
         # Prepare inputs.
         env = {}
         # Run test.
-        with umock.patch.dict(os.environ, env, clear=False):
-            actual = hdocker.get_docker_command()
+        with umock.patch.object(platform, "system", return_value="Linux"):
+            with umock.patch.dict(os.environ, env, clear=False):
+                actual = hdocker.get_docker_command()
         # Check outputs.
         expected = "docker"
         self.assertEqual(actual, expected)

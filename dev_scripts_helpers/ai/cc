@@ -60,6 +60,13 @@ if [ -n "$TMUX" ]; then
     tmux rename-window "*CC*"
 fi
 
+# TODO(ai_gp)
+# If --anth use Anthropic default removing all the env var
+# If --or_anth use MODEL="anthropic/claude-haiku-4.5" from open router
+# If --ds use MODEL="deepseek/deepseek-v4-flash"
+# If --dsp use MODEL="deepseek/deepseek-v4-pro"
+# If --model use the specified model through openrouter
+
 # Configure environment based on model choice
 if [ "$MODEL" = "" ]; then
     echo "Anthropic setup"

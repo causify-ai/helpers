@@ -8,33 +8,27 @@ model: haiku
 
 - Read `.claude/skills/slides.rules.md` and apply the formatting rules strictly
 
-## Fix Bold Labels
-- Ensure every first-level bullet point starts with a bold label from the
-  approved list (e.g., **Definition**, **Example**, **Problem**, **Solution**,
-  **Question**, etc.)
-- See `slides.rules.md` → `# Slide Organization` → `## Use Bold for Slide Sections`
-  for the complete list of approved labels
+## What to Fix
 
-## Fix Unicode Characters
-- Replace non-ASCII characters with LaTeX equivalents
-  - `→` → `$\to$`
-  - `ε` → `$\varepsilon$`
-  - `∝` → `$\propto$`
-  - `≈` → `$\approx$`
-  - `∩` → `$\cap$`
-  - `∪` → `$\cup$`
+- **Bold labels**: Ensure every first-level bullet starts with an approved bold
+  label
+  - See `slides.rules.md` → `# Slide Organization` → `## Use Bold for Slide
+    Sections` for the approved list
 
-## Fix Emoji
-- Remove emoji characters
+- **Unicode characters**: Replace non-ASCII characters with LaTeX equivalents.
+  - See `slides.rules.md` → `# Slide Organization` → `## General Formatting
+    Rules` and `### Symbols and Characters`.
 
-## Fix Page Separators
-- Remove `---` page separator lines
+- **Emoji**: Remove emoji characters per `slides.rules.md` → `# Slide Organization`
+  → `## General Formatting Rules`.
 
-## Fix Punctuation
-- Remove periods at the end of bullet point phrases
-- Leave periods only where grammatically required (e.g., inside sentences, not
-  at the end of bullet points)
+- **Page separators**: Remove `---` lines per `slides.rules.md` → `# Slide Organization`
+  → `## General Formatting Rules` and `### Spacing and Breaks`.
+
+- **Punctuation**: Remove trailing periods from bullet point phrases per
+  `slides.rules.md` → `# Slide Organization` → `## Slide Structure`.
 
 ## Leave Structure and Content Unchanged
-- Do not change the structure of the text (titles, bullets, div fenced blocks)
+- Do not change the structure of the text (titles, bullet hierarchy, div fenced
+  blocks)
 - Do not change the substantive content — only formatting
