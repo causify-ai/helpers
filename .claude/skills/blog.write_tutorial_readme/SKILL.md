@@ -26,32 +26,19 @@ model: opus
      - When to use it (not just "always")
      - What are other tools that solve similar problems
      - Links to official docs
+        - Installation
+        - Documentation
+        - Tutorial
 
   2. **Prerequisites** (if any)
      - Required knowledge or tools
-     - Assumed environment (OS, languages, etc.)
 
   3. **Installation/Setup** (if applicable)
      - Clear, copy-paste ready commands
      - Verify installation with a simple test
 
-  4. **Core Concepts** (brief)
+  4. **Core Concepts** (1-2 paragraphs)
      - Explain 2-3 key ideas
-     - Use examples, not abstractions
-
-  5. **Hands-On Examples** (bulk of tutorial)
-     - 3-5 practical examples of increasing complexity
-     - Each example solves a real problem
-     - Include expected output
-     - Build toward a useful, realistic workflow
-
-  6. **Tips & Gotchas**
-     - Common mistakes and how to avoid them
-     - Performance or compatibility notes
-
-  7. **Next Steps** (optional)
-     - Where to learn more
-     - Related tools or advanced topics
 
 # Guidelines
 
@@ -86,12 +73,10 @@ model: opus
   needed
 - Don't over-decorate
 
-# Formatting
-- Follow `.claude/skills/markdown.rules.md` for markdown conventions
-- Use `##` for main sections, `###` for subsections
-- Use verbatim for tool names on first mention
-  - E.g., `ripgrep` is a search tool
-- Use code blocks for all commands, config files, and output
+## Formatting
+- Follow the rules in:
+  - `.claude/skills/markdown.rules.md`
+  - `.claude/skills/text.rules.md`
 
 # Examples to Reference
 - Located in `website/docs/blog/posts/`

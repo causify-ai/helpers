@@ -399,14 +399,8 @@ def _pdf_to_markdown(
                 else:
                     md_lines.append(content)
                 _LOG.debug("Inserted image at y=%.2f", y_pos)
-    # Join markdown lines and apply prettier formatting.
+    # Join markdown lines.
     markdown_content = "\n\n".join(md_lines)
-    _LOG.info("Applying prettier formatting to markdown")
-    markdown_content = dshdlipr.prettier_on_str(
-        markdown_content,
-        file_type="md",
-        width=80,
-    )
     # Write formatted markdown to file.
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(markdown_content)
@@ -570,6 +564,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # Display selected actions before execution.
+    print(hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True))
     # Execute actions.
     while actions:
         action = actions[0]

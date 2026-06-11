@@ -732,7 +732,14 @@ def build_and_run_docker_cmd(
     """
     docker_cmd = get_docker_base_cmd(use_sudo)
     if override_entrypoint:
-        docker_cmd.append("--entrypoint ''")
+        # Use `/bin/bash` as the entrypoint instead of clearing it with `''`.
+        # Docker supports `--entrypoint ''` to clear the entrypoint, but the
+        # macOS-native `container` runtime ignores an empty entrypoint, leaving
+        # the original one active. Using `/bin/bash` works with both runtimes.
+        if wrap_in_bash:
+            docker_cmd.append("--entrypoint /bin/bash")
+        else:
+            docker_cmd.append("--entrypoint ''")
     # Check that the container image exists.
     hdbg.dassert(
         image_exists(container_image, use_sudo)[0],
@@ -746,7 +753,11 @@ def build_and_run_docker_cmd(
         ]
     )
     if wrap_in_bash:
-        docker_cmd.append(f'bash -c "{tool_cmd}"')
+        if override_entrypoint:
+            # Entrypoint is already /bin/bash, just pass -c.
+            docker_cmd.append(f'-c "{tool_cmd}"')
+        else:
+            docker_cmd.append(f'bash -c "{tool_cmd}"')
     else:
         docker_cmd.append(tool_cmd)
     docker_cmd_str = " ".join(docker_cmd)
