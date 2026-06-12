@@ -5,7 +5,7 @@
 #   name on exit (when inside a tmux session).
 # - Runs with --dangerously-skip-permissions flag.
 # - Passes all arguments to the claude command.
-# - Usage: cc [--anth|--or_anth|--ds|--dsp|--model MODEL_STR] [--test] [-v] [claude_options]
+# - Usage: cc [--anth|--or_anth|--ds|--dsp|--model MODEL_STR] [--test] [-v] [-p PROMPT] [claude_options]
 # """
 
 print_help() {
@@ -16,9 +16,12 @@ print_help() {
     echo "  --or_anth           Use anthropic/claude-haiku-4.5 via OpenRouter"
     echo "  --ds                Use deepseek/deepseek-v4-flash via OpenRouter"
     echo "  --dsp               Use deepseek/deepseek-v4-pro via OpenRouter"
-    echo "  --dsp               Use inception/mercury-2 via OpenRouter"
+    echo "  --mer               Use inception/mercury-2 via OpenRouter"
     echo "  --model MODEL_STR   Use the specified model through OpenRouter"
     echo "  --test              Run diagnostics (claude doctor and /models)"
+    echo "  -p PROMPT           Run a prompt non-interactively, streaming JSON"
+    echo "                      output to stdout and tee-ing to a log file"
+    echo "                      (e.g., tmp.cc_log.<timestamp>.txt)"
     echo "  -v                  Enable verbose mode (set -x)"
     echo "  --help              Show this help message"
     echo ""
@@ -27,6 +30,7 @@ print_help() {
 # Parse command line options
 MODEL="deepseek/deepseek-v4-flash"
 RUN_TEST=false
+PROMPT=""
 VERBOSE=false
 CLAUDE_ARGS=()
 
@@ -59,6 +63,10 @@ while [[ $# -gt 0 ]]; do
         --test)
             RUN_TEST=true
             shift
+            ;;
+        -p)
+            PROMPT="$2"
+            shift 2
             ;;
         -v)
             VERBOSE=true
@@ -125,9 +133,21 @@ with_timeout() {
 }
 
 if [ "$RUN_TEST" = true ]; then
+    # Print info and exit.
     with_timeout 1 claude doctor
     with_timeout 1 'echo "/model" | claude'
+elif [ -n "$PROMPT" ]; then
+    # Run single prompt.
+    LOG_FILE="tmp.cc_log.$(date +%Y%m%d-%H%M%S).txt"
+    echo "Logging to $LOG_FILE"
+    claude --dangerously-skip-permissions \
+        --print \
+        --output-format=stream-json \
+        --include-partial-messages \
+        -p "$PROMPT" \
+        "${CLAUDE_ARGS[@]}" 2>&1 | tee "$LOG_FILE"
 else
+    # Interactive mode.
     claude --dangerously-skip-permissions "${CLAUDE_ARGS[@]}"
 fi
 
