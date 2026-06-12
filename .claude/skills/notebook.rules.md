@@ -218,6 +218,28 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Use `display()` to show a dataframe
 - Use `print()` for everything else
 
+## Use Pandas Dataframes and not Print for Tables
+- Use pandas dataframes for tables and do not create tables using `print`
+  - **Bad**
+    ```
+    print(f"{'Property':<25} {'sachs_discrete':<20} {'galton_stature':<20}")
+    print("-" * 65)
+    for key in sachs_tags:
+        print(f"{key:<25} {str(sachs_tags[key]):<20} {str(galton_tags[key]):<20}")
+    ```
+  - **Good**
+    ```
+    # Build a comparison DataFrame from the tags dictionaries.
+    tags_df = pd.DataFrame(
+        {
+            "Property": list(sachs_tags.keys()),
+            "sachs_discrete": [str(sachs_tags[k]) for k in sachs_tags],
+            "galton_stature": [str(galton_tags[k]) for k in sachs_tags],
+        }
+    )
+    display(tags_df)
+    ```
+
 ## Print Variable Name With Value
 - When using `print()` to inspect a variable, always include the variable name as a
   label alongside its value
@@ -474,6 +496,17 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - **Bad**: `This Shows The Distribution`
 - **Good**: `This shows the distribution`
 
+## Replace Emdashes with Colons
+- Do not use emdashes, but replace them with `:`
+  - **Bad**
+    ```
+    ## Primitive 1: `list_datasets()` — The Catalog
+    ```
+  - **Good**
+    ```
+    ## Primitive 1: `list_datasets()`: The Catalog
+    ```
+
 ## Non-ASCII Characters
 - Avoid non-ASCII characters in code and documentation
 - Use ASCII equivalents instead:
@@ -716,6 +749,66 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Each section should be:
   - formatted using bullet points using `.claude/skills/text.rules.md`
   - short with no more than 3-5 bullet points
+
+## Simple Interactive Widgets
+
+- For cells with a single visualization and a few sliders:
+  - Create the widgets, visualization, and update logic in a single utility
+    function
+  - Return the widget container (not bare prints or displays)
+  - Accept all widget parameters explicitly (don't rely on global state)
+
+- Example:
+  ```python
+  def gaussian_interactive(mu_range=(0, 1), sigma_range=(0.1, 1)):
+      """
+      Interactive Gaussian visualization with sliders for mu and sigma.
+      """
+      # Create widgets
+      # Create figure and initial plot
+      # Create update callback
+      # Return interactive container
+  ```
+
+## Complex Interactive Widgets
+
+- Multiple coordinated visualizations (3-4 side-by-side plots, not a 2x2 grid)
+- Shared parameter controls (sliders and numeric inputs for parameters)
+- Explanatory subplot with text explanation of what other plots show
+
+### Layout and Organization
+
+```python
+def complex_entropy_interactive():
+    """
+    Four-plot interactive widget for joint entropy exploration.
+    """
+    # 1. Controls at top: sliders for each parameter + numeric input fields
+    # 2. Four plots in a single row:
+    #    - Joint distribution heatmap
+    #    - Entropy metrics / statistics
+    #    - Sampled realizations / examples
+    #    - Comments: text explanation of what's happening
+
+    # As sliders move, update all plots and the Comments text
+    # Return the full widget container (controls + plots)
+```
+
+### Best Practices for Complex Widgets
+
+1. **Add controls first**: Both sliders (coarse adjustment) and numeric inputs
+   (precise entry)
+2. **Use a single row layout**: Not 2x2 grids; arrange subplots horizontally
+3. **Information in Comments subplot**: Do NOT use `print()` statements
+   - Create a text matplotlib axis or HTML widget
+   - Dynamically generate explanation text based on current parameter values
+   - Update it in the same callback as other plots
+4. **Legend per plot**: Add informative legends to each subplot, not just one
+   global legend
+5. **Reference implementation**: study
+   - `plot_joint_entropy_interactive()` in
+     `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+   - `cell3_interactive_sample_generator()` in `notebook_utils_template.py`
 
 # Testing Notebook
 

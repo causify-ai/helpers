@@ -42,13 +42,9 @@ model: opus
 # Implementation Approach
 
 ## Code Organization
-- **In notebook**: Small, focused code cells that demonstrate concepts
-  interactively
-- **In utils**: Reusable helper functions, plotting utilities, data processing
-  functions
-  - Keep notebook cells readable and pedagogically clear
-  - Move complexity and infrastructure code to utils
-  - Import and use utils functions to keep cells focused on concepts
+- Follow the section `Utilities vs. Notebook Responsibilities` from the file
+  `.claude/skills/notebook.rules.md` for organizing utility files and notebook
+  cells
 
 # Sync with Jupytext
 - After all modifications are complete, sync the paired `.py` file with Jupytext
@@ -79,60 +75,10 @@ model: opus
 
 ## Simple Interactive Widgets
 
-- For cells with a single visualization and a few sliders:
-  - Create the widgets, visualization, and update logic in a single utility
-    function
-  - Return the widget container (not bare prints or displays)
-  - Accept all widget parameters explicitly (don't rely on global state)
-
-- Example:
-  ```python
-  def gaussian_interactive(mu_range=(0, 1), sigma_range=(0.1, 1)):
-      """
-      Interactive Gaussian visualization with sliders for mu and sigma.
-      """
-      # Create widgets
-      # Create figure and initial plot
-      # Create update callback
-      # Return interactive container
-  ```
+- Follow the conventions in `.claude/skills/notebook.rules.md`
+  `## Simple Interactive Widgets`
 
 ## Complex Interactive Widgets
 
-- Multiple coordinated visualizations (3-4 side-by-side plots, not a 2×2 grid)
-- Shared parameter controls (sliders and numeric inputs for parameters)
-- Explanatory subplot with text explanation of what other plots show
-
-### Layout and Organization
-
-```python
-def complex_entropy_interactive():
-    """
-    Four-plot interactive widget for joint entropy exploration.
-    """
-    # 1. Controls at top: sliders for each parameter + numeric input fields
-    # 2. Four plots in a single row:
-    #    - Joint distribution heatmap
-    #    - Entropy metrics / statistics
-    #    - Sampled realizations / examples
-    #    - Comments: text explanation of what's happening
-    
-    # As sliders move, update all plots and the Comments text
-    # Return the full widget container (controls + plots)
-```
-
-### Best Practices for Complex Widgets
-
-1. **Add controls first**: Both sliders (coarse adjustment) and numeric inputs
-   (precise entry)
-2. **Use a single row layout**: Not 2×2 grids; arrange subplots horizontally
-3. **Information in Comments subplot**: Do NOT use `print()` statements
-   - Create a text matplotlib axis or HTML widget
-   - Dynamically generate explanation text based on current parameter values
-   - Update it in the same callback as other plots
-4. **Legend per plot**: Add informative legends to each subplot, not just one
-   global legend
-5. **Reference implementation**: study
-   - `plot_joint_entropy_interactive()` in
-     `msml610/tutorials/Lesson94_Information_Theory_utils.py`
-   - `cell3_interactive_sample_generator()` in `notebook_utils_template.py`
+- Follow the conventions in `.claude/skills/notebook.rules.md`
+  `## Complex Interactive Widgets`
