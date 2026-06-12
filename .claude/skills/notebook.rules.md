@@ -68,6 +68,21 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 - **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
 
+### Use Existing Utils Functions During Generation
+
+- When generating a notebook, check if a corresponding `*_utils.py` file already
+  exists:
+  - If it does, prefer using its existing functions instead of writing new inline
+    code or proposing new functions
+  - If the notebook uses new cell numbers, update the utils function names to
+    match (see `## Sync Function Names with Cell Numbers`)
+  - If a needed function doesn't exist in the utils file, add it following the
+    existing patterns and conventions
+
+- **Rationale**: Existing utils files contain tested, reusable code that follows
+  project conventions. Using them avoids duplication, keeps cells clean, and
+  maintains consistency across notebooks
+
 ## Library Calls vs. Visualization in Package Tutorials
 - When writing a tutorial for a package:
   - Keep the code that executes library calls and explores the API in the notebook
@@ -258,7 +273,58 @@ description: Conventions and standards for interactive Jupyter notebook structur
   print(getattr(contract_out["messages"][-1], "content", ""))
   ```
 
+## Use Bullet-Point Comments for Structured Explanations
+
+- When a comment describes multiple related points (mental models, parameters,
+  observations, or key takeaways), use bullet-point format with each point on
+  its own line instead of a single inline paragraph:
+  - **Bad**: inline paragraph style
+    ```python
+    # **Mental model**: a `Space` is a typed contract. It knows the shape,
+    # dtype, and bounds of valid data. It can sample random valid values and
+    # check membership.
+    ```
+  - **Good**: bullet-point style with each point on its own indented line
+    ```python
+    # - **Mental model**:
+    #   - A `Space` is a typed contract
+    #   - It knows the shape, dtype, and bounds of valid data
+    #   - It can sample random valid values and check membership
+    ```
+
+- **Rationale**: Bullet-point comments are easier to scan quickly, work better
+  with diff tools (each point is a separate change), and align with the nested
+  bullet style used throughout notebook markdown cells
+
 # Notebook Organization
+
+## API Notebook Overview and Summary Sections
+
+- Every API notebook (a notebook that introduces a library or framework) must
+  include two specific markdown sections:
+
+  1. `## Library Overview` at the very beginning, right after setup cells but
+     before the first code cell:
+     - Use the structure:
+       ```markdown
+       ## Library Overview
+
+       - **What problem it solves**: ...
+       - **Key abstraction**: ...
+       - **Mental model**:
+         ```
+         ...
+         ```
+       - **Key classes**:
+         - ...
+       ```
+
+  2. `## Summary: The Mental Model` as the final markdown cell:
+     - Recap the 2-4 essential takeaways the reader should remember
+     - Each bullet must be a complete, standalone statement
+
+- **Rationale**: The overview gives the big picture before diving into details;
+  the summary reinforces what to remember after closing the notebook
 
 ## Cell Triplet Structure
 
@@ -329,6 +395,15 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Cell numbers must be sequential with no gaps within each Part:
   - **Bad**: Cell 1.1 -> Cell 1.5 (skips 1.2, 1.3, 1.4)
   - **Good**: Cell 1.1 -> Cell 1.2 -> Cell 1.3
+
+## Avoid Anti-Pattern Sections
+
+- Do not add sections labeled "Anti-patterns" or discuss anti-patterns as a
+  formal section in notebook content
+- Notebooks should focus on teaching correct concepts and best practices rather
+  than cataloging mistakes
+- Use the **Bad** / **Good** pattern for individual examples when showing what
+  to avoid, not full "Anti-patterns" sections
 
 # Utility File Organization
 
@@ -481,6 +556,36 @@ description: Conventions and standards for interactive Jupyter notebook structur
 ## Keep Introspection Lines
 - It is acceptable to keep a `func??` introspection line to display a function's
   source or signature
+
+## Print Public Methods of Objects
+- Use `hintrospection.print_public_methods()` from
+  `helpers_root/helpers/hintrospection.py` to display the public interface of a
+  class or module in a notebook cell:
+  ```python
+  import helpers.hintrospection as hintros
+
+  hintros.print_public_methods(library_module, use_markdown=True)
+  ```
+- The `use_markdown=True` parameter formats the output as a markdown bullet
+  list, which renders cleanly in notebook cells
+- This provides a self-documenting overview of available methods, their
+  signatures, and first-line docstrings
+- **Bad** (bare `dir()` with no context):
+  ```python
+  dir(library_module)
+  ```
+- **Bad** (manually printing method names):
+  ```python
+  methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
+  print(methods)
+  ```
+- **Good** (standardized introspection with signatures and documentation):
+  ```python
+  hintros.print_public_methods(library_module, use_markdown=True)
+  ```
+- **Rationale**: `print_public_methods()` gives a systematic overview of the
+  public API with signatures and docstrings, which is more informative than
+  `dir()` or a bare method listing, and consistent across all notebooks
 
 # Interactive Cells
 

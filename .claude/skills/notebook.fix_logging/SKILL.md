@@ -3,10 +3,7 @@ description: Use this idiom for controlling logging in Jupyter notebooks
 model: haiku
 ---
 
-# Important: Follow Conventions
-- Always follow the conventions and guidelines in
-  `.claude/skills/notebook.rules.md`
-
+# Goal
 - Implement the instructions in 
   `.claude/skills/notebook.rules.md` under
   `## Use Standard Template Structure`
@@ -33,3 +30,6 @@ model: haiku
       hnotebo.set_logger_to_print(causalml_logger)
   ```
 
+## Follow Conventions
+- Always follow the conventions and guidelines in
+  `.claude/skills/notebook.rules.md`
