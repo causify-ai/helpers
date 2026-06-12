@@ -561,31 +561,22 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Use `hintrospection.print_public_methods()` from
   `helpers_root/helpers/hintrospection.py` to display the public interface of a
   class or module in a notebook cell:
-  ```python
-  import helpers.hintrospection as hintros
-
-  hintros.print_public_methods(library_module, use_markdown=True)
-  ```
-- The `use_markdown=True` parameter formats the output as a markdown bullet
   list, which renders cleanly in notebook cells
 - This provides a self-documenting overview of available methods, their
   signatures, and first-line docstrings
-- **Bad** (bare `dir()` with no context):
-  ```python
-  dir(library_module)
-  ```
-- **Bad** (manually printing method names):
-  ```python
-  methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
-  print(methods)
-  ```
-- **Good** (standardized introspection with signatures and documentation):
-  ```python
-  hintros.print_public_methods(library_module, use_markdown=True)
-  ```
-- **Rationale**: `print_public_methods()` gives a systematic overview of the
-  public API with signatures and docstrings, which is more informative than
-  `dir()` or a bare method listing, and consistent across all notebooks
+  - **Bad** (bare `dir()` with no context):
+    ```python
+    dir(library_module)
+    ```
+  - **Bad** (manually printing method names):
+    ```python
+    methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
+    print(methods)
+    ```
+  - **Good** (standardized introspection with signatures and documentation):
+    ```python
+    hintros.print_public_methods(library_module, use_markdown=True)
+    ```
 
 # Interactive Cells
 

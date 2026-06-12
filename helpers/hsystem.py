@@ -448,22 +448,36 @@ def to_absolute_paths(files: List[str]) -> List[str]:
     return files
 
 
-def _remove_files_non_present(files: List[str]) -> List[str]:
+def _remove_files_non_present(
+    files: List[str],
+    *,
+    log_level: int = logging.WARNING,
+) -> List[str]:
     """
     Return list of files from `files` excluding the files that don't exist.
+
+    :param log_level: log level for the "file doesn't exist" messages
+        (use `logging.DEBUG` to suppress routine filtering noise)
     """
     files_tmp = []
     for f in files:
         if os.path.exists(f):
             files_tmp.append(f)
         else:
-            _LOG.warning("File '%s' doesn't exist: skipping", f)
+            _LOG.log(log_level, "File '%s' doesn't exist: skipping", f)
     return files_tmp
 
 
-def remove_dirs(files: List[str]) -> List[str]:
+def remove_dirs(
+    files: List[str],
+    *,
+    log_level: int = logging.WARNING,
+) -> List[str]:
     """
     Return list of files from `files` excluding the files that are directories.
+
+    :param log_level: log level for the "Removed dirs" message
+        (use `logging.DEBUG` to suppress routine filtering noise)
     """
     files_tmp: List[str] = []
     dirs_tmp: List[str] = []
@@ -474,7 +488,7 @@ def remove_dirs(files: List[str]) -> List[str]:
         else:
             files_tmp.append(file)
     if dirs_tmp:
-        _LOG.warning("Removed dirs: %s", ", ".join(dirs_tmp))
+        _LOG.log(log_level, "Removed dirs: %s", ", ".join(dirs_tmp))
     return files_tmp
 
 
