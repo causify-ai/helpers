@@ -583,5 +583,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
             elif action == "lint":
                 _lint(pdf_path=args.input, output_dir=args.output)
 
+
 if __name__ == "__main__":
     _main(_parse())

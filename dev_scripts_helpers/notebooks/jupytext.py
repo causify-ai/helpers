@@ -28,6 +28,7 @@ import dev_scripts_helpers.notebooks.jupytext as dshnprju
 """
 
 import argparse
+import tqdm
 import datetime
 import logging
 import os
@@ -130,10 +131,10 @@ def _sync(file_name: str) -> None:
             cmd_update = "jupytext" + f" --to ipynb --update {file_name}"
         else:
             cmd_update = "jupytext" + f" --to py {file_name}"
-        _LOG.info("Execute '%s'", cmd_update)
+        _LOG.debug("Execute '%s'", cmd_update)
         hsystem.system(cmd_update)
         cmd_sync = "jupytext" + f" --sync {file_name}"
-        _LOG.info("Execute '%s'", cmd_sync)
+        _LOG.debug("Execute '%s'", cmd_sync)
         hsystem.system(cmd_sync)
     else:
         _LOG.warning("The file '%s' is not paired: run --pair", file_name)
@@ -377,7 +378,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "No .ipynb files found after filtering",
     )
     rc = 0
-    for file_name in files:
+    for file_name in tqdm.tqdm(files, desc="Processing files"):
         _LOG.info("Processing file: %s", file_name)
         hdbg.dassert_path_exists(file_name)
         if args.action == "pair":

@@ -837,7 +837,7 @@ class Test_is_docker_running1(hunitest.TestCase):
         env = {"CSFY_DOCKER_ENGINE": "apple"}
         mocked_output = (
             'Error: internalError: "failed to list containers" '
-            '(cause: "interrupted: \'XPC connection error: Connection invalid\'")'
+            "(cause: \"interrupted: 'XPC connection error: Connection invalid'\")"
         )
         # Run test.
         with umock.patch.dict(os.environ, env, clear=False):

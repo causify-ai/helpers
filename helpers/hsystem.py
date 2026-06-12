@@ -556,7 +556,7 @@ def system_to_files(
     _LOG.debug(hprint.to_str("files"))
     # Remove non-existent files, if needed.
     if remove_files_non_present:
-        files = _remove_files_non_present(files)
+        files = _remove_files_non_present(files, log_level=logging.DEBUG)
     # Process output.
     files = select_result_file_from_list(files, mode, cmd)
     return files

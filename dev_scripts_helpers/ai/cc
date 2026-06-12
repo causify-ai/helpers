@@ -16,6 +16,7 @@ print_help() {
     echo "  --or_anth           Use anthropic/claude-haiku-4.5 via OpenRouter"
     echo "  --ds                Use deepseek/deepseek-v4-flash via OpenRouter"
     echo "  --dsp               Use deepseek/deepseek-v4-pro via OpenRouter"
+    echo "  --dsp               Use inception/mercury-2 via OpenRouter"
     echo "  --model MODEL_STR   Use the specified model through OpenRouter"
     echo "  --test              Run diagnostics (claude doctor and /models)"
     echo "  -v                  Enable verbose mode (set -x)"
@@ -45,6 +46,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --dsp)
             MODEL="deepseek/deepseek-v4-pro"
+            shift
+            ;;
+        --mer)
+            MODEL="inception/mercury-2"
             shift
             ;;
         --model)
