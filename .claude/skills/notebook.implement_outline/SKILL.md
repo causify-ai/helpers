@@ -50,6 +50,11 @@ model: opus
   - Move complexity and infrastructure code to utils
   - Import and use utils functions to keep cells focused on concepts
 
+# Sync with Jupytext
+- After all modifications are complete, sync the paired `.py` file with Jupytext
+  following the conventions in `# Setup and Initialization` → `## Utilities vs.
+  Notebook Responsibilities` in `.claude/skills/notebook.rules.md`
+
 # Reference Templates
 
 - Study these before implementing; they establish the quality bar and idioms

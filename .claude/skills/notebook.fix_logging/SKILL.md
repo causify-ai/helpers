@@ -1,5 +1,5 @@
 ---
-description: Use this idiom for controlling logging in Jupyter notebooks
+description: Use idiom for controlling logging in Jupyter notebooks
 model: haiku
 ---
 
@@ -29,6 +29,11 @@ model: haiku
       causalml_logger: logging.Logger = logging.getLogger("causalml")
       hnotebo.set_logger_to_print(causalml_logger)
   ```
+
+## Sync Notebook
+- At the end, sync the paired `.py` file with Jupytext following the conventions
+  in `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
+  in `.claude/skills/notebook.rules.md`
 
 ## Follow Conventions
 - Always follow the conventions and guidelines in

@@ -83,11 +83,12 @@
 ## Content Structure
 - Skills should be organized with clear sections:
   1. **Frontmatter**: YAML description
-  2. **Introduction**: 1-2 sentences describing what the skill does
-  3. **Main Sections**: Organized by topic area or workflow step
-  4. **Examples**: Good/Bad patterns and concrete examples
-  5. **Scope/Limitations** (if applicable): What the skill covers or doesn't
-     cover
+  2. **Goal**: 1-2 sentences describing what the skill does
+  3. **Workflow**: Including workflow steps
+  4. **Conventions**: Point to rule files
+  5. **Constraints**: Constraints to satisfy
+  6. **Examples**: Pointers to potential examples
+  6. **Verification**: How to make sure the work was done properly
 
 - Use headers from `## ` down (skip `#` for section titles)
 - Keep sections focused and actionable

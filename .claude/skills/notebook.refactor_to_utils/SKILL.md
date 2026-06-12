@@ -3,12 +3,18 @@ description: Move or add notebook code to a *_utils.py library file
 model: haiku
 ---
 
+# Goal
 You are an expert Python developer
 
 I will pass you a Python file paired with a Jupyter notebook using jupytext in
 `py:percent` format
 
-For all the code follow the rules from `@.claude/skills/coding.rules.md`
+# Constraints
+- For all the code follow the rules from `.claude/skills/coding.rules.md`
+
+- Important Notes
+  - Always sync before editing: `uvx jupytext --sync notebook.py`
+  - Always sync after editing: `uvx jupytext --sync notebook.py`
 
 # Scenarios
 This skill handles two complementary scenarios:
@@ -94,19 +100,12 @@ corresponding to the notebook
 - Extract common patterns into helper functions
 
 ## Step 6: Sync with Jupytext
-- After all modifications are complete, sync to update both files:
+- After all modifications are complete, sync to update both files following the
+  conventions in `# Setup and Initialization` → `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`:
   ```bash
   > uvx jupytext --sync <path/to/notebook.py>
   ```
-
-- This ensures:
-  - The paired .py file matches the .ipynb file
-  - All changes are propagated correctly
-
-# Important Notes
-- Always sync before editing: `uvx jupytext --sync notebook.py`
-- Always sync after editing: `uvx jupytext --sync notebook.py`
-- Never edit .ipynb files directly when a paired .py file exists
 
 # Important
 - Always follow the conventions and guidelines in
