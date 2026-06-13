@@ -7,7 +7,7 @@ original code, if needed.
 Supports diagram types (plantuml, mermaid, tikz, graphviz, latex) and
 AI-generated images using OpenAI's DALL-E API (image blocks).
 
-See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
+See `docs/tools/documentation_toolchain/all.render_images.explanation.md`.
 
 Usage:
 

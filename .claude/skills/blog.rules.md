@@ -38,6 +38,54 @@ This document contains all the rules that must be followed when writing a blog
 - Always follow with `<!-- more -->` tag on a new line with a blank line before
   it
 
+## References to GitHub Files
+- When referring to files in the repo, use a verbatim with a link
+  to the GitHub repo
+  - E.g.,
+  ```
+  [`helpers/hcache_simple.py`](https://github.com/causify-ai/helpers/blob/master/helpers/hcache_simple.py)
+  ```
+
+# Visuals
+
+## Add Visuals to Blog Posts
+- When adding visuals (diagrams, images, screenshots) to a blog post:
+  - Insert the visual in the right place within the blog content
+  - Add a text explanation before or after the visual that concisely explains
+    its relevance to the surrounding content
+  - Ensure the visual is properly formatted using standard markdown or the
+    appropriate code block (mermaid, graphviz, tikz)
+
+## Types of Visuals
+- Illustrations can be:
+
+### A mermaid graph
+- E.g.,
+  ```mermaid
+  ...
+  ```
+
+### A graphviz graph
+- Follow the template `.claude/templates/graphviz.template.md`
+- E.g.,
+  ```graphviz
+  ...
+  ```
+
+###A Tikz graph
+- Follow the template `.claude/templates/tikz.template.md`
+  - E.g.,
+    ```tikz
+    ...
+    ```
+
+### A screenshot from a website
+- Use `website_screenshot.py` to take snapshots of notebooks
+- Crop to use only what is needed
+
+### A custom image
+- Follow the template `.claude/templates/image.template.md`
+
 # Writing Style
 
 ## Formatting Rules
@@ -67,3 +115,4 @@ This document contains all the rules that must be followed when writing a blog
   ```
   > prettier --tab-width 4 <FILE> -w
   ```
+
