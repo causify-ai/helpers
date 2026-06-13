@@ -413,11 +413,17 @@ def _uncomment_line(
     file extension.
     """
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
-    # Remove the comment prefix and postfix leaving the content in between and
-    # the spaces.
-    ret = line.replace(comment_prefix + " ", "").replace(comment_postfix, "")
-    ret = ret.replace(comment_prefix, "")
-    return ret
+    # Strip the comment prefix from the start (only once).
+    for prefix in [comment_prefix + " ", comment_prefix]:
+        if line.startswith(prefix):
+            line = line[len(prefix):]
+            break
+    # Strip the comment postfix from the end (only once).
+    # Note: `comment_postfix` can be "" (for .tex files), in which case
+    # `line[:-0]` would be `line[:0]` = '' in Python since -0 == 0.
+    if comment_postfix and line.endswith(comment_postfix):
+        line = line[:-len(comment_postfix)]
+    return line
 
 
 # #############################################################################
