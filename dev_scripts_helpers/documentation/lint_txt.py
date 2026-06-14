@@ -568,6 +568,10 @@ def _perform_actions(
     action = "remove_trailing_periods"
     if _to_execute_action(action, actions):
         lines = _remove_trailing_periods(lines)
+    # Replace em dash with colon.
+    action = "replace_em_dash_with_colon"
+    if _to_execute_action(action, actions):
+        lines = _replace_em_dash_with_colon(lines)
     # Remove markdown formatting.
     action = "remove_markdown_formatting"
     if _to_execute_action(action, actions):
@@ -613,6 +617,29 @@ def _perform_actions(
     return lines
 
 
+def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
+    """
+    Replace em dash followed by a space with a colon.
+
+    When a non-whitespace character is followed by ` — ` (em dash surrounded
+    by spaces), the em dash is replaced with `: ` (colon space e.g., for list
+    items).
+
+    Example: `- foo — bar` -> `- foo: bar`
+
+    :param lines: The lines to be processed.
+    :return: The lines with em dashes replaced by colons.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for line in lines:
+        # Replace em dash with colon when preceded by a non-whitespace char.
+        line = re.sub(r"(\S)\s*—\s+", r"\1: ", line)
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 # #############################################################################
 
 _VALID_ACTIONS = [
@@ -639,6 +666,8 @@ _VALID_ACTIONS = [
     # _remove_trailing_periods(): remove trailing periods from bullet points,
     # headers, and numbered lists.
     "remove_trailing_periods",
+    # _replace_em_dash_with_colon(): replace ` — ` with `: ` after non-whitespace.
+    "replace_em_dash_with_colon",
     # _remove_markdown_formatting(): remove markdown syntax from text (bold,
     # italic, links, images, etc.).
     "remove_markdown_formatting",

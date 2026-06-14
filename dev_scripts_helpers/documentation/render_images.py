@@ -182,6 +182,7 @@ def _render_image_code(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
+    dpi: int = 300,
 ) -> List[str]:
     """
     Render the image code into one or more image files.
@@ -198,6 +199,8 @@ def _render_image_code(
     :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
     :param dst_dir: absolute path to directory for storing rendered images
+    :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
+        Graphviz, SVG, TikZ, and LaTeX image types.
     :return: list of paths to the rendered images (usually 1 image, but 3 for
         "image" type)
     """
@@ -325,9 +328,10 @@ def _render_image_code(
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
+                mermaid_dpi=dpi,
             )
         elif image_code_type in ("tikz", "latex", "raw_latex"):
-            cmd_opts: List[str] = ["-density 600", "-quality 95"]
+            cmd_opts: List[str] = [f"-density {dpi}", "-quality 95"]
             import dev_scripts_helpers.dockerize.lib_png as dshdlipn
 
             dshdlipn.run_dockerized_tikz_to_bitmap(
@@ -347,6 +351,7 @@ def _render_image_code(
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
+                dpi=dpi,
             )
         elif image_code_type == "svg":
             import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
@@ -357,6 +362,7 @@ def _render_image_code(
                 output_format="png",
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
+                dpi=dpi,
             )
         else:
             raise ValueError(f"Invalid type: {image_code_type}")
@@ -548,6 +554,7 @@ def _render_images(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
+    dpi: int = 300,
 ) -> List[str]:
     r"""
     Insert rendered images instead of image code blocks.
@@ -594,6 +601,8 @@ def _render_images(
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
     :param dst_dir: absolute path to directory for storing rendered images
+    :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
+        Graphviz, SVG, TikZ, and LaTeX image types.
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -714,6 +723,7 @@ def _render_images(
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
+                    dpi=dpi,
                 )
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
@@ -873,6 +883,14 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Update the file but do not render images",
     )
+    parser.add_argument(
+        "--dpi",
+        type=int,
+        default=300,
+        help="DPI for rendered images (default: 300). Affects Mermaid, "
+        "Graphviz, SVG, TikZ, and LaTeX image types. A higher DPI "
+        "produces higher resolution output.",
+    )
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -887,6 +905,7 @@ def _process_single_file(
     force_rebuild: bool,
     use_sudo: bool,
     dry_run: bool,
+    dpi: int = 300,
 ) -> None:
     """
     Process a single file for image rendering.
@@ -898,6 +917,8 @@ def _process_single_file(
     :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
     :param dst_dir: absolute path to directory for storing rendered images
+    :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
+        Graphviz, SVG, TikZ, and LaTeX image types.
     """
     _LOG.info(hprint.func_signature_to_str())
     # Verify that the input and output file types are valid and equal.
@@ -926,6 +947,7 @@ def _process_single_file(
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
         dry_run=dry_run,
+        dpi=dpi,
     )
     # Remove empty consecutive lines.
     out_lines = hprint.remove_empty_lines(
@@ -1044,6 +1066,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 force_rebuild=args.dockerized_force_rebuild,
                 use_sudo=args.dockerized_use_sudo,
                 dry_run=args.dry_run,
+                dpi=args.dpi,
             )
     if len(in_files) > 1:
         _LOG.info("%s Files saved in place", len(in_files))

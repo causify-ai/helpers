@@ -1,0 +1,1 @@
+../../papers/template/lint_latex.sh
