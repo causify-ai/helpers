@@ -1,9 +1,57 @@
 #!/bin/bash -e
 #
-# Dockerized latex
+# Dockerized latex build script.
+#
+# Usage: ./run_latex.sh [NUM_PASSES | -h | --help]
+#
+# Arguments:
+#   NUM_PASSES    Number of LaTeX compilation passes (default: 2)
+#
+#                 - 1: Single pdflatex pass (quick, no cross-references resolved)
+#                 - 2: Two pdflatex passes (resolves cross-references, no bibliography)
+#                 - 3: Two pdflatex passes + bibtex + two more pdflatex passes
+#                      (full build with bibliography and cross-references)
+#
+# The script also:
+#   - Renders any images in the .tex files via render_images.py
+#   - Copies the resulting PDF to Google Drive (if mounted)
+#   - Opens the PDF in Skim on macOS (if installed)
 #
 
 # TODO(gp): Convert to Python using hdocker.
+
+# ---------------------------------------------------------------------------
+# Help and argument parsing.
+# ---------------------------------------------------------------------------
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+    cat <<'EOF'
+Usage: ./run_latex.sh [NUM_PASSES | -h | --help]
+
+Build the LaTeX document inside a Docker container and open the resulting PDF.
+
+Arguments:
+  NUM_PASSES    Number of LaTeX compilation passes (default: 2)
+
+                - 1: Single pdflatex pass (quick, no cross-references resolved)
+                - 2: Two pdflatex passes (resolves cross-references, no bibliography)
+                - 3: Two pdflatex passes + bibtex + two more pdflatex passes
+                     (full build with bibliography and cross-references)
+
+  -h, --help    Show this help message and exit.
+
+The script also:
+  - Renders any images found in the .tex files via
+    helpers_root/dev_scripts_helpers/documentation/render_images.py
+  - Copies the resulting PDF to Google Drive (if the mount point exists)
+  - Opens the PDF in Skim on macOS (if Skim is installed)
+
+Examples:
+  ./run_latex.sh        # Build with 2 passes
+  ./run_latex.sh 1      # Quick single-pass build
+  ./run_latex.sh 3      # Full build with bibliography
+EOF
+    exit 0
+fi
 
 # Find the actual git root directory.
 export GIT_ROOT=$(pwd)
@@ -15,7 +63,7 @@ echo "GIT_ROOT=$GIT_ROOT"
 
 SCRIPT_SOURCE=$0
 if [[ -z $1 ]]; then
-    NUM_PASSES=1
+    NUM_PASSES=2
 else
     NUM_PASSES=$1
 fi;
