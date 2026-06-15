@@ -1641,8 +1641,15 @@ def git_file_version(  # type: ignore
         if dir_name == "":
             dir_name = "."
     hdbg.dassert_dir_exists(dir_name)
+    # Convert to repo-relative path: `git show <commit>:<path>` requires a
+    # repo-relative path, not an absolute filesystem path.
+    # TODO(gp): Use hgit.find_root
+    repo_root = hsystem.system_to_string(
+        "git rev-parse --show-toplevel"
+    )[1].strip()
+    rel_path = os.path.relpath(file_path, repo_root)
     # Get git log with commit hash and timestamp for the file.
-    cmd = f"git log --follow --format=%H --date=iso -- {file_path}"
+    cmd = f"git log --follow --format=%H --date=iso -- {rel_path}"
     _, output = hsystem.system_to_string(cmd)
     commit_hashes = [h.strip() for h in output.split("\n") if h.strip()]
     if not commit_hashes:
@@ -1690,7 +1697,7 @@ def git_file_version(  # type: ignore
             dir_name, f"{name}.{timestamp_str}.{short_hash}{ext}"
         )
         # Extract the file content from git.
-        cmd = f"git show {commit_hash}:{file_path} > {version_file}"
+        cmd = f"git show {commit_hash}:{rel_path} > {version_file}"
         _LOG.debug(
             "Extracting version %d of %d: %s",
             i + 1,
