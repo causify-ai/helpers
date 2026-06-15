@@ -28,10 +28,20 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--url", action="store", type=str, required=True,
-                        help="URL of the website to screenshot")
-    parser.add_argument("--output", action="store", type=str, required=True,
-                        help="Path to save the screenshot PNG file")
+    parser.add_argument(
+        "--url",
+        action="store",
+        type=str,
+        required=True,
+        help="URL of the website to screenshot",
+    )
+    parser.add_argument(
+        "--output",
+        action="store",
+        type=str,
+        required=True,
+        help="Path to save the screenshot PNG file",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 

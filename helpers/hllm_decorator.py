@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hllm_decorator as hllmdec
+import helpers.hllm_decorator as hllmdeco
 """
 
 import functools
@@ -41,8 +41,8 @@ _JSON_OBJECT_PATTERN = re.compile(r"\{.*\}", re.DOTALL)
 # Mapping from Python types to prompt instruction fragments that tell the LLM
 # how to format its output for a given return type.
 _TYPE_FORMAT_INSTRUCTIONS: Dict[Any, str] = {
-    int: 'Return ONLY a single integer number, no other text.',
-    float: 'Return ONLY a single floating-point number, no other text.',
+    int: "Return ONLY a single integer number, no other text.",
+    float: "Return ONLY a single floating-point number, no other text.",
     bool: 'Return ONLY "true" or "false", no other text.',
     str: "Return ONLY the requested string value, no extra commentary.",
 }
@@ -150,7 +150,9 @@ def _coerce_value(response: str, target_type: Any) -> Any:
             if element_type is str:
                 parsed = [str(e) for e in parsed]
             else:
-                parsed = [_coerce_value(json.dumps(e), element_type) for e in parsed]
+                parsed = [
+                    _coerce_value(json.dumps(e), element_type) for e in parsed
+                ]
         return parsed
     # --- Dict ---
     if origin is dict or origin is Dict:

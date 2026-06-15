@@ -7,16 +7,14 @@ import helpers.test.test_hllm_decorator as thllmdec
 """
 
 import logging
-import os
 import tempfile
 from typing import Dict, List, Optional
 
 import pytest
 
 import helpers.hcache_simple as hcacsimp
-import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import helpers.hllm_decorator as hllmdec
+import helpers.hllm_decorator as hllmdeco
 
 _LOG = logging.getLogger(__name__)
 
@@ -40,7 +38,7 @@ class Test_coerce_value(hunitest.TestCase):
         :param expected: Expected coerced value
         """
         # Run test.
-        actual = hllmdec._coerce_value(response, target_type)
+        actual = hllmdeco._coerce_value(response, target_type)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -149,8 +147,12 @@ class Test_coerce_value(hunitest.TestCase):
         response_false = "no"
         target_type = bool
         # Run test and check outputs.
-        self.assertEqual(hllmdec._coerce_value(response_true, target_type), True)
-        self.assertEqual(hllmdec._coerce_value(response_false, target_type), False)
+        self.assertEqual(
+            hllmdeco._coerce_value(response_true, target_type), True
+        )
+        self.assertEqual(
+            hllmdeco._coerce_value(response_false, target_type), False
+        )
 
     # /////////////////////////////////////////////////////////////////////////
     # str coercion
@@ -298,7 +300,7 @@ class Test_get_type_format_instruction(hunitest.TestCase):
         # Prepare inputs.
         return_type = int
         # Run test.
-        instruction = hllmdec._get_type_format_instruction(return_type)
+        instruction = hllmdeco._get_type_format_instruction(return_type)
         # Check outputs.
         self.assertIn("integer", instruction)
 
@@ -309,7 +311,7 @@ class Test_get_type_format_instruction(hunitest.TestCase):
         # Prepare inputs.
         return_type = bool
         # Run test.
-        instruction = hllmdec._get_type_format_instruction(return_type)
+        instruction = hllmdeco._get_type_format_instruction(return_type)
         # Check outputs.
         self.assertIn("true", instruction.lower())
         self.assertIn("false", instruction.lower())
@@ -321,7 +323,7 @@ class Test_get_type_format_instruction(hunitest.TestCase):
         # Prepare inputs.
         return_type = List[int]
         # Run test.
-        instruction = hllmdec._get_type_format_instruction(return_type)
+        instruction = hllmdeco._get_type_format_instruction(return_type)
         # Check outputs.
         self.assertIn("JSON array", instruction)
 
@@ -332,7 +334,7 @@ class Test_get_type_format_instruction(hunitest.TestCase):
         # Prepare inputs.
         return_type = Dict[str, int]
         # Run test.
-        instruction = hllmdec._get_type_format_instruction(return_type)
+        instruction = hllmdeco._get_type_format_instruction(return_type)
         # Check outputs.
         self.assertIn("JSON object", instruction)
 
@@ -343,7 +345,7 @@ class Test_get_type_format_instruction(hunitest.TestCase):
         # Prepare inputs.
         return_type = Optional[int]
         # Run test.
-        instruction = hllmdec._get_type_format_instruction(return_type)
+        instruction = hllmdeco._get_type_format_instruction(return_type)
         # Check outputs.
         self.assertIn('"null"', instruction)
 
@@ -368,6 +370,7 @@ class Test_build_llm_prompt(hunitest.TestCase):
         return_type = int
         # Simulate bound arguments.
         import inspect
+
         sig = inspect.Signature(
             [
                 inspect.Parameter(
@@ -381,7 +384,7 @@ class Test_build_llm_prompt(hunitest.TestCase):
         bound_args = sig.bind(5, 3)
         bound_args.apply_defaults()
         # Run test.
-        prompt = hllmdec._build_llm_prompt(
+        prompt = hllmdeco._build_llm_prompt(
             "add", docstring, return_type, bound_args
         )
         # Check outputs: prompt includes docstring, args, and format instruction.
@@ -406,10 +409,14 @@ class Test_llm_decorator_basic(hunitest.TestCase):
         """
         Test that the decorator resolves return type correctly.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=False)
+        @hllmdeco.llm(use_cache=False)
         def multiply(a: int, b: int) -> int:
-            """Multiply two integers."""
+            """
+            Multiply two integers.
+            """
+
         # Run test.
         config = multiply._llm_decorator_config
         # Check outputs.
@@ -419,10 +426,14 @@ class Test_llm_decorator_basic(hunitest.TestCase):
         """
         Test that the decorator resolves Optional return type.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=False)
+        @hllmdeco.llm(use_cache=False)
         def maybe_value() -> Optional[float]:
-            """Return a value if available."""
+            """
+            Return a value if available.
+            """
+
         # Run test.
         config = maybe_value._llm_decorator_config
         # Check outputs.
@@ -433,10 +444,14 @@ class Test_llm_decorator_basic(hunitest.TestCase):
         """
         Test that use_cache=False creates a function that can be called.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=False)
+        @hllmdeco.llm(use_cache=False)
         def greet(name: str) -> str:
-            """Return a friendly greeting."""
+            """
+            Return a friendly greeting.
+            """
+
         # Run test: verify return type in metadata.
         config = greet._llm_decorator_config
         # Check outputs.
@@ -447,10 +462,14 @@ class Test_llm_decorator_basic(hunitest.TestCase):
         """
         Test that use_cache=True creates a cache wrapper with correct cache name.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=True)
+        @hllmdeco.llm(use_cache=True)
         def add(a: int, b: int) -> int:
-            """Add two integers."""
+            """
+            Add two integers.
+            """
+
         # Run test.
         config = add._llm_decorator_config
         # Check outputs.
@@ -491,18 +510,23 @@ class Test_llm_decorator_caching(hunitest.TestCase):
         Cleanup that runs after each test: reset cache and remove temp dir.
         """
         import shutil
+
         shutil.rmtree(self._tmp_dir, ignore_errors=True)
 
     def test1(self) -> None:
         """
         Test that `mock_apply_llm()` pre-populates the cache for a call.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=True)
+        @hllmdeco.llm(use_cache=True)
         def add(a: int, b: int) -> int:
-            """Add two integers and return the sum."""
+            """
+            Add two integers and return the sum.
+            """
+
         # Mock the LLM response for (2, 3) -> "5".
-        hllmdec.mock_apply_llm(add, args=(2, 3), kwargs={}, response="5")
+        hllmdeco.mock_apply_llm(add, args=(2, 3), kwargs={}, response="5")
         # Run test.
         result = add(2, 3)
         # Check outputs.
@@ -513,15 +537,19 @@ class Test_llm_decorator_caching(hunitest.TestCase):
         """
         Test that cached calls return the same value without LLM invocation.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=True)
+        @hllmdeco.llm(use_cache=True)
         def classify(text: str) -> str:
-            """Classify the sentiment of the text as positive or negative."""
+            """
+            Classify the sentiment of the text as positive or negative.
+            """
+
         # Mock two different calls.
-        hllmdec.mock_apply_llm(
+        hllmdeco.mock_apply_llm(
             classify, args=("I love this!",), kwargs={}, response="positive"
         )
-        hllmdec.mock_apply_llm(
+        hllmdeco.mock_apply_llm(
             classify, args=("I hate this.",), kwargs={}, response="negative"
         )
         # Run test.
@@ -535,12 +563,16 @@ class Test_llm_decorator_caching(hunitest.TestCase):
         """
         Test that `mock_apply_llm()` works with keyword arguments.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=True)
+        @hllmdeco.llm(use_cache=True)
         def format_name(first: str, last: str) -> str:
-            """Format a full name from first and last name."""
+            """
+            Format a full name from first and last name.
+            """
+
         # Mock with kwargs.
-        hllmdec.mock_apply_llm(
+        hllmdeco.mock_apply_llm(
             format_name,
             args=(),
             kwargs={"first": "John", "last": "Doe"},
@@ -555,12 +587,16 @@ class Test_llm_decorator_caching(hunitest.TestCase):
         """
         Test that `mock_apply_llm()` works with List return type.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=True)
+        @hllmdeco.llm(use_cache=True)
         def extract_tags(text: str) -> List[str]:
-            """Extract keyword tags from the text."""
+            """
+            Extract keyword tags from the text.
+            """
+
         # Mock with JSON array response.
-        hllmdec.mock_apply_llm(
+        hllmdeco.mock_apply_llm(
             extract_tags,
             args=("AI is transforming the world",),
             kwargs={},
@@ -575,12 +611,16 @@ class Test_llm_decorator_caching(hunitest.TestCase):
         """
         Test that force_refresh bypasses the cache.
         """
+
         # Prepare inputs: create a decorated function with caching.
-        @hllmdec.llm(use_cache=True)
+        @hllmdeco.llm(use_cache=True)
         def double_it(n: int) -> int:
-            """Return double the input value."""
+            """
+            Return double the input value.
+            """
+
         # Mock the cache with a known value.
-        hllmdec.mock_apply_llm(double_it, args=(5,), kwargs={}, response="10")
+        hllmdeco.mock_apply_llm(double_it, args=(5,), kwargs={}, response="10")
         # First call should use cache.
         result1 = double_it(5)
         self.assertEqual(result1, 10)
@@ -598,10 +638,14 @@ class Test_llm_decorator_caching(hunitest.TestCase):
         """
         Test that decorator with use_cache=False does not interact with cache.
         """
+
         # Prepare inputs.
-        @hllmdec.llm(use_cache=False)
+        @hllmdeco.llm(use_cache=False)
         def no_cache_func(x: int) -> int:
-            """Square the input."""
+            """
+            Square the input.
+            """
+
         # Run test: verify metadata and non-cached behavior.
         config = no_cache_func._llm_decorator_config
         # Check outputs: cache should be disabled.

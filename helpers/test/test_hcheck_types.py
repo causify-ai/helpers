@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import helpers.hunit_test as hunitest
 
-import helpers.hcheck_types as hchecty
+import helpers.hcheck_types as hchetype
 
 _LOG = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class Test_check_types_function(hunitest.TestCase):
         Test that a function with correct types passes validation.
         """
         # Prepare inputs.
-        decorated = hchecty.check_types(_add_ints)
+        decorated = hchetype.check_types(_add_ints)
         # Prepare outputs.
         expected = 5
         # Run test.
@@ -61,7 +61,7 @@ class Test_check_types_function(hunitest.TestCase):
         Test that passing the wrong argument type raises `AssertionError`.
         """
         # Prepare inputs.
-        decorated = hchecty.check_types(_add_ints)
+        decorated = hchetype.check_types(_add_ints)
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
             decorated("not_an_int", 3)
@@ -78,7 +78,7 @@ class Test_check_types_function(hunitest.TestCase):
         """
         # Prepare inputs.
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _bad_return() -> int:
             return "not_an_int"
 
@@ -94,7 +94,7 @@ class Test_check_types_function(hunitest.TestCase):
         Test that keyword arguments are type-checked.
         """
         # Prepare inputs.
-        decorated = hchecty.check_types(_greet)
+        decorated = hchetype.check_types(_greet)
         # Prepare outputs.
         expected = "Hi, Alice!"
         # Run test.
@@ -118,7 +118,7 @@ class Test_check_types_with_optional(hunitest.TestCase):
         Test that `None` is accepted for `Optional[int]`.
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _optional_param(x: Optional[int]) -> Optional[int]:
             return x
 
@@ -135,7 +135,7 @@ class Test_check_types_with_optional(hunitest.TestCase):
         Test that `None` is accepted for return type `Optional[str]`.
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _optional_return(x: int) -> Optional[str]:
             if x > 0:
                 return str(x)
@@ -166,7 +166,7 @@ class Test_check_types_with_collections(hunitest.TestCase):
         Test that `List[int]` accepts a list (origin-type check).
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _sum_list(data: List[int]) -> int:
             return sum(data)
 
@@ -184,7 +184,7 @@ class Test_check_types_with_collections(hunitest.TestCase):
         Test that `Dict[str, int]` accepts a dict (origin-type check).
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _count_keys(data: Dict[str, int]) -> int:
             return len(data)
 
@@ -202,7 +202,7 @@ class Test_check_types_with_collections(hunitest.TestCase):
         Test that passing a non-list to `List[int]` raises `AssertionError`.
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _sum_list(data: List[int]) -> int:
             return sum(data)
 
@@ -218,7 +218,7 @@ class Test_check_types_with_collections(hunitest.TestCase):
         Test that `Tuple[int, str]` accepts a tuple (origin-type check).
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _process_pair(data: Tuple[int, str]) -> str:
             return f"{data[0]}: {data[1]}"
 
@@ -248,7 +248,7 @@ class Test_check_types_with_any(hunitest.TestCase):
         Test that `Any` parameter type hint skips type checking.
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _identity(x: Any) -> Any:
             return x
 
@@ -267,7 +267,7 @@ class Test_check_types_with_any(hunitest.TestCase):
         Test that a parameter without type hint is skipped.
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _no_hint(x, y: int) -> int:
             hdbg = __import__("helpers.hdbg", fromlist=["hdbg"])
             hdbg.dassert_isinstance(y, int)
@@ -298,7 +298,7 @@ class Test_check_types_method(hunitest.TestCase):
         """
 
         class _Calculator:
-            @hchecty.check_types
+            @hchetype.check_types
             def add(self, a: int, b: int) -> int:
                 return a + b
 
@@ -317,7 +317,7 @@ class Test_check_types_method(hunitest.TestCase):
         """
 
         class _Calculator:
-            @hchecty.check_types
+            @hchetype.check_types
             def add(self, a: int, b: int) -> int:
                 return a + b
 
@@ -337,7 +337,7 @@ class Test_check_types_method(hunitest.TestCase):
 
         class _Utils:
             @staticmethod
-            @hchecty.check_types
+            @hchetype.check_types
             def concat(a: str, b: str) -> str:
                 return a + b
 
@@ -365,7 +365,7 @@ class Test_check_types_union(hunitest.TestCase):
         Test that `Union[int, str]` accepts either type.
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _to_string(x: Union[int, str]) -> str:
             return str(x)
 
@@ -384,7 +384,7 @@ class Test_check_types_union(hunitest.TestCase):
         Test that `Union[int, str]` rejects a mismatched type.
         """
 
-        @hchecty.check_types
+        @hchetype.check_types
         def _to_string(x: Union[int, str]) -> str:
             return str(x)
 

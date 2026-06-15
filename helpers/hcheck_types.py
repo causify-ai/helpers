@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hcheck_types as hchecty
+import helpers.hcheck_types as hchetype
 """
 
 import functools

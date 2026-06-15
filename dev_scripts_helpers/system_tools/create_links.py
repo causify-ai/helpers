@@ -43,75 +43,6 @@ import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
-# #############################################################################
-
-
-def _main(parser: argparse.ArgumentParser) -> None:
-    """
-    Entry point for the script to manage symbolic links between directories.
-
-    Depending on the command-line arguments, this script either:
-
-    - Replaces matching files in `dst_dir` with symbolic links to `src_dir`.
-    - Stages all symbolic links in `dst_dir` for modification by replacing them
-      with writable file copies.
-
-    Usage:
-    - `--replace_links`: Replace files with symbolic links
-    - `--stage_links`: Replace symbolic links with writable file copies
-    :return: None
-    """
-    args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    if args.replace_links:
-        common_files = _find_common_files(args.src_dir, args.dst_dir)
-        _replace_with_links(
-            common_files, link_type=args.link_type
-        )
-        _LOG.info("Replaced %d files with symbolic links.", len(common_files))
-    elif args.stage_links:
-        symlinks = _find_symlinks(args.dst_dir)
-        if not symlinks:
-            _LOG.info("No symbolic links found to stage.")
-        _stage_links(symlinks)
-        _LOG.info("Staged %d symbolic links for modification.", len(symlinks))
-    else:
-        _LOG.error("You must specify either --replace_links or --stage_links.")
-
-
-def _parse() -> argparse.ArgumentParser:
-    """
-    Parse command-line arguments.
-
-    :return: Argument parser object.
-    """
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument("--src_dir", required=True, help="Source directory.")
-    parser.add_argument(
-        "--dst_dir", required=True, help="Destination directory."
-    )
-    parser.add_argument(
-        "--replace_links",
-        action="store_true",
-        help="Replace files with symbolic links.",
-    )
-    parser.add_argument(
-        "--stage_links",
-        action="store_true",
-        help="Replace symbolic links with writable copies.",
-    )
-    parser.add_argument(
-        "--link_type",
-        choices=["absolute", "relative"],
-        default="relative",
-        help='Type of symbolic link paths: "absolute" or "relative"'
-    )
-    hparser.add_verbosity_arg(parser)
-    return parser
-
 
 def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
     """
@@ -292,6 +223,74 @@ def _stage_links(symlinks: List[str]) -> None:
             _LOG.info("Staged: %s -> %s", link, target_file)
         except Exception as e:
             _LOG.error("Error staging link %s: %s", link, e)
+
+
+# #############################################################################
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Entry point for the script to manage symbolic links between directories.
+
+    Depending on the command-line arguments, this script either:
+
+    - Replaces matching files in `dst_dir` with symbolic links to `src_dir`.
+    - Stages all symbolic links in `dst_dir` for modification by replacing them
+      with writable file copies.
+
+    Usage:
+    - `--replace_links`: Replace files with symbolic links
+    - `--stage_links`: Replace symbolic links with writable file copies
+    :return: None
+    """
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    if args.replace_links:
+        common_files = _find_common_files(args.src_dir, args.dst_dir)
+        _replace_with_links(common_files, link_type=args.link_type)
+        _LOG.info("Replaced %d files with symbolic links.", len(common_files))
+    elif args.stage_links:
+        symlinks = _find_symlinks(args.dst_dir)
+        if not symlinks:
+            _LOG.info("No symbolic links found to stage.")
+        _stage_links(symlinks)
+        _LOG.info("Staged %d symbolic links for modification.", len(symlinks))
+    else:
+        _LOG.error("You must specify either --replace_links or --stage_links.")
+
+
+def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command-line arguments.
+
+    :return: Argument parser object.
+    """
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--src_dir", required=True, help="Source directory.")
+    parser.add_argument(
+        "--dst_dir", required=True, help="Destination directory."
+    )
+    parser.add_argument(
+        "--replace_links",
+        action="store_true",
+        help="Replace files with symbolic links.",
+    )
+    parser.add_argument(
+        "--stage_links",
+        action="store_true",
+        help="Replace symbolic links with writable copies.",
+    )
+    parser.add_argument(
+        "--link_type",
+        choices=["absolute", "relative"],
+        default="relative",
+        help='Type of symbolic link paths: "absolute" or "relative"',
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser
 
 
 if __name__ == "__main__":

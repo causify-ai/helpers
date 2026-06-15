@@ -485,6 +485,29 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
+def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
+    """
+    Replace em dash followed by a space with a colon.
+
+    When a non-whitespace character is followed by ` — ` (em dash surrounded
+    by spaces), the em dash is replaced with `: ` (colon space e.g., for list
+    items).
+
+    Example: `- foo — bar` -> `- foo: bar`
+
+    :param lines: The lines to be processed.
+    :return: The lines with em dashes replaced by colons.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for line in lines:
+        # Replace em dash with colon when preceded by a non-whitespace char.
+        line = re.sub(r"(\S)\s*—\s+", r"\1: ", line)
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _perform_actions(
     lines: List[str],
     in_file_name: str,
@@ -615,29 +638,6 @@ def _perform_actions(
     # Reattach YAML front matter if it was extracted.
     lines = hmartoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines
-
-
-def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
-    """
-    Replace em dash followed by a space with a colon.
-
-    When a non-whitespace character is followed by ` — ` (em dash surrounded
-    by spaces), the em dash is replaced with `: ` (colon space e.g., for list
-    items).
-
-    Example: `- foo — bar` -> `- foo: bar`
-
-    :param lines: The lines to be processed.
-    :return: The lines with em dashes replaced by colons.
-    """
-    _LOG.debug("lines=%s", lines)
-    lines_new: List[str] = []
-    for line in lines:
-        # Replace em dash with colon when preceded by a non-whitespace char.
-        line = re.sub(r"(\S)\s*—\s+", r"\1: ", line)
-        lines_new.append(line)
-    hdbg.dassert_isinstance(lines_new, list)
-    return lines_new
 
 
 # #############################################################################
