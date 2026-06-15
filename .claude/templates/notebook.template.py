@@ -38,7 +38,7 @@ import logging
 # # To install additional packages, use:
 # import helpers.hmodule as hmodule
 # hmodule.install_module_if_not_present(
-#     ["pycaret"],
+#     ["..."],
 #     use_activate=True,
 #     use_sudo=False,
 #     venv_path="/opt/venv",
@@ -89,14 +89,14 @@ except ImportError:
 utils.cell1_interactive_distribution_explorer()
 
 # %% [markdown]
-# ## Cell 1.2: Observations on Distribution Shape
-#
-# **Key observations**:
-# - The distribution is symmetric when $\alpha = \beta$ (mean = 0.5)
-# - Increasing both $\alpha$ and $\beta$ concentrates the distribution
-# - Asymmetry appears when $\alpha \neq \beta$, affecting the location of the mean
-# - PDF and CDF provide complementary views of the same distribution
-# - Try changing the slider values to see how the shape evolves continuously
+# **Key observations** (applies to both Beta and Normal distributions):
+# - **Symmetric distributions**: When $\alpha = \beta$ (Beta) or when centered around the mean (Normal), the distribution is symmetric
+# - **Concentration**: Increasing both parameters concentrates the distribution — larger $\alpha, \beta$ values for Beta, or smaller $\sigma$ for Normal
+# - **Skew / Asymmetry**: For Beta, asymmetry appears when $\alpha \neq \beta$, shifting the density left or right
+# - **Support**: Beta is bounded on $[0, 1]$ (ideal for proportions), while Normal is unbounded $(-\infty, \infty)$ (ideal for real-valued data)
+# - **Parameter interpretation**: Beta parameters $\alpha, \beta$ control shape flexibly; Normal parameters $\mu, \sigma$ control location and scale
+# - **Complementary views**: PDF and CDF provide complementary views of the same distribution regardless of type
+# - **Interactive exploration**: Try changing the slider values to see how the shape evolves continuously
 
 # %% [markdown]
 # # Part 2: Sample Generator
@@ -109,18 +109,12 @@ utils.cell1_interactive_distribution_explorer()
 # - Compare empirical samples to theoretical predictions
 # - See the Law of Large Numbers in action
 # - Observe convergence to the true mean
-#
-# _Histogram with PDF Overlay_: Sampled values compared to theoretical distribution
-# _Summary Statistics_: Sample vs. theoretical statistics comparison
-# _Comments_: Current parameter values and sample statistics
 
 # %%
 # Create interactive widget to generate and visualize samples.
 utils.cell2_interactive_sample_generator()
 
 # %% [markdown]
-# ## Cell 2.2: Observations on Sampling Behavior
-#
 # **Key observations**:
 # - As $N$ increases, the histogram approaches the theoretical PDF
 # - The sample mean converges to the theoretical mean $\mu = \frac{\alpha}{\alpha + \beta}$

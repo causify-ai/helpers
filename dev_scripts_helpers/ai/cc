@@ -111,6 +111,7 @@ else
     export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/claude-sonnet-4.6
     export ANTHROPIC_BASE_URL=https://openrouter.ai/api
 fi
+export CC_MODEL=$MODEL
 
 with_timeout() {
     local secs=$1
