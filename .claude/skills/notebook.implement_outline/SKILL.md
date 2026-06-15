@@ -15,6 +15,10 @@ model: opus
   2. `*_utils.py` file: Reusable helper functions for the notebook code
 - **Purpose**: Implement the pedagogical design as a fully executable,
   interactive notebook
+- Each visualization follows the triplet structure:
+  - Pre-visualization markdown (goal + plot descriptions under each title)
+  - Code cell (visualization / interactive widget)
+  - Post-visualization markdown (key observations)
 
 # Core Workflow
 
@@ -30,7 +34,9 @@ model: opus
 # Key Conventions
 
 - Follow `.claude/skills/notebook.rules.md`: General notebook conventions and
-  structure
+  structure, especially:
+  - `## Visualization Cell Triplet Details`: Pre-viz and post-viz markdown cells
+  - `# Interactive Cells`: Widget patterns and comments panel conventions
 - Follow outline cell format from `.claude/skills/notebook.create_outline/SKILL.md`
 - Follow `.claude/skills/coding.rules.md` for Python code in `*_utils.py` and in
   the Python cells in `.ipynb` file
@@ -62,9 +68,13 @@ model: opus
 
 ## Cell Structure in Notebook
 
-- Each cell in the outline becomes three notebook cells
-- Make sure to follow the section `Cell Triplet Structure` from the file
-  `.claude/skills/notebook.rules.md`
+- Each visualization in the outline becomes three notebook cells (triplet):
+  1. **Markdown cell (pre-viz)**: Goal + plot descriptions (under each title)
+  2. **Code cell**: Visualization / interactive widget with comments panel
+     containing only variable state
+  3. **Markdown cell (post-viz)**: Key observations and what to learn
+- Make sure to follow the section `## Visualization Cell Triplet Details` from
+  the file `.claude/skills/notebook.rules.md`
 
 ## Simple Interactive Widgets
 

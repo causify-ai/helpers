@@ -350,25 +350,37 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 ## Cell Triplet Structure
 
-- Each logical cell in a notebook is composed of three notebook cells:
+- Each visualization in a notebook is composed of three notebook cells:
 
-  1. **Markdown cell**: Pedagogical context
+  1. **Markdown cell**: Explains what we want to achieve, the goal
      ```markdown
      ## Cell 1: Visualizing Population Distribution
 
-     Understanding the true population distribution is the foundation of
-     statistical inference. You can't observe the full population, only samples
-     from it.
+     **Goal**:
+     - Visualize the true population distribution
+     - Understand sampling from a finite population
      ```
 
-  2. **Code cell**: Plotting / widget invocation
+  2. **Code cell**: Visualization / interactive widget (optionally with
+     ipywidget)
      ```python
      # Display the population as a bin of colored marbles.
      utils.visualize_population_distribution()
      ```
+     - Documents the plots and their diagrams with comments, e.g.,
+       ```
+       _Population bin_: Shows the full population as colored marbles
+       _Sample bin_: Shows a random sample drawn from the population
+       ```
 
-  3. **Explanation cell**: A markdown cell that explains the results of the
-     previous cell using bullet points
+  3. **Explanation cell**: A markdown cell explaining key observations, what
+     experiments can be done, and what we will learn
+     ```markdown
+     **Key observations**:
+     - Population parameters are fixed but hidden: we only see samples
+     - Small parameter changes produce visually distinct distributions
+     - Try changing the sample size to see how the estimate improves
+     ```
 
 - For all the markdown cells use bullet points with nested bullets for clarity
   and conciseness, following the rules in
@@ -707,48 +719,71 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - Avoid: `mean_value`, `num_samples`, `noise_std_dev`, `shape_param`
 - Place `seed` parameter last in widget controls
 
-## Markdown Cell Content for Interactive Cells
-- Interactive cells (with visualizations or widgets) must include a markdown cell
-  with the following sections:
+## Visualization Cell Triplet Details
 
-  1. Goal Section: Describe what the cell teaches and its learning objectives:
-    ```markdown
-    **Goal**:
-    - Visualize the true target function and how we sample data from it
-    - Understand that in real-world ML, we only observe samples, not the complete function
-    - Show the relationship between true function, training, and test data
-    ```
+Each visualization follows a three-cell structure:
 
-  2. Plots Section: Document the visualizations and their purpose:
-    ```markdown
-    **Plots**:
-    - Display four plots:
-      - _True Target Function_: The unknown function (with and without noise)
-      - _In-Sample Data (80%)_: Green points used for training
-      - _Out-of-Sample Data (20%)_: Red points used for testing
-      - _Comments_: Summary of parameters and observations
-    ```
+### Markdown Cell (Before the Visualization)
 
-  3. Parameters Section: List all interactive controls and their ranges:
-    ```markdown
-    **Parameters**:
-    - `Function`: Select target function (Slow Sinusoid, Fast Sinusoid, Parabola, Constant, Linear)
-    - `epsilon` ($\epsilon$): Standard deviation of noise
-    - `N (total samples)` ($N$): Number of data points to sample
-    ```
+- Title and Goal format:
+  ```markdown
+  ## Cell <part>.<id>: <Short Description>
 
-  4. Key Observations Section: Highlight insights learners should grasp:
-    ```markdown
-    **Key observations**:
-    - The complete curve is the unknown target function $f(x)$
-    - In practice, we only access noisy samples from the function
-    - Data splits into training (green) and testing (red) sets
-    - Goal is to learn from training data and generalize to test data
-    ```
+  **Goal**:
+  - Build intuition for <concept>
+  - <Learning objective 2>
+  ```
 
-- Each section should be:
-  - formatted using bullet points using `.claude/skills/text.rules.md`
-  - short with no more than 3-5 bullet points
+- Each plot's description is placed underneath the plot title, not in a separate
+  "Plots" section. Describe them as italicized phrases with a colon:
+  ```markdown
+  _Population bin_: Shows the full unknown population as colored marbles
+  _Sample bin_: Shows a random sample drawn from the population
+  _Comments_: Current parameter values and state observations
+  ```
+
+- Each widget has its description close to it (in the widget's `description`
+  parameter or as a label above the widget), ensuring it is entirely readable.
+
+- Parameters and their ranges can be listed as bullet points under a
+  `**Parameters**` heading, but keep them concise.
+
+### Code Cell (The Visualization)
+
+- The visualization code, optionally with ipywidgets for interactivity.
+
+- The "Comments" panel (subplot or text box) should contain **only variable
+  state and observations associated to the current state**, not general "key
+  idea" commentary:
+  ```python
+  comment_text = (
+      f"Parameters:\n"
+      f"  alpha: {alpha:.2f}\n"
+      f"  beta: {beta:.2f}\n"
+      f"  N: {n_samples}\n\n"
+      f"Sample statistics:\n"
+      f"  mean: {mean_sample:.4f}\n"
+      f"  std: {std_sample:.4f}"
+  )
+  ```
+  Remove comments like "key insight" or "observation" from the Comments panel;
+  keep only the information about the current parameter state.
+
+### Markdown Cell (After the Visualization)
+
+- After the interactive / visualization cell, add a markdown cell with key
+  observations:
+  ```markdown
+  **Key observations**:
+  - Utility spreads backward from the terminals, one ring of cells per sweep
+  - Cells near the $+1$ terminal end high
+  - Cells near the $-1$ terminal end low
+  - The change per sweep shrinks geometrically: convergence is guaranteed
+
+  - Early sweeps only affect cells adjacent to the terminals
+  - Later sweeps refine the interior until nothing changes
+  - Higher gamma propagates value further but converges more slowly
+  ```
 
 ## Simple Interactive Widgets
 

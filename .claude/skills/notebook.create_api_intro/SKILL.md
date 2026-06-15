@@ -56,6 +56,8 @@ description: Create a notebook to present the API of a package
     and LaTeX notation
   - `# Data Processing and Visualization`: Data manipulation and plotting
     conventions
+  - `## Visualization Cell Triplet Details`: Structure for notebook cells with
+    visualizations or interactive widgets
 
 ## Follow the Template
 - The template is:

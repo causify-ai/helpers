@@ -123,12 +123,7 @@ def cell1_interactive_distribution_explorer(
                     f"Parameters:\n"
                     f"  α (alpha): {alpha:.2f}\n"
                     f"  β (beta): {beta:.2f}\n\n"
-                    f"Mean: {mean:.4f}\n\n"
-                    f"Observations:\n"
-                    f"- Adjust α and β to see\n"
-                    f"  how the shape changes\n"
-                    f"- PDF and CDF provide\n"
-                    f"  complementary views"
+                    f"Mean: {mean:.4f}"
                 )
                 htutori.add_fitted_text_box(
                     ax3, comment_text, max_fontsize=13, min_fontsize=10
@@ -162,12 +157,7 @@ def cell1_interactive_distribution_explorer(
                     f"Parameters:\n"
                     f"  μ (mean): {mean:.2f}\n"
                     f"  σ² (variance): {variance:.2f}\n\n"
-                    f"Observations:\n"
-                    f"- Adjust μ and σ² to see\n"
-                    f"  how the distribution\n"
-                    f"  shifts and spreads\n"
-                    f"- Normal is symmetric\n"
-                    f"  around the mean"
+                    f"Std dev: {std_dev:.2f}"
                 )
                 htutori.add_fitted_text_box(
                     ax3, comment_text, max_fontsize=13, min_fontsize=10
@@ -356,13 +346,10 @@ def cell2_interactive_sample_generator(
                 f"  β (beta): {beta:.2f}\n"
                 f"  N (samples): {n_samples}\n"
                 f"  seed: {seed}\n\n"
-                f"Key Observations:\n"
-                f"- Larger N → histogram\n"
-                f"  approaches theoretical\n"
-                f"- Law of Large Numbers:\n"
-                f"  sample mean → μ\n"
-                f"- Try different seeds to\n"
-                f"  see sampling variability"
+                f"Sample statistics:\n"
+                f"  mean: {mean_sample:.4f}\n"
+                f"  std: {std_sample:.4f}\n"
+                f"  theory mean: {mean_theory:.4f}"
             )
             htutori.add_fitted_text_box(
                 ax4, comment_text, max_fontsize=12, min_fontsize=9
