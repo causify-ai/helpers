@@ -1,1 +1,1 @@
-../../papers/template/lint_latex.sh
+../../dev_scripts_helpers/documentation/lint_latex.sh

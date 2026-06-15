@@ -1,1 +1,1 @@
-../../papers/template/run_latex.sh
+../../dev_scripts_helpers/documentation/run_latex.sh
