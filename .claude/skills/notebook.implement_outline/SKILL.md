@@ -3,7 +3,7 @@ description: Implement a Jupyter notebook from an outline description (including
 model: opus
 ---
 
-## Description
+# Goal
 
 - **Input**: A `notebook_outline.<tag>.md` outline file describing each notebook
   cell (created via `.claude/skills/notebook.create_outline/SKILL.md`)
@@ -39,19 +39,12 @@ model: opus
   `# Utilities vs. Notebook Responsibilities` for organizing utility files and
   notebooks
 
-# Implementation Approach
-
 ## Code Organization
 - Follow the section `Utilities vs. Notebook Responsibilities` from the file
   `.claude/skills/notebook.rules.md` for organizing utility files and notebook
   cells
 
-# Sync with Jupytext
-- After all modifications are complete, sync the paired `.py` file with Jupytext
-  following the conventions in `# Setup and Initialization` → `## Utilities vs.
-  Notebook Responsibilities` in `.claude/skills/notebook.rules.md`
-
-# Reference Templates
+## Reference Templates
 
 - Study these before implementing; they establish the quality bar and idioms
   - `.claude/templates/notebook.template.py`
@@ -82,3 +75,8 @@ model: opus
 
 - Follow the conventions in `.claude/skills/notebook.rules.md`
   `## Complex Interactive Widgets`
+
+# Sync with Jupytext
+- After all modifications are complete, sync the paired `.py` file with Jupytext
+  following the conventions in `# Setup and Initialization` → `## Utilities vs.
+  Notebook Responsibilities` in `.claude/skills/notebook.rules.md`

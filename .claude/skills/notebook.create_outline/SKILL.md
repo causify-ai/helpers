@@ -3,7 +3,7 @@ description: Create a detailed markdown outline (notebook_outline file) for a Ju
 model: opus
 ---
 
-# Purpose
+# Goal
 
 - Create a comprehensive outline for an interactive Jupyter notebook that teaches
   a concept through visualization and hands-on exploration
@@ -120,6 +120,8 @@ model: opus
 # Important Conventions
 
 - Always follow these guidelines:
-  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions, including the `Utilities vs. Notebook Responsibilities` section for organizing utility files and notebooks
+  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions,
+    including the `Utilities vs. Notebook Responsibilities` section for
+    organizing utility files and notebooks
   - `.claude/skills/markdown.rules.md`: Markdown formatting rules
   - `.claude/skills/text.rules.md`: Bullet point conventions

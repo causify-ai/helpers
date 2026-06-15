@@ -7,6 +7,8 @@ model: haiku
 - Given an interactive Jupyter notebook, update and format all the markdown cells
   without changing their content
 
+# Workflow
+
 ## Sync Markdown Cells 
 - Update all the markdown cells to be in sync with the interactive cell
 

@@ -107,10 +107,55 @@ def get_dev_csfy_host_names() -> Tuple[str]:
 def is_inside_docker() -> bool:
     """
     Return whether we are inside a container or not.
+
+    Detects container runtimes:
+    - Docker (``/.dockerenv``)
+    - Podman (``/run/.containerenv``)
+    - Linux cgroup indicators (``/proc/1/cgroup``)
+    - Apple containers: native macOS ``container`` CLI and Apple
+      Virtualization.framework VMs (e.g., Docker Desktop for Mac, Lima,
+      Colima)
     """
+    # Check for Docker's marker file.
     # From https://stackoverflow.com/questions/23513045
-    ret = os.path.exists("/.dockerenv")
-    return ret
+    if os.path.exists("/.dockerenv"):
+        return True
+    # Check cgroups for container indicators (Linux only).
+    # Newer Docker versions (e.g., Docker Desktop on Mac) may not create
+    # /.dockerenv inside containers, so we fall back to cgroup inspection.
+    try:
+        with open("/proc/1/cgroup", "r") as f:
+            cgroup_content = f.read()
+            if any(
+                indicator in cgroup_content
+                for indicator in (
+                    "/docker/",
+                    "/libpod/",
+                    "/kubepods/",
+                    "/ecs/",
+                )
+            ):
+                return True
+    except (FileNotFoundError, PermissionError):
+        # On macOS the /proc filesystem doesn't exist.
+        pass
+    # Check if we are inside an Apple Virtualization.framework VM (Linux
+    # guest running under Apple's hypervisor, e.g., Docker Desktop for
+    # Mac's Linux VM, Lima, Colima).  These VMs expose Apple in their
+    # DMI system vendor string.
+    dmi_vendor_paths = [
+        "/sys/devices/virtual/dmi/id/sys_vendor",
+        "/sys/class/dmi/id/sys_vendor",
+    ]
+    for path in dmi_vendor_paths:
+        try:
+            with open(path, "r") as f:
+                vendor = f.read().strip()
+                if "Apple" in vendor:
+                    return True
+        except (FileNotFoundError, PermissionError):
+            pass
+    return False
 
 
 def _get_host_name() -> str:

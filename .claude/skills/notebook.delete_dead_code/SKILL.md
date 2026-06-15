@@ -7,6 +7,8 @@ model: haiku
 Given a Jupyter notebook, remove the dead code from the notebook and the paired
 utility file
 
+# Workflow
+
 ## Step 1
 - Read and follow `.claude/skills/notebook.rules.md`
 

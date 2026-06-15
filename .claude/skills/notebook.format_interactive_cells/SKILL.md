@@ -7,6 +7,8 @@ model: haiku
 - Given a Jupyter notebook, format the markdown cells corresponding to
   interactive cells
 
+# Workflow
+
 ## Step 1
 - Update all the markdown cells before an interactive cell to:
   - Be in sync with the interactive cell

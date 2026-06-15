@@ -6,6 +6,8 @@ model: haiku
 # Goal
 - Format the markdown cells to match
 
+# Workflow
+
 ## Split Markdown Cells
 - Make sure that each markdown cell in a Jupyter notebook contains at most one
   header and some text, but not more than one header
