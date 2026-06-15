@@ -79,7 +79,7 @@ class Test_create_links(hunitest.TestCase):
         common_files: List[Tuple[str, str]] = dshstcrli._find_common_files(
             str(src_dir), str(dst_dir)
         )
-        dshstcrli._replace_with_links(common_files, use_relative_paths=False)
+        dshstcrli._replace_with_links(common_files, link_type="absolute")
         for _, dst_file in common_files:
             self.assertTrue(os.path.islink(dst_file))
             self.assert_equal(os.readlink(dst_file), str(file1))
@@ -102,7 +102,7 @@ class Test_create_links(hunitest.TestCase):
         common_files: List[Tuple[str, str]] = dshstcrli._find_common_files(
             src_dir, dst_dir
         )
-        dshstcrli._replace_with_links(common_files, use_relative_paths=True)
+        dshstcrli._replace_with_links(common_files, link_type="relative")
         for src_file, dst_file in common_files:
             self.assertTrue(os.path.islink(dst_file))
             expected_link: str = os.path.relpath(

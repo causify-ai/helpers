@@ -18,7 +18,7 @@ Usage Example:
 - Step 3: After modification, restore the symbolic links:
   > create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links
 
-- Links can be absolute or relative (using `--replace_links --use_relative_paths`)
+- Links can be absolute or relative (using `--replace_links --link_type absolute`)
 
 - E.g., `msml610/tutorials/L12_reinforcement_learning` was copied from
   `class_project/project_template`
@@ -66,7 +66,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.replace_links:
         common_files = _find_common_files(args.src_dir, args.dst_dir)
         _replace_with_links(
-            common_files, use_relative_paths=args.use_relative_paths
+            common_files, link_type=args.link_type
         )
         _LOG.info("Replaced %d files with symbolic links.", len(common_files))
     elif args.stage_links:
@@ -104,9 +104,10 @@ def _parse() -> argparse.ArgumentParser:
         help="Replace symbolic links with writable copies.",
     )
     parser.add_argument(
-        "--use_relative_paths",
-        action="store_true",
-        help="Use relative paths for symbolic links instead of absolute paths.",
+        "--link_type",
+        choices=["absolute", "relative"],
+        default="relative",
+        help='Type of symbolic link paths: "absolute" or "relative"'
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -191,7 +192,7 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
 
 def _replace_with_links(
     common_files: List[Tuple[str, str]],
-    use_relative_paths: bool,
+    link_type: str,
     *,
     abort_on_first_error: bool = False,
 ) -> None:
@@ -199,7 +200,7 @@ def _replace_with_links(
     Replace matching files in the destination directory with symbolic links.
 
     :param common_files: Matching file paths from `src_dir` and `dst_dir`
-    :param use_relative_paths: If True, create relative symlinks; if False, use absolute paths.
+    :param link_type: Type of symlink paths: "absolute" or "relative"
     :param abort_on_first_error: If True, abort on the first error; if False, continue processing
     """
     for src_file, dst_file in common_files:
@@ -212,13 +213,18 @@ def _replace_with_links(
             continue
         if os.path.exists(dst_file):
             os.remove(dst_file)
+        # TODO(ai_gp): Use a dassert_in(link_type, ("relative", "absolute"))
         try:
-            if use_relative_paths:
+            if link_type == "relative":
                 link_target = os.path.relpath(
                     src_file, os.path.dirname(dst_file)
                 )
-            else:
+            elif link_type == "absolute":
                 link_target = os.path.abspath(src_file)
+            else:
+                raise ValueError(
+                    f"Invalid link_type '{link_type}': must be 'absolute' or 'relative'"
+                )
             os.symlink(link_target, dst_file)
             # Remove write permissions from the file to prevent accidental
             # modifications.
