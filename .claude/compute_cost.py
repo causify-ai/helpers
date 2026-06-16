@@ -22,16 +22,16 @@ found, it falls back to the reported cost from the API.
 
 import os
 import sys
+from typing import List, Optional, Tuple
 
 
-# ---------------------------------------------------------------------------
 # Pricing table
-# ---------------------------------------------------------------------------
+
 # Each entry: (cc_model_substring, input_price_per_1k, output_price_per_1k).
 # First match wins, so order specific entries first.
 # Values are USD per 1 000 tokens.
 # Keep in sync with helpers_root/dev_scripts_helpers/ai/cc.
-PRICING_ENTRIES: list[tuple[str, float, float]] = [
+PRICING_ENTRIES: List[Tuple[str, float, float]] = [
     ("deepseek/deepseek-v4-flash", 0.000098, 0.000196),
     ("deepseek/deepseek-v4-pro", 0.000435, 0.00087),
     ("inception/mercury-2", 0.00025, 0.00075),
@@ -46,11 +46,17 @@ PRICING_ENTRIES: list[tuple[str, float, float]] = [
 ]
 
 
-def lookup_prices(key: str) -> tuple[float, float] | None:
+def lookup_prices(key: str) -> Optional[Tuple[float, float]]:
     """
-    Find the (input_price, output_price) pair whose substring matches *key*.
+    Find the pricing pair whose substring matches the given key.
 
-    Returns None if no entry matches.
+    Iterates through the pricing table and returns the first matching entry.
+    Matching is done via substring search: if `key` contains the pricing
+    entry's substring, that entry is returned.
+
+    :param key: String to search for in the pricing table (e.g., model name)
+    :return: Tuple of (input_price_per_1k, output_price_per_1k) in USD
+        - Returns None if no entry matches the key
     """
     for substring, in_price, out_price in PRICING_ENTRIES:
         if substring in key:
@@ -64,16 +70,24 @@ def compute_cost(
     model_api: str,
     in_tok: int,
     out_tok: int,
-) -> float | None:
+) -> Optional[float]:
     """
-    Compute cost from token counts using pricing for *cc_model*.
+    Compute cost from token counts using pricing for the given model.
 
-    Strategy:
-      1. Try to match *cc_model* (the full model string from the cc script)
-         against the pricing table.
-      2. If no match and *cc_model* is empty (--anth path), try matching on
-         the combined model display name + api model string.
-      3. Returns cost in USD, or *None* if no pricing entry matches.
+    Attempts to find pricing information for the provided model by:
+    1. Matching against `cc_model` (the full model string from the cc script)
+       against the `PRICING_ENTRIES` table
+    2. If no match and `cc_model` is empty (direct Anthropic path), tries
+       matching against the combined `model_display` + `model_api` string
+
+    :param cc_model: Full model string to match against pricing table
+        (e.g., "deepseek/deepseek-v4-flash")
+    :param model_display: Model display name from JSON statusline input
+    :param model_api: Model API model from JSON input (empty string if absent)
+    :param in_tok: Total input tokens used in the session
+    :param out_tok: Total output tokens used in the session
+    :return: Computed cost in USD as a float
+        - Returns None if no pricing entry matches the model
     """
     prices = lookup_prices(cc_model)
     if prices is None and not cc_model:
@@ -88,23 +102,31 @@ def compute_cost(
 
 
 def main() -> None:
-    cc_model = os.environ.get("CC_MODEL", "")
+    """
+    Main entry point: parse arguments and compute the session cost.
 
+    Reads command-line arguments for model names and token counts, attempts
+    to compute cost using the pricing table via `compute_cost()`, and falls
+    back to reported cost if no pricing entry matches.
+    """
+    cc_model = os.environ.get("CC_MODEL", "")
+    # Validate minimum argument count.
     if len(sys.argv) < 5:
         print("", end="")
         return
-
+    # Parse model names.
     model_display = sys.argv[1]
     model_api = sys.argv[2]
+    # Parse token counts.
     try:
         in_tok = int(sys.argv[3])
         out_tok = int(sys.argv[4])
     except ValueError:
         print("", end="")
         return
-
+    # Extract optional reported cost fallback.
     reported_cost_str = sys.argv[5] if len(sys.argv) > 5 else "0"
-
+    # Attempt to compute cost from pricing table.
     cost = compute_cost(cc_model, model_display, model_api, in_tok, out_tok)
     if cost is not None:
         print(f"{cost:.4f}")

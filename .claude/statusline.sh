@@ -40,10 +40,7 @@ if [ -z "$COST_FMT" ]; then
     COST_FMT=$(printf "%.4f" "$REPORTED_COST")
 fi
 
-# Build status line.
-MODEL_TAG="${SHORT_LABEL}${CC_FLAG:+ ${CC_FLAG}}"
-
-STATUS="${YELLOW}\$${COST_FMT}${RESET} ${GREEN}+${LINES_ADDED}${RESET} ${RED}-${LINES_REMOVED}${RESET} | [${MODEL_TAG}] ${DIR##*/} | in:${IN_TOK} out:${OUT_TOK} | ${PCT}% ctx"
+STATUS="${YELLOW}\$${COST_FMT}${RESET} ${GREEN}+${LINES_ADDED}${RESET} ${RED}-${LINES_REMOVED}${RESET} | [${CC_MODEL}] ${DIR##*/} | in:${IN_TOK} out:${OUT_TOK} | ${PCT}% ctx"
 
 # Append vim mode only when it is non-empty.
 if [ -n "$VIM" ]; then

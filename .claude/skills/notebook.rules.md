@@ -672,6 +672,59 @@ description: Conventions and standards for interactive Jupyter notebook structur
     - The comment panel uses a wheat-colored rounded box (via `add_fitted_text_box`
       defaults) to highlight key observations, parameters, and insights
 
+## The Output Widget Pattern for Interactive Cells
+
+- When creating an interactive cell with ipywidget controls, HTML info panels,
+  and matplotlib plots, use the Output widget pattern that separates controls
+  from rendering into a clean 2-row layout:
+
+  ```python
+  # 1. Build ipywidget controls + HTML info in the top row.
+  controls = VBox([dropdowns, sliders])
+  info = HTML("<description>")
+
+  # 2. Single Output widget owns all matplotlib rendering.
+  output = Output()
+
+  def update(_):
+      with output:
+          clear_output(wait=True)
+
+          # 2a. One matplotlib figure, N subplots.
+          _, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(14, 5))
+
+          # 2b. Draw into each axes.
+          plot_grid(ax_left)
+          comments_panel(ax_right)
+
+          plt.tight_layout()
+          plt.show()
+
+  # 3. Arrange as 2x2 grid:
+  #    [controls] [HTML info]   <- ipywidgets HBox
+  #    [plot]     [comments]    <- matplotlib subplots inside one Output
+  top_row = HBox([controls, info])
+  display(VBox([top_row, output]))
+  ```
+
+- **Do not** mix widgets and matplotlib figures in separate `display()` calls
+  arranged manually. Having a single `Output()` widget that holds all matplotlib
+  rendering guarantees:
+  - The figure is recreated from scratch on every update, avoiding stale state
+  - `clear_output(wait=True)` prevents flicker by blocking until the new figure
+    is ready
+  - Subplots in one figure stay aligned (shared x-axis, consistent sizing)
+  - The separation of concerns: controls / HTML / plots are three distinct zones
+
+- **Do not** use multiple Output widgets or mix inline `plt.show()` calls with
+  ipywidget displays for the same interactive cell. One `Output()` that holds
+  `plt.subplots()` in a shared figure is simpler and more maintainable.
+
+- **Rationale**: This pattern cleanly separates the interactive controls (top
+  row) from the visualization output (bottom row), uses a single matplotlib
+  figure with subplots for all visual content, and avoids layout flickering
+  via `clear_output(wait=True)`.
+
 ## Widgets
 
 - Interactive widgets must always have:

@@ -266,7 +266,6 @@ def cell1_interactive_distribution_explorer(
     #   Bottom: the 3 plots.
     controls = ipywidgets.VBox(
         [
-            ipywidgets.Label("Select distribution type:"),
             alpha_box,
             beta_box,
             dist_type_dropdown,
@@ -482,7 +481,6 @@ def cell2_interactive_sample_generator(
     #   Bottom: the 4 plots.
     controls = ipywidgets.VBox(
         [
-            ipywidgets.Label("Configure sampling parameters:"),
             alpha_box,
             beta_box,
             n_box,
