@@ -653,10 +653,10 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
   5. Call initial update: `update_plot()`
 
-  6. Display via `ipywidgets.VBox()`:
+  6. Display via `ipywidgets.VBox()`, without a redundant `Label` (see
+     `## Remove Redundant Labels Before Control Boxes`):
      ```python
      display(ipywidgets.VBox([
-         ipywidgets.Label("Description:"),
          slider1_box,
          slider2_box,
          output
@@ -671,6 +671,67 @@ description: Conventions and standards for interactive Jupyter notebook structur
     via `htutori.add_fitted_text_box()`
     - The comment panel uses a wheat-colored rounded box (via `add_fitted_text_box`
       defaults) to highlight key observations, parameters, and insights
+
+## Remove Redundant Labels Before Control Boxes
+
+- The descriptions are already encoded inside each widget control (via the
+  `description` parameter of `build_widget_control()` or `ipywidgets` controls,
+  and the `name` parameter shown in the play button / +/- box).
+  Adding a separate `ipywidgets.Label` before the VBox/HBox of controls is
+  redundant and wastes vertical space
+
+- **Bad**: Wrapping controls in a `Label` then a VBox of controls
+  ```python
+  display(ipywidgets.VBox([
+      ipywidgets.Label("Parameters:"),
+      slider1_box,
+      slider2_box,
+  ]))
+  ```
+  - Each control already shows its own name/description inline
+  - The `Label` adds no new information
+
+- **Good**: Display controls directly, relying on their embedded descriptions
+  ```python
+  display(ipywidgets.VBox([
+      slider1_box,
+      slider2_box,
+  ]))
+  ```
+
+- **Bad**: Label in the 2-row Output Widget Pattern
+  ```python
+  display(VBox([
+      HBox([Label("Controls:"), controls_box]),
+      output,
+  ]))
+  ```
+- **Good**: No redundant label
+  ```python
+  display(VBox([
+      HBox([controls_box]),
+      output,
+  ]))
+  ```
+
+- The same principle applies to the interactive idiom:
+  - **Bad** (from the Interactive Idiom section):
+    ```python
+    display(ipywidgets.VBox([
+        ipywidgets.Label("Description:"),
+        slider1_box,
+        slider2_box,
+        output
+    ]))
+    ```
+  - **Good**:
+    ```python
+    display(ipywidgets.VBox([
+        slider1_box,
+        slider2_box,
+        output
+    ]))
+    ```
 
 ## The Output Widget Pattern for Interactive Cells
 
