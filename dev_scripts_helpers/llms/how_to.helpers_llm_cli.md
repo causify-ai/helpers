@@ -1,6 +1,6 @@
-## `llm_cli.py`
+# `llm_cli.py`
 
-### What It Does
+## What It Does
 
 General-purpose CLI script to apply LLM transformations to text files or text
 input. This script provides a command-line interface to the
@@ -18,7 +18,37 @@ Key features:
 - Progress bar support with automatic or explicit output size estimation
 - Optional automatic linting of output files
 
-### Examples
+## Architecture
+
+- The architecture of the script has several stages:
+  - Read input:
+      - `--input <file>`: it can be a file, stdin (using `-`)
+      - `--input_text <text>`: text specified via command line
+  - (Optional) Extract a chunk of input:
+      - `--select <token>`: various selection criteria
+      - `--modify_in_place`: replace a chunk of file with the output
+  - Select a prompt:
+      - `-p`: prompt specified from command line
+      - `-pf <file>`: prompt from a file
+      - `--rule <topic>`: use a file from a `.claude/skills/<topic>.rules.md`
+      - `--skill <skill>`: use a file from a `.claude/skill/<skill>/SKILL.md`
+  - (Optional)
+    - `--lint`: A linting step
+  - Write output
+      - `--output`: it can be a file, stdout (using `-`), or in place (`-m`)
+
+- Models are specified in the same way used for `llm`
+  - `anthropic/claude-haiku-4-5-20251001`
+  - `anthropic/claude-opus-4.8`
+  - `anthropic/claude-sonnet-4.6`
+  - `gpt-4o-mini`
+  - `openrouter/anthropic/claude-haiku-4.5`
+  - `openrouter/deepseek/deepseek-v4-flash`
+  - `openrouter/meta-llama/llama-3.1-8b-instruct`
+  - `openrouter/openai/gpt-oss-120b`
+  - `openrouter/openai/gpt-oss-20b`
+
+## Examples
 
 - Basic usage with input and output files
   ```bash
@@ -90,19 +120,49 @@ Key features:
   > llm_cli.py -i input.txt --lint  # In-place editing with linting
   ```
 
-Apply a rule
-> llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt > --rule '.claude/skills/slides.rules.md:58:# Slide Organization'
+// TODO(ai_gp): Fix this
 
-Apply a skill to an entire file
-llm_cli.py -i msml610/lectures_source/Lesson06.1-Bayesian_Networks.txt --skill slides.criticize_structure
+- Apply a single Claude rule to an entire set of slides (in place)
+  ```bash
+  > llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt --rule '.claude/skills/slides.rules.md:58:# Slide Organization'
+  ```
 
-Apply a prompt to a chunk of file
-llm_cli.py -i msml610/lectures_source/Lesson06.1-Bayesian_Networks.txt --select 133:162  -pf .claude/skills/slides.fix_errors/SKILL.md 
+- Apply an entire skill to an entire file (in place)
+  ```
+  > llm_cli.py -i msml610/lectures_source/Lesson06.1-Bayesian_Networks.txt --skill slides.criticize_structure
+  ```
+  - `--skill slides.criticize_structure` is a shortcut for
+    `-pf .claude/skills/slides.criticize_structure/SKILL.md`
 
-Apply a style to graphviz
-llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt --select 205 -m -pf .claude/templates/graphviz.template.md
+- Apply a prompt to a chunk of file selected with lines (`--select X:Y`) in place
+  (`-m`)
+  ```
+  > llm_cli.py -i msml610/lectures_source/Lesson06.1-Bayesian_Networks.txt --select 133:162  -pf .claude/skills/slides.fix_errors/SKILL.md -m
+  ```
 
-llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt -pf /Users/saggese/src/umd_classes1/helpers_root/.claude/skills/slides.fix_errors/SKILL.md --select 482 --lint -m
+- Apply a style to graphviz in place
+  ```
+  > llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt --select 205 -m -pf .claude/templates/graphviz.template.md
+  ```
 
-llm_cli.py --input_text "Say hello" --model "openrouter/anthropic/claude-opus-4.6" --backend executable -o -
+- Apply 
+  ```
+  llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt -pf /Users/saggese/src/umd_classes1/helpers_root/.claude/skills/slides.fix_errors/SKILL.md --select 482 --lint -m
+  ```
 
+- Test a model
+  ```
+  > llm_cli.py --input_text "Say hello" --model "openrouter/anthropic/claude-haiku-4.5" --backend executable -o -
+  Hello! 👋 How are you doing today? Is there anything I can help you with?
+  Total cost: Cost: 0.00u$, Elapsed: 8.47s (input_tokens=0, output_tokens=0, cost_from_llm_library=0.0, cost_from_tokencost=0.0, )
+  ```
+
+- Summarize text and then lint the answer
+  ```
+  > llm_cli.py -p "Summarize the following text in 5 bullet points and less than 200 words" --input We_should_be_more_tired_than_the_model.hn_comments.txt --model openrouter/anthropic/claude-haiku-4.5 --lint
+  ```
+
+- Apply a single rule
+  ```
+  > llm_cli.py  --rule '.claude/skills/slides.rules.md:58:# Slide Organization'
+  ```
