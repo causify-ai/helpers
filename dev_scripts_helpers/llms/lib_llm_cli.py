@@ -559,10 +559,11 @@ def _llm_cli(
         if log_level == "INFO":
             verbosity = "CRITICAL"
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
-    _LOG.info("llm version: %s", version("llm"))
-    _LOG.info("tokencost version: %s", version("tokencost"))
-    install_models()
-    _log_plugin_versions()
+    if False:
+        _LOG.info("llm version: %s", version("llm"))
+        _LOG.info("tokencost version: %s", version("tokencost"))
+        install_models()
+        _log_plugin_versions()
     # Short-circuit: execute a raw llm command and exit.
     if llm_cmd != "":
         execute_llm_command(llm_cmd)

@@ -37,14 +37,6 @@ except ImportError:
     llm = None
     _LLM_AVAILABLE = False
 
-try:
-    import tokencost
-
-    _TOKENCOST_AVAILABLE = True
-except ImportError:
-    tokencost = None  # type: ignore[possibly-unbound]
-    _TOKENCOST_AVAILABLE = False
-
 from tqdm import tqdm
 
 if TYPE_CHECKING:
@@ -64,6 +56,31 @@ _LOG = logging.getLogger(__name__)
 
 # _LOG.trace = lambda *args, **kwargs: None
 _LOG.trace = _LOG.debug
+
+
+# #############################################################################
+# Lazy imports
+# #############################################################################
+
+_tokencost_module = None
+
+
+def _get_tokencost():
+    """
+    Lazily import the tokencost module.
+
+    Returns the tokencost module if available, or None if not installed.
+    The import result is cached after the first attempt.
+    """
+    global _tokencost_module
+    if _tokencost_module is None:
+        try:
+            import tokencost
+
+            _tokencost_module = tokencost
+        except ImportError:
+            _tokencost_module = False
+    return _tokencost_module if _tokencost_module is not False else None
 
 
 # #############################################################################
@@ -343,12 +360,13 @@ def _calculate_cost_from_usage(
     """
     input_tokens = usage.input
     output_tokens = usage.output
-    if _TOKENCOST_AVAILABLE:
+    tokencost_mod = _get_tokencost()
+    if tokencost_mod is not None:
         try:
-            prompt_cost = tokencost.calculate_cost_by_tokens(  # type: ignore[possibly-unbound]
+            prompt_cost = tokencost_mod.calculate_cost_by_tokens(
                 num_tokens=input_tokens, model=model, token_type="input"
             )
-            completion_cost = tokencost.calculate_cost_by_tokens(  # type: ignore[possibly-unbound]
+            completion_cost = tokencost_mod.calculate_cost_by_tokens(
                 num_tokens=output_tokens, model=model, token_type="output"
             )
             cost = float(prompt_cost + completion_cost)
@@ -783,11 +801,12 @@ def _calculate_llm_cost(
     :param model: the model name used
     :return: total cost in dollars
     """
-    if _TOKENCOST_AVAILABLE:
-        prompt_cost = tokencost.calculate_prompt_cost(  # type: ignore[possibly-unbound]
+    tokencost_mod = _get_tokencost()
+    if tokencost_mod is not None:
+        prompt_cost = tokencost_mod.calculate_prompt_cost(
             prompt, model
         )
-        completion_cost = tokencost.calculate_completion_cost(  # type: ignore[possibly-unbound]
+        completion_cost = tokencost_mod.calculate_completion_cost(
             completion, model
         )
         total_cost = prompt_cost + completion_cost

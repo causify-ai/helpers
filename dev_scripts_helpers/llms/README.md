@@ -2,9 +2,6 @@
 
 - [Summary](#summary)
 - [Description of Executables](#description-of-executables)
-  * [`llm_cli.py`](#llm_clipy)
-    + [What It Does](#what-it-does)
-    + [Examples](#examples)
   * [`llm_transform.py`](#llm_transformpy)
     + [What It Does](#what-it-does-1)
     + [Examples](#examples-1)
