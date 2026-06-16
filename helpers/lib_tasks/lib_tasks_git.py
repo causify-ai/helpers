@@ -1644,9 +1644,8 @@ def git_file_version(  # type: ignore
     # Convert to repo-relative path: `git show <commit>:<path>` requires a
     # repo-relative path, not an absolute filesystem path.
     # TODO(gp): Use hgit.find_root
-    repo_root = hsystem.system_to_string(
-        "git rev-parse --show-toplevel"
-    )[1].strip()
+    repo_root = hsystem.system_to_string("git rev-parse --show-toplevel")[1]
+    repo_root = repo_root.strip()
     rel_path = os.path.relpath(file_path, repo_root)
     # Get git log with commit hash and timestamp for the file.
     cmd = f"git log --follow --format=%H --date=iso -- {rel_path}"

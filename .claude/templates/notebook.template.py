@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.3
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -46,8 +46,8 @@ import logging
 
 # %%
 # Use this for most notebooks.
-import helpers.hdbg as hdbg
-import helpers.hnotebook as hnotebook
+# import helpers.hdbg as hdbg
+# import helpers.hnotebook as hnotebook
 
 _LOG = logging.getLogger(__name__)
 
@@ -57,6 +57,7 @@ _LOG = logging.getLogger(__name__)
 # hnotebook.set_logger_to_print(_LOG)
 
 import notebook_utils_template as utils
+
 _LOG = logging.getLogger(__name__)
 utils.init_loggers(_LOG)
 

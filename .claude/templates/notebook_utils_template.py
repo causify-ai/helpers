@@ -5,7 +5,7 @@ Demonstrates best practices for creating interactive notebook widgets and plots.
 
 Import as:
 
-import notebook_utils_template as utils
+import .claude.templates.notebook_utils_template as ctnoutte
 """
 
 import logging
@@ -375,8 +375,7 @@ def cell2_interactive_sample_generator(
                 label="Theoretical PDF",
             )
             ax1.set_xlabel(
-                "x\n\nSampled values compared to "
-                "theoretical distribution",
+                "x\n\nSampled values compared to theoretical distribution",
                 fontsize=10,
             )
             ax1.set_ylabel("Density", fontsize=12)
@@ -427,8 +426,7 @@ def cell2_interactive_sample_generator(
                 label="Theoretical CDF",
             )
             ax3.set_xlabel(
-                "x\n\nSample vs. theoretical "
-                "statistics comparison",
+                "x\n\nSample vs. theoretical statistics comparison",
                 fontsize=10,
             )
             ax3.set_ylabel("Cumulative Probability", fontsize=12)
