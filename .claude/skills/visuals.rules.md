@@ -1,18 +1,18 @@
 # Visual Elements
 
-- Illustrations can be be of different types as described below:
-  - table
-  - mermaid
-  - graphviz
-  - tikz
-  - images
-  - website screenshots
+- Illustrations can be of different types:
+  - Table
+  - Mermaid graph
+  - Graphviz diagram
+  - TikZ diagram
+  - Images
+  - Website screenshots
 
 ## Tables
 
 - Use markdown tables for structured data comparisons
 
-- Example
+- Example:
   ```markdown
   \begingroup \scriptsize
   | **Column1** | **Column2** | **Column3** |
@@ -23,13 +23,8 @@
   ```
 
 ## Mermaid Graph
+
 - When to use: Mind maps, hierarchical taxonomies, classification structures
-
-- E.g.,
-  ```mermaid
-  ...
-  ```
-
 - Example:
   ```mermaid
   mindmap
@@ -44,31 +39,27 @@
         SVM
   ```
 
-## Tikz Graph
+## TikZ Graph
+
 - Follow the template `.claude/templates/tikz.template.md`
-  - E.g.,
-    ```tikz
-    ...
-    ```
-
-## Screenshot From a Website
-- Use `website_screenshot.py` to take snapshots of notebooks
-- Crop to use only what is needed
-
-## Custom Image
-- Follow the template `.claude/templates/image.template.md`
-
-## GraphViz Diagrams
-- When to use: flowcharts, networks, agent interactions, system relationships,
-  process flows
-
-### Template
-- Follow the template `.claude/templates/graphviz.template.md`
-- E.g.,
-  ```graphviz
+- Example:
+  ```tikz
   ...
   ```
 
+## Website Screenshots
+
+- Use `website_screenshot.py` to take snapshots of notebooks
+- Crop images to include only necessary content
+
+## Custom Images
+
+- Follow the template `.claude/templates/image.template.md`
+
+## GraphViz Diagrams
+
+- When to use: flowcharts, networks, agent interactions, system relationships, process flows
+- Follow the template `.claude/templates/graphviz.template.md`
 - Standard template with styling:
   ```graphviz
   digraph DiagramName {
@@ -89,14 +80,11 @@
 
 # Color Palette
 
-- Use consistently throughout all diagrams
-
-| Color       | Code      | Use For                                |
-| ----------- | --------- | -------------------------------------- |
-| Red/Pink    | `#F4A6A6` | Agents, actors, primary entities       |
-| Orange      | `#FFD1A6` | Input data, sources                    |
-| Green       | `#B2E2B2` | Processed data, environments           |
-| Teal        | `#A0D6D1` | Algorithms, processes, transformations |
-| Light Blue  | `#A6E7F4` | Parameters, configuration, settings    |
-| Blue        | `#A6C8F4` | Outputs, results, final states         |
-| Purple      | `#C6A6F4` | External entities, mixed dependencies  |
+- Use consistently throughout all diagrams:
+  - **Red/Pink** `#F4A6A6`: Agents, actors, primary entities
+  - **Orange** `#FFD1A6`: Input data, sources
+  - **Green** `#B2E2B2`: Processed data, environments
+  - **Teal** `#A0D6D1`: Algorithms, processes, transformations
+  - **Light Blue** `#A6E7F4`: Parameters, configuration, settings
+  - **Blue** `#A6C8F4`: Outputs, results, final states
+  - **Purple** `#C6A6F4`: External entities, mixed dependencies
