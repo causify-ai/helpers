@@ -18,16 +18,16 @@ The script:
   feature.
 
 # Extract headers up to level 3 from a Markdown file and save to an output file:
-> extract_toc_from_txt.py -i input.md -o cfile --mode cfile --max-level 3
+> extract_toc_from_txt.py -i input.md -o cfile --mode cfile --max_level 3
 
 # Extract headers up to level 2 from a LaTeX file and print to stdout:
-> extract_toc_from_txt.py -i document.tex -o - --mode headers --max-level 2
+> extract_toc_from_txt.py -i document.tex -o - --mode headers --max_level 2
 
 # Extract headers up to level 3 from a txt slide file and print to stdout:
-> extract_toc_from_txt.py -i slides.txt -o - --mode headers --max-level 3
+> extract_toc_from_txt.py -i slides.txt -o - --mode headers --max_level 3
 
 # Extract headers up to level 3 from a Jupyter notebook and print to stdout:
-> extract_toc_from_txt.py -i notebook.ipynb -o - --mode headers --max-level 3
+> extract_toc_from_txt.py -i notebook.ipynb -o - --mode headers --max_level 3
 
 # Extract headers from a txt file with potentially malformed index (emit warnings instead of errors):
 > extract_toc_from_txt.py -i document.txt -o - --warn_on_malformed

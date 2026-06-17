@@ -39,7 +39,7 @@ one.
 
 ### Specifying a rule
 
-TODO(gp): Improve 
+// TODO(gp): Improve 
 
 - Execute a rule on a single file using one of these formats:
   - Full path (path:line:header format with header validation)
@@ -57,7 +57,7 @@ TODO(gp): Improve
 
 ### Selecting
 
-TODO(gp): Improve 
+// TODO(gp): Improve 
 
             r"""Select text range as START:END
 Examples: 
@@ -74,12 +74,18 @@ Examples:
 """
 
 #### Examples
+- Simplest test:
+  ```
+  > llm_cli.py --input_text " " -p "Explain recursion in 100 words" -o - --dry_run
+  > llm_cli.py --input_text "Explain recursion in 10 words" -o -
+  ```
+
 - Basic file transform with inline prompt:
   ```bash
   > llm_cli.py -i input.txt -o output.txt -p "Summarize this"
   ```
 
-- In-place editing:
+- In-place editing of a file:
   ```bash
   > llm_cli.py -i input.txt
   ```
@@ -137,39 +143,54 @@ Examples:
 
 - Apply single rule from rules file to chunk (in place):
   ```bash
-  > llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt \
-      --rule '.claude/skills/slides.rules.md:58:# Slide Organization'
+  > llm_cli.py \
+      -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt \
+      --rule '.claude/skills/slides.rules.md:58:# Slide Organization' \
+      -m
   ```
 
 - Apply entire skill to file (in place):
   ```bash
-  > llm_cli.py -i msml610/lectures_source/Lesson06.1-Bayesian_Networks.txt \
+  > llm_cli.py \
+      -i msml610/lectures_source/Lesson06.1-Bayesian_Networks.txt \
       --skill slides.criticize_structure
   ```
 
 - Apply prompt to chunk of file selected by line range (in place):
   ```bash
-  > llm_cli.py -i msml610/lectures_source/Lesson06.1-Bayesian_Networks.txt \
-      --select 133:162 -pf .claude/skills/slides.fix_errors/SKILL.md -m
+  > llm_cli.py \
+      -i msml610/lectures_source/Lesson06.1-Bayesian_Networks.txt \
+      --select 133:162 \
+      -pf .claude/skills/slides.fix_errors/SKILL.md \
+      -m
   ```
 
 - Apply style to graphviz diagram in place:
   ```bash
-  > llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt \
-      --select 205 -m -pf .claude/templates/graphviz.template.md
+  > llm_cli.py \
+      -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt \
+      --select 205 \
+      -pf .claude/templates/graphviz.template.md \
+      -m
   ```
 
 - Fix errors in specific slide selection with linting:
   ```bash
-  > llm_cli.py -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt \
-      --select 482 -pf .claude/skills/slides.fix_errors/SKILL.md --lint -m
+  > llm_cli.py \
+      -i msml610/lectures_source/Lesson06.2-Using_Bayesian_Networks.txt \
+      --select 482 \
+      -pf .claude/skills/slides.fix_errors/SKILL.md \
+      --lint \
+      -m
   ```
 
 - Test a model via OpenRouter:
   ```bash
-  > llm_cli.py --input_text "Say hello" \
+  > llm_cli.py \
+      --input_text "Say hello" \
       --model "openrouter/anthropic/claude-haiku-4.5" \
-      --backend executable -o -
+      --backend executable \
+      -o -
   ```
 
 - Summarize text with linting:
@@ -599,6 +620,6 @@ llm_cli.py --llm_cmd "llm chat --model gpt-4"
   - `openrouter/openai/gpt-oss-120b`
   - `openrouter/openai/gpt-oss-20b`
 
-
+// TODO(ai_gp): Improve this
 - Note that you can't use Claude Subscription with llm_cli.py since you don't
   have an API key for metered

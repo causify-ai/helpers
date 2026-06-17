@@ -58,34 +58,7 @@ This document contains all the rules that must be followed when writing a blog
     appropriate code block (mermaid, graphviz, tikz)
 
 ## Types of Visuals
-- Illustrations can be:
-
-### A mermaid graph
-- E.g.,
-  ```mermaid
-  ...
-  ```
-
-### A graphviz graph
-- Follow the template `.claude/templates/graphviz.template.md`
-- E.g.,
-  ```graphviz
-  ...
-  ```
-
-###A Tikz graph
-- Follow the template `.claude/templates/tikz.template.md`
-  - E.g.,
-    ```tikz
-    ...
-    ```
-
-### A screenshot from a website
-- Use `website_screenshot.py` to take snapshots of notebooks
-- Crop to use only what is needed
-
-### A custom image
-- Follow the template `.claude/templates/image.template.md`
+- Follow the instructions from `.claude/skills/visuals.rules.md`
 
 # Writing Style
 

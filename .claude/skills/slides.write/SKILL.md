@@ -24,6 +24,9 @@ model: haiku
 ## Create Slides
 - Create `<NUM_SLIDES>` slides
 
+## Add Visuals
+- Follow the instructions from `.claude/skills/visuals.rules.md`
+
 ## Save Result
 - Do not print anything on the screen
 - Save the result in a output file `<OUTPUT_FILE>` like `<file>.slides.md`
