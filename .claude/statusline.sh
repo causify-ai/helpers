@@ -40,7 +40,15 @@ if [ -z "$COST_FMT" ]; then
     COST_FMT=$(printf "%.4f" "$REPORTED_COST")
 fi
 
-STATUS="${YELLOW}\$${COST_FMT}${RESET} ${GREEN}+${LINES_ADDED}${RESET} ${RED}-${LINES_REMOVED}${RESET} | [${CC_MODEL}] ${DIR##*/} | in:${IN_TOK} out:${OUT_TOK} | ${PCT}% ctx"
+# Show CC_MODEL if defined, otherwise show current model from /model (i.e.,
+# when using Anthropic plan).
+if [ -z "$CC_MODEL" ]; then
+    MODEL_DISPLAY="${MODEL_ID:-$MODEL}"
+else
+    MODEL_DISPLAY="$CC_MODEL"
+fi
+
+STATUS="${YELLOW}\$${COST_FMT}${RESET} ${GREEN}+${LINES_ADDED}${RESET} ${RED}-${LINES_REMOVED}${RESET} | [${MODEL_DISPLAY}] ${DIR##*/} | in:${IN_TOK} out:${OUT_TOK} | ${PCT}% ctx"
 
 # Append vim mode only when it is non-empty.
 if [ -n "$VIM" ]; then

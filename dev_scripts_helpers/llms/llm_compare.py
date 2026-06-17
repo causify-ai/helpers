@@ -204,7 +204,7 @@ def _run_llm_cli(
     _LOG.info("Running model '%s'...", model)
     _LOG.info("Command: %s", cmd)
     # Run the CLI; capture non-zero exit without aborting by default.
-    rc = hsystem.system(cmd, print_command=False, abort_on_error=False)
+    rc = hsystem.system(cmd, print_command=False, abort_on_error=False, suppress_output=False)
     if rc != 0:
         error_msg = (
             f"llm_cli.py failed with return code {rc} for model '{model}'"
@@ -374,8 +374,8 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output_dir",
         type=str,
-        required=True,
-        help="Directory to save results and stats",
+        default="tmp.llm_compare",
+        help="Directory to save results and stats (default: 'tmp.llm_compare')",
     )
     parser.add_argument(
         "--abort_on_error",

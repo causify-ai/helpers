@@ -74,13 +74,19 @@ def add_select_arg(
         required=required,
         default="",
         help=(
-            "Select text range as START:END. Examples: "
-            "'## Section 1:## Section 2', 'Section 1:Section 2', ':END', "
-            "'START:' (extracts until next same-level header), "
-            "'START' (extracts until next same-level header), "
-            "or 'START:END' (where END is 'END' for EOF). "
-            "START/END can be a header (with # or * prefix), title substring, "
-            "or line number."
+            r"""Select text range as START:END
+Examples: 
+- '## Section 1:## Section 2'"
+- 'Section 1:Section 2',
+- ':END'
+- 'START:' (extracts until next same-level header)
+- 'START' (extracts until next same-level header)
+- 'START:END' (where END is 'END' for EOF)
+- START/END can be a
+    - header (with # or * prefix)
+    - title substring
+    - line number
+"""
         ),
     )
     return parser

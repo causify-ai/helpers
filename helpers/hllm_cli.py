@@ -1524,7 +1524,8 @@ def add_llm_args(
     input_required: bool = True,
     output_required: bool = False,
     system_prompt_required: bool = False,
-    model_default: str = "gpt-4o-mini",
+    #model_default: str = "gpt-4o-mini",
+    model_default: str = "openrouter/deepseek/deepseek-v4-flash",
     include_model: bool = True,
     include_backend: bool = True,
 ) -> argparse.ArgumentParser:

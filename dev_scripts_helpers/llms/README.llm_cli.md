@@ -35,6 +35,43 @@ General-purpose CLI to apply LLM transformations to text files or text input
 - 3 backend implementations: library (fastest, with cost tracking), executable
   (subprocess), mock (testing only)
 - Optional output linting, progress bars, token cost tracking, dry-run preview
+one.
+
+### Specifying a rule
+
+TODO(gp): Improve 
+
+- Execute a rule on a single file using one of these formats:
+  - Full path (path:line:header format with header validation)
+    ```
+    --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions"
+    ```
+  - Line number only (extracts the section starting at that line)
+    ```
+    --rule ".claude/skills/coding.rules.md:58"
+    ```
+  - Keyword search: (searches for unique matching rule using rigrule)
+    ```
+    --rule "dassert"
+    ```
+
+### Selecting
+
+TODO(gp): Improve 
+
+            r"""Select text range as START:END
+Examples: 
+- '## Section 1:## Section 2'"
+- 'Section 1:Section 2',
+- ':END'
+- 'START:' (extracts until next same-level header)
+- 'START' (extracts until next same-level header)
+- 'START:END' (where END is 'END' for EOF)
+- START/END can be a
+    - header (with # or * prefix)
+    - title substring
+    - line number
+"""
 
 #### Examples
 - Basic file transform with inline prompt:
@@ -561,3 +598,7 @@ llm_cli.py --llm_cmd "llm chat --model gpt-4"
   - `openrouter/meta-llama/llama-3.1-8b-instruct`
   - `openrouter/openai/gpt-oss-120b`
   - `openrouter/openai/gpt-oss-20b`
+
+
+- Note that you can't use Claude Subscription with llm_cli.py since you don't
+  have an API key for metered

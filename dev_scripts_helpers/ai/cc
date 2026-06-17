@@ -15,7 +15,7 @@ print_help() {
     echo "Usage: cc [OPTIONS] [claude_options]"
     echo ""
     echo "Options:"
-    echo "  --anth              Use Anthropic directly (default, clear OpenRouter env vars)"
+    echo "  --anth              Use Anthropic plan and not OpenRouter"
     echo "  --or_anth           Use anthropic/claude-haiku-4.5 via OpenRouter"
     echo "  --ds                Use deepseek/deepseek-v4-flash via OpenRouter"
     echo "  --dsp               Use deepseek/deepseek-v4-pro via OpenRouter"
@@ -30,8 +30,13 @@ print_help() {
     echo ""
 }
 
-# Parse command line options
-MODEL="deepseek/deepseek-v4-flash"
+# Parse command line options.
+
+# Use OpenRouter model.
+#MODEL="deepseek/deepseek-v4-flash"
+# Default to Claude Plan.
+MODEL=""
+
 RUN_TEST=false
 PROMPT=""
 VERBOSE=false
@@ -97,19 +102,19 @@ OLD_PANE_TITLE=$(tmux_rename_on_entry "*CC*" || true)
 # Empty MODEL = use Anthropic directly (clear OpenRouter env vars).
 # Non-empty MODEL = use that model through OpenRouter.
 if [ "$MODEL" = "" ]; then
-    echo "Anthropic setup"
-    unset ANTHROPIC_DEFAULT_HAIKU_MODEL
-    unset ANTHROPIC_DEFAULT_SONNET_MODEL
-    unset ANTHROPIC_DEFAULT_OPUS_MODEL
-    unset ANTHROPIC_BASE_URL
+    echo "Anthropic Plan setup"
     unset ANTHROPIC_AUTH_TOKEN
+    unset ANTHROPIC_BASE_URL
+    unset ANTHROPIC_DEFAULT_HAIKU_MODEL
+    unset ANTHROPIC_DEFAULT_OPUS_MODEL
+    unset ANTHROPIC_DEFAULT_SONNET_MODEL
 else
-    echo "MODEL=$MODEL"
+    echo "Using OpenRouter with MODEL=$MODEL"
     export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
+    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
     export ANTHROPIC_DEFAULT_HAIKU_MODEL=$MODEL
     export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/claude-opus-4.8
     export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/claude-sonnet-4.6
-    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
 fi
 export CC_MODEL=$MODEL
 
@@ -147,6 +152,10 @@ elif [ -n "$PROMPT" ]; then
         --include-partial-messages \
         -p "$PROMPT" \
         "${CLAUDE_ARGS[@]}" 2>&1 | tee "$LOG_FILE"
+    # Print cost from the last stream-json event (session summary).
+    if [ -f "$LOG_FILE" ] && [ -s "$LOG_FILE" ]; then
+        tail -1 "$LOG_FILE" | "$SCRIPT_DIR/../../.claude/statusline.sh" 2>/dev/null || true
+    fi
 else
     # Interactive mode.
     claude --dangerously-skip-permissions "${CLAUDE_ARGS[@]}"
