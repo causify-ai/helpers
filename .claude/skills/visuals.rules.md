@@ -8,6 +8,17 @@
   - Images
   - Website screenshots
 
+# Color Palette
+
+- Use consistently throughout all diagrams:
+  - **Red/Pink** `#F4A6A6`: Agents, actors, primary entities
+  - **Orange** `#FFD1A6`: Input data, sources
+  - **Green** `#B2E2B2`: Processed data, environments
+  - **Teal** `#A0D6D1`: Algorithms, processes, transformations
+  - **Light Blue** `#A6E7F4`: Parameters, configuration, settings
+  - **Blue** `#A6C8F4`: Outputs, results, final states
+  - **Purple** `#C6A6F4`: External entities, mixed dependencies
+
 ## Tables
 
 - Use markdown tables for structured data comparisons
@@ -58,33 +69,19 @@
 
 ## GraphViz Diagrams
 
-- When to use: flowcharts, networks, agent interactions, system relationships, process flows
+- When to use: flowcharts, networks, agent interactions, system relationships,
+  process flows
+
 - Follow the template `.claude/templates/graphviz.template.md`
-- Standard template with styling:
-  ```graphviz
-  digraph DiagramName {
-      splines=true;
-      nodesep=1.0;
-      ranksep=0.75;
 
-      node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
 
-      NodeName [label="Display Name", fillcolor="#A6C8F4"];
-      OtherNode [label="Other", fillcolor="#B2E2B2"];
+## Best Practices
 
-      { rank=same; Node1; Node2; }
-
-      NodeName -> OtherNode [label="  relationship"];
-  }
-  ```
-
-# Color Palette
-
-- Use consistently throughout all diagrams:
-  - **Red/Pink** `#F4A6A6`: Agents, actors, primary entities
-  - **Orange** `#FFD1A6`: Input data, sources
-  - **Green** `#B2E2B2`: Processed data, environments
-  - **Teal** `#A0D6D1`: Algorithms, processes, transformations
-  - **Light Blue** `#A6E7F4`: Parameters, configuration, settings
-  - **Blue** `#A6C8F4`: Outputs, results, final states
-  - **Purple** `#C6A6F4`: External entities, mixed dependencies
+1. **Consistency**: Use semantic colors consistently across all diagrams
+2. **Contrast**: Ensure label text is readable on filled backgrounds
+3. **Hierarchy**: Use clustering and color to show conceptual grouping
+4. **Simplicity**: Avoid over-styling; let structure speak
+5. **Testing**: Always render and review in target format (PDF/SVG/PNG)
+6. **Alignment**: Use `rank=same` and invisible edges for professional layout
+7. **Spacing**: Adjust `nodesep` and `ranksep` for diagram clarity
+8. **Fonts**: Stick with Helvetica or Times for professional appearance
