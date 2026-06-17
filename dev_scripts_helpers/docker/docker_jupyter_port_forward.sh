@@ -22,6 +22,11 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+source "$SCRIPT_DIR/../thin_client/thin_client_utils.sh"
+
+OLD_TMUX_TITLE=$(tmux_rename_on_entry "tunnel" || true)
+
 # ---------------------------------------------------------------------------
 # Parse arguments.
 # ---------------------------------------------------------------------------
@@ -97,3 +102,6 @@ sys.stderr.write(f'Open http://localhost:{port} in your browser\n')
 sys.stderr.flush()
 s.serve_forever()
 "
+
+# Restore the TMUX.
+tmux_restore_on_exit "$OLD_TMUX_TITLE"

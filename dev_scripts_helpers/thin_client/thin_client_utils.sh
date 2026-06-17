@@ -701,7 +701,45 @@ function parse_yaml {
 
 
 # #############################################################################
+# Tmux utils
+# #############################################################################
+
+
+tmux_rename_on_entry() {
+    # """
+    # Rename tmux window on entry and print old title for later restore.
+    #
+    # :param new_title: New window title (e.g., "*CC*")
+    # :return: Prints old window title to stdout; returns 0 if in tmux, 1 otherwise.
+    # """
+    local new_title="$1"
+    if [ -n "$TMUX" ]; then
+        local old_title
+        old_title=$(tmux display-message -p '#W')
+        tmux rename-window "$new_title"
+        echo "$old_title"
+        return 0
+    fi
+    return 1
+}
+
+
+tmux_restore_on_exit() {
+    # """
+    # Restore tmux window title to its original name.
+    #
+    # :param old_title: Previous window title returned by tmux_rename_on_entry()
+    # """
+    local old_title="$1"
+    if [ -n "$TMUX" ] && [ -n "$old_title" ]; then
+        tmux rename-window "$old_title"
+    fi
+}
+
+
+# #############################################################################
 # Command aliases
 # #############################################################################
 
+# Save the last command executed in the system clipboard.
 alias last_cmd='source capture_last_cmd.sh -n 1'

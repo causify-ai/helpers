@@ -8,6 +8,9 @@
 # - Usage: cc [--anth|--or_anth|--ds|--dsp|--model MODEL_STR] [--test] [-v] [-p PROMPT] [claude_options]
 # """
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+source "$SCRIPT_DIR/../thin_client/thin_client_utils.sh"
+
 print_help() {
     echo "Usage: cc [OPTIONS] [claude_options]"
     echo ""
@@ -88,10 +91,7 @@ if [ "$VERBOSE" = true ]; then
 fi
 
 # Rename tmux pane to CC if inside tmux, and restore on exit.
-if [ -n "$TMUX" ]; then
-    OLD_PANE_TITLE=$(tmux display-message -p '#W')
-    tmux rename-window "*CC*"
-fi
+OLD_PANE_TITLE=$(tmux_rename_on_entry "*CC*" || true)
 
 # Configure environment based on model choice.
 # Empty MODEL = use Anthropic directly (clear OpenRouter env vars).
@@ -152,6 +152,5 @@ else
     claude --dangerously-skip-permissions "${CLAUDE_ARGS[@]}"
 fi
 
-if [ -n "$TMUX" ]; then
-    tmux rename-window $OLD_PANE_TITLE
-fi
+# Restore the TMUX.
+tmux_restore_on_exit "$OLD_PANE_TITLE"

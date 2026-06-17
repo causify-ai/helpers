@@ -34,6 +34,7 @@ This document contains all the rules that must be followed when writing a blog
   ```
 
 - Keep it very short and impactful (one sentence)
+- Do not use emdash or other AI artifacts
 - Use a colon after TL;DR or TLDR
 - Always follow with `<!-- more -->` tag on a new line with a blank line before
   it
@@ -115,4 +116,3 @@ This document contains all the rules that must be followed when writing a blog
   ```
   > prettier --tab-width 4 <FILE> -w
   ```
-

@@ -518,6 +518,7 @@ def _llm_cli(
     max_chars: int,
     stat_file: str,
     llm_cmd: str,
+    install_llm_plugins: bool,
 ) -> None:
     """
     Execute the LLM command processing logic.
@@ -559,7 +560,8 @@ def _llm_cli(
         if log_level == "INFO":
             verbosity = "CRITICAL"
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
-    if False:
+    # Install and report LLM plugins when the flag is set.
+    if install_llm_plugins:
         _LOG.info("llm version: %s", version("llm"))
         _LOG.info("tokencost version: %s", version("tokencost"))
         install_models()
