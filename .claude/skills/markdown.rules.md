@@ -95,6 +95,13 @@ text
 - Use verbatim for libraries, executables, scripts
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
+## Do Not Combine Bold with Verbatim
+
+- Do not wrap bold around backtick-quoted text (verbatim + bold is redundant)
+  - **Bad**: `**`lib_llm_cli.py`**`
+  - **Good**: `` `lib_llm_cli.py` ``
+- Backtick formatting already makes text visually distinct and bold adds no signal
+
 ## Emphasis Styles
 - **Bold text** (`**text**`):
   - Use for key terms and important concepts
@@ -129,6 +136,14 @@ text
     ```
     Extraction and Conversion Tools
     ```
+
+## Avoid Unstable Details
+
+- Do not add details that change frequently and cannot be maintained
+  - **Bad**: `` `lib_llm_cli.py` (637 lines) ``
+  - **Good**: `` `lib_llm_cli.py` ``
+- Line counts, version numbers, dates, and similar metrics drift and mislead when stale
+- Prefer stable identifiers (file names, API names) over volatile metadata
 
 # Code Blocks and Commands
 
@@ -203,6 +218,9 @@ text
   - Graphviz
   - Mermaid
   - TikZ-style charts
+- For software architecture diagrams, use Mermaid with C4 style
+  - C4 model: Context, Container, Component, Code
+  - Mermaid supports C4 natively via `c4context`, `c4container`, `c4component` diagrams
 - Add annotation arrows and layered explanations
 
 ## Links
