@@ -641,7 +641,7 @@ The `--md_end "END"` special value is useful for reading from a starting section
 
 - Concatenate specific lesson PDFs in sorted order
   ```bash
-  > concatenate_pdfs.py --input_files "data605/book/Lesson*.pdf" --output_file data605_lessons.pdf
+  > concatenate_pdfs.py --input_files "data605/lecture_commentary/Lesson*.pdf" --output_file data605_lessons.pdf
   ```
 
 - Dry run to see which files will be concatenated
