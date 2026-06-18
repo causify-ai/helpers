@@ -313,10 +313,15 @@ description: Conventions and standards for interactive Jupyter notebook structur
     #   - It knows the shape, dtype, and bounds of valid data
     #   - It can sample random valid values and check membership
     ```
-
 - **Rationale**: Bullet-point comments are easier to scan quickly, work better
   with diff tools (each point is a separate change), and align with the nested
   bullet style used throughout notebook markdown cells
+
+## Rules for Bullet-Points
+
+- Follow rules from `.claude/skills/text.rules.md`
+  - `## Use Nested Bullets`
+  - `## Structure Bullet-Points using Multiple Levels`
 
 # Notebook Organization
 

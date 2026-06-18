@@ -1,7 +1,7 @@
 This document contains all the rules that must be followed to write text in
 terms of bullet lists
 
-## Goals and Philosophy
+# Goals and Philosophy
 
 - Make the text is easy to consume for both humans and AI, i.e., it's
   well-organized, structured, without fluff, and AI slop
@@ -13,9 +13,9 @@ terms of bullet lists
 
 - Think of notes as a hybrid between a textbook and a student's notebook
 
-## Writing Style
+# Writing Style
 
-### Writing Style
+## Writing Style
 
 - Use explicit references instead of unclear ones
   - **Bad**: "it"
@@ -25,13 +25,13 @@ terms of bullet lists
 - Prefer plain language over academic jargon
 - Make sure text is short and not unnecessarily long
 
-### Avoid Long Prose
+## Avoid Long Prose
 
 - Prefer structured notes over narrative prose
 - Use a first-person, self-directed voice, e.g.,
   - **Good**: "Key thing to remember: entropy increases"
 
-### Use Direct Statements
+## Use Direct Statements
 
 - Convert abstract principles into short, direct statements, e.g.,
   - **Bad**:
@@ -44,6 +44,8 @@ terms of bullet lists
     Everyone takes responsibility: no blaming others if work isn't finished
     ```
 
+# Formatting
+
 ## Use Only Text
 
 - Avoid emojis and icons
@@ -53,7 +55,21 @@ terms of bullet lists
   - **Bad**: A → B
   - **Good**: A -> B
 
-## Text Is Formatted with Bullets
+## Use `:` Instead of `-`
+
+- When writing bullet points with an explanation, use `:` and not `-` to separate
+  the first part from the comment
+  - **Bad**
+    ```
+    `SKILL.md` - Main skill instruction file
+    ```
+  - **Good**
+    ```
+    `SKILL.md`: Main skill instruction file
+    ```
+
+
+# Text Is Formatted with Bullets
 
 - Every text should start with a bullet point
   - **Bad**
@@ -95,6 +111,15 @@ terms of bullet lists
 
 - Do not end a bullet point with a period `.`
 
+- E.g.,
+  ```markdown
+  - **What it does**:
+    - Extracts each page of a PDF file as a separate PNG image
+    - Numbers output files sequentially (`slides001.png`, `slides002.png`, etc.)
+    - Supports customizable DPI for image quality control
+    - Creates output directory automatically with optional from-scratch mode
+  ```
+
 ## Use Nested Bullets
 
 - Use nested bullets to show:
@@ -122,9 +147,48 @@ terms of bullet lists
     - Examples
     - Implications
 
-## Try to Use Lists
+## Summarize the Text Into Structured Markdown Bullet Points
 
-- Try to use lists to make the text more structured and legible
+- Create 4-5 bullet points capturing the main ideas
+- Use nested markdown bullets with maximal clarity and fewer words
+  - Use `-` for first-level bullets
+  - Use indented `-` for sub-bullets
+  - Organize sub-bullets hierarchically: general rule first, then example, then
+    mathematical formulation
+- Use Latex notation for formulas
+- Avoid non-ASCII symbols
+- Extract concrete examples
+- Be concise: remove narrative prose, keep only key facts and relationships
+
+## Structure Bullet-Points using Multiple Levels
+
+- Use bullet points organize them into cohesive chunks using multiple
+  levels
+  - **Bad**: all points at the same level and no structure
+    ```
+    **Key observations**:
+    - With a fixed action per state the $max$ disappears: the equations are linear
+    - A bad policy yields low utilities, especially where it steers into $-1$
+    - Evaluation answers "how good is this policy", not "what should I do instead
+    - The linear system $(I - gamma P) U = b$ is solved directly with `numpy`
+    - A poor policy produces visibly low utilities near the $-1$ terminal
+    - Evaluation is the first half of policy iteration
+    ```
+  - **Good**: organize bullet points in cohesive levels
+    ```
+    **Key observations**:
+    - Evaluation is the first half of policy iteration
+        - Evaluation answers "how good is this policy", not "what should I do instead"
+    - With a fixed action per state the $max$ disappears: the equations are linear
+        - The linear system $(I - gamma P) U = b$ is solved directly with `numpy`
+    - A bad policy:
+        - Yields low utilities, especially where it steers into $-1$
+        - Produces visibly low utilities near the $-1$ terminal
+    ```
+
+## Try to Use Lists instead of Wall-of-Text
+
+- Use lists to make the text more structured and legible
   - **Bad**
     ```
     This document covers how to publish documents, books, and blogs across
@@ -175,48 +239,13 @@ terms of bullet lists
     ## 3. Third
     ```
 
-## Organize Text in Bullet Points
-
-- Make sure all the text is organized in bullet points, e.g.,
-  ```markdown
-  - **What it does**:
-    - Extracts each page of a PDF file as a separate PNG image
-    - Numbers output files sequentially (`slides001.png`, `slides002.png`, etc.)
-    - Supports customizable DPI for image quality control
-    - Creates output directory automatically with optional from-scratch mode
-  ```
+# Constraints
 
 ## Leave Fenced Code Blocks Alone
 - If there is a fenced code block, do not remove it
   ```python
   ...
   ```
-
-## Summarize the Text Into Structured Markdown Bullet Points
-
-- Create 4-5 bullet points capturing the main ideas
-- Use nested markdown bullets with maximal clarity and fewer words
-  - Use `-` for first-level bullets
-  - Use indented `-` for sub-bullets
-  - Organize sub-bullets hierarchically: general rule first, then example, then
-    mathematical formulation
-- Use Latex notation for formulas
-- Avoid non-ASCII symbols
-- Extract concrete examples
-- Be concise: remove narrative prose, keep only key facts and relationships
-
-## Use `:` Instead of `-`
-
-- When writing bullet points with an explanation, use `:` and not `-` to separate
-  the first part from the comment
-  - **Bad**
-    ```
-    `SKILL.md` - Main skill instruction file
-    ```
-  - **Good**
-    ```
-    `SKILL.md`: Main skill instruction file
-    ```
 
 # Examples
 
