@@ -1,5 +1,4 @@
-This document contains all the rules that must be followed to write text in
-terms of bullet lists
+Rules for writing structured text using bullet lists
 
 # Goals and Philosophy
 
@@ -15,25 +14,22 @@ terms of bullet lists
 
 # Writing Style
 
-## Writing Style
+## Clear Language
 
-- Use explicit references instead of unclear ones
+- Use explicit references instead of unclear pronouns
   - **Bad**: "it"
   - **Good**: "TCP protocol"
 - Maintain consistent labels for recurring ideas
 - Avoid redundancy in concepts
 - Prefer plain language over academic jargon
-- Make sure text is short and not unnecessarily long
 
-## Avoid Long Prose
+## Structured Over Prose
 
 - Prefer structured notes over narrative prose
-- Use a first-person, self-directed voice, e.g.,
+- Use a first-person, self-directed voice:
   - **Good**: "Key thing to remember: entropy increases"
 
-## Use Direct Statements
-
-- Convert abstract principles into short, direct statements, e.g.,
+- Convert abstract principles into short, direct statements:
   - **Bad**:
     ```
     Everyone takes responsibility, owns their projects, and blames no one if
@@ -68,8 +64,9 @@ terms of bullet lists
     `SKILL.md`: Main skill instruction file
     ```
 
+# Bullet List Structure
 
-# Text Is Formatted with Bullets
+## Bullet Fundamentals
 
 - Every text should start with a bullet point
   - **Bad**
@@ -80,115 +77,91 @@ terms of bullet lists
     ```markdown
     - Hello, my name is ...
     ```
+- Each bullet expresses one complete atomic idea (1–3 lines)
+- Do not end a bullet point with a period
+- Group bullets under clear paragraph headings
 
-- Example
-  - **Bad**
+## Bullet Usage
+
+- Use bullets to show definitions, purpose, components, pros/cons, and examples
+- Start all introductory text with a bullet as well:
+  - **Bad**:
     ```markdown
     Always follow these guidelines:
     - `.claude/skills/notebook.rules.md`: General notebook conventions
     ```
-  - **Good**
+  - **Good**:
     ```markdown
     - Always follow these guidelines:
       - `.claude/skills/notebook.rules.md`: General notebook conventions
     ```
 
-## Use Bullets
-
-- Use bullet points inside a paragraph
-
-- Each bullet should express one complete atomic idea
-  - Keep bullets concise but meaningful (1–3 lines)
-
-- Use bullets to show:
-  - Definitions
-  - Purpose
-  - Components
-  - Pros and cons
-  - Examples
-
-- Group bullets under clear paragraph headings
-
-- Do not end a bullet point with a period `.`
-
-- E.g.,
+- Example: Well-Structured Bullets
   ```markdown
-  - **What it does**:
+  - What it does:
     - Extracts each page of a PDF file as a separate PNG image
     - Numbers output files sequentially (`slides001.png`, `slides002.png`, etc.)
     - Supports customizable DPI for image quality control
     - Creates output directory automatically with optional from-scratch mode
   ```
 
-## Use Nested Bullets
+## Nested Bullets
 
-- Use nested bullets to show:
-  - Dependencies and relationships
-    - E.g., cause -> effect
-  - Hierarchy of concepts, e.g.,
-    ```
-    - Technology
-      - Hardware
-        - Computers
-        - Mobile Devices
-      - Software
-        - Operating Systems
-        - Applications
-    ```
-  - Components and lists, e.g.,
-    ```
-    - Allowed formats:
-      - Graphviz
-      - Mermaid
-      - TikZ-style charts
-    ```
-  - Elaboration, not to extend main bullets, e.g., for
-    - Definitions
-    - Examples
-    - Implications
+- Use nested bullets for dependencies, relationships, and hierarchy
+  - Dependencies and relationships (e.g., cause -> effect)
+  - Hierarchy of concepts
+  - Components and lists
+  - Elaboration (definitions, examples, implications)
+- Keep nesting logical: general rule first, then example, then mathematical formulation
+- Example hierarchy:
+  ```
+  - Technology
+    - Hardware
+      - Computers
+      - Mobile Devices
+    - Software
+      - Operating Systems
+      - Applications
+  ```
 
-## Summarize the Text Into Structured Markdown Bullet Points
+## Converting Prose to Bullet Points
 
-- Create 4-5 bullet points capturing the main ideas
-- Use nested markdown bullets with maximal clarity and fewer words
+- Create 4-5 bullet points capturing main ideas
+- Use nested structure with maximal clarity and fewer words
   - Use `-` for first-level bullets
   - Use indented `-` for sub-bullets
-  - Organize sub-bullets hierarchically: general rule first, then example, then
-    mathematical formulation
-- Use Latex notation for formulas
-- Avoid non-ASCII symbols
+  - Organize hierarchically: general rule first, then example, then mathematical formulation
+- Use LaTeX notation for formulas
+- Avoid non-ASCII symbols (use `->` not `→`)
 - Extract concrete examples
-- Be concise: remove narrative prose, keep only key facts and relationships
+- Remove narrative prose, keep only key facts and relationships
 
-## Structure Bullet-Points using Multiple Levels
+## Multi-Level Organization
 
-- Use bullet points organize them into cohesive chunks using multiple
-  levels
-  - **Bad**: all points at the same level and no structure
+- Organize bullet points into cohesive chunks using multiple levels
+- **Bad**: Flat list with no hierarchy (hard to follow logical relationships)
+- **Good**: Structured with sub-bullets that clarify relationships and dependencies
+
+- Example:
+  - **Bad** (unclear grouping):
     ```
-    **Key observations**:
-    - With a fixed action per state the $max$ disappears: the equations are linear
-    - A bad policy yields low utilities, especially where it steers into $-1$
-    - Evaluation answers "how good is this policy", not "what should I do instead
+    - Evaluation answers "how good is this policy"
     - The linear system $(I - gamma P) U = b$ is solved directly with `numpy`
-    - A poor policy produces visibly low utilities near the $-1$ terminal
-    - Evaluation is the first half of policy iteration
+    - With a fixed action, the $max$ disappears: equations are linear
+    - A bad policy yields low utilities near the $-1$ terminal
     ```
-  - **Good**: organize bullet points in cohesive levels
+  - **Good** (clear relationships):
     ```
-    **Key observations**:
     - Evaluation is the first half of policy iteration
-        - Evaluation answers "how good is this policy", not "what should I do instead"
-    - With a fixed action per state the $max$ disappears: the equations are linear
-        - The linear system $(I - gamma P) U = b$ is solved directly with `numpy`
-    - A bad policy:
-        - Yields low utilities, especially where it steers into $-1$
-        - Produces visibly low utilities near the $-1$ terminal
+      - Evaluation answers "how good is this policy", not "what should I do instead"
+    - With a fixed action per state, $max$ disappears: equations are linear
+      - The linear system $(I - gamma P) U = b$ is solved directly with `numpy`
     ```
 
-## Try to Use Lists instead of Wall-of-Text
+## Lists Over Prose
 
-- Use lists to make the text more structured and legible
+- Use lists to structure text and improve legibility
+- Break dense prose into organized sub-bullets
   - **Bad**
     ```
     This document covers how to publish documents, books, and blogs across
@@ -241,11 +214,7 @@ terms of bullet lists
 
 # Constraints
 
-## Leave Fenced Code Blocks Alone
-- If there is a fenced code block, do not remove it
-  ```python
-  ...
-  ```
+- Preserve fenced code blocks without modification
 
 # Examples
 
