@@ -353,11 +353,11 @@ def _build_pandoc_cmd(
     # Needed since:
     # ![](tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png)
     # which is then saved in
-    # ./data605/lectures/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png
+    # ./data605/lectures_pdf/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png
     # Find the relative path to the resource path.
     rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
     cmd.append(f"--resource-path={rel_path}")
-    # cmd.append("--resource-path=/app/data605/lectures/")
+    # cmd.append("--resource-path=/app/data605/lectures_pdf/")
     if toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
