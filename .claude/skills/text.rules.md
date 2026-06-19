@@ -32,7 +32,7 @@ Rules for writing structured text using bullet lists
 - Convert abstract principles into short, direct statements:
   - **Bad**:
     ```
-    Everyone takes responsibility, owns their projects, and blames no one if
+    Eunset OPENROUTER_API_KEY CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_KEY OPENROUTER_KEYveryone takes responsibility, owns their projects, and blames no one if
     something doesn't get finished
     ```
   - **Good**:

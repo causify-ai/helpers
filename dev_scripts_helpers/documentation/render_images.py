@@ -20,6 +20,12 @@ Usage:
 # Render images in place in the original LaTeX file:
 > render_images.py -i ABC.tex --action render
 
+# Render a standalone typst file to PDF:
+> render_images.py -i ABC.typ -o ABC.pdf --action render
+
+# Render a standalone typst file to PNG:
+> render_images.py -i ABC.typ -o ABC.png --action render
+
 # Open rendered images from a Markdown file in HTML to preview:
 > render_images.py -i ABC.md --action open
 """
@@ -387,7 +393,7 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     elif extension == ".tex":
         comment_prefix = "%"
         comment_postfix = ""
-    elif extension == ".txt":
+    elif extension in (".txt", ".typ"):
         comment_prefix = "//"
         comment_postfix = ""
     else:
@@ -501,7 +507,7 @@ def _insert_image_code(
     """
     Insert the code to display the image in the output file.
 
-    :param extension: file extension (e.g., ".md", ".tex")
+    :param extension: file extension (e.g., ".md", ".tex", ".typ")
     :param rel_img_path: relative path to the image
     :param user_img_size: optional user-specified image size
     :param label: optional label for the image (e.g., "fig:my_label")
@@ -538,6 +544,15 @@ def _insert_image_code(
         if label:
             out_lines.append(r"  \label{" + label + "}")
         out_lines.append(r"\end{figure}")
+    elif extension == ".typ":
+        # Use Typst syntax with figure element.
+        out_lines.append(f"#figure(")
+        out_lines.append(f"  image(\"{rel_img_path}\"),")
+        if caption:
+            out_lines.append(f"  caption: [{caption}],")
+        if label:
+            out_lines.append(f"  <{label}>,")
+        out_lines.append(f")")
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
     out_lines.append(_comment_line("render_images:end", extension))
@@ -695,6 +710,7 @@ def _render_images(
                     "svg",
                     "image",
                 ],
+                "Unsupported image code type",
             )
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")
@@ -921,8 +937,9 @@ def _process_single_file(
         Graphviz, SVG, TikZ, and LaTeX image types.
     """
     _LOG.info(hprint.func_signature_to_str())
+    in_file_ext = os.path.splitext(in_file)[1]
     # Verify that the input and output file types are valid and equal.
-    hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
+    hdbg.dassert_file_extension(in_file, ["md", "tex", "txt", "typ"])
     hdbg.dassert_eq(
         os.path.splitext(in_file)[1],
         os.path.splitext(out_file)[1],
@@ -971,8 +988,8 @@ def _process_single_file_remove_figs(
     :param out_file: output file path
     """
     _LOG.info(hprint.func_signature_to_str("in_file out_file"))
-    # Verify that the input and output file types are valid and equal.
-    hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
+    # Verify that the input file type is valid.
+    hdbg.dassert_file_extension(in_file, ["md", "tex", "txt", "typ"])
     hdbg.dassert_eq(
         os.path.splitext(in_file)[1],
         os.path.splitext(out_file)[1],
