@@ -64,6 +64,7 @@
 
 - This section describes the high-level technical blocks
 
+// TODO(ai_gp): This is too detailed split in different diagrams
 <!--  rendered_images:begin -->
 <!--  ```mermaid -->
 <!--  graph TB -->
@@ -139,11 +140,11 @@
   - _System Operations_: Wrapper functions for command execution, logging, and
     optional script generation
 
-// TODO(ai_gp): This maybe it's too detailed
 ## C3 (Component)
 
 - Shows the components inside a container
 
+// TODO(ai_gp): Use a different plot style instead of sequenceDiagram
 <!--  rendered_images:begin -->
 <!--  ```mermaid -->
 <!--  sequenceDiagram -->
