@@ -471,8 +471,8 @@ def _run_pandoc_to_typst_slides(
     Convert the input file to PDF slides using Pandoc + Typst/Touying.
 
     The markdown is converted to a Typst file using a Touying template (instead
-    of beamer/LaTeX) and then compiled to PDF with a single `typst compile` pass
-    (no second pass needed, unlike pdflatex).
+    of beamer/LaTeX unlike Latex flow) and then compiled to PDF with a single
+    `typst compile` pass (no second pass needed, unlike Latex flow).
 
     :param curr_path: The path where the script is located, used to reference
         `pandoc_touying.typ`
@@ -503,6 +503,7 @@ def _run_pandoc_to_typst_slides(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_only"
+        #container_type = "pandoc_texlive"
         cmd = dshdlipa.run_dockerized_pandoc(
             cmd,
             container_type,
@@ -513,6 +514,18 @@ def _run_pandoc_to_typst_slides(
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd)
     hdbg.dassert_path_exists(typ_file)
+    # 1) `pandoc` emits image paths relative to the current dir (the repo root)
+    # - E.g., `image("data605/lectures_source/images/foo.png")`.
+    # 2) Typst resolves relative image paths against the directory of the `.typ`
+    # file (which lives in the output dir) and forbids `..` escapes above its
+    # project root.
+    # 3) So we rewrite the paths to be root-absolute (e.g.,
+    #    `image("/data605/.../foo.png")`) and compile with `--root` set to the
+    #    repo root so they resolve correctly.
+    root = os.getcwd()
+    txt = hio.from_file(typ_file)
+    txt = re.sub(r'image\("(?!/)', 'image("/', txt)
+    hio.to_file(typ_file, txt)
     # Return the `.typ` file if typst_only mode is requested.
     if typst_only:
         _LOG.info("typst_only=True: skipping typst compile, returning .typ file")
@@ -521,13 +534,14 @@ def _run_pandoc_to_typst_slides(
     _report_phase("typst compile")
     pdf_file = typ_file.replace(".typ", ".pdf")
     if use_host_tools:
-        cmd = f"typst compile {typ_file} {pdf_file}"
+        cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
         _ = _system(cmd)
     else:
         dshdlity.run_dockerized_typst(
             typ_file,
             pdf_file,
             [],
+            root=root,
             force_rebuild=dockerized_force_rebuild,
             use_sudo=dockerized_use_sudo,
         )

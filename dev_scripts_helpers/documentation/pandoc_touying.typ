@@ -14,11 +14,15 @@
   aspect-ratio: "16-9",
   config-common(slide-level: 4),
   config-info(
+$if(title)$
     title: [$title$],
+$endif$
 $if(subtitle)$
     subtitle: [$subtitle$],
 $endif$
+$if(author)$
     author: [$for(author)$$author$$sep$, $endfor$],
+$endif$
 $if(date)$
     date: [$date$],
 $endif$
