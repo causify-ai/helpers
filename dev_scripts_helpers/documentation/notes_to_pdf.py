@@ -37,6 +37,7 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 
 _LOG = logging.getLogger(__name__)
 
@@ -457,6 +458,84 @@ def _run_pandoc_to_slides(
     return file_out
 
 
+def _run_pandoc_to_typst_slides(
+    curr_path: str,
+    file_name: str,
+    use_host_tools: bool,
+    dockerized_force_rebuild: bool,
+    dockerized_use_sudo: bool,
+    *,
+    typst_only: bool = False,
+) -> str:
+    """
+    Convert the input file to PDF slides using Pandoc + Typst/Touying.
+
+    The markdown is converted to a Typst file using a Touying template (instead
+    of beamer/LaTeX) and then compiled to PDF with a single `typst compile` pass
+    (no second pass needed, unlike pdflatex).
+
+    :param curr_path: The path where the script is located, used to reference
+        `pandoc_touying.typ`
+    :param file_name: The input file to be converted
+    :param typst_only: If True, return the `.typ` file instead of compiling to
+        PDF
+    :return: The path to the generated PDF (or `.typ` file)
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # - Run pandoc to convert markdown into a Typst file using the Touying
+    #   template.
+    template = f"{curr_path}/pandoc_touying.typ"
+    hdbg.dassert_path_exists(template)
+    typ_file = file_name.replace(".txt", ".typ")
+    cmd = []
+    cmd.append(f"pandoc {file_name}")
+    cmd.append("-f markdown")
+    cmd.append("--number-sections")
+    cmd.append("-s")
+    cmd.append("-t typst")
+    cmd.append(f"--template {template}")
+    # Images are referenced relative to the resource path, mirroring the beamer
+    # path.
+    rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+    cmd.append(f"--resource-path={rel_path}")
+    cmd.append(f"-o {typ_file}")
+    cmd = " ".join(cmd)
+    _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
+    if not use_host_tools:
+        container_type = "pandoc_only"
+        cmd = dshdlipa.run_dockerized_pandoc(
+            cmd,
+            container_type,
+            mode="return_cmd",
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
+        )
+    _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
+    _ = _system(cmd)
+    hdbg.dassert_path_exists(typ_file)
+    # Return the `.typ` file if typst_only mode is requested.
+    if typst_only:
+        _LOG.info("typst_only=True: skipping typst compile, returning .typ file")
+        return typ_file
+    # - Compile the Typst file to PDF.
+    _report_phase("typst compile")
+    pdf_file = typ_file.replace(".typ", ".pdf")
+    if use_host_tools:
+        cmd = f"typst compile {typ_file} {pdf_file}"
+        _ = _system(cmd)
+    else:
+        dshdlity.run_dockerized_typst(
+            typ_file,
+            pdf_file,
+            [],
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
+        )
+    _LOG.debug("pdf_file=%s", pdf_file)
+    hdbg.dassert_path_exists(pdf_file)
+    return pdf_file
+
+
 # #############################################################################
 
 
@@ -669,15 +748,25 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.toc_type,
             )
         elif args.type == "slides":
-            file_out = _run_pandoc_to_slides(
-                file_name,
-                args.toc_type,
-                args.use_host_tools,
-                args.dockerized_force_rebuild,
-                args.dockerized_use_sudo,
-                debug=args.debug_on_error,
-                tex_only=args.tex_only,
-            )
+            if args.slides_engine == "typst":
+                file_out = _run_pandoc_to_typst_slides(
+                    curr_path,
+                    file_name,
+                    args.use_host_tools,
+                    args.dockerized_force_rebuild,
+                    args.dockerized_use_sudo,
+                    typst_only=args.tex_only,
+                )
+            else:
+                file_out = _run_pandoc_to_slides(
+                    file_name,
+                    args.toc_type,
+                    args.use_host_tools,
+                    args.dockerized_force_rebuild,
+                    args.dockerized_use_sudo,
+                    debug=args.debug_on_error,
+                    tex_only=args.tex_only,
+                )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
@@ -792,13 +881,27 @@ def _parse() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--slides_engine",
+        action="store",
+        default="beamer",
+        choices=["beamer", "typst"],
+        help=(
+            "Engine used to render slides (only for `--type slides`): "
+            "'beamer': pandoc -> LaTeX/beamer -> pdflatex (default); "
+            "'typst': pandoc -> Typst/Touying -> typst compile"
+        ),
+    )
+    parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
     )
     parser.add_argument(
         "--tex_only",
         action="store_true",
         default=False,
-        help="Generate only the .tex file without compiling to PDF",
+        help=(
+            "Generate only the intermediate source file (`.tex` for beamer, "
+            "`.typ` for typst) without compiling to PDF"
+        ),
     )
     parser.add_argument("--debug_on_error", action="store_true", default=False)
     parser.add_argument(

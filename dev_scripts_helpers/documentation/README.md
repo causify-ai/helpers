@@ -177,6 +177,8 @@
 
 # Description of Executables
 
+// TODO(ai_gp): Organize them by type of operation (like done in List of Tools)
+
 ## `notes_to_pdf.py`
 
 ### What It Does

@@ -18,9 +18,12 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Version pins for tools
+# Version pins for tools.
 _ALPINE_VERSION = "3.23"
 _TYPST_VERSION = "0.14.2"
+# Touying presentation package (and its dependencies) pre-cached into the image
+# so that `notes_to_pdf.py --slides_engine typst` compiles offline.
+_TOUYING_VERSION = "0.6.1"
 
 # Name and Dockerfile for the Typst container, exposed so tests can reference
 # them directly without duplicating the definition.
@@ -69,6 +72,21 @@ RUN apk add --no-cache ttf-dejavu && \
         -o /usr/share/fonts/lato/Lato-Italic.ttf && \
     curl -fsSL "${{BASE}}/ofl/lato/Lato-BoldItalic.ttf" \
         -o /usr/share/fonts/lato/Lato-BoldItalic.ttf
+
+# Pre-cache the Touying package (and its transitive dependencies) by compiling a
+# stub document that imports it. The cache lives under `XDG_CACHE_HOME` so it is
+# shared regardless of the user the container runs as, and is made world-readable
+# since the container is invoked with `--user $(id -u):$(id -g)`.
+ENV XDG_CACHE_HOME=/opt/typst-cache
+RUN mkdir -p /opt/typst-cache && \
+    printf '%s\n' \
+        '#import "@preview/touying:{_TOUYING_VERSION}": *' \
+        '#import themes.simple: *' \
+        '#show: simple-theme' \
+        '= warmup' > /tmp/warm.typ && \
+    typst compile /tmp/warm.typ /tmp/warm.pdf && \
+    rm -f /tmp/warm.typ /tmp/warm.pdf && \
+    chmod -R a+rX /opt/typst-cache
 
 # Set working directory.
 WORKDIR /workspace
