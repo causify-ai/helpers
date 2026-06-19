@@ -64,7 +64,8 @@
 
 - This section describes the high-level technical blocks
 
-// TODO(ai_gp): This is too detailed split in different diagrams
+### C2.1: CLI & Orchestration
+
 <!--  rendered_images:begin -->
 <!--  ```mermaid -->
 <!--  graph TB -->
@@ -79,6 +80,18 @@
 <!--          Cleanup["_cleanup_before()/<br/>_cleanup_after()"] -->
 <!--      end -->
 <!--       -->
+<!--      Parse -->|"parsed args"| Main -->
+<!--      Main -->|"execute pipeline"| RunAll -->
+<!--      RunAll -->|"orchestrate actions"| MarkAction -->
+<!--      RunAll -->|"cleanup state"| Cleanup -->
+<!--  ``` -->
+<!--  rendered_images:end -->
+
+### C2.2: Processing & Conversion Pipeline
+
+<!--  rendered_images:begin -->
+<!--  ```mermaid -->
+<!--  graph TB -->
 <!--      subgraph Processing["Processing Stages"] -->
 <!--          Preprocess["_preprocess_notes()"] -->
 <!--          RenderImg["_render_images()"] -->
@@ -91,6 +104,19 @@
 <!--          ToTypstSlides["_run_pandoc_to_typst_slides()"] -->
 <!--      end -->
 <!--       -->
+<!--      Preprocess -->|"execute stages"| RenderImg -->
+<!--      RenderImg -->|"convert format"| ToPDF -->
+<!--      RenderImg -->|"convert format"| ToHTML -->
+<!--      RenderImg -->|"convert format"| ToSlides -->
+<!--      RenderImg -->|"convert format"| ToTypstSlides -->
+<!--  ``` -->
+<!--  rendered_images:end -->
+
+### C2.3: Post-Processing & System Operations
+
+<!--  rendered_images:begin -->
+<!--  ```mermaid -->
+<!--  graph TB -->
 <!--      subgraph PostProc["Post-Processing"] -->
 <!--          Compress["_compress_pdf()"] -->
 <!--          CopyOut["_copy_to_output()"] -->
@@ -100,31 +126,18 @@
 <!--      subgraph SystemOps["System Operations"] -->
 <!--          System["_system()"] -->
 <!--          SystemStr["_system_to_string()"] -->
-<!--          Log["_log_system()"] -->
 <!--          Report["_report_phase()"] -->
 <!--          Script["_append_script()"] -->
 <!--      end -->
 <!--       -->
-<!--      Parse -->|"parsed args"| Main -->
-<!--      Main -->|"execute pipeline"| RunAll -->
-<!--      RunAll -->|"orchestrate actions"| MarkAction -->
-<!--      RunAll -->|"cleanup state"| Cleanup -->
-<!--      RunAll -->|"execute stages"| Preprocess -->
-<!--      RunAll -->|"execute stages"| RenderImg -->
-<!--      RunAll -->|"convert format"| ToPDF -->
-<!--      RunAll -->|"convert format"| ToHTML -->
-<!--      RunAll -->|"convert format"| ToSlides -->
-<!--      RunAll -->|"convert format"| ToTypstSlides -->
-<!--      RunAll -->|"post-process"| Compress -->
-<!--      RunAll -->|"post-process"| CopyOut -->
-<!--      RunAll -->|"post-process"| CopyGDrive -->
-<!--      ToPDF -->|"system calls"| System -->
-<!--      ToHTML -->|"system calls"| SystemStr -->
-<!--      Preprocess -->|"logging"| Report -->
-<!--      All -->|"script tracking"| Script -->
+<!--      Compress -->|"post-process"| CopyOut -->
+<!--      CopyOut -->|"post-process"| CopyGDrive -->
+<!--      System -->|"system calls"| Compress -->
+<!--      SystemStr -->|"system calls"| CopyOut -->
+<!--      Report -->|"logging"| Compress -->
+<!--      Script -->|"script tracking"| System -->
 <!--  ``` -->
 <!--  rendered_images:end -->
-<!--  render_images:begin -->
 ![](README.notes_to_pdf.md.figs/README.notes_to_pdf.2.png)
 <!--  render_images:end -->
 
@@ -144,61 +157,79 @@
 
 - Shows the components inside a container
 
-// TODO(ai_gp): Use a different plot style instead of sequenceDiagram
 <!--  rendered_images:begin -->
 <!--  ```mermaid -->
-<!--  sequenceDiagram -->
-<!--      participant User -->
-<!--      participant CLI as _parse/_main -->
-<!--      participant Orchestrator as _run_all -->
-<!--      participant Actions as _mark_action -->
-<!--      participant Process as _preprocess_notes -->
-<!--      participant Images as _render_images -->
-<!--      participant Convert as Format Converters -->
-<!--      participant PostProc as Post-Processing -->
-<!--       -->
-<!--      User->>CLI: invoke with args -->
-<!--      CLI->>Orchestrator: execute _run_all(args) -->
-<!--       -->
-<!--      Orchestrator->>Actions: mark 'cleanup_before' -->
-<!--      Actions-->>Orchestrator: enabled? -->
-<!--      Orchestrator->>Orchestrator: _cleanup_before(prefix) -->
-<!--       -->
-<!--      Orchestrator->>Orchestrator: filter content (if requested) -->
-<!--       -->
-<!--      Orchestrator->>Actions: mark 'preprocess_notes' -->
-<!--      Actions-->>Orchestrator: enabled? -->
-<!--      Orchestrator->>Process: _preprocess_notes() -->
-<!--      Process-->>Orchestrator: processed file -->
-<!--       -->
-<!--      Orchestrator->>Actions: mark 'render_images' -->
-<!--      Actions-->>Orchestrator: enabled? -->
-<!--      Orchestrator->>Images: _render_images() -->
-<!--      Images-->>Orchestrator: rendered file -->
-<!--       -->
-<!--      Orchestrator->>Actions: mark 'run_pandoc' -->
-<!--      Actions-->>Orchestrator: enabled? -->
-<!--       -->
-<!--      alt type == 'pdf' -->
-<!--          Orchestrator->>Convert: _run_pandoc_to_pdf() -->
-<!--      else type == 'html' -->
-<!--          Orchestrator->>Convert: _run_pandoc_to_html() -->
-<!--      else type == 'slides' -->
-<!--          Orchestrator->>Convert: _run_pandoc_to_slides() or _run_pandoc_to_typst_slides() -->
-<!--      end -->
-<!--      Convert-->>Orchestrator: output file -->
-<!--       -->
-<!--      Orchestrator->>PostProc: _compress_pdf() (if enabled) -->
-<!--      PostProc-->>Orchestrator: compressed file -->
-<!--       -->
-<!--      Orchestrator->>PostProc: _copy_to_output() -->
-<!--      PostProc-->>Orchestrator: final output path -->
-<!--       -->
-<!--      Orchestrator->>PostProc: _copy_to_gdrive() (if enabled) -->
-<!--       -->
-<!--      Orchestrator->>Orchestrator: _cleanup_after (if enabled) -->
-<!--       -->
-<!--      Orchestrator-->>User: success -->
+<!--  graph TD -->
+<!--      Start["User invokes CLI<br/>_parse() receives args"] -->
+<!--      Main["_main() → _run_all()"] -->
+<!--      -->
+<!--      CleanBefore{"Mark<br/>cleanup_before?"}-->
+<!--      CleanBeforeExec["_cleanup_before(prefix)"] -->
+<!--      -->
+<!--      FilterContent["Filter content<br/>(if requested)"] -->
+<!--      -->
+<!--      PreprocessMark{"Mark<br/>preprocess_notes?"}-->
+<!--      PreprocessExec["_preprocess_notes()<br/>→ processed file"] -->
+<!--      -->
+<!--      RenderImagesMark{"Mark<br/>render_images?"}-->
+<!--      RenderImagesExec["_render_images()<br/>→ rendered file"] -->
+<!--      -->
+<!--      MarkPandoc{"Mark<br/>run_pandoc?"}-->
+<!--      ConvertType{"Output<br/>type?"}-->
+<!--      ConvertPDF["_run_pandoc_to_pdf()<br/>→ PDF path"] -->
+<!--      ConvertHTML["_run_pandoc_to_html()<br/>→ HTML path"] -->
+<!--      ConvertSlides["_run_pandoc_to_slides()<br/>or _run_pandoc_to_typst_slides()<br/>→ Slides path"] -->
+<!--      -->
+<!--      CompressMark{"Mark<br/>compress_pdf?"}-->
+<!--      CompressExec["_compress_pdf()<br/>→ compressed file"] -->
+<!--      -->
+<!--      CopyOutput["_copy_to_output()<br/>→ final output path"] -->
+<!--      -->
+<!--      CopyGDriveMark{"Mark<br/>copy_gdrive?"}-->
+<!--      CopyGDriveExec["_copy_to_gdrive()"] -->
+<!--      -->
+<!--      CleanAfterMark{"Mark<br/>cleanup_after?"}-->
+<!--      CleanAfterExec["_cleanup_after(prefix)"] -->
+<!--      -->
+<!--      Success["Success<br/>Return to User"] -->
+<!--      -->
+<!--      Start --> Main -->
+<!--      Main --> CleanBefore -->
+<!--      CleanBefore -->|yes| CleanBeforeExec -->
+<!--      CleanBefore -->|no| FilterContent -->
+<!--      CleanBeforeExec --> FilterContent -->
+<!--      -->
+<!--      FilterContent --> PreprocessMark -->
+<!--      PreprocessMark -->|yes| PreprocessExec -->
+<!--      PreprocessMark -->|no| RenderImagesMark -->
+<!--      PreprocessExec --> RenderImagesMark -->
+<!--      -->
+<!--      RenderImagesMark -->|yes| RenderImagesExec -->
+<!--      RenderImagesMark -->|no| MarkPandoc -->
+<!--      RenderImagesExec --> MarkPandoc -->
+<!--      -->
+<!--      MarkPandoc -->|yes| ConvertType -->
+<!--      MarkPandoc -->|no| CompressMark -->
+<!--      -->
+<!--      ConvertType -->|pdf| ConvertPDF -->
+<!--      ConvertType -->|html| ConvertHTML -->
+<!--      ConvertType -->|slides| ConvertSlides -->
+<!--      ConvertPDF --> CompressMark -->
+<!--      ConvertHTML --> CompressMark -->
+<!--      ConvertSlides --> CompressMark -->
+<!--      -->
+<!--      CompressMark -->|yes| CompressExec -->
+<!--      CompressMark -->|no| CopyOutput -->
+<!--      CompressExec --> CopyOutput -->
+<!--      -->
+<!--      CopyOutput --> CopyGDriveMark -->
+<!--      CopyGDriveMark -->|yes| CopyGDriveExec -->
+<!--      CopyGDriveMark -->|no| CleanAfterMark -->
+<!--      CopyGDriveExec --> CleanAfterMark -->
+<!--      -->
+<!--      CleanAfterMark -->|yes| CleanAfterExec -->
+<!--      CleanAfterMark -->|no| Success -->
+<!--      CleanAfterExec --> Success -->
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
@@ -235,24 +266,22 @@
 
 - **Function List**
 
-// TODO(ai_gp): Remove signature column
-
-| Function | Signature | Purpose |
-|----------|-----------|---------|
-| `_run_all(args)` | `_run_all(args: argparse.Namespace) -> None` | Main orchestrator; manages entire pipeline execution and action sequencing |
-| `_preprocess_notes()` | `_preprocess_notes(file_name: str, prefix: str, type_: str, toc_type: str) -> str` | Calls external preprocessor script; returns processed file path |
-| `_render_images()` | `_render_images(file_name: str, prefix: str) -> str` | Renders inline diagram/image specs; filters commented code; returns file path |
-| `_run_pandoc_to_pdf()` | `_run_pandoc_to_pdf(curr_path: str, file_name: str, prefix: str, toc_type: str, no_run_latex_again: bool, use_host_tools: bool, dockerized_force_rebuild: bool, dockerized_use_sudo: bool, *, tex_only: bool = False) -> str` | Converts markdown → LaTeX → PDF via Pandoc and pdflatex (2 passes); returns PDF path |
-| `_run_pandoc_to_html()` | `_run_pandoc_to_html(file_in: str, prefix: str, toc_type: str) -> str` | Converts markdown to HTML via Pandoc; returns HTML path |
-| `_run_pandoc_to_slides()` | `_run_pandoc_to_slides(file_name: str, toc_type: str, use_host_tools: bool, dockerized_force_rebuild: bool, dockerized_use_sudo: bool, *, debug: bool = False, tex_only: bool = False) -> str` | Converts markdown to Beamer PDF slides; returns PDF path or .tex if `tex_only=True` |
-| `_run_pandoc_to_typst_slides()` | `_run_pandoc_to_typst_slides(curr_path: str, file_name: str, use_host_tools: bool, dockerized_force_rebuild: bool, dockerized_use_sudo: bool, *, typst_only: bool = False) -> str` | Converts markdown → Typst/Touying → PDF slides; returns PDF path or .typ if `typst_only=True` |
-| `_compress_pdf()` | `_compress_pdf(file_name: str) -> str` | Compresses PDF via ghostscript; in-place modification; returns file path |
-| `_copy_to_output()` | `_copy_to_output(file_in: str, output: str) -> str` | Copies processed file to output location; returns output path |
-| `_copy_to_gdrive()` | `_copy_to_gdrive(file_name: str, ext: str, input_: str, gdrive_dir: str) -> None` | Copies output to Google Drive archive directory |
-| `_cleanup_before()` | `_cleanup_before(prefix: str) -> None` | Removes intermediate files matching prefix pattern and cache files |
-| `_cleanup_after()` | `_cleanup_after(prefix: str) -> None` | Removes intermediate files matching prefix pattern |
-| `_system()` | `_system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int` | Executes shell command; logs output; optionally appends to script; returns exit code |
-| `_system_to_string()` | `_system_to_string(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> Tuple[int, str]` | Executes shell command; captures stdout; returns (exit_code, output) |
+| Function | Purpose |
+|----------|---------|
+| `_run_all(args)` | Main orchestrator; manages entire pipeline execution and action sequencing |
+| `_preprocess_notes()` | Calls external preprocessor script; returns processed file path |
+| `_render_images()` | Renders inline diagram/image specs; filters commented code; returns file path |
+| `_run_pandoc_to_pdf()` | Converts markdown → LaTeX → PDF via Pandoc and pdflatex (2 passes); returns PDF path |
+| `_run_pandoc_to_html()` | Converts markdown to HTML via Pandoc; returns HTML path |
+| `_run_pandoc_to_slides()` | Converts markdown to Beamer PDF slides; returns PDF path or .tex if `tex_only=True` |
+| `_run_pandoc_to_typst_slides()` | Converts markdown → Typst/Touying → PDF slides; returns PDF path or .typ if `typst_only=True` |
+| `_compress_pdf()` | Compresses PDF via ghostscript; in-place modification; returns file path |
+| `_copy_to_output()` | Copies processed file to output location; returns output path |
+| `_copy_to_gdrive()` | Copies output to Google Drive archive directory |
+| `_cleanup_before()` | Removes intermediate files matching prefix pattern and cache files |
+| `_cleanup_after()` | Removes intermediate files matching prefix pattern |
+| `_system()` | Executes shell command; logs output; optionally appends to script; returns exit code |
+| `_system_to_string()` | Executes shell command; captures stdout; returns (exit_code, output) |
 
 - **Notable Code Patterns:**
 
