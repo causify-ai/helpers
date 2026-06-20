@@ -10,7 +10,7 @@ import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 """
 
 import logging
-from typing import List, Optional
+from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker

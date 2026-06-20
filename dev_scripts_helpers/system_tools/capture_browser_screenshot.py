@@ -277,13 +277,13 @@ def _parse() -> argparse.ArgumentParser:
         "--window_width",
         type=int,
         default=DEFAULT_WINDOW_WIDTH,
-        help=f"Browser window width in pixels",
+        help="Browser window width in pixels",
     )
     parser.add_argument(
         "--window_height",
         type=int,
         default=DEFAULT_WINDOW_HEIGHT,
-        help=f"Browser window height in pixels",
+        help="Browser window height in pixels",
     )
     parser.add_argument(
         "--include_background",

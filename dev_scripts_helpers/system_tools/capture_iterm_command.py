@@ -69,7 +69,9 @@ def _run_in_iterm(
     """
     hdbg.dassert_ne(command, "", "Command cannot be empty")
     hdbg.dassert_ne(output_file, "", "Output file path cannot be empty")
-    hdbg.dassert_lte(0, delay_seconds, "Delay must be non-negative: %d", delay_seconds)
+    hdbg.dassert_lte(
+        0, delay_seconds, "Delay must be non-negative: %d", delay_seconds
+    )
     _LOG.info("Opening iTerm and running command='%s'", command)
     # Build command.
     final_command = command

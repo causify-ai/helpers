@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# TODO(ai_gp): Explain the meaning of mode and backend
 """
 Render and open markdown files in different modes.
 
@@ -44,8 +45,9 @@ def _run_render_images(input_file: str) -> str:
     render_images_script = hgit.find_file("render_images.py")
     hdbg.dassert_file_exists(render_images_script)
     # Create output filename.
-    output_file = f"tmp.open_md.render_images.md"
+    output_file = "tmp.open_md.render_images.md"
     # Run render_images.py.
+    # TODO(ai_gp): Build it with a list.
     cmd = f"{render_images_script} --input {input_file} --output {output_file} --action render"
     _LOG.info("Running render_images: %s", cmd)
     hsystem.system(cmd)
@@ -55,7 +57,7 @@ def _run_render_images(input_file: str) -> str:
 
 def _convert_ssh_to_https(remote_url: str) -> str:
     """
-    Convert git@github.com:org/repo.git to https://github.com/org/repo.
+    Convert `git@github.com:org/repo.git` to `https://github.com/org/repo`.
 
     :param remote_url: Remote URL (SSH or HTTPS)
     :return: HTTPS URL
@@ -63,7 +65,8 @@ def _convert_ssh_to_https(remote_url: str) -> str:
     # If already HTTPS, return as-is.
     if remote_url.startswith("https://"):
         return remote_url.replace(".git", "")
-    # Convert SSH to HTTPS: git@github.com:org/repo.git -> https://github.com/org/repo
+    # Convert SSH to HTTPS: git@github.com:org/repo.git ->
+    # https://github.com/org/repo
     if remote_url.startswith("git@"):
         # Extract host and path from: git@github.com:org/repo.git
         parts = remote_url.replace(":", "/").replace("git@", "https://")
@@ -90,7 +93,8 @@ def _open_file(file_path: str) -> None:
         subprocess.run(["xdg-open", file_path], check=True)
         _LOG.info("Opened file: '%s'", file_path)
     else:
-        _LOG.warning("Cannot open file on unsupported OS: %s", platform.system())
+        _LOG.warning("Cannot open file on unsupported OS: %s",
+                     platform.system())
 
 
 def _open_on_github(input_file: str) -> None:
@@ -156,6 +160,7 @@ def _render_with_pandoc(
         hsystem.system(cmd)
     elif backend == "dockerized":
         # Use dockerized pandoc.
+        # TODO(ai_gp): Build it with multiple lines.
         cmd = f"pandoc {processed_file} -o {output_file} --resource-path={file_dir} --standalone"
         _LOG.info("Running dockerized pandoc: %s", cmd)
         dshdlipa.run_dockerized_pandoc(
@@ -259,7 +264,7 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         choices=_VALID_BACKENDS,
         default="global",
-        help="Backend to use for rendering (global or dockerized)",
+        help="Backend to use for rendering",
     )
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
