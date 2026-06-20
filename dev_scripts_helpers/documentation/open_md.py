@@ -105,27 +105,54 @@ def _open_file(file_path: str) -> None:
                      platform.system())
 
 
+def _find_git_root_for_file(file_path: str) -> str:
+    """
+    Find the git root directory for a file, handling subrepos.
+
+    Walks up from file's directory to find the closest ancestor with .git.
+
+    :param file_path: Path to the file
+    :return: Git root directory
+    """
+    current_dir = os.path.dirname(os.path.abspath(file_path))
+    while current_dir != os.path.dirname(current_dir):  # Stop at filesystem root
+        git_dir = os.path.join(current_dir, ".git")
+        if os.path.exists(git_dir):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    # Fallback: use the main repo root
+    return hgit.get_client_root(super_module=True)
+
+
 def _open_on_github(input_file: str) -> None:
     """
     Open markdown file on GitHub in the browser.
+
+    Handles files in subrepos by detecting the correct git root.
 
     :param input_file: Path to the markdown file
     """
     _LOG.info("Opening file on GitHub: '%s'", input_file)
     # Validate input file exists.
     hdbg.dassert_file_exists(input_file)
-    # Get absolute path and repo root.
+    # Get absolute path and find the correct git root (handles subrepos).
     abs_file = os.path.abspath(input_file)
-    repo_root = hgit.get_client_root(super_module=True)
+    repo_root = _find_git_root_for_file(abs_file)
+    _LOG.info("Git root: %s", repo_root)
     # Compute relative path from repo root.
     rel_path = os.path.relpath(abs_file, repo_root)
-    # Get remote URL and convert to HTTPS.
-    ret, remote_url = hsystem.system_to_one_line("git remote get-url origin")
-    hdbg.dassert_eq(ret, 0, "Failed to get git remote URL")
-    remote_url = remote_url.strip()
-    remote_url = _convert_ssh_to_https(remote_url)
-    # Get current branch.
-    branch = hgit.get_branch_name(".")
+    # Get remote URL for this git repo and convert to HTTPS.
+    orig_dir = os.getcwd()
+    try:
+        os.chdir(repo_root)
+        ret, remote_url = hsystem.system_to_one_line("git remote get-url origin")
+        hdbg.dassert_eq(ret, 0, "Failed to get git remote URL")
+        remote_url = remote_url.strip()
+        remote_url = _convert_ssh_to_https(remote_url)
+        # Get current branch for this repo.
+        branch = hgit.get_branch_name(".")
+    finally:
+        os.chdir(orig_dir)
     # Build GitHub URL.
     url = f"{remote_url}/blob/{branch}/{rel_path}"
     _LOG.info("GitHub URL: %s", url)
