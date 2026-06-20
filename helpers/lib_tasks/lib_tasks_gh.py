@@ -12,7 +12,7 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import invoke.exceptions as invexc
-from invoke import task
+from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
