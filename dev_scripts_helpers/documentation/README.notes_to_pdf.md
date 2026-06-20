@@ -86,6 +86,9 @@
 <!--      RunAll -->|"cleanup state"| Cleanup -->
 <!--  ``` -->
 <!--  rendered_images:end -->
+<!--  render_images:begin -->
+![](README.notes_to_pdf.md.figs/README.notes_to_pdf.2.png)
+<!--  render_images:end -->
 
 ### C2.2: Processing & Conversion Pipeline
 
@@ -111,6 +114,9 @@
 <!--      RenderImg -->|"convert format"| ToTypstSlides -->
 <!--  ``` -->
 <!--  rendered_images:end -->
+<!--  render_images:begin -->
+![](README.notes_to_pdf.md.figs/README.notes_to_pdf.3.png)
+<!--  render_images:end -->
 
 ### C2.3: Post-Processing & System Operations
 
@@ -138,8 +144,10 @@
 <!--      Script -->|"script tracking"| System -->
 <!--  ``` -->
 <!--  rendered_images:end -->
-![](README.notes_to_pdf.md.figs/README.notes_to_pdf.2.png)
+<!--  render_images:begin -->
+![](README.notes_to_pdf.md.figs/README.notes_to_pdf.4.png)
 <!--  render_images:end -->
+![](README.notes_to_pdf.md.figs/README.notes_to_pdf.2.png)
 
 - **Responsibilities:**
   - _CLI Interface_: Argument parsing and main entry point
@@ -163,32 +171,32 @@
 <!--      Start["User invokes CLI<br/>_parse() receives args"] -->
 <!--      Main["_main() → _run_all()"] -->
 <!--      -->
-<!--      CleanBefore{"Mark<br/>cleanup_before?"}-->
+<!--      CleanBefore{"Mark<br/>cleanup_before?"}--> -->
 <!--      CleanBeforeExec["_cleanup_before(prefix)"] -->
 <!--      -->
 <!--      FilterContent["Filter content<br/>(if requested)"] -->
 <!--      -->
-<!--      PreprocessMark{"Mark<br/>preprocess_notes?"}-->
+<!--      PreprocessMark{"Mark<br/>preprocess_notes?"}--> -->
 <!--      PreprocessExec["_preprocess_notes()<br/>→ processed file"] -->
 <!--      -->
-<!--      RenderImagesMark{"Mark<br/>render_images?"}-->
+<!--      RenderImagesMark{"Mark<br/>render_images?"}--> -->
 <!--      RenderImagesExec["_render_images()<br/>→ rendered file"] -->
 <!--      -->
-<!--      MarkPandoc{"Mark<br/>run_pandoc?"}-->
-<!--      ConvertType{"Output<br/>type?"}-->
+<!--      MarkPandoc{"Mark<br/>run_pandoc?"}--> -->
+<!--      ConvertType{"Output<br/>type?"}--> -->
 <!--      ConvertPDF["_run_pandoc_to_pdf()<br/>→ PDF path"] -->
 <!--      ConvertHTML["_run_pandoc_to_html()<br/>→ HTML path"] -->
 <!--      ConvertSlides["_run_pandoc_to_slides()<br/>or _run_pandoc_to_typst_slides()<br/>→ Slides path"] -->
 <!--      -->
-<!--      CompressMark{"Mark<br/>compress_pdf?"}-->
+<!--      CompressMark{"Mark<br/>compress_pdf?"}--> -->
 <!--      CompressExec["_compress_pdf()<br/>→ compressed file"] -->
 <!--      -->
 <!--      CopyOutput["_copy_to_output()<br/>→ final output path"] -->
 <!--      -->
-<!--      CopyGDriveMark{"Mark<br/>copy_gdrive?"}-->
+<!--      CopyGDriveMark{"Mark<br/>copy_gdrive?"}--> -->
 <!--      CopyGDriveExec["_copy_to_gdrive()"] -->
 <!--      -->
-<!--      CleanAfterMark{"Mark<br/>cleanup_after?"}-->
+<!--      CleanAfterMark{"Mark<br/>cleanup_after?"}--> -->
 <!--      CleanAfterExec["_cleanup_after(prefix)"] -->
 <!--      -->
 <!--      Success["Success<br/>Return to User"] -->
@@ -233,7 +241,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.notes_to_pdf.md.figs/README.notes_to_pdf.3.png)
+![](README.notes_to_pdf.md.figs/README.notes_to_pdf.5.png)
 <!--  render_images:end -->
 
 - **Key Component Interactions:**
