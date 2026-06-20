@@ -12,6 +12,7 @@
     + [Step 5: Run Tests with Coverage](#step-5-run-tests-with-coverage)
     + [Step 6: Collect and Merge Coverage Data](#step-6-collect-and-merge-coverage-data)
     + [Step 7: View Coverage Report](#step-7-view-coverage-report)
+  * [Resources](#resources)
 
 <!-- tocstop -->
 
@@ -139,3 +140,10 @@ coverage html
 python3 -m http.server --directory htmlcov 8000
 # Navigate to Http://Localhost:8000
 ```
+
+## Resources
+
+- [Reference documentation](/docs/tools/all.code_coverage_subprocess.reference.md) -
+  Complete API and troubleshooting details
+- [Explanation documentation](/docs/tools/all.code_coverage_subprocess.explanation.md)-
+  Explanation of the architecture and current workflow

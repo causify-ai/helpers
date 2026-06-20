@@ -6,6 +6,7 @@
   * [Function Reference](#function-reference)
   * [Docker Integration](#docker-integration)
   * [Troubleshooting](#troubleshooting)
+  * [Resources](#resources)
 
 <!-- tocstop -->
 
@@ -91,3 +92,10 @@ PYCODE
 - Container Permissions: Ensure 777 permissions for coverage directory, 644 for
   `.coveragerc`.
 - Path Mapping Issues: Verify `[paths]` maps `/app` to `.` in `.coveragerc`.
+
+## Resources
+
+- [How-to guide](/docs/tools/all.code_coverage_subprocess.how_to_guide.md) -
+  Step-by-step implementation instructions
+- [Explanation documentation](/docs/tools/all.code_coverage_subprocess.explanation.md)-
+  Explanation of the architecture and current workflow
