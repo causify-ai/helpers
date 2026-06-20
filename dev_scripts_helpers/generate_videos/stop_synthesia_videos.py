@@ -137,7 +137,7 @@ def _parse() -> argparse.Namespace:
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Stop Synthesia video generation."
+        description=__doc__,
     )
     hparser.add_verbosity_arg(parser)
     group = parser.add_mutually_exclusive_group(required=True)

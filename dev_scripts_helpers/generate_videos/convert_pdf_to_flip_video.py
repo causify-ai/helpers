@@ -203,7 +203,7 @@ def _parse() -> argparse.Namespace:
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Create a 'turning pages' video from a PDF (MoviePy 2.1.2 compatible)."
+        description=__doc__,
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument("pdf", help="Path to the PDF file")

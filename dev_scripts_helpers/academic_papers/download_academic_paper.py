@@ -409,7 +409,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     _DEFAULT_OUTPUT_DIR = os.path.expanduser(os.getenv("PAPERS_DIR", "."))
     parser = argparse.ArgumentParser(
-        description="Download academic papers with standardized filenames"
+        description=__doc__,
     )
     parser.add_argument(
         "-i",

@@ -196,7 +196,7 @@ def _parse() -> argparse.Namespace:
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Get Google Veo3 video generation status."
+        description=__doc__,
     )
     hparser.add_verbosity_arg(parser)
     # TODO(ai): Use functions in hparser.

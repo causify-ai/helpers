@@ -152,7 +152,7 @@ def _parse() -> argparse.Namespace:
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Create a Synthesia video from text + avatar."
+        description=__doc__,
     )
     hparser.add_verbosity_arg(parser)
     # Flow to process slides from a directory.

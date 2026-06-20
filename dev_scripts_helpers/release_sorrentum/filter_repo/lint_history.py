@@ -84,7 +84,7 @@ INTERNALS
     """
 
 parser = argparse.ArgumentParser(
-    description="Run a program (e.g. code formatter or linter) on files in history",
+    description=__doc__,
     epilog=example_text,
     formatter_class=argparse.RawDescriptionHelpFormatter,
 )

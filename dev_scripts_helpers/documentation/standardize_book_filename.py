@@ -24,7 +24,7 @@ def _parse() -> argparse.ArgumentParser:
     Parse command-line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="Standardize book filenames to a consistent format."
+        description=__doc__,
     )
     parser.add_argument(
         "-i",
