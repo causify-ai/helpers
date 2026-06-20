@@ -834,6 +834,37 @@
   def _main(parser: argparse.ArgumentParser) -> None:
   ```
 
+## Use Module Docstring for Parser Description
+
+- When creating an `ArgumentParser`, use the module docstring as the parser
+  description via `description=__doc__` instead of hardcoding a string
+- This keeps the parser help and module documentation in sync and reduces
+  duplication
+  - **Bad**: Hardcoded description string separate from module docstring
+    ```python
+    """
+    Script to process data files.
+    """
+
+    def _parse() -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(
+            description="Script to process data files."
+        )
+        return parser
+    ```
+  - **Good**: Use module docstring for parser description
+    ```python
+    """
+    Script to process data files.
+    """
+
+    def _parse() -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(
+            description=__doc__,
+        )
+        return parser
+    ```
+
 ## Script Shebang and Dependencies
 
 - For scripts with external package dependencies, use the `uv run` shebang with
