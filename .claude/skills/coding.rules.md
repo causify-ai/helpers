@@ -974,6 +974,33 @@
   # Argument validation is handled automatically by argparse
   ```
 
+## Do Not Repeat Default Values in Argument Help Text
+
+- When adding arguments to a parser, do not include the default value in the help
+  text since the `default=` parameter already documents it
+- Repeating the default in help text creates redundancy and maintenance burden
+
+- **Bad**: Default value repeated in help text
+  ```python
+  parser.add_argument(
+      "--browser",
+      type=str,
+      default="safari",
+      choices=["safari", "chrome"],
+      help="Browser to use for capturing (default: safari)",
+  )
+  ```
+- **Good**: Help text without redundant default value
+  ```python
+  parser.add_argument(
+      "--browser",
+      type=str,
+      default="safari",
+      choices=["safari", "chrome"],
+      help="Browser to use for capturing",
+  )
+  ```
+
 ## Use Single Types With Meaningful Defaults for Parser Inputs
 
 - When defining parser arguments, use a single consistent type (e.g., `str`, `int`)

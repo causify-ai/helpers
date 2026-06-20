@@ -282,7 +282,6 @@ def _run_claude_code(
         "ai",
         "cc",
     )
-    # TODO(ai_gp): Find cc using hgit.find_git_file
     cmd_parts = [
         _CC_WRAPPER,
         "--model",
