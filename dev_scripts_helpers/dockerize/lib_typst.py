@@ -136,8 +136,7 @@ def run_dockerized_typst(
     out_file_path: str,
     cmd_opts: List[str],
     *,
-    # TODO(ai_gp): root -> typst_root_dir
-    root: Optional[str] = None,
+    typst_root_dir: str = "",
     mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
@@ -160,7 +159,7 @@ def run_dockerized_typst(
     :param in_file_path: path to the Typst source file to compile
     :param out_file_path: path to the output PDF file
     :param cmd_opts: extra command options to pass to Typst
-    :param root: project root passed to `typst --root`. Typst resolves
+    :param typst_root_dir: project root passed to `typst --root`. Typst resolves
         root-absolute paths (e.g., `image("/foo.png")`) and forbids access
         above this directory. Used so that images referenced relative to the
         repo root resolve correctly regardless of where the `.typ` file lives
@@ -201,9 +200,9 @@ def run_dockerized_typst(
     )
     # Convert the project root to a Docker path, if specified.
     root_opt = ""
-    if root is not None:
-        root = hdocker.convert_caller_to_callee_docker_path(
-            root,
+    if typst_root_dir != "":
+        typst_root_dir = hdocker.convert_caller_to_callee_docker_path(
+            typst_root_dir,
             caller_mount_path,
             callee_mount_path,
             check_if_exists=True,
@@ -211,7 +210,7 @@ def run_dockerized_typst(
             is_caller_host=is_caller_host,
             use_sibling_container_for_callee=use_sibling_container_for_callee,
         )
-        root_opt = f"--root {root} "
+        root_opt = f"--root {typst_root_dir} "
     # Build the Typst command.
     cmd_opts_as_str = " ".join(cmd_opts)
     typst_cmd = (

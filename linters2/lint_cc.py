@@ -64,6 +64,7 @@ from typing import cast, Dict, Tuple
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hmarkdown_select as hmarsele
@@ -274,14 +275,7 @@ def _run_claude_code(
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
     # Call the cc wrapper which handles model routing and env setup.
-    # TODO(ai_gp): Maybe use the hgit.find_in
-    _CC_WRAPPER = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "dev_scripts_helpers",
-        "ai",
-        "cc",
-    )
+    _CC_WRAPPER = hgit.find_file("cc", dir_path=os.path.dirname(__file__))
     cmd_parts = [
         _CC_WRAPPER,
         "--model",

@@ -355,44 +355,88 @@ class Test_get_type_format_instruction(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Use an helper to factor out common code and add more examples.
 class Test_build_llm_prompt(hunitest.TestCase):
     """
     Test `_build_llm_prompt()` for constructing prompts from function metadata.
     """
 
+    def helper(
+        self,
+        func_name: str,
+        docstring: str,
+        return_type: type,
+        param_values: Dict[str, object],
+        expected_content: List[str],
+    ) -> None:
+        """
+        Test helper for `_build_llm_prompt()`.
+
+        :param func_name: Function name for the prompt
+        :param docstring: Docstring describing the task
+        :param return_type: Return type annotation
+        :param param_values: Dict of parameter names to values
+        :param expected_content: List of strings expected in the prompt
+        """
+        import inspect
+
+        # Create function signature based on param_values keys.
+        params = [
+            inspect.Parameter(
+                name, inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=object
+            )
+            for name in param_values.keys()
+        ]
+        sig = inspect.Signature(params)
+        bound_args = sig.bind(*param_values.values())
+        bound_args.apply_defaults()
+        # Run test.
+        prompt = hllmdeco._build_llm_prompt(
+            func_name, docstring, return_type, bound_args
+        )
+        # Check outputs: prompt includes expected content.
+        for expected in expected_content:
+            self.assertIn(expected, prompt)
+
     def test1(self) -> None:
         """
         Test prompt construction includes docstring, args, and format instruction.
         """
-        # Prepare inputs.
-        docstring = "Add two integers and return the sum."
-        return_type = int
-        # Simulate bound arguments.
-        import inspect
+        self.helper(
+            "add",
+            "Add two integers and return the sum.",
+            int,
+            {"a": 5, "b": 3},
+            ["Add two integers", "a = 5", "b = 3", "integer"],
+        )
 
-        sig = inspect.Signature(
+    def test2(self) -> None:
+        """
+        Test prompt construction with string return type.
+        """
+        self.helper(
+            "greet",
+            "Generate a greeting message.",
+            str,
+            {"name": "Alice", "greeting": "Hello"},
             [
-                inspect.Parameter(
-                    "a", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int
-                ),
-                inspect.Parameter(
-                    "b", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int
-                ),
-            ]
+                "Generate a greeting message",
+                "name = 'Alice'",
+                "greeting = 'Hello'",
+                "string",
+            ],
         )
-        bound_args = sig.bind(5, 3)
-        bound_args.apply_defaults()
-        # Run test.
-        prompt = hllmdeco._build_llm_prompt(
-            "add", docstring, return_type, bound_args
+
+    def test3(self) -> None:
+        """
+        Test prompt construction with list return type.
+        """
+        self.helper(
+            "split_text",
+            "Split text into words.",
+            List[str],
+            {"text": "hello world"},
+            ["Split text into words", "text = 'hello world'", "JSON array"],
         )
-        # Check outputs: prompt includes docstring, args, and format instruction.
-        # TODO(ai_gp): Use self.assert_equal(actual, expected)
-        self.assertIn("Add two integers", prompt)
-        self.assertIn("a = 5", prompt)
-        self.assertIn("b = 3", prompt)
-        self.assertIn("integer", prompt)
 
 
 # #############################################################################

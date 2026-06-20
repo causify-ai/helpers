@@ -60,6 +60,34 @@ This document contains all the rules that must be followed when writing a blog
 ## Types of Visuals
 - Follow the instructions from `.claude/skills/visuals.rules.md`
 
+## Screenshots of Commands
+- When documenting command-line tools or demonstrating CLI output, capture 
+  screenshots using:
+  ```bash
+  > capture_iterm_command.py --command "CMD" --output_file XYZ.png
+  ```
+- Save screenshots in a `<FILE>.figs/` directory with descriptive filenames:
+  - Use pattern: `fig<N>.<DESCRIPTION>.png`
+  - E.g., `fig1.help_output.png`, `fig2.demo_run.png`
+- Link screenshots in the blog post markdown:
+  ```markdown
+  ![Description of screenshot](./<BLOG_NAME>.figs/fig1.help_output.png)
+  ```
+
+## Screenshots of Browser Content
+- When documenting web applications, UIs, or browser-based tools, capture 
+  screenshots using:
+  ```bash
+  > capture_browser_screenshot.py --url "https://example.com" --output_file XYZ.png
+  ```
+- Save screenshots in a `<FILE>.figs/` directory with descriptive filenames:
+  - Use pattern: `fig<N>.<DESCRIPTION>.png`
+  - E.g., `fig1.dashboard_overview.png`, `fig2.form_submission.png`
+- Link screenshots in the blog post markdown:
+  ```markdown
+  ![Description of screenshot](./<BLOG_NAME>.figs/fig1.dashboard_overview.png)
+  ```
+
 # Writing Style
 
 ## Formatting Rules

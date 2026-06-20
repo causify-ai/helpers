@@ -186,7 +186,12 @@ def _coerce_value(response: str, target_type: Any) -> Any:
             return False
         raise ValueError("Cannot coerce '%s' to bool" % stripped)
     # Fallback: return the raw string.
-    # TODO(ai_gp): check that the target_type is string, otherwise assert
+    hdbg.dassert_eq(
+        target_type,
+        str,
+        "Unsupported type for coercion: %s",
+        target_type,
+    )
     return stripped
 
 

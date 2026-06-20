@@ -144,7 +144,7 @@ def _replace_with_links(
             continue
         if os.path.exists(dst_file):
             os.remove(dst_file)
-        # TODO(ai_gp): Use a dassert_in(link_type, ("relative", "absolute"))
+        hdbg.dassert_in(link_type, ("relative", "absolute"))
         try:
             if link_type == "relative":
                 link_target = os.path.relpath(

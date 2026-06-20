@@ -541,7 +541,7 @@ def _run_pandoc_to_typst_slides(
             typ_file,
             pdf_file,
             [],
-            root=root,
+            typst_root_dir=root,
             force_rebuild=dockerized_force_rebuild,
             use_sudo=dockerized_use_sudo,
         )

@@ -1199,8 +1199,8 @@ flowchart TD
     E4 --- E1
 ```
 
-// TODO(ai_gp): Add pointer to command lines to control cache
-// TODO(ai_gp): Remove level of markdown
+- See `helpers/hcache_simple.py` for command-line options to control cache
+  behavior (e.g., `--use_cache`, `--clear_cache`, `--force_refresh`).
 
 # Changelog
 

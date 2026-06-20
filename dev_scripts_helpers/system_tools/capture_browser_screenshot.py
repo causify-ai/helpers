@@ -4,6 +4,7 @@ Open a website in a browser, capture screenshot, and optionally close the browse
 
 By default:
 - Opens website in Safari
+- Sets browser window to 1024x768
 - Captures only browser window
 - Waits for page load
 - Opens the captured screenshot
@@ -18,6 +19,12 @@ Usage:
     --output_file screenshot.png \
     --delay_seconds 3 \
     --browser chrome
+
+> capture_browser_screenshot.py \
+    --url "https://example.com" \
+    --output_file screenshot.png \
+    --window_width 1920 \
+    --window_height 1080
 
 > capture_browser_screenshot.py \
     --url "https://example.com" \
@@ -41,6 +48,10 @@ _LOG = logging.getLogger(__name__)
 # Default delay for page load.
 DEFAULT_DELAY_SECONDS = 3
 
+# Default browser window size (width, height).
+DEFAULT_WINDOW_WIDTH = 1024
+DEFAULT_WINDOW_HEIGHT = 768
+
 # Supported browsers.
 SUPPORTED_BROWSERS = ["safari", "chrome"]
 
@@ -51,6 +62,8 @@ def _run_in_browser(
     delay_seconds: int,
     *,
     browser: str = "safari",
+    window_width: int = DEFAULT_WINDOW_WIDTH,
+    window_height: int = DEFAULT_WINDOW_HEIGHT,
     window_only: bool = True,
     open_file: bool = True,
     close_browser: bool = True,
@@ -63,6 +76,7 @@ def _run_in_browser(
 
     By default:
     - Uses Safari browser
+    - Sets browser window to 1024x768
     - Captures only the browser window (excluding other applications/desktop)
     - Waits for page load completion
     - Automatically opens the screenshot file after capture
@@ -74,6 +88,10 @@ def _run_in_browser(
         - Default: `DEFAULT_DELAY_SECONDS`
     :param browser: Browser to use ('safari' or 'chrome')
         - Default: `'safari'`
+    :param window_width: Browser window width in pixels
+        - Default: `DEFAULT_WINDOW_WIDTH` (1024)
+    :param window_height: Browser window height in pixels
+        - Default: `DEFAULT_WINDOW_HEIGHT` (768)
     :param window_only: Capture only browser window, exclude other windows/desktop
         - Default: `True`
     :param open_file: Automatically open captured screenshot with `open` command
@@ -88,6 +106,16 @@ def _run_in_browser(
         delay_seconds >= 0,
         "Delay must be non-negative: %d",
         delay_seconds,
+    )
+    hdbg.dassert(
+        window_width > 0,
+        "Window width must be positive: %d",
+        window_width,
+    )
+    hdbg.dassert(
+        window_height > 0,
+        "Window height must be positive: %d",
+        window_height,
     )
     hdbg.dassert_in(
         browser.lower(),
@@ -118,6 +146,26 @@ def _run_in_browser(
         end tell
         """
     subprocess.run(["osascript", "-e", apple_script])
+
+    # Resize browser window to specified dimensions.
+    _LOG.debug("Resizing window to %dx%d", window_width, window_height)
+    resize_script: str
+    if browser == "safari":
+        resize_script = f"""
+        tell application "Safari"
+            set w to front window
+            set bounds of w to {{0, 0, {window_width}, {window_height}}}
+        end tell
+        """
+    else:  # browser == "chrome"
+        resize_script = f"""
+        tell application "Google Chrome"
+            set w to front window
+            set bounds of w to {{0, 0, {window_width}, {window_height}}}
+        end tell
+        """
+    subprocess.run(["osascript", "-e", resize_script])
+
     _LOG.debug("Waiting '%d' seconds for page load", delay_seconds)
     time.sleep(delay_seconds)
     _LOG.info("Capturing screenshot and saving to '%s'", output_file)
@@ -223,7 +271,19 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         default="safari",
         choices=SUPPORTED_BROWSERS,
-        help="Browser to use for capturing (default: safari)",
+        help="Browser to use for capturing",
+    )
+    parser.add_argument(
+        "--window_width",
+        type=int,
+        default=DEFAULT_WINDOW_WIDTH,
+        help=f"Browser window width in pixels",
+    )
+    parser.add_argument(
+        "--window_height",
+        type=int,
+        default=DEFAULT_WINDOW_HEIGHT,
+        help=f"Browser window height in pixels",
     )
     parser.add_argument(
         "--include_background",
@@ -271,6 +331,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.output_file,
         args.delay_seconds,
         browser=args.browser,
+        window_width=args.window_width,
+        window_height=args.window_height,
         window_only=not args.include_background,
         open_file=not args.no_open,
         close_browser=not args.no_close,
