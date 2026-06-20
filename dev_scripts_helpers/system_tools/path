@@ -27,9 +27,11 @@ def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
     """
     Find a file in a directory and report the absolute path.
     """
-    # Recursive glob.
+    # Recursive glob with hidden dirs included.
     search_path = os.path.join(search_path, "**", filename)
-    files = glob.glob(search_path, recursive=True)
+    files = glob.glob(search_path, recursive=True, include_hidden=True)
+    # Filter out paths containing .git (but keep other hidden dirs like .claude).
+    files = [f for f in files if "/.git/" not in f and not f.endswith("/.git")]
     if len(files) == 1:
         return files[0]
     elif len(files) > 1:

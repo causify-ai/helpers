@@ -3,6 +3,9 @@
 # Render a markdown using Pandoc and then open it in a browser.
 #
 
+# TODO(gp): Convert to Python, add a step of render_images.py convert to HTML
+# (or PDF) and open in browser. Rename to render_md.py
+
 # Check if a file name is passed as an argument
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <filename>"

@@ -5,7 +5,6 @@ after capture is complete.
 
 By default:
 - captures only iTerm window
-- sources ~/.bashrc
 - opens the captured screenshot
 
 Usage:
@@ -17,7 +16,6 @@ Usage:
     --command "echo Hello" \
     --output_file hello.png \
     --delay_seconds 3 \
-    --no_bashrc
 
 > capture_iterm_command.py \
         --command "ls" \
@@ -45,7 +43,6 @@ def _run_in_iterm(
     output_file: str,
     delay_seconds: int,
     *,
-    use_bashrc: bool = True,
     window_only: bool = True,
     open_file: bool = True,
 ) -> None:
@@ -58,8 +55,6 @@ def _run_in_iterm(
     - saves a screenshot to the output file
 
     By default:
-    - Sources `~/.bashrc` before executing the command to ensure environment is
-      properly configured
     - Captures only the iTerm window (excluding other applications and desktop)
     - Automatically opens the screenshot file after capture.
 
@@ -67,8 +62,6 @@ def _run_in_iterm(
     :param output_file: Path where screenshot should be saved
     :param delay_seconds: Seconds to wait before taking screenshot
         - Default: `DEFAULT_DELAY_SECONDS`
-    :param use_bashrc: Whether to source `~/.bashrc` before running command
-        - Default: `True`
     :param window_only: Capture only iTerm window, exclude other windows/desktop
         - Default: `True`
     :param open_file: Automatically open captured screenshot with `open` command
@@ -78,11 +71,8 @@ def _run_in_iterm(
     hdbg.dassert_ne(output_file, "", "Output file path cannot be empty")
     hdbg.dassert_lte(0, delay_seconds, "Delay must be non-negative: %d", delay_seconds)
     _LOG.info("Opening iTerm and running command='%s'", command)
-    # Build command with optional bashrc sourcing.
+    # Build command.
     final_command = command
-    if use_bashrc:
-        final_command = f"source ~/.bashrc && {command}"
-        _LOG.debug("Command will be executed with ~/.bashrc sourced")
     # Open iTerm with ~120 character width and execute command.
     apple_script = f"""
     tell application "iTerm"
@@ -174,11 +164,6 @@ def _parse() -> argparse.ArgumentParser:
         help="Seconds to wait before capturing screenshot",
     )
     parser.add_argument(
-        "--no_bashrc",
-        action="store_true",
-        help="Do not source ~/.bashrc before running command",
-    )
-    parser.add_argument(
         "--include_background",
         action="store_true",
         help="Include background and other windows in screenshot",
@@ -218,7 +203,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.command,
         args.output_file,
         args.delay_seconds,
-        use_bashrc=not args.no_bashrc,
         window_only=not args.include_background,
         open_file=not args.no_open,
     )
