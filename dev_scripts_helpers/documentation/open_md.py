@@ -1,8 +1,17 @@
 #!/usr/bin/env python
 
-# TODO(ai_gp): Explain the meaning of mode and backend
 """
 Render and open markdown files in different modes.
+
+**Modes** (rendering engine):
+- github: Open file on GitHub in browser
+- pandoc: Convert markdown to HTML with pandoc
+- grip: Export markdown to HTML with grip
+- grip_daemon: Start grip daemon for live preview
+
+**Backends** (execution environment):
+- global: Use locally installed tools
+- dockerized: Use tools in Docker container
 
 Usage:
 > open_md.py --input xyz.md --mode github
@@ -26,11 +35,6 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-# Valid modes and backends.
-# TODO(ai_gp): Inline these constants.
-_VALID_MODES = ["github", "pandoc", "grip", "grip_daemon"]
-_VALID_BACKENDS = ["global", "dockerized"]
-
 # #############################################################################
 
 
@@ -47,10 +51,14 @@ def _run_render_images(input_file: str) -> str:
     # Create output filename.
     output_file = "tmp.open_md.render_images.md"
     # Run render_images.py.
-    # TODO(ai_gp): Build it with a list.
-    cmd = f"{render_images_script} --input {input_file} --output {output_file} --action render"
-    _LOG.info("Running render_images: %s", cmd)
-    hsystem.system(cmd)
+    cmd = [
+        render_images_script,
+        "--input", input_file,
+        "--output", output_file,
+        "--action", "render"
+    ]
+    _LOG.info("Running render_images: %s", " ".join(cmd))
+    hsystem.system(" ".join(cmd))
     hdbg.dassert_file_exists(output_file)
     return output_file
 
@@ -160,8 +168,12 @@ def _render_with_pandoc(
         hsystem.system(cmd)
     elif backend == "dockerized":
         # Use dockerized pandoc.
-        # TODO(ai_gp): Build it with multiple lines.
-        cmd = f"pandoc {processed_file} -o {output_file} --resource-path={file_dir} --standalone"
+        cmd = (
+            f"pandoc {processed_file} "
+            f"-o {output_file} "
+            f"--resource-path={file_dir} "
+            f"--standalone"
+        )
         _LOG.info("Running dockerized pandoc: %s", cmd)
         dshdlipa.run_dockerized_pandoc(
             cmd,
@@ -255,14 +267,14 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mode",
         type=str,
-        choices=_VALID_MODES,
+        choices=["github", "pandoc", "grip", "grip_daemon"],
         required=True,
         help="Rendering mode",
     )
     parser.add_argument(
         "--backend",
         type=str,
-        choices=_VALID_BACKENDS,
+        choices=["global", "dockerized"],
         default="global",
         help="Backend to use for rendering",
     )
