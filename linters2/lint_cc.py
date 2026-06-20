@@ -274,10 +274,13 @@ def _run_claude_code(
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
     # Call the cc wrapper which handles model routing and env setup.
-    # Path to the cc wrapper that handles model routing and env setup.
+    # TODO(ai_gp): Maybe use the hgit.find_in
     _CC_WRAPPER = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "..", "dev_scripts_helpers", "ai", "cc",
+        "..",
+        "dev_scripts_helpers",
+        "ai",
+        "cc",
     )
     # TODO(ai_gp): Find cc using hgit.find_git_file
     cmd_parts = [
@@ -329,7 +332,7 @@ def _parse() -> argparse.ArgumentParser:
         "--model",
         type=str,
         default="",
-        help=f"Optional model name to use using cc conventions"
+        help="Optional model name to use using cc conventions",
     )
     hparser.add_verbosity_arg(parser)
     return parser

@@ -650,7 +650,7 @@ if check_repo:
     # Compute and cache the result.
     if not _is_called:
         # TODO(gp): Re-enable.
-        #_dassert_setup_consistency()
+        # _dassert_setup_consistency()
         _is_called = True
 else:
     _LOG.warning("Skipping repo check in %s", __file__)

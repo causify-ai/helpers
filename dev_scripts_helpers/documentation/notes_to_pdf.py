@@ -503,7 +503,7 @@ def _run_pandoc_to_typst_slides(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_only"
-        #container_type = "pandoc_texlive"
+        # container_type = "pandoc_texlive"
         cmd = dshdlipa.run_dockerized_pandoc(
             cmd,
             container_type,

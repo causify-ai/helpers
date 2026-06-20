@@ -75,7 +75,7 @@ def add_select_arg(
         default="",
         help=(
             r"""Select text range as START:END
-Examples: 
+Examples:
 - '## Section 1:## Section 2'"
 - 'Section 1:Section 2',
 - ':END'

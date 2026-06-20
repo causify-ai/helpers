@@ -30,10 +30,10 @@ _LOG = logging.getLogger(__name__)
 TIMEOUT = 30  # seconds per HTTP request
 
 
-
 # #############################################################################
 # Veo3Error
 # #############################################################################
+
 
 class Veo3Error(RuntimeError):
     pass

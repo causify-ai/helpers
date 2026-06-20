@@ -546,13 +546,13 @@ def _insert_image_code(
         out_lines.append(r"\end{figure}")
     elif extension == ".typ":
         # Use Typst syntax with figure element.
-        out_lines.append(f"#figure(")
-        out_lines.append(f"  image(\"{rel_img_path}\"),")
+        out_lines.append("#figure(")
+        out_lines.append(f'  image("{rel_img_path}"),')
         if caption:
             out_lines.append(f"  caption: [{caption}],")
         if label:
             out_lines.append(f"  <{label}>,")
-        out_lines.append(f")")
+        out_lines.append(")")
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
     out_lines.append(_comment_line("render_images:end", extension))

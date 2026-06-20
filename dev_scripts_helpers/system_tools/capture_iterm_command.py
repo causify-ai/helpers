@@ -176,7 +176,7 @@ def _parse() -> argparse.ArgumentParser:
         "--delay_seconds",
         type=int,
         default=DEFAULT_DELAY_SECONDS,
-        help=f"Seconds to wait before capturing screenshot",
+        help="Seconds to wait before capturing screenshot",
     )
     parser.add_argument(
         "--no_bashrc",
