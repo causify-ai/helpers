@@ -1,5 +1,5 @@
 ---
-description: Add comments to make the code more readable
+description: Make the code more readable and debuggable
 model: haiku
 ---
 
