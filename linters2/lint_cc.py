@@ -371,6 +371,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 model=args.model,
             )
         elif args.rule:
+            _LOG.debug("Executing rigrule: %s", args.rule)
             rule_content = hmarsele.extract_rule_from_file(args.rule)
             prompt = (
                 f"Execute the rule below on file {file_path}:\n\n{rule_content}"

@@ -167,6 +167,23 @@ text
   > pipenv shell
   ```
 
+- For long commands with multiple options, format with one option per line using backslash continuation:
+  - **Bad** (single long line is hard to read):
+    ```bash
+    > notes_to_pdf.py --input data605/lectures_md/final_enhanced_markdown_lecture_2.txt --output tmp.pdf --type slides --skip_action cleanup_after --debug_on_error --toc_type navigation --filter_by_slides 1:4
+    ```
+  - **Good** (one option per line is clearer):
+    ```bash
+    > notes_to_pdf.py \
+      --input data605/lectures_md/final_enhanced_markdown_lecture_2.txt \
+      --output tmp.pdf \
+      --type slides \
+      --skip_action cleanup_after \
+      --debug_on_error \
+      --toc_type navigation \
+      --filter_by_slides 1:4
+    ```
+
 ## Code Block Syntax
 
 - Make sure all fenced blocks have a syntax description (e.g., python, markdown,

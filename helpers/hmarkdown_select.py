@@ -663,11 +663,11 @@ def _parse_rigrule_output(keyword: str) -> str:
     hdbg.dassert_eq(
         len(matches),
         1,
-        "Expected exactly one rule match for keyword '%s', but found %d matches. "
-        "Please be more specific with the rule specification: %s",
+        "Expected exactly one rule match for keyword '%s', but found %d matches.\n"
+        "Please be more specific with the rule specification:\n%s",
         keyword,
         len(matches),
-        ", ".join(matches),
+        "\n".join(matches),
     )
     return matches[0]
 
