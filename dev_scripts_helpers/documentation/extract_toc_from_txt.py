@@ -44,7 +44,7 @@ import argparse
 import json
 import logging
 import os
-from typing import List
+from typing import Dict, List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex
@@ -55,12 +55,97 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
+def _count_headers_by_level(
+    header_list: List, target_level: int
+) -> Dict[Tuple, int]:
+    """
+    Count headers of a specific level for each parent h1 and h2.
+
+    :param header_list: list of extracted headers
+    :param target_level: the header level to count
+    :return: dict mapping (h1, h2) tuples to slide counts, plus (h1, None) for h1 totals
+    """
+    counts = {}
+    current_h1 = None
+    current_h2 = None
+    for header in header_list:
+        level = header.level
+        description = header.description
+        if level == 1:
+            current_h1 = description
+            current_h2 = None
+        elif level == 2:
+            current_h2 = description
+        elif level == target_level:
+            # Count for this specific (h1, h2) pair
+            key = (current_h1, current_h2)
+            counts[key] = counts.get(key, 0) + 1
+            # Also accumulate count for h1 total
+            h1_key = (current_h1, None)
+            counts[h1_key] = counts.get(h1_key, 0) + 1
+    return counts
+
+
+def _format_headers_with_counts(
+    header_list: List, mode: str, counts: Dict[Tuple, int], *, max_level: int = 3
+) -> str:
+    """
+    Format headers with inline slide counts.
+
+    :param header_list: list of extracted headers
+    :param mode: output mode ('list' or 'headers')
+    :param counts: dict mapping (h1, h2) tuples to slide counts
+    :param max_level: maximum header level to include in output
+    :return: formatted markdown content
+    """
+    output_lines = []
+    current_h1 = None
+    for header in header_list:
+        level = header.level
+        description = header.description
+        # Skip headers beyond max_level
+        if level > max_level:
+            continue
+        if level == 1:
+            current_h1 = description
+            count = counts.get((current_h1, None), 0)
+            if mode == "list":
+                line = f"- {description}"
+            else:
+                line = f"# {description}"
+            if count > 0:
+                line += f" ({count})"
+            output_lines.append(line)
+        elif level == 2:
+            count = counts.get((current_h1, description), 0)
+            if mode == "list":
+                line = f"  - {description}"
+            else:
+                line = f"## {description}"
+            if count > 0:
+                line += f" ({count})"
+            output_lines.append(line)
+        else:
+            # For level 3+, use original formatting.
+            if mode == "list":
+                header_prefix = "  " * (level - 1) + "-"
+            else:
+                header_prefix = "#" * level
+            line = f"{header_prefix} {description}"
+            output_lines.append(line)
+
+    return "\n".join(output_lines)
+
+
 def _extract_and_write_headers(
     input_file_name: str,
     header_list: List,
     mode: str,
     out_file_name: str,
     warn_on_malformed: bool,
+    *,
+    count_slides: bool = False,
+    max_level: int = 3,
 ) -> None:
     """
     Write extracted headers to output file in the specified format.
@@ -76,6 +161,8 @@ def _extract_and_write_headers(
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
         instead of raising exceptions
+    :param count_slides: if True, count level 5 headers for each h1/h2
+    :param max_level: maximum header level to display
     """
     # Print the headers.
     if mode == "cfile":
@@ -83,7 +170,15 @@ def _extract_and_write_headers(
             input_file_name, header_list
         )
     else:
-        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
+        if count_slides:
+            counts = _count_headers_by_level(header_list, target_level=5)
+            output_content = _format_headers_with_counts(
+                header_list, mode, counts, max_level=max_level
+            )
+        else:
+            output_lines = hmarkdo.header_list_to_markdown(header_list, mode)
+            output_content = "\n".join(output_lines)
+
     hseinout.to_file(output_content, out_file_name)
     # Sanity check the headers.
     hmarkdo.sanity_check_header_list(
@@ -98,6 +193,7 @@ def _extract_headers_from_markdown(
     max_level: int,
     out_file_name: str,
     warn_on_malformed: bool = False,
+    count_slides: bool = False,
 ) -> None:
     """
     Extract headers from a Markdown file.
@@ -109,16 +205,20 @@ def _extract_headers_from_markdown(
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
         instead of raising exceptions
+    :param count_slides: if True, count level 5 headers for each h1/h2
     """
     hdbg.dassert_isinstance(lines, list)
     # We don't want to sanity check since we want to show the headers, even
     # if malformed.
     sanity_check = False
+    # When counting slides, extract up to level 5 to get all slide data
+    extract_level = max(max_level, 5) if count_slides else max_level
     header_list = hmarkdo.extract_headers_from_markdown(
-        lines, max_level=max_level, sanity_check=sanity_check
+        lines, max_level=extract_level, sanity_check=sanity_check
     )
     _extract_and_write_headers(
-        input_file_name, header_list, mode, out_file_name, warn_on_malformed
+        input_file_name, header_list, mode, out_file_name, warn_on_malformed,
+        count_slides=count_slides, max_level=max_level
     )
 
 
@@ -129,6 +229,7 @@ def _extract_headers_from_latex(
     max_level: int,
     out_file_name: str,
     warn_on_malformed: bool,
+    count_slides: bool = False,
 ) -> None:
     r"""
     Extract headers from a LaTeX file.
@@ -147,16 +248,20 @@ def _extract_headers_from_latex(
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
         instead of raising exceptions
+    :param count_slides: if True, count level 5 headers for each h1/h2
     """
     hdbg.dassert_isinstance(lines, list)
     # We don't want to sanity check since we want to show the headers, even
     # if malformed.
     sanity_check = False
+    # When counting slides, extract up to level 5 to get all slide data
+    extract_level = max(max_level, 5) if count_slides else max_level
     header_list = hlatex.extract_headers_from_latex(
-        lines, max_level=max_level, sanity_check=sanity_check
+        lines, max_level=extract_level, sanity_check=sanity_check
     )
     _extract_and_write_headers(
-        input_file_name, header_list, mode, out_file_name, warn_on_malformed
+        input_file_name, header_list, mode, out_file_name, warn_on_malformed,
+        count_slides=count_slides, max_level=max_level
     )
 
 
@@ -167,6 +272,7 @@ def _extract_headers_from_txtslides(
     max_level: int,
     out_file_name: str,
     warn_on_malformed: bool,
+    count_slides: bool = False,
 ) -> None:
     """
     Extract headers from a txt slide file.
@@ -185,6 +291,7 @@ def _extract_headers_from_txtslides(
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
         instead of raising exceptions
+    :param count_slides: if True, count level 5 headers for each h1/h2
     """
     hdbg.dassert_isinstance(lines, list)
     # Use convert_slide_to_markdown to convert txt slide format to standard markdown format.
@@ -193,11 +300,14 @@ def _extract_headers_from_txtslides(
     # We don't want to sanity check since we want to show the headers, even
     # if malformed.
     sanity_check = False
+    # When counting slides, extract up to level 5 to get all slide data
+    extract_level = max(max_level, 5) if count_slides else max_level
     header_list = hmarkdo.extract_headers_from_markdown(
-        lines, max_level=max_level, sanity_check=sanity_check
+        lines, max_level=extract_level, sanity_check=sanity_check
     )
     _extract_and_write_headers(
-        input_file_name, header_list, mode, out_file_name, warn_on_malformed
+        input_file_name, header_list, mode, out_file_name, warn_on_malformed,
+        count_slides=count_slides, max_level=max_level
     )
 
 
@@ -208,6 +318,7 @@ def _extract_headers_from_notebook(
     max_level: int,
     out_file_name: str,
     warn_on_malformed: bool,
+    count_slides: bool = False,
 ) -> None:
     """
     Extract headers from a Jupyter notebook file.
@@ -225,6 +336,7 @@ def _extract_headers_from_notebook(
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
         instead of raising exceptions
+    :param count_slides: if True, count level 5 headers for each h1/h2
     """
     hdbg.dassert_isinstance(lines, list)
     # Join lines to parse as JSON.
@@ -249,11 +361,14 @@ def _extract_headers_from_notebook(
     # We don't want to sanity check since we want to show the headers, even
     # if malformed.
     sanity_check = False
+    # When counting slides, extract up to level 5 to get all slide data
+    extract_level = max(max_level, 5) if count_slides else max_level
     header_list = hmarkdo.extract_headers_from_markdown(
-        markdown_lines, max_level=max_level, sanity_check=sanity_check
+        markdown_lines, max_level=extract_level, sanity_check=sanity_check
     )
     _extract_and_write_headers(
-        input_file_name, header_list, mode, out_file_name, warn_on_malformed
+        input_file_name, header_list, mode, out_file_name, warn_on_malformed,
+        count_slides=count_slides, max_level=max_level
     )
 
 
@@ -287,6 +402,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Emit warnings for malformed headers instead of raising exceptions",
     )
+    parser.add_argument(
+        "--count_slides",
+        action="store_true",
+        help="Count the number of level 5 headers (slides/items marked with *) for each h1 and h2",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -302,6 +422,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Detect file type and dispatch to appropriate extraction function.
     _, ext = os.path.splitext(in_file_name)
     warn_on_malformed = args.warn_on_malformed
+    count_slides = args.count_slides
     if ext == ".md":
         _extract_headers_from_markdown(
             in_file_name,
@@ -310,6 +431,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.max_level,
             out_file_name,
             warn_on_malformed,
+            count_slides,
         )
     elif ext == ".tex":
         _extract_headers_from_latex(
@@ -319,6 +441,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.max_level,
             out_file_name,
             warn_on_malformed,
+            count_slides,
         )
     elif ext == ".txt":
         _extract_headers_from_txtslides(
@@ -328,6 +451,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.max_level,
             out_file_name,
             warn_on_malformed,
+            count_slides,
         )
     elif ext == ".ipynb":
         _extract_headers_from_notebook(
@@ -337,6 +461,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.max_level,
             out_file_name,
             warn_on_malformed,
+            count_slides,
         )
     else:
         raise ValueError(f"Unsupported file type: {in_file_name}")
