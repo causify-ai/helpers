@@ -1,6 +1,6 @@
 ---
 description: Write lecture slides for a graduate-level course following academic formatting and pedagogical style
-model: haiku
+model: sonnet
 ---
 
 # Goal
@@ -23,6 +23,7 @@ model: haiku
 
 ## Create Slides
 - Create `<NUM_SLIDES>` slides
+- Each slide needs to start with a `* <TITLE>` format
 
 ## Add Visuals
 - Follow the instructions from `.claude/skills/visuals.rules.md`
