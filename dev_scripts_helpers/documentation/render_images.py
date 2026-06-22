@@ -546,8 +546,10 @@ def _insert_image_code(
         out_lines.append(r"\end{figure}")
     elif extension == ".typ":
         # Use Typst syntax with figure element.
+        # For typst, strip leading / from absolute paths to make them relative
+        typst_img_path = rel_img_path.lstrip("/") if rel_img_path.startswith("/") else rel_img_path
         out_lines.append("#figure(")
-        out_lines.append(f'  image("{rel_img_path}"),')
+        out_lines.append(f'  image("{typst_img_path}"),')
         if caption:
             out_lines.append(f"  caption: [{caption}],")
         if label:
@@ -861,8 +863,7 @@ def _open_html(out_file: str) -> None:
 _ACTION_OPEN = "open"
 _ACTION_RENDER = "render"
 _VALID_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
-# _DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
-_DEFAULT_ACTIONS: List[str] = []
+_DEFAULT_ACTIONS = [_ACTION_RENDER]
 
 
 def _parse() -> argparse.ArgumentParser:

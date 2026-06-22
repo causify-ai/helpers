@@ -147,7 +147,7 @@ def _render_images(file_name: str, prefix: str) -> str:
     exec_file = hgit.find_file("render_images.py")
     file1 = file_name
     file2 = f"{prefix}.render_image.txt"
-    cmd = f"{exec_file} --input {file1} --output {file2}"
+    cmd = f"{exec_file} --input {file1} --output {file2} --action render"
     _ = _system(cmd)
     # Remove the commented code introduced by `render_image.py`.
     txt = hio.from_file(file2)
@@ -482,17 +482,16 @@ def _run_pandoc_to_typst_slides(
     :return: The path to the generated PDF (or `.typ` file)
     """
     _LOG.debug(hprint.func_signature_to_str())
-    # - Run pandoc to convert markdown into a Typst file using the Touying
-    #   template.
-    template = f"{curr_path}/pandoc_touying.typ"
-    hdbg.dassert_path_exists(template)
-    typ_file = file_name.replace(".txt", ".typ")
+    # Prepare command.
     cmd = []
+    typ_file = file_name.replace(".txt", ".typ")
     cmd.append(f"pandoc {file_name}")
     cmd.append("-f markdown")
     cmd.append("--number-sections")
     cmd.append("-s")
     cmd.append("-t typst")
+    template = f"{curr_path}/pandoc_touying.typ"
+    hdbg.dassert_path_exists(template)
     cmd.append(f"--template {template}")
     # Images are referenced relative to the resource path, mirroring the beamer
     # path.
@@ -516,15 +515,36 @@ def _run_pandoc_to_typst_slides(
     hdbg.dassert_path_exists(typ_file)
     # 1) `pandoc` emits image paths relative to the current dir (the repo root)
     # - E.g., `image("data605/lectures_source/images/foo.png")`.
-    # 2) Typst resolves relative image paths against the directory of the `.typ`
+    # 2) Image references from render_images are relative to the output file's dir.
+    # 3) Typst resolves relative image paths against the directory of the `.typ`
     # file (which lives in the output dir) and forbids `..` escapes above its
     # project root.
-    # 3) So we rewrite the paths to be root-absolute (e.g.,
-    #    `image("/data605/.../foo.png")`) and compile with `--root` set to the
-    #    repo root so they resolve correctly.
+    # 4) So we rewrite the paths to be root-absolute and compile with `--root`
+    #    set to the repo root so they resolve correctly.
     root = os.getcwd()
     txt = hio.from_file(typ_file)
-    txt = re.sub(r'image\("(?!/)', 'image("/', txt)
+    # Convert paths like "path/to/image.png" to "/path/to/image.png"
+    # But preserve paths that are already absolute or start with ../
+    typ_file_dir = os.path.dirname(typ_file)
+    typ_file_rel_to_root = os.path.relpath(typ_file_dir, root)
+
+    def convert_image_path(match: "re.Match[str]") -> str:
+        # Extract the path from image("...")
+        path = match.group(1)
+        # If already absolute, leave it alone
+        if path.startswith("/"):
+            return match.group(0)
+        # If it contains relative parent references, leave it alone
+        if path.startswith("../"):
+            return match.group(0)
+        # Otherwise, prepend the repo root absolute path
+        # First, resolve the path relative to the typ file directory
+        abs_path = os.path.join(typ_file_dir, path)
+        # Then make it relative to the root
+        rel_to_root = os.path.relpath(abs_path, root)
+        return f'image("/{rel_to_root}")'
+
+    txt = re.sub(r'image\("([^"]*)"\)', convert_image_path, txt)
     hio.to_file(typ_file, txt)
     # Return the `.typ` file if typst_only mode is requested.
     if typst_only:
