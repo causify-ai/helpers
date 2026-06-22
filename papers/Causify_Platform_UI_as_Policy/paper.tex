@@ -1,0 +1,171 @@
+% Capability-driven multi-tenant SaaS with UI-as-Policy (UI-as-Data)
+
+\input{papers/template/style.tex}
+
+\hypersetup{hidelinks}
+
+% Extra packages / tweaks specific to this paper.
+\usepackage{microtype}
+\usepackage{doi}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage[font=small,labelfont=bf]{caption}
+\usetikzlibrary{arrows.meta, positioning, shapes.multipart, fit, calc, backgrounds, decorations.pathmorphing, decorations.pathreplacing}
+
+% Prevent overfull lines without turning the whole paper into \sloppy.
+\setlength{\emergencystretch}{2em}
+
+% Listings setup
+\definecolor{CausifyBg}{RGB}{248,248,248}
+\definecolor{CausifyFrame}{RGB}{220,220,220}
+\definecolor{CausifyComment}{RGB}{110,110,110}
+\definecolor{CausifyKeyword}{RGB}{36,74,140}
+\definecolor{CausifyString}{RGB}{24,110,90}
+\definecolor{CausifyNumber}{RGB}{125,125,125}
+
+\lstdefinestyle{causify}{ basicstyle=\ttfamily\footnotesize, backgroundcolor=
+\color{CausifyBg}
+, frame=single, rulecolor=
+\color{CausifyFrame}
+, framerule=0.4pt, framesep=6pt, xleftmargin=2pt, xrightmargin=2pt, numbers=left,
+numberstyle=\tiny
+\color{CausifyNumber}
+, numbersep=8pt, keywordstyle=\bfseries
+\color{CausifyKeyword}
+, commentstyle=\itshape
+\color{CausifyComment}
+, stringstyle=
+\color{CausifyString}
+, showstringspaces=false, breaklines=true, breakatwhitespace=true, postbreak=\mbox{\textcolor{CausifyNumber}{$\hookrightarrow$}\space},
+tabsize=2, columns=fullflexible, keepspaces=true, captionpos=b,
+aboveskip=0.8\baselineskip, belowskip=0.8\baselineskip, float=H, floatplacement=H,
+texcl=false, mathescape=false, extendedchars=true }
+
+% Center code listings with consistent margins
+\lstset{
+  xleftmargin=\parindent,
+  xrightmargin=\parindent,
+}
+
+% Simple JSON style - minimal processing to avoid brace issues
+\lstdefinestyle{json}{ basicstyle=\ttfamily\footnotesize, frame=single,
+backgroundcolor=
+\color{CausifyBg}
+, rulecolor=
+\color{CausifyFrame}
+, numbers=left, numberstyle=\tiny
+\color{CausifyNumber}
+, breaklines=true, columns=fullflexible, keepspaces=true,
+showstringspaces=false }
+
+% Simple TypeScript style - minimal processing
+\lstdefinestyle{typescript}{ basicstyle=\ttfamily\footnotesize, frame=single,
+backgroundcolor=
+\color{CausifyBg}
+, rulecolor=
+\color{CausifyFrame}
+, numbers=left, numberstyle=\tiny
+\color{CausifyNumber}
+, breaklines=true, columns=fullflexible, keepspaces=true,
+showstringspaces=false, commentstyle=\itshape
+\color{CausifyComment}
+, keywordstyle=\bfseries
+\color{CausifyKeyword}
+, morekeywords={const,let,var,export,import,from,return,interface,type,extends,async,await,if,else,for,while,break,switch,case,default,try,catch,throw,new,typeof,instanceof,Promise,true,false,null,undefined}
+}
+
+% Simple Python style - minimal processing
+\lstdefinestyle{python}{ basicstyle=\ttfamily\footnotesize, frame=single,
+backgroundcolor=
+\color{CausifyBg}
+, rulecolor=
+\color{CausifyFrame}
+, numbers=left, numberstyle=\tiny
+\color{CausifyNumber}
+, breaklines=true, columns=fullflexible, keepspaces=true,
+showstringspaces=false, commentstyle=\itshape
+\color{CausifyComment}
+, keywordstyle=\bfseries
+\color{CausifyKeyword}
+, morekeywords={def,class,if,else,elif,for,while,return,import,from,as,try,except,finally,with,lambda,yield,assert,pass,break,continue,in,is,not,and,or,True,False,None,async,await}
+}
+
+% Macros
+\newcommand{\system}{\textsc{Causify Platform}}
+\newcommand{\console}{\textsc{Causify Console}}
+\newcommand{\uiData}{UI-as-Data}
+\newcommand{\uiPolicy}{UI-as-Policy}
+\newcommand{\policy}{Policy-as-Data}
+\newcommand{\viewas}{\texttt{view-as}}
+
+\graphicspath{{papers/Causify_Platform_UI_as_Policy/}}
+
+\begin{document}
+  \title{The Sidebar Is a Security Boundary\\ \large UI-AS-POLICY for
+  Capability-Driven Multi-Tenant SaaS}
+
+  % \author{\textbf{[Author Name]}\\
+  % [Affiliation]\\
+  % \texttt{[email]}}
+
+  \date{\today}
+
+  \begin{abstract}
+    Multi-tenant SaaS products tend to develop a particular kind of split-brain:
+    the backend enforces permissions, while the frontend \emph{guesses}
+    what the user should be able to see. Over time, those guesses drift.
+    The UI becomes a polite liar (buttons that 403) and occasionally a dangerous
+    liar (surfaces that imply access that should never exist).
+
+    We present \uiPolicy{}: a capability-driven architecture where the UI
+    is treated as a first-class policy surface. The central idea is
+    \uiData{}: the backend materializes a tenant- and role-scoped \emph{UI
+    contract} (enabled modules and structured layout fragments) and
+    delivers it at runtime. The web tier then composes navigation and module
+    experiences from this contract while deriving an identical authorization
+    model server-side and exporting it to the client in a packed form for
+    UX consistency.
+
+    Our production implementation couples (i) a control plane API (AWS
+    Lambda) that returns \texttt{/v2/me} with an explicit \emph{actor} vs.\ \emph{\viewas}
+    split, (ii) tenant policy stored as data in DynamoDB (modules and layout
+    fragments), and (iii) server-authoritative abilities (CASL) serialized
+    for the client. This design reduces tenant onboarding friction (configuration
+    over redeploy), minimizes frontend/backend authorization drift, and
+    enables safe support impersonation without sacrificing auditability.
+  \end{abstract}
+
+  \maketitle
+
+  \setcounter{tocdepth}{1}
+  \tableofcontents
+
+  \input{01_introduction.tex}
+
+  \input{02_problem_statement.tex}
+
+  \input{03_system_overview.tex}
+
+  \input{04_policy_model.tex}
+
+  \input{05_runtime_composition.tex}
+
+  \input{06_safe_impersonation.tex}
+
+  \input{07_implementation_notes.tex}
+
+  \input{08_evaluation.tex}
+
+  \input{09_related_work.tex}
+
+  \input{10_limitations_future_work.tex}
+
+  \input{11_conclusion.tex}
+
+  \bibliographystyle{amsplain}
+  \bibliography{references}
+\end{document}

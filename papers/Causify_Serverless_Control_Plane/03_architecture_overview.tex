@@ -1,0 +1,171 @@
+% ##############################################################################
+  \newpage
+  \section{Architecture Overview}
+% ==============================================================================
+  \subsection{Components and boundary}
+  Figure~\ref{fig:arch_overview} summarizes the system boundary: the control
+  plane decides and attests; the data plane executes.
+
+  \begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{cleanpic}
+      [ node distance=28mm and 24mm, big/.style={cwide, text width=54mm, minimum height=28mm, font=\small\sffamily},
+      ] \node[big, fill=idpyellow!28, draw=idpyellow!55] (idp) {\textbf{Identity Provider}\\Cognito User Pools\\JWT + groups};
+      \node[big, fill=webteal!25, draw=webteal!50, right=24mm of idp] (web)
+      {\textbf{Web Tier}\\Next.js\\server-side session}; \node[big, fill=cpblue!25,
+      draw=cpblue!50, below=24mm of web] (cp) {\textbf{Serverless Control Plane}\\API Gateway + Lambda\\Powertools middleware};
+      \node[big, fill=storelavender!25, draw=storelavender!50, left=24mm
+      of cp] (ddb)
+      {\textbf{Policy / Config Store}\\DynamoDB\\tenant records + modules};
+      \node[big, fill=cpblue!25, draw=cpblue!50, below=24mm of cp] (modlam)
+      {\textbf{Module Lambdas}\\Horizon / Grid\\tenant-scoped query planes};
+      \node[big, fill=dpgreen!25, draw=dpgreen!50, right=24mm of cp] (dp)
+      {\textbf{Container Data Plane}\\EKS services \& workers\\Optima, DataMap, Airflow\\(+ optional ECS/Fargate jobs)};
+      \node[big, fill=storelavender!25, draw=storelavender!50, below=24mm
+      of modlam] (rds) {\textbf{Tenant DB}\\RDS Proxy $\rightarrow$ Postgres\\schema-scoped tables};
+
+      \draw[carrow] (web.west) -- node[clabel, above] {authenticate} (idp.east);
+      \draw[carrow] (web.south) -- node[clabel, right]
+      {\texttt{/v2/me}\\ETag + 304} (cp.north); \draw[carrow] (cp.west)
+      -- node[clabel, above] {tenant lookup} (ddb.east); \draw[carrow] (cp.south)
+      -- node[clabel, right] {delegate +\\inject scope} (modlam.north); \draw[carrow]
+      (cp.east) -- node[clabel, above] {scoped intents\\+ context} (dp.west);
+      \draw[carrow] (modlam.south) -- node[clabel, right]
+      {queries within\\\texttt{\{prefix\}\_core}} (rds.north);
+      \draw[carrow] (dp.south) -- node[clabel, right] {scoped compute} (rds.north east);
+
+      \path (rds.south) ++(0,-6mm) node[anchor=north, clabel, text width=155mm,
+      font=\small\sffamily]
+      {\textbf{Boundary rule:} tenancy and capability decisions originate in the control plane. Module Lambdas and the container data plane receive explicit scope (e.g.\ schema prefix) and execute workloads.};
+    \end{cleanpic}%
+    }% end resizebox
+    \caption{Architecture overview. The control plane materializes identity
+    and tenant scope into explicit contracts. Module Lambdas serve
+    interactive queries with injected scope; the container data plane
+    (including Optima) runs long-lived and heavy compute but does not own
+    policy.}
+    \label{fig:arch_overview}
+  \end{figure}
+
+% ==============================================================================
+  \subsection{The core contract: \texttt{/v2/me}}
+  The control plane's foundational endpoint is \texttt{/v2/me}. It returns:
+  (i) immutable actor identity, (ii) effective context (possibly \viewas{}),
+  and (iii) derived scoping signals required by downstream services.
+
+  \newpage
+  \begin{samepage}
+    \begin{lstlisting}[style=json,caption={Representative \texttt{/v2/me} contract (simplified). Note the explicit actor vs effective context and derived \texttt{schema\_prefix}.},label={lst:v2me_cp}]
+{
+  "actor": {
+    "email": "ada@acme.example",
+    "tenant_id": "causify",
+    "user_role": "admin",
+    "groups": ["causify:admin", "acme:member"]
+  },
+  "view_as": {
+    "view_as_self": false,
+    "tenant_id": "acme",
+    "user_role": "member",
+    "schema_prefix": "acme"
+  },
+  "impersonatable": [
+    { "tenant_id": "acme", "roles": ["demo", "member", "admin"] }
+  ]
+}
+\end{lstlisting}
+  \end{samepage}
+
+  \paragraph{Caching semantics.}
+  This endpoint is called frequently by the web tier. We therefore align
+  it with HTTP semantics: responses include \texttt{ETag} and respect
+  \texttt{If-None-Match} to return \texttt{304 Not Modified} when the
+  effective contract has not changed \cite{rfc9110}. This makes "tell me
+  who I am" a cheap question, which is important because the UI asks it
+  like an anxious intern.
+
+  Figure~\ref{fig:etag_flow} illustrates the two paths: a cache miss (full
+  response with a fresh \etag{}) and a cache hit (\texttt{304 Not
+  Modified} with no body).
+
+  \begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{cleanpic}
+      [node distance=6mm and 45mm]
+      % --- Path A: cache miss ---
+      \node[font=\small\sffamily\bfseries] (hdrA) {Path A: cache miss}; \node[cwide,
+      fill=webteal!25, draw=webteal!50, below=6mm of hdrA] (cA) {\textbf{Client}\\(browser / web tier)};
+      \node[cwide, fill=cpblue!25, draw=cpblue!50, right=45mm of cA] (cpA)
+      {\textbf{Control Plane}\\(Lambda + middleware)};
+
+      \draw[carrow] ([yshift=2mm]cA.east) -- node[clabel, above] {\texttt{GET /v2/me}}
+      ([yshift=2mm]cpA.west); \draw[carrow] ([yshift=-2mm]cpA.west) -- node[clabel,
+      below] {\texttt{200 OK} + full body\\[1pt]\texttt{ETag: "abc"}} ([yshift=-2mm]cA.east);
+
+      % --- Path B: cache hit ---
+      \node[font=\small\sffamily\bfseries, below=26mm of hdrA] (hdrB) {Path B: cache hit};
+      \node[cwide, fill=webteal!25, draw=webteal!50, below=6mm of hdrB]
+      (cB) {\textbf{Client}\\(sends stored ETag)}; \node[cwide, fill=cpblue!25,
+      draw=cpblue!50, right=45mm of cB] (cpB) {\textbf{Control Plane}\\(computes body hash)};
+
+      \draw[carrow] ([yshift=2mm]cB.east) -- node[clabel, above]
+      {\texttt{GET /v2/me}\\[1pt]\texttt{If-None-Match: "abc"}} ([yshift=2mm]cpB.west);
+      \draw[carrow] ([yshift=-2mm]cpB.west) -- node[clabel, below]
+      {\texttt{304 Not Modified}\\[1pt](no body transferred)} ([yshift=-2mm]cB.east);
+    \end{cleanpic}%
+    }% end resizebox
+    \caption{ETag-based caching for \texttt{/v2/me}. Path~A delivers a
+    full response with an ETag; Path~B revalidates and returns 304 when the
+    contract is unchanged, saving bandwidth and serialization cost.}
+    \label{fig:etag_flow}
+  \end{figure}
+
+% ==============================================================================
+  \subsection{Surface minimization: filtered OpenAPI and module gating}
+  The control plane does not merely \emph{deny} unauthorized endpoints;
+  it also avoids advertising them:
+  \begin{itemize}
+    \item \textbf{Filtered OpenAPI:} \texttt{/v1/openapi.json} is generated
+      and then filtered so only endpoints corresponding to enabled modules
+      are exposed in the spec.
+
+    \item \textbf{Module-gated routers:} module endpoints are decorated
+      with a guard (e.g., \texttt{@requires\_module("horizon")}) that checks
+      effective enabled modules.
+  \end{itemize}
+
+  This reduces surface drift: clients and docs stop describing APIs that
+  should not exist for the effective context.
+
+% ==============================================================================
+  \subsection{Downstream scoping: schema prefix injection}
+  A common confused-deputy risk is tenant scoping provided by the client.
+  We avoid that by deriving \texttt{schema\_prefix} (and similar scoping
+  signals) in the control plane and injecting them into downstream calls.
+  This ensures that the data plane does not need to infer tenant
+  identity from user-provided parameters.
+
+% ==============================================================================
+  \subsection{Endpoint map (what lives where)}
+  Table~\ref{tab:endpoint_map} clarifies responsibilities and helps keep
+  this paper distinct from the UI-as-Policy narrative: here the star is not
+  layout composition; it is governance contracts and scoping.
+
+  \begin{table}[H]
+    \centering
+    \begin{tabularx}
+      {\textwidth}{l X X} \toprule \textbf{Endpoint} & \textbf{Purpose}
+      & \textbf{Why it matters} \\ \midrule \texttt{/v2/me} &
+      Materialize actor + effective context + scoping signals & Makes
+      tenancy explicit; supports ETag/304 to reduce churn \\ \texttt{/v1/openapi.json}
+      & Serve minimized OpenAPI surface & Prevents surface drift and
+      accidental client discovery of disabled APIs \\ Module routers (e.g.,
+      \texttt{/v1/horizon/*}) & Serve module APIs with module guards & Enforces
+      capability boundaries consistently per effective context \\ \bottomrule
+    \end{tabularx}
+    \caption{Control plane endpoint responsibilities. This paper focuses
+    on governance contracts and tenant scoping, not UI composition.}
+    \label{tab:endpoint_map}
+  \end{table}

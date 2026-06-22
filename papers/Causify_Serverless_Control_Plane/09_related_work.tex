@@ -1,0 +1,55 @@
+  \section{Related Work}
+  \label{sec:related}
+  \paragraph{Control plane vs.\ data plane as a systems pattern.}
+  The separation of decision-making from execution is foundational in
+  systems architecture. Kubernetes formalizes this distinction inside the
+  cluster: control plane components manage desired state while worker
+  nodes execute workloads \cite{k8s_components,k8s_architecture}. Managed
+  Kubernetes offerings extend the idea by externalizing control plane operations
+  behind a service boundary \cite{eks_docs}. This paper applies the
+  split to multi-tenant governance: tenancy and scope are decisions;
+  compute is execution.
+
+  \paragraph{Multi-tenant Kubernetes frameworks.}
+  Prior work has explored explicit control-plane/data-plane isolation for
+  multi-tenant Kubernetes, including frameworks that provide per-tenant
+  control planes while sharing underlying compute resources (e.g., VirtualCluster)
+  \cite{virtualcluster}. Our focus differs: we do not attempt to re-slice
+  Kubernetes itself; we keep tenant governance in a platform control plane
+  and propagate explicit scope into execution substrates (Kubernetes, ECS/Fargate,
+  and module backends).
+
+  \paragraph{Policy engines and authorization languages.}
+  OPA provides a general-purpose policy engine that centralizes decision
+  logic and evaluation \cite{opa_docs}. Cedar (and Amazon Verified
+  Permissions) formalize policy evaluation with a dedicated language and
+  service boundary \cite{cedar_docs,aws_verified_permissions}. Our work
+  is compatible with these systems but focuses on a narrower objective: producing
+  \emph{cacheable governance contracts} (context, surface, scope) that
+  downstream systems consume without improvising tenancy.
+
+  \paragraph{Authorization at scale.}
+  Zanzibar demonstrates authorization as a global consistency problem and
+  highlights the importance of uniform interpretation of identity and context
+  across services \cite{zanzibar}. While \system{} does not implement Zanzibar's
+  relationship store, the lesson applies directly: once systems scale, "context
+  correctness" becomes a distributed property, not a local detail. Our
+  design addresses this through explicit contracts and scope injection
+  rather than relationship evaluation.
+
+  \paragraph{Serverless APIs for governance.}
+  Serverless functions are a natural fit for governance endpoints: spiky
+  traffic, small payloads, and a strong need for structured logs
+  \cite{aws_lambda_docs,aws_powertools}. The main tradeoff is cold-start
+  tail latency; we mitigate this by keeping the control plane thin and
+  using HTTP conditional requests for frequent identity contracts
+  \cite{rfc9110}.
+
+  \paragraph{Workflow orchestration and batch execution.}
+  Airflow is a widely used workflow platform for building and operating batch-oriented
+  pipelines \cite{airflow_docs}. Executing tasks in isolated containers
+  (e.g., ECS/Fargate) is a pragmatic strategy for burst compute where
+  operational simplicity and isolation matter
+  \cite{ecs_runtask,fargate_docs}. In our architecture, workflows
+  execute jobs, but job scope is derived from authenticated tenant context
+  rather than client-supplied parameters.

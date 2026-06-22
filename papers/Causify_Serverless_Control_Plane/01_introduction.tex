@@ -1,0 +1,62 @@
+% ##############################################################################
+  \section{Introduction}
+  A serious platform is a collection of promises: \emph{this tenant's
+  data stays with this tenant}, \emph{this user can do this action},
+  \emph{this module exists for this role}, \emph{this request is scoped
+  correctly}. Most systems keep those promises until the product grows. Then
+  governance becomes folklore and enforcement becomes opportunistic: a
+  check in the UI, a check in a service, a check in a gateway, a check in
+  someone's memory.
+
+  We take the opposite approach: instead of letting policy leak into the
+  compute fabric, we concentrate governance into a \emph{thin, serverless
+  control plane} that produces explicit contracts. The control plane is not
+  ``the backend.'' It is a very specific thing: an identity- and tenancy-aware
+  decision layer that:
+  \begin{itemize}
+    \item resolves \emph{who} is calling and \emph{as whom} they are operating
+      (\viewas{}),
+
+    \item derives tenant scoping signals that downstream systems must not
+      guess,
+
+    \item controls which platform modules and APIs are visible/accessible
+      for the effective context,
+
+    \item emits cache-friendly responses aligned with HTTP semantics (ETag
+      + \texttt{If-None-Match}) \cite{rfc9110}.
+  \end{itemize}
+
+  The data plane is everything that runs compute: Kubernetes services,
+  batch jobs, workers, schedulers, and on-demand tasks. It does not
+  decide what a tenant is. It receives a scoped context and does work.
+
+  \paragraph{Why this matters.}
+  In causal AI and enterprise analytics platforms, the expensive part is
+  not the UI. It is the \emph{combination} of: multi-tenant isolation, module-level
+  capability boundaries, and long-running compute. If tenant scoping is inconsistent,
+  you do not have a platform; you have a roulette wheel with logs.
+
+  \paragraph{Contributions.}
+  This paper contributes:
+  \begin{itemize}
+    \item \textbf{A practical control-plane pattern:} serverless
+      governance (API Gateway + Lambda) that materializes tenant context
+      and exposes versioned contracts
+      \cite{aws_lambda_docs,aws_api_gateway,aws_powertools}.
+
+    \item \textbf{A contract-first API surface:} \texttt{/v2/me} as a materialized
+      context contract, plus OpenAPI minimization to keep the visible
+      surface aligned with enabled modules.
+
+    \item \textbf{Defense-in-depth against tenant confusion:} explicit
+      actor vs effective context, allow-listed \viewas{}, and server-injected
+      scoping signals (e.g., schema prefixes).
+
+    \item \textbf{Operational lessons:} caching strategy, blast-radius reduction,
+      and incident clarity when the ``truth'' about tenancy lives at the
+      edge.
+  \end{itemize}
+
+  A small amount of humor is allowed, because without it, this paper
+  would be a tragedy.

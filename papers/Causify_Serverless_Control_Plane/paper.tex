@@ -1,0 +1,177 @@
+% Serverless Control Plane, Container Data Plane: Operating an Enterprise Causal AI Platform
+
+\input{papers/template/style.tex}
+
+\hypersetup{hidelinks}
+
+% Paper-specific polish (template already includes float, listings, tikz, etc.)
+\usepackage{microtype}
+\usepackage{doi}
+\usepackage{url}
+\usepackage[font=small, labelfont=bf]{caption}
+\setlength{\emergencystretch}{2em}
+\raggedbottom
+
+% Keep listings intact (no page splits) and calm.
+\lstset{style=mystyle, float=H, floatplacement=H}
+
+% --- Listing styles used by code snippets in this paper ---
+\definecolor{CausifyBg}{RGB}{248,248,248}
+\definecolor{CausifyFrame}{RGB}{220,220,220}
+\definecolor{CausifyComment}{RGB}{110,110,110}
+\definecolor{CausifyKeyword}{RGB}{36,74,140}
+\definecolor{CausifyNumber}{RGB}{125,125,125}
+
+\lstdefinestyle{json}{ basicstyle=\ttfamily\footnotesize, frame=single,
+backgroundcolor=
+\color{CausifyBg}
+, rulecolor=
+\color{CausifyFrame}
+, numbers=left, numberstyle=\tiny
+\color{CausifyNumber}
+, breaklines=true, columns=fullflexible, keepspaces=true,
+showstringspaces=false, xleftmargin=0.06\textwidth, xrightmargin=0.06\textwidth
+}
+
+\lstdefinestyle{python}{ basicstyle=\ttfamily\footnotesize, frame=single,
+backgroundcolor=
+\color{CausifyBg}
+, rulecolor=
+\color{CausifyFrame}
+, numbers=left, numberstyle=\tiny
+\color{CausifyNumber}
+, breaklines=true, columns=fullflexible, keepspaces=true,
+showstringspaces=false, commentstyle=\itshape
+\color{CausifyComment}
+, keywordstyle=\bfseries
+\color{CausifyKeyword}
+, morekeywords={def,class,if,else,elif,for,while,return,import,from,as,try,except,finally,with,lambda,yield,assert,pass,break,continue,in,is,not,and,or,True,False,None,async,await},
+xleftmargin=0.06\textwidth, xrightmargin=0.06\textwidth }
+
+% --- SQL / Postgres listings -----------------------------------------------
+\lstdefinestyle{sql}{%
+style=mystyle, language=SQL, showstringspaces=false, breaklines=true,
+keepspaces=true, upquote=true, morekeywords={%
+BIGSERIAL,TIMESTAMPTZ,JSONB,UUID,ILIKE,UNNEST,LATERAL,RETURNING, MATERIALIZED,CONCURRENTLY,IF,EXISTS, ENABLE,DISABLE,ROW,LEVEL,SECURITY,POLICY, CURRENT_SETTING,SET,LOCAL } }
+
+% --- DynamoDB key-pattern / schema listings --------------------------------
+\lstdefinelanguage{DynamoDB}{%
+sensitive=true, morecomment=[l]{--}, morecomment=[l]{\#}, morekeywords={%
+PK,SK,GSI,LSI, TENANT,USER,SUBJECT,ANALYSIS,GRAPH,SESSION,TURN, TTL,Attrs,Type,Item,Items, partition,sort,keys,index,indexes },
+morestring=[b]", }
+
+\lstdefinestyle{dynamo}{%
+style=mystyle, language=DynamoDB, showstringspaces=false, breaklines=true,
+keepspaces=true, columns=fullflexible }
+
+% --- TikZ: load shadows library and override global scaling ---
+\usetikzlibrary{
+  shadows,
+  backgrounds,
+  arrows.meta,
+  positioning,
+  fit,
+  calc,
+  shapes.geometric,
+  shapes.symbols
+}
+\pgfdeclarelayer{background} \pgfsetlayers{background,main}
+
+% Environment that resets the template's global TikZ scaling (0.85*0.85)
+% so diagrams render at their declared sizes.
+\newenvironment{cleanpic}[1][]{%
+\begingroup \tikzset{every picture/.style={}}%
+\begin{tikzpicture}[#1]%
+}{%
+\end{tikzpicture}%
+\endgroup%
+}
+
+% --- TikZ color palette for diagrams ---
+\definecolor{cpblue}{RGB}{66,133,244} % control plane
+\definecolor{dpgreen}{RGB}{52,168,83} % data plane / containers
+\definecolor{idpyellow}{RGB}{251,188,4} % identity provider
+\definecolor{storelavender}{RGB}{171,148,206}% storage / config
+\definecolor{webteal}{RGB}{0,172,193} % web tier
+\definecolor{warnred}{RGB}{234,67,53} % security / hardening
+\definecolor{burstpeach}{RGB}{255,183,130} % burst compute
+
+% --- Modern diagram styles (used inside cleanpic) ---
+\tikzset{ cbox/.style={ draw=gray!60, rounded corners=3pt, align=center, inner sep=7pt, font=\small\sffamily, text=black, minimum height=13mm, drop shadow={shadow xshift=0.6mm, shadow yshift=-0.6mm, opacity=0.35} }, cwide/.style={cbox, text width=50mm, minimum height=16mm}, carrow/.style={-{Latex[length=2.5mm]}, thick, color=gray!75}, clabel/.style={font=\scriptsize\sffamily, text=black, align=center} }
+
+% Macros
+\newcommand{\system}{\textsc{Causify Platform}}
+\newcommand{\console}{\textsc{Causify Console}}
+\newcommand{\control}{control plane}
+\newcommand{\dataplane}{data plane}
+\newcommand{\viewas}{\texttt{view-as}}
+\newcommand{\etag}{\texttt{ETag}}
+\newcommand{\ifnonematch}{\texttt{If-None-Match}}
+\newcommand{\scopeenv}{\emph{scope envelope}}
+
+\begin{document}
+  \title{Serverless Control Plane, Container Data Plane:\\ \large Operating
+  an Enterprise Causal AI Platform}
+
+  % \author{\textbf{[Author Name]}\\
+  % [Affiliation]\\
+  % \texttt{[email]}}
+
+  \date{\today}
+
+  \begin{abstract}
+    Enterprise AI platforms fail in a predictable way: compute scales, tenants
+    multiply, and governance quietly gets smeared across everything that
+    happens to be running. Authorization checks drift into services,
+    tenant scoping leaks into query parameters, and the ``platform'' becomes
+    a distributed guessing game about identity, tenancy, and intent.
+
+    We describe a production architecture that makes the guessing illegal:
+    a \emph{serverless control plane} that materializes tenant context into
+    explicit, cacheable contracts, paired with a \emph{container data
+    plane} that executes workloads without owning policy. Our control plane
+    is an AWS Lambda API (Powertools) fronted by API Gateway. It
+    authenticates users, derives effective context (including a safe
+    \viewas{} mechanism), resolves reusable tenant scoping signals (e.g.,
+    schema prefixes, tenant identifiers, user/session scope, connector keys,
+    and job intent), minimizes API surface by filtering OpenAPI and
+    endpoint access by enabled modules, and uses ETags and conditional requests
+    to make ``who am I?'' fast and cheap at scale.
+
+    The data plane runs long-lived services on Kubernetes (EKS) and can
+    run burst compute as on-demand containers (e.g., ECS/Fargate). The key
+    property is not the stack; it is the boundary: the control plane decides
+    and attests; the data plane executes. We discuss design goals,
+    contracts, middleware structure, defense-in-depth against confused-deputy
+    and tenant-confusion risks, and operational outcomes that come from keeping
+    governance thin, explicit, and boring.
+  \end{abstract}
+
+  \maketitle
+
+  \setcounter{tocdepth}{1}
+  \tableofcontents
+  \input{papers/Causify_Serverless_Control_Plane/01_introduction.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/02_problem_statement.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/03_architecture_overview.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/04_control_plane_design.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/05_container_data_plane.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/06_security.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/07_operations_reliability.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/08_evaluation.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/09_related_work.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/10_limitations_future_work.tex}
+
+  \input{papers/Causify_Serverless_Control_Plane/11_conclusion.tex}
+  \bibliographystyle{amsplain}
+  \bibliography{papers/Causify_Serverless_Control_Plane/references.bib}
+\end{document}
