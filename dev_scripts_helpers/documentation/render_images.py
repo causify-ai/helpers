@@ -584,9 +584,10 @@ def _insert_image_code(
         out_lines.append(f'  image("{typst_img_path}"),')
         if caption:
             out_lines.append(f"  caption: [{caption}],")
+        closing_paren = ")"
         if label:
-            out_lines.append(f"  <{label}>,")
-        out_lines.append(")")
+            closing_paren = f") <{label}>"
+        out_lines.append(closing_paren)
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
     out_lines.append(_comment_line("render_images:end", extension))
