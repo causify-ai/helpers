@@ -1378,6 +1378,7 @@ class Test_render_images_script1(hunitest.TestCase):
         # Check that it succeeded.
         self.assertEqual(rc, 0)
 
+    # TODO(ai_gp): Rename test1_XYZ
     def test_script_dry_run_md(self) -> None:
         """
         Test script with dry run on a simple Markdown file.
@@ -1397,3 +1398,117 @@ class Test_render_images_script1(hunitest.TestCase):
         cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
         rc = hsystem.system(cmd)
         self.assertEqual(rc, 0)
+
+    def test_script_output_format_default(self) -> None:
+        """
+        Test script with default output format (png).
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = """
+        # Test Document
+
+        ```mermaid
+        graph TD
+            A --> B
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
+        rc = hsystem.system(cmd)
+        self.assertEqual(rc, 0)
+
+    def test_script_output_format_png(self) -> None:
+        """
+        Test script with explicit --output_format png.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = """
+        # Test Document
+
+        ```graphviz
+        digraph G { A -> B; }
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = (
+            f"{self._get_exec_path()} -i {test_file} --action render "
+            f"--output_format png --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        self.assertEqual(rc, 0)
+
+    def test_script_output_format_svg(self) -> None:
+        """
+        Test script with explicit --output_format svg.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = """
+        # Test Document
+
+        ```plantuml
+        Alice -> Bob: Hello
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = (
+            f"{self._get_exec_path()} -i {test_file} --action render "
+            f"--output_format svg --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        self.assertEqual(rc, 0)
+
+    def test_script_output_format_tikz_png(self) -> None:
+        """
+        Test that tikz supports png output format.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = r"""
+        # Test Document
+
+        ```tikz
+        \draw (0,0) -- (1,1);
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = (
+            f"{self._get_exec_path()} -i {test_file} --action render "
+            f"--output_format png --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        self.assertEqual(rc, 0)
+
+    def test_script_output_format_tikz_svg_fails(self) -> None:
+        """
+        Test that tikz fails when requesting svg output format.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = r"""
+        # Test Document
+
+        ```tikz
+        \draw (0,0) -- (1,1);
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = (
+            f"{self._get_exec_path()} -i {test_file} --action render "
+            f"--output_format svg --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        # Should fail due to assertion.
+        self.assertNotEqual(rc, 0)

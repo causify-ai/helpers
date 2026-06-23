@@ -74,6 +74,26 @@
 
 - Follow the template `.claude/templates/graphviz.template.md`
 
+## Text and Typography
+
+- Use HTML subscript/superscript tags in diagram text labels instead of LaTeX or
+  unicode notation
+  - **Good** (renders correctly in all diagram formats):
+    ```
+    H<SUB>2</SUB>O
+    E = mc<SUP>2</SUP>
+    H<SUP>+</SUP> ions
+    T<SUB>t-1</SUB>
+    ```
+  - **Bad** (LaTeX or unicode-style, may not render):
+    ```
+    H_2 O
+    E = mc^2
+    H⁺ ions
+    H₂O
+    ```
+- Applies to all diagram types: Graphviz, Mermaid, and TikZ
+- HTML tags preserve compatibility across rendering engines
 
 ## Best Practices
 

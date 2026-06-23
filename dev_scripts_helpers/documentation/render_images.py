@@ -4,8 +4,16 @@
 Replace sections of image code with rendered images, commenting out the
 original code, if needed.
 
-Supports diagram types (plantuml, mermaid, tikz, graphviz, latex) and
-AI-generated images using OpenAI's DALL-E API (image blocks).
+Supports diagram types:
+- mermaid
+- tikz
+- graphviz
+- latex
+- AI-generated images (image blocks)
+- plantuml
+
+Note: TikZ and LaTeX diagrams only support PNG format. Other diagram types
+(PlantUML, Mermaid, Graphviz, SVG input) support both PNG and SVG formats.
 
 See `docs/tools/documentation_toolchain/all.render_images.explanation.md`.
 
@@ -28,6 +36,12 @@ Usage:
 
 # Open rendered images from a Markdown file in HTML to preview:
 > render_images.py -i ABC.md --action open
+
+# Render images in SVG format (diagrams only):
+> render_images.py -i ABC.md --action render --output_format svg
+
+# Render images in PNG format (default):
+> render_images.py -i ABC.md --action render --output_format png
 """
 
 import argparse
@@ -189,6 +203,7 @@ def _render_image_code(
     use_sudo: bool = False,
     dry_run: bool = False,
     dpi: int = 300,
+    output_format: str = "png",
 ) -> List[str]:
     """
     Render the image code into one or more image files.
@@ -207,10 +222,26 @@ def _render_image_code(
     :param dst_dir: absolute path to directory for storing rendered images
     :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
         Graphviz, SVG, TikZ, and LaTeX image types.
+    :param output_format: force output format (png or svg). Overrides dst_ext.
     :return: list of paths to the rendered images (usually 1 image, but 3 for
         "image" type)
     """
     _LOG.debug(hprint.func_signature_to_str("image_code_txt"))
+    # Validate and override output format for specific diagram types.
+    hdbg.dassert_in(
+        output_format,
+        ["png", "svg"],
+        f"Invalid output_format: {output_format}",
+    )
+    # TikZ and LaTeX currently only support PNG output via ImageMagick.
+    if image_code_type in ("tikz", "latex", "raw_latex"):
+        hdbg.dassert_eq(
+            output_format,
+            "png",
+            f"{image_code_type} diagrams only support PNG format",
+        )
+    # Override dst_ext with the requested output format.
+    dst_ext = output_format
     if image_code_type == "plantuml":
         # TODO(gp): we should always add the start and end tags.
         if not image_code_txt.startswith("@startuml"):
@@ -316,7 +347,7 @@ def _render_image_code(
         elif image_code_type == "plantuml":
             import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
 
-            cmd_opts = []
+            cmd_opts = [output_format]
             dshdlipl.run_dockerized_plantuml(
                 in_code_file_path,
                 cmd_opts,
@@ -358,6 +389,7 @@ def _render_image_code(
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
                 dpi=dpi,
+                output_format=output_format,
             )
         elif image_code_type == "svg":
             import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
@@ -365,7 +397,7 @@ def _render_image_code(
             dshdlisv.run_dockerized_svg_with_rsvg_convert(
                 in_code_file_path,
                 abs_img_file_path,
-                output_format="png",
+                output_format=output_format,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
                 dpi=dpi,
@@ -572,6 +604,7 @@ def _render_images(
     use_sudo: bool = False,
     dry_run: bool = False,
     dpi: int = 300,
+    output_format: str = "png",
 ) -> List[str]:
     r"""
     Insert rendered images instead of image code blocks.
@@ -620,6 +653,7 @@ def _render_images(
     :param dst_dir: absolute path to directory for storing rendered images
     :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
         Graphviz, SVG, TikZ, and LaTeX image types.
+    :param output_format: force output format (png or svg).
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -742,6 +776,7 @@ def _render_images(
                     use_sudo=use_sudo,
                     dry_run=dry_run,
                     dpi=dpi,
+                    output_format=output_format,
                 )
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
@@ -890,6 +925,14 @@ def _parse() -> argparse.ArgumentParser:
         "defaults to <input_file>.figs (e.g., 'doc.md' -> 'doc.md.figs')",
     )
     parser.add_argument(
+        "--output_format",
+        type=str,
+        default="png",
+        choices=["png", "svg"],
+        help="Output format for rendered images (default: png). "
+        "Forces all images to be rendered in the specified format.",
+    )
+    parser.add_argument(
         "--remove_figs",
         action="store_true",
         help="Remove rendered images and uncomment original image code",
@@ -923,6 +966,7 @@ def _process_single_file(
     use_sudo: bool,
     dry_run: bool,
     dpi: int = 300,
+    output_format: str = "png",
 ) -> None:
     """
     Process a single file for image rendering.
@@ -936,6 +980,7 @@ def _process_single_file(
     :param dst_dir: absolute path to directory for storing rendered images
     :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
         Graphviz, SVG, TikZ, and LaTeX image types.
+    :param output_format: force output format (png or svg).
     """
     _LOG.info(hprint.func_signature_to_str())
     in_file_ext = os.path.splitext(in_file)[1]
@@ -947,10 +992,10 @@ def _process_single_file(
         msg="Input and output files should have the same extension.",
     )
     # Set the extension for the rendered images.
-    dst_ext = "png"
+    dst_ext = output_format
     if actions == [_ACTION_OPEN]:
         # Set the output file path and image extension used for the preview
-        # action.
+        # action. Preview always uses SVG for quality.
         in_file_ext = os.path.splitext(in_file)[1]
         out_file = tempfile.mktemp(suffix="." + in_file_ext)
         dst_ext = "svg"
@@ -966,6 +1011,7 @@ def _process_single_file(
         use_sudo=use_sudo,
         dry_run=dry_run,
         dpi=dpi,
+        output_format=output_format,
     )
     # Remove empty consecutive lines.
     out_lines = hprint.remove_empty_lines(
@@ -1085,6 +1131,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 use_sudo=args.dockerized_use_sudo,
                 dry_run=args.dry_run,
                 dpi=args.dpi,
+                output_format=args.output_format,
             )
     if len(in_files) > 1:
         _LOG.info("%s Files saved in place", len(in_files))
