@@ -12,6 +12,9 @@
 // Apply the AIMA document template (page/text/heading set + show rules)
 #show: aima-style
 
+// Define image directory for rendered images
+#let img-dir = ".claude/templates/typst.template.typ.figs"
+
 #chapter(1, "Example Chapter")
 
 == Introduction
@@ -61,6 +64,7 @@ Use `*keyword*` for language keywords (function, if, loop, return, etc.). Use
 === Figures and Tables
 
 // Rendered image goes here with label and caption
+// rendered_images:begin
 // ```graphviz
 // digraph ExampleDiagram {
 //     rankdir=LR;
@@ -70,6 +74,12 @@ Use `*keyword*` for language keywords (function, if, loop, return, etc.). Use
 //     A -> B;
 // }
 // ```
+// rendered_images:end
+// render_images:begin
+#figure(
+  image("typst.template.typ.figs/typst.template.1.png"),
+)
+// render_images:end
 // label=fig:example-diagram
 // caption=Description of what the figure shows and its relevance
 

@@ -533,6 +533,7 @@ def _insert_image_code(
     rel_img_path: str,
     user_img_size: str,
     *,
+    out_file: str = "",
     label: str = "",
     caption: str = "",
 ) -> str:
@@ -542,6 +543,7 @@ def _insert_image_code(
     :param extension: file extension (e.g., ".md", ".tex", ".typ")
     :param rel_img_path: relative path to the image
     :param user_img_size: optional user-specified image size
+    :param out_file: output file path (used for typst to adjust relative paths)
     :param label: optional label for the image (e.g., "fig:my_label")
     :param caption: optional caption for the image
     :return: formatted image code as a string
@@ -836,6 +838,7 @@ def _render_images(
                             extension,
                             rel_img_path,
                             user_img_size,
+                            out_file=out_file,
                             label=img_label,
                             caption=img_caption,
                         )
@@ -866,6 +869,7 @@ def _render_images(
                     extension,
                     rel_img_path,
                     user_img_size,
+                    out_file=out_file,
                     label=img_label,
                     caption=img_caption,
                 )
