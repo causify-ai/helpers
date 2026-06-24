@@ -41,6 +41,8 @@ about the topic / content from the user
   genuine learning rather than exhaustive coverage
 
 ## Formatting Rules
+- Make sure to write using bullet points
+
 - Follow the rules in:
   - `.claude/skills/blog.rules.md`
   - `.claude/skills/markdown.rules.md`
@@ -49,5 +51,5 @@ about the topic / content from the user
 ## Beautify
 - Run a command to format the code for proper visualization
   ```
-  > prettier --tab-width 4 <FILE> -w
+  > prettier --tab-width 4 --prose-wrap always --print-width 80 -w <FILE>
   ```

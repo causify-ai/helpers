@@ -178,6 +178,7 @@ _COMMON_PANDOC_OPTS = [
     # https://github.com/jgm/skylighting
     "--highlight-style=tango",
     "-s",
+    "--fail-if-warnings",
 ]
 # --filter /Users/$USER/src/github/pandocfilters/examples/tikz.py \
 # -F /Users/$USER/src/github/pandocfilters/examples/lilypond.py \
@@ -490,6 +491,7 @@ def _run_pandoc_to_typst_slides(
     cmd.append("--number-sections")
     cmd.append("-s")
     cmd.append("-t typst")
+    cmd.append("--fail-if-warnings")
     template = f"{curr_path}/pandoc_touying.typ"
     hdbg.dassert_path_exists(template)
     cmd.append(f"--template {template}")
