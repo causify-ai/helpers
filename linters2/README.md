@@ -162,6 +162,11 @@ Comprehensive linting and code formatting tools for Python, Jupyter notebooks, a
   > lint_cc.py --files "src/*.py" --topic coding
   ```
 
+- Use a different model
+  ```
+  linters2/lint_cc.py --files dev_scripts_helpers/scraping/download_link_articles.py --skill "coding.add_comments" --model deepseek/deepseek-v4-flash
+  ```
+
 ## normalize_import.py
 
 ### What It Does

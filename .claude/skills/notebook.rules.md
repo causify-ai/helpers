@@ -68,6 +68,21 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 - **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
 
+### Use Existing Utils Functions During Generation
+
+- When generating a notebook, check if a corresponding `*_utils.py` file already
+  exists:
+  - If it does, prefer using its existing functions instead of writing new inline
+    code or proposing new functions
+  - If the notebook uses new cell numbers, update the utils function names to
+    match (see `## Sync Function Names with Cell Numbers`)
+  - If a needed function doesn't exist in the utils file, add it following the
+    existing patterns and conventions
+
+- **Rationale**: Existing utils files contain tested, reusable code that follows
+  project conventions. Using them avoids duplication, keeps cells clean, and
+  maintains consistency across notebooks
+
 ## Library Calls vs. Visualization in Package Tutorials
 - When writing a tutorial for a package:
   - Keep the code that executes library calls and explores the API in the notebook
@@ -203,6 +218,44 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Use `display()` to show a dataframe
 - Use `print()` for everything else
 
+## Use Pandas Dataframes and not Print for Tables
+- Use pandas dataframes for tables and do not create tables using `print`
+  - **Bad**
+    ```
+    print(f"{'Property':<25} {'sachs_discrete':<20} {'galton_stature':<20}")
+    print("-" * 65)
+    for key in sachs_tags:
+        print(f"{key:<25} {str(sachs_tags[key]):<20} {str(galton_tags[key]):<20}")
+    ```
+  - **Good**
+    ```
+    # Build a comparison DataFrame from the tags dictionaries.
+    tags_df = pd.DataFrame(
+        {
+            "Property": list(sachs_tags.keys()),
+            "sachs_discrete": [str(sachs_tags[k]) for k in sachs_tags],
+            "galton_stature": [str(galton_tags[k]) for k in sachs_tags],
+        }
+    )
+    display(tags_df)
+    ```
+
+## Print Variable Name With Value
+- When using `print()` to inspect a variable, always include the variable name as a
+  label alongside its value
+  ```python
+  print("type(env)=", type(env))
+  print("env=", env)
+  ```
+  - **Bad**: bare output with no context
+    ```python
+    print(env)
+    ```
+  - **Good**: self-documenting print with variable name
+    ```python
+    print("env=", env)
+    ```
+
 ## Suppress Unwanted Output
 - Assign output to underscore `_` to prevent display:
   - **Bad**: `statement;`
@@ -242,29 +295,97 @@ description: Conventions and standards for interactive Jupyter notebook structur
   print(getattr(contract_out["messages"][-1], "content", ""))
   ```
 
+## Use Bullet-Point Comments for Structured Explanations
+
+- When a comment describes multiple related points (mental models, parameters,
+  observations, or key takeaways), use bullet-point format with each point on
+  its own line instead of a single inline paragraph:
+  - **Bad**: inline paragraph style
+    ```python
+    # **Mental model**: a `Space` is a typed contract. It knows the shape,
+    # dtype, and bounds of valid data. It can sample random valid values and
+    # check membership.
+    ```
+  - **Good**: bullet-point style with each point on its own indented line
+    ```python
+    # - **Mental model**:
+    #   - A `Space` is a typed contract
+    #   - It knows the shape, dtype, and bounds of valid data
+    #   - It can sample random valid values and check membership
+    ```
+- **Rationale**: Bullet-point comments are easier to scan quickly, work better
+  with diff tools (each point is a separate change), and align with the nested
+  bullet style used throughout notebook markdown cells
+
+## Rules for Bullet-Points
+
+- Follow rules from `.claude/skills/text.rules.md`
+  - `## Use Nested Bullets`
+  - `## Structure Bullet-Points using Multiple Levels`
+
 # Notebook Organization
+
+## API Notebook Overview and Summary Sections
+
+- Every API notebook (a notebook that introduces a library or framework) must
+  include two specific markdown sections:
+
+  1. `## Library Overview` at the very beginning, right after setup cells but
+     before the first code cell:
+     - Use the structure:
+       ```markdown
+       ## Library Overview
+
+       - **What problem it solves**: ...
+       - **Key abstraction**: ...
+       - **Mental model**:
+         ```
+         ...
+         ```
+       - **Key classes**:
+         - ...
+       ```
+
+  2. `## Summary: The Mental Model` as the final markdown cell:
+     - Recap the 2-4 essential takeaways the reader should remember
+     - Each bullet must be a complete, standalone statement
+
+- **Rationale**: The overview gives the big picture before diving into details;
+  the summary reinforces what to remember after closing the notebook
 
 ## Cell Triplet Structure
 
-- Each logical cell in a notebook is composed of three notebook cells:
+- Each visualization in a notebook is composed of three notebook cells:
 
-  1. **Markdown cell**: Pedagogical context
+  1. **Markdown cell**: Explains what we want to achieve, the goal
      ```markdown
      ## Cell 1: Visualizing Population Distribution
 
-     Understanding the true population distribution is the foundation of
-     statistical inference. You can't observe the full population, only samples
-     from it.
+     **Goal**:
+     - Visualize the true population distribution
+     - Understand sampling from a finite population
      ```
 
-  2. **Code cell**: Plotting / widget invocation
+  2. **Code cell**: Visualization / interactive widget (optionally with
+     ipywidget)
      ```python
      # Display the population as a bin of colored marbles.
      utils.visualize_population_distribution()
      ```
+     - Documents the plots and their diagrams with comments, e.g.,
+       ```
+       _Population bin_: Shows the full population as colored marbles
+       _Sample bin_: Shows a random sample drawn from the population
+       ```
 
-  3. **Explanation cell**: A markdown cell that explains the results of the
-     previous cell using bullet points
+  3. **Explanation cell**: A markdown cell explaining key observations, what
+     experiments can be done, and what we will learn
+     ```markdown
+     **Key observations**:
+     - Population parameters are fixed but hidden: we only see samples
+     - Small parameter changes produce visually distinct distributions
+     - Try changing the sample size to see how the estimate improves
+     ```
 
 - For all the markdown cells use bullet points with nested bullets for clarity
   and conciseness, following the rules in
@@ -313,6 +434,15 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Cell numbers must be sequential with no gaps within each Part:
   - **Bad**: Cell 1.1 -> Cell 1.5 (skips 1.2, 1.3, 1.4)
   - **Good**: Cell 1.1 -> Cell 1.2 -> Cell 1.3
+
+## Avoid Anti-Pattern Sections
+
+- Do not add sections labeled "Anti-patterns" or discuss anti-patterns as a
+  formal section in notebook content
+- Notebooks should focus on teaching correct concepts and best practices rather
+  than cataloging mistakes
+- Use the **Bad** / **Good** pattern for individual examples when showing what
+  to avoid, not full "Anti-patterns" sections
 
 # Utility File Organization
 
@@ -382,6 +512,17 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Exception: LaTeX formulas may use any case
 - **Bad**: `This Shows The Distribution`
 - **Good**: `This shows the distribution`
+
+## Replace Emdashes with Colons
+- Do not use emdashes, but replace them with `:`
+  - **Bad**
+    ```
+    ## Primitive 1: `list_datasets()` — The Catalog
+    ```
+  - **Good**
+    ```
+    ## Primitive 1: `list_datasets()`: The Catalog
+    ```
 
 ## Non-ASCII Characters
 - Avoid non-ASCII characters in code and documentation
@@ -466,6 +607,27 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - It is acceptable to keep a `func??` introspection line to display a function's
   source or signature
 
+## Print Public Methods of Objects
+- Use `hintrospection.print_public_methods()` from
+  `helpers_root/helpers/hintrospection.py` to display the public interface of a
+  class or module in a notebook cell:
+  list, which renders cleanly in notebook cells
+- This provides a self-documenting overview of available methods, their
+  signatures, and first-line docstrings
+  - **Bad** (bare `dir()` with no context):
+    ```python
+    dir(library_module)
+    ```
+  - **Bad** (manually printing method names):
+    ```python
+    methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
+    print(methods)
+    ```
+  - **Good** (standardized introspection with signatures and documentation):
+    ```python
+    hintros.print_public_methods(library_module, use_markdown=True)
+    ```
+
 # Interactive Cells
 
 - Jupyter notebooks can contain `ipywidgets` widgets for interactive cells
@@ -496,10 +658,10 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
   5. Call initial update: `update_plot()`
 
-  6. Display via `ipywidgets.VBox()`:
+  6. Display via `ipywidgets.VBox()`, without a redundant `Label` (see
+     `## Remove Redundant Labels Before Control Boxes`):
      ```python
      display(ipywidgets.VBox([
-         ipywidgets.Label("Description:"),
          slider1_box,
          slider2_box,
          output
@@ -514,6 +676,120 @@ description: Conventions and standards for interactive Jupyter notebook structur
     via `htutori.add_fitted_text_box()`
     - The comment panel uses a wheat-colored rounded box (via `add_fitted_text_box`
       defaults) to highlight key observations, parameters, and insights
+
+## Remove Redundant Labels Before Control Boxes
+
+- The descriptions are already encoded inside each widget control (via the
+  `description` parameter of `build_widget_control()` or `ipywidgets` controls,
+  and the `name` parameter shown in the play button / +/- box).
+  Adding a separate `ipywidgets.Label` before the VBox/HBox of controls is
+  redundant and wastes vertical space
+
+- **Bad**: Wrapping controls in a `Label` then a VBox of controls
+  ```python
+  display(ipywidgets.VBox([
+      ipywidgets.Label("Parameters:"),
+      slider1_box,
+      slider2_box,
+  ]))
+  ```
+  - Each control already shows its own name/description inline
+  - The `Label` adds no new information
+
+- **Good**: Display controls directly, relying on their embedded descriptions
+  ```python
+  display(ipywidgets.VBox([
+      slider1_box,
+      slider2_box,
+  ]))
+  ```
+
+- **Bad**: Label in the 2-row Output Widget Pattern
+  ```python
+  display(VBox([
+      HBox([Label("Controls:"), controls_box]),
+      output,
+  ]))
+  ```
+- **Good**: No redundant label
+  ```python
+  display(VBox([
+      HBox([controls_box]),
+      output,
+  ]))
+  ```
+
+- The same principle applies to the interactive idiom:
+  - **Bad** (from the Interactive Idiom section):
+    ```python
+    display(ipywidgets.VBox([
+        ipywidgets.Label("Description:"),
+        slider1_box,
+        slider2_box,
+        output
+    ]))
+    ```
+  - **Good**:
+    ```python
+    display(ipywidgets.VBox([
+        slider1_box,
+        slider2_box,
+        output
+    ]))
+    ```
+
+## The Output Widget Pattern for Interactive Cells
+
+- When creating an interactive cell with ipywidget controls, HTML info panels,
+  and matplotlib plots, use the Output widget pattern that separates controls
+  from rendering into a clean 2-row layout:
+
+  ```python
+  # 1. Build ipywidget controls + HTML info in the top row.
+  controls = VBox([dropdowns, sliders])
+  info = HTML("<description>")
+
+  # 2. Single Output widget owns all matplotlib rendering.
+  output = Output()
+
+  def update(_):
+      with output:
+          clear_output(wait=True)
+
+          # 2a. One matplotlib figure, N subplots.
+          _, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(14, 5))
+
+          # 2b. Draw into each axes.
+          plot_grid(ax_left)
+          comments_panel(ax_right)
+
+          plt.tight_layout()
+          plt.show()
+
+  # 3. Arrange as 2x2 grid:
+  #    [controls] [HTML info]   <- ipywidgets HBox
+  #    [plot]     [comments]    <- matplotlib subplots inside one Output
+  top_row = HBox([controls, info])
+  display(VBox([top_row, output]))
+  ```
+
+- **Do not** mix widgets and matplotlib figures in separate `display()` calls
+  arranged manually. Having a single `Output()` widget that holds all matplotlib
+  rendering guarantees:
+  - The figure is recreated from scratch on every update, avoiding stale state
+  - `clear_output(wait=True)` prevents flicker by blocking until the new figure
+    is ready
+  - Subplots in one figure stay aligned (shared x-axis, consistent sizing)
+  - The separation of concerns: controls / HTML / plots are three distinct zones
+
+- **Do not** use multiple Output widgets or mix inline `plt.show()` calls with
+  ipywidget displays for the same interactive cell. One `Output()` that holds
+  `plt.subplots()` in a shared figure is simpler and more maintainable.
+
+- **Rationale**: This pattern cleanly separates the interactive controls (top
+  row) from the visualization output (bottom row), uses a single matplotlib
+  figure with subplots for all visual content, and avoids layout flickering
+  via `clear_output(wait=True)`.
 
 ## Widgets
 
@@ -562,48 +838,131 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - Avoid: `mean_value`, `num_samples`, `noise_std_dev`, `shape_param`
 - Place `seed` parameter last in widget controls
 
-## Markdown Cell Content for Interactive Cells
-- Interactive cells (with visualizations or widgets) must include a markdown cell
-  with the following sections:
+## Visualization Cell Triplet Details
 
-  1. Goal Section: Describe what the cell teaches and its learning objectives:
-    ```markdown
-    **Goal**:
-    - Visualize the true target function and how we sample data from it
-    - Understand that in real-world ML, we only observe samples, not the complete function
-    - Show the relationship between true function, training, and test data
-    ```
+Each visualization follows a three-cell structure:
 
-  2. Plots Section: Document the visualizations and their purpose:
-    ```markdown
-    **Plots**:
-    - Display four plots:
-      - _True Target Function_: The unknown function (with and without noise)
-      - _In-Sample Data (80%)_: Green points used for training
-      - _Out-of-Sample Data (20%)_: Red points used for testing
-      - _Comments_: Summary of parameters and observations
-    ```
+### Markdown Cell (Before the Visualization)
 
-  3. Parameters Section: List all interactive controls and their ranges:
-    ```markdown
-    **Parameters**:
-    - `Function`: Select target function (Slow Sinusoid, Fast Sinusoid, Parabola, Constant, Linear)
-    - `epsilon` ($\epsilon$): Standard deviation of noise
-    - `N (total samples)` ($N$): Number of data points to sample
-    ```
+- Title and Goal format:
+  ```markdown
+  ## Cell <part>.<id>: <Short Description>
 
-  4. Key Observations Section: Highlight insights learners should grasp:
-    ```markdown
-    **Key observations**:
-    - The complete curve is the unknown target function $f(x)$
-    - In practice, we only access noisy samples from the function
-    - Data splits into training (green) and testing (red) sets
-    - Goal is to learn from training data and generalize to test data
-    ```
+  **Goal**:
+  - Build intuition for <concept>
+  - <Learning objective 2>
+  ```
 
-- Each section should be:
-  - formatted using bullet points using `.claude/skills/text.rules.md`
-  - short with no more than 3-5 bullet points
+- Each plot's description is placed underneath the plot title, not in a separate
+  "Plots" section. Describe them as italicized phrases with a colon:
+  ```markdown
+  _Population bin_: Shows the full unknown population as colored marbles
+  _Sample bin_: Shows a random sample drawn from the population
+  _Comments_: Current parameter values and state observations
+  ```
+
+- Each widget has its description close to it (in the widget's `description`
+  parameter or as a label above the widget), ensuring it is entirely readable.
+
+- Parameters and their ranges can be listed as bullet points under a
+  `**Parameters**` heading, but keep them concise.
+
+### Code Cell (The Visualization)
+
+- The visualization code, optionally with ipywidgets for interactivity.
+
+- The "Comments" panel (subplot or text box) should contain **only variable
+  state and observations associated to the current state**, not general "key
+  idea" commentary:
+  ```python
+  comment_text = (
+      f"Parameters:\n"
+      f"  alpha: {alpha:.2f}\n"
+      f"  beta: {beta:.2f}\n"
+      f"  N: {n_samples}\n\n"
+      f"Sample statistics:\n"
+      f"  mean: {mean_sample:.4f}\n"
+      f"  std: {std_sample:.4f}"
+  )
+  ```
+  Remove comments like "key insight" or "observation" from the Comments panel;
+  keep only the information about the current parameter state.
+
+### Markdown Cell (After the Visualization)
+
+- After the interactive / visualization cell, add a markdown cell with key
+  observations:
+  ```markdown
+  **Key observations**:
+  - Utility spreads backward from the terminals, one ring of cells per sweep
+  - Cells near the $+1$ terminal end high
+  - Cells near the $-1$ terminal end low
+  - The change per sweep shrinks geometrically: convergence is guaranteed
+
+  - Early sweeps only affect cells adjacent to the terminals
+  - Later sweeps refine the interior until nothing changes
+  - Higher gamma propagates value further but converges more slowly
+  ```
+
+## Simple Interactive Widgets
+
+- For cells with a single visualization and a few sliders:
+  - Create the widgets, visualization, and update logic in a single utility
+    function
+  - Return the widget container (not bare prints or displays)
+  - Accept all widget parameters explicitly (don't rely on global state)
+
+- Example:
+  ```python
+  def gaussian_interactive(mu_range=(0, 1), sigma_range=(0.1, 1)):
+      """
+      Interactive Gaussian visualization with sliders for mu and sigma.
+      """
+      # Create widgets
+      # Create figure and initial plot
+      # Create update callback
+      # Return interactive container
+  ```
+
+## Complex Interactive Widgets
+
+- Multiple coordinated visualizations (3-4 side-by-side plots, not a 2x2 grid)
+- Shared parameter controls (sliders and numeric inputs for parameters)
+- Explanatory subplot with text explanation of what other plots show
+
+### Layout and Organization
+
+```python
+def complex_entropy_interactive():
+    """
+    Four-plot interactive widget for joint entropy exploration.
+    """
+    # 1. Controls at top: sliders for each parameter + numeric input fields
+    # 2. Four plots in a single row:
+    #    - Joint distribution heatmap
+    #    - Entropy metrics / statistics
+    #    - Sampled realizations / examples
+    #    - Comments: text explanation of what's happening
+
+    # As sliders move, update all plots and the Comments text
+    # Return the full widget container (controls + plots)
+```
+
+### Best Practices for Complex Widgets
+
+1. **Add controls first**: Both sliders (coarse adjustment) and numeric inputs
+   (precise entry)
+2. **Use a single row layout**: Not 2x2 grids; arrange subplots horizontally
+3. **Information in Comments subplot**: Do NOT use `print()` statements
+   - Create a text matplotlib axis or HTML widget
+   - Dynamically generate explanation text based on current parameter values
+   - Update it in the same callback as other plots
+4. **Legend per plot**: Add informative legends to each subplot, not just one
+   global legend
+5. **Reference implementation**: study
+   - `plot_joint_entropy_interactive()` in
+     `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+   - `cell3_interactive_sample_generator()` in `notebook_utils_template.py`
 
 # Testing Notebook
 

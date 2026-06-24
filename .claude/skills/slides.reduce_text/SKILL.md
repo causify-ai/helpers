@@ -7,11 +7,6 @@ model: haiku
 - You are an expert writer of slides and presentations
 - Your role is specified in `.claude/skills/role.ai_researcher.md`
 
-## Subset of Slides
-- If there are tokens `<START>` and `<END>` you will process only the text
-  between those tokens
-- Otherwise you process the entire file
-
 ## Follow Conventions
 - Follow the conventions in `.claude/skills/slides.rules.md`
 
@@ -30,15 +25,15 @@ model: haiku
       - Aggregated, organized data sets for analysis
       - E.g., customer purchase histories in a CRM system
     ```
-  - Good
+  - **Bad**
+    ```
+    - **Collections of data**: organized datasets for analysis
+      - E.g., customer purchase histories in CRM
+    ```
+  - **Good**
     ```
     - **Collections of data**
       - Organized datasets for analysis
-      - E.g., customer purchase histories in CRM
-    ```
-  - Bad
-    ```
-    - **Collections of data**: organized datasets for analysis
       - E.g., customer purchase histories in CRM
     ```
 
@@ -49,23 +44,22 @@ model: haiku
   - Use active voice (e.g., "Improve accuracy," not "Accuracy can be improved")
   - Prefer short phrases over full sentences
 - E.g.,
-  <input>
+  - For a slide in input like:
   ```
   * Slide title
   - This is a very long bullet point that is not clear and should be removed
   - This is a clear bullet point that should be kept
   ```
-  </input>
 
-  <output>
+  - The output is:
   ```
   * Slide title
   - This is a clear bullet point that should be kept
   ```
-  </output>
 
-- Example
-  <input>
+## Example
+- Input
+  ```
   - **Collections of data**
     - Aggregated, organized data sets for analysis
     - E.g., customer purchase histories in a CRM system
@@ -85,9 +79,10 @@ model: haiku
   - **Models**
     - Statistical representations to _forecast, explain phenomena_
     - E.g., model to anticipate customer churn based on behavioral data
-  </input>
+  ```
 
-  <output>
+- Output is
+  ```
   - **Collections of data**
     - Organized datasets for analysis  
     - E.g., customer purchase histories in a CRM  
@@ -107,4 +102,4 @@ model: haiku
   - **Models**
     - Statistical tools to _forecast, explain_  
     - E.g., churn prediction from customer behavior
-  </output>
+  ```

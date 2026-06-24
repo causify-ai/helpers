@@ -21,7 +21,7 @@ from typing import Dict, List, Tuple
 import pandas as pd
 import requests
 
-import helpers.hcache_simple as hcaches
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -33,7 +33,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-@hcaches.simple_cache()
+@hcacsimp.simple_cache()
 def _download_gutenberg_book(url: str, book_name: str) -> str:
     """
     Download a book from Project Gutenberg.
@@ -53,7 +53,8 @@ def _download_gutenberg_book(url: str, book_name: str) -> str:
 
 
 def _create_summarization_benchmark(
-    url: str, book_name: str,
+    url: str,
+    book_name: str,
 ) -> Tuple[str, str]:
     """
     Create a summarization benchmark from downloaded text.
@@ -70,9 +71,7 @@ def _create_summarization_benchmark(
     text = " ".join(words[:1000])
     _LOG.info("Extracted %d words", len(words[:1000]))
     # Build summarization instruction and embed the text into the prompt.
-    prompt_instruction = (
-        f"Please summarize the following text concisely in 3 markdown bullet points:\n\n"
-    )
+    prompt_instruction = "Please summarize the following text concisely in 3 markdown bullet points:\n\n"
     full_prompt = f"{prompt_instruction}{text}"
     # Persist the prompt so llm_cli.py can read it as input.
     benchmark_file = "tmp.llm_compare.prompt.txt"
@@ -111,10 +110,11 @@ def _get_benchmark(benchmark_name: str) -> Tuple[str, str]:
     url, text_source_name = benchmarks[benchmark_name]
     # Download the book and create the benchmark.
     _, prompt_file = _create_summarization_benchmark(
-        url, text_source_name,
+        url,
+        text_source_name,
     )
     # Generate llm_cli commands from the prompt file.
-    llm_cli_cmds = f'--input {shlex.quote(prompt_file)}'
+    llm_cli_cmds = f"--input {shlex.quote(prompt_file)}"
     _LOG.debug(hprint.to_str("prompt_file llm_cli_cmds"))
     return prompt_file, llm_cli_cmds
 
@@ -204,7 +204,9 @@ def _run_llm_cli(
     _LOG.info("Running model '%s'...", model)
     _LOG.info("Command: %s", cmd)
     # Run the CLI; capture non-zero exit without aborting by default.
-    rc = hsystem.system(cmd, print_command=False, abort_on_error=False)
+    rc = hsystem.system(
+        cmd, print_command=False, abort_on_error=False, suppress_output=False
+    )
     if rc != 0:
         error_msg = (
             f"llm_cli.py failed with return code {rc} for model '{model}'"
@@ -288,16 +290,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     elif args.llm_cli_cmds:
         llm_cli_cmds = args.llm_cli_cmds
     else:
-        raise ValueError(
-            "Either --benchmark or --llm_cli_cmds must be provided"
-        )
+        raise ValueError("Either --benchmark or --llm_cli_cmds must be provided")
     models = _load_models(args.models, args.models_from_file)
     output_dir = args.output_dir
     hio.create_dir(output_dir, True)
     _LOG.info("Output directory: %s", output_dir)
-    _LOG.info(
-        "Running %d models with commands: %s", len(models), llm_cli_cmds
-    )
+    _LOG.info("Running %d models with commands: %s", len(models), llm_cli_cmds)
     results = {}
     benchmark_name = args.benchmark if args.benchmark else ""
     # Iterate over each model: skip if output already exists, otherwise run.
@@ -336,9 +334,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             exc or "Model failed: %s",
             model,
         )
-    df = _build_comparison_table(
-        models, output_dir, results, benchmark_name
-    )
+    df = _build_comparison_table(models, output_dir, results, benchmark_name)
     # Persist comparison as CSV and log to stdout.
     csv_file = os.path.join(output_dir, "comparison.csv")
     df.to_csv(csv_file, index=False)
@@ -374,8 +370,8 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output_dir",
         type=str,
-        required=True,
-        help="Directory to save results and stats",
+        default="tmp.llm_compare",
+        help="Directory to save results and stats (default: 'tmp.llm_compare')",
     )
     parser.add_argument(
         "--abort_on_error",

@@ -230,7 +230,7 @@ def generate_markdown_index(
 
 def _main() -> None:
     parser = argparse.ArgumentParser(
-        description="Generate or refresh a Markdown index in the README file."
+        description=__doc__,
     )
     parser.add_argument(
         "--index_mode",

@@ -70,20 +70,23 @@
 
 ## Design Rationale and Trade-offs
 
-- **Memory vs Disk**: Memory cache provides fast access but is volatile and
-  non-persistent. Disk cache persists across sessions but comes with I/O
-  overhead. The design allows combining both for flexibility.
+- **Memory vs Disk**:
+  - Memory cache provides fast access but is volatile and non-persistent
+  - Disk cache persists across sessions but comes with I/O overhead
+  - The design allows combining both for flexibility
 
-- **Pickle vs JSON**: Pickle supports a wider range of Python-native types (like
-  objects, sets, etc.), while JSON is more portable and human-readable but
-  limited to basic types. The user can choose based on their use case.
+- **Pickle vs JSON**:
+  - Pickle supports a wider range of Python-native types (like objects, sets,
+    etc.)
+  - JSON is more portable and human-readable but limited to basic types
+  - The user can choose based on their use case
 
 - **Property Storage**: Properties are stored in a single pickle file
   (`tmp.cache.property.pkl`) that contains both user and system properties for
-  all cached functions.
+  all cached functions
 
 - **Performance Tracking is Optional**: Monitoring is off by default to avoid
-  runtime overhead and is opt-in via `enable_cache_perf`.
+  runtime overhead and is opt-in via `enable_cache_perf()`
 
 ## Memory Cache
 
@@ -96,8 +99,8 @@
 - Flow example:
   - When a decorated function is called with arguments `(3,)`, the system:
     - Checks if `_CACHE` contains the key `'{"args": [3], "kwargs": {}}'`
-    - Returns the cached value if found `(cache hit)`
-    - Otherwise, calls the function to compute the result, stores it in
+    - Returns the cached value if found (cache hit)
+    - Otherwise, calls the function to compute the result, stores the result in
       `_CACHE`, and then returns it
 
 - Interface:
@@ -166,20 +169,20 @@
     4. Cache miss is only reported if key is not found in ANY layer
 
 - Global S3 configuration:
-  - `set_s3_bucket(bucket)` - set S3 bucket for cache storage
+  - `set_s3_bucket(bucket)`: set S3 bucket for cache storage
     - Example: `set_s3_bucket("s3://my-cache-bucket")`
-  - `set_s3_prefix(prefix)` - set S3 prefix path for cache files
+  - `set_s3_prefix(prefix)`: set S3 prefix path for cache files
     - Example: `set_s3_prefix("cache/project1")`
-  - `set_aws_profile(profile)` - set AWS profile for S3 access
+  - `set_aws_profile(profile)`: set AWS profile for S3 access
     - Default is `"ck"`
     - Example: `set_aws_profile("my-aws-profile")`
 
 - S3 operations (manual control):
-  - `push_cache_to_s3(func_name)` - upload local cache to S3
+  - `push_cache_to_s3(func_name)`: upload local cache to S3
     - If `func_name` is empty, pushes all cached functions (including those with
       custom cache locations)
     - First flushes memory cache to disk, then uploads to S3
-  - `pull_cache_from_s3(func_name)` - manually download cache from S3 to local
+  - `pull_cache_from_s3(func_name)`: manually download cache from S3 to local
     - If `func_name` is empty, discovers and pulls all cached functions:
       - On local disk (in both global and custom cache directories, as defined in
         the `_CACHE_PROPERTY` file)
@@ -195,7 +198,7 @@
         - Manually set property before pulling:
           `set_cache_property("func", "s3_bucket", "s3://custom-bucket")`
     - After download, loads cache into memory
-  - `sync_cache_with_s3(func_name)` - bidirectional merge between local and S3
+  - `sync_cache_with_s3(func_name)`: bidirectional merge between local and S3
     - Downloads S3 cache, merges with local (local takes precedence), uploads
       result back to S3
     - If `func_name` is empty, discovers all cached functions (using the same
@@ -217,14 +220,14 @@
 
 - Each cached function can have its own cache configuration independent of global
   settings
-- Per-function settings override global defaults
+  - Per-function settings override global defaults
 - Available per-function settings:
-  - `cache_dir` - custom directory for this function's cache files
-  - `cache_prefix` - custom prefix for this function's cache file names
-  - `s3_bucket` - custom S3 bucket for this function
-  - `s3_prefix` - custom S3 prefix for this function
-  - `aws_profile` - custom AWS profile for this function
-  - `auto_sync_s3` - enable automatic S3 sync after cache updates
+  - `cache_dir`: custom directory for this function's cache files
+  - `cache_prefix`: custom prefix for this function's cache file names
+  - `s3_bucket`: custom S3 bucket for this function
+  - `s3_prefix`: custom S3 prefix for this function
+  - `aws_profile`: custom AWS profile for this function
+  - `auto_sync_s3`: enable automatic S3 sync after cache updates
 
 - Benefits:
   - Organize cache files by project, team, or purpose
@@ -250,7 +253,7 @@
     - The system increments `tot`
     - If the `value` exists in the cache, `hits` is incremented
     - Otherwise, `miss` is incremented and the function is executed
-    - The stats can then be printed with `get_cache_perf_stats` which returns a
+    - The stats can then be printed with `get_cache_perf_stats()` which returns a
       summary string
 
 - Interface:
@@ -698,20 +701,21 @@ result = expensive_computation(1000000)
 - Use case: Caching ML models, large datasets, or objects that can't be
   JSON-serialized
 
-```python
-import pandas as pd
-import helpers.hcache_simple as hcacsimp
+- Example
+  ```python
+  import pandas as pd
+  import helpers.hcache_simple as hcacsimp
 
-@hcacsimp.simple_cache(cache_type="pickle")
-def load_large_dataset(file_path: str) -> pd.DataFrame:
-    # Load and process large dataset.
-    df = pd.read_csv(file_path)
-    # Complex transformations.
-    return df
+  @hcacsimp.simple_cache(cache_type="pickle")
+  def load_large_dataset(file_path: str) -> pd.DataFrame:
+      # Load and process large dataset.
+      df = pd.read_csv(file_path)
+      # Complex transformations.
+      return df
 
-# Caching to `tmp.cache_simple.load_large_dataset.pkl`.
-df = load_large_dataset("data.csv")
-```
+  # Caching to `tmp.cache_simple.load_large_dataset.pkl`.
+  df = load_large_dataset("data.csv")
+  ```
 
 ### Team Cache Sharing via S3
 
@@ -719,26 +723,27 @@ df = load_large_dataset("data.csv")
 - Use case: Expensive LLM calls, data processing results that should be
   reused
 
-```python
-import helpers.hcache_simple as hcacsimp
+- Example
+  ```python
+  import helpers.hcache_simple as hcacsimp
 
-# Configure global S3 settings.
-hcacsimp.set_s3_bucket("s3://team-cache-bucket")
-hcacsimp.set_s3_prefix("cache/project1")
-hcacsimp.set_aws_profile("team-aws-profile")
+  # Configure global S3 settings.
+  hcacsimp.set_s3_bucket("s3://team-cache-bucket")
+  hcacsimp.set_s3_prefix("cache/project1")
+  hcacsimp.set_aws_profile("team-aws-profile")
 
-@hcacsimp.simple_cache(cache_type="json", auto_sync_s3=True)
-def call_expensive_llm(prompt: str, model: str) -> str:
-    # Expensive LLM API call.
-    response = llm_api.complete(prompt, model)
-    return response
+  @hcacsimp.simple_cache(cache_type="json", auto_sync_s3=True)
+  def call_expensive_llm(prompt: str, model: str) -> str:
+      # Expensive LLM API call.
+      response = llm_api.complete(prompt, model)
+      return response
 
-# First call on any machine - computes and uploads to S3.
-result = call_expensive_llm("Summarize this document", "gpt-4")
+  # First call on any machine - computes and uploads to S3.
+  result = call_expensive_llm("Summarize this document", "gpt-4")
 
-# On another machine - cache automatically pulls from S3 on first call.
-result = call_expensive_llm("Summarize this document", "gpt-4")
-```
+  # On another machine - cache automatically pulls from S3 on first call.
+  result = call_expensive_llm("Summarize this document", "gpt-4")
+  ```
 
 - `auto_sync_s3=True` automatically uploads after each cache update
 - On new machines, first cache miss automatically pulls from S3 (no manual pull
@@ -1193,3 +1198,10 @@ flowchart TD
     E3 --- E1
     E4 --- E1
 ```
+
+- See `helpers/hcache_simple.py` for command-line options to control cache
+  behavior (e.g., `--use_cache`, `--clear_cache`, `--force_refresh`).
+
+# Changelog
+
+- v1.0 (2025-10-01): First release

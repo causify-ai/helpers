@@ -3,36 +3,40 @@ description: Move a file or directory in the Git repo and update all references 
 model: haiku
 ---
 
-- Given a source path `<src>` and destination path `<dst>` in the current Git
-  repository move a file or directory in the Git repo and update all references
-  to it
+# Goal
+- Given a source path `<SRC>` and destination path `<DST>` move a file or
+  directory in the Git repo and update all references to it
 
-# Steps
+# Workflow
 
 ## Validate Inputs
-- Confirm `<src>` exists in the repository
-- Confirm `<dst>` does not already exist (to prevent accidental overwrites)
-- Ensure the parent directory of `<dst>` exists, creating it if necessary
+- Confirm `<SRC>` exists in the repository
+- Confirm `<DST>` does not already exist (to prevent accidental overwrites)
+- Ensure the parent directory of `<DST>` exists, creating it if necessary
 
 ## Move the File or Directory
-- Run `git mv <src> <dst>` to preserve Git history
+- Run `git mv <SRC> <DST>` to preserve Git history
 - If the file is in a subrepo (e.g., `helpers_root`), descend in that dir to use
-  `git`
-  - E.g., `cd helpers_root && git mv <src> <dst>` adjusting the paths
+  `git mv`
+  - E.g., `cd helpers_root && git mv <SRC> <DST>` adjusting the paths
     accordingly
 
 ## Update All References
-- Search the entire repository for any occurrences of `<src>`
+- Search the entire repository for any occurrences of `<SRC>`
   ```
-  > grep -r -i <src> .
+  > grep -r -i <SRC> .
   ```
-- Replace each occurrence with `<dst>`
-- This includes source code imports in Python, configuration files in YAML and
-  JSON, documentation in markdown and text, and any other plaintext files
+- Replace each occurrence of `<SRC>` with `<DST>`
+- This includes:
+  - Source code imports in Python
+  - Unit test code in Python
+  - Configuration files in YAML and JSON
+  - Documentation in markdown and text
+  - Any other plaintext files
 - Skip binary files and the `.git/` directory
 
 ## Summarize Changes
-- Report what changes that were performed
+- Report what changes were performed
   - List every file that had references updated, with a count of replacements
     per file
   - Flag any ambiguous matches that may need manual review
@@ -43,5 +47,8 @@ model: haiku
   - When the task is complex, create a plan.md with 5 bullet points explaining
     what the plan is
 
-## Verify
-- Make sure that there is no reference left over about file `<src>`
+## Verify Results
+- Make sure that there is no reference left over about file `<SRC>`
+  ```
+  > grep -r -i <SRC> .
+  ```

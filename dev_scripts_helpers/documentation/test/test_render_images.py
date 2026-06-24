@@ -176,6 +176,36 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
+    def test_md7(self) -> None:
+        """
+        Test uncommenting a rendered_images block containing `-->` in content.
+
+        This verifies the fix for the bug where `-->` inside mermaid edges
+        (e.g., `BP --> |Track usage| Providers`) was stripped along with the
+        HTML comment closing tag ` -->`, corrupting the diagram. The fix only
+        strips the outermost `<!-- ... -->` wrapper, not all ` -->` occurrences.
+        """
+        in_text = r"""
+        Before
+        <!--  rendered_images:begin -->
+        <!--  ```mermaid -->
+        <!--  graph LR -->
+        <!--      BP --> |Track usage| Providers -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        After
+        """
+        extension = ".md"
+        expected = r"""
+        Before
+        ```mermaid
+        graph LR
+            BP --> |Track usage| Providers
+        ```
+        After
+        """
+        self.helper(in_text, extension, expected)
+
     def test_tex1(self) -> None:
         """
         Test uncommenting a rendered_images block.
@@ -879,6 +909,35 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
+    def test_md_mermaid3(self) -> None:
+        """
+        Check mermaid code with `-->` inside content that also appears as the
+        HTML comment closing tag (e.g., `BP --> |Track usage| Providers`).
+
+        This verifies the fix for the bug where `-->` in mermaid edge labels
+        was erroneously stripped by the blanket `.replace(" -->", "")` in the
+        old `_uncomment_line()`.
+        """
+        in_lines = r"""
+        ```mermaid
+        graph LR
+            BP --> |Track usage| Providers
+        ```
+        """
+        file_ext = "md"
+        expected = r"""
+        <!--  rendered_images:begin -->
+        <!--  ```mermaid -->
+        <!--  graph LR -->
+        <!--      BP --> |Track usage| Providers -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
+        ![](figs/out.1.png)
+        <!--  render_images:end -->
+        """
+        self.helper(in_lines, file_ext, expected)
+
     def test_tex_mermaid1(self) -> None:
         """
         Check bare mermaid code in a LaTeX file.
@@ -1319,6 +1378,7 @@ class Test_render_images_script1(hunitest.TestCase):
         # Check that it succeeded.
         self.assertEqual(rc, 0)
 
+    # TODO(ai_gp): Rename test1_XYZ
     def test_script_dry_run_md(self) -> None:
         """
         Test script with dry run on a simple Markdown file.
@@ -1338,3 +1398,117 @@ class Test_render_images_script1(hunitest.TestCase):
         cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
         rc = hsystem.system(cmd)
         self.assertEqual(rc, 0)
+
+    def test_script_output_format_default(self) -> None:
+        """
+        Test script with default output format (png).
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = """
+        # Test Document
+
+        ```mermaid
+        graph TD
+            A --> B
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
+        rc = hsystem.system(cmd)
+        self.assertEqual(rc, 0)
+
+    def test_script_output_format_png(self) -> None:
+        """
+        Test script with explicit --output_format png.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = """
+        # Test Document
+
+        ```graphviz
+        digraph G { A -> B; }
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = (
+            f"{self._get_exec_path()} -i {test_file} --action render "
+            f"--output_format png --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        self.assertEqual(rc, 0)
+
+    def test_script_output_format_svg(self) -> None:
+        """
+        Test script with explicit --output_format svg.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = """
+        # Test Document
+
+        ```plantuml
+        Alice -> Bob: Hello
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = (
+            f"{self._get_exec_path()} -i {test_file} --action render "
+            f"--output_format svg --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        self.assertEqual(rc, 0)
+
+    def test_script_output_format_tikz_png(self) -> None:
+        """
+        Test that tikz supports png output format.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = r"""
+        # Test Document
+
+        ```tikz
+        \draw (0,0) -- (1,1);
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = (
+            f"{self._get_exec_path()} -i {test_file} --action render "
+            f"--output_format png --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        self.assertEqual(rc, 0)
+
+    def test_script_output_format_tikz_svg_fails(self) -> None:
+        """
+        Test that tikz fails when requesting svg output format.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = r"""
+        # Test Document
+
+        ```tikz
+        \draw (0,0) -- (1,1);
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        cmd = (
+            f"{self._get_exec_path()} -i {test_file} --action render "
+            f"--output_format svg --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        # Should fail due to assertion.
+        self.assertNotEqual(rc, 0)

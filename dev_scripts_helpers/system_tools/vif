@@ -1,4 +1,6 @@
-#!/bin/bash -xe
+#!/bin/bash -e
+
+# set -x
 
 # """
 # Open file searching for the file if the path is incorrect.

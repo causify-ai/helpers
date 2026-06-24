@@ -7,15 +7,17 @@
 """
 Format or lint files using Claude Code.
 
-This script detects file types (by extension and path pattern), builds a prompt,
-and invokes Claude Code with that prompt on the selected files.
+This script:
+- Detects file types (by extension and path pattern)
+- Builds a prompt
+- Invokes Claude Code with that prompt on the selected files
 
 Examples:
-# Lint specific Python files using the proper rule file (in this case
-# `coding.rules.md`):
+# Lint specific Python files using the proper rule file (for Python files
+# use `.claude/skills/coding.rules.md`):
 > lint_cc.py --files "file1.py file2.py"
 
-# Lint Python testing files (with `testing.rules.md`):
+# Lint Python testing files (with `claude/skills/testing.rules.md`):
 > lint_cc.py --files "test_foo.py test_bar.py"
 
 # Files can be selected with --files, --from_file, --branch
@@ -24,19 +26,26 @@ Examples:
 # Lint modified files in the client:
 > lint_cc.py --modified
 
-# Call a specific topic (rules) on a single file:
+# Call a specific topic rules on a single file (in this case
+# `.claude/skills/coding.rules.md`)
 > lint_cc.py --topic coding --files "file.py"
 
 # Execute a skill on a single file:
 > lint_cc.py --skill coding.fix_inline --files "file.py"
 
 # Execute a rule on a single file using one of these formats:
-# - Full path: --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions"
-#   (path:line:header format with header validation)
-# - Line number only: --rule ".claude/skills/coding.rules.md:58"
-#   (extracts the section starting at that line)
-# - Keyword search: --rule "dassert"
-#   (searches for unique matching rule using rigrule)
+# - Full path (path:line:header format with header validation)
+#   ```
+#   --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions"
+#   ```
+# - Line number only (extracts the section starting at that line)
+#   ```
+#   --rule ".claude/skills/coding.rules.md:58"
+#   ```
+# - Keyword search: (searches for unique matching rule using rigrule)
+#   ```
+#   --rule "dassert"
+#   ```
 > lint_cc.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
 
 # Print the command without executing:
@@ -55,6 +64,7 @@ from typing import cast, Dict, Tuple
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hmarkdown_select as hmarsele
@@ -65,8 +75,6 @@ import helpers.hsystem as hsystem
 
 
 _LOG = logging.getLogger(__name__)
-
-model_default = "claude-haiku-4-5-20251001"
 
 
 def _get_rules_for_topic(topic: str) -> Dict:
@@ -249,7 +257,10 @@ def _run_claude_code(
     model: str,
 ) -> int:
     """
-    Run Claude Code with the given prompt.
+    Run Claude Code with the given prompt via the cc wrapper.
+
+    Delegates to `dev_scripts_helpers/ai/cc` which handles model routing
+    (OpenRouter vs direct Anthropic) and environment variable setup.
 
     :param prompt: Claude Code prompt
     :param topic: Topic for logging purposes
@@ -263,21 +274,20 @@ def _run_claude_code(
     _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
+    # Call the cc wrapper which handles model routing and env setup.
+    _CC_WRAPPER = hgit.find_file("cc", dir_path=os.path.join(os.path.dirname(__file__), ".."))
     cmd_parts = [
-        "claude",
-        "-p",
-        "--dangerously-skip-permissions",
-        "--output-format=text",
+        _CC_WRAPPER,
         "--model",
         model,
-        f"'Execute the file {prompt_file}'",
+        "-p",
+        f"Execute the file {prompt_file}",
     ]
     cmd = " ".join(cmd_parts)
     _LOG.info("Claude command: %s", cmd)
     if dry_run:
         _LOG.info("Dry run: command not executed")
         return 0
-    _LOG.debug("Executing: %s", " ".join(cmd_parts[:6]))
     result = subprocess.run(cmd_parts, capture_output=False)
     return result.returncode
 
@@ -314,9 +324,8 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         type=str,
-        default=model_default,
-        help=f"Optional model name to use (e.g., 'gpt-4', 'claude-3-opus'). "
-        f"Default: {model_default}",
+        default="",
+        help="Optional model name to use using cc conventions",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -362,6 +371,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 model=args.model,
             )
         elif args.rule:
+            _LOG.debug("Executing rigrule: %s", args.rule)
             rule_content = hmarsele.extract_rule_from_file(args.rule)
             prompt = (
                 f"Execute the rule below on file {file_path}:\n\n{rule_content}"

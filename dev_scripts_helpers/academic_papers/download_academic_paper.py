@@ -5,8 +5,9 @@
 # ///
 
 """
-Download academic papers from arXiv, DOI, and other sources with standardized
-filenames.
+Download academic papers from arXiv, DOI, and other sources saving the paper
+with standardized filename
+E.g., `2016.Ribeiro_et_al.Why_Should_I_Trust_You_Explaining_the_Predictions_of_Any_Classifier.pdf`
 
 # Download from arXiv URL
 > download_academic_paper.py --input "https://arxiv.org/abs/1706.03762"
@@ -409,7 +410,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     _DEFAULT_OUTPUT_DIR = os.path.expanduser(os.getenv("PAPERS_DIR", "."))
     parser = argparse.ArgumentParser(
-        description="Download academic papers with standardized filenames"
+        description=__doc__,
     )
     parser.add_argument(
         "-i",

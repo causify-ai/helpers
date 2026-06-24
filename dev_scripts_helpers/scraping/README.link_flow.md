@@ -15,9 +15,9 @@ The workflow involves:
 
 - E.g., 
   ```
-  export LINKS_GSHEET="<your-google-sheets-url>"
-  # E.g.,
-  export LINKS_GSHEET=https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=1324796321#gid=1324796321
+  > export LINKS_GSHEET="<your-google-sheets-url>"
+
+  > export LINKS_GSHEET=https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M
   ```
 
 - The master Google Sheets document contains the following columns:
@@ -131,12 +131,12 @@ The workflow involves:
 
 - Run specific actions:
   ```bash
-  # Just download data from Google Sheets
+  # Just download data from Google Sheets:
   > process_link_gsheet.py \
       --url "$LINKS_GSHEET" \
       --action download
 
-  # Extract article URLs only
+  # Extract article URLs only:
   > process_link_gsheet.py \
       --url "$LINKS_GSHEET" \
       --action update_article_url
@@ -173,24 +173,24 @@ The workflow involves:
 
 #### Example Usage
 
-- Download HN comments for rows 0-10 where Url column is not empty:
-  ```bash
-  > download_link_articles.py \
-      --url "$LINKS_GSHEET" \
-      --column_idx "0:10" \
-      --select_column "Url" \
-      --action download_url
-  ```
-
 - Download all (both HN comments and articles):
   ```bash
   > download_link_articles.py \
       --url "$LINKS_GSHEET" \
-      --select_column "Article_url" \
+      --row_idx 1 \
       --all
   ```
 
-- Download article content from Article_url column:
+- Download HN comments for rows 0-10 where `Url` column is not empty:
+  ```bash
+  > download_link_articles.py \
+      --url "$LINKS_GSHEET" \
+      --row_idx "0:10" \
+      --select_column "Url" \
+      --action download_url
+  ```
+
+- Download article content from `Article_url` column:
   ```bash
   > download_link_articles.py \
       --url "$LINKS_GSHEET" \
@@ -202,7 +202,7 @@ The workflow involves:
   ```bash
   > download_link_articles.py \
       --url "$LINKS_GSHEET" \
-      --column_idx "0:5" \
+      --row_idx "0:5" \
       --select_column "Url" \
       --skip_action download_article_url
   ```

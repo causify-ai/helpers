@@ -1,7 +1,6 @@
-This document contains all the rules that must be followed to write text in
-terms of bullet lists
+Rules for writing structured text using bullet lists
 
-## Goals and Philosophy
+# Goals and Philosophy
 
 - Make the text is easy to consume for both humans and AI, i.e., it's
   well-organized, structured, without fluff, and AI slop
@@ -13,36 +12,35 @@ terms of bullet lists
 
 - Think of notes as a hybrid between a textbook and a student's notebook
 
-## Writing Style
+# Writing Style
 
-### Writing Style
+## Clear Language
 
-- Use explicit references instead of unclear ones
+- Use explicit references instead of unclear pronouns
   - **Bad**: "it"
   - **Good**: "TCP protocol"
 - Maintain consistent labels for recurring ideas
 - Avoid redundancy in concepts
 - Prefer plain language over academic jargon
-- Make sure text is short and not unnecessarily long
 
-### Avoid Long Prose
+## Structured Over Prose
 
 - Prefer structured notes over narrative prose
-- Use a first-person, self-directed voice, e.g.,
+- Use a first-person, self-directed voice:
   - **Good**: "Key thing to remember: entropy increases"
 
-### Use Direct Statements
-
-- Convert abstract principles into short, direct statements, e.g.,
+- Convert abstract principles into short, direct statements:
   - **Bad**:
     ```
-    Everyone takes responsibility, owns their projects, and blames no one if
+    Eunset OPENROUTER_API_KEY CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_KEY OPENROUTER_KEYveryone takes responsibility, owns their projects, and blames no one if
     something doesn't get finished
     ```
   - **Good**:
     ```
     Everyone takes responsibility: no blaming others if work isn't finished
     ```
+
+# Formatting
 
 ## Use Only Text
 
@@ -53,7 +51,22 @@ terms of bullet lists
   - **Bad**: A → B
   - **Good**: A -> B
 
-## Text Is Formatted with Bullets
+## Use `:` Instead of `-`
+
+- When writing bullet points with an explanation, use `:` and not `-` to separate
+  the first part from the comment
+  - **Bad**
+    ```
+    `SKILL.md` - Main skill instruction file
+    ```
+  - **Good**
+    ```
+    `SKILL.md`: Main skill instruction file
+    ```
+
+# Bullet List Structure
+
+## Bullet Fundamentals
 
 - Every text should start with a bullet point
   - **Bad**
@@ -64,67 +77,91 @@ terms of bullet lists
     ```markdown
     - Hello, my name is ...
     ```
+- Each bullet expresses one complete atomic idea (1–3 lines)
+- Do not end a bullet point with a period
+- Group bullets under clear paragraph headings
 
-- Example
-  - **Bad**
+## Bullet Usage
+
+- Use bullets to show definitions, purpose, components, pros/cons, and examples
+- Start all introductory text with a bullet as well:
+  - **Bad**:
     ```markdown
     Always follow these guidelines:
     - `.claude/skills/notebook.rules.md`: General notebook conventions
     ```
-  - **Good**
+  - **Good**:
     ```markdown
     - Always follow these guidelines:
       - `.claude/skills/notebook.rules.md`: General notebook conventions
     ```
 
-## Use Bullets
+- Example: Well-Structured Bullets
+  ```markdown
+  - What it does:
+    - Extracts each page of a PDF file as a separate PNG image
+    - Numbers output files sequentially (`slides001.png`, `slides002.png`, etc.)
+    - Supports customizable DPI for image quality control
+    - Creates output directory automatically with optional from-scratch mode
+  ```
 
-- Use bullet points inside a paragraph
+## Nested Bullets
 
-- Each bullet should express one complete atomic idea
-  - Keep bullets concise but meaningful (1–3 lines)
+- Use nested bullets for dependencies, relationships, and hierarchy
+  - Dependencies and relationships (e.g., cause -> effect)
+  - Hierarchy of concepts
+  - Components and lists
+  - Elaboration (definitions, examples, implications)
+- Keep nesting logical: general rule first, then example, then mathematical formulation
+- Example hierarchy:
+  ```
+  - Technology
+    - Hardware
+      - Computers
+      - Mobile Devices
+    - Software
+      - Operating Systems
+      - Applications
+  ```
 
-- Use bullets to show:
-  - Definitions
-  - Purpose
-  - Components
-  - Pros and cons
-  - Examples
+## Converting Prose to Bullet Points
 
-- Group bullets under clear paragraph headings
+- Create 4-5 bullet points capturing main ideas
+- Use nested structure with maximal clarity and fewer words
+  - Use `-` for first-level bullets
+  - Use indented `-` for sub-bullets
+  - Organize hierarchically: general rule first, then example, then mathematical formulation
+- Use LaTeX notation for formulas
+- Avoid non-ASCII symbols (use `->` not `→`)
+- Extract concrete examples
+- Remove narrative prose, keep only key facts and relationships
 
-- Do not end a bullet point with a period `.`
+## Multi-Level Organization
 
-## Use Nested Bullets
+- Organize bullet points into cohesive chunks using multiple levels
+- **Bad**: Flat list with no hierarchy (hard to follow logical relationships)
+- **Good**: Structured with sub-bullets that clarify relationships and dependencies
 
-- Use nested bullets to show:
-  - Dependencies and relationships
-    - E.g., cause -> effect
-  - Hierarchy of concepts, e.g.,
+- Example:
+  - **Bad** (unclear grouping):
     ```
-    - Technology
-      - Hardware
-        - Computers
-        - Mobile Devices
-      - Software
-        - Operating Systems
-        - Applications
+    - Evaluation answers "how good is this policy"
+    - The linear system $(I - gamma P) U = b$ is solved directly with `numpy`
+    - With a fixed action, the $max$ disappears: equations are linear
+    - A bad policy yields low utilities near the $-1$ terminal
     ```
-  - Components and lists, e.g.,
+  - **Good** (clear relationships):
     ```
-    - Allowed formats:
-      - Graphviz
-      - Mermaid
-      - TikZ-style charts
+    - Evaluation is the first half of policy iteration
+      - Evaluation answers "how good is this policy", not "what should I do instead"
+    - With a fixed action per state, $max$ disappears: equations are linear
+      - The linear system $(I - gamma P) U = b$ is solved directly with `numpy`
     ```
-  - Elaboration, not to extend main bullets, e.g., for
-    - Definitions
-    - Examples
-    - Implications
 
-## Try to Use Lists
+## Lists Over Prose
 
-- Try to use lists to make the text more structured and legible
+- Use lists to structure text and improve legibility
+- Break dense prose into organized sub-bullets
   - **Bad**
     ```
     This document covers how to publish documents, books, and blogs across
@@ -175,48 +212,9 @@ terms of bullet lists
     ## 3. Third
     ```
 
-## Organize Text in Bullet Points
+# Constraints
 
-- Make sure all the text is organized in bullet points, e.g.,
-  ```markdown
-  - **What it does**:
-    - Extracts each page of a PDF file as a separate PNG image
-    - Numbers output files sequentially (`slides001.png`, `slides002.png`, etc.)
-    - Supports customizable DPI for image quality control
-    - Creates output directory automatically with optional from-scratch mode
-  ```
-
-## Leave Fenced Code Blocks Alone
-- If there is a fenced code block, do not remove it
-  ```python
-  ...
-  ```
-
-## Summarize the Text Into Structured Markdown Bullet Points
-
-- Create 4-5 bullet points capturing the main ideas
-- Use nested markdown bullets with maximal clarity and fewer words
-  - Use `-` for first-level bullets
-  - Use indented `-` for sub-bullets
-  - Organize sub-bullets hierarchically: general rule first, then example, then
-    mathematical formulation
-- Use Latex notation for formulas
-- Avoid non-ASCII symbols
-- Extract concrete examples
-- Be concise: remove narrative prose, keep only key facts and relationships
-
-## Use `:` Instead of `-`
-
-- When writing bullet points with an explanation, use `:` and not `-` to separate
-  the first part from the comment
-  - **Bad**
-    ```
-    `SKILL.md` - Main skill instruction file
-    ```
-  - **Good**
-    ```
-    `SKILL.md`: Main skill instruction file
-    ```
+- Preserve fenced code blocks without modification
 
 # Examples
 

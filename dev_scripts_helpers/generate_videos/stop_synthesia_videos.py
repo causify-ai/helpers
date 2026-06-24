@@ -30,10 +30,10 @@ API_BASE = "https://api.synthesia.io/v2"
 TIMEOUT = 30  # seconds per HTTP request
 
 
-
 # #############################################################################
 # SynthesiaError
 # #############################################################################
+
 
 class SynthesiaError(RuntimeError):
     pass
@@ -137,7 +137,7 @@ def _parse() -> argparse.Namespace:
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Stop Synthesia video generation."
+        description=__doc__,
     )
     hparser.add_verbosity_arg(parser)
     group = parser.add_mutually_exclusive_group(required=True)

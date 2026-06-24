@@ -1,32 +1,54 @@
 #!/bin/bash
-# Read JSON data that Claude Code sends to stdin.
+# Status line for Claude Code.
+#
+# Reads JSON input from Claude Code (via stdin) and renders a compact status
+# bar showing cost, diff lines, model, directory, tokens, and context usage.
+#
+# Cost is computed by helpers_root/.claude/compute_cost.py using the CC_MODEL
+# env var (set by helpers_root/dev_scripts_helpers/ai/cc).
+
 input=$(cat)
 
-# Extract fields using jq.
+# Extract fields.
 MODEL=$(echo "$input" | jq -r '.model.display_name')
+MODEL_ID=$(echo "$input" | jq -r '.model.api_model // ""')
 DIR=$(echo "$input" | jq -r '.workspace.current_dir')
 # The "// 0" provides a fallback if the field is null.
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
-COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
+REPORTED_COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 IN_TOK=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
 OUT_TOK=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
 LINES_ADDED=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
 LINES_REMOVED=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
 VIM=$(echo "$input" | jq -r '.vim.mode // ""')
 
-# Format cost to 4 decimal places.
-COST_FMT=$(printf "%.4f" "$COST")
-
-# ANSI color codes.
+# Colors.
 YELLOW='\033[33m'
 GREEN='\033[32m'
 RED='\033[31m'
+CYAN='\033[36m'
 RESET='\033[0m'
 
-# Build the status line.
-# - ${DIR##*/} extracts just the folder name from the full path.
-# - Cost is shown first in yellow, lines added in green, lines removed in red.
-STATUS="${YELLOW}\$${COST_FMT}${RESET} ${GREEN}+${LINES_ADDED}${RESET} ${RED}-${LINES_REMOVED}${RESET} | [${MODEL}] ${DIR##*/} | in:${IN_TOK} out:${OUT_TOK} | ${PCT}% ctx"
+# Compute cost from tokens.
+# Delegate to Python script which has the pricing table and CC_MODEL lookup.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COST_FMT=$(python3 "$SCRIPT_DIR/compute_cost.py" \
+    "$MODEL" "$MODEL_ID" "$IN_TOK" "$OUT_TOK" "$REPORTED_COST" 2>/dev/null)
+
+# Fallback if python3 call failed or returned empty.
+if [ -z "$COST_FMT" ]; then
+    COST_FMT=$(printf "%.4f" "$REPORTED_COST")
+fi
+
+# Show CC_MODEL if defined, otherwise show current model from /model (i.e.,
+# when using Anthropic plan).
+if [ -z "$CC_MODEL" ]; then
+    MODEL_DISPLAY="${MODEL_ID:-$MODEL}"
+else
+    MODEL_DISPLAY="$CC_MODEL"
+fi
+
+STATUS="${YELLOW}\$${COST_FMT}${RESET} ${GREEN}+${LINES_ADDED}${RESET} ${RED}-${LINES_REMOVED}${RESET} | [${MODEL_DISPLAY}] ${DIR##*/} | in:${IN_TOK} out:${OUT_TOK} | ${PCT}% ctx"
 
 # Append vim mode only when it is non-empty.
 if [ -n "$VIM" ]; then

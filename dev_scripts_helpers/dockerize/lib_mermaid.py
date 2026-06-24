@@ -10,7 +10,7 @@ import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 """
 
 import logging
-from typing import List
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -29,6 +29,11 @@ _LOG = logging.getLogger(__name__)
 _MERMAID_CLI_IMAGE_VERSION = "13.0.0"
 _MERMAID_NPM_VERSION = "11.14.0"
 _MERMAID_CLI_NPM_VERSION = "11.12.0"
+
+# Mermaid rendering DPI.
+# Default Chromium headless DPI is 96. This constant is used to compute the
+# `--scale` flag passed to mmdc as `scale = dpi / 96`.
+MERMAID_DPI = 300
 
 _MERMAID_CONTAINER_PREFIX = "tmp.mermaid"
 
@@ -124,6 +129,7 @@ def run_dockerized_mermaid(
     mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
+    mermaid_dpi: Optional[int] = None,
 ) -> None:
     """
     Run `mermaid` in a Docker container, building the container from scratch
@@ -135,9 +141,13 @@ def run_dockerized_mermaid(
     :param mode: execution mode (e.g., "system")
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
+    :param mermaid_dpi: DPI for the rendered image. If None, defaults to
+        `MERMAID_DPI` (300). The DPI is converted to an mmdc `--scale` flag
+        as `scale = dpi / 96`, since Chromium's default headless DPI is 96.
     """
     _LOG.debug(hprint.func_signature_to_str())
-    hdbg.dassert_eq(cmd_opts, [])
+    if mermaid_dpi is None:
+        mermaid_dpi = MERMAID_DPI
     # Build the container, if needed.
     container_image = build_mermaid_container_image(
         force_rebuild=force_rebuild, use_sudo=use_sudo
@@ -179,8 +189,12 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
+    # Compute the mmdc scale factor from the target DPI.
+    # Chromium's default headless DPI is 96, so `--scale` is dpi / 96.
+    scale = mermaid_dpi / 96
     mermaid_cmd = (
         f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
+        + f" --scale {scale}"
         + f" -i {in_file_path} -o {out_file_path}"
     )
     hdocker.build_and_run_docker_cmd(

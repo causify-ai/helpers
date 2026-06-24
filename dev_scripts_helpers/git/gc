@@ -5,6 +5,12 @@
 
 source helpers.sh
 
+# Parse --nv (no-verify) flag.
+no_verify=""
+if [[ "$1" == "--nv" ]]; then
+    no_verify="--no-verify"
+fi
+
 commit_msg="Update"
-execute "git commit -am '$commit_msg'"
+execute "git commit -am '$commit_msg' $no_verify"
 execute "git push"

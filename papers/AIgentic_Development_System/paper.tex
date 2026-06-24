@@ -1,0 +1,92 @@
+% Add the following subsections
+% - Problem -> Motivation
+% - Solution -> Summary of Solutions
+% - Detailed description of the solution
+% - Architecture and Design
+% - Examples
+% - Comparison with the other solutions, state of the art
+
+\input{papers/template/style.tex}
+
+\graphicspath{{papers/Causify_AIgentic_Development_System/}}
+
+\begin{document}
+  \title{Causify AIgentic Development System}
+  \maketitle
+
+  % ############################################################################
+  \section{Introduction}
+  Software development workflows are becoming more complex as they adapt
+  to the demands of large-scale systems and modern collaborative
+  development practices. As teams and codebases grow, companies face the
+  challenge of organizing both effectively. When it comes to structuring
+  the codebase, two main approaches emerge: monorepos and multi-repos.
+  Monorepos consolidate all code into a single repository, simplifying version
+  control but carrying a risk of scalability and maintainability issues.
+  Conversely, multi-repos store the code in logically separated repositories,
+  easier to manage and deploy but more difficult to keep in sync.
+
+  In this paper, we propose Causify dev system, an alternative hybrid
+  solution: a modular system architecture built around runnable directories.
+  Although independent, these directories maintain cohesion through shared
+  tooling and environments, offering a straightforward and scalable way
+  to organize the codebase while ensuring reliability in development, testing,
+  and deployment.
+
+  % ############################################################################
+  \section{Contributions}
+
+  This paper presents the Causify development system, a novel approach
+  to software development infrastructure that addresses the limitations
+  of traditional monorepo and multi-repo architectures, development vs deployment,
+
+  The main contributions are:
+
+  \begin{itemize}
+    \item \textbf{Human / AI development system}:
+      A development system designed to enable AI agentic coding, to increase
+      the efficiency of human developers, and to allow AI coding agents and
+      humans to collaborate.
+
+    \item \textbf{Runnable directories architecture}: A hybrid organizational
+      model that combines the modularity of multi-repos with the environment
+      consistency of monorepos, enabling independent development
+      lifecycles while maintaining unified tooling and testing
+      capabilities.
+
+    \item \textbf{Containerized development workflows}: 
+      A Docker-based approach to development that ensures reproducible
+      environments across development, testing, and production stages.
+
+    \item \textbf{Dockerized Executables}: A containerization pattern for
+      individual development utilities that packages tools with their
+      dependencies in slim Docker images, enabling execution without local
+      installation.
+  \end{itemize}
+
+  This paper is organized as in the following
+  TODO(gp)
+
+  % ############################################################################
+  \input{papers/Causify_AIgentic_Development_System/part1.code_quality.tex}
+
+  % ############################################################################
+  \input{papers/Causify_AIgentic_Development_System/part2.runnable_directory.tex}
+
+  % ############################################################################
+  \input{papers/Causify_AIgentic_Development_System/part3.containerized_development.tex}
+
+  % ############################################################################
+  \input{papers/Causify_AIgentic_Development_System/part4.AI_optimized_development.tex}
+
+  %- [1]
+  %  [Mono vs. multi-repo](https://free.gitkraken.com/hubfs/Mono_v_Multi-Repo_debate_2023.pdf)
+  %- [2]
+  %  [Why Google stores billions of lines of code in a single repository](https://dl.acm.org/doi/10.1145/2854146)
+  %- [3]
+  %  [What it is like to work in Meta's (Facebook's) monorepo](https://blog.3d-logic.com/2024/09/02/what-it-is-like-to-work-in-metas-facebooks-monorepo/)
+  %- [4]
+  %  [Microsoft: How "Mono-repo" and "One Infra" Help Us Deliver a Better Developer Experience](https://devblogs.microsoft.com/appcenter/how-mono-repo-and-one-infra-help-us-deliver-a-better-developer-experience/)
+  %- [5]
+  %  [Uber: Faster Together: Uber Engineering's iOS Monorepo](https://www.uber.com/blog/ios-monorepo/)
+\end{document}

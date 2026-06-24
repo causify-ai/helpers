@@ -74,6 +74,12 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Execute an arbitrary llm command (e.g., 'llm chat --model gpt-4')",
     )
+    parser.add_argument(
+        "--install_llm_plugins",
+        action="store_true",
+        default=False,
+        help="Install LLM plugins (llm-openrouter, llm-anthropic) and log versions",
+    )
     hllmcli.add_llm_args(parser, input_required=True)
     hmarsele.add_select_arg(parser, required=False)
     parser.add_argument(
@@ -137,6 +143,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.max_chars,
         args.stat_file,
         args.llm_cmd,
+        args.install_llm_plugins,
     )
 
 

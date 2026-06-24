@@ -3,7 +3,7 @@ description: Create a detailed markdown outline (notebook_outline file) for a Ju
 model: opus
 ---
 
-# Purpose
+# Goal
 
 - Create a comprehensive outline for an interactive Jupyter notebook that teaches
   a concept through visualization and hands-on exploration
@@ -21,9 +21,10 @@ model: opus
 
 # Cell Outline Structure
 
-- Each cell in the outline corresponds to a pair of cells in the final notebook:
-  - **Markdown cell**: Section header and pedagogical context
-  - **Code cell**: Visualization, widgets, and explanatory text
+- Each cell in the outline corresponds to a triplet of cells in the final notebook:
+  - **Markdown cell**: Section header, goal, and pedagogical content (before viz)
+  - **Code cell**: Visualization, widgets, and interactive controls
+  - **Markdown cell**: Key observations and what to learn (after viz)
 
 ## Numbering and Naming
 
@@ -34,53 +35,71 @@ model: opus
 
 ## Cell Description Template
 
+- Each cell in the outline describes the full visualization triplet (3 notebook
+  cells: pre-visualization markdown, code, and post-visualization markdown).
+
 - Use this structure for each cell:
   ```markdown
   ## Cell i: <Concise Learning Objective>
 
-  - **Purpose**: Explain the learning goal of this cell
-  - **Display**: Describe what the visualization/output will show
-  - **Interactive widget**:
-    - List each control (e.g., Slider for X: 0-1)
-    - Explain what each widget controls
-  - **Key insights**: What should students notice or learn from this cell?
-  - **Comment box**: Text or annotations that explain key findings
-  - **Implementation**: Which libraries and functions will be used
+  **Goal**:
+  - <Learning objective 1>
+  - <Learning objective 2>
+
+  **Plots and their descriptions**:
+  - _<Plot 1 name>_: <Description of what it shows>
+  - _<Plot 2 name>_: <Description of what it shows>
+  - _Comments_: Current parameter values and state observations
+
+  **Widgets** (if applicable):
+  - <widget name>: <description, range, effect on display>
+  - Each widget description is close to the widget itself
+
+  **Key observations** (post-visualization):
+  - <Discovery 1 students should make>
+  - <Discovery 2 students should make>
+
+  **Implementation**: Libraries and functions used
   ```
 
-### Purpose (Required)
+### Goal (Required)
 
-- 1-2 sentences stating the learning objective
+- 1-2 bullet points stating the learning objectives
 - If this is not the first cell, reference how it builds on prior concepts
 - Answer: "Why is this cell important?"
 
-### Display (Required)
+### Plots and Their Descriptions (Required)
 
-- Describe visual elements using bullet points
-- Be specific about student observations (not implementation details)
-- Include: axes labels, color scheme, animation behavior
-- Example: "Red line shows current sample mean, gray envelope shows ±1 std dev range"
+- Describe each plot using the pattern `_<Plot name>_: <description>`
+- Each plot's description is placed together with the plot title, not in a
+  separate section
+- Be specific about what the visualization shows (not implementation details)
+- Include: axes labels, color scheme, what each panel displays
+- Example: "_Population bin_: Shows full population as colored marbles"
 
-### Interactive Widget (If Applicable)
+### Widgets (If Applicable)
 
 - List each control with its name and range (e.g., "Slider for mu: 0.0-1.0")
+- Each widget description is placed close to the widget itself (in its
+  `description` parameter or as an adjacent label)
 - Explain the immediate effect of changing each parameter on the display
 - Keep widgets focused on pedagogically important parameters
 - Avoid: redundant controls, parameters students won't care about
 
-### Key Insights (Required)
+### Key Observations (Required, Post-Visualization)
 
 - List 2-3 bullet points of discoveries students should make
+- These appear in a markdown cell **after** the visualization cell
 - Focus on learning outcomes, not mechanics
-- Include "aha moments" and counterintuitive observations
-- Do NOT repeat the Purpose: go deeper
+- Include what experiments can be done and what students will learn
+- Do NOT repeat the Goal: go deeper
 
-### Comment Box (Required)
+### Comments Panel (Required)
 
-- Describe text annotations overlaid on the visualization (callouts, arrows)
-- Or a summary text cell explaining important takeaways
-- Use emphasis sparingly
-- Answer: "What should students take away from this cell?"
+- Contains only variable state and observations associated to the current state
+- Remove general commentary like "key insight" or "key idea"
+- Include current parameter values, sample statistics, and state observations
+- Example: current mu value, number of samples, sample mean/std
 
 ### Implementation (Required)
 
@@ -94,32 +113,42 @@ model: opus
   ```markdown
   ## Cell 1: Visualizing Population Distribution
 
-  - **Purpose**: Give students a concrete visual representation of the unknown
-    population distribution they're trying to infer from samples
-  - **Display**:
-    - Animated bin visualization with colored marbles (red vs blue)
-    - Marble colors and proportions update in real-time as slider changes
-    - Count of each color displayed above the bin
-    - Title emphasizes "True Population (Unknown)"
-  - **Interactive widget**:
-    - Slider for mu: true proportion of red marbles (0.0-1.0)
-    - Description: "Drag to change the unknown true proportion. Notice how the
-      bin looks different but you can only ever see samples from it in practice"
-  - **Key insights**:
-    - Population parameters are fixed but hidden: we only see samples
-    - Small parameter changes produce visually distinct distributions
-    - Intuition: different populations look different when fully observed (which
-      we can't do)
-  - **Comment box**: "In practice, we never see the full population: only random
-    samples from it. This visualization shows what we're trying to infer from
-    those samples."
-  - **Implementation**: Matplotlib animation for marbles, ipywidgets FloatSlider
+  **Goal**:
+  - Give students a concrete visual representation of the unknown population
+    distribution they're trying to infer from samples
+  - Understand that we can only observe samples, not the full population
+  ```
+
+- Visualization
+  ```markdown
+  **Implementation**: Matplotlib animation for marbles, ipywidgets FloatSlider
     for control, matplotlib patches for marble visualization
+
+  **Plots and their descriptions**:
+  - _Population bin_: Animated bin visualization with colored marbles
+    (red vs blue) showing the true population
+  - _Sample bin_: Shows a random sample drawn from the population
+  - _Comments_: Current parameter values (mu, sample count)
+
+  **Widgets**:
+  - `mu`: slider for true proportion of red marbles (0.0-1.0)
+  - `seed`: random seed for reproducibility
+  ```
+
+- Commentary
+  ```markdown
+  **Key observations**:
+  - Population parameters are fixed but hidden: we only see samples
+  - Small parameter changes produce visually distinct distributions
+  - Intuition: different populations look different when fully observed
+    (which we can't do)
   ```
 
 # Important Conventions
 
 - Always follow these guidelines:
-  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions, including the `Utilities vs. Notebook Responsibilities` section for organizing utility files and notebooks
+  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions,
+    including the `Utilities vs. Notebook Responsibilities` section for
+    organizing utility files and notebooks
   - `.claude/skills/markdown.rules.md`: Markdown formatting rules
   - `.claude/skills/text.rules.md`: Bullet point conventions

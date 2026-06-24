@@ -1,0 +1,354 @@
+% ############################################################################
+\section{AI-Optimized Development Infrastructure}
+
+% ============================================================================
+\subsection{Motivation}
+
+The Causify development system is designed to enable AI-assisted development.
+The same design principles that enable human developers to work efficiently
+(such as discoverability, automation, standardization, and immediate feedback)
+align remarkably well with the operational requirements and constraints of AI
+coding agents. This section examines five key aspects of the system that create
+an ``AI-optimized codebase'' and explains why these characteristics enable more
+effective human-AI collaboration in software development.
+
+% ============================================================================
+\subsection{Self-Documenting, Executable Workflows}
+
+The system's use of Python \texttt{invoke} tasks as a centralized task
+registry fundamentally changes how developers (both human and AI) interact
+with the codebase. Rather than requiring knowledge of complex command-line
+invocations, Docker configurations, or repository-specific conventions,
+all development operations are exposed through a discoverable, consistent
+interface.
+
+AI agents benefit from this design in several ways:
+
+\begin{itemize}
+  \item \textbf{Discoverability}: Agents can execute \texttt{invoke --list}
+    to enumerate all available operations (testing, linting, deployment,
+    Docker management, git operations) without prior knowledge of the codebase
+
+  \item \textbf{Elimination of ambiguity}: Instead of constructing bash
+    commands from documentation or examples that might be outdated, agents
+    invoke standardized tasks with well-defined semantics
+
+  \item \textbf{Cross-repository consistency}: The same commands work
+    identically across all runnable directories, eliminating the need
+    to learn repository-specific patterns
+
+  \item \textbf{Encoded best practices}: The invoke tasks themselves
+    represent the correct way to perform operations, including proper
+    Docker container selection, pytest options, timeout configurations,
+    and output handling
+\end{itemize}
+
+For example, rather than an AI agent attempting to construct the correct
+Docker command with appropriate mounts, user permissions, and pytest
+arguments, it simply executes \texttt{invoke run\_fast\_tests --coverage}.
+This reduces the cognitive complexity the AI must manage and eliminates
+entire categories of potential errors.
+
+% =============================================================================
+\subsection{Agent Instruction Manifests: Making the Repository Speak to AI}
+
+In addition to executable workflows, the system embeds explicit, agent-targeted
+guidance directly in the repository. The \texttt{csfy} repository and the nested
+\texttt{helpers} module include a \texttt{CLAUDE.md} file that serves as an
+\emph{agent instruction manifest}: a structured description of architecture,
+module boundaries, and the canonical commands to run for testing, linting, and
+container development.
+
+This is not “documentation” in the traditional sense. It is a machine-consumable
+operating manual that eliminates guesswork and prevents agents from inventing
+unsafe or non-standard workflows. It also reduces prompt/context requirements:
+instead of pasting a long “how to contribute” guide into an agent session, the
+repository provides a stable, versioned source of truth.
+
+\begin{lstlisting}[language=Text]
+# Example excerpt (conceptual) from CLAUDE.md:
+# - Architecture overview (components and ownership boundaries)
+# - Canonical commands:
+#   invoke run_fast_tests
+#   invoke lint --modified
+#   invoke docker_bash
+\end{lstlisting}
+
+Embedding instruction manifests yields two practical benefits:
+(1) agents become immediately productive without an interactive onboarding loop,
+and (2) maintainers can evolve agent behavior safely through code review
+(change the manifest, not a hidden prompt).
+
+% =============================================================================
+\subsection{Machine-Readable Repository Contracts: \texttt{repo\_config.yaml}}
+
+Runnable directories in \texttt{csfy} expose a machine-readable contract via
+\texttt{repo\_config.yaml}. This file encodes the operational identity of the
+directory: repository name, container image name, registries, and runnable-dir
+behavior (including whether \texttt{helpers} is nested).
+
+For AI agents, this is a major upgrade over prose documentation: it enables direct
+queries like “what image name should I build?” or “which container registry should
+I push to?” without searching or inference.
+
+\begin{lstlisting}[language=YAML]
+repo_info:
+  repo_name: csfy
+docker_info:
+  docker_image_name: csfy
+container_registry_info:
+  ecr: <...>.dkr.ecr.<region>.amazonaws.com
+  ghcr: ghcr.io/causify-ai
+runnable_dir_info:
+  use_helpers_as_nested_module: 1
+  venv_tag: helpers
+  dir_suffix: csfy
+\end{lstlisting}
+
+This contract makes automation safer. For example, a release task can derive the
+target registry and image naming convention from \texttt{repo\_config.yaml} rather
+than relying on environment-specific assumptions.
+
+% =============================================================================
+\subsection{Context-Bounded Editing: Runnable Directories as Prompt Boundaries}
+
+AI agents operate under context constraints: they cannot reliably load or reason
+about an entire monorepo at once. Runnable directories provide a natural
+\emph{context boundary}. Each directory is intended to be self-contained: it has
+its own Docker configuration, task entrypoints, and test lifecycle.
+
+This turns an otherwise fuzzy question—“what subset of the repo matters?”—into a
+concrete procedure:
+\begin{itemize}
+  \item focus the agent on a single runnable directory (or a small subtree),
+  \item use its local \texttt{tasks.py}/invoke interface to build, test, and lint,
+  \item treat other runnable directories as dependencies with explicit boundaries.
+\end{itemize}
+
+The result is practical: higher-quality agent edits with fewer accidental
+cross-cutting changes and fewer “context hallucinations.”
+
+% =============================================================================
+\subsection{Guardrails and Provenance for Autonomous Changes}
+
+Agentic development fails in predictable ways: style drift, accidental secret
+inclusion, environment-specific behavior, and changes that “work locally” but fail
+in CI. The system counters these with layered guardrails that are both
+human-friendly and agent-friendly.
+
+Key guardrails include:
+\begin{itemize}
+  \item \textbf{Formatting and lint automation}: pre-commit hooks (e.g., ruff) reduce
+    style failures to deterministic fixes rather than review-time arguments.
+  \item \textbf{Containerized execution}: tests run in containers, removing host
+    variability as an explanation for failures.
+  \item \textbf{Secret hygiene gates}: the workflow includes explicit secret-scanning
+    gates (e.g., gitleaks in CI), ensuring “agent mistakes” do not become incidents.
+  \item \textbf{Version synchronization}: environment and tooling versions are pinned
+    and updated via controlled mechanisms (e.g., changelog/version workflows),
+    preventing silent drift.
+\end{itemize}
+
+Equally important is \emph{provenance}: an agent should not merely propose code; it
+should produce a change accompanied by evidence (test output, lint output, and a
+clear summary of what changed and why). This supports the core practice-oriented
+goal: make agent output reviewable and auditable.
+
+% =============================================================================
+\subsection{The Agentic Loop: Plan $\rightarrow$ Patch $\rightarrow$ Prove}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{papers/Causify_AIgentic_Development_System/figs/ai_optimized_development_infrastructure_flowchart.png}
+  \caption{AI-optimized development infrastructure: instruction manifests (\texttt{CLAUDE.md}), machine-readable repo contracts (\texttt{repo\_config.yaml}), and runnable-directory boundaries feed a disciplined agentic loop (Plan$\rightarrow$Patch$\rightarrow$Prove$\rightarrow$Summarize), constrained by quality gates (pre-commit, lint, tests, secret scanning, version sync) to produce evidence-carrying, reviewable changes.}
+  \label{fig:ai_optimized_dev_infra}
+\end{figure}
+
+The infrastructure enables a disciplined agent workflow:
+\begin{enumerate}
+  \item \textbf{Plan}: summarize intended change and affected runnable directory.
+  \item \textbf{Patch}: implement a minimal diff that respects directory boundaries.
+  \item \textbf{Prove}: run the smallest appropriate gates first, then expand:
+    \begin{itemize}
+      \item \texttt{invoke lint --modified}
+      \item \texttt{invoke run\_fast\_tests} (or directory-scoped equivalent)
+      \item optional: slow/superslow tests for risky changes
+    \end{itemize}
+  \item \textbf{Summarize}: provide a PR-ready explanation and evidence links/outputs.
+\end{enumerate}
+
+This loop is the practical bridge from “AI can generate code” to “AI can contribute
+changes safely.” The novelty is not the existence of agents—it is the existence of
+infrastructure that makes agent behavior predictable, verifiable, and reviewable.
+
+% ============================================================================
+\subsection{Standardized Conventions Eliminate Cognitive Overhead}
+
+The system enforces comprehensive conventions for code organization,
+naming, and structure that AI agents can internalize once and apply
+universally. This standardization dramatically reduces the decision
+space the AI must navigate when performing common development tasks.
+
+Key conventions that benefit AI agents include:
+
+\begin{itemize}
+  \item \textbf{Predictable file organization}: Tests reside in \texttt{test/}
+    directories adjacent to implementation code; golden files follow
+    the pattern \texttt{test/outcomes/TestClass.test\_method/output/}
+
+  \item \textbf{Systematic naming patterns}: Test classes follow
+    \texttt{TestFooBar1} for testing class \texttt{FooBar}, test methods
+    use \texttt{test\_calculate1()} for testing method \texttt{calculate()},
+    with numbers enabling future expansion
+
+  \item \textbf{Uniform test structure}: Every test adheres to the
+    three-section pattern: prepare inputs, run test, check outputs,
+    with mandatory docstrings and type annotations
+
+  \item \textbf{Clear architectural boundaries}: Code is organized into
+    well-defined components (e.g., DataPull, DataFlow, OMS, Market Data
+    in the case of Causify system) with explicit dependency relationships and
+    consistent internal structure
+\end{itemize}
+
+When asked to add tests for a new function \texttt{process\_data()} in
+\texttt{foo/bar/module.py}, an AI agent immediately knows to create
+\texttt{foo/bar/test/test\_module.py} containing class \texttt{Test\_process\_data1}
+with appropriately structured test methods. No ambiguity, no need to
+examine existing patterns, no opportunity for inconsistency. This
+eliminates entire categories of trivial questions that would otherwise
+require context switching or clarification.
+
+% ============================================================================
+\subsection{Container-Based Reproducibility Guarantees}
+
+The Docker-based development system ensures that AI-generated code behaves
+identically across all execution contexts, eliminating the entire class
+of ``works on my machine'' failures that plague traditional development
+workflows.
+
+The containerization strategy provides several critical guarantees:
+
+\begin{itemize}
+  \item \textbf{Environment isolation}: All tests and builds execute
+    in containers with precisely specified dependencies, eliminating
+    host system variability as a source of failures
+
+  \item \textbf{Version synchronization}: Container versions are locked
+    and synchronized with code versions via \texttt{changelog.txt},
+    ensuring that code and its execution environment remain compatible
+
+  \item \textbf{Consistent tool behavior}: Dockerized executables work
+    identically whether invoked from the host system, within development
+    containers, or in CI/CD pipelines, using the sibling container
+    pattern
+
+  \item \textbf{Minimal host dependencies}: The thin environment approach
+    requires only Docker and minimal Python packages on the host, enabling
+    AI agents to operate in any environment (developer laptops, remote
+    servers, CI/CD runners) with identical behavior
+\end{itemize}
+
+This reproducibility is particularly valuable for AI agents, which may
+not have visibility into the host environment's configuration. When an
+AI writes code that depends on specific Python packages or system
+libraries, there is no ambiguity: the code either works correctly in the
+container or it doesn't. The same container image used during development
+is used in testing and production, eliminating environment-related
+debugging cycles.
+
+% ============================================================================
+\subsection{Golden File Testing for Deterministic Verification}
+
+The \texttt{hunitest.TestCase} framework's golden file testing pattern
+via the \texttt{check\_string()} method provides AI agents with concrete,
+deterministic feedback about code changes. Unlike traditional assertion-based
+tests that provide binary pass/fail outcomes with limited context, golden
+file tests expose the complete delta between expected and actual behavior.
+
+This approach offers several advantages for AI-assisted development:
+
+\begin{itemize}
+  \item \textbf{Concrete, interpretable feedback}: When code changes
+    affect behavior, the golden file diff shows exactly what changed,
+    enabling the AI to assess whether the modification aligns with
+    intent
+
+  \item \textbf{Safe iteration cycles}: The AI can observe the precise
+    impact of changes before committing to them, then use
+    \texttt{pytest --update\_outcomes} to accept intentional modifications
+
+  \item \textbf{Comprehensive regression detection}: Any unintended
+    side effects from AI modifications appear immediately as unexpected
+    diffs in golden files, even for distant parts of the system
+
+  \item \textbf{Elimination of false positives}: Unlike complex boolean
+    assertions that might pass due to implementation bugs, golden files
+    capture complete output state, making incorrect passing tests far
+    less likely
+\end{itemize}
+
+Consider an AI agent modifying a data processing pipeline: traditional
+tests might only assert that certain summary statistics match expected
+values, potentially missing subtle bugs. Golden file tests capture the
+entire output, allowing both the AI and human reviewers to verify correctness
+holistically rather than through narrow assertions.
+
+% ============================================================================
+\subsection{Layered Quality Gates for Incremental Validation}
+
+The multi-tier quality enforcement system (pre-commit hooks, linters,
+categorized tests, CI/CD pipelines) provides AI agents with progressive
+validation checkpoints that enable efficient iteration while maintaining
+quality standards.
+
+The layered architecture delivers several benefits:
+
+\begin{itemize}
+  \item \textbf{Automated corrections}: Modifying linters (such as
+    \texttt{Black}, \texttt{isort}, \texttt{autoflake}, \texttt{Prettier})
+    automatically fix formatting and style issues, reducing cognitive
+    burden for humans, allowing focus on logic and correctness
+
+  \item \textbf{Immediate failure detection}: Pre-commit hooks catch
+    syntax errors, file size violations, and accidentally committed
+    secrets before humans and AI proceed to commit to the code repository
+
+  % TODO(gp): Move this.
+  \item \textbf{Graduated feedback cycles}: Fast tests (under 5 seconds
+    per class) enable rapid iteration during initial development, while
+    slow and superslow tests provide comprehensive validation before
+    finalization
+
+  \item \textbf{Specific, actionable diagnostics}: When quality gates fail,
+    humans and AI receives precise error messages rather than generic failures
+\end{itemize}
+
+% ============================================================================
+\subsection{Emergent AI-Optimization}
+
+The Causify development system creates an ``AI-optimized codebase''
+as an emergent property of designing for human developer productivity, team
+scalability, and operational reliability. The system reduces the degrees of
+freedom an AI agent must handle—eliminating questions like ``how should I
+format this?'', ``where should tests live?'', ``how do I run them?''—while
+providing rich, immediate feedback through multiple validation layers.
+
+This architecture enables a more productive division of labor between
+human developers and AI agents. The AI can focus on higher-level concerns
+(algorithm correctness, business logic, architectural design) rather
+than fighting with infrastructure, memorizing conventions, or debugging
+environment-specific issues. The system's automation and quality gates
+provide confidence that AI-generated code meets standards before human
+review, while golden file tests and comprehensive test suites ensure
+that subtle bugs or regressions are caught early.
+
+Critically, these same properties that benefit AI agents also benefit
+human developers, particularly those new to the codebase. The system's
+discoverability, consistency, and automation reduce onboarding time
+and cognitive load for all developers, whether human or artificial.
+This suggests a broader principle: development infrastructure that
+optimizes for clarity, automation, and reproducibility naturally becomes
+more amenable to AI augmentation, creating a positive feedback loop where
+better infrastructure enables more effective AI assistance, which in
+turn accelerates infrastructure improvements.

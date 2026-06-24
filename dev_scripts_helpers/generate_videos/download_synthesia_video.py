@@ -34,10 +34,10 @@ TIMEOUT = 30  # seconds per HTTP request
 DOWNLOAD_TIMEOUT = 300  # 5 minutes for video downloads
 
 
-
 # #############################################################################
 # SynthesiaError
 # #############################################################################
+
 
 class SynthesiaError(RuntimeError):
     pass
@@ -147,7 +147,7 @@ def _parse() -> argparse.Namespace:
 
     :return: parsed arguments
     """
-    parser = argparse.ArgumentParser(description="Download Synthesia videos.")
+    parser = argparse.ArgumentParser(description=__doc__)
     hparser.add_verbosity_arg(parser)
     parser.add_argument(
         "--ids",

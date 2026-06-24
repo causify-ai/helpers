@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 from typing import Callable, List
 
 import pytest
@@ -2467,3 +2466,117 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Check outputs.
         expected = "directory/tmp.lint_txt.some.config.yaml"
         self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test_replace_em_dash_with_colon
+# #############################################################################
+
+
+class Test_replace_em_dash_with_colon(hunitest.TestCase):
+    """
+    Test the _replace_em_dash_with_colon function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _replace_em_dash_with_colon.
+
+        :param txt: Input text to process
+        :param expected: Expected output after replacing em dashes
+        """
+        _helper_process_lines(
+            self, txt, expected, dshdlitx._replace_em_dash_with_colon
+        )
+
+    def test1(self) -> None:
+        """
+        Test replacing em dash with colon (basic case).
+        """
+        # Prepare inputs.
+        txt = """
+        - foo — bar
+        """
+        # Prepare outputs.
+        expected = """
+        - foo: bar
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test em dash in the middle of a sentence.
+        """
+        # Prepare inputs.
+        txt = """
+        The model — a logistic regression — is trained.
+        """
+        # Prepare outputs.
+        expected = """
+        The model: a logistic regression: is trained.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test no em dash in text (should be unchanged).
+        """
+        # Prepare inputs.
+        txt = """
+        - foo: bar
+        - baz: qux
+        """
+        # Prepare outputs.
+        expected = """
+        - foo: bar
+        - baz: qux
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test em dash without preceding non-whitespace (should be unchanged).
+        """
+        # Prepare inputs.
+        txt = """
+        — foo bar
+        """
+        # Prepare outputs.
+        expected = """
+        — foo bar
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test replacing multiple em dashes on the same line.
+        """
+        # Prepare inputs.
+        txt = """
+        Item one — done, item two — done.
+        """
+        # Prepare outputs.
+        expected = """
+        Item one: done, item two: done.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test em dash at end of line (should be left unchanged).
+        """
+        # Prepare inputs.
+        txt = """
+        - foo —
+        """
+        # Prepare outputs.
+        expected = """
+        - foo —
+        """
+        # Run test.
+        self.helper(txt, expected)

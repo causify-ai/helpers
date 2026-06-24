@@ -5,28 +5,65 @@
 #   name on exit (when inside a tmux session).
 # - Runs with --dangerously-skip-permissions flag.
 # - Passes all arguments to the claude command.
-# - Usage: cc [--model {anthropic|deepseek}] [--test] [-v] [claude_options]
+# - Usage: cc [--anth|--or_anth|--ds|--dsp|--model MODEL_STR] [--test] [-v] [-p PROMPT] [claude_options]
 # """
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+source "$SCRIPT_DIR/../thin_client/thin_client_utils.sh"
 
 print_help() {
     echo "Usage: cc [OPTIONS] [claude_options]"
     echo ""
     echo "Options:"
-    echo "  --model {anthropic|deepseek}  Set the model provider"
-    echo "  --test                        Run diagnostics (claude doctor and /models)"
-    echo "  -v                            Enable verbose mode (set -x)"
-    echo "  --help                        Show this help message"
+    echo "  --anth              Use Anthropic plan and not OpenRouter"
+    echo "  --or_anth           Use anthropic/claude-haiku-4.5 via OpenRouter"
+    echo "  --ds                Use deepseek/deepseek-v4-flash via OpenRouter"
+    echo "  --dsp               Use deepseek/deepseek-v4-pro via OpenRouter"
+    echo "  --mer               Use inception/mercury-2 via OpenRouter"
+    echo "  --model MODEL_STR   Use the specified model through OpenRouter"
+    echo "  --test              Run diagnostics (claude doctor and /models)"
+    echo "  -p PROMPT           Run a prompt non-interactively, streaming JSON"
+    echo "                      output to stdout and tee-ing to a log file"
+    echo "                      (e.g., tmp.cc_log.<timestamp>.txt)"
+    echo "  -v                  Enable verbose mode (set -x)"
+    echo "  --help              Show this help message"
     echo ""
 }
 
-# Parse command line options
-MODEL="anthropic"
+# Parse command line options.
+
+# Use OpenRouter model.
+#MODEL="deepseek/deepseek-v4-flash"
+# Default to Claude Plan.
+MODEL=""
+
 RUN_TEST=false
+PROMPT=""
 VERBOSE=false
 CLAUDE_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --anth)
+            MODEL=""
+            shift
+            ;;
+        --or_anth)
+            MODEL="anthropic/claude-haiku-4.5"
+            shift
+            ;;
+        --ds)
+            MODEL="deepseek/deepseek-v4-flash"
+            shift
+            ;;
+        --dsp)
+            MODEL="deepseek/deepseek-v4-pro"
+            shift
+            ;;
+        --mer)
+            MODEL="inception/mercury-2"
+            shift
+            ;;
         --model)
             MODEL="$2"
             shift 2
@@ -34,6 +71,10 @@ while [[ $# -gt 0 ]]; do
         --test)
             RUN_TEST=true
             shift
+            ;;
+        -p)
+            PROMPT="$2"
+            shift 2
             ;;
         -v)
             VERBOSE=true
@@ -55,40 +96,27 @@ if [ "$VERBOSE" = true ]; then
 fi
 
 # Rename tmux pane to CC if inside tmux, and restore on exit.
-if [ -n "$TMUX" ]; then
-    OLD_PANE_TITLE=$(tmux display-message -p '#W')
-    tmux rename-window "*CC*"
-fi
+OLD_PANE_TITLE=$(tmux_rename_on_entry "*CC*" || true)
 
-# Configure environment based on model choice
-if [ "$MODEL" = "anthropic" ]; then
-    unset ANTHROPIC_DEFAULT_HAIKU_MODEL
-    unset ANTHROPIC_DEFAULT_SONNET_MODEL
-    unset ANTHROPIC_DEFAULT_OPUS_MODEL
-    unset ANTHROPIC_BASE_URL
+# Configure environment based on model choice.
+# Empty MODEL = use Anthropic directly (clear OpenRouter env vars).
+# Non-empty MODEL = use that model through OpenRouter.
+if [ "$MODEL" = "" ]; then
+    echo "Anthropic Plan setup"
     unset ANTHROPIC_AUTH_TOKEN
-elif [ "$MODEL" = "openrouter_anthropic" ]; then
-    export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
-    export ANTHROPIC_DEFAULT_HAIKU_MODEL=anthropic/claude-haiku-4.5
-    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
-    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
-    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
-elif [ "$MODEL" = "deepseek" ]; then
-    export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
-    export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-flash
-    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
-    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
-    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
-elif [ "$MODEL" = "deepseek-pro" ]; then
-    export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
-    export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek/deepseek-v4-pro
-    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/opus-4.8
-    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/sonnet-4.6
-    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
+    unset ANTHROPIC_BASE_URL
+    unset ANTHROPIC_DEFAULT_HAIKU_MODEL
+    unset ANTHROPIC_DEFAULT_OPUS_MODEL
+    unset ANTHROPIC_DEFAULT_SONNET_MODEL
 else
-    echo "Error: Invalid model '$MODEL'" >&2
-    exit 1
+    echo "Using OpenRouter with MODEL=$MODEL"
+    export ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY
+    export ANTHROPIC_BASE_URL=https://openrouter.ai/api
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL=$MODEL
+    export ANTHROPIC_DEFAULT_OPUS_MODEL=anthropic/claude-opus-4.8
+    export ANTHROPIC_DEFAULT_SONNET_MODEL=anthropic/claude-sonnet-4.6
 fi
+export CC_MODEL=$MODEL
 
 with_timeout() {
     local secs=$1
@@ -111,12 +139,27 @@ with_timeout() {
 }
 
 if [ "$RUN_TEST" = true ]; then
+    # Print info and exit.
     with_timeout 1 claude doctor
     with_timeout 1 'echo "/model" | claude'
+elif [ -n "$PROMPT" ]; then
+    # Run single prompt.
+    LOG_FILE="tmp.cc_log.$(date +%Y%m%d-%H%M%S).txt"
+    echo "Logging to $LOG_FILE"
+    claude --dangerously-skip-permissions \
+        --print \
+        --output-format=stream-json \
+        --include-partial-messages \
+        -p "$PROMPT" \
+        "${CLAUDE_ARGS[@]}" 2>&1 | tee "$LOG_FILE"
+    # Print cost from the last stream-json event (session summary).
+    if [ -f "$LOG_FILE" ] && [ -s "$LOG_FILE" ]; then
+        tail -1 "$LOG_FILE" | "$SCRIPT_DIR/../../.claude/statusline.sh" 2>/dev/null || true
+    fi
 else
+    # Interactive mode.
     claude --dangerously-skip-permissions "${CLAUDE_ARGS[@]}"
 fi
 
-if [ -n "$TMUX" ]; then
-    tmux rename-window $OLD_PANE_TITLE
-fi
+# Restore the TMUX.
+tmux_restore_on_exit "$OLD_PANE_TITLE"
