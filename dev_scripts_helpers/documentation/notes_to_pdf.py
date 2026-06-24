@@ -549,8 +549,8 @@ def _run_pandoc_to_typst_slides(
             return f'image("/{path}")'
 
     txt = re.sub(r'image\("([^"]*)"\)', convert_image_path, txt)
-    # Fix LaTeX color commands that pandoc couldn't convert to typst.
-    # Convert \textcolor{blue}{...} to typst blue text
+    # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
+    # \textcolor{blue}{...} to typst blue text.
     txt = re.sub(
         r"\\textcolor\{blue\}\{([^}]+)\}",
         r"#text(fill: blue, \1)",
@@ -561,7 +561,7 @@ def _run_pandoc_to_typst_slides(
         r"#text(fill: red, \1)",
         txt,
     )
-    # Convert escaped backslashes for math mode
+    # Convert escaped backslashes for math mode.
     txt = re.sub(r"\\\\EE\b", r"\\mathbb{E}", txt)
     txt = re.sub(r"\\\\VV\b", r"\\mathbb{V}", txt)
     hio.to_file(typ_file, txt)
