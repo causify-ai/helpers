@@ -1,0 +1,61 @@
+15:14:32 - [36mINFO [0m hdbg.py init_logger:1080                               15:14:32 - [36mINFO [0m hdbg.py init_logger:1080                               Saving log to file '/Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py.log'
+15:14:32 - [36mINFO [0m hdbg.py init_logger:1088                               15:14:32 - [36mINFO [0m hdbg.py init_logger:1088                               > cmd='helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input=msml610/lectures_source/Lesson13.1-Explainability.txt --output=msml610/lectures/Lesson13.1-Explainability.new.pdf --type=slides --toc_type=navigation --debug_on_error --skip_action=cleanup_before --skip_action=cleanup_after --skip_action=open --slides_engine typst'
+15:14:32 - [36mINFO [0m notes_to_pdf.py _main:982                              15:14:32 - [36mINFO [0m notes_to_pdf.py _main:982                              cmd line=helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input=msml610/lectures_source/Lesson13.1-Explainability.txt --output=msml610/lectures/Lesson13.1-Explainability.new.pdf --type=slides --toc_type=navigation --debug_on_error --skip_action=cleanup_before --skip_action=cleanup_after --skip_action=open --slides_engine typst
+15:14:32 - [41mWARN [0m hselect_action.py select_actions:201                   15:14:32 - [41mWARN [0m hselect_action.py select_actions:201                   Skipping action 'cleanup_before' since it's already not in actions='['preprocess_notes', 'render_images', 'run_pandoc', 'open']'
+15:14:32 - [41mWARN [0m hselect_action.py select_actions:201                   15:14:32 - [41mWARN [0m hselect_action.py select_actions:201                   Skipping action 'cleanup_after' since it's already not in actions='['preprocess_notes', 'render_images', 'run_pandoc', 'open']'
+15:14:32 - [36mINFO [0m notes_to_pdf.py _run_all:710                           15:14:32 - [36mINFO [0m notes_to_pdf.py _run_all:710                           
+################################################################################
+# Action selected:
+################################################################################
+      cleanup_before: -
+    preprocess_notes: Yes
+       render_images: Yes
+          run_pandoc: Yes
+        compress_pdf: -
+      copy_to_gdrive: -
+                open: -
+       cleanup_after: -
+15:14:32 - [36mINFO [0m notes_to_pdf.py _run_all:718                           15:14:32 - [36mINFO [0m notes_to_pdf.py _run_all:718                           Logging the actions into a script
+15:14:32 - [36mINFO [0m hselect_action.py mark_action:242                      15:14:32 - [36mINFO [0m hselect_action.py mark_action:242                      
+################################################################################
+action=cleanup_before
+################################################################################
+15:14:32 - [41mWARN [0m hselect_action.py mark_action:247                      15:14:32 - [41mWARN [0m hselect_action.py mark_action:247                      Skip action='cleanup_before'
+15:14:32 - [36mINFO [0m hselect_action.py mark_action:242                      15:14:32 - [36mINFO [0m hselect_action.py mark_action:242                      
+################################################################################
+action=preprocess_notes
+################################################################################
+15:14:33 - [36mINFO [0m hselect_action.py mark_action:242                      15:14:33 - [36mINFO [0m hselect_action.py mark_action:242                      
+################################################################################
+action=render_images
+################################################################################
+15:14:34 - [36mINFO [0m notes_to_pdf.py _render_images:164                     15:14:34 - [36mINFO [0m notes_to_pdf.py _render_images:164                     Remove commented code and saved file='/Users/saggese/src/umd_classes1/msml610/lectures/tmp.notes_to_pdf.render_image2.txt'
+15:14:34 - [36mINFO [0m hselect_action.py mark_action:242                      15:14:34 - [36mINFO [0m hselect_action.py mark_action:242                      
+################################################################################
+action=run_pandoc
+################################################################################
+15:14:38 - [36mINFO [0m hselect_action.py mark_action:242                      15:14:38 - [36mINFO [0m hselect_action.py mark_action:242                      
+################################################################################
+action=compress_pdf
+################################################################################
+15:14:38 - [41mWARN [0m hselect_action.py mark_action:247                      15:14:38 - [41mWARN [0m hselect_action.py mark_action:247                      Skip action='compress_pdf'
+15:14:38 - [36mINFO [0m hselect_action.py mark_action:242                      15:14:38 - [36mINFO [0m hselect_action.py mark_action:242                      
+################################################################################
+action=copy_to_gdrive
+################################################################################
+15:14:38 - [41mWARN [0m hselect_action.py mark_action:247                      15:14:38 - [41mWARN [0m hselect_action.py mark_action:247                      Skip action='copy_to_gdrive'
+15:14:38 - [36mINFO [0m hselect_action.py mark_action:242                      15:14:38 - [36mINFO [0m hselect_action.py mark_action:242                      
+################################################################################
+action=open
+################################################################################
+15:14:38 - [41mWARN [0m hselect_action.py mark_action:247                      15:14:38 - [41mWARN [0m hselect_action.py mark_action:247                      Skip action='open'
+15:14:38 - [36mINFO [0m hselect_action.py mark_action:242                      15:14:38 - [36mINFO [0m hselect_action.py mark_action:242                      
+################################################################################
+action=cleanup_after
+################################################################################
+15:14:38 - [41mWARN [0m hselect_action.py mark_action:247                      15:14:38 - [41mWARN [0m hselect_action.py mark_action:247                      Skip action='cleanup_after'
+15:14:38 - [36mINFO [0m notes_to_pdf.py _run_all:857                           15:14:38 - [36mINFO [0m notes_to_pdf.py _run_all:857                           Saved script into 'tmp.notes_to_pdf.sh'
+15:14:38 - [36mINFO [0m notes_to_pdf.py _run_all:861                           15:14:38 - [36mINFO [0m notes_to_pdf.py _run_all:861                           
+################################################################################
+SUCCESS
+################################################################################

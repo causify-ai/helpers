@@ -549,6 +549,21 @@ def _run_pandoc_to_typst_slides(
             return f'image("/{path}")'
 
     txt = re.sub(r'image\("([^"]*)"\)', convert_image_path, txt)
+    # Fix LaTeX color commands that pandoc couldn't convert to typst.
+    # Convert \textcolor{blue}{...} to typst blue text
+    txt = re.sub(
+        r"\\textcolor\{blue\}\{([^}]+)\}",
+        r"#text(fill: blue, \1)",
+        txt,
+    )
+    txt = re.sub(
+        r"\\textcolor\{red\}\{([^}]+)\}",
+        r"#text(fill: red, \1)",
+        txt,
+    )
+    # Convert escaped backslashes for math mode
+    txt = re.sub(r"\\\\EE\b", r"\\mathbb{E}", txt)
+    txt = re.sub(r"\\\\VV\b", r"\\mathbb{V}", txt)
     hio.to_file(typ_file, txt)
     # Return the `.typ` file if typst_only mode is requested.
     if typst_only:
@@ -745,7 +760,7 @@ def _run_all(args: argparse.Namespace) -> None:
             file_name = f"{prefix}.filter_by_slides.txt"
         if args.filter_by_name:
             filtered_text = hmarkdo.filter_by_name(
-                text, args.filter_by_name, args.num_slides
+                text, args.filter_by_name, num_slides=args.num_slides
             )
             file_name = f"{prefix}.filter_by_name.txt"
         filtered_text_str = "\n".join(filtered_text)

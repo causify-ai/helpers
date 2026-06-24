@@ -10,8 +10,19 @@
 #import "@preview/touying:0.6.1": *
 #import themes.simple: *
 
+// Match beamer's font (New Computer Modern Sans)
+#set text(font: ("New Computer Modern Sans", "DejaVu Sans"), size: 9pt)
+#show heading: set text(font: ("New Computer Modern Sans", "DejaVu Sans"))
+
+// Define color functions for LaTeX compatibility
+#let blue(content) = text(fill: blue, content)
+#let red(content) = text(fill: red, content)
+
+// Configure theme to match beamer's 4:3 aspect ratio
+// Note: Touying's simple-theme controls page size internally;
+// exact beamer dimensions (362.835 x 272.126 pts) cannot be overridden.
 #show: simple-theme.with(
-  aspect-ratio: "16-9",
+  aspect-ratio: "4-3",
   config-common(slide-level: 4),
   config-info(
 $if(title)$
