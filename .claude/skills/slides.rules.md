@@ -74,16 +74,12 @@
 
 - Major sections to start new page/major topic:
   ```markdown
-  # ##############################################################################
   # Section Title
-  # ##############################################################################
   ```
 
 - Subsections (within a major section):
   ```markdown
-  ## #############################################################################
   ## Subsection Title
-  ## #############################################################################
   ```
 
 - Individual slides: use `*` with no leading spaces
@@ -116,35 +112,38 @@
 
 ## Use Bold for Slide Sections
 
-- Every first level bullet point should start with a bold label `<bold label>`
-  for pedagogical structure like in the following:
+- Every first level bullet point (starting with `- ` and not `*`) should start
+  with a bold label `<bold label>` for pedagogical structure
+- Use the following tags:
   - **Definition**: A definition of a concept
+    - The definition term needs to be in italic
+    - E.g.,
+      ```
+      - **Definition**: A _time series_ is modeled as a random process,
+      ```
   - **Question**: A question to introduce a problem
   - **Goal**: What we are trying to achieve before describing how
   - **Problem**: A difficulty or open issue that motivates a solution
   - **Solution**: A solution to a previously introduced problem
+  - **Pros** / **Cons**: Advantages and disadvantages of an approach
+  - **Example**: Concrete illustration
+  - **Intuition**: Explains the "why it makes sense"
+  - **Key idea**: The single most important takeaway
   - **(Naive) Solution**: A first, flawed attempt whose cons motivate a better one
   - **Remark**: A simple but useful fact
   - **Fact**: A statement asserted as true, used without proof
-  - **Note**: A side comment or caveat worth flagging
   - **Theorem**: A central, proven result
   - **Proof**: The argument establishing a theorem (often numbered steps)
   - **Proposition**: A result worth stating, but not as central as a theorem
   - **Lemma**: stepping stone used to prove a bigger result
   - **Claim**: A smaller assertion inside a proof or argument
-  - **Intuition**: Explains the "why it makes sense"
-  - **Key idea** / **Key Insight**: The single most important takeaway
   - **Algorithm**: A step-by-step procedure (often with **Input**/**Output**)
   - **Input** / **Output**: What an algorithm consumes and produces
-  - **Pros** / **Cons**: Advantages and disadvantages of an approach
   - **Limitations**: Conditions under which the approach fails or is weak
-  - **Purpose**: Why a method or tool exists
-  - **Example**: Concrete illustration
   - **Counterexample**: Shows what doesn't work
   - **Interpretation**: What the result means in context
 
-- A bold label can take a parenthetical qualifier to narrow its meaning, e.g.,
-  `**(Naive) Solution**`, `**(unconditionally) independent**`
+- Do not change the title `* <title>`, but only the content of the slide
 
 - Use a numbered list under a bold label when the sub-points are an ordered
   procedure or an enumerated set; use bullets otherwise:
@@ -166,6 +165,7 @@
   ```
 
 ### Example
+- **Good**
   ```markdown
   * Individual Treatment Effect
   - **Definition**: the impact of the treatment $T$ on the outcome $Y$ for an
@@ -182,7 +182,7 @@
     - Represent it in theory, but can't recover it from data
   ```
 
-### Example
+- **Good**
   ```markdown
   * Potential Outcomes
   - Aka "counterfactuals"

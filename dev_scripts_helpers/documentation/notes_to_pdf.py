@@ -526,7 +526,6 @@ def _run_pandoc_to_typst_slides(
     # Convert paths like "path/to/image.png" to "/path/to/image.png"
     # But preserve paths that are already absolute or start with ../
     typ_file_dir = os.path.dirname(typ_file)
-    typ_file_rel_to_root = os.path.relpath(typ_file_dir, root)
 
     def convert_image_path(match: "re.Match[str]") -> str:
         # Extract the path from image("...")
@@ -537,12 +536,17 @@ def _run_pandoc_to_typst_slides(
         # If it contains relative parent references, leave it alone
         if path.startswith("../"):
             return match.group(0)
-        # Otherwise, prepend the repo root absolute path
-        # First, resolve the path relative to the typ file directory
-        abs_path = os.path.join(typ_file_dir, path)
-        # Then make it relative to the root
-        rel_to_root = os.path.relpath(abs_path, root)
-        return f'image("/{rel_to_root}")'
+        # Check if path is relative to typ_file_dir (e.g., render_images output)
+        # or relative to repo root (e.g., source markdown paths)
+        rel_to_typ_file_dir = os.path.join(typ_file_dir, path)
+        if os.path.exists(rel_to_typ_file_dir):
+            # Path is relative to typ_file_dir, make it repo-root relative
+            abs_path = os.path.abspath(rel_to_typ_file_dir)
+            rel_to_root = os.path.relpath(abs_path, root)
+            return f'image("/{rel_to_root}")'
+        else:
+            # Path is already repo-root relative, just prepend /
+            return f'image("/{path}")'
 
     txt = re.sub(r'image\("([^"]*)"\)', convert_image_path, txt)
     hio.to_file(typ_file, txt)
