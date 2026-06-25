@@ -37,6 +37,7 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 
 _LOG = logging.getLogger(__name__)
 
@@ -146,7 +147,7 @@ def _render_images(file_name: str, prefix: str) -> str:
     exec_file = hgit.find_file("render_images.py")
     file1 = file_name
     file2 = f"{prefix}.render_image.txt"
-    cmd = f"{exec_file} --input {file1} --output {file2}"
+    cmd = f"{exec_file} --input {file1} --output {file2} --action render"
     _ = _system(cmd)
     # Remove the commented code introduced by `render_image.py`.
     txt = hio.from_file(file2)
@@ -353,11 +354,11 @@ def _build_pandoc_cmd(
     # Needed since:
     # ![](tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png)
     # which is then saved in
-    # ./data605/lectures/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png
+    # ./data605/lectures_pdf/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png
     # Find the relative path to the resource path.
     rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
     cmd.append(f"--resource-path={rel_path}")
-    # cmd.append("--resource-path=/app/data605/lectures/")
+    # cmd.append("--resource-path=/app/data605/lectures_pdf/")
     if toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
@@ -455,6 +456,137 @@ def _run_pandoc_to_slides(
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
     return file_out
+
+
+def _run_pandoc_to_typst_slides(
+    curr_path: str,
+    file_name: str,
+    use_host_tools: bool,
+    dockerized_force_rebuild: bool,
+    dockerized_use_sudo: bool,
+    *,
+    typst_only: bool = False,
+) -> str:
+    """
+    Convert the input file to PDF slides using Pandoc + Typst/Touying.
+
+    The markdown is converted to a Typst file using a Touying template (instead
+    of beamer/LaTeX unlike Latex flow) and then compiled to PDF with a single
+    `typst compile` pass (no second pass needed, unlike Latex flow).
+
+    :param curr_path: The path where the script is located, used to reference
+        `pandoc_touying.typ`
+    :param file_name: The input file to be converted
+    :param typst_only: If True, return the `.typ` file instead of compiling to
+        PDF
+    :return: The path to the generated PDF (or `.typ` file)
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Prepare command.
+    cmd = []
+    typ_file = file_name.replace(".txt", ".typ")
+    cmd.append(f"pandoc {file_name}")
+    cmd.append("-f markdown")
+    cmd.append("--number-sections")
+    cmd.append("-s")
+    cmd.append("-t typst")
+    template = f"{curr_path}/pandoc_touying.typ"
+    hdbg.dassert_path_exists(template)
+    cmd.append(f"--template {template}")
+    # Images are referenced relative to the resource path, mirroring the beamer
+    # path.
+    rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+    cmd.append(f"--resource-path={rel_path}")
+    cmd.append(f"-o {typ_file}")
+    cmd = " ".join(cmd)
+    _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
+    if not use_host_tools:
+        container_type = "pandoc_only"
+        # container_type = "pandoc_texlive"
+        cmd = dshdlipa.run_dockerized_pandoc(
+            cmd,
+            container_type,
+            mode="return_cmd",
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
+        )
+    _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
+    _ = _system(cmd)
+    hdbg.dassert_path_exists(typ_file)
+    # 1) `pandoc` emits image paths relative to the current dir (the repo root)
+    # - E.g., `image("data605/lectures_source/images/foo.png")`.
+    # 2) Image references from render_images are relative to the output file's dir.
+    # 3) Typst resolves relative image paths against the directory of the `.typ`
+    # file (which lives in the output dir) and forbids `..` escapes above its
+    # project root.
+    # 4) So we rewrite the paths to be root-absolute and compile with `--root`
+    #    set to the repo root so they resolve correctly.
+    root = os.getcwd()
+    txt = hio.from_file(typ_file)
+    # Convert paths like "path/to/image.png" to "/path/to/image.png"
+    # But preserve paths that are already absolute or start with ../
+    typ_file_dir = os.path.dirname(typ_file)
+
+    def convert_image_path(match: "re.Match[str]") -> str:
+        # Extract the path from image("...")
+        path = match.group(1)
+        # If already absolute, leave it alone
+        if path.startswith("/"):
+            return match.group(0)
+        # If it contains relative parent references, leave it alone
+        if path.startswith("../"):
+            return match.group(0)
+        # Check if path is relative to typ_file_dir (e.g., render_images output)
+        # or relative to repo root (e.g., source markdown paths)
+        rel_to_typ_file_dir = os.path.join(typ_file_dir, path)
+        if os.path.exists(rel_to_typ_file_dir):
+            # Path is relative to typ_file_dir, make it repo-root relative
+            abs_path = os.path.abspath(rel_to_typ_file_dir)
+            rel_to_root = os.path.relpath(abs_path, root)
+            return f'image("/{rel_to_root}")'
+        else:
+            # Path is already repo-root relative, just prepend /
+            return f'image("/{path}")'
+
+    txt = re.sub(r'image\("([^"]*)"\)', convert_image_path, txt)
+    # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
+    # \textcolor{blue}{...} to typst blue text.
+    txt = re.sub(
+        r"\\textcolor\{blue\}\{([^}]+)\}",
+        r"#text(fill: blue, \1)",
+        txt,
+    )
+    txt = re.sub(
+        r"\\textcolor\{red\}\{([^}]+)\}",
+        r"#text(fill: red, \1)",
+        txt,
+    )
+    # Convert escaped backslashes for math mode.
+    txt = re.sub(r"\\\\EE\b", r"\\mathbb{E}", txt)
+    txt = re.sub(r"\\\\VV\b", r"\\mathbb{V}", txt)
+    hio.to_file(typ_file, txt)
+    # Return the `.typ` file if typst_only mode is requested.
+    if typst_only:
+        _LOG.info("typst_only=True: skipping typst compile, returning .typ file")
+        return typ_file
+    # - Compile the Typst file to PDF.
+    _report_phase("typst compile")
+    pdf_file = typ_file.replace(".typ", ".pdf")
+    if use_host_tools:
+        cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
+        _ = _system(cmd)
+    else:
+        dshdlity.run_dockerized_typst(
+            typ_file,
+            pdf_file,
+            [],
+            typst_root_dir=root,
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
+        )
+    _LOG.debug("pdf_file=%s", pdf_file)
+    hdbg.dassert_path_exists(pdf_file)
+    return pdf_file
 
 
 # #############################################################################
@@ -628,7 +760,7 @@ def _run_all(args: argparse.Namespace) -> None:
             file_name = f"{prefix}.filter_by_slides.txt"
         if args.filter_by_name:
             filtered_text = hmarkdo.filter_by_name(
-                text, args.filter_by_name, args.num_slides
+                text, args.filter_by_name, num_slides=args.num_slides
             )
             file_name = f"{prefix}.filter_by_name.txt"
         filtered_text_str = "\n".join(filtered_text)
@@ -669,15 +801,25 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.toc_type,
             )
         elif args.type == "slides":
-            file_out = _run_pandoc_to_slides(
-                file_name,
-                args.toc_type,
-                args.use_host_tools,
-                args.dockerized_force_rebuild,
-                args.dockerized_use_sudo,
-                debug=args.debug_on_error,
-                tex_only=args.tex_only,
-            )
+            if args.slides_engine == "typst":
+                file_out = _run_pandoc_to_typst_slides(
+                    curr_path,
+                    file_name,
+                    args.use_host_tools,
+                    args.dockerized_force_rebuild,
+                    args.dockerized_use_sudo,
+                    typst_only=args.tex_only,
+                )
+            else:
+                file_out = _run_pandoc_to_slides(
+                    file_name,
+                    args.toc_type,
+                    args.use_host_tools,
+                    args.dockerized_force_rebuild,
+                    args.dockerized_use_sudo,
+                    debug=args.debug_on_error,
+                    tex_only=args.tex_only,
+                )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
@@ -792,13 +934,27 @@ def _parse() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--slides_engine",
+        action="store",
+        default="beamer",
+        choices=["beamer", "typst"],
+        help=(
+            "Engine used to render slides (only for `--type slides`): "
+            "'beamer': pandoc -> LaTeX/beamer -> pdflatex (default); "
+            "'typst': pandoc -> Typst/Touying -> typst compile"
+        ),
+    )
+    parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
     )
     parser.add_argument(
         "--tex_only",
         action="store_true",
         default=False,
-        help="Generate only the .tex file without compiling to PDF",
+        help=(
+            "Generate only the intermediate source file (`.tex` for beamer, "
+            "`.typ` for typst) without compiling to PDF"
+        ),
     )
     parser.add_argument("--debug_on_error", action="store_true", default=False)
     parser.add_argument(

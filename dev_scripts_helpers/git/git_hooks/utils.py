@@ -15,6 +15,7 @@ import sys
 from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 
 _LOG = logging.getLogger(__name__)
@@ -618,8 +619,9 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
         "/app", rel_path, "dev_scripts_helpers/git/gitleaks"
     )
     config_path = os.path.normpath(config_path)
+    docker_cmd = hdocker.get_docker_command()
     cmd = f"""
-    docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c {config_path}/gitleaks-rules.toml git /app --pre-commit --staged --verbose
+    {docker_cmd} run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c {config_path}/gitleaks-rules.toml git /app --pre-commit --staged --verbose
     """
     _LOG.debug("cmd='%s'", cmd)
     rc = _system(cmd, abort_on_error=False)

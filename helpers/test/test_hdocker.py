@@ -1,5 +1,6 @@
 import logging
 import os
+import platform
 import unittest.mock as umock
 from typing import List, Optional, Tuple
 
@@ -11,6 +12,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_purification as huntepur
 
@@ -628,3 +630,220 @@ class Test_get_docker_mount_info1(hunitest.TestCase):
         self.assert_equal(source, host_root)
         self.assert_equal(target, exp_target)
         self.assert_equal(mount, exp_mount)
+
+
+# #############################################################################
+# Test_get_docker_command1
+# #############################################################################
+
+
+class Test_get_docker_command1(hunitest.TestCase):
+    """
+    Test `get_docker_command()` returns correct command based on engine.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self):
+        """
+        Setup and teardown for each test.
+        """
+        # Run before each test.
+        self.set_up_test()
+        yield
+        # Run after each test.
+        self.tear_down_test()
+
+    def set_up_test(self) -> None:
+        """
+        Reset global docker engine to default.
+        """
+        hdocker.set_docker_engine("")
+
+    def tear_down_test(self) -> None:
+        """
+        Reset global docker engine to default.
+        """
+        hdocker.set_docker_engine("")
+
+    def test1(self) -> None:
+        """
+        Test default engine on Linux (no env var) returns 'docker'.
+        """
+        # Prepare inputs.
+        env = {}
+        # Run test.
+        with umock.patch.object(platform, "system", return_value="Linux"):
+            with umock.patch.dict(os.environ, env, clear=False):
+                actual = hdocker.get_docker_command()
+        # Check outputs.
+        expected = "docker"
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test CSFY_DOCKER_ENGINE='docker' returns 'docker'.
+        """
+        # Prepare inputs.
+        env = {"CSFY_DOCKER_ENGINE": "docker"}
+        # Run test.
+        with umock.patch.dict(os.environ, env, clear=False):
+            actual = hdocker.get_docker_command()
+        # Check outputs.
+        expected = "docker"
+        self.assertEqual(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test CSFY_DOCKER_ENGINE='apple' returns 'container'.
+        """
+        # Prepare inputs.
+        env = {"CSFY_DOCKER_ENGINE": "apple"}
+        # Run test.
+        with umock.patch.dict(os.environ, env, clear=False):
+            actual = hdocker.get_docker_command()
+        # Check outputs.
+        expected = "container"
+        self.assertEqual(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test invalid CSFY_DOCKER_ENGINE raises AssertionError.
+        """
+        # Prepare inputs.
+        env = {"CSFY_DOCKER_ENGINE": "invalid_engine"}
+        # Run test and check output.
+        with umock.patch.dict(os.environ, env, clear=False):
+            with self.assertRaises(AssertionError):
+                hdocker.get_docker_command()
+
+    def test5(self) -> None:
+        """
+        Test set_docker_engine() overrides env var.
+        """
+        # Prepare inputs.
+        override_engine = "apple"
+        env = {"CSFY_DOCKER_ENGINE": "docker"}
+        # Run test.
+        hdocker.set_docker_engine(override_engine)
+        with umock.patch.dict(os.environ, env, clear=False):
+            actual = hdocker.get_docker_command()
+        # Check outputs.
+        expected = "container"
+        self.assertEqual(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test default engine on macOS (no env var) returns 'container'.
+        """
+        # Prepare inputs.
+        env = {}
+        # Run test.
+        with umock.patch.object(platform, "system", return_value="Darwin"):
+            with umock.patch.dict(os.environ, env, clear=False):
+                actual = hdocker.get_docker_command()
+        # Check outputs.
+        expected = "container"
+        self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test_is_docker_running1
+# #############################################################################
+
+
+class Test_is_docker_running1(hunitest.TestCase):
+    """
+    Test `is_docker_running()` detects engine availability.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self):
+        """
+        Setup and teardown for each test.
+        """
+        # Run before each test.
+        self.set_up_test()
+        yield
+        # Run after each test.
+        self.tear_down_test()
+
+    def set_up_test(self) -> None:
+        """
+        Reset global docker engine to default.
+        """
+        hdocker.set_docker_engine("")
+
+    def tear_down_test(self) -> None:
+        """
+        Reset global docker engine to default.
+        """
+        hdocker.set_docker_engine("")
+
+    def test1(self) -> None:
+        """
+        Test docker engine running: returns True on rc=0 without 'failed to connect'.
+        """
+        # Prepare inputs.
+        env = {"CSFY_DOCKER_ENGINE": "docker"}
+        mocked_output = "Client:\n Version:           29.2.0\n"
+        # Run test.
+        with umock.patch.dict(os.environ, env, clear=False):
+            with umock.patch.object(
+                hsystem, "system_to_string", return_value=(0, mocked_output)
+            ):
+                actual = hdocker.is_docker_running()
+        # Check outputs.
+        self.assertTrue(actual)
+
+    def test2(self) -> None:
+        """
+        Test docker engine not running: returns False on connection error.
+        """
+        # Prepare inputs.
+        env = {"CSFY_DOCKER_ENGINE": "docker"}
+        mocked_output = (
+            "failed to connect to the docker API at unix:///.../docker.sock"
+        )
+        # Run test.
+        with umock.patch.dict(os.environ, env, clear=False):
+            with umock.patch.object(
+                hsystem, "system_to_string", return_value=(1, mocked_output)
+            ):
+                actual = hdocker.is_docker_running()
+        # Check outputs.
+        self.assertFalse(actual)
+
+    def test3(self) -> None:
+        """
+        Test apple engine running: returns True on rc=0 without errors.
+        """
+        # Prepare inputs.
+        env = {"CSFY_DOCKER_ENGINE": "apple"}
+        mocked_output = "CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS\n"
+        # Run test.
+        with umock.patch.dict(os.environ, env, clear=False):
+            with umock.patch.object(
+                hsystem, "system_to_string", return_value=(0, mocked_output)
+            ):
+                actual = hdocker.is_docker_running()
+        # Check outputs.
+        self.assertTrue(actual)
+
+    def test4(self) -> None:
+        """
+        Test apple engine not running: returns False on XPC error.
+        """
+        # Prepare inputs.
+        env = {"CSFY_DOCKER_ENGINE": "apple"}
+        mocked_output = (
+            'Error: internalError: "failed to list containers" '
+            "(cause: \"interrupted: 'XPC connection error: Connection invalid'\")"
+        )
+        # Run test.
+        with umock.patch.dict(os.environ, env, clear=False):
+            with umock.patch.object(
+                hsystem, "system_to_string", return_value=(1, mocked_output)
+            ):
+                actual = hdocker.is_docker_running()
+        # Check outputs.
+        self.assertFalse(actual)

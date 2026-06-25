@@ -1,3 +1,11 @@
+#!/bin/bash
+# """
+# Utility script providing common shell functions for thin-client development
+# environments. This includes: assertions, debugging helpers, path setup,
+# Docker configuration, and environment variable management for both host and
+# container contexts.
+# """
+
 # #############################################################################
 # General utils
 # #############################################################################
@@ -20,14 +28,23 @@ echo -e -n $NC
 
 
 is_sourced() {
-    # Function to check if the script is being sourced.
-    # If the script is being sourced, $0 will not be equal to ${BASH_SOURCE[0]}
+    # """
+    # Check if the script is being sourced rather than executed.
+    #
+    # When a script is sourced, $0 is not equal to ${BASH_SOURCE[0]}.
+    #
+    # :return: 0 (true) if the script is being sourced, 1 (false) otherwise
+    # """
     return [[ $0 != "${BASH_SOURCE}" ]]
 }
 
 
 dassert_is_sourced() {
-    # Ensure that this is being sourced and not executed.
+    # """
+    # Assert that the script is being sourced and not executed directly.
+    #
+    # If invoked as a child process, prints an error and calls abort().
+    # """
     if [[ ! is_sourced ]]; then
         # We are in a script.
         echo -e "${ERROR}: This needs to be sourced and not executed"
@@ -37,7 +54,11 @@ dassert_is_sourced() {
 
 
 dassert_is_executed() {
-    # Ensure that this is being executed and not sourced.
+    # """
+    # Assert that the script is being executed and not sourced.
+    #
+    # If sourced, prints an error and calls abort().
+    # """
     if [[ is_sourced ]]; then
         # This is being executed and not sourced.
         echo -e "${ERROR}: This needs to be executed and not sourced"
@@ -47,6 +68,14 @@ dassert_is_executed() {
 
 
 exit_or_return() {
+    # """
+    # Exit the shell or return from the function depending on context.
+    #
+    # Use this in sourced scripts to behave correctly whether called from
+    # a sourced file (return) or a standalone script (exit).
+    #
+    # :param ret_value: Exit / return code
+    # """
     ret_value=$1
     if [[ is_sourced ]]; then
         return ret_value
@@ -57,7 +86,11 @@ exit_or_return() {
 
 
 dassert_dir_exists() {
-    # Check if a directory exists.
+    # """
+    # Assert that a directory exists at the given path.
+    #
+    # :param dir_path: Path to the directory to check
+    # """
     local dir_path="$1"
     if [[ ! -d "$dir_path" ]]; then
         echo -e "${ERROR}: Directory '$dir_path' does not exist."
@@ -68,7 +101,11 @@ dassert_dir_exists() {
 
 # TODO(gp): -> dassert_file_exists
 check_file_exists() {
-    # Check if a filename exists.
+    # """
+    # Assert that a file exists at the given path.
+    #
+    # :param file_name: Path to the file to check
+    # """
     local file_name="$1"
     if [[ ! -f "$file_name" ]]; then
         echo -e "${ERROR}: File '$file_name' does not exist."
@@ -78,7 +115,11 @@ check_file_exists() {
 
 
 dassert_is_git_root() {
-    # Check if the current directory is the root of a Git repository.
+    # """
+    # Assert that the current working directory is the root of a Git repository.
+    #
+    # Checks for the presence of a .git directory.
+    # """
     if [[ ! -d .git ]]; then
         echo -e "${ERROR}: Current dir '$(pwd)' is not the root of a Git repo."
         abort
@@ -87,6 +128,14 @@ dassert_is_git_root() {
 
 
 abort() {
+    # """
+    # Abort execution with error handling for container vs host context.
+    #
+    # Inside a Docker container, returns 1. Outside, kills the current shell
+    # process with SIGINT.
+    #
+    # :return: 1 inside a container
+    # """
     if [[ -f /.dockerenv ]] ; then
         # Inside container.
         return 1
@@ -99,7 +148,12 @@ abort() {
 
 # TODO(gp): -> dassert_not_empty?
 dassert_var_defined() {
-    # Check if a variable is defined.
+    # """
+    # Assert that a shell variable is defined and non-empty.
+    #
+    # :param var_name: Name of the variable to check (pass the name, not the
+    #     value, e.g. `dassert_var_defined GIT_ROOT`)
+    # """
     # It needs to be called as `dassert_var_defined GIT_ROOT` and not
     # `dassert_var_defined "$GIT_ROOT"`.
     local var_name="$1"
@@ -115,7 +169,13 @@ dassert_var_defined() {
 
 
 dassert_eq_num_args() {
-    # Check if the number of arguments passed matches expected count.
+    # """
+    # Assert that the actual number of arguments matches the expected count.
+    #
+    # :param actual_args: Number of arguments actually passed
+    # :param expected_args: Expected number of arguments
+    # :param func_name: Function name for the error message
+    # """
     local actual_args=$1
     local expected_args=$2
     local func_name=$3
@@ -127,7 +187,11 @@ dassert_eq_num_args() {
 
 
 dtrace() {
-    # Print a debug message if _VERB_LEVEL > 1.
+    # """
+    # Print a debug message when the verbose level is above 1.
+    #
+    # :param msg: Debug message to print
+    # """
     dassert_eq_num_args $# 1 "dtrace"
     local msg="$1"
     if [[ "${_VERB_LEVEL:-0}" -gt 1 ]]; then
@@ -137,20 +201,33 @@ dtrace() {
 
 
 remove_dups() {
-    # Remove duplicates.
+    # """
+    # Remove duplicate entries from a colon-separated list.
+    #
+    # :param vars: Colon-separated string (e.g., a PATH variable)
+    # :return: Colon-separated string with duplicates removed
+    # """
     local vars="$1"
     echo $vars | perl -e 'print join(":", grep { not $seen{$_}++ } split(/:/, scalar <>))'
 }
 
 
 echo_on_different_lines() {
-    # Print $PATH on different lines.
+    # """
+    # Print a colon-separated list with each entry on its own line.
+    #
+    # :param vars: Colon-separated string (e.g., a PATH variable)
+    # :return: Each entry printed on a separate line
+    # """
     local vars="$1"
     echo $vars | perl -e 'print join("\n", grep { not $seen{$_}++ } split(/:/, scalar <>))'
 }
 
 
 print_python_ver() {
+    # """
+    # Print the current Python interpreter path and version.
+    # """
     echo "which python="$(which python 2>&1)
     echo "python -v="$(python --version 2>&1)
     echo "which python3="$(which python3)
@@ -159,6 +236,10 @@ print_python_ver() {
 
 
 print_env_signature() {
+    # """
+    # Print a summary of the current environment: PATH, PYTHONPATH, printenv,
+    # and alias.
+    # """
     echo "# PATH="
     echo_on_different_lines $PATH
     #
@@ -179,7 +260,10 @@ print_env_signature() {
 
 
 print_pip_package_ver() {
-    # Print package versions.
+    # """
+    # Print the version of key Python and Docker tools (invoke, poetry,
+    # docker-compose, docker).
+    # """
     INVOKE_VER=$(invoke --version)
     echo "# invoke=${INVOKE_VER}"
     POETRY_VER=$(poetry --version)
@@ -192,7 +276,14 @@ print_pip_package_ver() {
 
 
 activate_venv() {
-    # Activate the virtual env under `$HOME/src/venv/client_venv.${venv_tag}`.
+    # """
+    # Activate the Python virtual environment for the client.
+    #
+    # Looks for the venv under `$HOME/src/venv/client_venv.${venv_tag}` or,
+    # if not found, under `/venv/client_venv.${venv_tag}` (container path).
+    #
+    # :param venv_tag: Tag identifying the virtual environment
+    # """
     echo "# activate_venv()"
     local venv_tag=$1
     # Resolve the dir containing the Git client.
@@ -224,6 +315,10 @@ activate_venv() {
 
 
 set_csfy_env_vars() {
+    # """
+    # Set environment variables identifying the current host (name, OS, user,
+    # OS version).
+    # """
     echo "# set_csfy_env_vars()"
     #
     export CSFY_HOST_NAME=$(hostname)
@@ -241,6 +336,14 @@ set_csfy_env_vars() {
 
 
 set_path() {
+    # """
+    # Set up the PATH with development script directories.
+    #
+    # Adds dev_scripts_helpers subdirectories and mkdocs paths to PATH,
+    # then removes duplicate entries.
+    #
+    # :param dev_script_dir: Path to the dev_scripts_helpers directory
+    # """
     # Process interface.
     dassert_eq_num_args $# 1 "set_path"
     local dev_script_dir=$1
@@ -283,6 +386,15 @@ set_path() {
 
 
 set_pythonpath() {
+    # """
+    # Set up PYTHONPATH by adding the helpers root and its parent directories.
+    #
+    # Starting from the helpers_root directory, walks up to the Git project root
+    # and adds each level to PYTHONPATH. If no directory is provided, adds the
+    # current working directory.
+    #
+    # :param helpers_root_dir: Path to helpers_root (optional; uses pwd if empty)
+    # """
     local helpers_root_dir="$1"
     echo "# set_pythonpath()"
     # Check if the helpers root directory is provided.
@@ -324,6 +436,14 @@ set_pythonpath() {
 
 
 is_dev_csfy() {
+    # """
+    # Check if the current host is one of the development servers.
+    #
+    # Matches against known host names (dev1, dev2, dev3) both from `uname -n`
+    # and the `CSFY_HOST_NAME` environment variable.
+    #
+    # :return: 0 (true) if on a dev server, 1 (false) otherwise
+    # """
     # Check if we are running on the dev servers.
     # Get the host name.
     host_name=$(uname -n)
@@ -342,6 +462,12 @@ is_dev_csfy() {
 
 
 configure_specific_project() {
+    # """
+    # Configure environment variables specific to the project (AWS, ECR, etc.).
+    #
+    # Sets AWS profile, ECR base path (private vs public depending on host),
+    # S3 bucket, dev server IPs, and Alembic config path.
+    # """
     echo "# configure_specific_project()"
     # AWS profiles which are propagated to Docker.
     export CSFY_AWS_PROFILE="ck"
@@ -375,6 +501,11 @@ configure_specific_project() {
 
 
 activate_docker_venv() {
+    # """
+    # Activate the Python virtual environment inside a Docker container.
+    #
+    # The venv is expected at /${ENV_NAME}/bin/activate.
+    # """
     echo "# activate_docker_venv()"
     SOURCE_PATH="/${ENV_NAME}/bin/activate"
     check_file_exists $SOURCE_PATH
@@ -383,6 +514,12 @@ activate_docker_venv() {
 
 
 set_up_docker_in_docker() {
+    # """
+    # Configure and start Docker inside a Docker container (dind).
+    #
+    # Creates the /etc/docker directory, writes the VFS storage-driver config,
+    # starts the Docker Engine, waits for docker.sock, and sets permissions.
+    # """
     echo "# set_up_docker_in_docker()"
     if [[ ! -d /etc/docker ]]; then
         sudo mkdir /etc/docker
@@ -428,6 +565,12 @@ set_up_docker_in_docker() {
 
 
 set_up_docker_git() {
+    # """
+    # Configure Git safe.directory entries for the Docker container.
+    #
+    # Marks /app, /app/amp, /src/amp, and /src as safe directories so Git
+    # operations work inside the container.
+    # """
     echo "# set_up_docker_git()"
     VAL=$(git --version)
     echo "git --version: $VAL"
@@ -445,6 +588,11 @@ set_up_docker_git() {
 
 
 set_up_docker_aws() {
+    # """
+    # Configure AWS CLI profile inside the Docker container.
+    #
+    # Unsets empty AWS credential variables and configures the 'am' profile.
+    # """
     echo "# set_up_docker_aws()"
     if [[ $AM_AWS_ACCESS_KEY_ID == "" ]]; then
         unset AM_AWS_ACCESS_KEY_ID
@@ -464,22 +612,30 @@ set_up_docker_aws() {
     aws configure --profile am list || true
 }
 
+
 # #############################################################################
 # Symlink utils.
 # #############################################################################
 
 set_symlink_permissions() {
+    # """
+    # Remove write permissions for all symlinks in a directory.
+    #
+    # This prevents accidental modifications to symlinked files before
+    # development begins. Broken symlinks are skipped with a warning.
+    #
+    # :param directory: Path to the directory to process
+    # :return: 0 on success, 1 if the directory is invalid
+    # """
     # Remove write permissions for symlinked files to prevent accidental
     # modifications before starting to develop.
     echo "# set_symlink_permissions()"
     local directory="$1"
-
     # Check if the given directory is valid.
     if [ ! -d "$directory" ]; then
         echo -e "${ERROR}: '$directory' is not a valid directory."
         return 1
     fi
-
     # Find all symlinks in the directory and remove write permissions.
     find "$directory" -type l | while read -r symlink; do
         if [ -e "$symlink" ]; then
@@ -489,19 +645,20 @@ set_symlink_permissions() {
             echo -e "${WARNING}: Skipping broken symlink: '$symlink'"
         fi
     done
-
     return 0
 }
+
 
 # #############################################################################
 # Parse yaml utils.
 # #############################################################################
 
 function parse_yaml {
-    # Parse YAML file and outputs variable assignments in bash format.
+    # """
+    # Parse a YAML file and output bash variable declarations.
     #
-    # This function converts YAML files into bash variable declarations.
-    # It handles nested structures by concatenating parent keys with underscores.
+    # Converts YAML key-value pairs into bash variable assignments. Nested
+    # keys are flattened by joining parent and child keys with underscores.
     #
     # :param $1: Path to YAML file
     # :param $2: Optional prefix for variable names
@@ -521,6 +678,7 @@ function parse_yaml {
     #            REPO_CONFIG_repo_info_github_repo_account="causify-ai"
     #
     # See https://stackoverflow.com/questions/5014632/how-can-i-parse-a-yaml-file-from-a-linux-shell-script
+    # """
     local prefix=$2
     local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
     # Extract key-value pairs from YAML.
@@ -541,8 +699,47 @@ function parse_yaml {
     }'
 }
 
+
+# #############################################################################
+# Tmux utils
+# #############################################################################
+
+
+tmux_rename_on_entry() {
+    # """
+    # Rename tmux window on entry and print old title for later restore.
+    #
+    # :param new_title: New window title (e.g., "*CC*")
+    # :return: Prints old window title to stdout; returns 0 if in tmux, 1 otherwise.
+    # """
+    local new_title="$1"
+    if [ -n "$TMUX" ]; then
+        local old_title
+        old_title=$(tmux display-message -p '#W')
+        tmux rename-window "$new_title"
+        echo "$old_title"
+        return 0
+    fi
+    return 1
+}
+
+
+tmux_restore_on_exit() {
+    # """
+    # Restore tmux window title to its original name.
+    #
+    # :param old_title: Previous window title returned by tmux_rename_on_entry()
+    # """
+    local old_title="$1"
+    if [ -n "$TMUX" ] && [ -n "$old_title" ]; then
+        tmux rename-window "$old_title"
+    fi
+}
+
+
 # #############################################################################
 # Command aliases
 # #############################################################################
 
+# Save the last command executed in the system clipboard.
 alias last_cmd='source capture_last_cmd.sh -n 1'

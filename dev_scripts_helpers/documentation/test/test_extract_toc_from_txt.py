@@ -15,13 +15,13 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_extract_toc_from_txt_script1(hunitest.TestCase):
-    def helper(self, file: str) -> None:
+    def helper(self, file: str, extra_args: str = "") -> None:
         # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), file)
         # Build command to call the script.
         script_path = hgit.find_file_in_git_tree("extract_toc_from_txt.py")
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
-        cmd = f"{script_path} --input {in_file} --output {out_file} --mode list --max_level 3"
+        cmd = f"{script_path} --input {in_file} --output {out_file} --mode list --max_level 3 {extra_args}"
         # Run the script.
         hsystem.system(cmd)
         # Read the output.
@@ -52,3 +52,9 @@ class Test_extract_toc_from_txt_script1(hunitest.TestCase):
         Test extraction of headers from a Jupyter notebook file.
         """
         self.helper("input.ipynb")
+
+    def test_md_with_counts(self) -> None:
+        """
+        Test extraction of headers with slide counts from a Markdown file.
+        """
+        self.helper("input.md", extra_args="--count_slides")

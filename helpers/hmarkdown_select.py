@@ -74,13 +74,19 @@ def add_select_arg(
         required=required,
         default="",
         help=(
-            "Select text range as START:END. Examples: "
-            "'## Section 1:## Section 2', 'Section 1:Section 2', ':END', "
-            "'START:' (extracts until next same-level header), "
-            "'START' (extracts until next same-level header), "
-            "or 'START:END' (where END is 'END' for EOF). "
-            "START/END can be a header (with # or * prefix), title substring, "
-            "or line number."
+            r"""Select text range as START:END
+Examples:
+- '## Section 1:## Section 2'"
+- 'Section 1:Section 2',
+- ':END'
+- 'START:' (extracts until next same-level header)
+- 'START' (extracts until next same-level header)
+- 'START:END' (where END is 'END' for EOF)
+- START/END can be a
+    - header (with # or * prefix)
+    - title substring
+    - line number
+"""
         ),
     )
     return parser
@@ -657,11 +663,11 @@ def _parse_rigrule_output(keyword: str) -> str:
     hdbg.dassert_eq(
         len(matches),
         1,
-        "Expected exactly one rule match for keyword '%s', but found %d matches. "
-        "Please be more specific with the rule specification: %s",
+        "Expected exactly one rule match for keyword '%s', but found %d matches.\n"
+        "Please be more specific with the rule specification:\n%s",
         keyword,
         len(matches),
-        ", ".join(matches),
+        "\n".join(matches),
     )
     return matches[0]
 

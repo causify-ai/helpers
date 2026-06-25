@@ -3,6 +3,7 @@ description: Create an animation from an ipywidget interact function using a des
 model: haiku
 ---
 
+# Goal
 - Given the function passed that can go in `ipywidget.interact()` create an
   animation using the template below:
   ```python
@@ -30,6 +31,6 @@ model: haiku
   )
   ```
 
-# Important: Follow Conventions
+# Conventions
 - Always follow the conventions and guidelines in
   `.claude/skills/notebook.rules.md`

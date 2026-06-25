@@ -5,8 +5,8 @@ interactive and non-interactive Claude sessions with sensible defaults,
 permission handling, and tmux integration
 
 # Description of Files
-- `cc`: Interactive Claude Code session launcher with model selection and
-  diagnostics support
+- `cc`: Interactive Claude Code session launcher with model selection (Anthropic
+  direct or OpenRouter) and diagnostics support
 - `ccp`: Non-interactive Claude Code CLI runner for single-prompt execution with
   text output
 - `create_instr`: Creates new instruction files by copying from a template with
@@ -15,25 +15,45 @@ permission handling, and tmux integration
 
 # Description of Executables
 
-## Cc
+## `cc`
 
 ### What It Does
 - Launches Claude Code in interactive mode with dangerously-skip-permissions
   enabled for faster iteration
-- Supports model provider selection (Anthropic or DeepSeek via OpenRouter)
+- Supports model selection via shorthand flags:
+  - `--anth`: Anthropic directly (default, clears OpenRouter env vars)
+  - `--or_anth`: Claude Haiku 4.5 via OpenRouter
+  - `--ds`: DeepSeek V4 Flash via OpenRouter
+  - `--dsp`: DeepSeek V4 Pro via OpenRouter
+  - `--model MODEL_STR`: Any model through OpenRouter
 - Automatically manages tmux window naming (shows "_CC_" during session)
 - Includes diagnostics mode for testing Claude installation
 - Forwards all additional arguments to the underlying claude command
 
 ### Examples
-- Start an interactive Claude Code session with Anthropic (default):
+- Start an interactive Claude Code session with Anthropic directly (default):
   ```bash
   > cc
   ```
 
-- Start with DeepSeek model via OpenRouter:
+- Start with DeepSeek V4 Flash via OpenRouter:
   ```bash
-  > cc --model deepseek
+  > cc --ds
+  ```
+
+- Start with DeepSeek V4 Pro via OpenRouter:
+  ```bash
+  > cc --dsp
+  ```
+
+- Start with Claude Haiku 4.5 via OpenRouter:
+  ```bash
+  > cc --or_anth
+  ```
+
+- Use a custom model through OpenRouter:
+  ```bash
+  > cc --model openrouter/meta-llama/llama-3.1-8b-instruct
   ```
 
 - Run diagnostics to test Claude installation:
@@ -48,10 +68,10 @@ permission handling, and tmux integration
 
 - Pass additional Claude options:
   ```bash
-  > cc --model anthropic --some-claude-flag
+  > cc --anth --some-claude-flag
   ```
 
-## Ccp
+## `ccp`
 
 ### What It Does
 - Runs Claude Code in non-interactive (print) mode with a single prompt

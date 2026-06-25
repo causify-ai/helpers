@@ -1,0 +1,810 @@
+% ############################################################################
+\section{Dockerized Executables}
+
+% Related documentation files:
+% - helpers_root/docs/tools/docker/all.dockerized_flow.explanation.md
+%   Core explanation of dockerized executable pattern
+% - helpers_root/docs/tools/dev_system/all.docker_optimizer_container.how_to_guide.md
+%   Specific example of dockerized executable for optimization
+% - helpers_root/docs/tools/documentation_toolchain/all.latex_toolchain.how_to_guide.md
+%   LaTeX as a dockerized executable
+% - helpers_root/docs/tools/documentation_toolchain/all.render_images.explanation.md
+%   Image rendering tools as dockerized executables
+% - helpers_root/docs/tools/documentation_toolchain/all.notes_to_pdf.explanation.md
+%   PDF generation as dockerized executable
+% - helpers_root/docs/tools/all.llm_transform.how_to_guide.md
+%   LLM-powered transformations as dockerized executables
+
+% ============================================================================
+\subsection{Motivation}
+
+Software development teams frequently encounter the challenge of managing
+diverse toolchains across heterogeneous environments. Installing and
+maintaining developer utilities often leads to version conflicts, platform-specific
+incompatibilities, and inconsistent behavior across development
+machines, CI/CD pipelines, and production systems. These issues compound
+when teams work across multiple operating systems (macOS, Linux, WSL) and
+deployment contexts (local development, containerized environments,
+cloud infrastructure).
+
+Traditional approaches to tool management present several limitations.
+Installing tools directly on host systems creates fragile dependencies
+that differ across platforms. Packaging all utilities into a single monolithic
+development container leads to bloated images, lengthy build times, and
+dependency conflicts between tools. Version management becomes complex
+when different projects require different tool versions, and onboarding
+new team members involves extensive setup documentation that quickly becomes
+outdated.
+
+To address these challenges, we developed \textbf{Dockerized
+Executables}---a pattern that packages each development tool in its own
+slim, purpose-built container image. Instead of installing tools locally
+or embedding them in a single development container, each utility runs
+on-demand in an isolated environment with all dependencies pre-configured.
+This approach provides clean separation between tools, enables
+independent versioning and upgrades, reduces security surface area,
+and ensures consistent behavior across all execution contexts.
+
+% ============================================================================
+\subsection{Summary}
+
+Dockerized Executables solve a persistent problem in software
+development: the challenge of maintaining consistent, reproducible
+tooling across diverse environments. By packaging each tool in an isolated
+container with a transparent wrapper, we eliminate installation
+complexity, ensure consistent behavior, and maintain clean development
+environments. While this approach requires Docker as a dependency, the
+benefits in reproducibility, onboarding speed, and operational
+simplicity justify this requirement. The pattern has proven effective across
+diverse tooling needs, from document processing to diagram generation
+to PDF compilation, and has become a foundational component of our development
+infrastructure.
+
+% ============================================================================
+\subsection{Architecture and Design}
+
+A Dockerized Executable consists of two primary components: a minimal
+container image containing the tool and its dependencies, and a thin wrapper
+script that handles execution logistics. From the developer's
+perspective, invoking a Dockerized Executable is indistinguishable from
+running a locally installed tool---the wrapper transparently manages containerization
+details.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Container image structure}
+
+Each tool is packaged in a dedicated Docker image built on a minimal
+base (e.g., \texttt{debian:stable-slim}). The image includes only the
+dependencies required for that specific utility, keeping the image size
+small and reducing attack surface. Images are version-pinned and
+tagged to enable controlled upgrades and rollbacks. The container runs
+with a non-root user by default and uses a standardized working directory
+(\texttt{/src}) where the repository is mounted.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Wrapper script responsibilities}
+
+The wrapper script bridges between the user's environment and the containerized
+tool. Key responsibilities include:
+
+\begin{itemize}
+  \item \textbf{Repository discovery}: Locates the repository root to establish
+    a consistent mount point regardless of the user's current working directory.
+
+  \item \textbf{Path translation}: Converts file paths between host/dev-container
+    coordinates and container-internal paths (e.g., \texttt{docs/file.md}
+    → \texttt{/src/docs/file.md}).
+
+  \item \textbf{Container lifecycle management}: Pulls or builds the image
+    if needed (leveraging Docker's caching), launches the container
+    with appropriate mounts and permissions, and removes it after execution.
+
+  \item \textbf{Permission preservation}: Runs the container with the caller's
+    UID:GID to ensure generated files have correct ownership.
+
+  \item \textbf{Environment isolation}: Whitelists and forwards only necessary
+    environment variables, preventing unintended dependencies on host
+    configuration.
+
+  \item \textbf{Output handling}: Streams stdout/stderr in real-time and
+    propagates the tool's exit code for proper CI/CD integration.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsubsection{Repository root as anchor point}
+
+Using the repository root as the mount anchor is critical for
+consistency. This design choice ensures:
+
+\begin{itemize}
+  \item Commands work identically regardless of the user's current subdirectory
+
+  \item Paths remain stable across local development, dev containers, and
+    CI environments
+
+  \item The same command works in both children and sibling container patterns
+
+  \item Minimal, predictable mounts prevent exposing unrelated host
+    directories
+\end{itemize}
+
+% ============================================================================
+\subsection{Execution Flow}
+
+When a developer invokes a Dockerized Executable:
+
+\begin{enumerate}
+  \item The wrapper script is called with the tool's arguments
+
+  \item The script discovers the repository root and normalizes input paths
+
+  \item It ensures the tool's Docker image is available (pulling/building
+    if necessary, leveraging cache otherwise)
+
+  \item The repository is mounted into a new container at \texttt{/src}
+
+  \item Paths are rewritten to container coordinates
+
+  \item The tool executes inside the container with the provided arguments
+
+  \item Outputs are written back to the mounted repository
+
+  \item The container exits, and its exit code is propagated to the
+    caller
+\end{enumerate}
+
+The entire process is transparent to the user, who sees only the tool's
+output and return code.
+
+% ============================================================================
+\subsection{Container Execution Patterns}
+
+Dockerized Executables must operate correctly whether invoked from the
+host system or from within development containers. This requirement introduces
+complexity in mounting and Docker daemon access.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Children containers (Docker-in-Docker)}
+
+In this pattern, a development container runs its own Docker daemon and
+spawns tool containers as children. While flexible, this approach requires
+elevated privileges (typically \texttt{--privileged}) and introduces
+security concerns. It also adds overhead from running nested Docker daemons.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Sibling containers (preferred)}
+
+Our preferred approach mounts the host's Docker socket into the
+development container, allowing it to launch sibling containers via the
+host's Docker engine. The development container and tool container run
+as peers, both managed by the host daemon. This pattern is more secure,
+more efficient, and avoids privilege escalation. However, it requires
+careful path management: mounts must reference host-visible paths, not
+dev-container-internal paths. The wrapper script handles this translation
+automatically.
+
+% ============================================================================
+\subsection{Practical Examples}
+
+We have successfully Dockerized numerous development utilities:
+
+\begin{itemize}
+  \item \textbf{Document formatting}: Prettier for consistent code and
+    Markdown formatting across the codebase
+
+  \item \textbf{Document conversion}: Tools for converting between formats
+    (e.g., DOCX to Markdown) without installing converters locally
+
+  \item \textbf{Diagram rendering}: Mermaid, Graphviz, and TikZ renderers
+    for generating diagrams from source specifications
+
+  \item \textbf{LaTeX compilation}: Complete LaTeX toolchain for building
+    PDFs without installing LaTeX distributions on development machines
+
+  \item \textbf{LLM-powered transforms}: Utilities leveraging language
+    models for structured content transformations
+\end{itemize}
+
+Each tool follows the same pattern: a single Python wrapper script, a minimal
+Dockerfile, and standardized invocation semantics.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Example invocation}
+
+Converting a document requires only:
+
+\begin{verbatim}
+python dev_scripts_helpers/documentation/convert_docx_to_markdown.py \
+-i docs/weekly_update.docx \
+-o docs/weekly_update.md
+\end{verbatim}
+
+The wrapper handles image management, path translation, and execution
+automatically. The result is identical to a local installation, but
+with consistent behavior across all platforms.
+
+% ============================================================================
+\subsection{Benefits and Trade-offs}
+
+The Dockerized Executable pattern provides several advantages:
+
+\begin{itemize}
+  \item \textbf{Reproducibility}: Identical tool behavior across all environments
+    (macOS, Linux, WSL, CI)
+
+  \item \textbf{Rapid onboarding}: Docker is the only prerequisite; no
+    lengthy installation guides
+
+  \item \textbf{Clean environments}: Development containers remain lean,
+    containing only essential dependencies
+
+  \item \textbf{Independent versioning}: Each tool can be upgraded or rolled
+    back without affecting others
+
+  \item \textbf{Reduced conflicts}: Isolated dependencies prevent version
+    collisions between tools
+
+  \item \textbf{Smaller security surface}: Purpose-built images contain
+    only necessary components
+\end{itemize}
+
+However, this approach introduces some costs:
+
+\begin{itemize}
+  \item \textbf{Docker dependency}: The system requires Docker to be available
+    and properly configured
+
+  \item \textbf{Image storage}: Each tool requires disk space for its image,
+    though images are typically small (tens to hundreds of MB)
+
+  \item \textbf{Initial pull latency}: First-time execution requires pulling
+    or building the image, though subsequent runs leverage Docker's
+    cache
+
+  \item \textbf{Slight overhead}: Container startup adds minimal latency
+    (typically under 1 second) compared to native execution
+\end{itemize}
+
+For tools used frequently in development workflows, these trade-offs are
+favorable. The reproducibility and consistency benefits far outweigh
+the minimal overhead.
+
+% ============================================================================
+\subsection{Comparison with Language-Specific Solutions}
+
+The Dockerized Executable pattern addresses a broader problem space than
+language-specific dependency managers. Tools like \texttt{uv} (for
+Python) provide fast, isolated dependency management within their
+language ecosystem. They excel at version pinning and environment isolation
+for language packages but are limited to that language's tooling.
+
+Dockerized Executables complement such tools rather than replacing them.
+They provide consistent execution for:
+
+\begin{itemize}
+  \item Tools written in languages not used in the main project
+
+  \item System-level utilities with complex native dependencies
+
+  \item Tools requiring specific OS packages or libraries
+
+  \item Cross-language workflows requiring coordinated toolchains
+\end{itemize}
+
+Both approaches share the goal of reproducible, isolated tool
+execution. The choice depends on whether the tool fits within a language
+ecosystem's package manager or requires the broader isolation that containers
+provide.
+
+% ============================================================================
+\subsection{Implementation Guidelines}
+
+Building a Dockerized Executable follows a consistent pattern:
+
+\begin{enumerate}
+  \item \textbf{Create a minimal image}: Start with a small base image
+    (\texttt{debian:stable-slim}, \texttt{alpine}, or language-specific
+    slim variants). Install only necessary dependencies. Pin versions explicitly.
+    Use a non-root user. Set \texttt{WORKDIR /src}.
+
+  \item \textbf{Build the wrapper script}: Implement repository root discovery.
+    Mount the repo at \texttt{/src}. Translate paths from host to
+    container coordinates. Forward necessary arguments and environment
+    variables. Run with caller's UID:GID. Stream logs and propagate exit
+    codes.
+
+  \item \textbf{Choose execution pattern}: Prefer sibling containers for
+    security and efficiency. Handle path translation correctly for
+    sibling pattern. Document any special requirements.
+
+  \item \textbf{Test thoroughly}: Invoke from repository root and subdirectories.
+    Test from host and dev containers. Verify path handling and file ownership.
+    Assert on outputs and exit codes.
+
+  \item \textbf{Document usage}: Provide clear examples. Document
+    required environment variables if any. Note any platform-specific considerations.
+\end{enumerate}
+
+% ============================================================================
+\subsection{Integration with Development Workflows}
+
+Dockerized Executables integrate seamlessly into existing workflows:
+
+\begin{itemize}
+  \item \textbf{Local development}: Developers invoke tools via wrapper
+    scripts, receiving immediate feedback
+
+  \item \textbf{Pre-commit hooks}: Git hooks can invoke Dockerized Executables
+    for formatting or validation
+
+  \item \textbf{CI/CD pipelines}: GitHub Actions and other CI systems invoke
+    the same wrapper scripts, ensuring consistency
+
+  \item \textbf{Automated workflows}: Tools can be orchestrated via make,
+    invoke, or other task runners
+
+  \item \textbf{Interactive use}: Developers can use tools ad-hoc during
+    development without environment concerns
+\end{itemize}
+
+This consistency across contexts eliminates "works on my machine" issues
+and simplifies troubleshooting.
+
+% ############################################################################
+\section{Docker container release flow}
+
+% Related documentation files:
+% - docs/infra/ck.development_stages.explanation.md
+%   Explains dev/prod/local container stages
+% - docs/infra/ck.elastic_container_service.explanation.md
+%   ECS setup for container deployment
+% - docs/infra/ck.ecs_flows.reference.md
+%   Reference for ECS container flows
+% - docs/infra/ck.aws_ecr.explanation.md
+%   AWS ECR for container registry management
+% - docs/infra/ck.airflow_dags_release.how_to_guide.md
+%   Airflow DAG release process coordinated with containers
+% - helpers_root/docs/tools/dev_system/all.devops_docker_auto_release.explanation.md
+%   Automated Docker container release workflows
+% - helpers_root/docs/tools/dev_system/all.devops_docker.how_to_guide.md
+%   Manual Docker release procedures
+% - helpers_root/docs/tools/dev_system/all.devops_docker.reference.md
+%   Complete reference for container release system
+% - docs/build/ck.gh_workflows.explanation.md
+%   GitHub workflows for building containers
+% - docs/build/ck.gh_workflows.reference.md
+%   Reference for all build workflows
+% - docs/bwd/ck.bwd_app_dev_image_release.how_to_guide.md
+%   Development image release process
+% - docs/bwd/ck.bwd_app_backend_release.how_to_guide.md
+%   Backend production container release
+% - docs/trading_ops/ck.release.explanation.md
+%   Release process including container updates
+% - docs/trading_ops/ck.release.how_to_guide.md
+%   Step-by-step release guide
+% - docs/trading_ops/ck.dags_release.how_to_guide.md
+%   DAG release synchronized with container versions
+% - docs/all.dev_system_release.how_to_guide.md
+%   Overall development system release process
+
+% ============================================================================
+\subsection{Motivation and Architecture}
+Modern software systems require consistent, reproducible deployment environments
+across development, staging, and production. Traditional deployment
+approaches struggle with environmental drift, dependency conflicts,
+and versioning complexity. Docker containers provide isolation and reproducibility,
+but managing container lifecycles—building, testing, versioning, and deploying—introduces
+operational overhead. Our Docker container release flow addresses
+these challenges through automated workflows that enforce quality
+gates, maintain version consistency, and provide staged rollout
+capabilities. The system balances developer velocity with operational safety,
+enabling rapid iteration while preventing production incidents. The architecture
+distinguishes between multiple container types and deployment stages:
+\begin{itemize}
+  \item \textbf{Development images} (\texttt{dev}): Used for day-to-day
+    development, containing all development dependencies, debugging
+    tools, and test frameworks. Updated frequently (daily or on-demand).
+
+  \item \textbf{Production images} (\texttt{prod}): Optimized for
+    deployment, containing only runtime dependencies with minimal attack
+    surface. Updated on a controlled schedule (bi-weekly or when critical
+    fixes are required).
+
+  \item \textbf{Local images} (\texttt{local}): Developer-specific
+    builds for testing container changes before promoting to dev. Never
+    pushed to registries.
+\end{itemize}
+Each image stage has corresponding task definitions in AWS ECS (Elastic
+Container Service) for orchestrated deployments. The entire flow is managed
+through GitHub Actions workflows that run on push, schedule, or manual
+dispatch.
+% ============================================================================
+\subsection{Container Build Pipeline}
+The container build pipeline transforms source code and dependencies
+into versioned, tested Docker images ready for deployment. The process
+is automated through GitHub Actions workflows that run in response to
+code changes or manual triggers.
+% ----------------------------------------------------------------------------
+\subsubsection{Development Image Workflow}
+Development images are built and released through the \texttt{build\_image.dev.yml}
+workflow. This workflow:
+\begin{enumerate}
+  \item Triggers on:
+    \begin{itemize}
+      \item Push to master branch
+
+      \item Manual workflow dispatch with optional version override
+
+      \item Scheduled runs (daily for routine updates)
+    \end{itemize}
+
+  \item Checks out the repository at the specified commit or branch
+
+  \item Reads the current version from \texttt{changelog.txt}, which maintains
+    a human-readable history of container changes with semantic versioning
+    (major.minor.patch)
+
+  \item Builds the image using the Dockerfile in the repository root,
+    installing development dependencies, test frameworks, and
+    debugging tools
+
+  \item Tags the image with:
+    \begin{itemize}
+      \item Version tag (e.g., \texttt{1.2.3})
+
+      \item \texttt{dev} tag pointing to the latest development
+        version
+
+      \item Commit SHA for precise traceability
+    \end{itemize}
+
+  \item Pushes the image to Amazon ECR (Elastic Container Registry)
+
+  \item Updates environment variables and configuration to reference the
+    new image version
+
+  \item Optionally triggers downstream workflows to update dependent systems
+\end{enumerate}
+The development image build is relatively fast (typically 10-20 minutes)
+because it leverages Docker layer caching and does not require
+extensive optimization passes.
+% ----------------------------------------------------------------------------
+\subsubsection{Production Image Workflow}
+Production images follow a similar but more rigorous process through \texttt{build\_image.cmamp.yml}
+(or equivalent production workflow). Key differences include:
+\begin{itemize}
+  \item \textbf{Stricter trigger conditions}: Only builds on manual dispatch
+    or scheduled releases, never on every push. This prevents immature
+    code from reaching production workflows.
+
+  \item \textbf{Multi-stage builds}: Uses Docker multi-stage builds to
+    minimize final image size. Build dependencies are discarded, and only
+    runtime requirements remain in the final image.
+
+  \item \textbf{Security scanning}: Integrates vulnerability scanning (e.g.,
+    Trivy, AWS ECR scanning) to detect known CVEs in base images and
+    dependencies before release.
+
+  \item \textbf{Optimization passes}: Removes unnecessary files,
+    compresses layers, and ensures minimal attack surface
+
+  \item \textbf{Comprehensive testing}: Runs full test suites (fast, slow,
+    and sometimes superslow) to validate the production build before release
+
+  \item \textbf{Version locking}: Production images are immutable once
+    tagged. Rollbacks occur by redeploying a previous version, not by modifying
+    existing images.
+\end{itemize}
+Production image builds are slower (30-60 minutes) due to these
+additional steps, but the investment ensures reliability and security.
+% ----------------------------------------------------------------------------
+\subsubsection{Version Management}
+Container versions are managed through \texttt{changelog.txt} files that
+serve as the single source of truth for the current version. Each
+entry includes:
+\begin{itemize}
+  \item Version number (semantic versioning: major.minor.patch)
+
+  \item Release date
+
+  \item Summary of changes (features, fixes, dependency updates)
+
+  \item Author information
+\end{itemize}
+When a developer needs to release a new version, they:
+\begin{enumerate}
+  \item Update \texttt{changelog.txt} with the new version and
+    description
+
+  \item Commit the change to the repository
+
+  \item Trigger the build workflow (automatically on push to master or
+    manually via workflow dispatch)
+
+  \item The workflow reads the version from \texttt{changelog.txt} and
+    tags the image accordingly
+\end{enumerate}
+This approach ensures version changes are tracked in version control and
+reviewed during code review, preventing accidental or undocumented
+version bumps.
+% ============================================================================
+\subsection{Task Definition Management with ECS}
+AWS Elastic Container Service (ECS) orchestrates containerized applications
+using task definitions that specify which Docker images to run,
+resource allocations, networking configuration, and environment
+variables. Our system manages separate task definitions for preproduction
+and production environments, enabling staged rollouts and safe testing
+of changes.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Preproduction Task Definition Release}
+The \texttt{release\_new\_ecs\_preprod\_task\_definition.yml} workflow
+updates the preproduction ECS task definition. This workflow:
+\begin{enumerate}
+  \item Triggers on manual dispatch, allowing controlled releases
+    after image builds complete
+
+  \item Fetches the current task definition from AWS ECS
+
+  \item Updates the image reference to point to the newly built development
+    image (specified by version or tag)
+
+  \item Modifies environment variables if needed (e.g., database
+    connection strings for preproduction)
+
+  \item Registers the new task definition revision with ECS
+
+  \item Optionally forces a new deployment of running services using this
+    task definition, causing ECS to restart tasks with the new image
+
+  \item Logs the task definition ARN and revision number for traceability
+\end{enumerate}
+Preproduction task definitions use development images and connect to
+isolated resources (databases, message queues) to avoid impacting production
+systems. This environment serves as the final validation stage before
+production deployment.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Production Task Definition Release}
+The \texttt{release\_new\_ecs\_prod\_task\_definition.yml} workflow
+follows an identical structure but with additional safeguards:
+\begin{itemize}
+  \item Requires explicit manual approval (via GitHub environment
+    protection rules) before proceeding
+
+  \item Only references production-tagged images that have passed all quality
+    gates
+
+  \item Logs all changes to an audit trail for compliance and debugging
+
+  \item Supports blue-green deployments and canary releases through ECS
+    service configuration
+
+  \item Monitors deployment progress and can automatically roll back if
+    health checks fail
+\end{itemize}
+Production releases typically occur bi-weekly on a fixed schedule unless
+critical patches are required. This cadence balances feature velocity
+with operational stability.
+
+% ============================================================================
+\subsection{Airflow DAG Release Process}
+Airflow DAGs (Directed Acyclic Graphs) define workflows for data processing,
+model training, and automated trading operations. DAG code changes
+often require updated Docker images containing new dependencies or
+business logic. The DAG release process coordinates code changes with container
+updates.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Release Workflow for Trading DAGs}
+The release procedure for Airflow DAGs follows a structured, multi-step
+process:
+\begin{enumerate}
+  \item \textbf{Create and test a DAG}: When updating DAG logic,
+    create a test DAG with a task-specific name (e.g., \texttt{test.tokyo.shadow\_trading.C11a.config1\_CmTask8080}).
+    This naming convention embeds the task number for traceability.
+
+  \item \textbf{Validate with preproduction task definition}: Execute the
+    test DAG using the existing preproduction ECS task definition. Do
+    not update the image yet—this isolates DAG logic changes from
+    environment changes. Run for a minimum duration (e.g., 30 minutes)
+    to ensure stability.
+
+  \item \textbf{Verify all tasks succeed}: Check that every task in the
+    DAG completes successfully without errors or warnings. Review logs
+    for unexpected behavior.
+
+  \item \textbf{Propagate changes to production DAGs}: Once validated,
+    apply the changes to all relevant production DAGs in \texttt{datapull/airflow/dags/trading/shadow\_trading/}.
+
+  \item \textbf{Update shared utilities}: If new utility functions were
+    added to \texttt{datapull/airflow/dags/airflow\_utils/trade\_exec/utils.py},
+    copy them to the shared Airflow utilities directory (\texttt{/data/shared/airflow/dags/airflow\_utils/trade\_exec/utils.py})
+    after validation.
+
+  \item \textbf{Merge and document}: Open a pull request for review.
+    Once approved, merge to master. Create a release issue titled ``Release
+    shadow trading DAGs — \{date\}'' listing affected DAGs and links
+    to merged PRs.
+
+  \item \textbf{Image update if needed}: If the DAG changes require a new
+    Docker image (e.g., new Python packages, updated business logic), note
+    this in the release issue and coordinate with the production release
+    schedule.
+\end{enumerate}
+This process ensures DAG changes are validated independently before
+deployment and that dependencies between DAGs, images, and
+infrastructure are clearly managed.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Release Schedule}
+Shadow trading DAGs follow a bi-weekly release cadence when image updates
+are required. When only DAG logic changes (no new dependencies), releases
+occur weekly. This schedule provides predictability for operations
+teams while allowing rapid iteration on trading strategies.
+
+% ============================================================================
+\subsection{Feature Release Communication and Documentation}
+Releasing new features or significant system changes requires more than
+code deployment. Effective communication ensures users understand what
+changed, why it matters, and how to use new capabilities. Our process integrates
+documentation updates and stakeholder communication into the release workflow.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Pre-Release Internal Testing}
+Before broadly announcing a feature, we conduct internal testing with a
+small group:
+\begin{enumerate}
+  \item \textbf{Draft communication}: Write a detailed description of the
+    feature in a Google Doc, explaining what changed, why, expected
+    user actions, and links to documentation or dashboards.
+
+  \item \textbf{Team review}: Share the draft with the feature development
+    team for feedback on technical accuracy and clarity.
+
+  \item \textbf{Pilot rollout}: Send the communication to a limited group
+    (feature team or power users) and ask for feedback on both the feature
+    and the communication.
+
+  \item \textbf{Iterate}: Incorporate feedback and resolve any issues discovered
+    during the pilot.
+\end{enumerate}
+This approach catches problems early when they're easier to fix and
+ensures communication is clear before reaching a wider audience.
+% ----------------------------------------------------------------------------
+\subsubsection{Updating Central Release Documentation}
+After internal validation, update the master release tracking document
+(\textit{Dev System Features} Google Doc) with:
+\begin{itemize}
+  \item Feature title
+
+  \item Release date
+
+  \item Summary of changes
+
+  \item Links to detailed documentation, dashboards, or related issues
+\end{itemize}
+This central document serves as a historical record of system
+evolution and a reference for onboarding new team members.
+% ----------------------------------------------------------------------------
+\subsubsection{Communication Template}
+Release announcements follow a structured template:
+\begin{verbatim}
+Subject: [Feature Name] Now Available
+Hi Team,
+We've integrated [feature name] to [solve what problem].
+What's Covered?
+- Key capability 1
+- Key capability 2
+- Integration points and usage
+Current State:
+- Metrics or dashboards (with access links)
+- Example visuals or screenshots
+Next Steps:
+- Recommended actions for users
+- How to get help or provide feedback
+For detailed documentation, see: [link]
+Thanks,
+[Team]
+\end{verbatim}
+This format ensures consistency, provides actionable information, and
+reduces confusion about new features.
+% ============================================================================
+\subsection{Integration with CI/CD and Quality Gates}
+The Docker release flow integrates tightly with our continuous integration
+and deployment (CI/CD) pipelines. Quality gates at each stage prevent
+broken code from progressing through the release pipeline.
+% ----------------------------------------------------------------------------
+\subsubsection{Automated Testing in Workflows}
+Build workflows incorporate testing at multiple points:
+\begin{itemize}
+  \item \textbf{Pre-build validation}: Lint checks, code formatting, and
+    static analysis run before building the image. If these fail, the build
+    aborts immediately.
+
+  \item \textbf{Post-build testing}: After the image is built, fast
+    tests run inside the new container to validate that code executes
+    correctly in the containerized environment. This catches environment-specific
+    issues (e.g., missing dependencies, incorrect paths).
+
+  \item \textbf{Integration testing}: For production builds,
+    integration tests verify interactions between components (databases,
+    APIs, message queues) using the new image.
+
+  \item \textbf{Security scanning}: Vulnerability scanners analyze the
+    image for known CVEs. High-severity vulnerabilities block the
+    release until patched.
+\end{itemize}
+Each gate can block progression, ensuring only validated images reach deployment
+stages.
+% ----------------------------------------------------------------------------
+\subsubsection{Rollback Capabilities}
+Despite rigorous testing, issues sometimes arise in production. The
+system supports rapid rollback:
+\begin{itemize}
+  \item \textbf{Immutable image tags}: Each version is permanently tagged
+    in ECR. Rollback is as simple as updating the task definition to
+    reference a previous version.
+
+  \item \textbf{Git-tracked configuration}: Task definition changes are
+    committed to the repository. To roll back, revert the commit and re-run
+    the release workflow.
+
+  \item \textbf{Automated health checks}: ECS monitors container health.
+    If new tasks fail health checks repeatedly, ECS can automatically stop
+    the rollout and maintain the previous version.
+
+  \item \textbf{Blue-green deployments}: For critical services, we
+    maintain parallel environments (blue and green). New versions deploy
+    to the inactive environment, and traffic switches only after
+    validation succeeds.
+\end{itemize}
+These mechanisms minimize downtime and reduce the blast radius of problematic
+releases.
+% ============================================================================
+\subsection{Buildmeister Dashboard and Monitoring}
+The Buildmeister Dashboard provides real-time visibility into the
+state of all GitHub Actions workflows across all repositories. This centralized
+view enables rapid identification of failures and simplifies daily operational
+oversight. The dashboard displays:
+\begin{itemize}
+  \item \textbf{Workflow status}: Current state of all workflows (success,
+    failed, in progress) across repositories
+
+  \item \textbf{Links to runs}: Direct links to failing workflow runs for
+    immediate investigation
+
+  \item \textbf{Test reports}: Links to Allure reports showing test history,
+    flaky tests, and failure trends
+
+  \item \textbf{Coverage reports}: Latest code coverage metrics with drill-down
+    by module
+
+  \item \textbf{Pull request counts}: Number of open PRs per repository,
+    indicating review backlog
+\end{itemize}
+The dashboard updates hourly and is published to an S3-hosted static site
+accessible to all team members. Historical versions are retained for
+analysis of workflow stability over time. This tool is central to the Buildmeister
+role, which rotates weekly among team members. The Buildmeister monitors
+the dashboard, triages failures, and ensures builds remain green.
+% ============================================================================
+\subsection{Summary}
+Our Docker container release flow automates the journey from source
+code to deployed containers while enforcing quality gates, maintaining
+version consistency, and enabling safe rollouts. Separate workflows for
+development and production images balance velocity with stability.
+Integration with ECS task definitions provides orchestrated
+deployments with rollback capabilities. The Airflow DAG release process
+coordinates workflow updates with container changes. Structured
+communication and documentation ensure stakeholders understand changes.
+Finally, the Buildmeister Dashboard and automated monitoring provide
+visibility into system health and enable rapid response to issues. This
+system transforms container management from a manual, error-prone
+process into a reliable, auditable pipeline. Developers can iterate
+rapidly with development images while operations teams maintain
+production stability through controlled releases. The architecture is designed
+for growth: adding new services or repositories requires minimal
+configuration, as all core workflows are reusable and parameterized.
+Quality gates prevent broken code from reaching production, and comprehensive
+monitoring ensures issues are detected and resolved quickly.

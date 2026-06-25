@@ -5,7 +5,7 @@ Demonstrates best practices for creating interactive notebook widgets and plots.
 
 Import as:
 
-import notebook_utils_template as utils
+import .claude.templates.notebook_utils_template as ctnoutte
 """
 
 import logging
@@ -15,7 +15,7 @@ from typing import Any, Optional, Tuple
 import ipywidgets
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.stats
+import math
 from IPython.display import clear_output, display
 
 import helpers.hnotebook as hnotebo
@@ -28,6 +28,67 @@ _LOG = logging.getLogger(__name__)
 def init_loggers(notebook_log: logging.Logger) -> None:
     global _LOG
     hnotebo.init_loggers(notebook_log, utils_log=_LOG)
+
+
+# #############################################################################
+# Pure-Python replacements for scipy.stats distributions (no scipy dependency)
+# #############################################################################
+
+
+def _beta_pdf(x, a, b):
+    """
+    Compute the Beta(a, b) PDF at points x.
+
+    f(x; a, b) = x^(a-1) * (1-x)^(b-1) / B(a, b)
+    where B(a, b) = Gamma(a)*Gamma(b) / Gamma(a+b)
+    """
+    x = np.asarray(x, dtype=float)
+    const = math.gamma(a + b) / (math.gamma(a) * math.gamma(b))
+    return const * x ** (a - 1) * (1 - x) ** (b - 1)
+
+
+def _beta_cdf(x, a, b):
+    """
+    Compute the Beta(a, b) CDF at points x via numerical integration.
+
+    Uses trapezoidal integration of the PDF on a fine grid, then
+    interpolates to the requested x values.
+    """
+    x = np.asarray(x, dtype=float)
+    # Use a fine grid for accurate numerical integration.
+    n_fine = 10000
+    x_fine = np.linspace(0, 1, n_fine)
+    pdf_fine = _beta_pdf(x_fine, a, b)
+    # Cumulative trapezoidal integration.
+    dx = x_fine[1] - x_fine[0]
+    cdf_fine = np.zeros(n_fine)
+    cdf_fine[1:] = np.cumsum(0.5 * (pdf_fine[1:] + pdf_fine[:-1])) * dx
+    # Interpolate to the requested x values.
+    return np.interp(x, x_fine, cdf_fine)
+
+
+def _norm_pdf(x, mu=0.0, sigma=1.0):
+    """
+    Compute the Normal(mu, sigma^2) PDF at points x.
+
+    f(x; mu, sigma) = 1/(sigma*sqrt(2*pi)) * exp(-(x-mu)^2 / (2*sigma^2))
+    """
+    x = np.asarray(x, dtype=float)
+    coeff = 1.0 / (sigma * np.sqrt(2 * np.pi))
+    return coeff * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+
+
+def _norm_cdf(x, mu=0.0, sigma=1.0):
+    """
+    Compute the Normal(mu, sigma^2) CDF at points x.
+
+    Uses the error function: Phi(x) = 0.5 * (1 + erf((x-mu)/(sigma*sqrt(2))))
+    """
+    x = np.asarray(x, dtype=float)
+    z = (x - mu) / (sigma * np.sqrt(2))
+    # math.erf is scalar; vectorize for array input.
+    _erf = np.vectorize(math.erf)
+    return 0.5 * (1.0 + _erf(z))
 
 
 # #############################################################################
@@ -55,7 +116,7 @@ def cell1_interactive_distribution_explorer(
         figsize = plt.rcParams["figure.figsize"]
     alpha_slider, alpha_box = htutori.build_widget_control(
         name="α (alpha)",
-        description="Beta: shape parameter. Normal: mean",
+        description="α (alpha)",
         min_val=0.5,
         max_val=10,
         step=0.5,
@@ -64,7 +125,7 @@ def cell1_interactive_distribution_explorer(
     )
     beta_slider, beta_box = htutori.build_widget_control(
         name="β (beta)",
-        description="Beta: shape parameter. Normal: variance",
+        description="β (beta)",
         min_val=0.5,
         max_val=10,
         step=0.5,
@@ -99,18 +160,25 @@ def cell1_interactive_distribution_explorer(
             if dist_type == "Beta":
                 x = np.linspace(0, 1, 1000)
                 # Plot 1: PDF for reference.
-                pdf = scipy.stats.beta.pdf(x, alpha, beta)
+                pdf = _beta_pdf(x, alpha, beta)
                 ax1.plot(x, pdf, linewidth=2.5, color="steelblue", label="PDF")
                 ax1.fill_between(x, pdf, alpha=0.2, color="steelblue")
-                ax1.set_xlabel("x", fontsize=12)
+                ax1.set_xlabel(
+                    "x\n\nShows the probability density "
+                    "function of the distribution",
+                    fontsize=10,
+                )
                 ax1.set_ylabel("Probability Density", fontsize=12)
                 ax1.set_title("PDF Reference", fontsize=14, fontweight="bold")
                 ax1.grid(True, alpha=0.3)
                 ax1.legend(fontsize=10)
                 # Plot 2: CDF for reference.
-                cdf = scipy.stats.beta.cdf(x, alpha, beta)
+                cdf = _beta_cdf(x, alpha, beta)
                 ax2.plot(x, cdf, linewidth=2.5, color="darkorange", label="CDF")
-                ax2.set_xlabel("x", fontsize=12)
+                ax2.set_xlabel(
+                    "x\n\nShows the cumulative distribution function",
+                    fontsize=10,
+                )
                 ax2.set_ylabel("Cumulative Probability", fontsize=12)
                 ax2.set_title("CDF Reference", fontsize=14, fontweight="bold")
                 ax2.grid(True, alpha=0.3)
@@ -123,12 +191,7 @@ def cell1_interactive_distribution_explorer(
                     f"Parameters:\n"
                     f"  α (alpha): {alpha:.2f}\n"
                     f"  β (beta): {beta:.2f}\n\n"
-                    f"Mean: {mean:.4f}\n\n"
-                    f"Observations:\n"
-                    f"- Adjust α and β to see\n"
-                    f"  how the shape changes\n"
-                    f"- PDF and CDF provide\n"
-                    f"  complementary views"
+                    f"Mean: {mean:.4f}"
                 )
                 htutori.add_fitted_text_box(
                     ax3, comment_text, max_fontsize=13, min_fontsize=10
@@ -139,18 +202,25 @@ def cell1_interactive_distribution_explorer(
                 std_dev = np.sqrt(variance)
                 x = np.linspace(mean - 4 * std_dev, mean + 4 * std_dev, 1000)
                 # Plot 1: PDF for reference.
-                pdf = scipy.stats.norm.pdf(x, mean, std_dev)
+                pdf = _norm_pdf(x, mean, std_dev)
                 ax1.plot(x, pdf, linewidth=2.5, color="steelblue", label="PDF")
                 ax1.fill_between(x, pdf, alpha=0.2, color="steelblue")
-                ax1.set_xlabel("x", fontsize=12)
+                ax1.set_xlabel(
+                    "x\n\nShows the probability density "
+                    "function of the distribution",
+                    fontsize=10,
+                )
                 ax1.set_ylabel("Probability Density", fontsize=12)
                 ax1.set_title("PDF Reference", fontsize=14, fontweight="bold")
                 ax1.grid(True, alpha=0.3)
                 ax1.legend(fontsize=10)
                 # Plot 2: CDF for reference.
-                cdf = scipy.stats.norm.cdf(x, mean, std_dev)
+                cdf = _norm_cdf(x, mean, std_dev)
                 ax2.plot(x, cdf, linewidth=2.5, color="darkorange", label="CDF")
-                ax2.set_xlabel("x", fontsize=12)
+                ax2.set_xlabel(
+                    "x\n\nShows the cumulative distribution function",
+                    fontsize=10,
+                )
                 ax2.set_ylabel("Cumulative Probability", fontsize=12)
                 ax2.set_title("CDF Reference", fontsize=14, fontweight="bold")
                 ax2.grid(True, alpha=0.3)
@@ -162,12 +232,7 @@ def cell1_interactive_distribution_explorer(
                     f"Parameters:\n"
                     f"  μ (mean): {mean:.2f}\n"
                     f"  σ² (variance): {variance:.2f}\n\n"
-                    f"Observations:\n"
-                    f"- Adjust μ and σ² to see\n"
-                    f"  how the distribution\n"
-                    f"  shifts and spreads\n"
-                    f"- Normal is symmetric\n"
-                    f"  around the mean"
+                    f"Std dev: {std_dev:.2f}"
                 )
                 htutori.add_fitted_text_box(
                     ax3, comment_text, max_fontsize=13, min_fontsize=10
@@ -181,18 +246,33 @@ def cell1_interactive_distribution_explorer(
     dist_type_dropdown.observe(update_plot, names="value")
     # Display initial plot.
     update_plot()
-    # Create layout with controls and plot.
-    display(
-        ipywidgets.VBox(
-            [
-                ipywidgets.Label("Select distribution type:"),
-                alpha_box,
-                beta_box,
-                dist_type_dropdown,
-                output,
-            ]
-        )
+    # HTML info box describing the α and β parameters.
+    param_info = ipywidgets.HTML(
+        "<div style='background:#f5f5f5; padding:10px 14px; border-radius:4px; "
+        "border-left:3px solid #4682b4; font-size:13px; line-height:1.8'>"
+        "<b>α (alpha)</b> — For <i>Beta</i>: shape parameter that controls the "
+        "distribution's skew. For <i>Normal</i>: the mean <i>μ</i> of the "
+        "distribution<br>"
+        "<b>β (beta)</b> — For <i>Beta</i>: shape parameter that controls the "
+        "distribution's skew. For <i>Normal</i>: the variance <i>σ²</i> of "
+        "the distribution<br>"
+        "<b>Distribution</b> — toggle between "
+        "<code>Beta</code> (supported on [0,1]) and "
+        "<code>Normal</code> (unbounded)"
+        "</div>"
     )
+    # Create layout:
+    #   Top row: controls on the left, info box on the right.
+    #   Bottom: the 3 plots.
+    controls = ipywidgets.VBox(
+        [
+            alpha_box,
+            beta_box,
+            dist_type_dropdown,
+        ]
+    )
+    top_row = ipywidgets.HBox([controls, param_info])
+    display(ipywidgets.VBox([top_row, output]))
 
 
 # #############################################################################
@@ -286,7 +366,7 @@ def cell2_interactive_sample_generator(
                 label=f"Histogram (N={n_samples})",
             )
             x = np.linspace(0, 1, 1000)
-            pdf = scipy.stats.beta.pdf(x, alpha, beta)
+            pdf = _beta_pdf(x, alpha, beta)
             ax1.plot(
                 x,
                 pdf,
@@ -294,7 +374,10 @@ def cell2_interactive_sample_generator(
                 color="red",
                 label="Theoretical PDF",
             )
-            ax1.set_xlabel("x", fontsize=12)
+            ax1.set_xlabel(
+                "x\n\nSampled values compared to theoretical distribution",
+                fontsize=10,
+            )
             ax1.set_ylabel("Density", fontsize=12)
             ax1.set_title(
                 f"Sample Distribution (N={n_samples})",
@@ -334,7 +417,7 @@ def cell2_interactive_sample_generator(
                 label="Empirical CDF",
                 alpha=0.7,
             )
-            cdf = scipy.stats.beta.cdf(x, alpha, beta)
+            cdf = _beta_cdf(x, alpha, beta)
             ax3.plot(
                 x,
                 cdf,
@@ -342,7 +425,10 @@ def cell2_interactive_sample_generator(
                 color="red",
                 label="Theoretical CDF",
             )
-            ax3.set_xlabel("x", fontsize=12)
+            ax3.set_xlabel(
+                "x\n\nSample vs. theoretical statistics comparison",
+                fontsize=10,
+            )
             ax3.set_ylabel("Cumulative Probability", fontsize=12)
             ax3.set_title("CDF Comparison", fontsize=14, fontweight="bold")
             ax3.legend(fontsize=10)
@@ -356,13 +442,10 @@ def cell2_interactive_sample_generator(
                 f"  β (beta): {beta:.2f}\n"
                 f"  N (samples): {n_samples}\n"
                 f"  seed: {seed}\n\n"
-                f"Key Observations:\n"
-                f"- Larger N → histogram\n"
-                f"  approaches theoretical\n"
-                f"- Law of Large Numbers:\n"
-                f"  sample mean → μ\n"
-                f"- Try different seeds to\n"
-                f"  see sampling variability"
+                f"Sample statistics:\n"
+                f"  mean: {mean_sample:.4f}\n"
+                f"  std: {std_sample:.4f}\n"
+                f"  theory mean: {mean_theory:.4f}"
             )
             htutori.add_fitted_text_box(
                 ax4, comment_text, max_fontsize=12, min_fontsize=9
@@ -377,16 +460,30 @@ def cell2_interactive_sample_generator(
     seed_slider.observe(update_plot, names="value")
     # Display initial plot.
     update_plot()
-    # Create layout: put sliders in vertical box.
-    display(
-        ipywidgets.VBox(
-            [
-                ipywidgets.Label("Configure sampling parameters:"),
-                alpha_box,
-                beta_box,
-                n_box,
-                seed_box,
-                output,
-            ]
-        )
+    # HTML info box describing the sampling parameters.
+    sample_info = ipywidgets.HTML(
+        "<div style='background:#f5f5f5; padding:10px 14px; border-radius:4px; "
+        "border-left:3px solid #4682b4; font-size:13px; line-height:1.8'>"
+        "<b>α (alpha)</b> — Shape parameter that controls the "
+        "distribution's skew<br>"
+        "<b>β (beta)</b> — Shape parameter that controls the "
+        "distribution's skew<br>"
+        "<b>N (samples)</b> — Number of random samples to draw from the "
+        "Beta distribution. Uses a log₂ slider for wide range<br>"
+        "<b>seed</b> — Random seed for reproducibility "
+        "(same seed → same samples)"
+        "</div>"
     )
+    # Create layout:
+    #   Top row: controls on the left, info box on the right.
+    #   Bottom: the 4 plots.
+    controls = ipywidgets.VBox(
+        [
+            alpha_box,
+            beta_box,
+            n_box,
+            seed_box,
+        ]
+    )
+    top_row = ipywidgets.HBox([controls, sample_info])
+    display(ipywidgets.VBox([top_row, output]))

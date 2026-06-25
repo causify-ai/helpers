@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
+"""
+Extract images, text content, and notes from PowerPoint presentations.
 
-# TODO(ai): Add a docstring with a description and examples of the script.
+Usage:
+> extract_png_from_ppt.py --in_file presentation.pptx --out_dir extracted
+
+Options:
+    --in_file: Path to PowerPoint presentation file (required)
+    --out_dir: Output directory for extracted content (default: presentation_name_extracted)
+    --from_scratch: Clean output directory from scratch
+    --extract-images: Extract embedded images from slides
+    --extract-text: Extract all text content from slides
+    --extract-notes: Extract notes from slides
+"""
 
 import argparse
 import logging
@@ -197,7 +209,7 @@ def _parse() -> argparse.Namespace:
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Extract images, text content and notes from PowerPoint presentations"
+        description=__doc__,
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(

@@ -75,6 +75,8 @@ def run_dockerized_graphviz(
     mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
+    dpi: int = 300,
+    output_format: str = "png",
 ) -> str:
     """
     Run `graphviz` in a Docker container.
@@ -83,8 +85,17 @@ def run_dockerized_graphviz(
     :param out_file_path: path to the image to be created
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
+    :param dpi: DPI for the rendered image (default: 300). Passed as
+        `-Gdpi=<dpi>` to the `dot` command.
+    :param output_format: output format (png or svg). Passed as
+        `-T <format>` to the `dot` command.
     """
     _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_in(
+        output_format,
+        ["png", "svg"],
+        f"Invalid output_format: {output_format}",
+    )
     # Build the container, if needed.
     container_image = build_graphviz_container_image(
         force_rebuild=force_rebuild, use_sudo=use_sudo
@@ -120,8 +131,8 @@ def run_dockerized_graphviz(
     graphviz_cmd = [
         "dot",
         f"{cmd_opts_str}",
-        "-T png",
-        "-Gdpi=300",
+        f"-T {output_format}",
+        f"-Gdpi={dpi}",
         f"-o {out_file_path}",
         in_file_path,
     ]

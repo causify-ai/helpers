@@ -129,6 +129,40 @@ def get_methods(obj: Any, access: str = "all") -> List[str]:
     return methods
 
 
+def print_public_methods(obj: Any, *, use_markdown: bool = False) -> None:
+    """
+    Print all public methods of an object with their docstrings and
+    signatures.
+
+    :param obj: class or class object to inspect
+    :param use_markdown: format output as a markdown list
+    """
+    methods = get_methods(obj, access="public")
+    for method_name in sorted(methods):
+        method = getattr(obj, method_name)
+        if callable(method):
+            try:
+                sig = inspect.signature(method)
+                sig_str = str(sig)
+            except (ValueError, TypeError):
+                sig_str = "(...)"
+            doc = inspect.getdoc(method)
+            if use_markdown:
+                func_line = f"`{method_name}{sig_str}`"
+                if doc:
+                    first_line = doc.split("\n")[0]
+                    print(f"- {func_line} — {first_line}")
+                else:
+                    print(f"- {func_line}")
+            else:
+                print(f"{method_name}{sig_str}")
+                if doc:
+                    # Print the first line of the docstring.
+                    first_line = doc.split("\n")[0]
+                    print(f"    {first_line}")
+                print()
+
+
 # #############################################################################
 
 

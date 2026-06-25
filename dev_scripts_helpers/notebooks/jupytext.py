@@ -28,6 +28,7 @@ import dev_scripts_helpers.notebooks.jupytext as dshnprju
 """
 
 import argparse
+import tqdm
 import datetime
 import logging
 import os
@@ -44,11 +45,17 @@ import linters.utils as liutils
 _LOG = logging.getLogger(__name__)
 
 
-def _filter_ipynb_files(files: List[str]) -> List[str]:
+def _filter_ipynb_files(
+    files: List[str],
+    *,
+    log_level: int = logging.WARNING,
+) -> List[str]:
     """
     Filter files to keep only .ipynb files.
 
     :param files: List of file paths to filter
+    :param log_level: log level for "Skipping non-.ipynb file" messages
+        (use `logging.DEBUG` to suppress routine filtering noise)
     :return: Filtered list containing only .ipynb files
     """
     ipynb_files = []
@@ -56,7 +63,7 @@ def _filter_ipynb_files(files: List[str]) -> List[str]:
         if liutils.is_ipynb_file(file_path):
             ipynb_files.append(file_path)
         else:
-            _LOG.warning("Skipping non-.ipynb file: %s", file_path)
+            _LOG.log(log_level, "Skipping non-.ipynb file: %s", file_path)
     return ipynb_files
 
 
@@ -124,10 +131,10 @@ def _sync(file_name: str) -> None:
             cmd_update = "jupytext" + f" --to ipynb --update {file_name}"
         else:
             cmd_update = "jupytext" + f" --to py {file_name}"
-        _LOG.info("Execute '%s'", cmd_update)
+        _LOG.debug("Execute '%s'", cmd_update)
         hsystem.system(cmd_update)
         cmd_sync = "jupytext" + f" --sync {file_name}"
-        _LOG.info("Execute '%s'", cmd_sync)
+        _LOG.debug("Execute '%s'", cmd_sync)
         hsystem.system(cmd_sync)
     else:
         _LOG.warning("The file '%s' is not paired: run --pair", file_name)
@@ -215,9 +222,9 @@ def _extract_python_from_notebook(ipynb_file: str) -> str:
     tmp_file = f"tmp.jupytext_diff.{base_name[:-6]}.py"
     # Convert notebook to py:percent format for comparison with paired .py file.
     cmd = f"jupytext --to py:percent {ipynb_file} -o {tmp_file}"
-    _LOG.info("Execute '%s'", cmd)
+    _LOG.debug("Execute '%s'", cmd)
     hsystem.system(cmd)
-    _LOG.info("Extracted Python code to: %s", tmp_file)
+    _LOG.debug("Extracted Python code to: %s", tmp_file)
     return tmp_file
 
 
@@ -233,11 +240,11 @@ def _is_notebook_in_sync(ipynb_file: str) -> Tuple[bool, str]:
         - is_in_sync: True if files are identical, False if they differ
         - tmp_py_file_path: Path to the temporary Python file extracted from notebook
     """
-    _LOG.info("Checking sync status...")
+    _LOG.debug("Checking sync status...")
     paired_py_file = _find_paired_file(ipynb_file)
     tmp_py_file = _extract_python_from_notebook(ipynb_file)
     cmd = f"diff {paired_py_file} {tmp_py_file}"
-    _LOG.info("Execute '%s'", cmd)
+    _LOG.debug("Execute '%s'", cmd)
     rc, _ = hsystem.system_to_string(cmd, abort_on_error=False)
     in_sync = rc == 0
     if in_sync:
@@ -364,13 +371,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
         len(files) > 0,
         "No files selected; use --all, --files, --modified, --branch, --last_commit, or --from_file",
     )
-    files = _filter_ipynb_files(files)
+    # Suppress routine "Skipping non-.ipynb file" messages.
+    files = _filter_ipynb_files(files, log_level=logging.DEBUG)
     hdbg.dassert(
         len(files) > 0,
         "No .ipynb files found after filtering",
     )
     rc = 0
-    for file_name in files:
+    for file_name in tqdm.tqdm(files, desc="Processing files"):
         _LOG.info("Processing file: %s", file_name)
         hdbg.dassert_path_exists(file_name)
         if args.action == "pair":

@@ -1,28 +1,52 @@
 ---
-description: Review slides and suggest fixes and improvements
+description: Review slides for structure, content correctness, and readability; propose and apply improvements
 model: opus
 ---
 
-- Given a markdown file with slides about technical material
+# Goal
+- Given a markdown file with slides about technical material, review the content
+  for correctness, clarity, and structural organization
 
-- A slide has hierarchical bullets and its title is prepended by `*`
-  ```
-  * <title>
-  - Bullet 1
-    - Bullet 1.1
-  ```
+# Step 11: Propose Structural Improvements
+
+## Change Order of Slides
+- Propose how to organize the slides in a different flow, separating cohesive
+  chunks with level 1 `# ...`, 2 headers `## ...`, and slides `* ...`
   - E.g.,
     ```
-    * How Can a Node Be Influenced by Its Children?
+    # Topic 1
 
-    - A **descendant can influence its ancestor** indirectly through _"explaining
-      away"_
-      - Evidence about the descendant can change what you believe about the
-        ancestor through dependent paths
+    ## Topic 1.1
+
+    * Slide 1
+
+    * Slide 2
     ```
 
-  You will review the slide and make sure it is:
-  - Correct
-  - Clean and readable
+## Slides to Remove
+- Remove slides whose content is redundant or unclear
 
-- Print suggestions on how to improve the content
+## Slides to Merge
+- Merge slides to remove redundant content
+
+# Step 2: Propose Content Improvements
+- Propose how to change and improve the titles of the slides
+- Look for mistakes in the content and propose improvements
+
+## Fix Content of Slides
+- If a slide content is incorrect, propose how to fix it
+
+## Ignore TODOs and Comments
+- Leave the TODOs or comments in the format
+  ```
+  // ...
+  ```
+  untouched
+
+# Step 3: Ask User and Implement
+- Number each suggestion so that it's easy to refer to
+- Ask the user which improvements need to be done
+- After the user approves a subset of changes, perform the changes in place
+
+## Follow Conventions
+- Follow the conventions in `.claude/skills/slides.rules.md`

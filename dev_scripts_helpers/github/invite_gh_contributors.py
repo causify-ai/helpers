@@ -149,7 +149,7 @@ def _run_dockerized_invite(args: argparse.Namespace) -> None:  # noqa: D401
 
 def _parse() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Invite GitHub collaborators from a Google Sheet, respecting limit.",
+        description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     # Set `--drive_url` and `--csv_file` to be mutually exclusive.
