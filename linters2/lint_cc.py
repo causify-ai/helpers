@@ -275,7 +275,9 @@ def _run_claude_code(
     prompt_file = "tmp.lint_cc.prompt.txt"
     hio.to_file(prompt_file, prompt)
     # Call the cc wrapper which handles model routing and env setup.
-    _CC_WRAPPER = hgit.find_file("cc", dir_path=os.path.join(os.path.dirname(__file__), ".."))
+    _CC_WRAPPER = hgit.find_file(
+        "cc", dir_path=os.path.join(os.path.dirname(__file__), "..")
+    )
     cmd_parts = [
         _CC_WRAPPER,
         "--model",

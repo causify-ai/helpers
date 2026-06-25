@@ -159,23 +159,33 @@ def _write_csv(
     # Add per-repo rows.
     for repo_name in sorted(repo_stats.keys()):
         stats = repo_stats[repo_name]
-        rows.append({
-            "repository": repo_name,
-            "commits": stats["commits"],
-            "lines_added": stats["lines_added"],
-            "lines_removed": stats["lines_removed"],
-            "files_changed": stats["files_changed"],
-        })
+        rows.append(
+            {
+                "repository": repo_name,
+                "commits": stats["commits"],
+                "lines_added": stats["lines_added"],
+                "lines_removed": stats["lines_removed"],
+                "files_changed": stats["files_changed"],
+            }
+        )
     # Add aggregated row.
-    rows.append({
-        "repository": "TOTAL",
-        "commits": aggregated_stats["commits"],
-        "lines_added": aggregated_stats["lines_added"],
-        "lines_removed": aggregated_stats["lines_removed"],
-        "files_changed": aggregated_stats["files_changed"],
-    })
+    rows.append(
+        {
+            "repository": "TOTAL",
+            "commits": aggregated_stats["commits"],
+            "lines_added": aggregated_stats["lines_added"],
+            "lines_removed": aggregated_stats["lines_removed"],
+            "files_changed": aggregated_stats["files_changed"],
+        }
+    )
     # Write CSV.
-    fieldnames = ["repository", "commits", "lines_added", "lines_removed", "files_changed"]
+    fieldnames = [
+        "repository",
+        "commits",
+        "lines_added",
+        "lines_removed",
+        "files_changed",
+    ]
     with open(output_file, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()

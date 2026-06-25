@@ -70,30 +70,6 @@ class _SetenvTestCase(hunitest.TestCase):
                 and `repo_config.yaml`"
         )
 
-    def run_setenv_in_clean_bash(self) -> Tuple[int, str]:
-        """
-        Run `setenv.sh` in a clean isolated bash environment, capturing both
-        output and environment variables.
-
-        :return: tuple of (return_code, output)
-        """
-        wrapper_script = self._create_wrapper_script()
-        # Create a temporary executable file.
-        tmp_dir = self.get_scratch_space()
-        wrapper_path = os.path.join(tmp_dir, "tmp_wrapper.sh")
-        hio.create_executable_script(wrapper_path, wrapper_script)
-        _LOG.debug("Running `setenv.sh` in clean bash environment")
-        # Use `env -i` to reset the environment.
-        result = hsystem.system_to_string(
-            f"env -i bash {wrapper_path}",
-            abort_on_error=False,
-            log_level=logging.DEBUG,
-        )
-        # Write test output to file for debugging.
-        # `result` is a tuple of (return_code, output).
-        self._write_test_output(result[1])
-        return result
-
     def _write_test_output(self, output: str) -> None:
         """
         Write complete `setenv.sh` test output to a single file for debugging.
@@ -191,6 +167,30 @@ class _SetenvTestCase(hunitest.TestCase):
         """
         wrapper_script = hprint.dedent(wrapper_script)
         return wrapper_script
+
+    def run_setenv_in_clean_bash(self) -> Tuple[int, str]:
+        """
+        Run `setenv.sh` in a clean isolated bash environment, capturing both
+        output and environment variables.
+
+        :return: tuple of (return_code, output)
+        """
+        wrapper_script = self._create_wrapper_script()
+        # Create a temporary executable file.
+        tmp_dir = self.get_scratch_space()
+        wrapper_path = os.path.join(tmp_dir, "tmp_wrapper.sh")
+        hio.create_executable_script(wrapper_path, wrapper_script)
+        _LOG.debug("Running `setenv.sh` in clean bash environment")
+        # Use `env -i` to reset the environment.
+        result = hsystem.system_to_string(
+            f"env -i bash {wrapper_path}",
+            abort_on_error=False,
+            log_level=logging.DEBUG,
+        )
+        # Write test output to file for debugging.
+        # `result` is a tuple of (return_code, output).
+        self._write_test_output(result[1])
+        return result
 
     def _parse_environment_variables(self, env_section: str) -> dict:
         """
