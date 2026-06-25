@@ -675,6 +675,101 @@ def has_docker() -> bool:
     return shutil.which("docker") is not None
 
 
+def has_docker_sibling_containers_support() -> bool:
+    """
+    Return whether the current container supports running sibling containers.
+    """
+    # We need to be inside a container to run sibling containers.
+    if not is_inside_docker():
+        return False
+    # We assume that if the socket exists then we can run sibling containers.
+    if os.path.exists("/var/run/docker.sock"):
+        return True
+    return False
+
+
+def _is_mac_version_with_sibling_containers() -> bool:
+    if not is_host_mac():
+        return False
+    mac_version = get_host_mac_version()
+    return mac_version in ("Monterey", "Ventura", "Sequoia", "Tahoe")
+
+
+# #############################################################################
+# Detect Docker functionalities, based on the set-up.
+# #############################################################################
+
+
+# TODO(gp): These approach is sub-optimal. We deduce what we can do based on the
+# name of the set-up. We should base our decisions on the actual capabilities of
+# the system.
+
+
+# TODO(gp): -> has_docker_privileged_mode
+@functools.lru_cache()
+def has_dind_support() -> bool:
+    """
+    Return whether the current container supports privileged mode.
+
+    This is needed to use Docker-in-Docker.
+    """
+    _print(f"is_inside_docker()={is_inside_docker()}")
+    if not is_inside_docker():
+        # Outside Docker there is no privileged mode.
+        _print("-> ret = False")
+        return False
+    # TODO(gp): Not sure this is really needed since we do this check
+    #  after enable_privileged_mode controls if we have dind or not.
+    if _is_mac_version_with_sibling_containers():
+        return False
+    # TODO(gp): This part is not multi-process friendly. When multiple
+    # processes try to run this code they interfere. A solution is to run `ip
+    # link` in the entrypoint and create a `has_docker_privileged_mode` file
+    # which contains the value.
+    # We rely on the approach from https://stackoverflow.com/questions/32144575
+    # to check if there is support for privileged mode.
+    # Sometimes there is some state left, so we need to clean it up.
+    # TODO(Juraj): this is slow and inefficient, but works for now.
+    cmd = "sudo docker run hello-world"
+    rc = os.system(cmd)
+    _print(f"cmd={cmd} -> rc={rc}")
+    has_dind = rc == 0
+    # dind is supported on both Mac and GH Actions.
+    # TODO(Juraj): HelpersTask16.
+    # if check_repo:
+    #    if hserver.is_inside_ci():
+    #        # Docker-in-docker is needed for GH actions. For all other builds is optional.
+    #        assert has_dind, (
+    #            f"Expected privileged mode: has_dind={has_dind}\n"
+    #            + hserver.setup_to_str()
+    #        )
+    #    else:
+    #        only_warning = True
+    #        _raise_invalid_host(only_warning)
+    #        return False
+    # else:
+    #    csfy_repo_config = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True")
+    #    print(
+    #        _WARNING
+    #        + ": Skip checking since CSFY_REPO_CONFIG_CHECK="
+    #        + f"'{csfy_repo_config}'"
+    #    )
+    return has_dind
+
+
+# TODO(gp): -> use_docker_sibling_container_support
+def use_docker_sibling_containers() -> bool:
+    """
+    Return whether to use Docker sibling containers.
+
+    Using sibling containers requires that all Docker containers are in
+    the same network so that they can communicate with each other.
+    """
+    if is_dev_csfy() or _is_mac_version_with_sibling_containers():
+        return True
+    return has_docker_sibling_containers_support()
+
+
 @functools.lru_cache()
 def docker_needs_sudo() -> bool:
     """
@@ -682,11 +777,11 @@ def docker_needs_sudo() -> bool:
     """
     if not has_docker():
         return False
-    # This check is required to ensure it does not cause issues when running on ECS 
-    # Fargate through Airflow, since ECS Fargate does not support either DinD 
+    # This check is required to ensure it does not cause issues when running on ECS
+    # Fargate through Airflow, since ECS Fargate does not support either DinD
     # or sibling containers.
     # See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-security-considerations.html
-    # TODO(heanh): Check if we can use `is_inside_ecs_container()` to check if 
+    # TODO(heanh): Check if we can use `is_inside_ecs_container()` to check if
     # we are inside Airflow.
     if not has_dind_support() and not use_docker_sibling_containers():
         return False
@@ -733,19 +828,6 @@ def has_docker_privileged_mode() -> bool:
     _print(f"cmd={cmd} -> rc={rc}")
     has_privileged_mode = rc == 0
     return has_privileged_mode
-
-
-def has_docker_sibling_containers_support() -> bool:
-    """
-    Return whether the current container supports running sibling containers.
-    """
-    # We need to be inside a container to run sibling containers.
-    if not is_inside_docker():
-        return False
-    # We assume that if the socket exists then we can run sibling containers.
-    if os.path.exists("/var/run/docker.sock"):
-        return True
-    return False
 
 
 def has_docker_children_containers_support() -> bool:
@@ -817,75 +899,6 @@ def get_docker_info() -> str:
     # Format as title with indented items.
     txt = "Docker info" + "\n" + _indent("\n".join(txt_tmp))
     return txt
-
-
-def _is_mac_version_with_sibling_containers() -> bool:
-    if not is_host_mac():
-        return False
-    mac_version = get_host_mac_version()
-    return mac_version in ("Monterey", "Ventura", "Sequoia", "Tahoe")
-
-
-# #############################################################################
-# Detect Docker functionalities, based on the set-up.
-# #############################################################################
-
-
-# TODO(gp): These approach is sub-optimal. We deduce what we can do based on the
-# name of the set-up. We should base our decisions on the actual capabilities of
-# the system.
-
-
-# TODO(gp): -> has_docker_privileged_mode
-@functools.lru_cache()
-def has_dind_support() -> bool:
-    """
-    Return whether the current container supports privileged mode.
-
-    This is needed to use Docker-in-Docker.
-    """
-    _print(f"is_inside_docker()={is_inside_docker()}")
-    if not is_inside_docker():
-        # Outside Docker there is no privileged mode.
-        _print("-> ret = False")
-        return False
-    # TODO(gp): Not sure this is really needed since we do this check
-    #  after enable_privileged_mode controls if we have dind or not.
-    if _is_mac_version_with_sibling_containers():
-        return False
-    # TODO(gp): This part is not multi-process friendly. When multiple
-    # processes try to run this code they interfere. A solution is to run `ip
-    # link` in the entrypoint and create a `has_docker_privileged_mode` file
-    # which contains the value.
-    # We rely on the approach from https://stackoverflow.com/questions/32144575
-    # to check if there is support for privileged mode.
-    # Sometimes there is some state left, so we need to clean it up.
-    # TODO(Juraj): this is slow and inefficient, but works for now.
-    cmd = "sudo docker run hello-world"
-    rc = os.system(cmd)
-    _print(f"cmd={cmd} -> rc={rc}")
-    has_dind = rc == 0
-    # dind is supported on both Mac and GH Actions.
-    # TODO(Juraj): HelpersTask16.
-    # if check_repo:
-    #    if hserver.is_inside_ci():
-    #        # Docker-in-docker is needed for GH actions. For all other builds is optional.
-    #        assert has_dind, (
-    #            f"Expected privileged mode: has_dind={has_dind}\n"
-    #            + hserver.setup_to_str()
-    #        )
-    #    else:
-    #        only_warning = True
-    #        _raise_invalid_host(only_warning)
-    #        return False
-    # else:
-    #    csfy_repo_config = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True")
-    #    print(
-    #        _WARNING
-    #        + ": Skip checking since CSFY_REPO_CONFIG_CHECK="
-    #        + f"'{csfy_repo_config}'"
-    #    )
-    return has_dind
 
 
 def _raise_invalid_host(only_warning: bool) -> None:
@@ -964,19 +977,6 @@ def has_docker_sudo() -> bool:
         only_warning = True
         _raise_invalid_host(only_warning)
     return ret
-
-
-# TODO(gp): -> use_docker_sibling_container_support
-def use_docker_sibling_containers() -> bool:
-    """
-    Return whether to use Docker sibling containers.
-
-    Using sibling containers requires that all Docker containers are in
-    the same network so that they can communicate with each other.
-    """
-    if is_dev_csfy() or _is_mac_version_with_sibling_containers():
-        return True
-    return has_docker_sibling_containers_support()
     # if is_dev_csfy():
     #     val = True
     # else:

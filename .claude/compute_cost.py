@@ -16,7 +16,7 @@ Positional arguments:
     out_tok             - total_output_tokens
     reported_cost       - fallback cost when model is not in pricing table (default "0")
 
-The script matches CC_MODEL against known model substrings.  If no match is
+The script matches CC_MODEL against known model substrings. If no match is
 found, it falls back to the reported cost from the API.
 """
 
