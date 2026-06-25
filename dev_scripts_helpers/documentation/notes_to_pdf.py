@@ -19,10 +19,12 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 """
 
 import argparse
+import hashlib
 import logging
 import os
 import re
 import sys
+import time
 from typing import Any, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
@@ -90,6 +92,69 @@ def _mark_action(
     if not to_execute:
         _append_script("## skipping this action")
     return to_execute, actions
+
+
+# #############################################################################
+# Daemon Logic
+
+
+def file_hash(file_path: str) -> str:
+    """
+    Compute MD5 hash of a file.
+    """
+    hasher = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def daemon_watch(
+    file_path: str, cmd: str, *, wait_in_sec: int = 1, debounce_sec: int = 2
+) -> None:
+    """
+    Watch a file for changes and re-run command with debouncing.
+
+    Polls the file at regular intervals by computing its MD5 hash. When a
+    change is detected, waits for `debounce_sec` seconds with no further
+    changes before executing the command. This prevents repeatedly running
+    the command while the user is still editing the file.
+
+    :param file_path: Path to file to monitor
+    :param cmd: Command to execute when file changes
+    :param wait_in_sec: Poll interval in seconds (default: 1)
+    :param debounce_sec: Debounce duration in seconds (default: 2)
+    """
+    _LOG.info(
+        "Daemon mode: watching '%s' for changes (poll every 1s, debounce %ds)...",
+        file_path,
+        debounce_sec,
+    )
+    hdbg.dassert_file_exists(file_path)
+    prev_hash = file_hash(file_path)
+    stable_hash = None
+    time_since_last_change = 0
+    while True:
+        time.sleep(wait_in_sec)
+        cur_hash = file_hash(file_path)
+        if cur_hash != prev_hash:
+            # File changed, start debounce.
+            _LOG.info(
+                "File changed (hash: %s -> %s). Debouncing...",
+                prev_hash,
+                cur_hash,
+            )
+            stable_hash = cur_hash
+            time_since_last_change = 0
+            prev_hash = cur_hash
+        elif stable_hash is not None:
+            # In debounce period, tracking time without changes.
+            time_since_last_change += 1
+            if time_since_last_change >= debounce_sec:
+                # Debounce complete, regenerate.
+                _LOG.info("Debounce complete. Regenerating...")
+                hsystem.system(cmd)
+                stable_hash = None
 
 
 # #############################################################################
@@ -775,27 +840,28 @@ def _run_pandoc_to_typst_slides(
     typ_file_dir = os.path.dirname(typ_file)
 
     def convert_image_path(match: "re.Match[str]") -> str:
-        # Extract the path from image("...")
+        # Extract path and parameters from image("...") or image("...", ...).
         path = match.group(1)
-        # If already absolute, leave it alone
+        params = match.group(2) or ""
+        # If already absolute, leave it alone.
         if path.startswith("/"):
             return match.group(0)
-        # If it contains relative parent references, leave it alone
+        # If it contains relative parent references, leave it alone.
         if path.startswith("../"):
             return match.group(0)
-        # Check if path is relative to typ_file_dir (e.g., render_images output)
-        # or relative to repo root (e.g., source markdown paths)
+        # Check if path is relative to typ_file_dir (e.g., render_images
+        # output) or relative to repo root (e.g., source markdown paths).
         rel_to_typ_file_dir = os.path.join(typ_file_dir, path)
         if os.path.exists(rel_to_typ_file_dir):
-            # Path is relative to typ_file_dir, make it repo-root relative
+            # Path is relative to typ_file_dir, make it repo-root relative.
             abs_path = os.path.abspath(rel_to_typ_file_dir)
             rel_to_root = os.path.relpath(abs_path, root)
-            return f'image("/{rel_to_root}")'
+            return f'image("/{rel_to_root}"{params})'
         else:
-            # Path is already repo-root relative, just prepend /
-            return f'image("/{path}")'
+            # Path is already repo-root relative, just prepend `/`.
+            return f'image("/{path}"{params})'
 
-    txt = re.sub(r'image\("([^"]*)"\)', convert_image_path, txt)
+    txt = re.sub(r'image\s*\(\s*"([^"]*)"\s*([^)]*)\)', convert_image_path, txt)
     # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
     # \textcolor{blue}{...} to typst blue text.
     txt = re.sub(

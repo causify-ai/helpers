@@ -16,19 +16,24 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 class Test_is_image_or_email(hunitest.TestCase):
-    def test_png_image(self) -> None:
+    """
+    Test the _is_image_or_email function.
+    """
+
+    def test1(self) -> None:
         """
         Test that PNG image files are correctly identified.
         """
         # Prepare inputs.
         url = "msml610/lectures_source/figures/UMD_Logo.png"
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
-        expected = True
         self.assert_equal(str(actual), str(expected))
 
-    def test_jpg_image(self) -> None:
+    def test2(self) -> None:
         """
         Test that JPG image files are correctly identified.
         """
@@ -36,82 +41,89 @@ class Test_is_image_or_email(hunitest.TestCase):
         url = (
             "data605/lectures_source/images/lecture_1/lec_1_slide_4_image_1.jpg"
         )
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
-        expected = True
         self.assert_equal(str(actual), str(expected))
 
-    def test_jpeg_image(self) -> None:
+    def test3(self) -> None:
         """
         Test that JPEG image files are correctly identified.
         """
         # Prepare inputs.
         url = "path/to/image.jpeg"
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
-        expected = True
         self.assert_equal(str(actual), str(expected))
 
-    def test_uppercase_png_image(self) -> None:
+    def test4(self) -> None:
         """
         Test that uppercase PNG extensions are correctly identified.
         """
         # Prepare inputs.
         url = "path/to/IMAGE.PNG"
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
-        expected = True
         self.assert_equal(str(actual), str(expected))
 
-    def test_email_address(self) -> None:
+    def test5(self) -> None:
         """
         Test that email addresses are correctly identified.
         """
         # Prepare inputs.
         url = "gsaggese@umd.edu"
+        # Prepare outputs.
+        expected = True
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
-        expected = True
         self.assert_equal(str(actual), str(expected))
 
-    def test_regular_url(self) -> None:
+    def test6(self) -> None:
         """
         Test that regular URLs are not identified as images or emails.
         """
         # Prepare inputs.
         url = "https://example.com"
+        # Prepare outputs.
+        expected = False
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
-        expected = False
         self.assert_equal(str(actual), str(expected))
 
-    def test_markdown_file(self) -> None:
+    def test7(self) -> None:
         """
         Test that non-image files are not identified as images.
         """
         # Prepare inputs.
         url = "README.md"
+        # Prepare outputs.
+        expected = False
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
-        expected = False
         self.assert_equal(str(actual), str(expected))
 
-    def test_url_with_at_symbol(self) -> None:
+    def test8(self) -> None:
         """
         Test that URLs with @ symbol but starting with http are not emails.
         """
         # Prepare inputs.
         url = "https://example.com/@username"
+        # Prepare outputs.
+        expected = False
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
-        expected = False
         self.assert_equal(str(actual), str(expected))
 
 
@@ -121,7 +133,11 @@ class Test_is_image_or_email(hunitest.TestCase):
 # #############################################################################
 
 class Test_extract_urls_from_text(hunitest.TestCase):
-    def test_markdown_links(self) -> None:
+    """
+    Test the _extract_urls_from_text_with_original_line_numbers function.
+    """
+
+    def test1(self) -> None:
         """
         Test extraction of URLs from Markdown-style links.
         """
@@ -151,7 +167,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         ]
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
-    def test_standalone_urls(self) -> None:
+    def test2(self) -> None:
         """
         Test extraction of standalone URLs.
         """
@@ -187,7 +203,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         ]
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
-    def test_mixed_url_formats(self) -> None:
+    def test3(self) -> None:
         """
         Test extraction of URLs in mixed formats.
         """
@@ -216,7 +232,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         ]
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
-    def test_no_urls(self) -> None:
+    def test4(self) -> None:
         """
         Test extraction from text with no URLs.
         """
@@ -240,7 +256,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         expected = []
         self.assert_equal(str(actual), str(expected))
 
-    def test_duplicate_urls(self) -> None:
+    def test5(self) -> None:
         """
         Test that duplicate URLs are handled correctly.
         """
@@ -267,7 +283,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         ]
         self.assert_equal(str(actual), str(expected))
 
-    def test_filter_png_images(self) -> None:
+    def test6(self) -> None:
         """
         Test that PNG image files are filtered out from URL extraction.
         """
@@ -294,7 +310,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         ]
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
-    def test_filter_jpg_images(self) -> None:
+    def test7(self) -> None:
         """
         Test that JPG image files are filtered out from URL extraction.
         """
@@ -322,7 +338,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         ]
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
-    def test_filter_email_addresses(self) -> None:
+    def test8(self) -> None:
         """
         Test that email addresses are filtered out from URL extraction.
         """
@@ -348,7 +364,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         ]
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
-    def test_filter_mixed_images_and_emails(self) -> None:
+    def test9(self) -> None:
         """
         Test filtering of mixed images and emails along with regular URLs.
         """
@@ -389,7 +405,11 @@ class Test_extract_urls_from_text(hunitest.TestCase):
 
 # TODO(gp): Mock this.
 class Test_check_url_reachable(hunitest.TestCase):
-    def test_reachable_url(self) -> None:
+    """
+    Test the _check_url_reachable function.
+    """
+
+    def test1(self) -> None:
         """
         Test checking a known reachable URL.
         """
@@ -401,7 +421,7 @@ class Test_check_url_reachable(hunitest.TestCase):
         expected = True
         self.assert_equal(str(actual), str(expected))
 
-    def test_unreachable_url(self) -> None:
+    def test2(self) -> None:
         """
         Test checking a known unreachable URL.
         """
@@ -413,7 +433,7 @@ class Test_check_url_reachable(hunitest.TestCase):
         expected = False
         self.assert_equal(str(actual), str(expected))
 
-    def test_invalid_url_format(self) -> None:
+    def test3(self) -> None:
         """
         Test checking an invalid URL format.
         """
@@ -432,7 +452,11 @@ class Test_check_url_reachable(hunitest.TestCase):
 # #############################################################################
 
 class Test_check_links_in_file(hunitest.TestCase):
-    def test_file_with_reachable_links(self) -> None:
+    """
+    Test the _check_links_in_file function.
+    """
+
+    def test1(self) -> None:
         """
         Test checking links in a file with reachable URLs.
         """
@@ -464,7 +488,7 @@ class Test_check_links_in_file(hunitest.TestCase):
             str(sorted(reachable_urls)), str(sorted(expected_urls))
         )
 
-    def test_file_with_broken_links(self) -> None:
+    def test2(self) -> None:
         """
         Test checking links in a file with broken URLs.
         """
@@ -501,7 +525,7 @@ class Test_check_links_in_file(hunitest.TestCase):
         ]
         self.assert_equal(str(sorted(broken_urls)), str(sorted(expected_broken)))
 
-    def test_file_with_no_links(self) -> None:
+    def test3(self) -> None:
         """
         Test checking links in a file with no URLs.
         """
@@ -528,7 +552,7 @@ class Test_check_links_in_file(hunitest.TestCase):
         self.assert_equal(str(len(reachable_urls)), str(0))
         self.assert_equal(str(len(broken_urls)), str(0))
 
-    def test_nonexistent_file(self) -> None:
+    def test4(self) -> None:
         """
         Test that checking a nonexistent file raises an assertion error.
         """

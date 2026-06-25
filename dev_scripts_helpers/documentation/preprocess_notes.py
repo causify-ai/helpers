@@ -296,7 +296,7 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
     return lines
 
 
-# TODO(ai_gp): Move this to the umd_repo.
+# TODO(ai_gp2): Move this to the umd_repo.
 def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     """
     Generate Typst title slide from metadata.
@@ -308,34 +308,36 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     """
     course_title = metadata.get("course_title", "")
     lesson_title = metadata.get("lesson_title", "")
-    # Determine logo path based on course title
+    # Determine logo path based on course title.
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
         logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+    txt = r"""
+        ====
+
+        #slide[
+          #grid(
+            columns: (15%, 85%),
+            gutter: 0.15cm,
+            align(top + left)[#image("{}", width: 4.0cm)],
+            align(left)[
+              #v(-0.1cm)
+              #text(size: 20pt)[{}]
+            ]
+          )
+
+          #v(0.15cm)
+          #text(size: 24pt)[*#text(fill: blue)[{}]*]
+
+          #v(0.1cm)
+          #text(size: 20pt)[Dr. GP Saggese (#link("mailto:gsaggese@umd.edu")[gsaggese\@umd.edu])]
+        ]
+    """.format(logo_path, course_title, lesson_title)
+    txt = hprint.dedent(txt)
     lines = [
-        "#grid(",
-        "  columns: (15%, 75%),",
-        '  align(left)[#image("{}")],'.format(logo_path),
-        "  align(left)[",
-        "    #v(0.4cm)",
-        f"    #text(size: 14pt)[{course_title}]",
-        "  ]",
-        ")",
-        "",
-        "#v(1cm)",
-        "",
-        f"#text(size: 17pt)[*#text(fill: blue)[{lesson_title}]*]",
-        "",
-        "#v(1cm)",
-        "",
-        "#grid(",
-        "  columns: (75%, 20%),",
-        "  [",
-        "    *Instructor*: Dr. GP Saggese, #link(\"mailto:gsaggese@umd.edu\")[gsaggese@umd.edu] \\",
-        "    *References*:",
-        "  ],",
-        "  []",
-        ")",
+        "```{=typst}",
+        txt,
+        "```",
         "",
     ]
     return lines
@@ -551,17 +553,18 @@ def _transform_lines(
     lines = [line.rstrip("\n") for line in lines]
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
-    if lines[0] != "---":
-        txt = r"""
-        ---
-        fontsize: 10pt
-        ---
-        \let\emph\textit
-        \let\uline\underline
-        \let\ul\underline
-        """
-        txt = hprint.dedent(txt)
-        out.append(txt)
+    if output_format == "latex":
+        if lines[0] != "---":
+            txt = r"""
+            ---
+            fontsize: 10pt
+            ---
+            \let\emph\textit
+            \let\uline\underline
+            \let\ul\underline
+            """
+            txt = hprint.dedent(txt)
+            out.append(txt)
     # b) Process text.
     # TODO(gp): We should use the approach of replacing chunks of text
     # that doesn't have to be transformed with placeholders.
