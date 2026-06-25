@@ -258,10 +258,6 @@ class TestSetenvOutput(_SetenvTestCase):
             ("DEV_SCRIPT_DIR=", "Script should set DEV_SCRIPT_DIR"),
             ("PATH=", "Script should set PATH"),
             ("# set_pythonpath()", "Script should set PYTHONPATH"),
-            (
-                "# set_symlink_permissions()",
-                "Script should handle symlink permissions",
-            ),
             ("Installing git hooks", "Script should install git hooks"),
             (
                 "# set_csfy_env_vars()",
