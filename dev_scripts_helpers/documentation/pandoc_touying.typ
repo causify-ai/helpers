@@ -19,7 +19,7 @@
   aspect-ratio: "4-3",
   config-common(slide-level: 4),
   subslide-preamble: block(below: 1em)[
-    #v(-0.8em)
+    #v(-0.6em)
     #text(1.2em, weight: "bold", fill: rgb("#003366"),
       utils.display-current-heading(level: 4))
     #v(-0.5em)
@@ -43,8 +43,11 @@ $endif$
 
 // Use DejaVu Sans (available in Alpine) with reduced size.
 // Applied AFTER theme to override theme defaults.
-#set text(font: "DejaVu Sans", size: 2pt)
+#set text(font: "DejaVu Sans", size: 20pt)
 #show heading: set text(font: "DejaVu Sans", size: 28pt)
+
+// Use en-dashes for all bullet points (override default circle/triangle markers).
+#show list: set list(marker: "–")
 
 $if(title)$
 #title-slide[]
