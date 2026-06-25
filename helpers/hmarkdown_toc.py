@@ -232,8 +232,9 @@ def add_navigation_slides(
             _LOG.debug("nav_str=\n%s", nav_str)
             # Replace the header slide with the navigation slide.
             # TODO(gp): We assume the slide level is 4.
-            # line_tmp = f"#### {description}\n"
-            line_tmp = "####\n"
+            #line_tmp = f"#### {description}\n"
+            line_tmp = f"#### Table of Content\n"
+            # line_tmp = "####\n"
             # line_tmp += '<span style="color:blue">\n' + nav_str
             line_tmp += nav_str
             # line_tmp += "\n</span>\n"

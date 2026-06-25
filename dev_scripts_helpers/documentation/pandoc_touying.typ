@@ -43,11 +43,14 @@ $endif$
 
 // Use DejaVu Sans (available in Alpine) with reduced size.
 // Applied AFTER theme to override theme defaults.
-#set text(font: "DejaVu Sans", size: 20pt)
+#set text(font: "DejaVu Sans", size: 20pt, fill: black)
 #show heading: set text(font: "DejaVu Sans", size: 28pt)
 
 // Use en-dashes for all bullet points (override default circle/triangle markers).
 #show list: set list(marker: "–")
+
+// Make footer text smaller.
+#let footer-text(body) = text(size: 0.8em, fill: black, body)
 
 $if(title)$
 #title-slide[]

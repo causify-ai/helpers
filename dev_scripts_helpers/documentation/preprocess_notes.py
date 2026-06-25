@@ -209,6 +209,153 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
     return result
 
 
+def _extract_slide_metadata(
+    lines: List[str],
+) -> Tuple[Dict[str, str], List[str]]:
+    r"""
+    Extract metadata directives from the top of the file.
+
+    Scans for consecutive lines matching `^// (\\w+)=(.+)$` at the start of the
+    file. Stops at the first non-matching line. Returns a tuple of the metadata
+    dict and the remaining lines (without the metadata directives).
+
+    :param lines: list of input lines
+    :return: (metadata_dict, remaining_lines)
+    """
+    metadata: Dict[str, str] = {}
+    i = 0
+    pattern = re.compile(r"^//\s*(\w+)=(.+)$")
+    for i, line in enumerate(lines):
+        m = pattern.match(line)
+        if m:
+            metadata[m.group(1).strip()] = m.group(2).strip()
+        else:
+            break
+    else:
+        # All lines were metadata
+        i += 1
+    return metadata, lines[i:]
+
+
+def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
+    """
+    Generate LaTeX title slide from metadata.
+
+    Creates a pandoc Div-based title slide using `\vspace`, `\begingroup`,
+    and `\blue{}` commands matching existing hand-crafted format.
+
+    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :return: list of lines forming the title slide
+    """
+    course_title = metadata.get("course_title", "")
+    lesson_title = metadata.get("lesson_title", "")
+    # Determine logo path based on course title
+    logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
+    if "data605" in course_title.lower() or "DATA605" in course_title:
+        logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+
+    lines = [
+        "::: columns",
+        ":::: {.column width=15%}",
+        f"![]({logo_path})",
+        "::::",
+        ":::: {.column width=75%}",
+        "",
+        r"\vspace{0.4cm}",
+        r"\begingroup \large",
+        course_title,
+        r"\endgroup",
+        "::::",
+        ":::",
+        "",
+        r"\vspace{1cm}",
+        "",
+        r"\begingroup \Large",
+        f"**$$\\text{{\\blue{{{lesson_title}}}}}$$**",
+        r"\endgroup",
+        "",
+        r"\vspace{1cm}",
+        "",
+        "::: columns",
+        ":::: {.column width=75%}",
+        "**Instructor**: Dr. GP Saggese, [gsaggese@umd.edu](gsaggese@umd.edu)",
+        "",
+        "**References**:",
+        "",
+        "::::",
+        ":::: {.column width=20%}",
+        "",
+        "::::",
+        ":::",
+        "",
+    ]
+    return lines
+
+
+def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
+    """
+    Generate Typst title slide from metadata.
+
+    Creates a Typst grid-based title slide with text formatting and colors.
+
+    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :return: list of lines forming the title slide
+    """
+    course_title = metadata.get("course_title", "")
+    lesson_title = metadata.get("lesson_title", "")
+    # Determine logo path based on course title
+    logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
+    if "data605" in course_title.lower() or "DATA605" in course_title:
+        logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+
+    lines = [
+        "#grid(",
+        "  columns: (15%, 75%),",
+        '  align(left)[#image("{}")],'.format(logo_path),
+        "  align(left)[",
+        "    #v(0.4cm)",
+        f"    #text(size: 14pt)[{course_title}]",
+        "  ]",
+        ")",
+        "",
+        "#v(1cm)",
+        "",
+        f"#text(size: 17pt)[*#text(fill: blue)[{lesson_title}]*]",
+        "",
+        "#v(1cm)",
+        "",
+        "#grid(",
+        "  columns: (75%, 20%),",
+        "  [",
+        "    *Instructor*: Dr. GP Saggese, #link(\"mailto:gsaggese@umd.edu\")[gsaggese@umd.edu] \\",
+        "    *References*:",
+        "  ],",
+        "  []",
+        ")",
+        "",
+    ]
+    return lines
+
+
+def _generate_title_slide(
+    metadata: Dict[str, str], output_format: str
+) -> List[str]:
+    """
+    Dispatch to format-specific title slide generator.
+
+    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :param output_format: 'latex' or 'typst'
+    :return: list of lines forming the title slide
+    """
+    if output_format == "latex":
+        return _generate_title_slide_latex(metadata)
+    elif output_format == "typst":
+        return _generate_title_slide_typst(metadata)
+    else:
+        _LOG.warning(f"Unknown output format: {output_format}, skipping title slide")
+        return []
+
+
 def _expand_includes(lines: List[str]) -> List[str]:
     r"""
     Expand `// include:<FILE> "<TITLE>"` directives by inlining file sections.
@@ -760,6 +907,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = txt.split("\n")
     # Expand include directives before other preprocessing.
     lines = _expand_includes(lines)
+    # Extract and expand metadata directives into title slide.
+    metadata, lines = _extract_slide_metadata(lines)
+    if metadata.get("type") == "UMD_slides":
+        title_lines = _generate_title_slide(metadata, args.output_format)
+        lines = title_lines + lines
     out = _preprocess_lines(
         lines,
         args.type,

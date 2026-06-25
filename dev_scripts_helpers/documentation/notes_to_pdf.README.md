@@ -49,7 +49,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.notes_to_pdf.md.figs/README.notes_to_pdf.1.png)
+![](notes_to_pdf.README.md.figs/README.notes_to_pdf.1.png)
 <!--  render_images:end -->
 
 - `notes_to_pdf.py` acts as a central orchestrator, coordinating multiple
@@ -87,7 +87,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.notes_to_pdf.md.figs/README.notes_to_pdf.2.png)
+![](notes_to_pdf.README.md.figs/README.notes_to_pdf.2.png)
 <!--  render_images:end -->
 
 ### C2.2: Processing & Conversion Pipeline
@@ -115,7 +115,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.notes_to_pdf.md.figs/README.notes_to_pdf.3.png)
+![](notes_to_pdf.README.md.figs/README.notes_to_pdf.3.png)
 <!--  render_images:end -->
 
 ### C2.3: Post-Processing & System Operations
@@ -145,9 +145,9 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.notes_to_pdf.md.figs/README.notes_to_pdf.4.png)
+![](notes_to_pdf.README.md.figs/README.notes_to_pdf.4.png)
 <!--  render_images:end -->
-![](README.notes_to_pdf.md.figs/README.notes_to_pdf.2.png)
+![](notes_to_pdf.README.md.figs/README.notes_to_pdf.2.png)
 
 - **Responsibilities:**
   - _CLI Interface_: Argument parsing and main entry point
@@ -241,7 +241,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.notes_to_pdf.md.figs/README.notes_to_pdf.5.png)
+![](notes_to_pdf.README.md.figs/README.notes_to_pdf.5.png)
 <!--  render_images:end -->
 
 - **Key Component Interactions:**

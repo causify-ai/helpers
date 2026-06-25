@@ -67,6 +67,7 @@ def _log_system(cmd: str) -> None:
 
 def _system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
     _log_system(cmd)
+    # TODO(ai_gp2): Consider adding a print_command=True
     rc = hsystem.system(
         cmd, log_level=log_level, suppress_output=False, **kwargs
     )
@@ -189,6 +190,93 @@ _COMMON_PANDOC_OPTS = [
 # --filter pandoc-imagine
 
 
+def _run_pandoc_to_ast(
+    file_in: str,
+    use_host_tools: bool,
+    dockerized_force_rebuild: bool,
+    dockerized_use_sudo: bool,
+    *,
+    fail_on_warnings: bool = True,
+) -> str:
+    """
+    Convert markdown to pandoc AST in JSON.
+
+    // TODO(ai_gp): Add an example of the commands run.
+
+    :param file_in: Input markdown file
+    :param use_host_tools: Use host pandoc instead of dockerized
+    :param fail_on_warnings: Fail on pandoc warnings
+    :return: Path to generated JSON AST file
+    """
+    # TODO(ai_gp): Add comments to explain the blocks of code.
+    ast_file = f"{file_in}.ast.json"
+    cmd = [f"pandoc {file_in}"]
+    cmd.append("-t json")
+    if fail_on_warnings:
+        cmd.append("--fail-if-warnings")
+    cmd.append(f"-o {ast_file}")
+    cmd = " ".join(cmd)
+    _LOG.debug("%s", "pandoc to AST: " + hprint.to_str("cmd"))
+    if not use_host_tools:
+        container_type = "pandoc_only"
+        cmd = dshdlipa.run_dockerized_pandoc(
+            cmd,
+            container_type,
+            mode="return_cmd",
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
+        )
+    _ = _system(cmd, print_command=True)
+    hdbg.dassert_path_exists(ast_file)
+    return ast_file
+
+
+def _run_pandoc_from_ast(
+    ast_file: str,
+    output_format: str,
+    output_file: str,
+    use_host_tools: bool,
+    dockerized_force_rebuild: bool,
+    dockerized_use_sudo: bool,
+    *,
+    extra_opts: Optional[List[str]] = None,
+    fail_on_warnings: bool = True,
+) -> None:
+    """
+    Convert pandoc AST in JSON to target format.
+
+    // TODO(ai_gp): Add an example of the commands run.
+
+    :param ast_file: Input JSON AST file
+    :param output_format: Target format (latex, html, typst, beamer, etc.)
+    :param output_file: Output file path
+    :param extra_opts: Additional pandoc options to apply
+    :param fail_on_warnings: Fail on pandoc warnings
+    """
+    # TODO(ai_gp): Add comments to explain the blocks of code.
+    cmd = [f"pandoc {ast_file}"]
+    cmd.append("-f json")
+    cmd.append(f"-t {output_format}")
+    if fail_on_warnings:
+        cmd.append("--fail-if-warnings")
+    if extra_opts:
+        cmd.extend(extra_opts)
+    cmd.append(f"-o {output_file}")
+    cmd = " ".join(cmd)
+    _LOG.debug("%s", "pandoc from AST: " + hprint.to_str("cmd"))
+    if not use_host_tools:
+        container_type = "pandoc_only"
+        cmd = dshdlipa.run_dockerized_pandoc(
+            cmd,
+            container_type,
+            mode="return_cmd",
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
+        )
+    _ = _system(cmd, print_command=True)
+    hdbg.dassert_path_exists(output_file)
+
+
 def _run_pandoc_to_pdf(
     curr_path: str,
     file_name: str,
@@ -201,6 +289,7 @@ def _run_pandoc_to_pdf(
     *,
     tex_only: bool = False,
     fail_on_warnings: bool = True,
+    skip_pandoc_ast_transform: bool = False,
 ) -> str:
     """
     Convert the input file to PDF using Pandoc.
@@ -214,48 +303,76 @@ def _run_pandoc_to_pdf(
     :param prefix: The prefix used for the output file
         E.g., '/app/helpers_root/tmp.notes_to_pdf'
     :param tex_only: If True, return the .tex file instead of compiling to PDF
+    :param skip_pandoc_ast_transform: If True, skip AST pipeline and use single-shot pandoc
     :return: The path to the generated output file (.tex or .pdf)
     """
     _LOG.debug(hprint.func_signature_to_str())
     file1 = file_name
-    # - Run pandoc.
-    cmd = []
-    cmd.append(f"pandoc {file1}")
-    common_opts = _COMMON_PANDOC_OPTS[:]
-    # Conditionally add --fail-if-warnings
-    if not fail_on_warnings and "--fail-if-warnings" in common_opts:
-        common_opts.remove("--fail-if-warnings")
-    cmd.extend(common_opts)
-    #
-    cmd.append("-t latex")
-    #
+    file2 = f"{prefix}.tex"
     template = f"{curr_path}/pandoc.latex"
     hdbg.dassert_path_exists(template)
-    cmd.append(f"--template {template}")
-    #
-    file2 = f"{prefix}.tex"
-    cmd.append(f"-o {file2}")
-    #
-    if toc_type == "pandoc_native":
-        cmd.append("--toc")
-        cmd.append("--toc-depth 2")
-    else:
-        no_run_latex_again = True
-    # Doesn't work
-    # -f markdown+raw_tex
-    cmd = " ".join(cmd)
-    _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
-    if not use_host_tools:
-        container_type = "pandoc_texlive"
-        cmd = dshdlipa.run_dockerized_pandoc(
-            cmd,
-            container_type,
-            mode="return_cmd",
-            force_rebuild=dockerized_force_rebuild,
-            use_sudo=dockerized_use_sudo,
+    if not skip_pandoc_ast_transform:
+        # Two-stage pipeline: markdown → AST → LaTeX
+        _run_pandoc_to_ast(
+            file1,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            fail_on_warnings=fail_on_warnings,
         )
-    _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
-    _ = _system(cmd)
+        ast_file = f"{file1}.ast.json"
+        # Build extra options for LaTeX output (common formatting + LaTeX-specific)
+        extra_opts = [
+            "-V geometry:margin=1in",
+            "--number-sections",
+            "--highlight-style=tango",
+            "-s",
+            f"--template {template}",
+        ]
+        if toc_type == "pandoc_native":
+            extra_opts.extend(["--toc", "--toc-depth 2"])
+        else:
+            no_run_latex_again = True
+        _run_pandoc_from_ast(
+            ast_file,
+            "latex",
+            file2,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            extra_opts=extra_opts,
+            fail_on_warnings=fail_on_warnings,
+        )
+    else:
+        # Run pandoc in a single-shot.
+        cmd = []
+        cmd.append(f"pandoc {file1}")
+        common_opts = _COMMON_PANDOC_OPTS[:]
+        # Conditionally add --fail-if-warnings
+        if not fail_on_warnings and "--fail-if-warnings" in common_opts:
+            common_opts.remove("--fail-if-warnings")
+        cmd.extend(common_opts)
+        cmd.append("-t latex")
+        cmd.append(f"--template {template}")
+        cmd.append(f"-o {file2}")
+        if toc_type == "pandoc_native":
+            cmd.append("--toc")
+            cmd.append("--toc-depth 2")
+        else:
+            no_run_latex_again = True
+        cmd = " ".join(cmd)
+        _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
+        if not use_host_tools:
+            container_type = "pandoc_texlive"
+            cmd = dshdlipa.run_dockerized_pandoc(
+                cmd,
+                container_type,
+                mode="return_cmd",
+                force_rebuild=dockerized_force_rebuild,
+                use_sudo=dockerized_use_sudo,
+            )
+        _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
+        _ = _system(cmd)
     file_name = file2
     # Return the .tex file if tex_only mode is requested.
     if tex_only:
@@ -314,8 +431,12 @@ def _run_pandoc_to_html(
     file_in: str,
     prefix: str,
     toc_type: str,
+    use_host_tools: bool,
+    dockerized_force_rebuild: bool,
+    dockerized_use_sudo: bool,
     *,
     fail_on_warnings: bool = True,
+    skip_pandoc_ast_transform: bool = False,
 ) -> str:
     """
     Convert the input file to HTML using Pandoc.
@@ -323,26 +444,58 @@ def _run_pandoc_to_html(
     :param file_in: The input file to be converted
     :param prefix: The prefix used for the output file
     :param fail_on_warnings: Fail if pandoc emits warnings
+    :param skip_pandoc_ast_transform: If True, skip AST pipeline and use single-shot pandoc
     :return: The path to the generated HTML file
     """
-    cmd = []
-    cmd.append(f"pandoc {file_in}")
-    common_opts = _COMMON_PANDOC_OPTS[:]
-    # Conditionally add --fail-if-warnings
-    if not fail_on_warnings and "--fail-if-warnings" in common_opts:
-        common_opts.remove("--fail-if-warnings")
-    cmd.extend(common_opts)
-    cmd.append("-t html")
-    cmd.append(f"--metadata pagetitle='{os.path.basename(file_in)}'")
-    #
     file2 = f"{prefix}.html"
-    cmd.append(f"-o {file2}")
-    if toc_type == "pandoc_native":
-        cmd.append("--toc")
-        cmd.append("--toc-depth 2")
-    cmd = " ".join(cmd)
-    _ = _system(cmd)
-    #
+
+    if skip_pandoc_ast_transform:
+        # Single-shot pandoc invocation (old behavior)
+        cmd = []
+        cmd.append(f"pandoc {file_in}")
+        common_opts = _COMMON_PANDOC_OPTS[:]
+        # Conditionally add --fail-if-warnings
+        if not fail_on_warnings and "--fail-if-warnings" in common_opts:
+            common_opts.remove("--fail-if-warnings")
+        cmd.extend(common_opts)
+        cmd.append("-t html")
+        cmd.append(f"--metadata pagetitle='{os.path.basename(file_in)}'")
+        cmd.append(f"-o {file2}")
+        if toc_type == "pandoc_native":
+            cmd.append("--toc")
+            cmd.append("--toc-depth 2")
+        cmd = " ".join(cmd)
+        _ = _system(cmd)
+    else:
+        # Two-stage pipeline: markdown → AST → HTML
+        _run_pandoc_to_ast(
+            file_in,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            fail_on_warnings=fail_on_warnings,
+        )
+        ast_file = f"{file_in}.ast.json"
+        # Build extra options for HTML output (common formatting + HTML-specific)
+        extra_opts = [
+            "--number-sections",
+            "--highlight-style=tango",
+            "-s",
+            f"--metadata pagetitle='{os.path.basename(file_in)}'",
+        ]
+        if toc_type == "pandoc_native":
+            extra_opts.extend(["--toc", "--toc-depth 2"])
+        _run_pandoc_from_ast(
+            ast_file,
+            "html",
+            file2,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            extra_opts=extra_opts,
+            fail_on_warnings=fail_on_warnings,
+        )
+
     file_out = os.path.abspath(file2.replace(".tex", ".html"))
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
@@ -415,24 +568,67 @@ def _run_pandoc_to_slides(
     debug: bool = False,
     tex_only: bool = False,
     fail_on_warnings: bool = True,
+    skip_pandoc_ast_transform: bool = False,
 ) -> str:
     """
     Convert the input file to PDF slides using Pandoc.
 
     :param file_name: The input file to be converted
     :param tex_only: If True, return the .tex file instead of compiling to PDF
+    :param skip_pandoc_ast_transform: If True, skip AST pipeline and use single-shot pandoc
     :return: The path to the generated PDF or .tex file
     """
-    cmd, file_out = _build_pandoc_cmd(
-        file_name,
-        toc_type,
-        use_host_tools,
-        dockerized_force_rebuild,
-        dockerized_use_sudo,
-        use_tex=tex_only,
-        fail_on_warnings=fail_on_warnings,
-    )
-    rc, txt = _system_to_string(cmd, abort_on_error=False)
+    file_out = file_name.replace(".txt", ".tex" if tex_only else ".pdf")
+    if not skip_pandoc_ast_transform:
+        # Two-stage pandoc pipeline (markdown → AST → beamer).
+        _run_pandoc_to_ast(
+            file_name,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            fail_on_warnings=fail_on_warnings,
+        )
+        ast_file = f"{file_name}.ast.json"
+        tex_file = file_name.replace(".txt", ".tex")
+        rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+        extra_opts = [
+            "--number-sections",
+            "--highlight-style=tango",
+            "-s",
+            "--slide-level 4",
+            "-V theme:SimplePlus",
+            "--include-in-header=latex_abbrevs.sty",
+            f"--resource-path={rel_path}",
+        ]
+        if toc_type == "pandoc_native":
+            extra_opts.extend(["--toc", "--toc-depth 2"])
+        _run_pandoc_from_ast(
+            ast_file,
+            "beamer",
+            tex_file,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            extra_opts=extra_opts,
+            fail_on_warnings=fail_on_warnings,
+        )
+        file_out = tex_file
+        rc = 0
+        txt = ""
+    else:
+        # Single-shot pandoc.
+        cmd, file_out = _build_pandoc_cmd(
+            file_name,
+            toc_type,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            use_tex=tex_only,
+            fail_on_warnings=fail_on_warnings,
+        )
+        rc, txt = _system_to_string(cmd, abort_on_error=False)
+    # We want to print to screen.
+    print(txt)
     # We want to print to screen.
     print(txt)
     # rc = _system(cmd)
@@ -489,6 +685,7 @@ def _run_pandoc_to_typst_slides(
     *,
     typst_only: bool = False,
     fail_on_warnings: bool = True,
+    skip_pandoc_ast_transform: bool = False,
 ) -> str:
     """
     Convert the input file to PDF slides using Pandoc + Typst/Touying.
@@ -502,41 +699,66 @@ def _run_pandoc_to_typst_slides(
     :param file_name: The input file to be converted
     :param typst_only: If True, return the `.typ` file instead of compiling to
         PDF
+    :param skip_pandoc_ast_transform: If True, skip AST pipeline and use single-shot pandoc
     :return: The path to the generated PDF (or `.typ` file)
     """
     _LOG.debug(hprint.func_signature_to_str())
-    # Prepare command.
-    cmd = []
     typ_file = file_name.replace(".txt", ".typ")
-    cmd.append(f"pandoc {file_name}")
-    cmd.append("-f markdown")
-    cmd.append("--number-sections")
-    cmd.append("-s")
-    cmd.append("-t typst")
-    if fail_on_warnings:
-        cmd.append("--fail-if-warnings")
     template = f"{curr_path}/pandoc_touying.typ"
     hdbg.dassert_path_exists(template)
-    cmd.append(f"--template {template}")
-    # Images are referenced relative to the resource path, mirroring the beamer
-    # path.
     rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
-    cmd.append(f"--resource-path={rel_path}")
-    cmd.append(f"-o {typ_file}")
-    cmd = " ".join(cmd)
-    _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
-    if not use_host_tools:
-        container_type = "pandoc_only"
-        # container_type = "pandoc_texlive"
-        cmd = dshdlipa.run_dockerized_pandoc(
-            cmd,
-            container_type,
-            mode="return_cmd",
-            force_rebuild=dockerized_force_rebuild,
-            use_sudo=dockerized_use_sudo,
+    if not skip_pandoc_ast_transform:
+        # Two-stage pandoc pipeline (markdown → AST → typst).
+        _run_pandoc_to_ast(
+            file_name,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            fail_on_warnings=fail_on_warnings,
         )
-    _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
-    _ = _system(cmd)
+        ast_file = f"{file_name}.ast.json"
+        extra_opts = [
+            "--number-sections",
+            "-s",
+            f"--template {template}",
+            f"--resource-path={rel_path}",
+        ]
+        _run_pandoc_from_ast(
+            ast_file,
+            "typst",
+            typ_file,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            extra_opts=extra_opts,
+            fail_on_warnings=fail_on_warnings,
+        )
+    else:
+        # Single-shot pandoc.
+        cmd = []
+        cmd.append(f"pandoc {file_name}")
+        cmd.append("-f markdown")
+        cmd.append("--number-sections")
+        cmd.append("-s")
+        cmd.append("-t typst")
+        if fail_on_warnings:
+            cmd.append("--fail-if-warnings")
+        cmd.append(f"--template {template}")
+        cmd.append(f"--resource-path={rel_path}")
+        cmd.append(f"-o {typ_file}")
+        cmd = " ".join(cmd)
+        _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
+        if not use_host_tools:
+            container_type = "pandoc_only"
+            cmd = dshdlipa.run_dockerized_pandoc(
+                cmd,
+                container_type,
+                mode="return_cmd",
+                force_rebuild=dockerized_force_rebuild,
+                use_sudo=dockerized_use_sudo,
+            )
+        _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
+        _ = _system(cmd)
     hdbg.dassert_path_exists(typ_file)
     # 1) `pandoc` emits image paths relative to the current dir (the repo root)
     # - E.g., `image("data605/lectures_source/images/foo.png")`.
@@ -822,13 +1044,18 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.dockerized_use_sudo,
                 tex_only=args.tex_only,
                 fail_on_warnings=not args.no_fail_on_warnings,
+                skip_pandoc_ast_transform=args.skip_pandoc_ast_transform,
             )
         elif args.type == "html":
             file_out = _run_pandoc_to_html(
                 file_name,
                 prefix,
                 args.toc_type,
+                args.use_host_tools,
+                args.dockerized_force_rebuild,
+                args.dockerized_use_sudo,
                 fail_on_warnings=not args.no_fail_on_warnings,
+                skip_pandoc_ast_transform=args.skip_pandoc_ast_transform,
             )
         elif args.type == "slides":
             if args.slides_engine == "typst":
@@ -840,6 +1067,7 @@ def _run_all(args: argparse.Namespace) -> None:
                     args.dockerized_use_sudo,
                     typst_only=args.tex_only,
                     fail_on_warnings=not args.no_fail_on_warnings,
+                    skip_pandoc_ast_transform=args.skip_pandoc_ast_transform,
                 )
             else:
                 file_out = _run_pandoc_to_slides(
@@ -851,6 +1079,7 @@ def _run_all(args: argparse.Namespace) -> None:
                     debug=args.debug_on_error,
                     tex_only=args.tex_only,
                     fail_on_warnings=not args.no_fail_on_warnings,
+                    skip_pandoc_ast_transform=args.skip_pandoc_ast_transform,
                 )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
@@ -992,6 +1221,15 @@ def _parse() -> argparse.ArgumentParser:
         help=(
             "Generate only the intermediate source file (`.tex` for beamer, "
             "`.typ` for typst) without compiling to PDF"
+        ),
+    )
+    parser.add_argument(
+        "--skip_pandoc_ast_transform",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip the two-stage AST pipeline and use single-shot pandoc "
+            "conversion"
         ),
     )
     parser.add_argument("--debug_on_error", action="store_true", default=False)
