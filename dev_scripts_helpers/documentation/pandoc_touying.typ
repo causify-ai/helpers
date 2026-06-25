@@ -18,10 +18,13 @@
 #show: simple-theme.with(
   aspect-ratio: "4-3",
   config-common(slide-level: 4),
-  subslide-preamble: block(
-    below: 1.5em,
-    text(1.2em, weight: "bold", utils.display-current-heading(level: 4)),
-  ),
+  subslide-preamble: block(below: 1em)[
+    #v(-0.8em)
+    #text(1.2em, weight: "bold", fill: rgb("#003366"),
+      utils.display-current-heading(level: 4))
+    #v(-0.5em)
+    #line(length: 100%, stroke: 2.0pt + rgb("#003366"))
+  ],
   config-info(
 $if(title)$
     title: [$title$],
@@ -40,8 +43,8 @@ $endif$
 
 // Use DejaVu Sans (available in Alpine) with reduced size.
 // Applied AFTER theme to override theme defaults.
-#set text(font: "DejaVu Sans", size: 24pt)
-#show heading: set text(font: "DejaVu Sans", size: 24pt)
+#set text(font: "DejaVu Sans", size: 2pt)
+#show heading: set text(font: "DejaVu Sans", size: 28pt)
 
 $if(title)$
 #title-slide[]
