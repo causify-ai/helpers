@@ -421,7 +421,7 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "graphviz"
         out_file_name = "test2.md"
         dst_ext = "svg"
-        expected_path = "figs/test2.1.svg"
+        expected_path = "figs/test2.1.png"
         self.helper(
             image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
