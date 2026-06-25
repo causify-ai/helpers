@@ -1,0 +1,55 @@
+% ##############################################################################
+  \section{Introduction}
+  A multi-tenant product makes promises. Every menu item, route, and page
+  is a promise that says: ``if you click this, something meaningful will
+  happen.'' When those promises are not backed by policy, the UI turns into
+  a museum of broken doors: very interactive, not very useful.
+
+  The canonical failure mode is subtle. The backend is (usually) correct:
+  it checks authorization and rejects requests. The frontend, however,
+  often carries its own parallel permission model---a collage of route
+  guards, role checks, and hardcoded navigation conditions. These two models
+  drift as the product grows. Users see actions that fail at runtime; teams
+  ship patchy fixes; and eventually someone adds a ``temporary'' admin
+  override that becomes permanent.
+
+  We adopt a simple principle:
+
+  \begin{quote}
+    \textbf{The UI is a security boundary. If the UI can misrepresent access,
+    it is part of the authorization problem.}
+  \end{quote}
+
+  This paper describes how \system{} implements \uiPolicy{} using \uiData{}.
+  The backend produces a tenant-scoped \emph{UI contract} consisting of:
+  (i) the set of enabled modules for the effective tenant/role, and (ii)
+  structured layout fragments that drive navigation and module
+  configuration. The web tier renders a capability-driven interface composed
+  from these fragments and guarded by the same authorization semantics derived
+  server-side.
+
+  \paragraph{What is \uiPolicy{}?}
+  \uiPolicy{} is not ``authorization in the frontend.'' The backend
+  remains the enforcement point.\@ \uiPolicy{} means the UI is derived
+  from the same policy inputs as authorization, so the user experience does
+  not drift away from what the system will actually permit.
+
+  \paragraph{Contributions.}
+  \begin{itemize}
+    \item \textbf{\uiData{} as a UI contract:} a data model and delivery
+      pattern where tenants and roles receive an explicit, runtime UI contract
+      (modules + layout fragments), rather than a hardcoded UI with
+      scattered conditional logic.
+
+    \item \textbf{Server-authoritative abilities exported for UX:} a
+      single source of truth for permissions built on the server and
+      packed for client-side UX (CASL), minimizing frontend/backend divergence
+      \cite{casl_docs}.
+
+    \item \textbf{Auditable \viewas{} semantics:} an explicit separation
+      between \emph{actor} identity and \emph{effective} tenant/role
+      context, enabling safe support/QA workflows without shared admin accounts.
+
+    \item \textbf{Concrete implementation:} an end-to-end architecture
+      using Cognito, Lambda (Powertools), DynamoDB, and Next.js \cite{aws_cognito_user_pools,aws_cognito_groups,aws_powertools,iron_session}.
+  \end{itemize}

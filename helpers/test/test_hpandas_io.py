@@ -31,6 +31,10 @@ class TestReadDataFromS3(hunitest.TestCase):
         hpandas.read_csv_to_df(stream, **kwargs)
 
     @pytest.mark.slow("~15 sec.")
+    @pytest.mark.skip(
+        reason="S3 file is in archived storage class (InvalidObjectState). "
+        "Restore the file or use a file in STANDARD storage class."
+    )
     def test_read_parquet1(self) -> None:
         s3fs = hs3.get_s3fs(_AWS_PROFILE)
         file_name = os.path.join(

@@ -1,0 +1,155 @@
+% ##############################################################################
+  \section{Security and Defense-in-Depth}
+  \label{sec:security} A multi-tenant platform's primary security objective
+  is not "no bugs." It is: \emph{no tenant confusion}. Most catastrophic
+  failures start as mundane mis-scoping.
+
+  We therefore design defenses around a concrete threat model.
+
+% ==============================================================================
+  \subsection{Threat model (what we actually defend against)}
+  We focus on:
+  \begin{itemize}
+    \item \textbf{Forged tenancy context:} a client attempts to select a
+      tenant/role they do not own.
+
+    \item \textbf{Confused deputy:} a downstream service performs
+      actions for the wrong tenant because it trusted caller-provided
+      scope.
+
+    \item \textbf{Surface drift:} clients discover and call endpoints
+      that are not intended to exist for their effective context.
+
+    \item \textbf{Accidental operator damage:} support/QA performs real
+      actions while impersonating the wrong tenant.
+  \end{itemize}
+
+% ==============================================================================
+  \subsection{Audit-Ready Foundations}
+  This paper is not a compliance report, but production reality is
+  constrained by compliance-grade expectations: clear boundaries, clear
+  evidence, and recoverability that works under pressure. Those
+  constraints are not paperwork; they are architecture.
+
+  \paragraph{Blast-radius discipline (accounts and regions).}
+  We operate with explicit separation boundaries (e.g., production vs.\ non-production
+  isolation and regional separation for resilience). The key point is
+  not the exact account topology; it is the design intent: reduce blast
+  radius, simplify incident containment, and make boundaries legible to
+  both operators and auditors.
+
+  \paragraph{Network segmentation as a default posture.}
+  Ingress is terminated at controlled edges (load balancers and WAF
+  where applicable), while compute and data stores remain in private
+  subnets without public IPs. When a platform is multi-tenant, ``private
+  by default'' is not a preference; it is a survival trait.
+
+  \paragraph{Recoverability is engineered, not enabled.}
+  Backups exist at multiple layers (databases, object storage, volumes,
+  and file systems), but the important detail is restore: we treat restore
+  as a first-class operational capability and validate it regularly. In
+  multi-tenant platforms, recoverability is part of tenant isolation:
+  mistakes must be reversible.
+
+  \paragraph{Evidence is just observability with manners.}
+  Operational telemetry (logs, metrics, traces, configuration history)
+  doubles as evidence when it is structured, retained, and attributable.
+  That attribution is exactly why this paper emphasizes actor vs.\ effective
+  context: it makes the system auditable by design, not by spreadsheet.
+
+% ==============================================================================
+  \subsection{Layered controls: make tenant confusion expensive}
+  Figure~\ref{fig:defense_layers} summarizes the layered controls. Each layer
+  is useful alone; together they form a system that is hard to misuse
+  accidentally and hard to abuse intentionally.
+
+  \begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{cleanpic}
+      [ layer/.style={cbox, align=left, minimum height=12mm}, ] \node[layer,
+      fill=idpyellow!28, draw=idpyellow!55, text width=150mm] (l1) {\textbf{Layer 1 --- Identity (JWT)}\\ Signed JWT is validated; tenant id derived from claims; role derived from Cognito groups.};
+      \node[layer, fill=cpblue!25, draw=cpblue!50, text width=135mm,
+      below=5mm of l1] (l2) {\textbf{Layer 2 --- \viewas{} Guardrails}\\ \viewas{} parsed from semicolon header; validated against explicit allow-list. Actor remains immutable.};
+      \node[layer, fill=cpblue!25, draw=cpblue!50, text width=120mm,
+      below=5mm of l2] (l3) {\textbf{Layer 3 --- Scope Injection}\\ \texttt{schema\_prefix} derived from tenant record and injected downstream. Client-supplied scope is untrusted.};
+      \node[layer, fill=storelavender!25, draw=storelavender!50, text width=105mm,
+      below=5mm of l3] (l4) {\textbf{Layer 4 --- Surface Minimization}\\ OpenAPI filtered by enabled modules (tag-based); unused schemas pruned.};
+      \node[layer, fill=dpgreen!25, draw=dpgreen!50, text width=90mm,
+      below=5mm of l4] (l5) {\textbf{Layer 5 --- Edge Hardening (K8s Ingress)}\\ Internal ALB, TLS policy, WAF, Shield, S3 access logs.};
+
+      \foreach \a/\b in {l1/l2, l2/l3, l3/l4, l4/l5}{ \draw[carrow] (\a) -- (\b); }
+    \end{cleanpic}%
+    }% end resizebox
+    \caption{Defense-in-depth against tenant confusion: identity,
+    \viewas{} allow-lists, scope injection, minimized surface, and
+    hardened edges. Narrowing layers indicate progression from identity verification
+    (top) to network hardening (bottom).}
+    \label{fig:defense_layers}
+  \end{figure}
+
+% ==============================================================================
+  \subsection{Control plane hardening: explicitness over cleverness}
+  The control plane adds baseline security headers on every response:
+  \texttt{X-Frame-Options: DENY}, strict CSP (\texttt{default-src 'none'}),
+  \texttt{X-Content-Type-Options: nosniff}, and HSTS. These are not glamorous,
+  but they remove entire classes of browser-side surprises.
+
+  It also enforces that \viewas{} must contain \texttt{tenant\_id} and
+  \texttt{role}, and denies requests that attempt to impersonate targets
+  outside the allow-list. This turns impersonation from "header magic" into
+  a controlled capability.
+
+% ==============================================================================
+  \subsection{Scope injection: the anti-confused-deputy pattern}
+  The most important security property of this platform is not that it denies
+  access. It is that it \emph{denies ambiguity}. When the control plane
+  injects \texttt{schema\_prefix} into downstream requests, it removes a
+  class of vulnerabilities where the client "helpfully" tells the system
+  what tenant it meant.
+
+  Downstream services can still validate scope, but they no longer need to
+  guess it.
+
+% ==============================================================================
+  \subsection{Kubernetes edge security: internal ingress + WAF + audit logs}
+  Kubernetes ingress definitions for services like the Console and Airflow
+  webserver use internal ALBs, enforce TLS policies, attach a regional WAF
+  ACL, enable Shield, and stream access/connection logs to S3. This
+  provides:
+  \begin{itemize}
+    \item reduced exposure (internal-only),
+
+    \item consistent layer-7 protection (WAF),
+
+    \item DDoS hardening (Shield),
+
+    \item and an audit trail for forensic analysis (ALB logs).
+  \end{itemize}
+
+% ==============================================================================
+  \subsection{Secrets and workload identity: IRSA/ESO for Kubernetes}
+  Workloads obtain secrets via ESO and IRSA: service accounts are annotated
+  with an IAM role ARN, enabling controlled access to Secrets Manager
+  without embedding long-lived credentials in pods. This keeps secret access
+  auditable and reduces credential sprawl.
+
+% ==============================================================================
+  \subsection{Caveat: caching and multi-tenant correctness}
+  ETags and short TTL caching make context contracts fast and cheap \cite{rfc9110}.
+  However, in multi-tenant systems, caching must never blur identity
+  boundaries. We therefore treat these contracts as \emph{safe for
+  revalidation} and ensure the ETag is derived from the full response
+  body (which includes effective context). In environments with shared intermediaries,
+  additional cache controls (e.g., \texttt{private}) may be appropriate;
+  the key invariant is: cached responses must not be reusable across principals.
+
+% ==============================================================================
+  \subsection{Summary: security is mostly architecture}
+  The security story here is not a single trick. It is a refusal to
+  allow tenancy to be implicit. The control plane makes context explicit,
+  the data plane executes within that context, and the edges are hardened
+  so mistakes are contained.
+
+  Or, in operational terms: fewer "how did this happen?" incidents, and more
+  "this couldn't have happened" guarantees.

@@ -30,17 +30,18 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         image_code_idx = 8
         dst_ext = "png"
         dst_dir = "/a/b/c/d/figs"
-        # Run function.
-        paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, dst_dir
-        )
-        # Check output.
-        actual = "\n".join(paths)
+        # Prepare outputs.
         expected = """
         tmp.render_images/e.8.txt
         /a/b/c/d/figs
         figs/e.8.png
         """
+        # Run test.
+        paths = dshdreim._get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, dst_dir
+        )
+        # Check outputs.
+        actual = "\n".join(paths)
         self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
@@ -52,17 +53,18 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         image_code_idx = 8
         dst_ext = "png"
         dst_dir = "/custom/path/images"
-        # Run function.
-        paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, dst_dir
-        )
-        # Check output.
-        actual = "\n".join(paths)
+        # Prepare outputs.
         expected = """
         tmp.render_images/e.8.txt
         /custom/path/images
         ../../../../custom/path/images/e.8.png
         """
+        # Run test.
+        paths = dshdreim._get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, dst_dir
+        )
+        # Check outputs.
+        actual = "\n".join(paths)
         self.assert_equal(actual, expected, dedent=True)
 
 
@@ -94,7 +96,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
-    def test_md1(self) -> None:
+    def test1(self) -> None:
         """
         Test with text that has no render markers.
         """
@@ -111,7 +113,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_md2(self) -> None:
+    def test2(self) -> None:
         """
         Test removing a render_images block.
         """
@@ -129,7 +131,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_md4(self) -> None:
+    def test3(self) -> None:
         """
         Test removing multiple render_images blocks.
         """
@@ -152,7 +154,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_md5(self) -> None:
+    def test4(self) -> None:
         """
         Test with empty input.
         """
@@ -163,7 +165,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_md6(self) -> None:
+    def test5(self) -> None:
         """
         Test with only markers and no content between them.
         """
@@ -176,7 +178,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_md7(self) -> None:
+    def test6(self) -> None:
         """
         Test uncommenting a rendered_images block containing `-->` in content.
 
@@ -206,7 +208,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_tex1(self) -> None:
+    def test7(self) -> None:
         """
         Test uncommenting a rendered_images block.
         """
@@ -229,7 +231,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_tex2(self) -> None:
+    def test8(self) -> None:
         """
         Test with both rendered_images and render_images markers (LaTeX
         extension).
@@ -258,7 +260,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_tex3(self) -> None:
+    def test9(self) -> None:
         """
         Test with LaTeX file extension.
         """
@@ -286,7 +288,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_tex4(self) -> None:
+    def test10(self) -> None:
         """
         Test with txt file extension.
         """
@@ -312,7 +314,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_tex5(self) -> None:
+    def test11(self) -> None:
         """
         Test removing render block with complex nested content.
         """
@@ -355,9 +357,19 @@ class Test_render_image_code1(hunitest.TestCase):
         dst_ext: str,
         expected_path: str,
     ) -> None:
+        """
+        Test helper for `_render_image_code()`.
+
+        :param image_code: Code for the image to render
+        :param image_code_type: Type of image code (graphviz, mermaid, etc.)
+        :param out_file_name: Output file name
+        :param dst_ext: Destination image extension
+        :param expected_path: Expected path to the rendered image
+        """
         image_code_idx = 1
         template_out_file = os.path.join(self.get_scratch_space(), out_file_name)
         dst_dir = os.path.join(self.get_scratch_space(), "figs")
+        # Run test.
         rel_img_paths = dshdreim._render_image_code(
             image_code,
             image_code_idx,
@@ -366,10 +378,11 @@ class Test_render_image_code1(hunitest.TestCase):
             dst_ext,
             dst_dir,
         )
-        self.assertEqual(rel_img_paths[0], expected_path)
+        # Check outputs.
+        self.assert_equal(rel_img_paths[0], expected_path)
 
     @pytest.mark.slow
-    def test_md1(self) -> None:
+    def test1(self) -> None:
         """
         Check rendering of an image code in a Markdown file.
         """
@@ -382,7 +395,7 @@ class Test_render_image_code1(hunitest.TestCase):
             image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
 
-    def test_md2(self) -> None:
+    def test2(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different
         image code type.
@@ -399,7 +412,7 @@ class Test_render_image_code1(hunitest.TestCase):
             image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
 
-    def test_md3(self) -> None:
+    def test3(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different
         output file and extension.
@@ -414,7 +427,7 @@ class Test_render_image_code1(hunitest.TestCase):
         )
 
     @pytest.mark.slow
-    def test_md4_svg(self) -> None:
+    def test4(self) -> None:
         """
         Check rendering of SVG code to PNG.
         """
@@ -455,7 +468,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         )
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_md1(self) -> None:
+    def test1(self) -> None:
         """
         Test markdown output without label or caption.
         """
@@ -470,7 +483,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.helper(rel_img_path, user_img_size, label, caption, expected)
 
-    def test_md2(self) -> None:
+    def test2(self) -> None:
         """
         Test markdown output with label only.
         """
@@ -485,7 +498,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.helper(rel_img_path, user_img_size, label, caption, expected)
 
-    def test_md3(self) -> None:
+    def test3(self) -> None:
         """
         Test markdown output with caption only.
         """
@@ -500,7 +513,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.helper(rel_img_path, user_img_size, label, caption, expected)
 
-    def test_md4(self) -> None:
+    def test4(self) -> None:
         """
         Test markdown output with both label and caption.
         """
@@ -515,7 +528,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.helper(rel_img_path, user_img_size, label, caption, expected)
 
-    def test_md5(self) -> None:
+    def test5(self) -> None:
         """
         Test markdown output with user-specified size.
         """
@@ -554,7 +567,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         )
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_tex1(self) -> None:
+    def test1(self) -> None:
         """
         Test LaTeX output without label or caption.
         """
@@ -571,7 +584,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         """
         self.helper(rel_img_path, user_img_size, label, caption, expected)
 
-    def test_tex2(self) -> None:
+    def test2(self) -> None:
         """
         Test LaTeX output with label only.
         """
@@ -589,7 +602,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         """
         self.helper(rel_img_path, user_img_size, label, caption, expected)
 
-    def test_tex3(self) -> None:
+    def test3(self) -> None:
         """
         Test LaTeX output with caption only.
         """
@@ -607,7 +620,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         """
         self.helper(rel_img_path, user_img_size, label, caption, expected)
 
-    def test_tex4(self) -> None:
+    def test4(self) -> None:
         """
         Test LaTeX output with both label and caption.
         """
@@ -668,7 +681,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    def test_tex1(self) -> None:
+    def test1(self) -> None:
         """
         Check text without image code in a LaTeX file.
         """
@@ -682,7 +695,7 @@ class Test_render_images1(hunitest.TestCase):
         # Run.
         self.helper(in_lines, file_ext, expected)
 
-    def test_md1(self) -> None:
+    def test2(self) -> None:
         """
         Check text without image code in a Markdown file.
         """
@@ -699,7 +712,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    def test_md_plantuml1(self) -> None:
+    def test3(self) -> None:
         """
         Check bare plantUML code in a Markdown file.
         """
@@ -721,7 +734,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_plantuml2(self) -> None:
+    def test4(self) -> None:
         """
         Check plantUML code within other text in a Markdown file.
         """
@@ -747,7 +760,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_plantuml3(self) -> None:
+    def test5(self) -> None:
         """
         Check plantUML code that is already correctly formatted in a Markdown
         file.
@@ -774,7 +787,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_plantuml1(self) -> None:
+    def test6(self) -> None:
         """
         Check bare plantUML code in a LaTeX file.
         """
@@ -798,7 +811,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_plantuml2(self) -> None:
+    def test7(self) -> None:
         """
         Check plantUML code within other text in a LaTeX file.
         """
@@ -826,7 +839,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_plantuml3(self) -> None:
+    def test8(self) -> None:
         """
         Check plantUML code that is already correctly formatted in a LaTeX
         file.
@@ -857,7 +870,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    def test_md_mermaid1(self) -> None:
+    def test9(self) -> None:
         """
         Check bare mermaid code in a Markdown file.
         """
@@ -881,7 +894,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_mermaid2(self) -> None:
+    def test10(self) -> None:
         """
         Check mermaid code within other text in a Markdown file.
         """
@@ -909,7 +922,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_mermaid3(self) -> None:
+    def test11(self) -> None:
         """
         Check mermaid code with `-->` inside content that also appears as the
         HTML comment closing tag (e.g., `BP --> |Track usage| Providers`).
@@ -938,7 +951,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_mermaid1(self) -> None:
+    def test12(self) -> None:
         """
         Check bare mermaid code in a LaTeX file.
         """
@@ -964,7 +977,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_mermaid2(self) -> None:
+    def test13(self) -> None:
         """
         Check mermaid code within other text in a LaTeX file.
         """
@@ -994,7 +1007,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_txt_mermaid1(self) -> None:
+    def test14(self) -> None:
         """
         Check mermaid code within other text in a txt file.
         """
@@ -1022,7 +1035,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_txt_mermaid2(self) -> None:
+    def test15(self) -> None:
         """
         Check mermaid code within other text in a md file.
         """
@@ -1050,7 +1063,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_txt_mermaid3(self) -> None:
+    def test16(self) -> None:
         """
         Check commented mermaid code with an updated output file.
         """
@@ -1074,7 +1087,7 @@ class Test_render_images1(hunitest.TestCase):
     # ///////////////////////////////////////////////////////////////////////////
     # Metadata tests
 
-    def test_md_graphviz_with_metadata1(self) -> None:
+    def test17(self) -> None:
         """
         Check graphviz code with label metadata in a Markdown file.
         """
@@ -1098,7 +1111,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_graphviz_with_metadata2(self) -> None:
+    def test18(self) -> None:
         """
         Check graphviz code with caption metadata in a Markdown file.
         """
@@ -1122,7 +1135,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_graphviz_with_metadata3(self) -> None:
+    def test19(self) -> None:
         """
         Check graphviz code with both label and caption in a Markdown file.
         """
@@ -1148,7 +1161,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_graphviz_with_metadata4(self) -> None:
+    def test20(self) -> None:
         """
         Check graphviz code with multi-line caption in a Markdown file.
         """
@@ -1178,7 +1191,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_graphviz_with_metadata1(self) -> None:
+    def test21(self) -> None:
         """
         Check graphviz code with label metadata in a LaTeX file.
         """
@@ -1205,7 +1218,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_graphviz_with_metadata2(self) -> None:
+    def test22(self) -> None:
         """
         Check graphviz code with caption metadata in a LaTeX file.
         """
@@ -1232,7 +1245,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_graphviz_with_metadata3(self) -> None:
+    def test23(self) -> None:
         """
         Check graphviz code with both label and caption in a LaTeX file.
         """
@@ -1262,7 +1275,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_graphviz_with_metadata4(self) -> None:
+    def test24(self) -> None:
         """
         Check that already-rendered graphviz code with metadata remains
         unchanged.
@@ -1305,7 +1318,7 @@ class Test_render_images2(hunitest.TestCase):
         dst_ext = "png"
         dst_dir = os.path.join(self.get_scratch_space(), "figs")
         dry_run = True
-        # Run function.
+        # Run test.
         out_lines = dshdreim._render_images(
             in_lines,
             out_file,
@@ -1314,8 +1327,11 @@ class Test_render_images2(hunitest.TestCase):
             dry_run=dry_run,
         )
         actual = "\n".join(out_lines)
-        # Check output.
-        self.check_string(actual)
+        # Check outputs.
+        hdbg.dassert_ne(actual, "")
+        expected_file = os.path.join(self.get_output_dir(), "output.txt")
+        expected = hio.from_file(expected_file)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -1369,21 +1385,22 @@ class Test_render_images_script1(hunitest.TestCase):
     def _get_exec_path(self) -> str:
         return hgit.find_file_in_git_tree("render_images.py", super_module=True)
 
-    def test_script_help(self) -> None:
+    def test1(self) -> None:
         """
         Test that the script can display help without errors.
         """
+        # Prepare inputs.
         cmd = f"{self._get_exec_path()} --help"
+        # Run test.
         rc = hsystem.system(cmd)
-        # Check that it succeeded.
+        # Check outputs.
         self.assertEqual(rc, 0)
 
-    # TODO(ai_gp): Rename test1_XYZ
-    def test_script_dry_run_md(self) -> None:
+    def test2(self) -> None:
         """
         Test script with dry run on a simple Markdown file.
         """
-        # Create a test file in scratch space.
+        # Prepare inputs.
         scratch_space = self.get_scratch_space()
         test_file = os.path.join(scratch_space, "test_input.md")
         test_content = """
@@ -1396,14 +1413,16 @@ class Test_render_images_script1(hunitest.TestCase):
         test_content = hprint.dedent(test_content)
         hio.to_file(test_file, test_content)
         cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
+        # Run test.
         rc = hsystem.system(cmd)
+        # Check outputs.
         self.assertEqual(rc, 0)
 
-    def test_script_output_format_default(self) -> None:
+    def test3(self) -> None:
         """
         Test script with default output format (png).
         """
-        # Create a test file in scratch space.
+        # Prepare inputs.
         scratch_space = self.get_scratch_space()
         test_file = os.path.join(scratch_space, "test_input.md")
         test_content = """
@@ -1417,14 +1436,15 @@ class Test_render_images_script1(hunitest.TestCase):
         test_content = hprint.dedent(test_content)
         hio.to_file(test_file, test_content)
         cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
+        # Run test.
         rc = hsystem.system(cmd)
         self.assertEqual(rc, 0)
 
-    def test_script_output_format_png(self) -> None:
+    def test4(self) -> None:
         """
         Test script with explicit --output_format png.
         """
-        # Create a test file in scratch space.
+        # Prepare inputs.
         scratch_space = self.get_scratch_space()
         test_file = os.path.join(scratch_space, "test_input.md")
         test_content = """
@@ -1440,14 +1460,15 @@ class Test_render_images_script1(hunitest.TestCase):
             f"{self._get_exec_path()} -i {test_file} --action render "
             f"--output_format png --dry_run"
         )
+        # Run test.
         rc = hsystem.system(cmd)
         self.assertEqual(rc, 0)
 
-    def test_script_output_format_svg(self) -> None:
+    def test5(self) -> None:
         """
         Test script with explicit --output_format svg.
         """
-        # Create a test file in scratch space.
+        # Prepare inputs.
         scratch_space = self.get_scratch_space()
         test_file = os.path.join(scratch_space, "test_input.md")
         test_content = """
@@ -1463,14 +1484,15 @@ class Test_render_images_script1(hunitest.TestCase):
             f"{self._get_exec_path()} -i {test_file} --action render "
             f"--output_format svg --dry_run"
         )
+        # Run test.
         rc = hsystem.system(cmd)
         self.assertEqual(rc, 0)
 
-    def test_script_output_format_tikz_png(self) -> None:
+    def test6(self) -> None:
         """
         Test that tikz supports png output format.
         """
-        # Create a test file in scratch space.
+        # Prepare inputs.
         scratch_space = self.get_scratch_space()
         test_file = os.path.join(scratch_space, "test_input.md")
         test_content = r"""
@@ -1486,29 +1508,6 @@ class Test_render_images_script1(hunitest.TestCase):
             f"{self._get_exec_path()} -i {test_file} --action render "
             f"--output_format png --dry_run"
         )
+        # Run test.
         rc = hsystem.system(cmd)
         self.assertEqual(rc, 0)
-
-    def test_script_output_format_tikz_svg_fails(self) -> None:
-        """
-        Test that tikz fails when requesting svg output format.
-        """
-        # Create a test file in scratch space.
-        scratch_space = self.get_scratch_space()
-        test_file = os.path.join(scratch_space, "test_input.md")
-        test_content = r"""
-        # Test Document
-
-        ```tikz
-        \draw (0,0) -- (1,1);
-        ```
-        """
-        test_content = hprint.dedent(test_content)
-        hio.to_file(test_file, test_content)
-        cmd = (
-            f"{self._get_exec_path()} -i {test_file} --action render "
-            f"--output_format svg --dry_run"
-        )
-        rc = hsystem.system(cmd)
-        # Should fail due to assertion.
-        self.assertNotEqual(rc, 0)

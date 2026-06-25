@@ -1,0 +1,135 @@
+% ##############################################################################
+  \section{Problem Statement and Design Goals}
+  \label{sec:problem}
+% ==============================================================================
+  \subsection{The problem: governance smeared across the runtime}
+  In multi-tenant systems, ``tenant'' is both a business concept and a security
+  boundary. The main failure mode is not a spectacular vulnerability; it
+  is \emph{inconsistency}: one component thinks the tenant is \texttt{acme},
+  another component thinks it is \texttt{demo-acme}, and a third component
+  accepts a user-provided \texttt{schema} hint.
+
+  This creates three recurring classes of incidents:
+  \begin{itemize}
+    \item \textbf{Policy sprawl:} authorization and capability checks
+      scattered across services, gateways, and UI layers.
+
+    \item \textbf{Confused deputy:} a service acts on behalf of a tenant
+      it did not intend to, because it trusted caller-provided scoping parameters
+      \cite{confused_deputy}.
+
+    \item \textbf{Surface drift:} documentation and client behavior
+      diverge from what is actually enabled/allowed (e.g., stale OpenAPI
+      specs or endpoints that exist but should not be reachable).
+  \end{itemize}
+
+  \begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{cleanpic}
+      [ hop/.style={cbox, text width=24mm, minimum height=14mm, font=\small\sffamily},
+        elabel/.style={font=\footnotesize\ttfamily, above=2.5mm, pos=0.5},
+      ]
+      % --- Wide gaps between nodes so labels sit cleanly after scaling ---
+      \node[hop, fill=webteal!25, draw=webteal!50] (user)
+        {\textbf{User}\\tenant=acme};
+      \node[hop, fill=cpblue!25, draw=cpblue!50, right=32mm of user] (gw)
+        {\textbf{Gateway}\\passes token};
+      \node[hop, fill=dpgreen!25, draw=dpgreen!50, right=32mm of gw] (svcA)
+        {\textbf{Service A}\\reads header};
+      \node[hop, fill=dpgreen!25, draw=dpgreen!50, right=32mm of svcA] (svcB)
+        {\textbf{Service B}\\trusts caller};
+      \node[hop, fill=storelavender!25, draw=storelavender!50, right=32mm of svcB] (db)
+        {\textbf{DB}\\executes query};
+
+      % --- Edge labels centered in the wide gaps ---
+      \draw[carrow] (user) -- node[elabel] {acme} (gw);
+      \draw[carrow] (gw) -- node[elabel] {acme} (svcA);
+      \draw[carrow] (svcA) -- node[elabel, text=warnred!80!black] {demo-acme} (svcB);
+      \draw[carrow] (svcB) -- node[elabel, text=warnred!80!black] {demo-acme} (db);
+
+      % --- Annotation ---
+      \node[font=\footnotesize\sffamily\itshape, text=warnred!75, align=center, below=8mm of svcA] (err)
+        {Service A re-derives tenant from a stale header, scope silently changes};
+      \draw[-{Latex[length=2mm]}, warnred!55, densely dashed] (err) -- (svcA);
+    \end{cleanpic}%
+    }% end resizebox
+    \caption{A single request shows the problem: the user intends
+    \texttt{acme}, but Service~A re-derives tenant from a stale header
+    and forwards \texttt{demo-acme}. Service~B trusts the caller.
+    The DB query runs against the wrong tenant's data.}
+    \label{fig:scattered_governance}
+  \end{figure}
+
+  Kubernetes and container orchestrators are excellent at running
+  workloads. They are not optimized to be the single source of truth for
+  tenant identity and policy. When the cluster becomes the governance
+  layer, every runtime change becomes a policy event. That is how you
+  get ``just one more admission policy'' until nothing moves.
+
+% ==============================================================================
+  \subsection{Design goals}
+  We adopt five goals that reflect both engineering and operations:
+
+  \begin{enumerate}
+    \item \textbf{G1 --- Explicit context:} every request has an
+      immutable \emph{actor} identity and an explicit \emph{effective
+      context}. If \viewas{} exists, it is visible and auditable.
+
+    \item \textbf{G2 --- Server-injected scoping:} tenant scoping
+      signals (e.g., schema prefixes) are derived by the control plane
+      and injected downstream. Client-supplied scoping parameters are treated
+      as untrusted input.
+
+    \item \textbf{G3 --- Minimized surface:} the platform should not
+      advertise APIs and modules that are not enabled for the effective
+      context. OpenAPI and endpoint access are filtered accordingly.
+
+    \item \textbf{G4 --- Cache-friendly contracts:} context contracts
+      such as \texttt{/v2/me} should support conditional requests (ETag/\texttt{If-None-Match})
+      to reduce repeated payload transfer \cite{rfc9110}.
+
+    \item \textbf{G5 --- Operational clarity:} logs and traces must
+      encode both actor and effective tenant context so that incidents
+      can be debugged without guessing.
+  \end{enumerate}
+
+  These goals are intentionally conservative. Multi-tenant platforms do
+  not need cleverness. They need consistency. Cleverness is reserved for
+  the causal models.
+
+  \begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{X c c}
+      \toprule
+      \textbf{Capability} & \textbf{Scattered governance} & \textbf{CP/DP split} \\
+      \midrule
+      Tenant isolation                & \cmark & \cmark \\
+      Role-based access               & \cmark & \cmark \\
+      Authentication (JWT)            & \cmark & \cmark \\
+      Single source of tenant context & \xmark & \cmark \\
+      Server-injected scoping         & \xmark & \cmark \\
+      Cacheable context contracts     & \xmark & \cmark \\
+      Minimized API surface           & \xmark & \cmark \\
+      Actor vs.\ effective separation & \xmark & \cmark \\
+      Auditable \viewas{}             & \xmark & \cmark \\
+      Module-gated endpoints          & \xmark & \cmark \\
+      Zero-redeploy tenant config     & \xmark & \cmark \\
+      End-to-end request attribution  & \xmark & \cmark \\
+      Schema-prefix isolation (DB)    & \xmark & \cmark \\
+      Confused-deputy prevention      & \xmark & \cmark \\
+      Substrate-agnostic governance   & \xmark & \cmark \\
+      Filtered OpenAPI per tenant     & \xmark & \cmark \\
+      ETag-based conditional caching  & \cmark & \cmark \\
+      Security headers (CSP/HSTS)     & \cmark & \cmark \\
+      Centralized audit logging       & \xmark & \cmark \\
+      Async heavy compute (data plane) & \cmark & \cmark \\
+      \bottomrule
+    \end{tabularx}
+    \caption{Capability comparison: scattered governance (policy embedded
+    in services) versus the serverless control plane / container data plane
+    split described in this paper. Both provide basic security; the CP/DP
+    split adds consistency, auditability, and operational clarity.}
+    \label{tab:capability_comparison}
+  \end{table}

@@ -6,8 +6,9 @@ from typing import Any, Dict
 import pandas as pd
 import pytest
 
-pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
 import helpers.hdbg as hdbg  # noqa: E402
+
+pytest.importorskip("openai")
 import helpers.hllm as hllm  # noqa: E402
 import helpers.hunit_test as hunitest  # noqa: E402
 

@@ -1,0 +1,17 @@
+% ##############################################################################
+  \section{Conclusion}
+  Multi-tenant SaaS systems often fail in a deeply human way: the backend
+  tells the truth, and the UI tells a story. The story is usually optimistic.
+  Sometimes it is dangerously optimistic.
+
+  \uiPolicy{} replaces optimism with a contract. By materializing a
+  tenant/role UI contract (\uiData{}) server-side and deriving both UX and
+  authorization from a unified ability model, \system{} reduces frontend/backend
+  drift, turns tenant variability into configuration, and enables safe \viewas{}
+  workflows without shared admin accounts.
+
+  The headline is simple:
+  \begin{quote}
+    \textbf{If the UI can lie about access, it is part of the security boundary.}
+  \end{quote}
+  Once you accept that, the rest becomes engineering.

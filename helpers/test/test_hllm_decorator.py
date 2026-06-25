@@ -14,6 +14,8 @@ import pytest
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hunit_test as hunitest
+
+pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
 import helpers.hllm_decorator as hllmdeco
 
 _LOG = logging.getLogger(__name__)

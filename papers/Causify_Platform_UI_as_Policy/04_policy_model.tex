@@ -1,0 +1,189 @@
+% ##############################################################################
+  \section{Policy Model: From Tenants to Capabilities}
+  This section specifies the \policy{} model that powers \uiPolicy{}. The
+  key design choice is to store tenant experience as data and \emph{materialize
+  it server-side} into a ``UI contract'' that the web tier can consume
+  without inventing permissions in the browser.
+
+% ==============================================================================
+  \subsection{Identity claims and role derivation}
+  Authentication is delegated to Amazon Cognito user pools
+  \cite{aws_cognito_user_pools}. The control plane receives an ID token and
+  derives two primitives:
+
+  \begin{itemize}
+    \item \textbf{Actor tenant:} extracted from a custom JWT claim (e.g.,
+      \texttt{custom:tenantId}).
+
+    \item \textbf{Actor role:} derived from \texttt{cognito:groups} \cite{aws_cognito_groups}.
+  \end{itemize}
+
+  Groups follow a simple convention:
+  \begin{center}
+    \texttt{tenant\_id:role} \quad (e.g., \texttt{acme:member}, \texttt{causify:admin})
+  \end{center}
+
+  Users may belong to multiple groups for a tenant. We resolve role by precedence:
+  \begin{center}
+    \texttt{admin} $>$ \texttt{member} $>$ \texttt{demo}
+  \end{center}
+
+  This rule is intentionally boring. Boring is good. Boring prevents the
+  ``surprise admin'' incident that ruins everyone's weekend.
+
+  \begin{algorithm}
+    [H]
+    \caption{Role resolution from Cognito groups (simplified)}
+    \label{alg:role_resolution}
+    \begin{algorithmic}
+      [1] \Require tenant\_id, groups \If{groups is empty} \Return \texttt{None}
+      \EndIf \State valid $\gets$ \{ g $\in$ groups : \texttt{":"} $\in g$
+      and g startsWith \texttt{tenant\_id:} \} \If{valid is empty} \Return
+      \texttt{None} \EndIf \State roles $\gets$ extract suffix after
+      \texttt{":"} for each g in valid \State order $\gets$ [\texttt{admin},
+      \texttt{member}, \texttt{demo}] \State \Return argmin\_r index(r
+      in order) (default to end if unknown)
+    \end{algorithmic}
+  \end{algorithm}
+
+% ==============================================================================
+  \subsection{Impersonation policy: who may \viewas{} whom}
+  \uiPolicy{} includes a first-class \viewas{} mechanism to support
+  operations, QA, and demo flows without shared admin credentials. This is
+  also the fastest way to reproduce tenant-specific UI bugs: you \emph{become}
+  the bug (politely).
+
+  We compute an explicit \texttt{impersonatable} allow-list in the
+  control plane:
+
+  \begin{itemize}
+    \item \textbf{Super admin:} a designated tenant/role pair may
+      impersonate all active tenants and roles (enumerated from the tenant
+      registry table).
+
+    \item \textbf{Tenant admin:} an admin may impersonate all roles
+      \emph{within} their tenant.
+
+    \item \textbf{Everyone else:} may impersonate only what their group
+      memberships allow (e.g., if they are in \texttt{acme:demo} and
+      \texttt{acme:member}, they may \viewas{} either).
+  \end{itemize}
+
+  This allow-list is returned to the web tier, enabling the UI to offer
+  safe tenant/role selection while keeping enforcement server-side.
+
+% ==============================================================================
+  \subsection{Tenant policy as data (DynamoDB)}
+  Tenant variability is expressed as \policy{}: a DynamoDB record keyed
+  by \texttt{tenant\_id}. The record contains tenant metadata plus a
+  role map under \texttt{group}. Each role entry provides:
+
+  \begin{itemize}
+    \item \texttt{modules}: the enabled module identifiers for that role.
+
+    \item \texttt{moduleLayout}: a map of JSON \emph{strings} that
+      represent UI layout/config fragments. These fragments are parsed server-side
+      during materialization.
+  \end{itemize}
+
+  \begin{samepage}
+  \begin{lstlisting}[style=json,caption={Illustrative tenant policy record (close to production shape). Role entries live under \texttt{group}. Layout fragments are stored as JSON strings and parsed server-side during materialization into structured objects.},label={lst:tenantpolicy_v2}]
+{
+  "tenant_id": "acme",
+  "domain": "acme.example",
+  "status": "active",
+  "allowed": true,
+  "schema_prefix": "acme",
+  "group": {
+    "demo": {
+      "modules": ["horizon"],
+      "moduleLayout": {
+        "common": "{ \"sideBar\": { \"defaultCollapsed\": true } }"
+      }
+    },
+    "member": {
+      "modules": ["horizon", "grid"],
+      "moduleLayout": {
+        "common": "{ \"sideBar\": { \"defaultCollapsed\": false }, \"feedback\": { \"enabled\": true } }",
+        "grid":   "{ \"sidebar\": { \"enabled\": true }, \"table\": { \"pageSize\": 50 } }"
+      }
+    },
+    "admin": {
+      "modules": ["horizon", "grid", "datamap"],
+      "moduleLayout": {
+        "common": "{ \"settings\": { \"enabled\": true }, \"sideBar\": { \"showAdmin\": true } }"
+      }
+    }
+  }
+}
+\end{lstlisting}
+  \end{samepage}
+
+  \paragraph{Validation and failure behavior.}
+  Because this policy is runtime-loaded, the backend must treat it as
+  untrusted input. We apply strict parsing: if a \texttt{moduleLayout} fragment
+  fails JSON parsing, the control plane rejects the request with a
+  server error. This avoids silently serving half-valid policies that produce
+  haunted UIs (buttons moving on their own, etc.).
+
+% ==============================================================================
+  \subsection{Materialization: the \texttt{/v2/me} UI contract}
+  The control plane returns a \emph{materialized} profile via \texttt{/v2/me}.
+  This response is the UI contract: it tells the web tier who the actor is,
+  what effective tenant/role is in force (via \viewas{}), what modules
+  exist, and what layout fragments should shape the interface.
+
+  Crucially, \texttt{/v2/me} returns both:
+
+  \begin{itemize}
+    \item \textbf{\texttt{actor}} --- immutable identity (who is authenticated),
+
+    \item \textbf{\texttt{view\_as}} --- effective context (who the actor
+      is operating \emph{as}).
+  \end{itemize}
+
+  \begin{samepage}
+  \begin{lstlisting}[style=json,caption={Simplified \texttt{/v2/me} response. The \texttt{view\_as} block materializes modules + layout for the effective tenant/role.},label={lst:v2me}]
+{
+  "actor": {
+    "name": "Ada Lovelace",
+    "email": "ada@acme.example",
+    "tenant_id": "causify",
+    "user_role": "admin",
+    "groups": ["causify:admin", "acme:member"]
+  },
+  "view_as": {
+    "view_as_self": false,
+    "tenant_id": "acme",
+    "user_role": "member",
+    "modules": ["horizon", "grid"],
+    "module_layout": {
+      "common": {
+        "sideBar": { "defaultCollapsed": false, "showAdmin": true },
+        "feedback": { "enabled": true },
+        "topBar": { "enabled": true, "title": "Horizon" }
+      },
+      "horizon": {
+        "enabled": true,
+        "pageTitle": "Inventory Management",
+        "dashboard": { "enabled": true },
+        "gridView": { "sidePanel": { "enabled": true } }
+      }
+    }
+  },
+  "impersonatable": [
+    { "tenant_id": "acme", "roles": ["demo", "member", "admin"] },
+    { "tenant_id": "xyz", "roles": ["member"] }
+  ]
+}
+\end{lstlisting}
+  \end{samepage}
+
+  \paragraph{Caching.}
+  The control plane supports standard caching semantics (ETag-based conditional
+  requests) and short TTL caching headers. This keeps the UI responsive while
+  still enabling policy edits to take effect quickly.
+
+  \paragraph{Why this matters.}
+  Once \texttt{/v2/me} exists, the UI no longer needs to infer the user's
+  world. It can simply render the world it was handed.

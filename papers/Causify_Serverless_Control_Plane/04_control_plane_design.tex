@@ -1,0 +1,292 @@
+% ##############################################################################
+  \section{Control Plane Design}
+  \label{sec:control_plane_design} The control plane is the platform's \emph{governance
+  cortex}: it authenticates, derives effective tenant context, materializes
+  module availability, and produces contracts that downstream components
+  can execute without guessing. The guiding rule is simple:
+
+  \begin{quote}
+    \textbf{Downstream components may execute. They may not improvise tenancy.}
+  \end{quote}
+
+% ==============================================================================
+  \subsection{Endpoint taxonomy: contracts, routers, and delegation}
+  The control plane exposes three categories of endpoints:
+
+  \begin{itemize}
+    \item \textbf{Context contracts (identity \& scoping):} \texttt{/v2/me}
+      returns immutable actor identity, effective context (including \viewas{}),
+      and derived scoping signals such as \texttt{schema\_prefix}.
+
+    \item \textbf{Surface description:} \texttt{/v1/openapi.json} returns
+      an OpenAPI document filtered so clients only see endpoints corresponding
+      to enabled modules.
+
+    \item \textbf{Module routers:} \texttt{/v1/horizon/*}, \texttt{/v1/grid/*},
+      and \texttt{/v1/datamap/*} implement module APIs guarded by module
+      availability checks.
+  \end{itemize}
+
+  Critically, some module routers in the control plane act as \emph{delegators}:
+  they forward requests to module-specific Lambda backends (e.g., Horizon
+  and Grid) while injecting derived scoping values. This makes the control
+  plane the only place where tenant scope is \emph{decided}, even when the
+  work is done elsewhere.
+
+% ==============================================================================
+  \subsection{Middleware spine: three decorators that do 80\% of the job}
+  The control plane uses Powertools' REST resolver with a small but
+  decisive middleware chain \cite{aws_powertools}. The order matters:
+
+  \begin{samepage}
+    \begin{lstlisting}[style=python,caption={Middleware chain used by the control plane Lambda. Auth runs first; response shaping and conditional requests run around the handler.},label={lst:cp_decorators}]
+@auth_middleware
+@etag_middleware
+@response_headers_middleware
+@logger.inject_lambda_context(...)
+def lambda_handler(event, context):
+    return app.resolve(event, context)
+\end{lstlisting}
+  \end{samepage}
+
+  \paragraph{Auth middleware (truth injection).}
+  \texttt{auth\_middleware} validates JWTs, derives \texttt{tenant\_id}
+  and role from Cognito groups, computes an explicit allow-list of impersonation
+  targets, and parses/validates the semicolon-delimited \viewas{} header:
+
+  \begin{center}
+    \texttt{X-View-As: tenant\_id=<id>;role=<role>[;mode=<...>]}
+  \end{center}
+
+  If \viewas{} is present, it is validated against \texttt{available\_impersonations}
+  before it is accepted. The middleware then resolves the tenant record
+  and injects \texttt{schema\_prefix} into the request claims.
+
+  This is a deliberate design choice: downstream components should never
+  accept \texttt{schema\_prefix} (or equivalent scoping) from the client.
+  That is the confused-deputy trap.
+
+  \paragraph{Identity derivation: the \texttt{tenant\_id:role}
+  convention.}
+  Cognito user-pool groups follow a strict naming convention: \texttt{tenant\_id:role}
+  (e.g., \texttt{causify:admin}, \texttt{acme:member}). The auth middleware
+  splits each group on \texttt{:}, filters for the requested tenant,
+  extracts the role portion, and selects the highest-precedence role when
+  a user belongs to multiple groups for the same tenant.
+
+  \begin{samepage}
+    \begin{lstlisting}[style=python,caption={Role derivation from Cognito groups: groups follow a \texttt{tenant\_id:role} convention and are resolved by precedence.},label={lst:group_parsing}]
+valid_groups = [g for g in user_groups if ":" in g
+                and g.startswith(f"{tenant_id}:")]
+user_roles = [g.split(":")[1] for g in valid_groups]
+order = ["admin", "member", "demo"]
+user_roles.sort(key=lambda r: order.index(r) if r in order else len(order))
+user_role = user_roles[0]
+\end{lstlisting}
+  \end{samepage}
+
+  This convention is load-bearing: it lets the control plane derive both
+  tenant identity and role from a single JWT claim without an external policy
+  lookup, and it makes the impersonation allow-list computable from the
+  same group list.
+
+  \paragraph{Response headers middleware (hardening + ETag generation).}
+  \texttt{response\_headers\_middleware} adds baseline security headers
+  (\texttt{X-Frame-Options: DENY}, strict CSP, HSTS, etc.) and sets a short
+  caching directive (\texttt{Cache-Control: public, max-age=300}). It also
+  computes an \texttt{ETag} as an MD5 hash over the response body. (The
+  ETag is quoted per HTTP conventions.)
+
+  \paragraph{ETag middleware (cheap revalidation).}
+  \texttt{etag\_middleware} implements conditional requests: when
+  \texttt{If-None-Match} matches the current response body hash, the
+  handler returns \texttt{304 Not Modified} with the same standard headers.
+  This makes the platform's most frequently asked question (``who am I,
+  and what tenant am I in?'') cheap \cite{rfc9110}.
+
+  If the UI asks this endpoint a lot, that's not a bug. That's anxiety. We
+  treat it like a first-class workload.
+
+  \paragraph{Request lifecycle.}
+  Figure~\ref{fig:request_lifecycle} makes the middleware execution
+  order concrete: a request passes through authentication, conditional
+  caching, and response hardening before reaching module routing.
+
+  \begin{figure}[H]
+    \centering
+    \begin{cleanpic}
+      [ mwstep/.style={cbox, align=left, text width=0.82\textwidth, minimum height=10mm},
+      mwinner/.style={cbox, align=left, text width=0.74\textwidth, minimum height=10mm},
+      mwcontainer/.style={draw=cpblue!50, rounded corners=5pt, inner sep=10pt, fill=cpblue!6, minimum width=\dimexpr0.82\textwidth+14pt\relax, drop shadow={shadow xshift=0.6mm, shadow yshift=-0.6mm, opacity=0.3}},
+      ] \node[mwstep, fill=webteal!25, draw=webteal!50] (s1)
+      {\textbf{1. Client} sends request to API Gateway};
+
+      % --- Middleware group (three sections inside one container) ---
+      \node[mwinner, fill=idpyellow!28, draw=idpyellow!55, below=14mm of
+      s1] (mw1)
+      {\textbf{auth\_middleware}: validate JWT, derive tenant/role, parse \viewas{}, validate impersonation, inject \texttt{schema\_prefix}};
+      \node[mwinner, fill=cpblue!25, draw=cpblue!50, below=3mm of mw1] (mw2)
+      {\textbf{etag\_middleware}: check \texttt{If-None-Match}; if match $\rightarrow$ return \texttt{304}};
+      \node[mwinner, fill=cpblue!25, draw=cpblue!50, below=3mm of mw2] (mw3)
+      {\textbf{response\_headers\_middleware}: add security headers (\texttt{X-Frame-Options}, CSP, HSTS), compute \texttt{ETag}};
+      \node[font=\scriptsize\sffamily\bfseries, text=cpblue!80!black, anchor=south
+      west] at ([shift={(2pt,5pt)}]mw1.north west) (mwtitle) {2. Middleware};
+
+      % --- Middleware container on background ---
+      \begin{pgfonlayer}{background}
+        \node[mwcontainer, fit=(mwtitle)(mw1)(mw2)(mw3)] (mwbox) {};
+      \end{pgfonlayer}
+
+      % --- Remaining steps ---
+      \node[mwstep, fill=cpblue!25, draw=cpblue!50, below=14mm of mw3] (s3)
+      {\textbf{3. Router}: match path to handler}; \node[mwstep, fill=dpgreen!25,
+      draw=dpgreen!50, below=4mm of s3] (s4) {\textbf{4. Module Guard}: check module availability for effective context};
+      \node[mwstep, fill=dpgreen!25, draw=dpgreen!50, below=4mm of s4] (s5)
+      {\textbf{5. Delegate} to Module Lambda with injected scope};
+
+      % --- Arrows ---
+      \draw[carrow] (s1) -- (mwbox.north); \draw[carrow] (mw1) -- (mw2);
+      \draw[carrow] (mw2) -- (mw3); \draw[carrow] (mwbox.south) -- (s3);
+      \draw[carrow] (s3) -- (s4); \draw[carrow] (s4) -- (s5);
+    \end{cleanpic}
+    \caption{Request lifecycle through the control plane middleware
+    spine. Auth runs first (truth injection), followed by conditional
+    caching, response hardening, routing, module gating, and delegation.}
+    \label{fig:request_lifecycle}
+  \end{figure}
+
+% ==============================================================================
+  \subsection{Module availability as a first-class primitive}
+  Module availability is computed from tenant configuration stored in
+  DynamoDB \cite{dynamodb_docs}. The function \texttt{get\_available\_modules(tenant\_id,
+  user\_role)} returns:
+
+  \begin{itemize}
+    \item \texttt{modules}: enabled module identifiers (e.g., \texttt{horizon},
+      \texttt{grid}, \texttt{datamap})
+
+    \item \texttt{submodules}: enabled sub-module identifiers and their parent
+      mapping (e.g., \texttt{horizon: supply-chain})
+
+    \item \texttt{module\_layout}: module-specific JSON fragments stored
+      as JSON strings in DynamoDB and parsed server-side (strict parsing;
+      invalid JSON fails fast).
+  \end{itemize}
+
+  This strict parsing matters operationally: configuration that silently
+  half-loads is worse than configuration that fails loudly. Loud failures
+  are debuggable.
+
+% ==============================================================================
+  \subsection{Surface minimization: filtered OpenAPI, not just forbidden
+  endpoints}
+  Most APIs only deny. The control plane also \emph{stops advertising}.
+  The OpenAPI endpoint generates the full schema and then filters it:
+
+  \begin{itemize}
+    \item Always allow \texttt{user} and \texttt{tenant} tags.
+
+    \item Allow module endpoints only when the endpoint tags intersect enabled
+      modules.
+
+    \item Remove unused component schemas after filtering.
+  \end{itemize}
+
+  \begin{samepage}
+    \begin{lstlisting}[style=python,caption={OpenAPI filtering logic: paths are kept if their tags are default-allowed or enabled by module availability.},label={lst:openapi_filter}]
+default_allowed_tags = ["user", "tenant"]
+is_default_allowed = any(tag in default_allowed_tags for tag in operation_tags)
+is_module_allowed  = any(tag in available_modules   for tag in operation_tags)
+if is_default_allowed or is_module_allowed:
+    keep(path, method)
+\end{lstlisting}
+  \end{samepage}
+
+  This reduces surface drift: the platform's published interface becomes
+  a function of tenant capability, not a static document with wishful
+  thinking.
+
+% ==============================================================================
+  \subsection{Module guards: authorization at router boundaries}
+  Module routers are protected by a \texttt{@requires\_module(module)} decorator.
+  The decorator evaluates module availability for the \emph{effective
+  context} (actor or \viewas{}) and raises a forbidden error when a
+  module is not enabled.
+
+  This is intentionally blunt: it is not trying to infer fine-grained permissions.
+  It ensures the coarse-grained capability boundary is enforced
+  everywhere, including at delegating routers.
+
+  While \texttt{@requires\_module} checks the parent module, a tenant may
+  have that module enabled while only some \emph{submodules} are enabled:
+  core product surfaces, optional add-ons, or sub-features rolled out in
+  stages. For a finer gate, routes use
+  \texttt{@requires\_submodule("module/submodule")} (for example
+  \texttt{@requires\_submodule("horizon/cpg")} for CPG submodule APIs under
+  Horizon). The decorator evaluates the effective context against
+  \texttt{get\_available\_modules(tenant\_id, user\_role)}, which returns
+  tenant \texttt{submodules} from DynamoDB together with \texttt{modules};
+  the submodule must be allowed even when the parent module is already on.
+
+  \begin{samepage}
+    \begin{lstlisting}[style=python,caption={Module guard enforces capability boundaries using the effective tenant/role context. Submodule routes add \texttt{@requires\_submodule}.},label={lst:requires_module}]
+@requires_module("horizon")
+def list_kpis(...):
+    return invoke_horizon_lambda("/kpis", query_params)
+
+@requires_module("horizon")
+@requires_submodule("horizon/cpg")
+def list_cpg_connectors(...):
+    return invoke_horizon_lambda("/cpg/connectors", query_params)
+
+\end{lstlisting}
+  \end{samepage}
+
+% ==============================================================================
+  \subsection{Delegation with scope injection: control plane as a tenancy
+  firewall}
+  When module routers delegate to module-specific backends (Horizon/Grid
+  Lambdas), the control plane injects \texttt{schema\_prefix} into query
+  parameters:
+
+  \begin{samepage}
+    \begin{lstlisting}[style=python,caption={Delegation pattern: the control plane injects derived tenant scope into downstream module backends.},label={lst:schema_prefix_injection}]
+claims = get_current_event().get("claims")
+schema_prefix = claims.get("schema_prefix")
+query_params["schema_prefix"] = schema_prefix
+response = invoke_lambda(horizon_lambda_function, path, query_params, method, body)
+\end{lstlisting}
+  \end{samepage}
+
+  This protects against the most common tenant-isolation footgun: a
+  downstream service that trusts client-provided scoping parameters. Here,
+  the client never gets the chance.
+
+  \paragraph{Mechanics: constructing an API Gateway event.}
+  The delegation is not an HTTP call. The control plane constructs an
+  API Gateway--compatible event and invokes the downstream Lambda synchronously
+  via \texttt{boto3}:
+
+  \begin{samepage}
+    \begin{lstlisting}[style=python,caption={Lambda-to-Lambda delegation: the control plane builds an API Gateway--like event with injected scope and invokes the module backend synchronously.},label={lst:lambda_invoke}]
+lambda_event = {
+    "httpMethod": method,
+    "path": path,
+    "queryStringParameters": query_params,  # schema_prefix is here
+    "headers": {"Content-Type": "application/json"},
+    "body": json.dumps(body) if body else None,
+}
+response = boto3.client("lambda").invoke(
+    FunctionName=function_name,
+    InvocationType="RequestResponse",
+    Payload=json.dumps(lambda_event),
+)
+\end{lstlisting}
+  \end{samepage}
+
+  This design means that module backends never need their own API Gateway
+  deployment: they receive the same event shape they would get from a
+  public gateway, but the caller is always the control plane, and the
+  scope is always server-derived. It also keeps the delegation path testable:
+  any event that matches the shape can be used in integration tests
+  without an actual gateway.

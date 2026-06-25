@@ -51,11 +51,15 @@ def _run_render_images(input_file: str) -> str:
     # Create output filename.
     output_file = "tmp.open_md.render_images.md"
     # Run render_images.py.
+    # TODO(ai_gp): Use f-strings.
     cmd = [
         render_images_script,
-        "--input", input_file,
-        "--output", output_file,
-        "--action", "render"
+        "--input",
+        input_file,
+        "--output",
+        output_file,
+        "--action",
+        "render",
     ]
     _LOG.info("Running render_images: %s", " ".join(cmd))
     hsystem.system(" ".join(cmd))
@@ -101,8 +105,7 @@ def _open_file(file_path: str) -> None:
         subprocess.run(["xdg-open", file_path], check=True)
         _LOG.info("Opened file: '%s'", file_path)
     else:
-        _LOG.warning("Cannot open file on unsupported OS: %s",
-                     platform.system())
+        _LOG.warning("Cannot open file on unsupported OS: %s", platform.system())
 
 
 def _find_git_root_for_file(file_path: str) -> str:

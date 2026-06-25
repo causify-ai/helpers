@@ -1,0 +1,106 @@
+% ##############################################################################
+  \section{Safe Impersonation (\viewas): Support Without Chaos}
+  Impersonation is one of those features that operators love and security
+  teams fear. OWASP explicitly calls out account impersonation risks
+  because it can collapse accountability and enable privilege escalation
+  \cite{owasp_impersonation}. We therefore design \viewas{} as a
+  controlled capability with explicit guardrails.
+
+% ==============================================================================
+  \subsection{Actor vs.\ effective context}
+  Every request has:
+  \begin{itemize}
+    \item \textbf{actor}: the authenticated user identity (tenant, role,
+      groups),
+
+    \item \textbf{\viewas}: an optional effective tenant/role used for policy
+      resolution (modules + layout) and downstream scoping.
+  \end{itemize}
+
+  The system returns \texttt{view\_as.view\_as\_self} so the UI can signal
+  when the user is impersonating. This is not cosmetic; it prevents support
+  engineers from accidentally doing ``real'' operations in the wrong workspace.
+
+% ==============================================================================
+  \subsection{Protocol: headers, signing, and session storage}
+  Impersonation is conveyed via a semicolon-delimited header:
+  \begin{center}
+    \texttt{X-View-As: tenant\_id=<id>;role=<role>}
+  \end{center}
+
+  The web tier generates and stores these headers server-side (session) and
+  attaches them to control-plane calls. To add defense-in-depth, the web
+  tier also generates an HMAC signature:
+  \begin{center}
+    \texttt{X-View-As-Sig: HMAC\_SHA256(secret, X-View-As)}
+  \end{center}
+
+  The important operational detail is that the signed headers are stored
+  on the server side of the web tier session. The browser does not hold
+  the secret and does not directly manage impersonation headers.
+
+  \paragraph{Note.}
+  The control plane currently validates \viewas{} using the allow-list; verifying
+  the signature at the API tier is recommended and listed as future work
+  (Section~\ref{sec:futurework}).
+
+% ==============================================================================
+  \subsection{Enforcement: allow-lists, not vibes}
+  The control plane rejects impersonation unless:
+  \begin{itemize}
+    \item \texttt{tenant\_id} exists in \texttt{impersonatable},
+
+    \item \texttt{role} is valid for that tenant entry,
+
+    \item required header keys are present.
+  \end{itemize}
+
+  This prevents users from ``guessing'' a tenant ID and role combination
+  and hoping something accepts it. It also prevents a web tier bug from
+  becoming a permission escalation, because the control plane is the final
+  gate.
+
+% ==============================================================================
+  \subsection{Downstream scoping: tenant-aware context}
+  Once validated, \viewas{} affects:
+  \begin{itemize}
+    \item \textbf{policy resolution:} modules and layout are fetched for
+      effective tenant/role,
+
+    \item \textbf{tenant scoping:} the system resolves a tenant-specific
+      prefix (e.g., schema prefix) from the effective tenant record to
+      scope downstream services and data access.
+  \end{itemize}
+
+  This last part is easy to overlook, but it is where impersonation
+  becomes dangerous if implemented casually: \viewas{} must not only
+  change what the UI shows, it must correctly scope what the backend \emph{touches}.
+
+% ==============================================================================
+  \subsection{Operational UX: visible, reversible, auditable}
+  A safe \viewas{} workflow is more than a header:
+  \begin{itemize}
+    \item \textbf{Visible:} the UI clearly indicates the effective
+      tenant/role.
+
+    \item \textbf{Reversible:} users can return to self with a single
+      action.
+
+    \item \textbf{Auditable:} logs and traces attribute actions to the
+      actor even when operating under \viewas{}.
+  \end{itemize}
+
+  The principle is simple: \viewas{} is a support tool, not a second
+  identity. The actor remains accountable at all times.
+
+% ==============================================================================
+  \subsection{Recommended extensions}
+  We found two extensions particularly useful:
+  \begin{itemize}
+    \item \textbf{Read-only mode:} allow \texttt{X-View-As} to carry an explicit
+      \texttt{mode=read-only} hint (and enforce it server-side) to
+      prevent accidental state changes during support sessions.
+
+    \item \textbf{Signature verification at the API tier:} validate
+      \texttt{X-View-As-Sig} in the control plane for defense-in-depth.
+  \end{itemize}

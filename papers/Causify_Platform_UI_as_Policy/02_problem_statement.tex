@@ -1,0 +1,67 @@
+% ##############################################################################
+  \section{Problem Statement and Motivation}
+  A tenant-aware product must satisfy requirements that are individually
+  straightforward but jointly annoying:
+
+  \begin{itemize}
+    \item \textbf{R1 (Backend correctness):} authorization must be
+      enforced on the server and remain non-bypassable.
+
+    \item \textbf{R2 (UX truthfulness):} the UI should not advertise
+      actions the user cannot perform. (No broken doors.)
+
+    \item \textbf{R3 (Tenant variability):} tenants differ by enabled
+      modules, default views, and configuration. Roles differ within a tenant.
+
+    \item \textbf{R4 (Low operational overhead):} onboarding or changing
+      a tenant should not require code forks or redeploys.
+
+    \item \textbf{R5 (Support at scale):} operators need safe mechanisms
+      to reproduce tenant issues (e.g., impersonation) while preserving
+      auditability.
+  \end{itemize}
+
+  Traditional RBAC can handle coarse role-based access, but often struggles
+  when permissions must vary across tenants and evolve rapidly. ABAC
+  provides a more expressive foundation \cite{nist_abac}, but it does not
+  automatically solve the \emph{UI drift problem}: even a perfectly designed
+  backend policy can still leave the frontend guessing.
+
+  A common alternative is feature flags: ship everything and selectively
+  enable parts \cite{fowler_feature_toggles}. Feature flags help decouple
+  rollout from deployment, but they tend to accumulate into a second
+  configuration universe: one system decides what exists, another
+  decides what is visible, and neither system owns the UX contract.
+
+  \begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{X c c}
+      \toprule
+      \textbf{Capability} & \textbf{Traditional} & \textbf{\uiPolicy{}} \\
+      \midrule
+      Backend enforcement & \cmark & \cmark \\
+      Role-based access & \cmark & \cmark \\
+      Tenant isolation & \cmark & \cmark \\
+      Unified policy & \xmark & \cmark \\
+      Derived UI & \xmark & \cmark \\
+      Auto-sync & \xmark & \cmark \\
+      Module independence & \xmark & \cmark \\
+      Config-only tenants & \xmark & \cmark \\
+      Zero redeploy & \xmark & \cmark \\
+      UI truthfulness & \xmark & \cmark \\
+      \bottomrule
+    \end{tabularx}
+    \caption{Capability comparison: traditional authorization versus \uiPolicy{}.
+    Both approaches provide core security; \uiPolicy{} adds consistency
+    and operational efficiency.}
+    \label{tab:comparison}
+  \end{table}
+
+  \paragraph{Motivation.}
+  We want a system where: (i) tenant/role variability is expressed as data,
+  (ii) the backend can materialize an authoritative view of ``what this
+  user sees'', (iii) the frontend consumes that view to compose navigation
+  and defaults, and (iv) authorization semantics remain consistent
+  across backend and frontend. The motivation is not to make the UI dynamic
+  for its own sake, but to make it \emph{honest}.

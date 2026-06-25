@@ -581,7 +581,11 @@ def _insert_image_code(
     elif extension == ".typ":
         # Use Typst syntax with figure element.
         # For typst, strip leading / from absolute paths to make them relative
-        typst_img_path = rel_img_path.lstrip("/") if rel_img_path.startswith("/") else rel_img_path
+        typst_img_path = (
+            rel_img_path.lstrip("/")
+            if rel_img_path.startswith("/")
+            else rel_img_path
+        )
         out_lines.append("#figure(")
         out_lines.append(f'  image("{typst_img_path}"),')
         if caption:

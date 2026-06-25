@@ -1,0 +1,142 @@
+ \section{Limitations and Future Work}
+  \label{sec:futurework} The control-plane/data-plane split buys clarity,
+  but it does not buy immortality. It changes where complexity lives:
+  less in scattered services, more in contracts, schemas, and governance
+  tooling. This section names the sharp edges and where we intend to
+  sand them down.
+
+% ==============================================================================
+  \subsection{Contract evolution and versioning}
+  Today, \texttt{/v2/me} is a stable contract that the web tier depends
+  on heavily. As the platform grows, we must avoid two failure modes:
+  \begin{itemize}
+    \item \textbf{Contract drift:} clients assume fields that are no
+      longer correct.
+
+    \item \textbf{Contract explosion:} every new feature invents a new "me-like"
+      endpoint.
+  \end{itemize}
+  Future work includes explicit contract versioning (beyond path
+  versioning), schema documentation, and compatibility tests that run in
+  CI against representative tenant/role contexts.
+
+% ==============================================================================
+  \subsection{Cache correctness: cheap revalidation without accidental sharing}
+  Conditional requests (ETag/\texttt{If-None-Match}) make \texttt{/v2/me}
+  cheaper \cite{rfc9110}. However, multi-tenant systems must treat caching
+  as a correctness topic, not a performance topic. Future work includes:
+  \begin{itemize}
+    \item tightening cache directives where shared intermediaries exist,
+
+    \item adding a policy version field so caches can be invalidated deterministically,
+
+    \item and building explicit "cache safety tests" that ensure responses
+      are not reusable across principals.
+  \end{itemize}
+
+% ==============================================================================
+  \subsection{Stronger scope propagation: beyond \texttt{schema\_prefix}}
+  Today, \texttt{schema\_prefix} is an effective scoping signal because it
+  is derived from authenticated context and injected downstream. The
+  limitation is that it is \emph{conventional}: downstream code must
+  continue to respect it. Future work includes stronger propagation mechanisms:
+  \begin{itemize}
+    \item cryptographically signed scope tokens validated by module backends,
+
+    \item and/or a standardized "tenant context envelope" passed through
+      every hop (web tier $\rightarrow$ control plane $\rightarrow$
+      module $\rightarrow$ database).
+  \end{itemize}
+  The goal is not to add ceremony; it is to make tenant confusion mechanically
+  difficult.
+
+% ==============================================================================
+  \subsection{Policy authoring: humans deserve better than raw JSON}
+  When policy is data, authoring experience becomes a production
+  dependency. Strict parsing is good, but future work should include:
+  \begin{itemize}
+    \item versioned JSON schemas and offline validation tools,
+
+    \item a review workflow with diffs and previews for tenant/module changes,
+
+    \item and a "staged rollout" mechanism so policy changes can be deployed
+      gradually.
+  \end{itemize}
+  This keeps governance flexible without making it fragile.
+
+% ==============================================================================
+  \subsection{OpenAPI filtering: keeping surface minimization provable}
+  Filtering OpenAPI reduces surface drift, but it introduces its own
+  correctness obligation: the filtered spec must match runtime behavior.
+  Future work includes:
+  \begin{itemize}
+    \item automated spec-vs-runtime consistency checks,
+
+    \item a test harness that enumerates enabled modules and asserts that
+      endpoints are both (i) present in the filtered spec and (ii) callable
+      when authorized,
+
+    \item and explicit "module tag" governance so tag mistakes cannot leak
+      endpoints.
+  \end{itemize}
+
+% ==============================================================================
+  \subsection{Airflow \& batch execution: toward a first-class job contract}
+  Airflow and ECS/Fargate provide a pragmatic batch substrate, but jobs currently
+  encode scope as parameters (env/args). Future work includes a first-class
+  "job intent" contract emitted by the control plane:
+  \begin{itemize}
+    \item a structured payload that includes tenant scope, job identity,
+      and trace context,
+
+    \item consistent retry semantics and failure classification,
+
+    \item and standardized audit logs that tie job execution back to actor/effective
+      context.
+  \end{itemize}
+  This would make batch execution a citizen of the governance model, not
+  a tolerated exception.
+
+% ==============================================================================
+  \subsection{Multi-region control plane strategy}
+  The platform already runs in multiple regions for resilience (as operational
+  reality demands). Future work includes making the control plane explicitly
+  region-aware:
+  \begin{itemize}
+    \item routing strategy for the web tier,
+
+    \item failure-mode playbooks (what happens when a region is
+      unhealthy),
+
+    \item and tested procedures for policy/config replication where necessary.
+  \end{itemize}
+
+  In summary: the core pattern holds, but the tooling around it must mature.
+  A thin control plane stays thin only if we refuse to turn it into a
+  dumping ground.
+
+  \bgroup\renewcommand{\addcontentsline}[3]{}\section*{Key Takeaways}\egroup
+  \begin{itemize}
+    \item \textbf{Make tenancy explicit everywhere.} Treat tenant
+      context as a first-class artifact: keep \emph{actor} identity
+      immutable, represent \emph{effective} context explicitly, and refuse
+      to let downstream systems guess.
+
+    \item \textbf{Decide at the edge, execute in the fabric.} A thin
+      serverless control plane is a governance engine: it authenticates,
+      derives scope, materializes contracts, and minimizes surface. The container
+      data plane should do what it does best: run workloads.
+
+    \item \textbf{Scope injection beats scope suggestion.} Derive
+      scoping signals (e.g., \texttt{schema\_prefix}) from authenticated
+      context and inject them into delegated calls and jobs. This is the
+      practical antidote to confused-deputy failures.
+
+    \item \textbf{Stop advertising what you will deny.} Filter OpenAPI
+      and gate routers by enabled modules so clients do not discover
+      endpoints that should not exist for their context.
+
+    \item \textbf{Make "who am I?" cheap enough to ask often.} Use ETags
+      and conditional requests for high-frequency context contracts. In multi-tenant
+      systems, correctness plus caching is not an optimization; it is stability.
+  \end{itemize}

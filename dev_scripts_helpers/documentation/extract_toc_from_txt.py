@@ -217,8 +217,13 @@ def _extract_headers_from_markdown(
         lines, max_level=extract_level, sanity_check=sanity_check
     )
     _extract_and_write_headers(
-        input_file_name, header_list, mode, out_file_name, warn_on_malformed,
-        count_slides=count_slides, max_level=max_level
+        input_file_name,
+        header_list,
+        mode,
+        out_file_name,
+        warn_on_malformed,
+        count_slides=count_slides,
+        max_level=max_level,
     )
 
 
@@ -260,8 +265,13 @@ def _extract_headers_from_latex(
         lines, max_level=extract_level, sanity_check=sanity_check
     )
     _extract_and_write_headers(
-        input_file_name, header_list, mode, out_file_name, warn_on_malformed,
-        count_slides=count_slides, max_level=max_level
+        input_file_name,
+        header_list,
+        mode,
+        out_file_name,
+        warn_on_malformed,
+        count_slides=count_slides,
+        max_level=max_level,
     )
 
 
@@ -306,8 +316,13 @@ def _extract_headers_from_txtslides(
         lines, max_level=extract_level, sanity_check=sanity_check
     )
     _extract_and_write_headers(
-        input_file_name, header_list, mode, out_file_name, warn_on_malformed,
-        count_slides=count_slides, max_level=max_level
+        input_file_name,
+        header_list,
+        mode,
+        out_file_name,
+        warn_on_malformed,
+        count_slides=count_slides,
+        max_level=max_level,
     )
 
 
@@ -367,8 +382,13 @@ def _extract_headers_from_notebook(
         markdown_lines, max_level=extract_level, sanity_check=sanity_check
     )
     _extract_and_write_headers(
-        input_file_name, header_list, mode, out_file_name, warn_on_malformed,
-        count_slides=count_slides, max_level=max_level
+        input_file_name,
+        header_list,
+        mode,
+        out_file_name,
+        warn_on_malformed,
+        count_slides=count_slides,
+        max_level=max_level,
     )
 
 
