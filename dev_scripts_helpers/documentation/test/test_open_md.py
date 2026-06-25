@@ -10,6 +10,8 @@ import helpers.hunit_test as hunitest
 # #############################################################################
 
 
+# TODO(ai_gp): Rename the tests.
+# TODO(ai_gp): Factor out common code.
 class Test_convert_ssh_to_https(hunitest.TestCase):
     """
     Test SSH to HTTPS URL conversion.
@@ -81,19 +83,9 @@ class Test_convert_ssh_to_https(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_find_git_root_for_file(hunitest.TestCase):
-    """
-    Test finding git root for a file, handling subrepos.
-    """
-
-    def test_find_git_root_in_main_repo(self) -> None:
-        """Test finding git root for file in main repo."""
-=======
-# #############################################################################
-# Test_find_git_root_for_file
-# #############################################################################
-
-
+# TODO(ai_gp): Rename the tests.
+# TODO(ai_gp): Factor out common code.
+# TODO(ai_gp): Is _find_git_root_for_file general?
 class Test_find_git_root_for_file(hunitest.TestCase):
     """
     Test finding git root for a file, handling subrepos.
@@ -103,7 +95,7 @@ class Test_find_git_root_for_file(hunitest.TestCase):
         """
         Test finding git root for file in main repo.
         """
->>>>>>> master
+        # TODO(ai_gp): Use self.get_scratch_space()
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a git repo.
             git_root = tmpdir

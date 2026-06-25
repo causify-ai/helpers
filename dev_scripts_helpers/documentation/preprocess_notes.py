@@ -209,6 +209,10 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
     return result
 
 
+# #############################################################################
+# Process title slide.
+# #############################################################################
+
 def _extract_slide_metadata(
     lines: List[str],
 ) -> Tuple[Dict[str, str], List[str]]:
@@ -237,8 +241,9 @@ def _extract_slide_metadata(
     return metadata, lines[i:]
 
 
+# TODO(ai_gp): Move this to the umd_repo.
 def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
-    """
+    r"""
     Generate LaTeX title slide from metadata.
 
     Creates a pandoc Div-based title slide using `\vspace`, `\begingroup`,
@@ -249,11 +254,10 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
     """
     course_title = metadata.get("course_title", "")
     lesson_title = metadata.get("lesson_title", "")
-    # Determine logo path based on course title
+    # Determine logo path based on course title.
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
         logo_path = "data605/lectures_source/figures/UMD_Logo.png"
-
     lines = [
         "::: columns",
         ":::: {.column width=15%}",
@@ -292,6 +296,7 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
     return lines
 
 
+# TODO(ai_gp): Move this to the umd_repo.
 def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     """
     Generate Typst title slide from metadata.
@@ -307,7 +312,6 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
         logo_path = "data605/lectures_source/figures/UMD_Logo.png"
-
     lines = [
         "#grid(",
         "  columns: (15%, 75%),",
@@ -347,13 +351,17 @@ def _generate_title_slide(
     :param output_format: 'latex' or 'typst'
     :return: list of lines forming the title slide
     """
+    hdbg.dassert_in(output_format, ("latex", "typst"))
     if output_format == "latex":
-        return _generate_title_slide_latex(metadata)
+        txt = _generate_title_slide_latex(metadata)
     elif output_format == "typst":
-        return _generate_title_slide_typst(metadata)
+        txt = _generate_title_slide_typst(metadata)
     else:
-        _LOG.warning(f"Unknown output format: {output_format}, skipping title slide")
-        return []
+        raise ValueError(f"Invalid output_format='{output_format}'")
+    return txt
+
+
+# #############################################################################
 
 
 def _expand_includes(lines: List[str]) -> List[str]:
