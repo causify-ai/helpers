@@ -76,23 +76,18 @@ _MD_COLORS_TYPST_MAPPING = {
 }
 
 
-# TODO(ai_gp): Merge the following two functions and Pass output_format: str "latex" or
-def get_md_colors_latex_mapping() -> Dict[str, str]:
+def get_md_colors_mapping(output_format: str) -> Dict[str, str]:
     """
-    Get a copy of the markdown-to-LaTeX color mapping.
+    Get a copy of the markdown color mapping for the specified output format.
 
-    :return: Dict mapping color names (e.g., 'red', 'blue') to LaTeX color names
+    :param output_format: "latex" (default) or "typst"
+    :return: Dict mapping color names (e.g., 'red', 'blue') to output format color names
     """
-    return dict(_MD_COLORS_LATEX_MAPPING)
-
-
-def get_md_colors_typst_mapping() -> Dict[str, str]:
-    """
-    Get a copy of the markdown-to-Typst color mapping.
-
-    :return: Dict mapping color names (e.g., 'red', 'blue') to Typst color expressions
-    """
-    return dict(_MD_COLORS_TYPST_MAPPING)
+    hdbg.dassert_in(output_format, ("latex", "typst"))
+    if output_format == "latex":
+        return dict(_MD_COLORS_LATEX_MAPPING)
+    else:
+        return dict(_MD_COLORS_TYPST_MAPPING)
 
 
 # Curated list of colors that are visually distinguishable and work well in
@@ -139,21 +134,25 @@ def process_color_commands(in_line: str, output_format: str) -> str:
     - `\red{abc}` -> `\textcolor{red}{\text{abc}}`
     - `\blue{x + y}` -> `\textcolor{blue}{x + y}`
 
-    For Typst output, uses `#text(fill: color, content)` syntax.
+    For Typst output, uses `#text(fill: color)[content]` syntax.
     E.g. (Typst):
-    - `\red{abc}` -> `#text(fill: red, abc)`
-    - `\blue{x + y}` -> `#text(fill: blue, x + y)`
+    - `\red{abc}` -> `#text(fill: red)[abc]`
+    - `\blue{x + y}` -> `#text(fill: blue)[x + y]`
+
+    Note: For typst output, color commands inside math delimiters ($...$) are
+    not processed, as typst syntax is incompatible with LaTeX math mode.
 
     :param in_line: input line to process
     :param output_format: "latex" (default) or "typst"
     :return: line with color commands transformed
     """
     hdbg.dassert_in(output_format, ("latex", "typst"))
-    color_mapping = (
-        get_md_colors_latex_mapping()
-        if output_format == "latex"
-        else get_md_colors_typst_mapping()
-    )
+    # For typst output, skip processing \red{} commands if line contains math
+    # delimiters to avoid inserting typst syntax inside LaTeX math mode (which
+    # pandoc can't parse).
+    if output_format == "typst" and ("$" in in_line or "$$" in in_line):
+        return in_line
+    color_mapping = get_md_colors_mapping(output_format)
     for md_color, output_color in color_mapping.items():
         # This regex matches color commands like \red{content}, \blue{content},
         # etc.
@@ -181,7 +180,7 @@ def process_color_commands(in_line: str, output_format: str) -> str:
                 else:
                     ret = rf"\textcolor{{{output_color}}}{{\text{{{content}}}}}"
             else:  # typst
-                ret = rf"#text(fill: {output_color}, {content})"
+                ret = rf"#text(fill: {output_color}, weight: \"bold\")[{content}]"
             return ret
 
         # Replace the color command with the output-format-specific color command.
@@ -200,7 +199,8 @@ def has_color_command(text: str) -> bool:
     """
     hdbg.dassert_isinstance(text, str)
     # hdbg.dassert_not_in("\n", line)
-    for color in _MD_COLORS_LATEX_MAPPING.keys():
+    latex_mapping = get_md_colors_mapping("latex")
+    for color in latex_mapping.keys():
         # This regex matches LaTeX color commands like \red{content},
         # \blue{content}, etc.
         pattern = re.compile(
@@ -221,12 +221,11 @@ def has_color_command(text: str) -> bool:
 # TODO(gp): Use hmarkdown.process_lines() and test it.
 def colorize_bullet_points_in_slide(
     txt: str,
+    output_format: str,
     *,
     use_abbreviations: bool = True,
     interpolate_colors: bool = False,
     all_md_colors: Optional[List[str]] = None,
-    # TODO(ai_gp): Make this mandatory.
-    output_format: str = "latex",
 ) -> str:
     r"""
     Colorize bold markdown items `**text**` with color commands.
@@ -238,15 +237,15 @@ def colorize_bullet_points_in_slide(
     For LaTeX output (default), emits `**\red{text}**` or
     `**\textcolor{red}{text}**` depending on use_abbreviations.
 
-    For Typst output, emits `**#red[text]**` (abbreviated, if supported by
-    template) or `**#text(fill: red, text)**` (full).
+    For Typst output, emits `#red[text]` (abbreviated, if supported by
+    template) or `#text(fill: red)[text]` (full).
 
     :param txt: Markdown text containing bold items to colorize
     :param use_abbreviations:
         - If True, use abbreviated color syntax (e.g., `\red{foo}` for LaTeX,
           `#red[foo]` for Typst)
         - If False, use full syntax (e.g., `\textcolor{red}{foo}` for LaTeX,
-          `#text(fill: red, foo)` for Typst)
+          `#text(fill: red)[foo]` for Typst)
     :param interpolate_colors:
         - If True, evenly space selected colors across all bold items
         - If False, use a predefined sequence for common counts (1-4 items get
@@ -325,12 +324,13 @@ def colorize_bullet_points_in_slide(
             color_to_use = colors[color_idx]
             color_idx += 1
             if output_format == "latex":
+                latex_mapping = get_md_colors_mapping("latex")
                 hdbg.dassert_in(
                     color_to_use,
-                    get_md_colors_latex_mapping(),
+                    latex_mapping,
                     "Selected color is not in the LaTeX color mapping",
                 )
-                latex_color = get_md_colors_latex_mapping()[color_to_use]
+                latex_color = latex_mapping[color_to_use]
                 # LaTeX requires escaping underscores and ampersands.
                 escaped_text = text.replace("_", "\\_").replace("&", "\\&")
                 if use_abbreviations:
@@ -338,19 +338,21 @@ def colorize_bullet_points_in_slide(
                 else:
                     ret = f"**\\textcolor{{{latex_color}}}{{{escaped_text}}}**"
             else:  # typst
+                typst_mapping = get_md_colors_mapping("typst")
                 hdbg.dassert_in(
                     color_to_use,
-                    get_md_colors_typst_mapping(),
+                    typst_mapping,
                     "Selected color is not in the Typst color mapping",
                 )
-                typst_color = get_md_colors_typst_mapping()[color_to_use]
+                typst_color = typst_mapping[color_to_use]
                 # Typst: no escaping needed for underscores/ampersands in text mode.
                 if use_abbreviations:
                     # Abbreviated: #colorname[text]
                     ret = f"**#{color_to_use}[{text}]**"
                 else:
-                    # Full: #text(fill: color, text)
-                    ret = f"**#text(fill: {typst_color}, {text})**"
+                    # Full: #text(fill: color)[text]
+                    ret = f"#text(fill: {typst_color}, weight: \"bold\")[{text}]"
+                    ret = "`" + ret + "`{=typst}"
             return ret
 
         line = re.sub(r"\*\*([^*]+)\*\*", color_replacer, line)

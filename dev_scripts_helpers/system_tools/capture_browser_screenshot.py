@@ -101,12 +101,7 @@ def _run_in_browser(
     """
     hdbg.dassert_ne(url, "", "URL cannot be empty")
     hdbg.dassert_ne(output_file, "", "Output file path cannot be empty")
-    # TODO(ai_gp): dassert_lte
-    hdbg.dassert(
-        delay_seconds >= 0,
-        "Delay must be non-negative: %d",
-        delay_seconds,
-    )
+    hdbg.dassert_lte(0, delay_seconds)
     hdbg.dassert(
         window_width > 0,
         "Window width must be positive: %d",
@@ -123,10 +118,8 @@ def _run_in_browser(
         f"Browser must be one of {SUPPORTED_BROWSERS}, got: %s",
         browser,
     )
-
     browser = browser.lower()
     _LOG.info("Opening %s and navigating to '%s'", browser.capitalize(), url)
-
     # Open browser and navigate to URL based on browser type.
     apple_script: str
     if browser == "safari":
@@ -137,7 +130,8 @@ def _run_in_browser(
             set URL of w to "{url}"
         end tell
         """
-    else:  # browser == "chrome"
+    else:
+        # browser == "chrome"
         apple_script = f"""
         tell application "Google Chrome"
             activate
@@ -146,7 +140,6 @@ def _run_in_browser(
         end tell
         """
     subprocess.run(["osascript", "-e", apple_script])
-
     # Resize browser window to specified dimensions.
     _LOG.debug("Resizing window to %dx%d", window_width, window_height)
     resize_script: str
@@ -165,7 +158,6 @@ def _run_in_browser(
         end tell
         """
     subprocess.run(["osascript", "-e", resize_script])
-
     _LOG.debug("Waiting '%d' seconds for page load", delay_seconds)
     time.sleep(delay_seconds)
     _LOG.info("Capturing screenshot and saving to '%s'", output_file)
@@ -211,7 +203,6 @@ def _run_in_browser(
             )
     subprocess.run(screenshot_cmd + [output_file])
     _LOG.info("Screenshot saved to '%s'", output_file)
-
     # Close browser window if requested.
     if close_browser:
         _LOG.debug("Closing %s window", browser.capitalize())

@@ -217,6 +217,8 @@ def run_dockerized_typst(
         f"typst compile {root_opt}{cmd_opts_as_str} "
         f"{in_file_path} {out_file_path}"
     )
+    # TODO(gp): Not sure if it is automatically done.
+    _LOG.debug("> %s", typst_cmd)
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,

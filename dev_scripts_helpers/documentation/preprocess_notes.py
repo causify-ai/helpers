@@ -377,6 +377,7 @@ def _transform_lines(
     lines: List[str],
     type_: str,
     is_qa: bool,
+    output_format: str,
     *,
     actions: Optional[List[str]] = None,
 ) -> List[str]:
@@ -387,6 +388,7 @@ def _transform_lines(
     :param type_: type of output to generate (e.g., `pdf`, `html`, `slides`)
     :param is_qa: True if the input is a QA file
     :param actions: optional list of actions to perform
+    :param output_format: output format for color commands (latex or typst)
     :return: list of processed lines
     """
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
@@ -412,6 +414,8 @@ def _transform_lines(
     in_skip_block = False
     # True inside a code block.
     in_code_block = False
+    # True inside a math block ($$...$$).
+    in_math_block = False
     for i, line in enumerate(lines):
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
@@ -459,10 +463,17 @@ def _transform_lines(
         # Update code block status based on triple backticks.
         if line.startswith("```"):
             in_code_block = not in_code_block
-        # 7) Process color commands.
+        # Update math block status based on $$.
+        if "$$" in line:
+            in_math_block = not in_math_block
+        # 7) Process color commands (skip if inside math block or inline math).
         if _TRACE:
             _LOG.debug("# Process color commands.")
-        line = hmarkdo.process_color_commands(line)
+        # Skip color processing inside math blocks: color syntax doesn't work
+        # in math mode.
+        # Use the specified output format (latex or typst) for non-math content.
+        if not in_math_block:
+            line = hmarkdo.process_color_commands(line, output_format=output_format)
         # 7) Process question.
         if _TRACE:
             _LOG.debug("# Process question.")
@@ -540,7 +551,7 @@ def _transform_lines(
             if not hmarkdo.has_color_command(slide_text_str):
                 try:
                     text_out = hmarkdo.colorize_bullet_points_in_slide(
-                        slide_text_str, use_abbreviations=False
+                        slide_text_str, output_format, use_abbreviations=False
                     )
                 except AssertionError as e:
                     context = (
@@ -610,6 +621,7 @@ def _preprocess_lines(
     type_: str,
     toc_type: str,
     is_qa: bool,
+    output_format: str,
     *,
     actions: Optional[List[str]] = None,
 ) -> List[str]:
@@ -621,11 +633,12 @@ def _preprocess_lines(
     :param toc_type: type of table of contents to add
     :param is_qa: True if the input is a QA file
     :param actions: optional list of actions to perform
+    :param output_format: output format for color commands (latex or typst)
     :return: list of preprocessed lines
     """
     hdbg.dassert_isinstance(lines, list)
     # Apply transformations.
-    out = _transform_lines(lines, type_, is_qa=is_qa, actions=actions)
+    out = _transform_lines(lines, type_, is_qa, output_format, actions=actions)
     # Add TOC, if needed.
     if toc_type == "navigation":
         hdbg.dassert_eq(type_, "slides")
@@ -709,6 +722,13 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--qa", action="store_true", default=False, help="The input file is QA"
     )
+    parser.add_argument(
+        "--output_format",
+        action="store",
+        default="latex",
+        choices=["latex", "typst"],
+        help="Output format for color commands (latex or typst)",
+    )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -737,6 +757,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.type,
         args.toc_type,
         args.qa,
+        args.output_format,
         actions=actions,
     )
     out = "\n".join(out)

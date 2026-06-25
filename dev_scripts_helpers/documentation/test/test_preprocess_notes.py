@@ -226,7 +226,11 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
             txt_in_lines, remove_lead_trail_empty_lines_=True
         )
         # Run test.
-        actual = dshdprno._transform_lines(txt_in_lines, type_, is_qa=False)
+        is_qa = False
+        markup_type = "latex"
+        actual = dshdprno._transform_lines(
+            txt_in_lines, type_, is_qa, markup_type
+        )
         actual = "\n".join(actual)
         # Check outputs.
         expected = hprint.dedent(
@@ -599,7 +603,11 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         # Execute function.
         type_ = "pdf"
-        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        is_qa = False
+        markup_type = "latex"
+        actual = dshdprno._transform_lines(
+            txt_in, type_, is_qa, markup_type
+        )
         actual = "\n".join(actual)
         # Check.
         expected = r"""
@@ -746,7 +754,11 @@ class Test_preprocess_notes_remove_headers1(hunitest.TestCase):
         # Execute function.
         type_ = "pdf"
         toc_type = "remove_headers"
-        actual = dshdprno._preprocess_lines(txt_in, type_, toc_type, is_qa=False)
+        is_qa = False
+        markup_type = "latex"
+        actual = dshdprno._preprocess_lines(
+            txt_in, type_, toc_type, is_qa, markup_type
+        )
         actual = "\n".join(actual)
         # Check.
         self.check_string(actual)
@@ -1434,7 +1446,9 @@ class Test_transform_lines_slides(hunitest.TestCase):
         :param actions: optional actions to perform
         """
         # Run test.
-        actual = dshdprno._transform_lines(lines, type_, is_qa, actions=actions)
+        actual = dshdprno._transform_lines(
+            lines, type_, is_qa, "latex", actions=actions
+        )
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -1528,7 +1542,10 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         :param expected_contains: string that output should contain
         """
         # Run test.
-        actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+        markup_type = "latex"
+        actual = dshdprno._preprocess_lines(
+            lines, type_, toc_type, is_qa, markup_type
+        )
         # Check outputs.
         self.assertIn(expected_contains, "\n".join(actual))
 
@@ -1565,8 +1582,11 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         type_ = "pdf"
         toc_type = "remove_headers"
         is_qa = False
+        markup_type = "latex"
         # Run test.
-        actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+        actual = dshdprno._preprocess_lines(
+            lines, type_, toc_type, is_qa, markup_type
+        )
         actual_str = "\n".join(actual)
         # Check outputs.
         expected_dict = {
@@ -1605,7 +1625,10 @@ class Test_transform_lines_qa(hunitest.TestCase):
         :param expected: expected output lines
         """
         # Run test.
-        actual = dshdprno._transform_lines(lines, type_, is_qa)
+        markup_type = "latex"
+        actual = dshdprno._transform_lines(
+            lines, type_, is_qa, markup_type
+        )
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -1714,7 +1737,10 @@ class Test_transform_lines_actions(hunitest.TestCase):
         :param expected: expected output lines
         :param actions: optional actions to perform
         """
-        actual = dshdprno._transform_lines(lines, type_, is_qa, actions=actions)
+        markup_type = "latex"
+        actual = dshdprno._transform_lines(
+            lines, type_, is_qa, markup_type, actions=actions
+        )
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -1788,8 +1814,11 @@ class Test_preprocess_lines_navigation(hunitest.TestCase):
         type_ = "slides"
         toc_type = "navigation"
         is_qa = False
+        markup_type = "latex"
         # Run test.
-        actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+        actual = dshdprno._preprocess_lines(
+            lines, type_, toc_type, is_qa, markup_type
+        )
         # Check outputs.
         self.assertGreaterEqual(len(actual), len(lines))
 

@@ -21,7 +21,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai_gp): /factor_common_code
 class Test_normalize_for_fuzzy_matching(hunitest.TestCase):
     """
     Test `_normalize_for_fuzzy_matching()` for normalization of model names for

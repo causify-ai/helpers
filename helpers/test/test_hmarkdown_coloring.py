@@ -100,11 +100,14 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         :param all_md_colors: Optional list of colors to cycle through
         """
         # Run test.
+        output_format = "latex"
         if all_md_colors is None:
-            actual = hmarkdo.colorize_bullet_points_in_slide(text)
+            actual = hmarkdo.colorize_bullet_points_in_slide(
+                text, output_format
+            )
         else:
             actual = hmarkdo.colorize_bullet_points_in_slide(
-                text, all_md_colors=all_md_colors
+                text, output_format, all_md_colors=all_md_colors
             )
         # Check outputs.
         self.assert_equal(actual, expected)
@@ -353,14 +356,14 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         if all_md_colors is None:
             actual = hmarkdo.colorize_bullet_points_in_slide(
                 text,
+                output_format,
                 use_abbreviations=use_abbreviations,
-                output_format=output_format,
             )
         else:
             actual = hmarkdo.colorize_bullet_points_in_slide(
                 text,
+                output_format,
                 use_abbreviations=use_abbreviations,
-                output_format=output_format,
                 all_md_colors=all_md_colors,
             )
         # Check outputs.

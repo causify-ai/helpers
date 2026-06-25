@@ -111,13 +111,16 @@ def _cleanup_before(prefix: str) -> None:
 
 
 def _preprocess_notes(
-    file_name: str, prefix: str, type_: str, toc_type: str
+    file_name: str, prefix: str, type_: str, toc_type: str, output_format: str
 ) -> str:
     """
     Pre-process the file.
 
     :param file_name: The input file to be processed
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :param type_: Type of output to generate
+    :param toc_type: Type of table of contents to add
+    :param output_format: Output format for color commands (latex or typst)
     :return: The path to the processed file
     """
     exec_file = hgit.find_file("preprocess_notes.py")
@@ -126,6 +129,7 @@ def _preprocess_notes(
     cmd = (
         f"{exec_file} --input {file1} --output {file2}"
         + f" --type {type_} --toc_type {toc_type}"
+        + f" --output_format {output_format}"
     )
     _ = _system(cmd)
     file_name = file2
@@ -196,6 +200,7 @@ def _run_pandoc_to_pdf(
     dockerized_use_sudo: bool,
     *,
     tex_only: bool = False,
+    fail_on_warnings: bool = True,
 ) -> str:
     """
     Convert the input file to PDF using Pandoc.
@@ -216,7 +221,11 @@ def _run_pandoc_to_pdf(
     # - Run pandoc.
     cmd = []
     cmd.append(f"pandoc {file1}")
-    cmd.extend(_COMMON_PANDOC_OPTS[:])
+    common_opts = _COMMON_PANDOC_OPTS[:]
+    # Conditionally add --fail-if-warnings
+    if not fail_on_warnings and "--fail-if-warnings" in common_opts:
+        common_opts.remove("--fail-if-warnings")
+    cmd.extend(common_opts)
     #
     cmd.append("-t latex")
     #
@@ -305,17 +314,24 @@ def _run_pandoc_to_html(
     file_in: str,
     prefix: str,
     toc_type: str,
+    *,
+    fail_on_warnings: bool = True,
 ) -> str:
     """
     Convert the input file to HTML using Pandoc.
 
     :param file_in: The input file to be converted
     :param prefix: The prefix used for the output file
+    :param fail_on_warnings: Fail if pandoc emits warnings
     :return: The path to the generated HTML file
     """
     cmd = []
     cmd.append(f"pandoc {file_in}")
-    cmd.extend(_COMMON_PANDOC_OPTS[:])
+    common_opts = _COMMON_PANDOC_OPTS[:]
+    # Conditionally add --fail-if-warnings
+    if not fail_on_warnings and "--fail-if-warnings" in common_opts:
+        common_opts.remove("--fail-if-warnings")
+    cmd.extend(common_opts)
     cmd.append("-t html")
     cmd.append(f"--metadata pagetitle='{os.path.basename(file_in)}'")
     #
@@ -341,6 +357,7 @@ def _build_pandoc_cmd(
     dockerized_use_sudo: bool,
     *,
     use_tex: bool = False,
+    fail_on_warnings: bool = True,
 ) -> Tuple[str, str]:
     cmd = []
     cmd.append(f"pandoc {file_name}")
@@ -351,7 +368,8 @@ def _build_pandoc_cmd(
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
     # cmd.append("--pdf-engine=xelatex")
-    cmd.append("--fail-if-warnings")
+    if fail_on_warnings:
+        cmd.append("--fail-if-warnings")
     # Needed since:
     # ![](tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png)
     # which is then saved in
@@ -396,6 +414,7 @@ def _run_pandoc_to_slides(
     *,
     debug: bool = False,
     tex_only: bool = False,
+    fail_on_warnings: bool = True,
 ) -> str:
     """
     Convert the input file to PDF slides using Pandoc.
@@ -411,6 +430,7 @@ def _run_pandoc_to_slides(
         dockerized_force_rebuild,
         dockerized_use_sudo,
         use_tex=tex_only,
+        fail_on_warnings=fail_on_warnings,
     )
     rc, txt = _system_to_string(cmd, abort_on_error=False)
     # We want to print to screen.
@@ -434,6 +454,7 @@ def _run_pandoc_to_slides(
                 dockerized_force_rebuild,
                 dockerized_use_sudo,
                 use_tex=True,
+                fail_on_warnings=fail_on_warnings,
             )
 
             _system(cmd, abort_on_error=False)
@@ -467,6 +488,7 @@ def _run_pandoc_to_typst_slides(
     dockerized_use_sudo: bool,
     *,
     typst_only: bool = False,
+    fail_on_warnings: bool = True,
 ) -> str:
     """
     Convert the input file to PDF slides using Pandoc + Typst/Touying.
@@ -491,7 +513,8 @@ def _run_pandoc_to_typst_slides(
     cmd.append("--number-sections")
     cmd.append("-s")
     cmd.append("-t typst")
-    cmd.append("--fail-if-warnings")
+    if fail_on_warnings:
+        cmd.append("--fail-if-warnings")
     template = f"{curr_path}/pandoc_touying.typ"
     hdbg.dassert_path_exists(template)
     cmd.append(f"--template {template}")
@@ -576,6 +599,7 @@ def _run_pandoc_to_typst_slides(
     pdf_file = typ_file.replace(".typ", ".pdf")
     if use_host_tools:
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
+        _LOG.info("cmd=%s", cmd)
         _ = _system(cmd)
     else:
         dshdlity.run_dockerized_typst(
@@ -771,8 +795,9 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
+        output_format = "typst" if args.slides_engine == "typst" else "latex"
         file_name = _preprocess_notes(
-            file_name, prefix, args.type, args.toc_type
+            file_name, prefix, args.type, args.toc_type, output_format
         )
     # - Render_images
     action = "render_images"
@@ -795,12 +820,14 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.dockerized_force_rebuild,
                 args.dockerized_use_sudo,
                 tex_only=args.tex_only,
+                fail_on_warnings=not args.no_fail_on_warnings,
             )
         elif args.type == "html":
             file_out = _run_pandoc_to_html(
                 file_name,
                 prefix,
                 args.toc_type,
+                fail_on_warnings=not args.no_fail_on_warnings,
             )
         elif args.type == "slides":
             if args.slides_engine == "typst":
@@ -811,6 +838,7 @@ def _run_all(args: argparse.Namespace) -> None:
                     args.dockerized_force_rebuild,
                     args.dockerized_use_sudo,
                     typst_only=args.tex_only,
+                    fail_on_warnings=not args.no_fail_on_warnings,
                 )
             else:
                 file_out = _run_pandoc_to_slides(
@@ -821,6 +849,7 @@ def _run_all(args: argparse.Namespace) -> None:
                     args.dockerized_use_sudo,
                     debug=args.debug_on_error,
                     tex_only=args.tex_only,
+                    fail_on_warnings=not args.no_fail_on_warnings,
                 )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
@@ -945,6 +974,12 @@ def _parse() -> argparse.ArgumentParser:
             "'beamer': pandoc -> LaTeX/beamer -> pdflatex (default); "
             "'typst': pandoc -> Typst/Touying -> typst compile"
         ),
+    )
+    parser.add_argument(
+        "--no_fail_on_warnings",
+        action="store_true",
+        default=False,
+        help="Don't fail pandoc if there are warnings (useful to ignore warnings for pandoc typst)",
     )
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
