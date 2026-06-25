@@ -55,11 +55,11 @@ RUN ARCH=$(uname -m) && \
 # Verify installation.
 RUN typst --version
 
-# Install fonts used by the Causify documentation template.
-# - Lato (body text): downloaded from Google Fonts GitHub (static TTF files).
-# - DejaVu Sans Mono (code): installed from Alpine's ttf-dejavu package.
-#   Roboto Mono is only available as a variable font which Typst does not yet
-#   support, so DejaVu Sans Mono is used as a visually close static substitute.
+# Install fonts used by Typst slides.
+# - DejaVu Sans (sans-serif): installed from Alpine's ttf-dejavu package (most
+#   reliable).
+# - Lato (body text): attempted from Google Fonts (with -f to ignore 404s if
+#   URL changes).
 # Typst scans /usr/share/fonts/ on Linux for font discovery.
 RUN apk add --no-cache ttf-dejavu && \
     BASE="https://raw.githubusercontent.com/google/fonts/main" && \

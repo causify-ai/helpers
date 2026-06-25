@@ -645,14 +645,22 @@ def _preprocess_lines(
         max_level = 2
         expand_all_navigation = True
         out = hmartoc.add_navigation_slides(
-            out, max_level, expand_all_navigation, sanity_check=True
+            out,
+            max_level,
+            expand_all_navigation,
+            output_format,
+            sanity_check=True,
         )
     elif toc_type == "partial_navigation":
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         expand_all_navigation = False
         out = hmartoc.add_navigation_slides(
-            out, max_level, expand_all_navigation, sanity_check=True
+            out,
+            max_level,
+            expand_all_navigation,
+            output_format,
+            sanity_check=True,
         )
     elif toc_type == "remove_headers":
         # Remove headers smaller than level 4 so that we leave only the `*`.

@@ -12,16 +12,16 @@
 #import "@preview/touying:0.6.1": *
 #import themes.simple: *
 
-// Match beamer's font (New Computer Modern Sans).
-#set text(font: ("New Computer Modern Sans", "DejaVu Sans"), size: 7pt)
-#show heading: set text(font: ("New Computer Modern Sans", "DejaVu Sans"))
-
 // Configure theme to match beamer's 4:3 aspect ratio.
 // Note: Touying's simple-theme controls page size internally;
 // exact beamer dimensions (362.835 x 272.126 pts) cannot be overridden.
 #show: simple-theme.with(
   aspect-ratio: "4-3",
   config-common(slide-level: 4),
+  subslide-preamble: block(
+    below: 1.5em,
+    text(1.2em, weight: "bold", utils.display-current-heading(level: 4)),
+  ),
   config-info(
 $if(title)$
     title: [$title$],
@@ -37,6 +37,11 @@ $if(date)$
 $endif$
   ),
 )
+
+// Use DejaVu Sans (available in Alpine) with reduced size.
+// Applied AFTER theme to override theme defaults.
+#set text(font: "DejaVu Sans", size: 24pt)
+#show heading: set text(font: "DejaVu Sans", size: 24pt)
 
 $if(title)$
 #title-slide[]

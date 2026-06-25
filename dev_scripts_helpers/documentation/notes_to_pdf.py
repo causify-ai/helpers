@@ -598,6 +598,7 @@ def _run_pandoc_to_typst_slides(
     _report_phase("typst compile")
     pdf_file = typ_file.replace(".typ", ".pdf")
     if use_host_tools:
+        #cmd = f"typst compile --font-path /usr/share/fonts --root {root} {typ_file} {pdf_file}"
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
         _LOG.info("cmd=%s", cmd)
         _ = _system(cmd)
