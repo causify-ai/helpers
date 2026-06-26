@@ -41,6 +41,12 @@ $endif$
   ),
 )
 
+// Make the inline math font bigger.
+#show math.equation.where(block: false): set text(size: 1.15em)
+
+// Make the inline verbatim font bigger.
+#show raw.where(block: false): set text(size: 1.15em)
+
 // Styled table.
 #let styled-table(headers, rows, caption: none, col-widths: none, bold-first-col: true) = {
   let n = headers.len()
