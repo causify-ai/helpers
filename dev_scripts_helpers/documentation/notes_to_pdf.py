@@ -23,6 +23,7 @@ import hashlib
 import logging
 import os
 import re
+import shlex
 import sys
 import time
 from typing import Any, List, Optional, Tuple, cast
@@ -96,6 +97,7 @@ def _mark_action(
 
 # #############################################################################
 # Daemon Logic
+# #############################################################################
 
 
 def file_hash(file_path: str) -> str:
@@ -1311,6 +1313,11 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use the host tools instead of the dockerized ones",
     )
+    parser.add_argument(
+        "--daemon",
+        action="store_true",
+        help="Watch input file for changes and regenerate on change",
+    )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -1322,7 +1329,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", cmd_line)
-    _run_all(args)
+    if args.daemon:
+        # Build command without --daemon flag for daemon_watch to execute.
+        cmd_parts = [
+            arg for arg in sys.argv[1:] if arg != "--daemon"
+        ]
+        # Skip open action since user likely has viewer that auto-refreshes.
+        cmd_parts.extend(["--skip_action=open"])
+        cmd = " ".join(shlex.quote(part) for part in cmd_parts)
+        _LOG.info("Daemon mode: watching '%s' for changes", args.input)
+        daemon_watch(args.input, cmd)
+    else:
+        _run_all(args)
 
 
 if __name__ == "__main__":

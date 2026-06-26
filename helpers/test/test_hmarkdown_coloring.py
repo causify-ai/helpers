@@ -288,7 +288,7 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"\red{Hello world}"
         # Prepare outputs.
-        expected = r"#text(fill: red, Hello world)"
+        expected = r'#text(fill: red, weight: "bold")[Hello world]'
         # Run test.
         self.helper(txt_in, expected)
 
@@ -299,7 +299,7 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"\blue{x + y = z}"
         # Prepare outputs.
-        expected = r"#text(fill: blue, x + y = z)"
+        expected = r'#text(fill: blue, weight: "bold")[x + y = z]'
         # Run test.
         self.helper(txt_in, expected)
 
@@ -310,7 +310,7 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"The \red{quick} \blue{fox} \green{jumps}"
         # Prepare outputs.
-        expected = r"The #text(fill: red, quick) #text(fill: blue, fox) #text(fill: green, jumps)"
+        expected = r'The #text(fill: red, weight: "bold")[quick] #text(fill: blue, weight: "bold")[fox] #text(fill: green, weight: "bold")[jumps]'
         # Run test.
         self.helper(txt_in, expected)
 
@@ -321,7 +321,7 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"\violet{important}"
         # Prepare outputs.
-        expected = r'#text(fill: rgb("#8B00FF"), important)'
+        expected = r'#text(fill: rgb("#8B00FF"), weight: "bold")[important]'
         # Run test.
         self.helper(txt_in, expected)
 
@@ -382,9 +382,9 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         use_abbreviations = False
         # Prepare outputs.
         expected = r"""
-        - **#text(fill: red, Item One)**
-        - **#text(fill: green, Item Two)**
-        - **#text(fill: blue, Item Three)**
+        - `#text(fill: red, weight: "bold")[Item One]`{=typst}
+        - `#text(fill: green, weight: "bold")[Item Two]`{=typst}
+        - `#text(fill: blue, weight: "bold")[Item Three]`{=typst}
         """
         # Run test.
         self.helper(text, expected, use_abbreviations=use_abbreviations)
@@ -418,7 +418,7 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         use_abbreviations = False
         # Prepare outputs.
         expected = r"""
-        Some text with **#text(fill: red, one bold item)** and more text.
+        Some text with `#text(fill: red, weight: "bold")[one bold item]`{=typst} and more text.
         """
         # Run test.
         self.helper(text, expected, use_abbreviations=use_abbreviations)
@@ -440,13 +440,13 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         use_abbreviations = False
         # Prepare outputs.
         expected = r"""
-        - **#text(fill: red, First)**
+        - `#text(fill: red, weight: "bold")[First]`{=typst}
 
         ```python
         **not_bold** = True
         ```
 
-        - **#text(fill: blue, Second)**
+        - `#text(fill: blue, weight: "bold")[Second]`{=typst}
         """
         # Run test.
         self.helper(text, expected, use_abbreviations=use_abbreviations)
@@ -476,11 +476,11 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = r"""
-        - **#text(fill: red, One)**
-        - **#text(fill: orange, Two)**
-        - **#text(fill: yellow, Three)**
-        - **#text(fill: rgb("#00FF00"), Four)**
-        - **#text(fill: green, Five)**
+        - `#text(fill: red, weight: "bold")[One]`{=typst}
+        - `#text(fill: orange, weight: "bold")[Two]`{=typst}
+        - `#text(fill: yellow, weight: "bold")[Three]`{=typst}
+        - `#text(fill: rgb("#00FF00"), weight: "bold")[Four]`{=typst}
+        - `#text(fill: green, weight: "bold")[Five]`{=typst}
         """
         # Run test.
         self.helper(

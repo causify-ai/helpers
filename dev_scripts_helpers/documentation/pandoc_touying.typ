@@ -41,6 +41,37 @@ $endif$
   ),
 )
 
+// Styled table.
+#let styled-table(headers, rows, caption: none, col-widths: none, bold-first-col: true) = {
+  let n = headers.len()
+  let widths = if col-widths != none { col-widths } else { (1fr,) * n }
+
+  let processed-rows = rows.map(row => {
+    if bold-first-col {
+      (strong(row.at(0)), ..row.slice(1))
+    } else {
+      row
+    }
+  })
+
+  figure(
+    table(
+      columns: widths,
+      align: (left,) * n,
+      stroke: none,
+      table.hline(stroke: 1pt),
+      table.header(
+        ..headers.map(h => strong(h))
+      ),
+      table.hline(stroke: 0.5pt),
+      ..processed-rows.flatten(),
+      table.hline(stroke: 1pt),
+    ),
+    kind: table,
+    caption: caption,
+  )
+}
+
 // Use DejaVu Sans (available in Alpine) with reduced size.
 // Applied AFTER theme to override theme defaults.
 #set text(font: "DejaVu Sans", size: 20pt, fill: black)

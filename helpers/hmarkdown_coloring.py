@@ -179,8 +179,10 @@ def process_color_commands(in_line: str, output_format: str) -> str:
                     ret = rf"\textcolor{{{output_color}}}{{{content}}}"
                 else:
                     ret = rf"\textcolor{{{output_color}}}{{\text{{{content}}}}}"
-            else:  # typst
-                ret = rf"#text(fill: {output_color}, weight: \"bold\")[{content}]"
+            elif output_format == "typst":
+                ret = f'#text(fill: {output_color}, weight: "bold")[{content}]'
+            else:
+                raise ValueError("Invalid output_format='%s'" % output_format)
             return ret
 
         # Replace the color command with the output-format-specific color command.

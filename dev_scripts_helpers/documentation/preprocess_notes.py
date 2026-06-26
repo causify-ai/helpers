@@ -59,17 +59,26 @@ _VALID_ACTIONS = [
 # #############################################################################
 
 
-def _colorize_backticks(in_line: str, *, color: str = "blue") -> str:
+def _colorize_backticks(
+    in_line: str, *, color: str = "blue", output_format: str
+) -> str:
     r"""
-    Convert backtick-wrapped strings to LaTeX color format.
+    Convert backtick-wrapped strings to colored format (LaTeX or Typst).
 
-    E.g., `store` into `\textcolor{blue}{\texttt{store}}`
-    E.g., `weeks_to_xmas` into `\textcolor{blue}{\texttt{weeks\_to\_xmas}}`
+    LaTeX examples:
+    - `store` into `\textcolor{blue}{\texttt{store}}`
+    - `weeks_to_xmas` into `\textcolor{blue}{\texttt{weeks\_to\_xmas}}`
+
+    Typst examples:
+    - `store` into `#text(fill: blue)[`store`]`
+    - `weeks_to_xmas` into `#text(fill: blue)[`weeks_to_xmas`]`
 
     :param in_line: input line to process
-    :param color: LaTeX color name (default: 'blue')
+    :param color: color name (LaTeX or Typst format, default: 'blue')
+    :param output_format: output format ('latex' or 'typst') - mandatory
     :return: transformed line with backticks replaced
     """
+    hdbg.dassert_in(output_format, ("latex", "typst"))
     line = in_line
     # Pattern to match single backticks (not triple backticks).
     # This matches backtick-wrapped text that doesn't contain triple backticks.
@@ -77,12 +86,19 @@ def _colorize_backticks(in_line: str, *, color: str = "blue") -> str:
 
     def replace_func(m: Match) -> str:
         """
-        Replace function that escapes underscores in the matched text.
+        Replace function that converts backticks to format-specific syntax.
         """
         matched_text = m.group(1)
-        # Escape underscores for LaTeX.
-        escaped_text = matched_text.replace("_", r"\_")
-        return rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
+        if output_format == "latex":
+            # Escape underscores for LaTeX.
+            escaped_text = matched_text.replace("_", r"\_")
+            txt = rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
+        else:  # typst
+            # Typst doesn't need underscore escaping in backticks.
+            # Use #text with backticks for monospace colored text.
+            txt = f'#text(fill: {color})[`{matched_text}`]'
+            txt = '``' + txt + '``{=typst}'
+        return txt
 
     line = re.sub(pattern, replace_func, line)
     if line != in_line:
@@ -616,7 +632,7 @@ def _transform_lines(
         if _TRACE:
             _LOG.debug("# Colorize backticks.")
         if not in_code_block:
-            line = _colorize_backticks(line)
+            line = _colorize_backticks(line, output_format=output_format)
         # TODO(gp): Not sure about this.
         # Update code block status based on triple backticks.
         if line.startswith("```"):
