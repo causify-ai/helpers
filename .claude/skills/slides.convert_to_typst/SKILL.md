@@ -1,6 +1,6 @@
 ---
-description: Convert markdown slides to format that can be converted by pandoc to Typst
-model: haiku
+description: Convert markdown slides to Typst-compatible format via pandoc
+model: sonnet
 ---
 
 # Goal
@@ -8,61 +8,69 @@ model: haiku
 - Preserve structure, content, and formatting
 - Output clean, well-formatted markdown code suitable for conversion to Typst
 
-## Input
-- The user will provide:
-  - A markdown slides file `<INPUT_FILE>`
-  - (Optional) Target template or style preferences
+## Workflow
 
-- Read the input file `<INPUT_FILE>`
+1. **Read input file**: markdown slides file (e.g., `lectures.md`)
+2. **Apply conversion rules**: systematically fix math, unicode, and formatting
+3. **Validate output**: verify no content loss, structure preserved
+4. **Output file**: write converted markdown with same base name
 
 ## Conversion Rules
-- Convert $\EE$ to $bb(E)$
-- Convert $\VV$ to $bb(V)$
-- Convert $\Pr$ to $Pr$
 
-- Keep all the variables and expressions in the text (e.g., x, f(x)) in math mode
-  wrapping them in $...$
-  - **Bad**
+### LaTeX Custom Commands
+- Replace presentation-specific commands with Typst equivalents:
+  - `$\EE$` → `$bb(E)$` (blackboard E)
+  - `$\VV$` → `$bb(V)$` (blackboard V)
+  - `$\Pr$` → `$Pr$` (remove backslash)
+
+### Variables & Math Expressions
+- Wrap all variables, parameters, and math expressions in `$...$`:
+  - **Bad**: `Randomly permute the values of x_j across all samples`
+  - **Good**: `Randomly permute the values of $x_j$ across all samples`
+  - **Bad**: `Compute f(x) and g(x)`
+  - **Good**: `Compute $f(x)$ and $g(x)$`
+
+### Unicode → LaTeX
+- Replace unicode math characters with LaTeX:
+  - Ω → `$\Omega$`
+  - → → `$\to$`
+  - ≤ → `$\leq$`
+  - × → `$\times$`
+
+### Subscripts & Superscripts
+- Use math mode for all subscripts/superscripts:
+  - **Bad**: P₀ or P^n
+  - **Good**: `$P_0$` or `$P^n$`
+
+### Math Operators
+- Use `op()` for named operators in Typst:
+  - **Bad**: `$g^* = arg min_(g in G)$`
+  - **Good**: `$g^* = op("arg min")_(g in G)$`
+  - Also: `$max_i x_i$` → `$op("max")_i x_i$`
+
+### Plain Numbers & Currency
+- Do NOT wrap pure numbers in math mode:
+  - **Bad**:
     ```
-    Randomly permute the values of x_j across all samples
+    The house costs $50k because it has 4 bedrooms ($+\$30$k)
     ```
-  - **Good**
+  - **Good**:
     ```
-    Randomly permute the values of $x_j$ across all samples
+    The house costs \$50k because it has 4 bedrooms (+\$30k)
     ```
 
-- Use the math version, instead of unicode characters
-  - **Bad**: `Ω(g) penalizes complexity...`
-  - **Good**: `$\Omega(g)$ penalizes complexity...`
-  - **Bad**: →
-  - **Good**: $\to$
-
-- Use math expressions instead of superscript and subscripts 
-  - **Bad**: P₀
-  - **Good**: $P_0$
-
-- In math expressions use
-  - **Bad**: `g^* = arg min_(g in G)`
-  - **Good**: `$g^* = op("arg min")_(g in G)`
-
-- Do not use math for numbers
-  - **Bad**
-    ```
-    - Local: _"This house is priced \$50k above average because it has 4
-      bedrooms ($+\$30$k) and is near a school ($+\$20$k)"_
-    ```
-  - **Good**
-    ```
-    - Local: _"This house is priced \$50k above average because it has 4
-      bedrooms (+\$30k) and is near a school (+\$20k)"_
-    ```
-
-- For complex formulas use
+### Block Formulas
+- Use Typst code blocks for complex multi-line formulas:
   ```{=typst}
   $ Pr(X_1 , ... , X_n) = product_(i = 1)^n Pr(X_i | "Parents"(X_i)) $
   ```
 
 ## Quality Checks
-- Verify all markdown elements are converted
-- Check that slide hierarchy is preserved
-- Ensure no content is lost or corrupted
+
+- All slide headers & hierarchy preserved  
+- No content deleted or truncated  
+- All math expressions wrapped (`$...$`)  
+- No unicode math characters remain  
+- Operators properly formatted with `op()`  
+- Code blocks and lists intact  
+- File is valid markdown
