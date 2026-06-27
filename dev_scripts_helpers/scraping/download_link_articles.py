@@ -76,7 +76,6 @@ import dev_scripts_helpers.scraping.download_link_articles as dssdla
 import argparse
 import html
 import logging
-import os
 import re
 from typing import Any, Dict, List, Optional
 
@@ -288,7 +287,7 @@ def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
 def _fetch_hn_url(
     item_id: str,
     *,
-    max_depth: int = 3,
+    max_depth: int = -1,
     current_depth: int = 0,
 ) -> List[Dict[str, Any]]:
     """
@@ -301,7 +300,7 @@ def _fetch_hn_url(
     """
     _LOG.debug(hprint.to_str("item_id current_depth"))
     # Guard: stop recursion at max depth to limit API calls and processing time.
-    if current_depth >= max_depth:
+    if max_depth >= 0 and current_depth >= max_depth:
         result = []
     else:
         # Fetch the item data from HN API.
@@ -317,12 +316,11 @@ def _fetch_hn_url(
                 "time": item_data.get("time"),
                 "score": item_data.get("score"),
             }
-            # Recursively fetch child comments (replies) if they exist.
-            # Limit to first 10 children per comment to avoid excessive API calls.
+            # Recursively fetch all child comments (replies) if they exist.
             kids = item_data.get("kids", [])
             if kids:
                 replies = []
-                for kid_id in kids[:10]:
+                for kid_id in kids:
                     kid_comments = _fetch_hn_url(
                         str(kid_id),
                         max_depth=max_depth,
@@ -368,6 +366,20 @@ def _add_comment_tree(
             _add_comment_tree(comment["replies"], lines, depth + 1)
 
 
+def _count_comments(comments: List[Dict[str, Any]]) -> int:
+    """
+    Recursively count total comments including nested replies.
+
+    :param comments: List of comment dicts with nested replies
+    :return: Total comment count
+    """
+    count = len(comments)
+    for comment in comments:
+        if "replies" in comment:
+            count += _count_comments(comment["replies"])
+    return count
+
+
 def _format_hn_url_as_text(comments: List[Dict[str, Any]]) -> str:
     """
     Format HN comments list as readable text.
@@ -381,6 +393,8 @@ def _format_hn_url_as_text(comments: List[Dict[str, Any]]) -> str:
     text = "\n".join(lines)
     # Simplify HTML links in comment text.
     text = _simplify_html_links(text)
+    total_comments = _count_comments(comments)
+    _LOG.info("Total comments downloaded: %d", total_comments)
     _LOG.debug(hprint.to_str("len(text)"))
     return text
 
@@ -405,19 +419,22 @@ def _download_article_content(url: str) -> str:
         response = requests.get(url, timeout=15, headers=headers)
         response.raise_for_status()
         html = response.text
-        # Parse HTML and extract article text from paragraph elements.
+        # Parse HTML and extract article text.
         soup = BeautifulSoup(html, "html.parser")
-        paragraphs = soup.find_all("p")
-        if paragraphs:
-            # Join paragraphs with blank lines for readability.
-            text = "\n\n".join(str(p) for p in paragraphs)
+        # Remove script and style tags to avoid extracting them.
+        for tag in soup(["script", "style"]):
+            tag.decompose()
+        # Try to find article container tags first (more semantic).
+        article = soup.find(["article", "main"])
+        if article:
+            text = article.get_text()
         else:
-            # Fallback to raw HTML if no paragraphs found.
-            text = html
-        # Simplify HTML links and extract just the URLs.
-        text = _simplify_html_links(text)
-        # Extract text after link simplification.
-        result = BeautifulSoup(text, "html.parser").get_text()
+            # Fall back to all text from the page body.
+            body = soup.find("body") or soup
+            text = body.get_text()
+        # Clean up excessive whitespace.
+        lines = (line.strip() for line in text.splitlines())
+        text = "\n".join(line for line in lines if line)
     except Exception as e:
         _LOG.warning("Failed to download article from %s: %s", url, e)
     _LOG.debug(hprint.to_str("len(result)"))
@@ -463,7 +480,9 @@ def _download_hn_urls(
             _LOG.info("[DRY RUN] Would fetch HN comments for item: %s", item_id)
             _LOG.info("[DRY RUN] Would write HN comments to: %s", output_file)
         else:
-            hn_comments = _fetch_hn_url(item_id, max_depth=3)
+            hn_comments = _fetch_hn_url(item_id, max_depth=10)
+            total_comments = _count_comments(hn_comments)
+            _LOG.info("Fetched %d total comments", total_comments)
             # Write comments to disk.
             _LOG.info("Writing HN comments to: %s", output_file)
             formatted_comments = _format_hn_url_as_text(hn_comments)
