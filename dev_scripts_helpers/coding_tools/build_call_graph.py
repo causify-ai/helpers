@@ -164,12 +164,15 @@ def _enhance_dot_with_github_urls(
                     line_number=line_number,
                     use_master=use_master,
                 )
-                node.set_URL(github_url)
-                # Add link icon to node label to indicate it's interactive.
+                # Prepend clickable link icon to function name label.
                 current_label = node.get_label()
                 if current_label:
                     current_label = current_label.strip('"')
+                    # Icon is prepended to function name, whole node is clickable.
                     node.set_label(f"🔗 {current_label}")
+                node.set_URL(github_url)
+                # Set target="_blank" to open links in new tab/window.
+                node.set_target("_blank")
                 nodes_updated += 1
         # Recursively process subgraphs.
         for subgraph in g.get_subgraph_list():
