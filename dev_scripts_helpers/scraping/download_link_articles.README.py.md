@@ -1,16 +1,21 @@
 # Overview
-Downloads article content and Hacker News comments from links stored in Google
-Sheets. Supports four actions: fetching HN comments, downloading article
-content, and summarizing both using Claude (via `llm_cli.py`). Output files are
-stored locally with sanitized titles from the spreadsheet. Designed to work with
-Google Sheets as a data source, the official HN API for comments, web scraping
-for article extraction, and optional LLM-based summarization
+- Downloads article content and Hacker News comments from links stored in Google
+  Sheets
+- Supports actions:
+  - fetching HN comments
+  - downloading article content
+  - summarizing both using Claude (via `llm_cli.py`)
+- Output files are stored locally with sanitized titles from the spreadsheet.
+- Designed to work with Google Sheets as a data source, the official HN API for
+  comments, web scraping for article extraction, and optional LLM-based
+  summarization
 
 # Architecture (C4 Model)
 
 ## C1 (Context)
-System boundary showing how the script interacts with external systems and
-users
+- System boundary showing how the script interacts with external systems and
+  users
+
 ```mermaid
 graph TB
     User[" User"]
@@ -29,15 +34,18 @@ graph TB
     Script -->|Write| Files
 ```
 
-The script orchestrates four independent operations that consume Google Sheets
-data as the central input. All operations reference the same row indices and
-title column for consistent output naming. External systems include the HN API
-(for comments), arbitrary web servers (for articles), and Claude LLM (for
-summarization). Users interact through command-line arguments specifying which
-rows to process and which actions to execute
+- The script orchestrates four independent operations that consume Google Sheets
+  data as the central input
+- All operations reference the same row indices and title column for consistent
+  output naming
+- External systems include the HN API (for comments), arbitrary web servers (for
+  articles), and Claude LLM (for summarization)
+- Users interact through command-line arguments specifying which rows to process
+  and which actions to execute
 
 ## C2 (Container)
-High-level functional blocks and their primary responsibilities
+
+- High-level functional blocks and their primary responsibilities
 ```mermaid
 graph TB
     subgraph CLI["CLI & Configuration"]

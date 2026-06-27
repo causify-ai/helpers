@@ -574,8 +574,7 @@ def _summarize_articles(
         )
 
 
-# TODO(ai_gp): -> _summarize_hn_comments
-def _summarize_comments(
+def _summarize_hn_comments(
     rows: List[Dict[str, Any]], *, indices: List[int], dry_run: bool = False
 ) -> None:
     """
@@ -632,6 +631,25 @@ def _summarize_comments(
 # #############################################################################
 # CLI and Entry Points
 # #############################################################################
+
+
+def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
+    """
+    Download and parse data from a Google Sheets document.
+
+    :param url: URL of the Google Sheets document
+    :return: List of data rows
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    gsheet_csv = dshslgsut.get_tmp_file_path(
+        "gsheet.csv", "download_link_articles"
+    )
+    _LOG.debug("Downloading from Google Sheets '%s' to '%s'", url, gsheet_csv)
+    dshslgsut.download_from_gsheet(url, gsheet_csv)
+    rows = dshslgsut.read_csv(gsheet_csv)
+    hdbg.dassert_lt(0, len(rows), "No rows in downloaded CSV")
+    _LOG.info("Retrieved %d rows from Google Sheets", len(rows))
+    return rows
 
 
 VALID_ACTIONS = [
@@ -695,16 +713,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
     )
     # Phase 1: Download and parse the Google Sheets data.
-    # TODO(ai_gp): Factor out this code into a helper function.
-    gsheet_csv = dshslgsut.get_tmp_file_path(
-        "gsheet.csv", "download_link_articles"
-    )
-    _LOG.debug("Downloading from Google Sheets '%s' to '%s'", args.url, gsheet_csv)
-    dshslgsut.download_from_gsheet(args.url, gsheet_csv)
-    rows = dshslgsut.read_csv(gsheet_csv)
-    # TODO(ai_gp): dassert_lt
-    hdbg.dassert(len(rows) > 0, "No rows in downloaded CSV")
-    _LOG.info("Retrieved %d rows from Google Sheets", len(rows))
+    rows = _load_rows_from_gsheet(args.url)
     # Phase 2: Determine which rows to process based on `row_idx` argument.
     indices = _parse_row_idx(args.row_idx, len(rows))
     _LOG.info("Row indices to process: %s", indices)
@@ -725,7 +734,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "download_article_url":
             _download_article_urls(rows, indices=indices, dry_run=args.dry_run)
         elif action == "summarize_url":
-            _summarize_comments(rows, indices=indices, dry_run=args.dry_run)
+            _summarize_hn_comments(rows, indices=indices, dry_run=args.dry_run)
         elif action == "summarize_article_url":
             _summarize_articles(rows, indices=indices, dry_run=args.dry_run)
     _LOG.info("Download and processing completed")
