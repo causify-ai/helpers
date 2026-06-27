@@ -98,8 +98,6 @@ import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
 _LOG = logging.getLogger(__name__)
 
 
-
-
 # #############################################################################
 # Phase 1: Download Gsheet
 # #############################################################################
@@ -122,7 +120,6 @@ def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
     hdbg.dassert_lt(0, len(rows), "No rows in downloaded CSV")
     _LOG.info("Retrieved %d rows from Google Sheets", len(rows))
     return rows
-
 
 
 # #############################################################################
@@ -505,12 +502,16 @@ def _download_article_urls(
         # Download and parse article content from the URL.
         if dry_run:
             _LOG.info("[DRY RUN] Would download article from: %s", article_url)
-            _LOG.info("[DRY RUN] Would write article content to: %s", output_file)
+            _LOG.info(
+                "[DRY RUN] Would write article content to: %s", output_file
+            )
         else:
             article_content = _download_article_content(article_url)
             if not article_content:
                 _LOG.warning(
-                    "Row %d: Failed to download article from: %s", idx, article_url
+                    "Row %d: Failed to download article from: %s",
+                    idx,
+                    article_url,
                 )
                 continue
             # Write article text to disk.
@@ -526,7 +527,11 @@ def _download_article_urls(
 
 
 def _summarize_text_with_llm(
-    input_file: str, output_file: str, prompt: str, model: str, dry_run: bool = False
+    input_file: str,
+    output_file: str,
+    prompt: str,
+    model: str,
+    dry_run: bool = False,
 ) -> None:
     """
     Summarize text using llm_cli.py and lint the output.
@@ -540,7 +545,12 @@ def _summarize_text_with_llm(
     _LOG.debug(hprint.to_str("input_file output_file model"))
     _LOG.info("Summarizing: %s", input_file)
     if dry_run:
-        _LOG.info("[DRY RUN] Would summarize: %s -> %s (model: %s)", input_file, output_file, model)
+        _LOG.info(
+            "[DRY RUN] Would summarize: %s -> %s (model: %s)",
+            input_file,
+            output_file,
+            model,
+        )
         return
     # Save prompt to a temporary file.
     prompt_file = "tmp.summarize_text_with_llm.prompt.txt"

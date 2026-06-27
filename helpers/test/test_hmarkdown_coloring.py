@@ -21,7 +21,9 @@ class Test_process_color_commands1(hunitest.TestCase):
         """
         # Run test.
         output_format = "latex"
-        actual = hmarkdo.process_color_commands(txt_in, output_format=output_format)
+        actual = hmarkdo.process_color_commands(
+            txt_in, output_format=output_format
+        )
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -102,9 +104,7 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         # Run test.
         output_format = "latex"
         if all_md_colors is None:
-            actual = hmarkdo.colorize_bullet_points_in_slide(
-                text, output_format
-            )
+            actual = hmarkdo.colorize_bullet_points_in_slide(text, output_format)
         else:
             actual = hmarkdo.colorize_bullet_points_in_slide(
                 text, output_format, all_md_colors=all_md_colors
@@ -259,7 +259,7 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_process_color_commands2 (Typst)
+# Test_process_color_commands2
 # #############################################################################
 
 
@@ -277,7 +277,9 @@ class Test_process_color_commands2(hunitest.TestCase):
         """
         # Run test.
         output_format = "typst"
-        actual = hmarkdo.process_color_commands(txt_in, output_format=output_format)
+        actual = hmarkdo.process_color_commands(
+            txt_in, output_format=output_format
+        )
         # Check outputs.
         self.assert_equal(actual, expected)
 

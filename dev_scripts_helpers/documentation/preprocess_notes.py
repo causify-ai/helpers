@@ -96,8 +96,8 @@ def _colorize_backticks(
         else:  # typst
             # Typst doesn't need underscore escaping in backticks.
             # Use #text with backticks for monospace colored text.
-            txt = f'#text(fill: {color})[`{matched_text}`]'
-            txt = '``' + txt + '``{=typst}'
+            txt = f"#text(fill: {color})[`{matched_text}`]"
+            txt = "``" + txt + "``{=typst}"
         return txt
 
     line = re.sub(pattern, replace_func, line)
@@ -228,6 +228,7 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
 # #############################################################################
 # Process title slide.
 # #############################################################################
+
 
 def _extract_slide_metadata(
     lines: List[str],
@@ -647,7 +648,9 @@ def _transform_lines(
         # in math mode.
         # Use the specified output format (latex or typst) for non-math content.
         if not in_math_block:
-            line = hmarkdo.process_color_commands(line, output_format=output_format)
+            line = hmarkdo.process_color_commands(
+                line, output_format=output_format
+            )
         # 7) Process question.
         if _TRACE:
             _LOG.debug("# Process question.")

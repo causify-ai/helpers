@@ -220,9 +220,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         :param expected: expected output text for Typst
         """
         # Run test.
-        actual = dshdprno._colorize_backticks(
-            txt_in, output_format="typst"
-        )
+        actual = dshdprno._colorize_backticks(txt_in, output_format="typst")
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -233,7 +231,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "The `store` variable is used."
         # Prepare outputs.
-        expected = 'The #text(fill: blue)[`store`] variable is used.'
+        expected = "The #text(fill: blue)[`store`] variable is used."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -244,7 +242,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Use `function1` and `function2` to process data."
         # Prepare outputs.
-        expected = 'Use #text(fill: blue)[`function1`] and #text(fill: blue)[`function2`] to process data.'
+        expected = "Use #text(fill: blue)[`function1`] and #text(fill: blue)[`function2`] to process data."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -255,7 +253,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Use the `_private_func` naming."
         # Prepare outputs.
-        expected = 'Use the #text(fill: blue)[`_private_func`] naming.'
+        expected = "Use the #text(fill: blue)[`_private_func`] naming."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -266,7 +264,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "The `main function` is important."
         # Prepare outputs.
-        expected = 'The #text(fill: blue)[`main function`] is important.'
+        expected = "The #text(fill: blue)[`main function`] is important."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -277,7 +275,9 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Import `numpy.array` for matrix operations."
         # Prepare outputs.
-        expected = 'Import #text(fill: blue)[`numpy.array`] for matrix operations.'
+        expected = (
+            "Import #text(fill: blue)[`numpy.array`] for matrix operations."
+        )
         # Run test.
         self.helper(txt_in, expected)
 
@@ -685,9 +685,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         type_ = "pdf"
         is_qa = False
         markup_type = "latex"
-        actual = dshdprno._transform_lines(
-            txt_in, type_, is_qa, markup_type
-        )
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa, markup_type)
         actual = "\n".join(actual)
         # Check.
         expected = r"""
@@ -1706,9 +1704,7 @@ class Test_transform_lines_qa(hunitest.TestCase):
         """
         # Run test.
         markup_type = "latex"
-        actual = dshdprno._transform_lines(
-            lines, type_, is_qa, markup_type
-        )
+        actual = dshdprno._transform_lines(lines, type_, is_qa, markup_type)
         # Check outputs.
         self.assertEqual(actual, expected)
 

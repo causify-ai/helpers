@@ -16,6 +16,7 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 # Test_normalize_for_fuzzy_matching
 # #############################################################################
@@ -252,11 +253,16 @@ class Test_merge_dataframes(hunitest.TestCase):
         df2 = pd.DataFrame(
             {"Model_ID": ["model1", "model2"], "Speed": [25.5, 18.2]}
         )
-        actual = dshlomota._merge_dataframes(base_df, [df1, df2], num_input_models=2)
+        actual = dshlomota._merge_dataframes(
+            base_df, [df1, df2], num_input_models=2
+        )
         actual_string = hpandas.df_to_str(actual, num_rows=None)
-        expected_string = """  Model_ID Name  Cost  Speed
-0   model1   M1   1.0   25.5
-1   model2   M2   2.0   18.2"""
+        expected_string = """  
+          Model_ID Name  Cost  Speed
+        0   model1   M1   1.0   25.5
+        1   model2   M2   2.0   18.2
+        """
+        expected_string = hprint.dedent(expected_string)
         self.assert_equal(actual_string, expected_string)
 
 
@@ -314,7 +320,11 @@ class Test_build_openrouter_id_to_aa_slug(hunitest.TestCase):
         }
         actual = dshlomota._build_openrouter_id_to_aa_slug(api_lookup, aa_models)
         actual_string = pprint.pformat(actual)
-        expected_string = """{'google/gemini-3.1-pro-preview': 'gemini-3-1-pro-preview'}"""
+        expected_string = (
+            """
+            {'google/gemini-3.1-pro-preview': 'gemini-3-1-pro-preview'}
+            """
+        )
         self.assert_equal(actual_string, expected_string)
 
 
@@ -341,7 +351,9 @@ class Test_build_openrouter_id_to_permaslug(hunitest.TestCase):
             api_lookup, available_permaslugs
         )
         actual_string = pprint.pformat(actual)
-        expected_string = pprint.pformat({"openai/gpt-4-omni": "openai/gpt-4-omni"})
+        expected_string = pprint.pformat(
+            {"openai/gpt-4-omni": "openai/gpt-4-omni"}
+        )
         self.assert_equal(actual_string, expected_string)
 
     def test2(self) -> None:
@@ -504,9 +516,7 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         )
         _LOG.info("Result:\n%s", result)
         # Should have Short_Name and Speed columns
-        self._check_output_columns_and_rows(
-            result, ["Short_Name", "Speed"]
-        )
+        self._check_output_columns_and_rows(result, ["Short_Name", "Speed"])
 
     def test4(self) -> None:
         """

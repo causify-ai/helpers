@@ -169,13 +169,15 @@ def _write_csv(
             }
         )
     # Add aggregated row.
-    rows.append({
-        "repository": "TOTAL",
-        "commits": aggregated_stats["commits"],
-        "lines_added": aggregated_stats["lines_added"],
-        "lines_removed": aggregated_stats["lines_removed"],
-        "files_changed": aggregated_stats["files_changed"],
-    })
+    rows.append(
+        {
+            "repository": "TOTAL",
+            "commits": aggregated_stats["commits"],
+            "lines_added": aggregated_stats["lines_added"],
+            "lines_removed": aggregated_stats["lines_removed"],
+            "files_changed": aggregated_stats["files_changed"],
+        }
+    )
     # Write CSV.
     fieldnames = [
         "repository",

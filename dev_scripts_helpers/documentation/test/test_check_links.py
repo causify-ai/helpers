@@ -10,10 +10,10 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-
 # #############################################################################
 # Test_is_image_or_email
 # #############################################################################
+
 
 class Test_is_image_or_email(hunitest.TestCase):
     """
@@ -127,10 +127,10 @@ class Test_is_image_or_email(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected))
 
 
-
 # #############################################################################
 # Test_extract_urls_from_text
 # #############################################################################
+
 
 class Test_extract_urls_from_text(hunitest.TestCase):
     """
@@ -398,10 +398,10 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
 
-
 # #############################################################################
 # Test_check_url_reachable
 # #############################################################################
+
 
 # TODO(gp): Mock this.
 class Test_check_url_reachable(hunitest.TestCase):
@@ -446,10 +446,10 @@ class Test_check_url_reachable(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected))
 
 
-
 # #############################################################################
 # Test_check_links_in_file
 # #############################################################################
+
 
 class Test_check_links_in_file(hunitest.TestCase):
     """

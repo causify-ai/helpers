@@ -57,20 +57,20 @@ _MD_COLORS_TYPST_MAPPING = {
     "red": "red",
     "orange": "orange",
     "yellow": "yellow",
-    "lime": "rgb(\"#00FF00\")",  # Typst lime not standard; use bright green
+    "lime": 'rgb("#00FF00")',  # Typst lime not standard; use bright green
     "green": "green",
     "teal": "teal",
-    "cyan": "rgb(\"#00FFFF\")",  # Typst cyan uses different name
+    "cyan": 'rgb("#00FFFF")',  # Typst cyan uses different name
     "blue": "blue",
     "purple": "purple",
-    "violet": "rgb(\"#8B00FF\")",  # Typst violet via rgb
-    "magenta": "rgb(\"#FF00FF\")",  # Typst magenta via rgb
-    "pink": "rgb(\"#FFC0CB\")",  # Typst pink via rgb
-    "brown": "rgb(\"#8B4513\")",  # Typst brown via rgb
+    "violet": 'rgb("#8B00FF")',  # Typst violet via rgb
+    "magenta": 'rgb("#FF00FF")',  # Typst magenta via rgb
+    "pink": 'rgb("#FFC0CB")',  # Typst pink via rgb
+    "brown": 'rgb("#8B4513")',  # Typst brown via rgb
     "olive": "olive",
     "gray": "gray",
-    "darkgray": "rgb(\"#A9A9A9\")",  # Typst darkgray via rgb
-    "lightgray": "rgb(\"#D3D3D3\")",  # Typst lightgray via rgb
+    "darkgray": 'rgb("#A9A9A9")',  # Typst darkgray via rgb
+    "lightgray": 'rgb("#D3D3D3")',  # Typst lightgray via rgb
     "black": "black",
     "white": "white",
 }
@@ -353,7 +353,7 @@ def colorize_bullet_points_in_slide(
                     ret = f"**#{color_to_use}[{text}]**"
                 else:
                     # Full: #text(fill: color)[text]
-                    ret = f"#text(fill: {typst_color}, weight: \"bold\")[{text}]"
+                    ret = f'#text(fill: {typst_color}, weight: "bold")[{text}]'
                     ret = "`" + ret + "`{=typst}"
             return ret
 

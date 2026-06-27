@@ -888,7 +888,7 @@ def _run_pandoc_to_typst_slides(
     _report_phase("typst compile")
     pdf_file = typ_file.replace(".typ", ".pdf")
     if use_host_tools:
-        #cmd = f"typst compile --font-path /usr/share/fonts --root {root} {typ_file} {pdf_file}"
+        # cmd = f"typst compile --font-path /usr/share/fonts --root {root} {typ_file} {pdf_file}"
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
         _LOG.info("cmd=%s", cmd)
         _ = _system(cmd)
@@ -1331,9 +1331,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
         # Build command without --daemon flag for daemon_watch to execute.
-        cmd_parts = [
-            arg for arg in sys.argv[1:] if arg != "--daemon"
-        ]
+        cmd_parts = [arg for arg in sys.argv[1:] if arg != "--daemon"]
         # Skip open action since user likely has viewer that auto-refreshes.
         cmd_parts.extend(["--skip_action=open"])
         cmd = " ".join(shlex.quote(part) for part in cmd_parts)
