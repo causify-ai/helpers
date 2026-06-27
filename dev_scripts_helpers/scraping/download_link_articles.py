@@ -245,7 +245,7 @@ def _simplify_html_links(text: str) -> str:
 
 
 # #############################################################################
-# Download HN comments
+# Phase 3: Download
 # #############################################################################
 
 
@@ -412,11 +412,6 @@ def _download_article_content(url: str) -> str:
     return result
 
 
-# #############################################################################
-# Download Operations
-# #############################################################################
-
-
 def _download_hn_comments(
     rows: List[Dict[str, Any]], indices: List[int], *, dry_run: bool = False
 ) -> None:
@@ -522,7 +517,7 @@ def _download_article_urls(
 
 
 # #############################################################################
-# Summarization Operations
+# Phase 4: Summarization
 # #############################################################################
 
 
@@ -570,51 +565,6 @@ def _summarize_text_with_llm(
     _LOG.debug("Running command: %s", cmd)
     hsystem.system(cmd)
     _LOG.info("Summary saved to: %s", output_file)
-
-
-def _summarize_articles(
-    rows: List[Dict[str, Any]], *, indices: List[int], dry_run: bool = False
-) -> None:
-    """
-    Summarize article text using llm_cli.py.
-
-    Creates a summary file per article:
-    - title.text.summary.txt: Summary of the article
-
-    :param rows: List of data rows
-    :param indices: List of row indices to process
-    :param dry_run: If True, show what would be done without executing
-    """
-    _LOG.debug(hprint.to_str("len(indices)"))
-    _LOG.info(
-        "Summarizing articles for %d rows%s",
-        len(indices),
-        " (DRY RUN)" if dry_run else "",
-    )
-    article_prompt = (
-        "Summarize the main article in 5 bullet points. "
-        "Format as plain text without markdown."
-    )
-    for idx in tqdm(indices, desc="Summarizing articles"):
-        row = rows[idx]
-        title = row.get("Title", "").strip()
-        hdbg.dassert(title)
-        _LOG.debug("Processing row %d: %s", idx, title)
-        # Generate sanitized filename from title.
-        sanitized_title = _sanitize_title_for_filename(title)
-        # Summarize article text if .text.txt file exists.
-        article_file = f"{sanitized_title}.text.txt"
-        if not dry_run:
-            hdbg.dassert_file_exists(article_file)
-        article_summary_file = f"{sanitized_title}.text.summary.txt"
-        _LOG.info("Summarizing article text for: %s", title)
-        _summarize_text_with_llm(
-            article_file,
-            article_summary_file,
-            article_prompt,
-            "gpt-4o-mini",
-            dry_run=dry_run,
-        )
 
 
 def _summarize_hn_comments(
@@ -666,6 +616,51 @@ def _summarize_hn_comments(
             comments_file,
             comments_summary_file,
             comments_prompt,
+            "gpt-4o-mini",
+            dry_run=dry_run,
+        )
+
+
+def _summarize_articles(
+    rows: List[Dict[str, Any]], *, indices: List[int], dry_run: bool = False
+) -> None:
+    """
+    Summarize article text using llm_cli.py.
+
+    Creates a summary file per article:
+    - title.text.summary.txt: Summary of the article
+
+    :param rows: List of data rows
+    :param indices: List of row indices to process
+    :param dry_run: If True, show what would be done without executing
+    """
+    _LOG.debug(hprint.to_str("len(indices)"))
+    _LOG.info(
+        "Summarizing articles for %d rows%s",
+        len(indices),
+        " (DRY RUN)" if dry_run else "",
+    )
+    article_prompt = (
+        "Summarize the main article in 5 bullet points. "
+        "Format as plain text without markdown."
+    )
+    for idx in tqdm(indices, desc="Summarizing articles"):
+        row = rows[idx]
+        title = row.get("Title", "").strip()
+        hdbg.dassert(title)
+        _LOG.debug("Processing row %d: %s", idx, title)
+        # Generate sanitized filename from title.
+        sanitized_title = _sanitize_title_for_filename(title)
+        # Summarize article text if .text.txt file exists.
+        article_file = f"{sanitized_title}.text.txt"
+        if not dry_run:
+            hdbg.dassert_file_exists(article_file)
+        article_summary_file = f"{sanitized_title}.text.summary.txt"
+        _LOG.info("Summarizing article text for: %s", title)
+        _summarize_text_with_llm(
+            article_file,
+            article_summary_file,
+            article_prompt,
             "gpt-4o-mini",
             dry_run=dry_run,
         )
@@ -749,7 +744,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Phase 2: Determine which rows to process based on `row_idx` argument.
     indices = _parse_row_idx(args.row_idx, len(rows))
     _LOG.info("Row indices to process: %s", indices)
-    # Phase 3: Execute selected actions in sequence.
+    # Execute selected actions in sequence.
     # Each action processes the filtered set of rows independently.
     if args.dry_run:
         _LOG.info("DRY RUN MODE: showing what would be done without executing")
@@ -761,11 +756,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         if not to_execute:
             continue
+        # Phase 3: Download article.
         if action == "download_url":
             _download_hn_comments(rows, indices=indices, dry_run=args.dry_run)
         elif action == "download_article_url":
             _download_article_urls(rows, indices=indices, dry_run=args.dry_run)
         elif action == "summarize_url":
+            # Phase 4: Summarization.
             _summarize_hn_comments(rows, indices=indices, dry_run=args.dry_run)
         elif action == "summarize_article_url":
             _summarize_articles(rows, indices=indices, dry_run=args.dry_run)
