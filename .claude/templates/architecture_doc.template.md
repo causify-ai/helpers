@@ -99,8 +99,3 @@
     - **Assumption** (inferred): state what is being assumed, e.g. "Assumes a
       single execution per process"
   - An **Impact** line: what breaks or degrades because of it
-
-## Improvement Suggestions
-
-- Concrete, actionable recommendations addressing the weaknesses above
-- At least two suggestions; reference the specific weakness each one resolves
