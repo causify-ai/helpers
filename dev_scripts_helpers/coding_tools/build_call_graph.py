@@ -165,6 +165,11 @@ def _enhance_dot_with_github_urls(
                     use_master=use_master,
                 )
                 node.set_URL(github_url)
+                # Add link icon to node label to indicate it's interactive.
+                current_label = node.get_label()
+                if current_label:
+                    current_label = current_label.strip('"')
+                    node.set_label(f"🔗 {current_label}")
                 nodes_updated += 1
         # Recursively process subgraphs.
         for subgraph in g.get_subgraph_list():
