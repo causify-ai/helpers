@@ -19,29 +19,28 @@ them using LLMs.
 
 ## Supported Actions
 
-1. **download_url**: Fetch HN comments from submission URLs and save to files
-2. **download_article_url**: Download article content from direct URLs
-3. **summarize_url**: Summarize HN comments using Claude (requires prior download)
-4. **summarize_article_url**: Summarize article content using Claude
+- **download_article_url**: Download article content from direct URLs
+- **download_hn_url**: Fetch HN comments from submission URLs and save to files
+- **summarize_article_url**: Summarize article content using Claude
+- **summarize_hn_url**: Summarize HN comments using Claude (requires prior download)
 
 ## Output Files
 
 Output filenames are derived from the Title column with bash-unfriendly
 characters replaced with underscores:
 
-- `{title}.hn_comments.txt` - Raw HN comments (from download_url)
-- `{title}.hn_comments.summary.txt` - Summarized HN comments (from summarize_url)
-- `{title}.text.txt` - Article content (from download_article_url)
-- `{title}.text.summary.txt` - Summarized article (from summarize_article_url)
+- `{title}.1.article_url.txt` - Article content (from download_article_url)
+- `{title}.2.hn_url.txt` - Raw HN comments (from download_hn_url)
+- `{title}.3.article_url.summary.txt` - Summarized article (from summarize_article_url)
+- `{title}.4.hn_url.summary.txt` - Summarized HN comments (from summarize_hn_url)
 
 ## Example Usage
 
-Download HN comments for rows 0-9 where the "Url" column is not empty:
+Download HN comments for rows 0-9 where the "Hn_url" column is not empty:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --row_idx "0:10" \
-    --select_column "Url" \
-    --action download_url
+    --action download_hn_url
 
 Download all actions (both HN comments and articles):
 > download_link_articles.py \
@@ -51,7 +50,6 @@ Download all actions (both HN comments and articles):
 Download article content only:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
-    --select_column "Article_url" \
     --action download_article_url
 
 Download from rows 0-4, skip article downloads:
@@ -65,10 +63,10 @@ Summarize articles (requires prior download_article_url):
     --url "https://docs.google.com/spreadsheets/d/..." \
     --action summarize_article_url
 
-Summarize HN comments (requires prior download_url):
+Summarize HN comments (requires prior download_hn_url):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
-    --action summarize_url
+    --action summarize_hn_url
 
 Import as:
 
@@ -118,6 +116,20 @@ def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
     dshslgsut.download_from_gsheet(url, gsheet_csv)
     rows = dshslgsut.read_csv(gsheet_csv)
     hdbg.dassert_lt(0, len(rows), "No rows in downloaded CSV")
+    # Verify expected columns exist.
+    expected_columns = {
+        "Title",
+        "Article_url",
+        "Hn_url",
+        "Timestamp",
+        "Article_tag",
+        "Article_cluster",
+    }
+    actual_columns = list(rows[0].keys())
+    hdbg.dassert_is_subset(
+        expected_columns,
+        actual_columns,
+    )
     _LOG.info("Retrieved %d rows from Google Sheets", len(rows))
     return rows
 
@@ -273,7 +285,7 @@ def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
     return result
 
 
-def _fetch_hn_comments(
+def _fetch_hn_url(
     item_id: str,
     *,
     max_depth: int = 3,
@@ -311,7 +323,7 @@ def _fetch_hn_comments(
             if kids:
                 replies = []
                 for kid_id in kids[:10]:
-                    kid_comments = _fetch_hn_comments(
+                    kid_comments = _fetch_hn_url(
                         str(kid_id),
                         max_depth=max_depth,
                         current_depth=current_depth + 1,
@@ -356,7 +368,7 @@ def _add_comment_tree(
             _add_comment_tree(comment["replies"], lines, depth + 1)
 
 
-def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
+def _format_hn_url_as_text(comments: List[Dict[str, Any]]) -> str:
     """
     Format HN comments list as readable text.
 
@@ -412,7 +424,7 @@ def _download_article_content(url: str) -> str:
     return result
 
 
-def _download_hn_comments(
+def _download_hn_urls(
     rows: List[Dict[str, Any]], indices: List[int], *, dry_run: bool = False
 ) -> None:
     """
@@ -431,7 +443,7 @@ def _download_hn_comments(
     for idx in tqdm(indices, desc="Downloading HN comments"):
         row = rows[idx]
         # Extract URL and title from the row.
-        url = row.get("Url", "").strip()
+        url = row.get("Hn_url", "").strip()
         title = row.get("Title", "").strip()
         if not url or not title:
             _LOG.warning("Row %d missing Url or Title, skipping", idx)
@@ -444,20 +456,18 @@ def _download_hn_comments(
         item_id = dshslgsut.extract_item_id(url)
         # Generate filename from title and check if it already exists.
         sanitized_title = _sanitize_title_for_filename(title)
-        output_file = f"{sanitized_title}.hn_comments.txt"
-        if os.path.exists(output_file):
-            _LOG.warning("File already exists, skipping: %s", output_file)
-            continue
+        output_file = f"{sanitized_title}.3.hn_url.txt"
         # Fetch comments from HN API and format as readable text.
         _LOG.info("Fetching HN comments for item: %s", item_id)
         if dry_run:
             _LOG.info("[DRY RUN] Would fetch HN comments for item: %s", item_id)
             _LOG.info("[DRY RUN] Would write HN comments to: %s", output_file)
         else:
-            hn_comments = _fetch_hn_comments(item_id, max_depth=3)
+            hn_comments = _fetch_hn_url(item_id, max_depth=3)
             # Write comments to disk.
             _LOG.info("Writing HN comments to: %s", output_file)
-            formatted_comments = _format_hn_comments_as_text(hn_comments)
+            formatted_comments = _format_hn_url_as_text(hn_comments)
+            # TODO(ai_gp): Use hio.to_file
             with open(output_file, "w") as f:
                 f.write(formatted_comments)
             _LOG.info("Successfully saved HN comments for: %s", title)
@@ -490,10 +500,7 @@ def _download_article_urls(
         _LOG.debug("Processing row %d: %s", idx, title)
         # Generate filename from title and check if it already exists.
         sanitized_title = _sanitize_title_for_filename(title)
-        output_file = f"{sanitized_title}.text.txt"
-        if os.path.exists(output_file):
-            _LOG.warning("File already exists, skipping: %s", output_file)
-            continue
+        output_file = f"{sanitized_title}.1.article_url.txt"
         # Download and parse article content from the URL.
         if dry_run:
             _LOG.info("[DRY RUN] Would download article from: %s", article_url)
@@ -511,6 +518,7 @@ def _download_article_urls(
                 continue
             # Write article text to disk.
             _LOG.info("Writing article content to: %s", output_file)
+            # TODO(ai_gp): Use hio.to_file
             with open(output_file, "w") as f:
                 f.write(article_content)
             _LOG.info("Successfully saved article for: %s", title)
@@ -567,14 +575,14 @@ def _summarize_text_with_llm(
     _LOG.info("Summary saved to: %s", output_file)
 
 
-def _summarize_hn_comments(
+def _summarize_hn_url(
     rows: List[Dict[str, Any]], *, indices: List[int], dry_run: bool = False
 ) -> None:
     """
     Summarize HN comments using llm_cli.py.
 
     Creates a summary file per article:
-    - title.hn_comments.summary.txt: Summary of HN comments
+    - title.4.hn_url.summary.txt: Summary of HN comments
 
     :param rows: List of data rows
     :param indices: List of row indices to process
@@ -606,11 +614,11 @@ def _summarize_hn_comments(
         _LOG.debug("Processing row %d: %s", idx, title)
         # Generate sanitized filename from title.
         sanitized_title = _sanitize_title_for_filename(title)
-        # Summarize HN comments if .hn_comments.txt file exists.
-        comments_file = f"{sanitized_title}.hn_comments.txt"
+        # Summarize HN comments if .hn_url.txt file exists.
+        comments_file = f"{sanitized_title}.3.hn_url.txt"
         if not dry_run:
             hdbg.dassert_file_exists(comments_file)
-        comments_summary_file = f"{sanitized_title}.hn_comments.summary.txt"
+        comments_summary_file = f"{sanitized_title}.4.hn_url.summary.txt"
         _LOG.info("Summarizing HN comments for: %s", title)
         _summarize_text_with_llm(
             comments_file,
@@ -651,11 +659,11 @@ def _summarize_articles(
         _LOG.debug("Processing row %d: %s", idx, title)
         # Generate sanitized filename from title.
         sanitized_title = _sanitize_title_for_filename(title)
-        # Summarize article text if .text.txt file exists.
-        article_file = f"{sanitized_title}.text.txt"
+        # Summarize article text.
+        article_file = f"{sanitized_title}.1.article_url.txt"
         if not dry_run:
             hdbg.dassert_file_exists(article_file)
-        article_summary_file = f"{sanitized_title}.text.summary.txt"
+        article_summary_file = f"{sanitized_title}.2.article_url.summary.txt"
         _LOG.info("Summarizing article text for: %s", title)
         _summarize_text_with_llm(
             article_file,
@@ -672,10 +680,10 @@ def _summarize_articles(
 
 
 VALID_ACTIONS = [
-    "download_url",
     "download_article_url",
-    "summarize_url",
+    "download_hn_url",
     "summarize_article_url",
+    "summarize_hn_url",
 ]
 DEFAULT_ACTIONS = VALID_ACTIONS[:]
 
@@ -704,17 +712,11 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10)",
     )
-    # Optional: filter rows by non-empty values in this column.
-    parser.add_argument(
-        "--select_column",
-        action="store",
-        default="",
-        help="Column name to use for filtering; only rows with non-empty cells in "
-        "this column will be processed",
-    )
-    # Add action selection arguments (download_url, download_article_url, etc).
+    # Add action selection arguments (download_hn_url, download_article_url, etc).
     hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
-    # Dry run mode: show what would happen without executing
+    # Add cache control argument.
+    hcacsimp.add_cache_control_arg(parser)
+    # Dry run mode: show what would happen without executing.
     parser.add_argument(
         "--dry_run",
         action="store_true",
@@ -732,6 +734,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug(hprint.func_signature_to_str())
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hcacsimp.parse_cache_control_args(args)
     hdbg.dassert_is_not(args.url, None, "--url is required")
     # Determine which actions to execute based on command-line flags.
     actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
@@ -757,15 +760,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not to_execute:
             continue
         # Phase 3: Download article.
-        if action == "download_url":
-            _download_hn_comments(rows, indices=indices, dry_run=args.dry_run)
-        elif action == "download_article_url":
+        if action == "download_article_url":
             _download_article_urls(rows, indices=indices, dry_run=args.dry_run)
-        elif action == "summarize_url":
-            # Phase 4: Summarization.
-            _summarize_hn_comments(rows, indices=indices, dry_run=args.dry_run)
+        elif action == "download_hn_url":
+            _download_hn_urls(rows, indices=indices, dry_run=args.dry_run)
         elif action == "summarize_article_url":
+            # Phase 4: Summarization.
             _summarize_articles(rows, indices=indices, dry_run=args.dry_run)
+        elif action == "summarize_hn_url":
+            _summarize_hn_url(rows, indices=indices, dry_run=args.dry_run)
     _LOG.info("Download and processing completed")
 
 
