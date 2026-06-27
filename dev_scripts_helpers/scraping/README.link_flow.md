@@ -17,7 +17,7 @@ The workflow involves:
   ```
   > export LINKS_GSHEET="<your-google-sheets-url>"
 
-  > export LINKS_GSHEET=https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M
+  > export LINKS_GSHEET=https://docs.google.com/spreadsheets/d/1i6Z7v2TzPdftR9BQ5Ia6jrrNWvVy-pUCxZAt4A59l8M/edit?gid=2008094999#gid=2008094999
   ```
 
 - The master Google Sheets document contains the following columns:
@@ -46,11 +46,11 @@ The workflow involves:
 
 ## Description of Files
 
-## `update_link_gsheet_from_raindrop.py`
+### `update_link_gsheet_from_raindrop.py`
 
 #### What It Does
 
-- Synchronizes bookmarks from Raindrop.io with a Google Sheets document
+- Synchronizes bookmarks from `Raindrop.io` with a Google Sheets document
 
 - Implements a four-action pipeline:
   1. **download_link_gsheet**: Downloads current data from Google Sheets to CSV
@@ -103,9 +103,8 @@ The workflow involves:
 
 #### What It Does
 
-- A comprehensive pipeline for enriching and processing Hacker News articles from
-  a Google Sheets document
-- It performs five sequential actions:
+- A pipeline for enriching and processing Hacker News articles from a Google
+  Sheets document, performing:
   1. **download**: Downloads data from Google Sheets to CSV
   2. **update_article_url**: Extracts article URLs from HN links using the HN API
   3. **update_article_tag**: Classifies articles using LLM into predefined topics
@@ -154,26 +153,28 @@ The workflow involves:
 
 - Downloads article content and HN comments from links stored in Google Sheets
 - Saves downloaded content to text files with bash-safe filenames derived from
-  the Title column
-- Supports filtering by column indices and column-based selection criteria
+  the `Title` column
+- Supports filtering by row indices
 
-- Implements two actions:
+- Implements the following actions:
   1. **download_url**: Downloads HN comments from HackerNews submission URLs
   2. **download_article_url**: Downloads article content from article URLs
+  3. **summarize_url**: Summarizes HN comments using LLM
+  4. **summarize_article_url**: Summarizes article content using LLM
 
 - Features:
   - Incremental processing with progress bars using tqdm
   - Recursive HN comment fetching with depth limiting
   - Article content extraction using BeautifulSoup
-  - Browser User-Agent header to avoid 403 Forbidden errors
-  - Bash-safe filename generation from article titles
-  - Column indexing with range support (e.g., "0:10" for rows 0-9)
+  - Row indexing with range support (e.g., "0:10" for rows 0-9)
   - Optional filtering by non-empty cells in a specified column
   - JSON caching for HN API calls to avoid redundant requests
+  - LLM-based summarization of articles and HN comments
+  - Customizable summarization prompts for different content types
 
 #### Example Usage
 
-- Download all (both HN comments and articles):
+- Download all (both HN comments and articles) for the first row of the Gsheet:
   ```bash
   > download_link_articles.py \
       --url "$LINKS_GSHEET" \
@@ -207,6 +208,20 @@ The workflow involves:
       --skip_action download_article_url
   ```
 
+- Summarize articles for all rows:
+  ```bash
+  > download_link_articles.py \
+      --url "$LINKS_GSHEET" \
+      --action summarize_article_url
+  ```
+
+- Summarize HN comments for all rows:
+  ```bash
+  > download_link_articles.py \
+      --url "$LINKS_GSHEET" \
+      --action summarize_url
+  ```
+
 #### Output Files
 
 - **HN Comments**: Filename format `TITLE.hn_comments.txt`
@@ -214,10 +229,19 @@ The workflow involves:
   - Includes comment metadata: author, score, timestamp
   - Depth-limited to avoid excessive API calls
 
+- **HN Comments Summary**: Filename format `TITLE.hn_comments.summary.txt`
+  - LLM-generated summary of 5 most interesting HN comments
+  - Focuses on insightful, thought-provoking, or informative comments
+  - Filters out jokes, memes, and low-effort reactions
+
 - **Article Content**: Filename format `TITLE.text.txt`
   - Contains extracted article text from <p> tags
   - Falls back to raw HTML if extraction fails
   - Uses browser User-Agent to avoid access restrictions
+
+- **Article Summary**: Filename format `TITLE.text.summary.txt`
+  - LLM-generated summary of article in 5 bullet points
+  - Plain text format without markdown
 
 ## Complete Workflow Example
 
@@ -233,13 +257,23 @@ A typical workflow for enriching links from multiple sources:
    > process_link_gsheet.py --url <sheet_url> --all
    ```
 
-3. Download HN comments for selected articles:
+3. Download HN comments and article content:
    ```bash
    > download_link_articles.py \
        --url <sheet_url> \
-       --select_column "Url" \
-       --action download_url
+       --all
    ```
 
-4. Review the results in the new timestamped tabs created in Google Sheets and
-   examine downloaded files in the local directory
+4. Summarize articles and HN comments using LLM:
+   ```bash
+   > download_link_articles.py \
+       --url <sheet_url> \
+       --action summarize_article_url
+   
+   > download_link_articles.py \
+       --url <sheet_url> \
+       --action summarize_url
+   ```
+
+5. Review the results in the new timestamped tabs created in Google Sheets and
+   examine downloaded files (articles, comments, and summaries) in the local directory

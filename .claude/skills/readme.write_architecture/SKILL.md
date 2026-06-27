@@ -22,11 +22,17 @@ model: haiku
 
 ## Step 2: Check the Existing Readme
 
-- Check if `README.<FILE>.md` already exists:
+- Check if `<FILE>.README.md` already exists:
   - If it exists, read it and plan what to update
   - If it does not exist, plan content from scratch
 
-## Step 3: 
+- Make sure there is a note in the docstring of the corresponding files
+  pointing to `<FILE>.README.md`, e.g.,
+  ```
+  For a description of the architecture of this file 
+
+## Step 3: Generate Document
+
 - Follow the template `.claude/templates/architecture_doc.template.md`
 
 - Generate the documentation with these sections using markdown and
@@ -34,9 +40,14 @@ model: haiku
   - Follow the rules in `.claude/skills/markdown.rules.md` for markdown formatting
   - Follow the rules in `.claude/skills/text.rules.md` for text formatting
 
-## Step 4
+## Step 4: Update Document
 
-- Write the results to `README.<FILE>.md` in the same directory as `<FILE>`
+- Write the results to `<FILE>.README.md` in the same directory as `<FILE>`
+
+## Step 5: Lint Document
+  ```bash
+  > lint_txt.py -i `<FILE>.README.md`
+  ```
 
 # Conventions
 
@@ -75,7 +86,7 @@ model: haiku
 # Constraints
 
 - Do not modify the original `<FILE>`
-  - Only create/update `README.<FILE>.md`
+  - Only create/update `<FILE>.README.md`
 - Do not over-document: avoid repeating what is obvious from the code
 - Keep diagrams focused: one clear diagram is better than three cluttered
   ones
@@ -85,9 +96,7 @@ model: haiku
 
 # Verification
 
-- Verify that `README.<FILE>.md` was created or updated
+- Verify that `<FILE>.README.md` was created or updated
 - Verify that at least one Mermaid diagram is present
-- Verify that the Critique and Improvements section contains at least 2
-  improvement suggestions
 - Verify that assumptions are clearly labeled as assumptions
 - Verify that the file renders correctly as GitHub-flavored Markdown
