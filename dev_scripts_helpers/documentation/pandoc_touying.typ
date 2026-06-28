@@ -97,15 +97,20 @@ $endif$
 #set text(font: "DejaVu Sans", size: 20pt, fill: black)
 #show heading: set text(font: "DejaVu Sans", size: 28pt)
 
+// Track list nesting depth with counter
+#let list-nesting = counter("list-nesting")
+
 // Use en-dashes for all bullet points (override default circle/triangle markers).
-#show list: set list(marker: "–")
+#show list: set list(marker: "–", spacing: 0.4em)
 
 // Reduce font size for nested list levels.
 #show list: it => {
-  let depth = (context query(selector(list).ancestors())).len()
-  let size = if depth == 0 { 1em } else if depth == 1 { 0.95em } else { 0.90em }
+  list-nesting.step()
+  let depth = list-nesting.get().first()
+  let size = if depth == 1 { 1em } else if depth == 2 { 0.95em } else { 0.90em }
   set text(size: size)
-  it
+  [#it]
+  list-nesting.update(n => n - 1)
 }
 
 // Make footer text smaller.
