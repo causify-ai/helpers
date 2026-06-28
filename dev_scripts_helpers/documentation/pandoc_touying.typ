@@ -101,7 +101,7 @@ $endif$
 #let list-nesting = counter("list-nesting")
 
 // Use en-dashes for all bullet points (override default circle/triangle markers).
-#show list: set list(marker: "–", spacing: 0.4em)
+#show list: set list(marker: "–")
 
 // Reduce font size for nested list levels.
 #show list: it => {
