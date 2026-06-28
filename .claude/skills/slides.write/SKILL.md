@@ -33,4 +33,6 @@ model: sonnet
 - Save the result in a output file `<OUTPUT_FILE>` like `<file>.slides.md`
   - E.g., For `books/facure/text_7.md` use `books/facure/text_7.slides.md`
   - Make sure that the file was empty, otherwise use a different file
+
+## Lint
 - Run `lint_txt.py -i <OUTPUT_FILE>`
