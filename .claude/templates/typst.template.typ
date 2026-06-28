@@ -1,7 +1,12 @@
 // abc123 2026-06-23
-// Template for MSML610 typst chapters. Save to msml610/book/ directory.
-// Import AIMA style formatting and macros
+//
+// Template for MSML610 typst chapters.
+// 
+// Generate with
+// > dev_scripts_helpers/typst/render_typst.sh ./.claude/templates/typst.template
 #import "../../dev_scripts_helpers/typst/aima_style.typ": aima-style, algorithm, chapter, glossary
+
+// Import AIMA style formatting and macros
 
 // Document metadata
 #set document(
@@ -44,20 +49,23 @@ For simple inline math expressions, use Typst native syntax:
 - `$ x = frac(a, b) $` for fractions
 - Use Typst symbols: `subset.eq` (⊆), `product_(i=1)^n` (∏), `sum_(...)` (∑)
 
-For display math (standalone formulas), use raw Typst code blocks to ensure proper rendering:
+For display math (standalone formulas), use raw Typst code blocks to ensure
+proper rendering:
 
-```{=typst}
+``` {=typst}
 $ Y_t = beta_0 + beta_1 t + beta_2 D_t + beta_3 (t - t_0) D_t + u_t $
 ```
 
-#strong[Important]: Avoid LaTeX symbol names in Typst. They won't render correctly. Use Typst equivalents:
+#strong[Important]: Avoid LaTeX symbol names in Typst. They won't render
+correctly. Use Typst equivalents:
 - `\subseteq` → `subset.eq`
 - `\in` → `in`
 - `\prod` → `product_(i=1)^n`
 - `\sum` → `sum_(...)`
 - `|x|` stays as `|x|`
 
-For inline variable references in regular text, use Unicode characters instead of math mode:
+For inline variable references in regular text, use Unicode characters instead
+of math mode:
 - θ instead of `$\theta$` (avoiding Pandoc mangling)
 - α, β, μ, σ, ∈, ⊆, ∪, etc.
 - 𝒟, 𝒢, ℝ for script/caligraphic letters
@@ -70,8 +78,9 @@ For inline variable references in regular text, use Unicode characters instead o
 - `\cdot` → `dot.op`, `\times` → `times`
 - `\infty` → `oo`
 
-For complex formulas with nested structures, keep them single-line when possible.
-Preserve all mathematical content from the original slide material exactly.
+For complex formulas with nested structures, keep them single-line when
+possible. Preserve all mathematical content from the original slide material
+exactly.
 
 For algorithms or structured pseudocode, use the algorithm macro:
 
@@ -169,13 +178,10 @@ Follow these patterns when expanding slide content:
 key terms. Use *...* only for emphasis, sparingly.
 
 #strong[3. Formulas]:
-- For simple inline math: `$f(x)$` works fine with Typst native symbols
-- For display/important equations: Use raw Typst code blocks:
-  ```{=typst}
-  $ formula_here $
-  ```
-- For inline variable references in prose text: Use Unicode (θ, α, etc.), not `$\theta$`
-- Always use Typst symbol names, never LaTeX ones: `subset.eq` not `\subseteq`
+- For simple inline math: use Typst native symbols (works fine with dollars)
+- For display/important equations: Use raw Typst code blocks with proper math syntax
+- For inline variable references in prose text: Use Unicode (θ, α, etc.)
+- Always use Typst symbol names, never LaTeX names
 - Preserve all mathematical content from the original slides exactly
 
 #strong[4. Pseudocode]: Format all algorithms with the `algorithm(...)` macro,
@@ -232,36 +238,34 @@ included, all formulas are preserved, and the document compiles cleanly.
 
 === Common Pitfalls and Solutions
 
-#strong[Problem]: Formula contains LaTeX-style commands like `$\subseteq$`, `$\theta$`
+#strong[Problem]: Formula contains LaTeX-style commands like `$\subseteq$`,
+`$\theta$`
 #strong[Solution]: Never use LaTeX syntax in Typst. Use equivalents:
 - Replace `\subseteq` with `subset.eq`
 - Replace `\theta` with Unicode θ or use in code block with `theta`
 - See "Symbol Mappings" section above for full list
 
-#strong[Problem]: Inline math in regular text gets mangled (e.g., `$\theta$` becomes `$t h e t a$`)
-#strong[Solution]: Use Unicode characters in prose instead: "parameter θ" not "`$\theta$`"
+#strong[Problem]: Inline math in regular text gets mangled (e.g., `$\theta$`
+becomes `$t h e t a$`)
+#strong[Solution]: Use Unicode characters in prose instead: "parameter θ" not
+"`$\theta$`"
 
 #strong[Problem]: Display formulas won't compile or render incorrectly
-#strong[Solution]: Use raw Typst code blocks for display math:
-```
-  ```{=typst}
-  $ formula $
-  ```
-```
+#strong[Solution]: Use raw Typst code blocks for display math with proper Typst syntax.
 This bypasses Pandoc conversion issues and lets Typst handle the math directly.
 
 #strong[Problem]: Multi-line formulas don't align properly
-#strong[Solution]: Keep formulas single-line when possible, or use Typst line-break syntax
+#strong[Solution]: Keep formulas single-line when possible, or use Typst
+line-break syntax
 
-#strong[Problem]: Color commands like `\red{x}` or `\blue{y}` fail to render
-#strong[Solution]: Use Typst's text color functions instead:
-- `#text(fill: red)[content]` for colored text
-- Or use simpler notation without colors for better compatibility
+#strong[Problem]: Color commands fail to render
+#strong[Solution]: Use Typst's text color functions like #text(fill: red)[colored text] for colored output.
+Alternatively, use simpler notation without colors for better compatibility
 
 #strong[Checklist for Formula Rendering]:
 - ✓ All formulas use Typst native symbols (not LaTeX)
 - ✓ Inline variables in text use Unicode characters (θ, α, etc.)
-- ✓ Display formulas are in raw Typst code blocks (` ```{=typst} `)
-- ✓ No LaTeX commands like `\subseteq`, `\mathcal`, `\textcolor`, etc.
+- ✓ Display formulas use raw Typst code blocks with triple backticks and language tag
+- ✓ No LaTeX commands (use Typst equivalents: subset.eq not subseteq, etc.)
 - ✓ Complex formulas are single-line
 - ✓ All mathematical content from source slides is preserved exactly

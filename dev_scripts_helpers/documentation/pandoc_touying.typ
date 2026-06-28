@@ -47,34 +47,48 @@ $endif$
 // Make the inline verbatim font bigger.
 #show raw.where(block: false): set text(size: 1.15em)
 
-// Styled table.
-#let styled-table(headers, rows, caption: none, col-widths: none, bold-first-col: true) = {
+// Styled table with zebra striping, lateral lines, and configurable width.
+#let styled-table(headers, rows, caption: none, col-widths: none, bold-first-col: true, size: 0.8em, width: 80%) = {
+  // TODO(ai_gp): Add explanation of parameters
   let n = headers.len()
   let widths = if col-widths != none { col-widths } else { (1fr,) * n }
 
-  let processed-rows = rows.map(row => {
+  // Zebra striping: alternate white and darker gray backgrounds on full rows
+  let processed-rows = rows.enumerate().map(((idx, row)) => {
+    let bg-color = if calc.rem(idx, 2) == 0 { white } else { rgb("#e8e8e8") }
     if bold-first-col {
-      (strong(row.at(0)), ..row.slice(1))
+      (
+        table.cell(fill: bg-color, text(fill: black, weight: "bold", row.at(0))),
+        ..row.slice(1).map(cell => table.cell(fill: bg-color, text(fill: rgb("#555555"), cell)))
+      )
     } else {
-      row
+      row.map(cell => table.cell(fill: bg-color, text(fill: rgb("#555555"), cell)))
     }
   })
 
-  figure(
-    table(
-      columns: widths,
-      align: (left,) * n,
-      stroke: none,
-      table.hline(stroke: 1pt),
-      table.header(
-        ..headers.map(h => strong(h))
+  text(size: size,
+    figure(
+      align(center,
+        block(width: width,
+          table(
+            columns: widths,
+            align: (left,) * n,
+            stroke: none,
+            table.vline(x: 0, stroke: 2pt),
+            table.hline(stroke: 2pt),
+            table.header(
+              ..headers.map(h => text(fill: black, weight: "bold", h))
+            ),
+            table.hline(stroke: 1.5pt),
+            ..processed-rows.flatten(),
+            table.hline(stroke: 2pt),
+            table.vline(x: n, stroke: 2pt),
+          )
+        )
       ),
-      table.hline(stroke: 0.5pt),
-      ..processed-rows.flatten(),
-      table.hline(stroke: 1pt),
-    ),
-    kind: table,
-    caption: caption,
+      kind: table,
+      caption: caption,
+    )
   )
 }
 
@@ -85,6 +99,14 @@ $endif$
 
 // Use en-dashes for all bullet points (override default circle/triangle markers).
 #show list: set list(marker: "–")
+
+// Reduce font size for nested list levels.
+#show list: it => {
+  let depth = (context query(selector(list).ancestors())).len()
+  let size = if depth == 0 { 1em } else if depth == 1 { 0.95em } else { 0.90em }
+  set text(size: size)
+  it
+}
 
 // Make footer text smaller.
 #let footer-text(body) = text(size: 0.8em, fill: black, body)

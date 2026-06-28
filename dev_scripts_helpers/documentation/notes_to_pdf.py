@@ -133,6 +133,15 @@ def daemon_watch(
         debounce_sec,
     )
     hdbg.dassert_file_exists(file_path)
+    def _run_cmd() -> None:
+        try:
+            hsystem.system(cmd)
+        except Exception as e:
+            _LOG.error("Daemon: command failed: %s", e)
+
+    # Run immediately on first launch.
+    _LOG.info("Initial run...")
+    _run_cmd()
     prev_hash = file_hash(file_path)
     stable_hash = None
     time_since_last_change = 0
@@ -155,7 +164,7 @@ def daemon_watch(
             if time_since_last_change >= debounce_sec:
                 # Debounce complete, regenerate.
                 _LOG.info("Debounce complete. Regenerating...")
-                hsystem.system(cmd)
+                _run_cmd()
                 stable_hash = None
 
 
@@ -1331,7 +1340,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
         # Build command without --daemon flag for daemon_watch to execute.
-        cmd_parts = [arg for arg in sys.argv[1:] if arg != "--daemon"]
+        cmd_parts = [sys.argv[0]] + [arg for arg in sys.argv[1:] if arg != "--daemon"]
         # Skip open action since user likely has viewer that auto-refreshes.
         cmd_parts.extend(["--skip_action=open"])
         cmd = " ".join(shlex.quote(part) for part in cmd_parts)

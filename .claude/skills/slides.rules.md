@@ -224,6 +224,68 @@
   - Variable names
   - Implementation-oriented notation
 
+## Tables
+
+- Create tables using the `styled-table` function from
+  `./dev_scripts_helpers/documentation/pandoc_touying.typ` to maintain
+  consistent formatting and professional appearance across all slides
+- `styled-table` provides proper borders, header formatting, and alignment
+  automatically
+
+### Syntax
+
+```typst
+#styled-table(
+  headers: ("Column 1", "Column 2", "Column 3"),
+  rows: (
+    ("Row 1 Col 1", "Row 1 Col 2", "Row 1 Col 3"),
+    ("Row 2 Col 1", "Row 2 Col 2", "Row 2 Col 3"),
+  ),
+  caption: "Table Caption (optional)",
+  col-widths: (1fr, 1.5fr, 1fr),  // optional
+  bold-first-col: true  // optional
+)
+```
+
+### Parameters
+
+- **headers**: Array of column header strings (required)
+- **rows**: Array of rows, where each row is an array of cell contents (required)
+- **caption**: Optional table caption displayed below the table
+- **col-widths**: Optional array of column width specifications
+  - Default: equal widths (`1fr` for each column)
+  - Example: `(1fr, 1.5fr, 1fr)` makes middle column 50% wider
+- **bold-first-col**: Optional boolean to bold the first column (default: `true`)
+  - Set to `false` for symmetric data; use `true` for row labels
+
+### Guidelines
+
+- Use `bold-first-col: true` when the first column contains row labels
+- Adjust `col-widths` when column content varies significantly in length
+- Always include `headers` to make table structure clear
+
+### Example
+
+- **Good** (labeled data with consistent styling)
+  ```typst
+  #styled-table(
+    headers: ("Method", "Accuracy", "Speed"),
+    rows: (
+      ("Baseline", "75%", "Fast"),
+      ("Proposed", "92%", "Slow"),
+      ("Optimized", "90%", "Fast"),
+    ),
+  )
+  ```
+
+- **Bad** (inconsistent inline table formatting)
+  ````markdown
+  | Method | Accuracy | Speed |
+  |--------|----------|-------|
+  | Baseline | 75% | Fast |
+  | Proposed | 92% | Slow |
+  ````
+
 ## Mathematical Notation
 
 ### Display Modes

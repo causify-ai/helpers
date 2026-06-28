@@ -1,7 +1,9 @@
-import pprint
+import logging
 
 import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dsdocdpdf
 import helpers.hunit_test as hunitest
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -16,13 +18,22 @@ class Test__is_columns_container(hunitest.TestCase):
 
     # TODO(ai_gp): -> helper and use type hints
 	def _assert_columns_container(self, elem, expected):
+		"""
+		Test helper for _is_columns_container.
+
+		:param elem: Element to test
+		:param expected: Expected result
+		"""
+		# Run test.
 		actual = dsdocdpdf._is_columns_container(elem)
+		# Check outputs.
 		self.assertEqual(actual, expected)
 
 	def test1(self) -> None:
 		"""
 		Test that valid Div with columns class is detected.
 		"""
+		# Prepare inputs.
 		elem = {
 			"t": "Div",
 			"c": [
@@ -30,19 +41,27 @@ class Test__is_columns_container(hunitest.TestCase):
 				[],
 			],
 		}
-		self._assert_columns_container(elem, True)
+		# Prepare outputs.
+		expected = True
+		# Run test.
+		self._assert_columns_container(elem, expected)
 
 	def test2(self) -> None:
 		"""
 		Test that non-Div element is rejected.
 		"""
+		# Prepare inputs.
 		elem = {"t": "Para", "c": []}
-		self._assert_columns_container(elem, False)
+		# Prepare outputs.
+		expected = False
+		# Run test.
+		self._assert_columns_container(elem, expected)
 
 	def test3(self) -> None:
 		"""
 		Test that Div without columns class is rejected.
 		"""
+		# Prepare inputs.
 		elem = {
 			"t": "Div",
 			"c": [
@@ -50,14 +69,21 @@ class Test__is_columns_container(hunitest.TestCase):
 				[],
 			],
 		}
-		self._assert_columns_container(elem, False)
+		# Prepare outputs.
+		expected = False
+		# Run test.
+		self._assert_columns_container(elem, expected)
 
 	def test4(self) -> None:
 		"""
 		Test that Div with empty c is rejected.
 		"""
+		# Prepare inputs.
 		elem = {"t": "Div", "c": []}
-		self._assert_columns_container(elem, False)
+		# Prepare outputs.
+		expected = False
+		# Run test.
+		self._assert_columns_container(elem, expected)
 
 
 # #############################################################################
@@ -147,7 +173,7 @@ class Test__extract_columns(hunitest.TestCase):
 		# Run test.
 		actual = dsdocdpdf._extract_columns(container)
 		# Check outputs.
-		self.assertEqual(actual, expected, f"\n{pprint.pformat(actual)}")
+		self.assert_equal(str(actual), str(expected))
 
 	def test3(self) -> None:
 		"""
@@ -183,7 +209,7 @@ class Test__extract_columns(hunitest.TestCase):
 		# Run test.
 		actual = dsdocdpdf._extract_columns(container)
 		# Check outputs.
-		self.assertEqual(actual, expected, f"\n{pprint.pformat(actual)}")
+		self.assert_equal(str(actual), str(expected))
 
 
 # #############################################################################
@@ -400,11 +426,14 @@ class Test__transform_ast(hunitest.TestCase):
 			"meta": {},
 			"blocks": [{"t": "Para", "c": [{"t": "Str", "c": "text"}]}],
 		}
+		# Prepare outputs.
+		expected_block_count = 1
+		expected_block_type = "Para"
 		# Run test.
 		actual = dsdocdpdf._transform_ast(ast)
 		# Check outputs.
-		self.assertEqual(len(actual["blocks"]), 1)
-		self.assertEqual(actual["blocks"][0]["t"], "Para")
+		self.assertEqual(len(actual["blocks"]), expected_block_count)
+		self.assertEqual(actual["blocks"][0]["t"], expected_block_type)
 
 
 # #############################################################################
@@ -417,15 +446,14 @@ class Test_end_to_end(hunitest.TestCase):
 	End-to-end test using pandoc to convert markdown with columns to typst.
 	"""
 
-    # TODO(ai_gp): Use dockerized_pandoc
-	def test_markdown_to_typst_with_columns(self) -> None:
+	def test1(self) -> None:
 		"""
-		Test full pipeline: markdown with :::columns fences -> AST -> transform -> typst.
+		Test full pipeline: markdown with :::columns -> AST -> transform -> typst.
 		"""
 		import subprocess
 		import json
 
-		# Markdown input with two columns
+		# Prepare inputs.
 		markdown_input = """
 # Title
 
@@ -439,8 +467,7 @@ Right content
 :::
 :::
 """
-
-		# Convert markdown to pandoc AST JSON
+		# Run test.
 		proc = subprocess.run(
 			["pandoc", "-f", "markdown", "-t", "json"],
 			input=markdown_input,
@@ -451,11 +478,8 @@ Right content
 			self.skipTest("pandoc not available")
 
 		ast = json.loads(proc.stdout)
-
-		# Transform AST
 		transformed_ast = dsdocdpdf._transform_ast(ast)
-
-		# Verify transformation occurred
+		# Check outputs.
 		self.assertEqual(transformed_ast["blocks"][1]["t"], "RawBlock")
 		self.assertEqual(transformed_ast["blocks"][1]["c"][0], "typst")
 		grid_code = transformed_ast["blocks"][1]["c"][1]
