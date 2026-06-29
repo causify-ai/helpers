@@ -41,7 +41,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.github.to_github as dscghtogh
+import dev_scripts_helpers.github.to_github as dshgtogi
 
 _LOG = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ def _get_github_url_with_line(
     :param use_master: Use master branch instead of current branch
     :return: GitHub URL for the file, optionally with line number
     """
-    base_url = dscghtogh._get_github_url(
+    base_url = dshgtogi._get_github_url(
         file_path=file_path,
         use_master=use_master,
     )
@@ -139,6 +139,8 @@ def _enhance_dot_with_github_urls(
     graph = graphs[0]
     # Helper function to recursively update all nodes in a graph and subgraphs.
     nodes_updated = 0
+
+    # TODO(ai_gp): Add type hints.
     def update_nodes_in_graph(g):
         nonlocal nodes_updated
         # Iterate through all nodes in this graph.
@@ -177,6 +179,7 @@ def _enhance_dot_with_github_urls(
         # Recursively process subgraphs.
         for subgraph in g.get_subgraph_list():
             update_nodes_in_graph(subgraph)
+
     update_nodes_in_graph(graph)
     _LOG.info("Updated %d nodes with GitHub URLs", nodes_updated)
     # Write the enhanced DOT file back.

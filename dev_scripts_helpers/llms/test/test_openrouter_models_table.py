@@ -257,7 +257,7 @@ class Test_merge_dataframes(hunitest.TestCase):
             base_df, [df1, df2], num_input_models=2
         )
         actual_string = hpandas.df_to_str(actual, num_rows=None)
-        expected_string = """  
+        expected_string = """
           Model_ID Name  Cost  Speed
         0   model1   M1   1.0   25.5
         1   model2   M2   2.0   18.2
@@ -320,11 +320,9 @@ class Test_build_openrouter_id_to_aa_slug(hunitest.TestCase):
         }
         actual = dshlomota._build_openrouter_id_to_aa_slug(api_lookup, aa_models)
         actual_string = pprint.pformat(actual)
-        expected_string = (
-            """
+        expected_string = """
             {'google/gemini-3.1-pro-preview': 'gemini-3-1-pro-preview'}
             """
-        )
         self.assert_equal(actual_string, expected_string)
 
 
