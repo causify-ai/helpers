@@ -192,7 +192,8 @@ def _render_with_pandoc(
             f"pandoc {processed_file} "
             f"-o {output_file} "
             f"--resource-path={file_dir} "
-            f"--standalone"
+            f"--standalone "
+            f"--mathjax"
         )
         _LOG.info("Running pandoc: %s", cmd)
         hsystem.system(cmd)
@@ -202,7 +203,8 @@ def _render_with_pandoc(
             f"pandoc {processed_file} "
             f"-o {output_file} "
             f"--resource-path={file_dir} "
-            f"--standalone"
+            f"--standalone "
+            f"--mathjax"
         )
         _LOG.info("Running dockerized pandoc: %s", cmd)
         dshdlipa.run_dockerized_pandoc(
