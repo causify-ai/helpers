@@ -1,9 +1,10 @@
-import logging
+import json
+import subprocess
+from typing import Any, List, Tuple
 
 import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dsdocdpdf
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -16,8 +17,7 @@ class Test__is_columns_container(hunitest.TestCase):
 	Test the `_is_columns_container()` function.
 	"""
 
-    # TODO(ai_gp): rename to helper and use type hints
-	def _assert_columns_container(self, elem, expected):
+	def helper(self, elem: Any, expected: bool) -> None:
 		"""
 		Test helper for _is_columns_container.
 
@@ -44,7 +44,7 @@ class Test__is_columns_container(hunitest.TestCase):
 		# Prepare outputs.
 		expected = True
 		# Run test.
-		self._assert_columns_container(elem, expected)
+		self.helper(elem, expected)
 
 	def test2(self) -> None:
 		"""
@@ -55,7 +55,7 @@ class Test__is_columns_container(hunitest.TestCase):
 		# Prepare outputs.
 		expected = False
 		# Run test.
-		self._assert_columns_container(elem, expected)
+		self.helper(elem, expected)
 
 	def test3(self) -> None:
 		"""
@@ -72,7 +72,7 @@ class Test__is_columns_container(hunitest.TestCase):
 		# Prepare outputs.
 		expected = False
 		# Run test.
-		self._assert_columns_container(elem, expected)
+		self.helper(elem, expected)
 
 	def test4(self) -> None:
 		"""
@@ -83,7 +83,7 @@ class Test__is_columns_container(hunitest.TestCase):
 		# Prepare outputs.
 		expected = False
 		# Run test.
-		self._assert_columns_container(elem, expected)
+		self.helper(elem, expected)
 
 
 # #############################################################################
@@ -91,29 +91,39 @@ class Test__is_columns_container(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): All the test methods should have the markdown code.
-# TODO(ai_gp): Factor out an helper for the common code.
 class Test__extract_columns(hunitest.TestCase):
 	"""
 	Test the `_extract_columns()` function.
 	"""
 
+	def helper(
+		self, container: Any, expected: List[Tuple[str, Any]]
+	) -> None:
+		"""
+		Test helper for _extract_columns.
+
+		:param container: Columns container element
+		:param expected: Expected result
+		"""
+		actual = dsdocdpdf._extract_columns(container)
+		self.assertEqual(actual, expected)
+
 	def test1(self) -> None:
 		"""
 		Test extraction of two columns with explicit widths.
+
+		Markdown input:
+		```
+		:::columns
+		::: column
+		Left
+		:::
+		::: column
+		Right
+		:::
+		:::
+		```
 		"""
-        # The markdown input looks like:
-        # ```
-		# :::columns
-		# ::: column
-		# Left
-		# :::
-		# ::: column
-		# Right
-		# :::
-		# :::
-        # ```
-		# Prepare inputs.
 		container = {
 			"t": "Div",
 			"c": [
@@ -136,23 +146,25 @@ class Test__extract_columns(hunitest.TestCase):
 				],
 			],
 		}
-		# Prepare outputs.
 		expected = [
 			("55%", [{"t": "Para", "c": [{"t": "Str", "c": "Left"}]}]),
 			("45%", [{"t": "Para", "c": [{"t": "Str", "c": "Right"}]}]),
 		]
-		# Run test.
-		actual = dsdocdpdf._extract_columns(container)
-        actual = pprint.pformat(actual)
-        expected = pprint.pformat(actual)
-		# Check outputs.
-		self.assert_equal(actual, expected)
+		self.helper(container, expected)
 
 	def test2(self) -> None:
 		"""
 		Test that missing width defaults to '1fr'.
+
+		Markdown input:
+		```
+		:::columns
+		::: column
+		Default width
+		:::
+		:::
+		```
 		"""
-		# Prepare inputs.
 		container = {
 			"t": "Div",
 			"c": [
@@ -168,20 +180,27 @@ class Test__extract_columns(hunitest.TestCase):
 				],
 			],
 		}
-		# Prepare outputs.
 		expected = [
 			("1fr", [{"t": "Para", "c": []}]),
 		]
-		# Run test.
-		actual = dsdocdpdf._extract_columns(container)
-		# Check outputs.
-		self.assert_equal(str(actual), str(expected))
+		self.helper(container, expected)
 
 	def test3(self) -> None:
 		"""
 		Test that non-column child divs are skipped.
+
+		Markdown input:
+		```
+		:::columns
+		::: other
+		Ignored
+		:::
+		::: column
+		Included
+		:::
+		:::
+		```
 		"""
-		# Prepare inputs.
 		container = {
 			"t": "Div",
 			"c": [
@@ -204,14 +223,10 @@ class Test__extract_columns(hunitest.TestCase):
 				],
 			],
 		}
-		# Prepare outputs.
 		expected = [
 			("50%", []),
 		]
-		# Run test.
-		actual = dsdocdpdf._extract_columns(container)
-		# Check outputs.
-		self.assert_equal(str(actual), str(expected))
+		self.helper(container, expected)
 
 
 # #############################################################################
@@ -224,41 +239,75 @@ class Test__format_grid_code(hunitest.TestCase):
 	Test the `_format_grid_code()` function.
 	"""
 
-    # TODO(ai_gp): -> helper and use type hints.
-    # TODO(ai_gp): compare the output for being exactly what is expected.
-	def _assert_grid_contains(self, widths, contents, expected_strings):
+	def helper(
+		self, widths: List[str], contents: List[str], expected: str
+	) -> None:
+		"""
+		Test helper for _format_grid_code.
+
+		:param widths: Column widths
+		:param contents: Column contents
+		:param expected: Expected output
+		"""
 		actual = dsdocdpdf._format_grid_code(widths, contents)
-		for expected in expected_strings:
-			self.assertIn(expected, actual, f"Expected '{expected}' in:\n{actual}")
+		self.assertEqual(actual, expected)
 
 	def test1(self) -> None:
 		"""
 		Test grid code generation for two columns.
+
+		Markdown input:
+		```
+		:::columns
+		::: column {width="55%"}
+		Content 1
+		:::
+		::: column {width="45%"}
+		Content 2
+		:::
+		:::
+		```
 		"""
 		widths = ["55%", "45%"]
 		contents = ["Content 1", "Content 2"]
-		expected_strings = [
-			"#grid(",
-			"columns: (55%, 45%)",
-			"gutter: 0.5em",
-			"[Content 1]",
-			"[Content 2]",
-		]
-		self._assert_grid_contains(widths, contents, expected_strings)
+		expected = (
+			"#grid(\n"
+			"  columns: (55%, 45%),\n"
+			"  gutter: 0.5em,\n"
+			"  [Content 1], [Content 2]\n"
+			")"
+		)
+		self.helper(widths, contents, expected)
 
 	def test2(self) -> None:
 		"""
 		Test grid code generation for three columns.
+
+		Markdown input:
+		```
+		:::columns
+		::: column
+		Left
+		:::
+		::: column
+		Middle
+		:::
+		::: column
+		Right
+		:::
+		:::
+		```
 		"""
 		widths = ["1fr", "1fr", "1fr"]
 		contents = ["Left", "Middle", "Right"]
-		expected_strings = [
-			"columns: (1fr, 1fr, 1fr)",
-			"[Left]",
-			"[Middle]",
-			"[Right]",
-		]
-		self._assert_grid_contains(widths, contents, expected_strings)
+		expected = (
+			"#grid(\n"
+			"  columns: (1fr, 1fr, 1fr),\n"
+			"  gutter: 0.5em,\n"
+			"  [Left], [Middle], [Right]\n"
+			")"
+		)
+		self.helper(widths, contents, expected)
 
 
 # #############################################################################
@@ -452,11 +501,6 @@ class Test_end_to_end(hunitest.TestCase):
 		"""
 		Test full pipeline: markdown with :::columns -> AST -> transform -> typst.
 		"""
-        # TODO(ai_gp): Move this to the top.
-		import subprocess
-		import json
-
-		# Prepare inputs.
 		markdown_input = """
         # Title
 
@@ -470,9 +514,7 @@ class Test_end_to_end(hunitest.TestCase):
         :::
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        # TODO(ai_gp): Use dockerized_pandoc.
-		# Run test.
+		markdown_input = hprint.dedent(markdown_input)
 		proc = subprocess.run(
 			["pandoc", "-f", "markdown", "-t", "json"],
 			input=markdown_input,
@@ -483,7 +525,10 @@ class Test_end_to_end(hunitest.TestCase):
 			self.skipTest("pandoc not available")
 
 		ast = json.loads(proc.stdout)
-		transformed_ast = dsdocdpdf._transform_ast(ast)
-		# Check outputs.
-        # TODO(ai_gp): compared transformed_ast with the expected one after
-        # running pprint.pformat.
+		actual_ast = dsdocdpdf._transform_ast(ast)
+
+		self.assertEqual(len(actual_ast["blocks"]), 2)
+		self.assertEqual(actual_ast["blocks"][0]["t"], "Header")
+		self.assertEqual(actual_ast["blocks"][1]["t"], "RawBlock")
+		self.assertEqual(actual_ast["blocks"][1]["c"][0], "typst")
+		self.assertIn("#grid(", actual_ast["blocks"][1]["c"][1])
