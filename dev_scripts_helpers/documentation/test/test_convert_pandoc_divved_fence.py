@@ -1,8 +1,10 @@
 import json
-import subprocess
+import os
 from typing import Any, List, Tuple
 
 import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dsdocdpdf
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -320,12 +322,36 @@ class Test__transform_elem(hunitest.TestCase):
 	Test the `_transform_elem()` function.
 	"""
 
+	def helper(self, elem: Any, expected: str) -> None:
+		"""
+		Test helper for _transform_elem.
+
+		:param elem: AST element to transform
+		:param expected: Expected JSON string of transformed element
+		"""
+		api_version = [1, 23, 1]
+		actual = dsdocdpdf._transform_elem(elem, api_version)
+		actual_str = json.dumps(actual, indent=2)
+		self.assert_equal(actual_str, expected)
+
 	def test1(self) -> None:
 		"""
-		Test that columns container is transformed to RawBlock.
+		Test that columns container is transformed to RawBlock with #grid().
+
+		Markdown input:
+		```markdown
+		:::columns
+		::: column {width="50%"}
+		col1
+		:::
+		::: column {width="50%"}
+		col2
+		:::
+		:::
+		```
 		"""
 		# Prepare inputs.
-		container = {
+		elem = {
 			"t": "Div",
 			"c": [
 				["", ["columns"], []],
@@ -347,20 +373,41 @@ class Test__transform_elem(hunitest.TestCase):
 				],
 			],
 		}
-		api_version = [1, 23, 1]
+		# Prepare outputs.
+		expected = hprint.dedent(
+			r"""
+			{
+			  "t": "RawBlock",
+			  "c": [
+			    "typst",
+			    "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [col1], [col2]\n)"
+			  ]
+			}
+			"""
+		)
 		# Run test.
-		actual = dsdocdpdf._transform_elem(container, api_version)
-		# Check outputs.
-		self.assertEqual(actual["t"], "RawBlock")
-		self.assertEqual(actual["c"][0], "typst")
-		self.assertIn("#grid(", actual["c"][1])
+		self.helper(elem, expected)
 
 	def test2(self) -> None:
 		"""
 		Test that non-columns Div children are recursively transformed.
+
+		Markdown input:
+		```markdown
+		::: {#id1}
+		:::columns
+		::: column {width="50%"}
+		nested
+		:::
+		::: column {width="50%"}
+		col
+		:::
+		:::
+		:::
+		```
 		"""
 		# Prepare inputs.
-		div = {
+		elem = {
 			"t": "Div",
 			"c": [
 				["id1", [], []],
@@ -390,26 +437,60 @@ class Test__transform_elem(hunitest.TestCase):
 				],
 			],
 		}
-		api_version = [1, 23, 1]
+		# Prepare outputs.
+		expected = hprint.dedent(
+			r"""
+			{
+			  "t": "Div",
+			  "c": [
+			    [
+			      "id1",
+			      [],
+			      []
+			    ],
+			    [
+			      {
+			        "t": "RawBlock",
+			        "c": [
+			          "typst",
+			          "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [nested], [col]\n)"
+			        ]
+			      }
+			    ]
+			  ]
+			}
+			"""
+		)
 		# Run test.
-		actual = dsdocdpdf._transform_elem(div, api_version)
-		# Check outputs.
-		self.assertEqual(actual["t"], "Div")
-		inner = actual["c"][1][0]
-		self.assertEqual(inner["t"], "RawBlock")
-		self.assertIn("#grid(", inner["c"][1])
+		self.helper(elem, expected)
 
 	def test3(self) -> None:
 		"""
-		Test that Para elements are unchanged.
+		Test that Para elements pass through unchanged.
+
+		Markdown input:
+		```markdown
+		text
+		```
 		"""
 		# Prepare inputs.
-		para = {"t": "Para", "c": [{"t": "Str", "c": "text"}]}
-		api_version = [1, 23, 1]
+		elem = {"t": "Para", "c": [{"t": "Str", "c": "text"}]}
+		# Prepare outputs.
+		expected = hprint.dedent(
+			"""
+			{
+			  "t": "Para",
+			  "c": [
+			    {
+			      "t": "Str",
+			      "c": "text"
+			    }
+			  ]
+			}
+			"""
+		)
 		# Run test.
-		actual = dsdocdpdf._transform_elem(para, api_version)
-		# Check outputs.
-		self.assertEqual(actual["t"], "Para")
+		self.helper(elem, expected)
 
 
 # #############################################################################
@@ -499,7 +580,11 @@ class Test_end_to_end(hunitest.TestCase):
 
 	def test1(self) -> None:
 		"""
-		Test full pipeline: markdown with :::columns -> AST -> transform -> typst.
+		Test full pipeline:
+        - markdown with :::columns
+        - AST
+        - transform
+        - typst
 		"""
 		markdown_input = """
         # Title
@@ -515,20 +600,18 @@ class Test_end_to_end(hunitest.TestCase):
         :::
         """
 		markdown_input = hprint.dedent(markdown_input)
-		proc = subprocess.run(
-			["pandoc", "-f", "markdown", "-t", "json"],
-			input=markdown_input,
-			capture_output=True,
-			text=True,
-		)
-		if proc.returncode != 0:
-			self.skipTest("pandoc not available")
-
-		ast = json.loads(proc.stdout)
+        #
+		scratch_dir = self.get_scratch_space()
+		in_file = os.path.join(scratch_dir, "input.md")
+		hio.to_file(in_file, markdown_input)
+        #
+		ast_file = os.path.join(scratch_dir, "ast.json")
+		cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
+		dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
+        #
+		ast = json.loads(hio.from_file(ast_file))
 		actual_ast = dsdocdpdf._transform_ast(ast)
-
-		self.assertEqual(len(actual_ast["blocks"]), 2)
-		self.assertEqual(actual_ast["blocks"][0]["t"], "Header")
-		self.assertEqual(actual_ast["blocks"][1]["t"], "RawBlock")
-		self.assertEqual(actual_ast["blocks"][1]["c"][0], "typst")
-		self.assertIn("#grid(", actual_ast["blocks"][1]["c"][1])
+		actual_str = json.dumps(actual_ast, indent=2)
+        expected = """
+        """
+		self.assert_equal(actual_str, expected)
