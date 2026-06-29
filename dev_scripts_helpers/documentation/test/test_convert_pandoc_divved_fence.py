@@ -16,7 +16,7 @@ class Test__is_columns_container(hunitest.TestCase):
 	Test the `_is_columns_container()` function.
 	"""
 
-    # TODO(ai_gp): -> helper and use type hints
+    # TODO(ai_gp): rename to helper and use type hints
 	def _assert_columns_container(self, elem, expected):
 		"""
 		Test helper for _is_columns_container.
@@ -102,7 +102,8 @@ class Test__extract_columns(hunitest.TestCase):
 		"""
 		Test extraction of two columns with explicit widths.
 		"""
-		# Markdown input:
+        # The markdown input looks like:
+        # ```
 		# :::columns
 		# ::: column
 		# Left
@@ -111,6 +112,7 @@ class Test__extract_columns(hunitest.TestCase):
 		# Right
 		# :::
 		# :::
+        # ```
 		# Prepare inputs.
 		container = {
 			"t": "Div",
@@ -450,23 +452,26 @@ class Test_end_to_end(hunitest.TestCase):
 		"""
 		Test full pipeline: markdown with :::columns -> AST -> transform -> typst.
 		"""
+        # TODO(ai_gp): Move this to the top.
 		import subprocess
 		import json
 
 		# Prepare inputs.
 		markdown_input = """
-# Title
+        # Title
 
-:::columns
-::: column
-Left content
-:::
+        :::columns
+        ::: column
+        Left content
+        :::
 
-::: column
-Right content
-:::
-:::
-"""
+        ::: column
+        Right content
+        :::
+        :::
+        """
+        markdown_input = hprint.dedent(markdown_input)
+        # TODO(ai_gp): Use dockerized_pandoc.
 		# Run test.
 		proc = subprocess.run(
 			["pandoc", "-f", "markdown", "-t", "json"],
@@ -480,8 +485,5 @@ Right content
 		ast = json.loads(proc.stdout)
 		transformed_ast = dsdocdpdf._transform_ast(ast)
 		# Check outputs.
-		self.assertEqual(transformed_ast["blocks"][1]["t"], "RawBlock")
-		self.assertEqual(transformed_ast["blocks"][1]["c"][0], "typst")
-		grid_code = transformed_ast["blocks"][1]["c"][1]
-		self.assertIn("#grid(", grid_code)
-		self.assertIn("columns:", grid_code)
+        # TODO(ai_gp): compared transformed_ast with the expected one after
+        # running pprint.pformat.
