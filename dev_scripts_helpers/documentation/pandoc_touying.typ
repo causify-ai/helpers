@@ -77,7 +77,7 @@ $endif$
             table.vline(x: 0, stroke: 2pt),
             table.hline(stroke: 2pt),
             table.header(
-              ..headers.map(h => text(fill: black, weight: "bold", h))
+              ..headers.map(h => table.cell(fill: black, text(fill: white, weight: "bold", h)))
             ),
             table.hline(stroke: 1.5pt),
             ..processed-rows.flatten(),
