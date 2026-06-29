@@ -282,7 +282,7 @@
 | `_run_pandoc_to_pdf()` | Converts markdown → LaTeX → PDF via Pandoc and pdflatex (2 passes); returns PDF path |
 | `_run_pandoc_to_html()` | Converts markdown to HTML via Pandoc; returns HTML path |
 | `_run_pandoc_to_slides()` | Converts markdown to Beamer PDF slides; returns PDF path or .tex if `tex_only=True` |
-| `_run_pandoc_to_typst_slides()` | Converts markdown → Typst/Touying → PDF slides; returns PDF path or .typ if `typst_only=True` |
+| `_run_pandoc_to_typst_slides()` | Converts markdown → Typst/Touying → PDF slides via a 3-step pipeline (markdown → AST → divved-fence transform → typst) |
 | `_compress_pdf()` | Compresses PDF via ghostscript; in-place modification; returns file path |
 | `_copy_to_output()` | Copies processed file to output location; returns output path |
 | `_copy_to_gdrive()` | Copies output to Google Drive archive directory |
@@ -323,6 +323,25 @@
      (margins, highlighting, numbering) to ensure consistency across PDF and HTML
      converters.
 
+  7. _Pandoc AST Transform Flag_: `--use_pandoc_ast_transform` (default off) opts
+     into a two-stage AST pipeline (markdown → JSON → target format) instead of the
+     default single-shot pandoc call. For PDF, HTML, and beamer slides, the
+     single-shot path is the default. The typst slides path always uses a 3-step
+     pipeline regardless of this flag (see next point).
+
+  8. _Typst Divved-Fence Conversion_: `_run_pandoc_to_typst_slides()` always
+     runs a 3-step pipeline:
+     ```
+     markdown → JSON AST (pandoc)
+              → transformed AST (convert_pandoc_divved_fence.py)
+              → typst file (pandoc)
+              → PDF (typst compile)
+     ```
+     `convert_pandoc_divved_fence.py` replaces pandoc `Div[columns]` AST nodes
+     (produced from `:::columns` / `::::column` markdown fences) with
+     `RawBlock[typst #grid(...)]` so that multi-column slides render correctly in
+     Typst.
+
 - **External Dependencies**
 
 | Module | Purpose |
@@ -340,6 +359,7 @@
 | `dev_scripts_helpers.dockerize.lib_latex` | LaTeX Docker wrapper (run_dockerized_latex) |
 | `dev_scripts_helpers.dockerize.lib_pandoc` | Pandoc Docker wrapper (run_dockerized_pandoc) |
 | `dev_scripts_helpers.dockerize.lib_typst` | Typst Docker wrapper (run_dockerized_typst) |
+| `convert_pandoc_divved_fence.py` | AST transformer: converts `Div[columns]` nodes to `RawBlock[typst #grid()]` for multi-column typst slides |
 | External CLI tools | `pandoc`, `pdflatex`, `typst`, `/opt/homebrew/bin/gs` (ghostscript) |
 
 # Critique and Improvements
