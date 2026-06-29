@@ -1,5 +1,6 @@
 ---
 description: Create a notebook to present the API of a package
+model: sonnet
 ---
 
 # Goal
