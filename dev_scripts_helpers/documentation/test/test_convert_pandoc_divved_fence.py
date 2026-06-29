@@ -503,9 +503,34 @@ class Test__transform_ast(hunitest.TestCase):
 	Test the `_transform_ast()` function.
 	"""
 
+	def helper(self, ast: Any, expected: str) -> None:
+		"""
+		Test helper for _transform_ast.
+
+		:param ast: Full pandoc AST dict
+		:param expected: Expected JSON string of transformed AST
+		"""
+		actual = dsdocdpdf._transform_ast(ast)
+		actual_str = json.dumps(actual, indent=2)
+		self.assert_equal(actual_str, expected)
+
 	def test1(self) -> None:
 		"""
 		Test full AST transformation with one columns Div.
+
+		Markdown input:
+		```markdown
+		# Title
+
+		:::columns
+		::: column {width="50%"}
+		left
+		:::
+		::: column {width="50%"}
+		right
+		:::
+		:::
+		```
 		"""
 		# Prepare inputs.
 		ast = {
@@ -540,17 +565,56 @@ class Test__transform_ast(hunitest.TestCase):
 				},
 			],
 		}
+		# Prepare outputs.
+		expected = hprint.dedent(
+			r"""
+			{
+			  "pandoc-api-version": [
+			    1,
+			    23,
+			    1
+			  ],
+			  "meta": {},
+			  "blocks": [
+			    {
+			      "t": "Header",
+			      "c": [
+			        1,
+			        [
+			          "title",
+			          [],
+			          []
+			        ],
+			        [
+			          {
+			            "t": "Str",
+			            "c": "Title"
+			          }
+			        ]
+			      ]
+			    },
+			    {
+			      "t": "RawBlock",
+			      "c": [
+			        "typst",
+			        "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [left], [right]\n)"
+			      ]
+			    }
+			  ]
+			}
+			"""
+		)
 		# Run test.
-		actual = dsdocdpdf._transform_ast(ast)
-		# Check outputs.
-		self.assertEqual(len(actual["blocks"]), 2)
-		self.assertEqual(actual["blocks"][0]["t"], "Header")
-		self.assertEqual(actual["blocks"][1]["t"], "RawBlock")
-		self.assertIn("#grid(", actual["blocks"][1]["c"][1])
+		self.helper(ast, expected)
 
 	def test2(self) -> None:
 		"""
 		Test AST with no columns remains unchanged.
+
+		Markdown input:
+		```markdown
+		text
+		```
 		"""
 		# Prepare inputs.
 		ast = {
@@ -559,13 +623,31 @@ class Test__transform_ast(hunitest.TestCase):
 			"blocks": [{"t": "Para", "c": [{"t": "Str", "c": "text"}]}],
 		}
 		# Prepare outputs.
-		expected_block_count = 1
-		expected_block_type = "Para"
+		expected = hprint.dedent(
+			"""
+			{
+			  "pandoc-api-version": [
+			    1,
+			    23,
+			    1
+			  ],
+			  "meta": {},
+			  "blocks": [
+			    {
+			      "t": "Para",
+			      "c": [
+			        {
+			          "t": "Str",
+			          "c": "text"
+			        }
+			      ]
+			    }
+			  ]
+			}
+			"""
+		)
 		# Run test.
-		actual = dsdocdpdf._transform_ast(ast)
-		# Check outputs.
-		self.assertEqual(len(actual["blocks"]), expected_block_count)
-		self.assertEqual(actual["blocks"][0]["t"], expected_block_type)
+		self.helper(ast, expected)
 
 
 # #############################################################################
@@ -581,37 +663,73 @@ class Test_end_to_end(hunitest.TestCase):
 	def test1(self) -> None:
 		"""
 		Test full pipeline:
-        - markdown with :::columns
-        - AST
-        - transform
-        - typst
+		- markdown with :::columns
+		- AST
+		- transform
+		- typst
 		"""
 		markdown_input = """
-        # Title
+		# Title
 
-        :::columns
-        ::: column
-        Left content
-        :::
+		:::columns
+		::: column
+		Left content
+		:::
 
-        ::: column
-        Right content
-        :::
-        :::
-        """
+		::: column
+		Right content
+		:::
+		:::
+		"""
 		markdown_input = hprint.dedent(markdown_input)
-        #
+		#
 		scratch_dir = self.get_scratch_space()
 		in_file = os.path.join(scratch_dir, "input.md")
 		hio.to_file(in_file, markdown_input)
-        #
+		#
 		ast_file = os.path.join(scratch_dir, "ast.json")
 		cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
 		dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
-        #
+		#
 		ast = json.loads(hio.from_file(ast_file))
 		actual_ast = dsdocdpdf._transform_ast(ast)
 		actual_str = json.dumps(actual_ast, indent=2)
-        expected = """
-        """
+		expected = hprint.dedent(
+			r"""
+			{
+			  "pandoc-api-version": [
+			    1,
+			    23,
+			    1
+			  ],
+			  "meta": {},
+			  "blocks": [
+			    {
+			      "t": "Header",
+			      "c": [
+			        1,
+			        [
+			          "title",
+			          [],
+			          []
+			        ],
+			        [
+			          {
+			            "t": "Str",
+			            "c": "Title"
+			          }
+			        ]
+			      ]
+			    },
+			    {
+			      "t": "RawBlock",
+			      "c": [
+			        "typst",
+			        "#grid(\n  columns: (1fr, 1fr),\n  gutter: 0.5em,\n  [Left content], [Right content]\n)"
+			      ]
+			    }
+			  ]
+			}
+			"""
+		)
 		self.assert_equal(actual_str, expected)
