@@ -9,7 +9,7 @@ including pandoc orchestration, file operations, and system calls.
 import hashlib
 import logging
 import os
-from typing import List
+from typing import List, Optional
 from unittest import mock
 
 import helpers.hio as hio
@@ -186,14 +186,14 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         self,
         file_in: str,
         fail_on_warnings: bool,
-        expect_fail_flag: bool,
+        expected: str,
     ) -> None:
         """
         Test helper for _run_pandoc_to_ast.
 
         :param file_in: Input markdown file
         :param fail_on_warnings: Whether to fail on warnings
-        :param expect_fail_flag: Whether --fail-if-warnings should appear
+        :param expected: Expected invocation string
         """
         # Prepare inputs.
         use_host_tools = True
@@ -201,7 +201,7 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         dockerized_use_sudo = False
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            # TODO(ai_gp): Why is this needed?
+            # Mock hdbg to prevent assertions in pandoc wrapper functions.
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -215,13 +215,9 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         # Check outputs.
         self.assertIn(".ast.json", result)
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
-        expected_parts = ["pandoc", "-t json"]
-        if expect_fail_flag:
-            expected_parts.append("--fail-if-warnings")
-        expected = " ".join(expected_parts)
-        for part in expected_parts:
-            self.assertIn(part, invocations_str)
+        self.assert_equal(
+            invocations_str, expected, fuzzy_match=True, dedent=True
+        )
 
     def test1(self) -> None:
         """
@@ -230,9 +226,13 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         fail_on_warnings = True
-        expect_fail_flag = True
+        expected = """
+        pandoc
+        -t json
+        --fail-if-warnings
+        """
         # Run test.
-        self.helper(file_in, fail_on_warnings, expect_fail_flag)
+        self.helper(file_in, fail_on_warnings, expected)
 
     def test2(self) -> None:
         """
@@ -241,9 +241,12 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         fail_on_warnings = False
-        expect_fail_flag = False
+        expected = """
+        pandoc
+        -t json
+        """
         # Run test.
-        self.helper(file_in, fail_on_warnings, expect_fail_flag)
+        self.helper(file_in, fail_on_warnings, expected)
 
 
 # #############################################################################
@@ -259,7 +262,7 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
     def helper(
         self,
         output_format: str,
-        expected_format_flag: str,
+        expected: str,
         *,
         extra_opts: Optional[List[str]] = None,
     ) -> None:
@@ -267,7 +270,7 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         Test helper for _run_pandoc_from_ast.
 
         :param output_format: Output format (latex, html, etc)
-        :param expected_format_flag: Expected -t flag in command
+        :param expected: Expected invocation string
         :param extra_opts: Additional pandoc options
         """
         # Prepare inputs.
@@ -294,11 +297,6 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
                 )
         # Check outputs.
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
-        expected_parts = ["pandoc", expected_format_flag]
-        if extra_opts:
-            expected_parts.extend(extra_opts)
-        expected = "\n".join(expected_parts)
         self.assert_equal(
             invocations_str, expected, fuzzy_match=True, dedent=True
         )
@@ -309,9 +307,12 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         """
         # Prepare inputs.
         output_format = "latex"
-        expected_format_flag = "-t latex"
+        expected = """
+        pandoc
+        -t latex
+        """
         # Run test.
-        self.helper(output_format, expected_format_flag)
+        self.helper(output_format, expected)
 
     def test2(self) -> None:
         """
@@ -319,9 +320,12 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         """
         # Prepare inputs.
         output_format = "html"
-        expected_format_flag = "-t html"
+        expected = """
+        pandoc
+        -t html
+        """
         # Run test.
-        self.helper(output_format, expected_format_flag)
+        self.helper(output_format, expected)
 
     def test3(self) -> None:
         """
@@ -329,10 +333,15 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         """
         # Prepare inputs.
         output_format = "latex"
-        expected_format_flag = "-t latex"
         extra_opts = ["--number-sections", "--toc"]
+        expected = """
+        pandoc
+        -t latex
+        --number-sections
+        --toc
+        """
         # Run test.
-        self.helper(output_format, expected_format_flag, extra_opts)
+        self.helper(output_format, expected, extra_opts=extra_opts)
 
 
 # #############################################################################
@@ -349,16 +358,14 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         self,
         toc_type: str,
         tex_only: bool,
-        expect_pdflatex: bool,
-        expect_toc: bool,
+        expected: str,
     ) -> None:
         """
         Test helper for run_pandoc_to_pdf.
 
         :param toc_type: Type of table of contents
         :param tex_only: Whether to only generate TeX
-        :param expect_pdflatex: Whether pdflatex should be invoked
-        :param expect_toc: Whether --toc flags should appear
+        :param expected: Expected invocation string
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -390,13 +397,6 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                 )
         # Check outputs.
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
-        expected_parts = ["pandoc"]
-        if expect_pdflatex:
-            expected_parts.append("pdflatex")
-        if expect_toc:
-            expected_parts.extend(["--toc", "--toc-depth 2"])
-        expected = "\n".join(expected_parts)
         self.assert_equal(
             invocations_str, expected, fuzzy_match=True, dedent=True
         )
@@ -408,25 +408,24 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         tex_only = False
-        expect_pdflatex = True
-        expect_toc = False
+        expected = """
+        pandoc
+        pdflatex
+        """
         # Run test.
-        self.helper(toc_type, tex_only, expect_pdflatex, expect_toc)
+        self.helper(toc_type, tex_only, expected)
 
     def test2(self) -> None:
         """
         Test return TeX file when tex_only=True.
         """
         # Prepare inputs.
-        toc_type = "none"
-        tex_only = True
-        expect_pdflatex = False
-        expect_toc = False
-        # Run test and check outputs.
         scratch_dir = self.get_scratch_space()
         curr_path = scratch_dir
         file_name = os.path.join(scratch_dir, "input.txt")
         prefix = os.path.join(scratch_dir, "tmp.tex")
+        toc_type = "none"
+        tex_only = True
         # Create template file.
         template_file = os.path.join(curr_path, "pandoc.latex")
         hio.to_file(template_file, "LaTeX template")
@@ -435,20 +434,22 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
+                no_run_latex_again = False
+                use_host_tools = True
+                dockerized_force_rebuild = False
+                dockerized_use_sudo = False
                 result = dshdlntpd.run_pandoc_to_pdf(
                     curr_path,
                     file_name,
                     prefix,
                     toc_type,
-                    # TODO(ai_gp): Assign to variables and pass them.
-                    False,
-                    True,
-                    False,
-                    False,
+                    no_run_latex_again,
+                    use_host_tools,
+                    dockerized_force_rebuild,
+                    dockerized_use_sudo,
                     tex_only=True,
                 )
         # Check outputs.
-        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         self.assertIn(".tex", result)
         invocations_str = hunteuti.to_invocations_str(invocations)
         self.assertNotIn("pdflatex", invocations_str)
@@ -460,10 +461,13 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "pandoc_native"
         tex_only = True
-        expect_pdflatex = False
-        expect_toc = True
+        expected = """
+        pandoc
+        --toc
+        --toc-depth 2
+        """
         # Run test.
-        self.helper(toc_type, tex_only, expect_pdflatex, expect_toc)
+        self.helper(toc_type, tex_only, expected)
 
 
 # #############################################################################
@@ -480,16 +484,14 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         self,
         file_in: str,
         toc_type: str,
-        expect_toc: bool = False,
-        expect_metadata: bool = False,
+        expected: str,
     ) -> None:
         """
         Test helper for run_pandoc_to_html.
 
         :param file_in: Input markdown file
         :param toc_type: Type of table of contents
-        :param expect_toc: Whether --toc should appear
-        :param expect_metadata: Whether metadata should be included
+        :param expected: Expected invocation string
         """
         # Prepare inputs.
         prefix = "tmp.html"
@@ -514,13 +516,6 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Invariant: HTML output file generated
         self.assertIn(".html", result)
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
-        expected_parts = ["pandoc", "-t html"]
-        if expect_toc:
-            expected_parts.append("--toc")
-        if expect_metadata:
-            expected_parts.append("--metadata pagetitle=")
-        expected = "\n".join(expected_parts)
         self.assert_equal(
             invocations_str, expected, fuzzy_match=True, dedent=True
         )
@@ -532,10 +527,12 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "none"
-        expect_toc = False
-        expect_metadata = False
+        expected = """
+        pandoc
+        -t html
+        """
         # Run test.
-        self.helper(file_in, toc_type, expect_toc, expect_metadata)
+        self.helper(file_in, toc_type, expected)
 
     def test2(self) -> None:
         """
@@ -544,10 +541,13 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "pandoc_native"
-        expect_toc = True
-        expect_metadata = False
+        expected = """
+        pandoc
+        -t html
+        --toc
+        """
         # Run test.
-        self.helper(file_in, toc_type, expect_toc, expect_metadata)
+        self.helper(file_in, toc_type, expected)
 
     def test3(self) -> None:
         """
@@ -556,10 +556,13 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "notes.md"
         toc_type = "none"
-        expect_toc = False
-        expect_metadata = True
+        expected = """
+        pandoc
+        -t html
+        --metadata pagetitle=
+        """
         # Run test.
-        self.helper(file_in, toc_type, expect_toc, expect_metadata)
+        self.helper(file_in, toc_type, expected)
 
 
 # #############################################################################
@@ -575,22 +578,23 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
     def helper(
         self,
         file_name: str,
-        toc_type: str,
-        use_tex: bool = False,
-        expect_resource_path: bool = False,
+        use_tex: bool,
+        expected: str,
+        expected_ext: str,
     ) -> None:
         """
         Test helper for _build_pandoc_cmd.
 
         :param file_name: Input slide file
-        :param toc_type: Type of table of contents
         :param use_tex: Whether to output TeX instead of PDF
-        :param expect_resource_path: Whether resource path should be included
+        :param expected: Expected pandoc command
+        :param expected_ext: Expected output file extension
         """
         # Prepare inputs.
         use_host_tools = True
         dockerized_force_rebuild = False
         dockerized_use_sudo = False
+        toc_type = "none"
         # Run test.
         cmd, output_file = dshdlntpd._build_pandoc_cmd(
             file_name,
@@ -603,17 +607,9 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         # Check outputs.
         # Expected: output file has correct extension based on use_tex
         # Invariant: .tex for TeX output, .pdf for PDF output
-        expected_ext = ".tex" if use_tex else ".pdf"
-        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         self.assertIn(expected_ext, output_file)
         # Expected: pandoc beamer command with optional resource-path and TOC
         # Invariant: pandoc with -t beamer, optional --resource-path and TOC flags
-        expected_parts = ["pandoc", "-t beamer"]
-        if expect_resource_path:
-            expected_parts.append("--resource-path=")
-        if toc_type == "pandoc_native":
-            expected_parts.extend(["--toc", "--toc-depth 2"])
-        expected = "\n".join(expected_parts)
         self.assert_equal(cmd, expected, fuzzy_match=True, dedent=True)
 
     def test1(self) -> None:
@@ -622,10 +618,14 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         """
         # Prepare inputs.
         file_name = "slides.txt"
-        toc_type = "none"
         use_tex = False
+        expected_ext = ".pdf"
+        expected = """
+        pandoc
+        -t beamer
+        """
         # Run test.
-        self.helper(file_name, toc_type, use_tex)
+        self.helper(file_name, use_tex, expected, expected_ext)
 
     def test2(self) -> None:
         """
@@ -633,10 +633,14 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         """
         # Prepare inputs.
         file_name = "slides.txt"
-        toc_type = "none"
         use_tex = True
+        expected_ext = ".tex"
+        expected = """
+        pandoc
+        -t beamer
+        """
         # Run test.
-        self.helper(file_name, toc_type, use_tex)
+        self.helper(file_name, use_tex, expected, expected_ext)
 
     def test3(self) -> None:
         """
@@ -644,11 +648,15 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         """
         # Prepare inputs.
         file_name = "subdir/slides.txt"
-        toc_type = "none"
         use_tex = False
-        expect_resource_path = True
+        expected_ext = ".pdf"
+        expected = """
+        pandoc
+        -t beamer
+        --resource-path=
+        """
         # Run test.
-        self.helper(file_name, toc_type, use_tex, expect_resource_path)
+        self.helper(file_name, use_tex, expected, expected_ext)
 
     def test4(self) -> None:
         """
@@ -656,10 +664,31 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         """
         # Prepare inputs.
         file_name = "slides.txt"
-        toc_type = "pandoc_native"
         use_tex = False
+        expected_ext = ".pdf"
+        expected = """
+        pandoc
+        -t beamer
+        --toc
+        --toc-depth 2
+        """
+        # Prepare additional input for helper.
+        use_host_tools = True
+        dockerized_force_rebuild = False
+        dockerized_use_sudo = False
+        toc_type = "pandoc_native"
         # Run test.
-        self.helper(file_name, toc_type, use_tex)
+        cmd, output_file = dshdlntpd._build_pandoc_cmd(
+            file_name,
+            toc_type,
+            use_host_tools,
+            dockerized_force_rebuild,
+            dockerized_use_sudo,
+            use_tex=use_tex,
+        )
+        # Check outputs.
+        self.assertIn(expected_ext, output_file)
+        self.assert_equal(cmd, expected, fuzzy_match=True, dedent=True)
 
 
 # #############################################################################
@@ -705,7 +734,6 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
                     tex_only=tex_only,
                 )
         # Check outputs.
-        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         # Expected: result contains correct file extension
         # Invariant: output extension matches tex_only parameter (.tex or .pdf)
         self.assertIn(expected_ext, result)
@@ -909,14 +937,14 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         self,
         ext: str,
         input_: str,
-        expected_filename: str,
+        expected: str,
     ) -> None:
         """
         Test helper for copy_to_gdrive.
 
         :param ext: File extension
         :param input_: Input filename
-        :param expected_filename: Expected output filename with extension
+        :param expected: Expected invocation string pattern
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -928,10 +956,8 @@ class Test_copy_to_gdrive(hunitest.TestCase):
             dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         # Expected: cp command with renamed output filename
         # Invariant: file copied to gdrive directory with correct name and extension
-        expected = f"cp.*{expected_filename}"
         self.assert_equal(invocations_str, expected, fuzzy_match=True)
 
     def test1(self) -> None:
@@ -941,9 +967,9 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         # Prepare inputs.
         ext = "pdf"
         input_ = "notes.txt"
-        expected_filename = "notes.pdf"
+        expected = "cp.*notes.pdf"
         # Run test.
-        self.helper(ext, input_, expected_filename)
+        self.helper(ext, input_, expected)
 
 
 # #############################################################################
