@@ -80,6 +80,7 @@ model: sonnet
 
   - Mental Model
     - Explain what the object "means"
+    - Present as a **markdown table** (see section 2a below)
 
   - Smallest Construction
     ```
@@ -94,6 +95,24 @@ model: sonnet
   - Important Methods
     ```
     python obj.method(...)
+    ```
+
+### 2a. Mental Model as Markdown Table
+
+- Present the mental model as a **markdown table** instead of bullet points:
+  - **Why**: Tables are scannable, visually distinct, and structure complex API relationships clearly
+  - **Columns**: Object | Description | Comments/Type
+  - **Examples**:
+    - LIME: `LimeTabularExplainer | Configured explainer | Wraps model + training data`
+    - SHAP: `Explanation.values | SHAP contributions | (n_samples, n_features) array`
+  - **Placement**: In a markdown cell early in "Primitive 1" after the bullet-point overview
+  - **Pattern**:
+    ```markdown
+    | Object | Description | Additional Info |
+    |--------|-------------|-----------------|
+    | `Explainer(...)` | Main class | Wraps data/model |
+    | `explainer.method(x)` | Instance method | Returns result object |
+    | `Result.values` | Data array | shape (n, m) |
     ```
 
 ### 3. Composition Examples
@@ -163,11 +182,11 @@ model: sonnet
 - The notebook should feel like a guided reverse-engineering of the library's design
 
 # Verification
-- Create paired Python
+- [ ] Create paired Python
   ```
   > jupytext.py --action pair --files <FILE>.ipynb
   ```
-- Make sure that the notebook runs end-to-end
+- [ ] Make sure that the notebook runs end-to-end
   ```
   > cd tutorial/<PACKAGE_NAME>
   > docker_cmd.sh "python /git_root/tutorials/<PACKAGE_NAME>/<FILE>.py"

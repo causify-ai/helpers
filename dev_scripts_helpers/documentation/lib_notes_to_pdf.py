@@ -93,7 +93,7 @@ def _mark_action(
 # #############################################################################
 
 
-def file_hash(file_path: str) -> str:
+def _file_hash(file_path: str) -> str:
     """
     Compute MD5 hash of a file.
     """
@@ -136,12 +136,12 @@ def daemon_watch(
     # Run immediately on first launch.
     _LOG.info("Initial run...")
     _run_cmd()
-    prev_hash = file_hash(file_path)
+    prev_hash = _file_hash(file_path)
     stable_hash = None
     time_since_last_change = 0
     while True:
         time.sleep(wait_in_sec)
-        cur_hash = file_hash(file_path)
+        cur_hash = _file_hash(file_path)
         if cur_hash != prev_hash:
             # File changed, start debounce.
             _LOG.info(
@@ -165,7 +165,7 @@ def daemon_watch(
 # #############################################################################
 
 
-def _cleanup_before(prefix: str) -> None:
+def cleanup_before(prefix: str) -> None:
     """
     Remove all intermediate files and cache files.
 
@@ -181,7 +181,7 @@ def _cleanup_before(prefix: str) -> None:
 # #############################################################################
 
 
-def _preprocess_notes(
+def preprocess_notes(
     file_name: str, prefix: str, type_: str, toc_type: str, output_format: str
 ) -> str:
     """
@@ -210,7 +210,7 @@ def _preprocess_notes(
 # #############################################################################
 
 
-def _render_images(file_name: str, prefix: str) -> str:
+def render_images(file_name: str, prefix: str) -> str:
     """
     Render images in the file.
 
@@ -347,7 +347,7 @@ def _run_pandoc_from_ast(
     hdbg.dassert_path_exists(output_file)
 
 
-def _run_pandoc_to_pdf(
+def run_pandoc_to_pdf(
     curr_path: str,
     file_name: str,
     prefix: str,
@@ -498,7 +498,7 @@ def _run_pandoc_to_pdf(
     return file_out
 
 
-def _run_pandoc_to_html(
+def run_pandoc_to_html(
     file_in: str,
     prefix: str,
     toc_type: str,
@@ -630,7 +630,7 @@ def _build_pandoc_cmd(
     return cmd, file_out
 
 
-def _run_pandoc_to_slides(
+def run_pandoc_to_slides(
     file_name: str,
     toc_type: str,
     use_host_tools: bool,
@@ -749,7 +749,7 @@ def _run_pandoc_to_slides(
     return file_out
 
 
-def _run_pandoc_to_typst_slides(
+def run_pandoc_to_typst_slides(
     curr_path: str,
     file_name: str,
     use_host_tools: bool,
@@ -910,7 +910,7 @@ def _run_pandoc_to_typst_slides(
 # #############################################################################
 
 
-def _copy_to_output(file_in: str, output: str) -> str:
+def copy_to_output(file_in: str, output: str) -> str:
     """
     Copy the processed file to the output location.
 
@@ -927,7 +927,7 @@ def _copy_to_output(file_in: str, output: str) -> str:
     return file_out
 
 
-def _copy_to_gdrive(
+def copy_to_gdrive(
     file_name: str, ext: str, input_: str, gdrive_dir: str
 ) -> None:
     """
@@ -953,7 +953,7 @@ def _copy_to_gdrive(
 # #############################################################################
 
 
-def _compress_pdf(file_name: str) -> str:
+def compress_pdf(file_name: str) -> str:
     """
     Compress a PDF file using ghostscript.
 
@@ -985,6 +985,6 @@ def _compress_pdf(file_name: str) -> str:
     return file_name
 
 
-def _cleanup_after(prefix: str) -> None:
+def cleanup_after(prefix: str) -> None:
     cmd = f"rm -rf {prefix}*"
     _ = _system(cmd)

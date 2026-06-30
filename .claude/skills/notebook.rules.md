@@ -133,6 +133,40 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - **Good**: Import libraries, Load data, Clean data, Plot data, Train model,
     Evaluate model
 
+## Split Multi-Step Analysis Cells
+
+- When a single cell performs multiple **independent analyses** (e.g., statistics + correlations + feature covariances), split into focused cells:
+  - **Cell 1**: Summary statistics (`.describe()`)
+  - **Cell 2**: Target correlations (`.corrwith(y)`)
+  - **Cell 3**: Pairwise correlations (`.corr()` as heatmap)
+
+- **Why**: Each cell answers one question; easier to run independently; clearer narrative flow
+
+- **Bad** (one large cell):
+  ```python
+  print(X_df.describe())
+  print("\n=== Correlations ===")
+  display(X_df.corrwith(y))
+  display(X_df.corr())
+  ```
+
+- **Good** (three focused cells):
+  ```python
+  # Cell 1: Statistics
+  print("=== Feature Statistics ===")
+  print(X_df.describe())
+  
+  # Cell 2: Target correlation
+  print("=== Correlations with target ===")
+  display(X_df.corrwith(y_s))
+  
+  # Cell 3: Pairwise correlation heatmap
+  import seaborn as sns
+  fig, ax = plt.subplots(figsize=(8, 6))
+  sns.heatmap(X_df.corr(), annot=True, cmap="coolwarm", center=0, ax=ax)
+  plt.show()
+  ```
+
 ## Split Cells That Perform Distinct Steps
 - Cells that contain more than one concept / example should be split so that each
   cell has only one example
@@ -338,10 +372,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
        - **What problem it solves**: ...
        - **Key abstraction**: ...
-       - **Mental model**:
-         ```
-         ...
-         ```
+       - **Mental model**: (presented as table, see section below)
        - **Key classes**:
          - ...
        ```
@@ -352,6 +383,27 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 - **Rationale**: The overview gives the big picture before diving into details;
   the summary reinforces what to remember after closing the notebook
+
+## API Mental Model Tables
+
+For API teaching notebooks, present the library's mental model as a structured markdown table:
+
+- **When to use**: In primitive sections when introducing core classes and their relationships
+- **Format**: 3 columns minimum:
+  - **Object**: Class name or method (e.g., `LimeTabularExplainer`, `Explanation.values`)
+  - **Description**: What it does / represents
+  - **Type/Comments**: Array shape, return type, or behavioral notes
+
+- **Example**:
+  ```markdown
+  | Object | Description | Comments |
+  |--------|-------------|----------|
+  | `Explainer(data)` | Configured for dataset | Wraps model + feature stats |
+  | `.explain_instance(x)` | Single-instance explanation | Returns Explanation object |
+  | `Explanation.values` | Per-feature contributions | shape (n_samples, n_features) |
+  ```
+
+- **Rationale**: Tables compress related concepts into scannable format; easier than prose or bullet lists for API reference
 
 ## Cell Triplet Structure
 
@@ -443,6 +495,31 @@ description: Conventions and standards for interactive Jupyter notebook structur
   than cataloging mistakes
 - Use the **Bad** / **Good** pattern for individual examples when showing what
   to avoid, not full "Anti-patterns" sections
+
+## Contextual Background Explanations
+
+- For key concepts that are used throughout the notebook (e.g., "background data" in SHAP), add a dedicated brief explanation cell **before first use**:
+
+- **Format**: Code cell with a comment block explaining:
+  - What the concept is
+  - Why it's used
+  - How it affects computation
+  - Practical guidance (e.g., "background sets of 100-1000 samples are sufficient")
+
+- **Example**:
+  ```python
+  # Background data: statistics used to estimate conditional expectations.
+  #
+  # For LinearExplainer:
+  # - expected_value = mean(model(background))
+  # - Features are centered: X[i, j] - mean(background[:, j])
+  #
+  # Larger background → stable estimates (slower)
+  # Smaller background (100-1000 samples) usually sufficient
+  print("Background data shapes expectations and baseline.")
+  ```
+
+- **Rationale**: Clarifies prerequisites and design decisions before readers encounter them in code
 
 # Utility File Organization
 
@@ -607,13 +684,22 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - It is acceptable to keep a `func??` introspection line to display a function's
   source or signature
 
-## Print Public Methods of Objects
-- Use `hintrospection.print_public_methods()` from
-  `helpers_root/helpers/hintrospection.py` to display the public interface of a
-  class or module in a notebook cell:
-  list, which renders cleanly in notebook cells
-- This provides a self-documenting overview of available methods, their
-  signatures, and first-line docstrings
+## Use Standard Introspection for Public APIs
+
+- When displaying public methods/attributes of a library object, use `hintrospection.print_public_methods()`:
+
+  - **Bad** (manual introspection with `inspect` module):
+    ```python
+    import inspect
+    for name in dir(explainer):
+        if not name.startswith("_"):
+            attr = getattr(explainer, name)
+            if callable(attr):
+                sig = inspect.signature(attr)
+                doc = inspect.getdoc(attr)
+                print(f"{name}: {sig}")
+    ```
+
   - **Bad** (bare `dir()` with no context):
     ```python
     dir(library_module)
@@ -623,10 +709,13 @@ description: Conventions and standards for interactive Jupyter notebook structur
     methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
     print(methods)
     ```
-  - **Good** (standardized introspection with signatures and documentation):
+  - **Good** (standardized helper):
     ```python
-    hintros.print_public_methods(library_module, use_markdown=True)
+    import helpers.hintrospection as hintros
+    hintros.print_public_methods(explainer, use_markdown=True)
     ```
+
+- **Rationale**: Standardized output, consistent formatting, reduces boilerplate, renders cleanly in notebooks
 
 # Interactive Cells
 
