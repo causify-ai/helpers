@@ -65,6 +65,7 @@ class TextPurifier:
         txt = self.purify_helpers(txt)
         txt = self.purify_docker_image_name(txt)
         txt = self.purify_from_docker_env_vars(txt)
+        txt = self.purify_apple_container_output(txt)
         return txt
 
     def purify_directory_paths(self, txt: str) -> str:
@@ -456,6 +457,28 @@ class TextPurifier:
             pattern = rf" -e \w*{re.escape(suffix)}(?:=\S*)?"
             txt = re.sub(pattern, "", txt)
         return txt
+
+    def purify_apple_container_output(self, txt: str) -> str:
+        """
+        Remove Apple container startup progress lines from output.
+
+        These lines are printed by the Apple container runtime during boot.
+        Examples:
+        - [0/6] [0s]
+        - [1/6] Fetching image [0s]
+        - [2/6] Unpacking image [0s]
+        - [6/6] Starting container [0s]
+
+        :param txt: input text containing container output
+        :return: text with container startup lines removed
+        """
+        lines = txt.split("\n")
+        filtered_lines = [
+            line
+            for line in lines
+            if not (line.startswith("[") and line.endswith("]"))
+        ]
+        return "\n".join(filtered_lines)
 
     def purify_file_names(self, file_names: List[str]) -> List[str]:
         """

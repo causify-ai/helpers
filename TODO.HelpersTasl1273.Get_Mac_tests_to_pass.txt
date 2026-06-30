@@ -2,6 +2,31 @@
 
 Running outside the container
 
+dev_scripts_helpers/dockerize/test/test_lib_graphviz.py::Test_build_graphviz_container1::test2 (1.03 s) FAILED [  6%]
+dev_scripts_helpers/dockerize/test/test_lib_latex.py::Test_build_latex_container1::test2 (1.27 s) FAILED [  6%]
+dev_scripts_helpers/dockerize/test/test_lib_markdown_toc.py::Test_build_markdown_toc_container1::test2 (1.61 s) FAILED [  6%]
+dev_scripts_helpers/dockerize/test/test_lib_mermaid.py::Test_build_mermaid_container1::test2 (1.26 s) FAILED [  7%]
+dev_scripts_helpers/dockerize/test/test_lib_pandoc.py::Test_build_pandoc_container1::test2 (1.19 s) FAILED [  7%]
+dev_scripts_helpers/dockerize/test/test_lib_plantum.py::Test_build_plantum_container1::test2 (1.28 s) FAILED [  7%]
+dev_scripts_helpers/dockerize/test/test_lib_png.py::Test_build_png_container1::test2 (1.01 s) FAILED [  7%]
+dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_md2 (1.04 s) FAILED [  7%]
+dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_tex2 (1.18 s) FAILED [  7%]
+dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_txt2 (1.07 s) FAILED [  7%]
+dev_scripts_helpers/dockerize/test/test_lib_svg.py::Test_build_svg_container1::test2 (1.05 s) FAILED [  8%]
+dev_scripts_helpers/dockerize/test/test_lib_typst.py::Test_build_typst_container1::test2 (0.89 s) FAILED [  8%]
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2 (6.23 s) FAILED [ 15%]
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test3 (6.35 s) FAILED [ 15%]
+dev_scripts_helpers/documentation/test/test_render_images.py::Test_render_image_code1::test3 (1.13 s) FAILED [ 19%]
+dev_scripts_helpers/system_tools/test/test_lib_rig.py::TestRigScript::test16 (0.00 s) FAILED [ 24%]
+dev_scripts_helpers/system_tools/test/test_lib_rig.py::TestRigScript::test16_rule_with_pattern (0.00 s) FAILED [ 24%]
+
+Dies at 
+1038 helpers/lib_tasks/test/test_lib_tasks_git.py::TestLibTasksGitCreatePatch1::test5 ^[[33mSKIPPED^[[0m^[[31m [ 29%]^[[0m
+1039 helpers/lib_tasks/test/test_lib_tasks_integrate.py::Test_infer_dst_dir1::test1 (0.00 s) ^[[32mPASSED^[[0m^[[31m [ 29%]^[[0m
+1040 helpers/lib_tasks/test/test_lib_tasks_lint.py::Test_lint_check_if_it_was_run::test1
+
+========== 113 failed, 3168 passed, 230 skipped in 542.88s (0:09:02) ===========
+
 ### Failures inside the container
 
 Current failures for

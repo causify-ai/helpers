@@ -1,30 +1,21 @@
-Write a skill to .claude/skills/coding.write_doc/SKILL.md about documenting
-code
+In the code to purify the output of a test remove lines like since they come from
+Apple container
 
-The user passes a file <file>
+[0/6] [0s]
+[1/6] Fetching image [0s]
+[2/6] Unpacking image [0s]
+[3/6] Fetching kernel [0s]
+[4/6] Fetching init image [0s]
+[5/6] Unpacking init image [0s]
+[6/6] Starting container [0s]
+[6/6] Starting container [1s]
+[6/6] Starting container [1s]
 
-The skill needs to create a new file README.<file>.md or update it
-if already exists
+Make sure that
 
-Follow .claude/skill.rules.md
+pytest dev_scripts_helpers/dockerize/test/test_lib_graphviz.py::Test_build_graphviz_container1
 
-Have a short description of what the goal is
-
-What are the main functions and how the call each other
-
-# Short description
-
-# 
-Use C4 diagrams to document architecture
-
-Add a section about critique and improvement the architecture
-
-* Use Markdown.
-* Organize content by C4 levels.
-* Include Mermaid diagrams where possible.
-* Reference actual code artifacts when available.
-* Distinguish facts derived from code from assumptions.
-* Focus on maintainability, extensibility, and operational understanding.
+passes without changes
 
 # Conventions
 - When writing code you must always follow the instructions in
