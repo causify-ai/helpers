@@ -1,4 +1,4 @@
-- All Tikz diagram must follow the template below
+- All Tikz diagram must follow the template below:
   ```latex
   \usepackage{tikz}
   \begin{document}

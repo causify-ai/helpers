@@ -304,9 +304,7 @@ def _process_selected_text(
             system_prompt=system_prompt if system_prompt != "" else None,
             model=model,
             backend=backend,
-            expected_num_chars=expected_num_chars
-            if expected_num_chars != 0
-            else None,
+            expected_num_chars=expected_num_chars,
         )
         if lint:
             response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
@@ -409,9 +407,7 @@ def _process_full_text(
             system_prompt=system_prompt if system_prompt != "" else None,
             model=model,
             backend=backend,
-            expected_num_chars=expected_num_chars
-            if expected_num_chars != -1
-            else None,
+            expected_num_chars=expected_num_chars,
         )
         if lint:
             response = hmarform.format_md(response, _LINT_BACKEND, _LINT_MODE)
@@ -522,6 +518,7 @@ def _llm_cli(
     max_chars: int,
     stat_file: str,
     llm_cmd: str,
+    install_llm_plugins: bool,
 ) -> None:
     """
     Execute the LLM command processing logic.
@@ -563,10 +560,12 @@ def _llm_cli(
         if log_level == "INFO":
             verbosity = "CRITICAL"
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
-    _LOG.info("llm version: %s", version("llm"))
-    _LOG.info("tokencost version: %s", version("tokencost"))
-    install_models()
-    _log_plugin_versions()
+    # Install and report LLM plugins when the flag is set.
+    if install_llm_plugins:
+        _LOG.info("llm version: %s", version("llm"))
+        _LOG.info("tokencost version: %s", version("tokencost"))
+        install_models()
+        _log_plugin_versions()
     # Short-circuit: execute a raw llm command and exit.
     if llm_cmd != "":
         execute_llm_command(llm_cmd)

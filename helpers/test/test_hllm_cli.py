@@ -1890,7 +1890,7 @@ class Test_add_llm_args(hunitest.TestCase):
         # Parse with input file.
         args = parser.parse_args(["--input", "test.txt"])
         self.assertEqual(args.input, "test.txt")
-        self.assertEqual(args.model, "gpt-4o-mini")
+        self.assertEqual(args.model, "openrouter/deepseek/deepseek-v4-flash")
         self.assertEqual(args.backend, "library")
 
     def test2(self) -> None:

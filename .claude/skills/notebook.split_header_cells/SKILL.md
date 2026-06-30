@@ -6,6 +6,8 @@ model: haiku
 # Goal
 - Format the markdown cells to match
 
+# Workflow
+
 ## Split Markdown Cells
 - Make sure that each markdown cell in a Jupyter notebook contains at most one
   header and some text, but not more than one header
@@ -55,4 +57,6 @@ model: haiku
 ## Important
 - Do not change or remove any Python code cell
 - At the end of the transformation, run `jupytext --sync` to update the Python
-  paired notebook
+  paired notebook, following the conventions in
+  `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
+  in `.claude/skills/notebook.rules.md`

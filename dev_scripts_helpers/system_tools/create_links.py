@@ -8,20 +8,21 @@ A detailed description is:
 
 Usage Example:
 
-- Step 1: Replace files in dst_dir with links from src_dir:
-  ```
-  > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
-  ```
-- Step 2: Stage linked files for modification:
-  ```
-  > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --stage_links
-  ```
-- Step 3: After modification, restore the symbolic links:
-  ```
-  > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
-  ```
+- Step 1: Replace files in `dst_dir` with links from `src_dir`:
+  > create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links
 
-- Links can be absolute or relative (using `--replace_links --use_relative_paths`)
+- Step 2: Stage linked files for modification (e.g., make a copy of all the links
+  so that they can be modified in place)
+  > create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --stage_links
+
+- Step 3: After modification, restore the symbolic links:
+  > create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links
+
+- Links can be absolute or relative (using `--replace_links --link_type absolute`)
+
+- E.g., `msml610/tutorials/L12_reinforcement_learning` was copied from
+  `class_project/project_template`
+  > create_links.py --src_dir class_project/project_template --dst_dir msml610/tutorials/L12_reinforcement_learning --replace_links
 
 Import as:
 
@@ -41,74 +42,6 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
-
-# #############################################################################
-
-
-def _main(parser: argparse.ArgumentParser) -> None:
-    """
-    Entry point for the script to manage symbolic links between directories.
-
-    Depending on the command-line arguments, this script either:
-
-    - Replaces matching files in `dst_dir` with symbolic links to `src_dir`.
-    - Stages all symbolic links in `dst_dir` for modification by replacing them
-      with writable file copies.
-
-    Usage:
-    - `--replace_links`: Replace files with symbolic links
-    - `--stage_links`: Replace symbolic links with writable file copies
-    :return: None
-    """
-    args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    if args.replace_links:
-        common_files = _find_common_files(args.src_dir, args.dst_dir)
-        _replace_with_links(
-            common_files, use_relative_paths=args.use_relative_paths
-        )
-        _LOG.info("Replaced %d files with symbolic links.", len(common_files))
-    elif args.stage_links:
-        symlinks = _find_symlinks(args.dst_dir)
-        if not symlinks:
-            _LOG.info("No symbolic links found to stage.")
-        _stage_links(symlinks)
-        _LOG.info("Staged %d symbolic links for modification.", len(symlinks))
-    else:
-        _LOG.error("You must specify either --replace_links or --stage_links.")
-
-
-def _parse() -> argparse.ArgumentParser:
-    """
-    Parse command-line arguments.
-
-    :return: Argument parser object.
-    """
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument("--src_dir", required=True, help="Source directory.")
-    parser.add_argument(
-        "--dst_dir", required=True, help="Destination directory."
-    )
-    parser.add_argument(
-        "--replace_links",
-        action="store_true",
-        help="Replace files with symbolic links.",
-    )
-    parser.add_argument(
-        "--stage_links",
-        action="store_true",
-        help="Replace symbolic links with writable copies.",
-    )
-    parser.add_argument(
-        "--use_relative_paths",
-        action="store_true",
-        help="Use relative paths for symbolic links instead of absolute paths.",
-    )
-    hparser.add_verbosity_arg(parser)
-    return parser
 
 
 def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
@@ -190,7 +123,7 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
 
 def _replace_with_links(
     common_files: List[Tuple[str, str]],
-    use_relative_paths: bool,
+    link_type: str,
     *,
     abort_on_first_error: bool = False,
 ) -> None:
@@ -198,7 +131,7 @@ def _replace_with_links(
     Replace matching files in the destination directory with symbolic links.
 
     :param common_files: Matching file paths from `src_dir` and `dst_dir`
-    :param use_relative_paths: If True, create relative symlinks; if False, use absolute paths.
+    :param link_type: Type of symlink paths: "absolute" or "relative"
     :param abort_on_first_error: If True, abort on the first error; if False, continue processing
     """
     for src_file, dst_file in common_files:
@@ -211,13 +144,18 @@ def _replace_with_links(
             continue
         if os.path.exists(dst_file):
             os.remove(dst_file)
+        hdbg.dassert_in(link_type, ("relative", "absolute"))
         try:
-            if use_relative_paths:
+            if link_type == "relative":
                 link_target = os.path.relpath(
                     src_file, os.path.dirname(dst_file)
                 )
-            else:
+            elif link_type == "absolute":
                 link_target = os.path.abspath(src_file)
+            else:
+                raise ValueError(
+                    f"Invalid link_type '{link_type}': must be 'absolute' or 'relative'"
+                )
             os.symlink(link_target, dst_file)
             # Remove write permissions from the file to prevent accidental
             # modifications.
@@ -285,6 +223,74 @@ def _stage_links(symlinks: List[str]) -> None:
             _LOG.info("Staged: %s -> %s", link, target_file)
         except Exception as e:
             _LOG.error("Error staging link %s: %s", link, e)
+
+
+# #############################################################################
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Entry point for the script to manage symbolic links between directories.
+
+    Depending on the command-line arguments, this script either:
+
+    - Replaces matching files in `dst_dir` with symbolic links to `src_dir`.
+    - Stages all symbolic links in `dst_dir` for modification by replacing them
+      with writable file copies.
+
+    Usage:
+    - `--replace_links`: Replace files with symbolic links
+    - `--stage_links`: Replace symbolic links with writable file copies
+    :return: None
+    """
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    if args.replace_links:
+        common_files = _find_common_files(args.src_dir, args.dst_dir)
+        _replace_with_links(common_files, link_type=args.link_type)
+        _LOG.info("Replaced %d files with symbolic links.", len(common_files))
+    elif args.stage_links:
+        symlinks = _find_symlinks(args.dst_dir)
+        if not symlinks:
+            _LOG.info("No symbolic links found to stage.")
+        _stage_links(symlinks)
+        _LOG.info("Staged %d symbolic links for modification.", len(symlinks))
+    else:
+        _LOG.error("You must specify either --replace_links or --stage_links.")
+
+
+def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command-line arguments.
+
+    :return: Argument parser object.
+    """
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--src_dir", required=True, help="Source directory.")
+    parser.add_argument(
+        "--dst_dir", required=True, help="Destination directory."
+    )
+    parser.add_argument(
+        "--replace_links",
+        action="store_true",
+        help="Replace files with symbolic links.",
+    )
+    parser.add_argument(
+        "--stage_links",
+        action="store_true",
+        help="Replace symbolic links with writable copies.",
+    )
+    parser.add_argument(
+        "--link_type",
+        choices=["absolute", "relative"],
+        default="relative",
+        help='Type of symbolic link paths: "absolute" or "relative"',
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser
 
 
 if __name__ == "__main__":

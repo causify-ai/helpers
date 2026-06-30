@@ -1,5 +1,5 @@
 """
-Detailed documentation at.
+Detailed documentation at:
 
 - //helpers/docs/tools/helpers/all.hcache_simple.explanation.md
 - //helpers/notebooks/hcache_simple.tutorial.ipynb
@@ -34,6 +34,12 @@ _LOG = logging.getLogger(__name__)
 _LOG.trace = lambda *args, **kwargs: None
 # To enable use:
 # _LOG.trace = _LOG.debug
+
+# TODOs
+# - [ ] Consider renaming auto_sync_s3 -> s3_auto_sync so that all parameters
+#   start with s3_
+# - [ ] Rename to hcache and also decorator (removing simple)
+
 
 # #############################################################################
 # Memory cache.

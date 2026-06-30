@@ -43,7 +43,7 @@
   some conventions
 - Both Mermaid and PlantUML support C4 diagrams
 - Mermaid is preferred since it can be rendered natively by GitHub
-- PlantUML can be rendered through some of our scripts in regular markdown
+- PlantUML can be rendered through `render_images.py` in regular markdown
 
 ## Brief Introduction to C4
 

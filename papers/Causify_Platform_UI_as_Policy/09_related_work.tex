@@ -1,0 +1,40 @@
+% ##############################################################################
+  \section{Related Work}
+  \label{sec:relatedwork}
+  \paragraph{ABAC, RBAC, and policy expressiveness.}
+  ABAC formalizes authorization decisions based on attributes rather than
+  static roles and is a standard reference point \cite{nist_abac}.
+  \uiPolicy{} is compatible with ABAC: the server may compute abilities
+  using attributes, but the key contribution here is the UI
+  contract that prevents the frontend from guessing.
+
+  \paragraph{Feature toggles and product variability.}
+  Feature flags separate release from deployment and are widely used for
+  rollout control \cite{fowler_feature_toggles}. However, feature flags alone
+  do not guarantee UI truthfulness: they can become a parallel universe
+  of conditions that diverge from authorization.\@ \uiPolicy{} can be
+  viewed as feature toggles with teeth: configuration is scoped by tenant/role
+  and validated against the same ability model.
+
+  \paragraph{Policy engines and external authorization services.}
+  OPA provides a general-purpose policy engine and a declarative
+  language to offload authorization decisions \cite{opa_docs}. Cedar (used
+  by Amazon Verified Permissions) provides a language for authorization policies
+  and standardized evaluation models \cite{cedar_docs,aws_verified_permissions}.
+  These systems are highly relevant when the goal is centralized
+  authorization logic.\@ \uiPolicy{} is orthogonal: we focus on how policy
+  decisions become UI structure in a multi-tenant product.
+
+  \paragraph{Relationship-based authorization and global systems.}
+  Zanzibar describes a global, consistent authorization system used
+  across Google services \cite{zanzibar}. While \system{} does not
+  implement a Zanzibar-style relationship store, Zanzibar underscores an
+  important theme: authorization becomes a distributed-systems problem
+  at scale.\@ \uiPolicy{} addresses a nearby problem: when authorization scales,
+  the UI must not become an unreliable narrator.
+
+  \paragraph{Impersonation and operational risk.}
+  OWASP explicitly highlights account impersonation as a security risk in
+  citizen development contexts \cite{owasp_impersonation}. Our \viewas{}
+  design aligns with the recommended mitigations: explicit actor
+  attribution, guardrails, and defense-in-depth.

@@ -1,0 +1,650 @@
+% ############################################################################
+\section{Containerized development workflows}
+
+% Related documentation files:
+% - helpers_root/docs/tools/docker/all.docker.tutorial.md
+%   Comprehensive Docker tutorial covering development workflows
+% - helpers_root/docs/tools/docker/all.dockerized_flow.explanation.md
+%   Explains the containerized development flow
+% - helpers_root/docs/tools/docker/all.dind_and_sibling_containers.how_to_guide.md
+%   Details on Docker-in-Docker and sibling container patterns
+% - helpers_root/docs/tools/docker/all.develop_in_helpers.how_to_guide.md
+%   Developing within containerized environments
+% - helpers_root/docs/tools/thin_environment/all.thin_environment.reference.md
+%   Reference for the thin environment concept
+% - helpers_root/docs/tools/thin_environment/all.gh_thin_env_dependencies.how_to_guide.md
+%   Managing thin environment dependencies
+% - helpers_root/docs/tools/thin_environment/all.gh_and_thin_env_requirements.reference.md
+%   Requirements and specifications for thin environments
+% - helpers_root/docs/tools/dev_system/all.dealing_with_missing_dependencies.how_to_guide.md
+%   Troubleshooting container dependency issues
+
+A ``thin environment'' contains the minimal dependency setup to bootstrap
+development and deployment using ``runnable directories" 
+across diverse systems (servers, laptops, CI/CD). Runnable directories are a
+Docker-based system that ensures reproducible environments across development,
+testing, and production stages, with support for both children and sibling
+container patterns.
+
+% TODO(gp):
+
+% ############################################################################
+\section{The \texttt{//helpers} submodule}
+
+% Related documentation files:
+% - helpers_root/docs/tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md
+%   Explains how to create a repository that includes helpers as submodule
+% - helpers_root/docs/tools/dev_system/all.integrate_repos.how_to_guide.md
+%   Guide on integrating multiple repositories using helpers
+% - helpers_root/docs/tools/dev_system/all.replace_common_files_with_script_links.md
+%   Details the symbolic link strategy for sharing common files
+% - helpers_root/docs/tools/git/all.integrate_helpers.how_to_guide.md
+%   Instructions for integrating helpers submodule into repositories
+% - helpers_root/docs/onboarding/all.development_setup.how_to_guide.md
+%   Initial setup including helpers submodule installation
+
+Helpers is a foundational Python utility library that serves as the core
+infrastructure for an ecosystem of software development repositoriesIt's
+designed to be integrated as a git submodule into ``super-repos" that extend
+its functionality.
+
+It contains all the code for all the functionalities described in this
+paper.
+
+% ############################################################################
+\section{Runnable directory architecture}
+
+% Related documentation files:
+% - helpers_root/docs/tools/dev_system/all.runnable_repo.reference.md
+%   Core reference for runnable directory architecture
+% - helpers_root/docs/tools/dev_system/all.create_a_runnable_dir.how_to_guide.md
+%   Step-by-step guide to creating a runnable directory
+% - helpers_root/docs/tools/dev_system/all.devops_docker.reference.md
+%   Reference for DevOps setup in runnable directories
+% - helpers_root/docs/tools/dev_system/all.devops_docker.how_to_guide.md
+%   How to set up DevOps workflows for runnable directories
+% - docs/kaizenflow/all.install_helpers.how_to_guide.md
+%   Installing and using helpers across multiple runnable directories
+% - infra/docs/operations/ck.infra_runnable_dir.how_to_guide.md
+%   Infrastructure setup for runnable directories
+
+% TODO(gp): Merge in the full paper
+
+% ============================================================================
+\subsection{Problem}
+
+Software development teams face a fundamental organizational dilemma when
+structuring their codebases. The choice between monorepos and multi-repos
+presents a difficult trade-off with no universally satisfactory solution.
+
+Monorepos provide environment consistency and simplified version control,
+but struggle with scalability.
+
+Multi-repos offer modularity and independent development lifecycles, but
+introduce synchronization issues between repositories.
+
+The core challenge is achieving both modularity and consistency
+simultaneously---allowing teams to work independently on separate components
+while ensuring all components operate in compatible, reproducible environments.
+Traditional approaches force teams to sacrifice one for the other.
+
+% ============================================================================
+\subsubsection{The monorepo approach}
+
+% TODO(gp): Fix the references
+
+The monorepo approach involves storing all code for multiple applications
+within a single repository. This strategy has been popularized by
+large tech companies like Google[2], Meta[3], Microsoft[4] and Uber[5],
+proving that even codebases with billions of lines of code can be effectively
+managed in a single repository. The key benefits of this approach
+include:
+
+\begin{itemize}
+  \item Consistency in environment: with everything housed in one
+    repository, there's no risk of projects becoming incompatible due to
+    conflicting versions of third-party packages.
+
+  \item Simplified version control: there is a single commit history, which
+    makes it easy to track and, if needed, revert changes globally.
+
+  \item Reduced coordination overhead: developers work within the same
+    repository, with easy access to all code, shared knowledge, tools and
+    consistent coding standards.
+\end{itemize}
+
+However, as monorepo setups scale, users often face significant challenges.
+A major downside is long CI/CD build times, as even small changes can trigger
+massive rebuilds and tests throughout the entire codebase. To cope with this,
+extra tooling, such as [Buck](https://buck2.build/) or
+[Bazel](https://bazel.build/), must be configured, adding complexity to
+workflows. Even something as simple as searching and browsing the code becomes
+more difficult, often requiring specialized tools and IDE plug-ins.
+
+Additionally, when everything is located in one place, it is harder to
+separate concerns and maintain clear boundaries between projects. Managing
+permissions also becomes more difficult when only selected developers should
+have access to specific parts of the codebase.
+
+% ============================================================================
+\subsubsection{The monorepo approach}
+
+The multi-repo approach involves splitting code across several
+repositories, with each one dedicated to a specific module or service.
+This modularity allows teams to work independently on different parts
+of a system, making it easier to manage changes and releases for individual
+components. Each repository can evolve at its own pace, and developers
+can focus on smaller, more manageable codebases.
+
+However, the multi-repo strategy comes with its own set of challenges,
+particularly when it comes to managing dependencies and ensuring
+version compatibility across repositories. For instance, different
+repositories might rely on two different versions of a third-party
+package, or even conflicting packages, making synchronization complex
+or, in some cases, nearly impossible. In general, propagating changes
+from one repository to another requires careful coordination. Tools like
+[Jenkins](https://www.jenkins.io/) and [GitHub Actions](https://github.com/features/actions)
+help streamline CI/CD pipelines, but they often struggle when dealing with
+heterogeneous environments.
+
+% ============================================================================
+\subsection{Solution: Runnable directories}
+
+An ideal strategy would combine the best of both worlds:
+
+\begin{itemize}
+  \item The modularity of multi-repos, to keep the codebase scalable
+    and simplify day-to-day development processes.
+
+  \item The environment consistency of monorepos, to avoid
+    synchronization issues and prevent errors that arise from
+    executing code in misaligned environments.
+\end{itemize}
+
+Both are achieved through the hybrid approach proposed in this paper,
+which will be discussed in Section 3.
+
+\begin{itemize}
+  \item This section describes the design principles in our approach to
+    create Git repos that contain code that can be:
+
+    \begin{itemize}
+      \item Composed through different Git sub-module
+
+      \item Tested, built, run, and released (on a per-directory basis
+        or not)
+    \end{itemize}
+
+  \item The technologies that this approach relies on are:
+
+    \begin{itemize}
+      \item Git for source control
+
+      \item Python virtual environment and \texttt{poetry} (or similar)
+        to control Python packages
+
+      \item \texttt{pytest} for unit and end-to-end testing
+
+      \item Docker for managing containers
+    \end{itemize}
+
+  \item The approach described in this paper is not strictly dependent
+    of the specific package (e.g., \texttt{poetry} can be replaced by \texttt{Conda}
+    or another package manager)
+\end{itemize}
+
+% ============================================================================
+\subsection{Design goals}
+
+The proposed development system supports the following functionalities
+
+% ----------------------------------------------------------------------------
+\subsubsection{Development functionalities}
+
+\begin{itemize}
+  \item Support composing code using a GitHub sub-module approach
+
+  \item Make it easy to add the development tool chain to a ``new project''
+    by simply adding the Git sub-module \texttt{//helpers} to the
+    project
+
+  \item Create complex workflows (e.g., for dev and devops
+    functionalities) using makefile-like tools based on Python \texttt{invoke}
+    package
+
+  \item Have a simple way to maintain common files across different repos
+    in sync through links and automatically diff-ing files
+
+  \item Support for both local and remote development using IDEs (e.g.,
+    PyCharm, Visual Studio Code)
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsubsection{Python package management}
+
+\begin{itemize}
+  \item Carefully manage and control dependencies using Python managers
+    (such as \texttt{poetry}) and virtual environments
+
+  \item Code and containers can be versioned and kept in sync automatically
+    since a certain version of the code can require a certain version of
+    the container to run properly
+
+    \begin{itemize}
+      \item Code is versioned through Git
+
+      \item Each container has a \texttt{changelog.txt} that contains
+        the current version and the history
+    \end{itemize}
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsubsection{Testing}
+
+\begin{itemize}
+  \item Run end-to-end tests using \texttt{pytest} by automatically
+    discover tests based on dependencies and test lists, supporting the
+    dependencies needed by different directories
+
+  \item Native support for both children-containers (i.e., Docker-in-Docker)
+    and sibling containers
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsubsection{DevOps functionalities}
+
+\begin{itemize}
+  \item Support automatically different stages for container development
+
+    \begin{itemize}
+      \item E.g., \texttt{test} / \texttt{local}, \texttt{dev},
+        \texttt{prod}
+    \end{itemize}
+
+  \item Standardize ways of building, testing, retrieving, and
+    deploying containers
+
+  \item Ensure alignment between development environment, deployment, and
+    CI/CD systems (e.g., GitHub Actions)
+
+  \item Bootstrap the development system using a ``thin environment'',
+    which has the minimum number of dependencies to allow development
+    and deployment in exactly the same way in different setups (e.g., server,
+    personal laptop, CI/CD)
+
+  \item Manage dependencies in a way that is uniform across platforms and
+    OSes, using Docker containers
+
+  \item Separate the need to:
+
+    \begin{itemize}
+      \item Build and deploy containers (by devops)
+
+      \item Use containers to develop and test (by developers)
+    \end{itemize}
+
+  \item Built-in support for multi-architecture builds (e.g, for Intel
+    \texttt{x86} and Arm) across different OSes supporting containers (e.g.,
+    Linux, MacOS, Windows Subsystem for Linux WSL)
+
+  \item Support for developing, testing, and deploying multi-container
+    applications
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsubsection{Runnable directory}
+
+The core concept of the proposed approach is a \textbf{runnable
+directory} --- a self-contained, independently executable directory with
+code, equipped with a dedicated DevOps setup. A repository is thus a special
+case of a runnable directory. Developers typically work within a
+single runnable directory for a given application, enabling them to test
+and deploy code without affecting other parts of the codebase.
+
+A runnable directory can contain other runnable directories as subdirectories.
+For example, Figure 1 depicts three runnable directories: \texttt{A},
+\texttt{B}, and \texttt{C}. Here, \texttt{A} and \texttt{C} are repositories,
+with \texttt{C} incorporated into \texttt{A} as a submodule, while \texttt{B}
+is a subdirectory within \texttt{A}. This setup provides the same
+accessibility as if all the code were hosted in a single monorepo. Note
+that each of \texttt{A}, \texttt{B}, and \texttt{C} has its own DevOps
+pipeline --- a key feature of our approach, which is discussed further
+in Section 3.2.
+
+% rendered_images:begin
+% ```mermaid
+% graph RL
+%     subgraph A [Runnable Dir A]
+%         direction TB
+%         subgraph C1 [Runnable Dir C]
+%             DevOpsC1[DevOps C]
+%         end
+%         subgraph B [Runnable Dir B]
+%             DevOpsB[DevOps B]
+%         end
+%         DevOpsA[DevOps A]
+%     end
+%     subgraph C [Runnable Dir C]
+%         DevOpsC[DevOps C]
+%     end
+% 
+%     C -->|Submodule| C1
+% 
+%     style A fill:#FFF3CD
+%     style C fill:#FFF3CD,stroke:#9E9D24
+% ```
+% label=fig:Runnable_Dir_Arch
+% caption=Sample architecture of Causify's runnable directories.
+% rendered_images:end
+% render_images:begin
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{part2.runnable_directory.tex.figs/part2.runnable_directory.1.png}
+  \caption{Sample architecture of Causify's runnable directories.}
+  \label{fig:Runnable_Dir_Arch}
+\end{figure}
+% render_images:end
+
+% ----------------------------------------------------------------------------
+\subsubsection{Docker}
+
+Docker is the backbone of our containerized development environment. Every
+runnable directory contains Dockerfiles that allow it to build and run
+its own Docker containers, which include the code, its dependencies,
+and the runtime system.
+
+This Docker-based approach addresses two important challenges. First,
+it ensures consistency by isolating the application from variations in
+the host operating system or underlying infrastructure. Second, a
+specific package (or package version) can be added to the container of
+a particular runnable directory without affecting other parts of the
+codebase. This prevents ``bloating'' the environment with packages required
+by all applications --- a common issue in monorepos --- while also effectively
+mitigating the risk of conflicting dependencies, which can arise in a
+multi-repo setup.
+
+Our approach supports multiple stages for container release:
+
+\begin{itemize}
+  \item Local: used to work on updates to the container; accessible only
+    to the developer who built it.
+
+  \item Development: used by all team members in day-to-day
+    development of new features.
+
+  \item Production: used to run the system by end users.
+\end{itemize}
+
+This multi-stage workflow enables seamless progression from testing to
+system deployment.
+
+It is also possible to run a container within another container's environment
+in a Docker-in-Docker setup. In this case, children containers are started
+directly inside a parent container, allowing nested workflows or
+builds. Alternatively, sibling containers can run side by side and
+share resources such as the host's Docker daemon, enabling inter-container
+communication and orchestration.
+
+% rendered_images:begin
+% ```mermaid
+% graph TD
+%     host[Host]
+%     docker_engine[Docker Engine]
+%     subgraph sibling_container["Sibling Containers"]
+%         container_1[Container 1]
+%         container_2[Container 2]
+%     end
+%     subgraph children_container["Children Containers"]
+%         container_1a[Container 1a]
+%         container_1b[Container 1b]
+%     end
+%     host --> docker_engine
+%     docker_engine --> container_1
+%     docker_engine --> container_2
+%     container_1 --> container_1a
+%     container_1 --> container_1b
+% 
+%     style sibling_container fill:#FFF3CD,stroke:#9E9D24
+%     style children_container fill:#FFF3CD,stroke:#9E9D24
+% ```
+% caption=Docker container flow.
+% label=fig:Docker_Flow
+% rendered_images:end
+% render_images:begin
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{part2.runnable_directory.tex.figs/part2.runnable_directory.2.png}
+  \caption{Docker container flow.}
+  \label{fig:Docker_Flow}
+\end{figure}
+% render_images:end
+
+% ----------------------------------------------------------------------------
+\subsubsection{What is needed}
+
+An ideal strategy would combine the best of both worlds:
+
+\begin{itemize}
+  \item The modularity of multi-repos, to keep the codebase scalable
+    and simplify day-to-day development processes.
+
+  \item The environment consistency of monorepos, to avoid
+    synchronization issues and prevent errors that arise from
+    executing code in misaligned environments.
+\end{itemize}
+
+Both are achieved through the hybrid approach proposed in this paper,
+which will be discussed in Section 3.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Thin environment}
+
+To bootstrap development workflows, we use a thin client that installs
+a minimal set of essential dependencies, such as Docker and invoke, in
+a lightweight virtual environment. A single thin environment is shared
+across all runnable directories which minimizes setup overhead (see Figure
+3). This environment contains everything that is needed to start development
+containers, which are in turn specific to each runnable directory. With
+this approach, we ensure that development and deployment remain
+consistent across different systems (e.g., server, personal laptop, CI/CD).
+
+% rendered_images:begin
+% ```mermaid
+% graph RL
+%   thin_env[thin environment]
+%   subgraph A [Runnable Dir A]
+%     direction TB
+%         B[Runnable Dir B]
+%         C1[Runnable Dir C]
+%     end
+%     subgraph C [Runnable Dir C]
+%     end
+% 
+%   C -->|Submodule| C1
+%   A -.-> thin_env
+%   B -.-> thin_env
+%   C1 -.-> thin_env
+%   C -.-> thin_env
+% 
+%   style A fill:#FFF3CD
+%   style C fill:#FFF3CD,stroke:#9E9D24
+% ```
+% caption=Thin environment shared across multiple runnable directories.
+% rendered_images:end
+% render_images:begin
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{part2.runnable_directory.tex.figs/part2.runnable_directory.3.png}
+  \caption{Thin environment shared across multiple runnable directories.}
+\end{figure}
+% render_images:end
+
+% ----------------------------------------------------------------------------
+\subsubsection{Submodule of ``helpers''}
+
+All Causify repositories include a dedicated ``helpers'' repository as
+a submodule. This repository contains common utilities and development
+toolchains, such as the thin environment, Linter, Docker, and invoke
+workflows. By centralizing these resources, we eliminate code
+duplication and ensure that all teams, regardless of the project, use
+the same tools and procedures.
+
+Additionally, it hosts symbolic link targets for files that must technically
+reside in each repository but are identical across all of them (e.g.,
+license and certain configuration files). Manually keeping them in
+sync can be difficult and error-prone over time. In our approach,
+these files are stored exclusively in ``helpers'', and all other repositories
+utilize read-only symbolic links pointing to them. This way, we avoid file
+duplication and reduce the risk of introducing accidental discrepancies.
+
+% rendered_images:begin
+% ```mermaid
+% graph RL
+%     subgraph A [Runnable Dir A]
+%         direction TB
+%         B[Runnable Dir B]
+%         H1[Helpers]
+%     end
+%     subgraph H [Helpers]
+%     end
+% 
+%     H -->|Submodule| H1
+% 
+%     style A fill:#FFF3CD
+%     style H fill:#FFF3CD,stroke:#9E9D24
+% ```
+% caption="Helpers" submodule integrated into a repository.
+% rendered_images:end
+% render_images:begin
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{part2.runnable_directory.tex.figs/part2.runnable_directory.4.png}
+  \caption{"Helpers" submodule integrated into a repository.}
+\end{figure}
+% render_images:end
+
+\paragraph{3.4.1. Git hooks}
+
+Our ``helpers'' submodule includes a set of Git hooks used to enforce policies
+across our development process, including Git workflow rules, coding standards,
+security and compliance, and other quality checks. These hooks are
+installed by default when the user activates the thin environment. They
+perform essential checks such as verifying the branch, author
+information, file size limits, forbidden words, Python file compilation,
+and potential secret leaks\ldots etc.
+
+% ----------------------------------------------------------------------------
+\subsubsection{Executing tests}
+
+Our system supports robust testing workflows that leverage the
+containerized environment for comprehensive code validation. Tests are
+executed inside Docker containers to ensure consistency across development
+and production environments, preventing discrepancies caused by
+variations in host system configurations. In the case of nested runnable
+directories, tests are executed recursively within each directory's
+corresponding container, which is automatically identified (see Figure
+5). As a result, the entire test suite can be run with a single command,
+while still allowing tests in subdirectories to use dependencies that
+may not be compatible with the parent directory's environment.
+
+% rendered_images:begin
+% ```mermaid
+% graph LR
+%     start((start))
+%     start --> A
+%     subgraph A[Runnable Dir A]
+%         direction LR
+%         pytest_1((pytest))
+%         B[Runnable Dir B / Container B]
+%         C[Runnable Dir C / Container C]
+%         dirA1[dir1 / Container A]
+%         dirA2[dir2 / Container A]
+%         dirA11[dir1.1 / Container A]
+%         dirA12[dir1.2 / Container A]
+%         pytest_1 --> B
+%         pytest_1 --> C
+%         pytest_1 --> dirA1
+%         pytest_1 --> dirA2
+%         dirA1 --> dirA11
+%         dirA1 --> dirA12
+%     end
+% 
+% style A fill:#FFF3CD,stroke:#9E9D24
+% style B font-size:15px
+% style C font-size:15px
+% caption=Recursive test execution in dedicated containers.
+% 
+% ----------------------------------------------------------------------------
+% \subsubsection{Dockerized executables}
+% 
+% Sometimes, installing a toolchain inside a development container is
+% not justified especially when it is large or used only occasionally. In
+% such cases, we use \emph{dockerized executables} where the tool and its
+% dependencies are packaged into a slim Docker image, and the command is
+% executed inside a short-lived container. We launch a short-lived container
+% with the repository mounted, run the tool, then remove the container;
+% the versioned image stays cached for reuse, avoiding repeated setup.
+% 
+% This approach prevents the development environment from being bloated with
+% rarely used dependencies while preserving reproducibility and version control
+% of the toolchain. When needed (e.g., during test execution), a dockerized
+% executable can also run inside another Docker container using either the
+% children or sibling container approach, as discussed in Section~3.2.
+% 
+% ============================================================================
+% \subsection{Discussion}
+% 
+% Causify's approach presents a strong alternative to existing code organization
+% solutions, offering scalability and efficiency for both small and
+% large systems.
+% 
+% The proposed modular architecture is centered around runnable
+% directories, which operate as independent units with their own build and
+% release lifecycles. This design bypasses the bottlenecks common in
+% large monorepos, where centralized workflows can slow down CI/CD processes
+% unless specialized tools like Buck or Bazel are used. By leveraging
+% Docker containers, we ensure consistent application behavior across development,
+% testing, and production environments, avoiding problems caused by
+% system configuration discrepancies. Dependencies are isolated within each
+% directory's dedicated container, reducing the risks of issues that
+% tight coupling or package incompatibility might create in a monorepo
+% or a multi-repo setup.
+% 
+% Unlike multi-repos, runnable directories can utilize shared utilities from
+% ``helper'' submodules, eliminating code duplication and promoting
+% consistent workflows across projects. They can even reside under a unified
+% repository structure which simplifies codebase management and reduces the
+% overhead of maintaining multiple repositories. With support for
+% recursive test execution spanning all components, runnable directories
+% allow for end-to-end validation of the whole codebase through a single
+% command, removing the need for testing each repository separately.
+% 
+% There are, however, several challenges that might arise in the
+% adoption of our approach. Teams that are unfamiliar with containerized
+% environments may need time and training to effectively transition to the
+% new workflows. The reliance on Docker may introduce additional
+% resource demands, particularly when running multiple containers concurrently
+% on development machines. This would require further optimization, possibly
+% aided by customized tooling. These adjustments, while ultimately beneficial,
+% can add complexity to the system's rollout and necessitate ongoing
+% maintenance to ensure seamless integration with existing CI/CD
+% pipelines and development practices.
+% 
+% ============================================================================
+% \subsection{Future directions}
+% 
+% Looking ahead, there are several areas where the proposed approach can
+% be improved. One direction is the implementation of dependency-aware caching
+% to ensure that only the necessary components are rebuilt or retested when
+% changes are made. This would reduce the time spent on development
+% tasks, making the overall process more efficient. Further optimization
+% could involve designing our CI/CD pipelines to execute builds, tests,
+% and deployments for multiple runnable directories in parallel, which would
+% allow us to take full advantage of available compute resources.
+% 
+% Additional measures can also be taken to enhance security. Integrating
+% automated container image scanning and validation before deployment
+% would help guarantee compliance with organizational policies and
+% prevent vulnerabilities from entering production environments. In addition,
+% fine-grained access controls could be introduced for runnable
+% directories in order to safeguard sensitive parts of the codebase. These
+% steps will bolster both the security and efficiency of our workflows as
+% the projects continue to scale.
+% 
+% 

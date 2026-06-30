@@ -834,6 +834,37 @@
   def _main(parser: argparse.ArgumentParser) -> None:
   ```
 
+## Use Module Docstring for Parser Description
+
+- When creating an `ArgumentParser`, use the module docstring as the parser
+  description via `description=__doc__` instead of hardcoding a string
+- This keeps the parser help and module documentation in sync and reduces
+  duplication
+  - **Bad**: Hardcoded description string separate from module docstring
+    ```python
+    """
+    Script to process data files.
+    """
+
+    def _parse() -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(
+            description="Script to process data files."
+        )
+        return parser
+    ```
+  - **Good**: Use module docstring for parser description
+    ```python
+    """
+    Script to process data files.
+    """
+
+    def _parse() -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(
+            description=__doc__,
+        )
+        return parser
+    ```
+
 ## Script Shebang and Dependencies
 
 - For scripts with external package dependencies, use the `uv run` shebang with
@@ -852,17 +883,23 @@
 ## Make Scripts Executable
 
 - When creating a Python script, run `chmod +x` on it to make it executable
-- In the README and comments, always refer to scripts as `./script.py` or
-  `script.py`, never as `python script.py`
+- Every executable script must have a shebang line at the top:
+  - For Python 3 scripts: `#!/usr/bin/env python3`
+  - For bash scripts: `#!/bin/bash`
+- This allows scripts to be executed directly (e.g., `./script.py`) without
+  prepending `python`
+- In the README and comments, always refer to scripts as `script.py`, never as
+  `python script.py`
   - **Bad**: Documentation refers to the script as needing Python
     ```
     # Run the script: python standardize_book_filename.py
-    # Usage: python convert_epub_to_md.py input.epub output.md
+    # Usage: python ./convert_epub_to_md.py input.epub output.md
     ```
-  - **Good**: Documentation refers to the script as executable
+  - **Good**: Documentation refers to the script as executable with shebang
     ```
-    # Run the script: ./standardize_book_filename.py
-    # Usage: ./convert_epub_to_md.py input.epub output.md
+    #!/usr/bin/env python3
+    # Run the script: standardize_book_filename.py
+    # Usage: convert_epub_to_md.py input.epub output.md
     ```
 
 ## Script Docstring Usage Examples
@@ -941,6 +978,33 @@
   input_group.add_argument("--input_file", type=str, default="")
   input_group.add_argument("--input_text", type=str, default="")
   # Argument validation is handled automatically by argparse
+  ```
+
+## Do Not Repeat Default Values in Argument Help Text
+
+- When adding arguments to a parser, do not include the default value in the help
+  text since the `default=` parameter already documents it
+- Repeating the default in help text creates redundancy and maintenance burden
+
+- **Bad**: Default value repeated in help text
+  ```python
+  parser.add_argument(
+      "--browser",
+      type=str,
+      default="safari",
+      choices=["safari", "chrome"],
+      help="Browser to use for capturing (default: safari)",
+  )
+  ```
+- **Good**: Help text without redundant default value
+  ```python
+  parser.add_argument(
+      "--browser",
+      type=str,
+      default="safari",
+      choices=["safari", "chrome"],
+      help="Browser to use for capturing",
+  )
   ```
 
 ## Use Single Types With Meaningful Defaults for Parser Inputs
@@ -1072,5 +1136,36 @@
         "--toc_type=navigation",
         "--skip_action=cleanup_after",
         "--skip_action=open",
+    ]
+    ```
+
+## Use `hgit.find_file_in_git_tree()` for Script Paths
+
+- When calling scripts, use `hgit.find_file_in_git_tree()` to locate the script
+  instead of hardwiring the path
+- This keeps code independent of directory structure changes and makes scripts
+  more maintainable
+
+  - **Bad**: Hardwiring script path
+    ```python
+    cmd_parts = [
+        "helpers_root/dev_scripts_helpers/documentation/extract_toc_from_txt.py",
+        f"--input={lesson_file}",
+        "--output=-",
+        "--mode=headers",
+        f"--max_level={max_level}",
+        "--warn_on_malformed",
+    ]
+    ```
+  - **Good**: Use `hgit.find_file_in_git_tree()` to locate the script
+    ```python
+    script_path = hgit.find_file_in_git_tree("extract_toc_from_txt.py")
+    cmd_parts = [
+        script_path,
+        f"--input={lesson_file}",
+        "--output=-",
+        "--mode=headers",
+        f"--max_level={max_level}",
+        "--warn_on_malformed",
     ]
     ```

@@ -3,7 +3,10 @@ description: Fix slides without changing their structure
 model: haiku
 ---
 
-- Given a markdown file with slides about technical material
+- Given a markdown file with slides, fix slides without changing their structure
+
+- Read `.claude/skills/slides.rules.md` and follow strictly the conventions and
+  rules
 
 - A slide title is prepended with `*` and has hierarchical bullets
   - E.g.,

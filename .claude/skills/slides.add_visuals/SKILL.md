@@ -3,10 +3,12 @@ description: Propose visuals for each slides
 model: haiku
 ---
 
-- Given a markdown file with slides for a college class, where each slide title
-  is prepended with `*`
+- Given a markdown file with slides, propose visuals for each slide
 
-# For Each Slide
+- Read `.claude/skills/slides.rules.md` and follow strictly the conventions and
+  rules
+
+## Propose a Visual for Each Slide
 - If a slide doesn't contain a picture or a diagram (e.g., graphviz), consider
   what can be used to illustrate the concepts visually, e.g.,
   - Propose a graphviz diagram
@@ -19,9 +21,9 @@ model: haiku
     </image>
     ```
 
-# Ask User to Confirm and Decide
+## Ask User to Confirm and Decide
 - Make numbered list of proposed changes for the user
 - Once user confirms changes, perform the changes
 
-# Leave Structure Unchanged
+## Constraints
 - Maintain the structure of the text and keep the content of the existing text

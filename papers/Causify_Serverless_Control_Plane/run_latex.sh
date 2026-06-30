@@ -1,0 +1,1 @@
+../../papers/template/run_latex.sh

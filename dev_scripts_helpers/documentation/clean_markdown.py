@@ -22,7 +22,7 @@ def _parse() -> argparse.ArgumentParser:
     Parse command-line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="Clean up HTML markup in markdown files."
+        description=__doc__,
     )
     parser.add_argument(
         "-i",

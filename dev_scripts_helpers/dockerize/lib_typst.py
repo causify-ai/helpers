@@ -18,9 +18,12 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Version pins for tools
+# Version pins for tools.
 _ALPINE_VERSION = "3.23"
 _TYPST_VERSION = "0.14.2"
+# Touying presentation package (and its dependencies) pre-cached into the image
+# so that `notes_to_pdf.py --slides_engine typst` compiles offline.
+_TOUYING_VERSION = "0.6.1"
 
 # Name and Dockerfile for the Typst container, exposed so tests can reference
 # them directly without duplicating the definition.
@@ -70,6 +73,21 @@ RUN apk add --no-cache ttf-dejavu && \
     curl -fsSL "${{BASE}}/ofl/lato/Lato-BoldItalic.ttf" \
         -o /usr/share/fonts/lato/Lato-BoldItalic.ttf
 
+# Pre-cache the Touying package (and its transitive dependencies) by compiling a
+# stub document that imports it. The cache lives under `XDG_CACHE_HOME` so it is
+# shared regardless of the user the container runs as, and is made world-readable
+# since the container is invoked with `--user $(id -u):$(id -g)`.
+ENV XDG_CACHE_HOME=/opt/typst-cache
+RUN mkdir -p /opt/typst-cache && \
+    printf '%s\n' \
+        '#import "@preview/touying:{_TOUYING_VERSION}": *' \
+        '#import themes.simple: *' \
+        '#show: simple-theme' \
+        '= warmup' > /tmp/warm.typ && \
+    typst compile /tmp/warm.typ /tmp/warm.pdf && \
+    rm -f /tmp/warm.typ /tmp/warm.pdf && \
+    chmod -R a+rX /opt/typst-cache
+
 # Set working directory.
 WORKDIR /workspace
 
@@ -118,6 +136,7 @@ def run_dockerized_typst(
     out_file_path: str,
     cmd_opts: List[str],
     *,
+    typst_root_dir: str = "",
     mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
@@ -140,6 +159,10 @@ def run_dockerized_typst(
     :param in_file_path: path to the Typst source file to compile
     :param out_file_path: path to the output PDF file
     :param cmd_opts: extra command options to pass to Typst
+    :param typst_root_dir: project root passed to `typst --root`. Typst resolves
+        root-absolute paths (e.g., `image("/foo.png")`) and forbids access
+        above this directory. Used so that images referenced relative to the
+        repo root resolve correctly regardless of where the `.typ` file lives
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
     """
@@ -175,9 +198,25 @@ def run_dockerized_typst(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
+    # Convert the project root to a Docker path, if specified.
+    root_opt = ""
+    if typst_root_dir != "":
+        typst_root_dir = hdocker.convert_caller_to_callee_docker_path(
+            typst_root_dir,
+            caller_mount_path,
+            callee_mount_path,
+            check_if_exists=True,
+            is_input=True,
+            is_caller_host=is_caller_host,
+            use_sibling_container_for_callee=use_sibling_container_for_callee,
+        )
+        root_opt = f"--root {typst_root_dir} "
     # Build the Typst command.
     cmd_opts_as_str = " ".join(cmd_opts)
-    typst_cmd = f"typst compile {cmd_opts_as_str} {in_file_path} {out_file_path}"
+    typst_cmd = (
+        f"typst compile {root_opt}{cmd_opts_as_str} "
+        f"{in_file_path} {out_file_path}"
+    )
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,

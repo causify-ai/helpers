@@ -77,6 +77,7 @@ def run_dockerized_svg_with_rsvg_convert(
     mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
+    dpi: int = 300,
 ) -> str:
     """
     Convert SVG to raster/bitmap using rsvg-convert in a Docker container.
@@ -87,6 +88,8 @@ def run_dockerized_svg_with_rsvg_convert(
     :param mode: execution mode ("system" or other)
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
+    :param dpi: DPI for the rasterized output (default: 300). Passed as
+        `-d <dpi> -p <dpi>` to `rsvg-convert`.
     :return: Docker command output
     """
     _LOG.debug(hprint.func_signature_to_str())
@@ -126,9 +129,9 @@ def run_dockerized_svg_with_rsvg_convert(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     # Build SVG conversion command using rsvg-convert.
-    # Produces high-quality output with 300 DPI.
+    # Produces high-quality output with the specified DPI.
     svg_cmd = (
-        f"rsvg-convert -d 300 -p 300 -f {output_format} "
+        f"rsvg-convert -d {dpi} -p {dpi} -f {output_format} "
         f"-o {out_file_path} {in_file_path}"
     )
     # Build Docker command.
@@ -205,6 +208,7 @@ def run_dockerized_svg_with_inkscape(
     mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
+    dpi: int = 300,
 ) -> str:
     """
     Convert SVG to various formats using inkscape in a Docker container.
@@ -216,6 +220,8 @@ def run_dockerized_svg_with_inkscape(
     :param mode: execution mode ("system" or other)
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
+    :param dpi: DPI for the rasterized output (default: 300). Passed as
+        `--export-dpi=<dpi>` to `inkscape`.
     :return: Docker command output
     """
     _LOG.debug(hprint.func_signature_to_str())
@@ -258,7 +264,7 @@ def run_dockerized_svg_with_inkscape(
     # Use --export-type for format selection.
     svg_cmd = (
         f"inkscape {in_file_path} --export-type={output_format} "
-        f"--export-filename={out_file_path} --export-dpi=300"
+        f"--export-filename={out_file_path} --export-dpi={dpi}"
     )
     # Build Docker command.
     ret = hdocker.build_and_run_docker_cmd(

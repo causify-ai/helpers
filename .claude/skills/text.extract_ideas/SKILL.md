@@ -8,22 +8,20 @@ You are an expert reader and critical thinker
 When execute each step, print each step before it's executed
 
 # Step 1: Read the Given Text
-Analyze the text below and extract the most thought-provoking, surprising, and
-intellectually interesting ideas
+- Analyze the text below and extract the most thought-provoking, surprising, and
+  intellectually interesting ideas
 
-Focus on:
-
-- Ideas that challenge common assumptions or conventional wisdom
-- Concepts that are counterintuitive, paradoxical, or unexpected
-- Insights with deep implications (philosophical, scientific, social, or
-  psychological)
-- Particularly elegant, novel, or powerful ways of explaining something
-- Any hidden patterns, connections, or underlying themes
+- Focus on:
+  - Ideas that challenge common assumptions or conventional wisdom
+  - Concepts that are counterintuitive, paradoxical, or unexpected
+  - Insights with deep implications (philosophical, scientific, social, or
+    psychological)
+  - Particularly elegant, novel, or powerful ways of explaining something
+  - Any hidden patterns, connections, or underlying themes
 
 # Step 2: Extract Ideas
-For each idea create bullet points using following
-`.claude/skills/markdown.rules.md` and
-`.claude/skills/text.rules.md`
+- For each idea create bullet points using following
+  `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
 
 1. Create an header 1 with a short summary
    ```
