@@ -45,7 +45,7 @@ class Test_file_hash(hunitest.TestCase):
         # Run test.
         actual = dshdlntpd._file_hash(test_file)
         # Check outputs.
-        self.assertEqual(actual, expected_hash)
+        self.assert_equal(actual, expected_hash)
 
     def test1(self) -> None:
         """
@@ -73,13 +73,18 @@ class Test_file_hash(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         file1 = os.path.join(scratch_dir, "file1.txt")
         file2 = os.path.join(scratch_dir, "file2.txt")
-        hio.to_file(file1, "Content A")
-        hio.to_file(file2, "Content B")
+        content1 = "Content A"
+        content2 = "Content B"
+        hio.to_file(file1, content1)
+        hio.to_file(file2, content2)
         # Run test.
         hash1 = dshdlntpd._file_hash(file1)
         hash2 = dshdlntpd._file_hash(file2)
         # Check outputs.
-        self.assertNotEqual(hash1, hash2)
+        expected_hash1 = hashlib.md5(content1.encode()).hexdigest()
+        expected_hash2 = hashlib.md5(content2.encode()).hexdigest()
+        self.assert_equal(hash1, expected_hash1)
+        self.assert_equal(hash2, expected_hash2)
 
     def test4(self) -> None:
         """
@@ -103,7 +108,7 @@ class Test_file_hash(hunitest.TestCase):
         hash1 = dshdlntpd._file_hash(test_file)
         hash2 = dshdlntpd._file_hash(test_file)
         # Check outputs.
-        self.assertEqual(hash1, hash2)
+        self.assert_equal(hash1, hash2)
 
 
 # #############################################################################
@@ -132,7 +137,7 @@ class Test_preprocess_notes(hunitest.TestCase):
                 file_name, prefix, type_, toc_type, output_format
             )
         # Check outputs.
-        self.assertIn(".preprocess_notes.txt", result)
+        self.assert_equal(result, ".preprocess_notes.txt", fuzzy_match=True)
         invocations_str = hunteuti.to_invocations_str(invocations)
         expected = """
         preprocess_notes.py
@@ -166,10 +171,10 @@ class Test_render_images(hunitest.TestCase):
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             result = dshdlntpd.render_images(file_name, prefix)
-        self.assertIn("render_image", result)
+        self.assert_equal(result, "render_image", fuzzy_match=True)
         invocations_str = hunteuti.to_invocations_str(invocations)
         expected = "render_images.py"
-        self.assertIn(expected, invocations_str)
+        self.assert_equal(invocations_str, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -213,7 +218,7 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
                     fail_on_warnings=fail_on_warnings,
                 )
         # Check outputs.
-        self.assertIn(".ast.json", result)
+        self.assert_equal(result, ".ast.json", fuzzy_match=True)
         invocations_str = hunteuti.to_invocations_str(invocations)
         self.assert_equal(
             invocations_str, expected, fuzzy_match=True, dedent=True
@@ -450,9 +455,10 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                     tex_only=True,
                 )
         # Check outputs.
-        self.assertIn(".tex", result)
+        self.assert_equal(result, ".tex", fuzzy_match=True)
         invocations_str = hunteuti.to_invocations_str(invocations)
-        self.assertNotIn("pdflatex", invocations_str)
+        expected_invocations = "pandoc"
+        self.assert_equal(invocations_str, expected_invocations, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -512,9 +518,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
                     dockerized_use_sudo,
                 )
         # Check outputs.
-        # Expected: result contains .html suffix
-        # Invariant: HTML output file generated
-        self.assertIn(".html", result)
+        self.assert_equal(result, ".html", fuzzy_match=True)
         invocations_str = hunteuti.to_invocations_str(invocations)
         self.assert_equal(
             invocations_str, expected, fuzzy_match=True, dedent=True
@@ -605,11 +609,7 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
             use_tex=use_tex,
         )
         # Check outputs.
-        # Expected: output file has correct extension based on use_tex
-        # Invariant: .tex for TeX output, .pdf for PDF output
-        self.assertIn(expected_ext, output_file)
-        # Expected: pandoc beamer command with optional resource-path and TOC
-        # Invariant: pandoc with -t beamer, optional --resource-path and TOC flags
+        self.assert_equal(output_file, expected_ext, fuzzy_match=True)
         self.assert_equal(cmd, expected, fuzzy_match=True, dedent=True)
 
     def test1(self) -> None:
@@ -687,7 +687,7 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
             use_tex=use_tex,
         )
         # Check outputs.
-        self.assertIn(expected_ext, output_file)
+        self.assert_equal(output_file, expected_ext, fuzzy_match=True)
         self.assert_equal(cmd, expected, fuzzy_match=True, dedent=True)
 
 
@@ -734,9 +734,7 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
                     tex_only=tex_only,
                 )
         # Check outputs.
-        # Expected: result contains correct file extension
-        # Invariant: output extension matches tex_only parameter (.tex or .pdf)
-        self.assertIn(expected_ext, result)
+        self.assert_equal(result, expected_ext, fuzzy_match=True)
 
     def test1(self) -> None:
         """
@@ -812,9 +810,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                             typst_only=typst_only,
                         )
         # Check outputs.
-        # Expected: result contains correct file extension
-        # Invariant: output extension matches typst_only parameter
-        self.assertIn(expected_ext, result)
+        self.assert_equal(result, expected_ext, fuzzy_match=True)
 
     def test1(self) -> None:
         """
@@ -875,10 +871,8 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                         )
         # Check outputs.
         typ_content = hio.from_file(typ_file)
-        # Expected: image paths converted from relative to root-absolute
-        # Invariant: image paths start with / for root-absolute reference
         expected = 'image("/'
-        self.assertIn(expected, typ_content)
+        self.assert_equal(typ_content, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -904,7 +898,7 @@ class Test_copy_to_output(hunitest.TestCase):
         with hunteuti.capture_system_calls() as invocations:
             result = dshdlntpd.copy_to_output(file_in, output)
         # Check outputs.
-        self.assertEqual(result, output)
+        self.assert_equal(result, output)
         invocations_str = hunteuti.to_invocations_str(invocations)
         # Expected: cp command invoked to copy file to output location
         # Invariant: cp command executes for file copy operation
@@ -956,8 +950,6 @@ class Test_copy_to_gdrive(hunitest.TestCase):
             dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # Expected: cp command with renamed output filename
-        # Invariant: file copied to gdrive directory with correct name and extension
         self.assert_equal(invocations_str, expected, fuzzy_match=True)
 
     def test1(self) -> None:
@@ -994,10 +986,8 @@ class Test_compress_pdf(hunitest.TestCase):
         with hunteuti.capture_system_calls() as invocations:
             result = dshdlntpd.compress_pdf(pdf_file)
         # Check outputs.
-        self.assertEqual(result, pdf_file)
+        self.assert_equal(result, pdf_file)
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # Expected: Ghostscript (gs) invoked with pdfwrite device
-        # Invariant: gs and pdfwrite parameters present for PDF compression
         expected = """
         gs
         pdfwrite
