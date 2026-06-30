@@ -414,9 +414,12 @@ def git_patch_create(  # type: ignore
 def git_files(  # type: ignore
     ctx,
     #
+    files="",
+    from_file="",
     modified=False,
     branch=False,
     last_commit=False,
+    all_files=False,
     #
     file_types="",
     skip_file_types="",
@@ -428,12 +431,21 @@ def git_files(  # type: ignore
     """
     Report which files are changed in the current branch with respect to master.
 
-    The params have the same meaning as in `get_files_to_process()`.
+    File selection options (mutually exclusive):
+    :param files: Specific files (space-separated string)
+    :param from_file: Path to file containing file list (one per line)
+    :param modified: Select files modified in the client
+    :param branch: Select files modified with respect to branch point (default)
+    :param last_commit: Select files from last commit
+    :param all_files: Select all repo files
 
+    Filtering options:
     :param file_types: Comma-separated list of file extensions to include
         (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
     :param skip_file_types: Comma-separated list of file extensions to skip
         (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
+
+    Output options:
     :param only_print_files: only print files without logging headers/footers (default: False)
     :param on_one_line: show results only in "On one line" format (default: False)
     :param mode: Output mode:
@@ -444,10 +456,9 @@ def git_files(  # type: ignore
     if not only_print_files:
         hltltaut.report_task()
     _ = ctx
-    # If no filter option is specified, default to branch=True.
-    files = ""
-    from_file = ""
-    all_ = False
+    # Default to branch=True if no filter option is specified.
+    if not (files or from_file or modified or branch or last_commit or all_files):
+        branch = True
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True
@@ -457,11 +468,11 @@ def git_files(  # type: ignore
         modified,
         branch,
         last_commit,
-        all_,
+        all_files,
         mutually_exclusive=mutually_exclusive,
         remove_dirs=remove_dirs,
     )
-    # Filter by file type using hparser utility.
+    # Filter by file type.
     files_as_list = hseinout.filter_files_by_extensions(
         files_as_list, file_types, skip_file_types
     )
@@ -1138,11 +1149,26 @@ def _git_diff_with_branch_wrapper(
                 )
 
 
+# TODO(ai_gp):
+# 1) This function should work by selecting a point in time with `target`
+# 2) last_commit should trigger using target as the commit before head
+# 3) After the files are selected Use `files` and `from_file` instead of
+#    file_name, to filter whatever list of files came back
+# 4) Remove all_files since not specifying files and from_file achieves that
+#    behavior
+# 5) Remove the option python since that can be achieved with file_types="py"
 @task
 def git_branch_diff(  # type: ignore
     ctx,
     target="base",
     hash_value="",
+    # File selection options.
+    files="",
+    from_file="",
+    modified=False,
+    branch=False,
+    last_commit=False,
+    all_files=False,
     # Where to diff.
     subdir="",
     include_submodules=False,
@@ -1159,22 +1185,40 @@ def git_branch_diff(  # type: ignore
     """
     Diff files of the current branch with master at the branching point.
 
-    :param subdir: subdir to consider for diffing, instead of `.`
-    :param target:
-        - `base`: (default) diff with respect to the branching point
+    Point in time selection:
+    :param target: What to diff against (default: 'base')
+        - `base`: diff with respect to the branching point
         - `master`: diff with respect to `origin/master`
         - `head`: diff modified files
-        - `hash`: diff with respect to hash specified in `hash`
+        - `hash`: diff with respect to hash specified in `hash_value`
     :param hash_value: the hash to use with target="hash"
+
+    File selection options (optional filters):
+    :param files: Specific files to diff (space-separated string)
+    :param from_file: Path to file containing file list (one per line)
+    :param modified: Filter to files modified in client
+    :param branch: Filter to files modified in branch
+    :param last_commit: Filter to files from last commit
+    :param all_files: Filter to all repo files
+
+    Filtering and location options:
+    :param subdir: subdir to consider for diffing, instead of `.`
     :param include_submodules: run recursively on all submodules
     :param diff_type: files to diff using git `--diff-filter` options
     :param file_types: a comma-separated list of extensions to check, e.g.,
         'csv,py'. An empty string means keep all the extensions
     :param skip_file_types: a comma-separated list of extensions to skip, e.g.,
         'txt'. An empty string means do not skip any extension
+    :param python: if True, only diff Python files (overrides extension filters)
+    :param file_name: specific file to diff
+
+    Output options:
     :param only_print_files: print files to diff and exit
     :param dry_run: execute diffing script or not
     """
+    # File selection parameters are reserved for future use (filtering git diff results).
+    # Currently, git_branch_diff uses the target parameter to determine what to diff against.
+    _ = (files, from_file, modified, branch, last_commit, all_files)
     # Determine the comparison target based on user preference.
     dir_name = "."
     hdbg.dassert_in(target, ("base", "master", "head", "hash"), "Invalid target")

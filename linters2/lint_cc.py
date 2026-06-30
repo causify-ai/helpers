@@ -302,7 +302,9 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    # TODO(ai_gp): Add comments explaining what type of options are added.
     hseinout.add_file_selection_args(parser)
+    hseinout.add_file_type_filter_args(parser, file_types_default="py,ipynb,md")
     action_group = parser.add_mutually_exclusive_group()
     action_group.add_argument(
         "--topic",
@@ -353,6 +355,8 @@ def _main(parser: argparse.ArgumentParser) -> int:
         "Only one of --topic, --skill, or --rule can be used simultaneously",
     )
     files = hseinout.parse_file_selection_args(args, remove_dirs=False)
+    files = hseinout.parse_file_type_filter_args(args, files)
+    # TODO(ai_gp): Use dassert
     if args.topic and len(files) != 1:
         raise ValueError("--topic can only be used with a single file")
     _LOG.info("Processing %d file(s)", len(files))
