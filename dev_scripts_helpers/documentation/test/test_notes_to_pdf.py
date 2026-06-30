@@ -152,9 +152,10 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Prepare outputs.
         expected_script_txt = ""
         expected_output_txt = ""
+        expected = ""
         # Run test.
         script_txt, output_txt = self.run_notes_to_pdf(
-            in_file, type_, cmd_opts, expected=""
+            in_file, type_, cmd_opts, expected
         )
         # Check outputs.
         self.assertEqual(script_txt, expected_script_txt)
@@ -347,7 +348,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper_filter_test(
+    def helper(
         self, in_file: str, type_: str, cmd_opts: str
     ) -> Tuple[str, str]:
         """
@@ -387,12 +388,14 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         in_file = self.create_multiline_input(15)
         type_ = "pdf"
         cmd_opts = "--filter_by_lines 0:5"
+        # Prepare outputs.
+        expected_keyword = "filter_by_lines"
         # Run test.
-        script_txt, _ = self.helper_filter_test(in_file, type_, cmd_opts)
+        script_txt, _ = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         # Expected: script contains filter_by_lines option
         # Invariant: filter option is passed through to script
-        self.assert_equal(script_txt, "filter_by_lines", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -402,10 +405,13 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         in_file = self.create_multiline_input(20)
         type_ = "pdf"
         cmd_opts = "--filter_by_lines None:10"
+        # Prepare outputs.
+        expected_keyword = "filter_by_lines"
+        fuzzy_match = True
         # Run test.
-        script_txt, out_file = self.helper_filter_test(in_file, type_, cmd_opts)
+        script_txt, out_file = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "filter_by_lines", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
         self.assertTrue(os.path.exists(out_file))
 
     def test3(self) -> None:
@@ -416,10 +422,13 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         in_file = self.create_multiline_input(20)
         type_ = "pdf"
         cmd_opts = "--filter_by_lines 10:None"
+        # Prepare outputs.
+        expected_keyword = "filter_by_lines"
+        fuzzy_match = True
         # Run test.
-        script_txt, out_file = self.helper_filter_test(in_file, type_, cmd_opts)
+        script_txt, out_file = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "filter_by_lines", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
         self.assertTrue(os.path.exists(out_file))
 
     def test4(self) -> None:
@@ -430,10 +439,13 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         in_file = self.create_multiline_input(20)
         type_ = "pdf"
         cmd_opts = "--filter_by_header 'Header 1'"
+        # Prepare outputs.
+        expected_keyword = "filter_by_header"
+        fuzzy_match = True
         # Run test.
-        script_txt, out_file = self.helper_filter_test(in_file, type_, cmd_opts)
+        script_txt, out_file = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "filter_by_header", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
         self.assertTrue(os.path.exists(out_file))
 
     def test5(self) -> None:
@@ -444,10 +456,13 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         in_file = self.create_slides_input()
         type_ = "slides"
         cmd_opts = "--filter_by_slides 0:2"
+        # Prepare outputs.
+        expected_keyword = "filter_by_slides"
+        fuzzy_match = True
         # Run test.
-        script_txt, _ = self.helper_filter_test(in_file, type_, cmd_opts)
+        script_txt, _ = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "filter_by_slides", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
 
 
 # #############################################################################
@@ -484,7 +499,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper_output_type_test(
+    def helper(
         self, type_: str, cmd_opts: str
     ) -> Tuple[str, str]:
         """
@@ -523,10 +538,12 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Prepare inputs.
         type_ = "html"
         cmd_opts = ""
+        # Prepare outputs.
+        expected_keyword = "run_pandoc"
         # Run test.
-        script_txt, _ = self.helper_output_type_test(type_, cmd_opts)
+        script_txt, _ = self.helper(type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "run_pandoc", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -535,10 +552,13 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Prepare inputs.
         type_ = "pdf"
         cmd_opts = "--tex_only"
+        # Prepare outputs.
+        expected_keyword = "tex_only"
+        fuzzy_match = True
         # Run test.
-        script_txt, _ = self.helper_output_type_test(type_, cmd_opts)
+        script_txt, _ = self.helper(type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "tex_only", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
 
     def test3(self) -> None:
         """
@@ -547,10 +567,12 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Prepare inputs.
         type_ = "slides"
         cmd_opts = "--slides_engine beamer"
+        # Prepare outputs.
+        expected_keyword = "run_pandoc"
         # Run test.
-        script_txt, _ = self.helper_output_type_test(type_, cmd_opts)
+        script_txt, _ = self.helper(type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "run_pandoc", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
 
 # #############################################################################
@@ -595,7 +617,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper_toc_test(self, toc_type: str) -> str:
+    def helper(self, toc_type: str) -> str:
         """
         Helper to test TOC type generation.
 
@@ -630,10 +652,12 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         """
         # Prepare inputs.
         toc_type = "none"
+        # Prepare outputs.
+        expected_keyword = "toc_type none"
         # Run test.
-        script_txt = self.helper_toc_test(toc_type)
+        script_txt = self.helper(toc_type)
         # Check outputs.
-        self.assert_equal(script_txt, "toc_type none", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -641,10 +665,13 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         """
         # Prepare inputs.
         toc_type = "pandoc_native"
+        # Prepare outputs.
+        expected_keyword = "toc_type pandoc_native"
+        fuzzy_match = True
         # Run test.
-        script_txt = self.helper_toc_test(toc_type)
+        script_txt = self.helper(toc_type)
         # Check outputs.
-        self.assert_equal(script_txt, "toc_type pandoc_native", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
 
     def test3(self) -> None:
         """
@@ -652,10 +679,13 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         """
         # Prepare inputs.
         toc_type = "navigation"
+        # Prepare outputs.
+        expected_keyword = "toc_type navigation"
+        fuzzy_match = True
         # Run test.
-        script_txt = self.helper_toc_test(toc_type)
+        script_txt = self.helper(toc_type)
         # Check outputs.
-        self.assert_equal(script_txt, "toc_type navigation", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
 
     def test4(self) -> None:
         """
@@ -663,10 +693,13 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         """
         # Prepare inputs.
         toc_type = "remove_headers"
+        # Prepare outputs.
+        expected_keyword = "toc_type remove_headers"
+        fuzzy_match = True
         # Run test.
-        script_txt = self.helper_toc_test(toc_type)
+        script_txt = self.helper(toc_type)
         # Check outputs.
-        self.assert_equal(script_txt, "toc_type remove_headers", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
 
 
 # #############################################################################
@@ -695,7 +728,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper_action_test(self, cmd_opts: str) -> str:
+    def helper(self, cmd_opts: str) -> str:
         """
         Helper to test action selection.
 
@@ -730,19 +763,17 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         """
         # Prepare inputs.
         cmd_opts = "--skip_action=cleanup_before"
+        # Prepare outputs.
+        expected = """
+        # cleanup_before
+        ## skipping this action
+        """
         # Run test.
-        script_txt = self.helper_action_test(cmd_opts)
+        script_txt = self.helper(cmd_opts)
         # Check outputs.
         # Expected: script contains action name and skip marker
         # Invariant: skipped action is marked in script
-        self.assert_equal(
-            script_txt,
-            """
-            # cleanup_before
-            ## skipping this action
-            """,
-            fuzzy_match=True,
-        )
+        self.assert_equal(script_txt, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -750,19 +781,17 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         """
         # Prepare inputs.
         cmd_opts = "--skip_action=cleanup_before --skip_action=cleanup_after"
+        # Prepare outputs.
+        expected = """
+        # cleanup_before
+        # cleanup_after
+        """
         # Run test.
-        script_txt = self.helper_action_test(cmd_opts)
+        script_txt = self.helper(cmd_opts)
         # Check outputs.
         # Expected: script contains both action names marked as skipped
         # Invariant: multiple skipped actions are marked in script
-        self.assert_equal(
-            script_txt,
-            """
-            # cleanup_before
-            # cleanup_after
-            """,
-            fuzzy_match=True,
-        )
+        self.assert_equal(script_txt, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -815,7 +844,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper_run_script_test(self, skip_actions: list) -> str:
+    def helper(self, skip_actions: list) -> str:
         """
         Helper to run script generation test.
 
@@ -847,31 +876,35 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         """
         Test script file is generated with correct shebang.
         """
+        # Prepare inputs.
+        skip_actions = ["open"]
+        # Prepare outputs.
+        expected_shebang = "#/bin/bash -xe"
         # Run test.
-        script_txt = self.helper_run_script_test(["open"])
+        script_txt = self.helper(skip_actions)
         # Check outputs.
         # Expected: script contains bash shebang at start
         # Invariant: generated script has correct bash invocation
-        self.assertIn("#/bin/bash -xe", script_txt)
+        self.assertIn(expected_shebang, script_txt)
 
     def test2(self) -> None:
         """
         Test script contains all executed actions in sequence.
         """
+        # Prepare inputs.
+        skip_actions = ["cleanup_before", "cleanup_after", "open"]
+        # Prepare outputs.
+        expected = """
+        # preprocess_notes
+        # render_images
+        # run_pandoc
+        """
         # Run test.
-        script_txt = self.helper_run_script_test(["cleanup_before", "cleanup_after", "open"])
+        script_txt = self.helper(skip_actions)
         # Check outputs.
         # Expected: script contains action section comments for key processing steps
         # Invariant: all major actions appear in generated script
-        self.assert_equal(
-            script_txt,
-            """
-            # preprocess_notes
-            # render_images
-            # run_pandoc
-            """,
-            fuzzy_match=True,
-        )
+        self.assert_equal(script_txt, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -884,7 +917,7 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
     Test `notes_to_pdf.py` error handling and validation.
     """
 
-    def helper_run_error_test(self, in_file: str, type_: str) -> None:
+    def helper(self, in_file: str, type_: str) -> None:
         """
         Helper to run command expecting error.
 
@@ -913,7 +946,7 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
         # Prepare inputs.
         in_file = "/nonexistent/path/file.md"
         # Run test.
-        self.helper_run_error_test(in_file, "pdf")
+        self.helper(in_file, "pdf")
 
     def test2(self) -> None:
         """
@@ -923,8 +956,9 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
         txt = "# Test"
         in_file = os.path.join(self.get_scratch_space(), "input.md")
         hio.to_file(in_file, txt)
+        type_ = "invalid_type"
         # Run test.
-        self.helper_run_error_test(in_file, "invalid_type")
+        self.helper(in_file, type_)
 
 
 # #############################################################################
@@ -937,7 +971,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
     Test `notes_to_pdf.py` with edge cases and special inputs.
     """
 
-    def helper_edge_case_test(self, filename: str, txt: str) -> None:
+    def helper(self, filename: str, txt: str) -> None:
         """
         Helper to run edge case test.
 
@@ -968,24 +1002,27 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         Test empty markdown file processing.
         """
         # Prepare inputs.
+        filename = "empty.md"
         txt = ""
         # Run test.
-        self.helper_edge_case_test("empty.md", txt)
+        self.helper(filename, txt)
 
     def test2(self) -> None:
         """
         Test markdown with only whitespace and empty lines.
         """
         # Prepare inputs.
+        filename = "whitespace.md"
         txt = "\n\n   \n\n"
         # Run test.
-        self.helper_edge_case_test("whitespace.md", txt)
+        self.helper(filename, txt)
 
     def test3(self) -> None:
         """
         Test markdown with special characters in headers.
         """
         # Prepare inputs.
+        filename = "special.md"
         txt = """
         # Chapter 1: Introduction & Overview
 
@@ -1001,13 +1038,14 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         """
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         # Run test.
-        self.helper_edge_case_test("special.md", txt)
+        self.helper(filename, txt)
 
     def test4(self) -> None:
         """
         Test markdown with all header levels (h1-h6).
         """
         # Prepare inputs.
+        filename = "all_levels.md"
         txt = """
         # Level 1
 
@@ -1035,7 +1073,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         """
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         # Run test.
-        self.helper_edge_case_test("all_levels.md", txt)
+        self.helper(filename, txt)
 
 
 # #############################################################################
@@ -1068,7 +1106,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper_ast_test(self, type_: str) -> str:
+    def helper(self, type_: str) -> str:
         """
         Helper to run AST transform test.
 
@@ -1099,19 +1137,27 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         """
         Test PDF generation with AST transform enabled.
         """
+        # Prepare inputs.
+        type_ = "pdf"
+        # Prepare outputs.
+        expected_keyword = "use_pandoc_ast_transform"
         # Run test.
-        script_txt = self.helper_ast_test("pdf")
+        script_txt = self.helper(type_)
         # Check outputs.
-        self.assert_equal(script_txt, "use_pandoc_ast_transform", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test2(self) -> None:
         """
         Test HTML generation with AST transform.
         """
+        # Prepare inputs.
+        type_ = "html"
+        # Prepare outputs.
+        expected_keyword = "use_pandoc_ast_transform"
         # Run test.
-        script_txt = self.helper_ast_test("html")
+        script_txt = self.helper(type_)
         # Check outputs.
-        self.assert_equal(script_txt, "use_pandoc_ast_transform", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
 
 # #############################################################################
@@ -1144,7 +1190,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper_latex_option_test(self, cmd_opts: str) -> str:
+    def helper(self, cmd_opts: str) -> str:
         """
         Helper to run LaTeX option test.
 
@@ -1175,16 +1221,24 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         """
         Test no_run_latex_again option skips LaTeX re-run.
         """
+        # Prepare inputs.
+        cmd_opts = "--no_run_latex_again"
+        # Prepare outputs.
+        expected_keyword = "# latex again"
         # Run test.
-        script_txt = self.helper_latex_option_test("--no_run_latex_again")
+        script_txt = self.helper(cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "# latex again", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test2(self) -> None:
         """
         Test no_fail_on_warnings option accepts pandoc warnings.
         """
+        # Prepare inputs.
+        cmd_opts = "--no_fail_on_warnings"
+        # Prepare outputs.
+        expected_keyword = "no_fail_on_warnings"
         # Run test.
-        script_txt = self.helper_latex_option_test("--no_fail_on_warnings")
+        script_txt = self.helper(cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, "no_fail_on_warnings", fuzzy_match=True)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
