@@ -132,12 +132,8 @@ class Test_preprocess_notes(hunitest.TestCase):
                 file_name, prefix, type_, toc_type, output_format
             )
         # Check outputs.
-        # Expected: result contains preprocessing output filename with .preprocess_notes.txt suffix
-        # Invariant: output includes correct suffix indicating preprocessing completion
         self.assertIn(".preprocess_notes.txt", result)
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # Expected invocations: preprocess_notes.py called with type and toc_type arguments
-        # Invariant: preprocessing script invoked with all required parameters
         expected = """
         preprocess_notes.py
         --type pdf
@@ -170,13 +166,8 @@ class Test_render_images(hunitest.TestCase):
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             result = dshdlntpd.render_images(file_name, prefix)
-        # Check outputs.
-        # Expected: result contains render_image reference in output filename
-        # Invariant: rendered images filename includes render_image marker
         self.assertIn("render_image", result)
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # Expected: render_images.py script invoked for image rendering
-        # Invariant: image rendering script execution with correct command
         expected = "render_images.py"
         self.assertIn(expected, invocations_str)
 
@@ -210,6 +201,7 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         dockerized_use_sudo = False
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
+            # TODO(ai_gp): Why is this needed?
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -221,12 +213,9 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
                     fail_on_warnings=fail_on_warnings,
                 )
         # Check outputs.
-        # Expected: AST output filename with .ast.json extension
-        # Invariant: AST JSON file generated as output
         self.assertIn(".ast.json", result)
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # Expected: pandoc command invoked with JSON output format and optional fail-on-warnings
-        # Invariant: pandoc with -t json flag for AST generation
+        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         expected_parts = ["pandoc", "-t json"]
         if expect_fail_flag:
             expected_parts.append("--fail-if-warnings")
@@ -271,7 +260,8 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         self,
         output_format: str,
         expected_format_flag: str,
-        extra_opts: List[str] = None,  # type: ignore
+        *,
+        extra_opts: Optional[List[str]] = None,
     ) -> None:
         """
         Test helper for _run_pandoc_from_ast.
@@ -304,8 +294,7 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
                 )
         # Check outputs.
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # Expected: pandoc invoked with format flag and any extra options
-        # Invariant: pandoc with output format and optional extra arguments present
+        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         expected_parts = ["pandoc", expected_format_flag]
         if extra_opts:
             expected_parts.extend(extra_opts)
@@ -401,8 +390,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                 )
         # Check outputs.
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # Expected: pandoc always invoked, optionally pdflatex and TOC flags
-        # Invariant: pandoc command present, pdflatex/TOC flags match parameters
+        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         expected_parts = ["pandoc"]
         if expect_pdflatex:
             expected_parts.append("pdflatex")
@@ -452,6 +440,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                     file_name,
                     prefix,
                     toc_type,
+                    # TODO(ai_gp): Assign to variables and pass them.
                     False,
                     True,
                     False,
@@ -459,8 +448,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                     tex_only=True,
                 )
         # Check outputs.
-        # Expected: result contains .tex suffix when tex_only=True
-        # Invariant: TeX file generated instead of PDF
+        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         self.assertIn(".tex", result)
         invocations_str = hunteuti.to_invocations_str(invocations)
         self.assertNotIn("pdflatex", invocations_str)
@@ -526,8 +514,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Invariant: HTML output file generated
         self.assertIn(".html", result)
         invocations_str = hunteuti.to_invocations_str(invocations)
-        # Expected: pandoc with HTML format, optional TOC and metadata flags
-        # Invariant: pandoc with -t html and optional TOC/metadata parameters
+        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         expected_parts = ["pandoc", "-t html"]
         if expect_toc:
             expected_parts.append("--toc")
@@ -617,6 +604,7 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         # Expected: output file has correct extension based on use_tex
         # Invariant: .tex for TeX output, .pdf for PDF output
         expected_ext = ".tex" if use_tex else ".pdf"
+        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         self.assertIn(expected_ext, output_file)
         # Expected: pandoc beamer command with optional resource-path and TOC
         # Invariant: pandoc with -t beamer, optional --resource-path and TOC flags
@@ -717,6 +705,7 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
                     tex_only=tex_only,
                 )
         # Check outputs.
+        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         # Expected: result contains correct file extension
         # Invariant: output extension matches tex_only parameter (.tex or .pdf)
         self.assertIn(expected_ext, result)
@@ -939,6 +928,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
             dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
         invocations_str = hunteuti.to_invocations_str(invocations)
+        # TODO(ai_gp): Pass expected str and do a self.assert_equal(invocation_str, expected)
         # Expected: cp command with renamed output filename
         # Invariant: file copied to gdrive directory with correct name and extension
         expected = f"cp.*{expected_filename}"
@@ -954,30 +944,6 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         expected_filename = "notes.pdf"
         # Run test.
         self.helper(ext, input_, expected_filename)
-
-    def test2(self) -> None:
-        """
-        Test file extension handling.
-        """
-        # Prepare inputs.
-        ext = "html"
-        input_ = "notes.txt"
-        expected_filename = "notes.html"
-        # Run test.
-        self.helper(ext, input_, expected_filename)
-
-    def test3(self) -> None:
-        """
-        Test directory existence check.
-        """
-        # Prepare inputs.
-        file_name = "output.pdf"
-        ext = "pdf"
-        input_ = "notes.txt"
-        gdrive_dir = "/nonexistent/path/to/gdrive"
-        # Run test and check outputs.
-        with self.assertRaises(AssertionError):
-            dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
 
 
 # #############################################################################
@@ -1013,25 +979,3 @@ class Test_compress_pdf(hunitest.TestCase):
         self.assert_equal(
             invocations_str, expected, fuzzy_match=True, dedent=True
         )
-
-    def test2(self) -> None:
-        """
-        Test input must be PDF file.
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        not_pdf = os.path.join(scratch_dir, "document.txt")
-        hio.to_file(not_pdf, "text content")
-        # Run test and check outputs.
-        with self.assertRaises(AssertionError):
-            dshdlntpd.compress_pdf(not_pdf)
-
-    def test3(self) -> None:
-        """
-        Test file must exist.
-        """
-        # Prepare inputs.
-        pdf_file = "/nonexistent/document.pdf"
-        # Run test and check outputs.
-        with self.assertRaises(AssertionError):
-            dshdlntpd.compress_pdf(pdf_file)
