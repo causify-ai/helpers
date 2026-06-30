@@ -258,7 +258,7 @@ def _extract_slide_metadata(
     return metadata, lines[i:]
 
 
-# TODO(ai_gp): Move this to the umd_repo.
+# TODO(ai_gp2): Move this to the umd_repo.
 def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
     r"""
     Generate LaTeX title slide from metadata.
