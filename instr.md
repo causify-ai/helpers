@@ -1,5 +1,7 @@
 ## Are the test running end-to-end or only capturing the script
 
+Yes
+
 ## Add more unit tests
 ./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
 
@@ -45,10 +47,6 @@ This is the second block.
 ::::
 :::
 ```
-
-## Split code in lib_notes_to_pdf.py
-
-Unit test it lib_notes_to_pdf.py
 
 ## Rename 
 ./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py

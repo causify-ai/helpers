@@ -55,9 +55,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         _LOG.debug("return=%s", result)
         return result
 
-    # TODO(gp): Run this calling directly the code and not executing the script.
     def run_notes_to_pdf(
-        self, in_file: str, type_: str, cmd_opts: str, expected: str = ""
+        self, in_file: str, type_: str, cmd_opts: str, expected: str,
     ) -> Tuple[str, str]:
         """
         Run the `notes_to_pdf.py` script with the specified options.
@@ -132,7 +131,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
     def test1(self) -> None:
         """
         Run:
-        > notes_to_pdf.py --input input.md -t pdf --preview
+        > notes_to_pdf.py --input input.md -t pdf --preview_actions
         """
         # Prepare inputs.
         in_file = self.create_input_file1()
@@ -141,6 +140,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Run the script.
         script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
         # Check that preview mode returns empty output (no actual generation).
+        # TODO(ai_gp): Convert in expected and pass it to run_notes_to_pdf.
         self.assertEqual(script_txt, "")
         self.assertEqual(output_txt, "")
 
@@ -155,7 +155,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         type_ = "pdf"
         cmd_opts = ""
         # Expected output from golden file.
-        expected = hprint.dedent("""
+        expected = hprint.dedent(r"""
             script_txt:
             #/bin/bash -xe
             # cleanup_before
@@ -196,7 +196,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         type_ = "pdf"
         cmd_opts = "--filter_by_header Header2"
         # Expected output from golden file.
-        expected = hprint.dedent("""
+        expected = hprint.dedent(r"""
             script_txt:
             #/bin/bash -xe
             # cleanup_before
