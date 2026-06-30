@@ -133,8 +133,10 @@ def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("curr_path=%s", curr_path)
     #
     if args.script:
+        global _SCRIPT
         _LOG.warning("Logging the actions into a script '%s'", args.script)
         _SCRIPT = ["#/bin/bash -xe"]
+        dshdlntpd._SCRIPT = _SCRIPT
     #
     file_name = args.input
     hdbg.dassert_path_exists(file_name)
