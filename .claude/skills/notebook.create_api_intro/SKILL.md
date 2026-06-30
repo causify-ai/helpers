@@ -4,6 +4,7 @@ model: sonnet
 ---
 
 # Goal
+
 - Create a self-contained Jupyter notebook that teaches the Python package
   `<PACKAGE_NAME>` by progressively introducing its core primitives, mental
   model, and API surface
@@ -12,6 +13,7 @@ model: sonnet
   solving a large real-world problem
 
 # Teaching Philosophy
+
 1. Start from the smallest possible working example
 2. Introduce one new concept at a time
 3. Use the minimum amount of code necessary to demonstrate each concept
@@ -30,6 +32,7 @@ model: sonnet
 # Notebook Structure
 
 ## Name of the Notebook
+
 - The name of the notebook `<FILE>` is either specified directly by the user or
   it is generated as:
   ```
@@ -39,14 +42,18 @@ model: sonnet
   `tutorials/pgmpy/pgmpy.01.API.probabilistic_inference.ipynb`
 
 ## Use Standard Template Structure
+
 - Use the structure from `.claude/templates/notebook.template.py` for consistent
   notebook initialization
 
 - First Cell: Include autoreload, logging, and core dependencies
+
 - Second Cell: Optionally install packages on-the-fly
+
 - Third Cell: Notebook-specific imports and logger
 
 ## Follow General Notebook Conventions
+
 - Follow the notebook conventions documented in
   `.claude/skills/notebook.rules.md`:
   - `# Setup and Initialization`: Standard template structure and Python code
@@ -61,12 +68,14 @@ model: sonnet
     visualizations or interactive widgets
 
 ## Follow the Template
+
 - The template is:
   ```
   .claude/templates/API_notebook.template.ipynb
   ```
 
 ### 1. Library Overview
+
 - Briefly explain:
   - What problem the library solves
   - The key abstractions
@@ -74,28 +83,34 @@ model: sonnet
   - A conceptual diagram of how the pieces fit together
 
 ### 2. Primitive-by-Primitive Exploration
+
 - For each important primitive:
 
   - Mental Model
+
     - Explain what the object "means"
     - Present as a **markdown table** (see section 2a below)
 
   - Smallest Construction
+
     ```
     python # minimal example
     ```
 
   - Inspect the Object
+
     ```
     python type(obj) dir(obj)
     ```
 
   - Important Methods
+
     ```
     python obj.method(...)
     ```
 
 ### 2a. Mental Model as Markdown Table
+
 - Present the mental model as a **markdown table** instead of bullet points:
   - **Why**: Tables are scannable, visually distinct, and structure complex API
     relationships clearly
@@ -114,8 +129,11 @@ model: sonnet
     | `explainer.method(x)` | Instance method | Returns result object |
     | `Result.values` | Data array | shape (n, m) |
     ```
+
 ### 3. Composition Examples
+
 - Build progressively:
+
   - Example 1:
     - Smallest meaningful object
   - Example 2:
@@ -128,7 +146,9 @@ model: sonnet
 - Each example should fit within roughly 10–20 lines
 
 ### 4. API Patterns
+
 - Identify recurring patterns:
+
   - Builder patterns
   - Fit/predict patterns
   - Graph construction patterns
@@ -140,6 +160,7 @@ model: sonnet
 - Show the smallest example of each pattern
 
 ### 5. Interactive Exploration
+
 - Provide cells that encourage experimentation:
   ```
   python dir(obj) help(obj.method)
@@ -150,13 +171,16 @@ model: sonnet
     - What type is returned?
 
 ### Summary: the Mental Model
+
 - Synthesize the core mental model
+
   - What are the fundamental abstractions?
   - How do they fit together?
 
 - This should be 2-4 sentences capturing the essence of the library's design
 
 ## Special Instructions
+
 - Use executable Python code throughout
 - Minimize imports
 - Keep examples independent whenever possible
@@ -173,6 +197,7 @@ model: sonnet
   design
 
 # Verification
+
 - [ ] Create paired Python
   ```
   > jupytext.py --action pair --files <FILE>.ipynb
