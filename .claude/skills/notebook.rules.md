@@ -5,6 +5,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 # Effective Notebook Design Principles
 
 ## Core Goals
+
 - An effective interactive notebook should enable:
   - **Strong intuition**: Help students build mental models through discovery
   - **Visual explanation**: Use plots, diagrams, and animations to make concepts
@@ -14,6 +15,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
     immediate results
 
 ## Key Principles
+
 - **Focus on examples**: Concentrate on practical examples, not theory
   repetition from slides
 - **Discovery over exposition**: Emphasize "what if I change this?" over "here's
@@ -23,34 +25,44 @@ description: Conventions and standards for interactive Jupyter notebook structur
 # Setup and Initialization
 
 ## Use Python Style
+
 - For all Python code in notebooks, follow the rules in
   `.claude/skills/coding.rules.md`
 
 ## Use Standard Template Structure
+
 - Use the structure from `.claude/templates/notebook.template.py` for consistent
   notebook initialization
 
 - First Cell: Include autoreload, logging, and core dependencies
+
 - Second Cell: Optionally install packages on-the-fly
+
 - Third Cell: Notebook-specific imports and logger
 
 ## Utilities Vs. Notebook Responsibilities
 
 ### Notebook-to-File Pairing
+
 - Each notebook is paired with Jupytext to a Python file
+
 - Each notebook has a corresponding `*_utils.py` file containing the code
   corresponding to that notebook
+
 - Use hyphens in notebook filenames and underscores in Python filenames and
   utility files
 
 - Example
+
   - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
   - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
   - Paired utility file:
     `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 ### Responsibility Division
+
 - All complexity goes in `*_utils.py`:
+
   - Widget creation and state management
   - Visualization and plotting functions
   - Data computation and transformations
@@ -58,6 +70,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - Documentation and parameter descriptions
 
 - In notebook cells (minimal, clear calls only):
+
   - Keep notebook cells readable and pedagogically clear
   - Move complexity and infrastructure code to utils
   - Import and use utils functions to keep cells focused on concepts
@@ -71,8 +84,10 @@ description: Conventions and standards for interactive Jupyter notebook structur
   structure
 
 ### Use Existing Utils Functions During Generation
+
 - When generating a notebook, check if a corresponding `*_utils.py` file already
   exists:
+
   - If it does, prefer using its existing functions instead of writing new
     inline code or proposing new functions
   - If the notebook uses new cell numbers, update the utils function names to
@@ -85,6 +100,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
   maintains consistency across notebooks
 
 ## Library Calls Vs. Visualization in Package Tutorials
+
 - When writing a tutorial for a package:
   - Keep the code that executes library calls and explores the API in the
     notebook
@@ -102,6 +118,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
     - The notebook calls this function to display precomputed results
 - **Example pattern**:
   - **Bad** (visualization code embedded in notebook):
+
     ```python
     # Notebook cell with complex visualization mixed with API calls.
     results = library.process_data(data)
@@ -110,13 +127,14 @@ description: Conventions and standards for interactive Jupyter notebook structur
     axes[0, 1].plot(results['trend'])
     # ... more plotting code ...
     ```
-  
+
   - **Good** (library calls in notebook, visualization in utils):
+
     ```python
     # In notebook: show library calls clearly.
     results = library.process_data(data)
     utils.visualize_analysis_results(results)
-    
+
     # In utils file: complex visualization separated.
     def visualize_analysis_results(results):
         fig, axes = plt.subplots(2, 2, figsize=(12, 10))
@@ -127,6 +145,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 # Code Cell Design and Content
 
 ## Single Responsibility Per Cell
+
 - Each code cell performs exactly one logical task:
   - **Bad**: One cell that loads data, cleans it, trains a model, and plots
     results
@@ -134,8 +153,10 @@ description: Conventions and standards for interactive Jupyter notebook structur
     Evaluate model
 
 ## Split Multi-Step Analysis Cells
+
 - When a single cell performs multiple **independent analyses** (e.g.,
   statistics + correlations + feature covariances), split into focused cells:
+
   - **Cell 1**: Summary statistics (`.describe()`)
   - **Cell 2**: Target correlations (`.corrwith(y)`)
   - **Cell 3**: Pairwise correlations (`.corr()` as heatmap)
@@ -144,6 +165,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
   narrative flow
 
 - **Bad** (one large cell):
+
   ```python
   print(X_df.describe())
   print("\n=== Correlations ===")
@@ -152,15 +174,16 @@ description: Conventions and standards for interactive Jupyter notebook structur
   ```
 
 - **Good** (three focused cells):
+
   ```python
   # Cell 1: Statistics
   print("=== Feature Statistics ===")
   print(X_df.describe())
-  
+
   # Cell 2: Target correlation
   print("=== Correlations with target ===")
   display(X_df.corrwith(y_s))
-  
+
   # Cell 3: Pairwise correlation heatmap
   import seaborn as sns
   fig, ax = plt.subplots(figsize=(8, 6))
@@ -169,10 +192,12 @@ description: Conventions and standards for interactive Jupyter notebook structur
   ```
 
 ## Split Cells That Perform Distinct Steps
+
 - Cells that contain more than one concept / example should be split so that
   each cell has only one example
 
 - Example1
+
   - **Bad** (this cell has 3 examples and should be split in 3 cells, as below)
     ```python
     # Test with fair coin.
@@ -211,6 +236,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
       ```
 
 - Example2
+
   - **Bad**
     ```python
     # Use the weather-activity example.
@@ -238,11 +264,12 @@ description: Conventions and standards for interactive Jupyter notebook structur
     ```
 
 ## Code Cell Structure
+
 - Use this standard structure in every code cell:
   ```python
   # Comment explaining the goal.
   operation
-  
+
   print(result)
   # Comment on the outcome.
   ```
@@ -250,10 +277,12 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - End with a visible result (via `print()`, `display()`, or a plot)
 
 ## Showing Results
+
 - Use `display()` to show a dataframe
 - Use `print()` for everything else
 
 ## Use Pandas Dataframes and not Print for Tables
+
 - Use pandas dataframes for tables and do not create tables using `print`
   - **Bad**
     ```
@@ -276,6 +305,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
     ```
 
 ## Print Variable Name With Value
+
 - When using `print()` to inspect a variable, always include the variable name as a
   label alongside its value
   ```python
@@ -292,11 +322,13 @@ description: Conventions and standards for interactive Jupyter notebook structur
     ```
 
 ## Suppress Unwanted Output
+
 - Assign output to underscore `_` to prevent display:
   - **Bad**: `statement;`
   - **Good**: `_ = statement`
 
 ## Comment Complex Code
+
 - Add comments for non-trivial code blocks:
   - Aim for 1 comment per 2–3 lines of code
   - Focus on high-level intent, not obvious operations
@@ -314,7 +346,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
           "In your final answer, include the exact tool call used."
       ),
   )
-  
+
   # Invoke the agent with a request for the current UTC time.
   contract_out = contract_agent.invoke(
       {
@@ -325,7 +357,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
           ]
       }
   )
-  
+
   # Extract and display the agent's final response.
   print(getattr(contract_out["messages"][-1], "content", ""))
   ```
@@ -367,6 +399,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
   1. `## Library Overview` at the very beginning, right after setup cells but
      before the first code cell:
+
      - Use the structure:
        ```markdown
        ## Library Overview
@@ -379,6 +412,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
        ```
 
   2. `## Summary: The Mental Model` as the final markdown cell:
+
      - Recap the 2-4 essential takeaways the reader should remember
      - Each bullet must be a complete, standalone statement
 
@@ -390,12 +424,15 @@ description: Conventions and standards for interactive Jupyter notebook structur
 For API teaching notebooks, present the library's mental model as a structured markdown table:
 
 - **When to use**: In primitive sections when introducing core classes and their relationships
+
 - **Format**: 3 columns minimum:
+
   - **Object**: Class name or method (e.g., `LimeTabularExplainer`, `Explanation.values`)
   - **Description**: What it does / represents
   - **Type/Comments**: Array shape, return type, or behavioral notes
 
 - **Example**:
+
   ```markdown
   | Object | Description | Comments |
   |--------|-------------|----------|
@@ -411,6 +448,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 - Each visualization in a notebook is composed of three notebook cells:
 
   1. **Markdown cell**: Explains what we want to achieve, the goal
+
      ```markdown
      ## Cell 1: Visualizing Population Distribution
 
@@ -421,10 +459,12 @@ For API teaching notebooks, present the library's mental model as a structured m
 
   2. **Code cell**: Visualization / interactive widget (optionally with
      ipywidget)
+
      ```python
      # Display the population as a bin of colored marbles.
      utils.visualize_population_distribution()
      ```
+
      - Documents the plots and their diagrams with comments, e.g.,
        ```
        _Population bin_: Shows the full population as colored marbles
@@ -433,6 +473,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 
   3. **Explanation cell**: A markdown cell explaining key observations, what
      experiments can be done, and what we will learn
+
      ```markdown
      **Key observations**:
      - Population parameters are fixed but hidden: we only see samples
@@ -442,6 +483,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 
 - For all the markdown cells use bullet points with nested bullets for clarity
   and conciseness, following the rules in
+
   - `.claude/skills/slides.rules.md`: rules for formatting slides
   - `.claude/skills/text.rules.md`: rules for formatting bullet points
 
@@ -449,24 +491,29 @@ For API teaching notebooks, present the library's mental model as a structured m
 
 - Every notebook must group its cells under at least one `# Part N:` header,
   even when there is a single logical part
+
 - Never use a level-1 header (`#`) for an individual cell; cells always use
   `## Cell <part>.<id>:`
 
 - Use level 1 headers (`#`) for Parts:
+
   - Format: `# Part XYZ: Description`
   - Parts group multiple related cells together
 
 - Use level 2 headers (`##`) for Cells within Parts:
+
   - Format: `## Cell <part>.<id>: Description`
   - Each cell is a sub-section of its Part
   - Configuration cells (Imports, Logging) do not need `Cell <number>:` prefix
 
 - Numbering convention: `<part>.<id>` where:
+
   - `<part>`: Part number (1, 2, 3, etc.)
   - `<id>`: Cell ID within that Part (1, 2, 3, etc.)
   - Example: `Cell 1.1`, `Cell 1.2`, `Cell 2.1`, `Cell 2.2`
 
 - Example
+
   - **Good** structure:
     ```markdown
     # Part 1: Data Exploration and Loading
@@ -502,12 +549,14 @@ For API teaching notebooks, present the library's mental model as a structured m
 - For key concepts that are used throughout the notebook (e.g., "background data" in SHAP), add a dedicated brief explanation cell **before first use**:
 
 - **Format**: Code cell with a comment block explaining:
+
   - What the concept is
   - Why it's used
   - How it affects computation
   - Practical guidance (e.g., "background sets of 100-1000 samples are sufficient")
 
 - **Example**:
+
   ```python
   # Background data: statistics used to estimate conditional expectations.
   #
@@ -561,18 +610,22 @@ For API teaching notebooks, present the library's mental model as a structured m
 # Text and Markdown Formatting
 
 ## Use Nested Bullet Lists
+
 - Organize markdown text with nested bullets for clarity:
   - **Bad**: Single paragraph with multiple ideas
     `    Examine what happens when we repeatedly sample N points. Each trial produces an empirical mean nu. This cell shows the distribution of nu and compares it with predictions from the Law of Large Numbers.    `
-  - **Good**: Nested structure with related ideas grouped ` - Examine what
-    happens when we repeatedly sample N points many times
+  - **Good**: Nested structure with related ideas grouped
+    ```
+    - Examine what happens when we repeatedly sample N points many times
     - Each trial produces an empirical mean nu
     - This cell:
       - Shows the distribution of nu over many trials
       - Compares it with the expected distribution from the Law of Large Numbers
-        and Central Limit Theorem `
+        and Central Limit Theorem
+    ```
 
 ## Use LaTeX Notation
+
 - Express variables and formulas with LaTeX:
   - Inline: `$\mu$ (mean), $\sigma^2$ (variance)`
   - Display: `$$E[X] = \sum x_i P(x_i)$$`
@@ -580,18 +633,21 @@ For API teaching notebooks, present the library's mental model as a structured m
 - **Good**: `The mean is $\mu$ and variance is $\sigma^2$`
 
 ## Avoid Capitalization, Emojis, and HTML
+
 - Do not use: ALL CAPS for emphasis, emoji, non-ASCII characters, or HTML anchor
   tags
 - Use **bold** or _italic_ for emphasis instead
 - Remove horizontal separators (`---`) from markdown cells
 
 ## Text Case Standards
+
 - Use sentence case, not title case, for labels and descriptions
 - Exception: LaTeX formulas may use any case
 - **Bad**: `This Shows The Distribution`
 - **Good**: `This shows the distribution`
 
 ## Replace Emdashes with Colons
+
 - Do not use emdashes, but replace them with `:`
   - **Bad**
     ```
@@ -603,6 +659,7 @@ For API teaching notebooks, present the library's mental model as a structured m
     ```
 
 ## Non-ASCII Characters
+
 - Avoid non-ASCII characters in code and documentation
 - Use ASCII equivalents instead:
   - Use `mu` instead of `μ`, `alpha` instead of `α`
@@ -620,27 +677,32 @@ For API teaching notebooks, present the library's mental model as a structured m
 # Data Processing and Visualization
 
 ## Prefer Pandas and Seaborn
+
 - Use `pandas` instead of `numpy` for data manipulation
 - Use `seaborn` instead of `matplotlib` for plots
 - Goal: Reduce code verbosity and improve readability
 
 ## Add Information to Plots, Not Output
+
 - Embed results and information directly on plots using `ax.text()`:
   - **Bad**: Create plot, then `print(result)` below it
   - **Good**: Add result text to plot with `ax.text()` or `ax.set_title()`
 
 ## Visual Distinction Between Theoretical and Empirical Data
+
 - When plotting both theoretical (expected) and empirical (observed) data:
   - **Theoretical**: Light, transparent colors; dotted lines
   - **Empirical**: Darker, solid colors; solid lines
 
 ## Comment Box Titles
+
 - When using helper function `add_fitted_text_box()`, add a bold title:
   ```python
   ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
   ```
 
 ## Configurable Figure Sizes
+
 - All plotting functions must accept optional `figsize` parameter:
   ```python
   def plot_something(
@@ -663,6 +725,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 # Code Cleanup
 
 ## Remove Development Environment Cells
+
 - Remove cells for JupyterLab extensions or environment setup:
   ```python
   !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
@@ -670,18 +733,21 @@ For API teaching notebooks, present the library's mental model as a structured m
   ```
 
 ## Remove Package Installation Cells
+
 - Do not install packages in notebooks; use `requirements.txt` and Docker
   instead:
   - **Remove**: `!pip install --quiet PyGithub`
   - **Instead**: Add `PyGithub` to `requirements.txt` and rebuild Docker image
 
 ## Remove Secret and Token Assignments
+
 - Remove all cells that hardcode secrets, tokens, or credentials:
   - **Remove**: `os.environ["GITHUB_ACCESS_TOKEN"] = "..."`
   - **Instead**: Pass secrets as read-only environment variables at container
     startup
 
 ## Keep Introspection Lines
+
 - It is acceptable to keep a `func??` introspection line to display a function's
   source or signature
 
@@ -690,6 +756,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 - When displaying public methods/attributes of a library object, use `hintrospection.print_public_methods()`:
 
   - **Bad** (manual introspection with `inspect` module):
+
     ```python
     import inspect
     for name in dir(explainer):
@@ -702,15 +769,20 @@ For API teaching notebooks, present the library's mental model as a structured m
     ```
 
   - **Bad** (bare `dir()` with no context):
+
     ```python
     dir(library_module)
     ```
+
   - **Bad** (manually printing method names):
+
     ```python
     methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
     print(methods)
     ```
+
   - **Good** (standardized helper):
+
     ```python
     import helpers.hintrospection as hintros
     hintros.print_public_methods(explainer, use_markdown=True)
@@ -723,10 +795,12 @@ For API teaching notebooks, present the library's mental model as a structured m
 - Jupyter notebooks can contain `ipywidgets` widgets for interactive cells
 
 ## Interactive Idiom for Notebooks
+
 - Each `cellN_*()` function must follow this exact pattern:
 
   1. Create parameter controls using functions in `helpers/htutorials.py`, such
      as
+
      - `htutori.build_widget_control()` for linear-scale sliders (alpha, beta, epsilon, etc.)
      - `htutori.build_log_widget_control()` for logarithmic-scale parameters (N, sample count)
      - `ipywidgets.Dropdown()` for categorical choices (plot type, model selector)
@@ -734,6 +808,7 @@ For API teaching notebooks, present the library's mental model as a structured m
   2. Create `ipywidgets.Output()` to capture live updates
 
   3. Define `update_plot(change=None)` closure that:
+
      - Begins with: `with output: clear_output(wait=True)`
      - Reads current widget values
      - Creates figure
@@ -742,6 +817,7 @@ For API teaching notebooks, present the library's mental model as a structured m
      - Ends with: `plt.tight_layout()` then `plt.show()`
 
   4. Attach observers to all widgets
+
      ```python
      slider.observe(update_plot, names="value")
      ```
@@ -750,6 +826,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 
   6. Display via `ipywidgets.VBox()`, without a redundant `Label` (see
      `## Remove Redundant Labels Before Control Boxes`):
+
      ```python
      display(ipywidgets.VBox([
          slider1_box,
@@ -776,6 +853,7 @@ For API teaching notebooks, present the library's mental model as a structured m
   redundant and wastes vertical space
 
 - **Bad**: Wrapping controls in a `Label` then a VBox of controls
+
   ```python
   display(ipywidgets.VBox([
       ipywidgets.Label("Parameters:"),
@@ -783,10 +861,12 @@ For API teaching notebooks, present the library's mental model as a structured m
       slider2_box,
   ]))
   ```
+
   - Each control already shows its own name/description inline
   - The `Label` adds no new information
 
 - **Good**: Display controls directly, relying on their embedded descriptions
+
   ```python
   display(ipywidgets.VBox([
       slider1_box,
@@ -795,13 +875,16 @@ For API teaching notebooks, present the library's mental model as a structured m
   ```
 
 - **Bad**: Label in the 2-row Output Widget Pattern
+
   ```python
   display(VBox([
       HBox([Label("Controls:"), controls_box]),
       output,
   ]))
   ```
+
 - **Good**: No redundant label
+
   ```python
   display(VBox([
       HBox([controls_box]),
@@ -810,6 +893,7 @@ For API teaching notebooks, present the library's mental model as a structured m
   ```
 
 - The same principle applies to the interactive idiom:
+
   - **Bad** (from the Interactive Idiom section):
     ```python
     display(ipywidgets.VBox([
@@ -866,6 +950,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 - **Do not** mix widgets and matplotlib figures in separate `display()` calls
   arranged manually. Having a single `Output()` widget that holds all matplotlib
   rendering guarantees:
+
   - The figure is recreated from scratch on every update, avoiding stale state
   - `clear_output(wait=True)` prevents flicker by blocking until the new figure
     is ready
@@ -884,18 +969,21 @@ For API teaching notebooks, present the library's mental model as a structured m
 ## Widgets
 
 - Interactive widgets must always have:
+
   - The name of the variable (e.g., n, mu, nu)
   - Value cell and "-" and "+" buttons
 
 - The widget to select the seed must always be the first widget
 
 - `htutori.build_widget_control()` for linear-scale sliders (alpha, beta, epsilon, etc.)
+
 - `htutori.build_log_widget_control()` for logarithmic-scale parameters (N, sample count)
 
 - Each returns `(slider, HBox)` where the `HBox` includes the slider, +/-
   buttons, and text display
 
 - A linear scale widget looks like
+
   ```python
   slider, box = htutori.build_widget_control(
       name="alpha",
@@ -909,6 +997,7 @@ For API teaching notebooks, present the library's mental model as a structured m
   ```
 
 - Use a logarithmic Scale for parameters spanning orders of magnitude
+
   ```python
   # Create N widget with logarithmic slider and +/- buttons.
   # Uses exponents 2-10 for base 2: gives values 4, 8, 16, 32, 64, 128, 256, 512, 1024
@@ -924,8 +1013,10 @@ For API teaching notebooks, present the library's mental model as a structured m
   ```
 
 - Use short, unadorned variable names in widgets:
+
   - Use: `mu`, `N`, `epsilon`, `seed`, `alpha`, `beta`
   - Avoid: `mean_value`, `num_samples`, `noise_std_dev`, `shape_param`
+
 - Place `seed` parameter last in widget controls
 
 ## Visualization Cell Triplet Details
@@ -935,6 +1026,7 @@ Each visualization follows a three-cell structure:
 ### Markdown Cell (Before the Visualization)
 
 - Title and Goal format:
+
   ```markdown
   ## Cell <part>.<id>: <Short Description>
 
@@ -945,6 +1037,7 @@ Each visualization follows a three-cell structure:
 
 - Each plot's description is placed underneath the plot title, not in a separate
   "Plots" section. Describe them as italicized phrases with a colon:
+
   ```markdown
   _Population bin_: Shows the full unknown population as colored marbles
   _Sample bin_: Shows a random sample drawn from the population
@@ -964,6 +1057,7 @@ Each visualization follows a three-cell structure:
 - The "Comments" panel (subplot or text box) should contain **only variable
   state and observations associated to the current state**, not general "key
   idea" commentary:
+
   ```python
   comment_text = (
       f"Parameters:\n"
@@ -975,6 +1069,7 @@ Each visualization follows a three-cell structure:
       f"  std: {std_sample:.4f}"
   )
   ```
+
   Remove comments like "key insight" or "observation" from the Comments panel;
   keep only the information about the current parameter state.
 
@@ -997,12 +1092,14 @@ Each visualization follows a three-cell structure:
 ## Simple Interactive Widgets
 
 - For cells with a single visualization and a few sliders:
+
   - Create the widgets, visualization, and update logic in a single utility
     function
   - Return the widget container (not bare prints or displays)
   - Accept all widget parameters explicitly (don't rely on global state)
 
 - Example:
+
   ```python
   def gaussian_interactive(mu_range=(0, 1), sigma_range=(0.1, 1)):
       """

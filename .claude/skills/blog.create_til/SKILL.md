@@ -4,10 +4,12 @@ model: haiku
 ---
 
 # Goal
+
 Write a concise, engaging, and educational "Today I Learned" (TIL) blog post
 about the topic / content from the user
 
 ## Structure
+
 1. Title
 2. What I Learned
 3. Why It Matters
@@ -28,27 +30,33 @@ about the topic / content from the user
     the topic further
 
 ## Use Front Matter and TLDR
+
 - Add front matter as in `.claude/skills/blog.rules.md` `## Front Matter (YAML)`
 - Add TL;DR as in `.claude/skills/blog.rules.md` `## TL;DR Section`
 
 ## Tone
+
 - Conversational and reflective
 - Technical but accessible
 - Curious and educational
 
 ## Length
+
 - Keep the post between 500–1000 words and focus on clarity, practical value,
   and genuine learning rather than exhaustive coverage
 
 ## Formatting Rules
+
 - Make sure to write using bullet points
 
 - Follow the rules in:
+
   - `.claude/skills/blog.rules.md`
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 
 ## Beautify
+
 - Run a command to format the code for proper visualization
   ```
   > prettier --tab-width 4 --prose-wrap always --print-width 80 -w <FILE>
