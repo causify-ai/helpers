@@ -206,7 +206,9 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         dockerized_use_sudo = False
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            # Mock hdbg to prevent assertions in pandoc wrapper functions.
+            # Mock hdbg: prevents dassert_path_exists() from failing when pandoc
+            # output files don't exist (since we're not actually running pandoc).
+            # These are unit tests that verify command construction, not execution.
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -288,6 +290,8 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
             extra_opts = []
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
+            # Mock hdbg: prevents dassert_path_exists() from failing when output
+            # files don't exist (since we're not actually running pandoc).
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -386,6 +390,8 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         hio.to_file(template_file, "LaTeX template")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
+            # Mock hdbg: prevents dassert_file_exists() from failing when
+            # latex_abbrevs.sty or template files don't exist at expected paths.
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -436,6 +442,8 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         hio.to_file(template_file, "LaTeX template")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
+            # Mock hdbg: prevents dassert_* from failing when files/paths don't
+            # exist (pandoc output, pdflatex intermediate files, etc.).
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -506,6 +514,8 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         dockerized_use_sudo = False
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
+            # Mock hdbg: prevents dassert_path_exists() from failing when HTML
+            # output file doesn't exist (since we're not actually running pandoc).
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -722,6 +732,8 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
         dockerized_use_sudo = False
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
+            # Mock hdbg: prevents dassert_path_exists() from failing when slide
+            # output files (PDF/TeX) don't exist (not actually running pandoc).
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -792,12 +804,18 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         hio.to_file(template_file, "Typst template")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
+            # Mock hdbg: prevents dassert_* from failing when output files don't
+            # exist (Typst/PDF generation not actually run).
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
+                # Mock hgit: bypasses git repo detection (used to determine if AST
+                # transform should be applied based on project structure).
                 with mock.patch(
                     "dev_scripts_helpers.documentation.lib_notes_to_pdf.hgit"
                 ):
+                    # Mock dshdlity: skips Typst infrastructure/pipeline operations
+                    # that require external tools and project-specific configuration.
                     with mock.patch(
                         "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
                     ):
@@ -852,12 +870,17 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         hio.to_file(typ_file, image_content)
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
+            # Mock hdbg: prevents dassert_* from failing when output files/paths
+            # don't exist (Typst/PDF generation not actually run).
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
+                # Mock hgit: bypasses git repo detection for AST transform decision.
                 with mock.patch(
                     "dev_scripts_helpers.documentation.lib_notes_to_pdf.hgit"
                 ):
+                    # Mock dshdlity: skips Typst infrastructure operations requiring
+                    # external tools and project-specific configuration.
                     with mock.patch(
                         "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
                     ):
