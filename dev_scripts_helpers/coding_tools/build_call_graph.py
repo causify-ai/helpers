@@ -32,7 +32,7 @@ import ast
 import importlib.metadata
 import logging
 import os
-from typing import Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 import pydot
 
@@ -140,8 +140,7 @@ def _enhance_dot_with_github_urls(
     # Helper function to recursively update all nodes in a graph and subgraphs.
     nodes_updated = 0
 
-    # TODO(ai_gp): Add type hints.
-    def update_nodes_in_graph(g):
+    def update_nodes_in_graph(g: Any) -> None:
         nonlocal nodes_updated
         # Iterate through all nodes in this graph.
         for node in g.get_node_list():

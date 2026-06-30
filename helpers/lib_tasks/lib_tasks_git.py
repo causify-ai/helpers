@@ -904,7 +904,8 @@ def _git_diff_with_branch(
     diff_type: str,
     file_types: str,
     skip_file_types: str,
-    file_name: str,
+    files_filter: str,
+    from_file_filter: str,
     #
     only_print_files: bool,
     dry_run: bool,
@@ -917,7 +918,7 @@ def _git_diff_with_branch(
     _LOG.debug(
         hprint.to_str(
             "hash_ tag dir_name diff_type subdir file_types skip_file_types"
-            " file_name only_print_files dry_run"
+            " files_filter from_file_filter only_print_files dry_run"
         )
     )
     # Diff only works on non-master branches to avoid comparing with itself.
@@ -939,23 +940,44 @@ def _git_diff_with_branch(
     )
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
-    # Filter to a single specific file if requested.
-    if file_name:
-        _LOG.debug("Filter by file_name")
+    # Filter by specific files if requested.
+    if files_filter:
+        _LOG.debug("Filter by files_filter")
         _LOG.info("Before filtering files=%s", len(files))
+        filter_files = files_filter.split()
         files_tmp = []
         for f in files:
-            if f == file_name:
+            if f in filter_files:
                 files_tmp.append(f)
-        hdbg.dassert_eq(
-            1,
+        hdbg.dassert_lt(
+            0,
             len(files_tmp),
-            "Can't find file_name='%s' in\n%s",
-            file_name,
+            "No files matching files_filter='%s' in\n%s",
+            files_filter,
             "\n".join(files),
         )
         files = files_tmp
-        _LOG.info("After filtering by file_name: files=%s", len(files))
+        _LOG.info("After filtering by files_filter: files=%s", len(files))
+        _LOG.debug("%s", "\n".join(files))
+    # Filter by file list if requested.
+    if from_file_filter:
+        _LOG.debug("Filter by from_file_filter")
+        _LOG.info("Before filtering files=%s", len(files))
+        with open(from_file_filter) as f:
+            filter_files = [line.strip() for line in f if line.strip()]
+        files_tmp = []
+        for f in files:
+            if f in filter_files:
+                files_tmp.append(f)
+        hdbg.dassert_lt(
+            0,
+            len(files_tmp),
+            "No files matching from_file_filter='%s' in\n%s",
+            from_file_filter,
+            "\n".join(files),
+        )
+        files = files_tmp
+        _LOG.info("After filtering by from_file_filter: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Keep only files with specified extensions (useful for focusing on code vs docs).
     if file_types:
@@ -1074,48 +1096,22 @@ def _git_diff_with_branch_wrapper(
     diff_type: str,
     file_types: str,
     skip_file_types: str,
-    python: bool,
-    file_name: str,
+    files_filter: str,
+    from_file_filter: str,
     #
     only_print_files: bool,
     dry_run: bool,
 ) -> None:
     """
-    Wrapper for _git_diff_with_branch that handles Python-specific filtering
-    and submodules.
+    Wrapper for `_git_diff_with_branch()` that handles submodules.
 
-    Applies Python-specific extension filter if requested, then delegates to
-    _git_diff_with_branch. If include_submodules is True, also runs the diff
-    for the amp submodule if present.
+    Delegates to `_git_diff_with_branch()`. If include_submodules is True, also
+    runs the diff for the amp submodule if present.
 
     Parameters are the same as _git_diff_with_branch with the addition of:
     :param include_submodules: if True, also diff the amp submodule
-    :param python: if True, only diff Python files (overrides extension filters)
     """
     hdbg.dassert_eq(dir_name, ".")
-    # If Python mode is enabled, override all extension filters to only diff Python files.
-    if python:
-        hdbg.dassert_eq(
-            diff_type,
-            "",
-            "Cannot specify diff_type with python mode",
-        )
-        hdbg.dassert_eq(
-            file_types,
-            "",
-            "Cannot specify file_types with python mode",
-        )
-        hdbg.dassert_eq(
-            skip_file_types,
-            "",
-            "Cannot specify skip_file_types with python mode",
-        )
-        hdbg.dassert_eq(
-            file_name,
-            "",
-            "Cannot specify file_name with python mode",
-        )
-        file_types = "py"
     # Diff files in the main repository.
     _git_diff_with_branch(
         ctx,
@@ -1126,7 +1122,8 @@ def _git_diff_with_branch_wrapper(
         diff_type,
         file_types,
         skip_file_types,
-        file_name,
+        files_filter,
+        from_file_filter,
         only_print_files,
         dry_run,
     )
@@ -1143,32 +1140,22 @@ def _git_diff_with_branch_wrapper(
                     diff_type,
                     file_types,
                     skip_file_types,
-                    file_name,
+                    files_filter,
+                    from_file_filter,
                     only_print_files,
                     dry_run,
                 )
 
 
-# TODO(ai_gp):
-# 1) This function should work by selecting a point in time with `target`
-# 2) last_commit should trigger using target as the commit before head
-# 3) After the files are selected Use `files` and `from_file` instead of
-#    file_name, to filter whatever list of files came back
-# 4) Remove all_files since not specifying files and from_file achieves that
-#    behavior
-# 5) Remove the option python since that can be achieved with file_types="py"
 @task
 def git_branch_diff(  # type: ignore
     ctx,
     target="base",
     hash_value="",
-    # File selection options.
+    # File filtering options.
     files="",
     from_file="",
-    modified=False,
-    branch=False,
     last_commit=False,
-    all_files=False,
     # Where to diff.
     subdir="",
     include_submodules=False,
@@ -1176,14 +1163,12 @@ def git_branch_diff(  # type: ignore
     diff_type="",
     file_types="",
     skip_file_types="",
-    python=False,
-    file_name="",
     # What actions.
     only_print_files=False,
     dry_run=False,
 ):
     """
-    Diff files of the current branch with master at the branching point.
+    Diff files of the current branch against a specified point in time.
 
     Point in time selection:
     :param target: What to diff against (default: 'base')
@@ -1192,14 +1177,12 @@ def git_branch_diff(  # type: ignore
         - `head`: diff modified files
         - `hash`: diff with respect to hash specified in `hash_value`
     :param hash_value: the hash to use with target="hash"
+    :param last_commit: if True, override target to 'last_commit' for diffing
+        against the previous commit
 
-    File selection options (optional filters):
+    File filtering options (optional):
     :param files: Specific files to diff (space-separated string)
     :param from_file: Path to file containing file list (one per line)
-    :param modified: Filter to files modified in client
-    :param branch: Filter to files modified in branch
-    :param last_commit: Filter to files from last commit
-    :param all_files: Filter to all repo files
 
     Filtering and location options:
     :param subdir: subdir to consider for diffing, instead of `.`
@@ -1209,19 +1192,21 @@ def git_branch_diff(  # type: ignore
         'csv,py'. An empty string means keep all the extensions
     :param skip_file_types: a comma-separated list of extensions to skip, e.g.,
         'txt'. An empty string means do not skip any extension
-    :param python: if True, only diff Python files (overrides extension filters)
-    :param file_name: specific file to diff
 
     Output options:
     :param only_print_files: print files to diff and exit
     :param dry_run: execute diffing script or not
     """
-    # File selection parameters are reserved for future use (filtering git diff results).
-    # Currently, git_branch_diff uses the target parameter to determine what to diff against.
-    _ = (files, from_file, modified, branch, last_commit, all_files)
     # Determine the comparison target based on user preference.
     dir_name = "."
-    hdbg.dassert_in(target, ("base", "master", "head", "hash"), "Invalid target")
+    # Let last_commit trigger implicit target selection.
+    if last_commit:
+        target = "last_commit"
+    hdbg.dassert_in(
+        target,
+        ("base", "master", "head", "hash", "last_commit"),
+        "Invalid target",
+    )
     # Resolve target to a specific git hash for consistent diffing.
     if target == "base":
         # Compare against the point where this branch diverged from master.
@@ -1250,6 +1235,15 @@ def git_branch_diff(  # type: ignore
         )
         hash_value = ""
         tag = "head"
+    elif target == "last_commit":
+        # Compare against the previous commit.
+        hdbg.dassert_eq(
+            hash_value,
+            "",
+            "Cannot specify hash_value when target is 'last_commit'",
+        )
+        hash_value = "HEAD^"
+        tag = "last_commit"
     elif target == "hash":
         # Compare against a user-specified commit hash.
         hdbg.dassert_ne(
@@ -1272,8 +1266,8 @@ def git_branch_diff(  # type: ignore
         diff_type,
         file_types,
         skip_file_types,
-        python,
-        file_name,
+        files,
+        from_file,
         #
         only_print_files,
         dry_run,

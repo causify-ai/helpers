@@ -51,18 +51,12 @@ def _run_render_images(input_file: str) -> str:
     # Create output filename.
     output_file = "tmp.open_md.render_images.md"
     # Run render_images.py.
-    # TODO(ai_gp): Use f-strings.
-    cmd = [
-        render_images_script,
-        "--input",
-        input_file,
-        "--output",
-        output_file,
-        "--action",
-        "render",
-    ]
-    _LOG.info("Running render_images: %s", " ".join(cmd))
-    hsystem.system(" ".join(cmd))
+    cmd = (
+        f"{render_images_script} --input {input_file} "
+        f"--output {output_file} --action render"
+    )
+    _LOG.info("Running render_images: %s", cmd)
+    hsystem.system(cmd)
     hdbg.dassert_file_exists(output_file)
     return output_file
 

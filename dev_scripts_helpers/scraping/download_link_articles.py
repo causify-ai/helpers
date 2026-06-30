@@ -486,9 +486,7 @@ def _download_hn_urls(
             # Write comments to disk.
             _LOG.info("Writing HN comments to: %s", output_file)
             formatted_comments = _format_hn_url_as_text(hn_comments)
-            # TODO(ai_gp): Use hio.to_file
-            with open(output_file, "w") as f:
-                f.write(formatted_comments)
+            hio.to_file(output_file, formatted_comments)
             _LOG.info("Successfully saved HN comments for: %s", title)
 
 
@@ -537,9 +535,7 @@ def _download_article_urls(
                 continue
             # Write article text to disk.
             _LOG.info("Writing article content to: %s", output_file)
-            # TODO(ai_gp): Use hio.to_file
-            with open(output_file, "w") as f:
-                f.write(article_content)
+            hio.to_file(output_file, article_content)
             _LOG.info("Successfully saved article for: %s", title)
 
 

@@ -271,14 +271,16 @@ def _run_pandoc_to_ast(
     """
     Convert markdown to pandoc AST in JSON.
 
-    // TODO(ai_gp): Add an example of the commands run.
+    Example commands run:
+    > pandoc input.md -t json --fail-if-warnings -o input.md.ast.json
+    > docker run ... pandoc input.md -t json ... -o input.md.ast.json
 
     :param file_in: Input markdown file
     :param use_host_tools: Use host pandoc instead of dockerized
     :param fail_on_warnings: Fail on pandoc warnings
     :return: Path to generated JSON AST file
     """
-    # TODO(ai_gp): Add comments to explain the blocks of code.
+    # Build pandoc command for markdown -> JSON AST conversion.
     ast_file = f"{file_in}.ast.json"
     cmd = [f"pandoc {file_in}"]
     cmd.append("-t json")
@@ -287,6 +289,7 @@ def _run_pandoc_to_ast(
     cmd.append(f"-o {ast_file}")
     cmd = " ".join(cmd)
     _LOG.debug("%s", "pandoc to AST: " + hprint.to_str("cmd"))
+    # Wrap pandoc command in docker if needed, otherwise run natively.
     if not use_host_tools:
         container_type = "pandoc_only"
         cmd = dshdlipa.run_dockerized_pandoc(
@@ -315,7 +318,9 @@ def _run_pandoc_from_ast(
     """
     Convert pandoc AST in JSON to target format.
 
-    // TODO(ai_gp): Add an example of the commands run.
+    Example commands run:
+    > pandoc ast.json -f json -t latex --fail-if-warnings -o output.tex
+    > docker run ... pandoc ast.json -f json -t html ... -o output.html
 
     :param ast_file: Input JSON AST file
     :param output_format: Target format (latex, html, typst, beamer, etc.)
@@ -323,7 +328,7 @@ def _run_pandoc_from_ast(
     :param extra_opts: Additional pandoc options to apply
     :param fail_on_warnings: Fail on pandoc warnings
     """
-    # TODO(ai_gp): Add comments to explain the blocks of code.
+    # Build pandoc command for JSON AST -> target format conversion.
     cmd = [f"pandoc {ast_file}"]
     cmd.append("-f json")
     cmd.append(f"-t {output_format}")
@@ -334,6 +339,7 @@ def _run_pandoc_from_ast(
     cmd.append(f"-o {output_file}")
     cmd = " ".join(cmd)
     _LOG.debug("%s", "pandoc from AST: " + hprint.to_str("cmd"))
+    # Wrap pandoc command in docker if needed, otherwise run natively.
     if not use_host_tools:
         container_type = "pandoc_only"
         cmd = dshdlipa.run_dockerized_pandoc(
@@ -793,7 +799,7 @@ def run_pandoc_to_typst_slides(
     template = f"{curr_path}/pandoc_touying.typ"
     hdbg.dassert_path_exists(template)
     rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
-    # TODO(ai_gp): Consider using 1 stage pipeline with
+    # TODO(gp): Consider using 1 stage pipeline with
     # --filter=convert_pandoc_divved_fence.py
     # Step 1: markdown -> JSON AST.
     _run_pandoc_to_ast(
