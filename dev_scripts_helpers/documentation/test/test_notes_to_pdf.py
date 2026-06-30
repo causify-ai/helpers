@@ -126,18 +126,15 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         output_txt = ""
         if os.path.exists(out_file):
             output_txt = hio.from_file(out_file)
+        #
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        _LOG.debug(
-            "return=(script_txt[%d], output_txt[%d])",
-            len(script_txt),
-            len(output_txt),
-        )
         # Perform assertion if expected output provided.
         if expected:
             actual = f"script_txt:\n{script_txt}\n"
             actual += f"output_txt:\n{output_txt}\n"
+            _LOG.debug("actual=\n%s", actual)
             self.assert_equal(actual, expected, purify_text=True)
         return script_txt, output_txt
 
@@ -150,6 +147,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         type_ = "pdf"
         cmd_opts = "--preview_actions"
         # Prepare outputs.
+        # TODO(ai_gp): Pass these values to self.run_notes_to_pdf and make
+        # expected mandatory.
         expected_script_txt = ""
         expected_output_txt = ""
         expected = ""
@@ -393,8 +392,6 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, _ = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        # Expected: script contains filter_by_lines option
-        # Invariant: filter option is passed through to script
         self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test2(self) -> None:
@@ -411,7 +408,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, out_file = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
         self.assertTrue(os.path.exists(out_file))
 
     def test3(self) -> None:
@@ -428,7 +425,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, out_file = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
         self.assertTrue(os.path.exists(out_file))
 
     def test4(self) -> None:
@@ -445,7 +442,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, out_file = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
         self.assertTrue(os.path.exists(out_file))
 
     def test5(self) -> None:
@@ -462,7 +459,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, _ = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
 
 # #############################################################################
@@ -558,7 +555,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Run test.
         script_txt, _ = self.helper(type_, cmd_opts)
         # Check outputs.
-        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -644,6 +641,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
+        _LOG.debug("script_txt=%s", script_txt)
         return script_txt
 
     def test1(self) -> None:
@@ -667,11 +665,10 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         toc_type = "pandoc_native"
         # Prepare outputs.
         expected_keyword = "toc_type pandoc_native"
-        fuzzy_match = True
         # Run test.
         script_txt = self.helper(toc_type)
         # Check outputs.
-        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -681,11 +678,10 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         toc_type = "navigation"
         # Prepare outputs.
         expected_keyword = "toc_type navigation"
-        fuzzy_match = True
         # Run test.
         script_txt = self.helper(toc_type)
         # Check outputs.
-        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -695,11 +691,10 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         toc_type = "remove_headers"
         # Prepare outputs.
         expected_keyword = "toc_type remove_headers"
-        fuzzy_match = True
         # Run test.
         script_txt = self.helper(toc_type)
         # Check outputs.
-        self.assert_equal(script_txt, expected_keyword, fuzzy_match=fuzzy_match)
+        self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
 
 
 # #############################################################################
