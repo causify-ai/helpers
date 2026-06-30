@@ -9,16 +9,20 @@ including pandoc orchestration, file operations, and system calls.
 import hashlib
 import logging
 import os
-import re
 from typing import List
 from unittest import mock
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
-import dev_scripts_helpers.documentation.lib_notes_to_pdf as dsdlntp
+import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_file_hash
+# #############################################################################
 
 
 class Test_file_hash(hunitest.TestCase):
@@ -39,7 +43,7 @@ class Test_file_hash(hunitest.TestCase):
         # Prepare outputs.
         expected_hash = hashlib.md5(content.encode()).hexdigest()
         # Run test.
-        actual = dsdlntp._file_hash(test_file)
+        actual = dshdlntpd._file_hash(test_file)
         # Check outputs.
         self.assertEqual(actual, expected_hash)
 
@@ -72,8 +76,8 @@ class Test_file_hash(hunitest.TestCase):
         hio.to_file(file1, "Content A")
         hio.to_file(file2, "Content B")
         # Run test.
-        hash1 = dsdlntp._file_hash(file1)
-        hash2 = dsdlntp._file_hash(file2)
+        hash1 = dshdlntpd._file_hash(file1)
+        hash2 = dshdlntpd._file_hash(file2)
         # Check outputs.
         self.assertNotEqual(hash1, hash2)
 
@@ -96,10 +100,15 @@ class Test_file_hash(hunitest.TestCase):
         content = "Consistent content"
         hio.to_file(test_file, content)
         # Run test.
-        hash1 = dsdlntp._file_hash(test_file)
-        hash2 = dsdlntp._file_hash(test_file)
+        hash1 = dshdlntpd._file_hash(test_file)
+        hash2 = dshdlntpd._file_hash(test_file)
         # Check outputs.
         self.assertEqual(hash1, hash2)
+
+
+# #############################################################################
+# Test_preprocess_notes
+# #############################################################################
 
 
 class Test_preprocess_notes(hunitest.TestCase):
@@ -119,7 +128,7 @@ class Test_preprocess_notes(hunitest.TestCase):
         output_format = "latex"
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            result = dsdlntp.preprocess_notes(
+            result = dshdlntpd.preprocess_notes(
                 file_name, prefix, type_, toc_type, output_format
             )
         # Check outputs.
@@ -134,7 +143,14 @@ class Test_preprocess_notes(hunitest.TestCase):
         --type pdf
         --toc_type pandoc_native
         """
-        self.assert_equal(invocations_str, expected, fuzzy_match=True, dedent=True)
+        self.assert_equal(
+            invocations_str, expected, fuzzy_match=True, dedent=True
+        )
+
+
+# #############################################################################
+# Test_render_images
+# #############################################################################
 
 
 class Test_render_images(hunitest.TestCase):
@@ -153,7 +169,7 @@ class Test_render_images(hunitest.TestCase):
         prefix = os.path.join(scratch_dir, "tmp.notes")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            result = dsdlntp.render_images(file_name, prefix)
+            result = dshdlntpd.render_images(file_name, prefix)
         # Check outputs.
         # Expected: result contains render_image reference in output filename
         # Invariant: rendered images filename includes render_image marker
@@ -163,6 +179,11 @@ class Test_render_images(hunitest.TestCase):
         # Invariant: image rendering script execution with correct command
         expected = "render_images.py"
         self.assertIn(expected, invocations_str)
+
+
+# #############################################################################
+# Test_run_pandoc_to_ast
+# #############################################################################
 
 
 class Test_run_pandoc_to_ast(hunitest.TestCase):
@@ -189,8 +210,10 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         dockerized_use_sudo = False
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"):
-                result = dsdlntp._run_pandoc_to_ast(
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                result = dshdlntpd._run_pandoc_to_ast(
                     file_in,
                     use_host_tools,
                     dockerized_force_rebuild,
@@ -234,6 +257,11 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         self.helper(file_in, fail_on_warnings, expect_fail_flag)
 
 
+# #############################################################################
+# Test_run_pandoc_from_ast
+# #############################################################################
+
+
 class Test_run_pandoc_from_ast(hunitest.TestCase):
     """
     Test `_run_pandoc_from_ast()` function.
@@ -262,8 +290,10 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
             extra_opts = []
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"):
-                dsdlntp._run_pandoc_from_ast(
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                dshdlntpd._run_pandoc_from_ast(
                     ast_file,
                     output_format,
                     output_file,
@@ -280,7 +310,9 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         if extra_opts:
             expected_parts.extend(extra_opts)
         expected = "\n".join(expected_parts)
-        self.assert_equal(invocations_str, expected, fuzzy_match=True, dedent=True)
+        self.assert_equal(
+            invocations_str, expected, fuzzy_match=True, dedent=True
+        )
 
     def test1(self) -> None:
         """
@@ -312,6 +344,11 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         extra_opts = ["--number-sections", "--toc"]
         # Run test.
         self.helper(output_format, expected_format_flag, extra_opts)
+
+
+# #############################################################################
+# Test_run_pandoc_to_pdf
+# #############################################################################
 
 
 class Test_run_pandoc_to_pdf(hunitest.TestCase):
@@ -348,8 +385,10 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         hio.to_file(template_file, "LaTeX template")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"):
-                result = dsdlntp.run_pandoc_to_pdf(
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                result = dshdlntpd.run_pandoc_to_pdf(
                     curr_path,
                     file_name,
                     prefix,
@@ -370,7 +409,9 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         if expect_toc:
             expected_parts.extend(["--toc", "--toc-depth 2"])
         expected = "\n".join(expected_parts)
-        self.assert_equal(invocations_str, expected, fuzzy_match=True, dedent=True)
+        self.assert_equal(
+            invocations_str, expected, fuzzy_match=True, dedent=True
+        )
 
     def test1(self) -> None:
         """
@@ -403,8 +444,10 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         hio.to_file(template_file, "LaTeX template")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"):
-                result = dsdlntp.run_pandoc_to_pdf(
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                result = dshdlntpd.run_pandoc_to_pdf(
                     curr_path,
                     file_name,
                     prefix,
@@ -435,6 +478,11 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         self.helper(toc_type, tex_only, expect_pdflatex, expect_toc)
 
 
+# #############################################################################
+# Test_run_pandoc_to_html
+# #############################################################################
+
+
 class Test_run_pandoc_to_html(hunitest.TestCase):
     """
     Test `run_pandoc_to_html()` function for HTML generation.
@@ -462,8 +510,10 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         dockerized_use_sudo = False
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"):
-                result = dsdlntp.run_pandoc_to_html(
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                result = dshdlntpd.run_pandoc_to_html(
                     file_in,
                     prefix,
                     toc_type,
@@ -484,7 +534,9 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         if expect_metadata:
             expected_parts.append("--metadata pagetitle=")
         expected = "\n".join(expected_parts)
-        self.assert_equal(invocations_str, expected, fuzzy_match=True, dedent=True)
+        self.assert_equal(
+            invocations_str, expected, fuzzy_match=True, dedent=True
+        )
 
     def test1(self) -> None:
         """
@@ -523,6 +575,11 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         self.helper(file_in, toc_type, expect_toc, expect_metadata)
 
 
+# #############################################################################
+# Test_build_pandoc_cmd
+# #############################################################################
+
+
 class Test_build_pandoc_cmd(hunitest.TestCase):
     """
     Test `_build_pandoc_cmd()` function for slide command building.
@@ -548,7 +605,7 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         dockerized_force_rebuild = False
         dockerized_use_sudo = False
         # Run test.
-        cmd, output_file = dsdlntp._build_pandoc_cmd(
+        cmd, output_file = dshdlntpd._build_pandoc_cmd(
             file_name,
             toc_type,
             use_host_tools,
@@ -617,6 +674,11 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         self.helper(file_name, toc_type, use_tex)
 
 
+# #############################################################################
+# Test_run_pandoc_to_slides
+# #############################################################################
+
+
 class Test_run_pandoc_to_slides(hunitest.TestCase):
     """
     Test `run_pandoc_to_slides()` function for slide generation.
@@ -643,8 +705,10 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
         dockerized_use_sudo = False
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"):
-                result = dsdlntp.run_pandoc_to_slides(
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                result = dshdlntpd.run_pandoc_to_slides(
                     file_name,
                     toc_type,
                     use_host_tools,
@@ -680,6 +744,11 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
         self.helper(toc_type, tex_only, expected_ext)
 
 
+# #############################################################################
+# Test_run_pandoc_to_typst_slides
+# #############################################################################
+
+
 class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
     """
     Test `run_pandoc_to_typst_slides()` function for Typst slide generation.
@@ -708,10 +777,16 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         hio.to_file(template_file, "Typst template")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"):
-                with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hgit"):
-                    with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"):
-                        result = dsdlntp.run_pandoc_to_typst_slides(
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                with mock.patch(
+                    "dev_scripts_helpers.documentation.lib_notes_to_pdf.hgit"
+                ):
+                    with mock.patch(
+                        "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
+                    ):
+                        result = dshdlntpd.run_pandoc_to_typst_slides(
                             curr_path,
                             file_name,
                             use_host_tools,
@@ -764,10 +839,16 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         hio.to_file(typ_file, image_content)
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"):
-                with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.hgit"):
-                    with mock.patch("dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"):
-                        result = dsdlntp.run_pandoc_to_typst_slides(
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                with mock.patch(
+                    "dev_scripts_helpers.documentation.lib_notes_to_pdf.hgit"
+                ):
+                    with mock.patch(
+                        "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
+                    ):
+                        result = dshdlntpd.run_pandoc_to_typst_slides(
                             curr_path,
                             file_name,
                             use_host_tools,
@@ -781,6 +862,11 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         # Invariant: image paths start with / for root-absolute reference
         expected = 'image("/'
         self.assertIn(expected, typ_content)
+
+
+# #############################################################################
+# Test_copy_to_output
+# #############################################################################
 
 
 class Test_copy_to_output(hunitest.TestCase):
@@ -799,7 +885,7 @@ class Test_copy_to_output(hunitest.TestCase):
         output = os.path.join(scratch_dir, "output.txt")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            result = dsdlntp.copy_to_output(file_in, output)
+            result = dshdlntpd.copy_to_output(file_in, output)
         # Check outputs.
         self.assertEqual(result, output)
         invocations_str = hunteuti.to_invocations_str(invocations)
@@ -817,7 +903,12 @@ class Test_copy_to_output(hunitest.TestCase):
         output = None
         # Run test and check outputs.
         with self.assertRaises(AssertionError):
-            dsdlntp.copy_to_output(file_in, output)
+            dshdlntpd.copy_to_output(file_in, output)
+
+
+# #############################################################################
+# Test_copy_to_gdrive
+# #############################################################################
 
 
 class Test_copy_to_gdrive(hunitest.TestCase):
@@ -845,7 +936,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         gdrive_dir = scratch_dir
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            dsdlntp.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
+            dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
         invocations_str = hunteuti.to_invocations_str(invocations)
         # Expected: cp command with renamed output filename
@@ -886,7 +977,12 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         gdrive_dir = "/nonexistent/path/to/gdrive"
         # Run test and check outputs.
         with self.assertRaises(AssertionError):
-            dsdlntp.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
+            dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
+
+
+# #############################################################################
+# Test_compress_pdf
+# #############################################################################
 
 
 class Test_compress_pdf(hunitest.TestCase):
@@ -904,7 +1000,7 @@ class Test_compress_pdf(hunitest.TestCase):
         hio.to_file(pdf_file, "PDF content")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            result = dsdlntp.compress_pdf(pdf_file)
+            result = dshdlntpd.compress_pdf(pdf_file)
         # Check outputs.
         self.assertEqual(result, pdf_file)
         invocations_str = hunteuti.to_invocations_str(invocations)
@@ -914,7 +1010,9 @@ class Test_compress_pdf(hunitest.TestCase):
         gs
         pdfwrite
         """
-        self.assert_equal(invocations_str, expected, fuzzy_match=True, dedent=True)
+        self.assert_equal(
+            invocations_str, expected, fuzzy_match=True, dedent=True
+        )
 
     def test2(self) -> None:
         """
@@ -926,7 +1024,7 @@ class Test_compress_pdf(hunitest.TestCase):
         hio.to_file(not_pdf, "text content")
         # Run test and check outputs.
         with self.assertRaises(AssertionError):
-            dsdlntp.compress_pdf(not_pdf)
+            dshdlntpd.compress_pdf(not_pdf)
 
     def test3(self) -> None:
         """
@@ -936,4 +1034,4 @@ class Test_compress_pdf(hunitest.TestCase):
         pdf_file = "/nonexistent/document.pdf"
         # Run test and check outputs.
         with self.assertRaises(AssertionError):
-            dsdlntp.compress_pdf(pdf_file)
+            dshdlntpd.compress_pdf(pdf_file)
