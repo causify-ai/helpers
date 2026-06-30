@@ -390,7 +390,9 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, _ = self.helper_filter_test(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assertIn("filter_by_lines", script_txt)
+        # Expected: script contains filter_by_lines option
+        # Invariant: filter option is passed through to script
+        self.assert_equal(script_txt, "filter_by_lines", fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -403,7 +405,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, out_file = self.helper_filter_test(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assertIn("filter_by_lines", script_txt)
+        self.assert_equal(script_txt, "filter_by_lines", fuzzy_match=True)
         self.assertTrue(os.path.exists(out_file))
 
     def test3(self) -> None:
@@ -417,7 +419,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, out_file = self.helper_filter_test(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assertIn("filter_by_lines", script_txt)
+        self.assert_equal(script_txt, "filter_by_lines", fuzzy_match=True)
         self.assertTrue(os.path.exists(out_file))
 
     def test4(self) -> None:
@@ -431,7 +433,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, out_file = self.helper_filter_test(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assertIn("filter_by_header", script_txt)
+        self.assert_equal(script_txt, "filter_by_header", fuzzy_match=True)
         self.assertTrue(os.path.exists(out_file))
 
     def test5(self) -> None:
@@ -445,7 +447,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         # Run test.
         script_txt, _ = self.helper_filter_test(in_file, type_, cmd_opts)
         # Check outputs.
-        self.assertIn("filter_by_slides", script_txt)
+        self.assert_equal(script_txt, "filter_by_slides", fuzzy_match=True)
 
 
 # #############################################################################
@@ -524,7 +526,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Run test.
         script_txt, _ = self.helper_output_type_test(type_, cmd_opts)
         # Check outputs.
-        self.assertIn("run_pandoc", script_txt)
+        self.assert_equal(script_txt, "run_pandoc", fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -536,7 +538,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Run test.
         script_txt, _ = self.helper_output_type_test(type_, cmd_opts)
         # Check outputs.
-        self.assertIn("tex_only", script_txt)
+        self.assert_equal(script_txt, "tex_only", fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -548,7 +550,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Run test.
         script_txt, _ = self.helper_output_type_test(type_, cmd_opts)
         # Check outputs.
-        self.assertIn("run_pandoc", script_txt)
+        self.assert_equal(script_txt, "run_pandoc", fuzzy_match=True)
 
 
 # #############################################################################
@@ -631,7 +633,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         # Run test.
         script_txt = self.helper_toc_test(toc_type)
         # Check outputs.
-        self.assertIn("toc_type none", script_txt)
+        self.assert_equal(script_txt, "toc_type none", fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -642,7 +644,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         # Run test.
         script_txt = self.helper_toc_test(toc_type)
         # Check outputs.
-        self.assertIn("toc_type pandoc_native", script_txt)
+        self.assert_equal(script_txt, "toc_type pandoc_native", fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -653,7 +655,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         # Run test.
         script_txt = self.helper_toc_test(toc_type)
         # Check outputs.
-        self.assertIn("toc_type navigation", script_txt)
+        self.assert_equal(script_txt, "toc_type navigation", fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -664,7 +666,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         # Run test.
         script_txt = self.helper_toc_test(toc_type)
         # Check outputs.
-        self.assertIn("toc_type remove_headers", script_txt)
+        self.assert_equal(script_txt, "toc_type remove_headers", fuzzy_match=True)
 
 
 # #############################################################################
@@ -731,8 +733,16 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         # Run test.
         script_txt = self.helper_action_test(cmd_opts)
         # Check outputs.
-        self.assertIn("cleanup_before", script_txt)
-        self.assertIn("skipping this action", script_txt)
+        # Expected: script contains action name and skip marker
+        # Invariant: skipped action is marked in script
+        self.assert_equal(
+            script_txt,
+            """
+            # cleanup_before
+            ## skipping this action
+            """,
+            fuzzy_match=True,
+        )
 
     def test2(self) -> None:
         """
@@ -743,8 +753,16 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         # Run test.
         script_txt = self.helper_action_test(cmd_opts)
         # Check outputs.
-        self.assertIn("cleanup_before", script_txt)
-        self.assertIn("cleanup_after", script_txt)
+        # Expected: script contains both action names marked as skipped
+        # Invariant: multiple skipped actions are marked in script
+        self.assert_equal(
+            script_txt,
+            """
+            # cleanup_before
+            # cleanup_after
+            """,
+            fuzzy_match=True,
+        )
 
     def test3(self) -> None:
         """
@@ -797,11 +815,13 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def test1(self) -> None:
+    def helper_run_script_test(self, skip_actions: list) -> str:
         """
-        Test script file is generated with correct shebang.
+        Helper to run script generation test.
+
+        :param skip_actions: List of actions to skip
+        :return: Content of the generated script
         """
-        # Prepare inputs.
         in_file = self.create_simple_input()
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, "output.pdf")
@@ -814,45 +834,44 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         cmd.append("--type pdf")
         cmd.append(f"--output {out_file}")
         cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
+        for action in skip_actions:
+            cmd.append(f"--skip_action {action}")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
-        # Run test.
         hsystem.system(cmd)
-        # Check outputs.
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
+        return script_txt
+
+    def test1(self) -> None:
+        """
+        Test script file is generated with correct shebang.
+        """
+        # Run test.
+        script_txt = self.helper_run_script_test(["open"])
+        # Check outputs.
+        # Expected: script contains bash shebang at start
+        # Invariant: generated script has correct bash invocation
         self.assertIn("#/bin/bash -xe", script_txt)
 
     def test2(self) -> None:
         """
         Test script contains all executed actions in sequence.
         """
-        # Prepare inputs.
-        in_file = self.create_simple_input()
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        script_file = os.path.join(out_dir, "generated_script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action cleanup_before")
-        cmd.append("--skip_action cleanup_after")
-        cmd.append("--skip_action open")
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
         # Run test.
-        hsystem.system(cmd)
+        script_txt = self.helper_run_script_test(["cleanup_before", "cleanup_after", "open"])
         # Check outputs.
-        script_txt = hio.from_file(script_file)
-        self.assertIn("# preprocess_notes", script_txt)
-        self.assertIn("# render_images", script_txt)
-        self.assertIn("# run_pandoc", script_txt)
+        # Expected: script contains action section comments for key processing steps
+        # Invariant: all major actions appear in generated script
+        self.assert_equal(
+            script_txt,
+            """
+            # preprocess_notes
+            # render_images
+            # run_pandoc
+            """,
+            fuzzy_match=True,
+        )
 
 
 # #############################################################################
@@ -865,12 +884,13 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
     Test `notes_to_pdf.py` error handling and validation.
     """
 
-    def test1(self) -> None:
+    def helper_run_error_test(self, in_file: str, type_: str) -> None:
         """
-        Test missing required input file raises error.
+        Helper to run command expecting error.
+
+        :param in_file: Input markdown file
+        :param type_: Output type
         """
-        # Prepare inputs.
-        in_file = "/nonexistent/path/file.md"
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, "output.pdf")
         cmd = []
@@ -878,16 +898,22 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
         hdbg.dassert_path_exists(exec_path)
         cmd.append(exec_path)
         cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
+        cmd.append(f"--type {type_}")
         cmd.append(f"--output {out_file}")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Run test: expect error
-        try:
+        with self.assertRaises(Exception):
             hsystem.system(cmd)
-            self.fail("Expected exception for missing input file")
-        except Exception:
-            pass  # Expected to raise
+
+    def test1(self) -> None:
+        """
+        Test missing required input file raises error.
+        """
+        # Prepare inputs.
+        in_file = "/nonexistent/path/file.md"
+        # Run test.
+        self.helper_run_error_test(in_file, "pdf")
 
     def test2(self) -> None:
         """
@@ -897,23 +923,8 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
         txt = "# Test"
         in_file = os.path.join(self.get_scratch_space(), "input.md")
         hio.to_file(in_file, txt)
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.unknown")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type invalid_type")
-        cmd.append(f"--output {out_file}")
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
-        # Run test: expect error
-        try:
-            hsystem.system(cmd)
-            self.fail("Expected exception for invalid type")
-        except Exception:
-            pass  # Expected to raise
+        # Run test.
+        self.helper_run_error_test(in_file, "invalid_type")
 
 
 # #############################################################################
@@ -926,13 +937,14 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
     Test `notes_to_pdf.py` with edge cases and special inputs.
     """
 
-    def test1(self) -> None:
+    def helper_edge_case_test(self, filename: str, txt: str) -> None:
         """
-        Test empty markdown file processing.
+        Helper to run edge case test.
+
+        :param filename: Name of input markdown file
+        :param txt: Content to write to file
         """
-        # Prepare inputs.
-        txt = ""
-        in_file = os.path.join(self.get_scratch_space(), "empty.md")
+        in_file = os.path.join(self.get_scratch_space(), filename)
         hio.to_file(in_file, txt)
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, "output.pdf")
@@ -948,10 +960,17 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         cmd.append("--skip_action open")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
-        # Run test.
         hsystem.system(cmd)
-        # Check outputs.
         self.assertTrue(os.path.exists(script_file))
+
+    def test1(self) -> None:
+        """
+        Test empty markdown file processing.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Run test.
+        self.helper_edge_case_test("empty.md", txt)
 
     def test2(self) -> None:
         """
@@ -959,26 +978,8 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         """
         # Prepare inputs.
         txt = "\n\n   \n\n"
-        in_file = os.path.join(self.get_scratch_space(), "whitespace.md")
-        hio.to_file(in_file, txt)
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
         # Run test.
-        hsystem.system(cmd)
-        # Check outputs.
-        self.assertTrue(os.path.exists(script_file))
+        self.helper_edge_case_test("whitespace.md", txt)
 
     def test3(self) -> None:
         """
@@ -999,26 +1000,8 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         Final content.
         """
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        in_file = os.path.join(self.get_scratch_space(), "special.md")
-        hio.to_file(in_file, txt)
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
         # Run test.
-        hsystem.system(cmd)
-        # Check outputs.
-        self.assertTrue(os.path.exists(script_file))
+        self.helper_edge_case_test("special.md", txt)
 
     def test4(self) -> None:
         """
@@ -1051,26 +1034,8 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         Content.
         """
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        in_file = os.path.join(self.get_scratch_space(), "all_levels.md")
-        hio.to_file(in_file, txt)
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
         # Run test.
-        hsystem.system(cmd)
-        # Check outputs.
-        self.assertTrue(os.path.exists(script_file))
+        self.helper_edge_case_test("all_levels.md", txt)
 
 
 # #############################################################################
@@ -1103,59 +1068,50 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def test1(self) -> None:
+    def helper_ast_test(self, type_: str) -> str:
         """
-        Test PDF generation with AST transform enabled.
+        Helper to run AST transform test.
+
+        :param type_: Output type (pdf or html)
+        :return: Content of the generated script
         """
-        # Prepare inputs.
         in_file = self.create_simple_input()
         out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
+        out_file = os.path.join(out_dir, f"output.{type_}")
         script_file = os.path.join(out_dir, "script.sh")
         cmd = []
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
         cmd.append(exec_path)
         cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
+        cmd.append(f"--type {type_}")
         cmd.append("--use_pandoc_ast_transform")
         cmd.append(f"--output {out_file}")
         cmd.append(f"--script {script_file}")
         cmd.append("--skip_action open")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
-        # Run test.
         hsystem.system(cmd)
-        # Check outputs.
         script_txt = hio.from_file(script_file)
-        self.assertIn("use_pandoc_ast_transform", script_txt)
+        return script_txt
+
+    def test1(self) -> None:
+        """
+        Test PDF generation with AST transform enabled.
+        """
+        # Run test.
+        script_txt = self.helper_ast_test("pdf")
+        # Check outputs.
+        self.assert_equal(script_txt, "use_pandoc_ast_transform", fuzzy_match=True)
 
     def test2(self) -> None:
         """
         Test HTML generation with AST transform.
         """
-        # Prepare inputs.
-        in_file = self.create_simple_input()
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.html")
-        script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type html")
-        cmd.append("--use_pandoc_ast_transform")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
         # Run test.
-        hsystem.system(cmd)
+        script_txt = self.helper_ast_test("html")
         # Check outputs.
-        script_txt = hio.from_file(script_file)
-        self.assertIn("use_pandoc_ast_transform", script_txt)
+        self.assert_equal(script_txt, "use_pandoc_ast_transform", fuzzy_match=True)
 
 
 # #############################################################################
@@ -1188,38 +1144,13 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def test1(self) -> None:
+    def helper_latex_option_test(self, cmd_opts: str) -> str:
         """
-        Test no_run_latex_again option skips LaTeX re-run.
-        """
-        # Prepare inputs.
-        in_file = self.create_simple_input()
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hDiff target options:dbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append("--no_run_latex_again")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
-        # Run test.
-        hsystem.system(cmd)
-        # Check outputs.
-        script_txt = hio.from_file(script_file)
-        self.assertIn("# latex again", script_txt)
+        Helper to run LaTeX option test.
 
-    def test2(self) -> None:
+        :param cmd_opts: Command line options to pass
+        :return: Content of the generated script
         """
-        Test no_fail_on_warnings option accepts pandoc warnings.
-        """
-        # Prepare inputs.
         in_file = self.create_simple_input()
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, "output.pdf")
@@ -1230,14 +1161,30 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         cmd.append(exec_path)
         cmd.append(f"--input {in_file}")
         cmd.append("--type pdf")
-        cmd.append("--no_fail_on_warnings")
+        cmd.append(cmd_opts)
         cmd.append(f"--output {out_file}")
         cmd.append(f"--script {script_file}")
         cmd.append("--skip_action open")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
-        # Run test.
         hsystem.system(cmd)
-        # Check outputs.
         script_txt = hio.from_file(script_file)
-        self.assertIn("no_fail_on_warnings", script_txt)
+        return script_txt
+
+    def test1(self) -> None:
+        """
+        Test no_run_latex_again option skips LaTeX re-run.
+        """
+        # Run test.
+        script_txt = self.helper_latex_option_test("--no_run_latex_again")
+        # Check outputs.
+        self.assert_equal(script_txt, "# latex again", fuzzy_match=True)
+
+    def test2(self) -> None:
+        """
+        Test no_fail_on_warnings option accepts pandoc warnings.
+        """
+        # Run test.
+        script_txt = self.helper_latex_option_test("--no_fail_on_warnings")
+        # Check outputs.
+        self.assert_equal(script_txt, "no_fail_on_warnings", fuzzy_match=True)
