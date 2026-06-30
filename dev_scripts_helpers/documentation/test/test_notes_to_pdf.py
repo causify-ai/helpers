@@ -56,7 +56,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         return result
 
     def run_notes_to_pdf(
-        self, in_file: str, type_: str, cmd_opts: str, expected: str,
+        self,
+        in_file: str,
+        type_: str,
+        cmd_opts: str,
+        expected: str,
     ) -> Tuple[str, str]:
         """
         Run the `notes_to_pdf.py` script with the specified options.
@@ -120,7 +124,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        _LOG.debug("return=(script_txt[%d], output_txt[%d])", len(script_txt), len(output_txt))
+        _LOG.debug(
+            "return=(script_txt[%d], output_txt[%d])",
+            len(script_txt),
+            len(output_txt),
+        )
         # Perform assertion if expected output provided.
         if expected:
             actual = f"script_txt:\n{script_txt}\n"
@@ -155,7 +163,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         type_ = "pdf"
         cmd_opts = ""
         # Expected output from golden file.
-        expected = hprint.dedent(r"""
+        expected = hprint.dedent(
+            r"""
             script_txt:
             #/bin/bash -xe
             # cleanup_before
@@ -181,7 +190,9 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             # cleanup_after
             ## skipping this action
             output_txt:
-        """, remove_lead_trail_empty_lines_=True)
+        """,
+            remove_lead_trail_empty_lines_=True,
+        )
         # Run the script and verify output.
         self.run_notes_to_pdf(in_file, type_, cmd_opts, expected=expected)
 
@@ -196,7 +207,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         type_ = "pdf"
         cmd_opts = "--filter_by_header Header2"
         # Expected output from golden file.
-        expected = hprint.dedent(r"""
+        expected = hprint.dedent(
+            r"""
             script_txt:
             #/bin/bash -xe
             # cleanup_before
@@ -222,7 +234,9 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             # cleanup_after
             ## skipping this action
             output_txt:
-        """, remove_lead_trail_empty_lines_=True)
+        """,
+            remove_lead_trail_empty_lines_=True,
+        )
         # Run the script and verify output.
         self.run_notes_to_pdf(in_file, type_, cmd_opts, expected=expected)
 

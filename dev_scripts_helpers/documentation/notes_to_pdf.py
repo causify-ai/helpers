@@ -34,7 +34,7 @@ import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.documentation.lib_notes_to_pdf as lntp
+import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 _LOG = logging.getLogger(__name__)
 
@@ -147,7 +147,7 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "cleanup_before"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        lntp.cleanup_before(prefix)
+        dshdlntpd.cleanup_before(prefix)
     # - Filter
     hdbg.dassert_lte(
         int(args.filter_by_header is not None)
@@ -187,21 +187,21 @@ def _run_all(args: argparse.Namespace) -> None:
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
         output_format = "typst" if args.slides_engine == "typst" else "latex"
-        file_name = lntp.preprocess_notes(
+        file_name = dshdlntpd.preprocess_notes(
             file_name, prefix, args.type, args.toc_type, output_format
         )
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_name = lntp.render_images(file_name, prefix)
+        file_name = dshdlntpd.render_images(file_name, prefix)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
     file_out = file_name
     if to_execute:
         if args.type == "pdf":
-            file_out = lntp.run_pandoc_to_pdf(
+            file_out = dshdlntpd.run_pandoc_to_pdf(
                 curr_path,
                 file_name,
                 prefix,
@@ -215,7 +215,7 @@ def _run_all(args: argparse.Namespace) -> None:
                 use_pandoc_ast_transform=args.use_pandoc_ast_transform,
             )
         elif args.type == "html":
-            file_out = lntp.run_pandoc_to_html(
+            file_out = dshdlntpd.run_pandoc_to_html(
                 file_name,
                 prefix,
                 args.toc_type,
@@ -227,7 +227,7 @@ def _run_all(args: argparse.Namespace) -> None:
             )
         elif args.type == "slides":
             if args.slides_engine == "typst":
-                file_out = lntp.run_pandoc_to_typst_slides(
+                file_out = dshdlntpd.run_pandoc_to_typst_slides(
                     curr_path,
                     file_name,
                     args.use_host_tools,
@@ -238,7 +238,7 @@ def _run_all(args: argparse.Namespace) -> None:
                     use_pandoc_ast_transform=args.use_pandoc_ast_transform,
                 )
             else:
-                file_out = lntp.run_pandoc_to_slides(
+                file_out = dshdlntpd.run_pandoc_to_slides(
                     file_name,
                     args.toc_type,
                     args.use_host_tools,
@@ -257,16 +257,16 @@ def _run_all(args: argparse.Namespace) -> None:
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
         if args.type == "pdf":
-            file_in = lntp.compress_pdf(file_in)
+            file_in = dshdlntpd.compress_pdf(file_in)
         else:
             _LOG.warning("Compression is only supported for PDF files")
-    file_final = lntp.copy_to_output(file_in, args.output)
+    file_final = dshdlntpd.copy_to_output(file_in, args.output)
     # - Copy_to_gdrive
     action = "copy_to_gdrive"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
         ext = args.type
-        lntp.copy_to_gdrive(file_final, ext, args.input, args.gdrive_dir)
+        dshdlntpd.copy_to_gdrive(file_final, ext, args.input, args.gdrive_dir)
     # - Open
     action = "open"
     to_execute, actions = _mark_action(action, actions)
@@ -276,7 +276,7 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "cleanup_after"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        lntp.cleanup_after(prefix)
+        dshdlntpd.cleanup_after(prefix)
     # Save script, if needed.
     if args.script:
         hdbg.dassert_is_not(_SCRIPT, None)
@@ -437,7 +437,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cmd_parts.extend(["--skip_action=open"])
         cmd = " ".join(shlex.quote(part) for part in cmd_parts)
         _LOG.info("Daemon mode: watching '%s' for changes", args.input)
-        lntp.daemon_watch(args.input, cmd)
+        dshdlntpd.daemon_watch(args.input, cmd)
     else:
         _run_all(args)
 
