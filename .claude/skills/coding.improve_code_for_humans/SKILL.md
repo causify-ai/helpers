@@ -22,11 +22,11 @@ model: haiku
 - Follow the rules in `.claude/skills/coding.rules.md` `# Comments`
 
 ## Add Functions to Track Entering in a Function
-- For each function add at the beginning either
-  - `_LOG.debug(hprint.func_signature_to_str())` or
-  - `_LOG.debug(hprint.to_str("a b c")`
+- For free-standing functions and class methods add at the beginning:
+  - `_LOG.debug(hprint.to_str("a b c"))`
      with the variables that are most important and not too big to print (e.g.,
      large text, dictionary and so on)
+- Use parameter names (omit `self` for methods)
 
 ## Add `_LOG.debug` to Track the Execution in a Function
 - Use `_LOG.debug` to add debugging info in functions that can help a programmer

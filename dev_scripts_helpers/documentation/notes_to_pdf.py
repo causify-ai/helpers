@@ -930,6 +930,7 @@ def _copy_to_output(file_in: str, output: str) -> str:
     _LOG.debug("file_out=%s", file_out)
     cmd = rf"\cp -af {file_in} {file_out}"
     _ = _system(cmd)
+    _LOG.info("File written to '%s'", file_out)
     return file_out
 
 
@@ -1034,13 +1035,14 @@ def _run_all(args: argparse.Namespace) -> None:
     )
     _LOG.info("\n%s", actions_as_str)
     if args.preview_actions:
+        _LOG.warning("--preview_actions is enabled, skipping execution")
         return
     # E.g., curr_path='/app/helpers_root/dev_scripts_helpers/documentation'
     curr_path = os.path.abspath(os.path.dirname(sys.argv[0]))
     _LOG.debug("curr_path=%s", curr_path)
     #
     if args.script:
-        _LOG.info("Logging the actions into a script")
+        _LOG.warning("Logging the actions into a script '%s'", args.script)
         global _SCRIPT
         _SCRIPT = ["#/bin/bash -xe"]
     #
@@ -1248,7 +1250,6 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--script",
         action="store",
-        default="tmp.notes_to_pdf.sh",
         help="Bash script to generate with all the executed sub-commands",
     )
     parser.add_argument(
