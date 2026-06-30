@@ -940,3 +940,14 @@ line3
 - Inherit from `hmoto.S3Mock_TestCase` for in-process S3 mocking via `moto`
 - `moto` must be imported before `boto3`; `hmoto.py` enforces this
 - Each test gets a fresh bucket named `self.bucket_name`
+
+# Verification
+- [ ] No use of `self.check_string`
+- [ ] No `self.assertIn` but check the entire output value with an assert_equal
+  - See `## Use an Expected Output and `assert_equal``
+- [ ] No function is called with hardwired parameters, but they are assigned
+  to a variable and then used
+  - See `## Assign Variables and Then Call Functions`
+- [ ] No repeated code, use at least one `def helper()` per class
+  - See `## Use Helper Methods When You Have Repetitive Tests`
+- [ ] All unit tests pass
