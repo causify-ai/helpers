@@ -35,8 +35,8 @@
   - Slide 3: `**Solution**`: combine _probability_ and _utility functions_
 
 ## Recurring Running Example
-- Carry one concrete example across many slides to build intuition incrementally,
-  varying the question asked of it
+- Carry one concrete example across many slides to build intuition
+  incrementally, varying the question asked of it
   - E.g., the "Garden World" ($Rain$, $Sprinkler$, $WetGrass$, $Weather$) is
     reused to illustrate conditional independence, explaining away, marginal vs
     conditional dependence, and sampling
@@ -71,7 +71,6 @@
 # Document Organization
 
 ## Section Structure
-
 - Major sections to start new page/major topic:
   ```markdown
   # Section Title
@@ -94,14 +93,12 @@
 # Slide Organization
 
 ## General Formatting Rules
-
 - Don't use emoji
 - Don't use page separators
 - Don't use unicode characters but use LaTeX symbols if needed
   - Instead of → use `$\to$`
 
 ## Slide Structure
-
 - Each slide should start with:
   ```markdown
   * Slide title
@@ -111,7 +108,6 @@
   - Do not use period at the end of a phrase
 
 ## Use Bold for Slide Sections
-
 - Every first level bullet point (starting with `- ` and not `*`) should start
   with a bold label `<bold label>` for pedagogical structure
 - Use the following tags:
@@ -129,7 +125,8 @@
   - **Example**: Concrete illustration
   - **Intuition**: Explains the "why it makes sense"
   - **Key idea**: The single most important takeaway
-  - **(Naive) Solution**: A first, flawed attempt whose cons motivate a better one
+  - **(Naive) Solution**: A first, flawed attempt whose cons motivate a better
+    one
   - **Remark**: A simple but useful fact
   - **Fact**: A statement asserted as true, used without proof
   - **Theorem**: A central, proven result
@@ -225,7 +222,6 @@
   - Implementation-oriented notation
 
 ## Tables
-
 - Create tables using the `styled-table` function from
   `./dev_scripts_helpers/documentation/pandoc_touying.typ` to maintain
   consistent formatting and professional appearance across all slides
@@ -233,7 +229,6 @@
   automatically
 
 ### Syntax
-
 ```typst
 #styled-table(
   headers: ("Column 1", "Column 2", "Column 3"),
@@ -245,27 +240,26 @@
   col-widths: (1fr, 1.5fr, 1fr),  // optional
   bold-first-col: true  // optional
 )
-```
+````
 
 ### Parameters
-
 - **headers**: Array of column header strings (required)
-- **rows**: Array of rows, where each row is an array of cell contents (required)
+- **rows**: Array of rows, where each row is an array of cell contents
+  (required)
 - **caption**: Optional table caption displayed below the table
 - **col-widths**: Optional array of column width specifications
   - Default: equal widths (`1fr` for each column)
   - Example: `(1fr, 1.5fr, 1fr)` makes middle column 50% wider
-- **bold-first-col**: Optional boolean to bold the first column (default: `true`)
+- **bold-first-col**: Optional boolean to bold the first column (default:
+  `true`)
   - Set to `false` for symmetric data; use `true` for row labels
 
 ### Guidelines
-
 - Use `bold-first-col: true` when the first column contains row labels
 - Adjust `col-widths` when column content varies significantly in length
 - Always include `headers` to make table structure clear
 
 ### Example
-
 - **Good** (labeled data with consistent styling)
   ```typst
   #styled-table(
@@ -279,12 +273,12 @@
   ```
 
 - **Bad** (inconsistent inline table formatting)
-  ````markdown
+  ```markdown
   | Method | Accuracy | Speed |
   |--------|----------|-------|
   | Baseline | 75% | Fast |
   | Proposed | 92% | Slow |
-  ````
+  ```
 
 ## Mathematical Notation
 
@@ -310,7 +304,6 @@
   ```
 
 ### Standard LaTeX Commands
-
 Use these commands consistently across all slides:
 
 - `$\Pr(...)$`: Probability
@@ -339,7 +332,6 @@ Use these commands consistently across all slides:
   ```
 
 ### Color-Coded Variables in Equations
-
 - Color variables to highlight different parts and make multi-step derivations
   easier to follow
 - Wrap each variable in a color command:
@@ -357,13 +349,13 @@ Use these commands consistently across all slides:
   | `\brown{...}`  | Hidden or unobservable variables (e.g., in causal diagrams) |
   | `\black{...}`  | Explicitly black text (override inherited color)            |
 
-- Example — showing variable elimination step by step:
+- Example: showing variable elimination step by step:
   ```latex
   \Pr(\blue{x_1, ..., x_{n-1}}, \red{x_n})
   = \Pr(\red{x_n} | \blue{x_{n-1}, ..., x_1}) \Pr(\blue{x_{n-1}, ..., x_1})
   ```
 
-- Example — multi-line elimination with distinct colors:
+- Example: multi-line elimination with distinct colors:
   ```latex
   \begin{align*}
   & \Pr(\gray{x_1}, \violet{x_2}, ..., \teal{x_{n-2}}, \olive{x_{n-1}}, \orange{x_n}) \\
@@ -375,12 +367,10 @@ Use these commands consistently across all slides:
   ```
 
 ### Spacing and Breaks
-
 - Use comments (`//`) for internal notes (not rendered in output)
 - Do NOT use page separators (`---` markdown syntax)
 
 ### Symbols and Characters
-
 - Do NOT use non-ASCII characters, but use LaTeX instead:
 
 - ε → `$\varepsilon$`
@@ -391,7 +381,6 @@ Use these commands consistently across all slides:
 - ∪ → `$\cup$`
 
 ### Font Sizing
-
 - Group all font size changes with LaTeX:
   ```markdown
   \begingroup \large
@@ -401,7 +390,6 @@ Use these commands consistently across all slides:
 - Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
 
 ### Latex Equation Style
-
 - For complex LaTeX expressions, use indentation and line breaks to visually
   represent the nesting structure of operators, expectations, sums, integrals,
   conditionals, and other hierarchical constructs

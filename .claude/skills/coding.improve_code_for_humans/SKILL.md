@@ -23,15 +23,13 @@ model: haiku
 
 ## Add Functions to Track Entering in a Function
 - For free-standing functions and class methods add at the beginning:
-  - `_LOG.debug(hprint.to_str("a b c"))`
-     with the variables that are most important and not too big to print (e.g.,
-     large text, dictionary and so on)
+  - `_LOG.debug(hprint.to_str("a b c"))` with the variables that are most
+    important and not too big to print (e.g., large text, dictionary and so on)
 - Use parameter names (omit `self` for methods)
 
 ## Add `_LOG.debug` to Track the Execution in a Function
 - Use `_LOG.debug` to add debugging info in functions that can help a programmer
   to track the issues and execution
-
 
 ## Add `_LOG.debug` to Track the Resulting Values of a Function
 - Refactor code to avoid more than one `return` statement when possible

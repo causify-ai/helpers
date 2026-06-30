@@ -14,8 +14,8 @@ description: Conventions and standards for interactive Jupyter notebook structur
     immediate results
 
 ## Key Principles
-- **Focus on examples**: Concentrate on practical examples, not theory repetition
-  from slides
+- **Focus on examples**: Concentrate on practical examples, not theory
+  repetition from slides
 - **Discovery over exposition**: Emphasize "what if I change this?" over "here's
   the explanation"
 - **Build on context**: Each cell should reference and extend what came before
@@ -34,7 +34,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Second Cell: Optionally install packages on-the-fly
 - Third Cell: Notebook-specific imports and logger
 
-## Utilities vs. Notebook Responsibilities
+## Utilities Vs. Notebook Responsibilities
 
 ### Notebook-to-File Pairing
 - Each notebook is paired with Jupytext to a Python file
@@ -46,7 +46,8 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Example
   - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
   - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
-  - Paired utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+  - Paired utility file:
+    `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 ### Responsibility Division
 - All complexity goes in `*_utils.py`:
@@ -66,14 +67,14 @@ description: Conventions and standards for interactive Jupyter notebook structur
     utils.sample_bernoulli3()
     ```
 
-- **Rationale**: Utilities are testable, reusable, and decoupled from notebook structure
+- **Rationale**: Utilities are testable, reusable, and decoupled from notebook
+  structure
 
 ### Use Existing Utils Functions During Generation
-
 - When generating a notebook, check if a corresponding `*_utils.py` file already
   exists:
-  - If it does, prefer using its existing functions instead of writing new inline
-    code or proposing new functions
+  - If it does, prefer using its existing functions instead of writing new
+    inline code or proposing new functions
   - If the notebook uses new cell numbers, update the utils function names to
     match (see `## Sync Function Names with Cell Numbers`)
   - If a needed function doesn't exist in the utils file, add it following the
@@ -83,15 +84,15 @@ description: Conventions and standards for interactive Jupyter notebook structur
   project conventions. Using them avoids duplication, keeps cells clean, and
   maintains consistency across notebooks
 
-## Library Calls vs. Visualization in Package Tutorials
+## Library Calls Vs. Visualization in Package Tutorials
 - When writing a tutorial for a package:
-  - Keep the code that executes library calls and explores the API in the notebook
+  - Keep the code that executes library calls and explores the API in the
+    notebook
     - Show how to use the library's data structures and functions
     - Demonstrate the actual library calls and their results
   - Keep all visualization and plotting code in the `*_utils.py` file
     - Move complex visualizations, widgets, and formatting to utils
     - Call visualization functions from the notebook with simple parameters
-  
 - When computation is too expensive or complex to run in the notebook:
   - Create a small, simple example in the notebook that demonstrates the API
     - Show the data structures and library calls clearly
@@ -99,7 +100,6 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - Move the full, complex computation into a function in `*_utils.py`
     - This function handles the expensive computation out of view
     - The notebook calls this function to display precomputed results
-  
 - **Example pattern**:
   - **Bad** (visualization code embedded in notebook):
     ```python
@@ -134,13 +134,14 @@ description: Conventions and standards for interactive Jupyter notebook structur
     Evaluate model
 
 ## Split Multi-Step Analysis Cells
-
-- When a single cell performs multiple **independent analyses** (e.g., statistics + correlations + feature covariances), split into focused cells:
+- When a single cell performs multiple **independent analyses** (e.g.,
+  statistics + correlations + feature covariances), split into focused cells:
   - **Cell 1**: Summary statistics (`.describe()`)
   - **Cell 2**: Target correlations (`.corrwith(y)`)
   - **Cell 3**: Pairwise correlations (`.corr()` as heatmap)
 
-- **Why**: Each cell answers one question; easier to run independently; clearer narrative flow
+- **Why**: Each cell answers one question; easier to run independently; clearer
+  narrative flow
 
 - **Bad** (one large cell):
   ```python
@@ -168,8 +169,8 @@ description: Conventions and standards for interactive Jupyter notebook structur
   ```
 
 ## Split Cells That Perform Distinct Steps
-- Cells that contain more than one concept / example should be split so that each
-  cell has only one example
+- Cells that contain more than one concept / example should be split so that
+  each cell has only one example
 
 - Example1
   - **Bad** (this cell has 3 examples and should be split in 3 cells, as below)

@@ -1,5 +1,4 @@
 # Overview
-
 - `notes_to_pdf.py` is a comprehensive document conversion orchestrator that
   transforms markdown/text files into multiple output formats (PDF, HTML,
   presentation slides) using Pandoc/LaTeX/Typst toolchains
@@ -17,7 +16,6 @@
 # Architecture (C4 Model)
 
 ## C1 (Context)
-
 - This section describes how the system fits in the world
 
 <!--  rendered_images:begin -->

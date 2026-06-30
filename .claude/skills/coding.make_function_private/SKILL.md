@@ -4,22 +4,28 @@ model: haiku
 ---
 
 For each function `<FUNC>` in the passed Python file `<FILE>`, determine if it
-should be private or public by checking if it's called by Python files or Jupyter
-notebooks **outside `<FILE>`** (including sibling scripts, parent package
-modules, test files, and CLI entry points).
+should be private or public by checking if it's called by Python files or
+Jupyter notebooks **outside `<FILE>`** (including sibling scripts, parent
+package modules, test files, and CLI entry points)
 
 ## Definition: External Files
-**External files** = any Python file or Jupyter notebook **outside the target file**, including:
-- Sibling scripts in the same package (e.g., `notes_to_pdf.py` calling functions from `lib_notes_to_pdf.py`)
+**External files** = any Python file or Jupyter notebook **outside the target
+file**, including:
+
+- Sibling scripts in the same package (e.g., `notes_to_pdf.py` calling functions
+  from `lib_notes_to_pdf.py`)
 - Parent/sibling modules that import from the target
 - Test files that test the target module
 - CLI entry point scripts
 
-> **Note:** Functions that form the public API of a library module should be PUBLIC, even if they're not called from a `__main__` entry point. If a module exports utility functions for use by other scripts in the package, those are PUBLIC functions.
+- **Note:** Functions that form the public API of a library module should be
+  PUBLIC, even if they're not called from a `__main__` entry point. If a module
+  exports utility functions for use by other scripts in the package, those are
+  PUBLIC functions
 
 # Private Functions
-- If the function `<FUNC>` is not called by any external file, then it should be a
-  private function and should be renamed and prepended with a `_`
+- If the function `<FUNC>` is not called by any external file, then it should be
+  a private function and should be renamed and prepended with a `_`
   - E.g., `def function` -> `def _function`
   - Include only internal utility functions, helpers, and implementation details
 - Modify all the callers of the function `<FUNC>` to use the new name
@@ -38,7 +44,8 @@ def _internal_helper():
 - If the function `<FUNC>` is called by external files, then it should be a
   public function and its name should **NOT** start with `_`
   - This includes functions in shared utility modules called by sibling scripts
-- Modify all callers (both external and internal) of the function to use the new name
+- Modify all callers (both external and internal) of the function to use the new
+  name
 
 ## Example: Public Functions
 ```python
@@ -51,7 +58,6 @@ def _internal_step_1(file_name):  # Only used within lib_notes_to_pdf.py → PRI
 ```
 
 # Workflow
-
 1. **Find all functions** in `<FILE>`
 2. **For each function**, search the entire codebase for external calls:
    ```bash
@@ -62,7 +68,8 @@ def _internal_step_1(file_name):  # Only used within lib_notes_to_pdf.py → PRI
 5. **Verify** changes
 
 # Verification
-- [ ] Grep in the entire codebase to confirm all function calls were renamed correctly
+- [ ] Grep in the entire codebase to confirm all function calls were renamed
+      correctly
   ```bash
   grep -r "old_name\|new_name" --include="*.py" --include="*.ipynb"
   ```

@@ -12,7 +12,6 @@ model: sonnet
   solving a large real-world problem
 
 # Teaching Philosophy
-
 1. Start from the smallest possible working example
 2. Introduce one new concept at a time
 3. Use the minimum amount of code necessary to demonstrate each concept
@@ -36,8 +35,8 @@ model: sonnet
   ```
   tutorials/<PACKAGE_NAME>/<PACKAGE_NAME>.<ID>.API.<description>.ipynb
   ```
-- E.g., for the package `pgmpy` and for probabilistic inference the name can
-  be `tutorials/pgmpy/pgmpy.01.API.probabilistic_inference.ipynb`
+- E.g., for the package `pgmpy` and for probabilistic inference the name can be
+  `tutorials/pgmpy/pgmpy.01.API.probabilistic_inference.ipynb`
 
 ## Use Standard Template Structure
 - Use the structure from `.claude/templates/notebook.template.py` for consistent
@@ -48,13 +47,14 @@ model: sonnet
 - Third Cell: Notebook-specific imports and logger
 
 ## Follow General Notebook Conventions
-- Follow the notebook conventions documented in `.claude/skills/notebook.rules.md`:
+- Follow the notebook conventions documented in
+  `.claude/skills/notebook.rules.md`:
   - `# Setup and Initialization`: Standard template structure and Python code
     rules
   - `# Code Cell Design and Content`: Python coding style, showing results, and
     using pandas dataframes for tables
-  - `# Text and Markdown Formatting`: Markdown bullet points, emdash replacement,
-    and LaTeX notation
+  - `# Text and Markdown Formatting`: Markdown bullet points, emdash
+    replacement, and LaTeX notation
   - `# Data Processing and Visualization`: Data manipulation and plotting
     conventions
   - `## Visualization Cell Triplet Details`: Structure for notebook cells with
@@ -67,7 +67,6 @@ model: sonnet
   ```
 
 ### 1. Library Overview
-
 - Briefly explain:
   - What problem the library solves
   - The key abstractions
@@ -75,7 +74,6 @@ model: sonnet
   - A conceptual diagram of how the pieces fit together
 
 ### 2. Primitive-by-Primitive Exploration
-
 - For each important primitive:
 
   - Mental Model
@@ -98,15 +96,17 @@ model: sonnet
     ```
 
 ### 2a. Mental Model as Markdown Table
-
 - Present the mental model as a **markdown table** instead of bullet points:
-  - **Why**: Tables are scannable, visually distinct, and structure complex API relationships clearly
+  - **Why**: Tables are scannable, visually distinct, and structure complex API
+    relationships clearly
   - **Columns**: Object | Description | Comments/Type
   - **Examples**:
-    - LIME: `LimeTabularExplainer | Configured explainer | Wraps model + training data`
-    - SHAP: `Explanation.values | SHAP contributions | (n_samples, n_features) array`
-  - **Placement**: In a markdown cell early in "Primitive 1" after the bullet-point overview
-  - **Pattern**:
+    - LIME:
+      `LimeTabularExplainer | Configured explainer | Wraps model + training data`
+    - SHAP:
+      `Explanation.values | SHAP contributions | (n_samples, n_features) array`
+  - **Placement**: In a markdown cell early in "Primitive 1" after the
+    bullet-point overview
     ```markdown
     | Object | Description | Additional Info |
     |--------|-------------|-----------------|
@@ -114,26 +114,20 @@ model: sonnet
     | `explainer.method(x)` | Instance method | Returns result object |
     | `Result.values` | Data array | shape (n, m) |
     ```
-
 ### 3. Composition Examples
-
 - Build progressively:
   - Example 1:
     - Smallest meaningful object
-
   - Example 2:
     - Add one new concept
-
   - Example 3:
     - Combine two primitives
-
   - Example 4:
     - Minimal end-to-end workflow
 
 - Each example should fit within roughly 10–20 lines
 
 ### 4. API Patterns
-
 - Identify recurring patterns:
   - Builder patterns
   - Fit/predict patterns
@@ -146,19 +140,16 @@ model: sonnet
 - Show the smallest example of each pattern
 
 ### 5. Interactive Exploration
-
 - Provide cells that encourage experimentation:
   ```
   python dir(obj) help(obj.method)
   ```
-
-  - and questions such as:
+  - And questions such as:
     - What happens if you remove this argument?
     - What is the default value?
     - What type is returned?
 
-### Summary: The Mental Model
-
+### Summary: the Mental Model
 - Synthesize the core mental model
   - What are the fundamental abstractions?
   - How do they fit together?
@@ -166,7 +157,6 @@ model: sonnet
 - This should be 2-4 sentences capturing the essence of the library's design
 
 ## Special Instructions
-
 - Use executable Python code throughout
 - Minimize imports
 - Keep examples independent whenever possible
@@ -179,7 +169,8 @@ model: sonnet
   - Inspection
   - Mutation
   - Interaction with another object
-- The notebook should feel like a guided reverse-engineering of the library's design
+- The notebook should feel like a guided reverse-engineering of the library's
+  design
 
 # Verification
 - [ ] Create paired Python

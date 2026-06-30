@@ -9,7 +9,6 @@ model: sonnet
 - Output clean, well-formatted markdown code suitable for conversion to Typst
 
 ## Workflow
-
 1. **Read input file**: markdown slides file (e.g., `lectures.md`)
 2. **Apply conversion rules**: systematically fix math, unicode, and formatting
 3. **Validate output**: verify no content loss, structure preserved
@@ -66,11 +65,10 @@ model: sonnet
   ```
 
 ## Quality Checks
-
-- All slide headers & hierarchy preserved  
-- No content deleted or truncated  
-- All math expressions wrapped (`$...$`)  
-- No unicode math characters remain  
-- Operators properly formatted with `op()`  
-- Code blocks and lists intact  
+- All slide headers & hierarchy preserved
+- No content deleted or truncated
+- All math expressions wrapped (`$...$`)
+- No unicode math characters remain
+- Operators properly formatted with `op()`
+- Code blocks and lists intact
 - File is valid markdown
