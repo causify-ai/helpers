@@ -1,3 +1,24 @@
+### Add a test case for all the containers
+
+Use Test_build_pandoc_container1 as a reference
+
+- Build from scratch on slow_tests
+
+### Remove use_sudo
+
+- use_sudo is a property of the machine
+  - Make use_sudo = None and then deduce it from the config
+
+### Make all tests in dev_scripts_helpers/dockerize/test pass
+
+- [ ] Check the tests with Apple container and Docker
+
+export CSFY_DOCKER_ENGINE="docker"; pytest dev_scripts_helpers/dockerize/test
+56 passed in 26.67s
+
+export CSFY_DOCKER_ENGINE="apple"; pytest dev_scripts_helpers/dockerize/test
+5 failed, 51 passed in 110.28s (0:01:50)
+
 ### 
 
 pytest_log dev_scripts_helpers/dockerize/test/

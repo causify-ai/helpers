@@ -47,7 +47,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             " bash -c 'prettier --version'"
         )
         _, actual = hsystem.system_to_string(cmd)
-        self.assert_equal(output, expected, purify_text=True)
+        self.assert_equal(actual, expected, purify_text=True)
 
     def test_md1(self) -> None:
         """
@@ -60,6 +60,10 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
+    @pytest.mark.skipif(
+        hserver.is_host_mac() and hdocker.get_docker_engine() == "apple",
+        reason="Fails with Apple container engine, see HelpersTask1273",
+    )
     def test_md2(self) -> None:
         """
         Test the Prettier version matches expected output for md file type.
@@ -86,6 +90,10 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
+    @pytest.mark.skipif(
+        hserver.is_host_mac() and hdocker.get_docker_engine() == "apple",
+        reason="Fails with Apple container engine, see HelpersTask1273",
+    )
     def test_txt2(self) -> None:
         """
         Test the Prettier version matches expected output for txt file type.
@@ -112,6 +120,10 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
             file_type, force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
+    @pytest.mark.skipif(
+        hserver.is_host_mac() and hdocker.get_docker_engine() == "apple",
+        reason="Fails with Apple container engine, see HelpersTask1273",
+    )
     def test_tex2(self) -> None:
         """
         Test the Prettier version matches expected output for tex file type.

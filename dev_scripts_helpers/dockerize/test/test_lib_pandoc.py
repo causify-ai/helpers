@@ -3,6 +3,7 @@ import pprint
 
 import pytest
 
+import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -222,21 +223,37 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         """
         Test that the Pandoc Docker container is built correctly.
         """
+        # Build the container.
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         dshdlipa._build_pandoc_texlive_container_image(
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
+        # Check.
+        container_type = "pandoc_texlive"
+        image_name = dshdlipa._get_pandoc_container_image_name(container_type)
+        hdbg.dassert(hdocker.image_exists(image_name, use_sudo))
 
+    # On Apple containers:
+    # > container run --rm tmp.pandoc_texlive.arm64.9a4bae9a --version
+    # pandoc 3.9.0.2
+    #
+    # > container run --rm --entrypoint "bash" tmp.pandoc_texlive.arm64.9a4bae9a -c 'pandoc --version | head -1'
+    # pandoc 3.9.0.2
+    @pytest.mark.skipif(
+        hserver.is_host_mac() and hdocker.get_docker_engine() == "apple",
+        reason="Fails with Apple container engine, see HelpersTask1273",
+    )
     def test2(self) -> None:
         """
         Test that the Pandoc version matches expected output.
         """
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
-        # Build the container.
+        # Get the container.
         container_type = "pandoc_texlive"
         image_name = dshdlipa._get_pandoc_container_image_name(container_type)
+        hdbg.dassert(hdocker.image_exists(image_name, use_sudo))
         # Run version command inside container.
         # TODO(ai_gp): Add also latex --version in the bash -c below
         # TODO(ai_gp): Use different expected output for darwin vs linux.

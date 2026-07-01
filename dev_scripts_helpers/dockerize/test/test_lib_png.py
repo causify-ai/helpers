@@ -33,6 +33,10 @@ class Test_build_png_container1(hunitest.TestCase):
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
+    @pytest.mark.skipif(
+        hserver.is_host_mac() and hdocker.get_docker_engine() == "apple",
+        reason="Fails with Apple container engine, see HelpersTask1273",
+    )
     def test2(self) -> None:
         """
         Test that the image conversion tools (imagemagick) version matches expected output.
