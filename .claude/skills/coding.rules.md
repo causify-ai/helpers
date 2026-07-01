@@ -53,14 +53,67 @@
 
 ## Mark Private Functions
 
-- Functions that are used only in one file, must be private and their name must
-  start with `_`
+- Rename functions that are only used internally within the file to use a leading
+  underscore (excluding corresponding test files)
+  - Example (a function used only in one file)
+    ```python
+    def foo_bar(...):
+    ```
+    becomes:
+
+    ```python
+    def _foo_bar(...):
+    ```
+
+- Only do this for functions that are not part of the module's public interface
 
 ## Remove Empty Lines
 
 - If empty lines are used to separate chunks of code, convert empty lines into
   comments for the chunk of code
 - Remove empty lines inside functions so that the code is compact
+
+## Organize Functions Into Logical Layers
+
+- Group related functions into sections separated by headers in the following
+  format:
+  ```python
+  # #############################################################################
+  # <Layer Description>
+  # #############################################################################
+  ```
+
+- Examples of layers:
+  - Constants / configuration
+  - Low-level utility functions
+  - Parsing helpers
+  - Data transformation helpers
+  - Core business logic
+  - Public API functions
+  - CLI / entry points
+
+## Order Layers by Abstraction Level
+
+- Arrange layers from lower-level/simple functionality to higher-level/complex
+  functionality
+
+- General rule:
+  - Fundamental utilities first
+  - High-level orchestration last
+
+## Order Functions Within Each Layer
+
+- Inside each layer, organize functions from:
+  - More primitive / reusable
+  - To more specialized / higher-level
+
+- Functions should generally appear before functions that depend on them.
+
+## Keep Related Functions Together
+
+- Keep related helper functions physically close together
+  - E.g., if there is a public or private function used only in one place in a
+    file, move that function close to where it is used
 
 ## Make Code Cohesive
 

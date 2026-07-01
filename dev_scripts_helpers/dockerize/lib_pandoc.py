@@ -23,6 +23,23 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# Architecture Overview:
+#
+# Two containerized Pandoc variants with LaTeX support:
+# - `pandoc_latex`: Alpine-based image with TexLive installation from scratch
+#    (heavyweight, ~2GB, supports full LaTeX features)
+# - `pandoc_texlive`: Debian-based image with pre-installed TexLive + apt
+#    pandoc (simpler build, relies on apt packages)
+#
+# Public interface
+# - `convert_pandoc_cmd_to_arguments()`:
+#    - Parse pandoc CLI strings into structured args
+#    - Handles file path translation between host and container namespaces
+# - `convert_pandoc_arguments_to_cmd()`: Reconstruct command from parsed args
+# - `run_dockerized_pandoc()`: Main entry point that builds container (if
+#   needed), converts file paths, and executes pandoc inside Docker with proper
+#   mounts
+
 # Version pins for tools.
 _PANDOC_CORE_VERSION = "3.7"
 

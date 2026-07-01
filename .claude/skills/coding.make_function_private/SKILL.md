@@ -3,12 +3,20 @@ description: Identify functions not called externally and rename them with a lea
 model: haiku
 ---
 
-For each function and class in the passed Python file, check if it's a function
-called by other Python files or Jupyter notebooks
+# Goal
+- Follow the section `## Mark Private Functions` from the file `coding.rules.md`
+  to find and change the functions that should be private
 
-If the function is not called by any other file, then it should be a private
-function and should be rename and prepended with a `_`
+# Workfloa
+
+## Step 1
+- For each function in the passed Python file, check if it's a function called by
+  other Python files or Jupyter notebooks
+
+- If the function is not called by any other file, then it should be a private
+  function and should be rename and prepended with a `_`
 
 - E.g., `def function` -> `def _function`
 
-Then modify the callers of the function to use the new name
+## Step 2
+- Then modify the callers of the function to use the new name
