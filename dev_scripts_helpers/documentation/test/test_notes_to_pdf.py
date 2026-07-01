@@ -16,6 +16,14 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+def _to_output_str(script_txt, output_txt):
+    out = ""
+    out += hprint.frame("script_txt") + "\n"
+    out += script_txt + "\n"
+    out += hprint.frame("output_txt") + "\n"
+    out += output_txt + "\n"
+    _LOG.debug("out=\n%s", out)
+    return out
 
 # #############################################################################
 # Test_notes_to_pdf1
@@ -99,20 +107,22 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             - output_txt: Content of the intermediate pandoc output file (LaTeX or HTML)
         """
         _LOG.debug(hprint.to_str("in_file type_"))
-        # Construct command.
-        cmd = []
+        # Prepare inputs.
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append(f"--type {type_}")
         out_dir = self.get_scratch_space()
         script_file = os.path.join(out_dir, "script.sh")
-        cmd.append(f"--script {script_file}")
         out_file = os.path.join(out_dir, f"output.{type_}")
-        cmd.append(f"--output {out_file}")
-        cmd.append(cmd_opts)
-        cmd.append("--skip_action open")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--type {type_}",
+            f"--script {script_file}",
+            f"--output {out_file}",
+            cmd_opts,
+            "--skip_action open",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Execute the command.
@@ -360,22 +370,27 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         :param cmd_opts: Command line options including filter
         :return: Tuple of (script_txt, output_file_path)
         """
+        # Prepare inputs.
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
         out_dir = self.get_scratch_space()
         script_file = os.path.join(out_dir, "script.sh")
         out_file = os.path.join(out_dir, f"output.{type_}")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append(f"--type {type_}")
-        cmd.append(f"--script {script_file}")
-        cmd.append(f"--output {out_file}")
-        cmd.append(cmd_opts)
-        cmd.append("--skip_action open")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--type {type_}",
+            f"--script {script_file}",
+            f"--output {out_file}",
+            cmd_opts,
+            "--skip_action open",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
+        # Run test.
         hsystem.system(cmd)
+        # Prepare outputs.
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
@@ -508,23 +523,28 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         :param cmd_opts: Additional command line options
         :return: Tuple of (script_txt, output_file_path)
         """
+        # Prepare inputs.
         in_file = self.create_simple_input()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, f"output.{type_}")
         script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append(f"--type {type_}")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append(cmd_opts)
-        cmd.append("--skip_action open")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--type {type_}",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            cmd_opts,
+            "--skip_action open",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
+        # Run test.
         hsystem.system(cmd)
+        # Prepare outputs.
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
@@ -623,23 +643,28 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         :param toc_type: TOC type (none, pandoc_native, navigation, remove_headers)
         :return: Script output as string
         """
+        # Prepare inputs.
         in_file = self.create_structured_input()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, "output.pdf")
         script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--toc_type {toc_type}")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            f"--toc_type {toc_type}",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--skip_action open",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
+        # Run test.
         hsystem.system(cmd)
+        # Prepare outputs.
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
@@ -732,23 +757,28 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         :param cmd_opts: Command line options for action selection
         :return: Script output as string
         """
+        # Prepare inputs.
         in_file = self.create_simple_input()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, "output.pdf")
         script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append(cmd_opts)
-        cmd.append("--skip_action open")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            cmd_opts,
+            "--skip_action open",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
+        # Run test.
         hsystem.system(cmd)
+        # Prepare outputs.
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
@@ -796,22 +826,24 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file = self.create_simple_input()
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        cmd = []
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--output {out_file}")
-        cmd.append("--preview_actions")
+        out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, "output.pdf")
+        script_file = os.path.join(out_dir, "script.sh")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            f"--output {out_file}",
+            "--preview_actions",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Run test.
         hsystem.system(cmd)
         # Check outputs: script file should not be created in preview mode
-        script_file = os.path.join(out_dir, "script.sh")
         self.assertFalse(os.path.exists(script_file))
 
 
@@ -848,22 +880,26 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         :param skip_actions: List of actions to skip
         :return: Content of the generated script
         """
+        # Prepare inputs.
         in_file = self.create_simple_input()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, "output.pdf")
         script_file = os.path.join(out_dir, "generated_script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            f"--output {out_file}",
+            f"--script {script_file}",
+        ]
         for action in skip_actions:
             cmd.append(f"--skip_action {action}")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
+        # Run test.
         hsystem.system(cmd)
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
@@ -921,15 +957,18 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
         :param in_file: Input markdown file
         :param type_: Output type
         """
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        cmd = []
+        # Prepare inputs.
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append(f"--type {type_}")
-        cmd.append(f"--output {out_file}")
+        out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, "output.pdf")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--type {type_}",
+            f"--output {out_file}",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Run test: expect error
@@ -975,22 +1014,26 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         :param filename: Name of input markdown file
         :param txt: Content to write to file
         """
-        in_file = os.path.join(self.get_scratch_space(), filename)
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        in_file = os.path.join(scratch_dir, filename)
         hio.to_file(in_file, txt)
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
+        out_file = os.path.join(scratch_dir, "output.pdf")
+        script_file = os.path.join(scratch_dir, "script.sh")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--skip_action open",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
+        # Run test.
         hsystem.system(cmd)
         self.assertTrue(os.path.exists(script_file))
 
@@ -1110,22 +1153,26 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         :param type_: Output type (pdf or html)
         :return: Content of the generated script
         """
+        # Prepare inputs.
         in_file = self.create_simple_input()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, f"output.{type_}")
         script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append(f"--type {type_}")
-        cmd.append("--use_pandoc_ast_transform")
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--type {type_}",
+            "--use_pandoc_ast_transform",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--skip_action open",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
+        # Run test.
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
         return script_txt
@@ -1194,22 +1241,26 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         :param cmd_opts: Command line options to pass
         :return: Content of the generated script
         """
+        # Prepare inputs.
         in_file = self.create_simple_input()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, "output.pdf")
         script_file = os.path.join(out_dir, "script.sh")
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--input {in_file}")
-        cmd.append("--type pdf")
-        cmd.append(cmd_opts)
-        cmd.append(f"--output {out_file}")
-        cmd.append(f"--script {script_file}")
-        cmd.append("--skip_action open")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            cmd_opts,
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--skip_action open",
+        ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
+        # Run test.
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
         return script_txt
@@ -1300,22 +1351,24 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
                 pytest.skip(f"'{tool}' is not available on the host")
         # Prepare inputs.
         in_file = self._create_input_file()
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
-        # Build the command running the Typst engine on host tools.
+        type_ = "slides"
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
-        cmd = " ".join(
-            [
-                exec_path,
-                f"--input {in_file}",
-                f"--output {out_file}",
-                "--type slides",
-                "--slides_engine typst",
-                "--use_host_tools",
-                "--skip_action open",
-            ]
-        )
+        out_dir = self.get_scratch_space()
+        script_file = os.path.join(out_dir, "script.sh")
+        out_file = os.path.join(out_dir, f"output.{type_}")
+        # Build the command running the Typst engine on host tools.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            f"--type {type_}",
+            "--slides_engine typst",
+            "--use_host_tools",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
         # Run end-to-end, capturing output without aborting on failure so we can
         # assert on both the return code and the captured warnings.
         rc, output = hsystem.system_to_string(cmd, abort_on_error=False)
@@ -1337,8 +1390,10 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
             os.path.exists(out_file), msg=f"Missing output PDF: {out_file}"
         )
         self.assertGreater(os.path.getsize(out_file), 0)
-        # Check 4: the generated Typst has the macros expanded and no LaTeX macro
-        # leaked through as escaped literal text.
-        actual = hio.from_file(typ_files[0])
-        expected = ""
-        self.assert_equal(actual, expected)
+        # Check 4: freeze the generated script and the generated Typst file.
+        script_txt = hio.from_file(script_file)
+        typ_files = glob.glob(os.path.join(out_dir, "*.typ"))
+        self.assertEqual(len(typ_files), 1, msg=f"typ_files={typ_files}")
+        output_txt = hio.from_file(typ_files[0])
+        actual = f"script_txt:\n{script_txt}\noutput_txt:\n{output_txt}\n"
+        self.check_string(actual, purify_text=True)

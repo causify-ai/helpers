@@ -819,6 +819,11 @@ line3
   result = hsystem.system(f"{executable} --help")
   ```
 
+## Build Command Lines for Tests
+
+- Follow the command line building conventions in
+  `.claude/skills/coding.rules.md` under `## How to Build Command Lines`
+
 ## Use the Mocking Infrastructure
 - For testing executables use end-to-end tests that:
   1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock

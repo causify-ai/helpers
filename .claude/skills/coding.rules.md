@@ -1105,39 +1105,50 @@
 
 ## How to Build Command Lines
 
-- When building command lines use one command line option per line
-  and f-strings
+- When building command lines, create an array with one option per line using
+  f-strings and static values, then join with spaces
+- Use f-strings (with spaces, not `=`) for arguments with variables, and static
+  strings for flags and values
+- This style improves readability, handles multi-line formatting cleanly, and
+  works consistently with both variable and static values
 
-  - **Bad**
-    ```python
-    cmd_parts = [
-        "notes_to_pdf.py",
-        "--input",
-        input_file,
-        "--output",
-        output_file,
-        "--type",
-        "slides",
-        "--toc_type",
-        "navigation",
-        "--skip_action",
-        "cleanup_after",
-        "--skip_action",
-        "open",
-    ]
-    ```
-  - **Good**
-    ```python
-    cmd_parts = [
-        "notes_to_pdf.py",
-        f"--input={input_file}",
-        f"--output={output_file}",
-        "--type=slides",
-        "--toc_type=navigation",
-        "--skip_action=cleanup_after",
-        "--skip_action=open",
-    ]
-    ```
+- **Bad**: Separate parts for each argument
+  ```python
+  cmd = [
+      "notes_to_pdf.py",
+      "--input",
+      input_file,
+      "--output",
+      output_file,
+      "--type",
+      "slides",
+      "--toc_type",
+      "navigation",
+  ]
+  ```
+- **Bad**: Dense and difficult to read
+  ```python
+  cmd = []
+  cmd.append(exec_path)
+  cmd.append(f"--input {in_file}")
+  cmd.append("--type pdf")
+  cmd.append(f"--output {out_file}")
+  cmd.append("--preview_actions")
+  cmd = " ".join(cmd)
+  ```
+- **Good**: Array with f-strings and join
+  ```python
+  cmd = [
+      "notes_to_pdf.py",
+      f"--input {input_file}",
+      f"--output {output_file}",
+      "--type slides",
+      "--toc_type navigation",
+      "--skip_action cleanup_after",
+      "--skip_action open",
+  ]
+  cmd = " ".join(cmd)
+  ```
 
 ## Use `hgit.find_file_in_git_tree()` for Script Paths
 
