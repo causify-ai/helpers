@@ -1247,16 +1247,16 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
 
 
 class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
-    """
+    r"""
     End-to-end test of the `notes_to_pdf.py` Typst slides pipeline with LaTeX
     abbreviations.
 
     Uses an input similar to `typst_abbrevs_example.md` (LaTeX math macros like
-    `\\vx`, `\\mA`, `\\EE`) and checks that:
+    `\vx`, `\mA`, `\EE`) and checks that:
     - The pipeline runs end-to-end and produces a non-empty PDF.
     - Pandoc emits no warnings (macros are expanded rather than left as unknown
       control sequences).
-    - The generated Typst has the macros expanded (e.g., `\\vx` ->
+    - The generated Typst has the macros expanded (e.g., `\vx` ->
       `bold(underline(x))`) and no LaTeX macro leaks as escaped literal text.
     """
 
@@ -1339,13 +1339,6 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
         self.assertGreater(os.path.getsize(out_file), 0)
         # Check 4: the generated Typst has the macros expanded and no LaTeX macro
         # leaked through as escaped literal text.
-        typ_files = glob.glob(os.path.join(out_dir, "*.typ"))
-        self.assertEqual(len(typ_files), 1, msg=f"typ_files={typ_files}")
-        typ_txt = hio.from_file(typ_files[0])
-        # `\vx` -> `\boldsymbol{\underline{x}}` -> Typst `bold(underline(x))`.
-        self.assertIn("bold(underline(x))", typ_txt)
-        # `\EE` -> `\mathbb{E}` -> Typst `bb(E)`.
-        self.assertIn("bb(E)", typ_txt)
-        # No macro should survive as an un-expanded control sequence.
-        self.assertNotIn(r"\vx", typ_txt)
-        self.assertNotIn(r"\mA", typ_txt)
+        actual = hio.from_file(typ_files[0])
+        expected = ""
+        self.assert_equal(actual, expected)
