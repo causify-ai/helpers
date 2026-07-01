@@ -49,7 +49,7 @@ class Test_build_svg_container1(hunitest.TestCase):
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
         expected = "rsvg-convert version 2.52.5\n"
-        self.assert_equal(output, expected)
+        self.assert_equal(output, expected, purify_text=True)
 
 
 # #############################################################################

@@ -56,7 +56,7 @@ class Test_build_png_container1(hunitest.TestCase):
             expected = "Version: ImageMagick 7.1.2-19 Q16-HDRI x86_64 23897 https://imagemagick.org"
         else:
             raise ValueError(f"Invalid system='{system}'")
-        self.assert_equal(output, expected)
+        self.assert_equal(output, expected, purify_text=True)
 
 
 # #############################################################################

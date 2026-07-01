@@ -239,6 +239,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         image_name = dshdlipa.get_pandoc_container_image_name(container_type)
         # Run version command inside container.
         # TODO(ai_gp): Add also latex --version in the bash -c below
+        # TODO(ai_gp): Use different expected output for darwin vs linux.
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'
@@ -247,7 +248,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
         expected = "pandoc 3.9.0.2\n"
-        self.assert_equal(output, expected)
+        self.assert_equal(output, expected, purify_text=True)
 
 
 # #############################################################################

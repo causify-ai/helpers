@@ -53,7 +53,7 @@ class Test_build_latex_container1(hunitest.TestCase):
         expected = (
             "pdfTeX 3.141592653-2.6-1.40.26 (TeX Live 2024/Alpine Linux)\n"
         )
-        self.assert_equal(output, expected)
+        self.assert_equal(output, expected, purify_text=True)
 
 
 # #############################################################################

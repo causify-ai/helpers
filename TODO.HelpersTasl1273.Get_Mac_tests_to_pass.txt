@@ -1,3 +1,13 @@
+### 
+
+pytest_log dev_scripts_helpers/dockerize/test/
+
+dev_scripts_helpers/dockerize/test/test_lib_pandoc.py::Test_build_pandoc_container1::test2
+dev_scripts_helpers/dockerize/test/test_lib_png.py::Test_build_png_container1::test2
+dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_md2
+dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_tex2
+dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_txt2
+
 ###
 
 Running outside the container
