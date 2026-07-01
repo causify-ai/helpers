@@ -431,18 +431,19 @@ Use these commands consistently across all slides:
 
 - For symmetric content (two equal columns):
   ```markdown
-  ::: columns
-  :::: {.column width=50%}
-  **Left Heading**
-  - Point 1
-  - Point 2
-  ::::
-  :::: {.column width=50%}
-  **Right Heading**
-  - Point 1
-  - Point 2
-  ::::
-  :::
+  | **Left Heading** | **Right Heading** |
+  |---|---|
+  | - Point 1<br>- Point 2 | - Point 1<br>- Point 2 |
+  ```
+
+- E.g.,
+  ```
+  | Property | Chatbot | Agent |
+  |---|---|---|
+  | Output | Text only | Text and side effects (files, API calls, transactions) |
+  | State | Conversation history | Environment state + memory |
+  | Loop | Single turn → response | Perceive → plan → act, repeated |
+  | Failure mode | Wrong answer | Wrong answer *or* wrong action taken |
   ```
 
 - For asymmetric content (text + diagram):

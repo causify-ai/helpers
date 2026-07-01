@@ -12,6 +12,8 @@
 #import "@preview/touying:0.6.1": *
 #import themes.simple: *
 
+#include "../../helpers_root/dev_scripts_helpers/documentation/typst_abbrevs.typ"
+
 // Configure theme to match beamer's 4:3 aspect ratio.
 // Note: Touying's simple-theme controls page size internally;
 // exact beamer dimensions (362.835 x 272.126 pts) cannot be overridden.

@@ -1,6 +1,6 @@
 ---
 description: Write lecture slides for a graduate-level course following academic formatting and pedagogical style
-model: sonnet
+model: opus
 ---
 
 # Goal

@@ -280,7 +280,8 @@
 | `_run_pandoc_to_pdf()` | Converts markdown → LaTeX → PDF via Pandoc and pdflatex (2 passes); returns PDF path |
 | `_run_pandoc_to_html()` | Converts markdown to HTML via Pandoc; returns HTML path |
 | `_run_pandoc_to_slides()` | Converts markdown to Beamer PDF slides; returns PDF path or .tex if `tex_only=True` |
-| `_run_pandoc_to_typst_slides()` | Converts markdown → Typst/Touying → PDF slides via a 3-step pipeline (markdown → AST → divved-fence transform → typst) |
+| `_run_pandoc_to_typst_slides()` | Converts markdown → Typst/Touying → PDF slides via a 3-step pipeline (markdown → AST → divved-fence transform → typst); prepends LaTeX math abbreviation definitions so pandoc expands them |
+| `_extract_latex_math_defs()` | Reads `latex_abbrevs.sty` and returns the `\newcommand` / `\def` math macros (dropping packages, colors, list config, and `\textcolor` helpers) for prepending to the typst input |
 | `_compress_pdf()` | Compresses PDF via ghostscript; in-place modification; returns file path |
 | `_copy_to_output()` | Copies processed file to output location; returns output path |
 | `_copy_to_gdrive()` | Copies output to Google Drive archive directory |
@@ -330,7 +331,7 @@
   8. _Typst Divved-Fence Conversion_: `_run_pandoc_to_typst_slides()` always
      runs a 3-step pipeline:
      ```
-     markdown → JSON AST (pandoc)
+     markdown (+ prepended math defs) → JSON AST (pandoc)
               → transformed AST (convert_pandoc_divved_fence.py)
               → typst file (pandoc)
               → PDF (typst compile)
@@ -339,6 +340,29 @@
      (produced from `:::columns` / `::::column` markdown fences) with
      `RawBlock[typst #grid(...)]` so that multi-column slides render correctly in
      Typst.
+
+  9. _LaTeX → Typst Math Abbreviation Expansion_:
+     - Lecture markdown uses LaTeX macros (`\vx`, `\mA`, `\EE`, ...) defined in
+       `latex_abbrevs.sty`
+     - In the LaTeX/beamer flows these are resolved by including the `.sty` file
+       at compile time. Typst cannot do this because pandoc rejects an unknown
+       control sequence in math (e.g., `$\vx$` → "unexpected control sequence
+       \vx"), emitting it as escaped literal text
+     - The `#let` definitions in `typst_abbrevs.typ` therefore cannot resolve
+       macros used inside math
+     - The working strategy is expansion of the latex macros in step 1, calling
+       `_extract_latex_math_defs()` to pull the `\newcommand` / `\def` math
+       macros out of `latex_abbrevs.sty` and prepends them (as a raw-LaTeX block,
+       not wrapped in `$...$`) to the input, writing `{file}.with_defs.txt`
+     - Pandoc's `latex_macros` extension then expands each macro to its full
+       LaTeX form before converting math to Typst:
+       ```
+       $\vx$  →  \boldsymbol{\underline{x}}  →  $bold(underline(x))$
+       $\EE$  →  \mathbb{E}                  →  $bb(E)$
+       ```
+     - Placement matters: the definitions must be a top-level raw-LaTeX block.
+       since defs wrapped in `$...$` (inline or display math) do not persist
+       across pandoc math blocks
 
 - **External Dependencies**
 
@@ -358,6 +382,10 @@
 | `dev_scripts_helpers.dockerize.lib_pandoc` | Pandoc Docker wrapper (run_dockerized_pandoc) |
 | `dev_scripts_helpers.dockerize.lib_typst` | Typst Docker wrapper (run_dockerized_typst) |
 | `convert_pandoc_divved_fence.py` | AST transformer: converts `Div[columns]` nodes to `RawBlock[typst #grid()]` for multi-column typst slides |
+| `latex_abbrevs.sty` | LaTeX math macro definitions; included at compile time in the LaTeX flows and mined by `_extract_latex_math_defs()` for the typst flow |
+| `typst_abbrevs.typ` | Typst `#let` companion definitions; `#include`d by `pandoc_touying.typ` for the Typst document layer (colors, tables, text helpers) — not for in-math macros |
+| `pandoc_touying.typ` | Pandoc Typst template producing Touying slides |
+| `typst_abbrevs_example.md` | Runnable example exercising the abbreviation expansion, with the mechanism documented in its header comment |
 | External CLI tools | `pandoc`, `pdflatex`, `typst`, `/opt/homebrew/bin/gs` (ghostscript) |
 
 # Critique and Improvements

@@ -757,6 +757,46 @@ def run_pandoc_to_slides(
     return file_out
 
 
+def _extract_latex_math_defs() -> str:
+    r"""
+    Extract the math macro definitions from `latex_abbrevs.sty`.
+
+    Problem:
+    - Pandoc cannot carry an unknown control sequence (e.g., `\vx`) forward
+      into Typst math
+    - It rejects `$\vx$` with "unexpected control sequence" and emits it as
+      escaped literal text
+
+    Solution:
+    - The macros must be expanded
+    - Prepending these definitions as a raw-LaTeX block lets pandoc's
+      `latex_macros` extension expand `\vx` -> `\boldsymbol{\underline{x}}`
+      before converting the fully-expanded LaTeX math to Typst
+
+    :return: The math macro definitions, one per line
+    """
+    latex_file = os.path.join(
+        hgit.find_file("dev_scripts_helpers"),
+        "documentation",
+        "latex_abbrevs.sty",
+    )
+    hdbg.dassert_file_exists(latex_file)
+    lines = []
+    for line in hio.from_file(latex_file).split("\n"):
+        # Only `\newcommand` / `\def` math macros are kept. Other macros
+        # (e.g., `\usepackage`, `\definecolor`, `\setlist`) are dropped.
+        if not (
+            line.startswith("\\newcommand") or line.startswith("\\def")
+        ):
+            continue
+        # Drop the `\textcolor`-based helpers; they are handled by a dedicated
+        # post-conversion regex instead.
+        if "\\textcolor" in line:
+            continue
+        lines.append(line)
+    return "\n".join(lines)
+
+
 def run_pandoc_to_typst_slides(
     curr_path: str,
     file_name: str,
@@ -766,7 +806,7 @@ def run_pandoc_to_typst_slides(
     *,
     typst_only: bool = False,
     fail_on_warnings: bool = True,
-    use_pandoc_ast_transform: bool = False,
+    use_pandoc_ast_transform: bool = True,
 ) -> str:
     """
     Convert the input file to PDF slides using Pandoc + Typst/Touying.
@@ -804,14 +844,20 @@ def run_pandoc_to_typst_slides(
     # TODO(gp): Consider using 1 stage pipeline with
     # --filter=convert_pandoc_divved_fence.py
     # Step 1: markdown -> JSON AST.
+    # Prepend the LaTeX math abbreviation definitions so pandoc's
+    # `latex_macros` extension expands macros like `\vx` into their full LaTeX
+    # form before converting math to Typst.
+    math_defs = _extract_latex_math_defs()
+    file_with_defs = f"{file_name}.with_defs.txt"
+    hio.to_file(file_with_defs, math_defs + "\n\n" + hio.from_file(file_name))
     _run_pandoc_to_ast(
-        file_name,
+        file_with_defs,
         use_host_tools,
         dockerized_force_rebuild,
         dockerized_use_sudo,
         fail_on_warnings=fail_on_warnings,
     )
-    ast_file = f"{file_name}.ast.json"
+    ast_file = f"{file_with_defs}.ast.json"
     # Step 2: transform Div[columns] -> RawBlock[typst #grid()] for multi-column layouts.
     transformed_ast_file = f"{file_name}.divved.ast.json"
     convert_script = hgit.find_file("convert_pandoc_divved_fence.py")
@@ -846,6 +892,23 @@ def run_pandoc_to_typst_slides(
     #    set to the repo root so they resolve correctly.
     root = os.getcwd()
     txt = hio.from_file(typ_file)
+    # `pandoc_touying.typ` includes `typst_abbrevs.typ` via a relative path that
+    # assumes the generated `.typ` sits exactly 2 levels below the repo root.
+    # That breaks for deeper output dirs (e.g., test scratch dirs). Rewrite the
+    # include to a root-absolute Typst path (resolved against `--root` below),
+    # matching how image paths are handled.
+    abbrevs_path = os.path.join(
+        hgit.find_file("dev_scripts_helpers"),
+        "documentation",
+        "typst_abbrevs.typ",
+    )
+    hdbg.dassert_file_exists(abbrevs_path)
+    abbrevs_rel = os.path.relpath(abbrevs_path, root)
+    txt = re.sub(
+        r'#include\s+"[^"]*typst_abbrevs\.typ"',
+        f'#include "/{abbrevs_rel}"',
+        txt,
+    )
     # Convert paths like "path/to/image.png" to "/path/to/image.png"
     # But preserve paths that are already absolute or start with ../
     typ_file_dir = os.path.dirname(typ_file)
@@ -885,9 +948,6 @@ def run_pandoc_to_typst_slides(
         r"#text(fill: red, \1)",
         txt,
     )
-    # Convert escaped backslashes for math mode.
-    txt = re.sub(r"\\\\EE\b", r"\\mathbb{E}", txt)
-    txt = re.sub(r"\\\\VV\b", r"\\mathbb{V}", txt)
     hio.to_file(typ_file, txt)
     # Return the `.typ` file if typst_only mode is requested.
     if typst_only:

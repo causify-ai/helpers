@@ -1,5 +1,7 @@
+import glob
 import logging
 import os
+import shutil
 import sys
 from typing import Tuple
 
@@ -1237,3 +1239,113 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         script_txt = self.helper(cmd_opts)
         # Check outputs.
         self.assert_equal(script_txt, expected_keyword, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_notes_to_pdf_typst_abbrevs
+# #############################################################################
+
+
+class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
+    """
+    End-to-end test of the `notes_to_pdf.py` Typst slides pipeline with LaTeX
+    abbreviations.
+
+    Uses an input similar to `typst_abbrevs_example.md` (LaTeX math macros like
+    `\\vx`, `\\mA`, `\\EE`) and checks that:
+    - The pipeline runs end-to-end and produces a non-empty PDF.
+    - Pandoc emits no warnings (macros are expanded rather than left as unknown
+      control sequences).
+    - The generated Typst has the macros expanded (e.g., `\\vx` ->
+      `bold(underline(x))`) and no LaTeX macro leaks as escaped literal text.
+    """
+
+    def _create_input_file(self) -> str:
+        """
+        Create a slides markdown file exercising the LaTeX abbreviations.
+
+        :return: Path to the created markdown file
+        """
+        # `####` starts a new slide under the Touying `slide-level: 4`
+        # convention (see `pandoc_touying.typ`).
+        txt = r"""
+        # Notation
+
+        #### Vectors and matrices
+
+        - Vector $\vx$ and matrix $\mA$
+        - Linear model: $\vy = \mX \vw + \vepsilon$
+        - Covariance: $\mSigma = \EE[(\vx - \vmu)(\vx - \vmu)^T]$
+
+        #### Fields and operators
+
+        - Real numbers $\bbR$, hypothesis set $\calH$
+        - Estimator: $\hat{\vw} = \argmin_{\vw} \norm{\vy - \mX \vw}^2$
+        - Distribution: $X \sim \N(\vmu, \mSigma)$
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "input.md")
+        hio.to_file(in_file, txt)
+        return in_file
+
+    @pytest.mark.superslow
+    def test_end_to_end(self) -> None:
+        """
+        Run the full Typst slides pipeline and check output and warnings.
+        """
+        # This test runs the real toolchain on the host, so it requires both
+        # `pandoc` and `typst` to be installed.
+        for tool in ("pandoc", "typst"):
+            if shutil.which(tool) is None:
+                pytest.skip(f"'{tool}' is not available on the host")
+        # Prepare inputs.
+        in_file = self._create_input_file()
+        out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, "output.pdf")
+        # Build the command running the Typst engine on host tools.
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        cmd = " ".join(
+            [
+                exec_path,
+                f"--input {in_file}",
+                f"--output {out_file}",
+                "--type slides",
+                "--slides_engine typst",
+                "--use_host_tools",
+                "--skip_action open",
+            ]
+        )
+        # Run end-to-end, capturing output without aborting on failure so we can
+        # assert on both the return code and the captured warnings.
+        rc, output = hsystem.system_to_string(cmd, abort_on_error=False)
+        _LOG.debug("rc=%s output=\n%s", rc, output)
+        # Check 1: the pipeline succeeded. With `--fail-if-warnings`, any pandoc
+        # warning (e.g., an unconverted macro) makes this non-zero.
+        self.assertEqual(rc, 0, msg=f"notes_to_pdf.py failed:\n{output}")
+        # Check 2: no pandoc warnings or unconverted-macro errors in the output.
+        for marker in (
+            "[WARNING]",
+            "Could not convert",
+            "unexpected control sequence",
+        ):
+            self.assertNotIn(
+                marker, output, msg=f"Found '{marker}' in output:\n{output}"
+            )
+        # Check 3: a non-empty PDF was produced at the requested output path.
+        self.assertTrue(
+            os.path.exists(out_file), msg=f"Missing output PDF: {out_file}"
+        )
+        self.assertGreater(os.path.getsize(out_file), 0)
+        # Check 4: the generated Typst has the macros expanded and no LaTeX macro
+        # leaked through as escaped literal text.
+        typ_files = glob.glob(os.path.join(out_dir, "*.typ"))
+        self.assertEqual(len(typ_files), 1, msg=f"typ_files={typ_files}")
+        typ_txt = hio.from_file(typ_files[0])
+        # `\vx` -> `\boldsymbol{\underline{x}}` -> Typst `bold(underline(x))`.
+        self.assertIn("bold(underline(x))", typ_txt)
+        # `\EE` -> `\mathbb{E}` -> Typst `bb(E)`.
+        self.assertIn("bb(E)", typ_txt)
+        # No macro should survive as an un-expanded control sequence.
+        self.assertNotIn(r"\vx", typ_txt)
+        self.assertNotIn(r"\mA", typ_txt)

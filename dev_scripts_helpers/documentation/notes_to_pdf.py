@@ -237,7 +237,7 @@ def _run_all(args: argparse.Namespace) -> None:
                     args.dockerized_use_sudo,
                     typst_only=args.tex_only,
                     fail_on_warnings=not args.no_fail_on_warnings,
-                    use_pandoc_ast_transform=args.use_pandoc_ast_transform,
+                    use_pandoc_ast_transform=True,
                 )
             else:
                 file_out = dshdlntpd.run_pandoc_to_slides(
