@@ -229,18 +229,22 @@
   automatically
 
 ### Syntax
-```typst
-#styled-table(
-  headers: ("Column 1", "Column 2", "Column 3"),
-  rows: (
-    ("Row 1 Col 1", "Row 1 Col 2", "Row 1 Col 3"),
-    ("Row 2 Col 1", "Row 2 Col 2", "Row 2 Col 3"),
-  ),
-  caption: "Table Caption (optional)",
-  col-widths: (1fr, 1.5fr, 1fr),  // optional
-  bold-first-col: true  // optional
-)
-````
+
+- The table is enclosed in a fenced div with `{=typst}`
+  ````
+  ```{=typst}
+  #styled-table(
+    headers: ("Column 1", "Column 2", "Column 3"),
+    rows: (
+      ("Row 1 Col 1", "Row 1 Col 2", "Row 1 Col 3"),
+      ("Row 2 Col 1", "Row 2 Col 2", "Row 2 Col 3"),
+    ),
+    caption: "Table Caption (optional)",
+    col-widths: (1fr, 1.5fr, 1fr),  // optional
+    bold-first-col: true  // optional
+  )
+  ```
+  ````
 
 ### Parameters
 - **headers**: Array of column header strings (required)

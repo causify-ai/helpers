@@ -127,7 +127,7 @@ def get_env_var(env_var_name: str) -> str:
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
 def _system(
     cmd: str,
-    print_command: bool,
+    print_command: Union[bool, str],
     abort_on_error: bool,
     suppress_error: Optional[Any],
     suppress_output: Union[bool, str],
@@ -207,6 +207,13 @@ def _system(
     try:
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
+        hdbg.dassert_in(print_command, ("ON_DEBUG_LEVEL", True, False))    
+        if print_command == "ON_DEBUG_LEVEL":
+            # Show the command if we are at (or lower than) DEBUG level, since
+            # logging.DEBUG=10 and logging.INFO=20.
+            show_command = _LOG.getEffectiveLevel() <= logging.DEBUG
+            print_command = not show_command
+        _LOG.debug(hprint.to_str("suppress_output"))
         if print_command:
             _LOG.info("> %s", cmd)
         with subprocess.Popen(
@@ -286,7 +293,7 @@ def _system(
 def system(
     cmd: str,
     *,
-    print_command: bool = False,
+    print_command: Union[str, bool] = "ON_DEBUG_LEVEL",
     abort_on_error: bool = True,
     suppress_error: Optional[Any] = None,
     suppress_output: Union[str, bool] = "ON_DEBUG_LEVEL",
@@ -303,6 +310,7 @@ def system(
 
     :param cmd: string with command to execute
     :param print_command: whether to print the command using `_LOG.info()`
+        - If "ON_DEBUG_LEVEL" then print the command if the log level is DEBUG
     :param abort_on_error: whether we should assert in case of error or not
     :param suppress_error: set of error codes to suppress
     :param suppress_output: whether to print the output or not
@@ -358,7 +366,7 @@ def system(
 def system_to_string(
     cmd: str,
     *,
-    print_command: bool = False,
+    print_command: Union[bool, str] = "ON_DEBUG_LEVEL",
     abort_on_error: bool = True,
     suppress_output: Union[bool, str] = "ON_DEBUG_LEVEL",
     wrapper: Optional[Any] = None,
@@ -368,7 +376,7 @@ def system_to_string(
     """
     Execute a shell command and capture its output.
 
-    See _system() for options.
+    See `system()` for options.
     """
     rc, output = _system(
         cmd,

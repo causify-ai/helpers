@@ -242,7 +242,7 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     executable = get_docker_executable(use_sudo)
     # `image inspect` returns 0 if the image exists, 1 otherwise.
     cmd = f"{executable} image inspect {image_name}"
-    rc, output = hsystem.system_to_string(
+    rc, _ = hsystem.system_to_string(
         cmd, abort_on_error=False, suppress_output=True
     )
     exists = rc == 0

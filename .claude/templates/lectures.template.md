@@ -226,9 +226,6 @@ Normal
 
 \endgroup
 
-\begingroup \scriptsize
-\endgroup
-
 * Align on multiple columns
 \small
 \begin{alignat*}{2}
@@ -272,6 +269,7 @@ Normal
 ```
 
 * Figure in the center
+```
 \vspace{-1cm}
 
 \begin{align*}
@@ -289,6 +287,7 @@ Normal
 * Figure scaled down
 ![](msml610/lectures_source/figures/Chap7_Binomial_distribution.png){ height=50%}
 ![](msml610/lectures_source/figures/Chap7_Binomial_distribution.png)
+```
 
 # Page formatting
 

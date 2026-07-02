@@ -332,6 +332,16 @@ class Test__transform_elem(hunitest.TestCase):
         actual_str = json.dumps(actual, indent=2)
         self.assert_equal(actual_str, expected)
 
+    def helper_simple_check(self, elem: Any) -> Any:
+        """
+        Simple helper that returns transformed element without string comparison.
+
+        :param elem: AST element to transform
+        :return: Transformed element
+        """
+        api_version = [1, 23, 1]
+        return dshdcpdfe._transform_elem(elem, api_version)
+
     def test1(self) -> None:
         """
         Test that columns container is transformed to RawBlock with #grid().
@@ -499,6 +509,62 @@ class Test__transform_elem(hunitest.TestCase):
         )
         # Run test.
         self.helper(elem, expected)
+
+    def test4_bullet_list_with_columns_in_items(self) -> None:
+        """
+        Test that BulletList items containing nested divs are transformed.
+
+        Verifies that _transform_elem recursively processes items in a
+        BulletList, transforming any Divs containing columns within the items.
+
+        Markdown input:
+        ```markdown
+        - Item 1
+        - Item 2:
+          :::columns
+          ::: column
+          content
+          :::
+          :::
+        ```
+        """
+        # Prepare inputs: BulletList with a nested columns Div in second item
+        elem = {
+            "t": "BulletList",
+            "c": [
+                [
+                    {"t": "Para", "c": [{"t": "Str", "c": "Item 1"}]}
+                ],
+                [
+                    {"t": "Para", "c": [{"t": "Str", "c": "Item 2:"}]},
+                    {
+                        "t": "Div",
+                        "c": [
+                            ["", ["columns"], []],
+                            [
+                                {
+                                    "t": "Div",
+                                    "c": [
+                                        ["", ["column"], [["width", "50%"]]],
+                                        [{"t": "Para", "c": [{"t": "Str", "c": "content"}]}],
+                                    ],
+                                }
+                            ],
+                        ],
+                    },
+                ],
+            ],
+        }
+        # Run test: transform element and verify structure
+        result = self.helper_simple_check(elem)
+        # Verify second item now has RawBlock instead of columns Div
+        self.assertEqual(result["t"], "BulletList")
+        second_item = result["c"][1]
+        # Second item should have Para + RawBlock (transformed columns)
+        self.assertEqual(len(second_item), 2)
+        self.assertEqual(second_item[0]["t"], "Para")
+        self.assertEqual(second_item[1]["t"], "RawBlock")
+        self.assertEqual(second_item[1]["c"][0], "typst")
 
 
 # #############################################################################
@@ -741,3 +807,70 @@ class Test_end_to_end(hunitest.TestCase):
 			"""
         )
         self.assert_equal(actual_str, expected)
+
+    def test2_inline_formatting_in_columns(self) -> None:
+        """
+        Test AST transformation with inline formatting (bold/italic) in columns.
+
+        This test specifically addresses the rendering issue where inline
+        formatted text in multi-line list items could be split awkwardly
+        across lines (e.g., "samples" and "_independent_" separated).
+
+        Markdown input:
+        ```markdown
+        * Search Over Reasoning
+
+        :::columns
+        ::: column {width=50%}
+        - **Problem**: self-consistency samples _independent_ chains
+        - **Solution**: treat reasoning as _search_
+        :::
+
+        ::: column {width=45%}
+        ```graphviz
+        digraph { ... }
+        ```
+        :::
+        :::
+        ```
+
+        Expected behavior:
+        - AST preserves all inline formatting in blocks
+        - Columns are correctly extracted with content preserved
+        - Transformation produces valid typst grid code
+        """
+        markdown_input = r"""
+		* Search Over Reasoning
+
+		:::columns
+		::: column {width="50%"}
+		- **Problem**: self-consistency samples _independent_ chains and cannot revisit
+		- **Solution**: treat reasoning as _search_ over structure
+		:::
+
+		::: column {width="45%"}
+		Text in second column
+		:::
+		:::
+		"""
+        markdown_input = hprint.dedent(markdown_input)
+        #
+        scratch_dir = self.get_scratch_space()
+        in_file = os.path.join(scratch_dir, "input.md")
+        hio.to_file(in_file, markdown_input)
+        #
+        ast_file = os.path.join(scratch_dir, "ast.json")
+        cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
+        dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
+        #
+        # Transform AST.
+        ast = json.loads(hio.from_file(ast_file))
+        actual_ast = dshdcpdfe._transform_ast(ast)
+        actual_str = json.dumps(actual_ast, indent=2)
+        assert 0, actual_str
+        #
+        # Verify transformation:
+        # 1. Columns div is replaced with RawBlock
+        # 2. RawBlock contains typst grid code
+        # 3. Grid code has correct column widths
+        self.assert_equal(actual_str, "inline_formatting_columns", fuzzy_match=True)
