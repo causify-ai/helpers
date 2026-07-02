@@ -50,7 +50,7 @@ $endif$
 #show raw.where(block: false): set text(size: 1.15em)
 
 // Styled table with zebra striping, lateral lines, and configurable width.
-#let styled-table(headers, rows, caption: none, col-widths: none, bold-first-col: true, size: 0.8em, width: 80%) = {
+#let styled-table(headers: (), rows: (), caption: none, col-widths: none, bold-first-col: true, size: 0.8em, width: 80%) = {
   // TODO(ai_gp): Add explanation of parameters
   let n = headers.len()
   let widths = if col-widths != none { col-widths } else { (1fr,) * n }

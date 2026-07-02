@@ -274,7 +274,12 @@ class Test__format_grid_code(hunitest.TestCase):
             "#grid(\n"
             "  columns: (55%, 45%),\n"
             "  gutter: 0.5em,\n"
-            "  [Content 1], [Content 2]\n"
+            "  [\n"
+            "  Content 1\n"
+            "  ],\n"
+            "  [\n"
+            "  Content 2\n"
+            "  ]\n"
             ")"
         )
         self.helper(widths, contents, expected)
@@ -304,7 +309,15 @@ class Test__format_grid_code(hunitest.TestCase):
             "#grid(\n"
             "  columns: (1fr, 1fr, 1fr),\n"
             "  gutter: 0.5em,\n"
-            "  [Left], [Middle], [Right]\n"
+            "  [\n"
+            "  Left\n"
+            "  ],\n"
+            "  [\n"
+            "  Middle\n"
+            "  ],\n"
+            "  [\n"
+            "  Right\n"
+            "  ]\n"
             ")"
         )
         self.helper(widths, contents, expected)
@@ -388,7 +401,7 @@ class Test__transform_elem(hunitest.TestCase):
 			  "t": "RawBlock",
 			  "c": [
 			    "typst",
-			    "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [col1], [col2]\n)"
+			    "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  col1\n  ],\n  [\n  col2\n  ]\n)"
 			  ]
 			}
 			"""
@@ -471,7 +484,7 @@ class Test__transform_elem(hunitest.TestCase):
 			        "t": "RawBlock",
 			        "c": [
 			          "typst",
-			          "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [nested], [col]\n)"
+			          "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  nested\n  ],\n  [\n  col\n  ]\n)"
 			        ]
 			      }
 			    ]
@@ -671,7 +684,7 @@ class Test__transform_ast(hunitest.TestCase):
 			      "t": "RawBlock",
 			      "c": [
 			        "typst",
-			        "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [left], [right]\n)"
+			        "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  left\n  ],\n  [\n  right\n  ]\n)"
 			      ]
 			    }
 			  ]
@@ -729,6 +742,7 @@ class Test__transform_ast(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp2): Factor out common code
 class Test_end_to_end(hunitest.TestCase):
     """
     End-to-end test using pandoc to convert markdown with columns to typst.
@@ -799,7 +813,7 @@ class Test_end_to_end(hunitest.TestCase):
 			      "t": "RawBlock",
 			      "c": [
 			        "typst",
-			        "#grid(\n  columns: (1fr, 1fr),\n  gutter: 0.5em,\n  [Left content], [Right content]\n)"
+			        "#grid(\n  columns: (1fr, 1fr),\n  gutter: 0.5em,\n  [\n  Left content\n  ],\n  [\n  Right content\n  ]\n)"
 			      ]
 			    }
 			  ]
@@ -807,6 +821,31 @@ class Test_end_to_end(hunitest.TestCase):
 			"""
         )
         self.assert_equal(actual_str, expected)
+        #
+        # Call dockerized pandoc to convert the transformed AST back to typst.
+        transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
+        hio.to_file(transformed_ast_file, actual_str)
+        typst_file = os.path.join(scratch_dir, "output.typ")
+        cmd = f"pandoc {transformed_ast_file} -f json -t typst -o {typst_file}"
+        dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
+        actual_typst = hio.from_file(typst_file)
+        expected_typst = hprint.dedent(
+            r"""
+			= Title
+			<title>
+			#grid(
+			  columns: (1fr, 1fr),
+			  gutter: 0.5em,
+			  [
+			  Left content
+			  ],
+			  [
+			  Right content
+			  ]
+			)
+			"""
+        )
+        self.assert_equal(actual_typst, expected_typst, fuzzy_match=True)
 
     def test2_inline_formatting_in_columns(self) -> None:
         """
@@ -867,10 +906,9 @@ class Test_end_to_end(hunitest.TestCase):
         ast = json.loads(hio.from_file(ast_file))
         actual_ast = dshdcpdfe._transform_ast(ast)
         actual_str = json.dumps(actual_ast, indent=2)
-        assert 0, actual_str
         #
         # Verify transformation:
         # 1. Columns div is replaced with RawBlock
         # 2. RawBlock contains typst grid code
         # 3. Grid code has correct column widths
-        self.assert_equal(actual_str, "inline_formatting_columns", fuzzy_match=True)
+        self.check_string(actual_str, purify_text=True)

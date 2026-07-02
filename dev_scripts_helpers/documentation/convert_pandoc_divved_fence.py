@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 r"""
-Convert pandoc AST: transform Div[columns] into RawBlock[typst #grid()].
+Convert pandoc AST by transforming `Div[columns]` into `RawBlock[typst #grid()]`.
 
 Pandoc parses Markdown multi-column layouts (via `:::columns` / `:::column` fences)
-into nested `Div` AST nodes. This script transforms the AST in-place: each
-`Div` with class `columns` is replaced with a `RawBlock(typst, "#grid(...)")` that
-renders columns as typst grids.
+into nested `Div` AST nodes.
+
+This script transforms the AST in-place: each `Div` with class `columns` is
+replaced with a `RawBlock(typst, "#grid(...)")` that renders columns as typst
+grids.
 
 The result can be fed to pandoc for final typst output:
 > pandoc input.md -t json | convert_pandoc_divved_fence.py -i - -o output.json
@@ -34,6 +36,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(gp): Factor out once there are more AST processing scripts.
 def _load_ast(filepath: str) -> Dict[str, Any]:
     """
     Load pandoc AST JSON from file.
@@ -169,7 +172,11 @@ def _format_grid_code(widths: List[str], column_contents: List[str]) -> str:
         "Mismatch between widths and column contents count",
     )
     columns_tuple = ", ".join(widths)
-    columns_wrapped = ", ".join(f"[{content}]" for content in column_contents)
+    formatted_columns = []
+    for content in column_contents:
+        indented_content = "\n".join(f"  {line}" for line in content.split("\n"))
+        formatted_columns.append(f"[\n{indented_content}\n  ]")
+    columns_wrapped = ",\n  ".join(formatted_columns)
     grid_code = (
         f"#grid(\n"
         f"  columns: ({columns_tuple}),\n"
