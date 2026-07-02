@@ -20,9 +20,11 @@ import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dsdocdpd
 import argparse
 import json
 import logging
+import os
 import tempfile
 from typing import Any, Dict, List, Tuple
 
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -35,6 +37,8 @@ _LOG = logging.getLogger(__name__)
 # Load / Save AST
 # #############################################################################
 
+# TODO(ai_gp): Use this everywhere is needed.
+PandocAst = Dict[str, Any]
 
 # TODO(gp): Factor out once there are more AST processing scripts.
 def _load_ast(filepath: str) -> Dict[str, Any]:
@@ -49,6 +53,14 @@ def _load_ast(filepath: str) -> Dict[str, Any]:
     return ast
 
 
+# TODO(ai_gp): Use ast_to_str
+def ast_to_str(ast: Dict[str, Any]) -> str:
+    hdbg.dassert_isinstance(ast, dict)
+    ast_str = json.dumps(ast, indent=2)
+    return ast_str
+
+
+
 def _save_ast(ast: Dict[str, Any], filepath: str) -> None:
     """
     Save pandoc AST JSON to file.
@@ -56,8 +68,61 @@ def _save_ast(ast: Dict[str, Any], filepath: str) -> None:
     :param ast: AST dict to serialize
     :param filepath: Path to write JSON file
     """
+    hdbg.dassert_isinstance(ast, dict)
+    # TODO(ai_gp): Use ast_to_str
     content = json.dumps(ast, indent=2)
     hio.to_file(filepath, content)
+
+
+# #############################################################################
+# Convert markdown / typst end-to-end
+# #############################################################################
+
+
+# TODO(ai_gp): Use _load_ast and _save_ast.
+def convert_markdown_to_pandoc_ast(
+    md_input: str, scratch_dir: str
+) -> Tuple[Dict[str, Any], str, str]:
+    """
+    Convert markdown text to a pandoc AST via dockerized pandoc.
+
+    :param md_input: markdown text to convert
+    :param scratch_dir: dir to store the input markdown and AST files
+    :return: tuple of (AST dict, input markdown file path, AST JSON file
+        path)
+    """
+    # Write input file.
+    in_file = os.path.join(scratch_dir, "input.md")
+    hio.to_file(in_file, md_input)
+    # Output file.
+    ast_file = os.path.join(scratch_dir, "ast.json")
+    # Run conversion.
+    cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
+    # TODO(ai_gp): Assign pandoc_only to variable.
+    dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
+    # Load result.
+    ast = json.loads(hio.from_file(ast_file))
+    return ast, in_file, ast_file
+
+
+def convert_pandoc_ast_to_typst(
+    ast_input_file: str, scratch_dir: str
+) -> Tuple[str, str]:
+    """
+    Convert a pandoc AST JSON file to typst text via dockerized pandoc.
+
+    :param ast_input_file: path to the AST JSON file
+    :param scratch_dir: dir to store the output typst file
+    :return: tuple of (typst text, typst output file path)
+    """
+    typst_file = os.path.join(scratch_dir, "output.typ")
+    # Run conversion.
+    cmd = f"pandoc {ast_input_file} -f json -t typst -o {typst_file}"
+    # TODO(ai_gp): Assign pandoc_only to variable.
+    dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
+    # Load result.
+    typst_txt = hio.from_file(typst_file)
+    return typst_txt, typst_file
 
 
 # #############################################################################
@@ -65,6 +130,7 @@ def _save_ast(ast: Dict[str, Any], filepath: str) -> None:
 # #############################################################################
 
 
+# TODO(ai_gp2): Add more comments.
 def _is_columns_container(elem: Dict[str, Any]) -> bool:
     """
     Check if element is a Div with class 'columns'.
@@ -151,11 +217,6 @@ def _render_blocks_to_typst(
     hdbg.dassert_eq(rc, 0, "pandoc command failed")
     typst_code = result.strip()
     return typst_code
-
-
-# #############################################################################
-# Generate Grid Code
-# #############################################################################
 
 
 def _format_grid_code(widths: List[str], column_contents: List[str]) -> str:
@@ -246,7 +307,7 @@ def _transform_ast(ast: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # #############################################################################
-# Main
+# CLI.
 # #############################################################################
 
 
@@ -286,10 +347,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    #
     _LOG.info("Loading AST from '%s'", args.in_file)
     ast = _load_ast(args.in_file)
+    #
     _LOG.info("Transforming AST: Div[columns] -> RawBlock[typst #grid()]")
     ast = _transform_ast(ast)
+    #
     _LOG.info("Saving transformed AST to '%s'", args.out_file)
     _save_ast(ast, args.out_file)
     _LOG.info("Done")

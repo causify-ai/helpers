@@ -3,10 +3,20 @@ import os
 from typing import Any, List, Tuple
 
 import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dshdcpdfe
-import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+
+
+def outcome_to_str(outcome: Dict[str, str]) -> str:
+    hdbg.dassert_isinstance(outcome, dict)
+    outcome_list = []
+    # TODO(ai_gp): Convert outcome 
+    for key, val in outcome:
+        outcome_list.append(hprint.frame(key))
+        outcome_list.append(val)
+    outcome_str = "\n".join(outcome_list)
+    return outcome_str
 
 
 # #############################################################################
@@ -756,6 +766,8 @@ class Test_end_to_end(hunitest.TestCase):
         - transform
         - typst
         """
+        outcome = {}
+        scratch_dir = self.get_scratch_space()
         # Create input markdown.
         markdown_input = """
 		# Title
@@ -771,89 +783,24 @@ class Test_end_to_end(hunitest.TestCase):
 		:::
 		"""
         markdown_input = hprint.dedent(markdown_input)
-        # TODO(ai_gp): Create a function in convert_pandoc_divved_fence.py
-        # convert_markdown_to_pandoc_ast(md_input, scratch_dir)
-        # which returns ast, in_file, ast_file
-        # Save markdown to input file.
-        scratch_dir = self.get_scratch_space()
-        in_file = os.path.join(scratch_dir, "input.md")
-        hio.to_file(in_file, markdown_input)
-        # Create AST.
-        ast_file = os.path.join(scratch_dir, "ast.json")
-        cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
-        dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
-        # Load AST.
-        ast = json.loads(hio.from_file(ast_file))
-        actual_ast = dshdcpdfe._transform_ast(ast)
-        actual_str = json.dumps(actual_ast, indent=2)
-        expected = hprint.dedent(
-            r"""
-			{
-			  "pandoc-api-version": [
-			    1,
-			    23,
-			    1
-			  ],
-			  "meta": {},
-			  "blocks": [
-			    {
-			      "t": "Header",
-			      "c": [
-			        1,
-			        [
-			          "title",
-			          [],
-			          []
-			        ],
-			        [
-			          {
-			            "t": "Str",
-			            "c": "Title"
-			          }
-			        ]
-			      ]
-			    },
-			    {
-			      "t": "RawBlock",
-			      "c": [
-			        "typst",
-			        "#grid(\n  columns: (1fr, 1fr),\n  gutter: 0.5em,\n  [\n  Left content\n  ],\n  [\n  Right content\n  ]\n)"
-			      ]
-			    }
-			  ]
-			}
-			"""
+        outcome["markdown_input"] = markdown_input
+        # Save markdown to input file and create AST.
+        ast, _, ast_file = dshdcpdfe.convert_markdown_to_pandoc_ast(
+            markdown_input, scratch_dir
         )
-        self.assert_equal(actual_str, expected)
+        outcome["ast_input"] = ast_to_str(ast)
+        #
+        actual_ast = dshdcpdfe._transform_ast(ast)
+        outcome["ast_output"] = ast_to_str(actual_ast)
         # Call dockerized pandoc to convert the transformed AST back to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
         hio.to_file(transformed_ast_file, actual_str)
-        #
-        # TODO(ai_gp): Create a function in convert_pandoc_divved_fence.py
-        # convert_pandoc_ast_to_typst(ast_input_file, scratch_dir)
-        # which returns typst_txt, typst_file
-        typst_file = os.path.join(scratch_dir, "output.typ")
-        cmd = f"pandoc {transformed_ast_file} -f json -t typst -o {typst_file}"
-        dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
-        actual_typst = hio.from_file(typst_file)
-        #
-        expected_typst = hprint.dedent(
-            r"""
-			= Title
-			<title>
-			#grid(
-			  columns: (1fr, 1fr),
-			  gutter: 0.5em,
-			  [
-			  Left content
-			  ],
-			  [
-			  Right content
-			  ]
-			)
-			"""
+        actual_typst, _ = dshdcpdfe.convert_pandoc_ast_to_typst(
+            transformed_ast_file, scratch_dir
         )
-        self.assert_equal(actual_typst, expected_typst, fuzzy_match=True)
+        #
+        outcome["typst_output"] = actual_typst
+        self.check_string(outcome)
 
     def test2_inline_formatting_in_columns(self) -> None:
         """
@@ -885,15 +832,10 @@ class Test_end_to_end(hunitest.TestCase):
         markdown_input = hprint.dedent(markdown_input)
         #
         scratch_dir = self.get_scratch_space()
-        in_file = os.path.join(scratch_dir, "input.md")
-        hio.to_file(in_file, markdown_input)
-        #
-        ast_file = os.path.join(scratch_dir, "ast.json")
-        cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
-        dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
-        #
+        ast, _, _ = dshdcpdfe.convert_markdown_to_pandoc_ast(
+            markdown_input, scratch_dir
+        )
         # Transform AST.
-        ast = json.loads(hio.from_file(ast_file))
         actual_ast = dshdcpdfe._transform_ast(ast)
         actual_str = json.dumps(actual_ast, indent=2)
         #
