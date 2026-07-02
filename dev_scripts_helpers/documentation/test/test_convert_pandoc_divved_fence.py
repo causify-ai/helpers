@@ -532,7 +532,7 @@ class Test__transform_elem(hunitest.TestCase):
         # Run test.
         self.helper(elem, expected)
 
-    def test4_bullet_list_with_columns_in_items(self) -> None:
+    def test4(self) -> None:
         """
         Test that BulletList items containing nested divs are transformed.
 
@@ -599,6 +599,10 @@ class Test__transform_ast(hunitest.TestCase):
     Test the `_transform_ast()` function.
     """
 
+    # TODO(ai_gp): Make this helper similar to Test_end_to_end.helper
+    # where the callers pass a markdown_input, which gets converted into
+    # an ast, the ast transformed by dshdcpdfe._transform_ast, and then the content of outcome
+    # is compared to the expected value using outcome_to_str and self.check_string
     def helper(self, ast: Any, expected: str) -> None:
         """
         Test helper for _transform_ast.
