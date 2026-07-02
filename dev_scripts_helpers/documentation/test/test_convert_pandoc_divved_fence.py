@@ -107,6 +107,10 @@ class Test__extract_columns(hunitest.TestCase):
     Test the `_extract_columns()` function.
     """
 
+    # TODO(ai_gp): Make this helper similar to Test_end_to_end.helper
+    # where the callers pass a markdown_input, which gets converted into
+    # an ast, the ast transformed by the function in helper, and then the content of outcome
+    # is compared to the expected value using outcome_to_str and self.check_string
     def helper(self, container: Any, expected: List[Tuple[str, Any]]) -> None:
         """
         Test helper for _extract_columns.
@@ -279,6 +283,7 @@ class Test__format_grid_code(hunitest.TestCase):
         """
         widths = ["55%", "45%"]
         contents = ["Content 1", "Content 2"]
+        # TODO(ai_gp): Use """ and dedent
         expected = (
             "#grid(\n"
             "  columns: (55%, 45%),\n"
@@ -314,6 +319,7 @@ class Test__format_grid_code(hunitest.TestCase):
         """
         widths = ["1fr", "1fr", "1fr"]
         contents = ["Left", "Middle", "Right"]
+        # TODO(ai_gp): Use """ and dedent
         expected = (
             "#grid(\n"
             "  columns: (1fr, 1fr, 1fr),\n"
@@ -342,21 +348,26 @@ class Test__transform_elem(hunitest.TestCase):
     Test the `_transform_elem()` function.
     """
 
-    # TODO(ai_gp): Make this helper similar to Test_end_to_end.helper
-    # where the callers pass a markdown_input, which gets converted into
-    # an ast, the ast transformed by dshdcpdfe._transform_elem, and then the content of outcome
-    # is compared to the expected value using outcome_to_str and self.check_string
-    def helper(self, elem: Any, expected: str) -> None:
+    def helper(self, markdown_input: str) -> None:
         """
-        Test helper for _transform_elem.
+        Run full pipeline from markdown to transformed elem.
 
-        :param elem: AST element to transform
-        :param expected: Expected JSON string of transformed element
+        :param markdown_input: Markdown text to convert
         """
-        api_version = [1, 23, 1]
-        actual = dshdcpdfe._transform_elem(elem, api_version)
-        actual_str = dshdcpdfe.ast_to_str(actual)
-        self.assert_equal(actual_str, expected)
+        scratch_dir = self.get_scratch_space()
+        outcome = {}
+        markdown_input = hprint.dedent(markdown_input)
+        outcome["1. markdown_input"] = markdown_input
+        # Convert markdown to AST.
+        ast, _, _ = dshdcpdfe.convert_markdown_to_pandoc_ast(
+            markdown_input, scratch_dir
+        )
+        outcome["2. ast_input"] = dshdcpdfe.ast_to_str(ast)
+        # Transform AST.
+        actual_ast = dshdcpdfe._transform_ast(ast)
+        outcome["3. ast_output"] = dshdcpdfe.ast_to_str(actual_ast)
+        actual_outcome = outcome_to_str(outcome)
+        self.check_string(actual_outcome)
 
     def test1(self) -> None:
         """
@@ -374,50 +385,23 @@ class Test__transform_elem(hunitest.TestCase):
         :::
         ```
         """
-        # Prepare inputs.
-        elem = {
-            "t": "Div",
-            "c": [
-                ["", ["columns"], []],
-                [
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["column"], [["width", "50%"]]],
-                            [{"t": "RawBlock", "c": ["typst", "col1"]}],
-                        ],
-                    },
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["column"], [["width", "50%"]]],
-                            [{"t": "RawBlock", "c": ["typst", "col2"]}],
-                        ],
-                    },
-                ],
-            ],
-        }
-        # Prepare outputs.
-        expected = hprint.dedent(
-            r"""
-			{
-			  "t": "RawBlock",
-			  "c": [
-			    "typst",
-			    "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  col1\n  ],\n  [\n  col2\n  ]\n)"
-			  ]
-			}
-			"""
-        )
-        # Run test.
-        self.helper(elem, expected)
+        markdown_input = """
+        :::columns
+        ::: column {width="50%"}
+        col1
+        :::
+        ::: column {width="50%"}
+        col2
+        :::
+        :::
+        """
+        self.helper(markdown_input)
 
     def test2(self) -> None:
         """
         Test that non-columns Div children are recursively transformed.
-
-        Markdown input:
-        ```markdown
+        """
+        markdown_input = """
         ::: {#id1}
         :::columns
         ::: column {width="50%"}
@@ -428,103 +412,17 @@ class Test__transform_elem(hunitest.TestCase):
         :::
         :::
         :::
-        ```
         """
-        # Prepare inputs.
-        elem = {
-            "t": "Div",
-            "c": [
-                ["id1", [], []],
-                [
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["columns"], []],
-                            [
-                                {
-                                    "t": "Div",
-                                    "c": [
-                                        ["", ["column"], [["width", "50%"]]],
-                                        [
-                                            {
-                                                "t": "RawBlock",
-                                                "c": ["typst", "nested"],
-                                            }
-                                        ],
-                                    ],
-                                },
-                                {
-                                    "t": "Div",
-                                    "c": [
-                                        ["", ["column"], [["width", "50%"]]],
-                                        [
-                                            {
-                                                "t": "RawBlock",
-                                                "c": ["typst", "col"],
-                                            }
-                                        ],
-                                    ],
-                                },
-                            ],
-                        ],
-                    }
-                ],
-            ],
-        }
-        # Prepare outputs.
-        expected = hprint.dedent(
-            r"""
-			{
-			  "t": "Div",
-			  "c": [
-			    [
-			      "id1",
-			      [],
-			      []
-			    ],
-			    [
-			      {
-			        "t": "RawBlock",
-			        "c": [
-			          "typst",
-			          "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  nested\n  ],\n  [\n  col\n  ]\n)"
-			        ]
-			      }
-			    ]
-			  ]
-			}
-			"""
-        )
-        # Run test.
-        self.helper(elem, expected)
+        self.helper(markdown_input)
 
     def test3(self) -> None:
         """
         Test that Para elements pass through unchanged.
-
-        Markdown input:
-        ```markdown
-        text
-        ```
         """
-        # Prepare inputs.
-        elem = {"t": "Para", "c": [{"t": "Str", "c": "text"}]}
-        # Prepare outputs.
-        expected = hprint.dedent(
-            """
-			{
-			  "t": "Para",
-			  "c": [
-			    {
-			      "t": "Str",
-			      "c": "text"
-			    }
-			  ]
-			}
-			"""
-        )
-        # Run test.
-        self.helper(elem, expected)
+        markdown_input = """
+        text
+        """
+        self.helper(markdown_input)
 
     def test4(self) -> None:
         """
@@ -532,9 +430,8 @@ class Test__transform_elem(hunitest.TestCase):
 
         Verifies that _transform_elem recursively processes items in a
         BulletList, transforming any Divs containing columns within the items.
-
-        Markdown input:
-        ```markdown
+        """
+        markdown_input = """
         - Item 1
         - Item 2:
           :::columns
@@ -542,36 +439,8 @@ class Test__transform_elem(hunitest.TestCase):
           content
           :::
           :::
-        ```
         """
-        # Prepare inputs: BulletList with a nested columns Div in second item
-        elem = {
-            "t": "BulletList",
-            "c": [
-                [
-                    {"t": "Para", "c": [{"t": "Str", "c": "Item 1"}]}
-                ],
-                [
-                    {"t": "Para", "c": [{"t": "Str", "c": "Item 2:"}]},
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["columns"], []],
-                            [
-                                {
-                                    "t": "Div",
-                                    "c": [
-                                        ["", ["column"], [["width", "50%"]]],
-                                        [{"t": "Para", "c": [{"t": "Str", "c": "content"}]}],
-                                    ],
-                                }
-                            ],
-                        ],
-                    },
-                ],
-            ],
-        }
-        result = self.helper(elem)
+        self.helper(markdown_input)
 
 
 # #############################################################################
