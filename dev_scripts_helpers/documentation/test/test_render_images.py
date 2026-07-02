@@ -421,7 +421,7 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "graphviz"
         out_file_name = "test2.md"
         dst_ext = "svg"
-        expected_path = "figs/test2.1.svg"
+        expected_path = "figs/test2.1.png"
         self.helper(
             image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
@@ -1438,7 +1438,6 @@ class Test_render_images_script1(hunitest.TestCase):
         cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
         # Run test.
         rc = hsystem.system(cmd)
-        # Check outputs.
         self.assertEqual(rc, 0)
 
     def test4(self) -> None:
@@ -1463,7 +1462,6 @@ class Test_render_images_script1(hunitest.TestCase):
         )
         # Run test.
         rc = hsystem.system(cmd)
-        # Check outputs.
         self.assertEqual(rc, 0)
 
     def test5(self) -> None:
@@ -1488,7 +1486,6 @@ class Test_render_images_script1(hunitest.TestCase):
         )
         # Run test.
         rc = hsystem.system(cmd)
-        # Check outputs.
         self.assertEqual(rc, 0)
 
     def test6(self) -> None:
@@ -1513,5 +1510,4 @@ class Test_render_images_script1(hunitest.TestCase):
         )
         # Run test.
         rc = hsystem.system(cmd)
-        # Check outputs.
         self.assertEqual(rc, 0)

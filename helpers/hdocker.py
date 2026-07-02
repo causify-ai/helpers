@@ -187,10 +187,10 @@ def process_docker_cmd(
         ret = docker_cmd
     elif mode == "system":
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, suppress_output=False)
+        hsystem.system(docker_cmd, print_command=True, suppress_output=False)
         ret = ""
     elif mode == "system_without_output":
-        hsystem.system(docker_cmd, suppress_output=True)
+        hsystem.system(docker_cmd, print_command=True, suppress_output=True)
         ret = ""
     elif mode == "save_to_file":
         file_name = f"tmp.process_docker_cmd.{container_image}.txt"
@@ -242,7 +242,7 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     executable = get_docker_executable(use_sudo)
     # `image inspect` returns 0 if the image exists, 1 otherwise.
     cmd = f"{executable} image inspect {image_name}"
-    rc, output = hsystem.system_to_string(
+    rc, _ = hsystem.system_to_string(
         cmd, abort_on_error=False, suppress_output=True
     )
     exists = rc == 0

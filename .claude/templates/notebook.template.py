@@ -14,61 +14,58 @@
 # ---
 
 # %% [markdown]
-# # Description
+# # <PACKAGE_NAME> API
 #
-# This notebook examines ...
+# A guided exploration of the <PACKAGE_NAME> library:
+# - **Core abstraction**: <describe main concept>
+# - **Use case**: <what problem it solves>
+# - **Learning path**: primitives → composition → patterns
 
 # %% [markdown]
-# ## Imports
+# ## Imports and Setup
 
 # %%
 # %load_ext autoreload
 # %autoreload 2
 
-# System libraries.
 import logging
+import warnings
 
-# Third-party libraries.
-# import numpy as np
-# import pandas as pd
-# import seaborn as sns
-# import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
-# %%
-# # To install additional packages, use:
-# import helpers.hmodule as hmodule
-# hmodule.install_module_if_not_present(
-#     ["..."],
-#     use_activate=True,
-#     use_sudo=False,
-#     venv_path="/opt/venv",
-# )
+warnings.filterwarnings("ignore")
 
 # %%
-# Use this for most notebooks.
-# import helpers.hdbg as hdbg
-# import helpers.hnotebook as hnotebook
+import helpers.hdbg as hdbg
+import helpers.hnotebook as hnotebook
 
+hdbg.init_logger(verbosity=logging.INFO)
 _LOG = logging.getLogger(__name__)
+hnotebook.config_notebook()
 
-# Initialize notebook configuration and logging.
-# hnotebook.config_notebook()
-# hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
-# hnotebook.set_logger_to_print(_LOG)
-
-import notebook_utils_template as utils
-
-_LOG = logging.getLogger(__name__)
-utils.init_loggers(_LOG)
-
-_LOG.info("Test _LOG.info")
-_LOG.debug("Test _LOG.debug")
-
-# Convert `display` into `print()`.
 try:
     from IPython.display import display
 except ImportError:
     display = print  # type: ignore
+
+# %% [markdown]
+# ## Library Overview
+#
+# - **What problem it solves**: <main problem>
+# - **Key abstraction**: <core concept>
+# - **Mental model**:
+#
+# | Object | Description | Comments |
+# |--------|-------------|----------|
+# | `Explainer(...)` | Main entry point | Wraps model + training data |
+# | `.explain(x)` | Instance explanation | Returns Explanation object |
+# | `Explanation.values` | Per-feature contributions | shape (n_samples, n_features) |
+#
+# - **Key classes**:
+#   - `Explainer`: Main class for generating explanations
+#   - `Explanation`: Result object holding values, baseline, and metadata
 
 # %% [markdown]
 # # Part 1: Distribution Explorer

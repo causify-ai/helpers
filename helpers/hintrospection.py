@@ -151,7 +151,7 @@ def print_public_methods(obj: Any, *, use_markdown: bool = False) -> None:
                 func_line = f"`{method_name}{sig_str}`"
                 if doc:
                     first_line = doc.split("\n")[0]
-                    print(f"- {func_line} — {first_line}")
+                    print(f"- {func_line}: {first_line}")
                 else:
                     print(f"- {func_line}")
             else:

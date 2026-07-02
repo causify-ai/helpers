@@ -819,6 +819,11 @@ line3
   result = hsystem.system(f"{executable} --help")
   ```
 
+## Build Command Lines for Tests
+
+- Follow the command line building conventions in
+  `.claude/skills/coding.rules.md` under `## How to Build Command Lines`
+
 ## Use the Mocking Infrastructure
 - For testing executables use end-to-end tests that:
   1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
@@ -940,3 +945,14 @@ line3
 - Inherit from `hmoto.S3Mock_TestCase` for in-process S3 mocking via `moto`
 - `moto` must be imported before `boto3`; `hmoto.py` enforces this
 - Each test gets a fresh bucket named `self.bucket_name`
+
+# Verification
+- [ ] No use of `self.check_string`
+- [ ] No `self.assertIn` but check the entire output value with an assert_equal
+  - See `## Use an Expected Output and `assert_equal``
+- [ ] No function is called with hardwired parameters, but they are assigned
+  to a variable and then used
+  - See `## Assign Variables and Then Call Functions`
+- [ ] No repeated code, use at least one `def helper()` per class
+  - See `## Use Helper Methods When You Have Repetitive Tests`
+- [ ] All unit tests pass
