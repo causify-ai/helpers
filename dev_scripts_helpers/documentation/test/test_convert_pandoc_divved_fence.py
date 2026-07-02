@@ -751,11 +751,42 @@ class Test__transform_ast(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp2): Factor out common code
 class Test_end_to_end(hunitest.TestCase):
     """
     End-to-end test using pandoc to convert markdown with columns to typst.
     """
+
+    def helper(
+        self, markdown_input: str
+    ) -> None:
+        """
+        Run full pipeline from markdown to transformed AST and typst.
+
+        :param markdown_input: Markdown text to convert
+        :param scratch_dir: Directory to store intermediate files
+        """
+        scratch_dir = self.get_scratch_space()
+        outcome = {}
+        markdown_input = hprint.dedent(markdown_input)
+        outcome["1. markdown_input"] = markdown_input
+        # Convert markdown to AST.
+        ast, _, _ = dshdcpdfe.convert_markdown_to_pandoc_ast(
+            markdown_input, scratch_dir
+        )
+        outcome["2. ast_input"] = dshdcpdfe.ast_to_str(ast)
+        # Transform AST.
+        actual_ast = dshdcpdfe._transform_ast(ast)
+        outcome["3. ast_output"] = dshdcpdfe.ast_to_str(actual_ast)
+        # Convert transformed AST back to typst.
+        transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
+        actual_str = dshdcpdfe.ast_to_str(actual_ast)
+        hio.to_file(transformed_ast_file, actual_str)
+        actual_typst, _ = dshdcpdfe.convert_pandoc_ast_to_typst(
+            transformed_ast_file, scratch_dir
+        )
+        outcome["4. typst_output"] = actual_typst
+        actual_outcome = outcome_to_str(outcome)
+        self.check_string(actual_outcome)
 
     def test1(self) -> None:
         """
@@ -765,9 +796,6 @@ class Test_end_to_end(hunitest.TestCase):
         - transform
         - typst
         """
-        outcome = {}
-        scratch_dir = self.get_scratch_space()
-        # Create input markdown.
         markdown_input = """
 		# Title
 
@@ -781,29 +809,9 @@ class Test_end_to_end(hunitest.TestCase):
 		:::
 		:::
 		"""
-        markdown_input = hprint.dedent(markdown_input)
-        outcome["1. markdown_input"] = markdown_input
-        # Save markdown to input file and create AST.
-        ast, _, ast_file = dshdcpdfe.convert_markdown_to_pandoc_ast(
-            markdown_input, scratch_dir
-        )
-        outcome["2. ast_input"] = dshdcpdfe.ast_to_str(ast)
-        #
-        actual_ast = dshdcpdfe._transform_ast(ast)
-        outcome["3. ast_output"] = dshdcpdfe.ast_to_str(actual_ast)
-        # Call dockerized pandoc to convert the transformed AST back to typst.
-        transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
-        actual_str = dshdcpdfe.ast_to_str(actual_ast)
-        hio.to_file(transformed_ast_file, actual_str)
-        actual_typst, _ = dshdcpdfe.convert_pandoc_ast_to_typst(
-            transformed_ast_file, scratch_dir
-        )
-        outcome["4. typst_output"] = actual_typst
-        #
-        actual_outcome = outcome_to_str(outcome)
-        self.check_string(actual_outcome)
+        self.helper(markdown_input)
 
-    def test2_inline_formatting_in_columns(self) -> None:
+    def test2(self) -> None:
         """
         Test AST transformation with inline formatting (bold/italic) in columns.
 
@@ -830,18 +838,4 @@ class Test_end_to_end(hunitest.TestCase):
 		:::
 		:::
 		"""
-        markdown_input = hprint.dedent(markdown_input)
-        #
-        scratch_dir = self.get_scratch_space()
-        ast, _, _ = dshdcpdfe.convert_markdown_to_pandoc_ast(
-            markdown_input, scratch_dir
-        )
-        # Transform AST.
-        actual_ast = dshdcpdfe._transform_ast(ast)
-        actual_str = dshdcpdfe.ast_to_str(actual_ast)
-        #
-        # Verify transformation:
-        # 1. Columns div is replaced with RawBlock
-        # 2. RawBlock contains typst grid code
-        # 3. Grid code has correct column widths
-        self.check_string(actual_str, purify_text=True)
+        self.helper(markdown_input)
