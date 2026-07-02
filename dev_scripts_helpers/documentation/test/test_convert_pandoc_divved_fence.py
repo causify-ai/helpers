@@ -756,6 +756,7 @@ class Test_end_to_end(hunitest.TestCase):
         - transform
         - typst
         """
+        # Create input markdown.
         markdown_input = """
 		# Title
 
@@ -770,15 +771,18 @@ class Test_end_to_end(hunitest.TestCase):
 		:::
 		"""
         markdown_input = hprint.dedent(markdown_input)
-        #
+        # TODO(ai_gp): Create a function in convert_pandoc_divved_fence.py
+        # convert_markdown_to_pandoc_ast(md_input, scratch_dir)
+        # which returns ast, in_file, ast_file
+        # Save markdown to input file.
         scratch_dir = self.get_scratch_space()
         in_file = os.path.join(scratch_dir, "input.md")
         hio.to_file(in_file, markdown_input)
-        #
+        # Create AST.
         ast_file = os.path.join(scratch_dir, "ast.json")
         cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
         dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
-        #
+        # Load AST.
         ast = json.loads(hio.from_file(ast_file))
         actual_ast = dshdcpdfe._transform_ast(ast)
         actual_str = json.dumps(actual_ast, indent=2)
@@ -821,14 +825,18 @@ class Test_end_to_end(hunitest.TestCase):
 			"""
         )
         self.assert_equal(actual_str, expected)
-        #
         # Call dockerized pandoc to convert the transformed AST back to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
         hio.to_file(transformed_ast_file, actual_str)
+        #
+        # TODO(ai_gp): Create a function in convert_pandoc_divved_fence.py
+        # convert_pandoc_ast_to_typst(ast_input_file, scratch_dir)
+        # which returns typst_txt, typst_file
         typst_file = os.path.join(scratch_dir, "output.typ")
         cmd = f"pandoc {transformed_ast_file} -f json -t typst -o {typst_file}"
         dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
         actual_typst = hio.from_file(typst_file)
+        #
         expected_typst = hprint.dedent(
             r"""
 			= Title
@@ -854,24 +862,6 @@ class Test_end_to_end(hunitest.TestCase):
         This test specifically addresses the rendering issue where inline
         formatted text in multi-line list items could be split awkwardly
         across lines (e.g., "samples" and "_independent_" separated).
-
-        Markdown input:
-        ```markdown
-        * Search Over Reasoning
-
-        :::columns
-        ::: column {width=50%}
-        - **Problem**: self-consistency samples _independent_ chains
-        - **Solution**: treat reasoning as _search_
-        :::
-
-        ::: column {width=45%}
-        ```graphviz
-        digraph { ... }
-        ```
-        :::
-        :::
-        ```
 
         Expected behavior:
         - AST preserves all inline formatting in blocks
