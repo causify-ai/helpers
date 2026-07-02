@@ -1,8 +1,8 @@
-import json
 import os
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dshdcpdfe
+import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -11,8 +11,7 @@ import helpers.hunit_test as hunitest
 def outcome_to_str(outcome: Dict[str, str]) -> str:
     hdbg.dassert_isinstance(outcome, dict)
     outcome_list = []
-    # TODO(ai_gp): Convert outcome 
-    for key, val in outcome:
+    for key, val in outcome.items():
         outcome_list.append(hprint.frame(key))
         outcome_list.append(val)
     outcome_str = "\n".join(outcome_list)
@@ -352,7 +351,7 @@ class Test__transform_elem(hunitest.TestCase):
         """
         api_version = [1, 23, 1]
         actual = dshdcpdfe._transform_elem(elem, api_version)
-        actual_str = json.dumps(actual, indent=2)
+        actual_str = dshdcpdfe.ast_to_str(actual)
         self.assert_equal(actual_str, expected)
 
     def helper_simple_check(self, elem: Any) -> Any:
@@ -608,7 +607,7 @@ class Test__transform_ast(hunitest.TestCase):
         :param expected: Expected JSON string of transformed AST
         """
         actual = dshdcpdfe._transform_ast(ast)
-        actual_str = json.dumps(actual, indent=2)
+        actual_str = dshdcpdfe.ast_to_str(actual)
         self.assert_equal(actual_str, expected)
 
     def test1(self) -> None:
@@ -783,24 +782,26 @@ class Test_end_to_end(hunitest.TestCase):
 		:::
 		"""
         markdown_input = hprint.dedent(markdown_input)
-        outcome["markdown_input"] = markdown_input
+        outcome["1. markdown_input"] = markdown_input
         # Save markdown to input file and create AST.
         ast, _, ast_file = dshdcpdfe.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["ast_input"] = ast_to_str(ast)
+        outcome["2. ast_input"] = dshdcpdfe.ast_to_str(ast)
         #
         actual_ast = dshdcpdfe._transform_ast(ast)
-        outcome["ast_output"] = ast_to_str(actual_ast)
+        outcome["3. ast_output"] = dshdcpdfe.ast_to_str(actual_ast)
         # Call dockerized pandoc to convert the transformed AST back to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
+        actual_str = dshdcpdfe.ast_to_str(actual_ast)
         hio.to_file(transformed_ast_file, actual_str)
         actual_typst, _ = dshdcpdfe.convert_pandoc_ast_to_typst(
             transformed_ast_file, scratch_dir
         )
+        outcome["4. typst_output"] = actual_typst
         #
-        outcome["typst_output"] = actual_typst
-        self.check_string(outcome)
+        actual_outcome = outcome_to_str(outcome)
+        self.check_string(actual_outcome)
 
     def test2_inline_formatting_in_columns(self) -> None:
         """
@@ -837,7 +838,7 @@ class Test_end_to_end(hunitest.TestCase):
         )
         # Transform AST.
         actual_ast = dshdcpdfe._transform_ast(ast)
-        actual_str = json.dumps(actual_ast, indent=2)
+        actual_str = dshdcpdfe.ast_to_str(actual_ast)
         #
         # Verify transformation:
         # 1. Columns div is replaced with RawBlock

@@ -37,11 +37,10 @@ _LOG = logging.getLogger(__name__)
 # Load / Save AST
 # #############################################################################
 
-# TODO(ai_gp): Use this everywhere is needed.
 PandocAst = Dict[str, Any]
 
 # TODO(gp): Factor out once there are more AST processing scripts.
-def _load_ast(filepath: str) -> Dict[str, Any]:
+def _load_ast(filepath: str) -> PandocAst:
     """
     Load pandoc AST JSON from file.
 
@@ -53,15 +52,13 @@ def _load_ast(filepath: str) -> Dict[str, Any]:
     return ast
 
 
-# TODO(ai_gp): Use ast_to_str
-def ast_to_str(ast: Dict[str, Any]) -> str:
+def ast_to_str(ast: PandocAst) -> str:
     hdbg.dassert_isinstance(ast, dict)
     ast_str = json.dumps(ast, indent=2)
     return ast_str
 
 
-
-def _save_ast(ast: Dict[str, Any], filepath: str) -> None:
+def _save_ast(ast: PandocAst, filepath: str) -> None:
     """
     Save pandoc AST JSON to file.
 
@@ -69,8 +66,7 @@ def _save_ast(ast: Dict[str, Any], filepath: str) -> None:
     :param filepath: Path to write JSON file
     """
     hdbg.dassert_isinstance(ast, dict)
-    # TODO(ai_gp): Use ast_to_str
-    content = json.dumps(ast, indent=2)
+    content = ast_to_str(ast)
     hio.to_file(filepath, content)
 
 
@@ -79,10 +75,9 @@ def _save_ast(ast: Dict[str, Any], filepath: str) -> None:
 # #############################################################################
 
 
-# TODO(ai_gp): Use _load_ast and _save_ast.
 def convert_markdown_to_pandoc_ast(
     md_input: str, scratch_dir: str
-) -> Tuple[Dict[str, Any], str, str]:
+) -> Tuple[PandocAst, str, str]:
     """
     Convert markdown text to a pandoc AST via dockerized pandoc.
 
@@ -98,10 +93,10 @@ def convert_markdown_to_pandoc_ast(
     ast_file = os.path.join(scratch_dir, "ast.json")
     # Run conversion.
     cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
-    # TODO(ai_gp): Assign pandoc_only to variable.
-    dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
+    pandoc_docker_image = "pandoc_only"
+    dshdlipa.run_dockerized_pandoc(cmd, pandoc_docker_image)
     # Load result.
-    ast = json.loads(hio.from_file(ast_file))
+    ast = _load_ast(ast_file)
     return ast, in_file, ast_file
 
 
@@ -118,8 +113,8 @@ def convert_pandoc_ast_to_typst(
     typst_file = os.path.join(scratch_dir, "output.typ")
     # Run conversion.
     cmd = f"pandoc {ast_input_file} -f json -t typst -o {typst_file}"
-    # TODO(ai_gp): Assign pandoc_only to variable.
-    dshdlipa.run_dockerized_pandoc(cmd, "pandoc_only")
+    pandoc_docker_image = "pandoc_only"
+    dshdlipa.run_dockerized_pandoc(cmd, pandoc_docker_image)
     # Load result.
     typst_txt = hio.from_file(typst_file)
     return typst_txt, typst_file
@@ -130,10 +125,17 @@ def convert_pandoc_ast_to_typst(
 # #############################################################################
 
 
-# TODO(ai_gp2): Add more comments.
 def _is_columns_container(elem: Dict[str, Any]) -> bool:
     """
     Check if element is a Div with class 'columns'.
+
+    In pandoc AST, a Div element is structured as:
+    {"t": "Div", "c": [[id, [classes], [attributes]], [blocks]]}
+
+    This function checks:
+    1. Element type is Div
+    2. Element has content (c key)
+    3. Element has 'columns' in its class list
 
     :param elem: AST element (block)
     :return: True if Div with 'columns' class
@@ -254,8 +256,8 @@ def _format_grid_code(widths: List[str], column_contents: List[str]) -> str:
 
 
 def _transform_elem(
-    elem: Dict[str, Any], api_version: List[int]
-) -> Dict[str, Any]:
+    elem: PandocAst, api_version: List[int]
+) -> PandocAst:
     """
     Transform a single element recursively.
 
@@ -290,7 +292,7 @@ def _transform_elem(
     return elem
 
 
-def _transform_ast(ast: Dict[str, Any]) -> Dict[str, Any]:
+def _transform_ast(ast: PandocAst) -> PandocAst:
     """
     Transform entire AST: replace all Div[columns] with RawBlock[typst #grid()].
 
