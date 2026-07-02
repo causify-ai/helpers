@@ -342,6 +342,10 @@ class Test__transform_elem(hunitest.TestCase):
     Test the `_transform_elem()` function.
     """
 
+    # TODO(ai_gp): Make this helper similar to Test_end_to_end.helper
+    # where the callers pass a markdown_input, which gets converted into
+    # an ast, the ast transformed by dshdcpdfe._transform_elem, and then the content of outcome
+    # is compared to the expected value using outcome_to_str and self.check_string
     def helper(self, elem: Any, expected: str) -> None:
         """
         Test helper for _transform_elem.
@@ -353,16 +357,6 @@ class Test__transform_elem(hunitest.TestCase):
         actual = dshdcpdfe._transform_elem(elem, api_version)
         actual_str = dshdcpdfe.ast_to_str(actual)
         self.assert_equal(actual_str, expected)
-
-    def helper_simple_check(self, elem: Any) -> Any:
-        """
-        Simple helper that returns transformed element without string comparison.
-
-        :param elem: AST element to transform
-        :return: Transformed element
-        """
-        api_version = [1, 23, 1]
-        return dshdcpdfe._transform_elem(elem, api_version)
 
     def test1(self) -> None:
         """
@@ -577,16 +571,7 @@ class Test__transform_elem(hunitest.TestCase):
                 ],
             ],
         }
-        # Run test: transform element and verify structure
-        result = self.helper_simple_check(elem)
-        # Verify second item now has RawBlock instead of columns Div
-        self.assertEqual(result["t"], "BulletList")
-        second_item = result["c"][1]
-        # Second item should have Para + RawBlock (transformed columns)
-        self.assertEqual(len(second_item), 2)
-        self.assertEqual(second_item[0]["t"], "Para")
-        self.assertEqual(second_item[1]["t"], "RawBlock")
-        self.assertEqual(second_item[1]["c"][0], "typst")
+        result = self.helper(elem)
 
 
 # #############################################################################
@@ -599,155 +584,53 @@ class Test__transform_ast(hunitest.TestCase):
     Test the `_transform_ast()` function.
     """
 
-    # TODO(ai_gp): Make this helper similar to Test_end_to_end.helper
-    # where the callers pass a markdown_input, which gets converted into
-    # an ast, the ast transformed by dshdcpdfe._transform_ast, and then the content of outcome
-    # is compared to the expected value using outcome_to_str and self.check_string
-    def helper(self, ast: Any, expected: str) -> None:
+    def helper(self, markdown_input: str) -> None:
         """
-        Test helper for _transform_ast.
+        Run full pipeline from markdown to transformed AST.
 
-        :param ast: Full pandoc AST dict
-        :param expected: Expected JSON string of transformed AST
+        :param markdown_input: Markdown text to convert
         """
-        actual = dshdcpdfe._transform_ast(ast)
-        actual_str = dshdcpdfe.ast_to_str(actual)
-        self.assert_equal(actual_str, expected)
+        scratch_dir = self.get_scratch_space()
+        outcome = {}
+        markdown_input = hprint.dedent(markdown_input)
+        outcome["1. markdown_input"] = markdown_input
+        # Convert markdown to AST.
+        ast, _, _ = dshdcpdfe.convert_markdown_to_pandoc_ast(
+            markdown_input, scratch_dir
+        )
+        outcome["2. ast_input"] = dshdcpdfe.ast_to_str(ast)
+        # Transform AST.
+        actual_ast = dshdcpdfe._transform_ast(ast)
+        outcome["3. ast_output"] = dshdcpdfe.ast_to_str(actual_ast)
+        actual_outcome = outcome_to_str(outcome)
+        self.check_string(actual_outcome)
 
     def test1(self) -> None:
         """
         Test full AST transformation with one columns Div.
-
-        Markdown input:
-        ```markdown
-        # Title
-
-        :::columns
-        ::: column {width="50%"}
-        left
-        :::
-        ::: column {width="50%"}
-        right
-        :::
-        :::
-        ```
         """
-        # Prepare inputs.
-        ast = {
-            "pandoc-api-version": [1, 23, 1],
-            "meta": {},
-            "blocks": [
-                {
-                    "t": "Header",
-                    "c": [1, ["title", [], []], [{"t": "Str", "c": "Title"}]],
-                },
-                {
-                    "t": "Div",
-                    "c": [
-                        ["", ["columns"], []],
-                        [
-                            {
-                                "t": "Div",
-                                "c": [
-                                    ["", ["column"], [["width", "50%"]]],
-                                    [{"t": "RawBlock", "c": ["typst", "left"]}],
-                                ],
-                            },
-                            {
-                                "t": "Div",
-                                "c": [
-                                    ["", ["column"], [["width", "50%"]]],
-                                    [{"t": "RawBlock", "c": ["typst", "right"]}],
-                                ],
-                            },
-                        ],
-                    ],
-                },
-            ],
-        }
-        # Prepare outputs.
-        expected = hprint.dedent(
-            r"""
-			{
-			  "pandoc-api-version": [
-			    1,
-			    23,
-			    1
-			  ],
-			  "meta": {},
-			  "blocks": [
-			    {
-			      "t": "Header",
-			      "c": [
-			        1,
-			        [
-			          "title",
-			          [],
-			          []
-			        ],
-			        [
-			          {
-			            "t": "Str",
-			            "c": "Title"
-			          }
-			        ]
-			      ]
-			    },
-			    {
-			      "t": "RawBlock",
-			      "c": [
-			        "typst",
-			        "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  left\n  ],\n  [\n  right\n  ]\n)"
-			      ]
-			    }
-			  ]
-			}
-			"""
-        )
-        # Run test.
-        self.helper(ast, expected)
+        markdown_input = """
+		# Title
+
+		:::columns
+		::: column {width="50%"}
+		left
+		:::
+		::: column {width="50%"}
+		right
+		:::
+		:::
+		"""
+        self.helper(markdown_input)
 
     def test2(self) -> None:
         """
         Test AST with no columns remains unchanged.
-
-        Markdown input:
-        ```markdown
-        text
-        ```
         """
-        # Prepare inputs.
-        ast = {
-            "pandoc-api-version": [1, 23, 1],
-            "meta": {},
-            "blocks": [{"t": "Para", "c": [{"t": "Str", "c": "text"}]}],
-        }
-        # Prepare outputs.
-        expected = hprint.dedent(
-            """
-			{
-			  "pandoc-api-version": [
-			    1,
-			    23,
-			    1
-			  ],
-			  "meta": {},
-			  "blocks": [
-			    {
-			      "t": "Para",
-			      "c": [
-			        {
-			          "t": "Str",
-			          "c": "text"
-			        }
-			      ]
-			    }
-			  ]
-			}
-			"""
-        )
-        # Run test.
-        self.helper(ast, expected)
+        markdown_input = """
+		text
+		"""
+        self.helper(markdown_input)
 
 
 # #############################################################################
