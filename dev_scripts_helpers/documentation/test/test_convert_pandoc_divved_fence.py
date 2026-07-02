@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dshdcpdfe
 import helpers.hdbg as hdbg
@@ -16,6 +16,28 @@ def outcome_to_str(outcome: Dict[str, str]) -> str:
         outcome_list.append(val)
     outcome_str = "\n".join(outcome_list)
     return outcome_str
+
+
+def _find_columns_container(ast: Any) -> Any:
+    """
+    Recursively search AST for the first Div with 'columns' class.
+
+    :param ast: AST or AST element to search
+    :return: First columns container found, or None
+    """
+    if isinstance(ast, dict):
+        if dshdcpdfe._is_columns_container(ast):
+            return ast
+        for value in ast.values():
+            result = _find_columns_container(value)
+            if result is not None:
+                return result
+    elif isinstance(ast, list):
+        for item in ast:
+            result = _find_columns_container(item)
+            if result is not None:
+                return result
+    return None
 
 
 # #############################################################################
@@ -107,139 +129,82 @@ class Test__extract_columns(hunitest.TestCase):
     Test the `_extract_columns()` function.
     """
 
-    # TODO(ai_gp): Make this helper similar to Test_end_to_end.helper
-    # where the callers pass a markdown_input, which gets converted into
-    # an ast, the ast transformed by the function in helper, and then the content of outcome
-    # is compared to the expected value using outcome_to_str and self.check_string
-    def helper(self, container: Any, expected: List[Tuple[str, Any]]) -> None:
+    def helper(self, markdown_input: str) -> None:
         """
-        Test helper for _extract_columns.
+        Run full pipeline from markdown to extracted columns.
 
-        :param container: Columns container element
-        :param expected: Expected result
+        :param markdown_input: Markdown text to convert
         """
+        scratch_dir = self.get_scratch_space()
+        outcome = {}
+        markdown_input = hprint.dedent(markdown_input)
+        outcome["1. markdown_input"] = markdown_input
+        # Convert markdown to AST.
+        ast, _, _ = dshdcpdfe.convert_markdown_to_pandoc_ast(
+            markdown_input, scratch_dir
+        )
+        outcome["2. ast_input"] = dshdcpdfe.ast_to_str(ast)
+        # Find columns container in AST.
+        container = _find_columns_container(ast)
+        hdbg.dassert(container is not None, "No columns container found in AST")
+        # Extract columns.
         actual = dshdcpdfe._extract_columns(container)
-        self.assertEqual(actual, expected)
+        outcome["3. extracted_columns"] = str(actual)
+        actual_outcome = outcome_to_str(outcome)
+        self.check_string(actual_outcome)
 
     def test1(self) -> None:
         """
         Test extraction of two columns with explicit widths.
+        """
+        markdown_input = """
+        ::: {.columns}
 
-        Markdown input:
-        ```
-        :::columns
-        ::: column
+        ::: {.column width="55%"}
         Left
         :::
-        ::: column
+
+        ::: {.column width="45%"}
         Right
         :::
+
         :::
-        ```
         """
-        container = {
-            "t": "Div",
-            "c": [
-                ["", ["columns"], []],
-                [
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["column"], [["width", "55%"]]],
-                            [{"t": "Para", "c": [{"t": "Str", "c": "Left"}]}],
-                        ],
-                    },
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["column"], [["width", "45%"]]],
-                            [{"t": "Para", "c": [{"t": "Str", "c": "Right"}]}],
-                        ],
-                    },
-                ],
-            ],
-        }
-        expected = [
-            ("55%", [{"t": "Para", "c": [{"t": "Str", "c": "Left"}]}]),
-            ("45%", [{"t": "Para", "c": [{"t": "Str", "c": "Right"}]}]),
-        ]
-        self.helper(container, expected)
+        self.helper(markdown_input)
 
     def test2(self) -> None:
         """
         Test that missing width defaults to '1fr'.
+        """
+        markdown_input = """
+        ::: {.columns}
 
-        Markdown input:
-        ```
-        :::columns
-        ::: column
+        ::: {.column}
         Default width
         :::
+
         :::
-        ```
         """
-        container = {
-            "t": "Div",
-            "c": [
-                ["", ["columns"], []],
-                [
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["column"], []],
-                            [{"t": "Para", "c": []}],
-                        ],
-                    },
-                ],
-            ],
-        }
-        expected = [
-            ("1fr", [{"t": "Para", "c": []}]),
-        ]
-        self.helper(container, expected)
+        self.helper(markdown_input)
 
     def test3(self) -> None:
         """
         Test that non-column child divs are skipped.
+        """
+        markdown_input = """
+        ::: {.columns}
 
-        Markdown input:
-        ```
-        :::columns
-        ::: other
+        ::: {.other}
         Ignored
         :::
-        ::: column
+
+        ::: {.column width="50%"}
         Included
         :::
+
         :::
-        ```
         """
-        container = {
-            "t": "Div",
-            "c": [
-                ["", ["columns"], []],
-                [
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["other"], []],
-                            [],
-                        ],
-                    },
-                    {
-                        "t": "Div",
-                        "c": [
-                            ["", ["column"], [["width", "50%"]]],
-                            [],
-                        ],
-                    },
-                ],
-            ],
-        }
-        expected = [
-            ("50%", []),
-        ]
-        self.helper(container, expected)
+        self.helper(markdown_input)
 
 
 # #############################################################################
@@ -283,19 +248,20 @@ class Test__format_grid_code(hunitest.TestCase):
         """
         widths = ["55%", "45%"]
         contents = ["Content 1", "Content 2"]
-        # TODO(ai_gp): Use """ and dedent
-        expected = (
-            "#grid(\n"
-            "  columns: (55%, 45%),\n"
-            "  gutter: 0.5em,\n"
-            "  [\n"
-            "  Content 1\n"
-            "  ],\n"
-            "  [\n"
-            "  Content 2\n"
-            "  ]\n"
-            ")"
-        )
+        expected = hprint.dedent(
+            """
+            #grid(
+              columns: (55%, 45%),
+              gutter: 0.5em,
+              [
+              Content 1
+              ],
+              [
+              Content 2
+              ]
+            )
+            """
+        ).strip()
         self.helper(widths, contents, expected)
 
     def test2(self) -> None:
@@ -319,22 +285,23 @@ class Test__format_grid_code(hunitest.TestCase):
         """
         widths = ["1fr", "1fr", "1fr"]
         contents = ["Left", "Middle", "Right"]
-        # TODO(ai_gp): Use """ and dedent
-        expected = (
-            "#grid(\n"
-            "  columns: (1fr, 1fr, 1fr),\n"
-            "  gutter: 0.5em,\n"
-            "  [\n"
-            "  Left\n"
-            "  ],\n"
-            "  [\n"
-            "  Middle\n"
-            "  ],\n"
-            "  [\n"
-            "  Right\n"
-            "  ]\n"
-            ")"
-        )
+        expected = hprint.dedent(
+            """
+            #grid(
+              columns: (1fr, 1fr, 1fr),
+              gutter: 0.5em,
+              [
+              Left
+              ],
+              [
+              Middle
+              ],
+              [
+              Right
+              ]
+            )
+            """
+        ).strip()
         self.helper(widths, contents, expected)
 
 
