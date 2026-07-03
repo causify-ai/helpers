@@ -1,4 +1,4 @@
-### Add a test case for all the containers
+### Add a test case for all the dockerized executables
 
 Use Test_build_pandoc_container1 as a reference
 
@@ -9,25 +9,37 @@ Use Test_build_pandoc_container1 as a reference
 - use_sudo is a property of the machine
   - Make use_sudo = None and then deduce it from the config
 
-### Make all tests in dev_scripts_helpers/dockerize/test pass
+### [ ] Make `pytest_log dev_scripts_helpers` pass
 
-- [ ] Check the tests with Apple container and Docker
+> export CSFY_DOCKER_ENGINE="docker"; i docker_bash --stage=local -v 1.6.0;
+> pytest_log dev_scripts_helpers
+4 failed, 633 passed, 45 skipped in 178.25s (0:02:58)
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test3
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test4
+dev_scripts_helpers/documentation/test/test_render_images.py::Test_render_image_code1::test3
+
+> export CSFY_DOCKER_ENGINE="docker"; pytest_log dev_scripts_helpers
+5 failed, 667 passed, 31 skipped in 113.71s (0:01:53)
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test3
+dev_scripts_helpers/documentation/test/test_render_images.py::Test_render_image_code1::test3
+dev_scripts_helpers/system_tools/test/test_lib_rig.py::TestRigScript::test16
+dev_scripts_helpers/system_tools/test/test_lib_rig.py::TestRigScript::test16_rule_with_pattern
+
+> export CSFY_DOCKER_ENGINE="apple"; pytest_log dev_scripts_helpers
+
+### [x] Make `pytest dev_scripts_helpers/dockerize/test` pass
 
 export CSFY_DOCKER_ENGINE="docker"; pytest dev_scripts_helpers/dockerize/test
 56 passed in 26.67s
 
 export CSFY_DOCKER_ENGINE="apple"; pytest dev_scripts_helpers/dockerize/test
 5 failed, 51 passed in 110.28s (0:01:50)
+There are failures (how many?) with apple, disable them for now
 
-### 
-
-pytest_log dev_scripts_helpers/dockerize/test/
-
-dev_scripts_helpers/dockerize/test/test_lib_pandoc.py::Test_build_pandoc_container1::test2
-dev_scripts_helpers/dockerize/test/test_lib_png.py::Test_build_png_container1::test2
-dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_md2
-dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_tex2
-dev_scripts_helpers/dockerize/test/test_lib_prettier.py::Test_build_prettier_md_txt_tex_container1::test_txt2
+export CSFY_DOCKER_ENGINE="docker"; i docker_bash --stage=local -v 1.6.0
+56 passed in 32.58s
 
 ###
 

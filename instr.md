@@ -1,21 +1,43 @@
-In the code to purify the output of a test remove lines like since they come from
-Apple container
+Update the tests below to use a different expected value when running inside a
+Docker container
 
-[0/6] [0s]
-[1/6] Fetching image [0s]
-[2/6] Unpacking image [0s]
-[3/6] Fetching kernel [0s]
-[4/6] Fetching init image [0s]
-[5/6] Unpacking init image [0s]
-[6/6] Starting container [0s]
-[6/6] Starting container [1s]
-[6/6] Starting container [1s]
+--------------------------------------------------------------------------------
+ACTUAL vs EXPECTED: Test_build_markdown_toc_container1.test2
+--------------------------------------------------------------------------------
 
-Make sure that
+/usr/local/lib                                                            (
+`-- markdown-toc@1.2.0                                                    (
+                                                                          <
+npm notice                                                                <
+npm notice New major version of npm available! 10.8.2 -> 11.18.0          <
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.18.0    <
+npm notice To update run: npm install -g npm@11.18.0                      <
+npm notice                                                                <
+Diff with:
+> ./tmp_diff.sh
+--------------------------------------------------------------------------------
+ACTUAL VARIABLE: Test_build_markdown_toc_container1.test2
+--------------------------------------------------------------------------------
+expected = r"""/usr/local/lib
+`-- markdown-toc@1.2.0
 
-pytest dev_scripts_helpers/dockerize/test/test_lib_graphviz.py::Test_build_graphviz_container1
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.18.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.18.0
+npm notice To update run: npm install -g npm@11.18.0
+npm notice"""
+FAILED dev_scripts_helpers/dockerize/test/test_lib_png.py::Test_build_png_container1::test2 - RuntimeError:
+--------------------------------------------------------------------------------
+ACTUAL vs EXPECTED: Test_build_png_container1.test2
+--------------------------------------------------------------------------------
 
-passes without changes
+Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897 https://imagemagick. |  Version: ImageMagick 7.1.2-19 Q16-HDRI x86_64 23897 https://imagemagick.o
+Diff with:
+> ./tmp_diff.sh
+--------------------------------------------------------------------------------
+ACTUAL VARIABLE: Test_build_png_container1.test2
+--------------------------------------------------------------------------------
+expected = r"""Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897 https://imagemagick.org"""
 
 # Conventions
 - When writing code you must always follow the instructions in
