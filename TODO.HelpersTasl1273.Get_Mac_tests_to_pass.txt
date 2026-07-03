@@ -17,7 +17,9 @@ Use Test_build_pandoc_container1 as a reference
 dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
 dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test3
 dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test4
+
 dev_scripts_helpers/documentation/test/test_render_images.py::Test_render_image_code1::test3
+figs/test2.1.png                                                          | figs/test2.1.svg
 
 > export CSFY_DOCKER_ENGINE="docker"; pytest_log dev_scripts_helpers
 5 failed, 667 passed, 31 skipped in 113.71s (0:01:53)
@@ -28,6 +30,12 @@ dev_scripts_helpers/system_tools/test/test_lib_rig.py::TestRigScript::test16
 dev_scripts_helpers/system_tools/test/test_lib_rig.py::TestRigScript::test16_rule_with_pattern
 
 > export CSFY_DOCKER_ENGINE="apple"; pytest_log dev_scripts_helpers
+5 failed, 662 passed, 36 skipped in 237.19s (0:03:57)
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
+dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test3
+dev_scripts_helpers/documentation/test/test_render_images.py::Test_render_image_code1::test3
+dev_scripts_helpers/system_tools/test/test_lib_rig.py::TestRigScript::test16
+dev_scripts_helpers/system_tools/test/test_lib_rig.py::TestRigScript::test16_rule_with_pattern
 
 ### [x] Make `pytest dev_scripts_helpers/dockerize/test` pass
 

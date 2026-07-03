@@ -63,8 +63,8 @@ class TextPurifier:
         txt = self.purify_white_spaces(txt)
         txt = self.purify_parquet_file_names(txt)
         txt = self.purify_helpers(txt)
+        txt = self.purify_docker_cmd(txt)
         txt = self.purify_docker_image_name(txt)
-        txt = self.purify_from_docker_env_vars(txt)
         txt = self.purify_apple_container_output(txt)
         return txt
 
@@ -386,19 +386,21 @@ class TextPurifier:
         # Purify command like:
         # > docker run --rm ...  tmp.latex.edb567be ..
         # > ... tmp.latex.aarch64.2f590c86.2f590c86
+        # > container run --rm ... tmp.latex.arm64.417056b0 ..
         pattern = r"""
-            ^                  # Start of line
-            (                  # Start capture group 1
-                .*docker.*     # Any text containing "docker"
-                \s+            # One or more whitespace
-                tmp\.\S+\.     # tmp.something.
-            )                  # End capture group 1
-            [a-z0-9]{8}        # 8 character hex hash
-            (                  # Start capture group 2
-                \s+            # One or more whitespace
-                .*             # Rest of the line
-            )                  # End capture group 2
-            $                  # End of line
+            ^                            # Start of line
+            (                            # Start capture group 1
+                .*(?:docker|container).* # Any text containing "docker" or
+                                         # "container" (the Apple engine CLI)
+                \s+                      # One or more whitespace
+                tmp\.\S+\.               # tmp.something.
+            )                            # End capture group 1
+            [a-z0-9]{8}                  # 8 character hex hash
+            (                            # Start capture group 2
+                \s+                      # One or more whitespace
+                .*                       # Rest of the line
+            )                            # End capture group 2
+            $                            # End of line
         """
         txt = re.sub(
             pattern,
@@ -408,20 +410,21 @@ class TextPurifier:
         )
         # Handle patterns like `tmp.latex.aarch64.2f590c86.2f590c86`.
         pattern = r"""
-            ^                    # Start of line
-            (                    # Start capture group 1
-                .*docker.*       # Any text containing "docker"
-                \s+              # One or more whitespace
-                tmp\.\S+\.\S+\.  # tmp.something.something.
-            )                    # End capture group 1
-            [a-z0-9]{8}          # 8 character hex hash
-            \.                   # Literal dot
-            [a-z0-9]{8}          # Another 8 character hex hash
-            (                    # Start capture group 2
-                \s+              # One or more whitespace
-                .*               # Rest of the line
-            )                    # End capture group 2
-            $                    # End of line
+            ^                            # Start of line
+            (                            # Start capture group 1
+                .*(?:docker|container).* # Any text containing "docker" or
+                                         # "container" (the Apple engine CLI)
+                \s+                      # One or more whitespace
+                tmp\.\S+\.\S+\.          # tmp.something.something.
+            )                            # End capture group 1
+            [a-z0-9]{8}                  # 8 character hex hash
+            \.                           # Literal dot
+            [a-z0-9]{8}                  # Another 8 character hex hash
+            (                            # Start capture group 2
+                \s+                      # One or more whitespace
+                .*                       # Rest of the line
+            )                            # End capture group 2
+            $                            # End of line
         """
         txt = re.sub(
             pattern,
@@ -431,31 +434,53 @@ class TextPurifier:
         )
         return txt
 
-    def purify_from_docker_env_vars(
-        self,
-        txt: str,
-        env_var_suffixes: Optional[List[str]] = None,
-    ) -> str:
+    def purify_docker_cmd(self, txt: str) -> str:
         """
-        Remove `-e VAR_NAME` or `-e VAR_NAME=VALUE` from docker command lines.
+        Normalize a Docker/Apple `container` run command for golden
+        comparisons.
 
-        This removes env vars that match the given suffixes from docker run
-        command lines. E.g., `-e OPENAI_API_KEY` or `-e OPENAI_API_KEY=sk-...`.
+        This handles two sources of environment-dependent variance in
+        commands built by `hdocker.get_docker_base_cmd()`:
+        - The executable is `docker` on Linux/CI and `container` on macOS
+          (Apple engine), e.g. `docker run --rm ...` vs
+          `container run --rm ...`.
+        - The `-e VAR` flags list the env vars currently set in the host
+          environment (`AM_*`, `CK_*`, `CSFY_*`, `*_API_KEY`), which differs
+          across machines and can also be wrapped across multiple lines.
 
-        :param txt: input text containing docker commands
-        :param env_var_suffixes: suffixes used to select env vars to remove.
-            E.g., `["_API_KEY"]` matches `OPENAI_API_KEY`, `SYNTHESIA_API_KEY`,
-            etc. If None, defaults to `["_API_KEY"]`.
-        :return: text with matching docker env var flags removed
+        E.g.,
+        ```
+        docker run --rm --user $(id -u):$(id -g) -e CSFY_AWS_PROFILE -e CSFY_ECR_BASE_PATH --workdir ...
+        ```
+        and
+        ```
+        container run --rm --user $(id -u):$(id -g)
+        -e AM_GDRIVE_PATH
+        -e CSFY_HOST_NAME --workdir ...
+        ```
+        both become
+        ```
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir ...
+        ```
+
+        :param txt: input text containing Docker/container run commands
+        :return: text with the run command normalized
         """
-        if env_var_suffixes is None:
-            env_var_suffixes = ["_API_KEY"]
-        for suffix in env_var_suffixes:
-            # Match ` -e VAR` (with leading space) where VAR ends with the
-            # suffix, optionally followed by `=VALUE`.
-            # E.g., ` -e OPENAI_API_KEY`, ` -e OPENAI_API_KEY=sk-abc123`.
-            pattern = rf" -e \w*{re.escape(suffix)}(?:=\S*)?"
-            txt = re.sub(pattern, "", txt)
+        # Normalize the executable name.
+        txt = re.sub(
+            r"\b(?:docker|container)\b"
+            r"(?=\s+run\s+--rm\s+--user\s+\$\(id\s+-u\):\$\(id\s+-g\))",
+            "$DOCKER_EXECUTABLE",
+            txt,
+        )
+        # Collapse the `-e VAR` flags (which may be wrapped across multiple
+        # lines) into a single placeholder.
+        pattern = (
+            r"(\$DOCKER_EXECUTABLE\s+run\s+--rm\s+--user\s+"
+            r"\$\(id\s+-u\):\$\(id\s+-g\))"
+            r"(?:\s+-e\s+\S+(?:\s+-e\s+\S+)*)"
+        )
+        txt = re.sub(pattern, r"\1 -e ...", txt)
         return txt
 
     def purify_apple_container_output(self, txt: str) -> str:

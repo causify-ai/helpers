@@ -1,43 +1,16 @@
-Update the tests below to use a different expected value when running inside a
-Docker container
+In the purification stage of unit test
 
---------------------------------------------------------------------------------
-ACTUAL vs EXPECTED: Test_build_markdown_toc_container1.test2
---------------------------------------------------------------------------------
+A line like:
 
-/usr/local/lib                                                            (
-`-- markdown-toc@1.2.0                                                    (
-                                                                          <
-npm notice                                                                <
-npm notice New major version of npm available! 10.8.2 -> 11.18.0          <
-npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.18.0    <
-npm notice To update run: npm install -g npm@11.18.0                      <
-npm notice                                                                <
-Diff with:
-> ./tmp_diff.sh
---------------------------------------------------------------------------------
-ACTUAL VARIABLE: Test_build_markdown_toc_container1.test2
---------------------------------------------------------------------------------
-expected = r"""/usr/local/lib
-`-- markdown-toc@1.2.0
+container run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_DOCKER_ENGINE -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app tmp.pandoc_texlive.arm64.9a4bae9a /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.tex --template /dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s -t latex
 
-npm notice
-npm notice New major version of npm available! 10.8.2 -> 11.18.0
-npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.18.0
-npm notice To update run: npm install -g npm@11.18.0
-npm notice"""
-FAILED dev_scripts_helpers/dockerize/test/test_lib_png.py::Test_build_png_container1::test2 - RuntimeError:
---------------------------------------------------------------------------------
-ACTUAL vs EXPECTED: Test_build_png_container1.test2
---------------------------------------------------------------------------------
+1) need to have container replaced based on the value of the docker or container
+   used with $DOCKER
 
-Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897 https://imagemagick. |  Version: ImageMagick 7.1.2-19 Q16-HDRI x86_64 23897 https://imagemagick.o
-Diff with:
-> ./tmp_diff.sh
---------------------------------------------------------------------------------
-ACTUAL VARIABLE: Test_build_png_container1.test2
---------------------------------------------------------------------------------
-expected = r"""Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897 https://imagemagick.org"""
+2) the '-e AM_CONTAINER_VERSION -e CSFY_AWS_ACCESS_KEY_ID -e CSFY_AWS_DEFAULT_REGION ...' part of the docker command needs to be replaced
+  with -e ...
+
+Make a plan about how to change this
 
 # Conventions
 - When writing code you must always follow the instructions in
