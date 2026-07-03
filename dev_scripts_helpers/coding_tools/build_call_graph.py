@@ -135,6 +135,7 @@ def _enhance_dot_with_github_urls(
     _LOG.info("Found %d functions", len(function_lines))
     # Parse the DOT file using pydot.
     graphs = pydot.graph_from_dot_file(dot_file)
+    hdbg.dassert_is_not(graphs, None)
     hdbg.dassert_eq(len(graphs), 1, "Expected exactly one graph in DOT file")
     graph = graphs[0]
     # Helper function to recursively update all nodes in a graph and subgraphs.

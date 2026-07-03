@@ -279,7 +279,7 @@
 | `_render_images()` | Renders inline diagram/image specs; filters commented code; returns file path |
 | `_run_pandoc_to_pdf()` | Converts markdown → LaTeX → PDF via Pandoc and pdflatex (2 passes); returns PDF path |
 | `_run_pandoc_to_html()` | Converts markdown to HTML via Pandoc; returns HTML path |
-| `_run_pandoc_to_latex_slides()` | Converts markdown to Beamer PDF slides; returns PDF path or .tex if `tex_only=True` |
+| `_run_pandoc_to_latex_slides()` | Converts markdown to Beamer PDF slides; returns PDF path or .tex if `no_pdf=True` |
 | `_run_pandoc_to_typst_slides()` | Converts markdown → Typst/Touying → PDF slides via a 3-step pipeline (markdown → AST → divved-fence transform → typst); prepends LaTeX math abbreviation definitions so pandoc expands them |
 | `_extract_latex_math_defs()` | Reads `latex_abbrevs.sty` and returns the `\newcommand` / `\def` math macros (dropping packages, colors, list config, and `\textcolor` helpers) for prepending to the typst input |
 | `_compress_pdf()` | Compresses PDF via ghostscript; in-place modification; returns file path |

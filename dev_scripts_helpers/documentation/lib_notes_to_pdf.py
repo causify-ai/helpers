@@ -583,16 +583,17 @@ def run_pandoc_to_html(
     return file_out
 
 
-def _build_pandoc_cmd(
+def _build_pandoc_latex_cmd(
     file_name: str,
     toc_type: str,
     use_host_tools: bool,
     dockerized_force_rebuild: bool,
     dockerized_use_sudo: bool,
     *,
-    use_tex: bool = False,
+    no_pdf: bool = False,
     fail_on_warnings: bool = True,
 ) -> Tuple[str, str]:
+    # TODO(ai_gp): Add docstring.
     cmd = []
     cmd.append(f"pandoc {file_name}")
     #
@@ -615,7 +616,7 @@ def _build_pandoc_cmd(
     if toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
-    if use_tex:
+    if no_pdf:
         ext = ".tex"
     else:
         ext = ".pdf"
@@ -700,13 +701,13 @@ def run_pandoc_to_latex_slides(
         txt = ""
     else:
         # Default: single-shot pandoc.
-        cmd, file_out = _build_pandoc_cmd(
+        cmd, file_out = _build_pandoc_latex_cmd(
             file_name,
             toc_type,
             use_host_tools,
             dockerized_force_rebuild,
             dockerized_use_sudo,
-            use_tex=tex_only,
+            no_pdf=no_pdf,
             fail_on_warnings=fail_on_warnings,
         )
         rc, txt = _system_to_string(cmd, abort_on_error=False)
@@ -715,9 +716,9 @@ def run_pandoc_to_latex_slides(
     # We want to print to screen.
     print(txt)
     # rc = _system(cmd)
-    # Return the .tex file if tex_only mode is requested.
-    if tex_only:
-        _LOG.info("tex_only=True: skipping PDF compilation, returning .tex file")
+    # Return the .tex file if `--no_pdf` mode is requested.
+    if no_pdf:
+        _LOG.info("no_pdf=True: skipping PDF compilation, returning .tex file")
         _LOG.debug("file_out=%s", file_out)
         hdbg.dassert_path_exists(file_out)
         return file_out
@@ -726,16 +727,15 @@ def run_pandoc_to_latex_slides(
         if debug:
             _LOG.error("Pandoc failed")
             # Generate the tex version of the file.
-            cmd, file_out = _build_pandoc_cmd(
+            cmd, file_out = _build_pandoc_latex_cmd(
                 file_name,
                 toc_type,
                 use_host_tools,
                 dockerized_force_rebuild,
                 dockerized_use_sudo,
-                use_tex=True,
+                no_pdf=True,
                 fail_on_warnings=fail_on_warnings,
             )
-
             _system(cmd, abort_on_error=False)
             # Error producing PDF.
             # ! Package enumitem Error: 1) undefined.
@@ -743,7 +743,6 @@ def run_pandoc_to_latex_slides(
             # See the enumitem package documentation for explanation.
             # Type  H <return>  for immediate help.
             #  ...
-
             # l.979 \end{frame}
             for line in txt.split("\n"):
                 _LOG.debug("line=%s", line)

@@ -212,7 +212,7 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.use_host_tools,
                 args.dockerized_force_rebuild,
                 args.dockerized_use_sudo,
-                tex_only=args.no_pdf,
+                no_pdf=args.no_pdf,
                 fail_on_warnings=not args.no_fail_on_warnings,
                 use_pandoc_ast_transform=args.use_pandoc_ast_transform,
             )
@@ -247,7 +247,7 @@ def _run_all(args: argparse.Namespace) -> None:
                     args.dockerized_force_rebuild,
                     args.dockerized_use_sudo,
                     debug=args.debug_on_error,
-                    tex_only=args.no_pdf,
+                    no_pdf=args.no_pdf,
                     fail_on_warnings=not args.no_fail_on_warnings,
                     use_pandoc_ast_transform=args.use_pandoc_ast_transform,
                 )

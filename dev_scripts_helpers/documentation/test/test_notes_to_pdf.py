@@ -553,20 +553,22 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "run_pandoc", fuzzy_match=True)
+        expected = "run_pandoc"
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         """
-        Test PDF generation with tex_only mode (no compilation).
+        Test PDF generation with no_pdf mode (no compilation).
         """
         # Prepare inputs.
         type_ = "pdf"
-        cmd_opts = "--tex_only"
+        cmd_opts = "--no_pdf"
         # Run test.
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "tex_only", fuzzy_match=True)
+        expected = "no_pdf"
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -579,7 +581,8 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "run_pandoc", fuzzy_match=True)
+        expected = "run_pandoc"
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
