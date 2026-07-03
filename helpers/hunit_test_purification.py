@@ -387,11 +387,16 @@ class TextPurifier:
         # > docker run --rm ...  tmp.latex.edb567be ..
         # > ... tmp.latex.aarch64.2f590c86.2f590c86
         # > container run --rm ... tmp.latex.arm64.417056b0 ..
+        # > $DOCKER_EXECUTABLE run --rm ... tmp.latex.arm64.417056b0 ..
+        # Note: `docker`/`container` may have already been normalized to
+        # `$DOCKER_EXECUTABLE` by `purify_docker_cmd()`, which runs before
+        # this function, so both forms need to be recognized.
         pattern = r"""
             ^                            # Start of line
             (                            # Start capture group 1
-                .*(?:docker|container).* # Any text containing "docker" or
-                                         # "container" (the Apple engine CLI)
+                .*(?:docker|container|   # Any text containing "docker" or
+                \$DOCKER_EXECUTABLE).*   # "container" (the Apple engine CLI)
+                                         # or the normalized placeholder
                 \s+                      # One or more whitespace
                 tmp\.\S+\.               # tmp.something.
             )                            # End capture group 1
@@ -412,8 +417,9 @@ class TextPurifier:
         pattern = r"""
             ^                            # Start of line
             (                            # Start capture group 1
-                .*(?:docker|container).* # Any text containing "docker" or
-                                         # "container" (the Apple engine CLI)
+                .*(?:docker|container|   # Any text containing "docker" or
+                \$DOCKER_EXECUTABLE).*   # "container" (the Apple engine CLI)
+                                         # or the normalized placeholder
                 \s+                      # One or more whitespace
                 tmp\.\S+\.\S+\.          # tmp.something.something.
             )                            # End capture group 1
@@ -467,20 +473,40 @@ class TextPurifier:
         :return: text with the run command normalized
         """
         # Normalize the executable name.
+        pattern = r"""
+            \b(?:docker|container)\b     # "docker" (Linux/CI) or "container"
+                                         # (Apple engine CLI on macOS)
+            (?=                          # Lookahead: only if followed by
+                \s+run\s+--rm\s+--user\s+       # the `run --rm --user`
+                \$\(id\s+-u\):\$\(id\s+-g\)     # invocation with the
+                                                # `$(id -u):$(id -g)` flag
+            )
+        """
         txt = re.sub(
-            r"\b(?:docker|container)\b"
-            r"(?=\s+run\s+--rm\s+--user\s+\$\(id\s+-u\):\$\(id\s+-g\))",
+            pattern,
             "$DOCKER_EXECUTABLE",
             txt,
+            flags=re.MULTILINE | re.VERBOSE,
         )
         # Collapse the `-e VAR` flags (which may be wrapped across multiple
         # lines) into a single placeholder.
-        pattern = (
-            r"(\$DOCKER_EXECUTABLE\s+run\s+--rm\s+--user\s+"
-            r"\$\(id\s+-u\):\$\(id\s+-g\))"
-            r"(?:\s+-e\s+\S+(?:\s+-e\s+\S+)*)"
+        pattern = r"""
+            (                            # Start capture group 1
+                \$DOCKER_EXECUTABLE      # Already-normalized executable
+                \s+run\s+--rm\s+--user\s+       # `run --rm --user`
+                \$\(id\s+-u\):\$\(id\s+-g\)     # `$(id -u):$(id -g)` flag
+            )                            # End capture group 1
+            (?:                          # Start non-capture group
+                \s+-e\s+\S+              # First `-e VAR` flag
+                (?:\s+-e\s+\S+)*         # Additional `-e VAR` flags
+            )                            # End non-capture group
+        """
+        txt = re.sub(
+            pattern,
+            r"\1 -e ...",
+            txt,
+            flags=re.MULTILINE | re.VERBOSE,
         )
-        txt = re.sub(pattern, r"\1 -e ...", txt)
         return txt
 
     def purify_apple_container_output(self, txt: str) -> str:
