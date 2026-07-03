@@ -231,7 +231,7 @@ class Test_purify_text1(hunitest.TestCase):
             "$DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g)"
             " -e ..."
             " --workdir $GIT_ROOT"
-            " tmp.latex.aarch64.xxxxxxxx"
+            " tmp.latex.$ARCH.$CONTAINER_ID"
             " pdflatex -output-directory"
             " $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch"
             " --interaction=nonstopmode --halt-on-error --shell-escape"
@@ -985,7 +985,7 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.edb567be pdflatex -output-directory
         """
         expected = r"""
-        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.xxxxxxxx pdflatex -output-directory
+        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.$CONTAINER_ID pdflatex -output-directory
         """
         actual = huntepur.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
@@ -998,7 +998,7 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.aarch64.2f590c86.2f590c86 pdflatex -output-directory
         """
         expected = r"""
-        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.aarch64.xxxxxxxx pdflatex -output-directory
+        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory
         """
         actual = huntepur.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
@@ -1011,7 +1011,7 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         container run --rm --user $(id -u):$(id -g) --workdir /app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.latex.arm64.417056b0 pdflatex -output-directory
         """
         expected = r"""
-        container run --rm --user $(id -u):$(id -g) --workdir /app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.latex.arm64.xxxxxxxx pdflatex -output-directory
+        container run --rm --user $(id -u):$(id -g) --workdir /app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory
         """
         actual = huntepur.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)

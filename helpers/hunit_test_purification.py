@@ -400,29 +400,13 @@ def purify_docker_image_name(txt: str) -> str:
     # Note: `docker`/`container` may have already been normalized to
     # `$DOCKER_EXECUTABLE` by `purify_docker_cmd()`, which runs before
     # this function, so both forms need to be recognized.
-    pattern = r"""
-        ^                            # Start of line
-        (                            # Start capture group 1
-            .*(?:docker|container|   # Any text containing "docker" or
-            \$DOCKER_EXECUTABLE).*   # "container" (the Apple engine CLI)
-                                     # or the normalized placeholder
-            \s+                      # One or more whitespace
-            tmp\.\S+\.               # tmp.something.
-        )                            # End capture group 1
-        [a-z0-9]{8}                  # 8 character hex hash
-        (                            # Start capture group 2
-            \s+                      # One or more whitespace
-            .*                       # Rest of the line
-        )                            # End capture group 2
-        $                            # End of line
-    """
-    txt = re.sub(
-        pattern,
-        r"\1xxxxxxxx\2",
-        txt,
-        flags=re.MULTILINE | re.VERBOSE,
-    )
-    # Handle patterns like `tmp.latex.aarch64.2f590c86.2f590c86`.
+    # E.g., `tmp.pandoc_texlive.aarch64.9a4bae9a` becomes
+    # `tmp.pandoc_texlive.$ARCH.$CONTAINER_ID`.
+    # Handle the double-hash pattern first (e.g.,
+    # `tmp.latex.aarch64.2f590c86.2f590c86`), since it is a special case
+    # of the single-hash pattern below: matching it first prevents the
+    # single-hash regex from only collapsing the trailing hash and
+    # leaving the leading one behind.
     pattern = r"""
         ^                            # Start of line
         (                            # Start capture group 1
@@ -443,9 +427,40 @@ def purify_docker_image_name(txt: str) -> str:
     """
     txt = re.sub(
         pattern,
-        r"\1xxxxxxxx\2",
+        r"\1$CONTAINER_ID\2",
         txt,
         flags=re.MULTILINE | re.VERBOSE,
+    )
+    pattern = r"""
+        ^                            # Start of line
+        (                            # Start capture group 1
+            .*(?:docker|container|   # Any text containing "docker" or
+            \$DOCKER_EXECUTABLE).*   # "container" (the Apple engine CLI)
+                                     # or the normalized placeholder
+            \s+                      # One or more whitespace
+            tmp\.\S+\.               # tmp.something.
+        )                            # End capture group 1
+        [a-z0-9]{8}                  # 8 character hex hash
+        (                            # Start capture group 2
+            \s+                      # One or more whitespace
+            .*                       # Rest of the line
+        )                            # End capture group 2
+        $                            # End of line
+    """
+    txt = re.sub(
+        pattern,
+        r"\1$CONTAINER_ID\2",
+        txt,
+        flags=re.MULTILINE | re.VERBOSE,
+    )
+    # Normalize the CPU architecture tag (e.g., `aarch64` on Linux vs.
+    # `arm64` on macOS) that precedes the container ID placeholder, so
+    # golden files are stable across machines with different
+    # architecture-naming conventions.
+    txt = re.sub(
+        r"\.(?:aarch64|arm64|x86_64|amd64)\.\$CONTAINER_ID",
+        ".$ARCH.$CONTAINER_ID",
+        txt,
     )
     return txt
 
