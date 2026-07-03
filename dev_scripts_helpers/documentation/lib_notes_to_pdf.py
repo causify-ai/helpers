@@ -363,7 +363,7 @@ def run_pandoc_to_pdf(
     dockerized_force_rebuild: bool,
     dockerized_use_sudo: bool,
     *,
-    tex_only: bool = False,
+    no_pdf: bool = False,
     fail_on_warnings: bool = True,
     use_pandoc_ast_transform: bool = False,
 ) -> str:
@@ -378,7 +378,8 @@ def run_pandoc_to_pdf(
         E.g., '/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
     :param prefix: The prefix used for the output file
         E.g., '/app/helpers_root/tmp.notes_to_pdf'
-    :param tex_only: If True, return the .tex file instead of compiling to PDF
+    :param no_pdf: If True, return the .tex / .typ file instead of compiling to
+        PDF
     :param use_pandoc_ast_transform: If True, use two-stage AST pipeline instead
         of single-shot pandoc
     :return: The path to the generated output file (.tex or .pdf)
@@ -451,9 +452,9 @@ def run_pandoc_to_pdf(
         _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
         _ = _system(cmd)
     file_name = file2
-    # Return the .tex file if tex_only mode is requested.
-    if tex_only:
-        _LOG.info("tex_only=True: skipping pdflatex, returning .tex file")
+    # Return the .tex file if `--no_pdf` mode is requested.
+    if no_pdf:
+        _LOG.info("no_pdf=True: skipping pdflatex, returning .tex file")
         return file2
     # - Run latex.
     _report_phase("latex")
@@ -638,7 +639,7 @@ def _build_pandoc_cmd(
     return cmd, file_out
 
 
-def run_pandoc_to_slides(
+def run_pandoc_to_latex_slides(
     file_name: str,
     toc_type: str,
     use_host_tools: bool,
@@ -646,7 +647,7 @@ def run_pandoc_to_slides(
     dockerized_use_sudo: bool,
     *,
     debug: bool = False,
-    tex_only: bool = False,
+    no_pdf: bool = False,
     fail_on_warnings: bool = True,
     use_pandoc_ast_transform: bool = False,
 ) -> str:
@@ -654,12 +655,13 @@ def run_pandoc_to_slides(
     Convert the input file to PDF slides using Pandoc.
 
     :param file_name: The input file to be converted
-    :param tex_only: If True, return the .tex file instead of compiling to PDF
+    :param no_pdf: If True, return the .tex / .typ file instead of compiling to
+        PDF
     :param use_pandoc_ast_transform: If True, use two-stage AST pipeline instead
         of single-shot pandoc
     :return: The path to the generated PDF or .tex file
     """
-    file_out = file_name.replace(".txt", ".tex" if tex_only else ".pdf")
+    file_out = file_name.replace(".txt", ".tex" if no_pdf else ".pdf")
     if use_pandoc_ast_transform:
         # Two-stage pandoc pipeline (markdown -> AST -> beamer).
         _run_pandoc_to_ast(

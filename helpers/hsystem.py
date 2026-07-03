@@ -42,8 +42,12 @@ import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
 
+# _LOG.trace is used only for debugging this module.
+# _LOG.trace = _LOG.debug
+_LOG.trace = lambda *args, **kwargs: None
+
 # Set logging level of this file higher to avoid too much chatter.
-_LOG.setLevel(logging.INFO)
+#_LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
@@ -149,10 +153,9 @@ def _system(
 
     See `system()` for options.
     """
-    _LOG.debug(hprint.func_signature_to_str())
-    _LOG.debug("##> %s", cmd)
+    _LOG.trace(hprint.func_signature_to_str())
     orig_cmd = cmd[:]
-    _LOG.debug("orig_cmd=%s", orig_cmd)
+    _LOG.trace("orig_cmd=%s", orig_cmd)
     # Handle `suppress_output`.
     hdbg.dassert_in(suppress_output, ("ON_DEBUG_LEVEL", True, False))
     if suppress_output == "ON_DEBUG_LEVEL":
@@ -160,7 +163,7 @@ def _system(
         # logging.DEBUG=10 and logging.INFO=20.
         show_output = _LOG.getEffectiveLevel() <= logging.DEBUG
         suppress_output = not show_output
-    _LOG.debug(hprint.to_str("suppress_output"))
+    _LOG.trace(hprint.to_str("suppress_output"))
     # Prepare the command line.
     cmd = f"({cmd})"
     hdbg.dassert_imply(tee, output_file is not None)
@@ -170,7 +173,7 @@ def _system(
         if not dir_name:
             dir_name = "."
         if not os.path.exists(dir_name):
-            _LOG.debug("Dir '%s' doesn't exist: creating", dir_name)
+            _LOG.trace("Dir '%s' doesn't exist: creating", dir_name)
             hdbg.dassert(bool(dir_name), "dir_name='%s'", dir_name)
             os.makedirs(dir_name)
         if tee:
@@ -194,7 +197,7 @@ def _system(
             print(f"> {cmd}")
         else:
             raise ValueError(f"Invalid log_level='{log_level}'")
-        _LOG.debug("> %s", cmd)
+        _LOG.trace("> %s", cmd)
     else:
         _LOG.log(log_level, "> %s", cmd)
     output = ""
@@ -208,13 +211,7 @@ def _system(
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
         hdbg.dassert_in(print_command, ("ON_DEBUG_LEVEL", True, False))    
-        if print_command == "ON_DEBUG_LEVEL":
-            # Show the command if we are at (or lower than) DEBUG level, since
-            # logging.DEBUG=10 and logging.INFO=20.
-            show_command = _LOG.getEffectiveLevel() <= logging.DEBUG
-            print_command = not show_command
-        _LOG.debug(hprint.to_str("suppress_output"))
-        if print_command:
+        if print_command == True:
             _LOG.info("> %s", cmd)
         with subprocess.Popen(
             cmd,
@@ -245,7 +242,7 @@ def _system(
                     # Process hasn't exited yet, let's wait some time.
                     time.sleep(0.1)
                     cnt += 1
-                    _LOG.debug("cnt=%s, rc=%s", cnt, p.returncode)
+                    _LOG.trace("cnt=%s, rc=%s", cnt, p.returncode)
                     if cnt > max_cnt:
                         break
                 if cnt > max_cnt:
@@ -260,7 +257,7 @@ def _system(
     except OSError as e:
         rc = -1
         _LOG.error("error=%s", str(e))
-    _LOG.debug("  ==> rc=%s", rc)
+    _LOG.trace("  ==> rc=%s", rc)
     if abort_on_error and rc != 0:
         # Report the last `num_error_lines` of the output.
         num_error_lines = num_error_lines or 30
@@ -491,7 +488,7 @@ def remove_dirs(
     dirs_tmp: List[str] = []
     for file in files:
         if os.path.isdir(file):
-            _LOG.debug("file='%s' is a dir: skipping", file)
+            _LOG.trace("file='%s' is a dir: skipping", file)
             dirs_tmp.append(file)
         else:
             files_tmp.append(file)
@@ -553,15 +550,15 @@ def system_to_files(
     cmd = f"cd {dir_name} && {cmd}"
     _, output = system_to_string(cmd)
     # Remove empty lines.
-    _LOG.debug("output=\n%s", output)
+    _LOG.trace("output=\n%s", output)
     files = output.split("\n")
     files = [line.rstrip().rstrip() for line in files]
     files = [line for line in files if line != ""]
-    _LOG.debug("files=%s", " ".join(files))
+    _LOG.trace("files=%s", " ".join(files))
     # Convert to normalized paths.
     files = [os.path.join(dir_name, f) for f in files]
     files: List[str] = list(map(os.path.normpath, files))  # type: ignore
-    _LOG.debug(hprint.to_str("files"))
+    _LOG.trace(hprint.to_str("files"))
     # Remove non-existent files, if needed.
     if remove_files_non_present:
         files = _remove_files_non_present(files, log_level=logging.DEBUG)
@@ -586,18 +583,18 @@ def get_process_pids(
     """
     cmd = "ps ax"
     rc, txt = system_to_string(cmd, abort_on_error=False)
-    _LOG.debug("txt=\n%s", txt)
+    _LOG.trace("txt=\n%s", txt)
     pids: List[int] = []
     txt_out: List[str] = []
     if rc == 0:
         for line in txt.split("\n"):
-            _LOG.debug("line=%s", line)
+            _LOG.trace("line=%s", line)
             # PID   TT  STAT      TIME COMMAND
             if "PID" in line and "TT" in line and "STAT" in line:
                 txt_out.append(line)
                 continue
             keep = keep_line(line)
-            _LOG.debug("  keep=%s", keep)
+            _LOG.trace("  keep=%s", keep)
             if not keep:
                 continue
             # > ps ax | grep 'ssh -i' | grep localhost
@@ -611,7 +608,7 @@ def get_process_pids(
                     "Can't parse fields '%s' from line '%s'", fields, line
                 )
                 raise e
-            _LOG.debug("pid=%s", pid)
+            _LOG.trace("pid=%s", pid)
             pids.append(pid)
             txt_out.append(line)
     return pids, txt_out
@@ -683,7 +680,7 @@ def query_yes_no(question: str, *, abort_on_no: bool = True) -> bool:
         if choice in valid:
             ret = valid[choice]
             break
-    _LOG.debug("ret=%s", ret)
+    _LOG.trace("ret=%s", ret)
     if abort_on_no:
         if not ret:
             print("You answer no: exiting")
@@ -768,7 +765,7 @@ def _find_git_root(path: str = ".") -> str:
     git_root_dir = None
     while True:
         git_dir = os.path.join(path, ".git")
-        _LOG.debug("git_dir=%s", git_dir)
+        _LOG.trace("git_dir=%s", git_dir)
         # Check if `.git` is a directory which indicates a standard Git repository.
         if os.path.isdir(git_dir):
             # Found the Git root directory.
@@ -785,7 +782,7 @@ def _find_git_root(path: str = ".") -> str:
                 # Example: `gitdir: ../.git/modules/helpers_root`.
                 if line.startswith("gitdir:"):
                     git_dir_path = line.split(":", 1)[1].strip()
-                    _LOG.debug("git_dir_path=%s", git_dir_path)
+                    _LOG.trace("git_dir_path=%s", git_dir_path)
                     # Resolve the relative path to the absolute path of the Git directory.
                     abs_git_dir = os.path.abspath(
                         os.path.join(path, git_dir_path)
@@ -907,7 +904,7 @@ def du(path: str, human_format: bool = False) -> Union[int, str]:
     # > du -d 0 core
     # 20    core
     _, txt = system_to_one_line(cmd)
-    _LOG.debug("txt=%s", txt)
+    _LOG.trace("txt=%s", txt)
     # `du` returns size in KB.
     size_in_bytes = int(txt) * 1024
     size: Union[int, str]
@@ -974,7 +971,7 @@ def find_file_with_dir(
         mocking
     :return: list of files found
     """
-    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.trace(hprint.func_signature_to_str())
     # Find all the files in the dir with the same basename.
     if candidate_files is None:
         base_name = os.path.basename(file_name)
@@ -985,7 +982,7 @@ def find_file_with_dir(
         # ./amp/im/common/test/utils.py
         mode_ = "return_all_results"
         candidate_files = system_to_files(cmd, dir_name=root_dir, mode=mode_)
-    _LOG.debug("candidate files=\n%s", "\n".join(candidate_files))
+    _LOG.trace("candidate files=\n%s", "\n".join(candidate_files))
     #
     if dir_depth == -1:
         # Remove "/app" if present.
@@ -998,7 +995,7 @@ def find_file_with_dir(
             file_name = file_name[len(prefix) :]
         # Count how many dirs levels there are.
         dir_depth = len(os.path.normpath(file_name).split("/")) - 1
-        _LOG.debug(
+        _LOG.trace(
             "inferred dir_depth=%s for file_name=%s", dir_depth, file_name
         )
     # Check the matching files.
@@ -1007,15 +1004,15 @@ def find_file_with_dir(
         signature1 = _compute_file_signature(candidate_file_name, dir_depth)
         signature2 = _compute_file_signature(file_name, dir_depth)
         is_equal = signature1 == signature2
-        _LOG.debug("found_file=%s -> is_equal=%s", candidate_file_name, is_equal)
+        _LOG.trace("found_file=%s -> is_equal=%s", candidate_file_name, is_equal)
         if is_equal:
             matching_files.append(candidate_file_name)
-    _LOG.debug(
+    _LOG.trace(
         "Found %d files:\n%s", len(matching_files), "\n".join(matching_files)
     )
     # Select the result based on mode.
     res = select_result_file_from_list(matching_files, mode, file_name)
-    _LOG.debug("-> res=%s", str(res))
+    _LOG.trace("-> res=%s", str(res))
     return res
 
 
@@ -1027,15 +1024,15 @@ def cd(dir_name: str) -> Generator[None, None, None]:
     """
     hdbg.dassert_dir_exists(dir_name)
     current_dir = os.getcwd()
-    _LOG.debug("Entering ctx manager: " + hprint.to_str("current_dir"))
+    _LOG.trace("Entering ctx manager: " + hprint.to_str("current_dir"))
     try:
         os.chdir(dir_name)
-        _LOG.debug("Switched to dir '%s'", os.getcwd())
+        _LOG.trace("Switched to dir '%s'", os.getcwd())
         yield
     finally:
-        _LOG.debug("Switching back to dir '%s'", current_dir)
+        _LOG.trace("Switching back to dir '%s'", current_dir)
         os.chdir(current_dir)
-    _LOG.debug("Exiting ctx manager")
+    _LOG.trace("Exiting ctx manager")
 
 
 # #############################################################################
@@ -1058,7 +1055,7 @@ def has_timestamp(file_name: str) -> bool:
     regex = sep.join(
         [r"\d{4}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}"]
     )
-    _LOG.debug("regex=%s", regex)
+    _LOG.trace("regex=%s", regex)
     occurrences = re.findall(regex, file_name)
     hdbg.dassert_lte(
         len(occurrences), 1, "Found more than one timestamp", str(occurrences)
@@ -1067,7 +1064,7 @@ def has_timestamp(file_name: str) -> bool:
     has_timestamp_ = m is not None
     if has_timestamp_:
         m = cast(Match[str], m)
-        _LOG.debug("Found a timestamp '%s' in '%s'", m.group(1), file_name)
+        _LOG.trace("Found a timestamp '%s' in '%s'", m.group(1), file_name)
     return has_timestamp_
 
 
@@ -1091,7 +1088,7 @@ def append_timestamp_tag(file_name: str, tag: str) -> str:
         # If the tag is specified prepend a `.` in the filename.
         tag_ += "." + tag
     new_file_name = os.path.join(dir_name, "".join([name, tag_, extension]))
-    _LOG.debug(hprint.to_str("file_name new_file_name"))
+    _LOG.trace(hprint.to_str("file_name new_file_name"))
     return new_file_name
 
 
@@ -1108,12 +1105,12 @@ def tee(
     :param abort_on_error: Whether to abort execution if command fails
     :return: Tuple of (exit code, list of non-empty output lines)
     """
-    _LOG.debug("cmd=%s executable=%s", cmd, executable)
+    _LOG.trace("cmd=%s executable=%s", cmd, executable)
     rc, output = system_to_string(cmd, abort_on_error=abort_on_error)
     hdbg.dassert_isinstance(output, str)
     output1 = output.split("\n")
-    _LOG.debug("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
+    _LOG.trace("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
     output2 = hprint.remove_empty_lines(output1)
-    _LOG.debug("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
+    _LOG.trace("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
     hdbg.dassert_list_of_strings(output2)
     return rc, output2

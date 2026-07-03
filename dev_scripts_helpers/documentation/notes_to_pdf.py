@@ -212,7 +212,7 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.use_host_tools,
                 args.dockerized_force_rebuild,
                 args.dockerized_use_sudo,
-                tex_only=args.tex_only,
+                tex_only=args.no_pdf,
                 fail_on_warnings=not args.no_fail_on_warnings,
                 use_pandoc_ast_transform=args.use_pandoc_ast_transform,
             )
@@ -235,19 +235,19 @@ def _run_all(args: argparse.Namespace) -> None:
                     args.use_host_tools,
                     args.dockerized_force_rebuild,
                     args.dockerized_use_sudo,
-                    typst_only=args.tex_only,
+                    typst_only=args.no_pdf,
                     fail_on_warnings=not args.no_fail_on_warnings,
                     use_pandoc_ast_transform=True,
                 )
             else:
-                file_out = dshdlntpd.run_pandoc_to_slides(
+                file_out = dshdlntpd.run_pandoc_to_latex_slides(
                     file_name,
                     args.toc_type,
                     args.use_host_tools,
                     args.dockerized_force_rebuild,
                     args.dockerized_use_sudo,
                     debug=args.debug_on_error,
-                    tex_only=args.tex_only,
+                    tex_only=args.no_pdf,
                     fail_on_warnings=not args.no_fail_on_warnings,
                     use_pandoc_ast_transform=args.use_pandoc_ast_transform,
                 )
@@ -313,6 +313,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="Type of output to generate",
     )
+    #
     parser.add_argument(
         "--filter_by_header", action="store", help="Filter by header"
     )
@@ -338,7 +339,8 @@ def _parse() -> argparse.ArgumentParser:
         default=5,
         help="Number of slides to keep when using --filter_by_name (default: 5)",
     )
-    # TODO(gp): -> out_action_script
+    #
+    # TODO(gp): -> --action_script
     parser.add_argument(
         "--script",
         action="store",
@@ -356,11 +358,11 @@ def _parse() -> argparse.ArgumentParser:
         default="none",
         choices=["none", "pandoc_native", "navigation", "remove_headers"],
         help=(
-            "Type of table of contents to generate: "
-            "'none': no TOC; "
-            "'pandoc_native': use pandoc's native --toc option (depth 2); "
-            "'navigation': add custom navigation slides for headers (levels 1-3); "
-            "'remove_headers': remove headers smaller than level 3"
+            "Type of table of contents to generate:\n"
+            "- 'none': no TOC\n"
+            "- 'pandoc_native': use pandoc's native --toc option (depth 2)\n"
+            "- 'navigation': add custom navigation slides for headers (levels 1-3);\n"
+            "- 'remove_headers': remove headers smaller than level 3"
         ),
     )
     parser.add_argument(
@@ -369,22 +371,24 @@ def _parse() -> argparse.ArgumentParser:
         default="beamer",
         choices=["beamer", "typst"],
         help=(
-            "Engine used to render slides (only for `--type slides`): "
-            "'beamer': pandoc -> LaTeX/beamer -> pdflatex (default); "
-            "'typst': pandoc -> Typst/Touying -> typst compile"
+            "Engine used to render slides (only for `--type slides`):\n"
+            "- 'beamer': pandoc -> LaTeX/beamer -> pdflatex (default)\n"
+            "- 'typst': pandoc -> Typst/Touying -> typst compile\n"
         ),
     )
     parser.add_argument(
         "--no_fail_on_warnings",
         action="store_true",
         default=False,
-        help="Don't fail pandoc if there are warnings (useful to ignore warnings for pandoc typst)",
+        help="Don't fail pandoc if there are warnings",
     )
     parser.add_argument(
-        "--no_run_latex_again", action="store_true", default=False
+        "--no_run_latex_again", action="store_true", default=False,
+        # TODO(ai_gp): Add a comment
+        help="",
     )
     parser.add_argument(
-        "--tex_only",
+        "--no_pdf",
         action="store_true",
         default=False,
         help=(
@@ -401,7 +405,9 @@ def _parse() -> argparse.ArgumentParser:
             "conversion, instead of default single-shot pandoc"
         ),
     )
-    parser.add_argument("--debug_on_error", action="store_true", default=False)
+    parser.add_argument("--debug_on_error", action="store_true", default=False,
+        # TODO(ai_gp): Add a comment
+        help="")
     parser.add_argument(
         "--gdrive_dir",
         action="store",

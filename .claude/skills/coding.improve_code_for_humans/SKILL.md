@@ -3,9 +3,11 @@ description: Make the code more readable and debuggable
 model: haiku
 ---
 
-- I will pass you one of more files `<FILES>`
-
 # Goal
+I will pass you one of more files `<FILES>` and you will make the code more
+readable and debuggable for humans.
+
+# Workflow
 
 ## Add Comments
 - Improve its readability by adding concise comments with these rules
@@ -47,4 +49,4 @@ model: haiku
 
 - Do not change the behavior of the code in any way
 
-- Follow the rules in `.claude/skills/coding.rules.md`
+- You must follow the rules in `.claude/skills/coding.rules.md`

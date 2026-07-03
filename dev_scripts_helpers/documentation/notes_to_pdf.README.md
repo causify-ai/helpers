@@ -101,7 +101,7 @@
 <!--      subgraph Conversion["Format Converters"] -->
 <!--          ToPDF["_run_pandoc_to_pdf()"] -->
 <!--          ToHTML["_run_pandoc_to_html()"] -->
-<!--          ToSlides["_run_pandoc_to_slides()"] -->
+<!--          ToSlides["_run_pandoc_to_latex_slides()"] -->
 <!--          ToTypstSlides["_run_pandoc_to_typst_slides()"] -->
 <!--      end -->
 <!--       -->
@@ -184,7 +184,7 @@
 <!--      ConvertType{"Output<br/>type?"}--> -->
 <!--      ConvertPDF["_run_pandoc_to_pdf()<br/>→ PDF path"] -->
 <!--      ConvertHTML["_run_pandoc_to_html()<br/>→ HTML path"] -->
-<!--      ConvertSlides["_run_pandoc_to_slides()<br/>or _run_pandoc_to_typst_slides()<br/>→ Slides path"] -->
+<!--      ConvertSlides["_run_pandoc_to_latex_slides()<br/>or _run_pandoc_to_typst_slides()<br/>→ Slides path"] -->
 <!--      -->
 <!--      CompressMark{"Mark<br/>compress_pdf?"}--> -->
 <!--      CompressExec["_compress_pdf()<br/>→ compressed file"] -->
@@ -263,7 +263,7 @@
       - _cleanup_before()
       - _preprocess_notes()
         - _render_images()
-      - [_run_pandoc_to_pdf() | _run_pandoc_to_html() | _run_pandoc_to_slides() | _run_pandoc_to_typst_slides()]
+      - [_run_pandoc_to_pdf() | _run_pandoc_to_html() | _run_pandoc_to_latex_slides() | _run_pandoc_to_typst_slides()]
       - _compress_pdf() [optional]
       - _copy_to_output()
         - _copy_to_gdrive() [optional]
@@ -279,7 +279,7 @@
 | `_render_images()` | Renders inline diagram/image specs; filters commented code; returns file path |
 | `_run_pandoc_to_pdf()` | Converts markdown → LaTeX → PDF via Pandoc and pdflatex (2 passes); returns PDF path |
 | `_run_pandoc_to_html()` | Converts markdown to HTML via Pandoc; returns HTML path |
-| `_run_pandoc_to_slides()` | Converts markdown to Beamer PDF slides; returns PDF path or .tex if `tex_only=True` |
+| `_run_pandoc_to_latex_slides()` | Converts markdown to Beamer PDF slides; returns PDF path or .tex if `tex_only=True` |
 | `_run_pandoc_to_typst_slides()` | Converts markdown → Typst/Touying → PDF slides via a 3-step pipeline (markdown → AST → divved-fence transform → typst); prepends LaTeX math abbreviation definitions so pandoc expands them |
 | `_extract_latex_math_defs()` | Reads `latex_abbrevs.sty` and returns the `\newcommand` / `\def` math macros (dropping packages, colors, list config, and `\textcolor` helpers) for prepending to the typst input |
 | `_compress_pdf()` | Compresses PDF via ghostscript; in-place modification; returns file path |
