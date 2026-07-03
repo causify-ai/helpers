@@ -215,6 +215,10 @@ def purify_app_references(txt: str) -> str:
     :return: text with app references removed
     """
     app_patterns = [
+        # Replace the `/app` Docker mount point (the container's mirror of
+        # the Git root, e.g. `--workdir /app`) with `$GIT_ROOT`.
+        (r"(?<![\w/])/app(?=/)", "$GIT_ROOT"),
+        (r"(?<![\w/])/app(?=\s|$)", "$GIT_ROOT"),
         # Remove trailing '/app/' references.
         (r"(?<![\w/])/app/(?=\s|$)", ""),
         # Remove 'app/' prefix from path segments.
@@ -530,11 +534,13 @@ def purify_apple_container_output(txt: str) -> str:
     :param txt: input text containing container output
     :return: text with container startup lines removed
     """
+    # Match lines starting with a `[step/total]` progress marker, e.g.
+    # `[0/6]` or `[1/6] Fetching image [0s]`. This avoids matching unrelated
+    # bracketed content, e.g. `['helpers/test/test_file.py']`.
+    progress_line_pattern = re.compile(r"^\[\d+/\d+\]")
     lines = txt.split("\n")
     filtered_lines = [
-        line
-        for line in lines
-        if not (line.startswith("[") and line.endswith("]"))
+        line for line in lines if not progress_line_pattern.match(line)
     ]
     return "\n".join(filtered_lines)
 
