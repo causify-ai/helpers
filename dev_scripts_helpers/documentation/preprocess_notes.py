@@ -230,7 +230,7 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
 # #############################################################################
 
 
-def _extract_slide_metadata(
+def extract_slide_metadata(
     lines: List[str],
 ) -> Tuple[Dict[str, str], List[str]]:
     r"""
@@ -938,7 +938,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Expand include directives before other preprocessing.
     lines = _expand_includes(lines)
     # Extract and expand metadata directives into title slide.
-    metadata, lines = _extract_slide_metadata(lines)
+    metadata, lines = extract_slide_metadata(lines)
     if metadata.get("type") == "UMD_slides":
         title_lines = _generate_title_slide(metadata, args.output_format)
         lines = title_lines + lines

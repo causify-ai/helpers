@@ -9,11 +9,14 @@ including pandoc orchestration, file operations, and system calls.
 import hashlib
 import logging
 import os
-from typing import List, Optional
+import pprint
+from typing import Any, Dict, List, Optional
 from unittest import mock
 
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
@@ -137,7 +140,33 @@ class Test_preprocess_notes(hunitest.TestCase):
                 file_name, prefix, type_, toc_type, output_format
             )
         # Check outputs.
-        # TODO(ai_gp): check output with assert_invocations(
+        self.assert_equal(result, f"{prefix}.preprocess_notes.txt")
+        git_root = hgit.find_git_root()
+        expected_invocations = [
+            {
+                "function": "hsystem.system_to_string",
+                "args": (
+                    f"find {git_root} "
+                    r"\( -path '*/.git' -o -path '*/.mypy_cache' \) -prune "
+                    '-o -name "preprocess_notes.py" -print',
+                ),
+                "kwargs": {},
+            },
+            {
+                "function": "hsystem.system",
+                "args": (
+                    " --input input.txt --output"
+                    " tmp.pandoc.preprocess_notes.txt --type pdf"
+                    " --toc_type pandoc_native --output_format latex",
+                ),
+                "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        expected_str = huntepur.TextPurifier().purify_txt_from_client(
+            expected_str
+        )
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
 
 # #############################################################################
@@ -159,10 +188,39 @@ class Test_render_images(hunitest.TestCase):
         file_name = os.path.join(scratch_dir, "notes.txt")
         hio.to_file(file_name, "# Notes\n\n![image](test.png)")
         prefix = os.path.join(scratch_dir, "tmp.notes")
+        # Pre-create the file that `render_images.py` would have produced,
+        # since the system call to it is mocked out and does not actually run.
+        file2 = f"{prefix}.render_image.txt"
+        hio.to_file(file2, "# Notes\n\n![image](test.png)")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             result = dshdlntpd.render_images(file_name, prefix)
-        # TODO(ai_gp): check output with assert_invocations(
+        # Check outputs.
+        self.assert_equal(result, f"{prefix}.render_image2.txt")
+        git_root = hgit.find_git_root()
+        expected_invocations = [
+            {
+                "function": "hsystem.system_to_string",
+                "args": (
+                    f"find {git_root} "
+                    r"\( -path '*/.git' -o -path '*/.mypy_cache' \) -prune "
+                    '-o -name "render_images.py" -print',
+                ),
+                "kwargs": {},
+            },
+            {
+                "function": "hsystem.system",
+                "args": (
+                    f" --input {file_name} --output {file2} --action render",
+                ),
+                "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        expected_str = huntepur.TextPurifier().purify_txt_from_client(
+            expected_str
+        )
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
 
 # #############################################################################
@@ -179,14 +237,12 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         self,
         file_in: str,
         fail_on_warnings: bool,
-        expected: str,
     ) -> None:
         """
         Test helper for _run_pandoc_to_ast.
 
         :param file_in: Input markdown file
         :param fail_on_warnings: Whether to fail on warnings
-        :param expected: Expected invocation string
         """
         # Prepare inputs.
         use_host_tools = True
@@ -208,7 +264,25 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
                     fail_on_warnings=fail_on_warnings,
                 )
         # Check outputs.
-        # TODO(ai_gp): check output with assert_invocations(
+        ast_file = f"{file_in}.ast.json"
+        self.assert_equal(result, ast_file)
+        cmd = f"pandoc {file_in} -t json"
+        if fail_on_warnings:
+            cmd += " --fail-if-warnings"
+        cmd += f" -o {ast_file}"
+        expected_invocations = [
+            {
+                "function": "hsystem.system",
+                "args": (cmd,),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                    "print_command": True,
+                },
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
     def test1(self) -> None:
         """
@@ -217,13 +291,8 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         fail_on_warnings = True
-        expected = """
-        pandoc
-        -t json
-        --fail-if-warnings
-        """
         # Run test.
-        self.helper(file_in, fail_on_warnings, expected)
+        self.helper(file_in, fail_on_warnings)
 
     def test2(self) -> None:
         """
@@ -232,12 +301,8 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         fail_on_warnings = False
-        expected = """
-        pandoc
-        -t json
-        """
         # Run test.
-        self.helper(file_in, fail_on_warnings, expected)
+        self.helper(file_in, fail_on_warnings)
 
 
 # #############################################################################
@@ -253,7 +318,6 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
     def helper(
         self,
         output_format: str,
-        expected: str,
         *,
         extra_opts: Optional[List[str]] = None,
     ) -> None:
@@ -261,7 +325,6 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         Test helper for _run_pandoc_from_ast.
 
         :param output_format: Output format (latex, html, etc)
-        :param expected: Expected invocation string
         :param extra_opts: Additional pandoc options
         """
         # Prepare inputs.
@@ -289,7 +352,23 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
                     extra_opts=extra_opts if extra_opts else None,
                 )
         # Check outputs.
-        # TODO(ai_gp): check output with assert_invocations(
+        cmd = f"pandoc {ast_file} -f json -t {output_format} --fail-if-warnings"
+        for opt in extra_opts:
+            cmd += f" {opt}"
+        cmd += f" -o {output_file}"
+        expected_invocations = [
+            {
+                "function": "hsystem.system",
+                "args": (cmd,),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                    "print_command": True,
+                },
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
     def test1(self) -> None:
         """
@@ -297,12 +376,8 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         """
         # Prepare inputs.
         output_format = "latex"
-        expected = """
-        pandoc
-        -t latex
-        """
         # Run test.
-        self.helper(output_format, expected)
+        self.helper(output_format)
 
     def test2(self) -> None:
         """
@@ -310,12 +385,8 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         """
         # Prepare inputs.
         output_format = "html"
-        expected = """
-        pandoc
-        -t html
-        """
         # Run test.
-        self.helper(output_format, expected)
+        self.helper(output_format)
 
     def test3(self) -> None:
         """
@@ -324,14 +395,8 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         # Prepare inputs.
         output_format = "latex"
         extra_opts = ["--number-sections", "--toc"]
-        expected = """
-        pandoc
-        -t latex
-        --number-sections
-        --toc
-        """
         # Run test.
-        self.helper(output_format, expected, extra_opts=extra_opts)
+        self.helper(output_format, extra_opts=extra_opts)
 
 
 # #############################################################################
@@ -688,7 +753,7 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
 
 class Test_run_pandoc_to_slides(hunitest.TestCase):
     """
-    Test `run_pandoc_to_slides()` function for slide generation.
+    Test `run_pandoc_to_latex_slides()` function for slide generation.
     """
 
     def helper(
@@ -698,7 +763,7 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
         expected_ext: str,
     ) -> None:
         """
-        Test helper for run_pandoc_to_slides.
+        Test helper for run_pandoc_to_latex_slides.
 
         :param toc_type: Type of table of contents
         :param no_pdf: Whether to only generate TeX
@@ -717,7 +782,7 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
-                result = dshdlntpd.run_pandoc_to_slides(
+                result = dshdlntpd.run_pandoc_to_latex_slides(
                     file_name,
                     toc_type,
                     use_host_tools,
@@ -726,7 +791,30 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
                     no_pdf=no_pdf,
                 )
         # Check outputs.
-        # TODO(ai_gp): check output with assert_invocations(
+        file_out = file_name.replace(".txt", expected_ext)
+        self.assert_equal(result, file_out)
+        rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+        cmd = (
+            f"pandoc {file_name} -t beamer --slide-level 4"
+            " -V theme:SimplePlus --include-in-header=latex_abbrevs.sty"
+            " --fail-if-warnings"
+            f" --resource-path={rel_path}"
+        )
+        if toc_type == "pandoc_native":
+            cmd += " --toc --toc-depth 2"
+        cmd += f" -o {file_out}"
+        expected_invocations = [
+            {
+                "function": "hsystem.system_to_string",
+                "args": (cmd,),
+                "kwargs": {"log_level": logging.DEBUG, "abort_on_error": False},
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        expected_str = huntepur.TextPurifier().purify_txt_from_client(
+            expected_str
+        )
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
     def test1(self) -> None:
         """
@@ -761,6 +849,25 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
     Test `run_pandoc_to_typst_slides()` function for Typst slide generation.
     """
 
+    @staticmethod
+    def _find_file_side_effect(real_dev_scripts_helpers_dir: str) -> Any:
+        """
+        Build a `hgit.find_file()` stand-in used inside the mocked context.
+
+        `_extract_latex_math_defs()` needs the real `dev_scripts_helpers` dir
+        to read the real `latex_abbrevs.sty` content; every other lookup
+        (e.g., `convert_pandoc_divved_fence.py`) is only used to build a
+        command string that is captured, never executed, so it is echoed
+        back unchanged.
+        """
+
+        def _side_effect(file_name_: str) -> str:
+            if file_name_ == "dev_scripts_helpers":
+                return real_dev_scripts_helpers_dir
+            return file_name_
+
+        return _side_effect
+
     def helper(
         self,
         typst_only: bool,
@@ -776,12 +883,22 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         curr_path = scratch_dir
         file_name = os.path.join(scratch_dir, "slides.txt")
+        hio.to_file(file_name, "# Slides\n\nContent")
         use_host_tools = True
         dockerized_force_rebuild = False
         dockerized_use_sudo = False
         # Create template file.
         template_file = os.path.join(curr_path, "pandoc_touying.typ")
         hio.to_file(template_file, "Typst template")
+        # Create the intermediate `.typ` file that the (mocked) pandoc call
+        # would have produced, since `run_pandoc_to_typst_slides()` reads it
+        # back for real to rewrite image paths.
+        typ_file = file_name.replace(".txt", ".typ")
+        hio.to_file(typ_file, "placeholder typst content")
+        # Resolve the real `dev_scripts_helpers` dir before entering the
+        # system-call-capturing context, since `hgit.find_file()` itself goes
+        # through a system call that we are about to mock out.
+        real_dev_scripts_helpers_dir = hgit.find_file("dev_scripts_helpers")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             # Mock hdbg: prevents dassert_* from failing when output files don't
@@ -789,10 +906,16 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
-                # Mock hgit: bypasses git repo detection (used to determine if AST
-                # transform should be applied based on project structure).
-                with mock.patch(
-                    "dev_scripts_helpers.documentation.lib_notes_to_pdf.hgit"
+                # Mock hgit.find_file() only (not the whole module): it needs
+                # to keep returning the real `dev_scripts_helpers` dir so
+                # `_extract_latex_math_defs()` can read the real
+                # `latex_abbrevs.sty`.
+                with mock.patch.object(
+                    dshdlntpd.hgit,
+                    "find_file",
+                    side_effect=self._find_file_side_effect(
+                        real_dev_scripts_helpers_dir
+                    ),
                 ):
                     # Mock dshdlity: skips Typst infrastructure/pipeline operations
                     # that require external tools and project-specific configuration.
@@ -808,7 +931,83 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                             typst_only=typst_only,
                         )
         # Check outputs.
-        # TODO(ai_gp): check output with assert_invocations(
+        self.assert_equal(result, file_name.replace(".txt", expected_ext))
+        expected_invocations = self._build_expected_invocations(
+            curr_path, file_name, typ_file, typst_only
+        )
+        expected_str = pprint.pformat(expected_invocations)
+        expected_str = huntepur.TextPurifier().purify_txt_from_client(
+            expected_str
+        )
+        hunteuti.assert_invocations(self, invocations, expected_str)
+
+    @staticmethod
+    def _build_expected_invocations(
+        curr_path: str, file_name: str, typ_file: str, typst_only: bool
+    ) -> List[Dict[str, Any]]:
+        """
+        Build the invocations expected from `run_pandoc_to_typst_slides()`.
+        """
+        file_with_defs = f"{file_name}.with_defs.txt"
+        ast_file = f"{file_with_defs}.ast.json"
+        transformed_ast_file = f"{file_name}.divved.ast.json"
+        template = f"{curr_path}/pandoc_touying.typ"
+        rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+        expected_invocations = [
+            {
+                "function": "hsystem.system",
+                "args": (
+                    f"pandoc {file_with_defs} -t json --fail-if-warnings"
+                    f" -o {ast_file}",
+                ),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                    "print_command": True,
+                },
+            },
+            {
+                "function": "hsystem.system",
+                "args": (
+                    f"convert_pandoc_divved_fence.py -i {ast_file}"
+                    f" -o {transformed_ast_file}",
+                ),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                },
+            },
+            {
+                "function": "hsystem.system",
+                "args": (
+                    f"pandoc {transformed_ast_file} -f json -t typst"
+                    " --fail-if-warnings --number-sections -s"
+                    f" --template {template} --resource-path={rel_path}"
+                    f" -o {typ_file}",
+                ),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                    "print_command": True,
+                },
+            },
+        ]
+        if not typst_only:
+            pdf_file = typ_file.replace(".typ", ".pdf")
+            root = os.getcwd()
+            expected_invocations.append(
+                {
+                    "function": "hsystem.system",
+                    "args": (
+                        f"typst compile --root {root} {typ_file} {pdf_file}",
+                    ),
+                    "kwargs": {
+                        "log_level": logging.DEBUG,
+                        "suppress_output": False,
+                    },
+                }
+            )
+        return expected_invocations
 
     def test1(self) -> None:
         """
@@ -838,6 +1037,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         curr_path = scratch_dir
         file_name = os.path.join(scratch_dir, "slides.txt")
+        hio.to_file(file_name, "# Slides\n\nContent")
         use_host_tools = True
         dockerized_force_rebuild = False
         dockerized_use_sudo = False
@@ -848,6 +1048,10 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         typ_file = file_name.replace(".txt", ".typ")
         image_content = 'image("path/to/image.png")'
         hio.to_file(typ_file, image_content)
+        # Resolve the real `dev_scripts_helpers` dir before entering the
+        # system-call-capturing context, since `hgit.find_file()` itself goes
+        # through a system call that we are about to mock out.
+        real_dev_scripts_helpers_dir = hgit.find_file("dev_scripts_helpers")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             # Mock hdbg: prevents dassert_* from failing when output files/paths
@@ -855,9 +1059,14 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
-                # Mock hgit: bypasses git repo detection for AST transform decision.
-                with mock.patch(
-                    "dev_scripts_helpers.documentation.lib_notes_to_pdf.hgit"
+                # Mock hgit.find_file() only (not the whole module): see
+                # `helper()` above for why.
+                with mock.patch.object(
+                    dshdlntpd.hgit,
+                    "find_file",
+                    side_effect=self._find_file_side_effect(
+                        real_dev_scripts_helpers_dir
+                    ),
                 ):
                     # Mock dshdlity: skips Typst infrastructure operations requiring
                     # external tools and project-specific configuration.
@@ -873,7 +1082,18 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                             typst_only=False,
                         )
         # Check outputs.
-        # TODO(ai_gp): check output with assert_invocations(
+        self.assert_equal(result, file_name.replace(".txt", ".pdf"))
+        self.assert_equal(
+            hio.from_file(typ_file), 'image("/path/to/image.png")'
+        )
+        expected_invocations = self._build_expected_invocations(
+            curr_path, file_name, typ_file, False
+        )
+        expected_str = pprint.pformat(expected_invocations)
+        expected_str = huntepur.TextPurifier().purify_txt_from_client(
+            expected_str
+        )
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
 
 # #############################################################################
@@ -899,7 +1119,22 @@ class Test_copy_to_output(hunitest.TestCase):
         with hunteuti.capture_system_calls() as invocations:
             result = dshdlntpd.copy_to_output(file_in, output)
         # Check outputs.
-        # TODO(ai_gp): check output with assert_invocations(
+        self.assert_equal(result, output)
+        expected_invocations = [
+            {
+                "function": "hsystem.system",
+                "args": (rf"\cp -af {file_in} {output}",),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                },
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        expected_str = huntepur.TextPurifier().purify_txt_from_client(
+            expected_str
+        )
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
     def test2(self) -> None:
         """
@@ -927,14 +1162,12 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         self,
         ext: str,
         input_: str,
-        expected: str,
     ) -> None:
         """
         Test helper for copy_to_gdrive.
 
         :param ext: File extension
         :param input_: Input filename
-        :param expected: Expected invocation string pattern
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -945,7 +1178,23 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         with hunteuti.capture_system_calls() as invocations:
             dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
-        # TODO(ai_gp): check output with assert_invocations(
+        basename = os.path.basename(input_).replace(".txt", "." + ext)
+        dst_file = os.path.join(gdrive_dir, basename)
+        expected_invocations = [
+            {
+                "function": "hsystem.system",
+                "args": (rf"\cp -af {file_name} {dst_file}",),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                },
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        expected_str = huntepur.TextPurifier().purify_txt_from_client(
+            expected_str
+        )
+        hunteuti.assert_invocations(self, invocations, expected_str)
 
     def test1(self) -> None:
         """
@@ -954,9 +1203,8 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         # Prepare inputs.
         ext = "pdf"
         input_ = "notes.txt"
-        expected = "cp.*notes.pdf"
         # Run test.
-        self.helper(ext, input_, expected)
+        self.helper(ext, input_)
 
 
 # #############################################################################
@@ -982,4 +1230,33 @@ class Test_compress_pdf(hunitest.TestCase):
             result = dshdlntpd.compress_pdf(pdf_file)
         # Check outputs.
         self.assert_equal(result, pdf_file)
-        # TODO(ai_gp): check output with assert_invocations(
+        out_dir = os.path.dirname(pdf_file)
+        basename = os.path.basename(pdf_file)
+        compressed_file = os.path.join(out_dir, f"compressed-{basename}")
+        expected_invocations = [
+            {
+                "function": "hsystem.system",
+                "args": (
+                    "/opt/homebrew/bin/gs -sDEVICE=pdfwrite"
+                    " -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH"
+                    f" -sOutputFile={compressed_file} {pdf_file}",
+                ),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                },
+            },
+            {
+                "function": "hsystem.system",
+                "args": (f"mv {compressed_file} {pdf_file}",),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                },
+            },
+        ]
+        expected_str = pprint.pformat(expected_invocations)
+        expected_str = huntepur.TextPurifier().purify_txt_from_client(
+            expected_str
+        )
+        hunteuti.assert_invocations(self, invocations, expected_str)
