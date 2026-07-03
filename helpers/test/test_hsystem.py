@@ -140,8 +140,7 @@ class Test_system1(hunitest.TestCase):
                 "ls this_should_fail", tee=True, output_file=log_file_path
             )
         actual = str(cm.exception)
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         # Normalize rc value (differs across systems).
         actual = re.sub(r"rc='\d+'", "rc=''", actual)
         # Check log output contains the OS-specific error message.

@@ -252,8 +252,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         # so that the tests pass.
         timestamp_regex = r"\.\d{8}_\d{6}"
         actual = re.sub(timestamp_regex, "", actual)
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         # This is required when different repos run Docker with user vs root / remap.
         actual = hunitest.filter_text("--user", actual)
         self.assert_equal(actual, expected, fuzzy_match=True)

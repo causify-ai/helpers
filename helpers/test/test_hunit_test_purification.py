@@ -29,8 +29,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_purify_text1(hunitest.TestCase):
     def helper(self, txt: str, expected: str, **kwargs: Any) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(txt)
+        actual = huntepur.purify_txt_from_client(txt)
         self.assert_equal(actual, expected, **kwargs)
 
     def test1(self) -> None:
@@ -249,8 +248,7 @@ class Test_purify_text1(hunitest.TestCase):
 
 class Test_purify_directory_paths1(hunitest.TestCase):
     def helper(self, input_: str, expected: str) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_directory_paths(input_)
+        actual = huntepur.purify_directory_paths(input_)
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test1(self) -> None:
@@ -342,8 +340,7 @@ class Test_purify_from_environment1(hunitest.TestCase):
             # Manually set a user name to test the behaviour.
             hsystem.set_user_name("root")
             # Run.
-            text_purifier = huntepur.TextPurifier()
-            actual = text_purifier.purify_from_environment(input_)
+            actual = huntepur.purify_from_environment(input_)
             self.assert_equal(actual, expected, fuzzy_match=True)
         finally:
             # Reset the global user name variable regardless of a test results.
@@ -383,8 +380,7 @@ class Test_purify_from_environment1(hunitest.TestCase):
 class Test_purify_amp_reference1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
         txt = hprint.dedent(txt)
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_amp_references(txt)
+        actual = huntepur.purify_amp_references(txt)
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
@@ -516,8 +512,7 @@ class Test_purify_amp_reference1(hunitest.TestCase):
 
 class Test_purify_app_references1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_app_references(txt)
+        actual = huntepur.purify_app_references(txt)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -617,8 +612,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
     def helper(self, env_var: str) -> None:
         env_var_value = os.environ[env_var]
         input_ = f"s3://{env_var_value}/"
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_from_env_vars(input_)
+        actual = huntepur.purify_from_env_vars(input_)
         expected = f"s3://${env_var}/"
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -651,8 +645,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 #        $CSFY_AWS_S3_BUCKET = {csfy_aws_s3_bucket}
 #        """
 #        #
-#        text_purifier = huntepur.TextPurifier()
-#        actual = text_purifier.purify_from_env_vars(text)
+#        actual = huntepur.purify_from_env_vars(text)
 #        self.check_string(actual, fuzzy_match=True)
 
 
@@ -664,8 +657,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 class Test_purify_object_representation1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
         txt = hprint.dedent(txt)
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_object_representation(txt)
+        actual = huntepur.purify_object_representation(txt)
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
@@ -768,8 +760,7 @@ class Test_purify_object_representation1(hunitest.TestCase):
 
 class Test_purify_today_date1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_today_date(txt)
+        actual = huntepur.purify_today_date(txt)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -828,8 +819,7 @@ class Test_purify_today_date1(hunitest.TestCase):
 
 class Test_purify_white_spaces1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_white_spaces(txt)
+        actual = huntepur.purify_white_spaces(txt)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -872,8 +862,7 @@ class Test_purify_white_spaces1(hunitest.TestCase):
 
 class Test_purify_parquet_file_names1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_parquet_file_names(txt)
+        actual = huntepur.purify_parquet_file_names(txt)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -913,8 +902,7 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
 
 class Test_purify_helpers1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_helpers(txt)
+        actual = huntepur.purify_helpers(txt)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -999,8 +987,7 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         expected = r"""
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.xxxxxxxx pdflatex -output-directory
         """
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_docker_image_name(txt)
+        actual = huntepur.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
@@ -1013,8 +1000,7 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         expected = r"""
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.aarch64.xxxxxxxx pdflatex -output-directory
         """
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_docker_image_name(txt)
+        actual = huntepur.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
@@ -1027,8 +1013,7 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         expected = r"""
         container run --rm --user $(id -u):$(id -g) --workdir /app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.latex.arm64.xxxxxxxx pdflatex -output-directory
         """
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_docker_image_name(txt)
+        actual = huntepur.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
 
 
@@ -1043,8 +1028,7 @@ class Test_purify_docker_cmd1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_docker_cmd(txt)
+        actual = huntepur.purify_docker_cmd(txt)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -1085,7 +1069,6 @@ class Test_purify_docker_cmd1(hunitest.TestCase):
         `docker` and `container` commands with different `-e` var lists
         normalize to the identical string.
         """
-        text_purifier = huntepur.TextPurifier()
         txt_docker = (
             "docker run --rm --user $(id -u):$(id -g) -e AM_CONTAINER_VERSION "
             "-e CSFY_AWS_ACCESS_KEY_ID -e CSFY_AWS_DEFAULT_REGION -e "
@@ -1096,8 +1079,8 @@ class Test_purify_docker_cmd1(hunitest.TestCase):
             "-e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE --workdir $GIT_ROOT "
             "tmp.foo.xxxxxxxx bar"
         )
-        actual_docker = text_purifier.purify_docker_cmd(txt_docker)
-        actual_container = text_purifier.purify_docker_cmd(txt_container)
+        actual_docker = huntepur.purify_docker_cmd(txt_docker)
+        actual_container = huntepur.purify_docker_cmd(txt_container)
         self.assert_equal(actual_docker, actual_container)
 
     def test4(self) -> None:
@@ -1144,8 +1127,7 @@ class Test_purify_line_number1(hunitest.TestCase):
         in_col_groups (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::$LINE_NUMBER::apply_history_lookback, val_type=list): [('close',), ('volume',)]
         out_col_group (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::$LINE_NUMBER::apply_history_lookback, val_type=tuple): ()
         """
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_line_number(txt)
+        actual = huntepur.purify_line_number(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
 
 
@@ -1156,8 +1138,7 @@ class Test_purify_line_number1(hunitest.TestCase):
 
 class Test_purify_file_names1(hunitest.TestCase):
     def helper(self, file_names: List[str], expected: List[str]) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_file_names(file_names)
+        actual = huntepur.purify_file_names(file_names)
         actual = "\n".join(str(path) for path in actual)
         expected = "\n".join(str(path) for path in expected)
         self.assert_equal(actual, expected)
@@ -1234,8 +1215,7 @@ class Test_purify_file_names1(hunitest.TestCase):
 class Test_purify_apple_container_output1(hunitest.TestCase):
 
     def helper(self, txt: str, expected: str) -> None:
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_apple_container_output(txt)
+        actual = huntepur.purify_apple_container_output(txt)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:

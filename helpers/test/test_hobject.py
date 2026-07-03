@@ -354,8 +354,7 @@ class _ClassA(_Abstract_ClassA):
 class Test_PrintableMixin_to_config_str(hunitest.TestCase):
     def check_test_class_str(self, test_class: Any, expected: str) -> None:
         actual = test_class.to_config_str()
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test1(self) -> None:
