@@ -95,7 +95,7 @@ class Test_system1(hunitest.TestCase):
         _system() failed
         ################################################################################
         ################################################################################
-        # _system: cmd='(ls this_file_doesnt_exist) 2>&1', print_command=False, abort_on_error=True, suppress_error=None, suppress_output=True, blocking=True, wrapper=None, output_file=None, num_error_lines=30, tee=False, dry_run=False, log_level=10
+        # _system: cmd='(ls this_file_doesnt_exist) 2>&1', print_command='ON_DEBUG_LEVEL', abort_on_error=True, suppress_error=None, suppress_output=True, blocking=True, wrapper=None, output_file=None, num_error_lines=30, tee=False, dry_run=False, log_level=10
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         cmd='(ls this_file_doesnt_exist) 2>&1'
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
