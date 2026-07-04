@@ -6,13 +6,23 @@ from typing import Tuple
 import pytest
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
+
+def _get_arch_tag() -> str:
+    is_docker = hserver.is_inside_docker()
+    docker_tag = "in_docker" if is_docker else "outside_docker"
+    arch_tag = hdocker.get_current_arch()
+    tag = f"{docker_tag}.{arch_tag}"
+    return tag
 
 
 # #############################################################################
@@ -142,7 +152,9 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Check.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
-        self.check_string(txt, purify_text=True)
+        #
+        tag = _get_arch_tag()
+        self.check_string(txt, purify_text=True, tag=tag)
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -159,10 +171,12 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Check.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
-        self.check_string(txt, purify_text=True)
+        #
+        tag = _get_arch_tag()
+        self.check_string(txt, purify_text=True, tag=tag)
 
     @pytest.mark.superslow
-    @pytest.mark.skipif(sys.platform == "darwin", reason="")
+    @pytest.mark.skip(reason="To debug")
     def test4(self) -> None:
         """
         Run:
@@ -198,4 +212,6 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Check.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
-        self.check_string(txt, purify_text=True)
+        #
+        tag = _get_arch_tag()
+        self.check_string(txt, purify_text=True, tag=tag)

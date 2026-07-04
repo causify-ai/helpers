@@ -300,7 +300,7 @@
 
 - `check_string()` accepts a `purify_text=True` keyword argument that strips
   machine-specific noise (absolute paths, usernames, git client refs) via
-  `helpers.hunit_test_purification.TextPurifier` before comparing against the
+  `helpers.hunit_test_purification.purify_txt_from_client()` before comparing against the
   golden file — use it whenever the output contains environment-specific strings
   that must not be frozen verbatim
 

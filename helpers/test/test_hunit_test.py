@@ -68,8 +68,7 @@ class TestTestCase1(hunitest.TestCase):
         Test hunitest.get_input_dir().
         """
         actual = self.get_input_dir()
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         expected = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_input_dir1/input"
         self.assertEqual(actual, expected)
 
@@ -82,8 +81,7 @@ class TestTestCase1(hunitest.TestCase):
             test_class_name=test_class_name,
             test_method_name=test_method_name,
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         #
         expected = "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/input"
         self.assertEqual(actual, expected)
@@ -97,8 +95,7 @@ class TestTestCase1(hunitest.TestCase):
             test_class_name=test_class_name,
             test_method_name=test_method_name,
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         #
         expected = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_input_dir3/input"
         self.assertEqual(actual, expected)
@@ -112,8 +109,7 @@ class TestTestCase1(hunitest.TestCase):
             test_class_name=test_class_name,
             test_method_name=test_method_name,
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         #
         expected = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1/input"
         self.assertEqual(actual, expected)
@@ -123,8 +119,7 @@ class TestTestCase1(hunitest.TestCase):
         Test hunitest.get_output_dir().
         """
         actual = self.get_output_dir()
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         expected = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_output_dir1/output"
         self.assertEqual(actual, expected)
 
@@ -133,8 +128,7 @@ class TestTestCase1(hunitest.TestCase):
         Test hunitest.get_scratch_space().
         """
         actual = self.get_scratch_space()
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         expected = (
             "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_scratch_space1"
             "/tmp.scratch"
@@ -147,8 +141,7 @@ class TestTestCase1(hunitest.TestCase):
         actual = self.get_scratch_space(
             test_class_name=test_class_name, test_method_name=test_method_name
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         expected = (
             "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/tmp.scratch"
         )
@@ -163,8 +156,7 @@ class TestTestCase1(hunitest.TestCase):
             test_method_name=test_method_name,
             use_absolute_path=use_absolute_path,
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         expected = "outcomes/test_class.test_method/tmp.scratch"
         self.assertEqual(actual, expected)
 
@@ -206,8 +198,7 @@ class TestTestCase1(hunitest.TestCase):
         actual = hunitest.get_dir_signature(
             tmp_dir, include_file_content=True, num_lines=0
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         actual = actual.replace(tmp_dir, "$TMP_DIR")
         # pylint: disable=line-too-long
         expected = """
@@ -340,8 +331,7 @@ completed       success Lint    Slow_tests
             )
         # Check that the assertion is what expected.
         actual = str(cm.exception)
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         expected = '''
 --------------------------------------------------------------------------------
 ACTUAL vs EXPECTED: Test_AssertEqual1.test_not_equal1
@@ -919,8 +909,7 @@ class Test_get_dir_signature1(hunitest.TestCase):
         actual = hunitest.get_dir_signature(
             in_dir, include_file_content, num_lines=0
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         return actual  # type: ignore[no-any-return]
 
     def test1(self) -> None:

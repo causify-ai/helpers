@@ -49,8 +49,14 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
         )
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
+        # `npm` sometimes prints an "npm notice" banner about available
+        # updates, so strip it.
+        output_lines = [
+            line for line in output.split("\n") if not line.startswith("npm notice")
+        ]
+        output = "\n".join(output_lines)
         expected = "/usr/local/lib\n`-- markdown-toc@1.2.0\n"
-        self.assert_equal(output, expected)
+        self.assert_equal(output, expected, purify_text=True)
 
 
 # #############################################################################
