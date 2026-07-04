@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Type
 import pytest
 
 import dev_scripts_helpers.system_tools.lib_rig as dshstliri
+import helpers.hgit as hgit
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -18,6 +19,26 @@ class TestRigScript(hunitest.TestCase):
     Test rig script functionality through hrig module integration.
     """
 
+    # TODO(gp): Use hunteuti.assert...
+    def _assert_cmd_invocation(
+        self,
+        invocations: List[Dict[str, Any]],
+        expected_cmd: str,
+    ) -> None:
+        """
+        Assert that the captured invocations match the expected command.
+
+        :param invocations: Captured system call invocations
+        :param expected_cmd: Expected command string
+        """
+        self.assertEqual(len(invocations), 1, "Expected exactly one invocation")
+        self.assertEqual(
+            invocations[0]["function"],
+            "subprocess.run",
+            "Expected subprocess.run call",
+        )
+        actual_cmd = " ".join(invocations[0]["args"][0])
+        self.assertEqual(actual_cmd, expected_cmd)
 
     def helper(
         self,
@@ -47,9 +68,7 @@ class TestRigScript(hunitest.TestCase):
                 exit_code = e.code
         # Check command output.
         if expected_cmd != "":
-            # TODO(ai_gp): Use hunteuti.assert_invocations
-            hunteuti.assert_invocations(invocations, expected_cmd,
-                                        purify_text=True)
+            self._assert_cmd_invocation(invocations, expected_cmd)
         # Check exit code.
         if expected_exit_code is not None:
             self.assertEqual(exit_code, expected_exit_code)
@@ -137,7 +156,7 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            None,
+            "",
             expected_exit_code,
             side_effect=side_effect,
         )
@@ -281,7 +300,8 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
+        git_root = hgit.find_git_root()
+        expected_cmd = f"rg ^# {git_root}/.claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -301,7 +321,8 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["assert_equal", "--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
+        git_root = hgit.find_git_root()
+        expected_cmd = f"rg ^#+.*assert_equal {git_root}/.claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
         expected_exit_code = 0
         # Run test.
         self.helper(

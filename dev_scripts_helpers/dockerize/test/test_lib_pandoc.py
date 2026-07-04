@@ -37,6 +37,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
                 "data-dir": "/data",
                 "template": None,
                 "extract-media": None,
+                "resource-path": None,
             },
             "cmd_opts": ["--toc", "--toc-depth", "2"],
         }
@@ -62,6 +63,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
                 "data-dir": None,
                 "template": None,
                 "extract-media": None,
+                "resource-path": None,
             },
             "cmd_opts": ["--toc"],
         }
@@ -92,6 +94,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
                 "data-dir": None,
                 "template": "documentation/pandoc.latex",
                 "extract-media": None,
+                "resource-path": None,
             },
             "cmd_opts": [
                 "-V",
@@ -290,6 +293,7 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
         {'cmd_opts': ['--verbose', '--extra'],
         'in_dir_params': {'data-dir': 'data',
                         'extract-media': 'media',
+                        'resource-path': None,
                         'template': 'default'},
         'input': 'sample.md',
         'output': 'output.md'}

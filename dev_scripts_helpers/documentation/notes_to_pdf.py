@@ -347,6 +347,17 @@ def _build_pandoc_cmd(
     cmd.append("-t beamer")
     cmd.append("--slide-level 4")
     cmd.append("-V theme:SimplePlus")
+    # `--include-in-header` is resolved by Pandoc relative to the cwd or the
+    # `--resource-path` (set below), so copy `latex_abbrevs.sty` next to the
+    # input file, which is where `--resource-path` points.
+    latex_abbrevs_file = os.path.join(
+        hgit.find_file("dev_scripts_helpers"),
+        "documentation",
+        "latex_abbrevs.sty",
+    )
+    hdbg.dassert_file_exists(latex_abbrevs_file)
+    out_dir = os.path.dirname(file_name)
+    _ = _system(f"cp -f {latex_abbrevs_file} {out_dir}")
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
     # cmd.append("--pdf-engine=xelatex")
@@ -355,9 +366,11 @@ def _build_pandoc_cmd(
     # ![](tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png)
     # which is then saved in
     # ./data605/lectures_pdf/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png
-    # Find the relative path to the resource path.
-    rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
-    cmd.append(f"--resource-path={rel_path}")
+    # Use an absolute path (instead of one relative to `os.getcwd()`) since
+    # this is converted to the corresponding path inside the Docker container
+    # by `run_dockerized_pandoc()`, which assumes paths are anchored at the
+    # Git root and not at the caller's cwd.
+    cmd.append(f"--resource-path={out_dir}")
     # cmd.append("--resource-path=/app/data605/lectures_pdf/")
     if toc_type == "pandoc_native":
         cmd.append("--toc")
