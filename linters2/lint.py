@@ -71,54 +71,31 @@ import linters2.linter_utils as llinutil
 
 _LOG = logging.getLogger(__name__)
 
-_VALID_ACTIONS = set(
-    [
-        "add_class_frames",
-        "coverage",
-        "fix_comments",
-        "fix_pyright",
-        "normalize_import",
-        "pre-commit",
-        "pyright",
-        "sync_jupytext",
-    ]
-)
-
-# They are executed in the order given by the list.
-_DEFAULT_ACTIONS = [
-    "pre-commit",
-    "normalize_import",
-    "add_class_frames",
-    "fix_comments",
-]
-
-
 # #############################################################################
 # Linting Functions
 # #############################################################################
 
 # Invariant: all the action returns an int return code.
 
-
-def _run_linting_actions(
-    files_str: str,
+def _run_common_linting_actions(
+    file_paths: List[str],
     actions: List[str],
     *,
     abort_on_error: bool = True,
 ) -> int:
     """
-    Run common linting actions.
-
-    Actions include: pre-commit, normalize_import, add_class_frames,
-    fix_comments, pyright, and fix_pyright.
+    Run linting actions that apply to all file types.
 
     :param files_str: Space-separated string of file paths
-    :param abort_on_error: whether to abort on first error
     :param actions: list of actions to perform; if None, all are performed
+    :param abort_on_error: whether to abort on first error
     :return: combined return code (OR of all command return codes)
     """
+    hdbg.dassert_isinstance(file_paths, list)
     hdbg.dassert_isinstance(actions, list)
+    #
     ret = 0
+    files_str = " ".join(file_paths)
     if "pre-commit" in actions:
         _LOG.info("\n%s",hprint.frame("pre-commit", char1="="))
         cmd = f"pre-commit run --files {files_str} --color always"
@@ -129,7 +106,36 @@ def _run_linting_actions(
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
-    # TODO(gp): Consider moving these actions inside pre-commit itself.
+    return ret
+
+
+# TODO(gp): Consider moving these actions inside pre-commit itself.
+def _run_python_linting_actions(
+    file_paths: List[str],
+    actions: List[str],
+    *,
+    abort_on_error: bool = True,
+) -> int:
+    """
+    Run linting actions that apply to all Python files (paired jupytext and not).
+
+    Actions include:
+    - add_class_frames
+    - fix_comments
+    - fix_pyright
+    - normalize_import
+    - pyright
+
+    :param files_str: Space-separated string of file paths
+    :param actions: list of actions to perform; if None, all are performed
+    :param abort_on_error: whether to abort on first error
+    :return: combined return code (OR of all command return codes)
+    """
+    hdbg.dassert_isinstance(file_paths, list)
+    hdbg.dassert_isinstance(actions, list)
+    #
+    ret = 0
+    files_str = " ".join(file_paths)
     if "normalize_import" in actions:
         _LOG.info("\n%s", hprint.frame("linters2/normalize_import.py", char1="="))
         cmd = (
@@ -214,6 +220,9 @@ def _run_coverage(
     :param abort_on_error: whether to abort on first error
     :return: return code from pytest and coverage report
     """
+    hdbg.dassert_isinstance(file_paths, list)
+    hdbg.dassert_isinstance(actions, list)
+    #
     if not file_paths:
         return 0
     # Find the source files.
@@ -257,6 +266,9 @@ def _run_coverage(
     return ret
 
 
+# #############################################################################
+
+
 def _lint_python_files(
     file_paths: List[str],
     actions: List[str],
@@ -273,19 +285,25 @@ def _lint_python_files(
         - If None, all actions except coverage are performed
     :return: combined return code (OR of all command return codes)
     """
-    if not file_paths:
-        return 0
+    hdbg.dassert_isinstance(file_paths, list)
     hdbg.dassert_isinstance(actions, list)
+    #
     _LOG.info(
         "Linting %d Python files with actions: %s", len(file_paths), actions
     )
-    ret = 0
-    files_str = " ".join(file_paths)
-    ret |= _run_linting_actions(
-        files_str,
+    if not file_paths:
+        return 0
+    ret = _run_common_linting_actions(
+        file_paths,
+        actions,
         abort_on_error=abort_on_error,
-        actions=actions,
     )
+    ret = _run_python_linting_actions(
+        file_paths,
+        actions,
+        abort_on_error=abort_on_error,
+    )
+    # TODO(ai_gp): Move this to _run_python_linting_actions
     # Coverage runs on all Python files including paired jupytext.
     if "coverage" in actions:
         ret |= _run_coverage(
@@ -297,9 +315,9 @@ def _lint_python_files(
 
 def _lint_jupyter_files(
     file_paths: List[str],
+    actions: List[str],
     *,
     abort_on_error: bool = True,
-    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Jupyter notebooks with specified actions.
@@ -310,18 +328,18 @@ def _lint_jupyter_files(
         add_class_frames, sync_jupytext); if None, all actions are performed
     :return: combined return code (OR of all command return codes)
     """
-    if not file_paths:
-        return 0
-    if actions is None:
-        actions = list(_DEFAULT_ACTIONS)
+    hdbg.dassert_isinstance(actions, list)
+    hdbg.dassert_isinstance(actions, list)
+    #
     _LOG.info(
         "Linting %d Jupyter notebooks with actions: %s", len(file_paths), actions
     )
-    files_str = " ".join(file_paths)
-    ret = _run_linting_actions(
-        files_str,
+    if not file_paths:
+        return 0
+    ret = _run_common_linting_actions(
+        file_paths,
+        actions,
         abort_on_error=abort_on_error,
-        actions=actions,
     )
     if "sync_jupytext" in actions:
         for file_path in file_paths:
@@ -347,11 +365,13 @@ def _lint_markdown_files(
     :param abort_on_error: whether to abort on first error
     :return: combined return code (OR of all command return codes)
     """
+    hdbg.dassert_isinstance(file_paths, list)
+    #
+    _LOG.info("Linting %d Markdown files", len(file_paths))
     if not file_paths:
         return 0
-    _LOG.info("Linting %d Markdown files", len(file_paths))
-    files_str = " ".join(file_paths)
     lint_txt_script = hsystem.find_file_in_repo("lint_txt.py")
+    files_str = " ".join(file_paths)
     ret = hsystem.system(
         f"{lint_txt_script} --input_files {files_str}",
         print_command=True,
@@ -429,8 +449,8 @@ def _filter_files_by_type(
         elif llinutil.is_py_file(f):
             if "py" not in file_extensions:
                 continue
-            if not llinutil.is_paired_jupytext_file(f):
-                python_files.append(f)
+            #if not llinutil.is_paired_jupytext_file(f):
+            python_files.append(f)
         elif f.endswith(".md"):
             if "md" not in file_extensions:
                 continue
@@ -528,21 +548,23 @@ def _lint_all_files(
     :return: combined return code (OR of all command return codes)
     """
     ret = 0
+    if not (python_files or jupyter_files or markdown_files):
+        _LOG.warning("No files matched the selection and type filters")
     # Process Python files.
     if python_files:
         print(hprint.frame("Processing Python files"))
         ret |= _lint_python_files(
             python_files,
+            actions,
             abort_on_error=args.abort_on_error,
-            actions=actions,
         )
     # Process Jupyter files.
     if jupyter_files:
         print(hprint.frame("Processing Jupyter notebooks"))
         ret |= _lint_jupyter_files(
             jupyter_files,
+            actions,
             abort_on_error=args.abort_on_error,
-            actions=actions,
         )
     # Process Markdown files.
     if markdown_files:
@@ -551,14 +573,34 @@ def _lint_all_files(
             markdown_files,
             abort_on_error=args.abort_on_error,
         )
-    if not (python_files or jupyter_files or markdown_files):
-        _LOG.warning("No files matched the selection and type filters")
     return ret
 
 
 # #############################################################################
 # CLI
 # #############################################################################
+
+
+_VALID_ACTIONS = set(
+    [
+        "add_class_frames",
+        "coverage",
+        "fix_comments",
+        "fix_pyright",
+        "normalize_import",
+        "pre-commit",
+        "pyright",
+        "sync_jupytext",
+    ]
+)
+
+# The actions are executed in the order given by the list.
+_DEFAULT_ACTIONS = [
+    "pre-commit",
+    "normalize_import",
+    "add_class_frames",
+    "fix_comments",
+]
 
 
 def _parse() -> argparse.ArgumentParser:
