@@ -4,8 +4,8 @@ model: haiku
 ---
 
 # Goal
-- Consolidate and rename skills by topics in order to be more organize, have less
-  redundancy
+- Consolidate and rename skills by topics in order to be more organize and have
+  less redundancy
 
 ## Step 1
 - Read `.claude/skills/skill.rules.md`

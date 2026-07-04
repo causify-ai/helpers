@@ -3,6 +3,7 @@ import pprint
 
 import pytest
 
+import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -36,11 +37,12 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
                 "data-dir": "/data",
                 "template": None,
                 "extract-media": None,
+                "resource-path": None,
             },
             "cmd_opts": ["--toc", "--toc-depth", "2"],
         }
         # Run test.
-        actual = dshdlipa.convert_pandoc_cmd_to_arguments(cmd)
+        actual = dshdlipa._convert_pandoc_cmd_to_arguments(cmd)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -61,11 +63,12 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
                 "data-dir": None,
                 "template": None,
                 "extract-media": None,
+                "resource-path": None,
             },
             "cmd_opts": ["--toc"],
         }
         # Run test.
-        actual = dshdlipa.convert_pandoc_cmd_to_arguments(cmd)
+        actual = dshdlipa._convert_pandoc_cmd_to_arguments(cmd)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -91,6 +94,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
                 "data-dir": None,
                 "template": "documentation/pandoc.latex",
                 "extract-media": None,
+                "resource-path": None,
             },
             "cmd_opts": [
                 "-V",
@@ -108,7 +112,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
             ],
         }
         # Run test.
-        actual = dshdlipa.convert_pandoc_cmd_to_arguments(cmd)
+        actual = dshdlipa._convert_pandoc_cmd_to_arguments(cmd)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -122,8 +126,8 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Run test.
-        parsed_args = dshdlipa.convert_pandoc_cmd_to_arguments(cmd)
-        converted_cmd = dshdlipa.convert_pandoc_arguments_to_cmd(parsed_args)
+        parsed_args = dshdlipa._convert_pandoc_cmd_to_arguments(cmd)
+        converted_cmd = dshdlipa._convert_pandoc_arguments_to_cmd(parsed_args)
         actual = "pandoc " + converted_cmd
         # Check outputs.
         expected = cmd
@@ -222,23 +226,40 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         """
         Test that the Pandoc Docker container is built correctly.
         """
+        # Build the container.
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        dshdlipa.build_pandoc_texlive_container_image(
+        dshdlipa._build_pandoc_texlive_container_image(
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
+        # Check.
+        container_type = "pandoc_texlive"
+        image_name = dshdlipa._get_pandoc_container_image_name(container_type)
+        hdbg.dassert(hdocker.image_exists(image_name, use_sudo))
 
+    # On Apple containers:
+    # > container run --rm tmp.pandoc_texlive.arm64.9a4bae9a --version
+    # pandoc 3.9.0.2
+    #
+    # > container run --rm --entrypoint "bash" tmp.pandoc_texlive.arm64.9a4bae9a -c 'pandoc --version | head -1'
+    # pandoc 3.9.0.2
+    @pytest.mark.skipif(
+        hserver.is_host_mac() and hdocker.get_docker_engine() == "apple",
+        reason="Fails with Apple container engine, see HelpersTask1273",
+    )
     def test2(self) -> None:
         """
         Test that the Pandoc version matches expected output.
         """
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
-        # Build the container.
+        # Get the container.
         container_type = "pandoc_texlive"
-        image_name = dshdlipa.get_pandoc_container_image_name(container_type)
+        image_name = dshdlipa._get_pandoc_container_image_name(container_type)
+        hdbg.dassert(hdocker.image_exists(image_name, use_sudo))
         # Run version command inside container.
         # TODO(ai_gp): Add also latex --version in the bash -c below
+        # TODO(ai_gp): Use different expected output for darwin vs linux.
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'
@@ -247,7 +268,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
         expected = "pandoc 3.9.0.2\n"
-        self.assert_equal(output, expected)
+        self.assert_equal(output, expected, purify_text=True)
 
 
 # #############################################################################
@@ -272,12 +293,13 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
         {'cmd_opts': ['--verbose', '--extra'],
         'in_dir_params': {'data-dir': 'data',
                         'extract-media': 'media',
+                        'resource-path': None,
                         'template': 'default'},
         'input': 'sample.md',
         'output': 'output.md'}
         """
         # Run test.
-        actual = pprint.pformat(dshdlipa.convert_pandoc_cmd_to_arguments(cmd))
+        actual = pprint.pformat(dshdlipa._convert_pandoc_cmd_to_arguments(cmd))
         # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -302,7 +324,7 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
         ('sample.md --output output.md --data-dir data --template default '
         '--extract-media media --verbose --extra')"""
         # Run test.
-        actual = pprint.pformat(dshdlipa.convert_pandoc_arguments_to_cmd(params))
+        actual = pprint.pformat(dshdlipa._convert_pandoc_arguments_to_cmd(params))
         # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 

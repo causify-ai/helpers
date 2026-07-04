@@ -49,7 +49,7 @@ class Test_build_plantum_container1(hunitest.TestCase):
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
         expected = "PlantUML version 1.2024.6 (Sat Jul 06 09:14:38 GMT 2024)"
-        self.assert_equal(output, expected)
+        self.assert_equal(output, expected, purify_text=True)
 
 
 # #############################################################################

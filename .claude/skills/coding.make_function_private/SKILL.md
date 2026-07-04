@@ -1,14 +1,78 @@
 ---
-description: Identify functions not called externally and rename them with a leading underscore to make them private
+description: Identify private / public functions in a file and rename them with an underscore or not
 model: haiku
 ---
 
-For each function and class in the passed Python file, check if it's a function
-called by other Python files or Jupyter notebooks
+For each function `<FUNC>` in the passed Python file `<FILE>`, determine if it
+should be private or public by checking if it's called by Python files or
+Jupyter notebooks outside `<FILE>`
 
-If the function is not called by any other file, then it should be a private
-function and should be rename and prepended with a `_`
+## Definition: External Files
+- **External files** = any Python file or Jupyter notebook outside the target
+  file
+  - Including:
+    - Sibling scripts in the same package (e.g., `notes_to_pdf.py` calling functions
+      from `lib_notes_to_pdf.py`)
+    - Parent/sibling modules that import from the target
+    - CLI entry point scripts
+  - Excluding
+    - Test files that test the target module, since a function is private even if
+      it's called by a test files
 
-- E.g., `def function` -> `def _function`
+- **Note:** Functions that form the public API of a library module should be
+  PUBLIC, even if they're not called from a `__main__` entry point. If a module
+  exports utility functions for use by other scripts in the package, those are
+  PUBLIC functions
 
-Then modify the callers of the function to use the new name
+# Private Functions
+- If the function `<FUNC>` is not called by any external file, then it should be
+  a private function and should be renamed and prepended with a `_`
+  - E.g., `def function` -> `def _function`
+  - Include only internal utility functions, helpers, and implementation details
+- Modify all the callers of the function `<FUNC>` to use the new name
+
+- Example: Private Functions
+  ```python
+  # lib_helper.py
+  def public_function():
+      _internal_helper()  # Only called within this file → should be private
+
+  def _internal_helper():
+      pass
+  ```
+
+# Public Functions
+- If the function `<FUNC>` is called by external files, then it should be a
+  public function and its name should **NOT** start with `_`
+  - This includes functions in shared utility modules called by sibling scripts
+- Modify all callers (both external and internal) of the function to use the new
+  name
+
+- Example: Public Functions
+  ```python
+  # lib_notes_to_pdf.py
+  def preprocess_notes(file_name, prefix):  # Called by notes_to_pdf.py → PUBLIC
+      _internal_step_1(file_name)  # Private helper
+
+  def _internal_step_1(file_name):  # Only used within lib_notes_to_pdf.py → PRIVATE
+      pass
+  ```
+
+# Workflow
+1. **Find all functions** in `<FILE>`
+2. **For each function**, search the entire codebase for external calls:
+   ```bash
+   grep -r "<FUNC>" --include="*.py" --include="*.ipynb" --exclude="test_*.py"
+   ```
+3. **Classify** as public or private based on external usage
+4. **Rename** functions and update all call sites (both files)
+5. **Verify** changes
+
+# Verification
+- [ ] Grep in the entire codebase to confirm all function calls were renamed
+      correctly
+      ```bash
+      grep -r "old_name\|new_name" --include="*.py" --include="*.ipynb"
+      ```
+- [ ] Run pyright to verify type correctness of modified function invocations
+- [ ] Run unit tests for the modified files to ensure nothing broke

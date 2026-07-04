@@ -93,8 +93,7 @@ class Test_show_imports(hunitest.TestCase):
             script_output = hio.from_file(script_output_filename)
             # Transform the output from the script by removing the dependencies
             # from the client.
-            text_purifier = huntepur.TextPurifier()
-            purified_script_output = text_purifier.purify_txt_from_client(
+            purified_script_output = huntepur.purify_txt_from_client(
                 script_output
             )
             purified_script_output = purified_script_output.replace(

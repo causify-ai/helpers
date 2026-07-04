@@ -23,6 +23,19 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# Architecture Overview:
+#
+# Two containerized Pandoc variants with LaTeX support:
+# - `pandoc_latex`: Alpine-based image with TexLive installation from scratch
+#    (heavyweight, ~2GB, supports full LaTeX features)
+# - `pandoc_texlive`: Debian-based image with pre-installed TexLive + apt
+#    pandoc (simpler build, relies on apt packages)
+#
+# Public interface
+# - `run_dockerized_pandoc()`: Main entry point that builds container (if
+#   needed), converts file paths, and executes pandoc inside Docker with proper
+#   mounts
+
 # Version pins for tools.
 _PANDOC_CORE_VERSION = "3.7"
 
@@ -93,7 +106,7 @@ WORKDIR /data
 """
 
 
-def get_pandoc_latex_container_image_name() -> str:
+def _get_pandoc_latex_container_image_name() -> str:
     """
     Get the name of the pandoc_latex container image.
 
@@ -105,7 +118,7 @@ def get_pandoc_latex_container_image_name() -> str:
     return container_image
 
 
-def build_pandoc_latex_container_image(
+def _build_pandoc_latex_container_image(
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
@@ -125,7 +138,7 @@ def build_pandoc_latex_container_image(
         incremental=True,
     )
     _LOG.debug("container_image=%s", container_image)
-    container_image2 = get_pandoc_latex_container_image_name()
+    container_image2 = _get_pandoc_latex_container_image_name()
     hdbg.dassert_eq(container_image, container_image2)
     exists, _ = hdocker.image_exists(container_image, use_sudo)
     hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
@@ -156,7 +169,7 @@ ENTRYPOINT ["pandoc"]
 """
 
 
-def get_pandoc_texlive_container_image_name() -> str:
+def _get_pandoc_texlive_container_image_name() -> str:
     """
     Get the name of the pandoc_texlive container image.
 
@@ -168,7 +181,7 @@ def get_pandoc_texlive_container_image_name() -> str:
     return container_image
 
 
-def build_pandoc_texlive_container_image(
+def _build_pandoc_texlive_container_image(
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
@@ -187,7 +200,7 @@ def build_pandoc_texlive_container_image(
         use_sudo,
     )
     _LOG.debug("container_image=%s", container_image)
-    container_image2 = get_pandoc_texlive_container_image_name()
+    container_image2 = _get_pandoc_texlive_container_image_name()
     hdbg.dassert_eq(container_image, container_image2)
     exists, _ = hdocker.image_exists(container_image, use_sudo)
     hdbg.dassert(exists, "Container '%s' doesn't exist", container_image)
@@ -197,19 +210,19 @@ def build_pandoc_texlive_container_image(
 # #############################################################################
 
 
-def get_pandoc_container_image_name(container_type: str) -> str:
+def _get_pandoc_container_image_name(container_type: str) -> str:
     if container_type == "pandoc_only":
         container_image = f"pandoc/core:{_PANDOC_CORE_VERSION}"
     elif container_type == "pandoc_latex":
-        container_image = get_pandoc_latex_container_image_name()
+        container_image = _get_pandoc_latex_container_image_name()
     elif container_type == "pandoc_texlive":
-        container_image = get_pandoc_texlive_container_image_name()
+        container_image = _get_pandoc_texlive_container_image_name()
     else:
         raise ValueError(f"Unknown container type '{container_type}'")
     return container_image
 
 
-def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
+def _convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments from a pandoc command.
 
@@ -240,6 +253,7 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     parser.add_argument("--data-dir", default=None)
     parser.add_argument("--template", default=None)
     parser.add_argument("--extract-media", default=None)
+    parser.add_argument("--resource-path", default=None)
     # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd_list)
     _LOG.debug(hprint.to_str("args unknown_args"))
@@ -253,6 +267,7 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
         "data-dir": args.data_dir,
         "template": args.template,
         "extract-media": args.extract_media,
+        "resource-path": args.resource_path,
     }
     return {
         "input": in_file_path,
@@ -262,7 +277,7 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     }
 
 
-def convert_pandoc_arguments_to_cmd(
+def _convert_pandoc_arguments_to_cmd(
     params: Dict[str, Any],
 ) -> str:
     """
@@ -315,13 +330,13 @@ def run_dockerized_pandoc(
         cmd = f"cp -r {dir_name}/* tmp.docker_build/common/latex"
         hsystem.system(cmd)
         # Build the container, if needed.
-        container_image = build_pandoc_latex_container_image(
+        container_image = _build_pandoc_latex_container_image(
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
         dockerfile = _PANDOC_LATEX_DOCKERFILE
     elif container_type == "pandoc_texlive":
         # Build the container, if needed.
-        container_image = build_pandoc_texlive_container_image(
+        container_image = _build_pandoc_texlive_container_image(
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
         dockerfile = _PANDOC_TEXLIVE_DOCKERFILE
@@ -337,7 +352,7 @@ def run_dockerized_pandoc(
         mount,
     ) = hdocker.get_docker_mount_context()
     # Convert command to arguments.
-    param_dict = convert_pandoc_cmd_to_arguments(cmd)
+    param_dict = _convert_pandoc_cmd_to_arguments(cmd)
     param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
         param_dict["input"],
         caller_mount_path,
@@ -371,7 +386,7 @@ def run_dockerized_pandoc(
             value_tmp = value
         param_dict["in_dir_params"][key] = value_tmp
     # Convert arguments back to command.
-    pandoc_cmd = convert_pandoc_arguments_to_cmd(param_dict)
+    pandoc_cmd = _convert_pandoc_arguments_to_cmd(param_dict)
     _LOG.debug(hprint.to_str("pandoc_cmd"))
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \

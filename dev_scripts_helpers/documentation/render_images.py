@@ -203,7 +203,7 @@ def _render_image_code(
     use_sudo: bool = False,
     dry_run: bool = False,
     dpi: int = 300,
-    output_format: str = "png",
+    output_format: str = ""
 ) -> List[str]:
     """
     Render the image code into one or more image files.
@@ -222,11 +222,16 @@ def _render_image_code(
     :param dst_dir: absolute path to directory for storing rendered images
     :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
         Graphviz, SVG, TikZ, and LaTeX image types.
-    :param output_format: force output format (png or svg). Overrides dst_ext.
+    :param output_format: force output format (png or svg), overriding
+        `dst_ext`. If "", `dst_ext` is used as the output format.
     :return: list of paths to the rendered images (usually 1 image, but 3 for
         "image" type)
     """
     _LOG.debug(hprint.func_signature_to_str("image_code_txt"))
+    # Fall back to `dst_ext` when the caller did not explicitly request an
+    # output format override.
+    if output_format == "":
+        output_format = dst_ext
     # Validate and override output format for specific diagram types.
     hdbg.dassert_in(
         output_format,
