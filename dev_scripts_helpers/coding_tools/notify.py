@@ -77,7 +77,7 @@ def _parse_last_command(
         stripped
     """
     lines = [line.strip() for line in history_text.splitlines() if line.strip()]
-    # TODO(ai_gp): Add an example of what is parsed.
+    # E.g., `: 1700000000:0;ls -la` becomes `ls -la`.
     zsh_prefix_regex = r"^: \d+:\d+;"
     commands = [re.sub(zsh_prefix_regex, "", line) for line in lines]
     if exclude_substrings:
@@ -112,22 +112,23 @@ def _get_last_command_and_dir() -> Tuple[str, str]:
     return last_command, current_dir
 
 
-def _send_notification(message: str) -> None:
+def _send_notification(
+    message: str, title: str, sound_name: str = "Glass"
+) -> None:
     """
     Send a macOS notification via `osascript`.
 
     No-op with a warning on non-macOS systems.
 
     :param message: text to display in the notification
+    :param title: title of the notification
+    :param sound_name: name of the macOS sound to play
     """
     hdbg.dassert_eq(platform.system(), "Darwin",
         "Notifications are only supported on macOS")
-    # TODO(ai_gp): Pass this through a command line option.
-    # TODO(ai_gp): Pass the sound name through a command line option.
-    title = "Claude Code Idle"
     cmd = (
         f"osascript -e 'display notification \"{message}\" "
-        f'with title "{title}" sound name "Glass"\''
+        f'with title "{title}" sound name "{sound_name}"\''
     )
     hsystem.system(cmd)
 
@@ -172,6 +173,18 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Send a macOS notification",
     )
+    parser.add_argument(
+        "--title",
+        action="store",
+        default="",
+        help="Title of the macOS notification",
+    )
+    parser.add_argument(
+        "--sound",
+        action="store",
+        default="Glass",
+        help="Name of the macOS sound to play with the notification",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -183,7 +196,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     last_command, current_dir = _get_last_command_and_dir()
     message = f"{last_command} (in {current_dir})"
     if args.notify:
-        _send_notification(message)
+        _send_notification(message, title=args.title, sound_name=args.sound)
     if args.blink:
         _blink_pane(last_command)
 

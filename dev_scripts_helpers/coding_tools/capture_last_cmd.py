@@ -12,7 +12,6 @@ Capture a command from shell history and copy it to the clipboard.
 
 import argparse
 import logging
-import shlex
 
 import dev_scripts_helpers.coding_tools.notify as dsctonot
 import helpers.hdbg as hdbg
@@ -23,16 +22,6 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
-
-# TODO(ai_gp): Use to_pbcopy
-def _copy_to_clipboard(text: str) -> None:
-    """
-    Copy `text` to the macOS clipboard via `pbcopy`.
-
-    :param text: text to copy
-    """
-    cmd = f"echo {shlex.quote(text)} | pbcopy"
-    hsystem.system(cmd)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -64,7 +53,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     #
     _LOG.info("Capturing command: %s", command)
-    _copy_to_clipboard(command)
+    hsystem.to_pbcopy(command, pbcopy=True)
 
 
 if __name__ == "__main__":

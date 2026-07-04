@@ -1,7 +1,8 @@
 import logging
 import os
+import textwrap
 
-import dev_scripts_helpers.coding_tools.notify as dsctonot
+import dev_scriptshelpers.coding_tools.notify as dsctonot
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
@@ -13,67 +14,72 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai_gp): Create an helper and factor out common code from the test methods.
 class Test_parse_last_command1(hunitest.TestCase):
     """
     Test `_parse_last_command()`.
     """
 
-    def test1(self) -> None:
+    def helper(self, history_text: str, file_name: str, expected: str) -> None:
         """
-        Test extraction of the last command from a `bash`-style history file.
+        Write `history_text` to `file_name` in the input dir, parse it, and
+        check that the last command matches `expected`.
+
+        :param history_text: raw content of the shell history file
+        :param file_name: name of the input file to create
+        :param expected: expected last command
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use """ and dedent
-        history_text = "git status\nls -la\n"
         input_dir = self.get_input_dir()
-        input_file = os.path.join(input_dir, "bash_history.txt")
+        input_file = os.path.join(input_dir, file_name)
         hio.to_file(input_file, history_text)
-        # Prepare outputs.
-        expected = "ls -la"
         # Run test.
         actual_text = hio.from_file(input_file)
         actual = dsctonot._parse_last_command(actual_text)
         # Check outputs.
         self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test extraction of the last command from a `bash`-style history file.
+        """
+        history_text = textwrap.dedent(
+            """
+            git status
+            ls -la
+            """
+        )
+        expected = "ls -la"
+        self.helper(history_text, "bash_history.txt", expected)
 
     def test2(self) -> None:
         """
         Test extraction of the last command from a `zsh`-style history file
         with `: <timestamp>:<duration>;<command>` entries.
         """
-        # Prepare inputs.
-        # TODO(ai_gp): Use """ and dedent
-        history_text = ": 1700000000:0;git status\n: 1700000001:0;ls -la\n"
-        input_dir = self.get_input_dir()
-        input_file = os.path.join(input_dir, "zsh_history.txt")
-        hio.to_file(input_file, history_text)
-        # Prepare outputs.
+        history_text = textwrap.dedent(
+            """
+            : 1700000000:0;git status
+            : 1700000001:0;ls -la
+            """
+        )
         expected = "ls -la"
-        # Run test.
-        actual_text = hio.from_file(input_file)
-        actual = dsctonot._parse_last_command(actual_text)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(history_text, "zsh_history.txt", expected)
 
     def test3(self) -> None:
         """
         Test extraction of the last command when trailing empty lines are
         present.
         """
-        # Prepare inputs.
-        # TODO(ai_gp): Use """ and dedent
-        history_text = "git status\nls -la\n\n\n"
-        input_dir = self.get_input_dir()
-        input_file = os.path.join(input_dir, "trailing_newlines.txt")
-        hio.to_file(input_file, history_text)
-        # Prepare outputs.
+        history_text = textwrap.dedent(
+            """
+            git status
+            ls -la
+
+
+            """
+        )
         expected = "ls -la"
-        # Run test.
-        actual_text = hio.from_file(input_file)
-        actual = dsctonot._parse_last_command(actual_text)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(history_text, "trailing_newlines.txt", expected)
 
     def test4(self) -> None:
         """
