@@ -11,6 +11,10 @@ Use Test_build_pandoc_container1 as a reference
 
 ### [ ] Make `pytest_log dev_scripts_helpers` pass
 
+- build1.txt (docker engine, i docker_cmd): 637 passed, 45 skipped, 288s
+- build2.txt (docker engine, pytest_log): 673 passed, 30 skipped, 214s
+- build3.txt (apple container engine, pytest_log): 668 passed, 35 skipped, 411s
+
 ####
 > export CSFY_DOCKER_ENGINE="docker"; i docker_bash --stage=local -v 1.6.0;
 > pytest_log dev_scripts_helpers
