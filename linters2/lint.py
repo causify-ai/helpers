@@ -60,6 +60,7 @@ import sys
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hselect_action as hselacti
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
@@ -119,7 +120,7 @@ def _run_linting_actions(
     hdbg.dassert_isinstance(actions, list)
     ret = 0
     if "pre-commit" in actions:
-        print(hprint.frame("pre-commit", char1="="))
+        _LOG.info("\n%s",hprint.frame("pre-commit", char1="="))
         cmd = f"pre-commit run --files {files_str} --color always"
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
@@ -130,7 +131,7 @@ def _run_linting_actions(
         )
     # TODO(gp): Consider moving these actions inside pre-commit itself.
     if "normalize_import" in actions:
-        print(hprint.frame("linters2/normalize_import.py", char1="="))
+        _LOG.info("\n%s", hprint.frame("linters2/normalize_import.py", char1="="))
         cmd = (
             f"linters2/normalize_import.py --no_report_command_line {files_str}"
         )
@@ -142,7 +143,7 @@ def _run_linting_actions(
             suppress_output=False,
         )
     if "add_class_frames" in actions:
-        print(hprint.frame("Running linters2/add_class_frames.py", char1="="))
+        _LOG.info("\n%s", hprint.frame("Running linters2/add_class_frames.py", char1="="))
         cmd = (
             f"linters2/add_class_frames.py --no_report_command_line {files_str}"
         )
@@ -154,7 +155,7 @@ def _run_linting_actions(
             suppress_output=False,
         )
     if "fix_comments" in actions:
-        print(hprint.frame("Running linters2/fix_comments.py", char1="="))
+        _LOG.info("\n%s", hprint.frame("Running linters2/fix_comments.py", char1="="))
         cmd = f"linters2/fix_comments.py --no_report_command_line {files_str}"
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
@@ -164,17 +165,21 @@ def _run_linting_actions(
             suppress_output=False,
         )
     if "pyright" in actions:
-        print(hprint.frame("Running pyright", char1="="))
+        _LOG.info("\n%s", hprint.frame("Running pyright", char1="="))
         cmd = f"linters2/pyright_cfile.py {files_str}"
         _LOG.debug("> %s", cmd)
+        cfile_name = "cfile"
+        hio.delete_file(cfile_name)
         ret |= hsystem.system(
             cmd,
             print_command=False,
             abort_on_error=abort_on_error,
             suppress_output=False,
+            output_file=cfile_name,
+            tee=True,
         )
     if "fix_pyright" in actions:
-        print(hprint.frame("Running fix_pyright", char1="="))
+        _LOG.info("\n%s", hprint.frame("Running fix_pyright", char1="="))
         ccp_script = hsystem.find_file_in_repo("ccp")
         prompt = f"/coding.fix_pyright {files_str}"
         cmd = " ".join([ccp_script, prompt])
@@ -498,7 +503,7 @@ def _select_and_report_files_by_type(
         lines.append(f"\n# Markdown files ({len(markdown_files)})")
         lines.extend(f"  {f}" for f in markdown_files)
     if lines:
-        _LOG.info("\n".join(lines))
+        _LOG.info("\n%s", "\n".join(lines))
     # If dry_run, print files and exit.
     if args.dry_run:
         _LOG.warning("Aborting as per user request")
@@ -602,8 +607,9 @@ if __name__ == "__main__":
     args_ = parser_.parse_args()
     hdbg.init_logger(args_.log_level)
     # 
-    actions = args.action if args.action else list(_DEFAULT_ACTIONS)
+    actions = args_.action if args_.action else list(_DEFAULT_ACTIONS)
     _LOG.info(
+        "\n%s",
         hselacti.actions_to_string(actions, list(_VALID_ACTIONS), add_frame=True)
     )
     # Get files based on selection mode using hparser helper.
