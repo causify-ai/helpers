@@ -711,11 +711,10 @@ def run_pandoc_to_latex_slides(
             fail_on_warnings=fail_on_warnings,
         )
         rc, txt = _system_to_string(cmd, abort_on_error=False)
-    # We want to print to screen.
-    print(txt)
+    _LOG.info("%s", txt)
     # Return the .tex file if `--no_pdf` mode is requested.
     if no_pdf:
-        hdbg.dassert_ne(rc, 0)
+        hdbg.dassert_eq(rc, 0)
         _LOG.info("no_pdf=True: skipping PDF compilation, returning .tex file")
         _LOG.debug("file_out=%s", file_out)
         hdbg.dassert_path_exists(file_out)

@@ -215,7 +215,7 @@ def _render_blocks_to_typst(
         tmp_in.flush()
         tmp_in_path = tmp_in.name
         cmd = f"pandoc -f json -t typst < {tmp_in_path}"
-        rc, result = hsystem.system_to_string(cmd, suppress_output=False)
+        rc, result = hsystem.system_to_string(cmd)
     hdbg.dassert_eq(rc, 0, "pandoc command failed")
     typst_code = result.strip()
     return typst_code
