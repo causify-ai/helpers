@@ -1414,7 +1414,7 @@ problem
   & \defeq \Pr(\text{TP} | \text{pred == 1})
   & \text{(by definition)}
   \\
-  &= \frac{\text{TP}}{\text{TP + FP}}
+  &= \frac{\text{TP}}{\text{TP + FP}} 
   & \text{($TP + FP = n$ because}
   \\
   &= \frac{\#(y = 1)}{n}
