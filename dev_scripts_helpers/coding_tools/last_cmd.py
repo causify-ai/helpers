@@ -4,10 +4,10 @@
 Capture a command from shell history and copy it to the clipboard.
 
 # Copy the last command to the clipboard.
-> capture_last_cmd.py
+> last_cmd.py
 
 # Copy the 3rd most recent command to the clipboard.
-> capture_last_cmd.py -n 3
+> last_cmd.py -n 3
 """
 
 import argparse
@@ -47,7 +47,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     history_file = dsctonot._get_history_file_path()
     history_text = hio.from_file(history_file)
-    exclude_substrings = ["capture_last_cmd"]
+    exclude_substrings = ["last_cmd"]
     command = dsctonot._parse_last_command(
         history_text, n=args.n, exclude_substrings=exclude_substrings
     )

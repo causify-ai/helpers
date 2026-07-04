@@ -742,4 +742,4 @@ tmux_restore_on_exit() {
 # #############################################################################
 
 # Save the last command executed in the system clipboard.
-alias last_cmd='capture_last_cmd.py -n 1'
+alias last_cmd='last_cmd.py -n 1'

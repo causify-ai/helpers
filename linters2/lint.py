@@ -57,9 +57,10 @@ import argparse
 import logging
 import subprocess
 import sys
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hselect_action as hselacti
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -92,45 +93,17 @@ _DEFAULT_ACTIONS = [
 
 
 # #############################################################################
-# Helper Functions
-# #############################################################################
-
-
-def _parse_file_extensions(
-    file_types_str: str, skip_file_types_str: str
-) -> List[str]:
-    """
-    Parse comma-separated file type strings into a list of extensions.
-
-    :param file_types_str: comma-separated string of file types to include
-        (e.g., 'py,ipynb,md')
-    :param skip_file_types_str: comma-separated string of file types to skip
-    :return: list of file extensions to process
-    """
-    if skip_file_types_str:
-        # Use all standard extensions minus skipped ones
-        all_extensions = {"py", "ipynb", "md", "txt"}
-        skip_extensions = {
-            ext.strip() for ext in skip_file_types_str.split(",") if ext.strip()
-        }
-        return list(all_extensions - skip_extensions)
-    else:
-        # Parse the comma-separated list of included file types
-        if not file_types_str:
-            return []
-        return [ext.strip() for ext in file_types_str.split(",") if ext.strip()]
-
-
-# #############################################################################
 # Linting Functions
 # #############################################################################
+
+# Invariant: all the action returns an int return code.
 
 
 def _run_linting_actions(
     files_str: str,
+    actions: List[str],
     *,
     abort_on_error: bool = True,
-    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Run common linting actions.
@@ -143,8 +116,7 @@ def _run_linting_actions(
     :param actions: list of actions to perform; if None, all are performed
     :return: combined return code (OR of all command return codes)
     """
-    if actions is None:
-        actions = list(_DEFAULT_ACTIONS)
+    hdbg.dassert_isinstance(actions, list)
     ret = 0
     if "pre-commit" in actions:
         print(hprint.frame("pre-commit", char1="="))
@@ -282,9 +254,9 @@ def _run_coverage(
 
 def _lint_python_files(
     file_paths: List[str],
+    actions: List[str],
     *,
     abort_on_error: bool = True,
-    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Python files using specified actions.
@@ -298,8 +270,7 @@ def _lint_python_files(
     """
     if not file_paths:
         return 0
-    if actions is None:
-        actions = list(_DEFAULT_ACTIONS)
+    hdbg.dassert_isinstance(actions, list)
     _LOG.info(
         "Linting %d Python files with actions: %s", len(file_paths), actions
     )
@@ -385,6 +356,39 @@ def _lint_markdown_files(
     return ret
 
 
+# #############################################################################
+# Workflows
+# #############################################################################
+
+
+def _parse_file_extensions(
+    file_types_str: str, skip_file_types_str: str
+) -> List[str]:
+    """
+    Parse comma-separated file type strings into a list of extensions.
+
+    :param file_types_str: comma-separated string of file types to include
+        (e.g., 'py,ipynb,md')
+    :param skip_file_types_str: comma-separated string of file types to skip
+    :return: list of file extensions to process
+    """
+    if skip_file_types_str:
+        # Use all standard extensions minus skipped ones.
+        all_extensions = {"py", "ipynb", "md", "txt"}
+        skip_extensions = {
+            ext.strip() for ext in skip_file_types_str.split(",") if ext.strip()
+        }
+        extensions = list(all_extensions - skip_extensions)
+    elif file_types_str:
+        # Parse the comma-separated list of included file types.
+        extensions = [
+            ext.strip() for ext in file_types_str.split(",") if ext.strip()
+        ]
+    else:
+        extensions = []
+    return extensions
+
+
 def _filter_files_by_type(
     file_paths: List[str],
     file_extensions: List[str],
@@ -435,70 +439,23 @@ def _filter_files_by_type(
     return python_files, jupyter_files, markdown_files
 
 
-# #############################################################################
-# CLI
-# #############################################################################
-
-
-def _parse() -> argparse.ArgumentParser:
+def _select_and_report_files_by_type(
+    args: argparse.Namespace,
+    file_paths: List[str],
+) -> Tuple[List[str], List[str], List[str]]:
     """
-    Parse command-line arguments for linting file selection and type filtering.
-    """
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawTextHelpFormatter,
-    )
-    # File selection arguments using hparser helper.
-    hseinout.add_file_selection_args(parser)
-    # File type filters using hparser helper.
-    hseinout.add_file_type_filter_args(parser, file_types_default="py,ipynb")
-    # Other options.
-    parser.add_argument(
-        "--action",
-        nargs="+",
-        type=str,
-        choices=_VALID_ACTIONS,
-        help="Specific actions to perform (default: all applicable actions).\n"
-        "  pre-commit: Run pre-commit linters\n"
-        "  normalize_import: Normalize import statements\n"
-        "  add_class_frames: Add class frame decorators\n"
-        "  fix_comments: Convert single-line docstrings to multi-line format\n"
-        "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
-        "  pyright: Run pyright type checker\n"
-        "  coverage: Run pytest coverage for test files",
-    )
-    parser.add_argument(
-        "--abort_on_error",
-        action="store_true",
-        help="Abort on first linting error (default: collect all errors and exit with combined code)",
-    )
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Only select files without processing them (print list of files)",
-    )
-    hparser.add_verbosity_arg(parser)
-    return parser
+    Filter files by type, report the selection, and print file listings.
 
-
-def _main(args: argparse.Namespace) -> int:
+    :param args: parsed command-line arguments
+    :param file_paths: files to filter and report
+    :return: tuple of (python_files, jupyter_files, markdown_files)
     """
-    Main entry point for the linter.
-
-    :return: combined return code from all linting operations
-    """
-    hdbg.init_logger(args.log_level)
-    # Get files based on selection mode using hparser helper.
-    file_paths = hseinout.parse_file_selection_args(args, remove_dirs=False)
-    if not file_paths:
-        _LOG.warning("No files matched the selection criteria")
-        return 0
     # Parse file type filters from arguments.
     # TODO(gp): Simplify the call.
     file_types_str = getattr(args, "file_types", "py,ipynb")
     skip_file_types_str = getattr(args, "skip_file_types", "")
     file_extensions = _parse_file_extensions(file_types_str, skip_file_types_str)
-    _LOG.info("Found %d files for linting", len(file_paths))
+    #
     python_files, jupyter_files, markdown_files = _filter_files_by_type(
         file_paths,
         file_extensions,
@@ -524,47 +481,65 @@ def _main(args: argparse.Namespace) -> int:
         0,
         msg=f"Unprocessed file types: {unprocessed_types}",
     )
-    print(hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
+    _LOG.info("\n%s", hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
+    #
     all_files = python_files + jupyter_files + markdown_files
     breakdown = f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, Markdown: {len(markdown_files)}"
-    print(
-        hprint.frame(
-            f"Selected {len(all_files)} files for linting ({breakdown})"
-        )
-    )
-    # Print file listings by type
+    _LOG.info("Selected %s files for linting (%s)", len(all_files), breakdown)
+    # Print file listings by type.
+    lines = []
     if python_files:
-        print(f"\n# Python files ({len(python_files)})")
-        for f in python_files:
-            print(f"  {f}")
+        lines.append(f"# Python files ({len(python_files)})")
+        lines.extend(f"  {f}" for f in python_files)
     if jupyter_files:
-        print(f"\n# Jupyter files ({len(jupyter_files)})")
-        for f in jupyter_files:
-            print(f"  {f}")
+        lines.append(f"\n# Jupyter files ({len(jupyter_files)})")
+        lines.extend(f"  {f}" for f in jupyter_files)
     if markdown_files:
-        print(f"\n# Markdown files ({len(markdown_files)})")
-        for f in markdown_files:
-            print(f"  {f}")
+        lines.append(f"\n# Markdown files ({len(markdown_files)})")
+        lines.extend(f"  {f}" for f in markdown_files)
+    if lines:
+        _LOG.info("\n".join(lines))
     # If dry_run, print files and exit.
     if args.dry_run:
         _LOG.warning("Aborting as per user request")
-        return 0
-    # Lint each file type and collect return codes.
+        sys.exit(0)
+    return python_files, jupyter_files, markdown_files
+
+
+def _lint_all_files(
+    python_files: List[str],
+    jupyter_files: List[str],
+    markdown_files: List[str],
+    actions: List[str],
+    args: argparse.Namespace,
+) -> int:
+    """
+    Lint each file type and collect return codes.
+
+    :param python_files: Python files to lint
+    :param jupyter_files: Jupyter notebook files to lint
+    :param markdown_files: Markdown files to lint
+    :param args: parsed command-line arguments
+    :return: combined return code (OR of all command return codes)
+    """
     ret = 0
+    # Process Python files.
     if python_files:
         print(hprint.frame("Processing Python files"))
         ret |= _lint_python_files(
             python_files,
             abort_on_error=args.abort_on_error,
-            actions=args.action,
+            actions=actions,
         )
+    # Process Jupyter files.
     if jupyter_files:
         print(hprint.frame("Processing Jupyter notebooks"))
         ret |= _lint_jupyter_files(
             jupyter_files,
             abort_on_error=args.abort_on_error,
-            actions=args.action,
+            actions=actions,
         )
+    # Process Markdown files.
     if markdown_files:
         print(hprint.frame("Processing Markdown files"))
         ret |= _lint_markdown_files(
@@ -576,8 +551,69 @@ def _main(args: argparse.Namespace) -> int:
     return ret
 
 
+# #############################################################################
+# CLI
+# #############################################################################
+
+
+def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command-line arguments for linting file selection and type filtering.
+    """
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    # File selection arguments using hparser helper.
+    hseinout.add_file_selection_args(parser)
+    # File type filters using hparser helper.
+    hseinout.add_file_type_filter_args(parser, file_types_default="py,ipynb")
+    # Other options.
+    parser.add_argument(
+        "--action",
+        nargs="+",
+        type=str,
+        choices=_VALID_ACTIONS,
+        help="Specific actions to perform (default: all applicable actions).\n"
+        "- pre-commit: Run pre-commit linters\n"
+        "- normalize_import: Normalize import statements\n"
+        "- add_class_frames: Add class frame decorators\n"
+        "- fix_comments: Convert single-line docstrings to multi-line format\n"
+        "- sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
+        "- pyright: Run pyright type checker\n"
+        "- coverage: Run pytest coverage for test files",
+    )
+    parser.add_argument(
+        "--abort_on_error",
+        action="store_true",
+        help="Abort on first linting error.",
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Only print selectedfiles without processing them.",
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser
+
+
 if __name__ == "__main__":
     parser_ = _parse()
     args_ = parser_.parse_args()
-    ret_ = _main(args_)
+    hdbg.init_logger(args_.log_level)
+    # 
+    actions = args.action if args.action else list(_DEFAULT_ACTIONS)
+    _LOG.info(
+        hselacti.actions_to_string(actions, list(_VALID_ACTIONS), add_frame=True)
+    )
+    # Get files based on selection mode using hparser helper.
+    file_paths_ = hseinout.parse_file_selection_args(args_, remove_dirs=False)
+    _LOG.info("Found %d files for linting", len(file_paths_))
+    if not file_paths_:
+        _LOG.warning("No files matched the selection criteria")
+        sys.exit(0)
+    python_files_, jupyter_files_, markdown_files_ = (
+        _select_and_report_files_by_type(args_, file_paths_)
+    )
+    ret_ = _lint_all_files(python_files_, jupyter_files_, markdown_files_, actions, args_)
     sys.exit(ret_)
