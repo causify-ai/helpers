@@ -1,5 +1,7 @@
 import logging
 
+import pytest
+
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks.lib_tasks_lint as hlitalin
@@ -13,6 +15,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.skip("This disconnects the tee action for pytest_log")
 class Test_lint_check_if_it_was_run(hunitest.TestCase):
     """
     Test `lint_check_if_it_was_run()`.

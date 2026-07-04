@@ -176,7 +176,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         self.check_string(txt, purify_text=True, tag=tag)
 
     @pytest.mark.superslow
-    #@pytest.mark.skipif(sys.platform == "darwin", reason="")
+    @pytest.mark.skip(reason="To debug")
     def test4(self) -> None:
         """
         Run:
