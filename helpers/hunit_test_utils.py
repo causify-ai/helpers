@@ -667,10 +667,13 @@ def capture_system_calls(
                 yield invocations
 
 
+# TODO(ai_gp): assert_syscall_equal
 def assert_invocations(
     self_: Any,
     captured_invocations: List[Dict[str, Any]],
     expected_str: str,
+    *,
+    assert_equal_kwargs: Any,
 ) -> None:
     """
     Compare captured system call invocations with expected string representation.
@@ -686,4 +689,4 @@ def assert_invocations(
     """
     actual_str = pprint.pformat(captured_invocations)
     hdbg.dassert_isinstance(actual_str, str)
-    self_.assert_equal(actual_str, expected_str)
+    self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)
