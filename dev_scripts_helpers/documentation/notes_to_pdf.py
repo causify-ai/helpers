@@ -253,7 +253,7 @@ def _run_pandoc_to_pdf(
         return file2
     # - Run latex.
     _report_phase("latex")
-    # pdflatex needs to run in the same dir of latex_abbrevs.sty so we copy
+    # pdflatex needs to run in the same dir of `latex_abbrevs.sty` so we copy
     # all the needed files.
     out_dir = os.path.dirname(file_name)
     latex_file = os.path.join(
