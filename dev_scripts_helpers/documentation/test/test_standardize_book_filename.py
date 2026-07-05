@@ -13,7 +13,6 @@ import dev_scripts_helpers.documentation.standardize_book_filename as dshdstbf
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code in an helper and use self.assert_equal.
 class Test_standardize_book_filename_py(hunitest.TestCase):
     """
     End-to-end tests for the `standardize_book_filename.py` executable.
@@ -33,25 +32,40 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
                 dshdstbf._main(parser)
         return buf.getvalue()
 
-    def test1(self) -> None:
+    def _helper_dry_run(
+        self,
+        input_filename: str,
+    ) -> str:
         """
-        Test happy path: dry run does not rename the file on disk.
+        Helper for dry run test.
+
+        :param input_filename: filename to create in scratch space
+        :return: captured stdout
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "Some Book Title.pdf")
+        input_file = os.path.join(scratch_dir, input_filename)
         hio.to_file(input_file, "content")
         argv = ["standardize_book_filename.py", "--input", input_file]
         # Run test.
         actual = self._run_main(argv)
-        # Check outputs.
+        # Check outputs: file should still exist.
+        self.assertTrue(os.path.exists(input_file))
+        return actual
+
+    def test1(self) -> None:
+        """
+        Test happy path: dry run does not rename file on disk.
+        """
+        # Run test.
+        actual = self._helper_dry_run("Some Book Title.pdf")
+        # Check outputs: output contains expected text.
         self.assertIn("Rename", actual)
         self.assertIn("Some Book Title.pdf", actual)
-        self.assertTrue(os.path.exists(input_file))
 
     def test2(self) -> None:
         """
-        Test edge case: `--mv` actually renames the file on disk.
+        Test edge case: `--mv` actually renames file on disk.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -92,7 +106,7 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test edge case: missing input file raises an assertion error.
+        Test edge case: missing input file raises assertion error.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()

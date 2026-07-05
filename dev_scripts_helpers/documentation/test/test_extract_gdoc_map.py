@@ -12,53 +12,60 @@ import dev_scripts_helpers.documentation.extract_gdoc_map as dshdexgm
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code in a helper.
 class Test_extract_doc_info(hunitest.TestCase):
     """
     Test the `_extract_doc_info()` function.
     """
+
+    def helper(self, content: str, expected_doc_id: str) -> None:
+        """
+        Test helper for `_extract_doc_info()`.
+
+        :param content: File content to write
+        :param expected_doc_id: Expected doc_id in tuple result
+        """
+        # Prepare inputs.
+        file_path = os.path.join(self.get_scratch_space(), "doc.gdoc")
+        hio.to_file(file_path, content)
+        # Prepare outputs.
+        expected = (file_path, expected_doc_id)
+        # Run test.
+        actual = dshdexgm._extract_doc_info(file_path)
+        # Check outputs.
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
         Test happy path: valid JSON with a `doc_id`.
         """
         # Prepare inputs.
-        file_path = os.path.join(self.get_scratch_space(), "doc.gdoc")
-        hio.to_file(file_path, '{"doc_id": "abc123", "resource_id": "x"}')
+        content = '{"doc_id": "abc123", "resource_id": "x"}'
         # Prepare outputs.
-        expected = (file_path, "abc123")
+        expected_doc_id = "abc123"
         # Run test.
-        actual = dshdexgm._extract_doc_info(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(content, expected_doc_id)
 
     def test2(self) -> None:
         """
         Test edge case: invalid JSON content returns an empty `doc_id`.
         """
         # Prepare inputs.
-        file_path = os.path.join(self.get_scratch_space(), "doc.gdoc")
-        hio.to_file(file_path, "not json")
+        content = "not json"
         # Prepare outputs.
-        expected = (file_path, "")
+        expected_doc_id = ""
         # Run test.
-        actual = dshdexgm._extract_doc_info(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(content, expected_doc_id)
 
     def test3(self) -> None:
         """
         Test edge case: valid JSON without a `doc_id` key.
         """
         # Prepare inputs.
-        file_path = os.path.join(self.get_scratch_space(), "doc.gdoc")
-        hio.to_file(file_path, '{"resource_id": "x"}')
+        content = '{"resource_id": "x"}'
         # Prepare outputs.
-        expected = (file_path, "")
+        expected_doc_id = ""
         # Run test.
-        actual = dshdexgm._extract_doc_info(file_path)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(content, expected_doc_id)
 
 
 # #############################################################################
@@ -107,11 +114,28 @@ class Test_find_gdoc_files(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code in a helper.
 class Test_generate_doc_links_full_path(hunitest.TestCase):
     """
     Test the `_generate_doc_links_full_path()` function.
     """
+
+    def helper(self, file_path_rel: str, content: str, expected: str) -> None:
+        """
+        Test helper for `_generate_doc_links_full_path()`.
+
+        :param file_path_rel: Relative file path (including filename)
+        :param content: Content to write to file
+        :param expected: Expected output string
+        """
+        # Prepare inputs.
+        input_dir = self.get_scratch_space()
+        file_path = os.path.join(input_dir, file_path_rel)
+        hio.to_file(file_path, content)
+        gdoc_files = [file_path]
+        # Run test.
+        actual = dshdexgm._generate_doc_links_full_path(gdoc_files, input_dir)
+        # Check outputs.
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -119,35 +143,27 @@ class Test_generate_doc_links_full_path(hunitest.TestCase):
         relative path in the link text.
         """
         # Prepare inputs.
-        input_dir = self.get_scratch_space()
-        file_path = os.path.join(input_dir, "sub", "my_doc.gdoc")
-        hio.to_file(file_path, '{"doc_id": "abc123"}')
-        gdoc_files = [file_path]
+        file_path_rel = "sub/my_doc.gdoc"
+        content = '{"doc_id": "abc123"}'
         # Prepare outputs.
         expected = (
             "- [sub/my_doc.gdoc/my_doc]"
             "(https://docs.google.com/document/d/abc123)"
         )
         # Run test.
-        actual = dshdexgm._generate_doc_links_full_path(gdoc_files, input_dir)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(file_path_rel, content, expected)
 
     def test2(self) -> None:
         """
         Test edge case: files without a `doc_id` are skipped.
         """
         # Prepare inputs.
-        input_dir = self.get_scratch_space()
-        file_path = os.path.join(input_dir, "my_doc.gdoc")
-        hio.to_file(file_path, "{}")
-        gdoc_files = [file_path]
+        file_path_rel = "my_doc.gdoc"
+        content = "{}"
         # Prepare outputs.
         expected = ""
         # Run test.
-        actual = dshdexgm._generate_doc_links_full_path(gdoc_files, input_dir)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(file_path_rel, content, expected)
 
 
 # #############################################################################
@@ -172,9 +188,9 @@ class Test_generate_doc_links_default(hunitest.TestCase):
         gdoc_files = [file_path]
         # Prepare outputs.
         expected = """
-        - sub/my_doc.gdoc
-          - [my_doc](https://docs.google.com/document/d/abc123)
-        """
+            - sub/my_doc.gdoc
+              - [my_doc](https://docs.google.com/document/d/abc123)
+            """
         expected = hprint.dedent(expected)
         # Run test.
         actual = dshdexgm._generate_doc_links_default(gdoc_files, input_dir)

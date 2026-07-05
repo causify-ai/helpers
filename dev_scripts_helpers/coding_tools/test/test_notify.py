@@ -1,9 +1,9 @@
 import logging
 import os
-import textwrap
 
-import dev_scriptshelpers.coding_tools.notify as dsctonot
+import dev_scripts_helpers.coding_tools.notify as dsctonot
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -42,12 +42,11 @@ class Test_parse_last_command1(hunitest.TestCase):
         """
         Test extraction of the last command from a `bash`-style history file.
         """
-        history_text = textwrap.dedent(
-            """
-            git status
-            ls -la
-            """
-        )
+        history_text = """
+        git status
+        ls -la
+        """
+        history_text = hprint.dedent(history_text)
         expected = "ls -la"
         self.helper(history_text, "bash_history.txt", expected)
 
@@ -56,12 +55,11 @@ class Test_parse_last_command1(hunitest.TestCase):
         Test extraction of the last command from a `zsh`-style history file
         with `: <timestamp>:<duration>;<command>` entries.
         """
-        history_text = textwrap.dedent(
-            """
-            : 1700000000:0;git status
-            : 1700000001:0;ls -la
-            """
-        )
+        history_text = """
+        : 1700000000:0;git status
+        : 1700000001:0;ls -la
+        """
+        history_text = hprint.dedent(history_text)
         expected = "ls -la"
         self.helper(history_text, "zsh_history.txt", expected)
 
@@ -70,14 +68,13 @@ class Test_parse_last_command1(hunitest.TestCase):
         Test extraction of the last command when trailing empty lines are
         present.
         """
-        history_text = textwrap.dedent(
-            """
-            git status
-            ls -la
+        history_text = """
+        git status
+        ls -la
 
 
-            """
-        )
+        """
+        history_text = hprint.dedent(history_text)
         expected = "ls -la"
         self.helper(history_text, "trailing_newlines.txt", expected)
 

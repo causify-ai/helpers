@@ -140,7 +140,8 @@ class Test_preprocess_notes(hunitest.TestCase):
                 file_name, prefix, type_, toc_type, output_format
             )
         # Check outputs.
-        self.assert_equal(result, f"{prefix}.preprocess_notes.txt")
+        expected_result = f"{prefix}.preprocess_notes.txt"
+        self.assert_equal(result, expected_result)
         git_root = hgit.find_git_root()
         expected_invocations = [
             {
@@ -155,9 +156,9 @@ class Test_preprocess_notes(hunitest.TestCase):
             {
                 "function": "hsystem.system",
                 "args": (
-                    " --input input.txt --output"
-                    " tmp.pandoc.preprocess_notes.txt --type pdf"
-                    " --toc_type pandoc_native --output_format latex",
+                    f" --input {file_name} --output"
+                    f" {prefix}.preprocess_notes.txt --type {type_}"
+                    f" --toc_type {toc_type} --output_format {output_format}",
                 ),
                 "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
             },
@@ -186,17 +187,16 @@ class Test_render_images(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         file_name = os.path.join(scratch_dir, "notes.txt")
-        hio.to_file(file_name, "# Notes\n\n![image](test.png)")
         prefix = os.path.join(scratch_dir, "tmp.notes")
-        # Pre-create the file that `render_images.py` would have produced,
-        # since the system call to it is mocked out and does not actually run.
         file2 = f"{prefix}.render_image.txt"
+        hio.to_file(file_name, "# Notes\n\n![image](test.png)")
         hio.to_file(file2, "# Notes\n\n![image](test.png)")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             result = dshdlntpd.render_images(file_name, prefix)
         # Check outputs.
-        self.assert_equal(result, f"{prefix}.render_image2.txt")
+        expected_result = f"{prefix}.render_image2.txt"
+        self.assert_equal(result, expected_result)
         git_root = hgit.find_git_root()
         expected_invocations = [
             {
@@ -483,13 +483,10 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         prefix = os.path.join(scratch_dir, "tmp.tex")
         toc_type = "none"
         no_pdf = True
-        # Create template file.
         template_file = os.path.join(curr_path, "pandoc.latex")
         hio.to_file(template_file, "LaTeX template")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            # Mock hdbg: prevents dassert_* from failing when files/paths don't
-            # exist (pandoc output, pdflatex intermediate files, etc.).
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
@@ -506,10 +503,11 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                     use_host_tools,
                     dockerized_force_rebuild,
                     dockerized_use_sudo,
-                    no_pdf=True,
+                    no_pdf=no_pdf,
                 )
         # Check outputs.
-        self.assert_equal(result, ".tex", fuzzy_match=True)
+        expected_result = ".tex"
+        self.assert_equal(result, expected_result, fuzzy_match=True)
         invocations_str = hunteuti.invocations_to_str(invocations)
         expected_invocations = "pandoc"
         self.assert_equal(invocations_str, expected_invocations, fuzzy_match=True)
@@ -722,17 +720,16 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         file_name = "slides.txt"
         no_pdf = False
         expected_ext = ".pdf"
+        use_host_tools = True
+        dockerized_force_rebuild = False
+        dockerized_use_sudo = False
+        toc_type = "pandoc_native"
         expected = """
         pandoc
         -t beamer
         --toc
         --toc-depth 2
         """
-        # Prepare additional input for helper.
-        use_host_tools = True
-        dockerized_force_rebuild = False
-        dockerized_use_sudo = False
-        toc_type = "pandoc_native"
         # Run test.
         cmd, output_file = dshdlntpd._build_pandoc_cmd(
             file_name,
@@ -1037,30 +1034,22 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         curr_path = scratch_dir
         file_name = os.path.join(scratch_dir, "slides.txt")
-        hio.to_file(file_name, "# Slides\n\nContent")
         use_host_tools = True
         dockerized_force_rebuild = False
         dockerized_use_sudo = False
-        # Create template file.
+        typst_only = False
+        hio.to_file(file_name, "# Slides\n\nContent")
         template_file = os.path.join(curr_path, "pandoc_touying.typ")
         hio.to_file(template_file, "Typst template")
-        # Create a mock typ file with relative image paths.
         typ_file = file_name.replace(".txt", ".typ")
         image_content = 'image("path/to/image.png")'
         hio.to_file(typ_file, image_content)
-        # Resolve the real `dev_scripts_helpers` dir before entering the
-        # system-call-capturing context, since `hgit.find_file()` itself goes
-        # through a system call that we are about to mock out.
         real_dev_scripts_helpers_dir = hgit.find_file("dev_scripts_helpers")
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            # Mock hdbg: prevents dassert_* from failing when output files/paths
-            # don't exist (Typst/PDF generation not actually run).
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
-                # Mock hgit.find_file() only (not the whole module): see
-                # `helper()` above for why.
                 with mock.patch.object(
                     dshdlntpd.hgit,
                     "find_file",
@@ -1068,8 +1057,6 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                         real_dev_scripts_helpers_dir
                     ),
                 ):
-                    # Mock dshdlity: skips Typst infrastructure operations requiring
-                    # external tools and project-specific configuration.
                     with mock.patch(
                         "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
                     ):
@@ -1079,15 +1066,16 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                             use_host_tools,
                             dockerized_force_rebuild,
                             dockerized_use_sudo,
-                            typst_only=False,
+                            typst_only=typst_only,
                         )
         # Check outputs.
-        self.assert_equal(result, file_name.replace(".txt", ".pdf"))
-        self.assert_equal(
-            hio.from_file(typ_file), 'image("/path/to/image.png")'
-        )
+        expected_result = file_name.replace(".txt", ".pdf")
+        self.assert_equal(result, expected_result)
+        expected_typ_content = 'image("/path/to/image.png")'
+        actual_typ_content = hio.from_file(typ_file)
+        self.assert_equal(actual_typ_content, expected_typ_content)
         expected_invocations = self._build_expected_invocations(
-            curr_path, file_name, typ_file, False
+            curr_path, file_name, typ_file, typst_only
         )
         expected_str = pprint.pformat(expected_invocations)
         expected_str = huntepur.TextPurifier().purify_txt_from_client(

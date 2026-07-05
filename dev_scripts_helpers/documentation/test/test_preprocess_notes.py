@@ -655,7 +655,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
     Test `preprocess_notes.py` by calling the library function directly.
     """
 
-    def test_run_all1(self) -> None:
+    def test1(self) -> None:
         """
         Test type_="pdf".
         """
@@ -748,7 +748,10 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         act = hio.from_file(out_file)
         return act  # type: ignore
 
-    def test1(self) -> None:
+    def _test_executable(self) -> None:
+        """
+        Test helper for executable preprocessing.
+        """
         # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), "input1.txt")
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
@@ -757,26 +760,15 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         act = self.helper(in_file, out_file, type_)
         # Check.
         self.check_string(act)
+
+    def test1(self) -> None:
+        self._test_executable()
 
     def test2(self) -> None:
-        # Prepare inputs.
-        in_file = os.path.join(self.get_input_dir(), "input1.txt")
-        out_file = os.path.join(self.get_scratch_space(), "output.txt")
-        type_ = "pdf"
-        # Run.
-        act = self.helper(in_file, out_file, type_)
-        # Check.
-        self.check_string(act)
+        self._test_executable()
 
     def test3(self) -> None:
-        # Prepare inputs.
-        in_file = os.path.join(self.get_input_dir(), "input1.txt")
-        out_file = os.path.join(self.get_scratch_space(), "output.txt")
-        type_ = "pdf"
-        # Run.
-        act = self.helper(in_file, out_file, type_)
-        # Check.
-        self.check_string(act)
+        self._test_executable()
 
 
 # #############################################################################

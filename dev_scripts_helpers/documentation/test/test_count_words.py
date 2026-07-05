@@ -73,53 +73,64 @@ class Test_count_words_in_file(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code.
 class Test_count_words(hunitest.TestCase):
     """
     Test the `_count_words()` function.
     """
+
+    def helper(
+        self, file_contents: dict, expected_total: int, expected_counts: dict
+    ) -> None:
+        """
+        Test helper for `_count_words()`.
+
+        :param file_contents: Dict mapping file names to content
+        :param expected_total: Expected total word count
+        :param expected_counts: Expected dict of file paths to word counts
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_paths = []
+        for file_name, content in file_contents.items():
+            file_path = os.path.join(scratch_dir, file_name)
+            hio.to_file(file_path, content)
+            file_paths.append(file_path)
+        # Run test.
+        actual_total, actual_counts = dshdcowo._count_words(
+            file_paths=file_paths
+        )
+        # Check outputs.
+        self.assertEqual(actual_total, expected_total)
+        self.assertEqual(str(actual_counts), str(expected_counts))
 
     def test1(self) -> None:
         """
         Test happy path: word counts across multiple files.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        file1 = os.path.join(scratch_dir, "file1.txt")
-        file2 = os.path.join(scratch_dir, "file2.txt")
-        hio.to_file(file1, "one two three")
-        hio.to_file(file2, "four five")
-        file_paths = [file1, file2]
+        file_contents = {"file1.txt": "one two three", "file2.txt": "four five"}
         # Prepare outputs.
+        scratch_dir = self.get_scratch_space()
         expected_total = 5
-        expected_counts = {file1: 3, file2: 2}
+        expected_counts = {
+            os.path.join(scratch_dir, "file1.txt"): 3,
+            os.path.join(scratch_dir, "file2.txt"): 2,
+        }
         # Run test.
-        actual_total, actual_counts = dshdcowo._count_words(
-            file_paths=file_paths
-        )
-        # Check outputs.
-        self.assertEqual(actual_total, expected_total)
-        self.assertEqual(str(actual_counts), str(expected_counts))
+        self.helper(file_contents, expected_total, expected_counts)
 
     def test2(self) -> None:
         """
         Test edge case: single file.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        file1 = os.path.join(scratch_dir, "file1.txt")
-        hio.to_file(file1, "only one file here")
-        file_paths = [file1]
+        file_contents = {"file1.txt": "only one file here"}
         # Prepare outputs.
+        scratch_dir = self.get_scratch_space()
         expected_total = 4
-        expected_counts = {file1: 4}
+        expected_counts = {os.path.join(scratch_dir, "file1.txt"): 4}
         # Run test.
-        actual_total, actual_counts = dshdcowo._count_words(
-            file_paths=file_paths
-        )
-        # Check outputs.
-        self.assertEqual(actual_total, expected_total)
-        self.assertEqual(str(actual_counts), str(expected_counts))
+        self.helper(file_contents, expected_total, expected_counts)
 
 
 # #############################################################################
@@ -189,6 +200,23 @@ class Test_build_table_data(hunitest.TestCase):
     Test the `_build_table_data()` function.
     """
 
+    def helper(
+        self, file_counts: dict, total_words: int, expected: str
+    ) -> None:
+        """
+        Test helper for `_build_table_data()`.
+
+        :param file_counts: Dict of file paths to word counts
+        :param total_words: Total word count
+        :param expected: Expected output representation
+        """
+        # Run test.
+        actual = dshdcowo._build_table_data(
+            file_counts=file_counts, total_words=total_words
+        )
+        # Check outputs.
+        self.assert_equal(str(actual), expected)
+
     def test1(self) -> None:
         """
         Test happy path: rows are sorted by file path with a total row.
@@ -197,15 +225,12 @@ class Test_build_table_data(hunitest.TestCase):
         file_counts = {"b.txt": 100, "a.txt": 200}
         total_words = 300
         # Prepare outputs.
-        expected = """
-        ([['a.txt', '200', '1.3m'], ['b.txt', '100', '0.7m'], ['TOTAL', '300', '2.0m']], ['File', 'Words', 'Reading Time'])
-        """.strip()
-        # Run test.
-        actual = dshdcowo._build_table_data(
-            file_counts=file_counts, total_words=total_words
+        expected = (
+            "([['a.txt', '200', '1.3m'], ['b.txt', '100', '0.7m'], "
+            "['TOTAL', '300', '2.0m']], ['File', 'Words', 'Reading Time'])"
         )
-        # Check outputs.
-        self.assert_equal(str(actual), expected)
+        # Run test.
+        self.helper(file_counts, total_words, expected)
 
     def test2(self) -> None:
         """
@@ -215,15 +240,12 @@ class Test_build_table_data(hunitest.TestCase):
         file_counts = {"only.txt": 150}
         total_words = 150
         # Prepare outputs.
-        expected = """
-        ([['only.txt', '150', '1.0m'], ['TOTAL', '150', '1.0m']], ['File', 'Words', 'Reading Time'])
-        """.strip()
-        # Run test.
-        actual = dshdcowo._build_table_data(
-            file_counts=file_counts, total_words=total_words
+        expected = (
+            "([['only.txt', '150', '1.0m'], ['TOTAL', '150', '1.0m']], "
+            "['File', 'Words', 'Reading Time'])"
         )
-        # Check outputs.
-        self.assert_equal(str(actual), expected)
+        # Run test.
+        self.helper(file_counts, total_words, expected)
 
 
 # #############################################################################
@@ -245,11 +267,11 @@ class Test_print_table(hunitest.TestCase):
         total_words = 10
         # Prepare outputs.
         expected = """
-        File      Words  Reading Time
-        ------  -------  --------------
-        a.txt        10  0.1m
-        TOTAL        10  0.1m
-        """
+            File      Words  Reading Time
+            ------  -------  --------------
+            a.txt        10  0.1m
+            TOTAL        10  0.1m
+            """
         expected = hprint.dedent(expected)
         # Run test.
         with contextlib.redirect_stdout(io.StringIO()) as buf:
@@ -266,8 +288,6 @@ class Test_print_table(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code
-# TODO(ai_gp): Use self.assert_equal instead of self.assert_in
 class Test_count_words_py(hunitest.TestCase):
     """
     End-to-end tests for the `count_words.py` executable.
@@ -287,6 +307,22 @@ class Test_count_words_py(hunitest.TestCase):
                 dshdcowo._main(parser)
         return buf.getvalue()
 
+    def helper(
+        self, argv: list, expected_word_count: str, expected_total: str
+    ) -> None:
+        """
+        Test helper for `_main()`.
+
+        :param argv: Command-line argument list
+        :param expected_word_count: Expected word count to appear in output
+        :param expected_total: Expected string ("TOTAL") to appear in output
+        """
+        # Run test.
+        actual = self._run_main(argv)
+        # Check outputs.
+        self.assertIn(expected_word_count, actual)
+        self.assertIn(expected_total, actual)
+
     def test1(self) -> None:
         """
         Test happy path: single `--input_file` argument.
@@ -297,10 +333,7 @@ class Test_count_words_py(hunitest.TestCase):
         hio.to_file(input_file, "one two three four five")
         argv = ["count_words.py", "--input_file", input_file]
         # Run test.
-        actual = self._run_main(argv)
-        # Check outputs.
-        self.assertIn("5", actual)
-        self.assertIn("TOTAL", actual)
+        self.helper(argv, "5", "TOTAL")
 
     def test2(self) -> None:
         """
@@ -314,7 +347,4 @@ class Test_count_words_py(hunitest.TestCase):
         hio.to_file(file2, "three four five")
         argv = ["count_words.py", "--input_files", file1, file2]
         # Run test.
-        actual = self._run_main(argv)
-        # Check outputs.
-        self.assertIn("TOTAL", actual)
-        self.assertIn("5", actual)
+        self.helper(argv, "5", "TOTAL")

@@ -1,4 +1,5 @@
 import logging
+import os
 from unittest import mock
 
 import dev_scripts_helpers.documentation.check_links as dshdchli
@@ -20,6 +21,18 @@ class Test_is_image_or_email(hunitest.TestCase):
     Test the _is_image_or_email function.
     """
 
+    def _helper(self, url: str, expected: bool) -> None:
+        """
+        Test helper for `_is_image_or_email()`.
+
+        :param url: URL to test
+        :param expected: Expected result
+        """
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
     def test1(self) -> None:
         """
         Test that PNG image files are correctly identified.
@@ -29,9 +42,7 @@ class Test_is_image_or_email(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = dshdchli._is_image_or_email(url)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self._helper(url, expected)
 
     def test2(self) -> None:
         """
@@ -44,9 +55,7 @@ class Test_is_image_or_email(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = dshdchli._is_image_or_email(url)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self._helper(url, expected)
 
     def test3(self) -> None:
         """
@@ -57,9 +66,7 @@ class Test_is_image_or_email(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = dshdchli._is_image_or_email(url)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self._helper(url, expected)
 
     def test4(self) -> None:
         """
@@ -70,9 +77,7 @@ class Test_is_image_or_email(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = dshdchli._is_image_or_email(url)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self._helper(url, expected)
 
     def test5(self) -> None:
         """
@@ -83,9 +88,7 @@ class Test_is_image_or_email(hunitest.TestCase):
         # Prepare outputs.
         expected = True
         # Run test.
-        actual = dshdchli._is_image_or_email(url)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self._helper(url, expected)
 
     def test6(self) -> None:
         """
@@ -96,9 +99,7 @@ class Test_is_image_or_email(hunitest.TestCase):
         # Prepare outputs.
         expected = False
         # Run test.
-        actual = dshdchli._is_image_or_email(url)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self._helper(url, expected)
 
     def test7(self) -> None:
         """
@@ -109,9 +110,7 @@ class Test_is_image_or_email(hunitest.TestCase):
         # Prepare outputs.
         expected = False
         # Run test.
-        actual = dshdchli._is_image_or_email(url)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self._helper(url, expected)
 
     def test8(self) -> None:
         """
@@ -122,9 +121,7 @@ class Test_is_image_or_email(hunitest.TestCase):
         # Prepare outputs.
         expected = False
         # Run test.
-        actual = dshdchli._is_image_or_email(url)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self._helper(url, expected)
 
 
 # #############################################################################
@@ -137,6 +134,26 @@ class Test_extract_urls_from_text(hunitest.TestCase):
     Test the _extract_urls_from_text_with_original_line_numbers function.
     """
 
+    def _helper(self, text: str, expected):
+        """
+        Test helper for `_extract_urls_from_text_with_original_line_numbers()`.
+
+        :param text: Text to extract URLs from
+        :param expected: Expected list of (url, line_number) tuples
+        """
+        # Prepare inputs.
+        filtered_text = hmarkdo.remove_table_of_contents(text)
+        # Run test.
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
+        # Check outputs.
+        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+
     def test1(self) -> None:
         """
         Test extraction of URLs from Markdown-style links.
@@ -148,16 +165,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         [Google Sheets](https://docs.google.com/spreadsheets/d/1H_Ev1psuPpUrrRcmBrBb2chfurSo5rPcAdd6i2SIUTQ/edit?gid=0#gid=0)
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             ("https://github.com/gpsaggese/umd_classes/tree/master", 2),
             (
@@ -165,7 +173,8 @@ class Test_extract_urls_from_text(hunitest.TestCase):
                 3,
             ),
         ]
-        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+        # Run test.
+        self._helper(text, expected)
 
     def test2(self) -> None:
         """
@@ -180,16 +189,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         http://example.com/path
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             (
                 "https://github.com/causify-ai/helpers/blob/HEAD//github.com/gpsaggese/umd_classes/blob/master/class_project/DATA605/Spring2025/project_description.md",
@@ -201,7 +201,8 @@ class Test_extract_urls_from_text(hunitest.TestCase):
             ),
             ("http://example.com/path", 5),
         ]
-        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+        # Run test.
+        self._helper(text, expected)
 
     def test3(self) -> None:
         """
@@ -215,22 +216,14 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         [Another link](http://test.org/path?param=value)
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             ("https://example.com/link1", 2),
             ("https://example.com/standalone", 3),
             ("http://test.org/path?param=value", 4),
         ]
-        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+        # Run test.
+        self._helper(text, expected)
 
     def test4(self) -> None:
         """
@@ -243,18 +236,10 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         No links here at all.
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = []
-        self.assert_equal(str(actual), str(expected))
+        # Run test.
+        self._helper(text, expected)
 
     def test5(self) -> None:
         """
@@ -267,21 +252,13 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         [Another reference](https://example.com)
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             ("https://example.com", 1),
             ("https://github.com/causify-ai/helpers/blob/HEAD//example.com", 2),
         ]
-        self.assert_equal(str(actual), str(expected))
+        # Run test.
+        self._helper(text, expected)
 
     def test6(self) -> None:
         """
@@ -294,21 +271,13 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         Another regular link: [Google](https://google.com)
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             ("https://github.com", 1),
             ("https://google.com", 3),
         ]
-        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+        # Run test.
+        self._helper(text, expected)
 
     def test7(self) -> None:
         """
@@ -321,22 +290,14 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         Another link: https://test.org
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             ("https://example.com", 1),
             ("https://github.com/causify-ai/helpers/blob/HEAD//test.org", 3),
             ("https://test.org", 3),
         ]
-        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+        # Run test.
+        self._helper(text, expected)
 
     def test8(self) -> None:
         """
@@ -349,20 +310,12 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         Email: user@domain.com
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             ("https://example.com", 2),
         ]
-        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+        # Run test.
+        self._helper(text, expected)
 
     def test9(self) -> None:
         """
@@ -377,16 +330,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         https://valid-url.com
         """
         text = hprint.dedent(text)
-        filtered_text = hmarkdo.remove_table_of_contents(text)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-                text, filtered_text
-            )
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             ("https://example.com/page", 1),
             (
@@ -395,7 +339,8 @@ class Test_extract_urls_from_text(hunitest.TestCase):
             ),
             ("https://valid-url.com", 5),
         ]
-        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+        # Run test.
+        self._helper(text, expected)
 
 
 # #############################################################################
@@ -409,17 +354,28 @@ class Test_check_url_reachable(hunitest.TestCase):
     Test the _check_url_reachable function.
     """
 
+    def _helper(self, url: str, expected: bool) -> None:
+        """
+        Test helper for `_check_url_reachable()`.
+
+        :param url: URL to check for reachability
+        :param expected: Expected result
+        """
+        # Run test.
+        actual = dshdchli._check_url_reachable(url)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
     def test1(self) -> None:
         """
         Test checking a known reachable URL.
         """
         # Prepare inputs.
         url = "https://www.google.com"
-        # Run test.
-        actual = dshdchli._check_url_reachable(url)
-        # Check outputs.
+        # Prepare outputs.
         expected = True
-        self.assert_equal(str(actual), str(expected))
+        # Run test.
+        self._helper(url, expected)
 
     def test2(self) -> None:
         """
@@ -427,11 +383,10 @@ class Test_check_url_reachable(hunitest.TestCase):
         """
         # Prepare inputs.
         url = "https://this-domain-does-not-exist-12345.com"
-        # Run test.
-        actual = dshdchli._check_url_reachable(url)
-        # Check outputs.
+        # Prepare outputs.
         expected = False
-        self.assert_equal(str(actual), str(expected))
+        # Run test.
+        self._helper(url, expected)
 
     def test3(self) -> None:
         """
@@ -439,11 +394,10 @@ class Test_check_url_reachable(hunitest.TestCase):
         """
         # Prepare inputs.
         url = "not-a-valid-url"
-        # Run test.
-        actual = dshdchli._check_url_reachable(url)
-        # Check outputs.
+        # Prepare outputs.
         expected = False
-        self.assert_equal(str(actual), str(expected))
+        # Run test.
+        self._helper(url, expected)
 
 
 # #############################################################################
@@ -455,6 +409,33 @@ class Test_check_links_in_file(hunitest.TestCase):
     """
     Test the _check_links_in_file function.
     """
+
+    def _helper(self, test_content: str, expected_reachable_urls, expected_broken_count):
+        """
+        Test helper for `_check_links_in_file()`.
+
+        :param test_content: Markdown content for test file
+        :param expected_reachable_urls: Expected reachable URLs
+        :param expected_broken_count: Expected number of broken URLs
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        test_file = os.path.join(scratch_dir, "test_links.md")
+        hio.to_file(test_file, test_content)
+        # Run test.
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            reachable_urls, broken_urls = dshdchli._check_links_in_file(
+                test_file
+            )
+        # Check outputs.
+        self.assert_equal(str(len(reachable_urls)), str(len(expected_reachable_urls)))
+        self.assert_equal(str(len(broken_urls)), str(expected_broken_count))
+        self.assert_equal(
+            str(sorted(reachable_urls)), str(sorted(expected_reachable_urls))
+        )
 
     def test1(self) -> None:
         """
@@ -469,24 +450,11 @@ class Test_check_links_in_file(hunitest.TestCase):
         https://www.github.com
         """
         test_content = hprint.dedent(test_content)
-        scratch_dir = self.get_scratch_space()
-        test_file = scratch_dir + "/test_links.md"
-        hio.to_file(test_file, test_content)
-        # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            reachable_urls, broken_urls = dshdchli._check_links_in_file(
-                test_file
-            )
-        # Check outputs.
-        self.assert_equal(str(len(reachable_urls)), str(2))
-        self.assert_equal(str(len(broken_urls)), str(1))
+        # Prepare outputs.
         expected_urls = ["https://www.google.com", "https://www.github.com"]
-        self.assert_equal(
-            str(sorted(reachable_urls)), str(sorted(expected_urls))
-        )
+        expected_broken_count = 1
+        # Run test.
+        self._helper(test_content, expected_urls, expected_broken_count)
 
     def test2(self) -> None:
         """
@@ -501,10 +469,14 @@ class Test_check_links_in_file(hunitest.TestCase):
         https://another-non-existent-domain-98765.com
         """
         test_content = hprint.dedent(test_content)
-        scratch_dir = self.get_scratch_space()
-        test_file = scratch_dir + "/test_broken_links.md"
-        hio.to_file(test_file, test_content)
+        # Prepare outputs.
+        expected_reachable_urls = []
+        expected_broken_count = 3
         # Run test.
+        scratch_dir = self.get_scratch_space()
+        test_file = os.path.join(scratch_dir, "test_broken_links.md")
+        hio.to_file(test_file, test_content)
+        # Run test with mock.
         with mock.patch(
             "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
             return_value=("https://github.com/causify-ai/helpers", "HEAD"),
@@ -537,20 +509,11 @@ class Test_check_links_in_file(hunitest.TestCase):
         Just plain text content.
         """
         test_content = hprint.dedent(test_content)
-        scratch_dir = self.get_scratch_space()
-        test_file = scratch_dir + "/test_no_links.md"
-        hio.to_file(test_file, test_content)
+        # Prepare outputs.
+        expected_urls = []
+        expected_broken_count = 0
         # Run test.
-        with mock.patch(
-            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
-            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
-        ):
-            reachable_urls, broken_urls = dshdchli._check_links_in_file(
-                test_file
-            )
-        # Check outputs.
-        self.assert_equal(str(len(reachable_urls)), str(0))
-        self.assert_equal(str(len(broken_urls)), str(0))
+        self._helper(test_content, expected_urls, expected_broken_count)
 
     def test4(self) -> None:
         """
@@ -558,8 +521,10 @@ class Test_check_links_in_file(hunitest.TestCase):
         """
         # Prepare inputs.
         nonexistent_file = "/path/that/does/not/exist.md"
+        # Prepare outputs.
+        expected_error_substring = "File"
         # Run test and check outputs.
         with self.assertRaises(AssertionError) as cm:
             dshdchli._check_links_in_file(nonexistent_file)
         actual = str(cm.exception)
-        self.assertIn("File", actual)
+        self.assertIn(expected_error_substring, actual)

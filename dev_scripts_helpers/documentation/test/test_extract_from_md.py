@@ -102,10 +102,10 @@ class Test_extract_from_md_py(hunitest.TestCase):
         :param args: Command line arguments for the script
         :param expected_output: Expected output content
         """
-        # Run test.
-        actual = self._run_script("input.md", args)
         # Prepare outputs.
         expected = hprint.dedent(expected_output)
+        # Run test.
+        actual = self._run_script("input.md", args)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -115,6 +115,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         """
         # Prepare inputs.
         args = "--select '# Methods:# Results'"
+        # Prepare outputs.
         expected_output = """
         # Methods
 
@@ -135,6 +136,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         """
         # Prepare inputs.
         args = "--select '## Background:## Motivation'"
+        # Prepare outputs.
         expected_output = """
         ## Background
 
@@ -149,6 +151,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         """
         # Prepare inputs.
         args = "--select '# Results'"
+        # Prepare outputs.
         expected_output = """
         # Results
 
@@ -214,21 +217,21 @@ class Test_extract_from_md_py_main(hunitest.TestCase):
         actual = hio.from_file(output_file)
         return actual
 
-    # TODO(ai_gp): Factor out common code.
-    def test1(self) -> None:
+    def helper(
+        self, file_name: str, content: str, select_arg: str, expected: str
+    ) -> None:
         """
-        Test happy path: extract a section from a markdown file.
+        Test helper for `_main()`.
+
+        :param file_name: Input file name
+        :param content: Input file content
+        :param select_arg: Value for --select argument
+        :param expected: Expected output content
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.md")
+        input_file = os.path.join(scratch_dir, file_name)
         output_file = os.path.join(scratch_dir, "output.txt")
-        content = """
-        # Chapter 1
-        Intro text.
-        # Chapter 2
-        Body text.
-        """
         content = hprint.dedent(content)
         hio.to_file(input_file, content)
         argv = [
@@ -238,51 +241,52 @@ class Test_extract_from_md_py_main(hunitest.TestCase):
             "-o",
             output_file,
             "--select",
-            "# Chapter 2",
+            select_arg,
         ]
-        # Prepare outputs.
-        expected = """
-        # Chapter 2
-        Body text.
-        """
-        expected = hprint.dedent(expected)
         # Run test.
         actual = self._run_main(argv)
         # Check outputs.
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test happy path: extract a section from a markdown file.
+        """
+        # Prepare inputs.
+        file_name = "input.md"
+        content = """
+            # Chapter 1
+            Intro text.
+            # Chapter 2
+            Body text.
+            """
+        select_arg = "# Chapter 2"
+        # Prepare outputs.
+        expected = """
+            # Chapter 2
+            Body text.
+            """
+        # Run test.
+        self.helper(file_name, content, select_arg, expected)
 
     def test2(self) -> None:
         """
         Test edge case: extract a slide from a `.txt` slide file.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
-        output_file = os.path.join(scratch_dir, "output.txt")
+        file_name = "input.txt"
         content = """
-        * Slide 1
-        Slide 1 content.
-        * Slide 2
-        Slide 2 content.
-        """
-        content = hprint.dedent(content)
-        hio.to_file(input_file, content)
-        argv = [
-            "extract_from_md.py",
-            "-i",
-            input_file,
-            "-o",
-            output_file,
-            "--select",
-            "* Slide 1:* Slide 2",
-        ]
+            * Slide 1
+            Slide 1 content.
+            * Slide 2
+            Slide 2 content.
+            """
+        select_arg = "* Slide 1:* Slide 2"
         # Prepare outputs.
         expected = """
-        ##### Slide 1
-        Slide 1 content.
-        """
-        expected = hprint.dedent(expected)
+            ##### Slide 1
+            Slide 1 content.
+            """
         # Run test.
-        actual = self._run_main(argv)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(file_name, content, select_arg, expected)

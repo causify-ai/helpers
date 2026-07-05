@@ -36,44 +36,56 @@ def _get_sample_header_list() -> list:
 
 class Test_extract_toc_from_txt_script1(hunitest.TestCase):
     def helper(self, file: str, extra_args: str = "") -> None:
+        """
+        Test helper for script execution.
+
+        :param file: Input file name
+        :param extra_args: Extra command-line arguments
+        """
         # Prepare inputs.
-        in_file = os.path.join(self.get_input_dir(), file)
+        input_dir = self.get_input_dir()
+        in_file = os.path.join(input_dir, file)
         # Build command to call the script.
         script_path = hgit.find_file_in_git_tree("extract_toc_from_txt.py")
-        out_file = os.path.join(self.get_scratch_space(), "output.txt")
+        scratch_space = self.get_scratch_space()
+        out_file = os.path.join(scratch_space, "output.txt")
         cmd = f"{script_path} --input {in_file} --output {out_file} --mode list --max_level 3 {extra_args}"
         # Run the script.
         hsystem.system(cmd)
-        # Read the output.
+        # Read the actual output.
         actual = hio.from_file(out_file)
-        # Verify the output is correct.
-        self.check_string(actual)
+        # Prepare expected output.
+        output_dir = self.get_output_dir()
+        expected_file = os.path.join(output_dir, "test.txt")
+        expected = hio.from_file(expected_file)
+        # Check outputs.
+        self.assert_equal(actual, expected)
 
-    def test_md1(self) -> None:
+    def test1(self) -> None:
         """
         Test extraction of headers from a Markdown file.
         """
         self.helper("input.md")
 
-    def test_tex1(self) -> None:
+    def test2(self) -> None:
         """
         Test extraction of headers from a LaTeX file.
         """
         self.helper("input.tex")
 
-    def test_txt1(self) -> None:
+    def test3(self) -> None:
         """
         Test extraction of headers from a txt slide file.
         """
         self.helper("input.txt")
 
-    def test_ipynb1(self) -> None:
+    def test4(self) -> None:
         """
         Test extraction of headers from a Jupyter notebook file.
         """
         self.helper("input.ipynb")
 
-    def test_md_with_counts(self) -> None:
+    def test5(self) -> None:
         """
         Test extraction of headers with slide counts from a Markdown file.
         """
@@ -90,13 +102,24 @@ class Test_count_headers_by_level(hunitest.TestCase):
     Test the `_count_headers_by_level()` function.
     """
 
-    # TODO(ai_gp): Factor out common code in an helper.
+    def helper(self, target_level: int, expected: dict) -> None:
+        """
+        Test helper for `_count_headers_by_level()`.
+
+        :param target_level: Target header level to count
+        :param expected: Expected result dictionary
+        """
+        # Prepare inputs.
+        header_list = _get_sample_header_list()
+        # Run test.
+        actual = dshdextt._count_headers_by_level(header_list, target_level=target_level)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
     def test1(self) -> None:
         """
         Test happy path: count level-5 headers per (h1, h2) and h1 totals.
         """
-        # Prepare inputs.
-        header_list = _get_sample_header_list()
         # Prepare outputs.
         expected = {
             ("Chapter 1", "Section 1.1"): 2,
@@ -104,22 +127,16 @@ class Test_count_headers_by_level(hunitest.TestCase):
             ("Chapter 1", "Section 1.2"): 1,
         }
         # Run test.
-        actual = dshdextt._count_headers_by_level(header_list, target_level=5)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(target_level=5, expected=expected)
 
     def test2(self) -> None:
         """
         Test edge case: no headers of the target level returns an empty dict.
         """
-        # Prepare inputs.
-        header_list = _get_sample_header_list()
         # Prepare outputs.
         expected: dict = {}
         # Run test.
-        actual = dshdextt._count_headers_by_level(header_list, target_level=3)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(target_level=3, expected=expected)
 
 
 # #############################################################################
@@ -132,13 +149,28 @@ class Test_format_headers_with_counts(hunitest.TestCase):
     Test the `_format_headers_with_counts()` function.
     """
 
-    def test1(self) -> None:
+    def helper(self, mode: str, max_level: int, expected: str) -> None:
         """
-        Test happy path: `headers` mode annotates h1/h2 with slide counts.
+        Test helper for `_format_headers_with_counts()`.
+
+        :param mode: Output mode ("headers" or "list")
+        :param max_level: Maximum header level to include
+        :param expected: Expected formatted output
         """
         # Prepare inputs.
         header_list = _get_sample_header_list()
         counts = dshdextt._count_headers_by_level(header_list, target_level=5)
+        # Run test.
+        actual = dshdextt._format_headers_with_counts(
+            header_list, mode, counts, max_level=max_level
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test happy path: `headers` mode annotates h1/h2 with slide counts.
+        """
         # Prepare outputs.
         expected = """
         # Chapter 1 (3)
@@ -148,20 +180,13 @@ class Test_format_headers_with_counts(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        actual = dshdextt._format_headers_with_counts(
-            header_list, "headers", counts, max_level=2
-        )
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(mode="headers", max_level=2, expected=expected)
 
     def test2(self) -> None:
         """
         Test edge case: `list` mode with headers beyond level 2 use the
         original indentation-based formatting.
         """
-        # Prepare inputs.
-        header_list = _get_sample_header_list()
-        counts = dshdextt._count_headers_by_level(header_list, target_level=5)
         # Prepare outputs.
         expected = """
         - Chapter 1 (3)
@@ -174,11 +199,7 @@ class Test_format_headers_with_counts(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        actual = dshdextt._format_headers_with_counts(
-            header_list, "list", counts, max_level=5
-        )
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(mode="list", max_level=5, expected=expected)
 
 
 # #############################################################################
@@ -370,21 +391,20 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
         actual = hio.from_file(output_file)
         return actual
 
-    # TODO(ai_gp): Factor out common code in an helper.
-    def test1(self) -> None:
+    def _helper_extract_headers(
+        self, extension: str, content: str, expected: str
+    ) -> None:
         """
-        Test happy path: extracts markdown headers via the `.md` dispatch
-        branch.
+        Test helper for extracting headers from different file formats.
+
+        :param extension: File extension (.md, .tex, .txt, .ipynb)
+        :param content: File content to write
+        :param expected: Expected output
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.md")
+        input_file = os.path.join(scratch_dir, f"input{extension}")
         output_file = os.path.join(scratch_dir, "output.txt")
-        content = """
-        # Chapter 1
-        Text.
-        """
-        content = hprint.dedent(content)
         hio.to_file(input_file, content)
         argv = [
             "extract_toc_from_txt.py",
@@ -395,12 +415,25 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
             "--mode",
             "headers",
         ]
-        # Prepare outputs.
-        expected = "# Chapter 1"
         # Run test.
         actual = self._run_main(argv)
         # Check outputs.
         self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test happy path: extracts markdown headers via the `.md` dispatch
+        branch.
+        """
+        # Prepare inputs.
+        content = """
+        # Chapter 1
+        Text.
+        """
+        content = hprint.dedent(content)
+        expected = "# Chapter 1"
+        # Run test.
+        self._helper_extract_headers(".md", content, expected)
 
     def test2(self) -> None:
         """
@@ -430,26 +463,10 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
         branch.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.tex")
-        output_file = os.path.join(scratch_dir, "output.txt")
         content = r"\section{Chapter 1}" + "\n"
-        hio.to_file(input_file, content)
-        argv = [
-            "extract_toc_from_txt.py",
-            "--input",
-            input_file,
-            "--output",
-            output_file,
-            "--mode",
-            "headers",
-        ]
-        # Prepare outputs.
         expected = "# Chapter 1"
         # Run test.
-        actual = self._run_main(argv)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self._helper_extract_headers(".tex", content, expected)
 
     def test4(self) -> None:
         """
@@ -457,26 +474,10 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
         branch.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
-        output_file = os.path.join(scratch_dir, "output.txt")
         content = "# Chapter 1\n"
-        hio.to_file(input_file, content)
-        argv = [
-            "extract_toc_from_txt.py",
-            "--input",
-            input_file,
-            "--output",
-            output_file,
-            "--mode",
-            "headers",
-        ]
-        # Prepare outputs.
         expected = "# Chapter 1"
         # Run test.
-        actual = self._run_main(argv)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self._helper_extract_headers(".txt", content, expected)
 
     def test5(self) -> None:
         """
@@ -484,30 +485,15 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
         branch.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.ipynb")
-        output_file = os.path.join(scratch_dir, "output.txt")
         notebook = {
             "cells": [
                 {"cell_type": "markdown", "source": ["# Chapter 1\n"]},
             ]
         }
-        hio.to_file(input_file, json.dumps(notebook))
-        argv = [
-            "extract_toc_from_txt.py",
-            "--input",
-            input_file,
-            "--output",
-            output_file,
-            "--mode",
-            "headers",
-        ]
-        # Prepare outputs.
+        content = json.dumps(notebook)
         expected = "# Chapter 1"
         # Run test.
-        actual = self._run_main(argv)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self._helper_extract_headers(".ipynb", content, expected)
 
     def test6(self) -> None:
         """
@@ -530,7 +516,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
         ]
         # Run test.
         actual = self._run_main(argv)
-        # Check outputs.
+        # Check outputs: cfile format includes filename and header text.
         self.assertIn(input_file, actual)
         self.assertIn("Chapter 1", actual)
 

@@ -170,6 +170,7 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
     def test2(self) -> None:
@@ -185,6 +186,7 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
     def test3(self) -> None:
@@ -204,6 +206,7 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
 
@@ -362,6 +365,7 @@ class Test__transform_elem(hunitest.TestCase):
         :::
         :::
         """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
     def test2(self) -> None:
@@ -380,6 +384,7 @@ class Test__transform_elem(hunitest.TestCase):
         :::
         :::
         """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
     def test3(self) -> None:
@@ -389,6 +394,7 @@ class Test__transform_elem(hunitest.TestCase):
         markdown_input = """
         text
         """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
     def test4(self) -> None:
@@ -407,6 +413,7 @@ class Test__transform_elem(hunitest.TestCase):
           :::
           :::
         """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
 
@@ -446,17 +453,18 @@ class Test__transform_ast(hunitest.TestCase):
         Test full AST transformation with one columns Div.
         """
         markdown_input = """
-		# Title
+        # Title
 
-		:::columns
-		::: column {width="50%"}
-		left
-		:::
-		::: column {width="50%"}
-		right
-		:::
-		:::
-		"""
+        :::columns
+        ::: column {width="50%"}
+        left
+        :::
+        ::: column {width="50%"}
+        right
+        :::
+        :::
+        """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
     def test2(self) -> None:
@@ -464,8 +472,9 @@ class Test__transform_ast(hunitest.TestCase):
         Test AST with no columns remains unchanged.
         """
         markdown_input = """
-		text
-		"""
+        text
+        """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
 
@@ -520,18 +529,19 @@ class Test_end_to_end(hunitest.TestCase):
         - typst
         """
         markdown_input = """
-		# Title
+        # Title
 
-		:::columns
-		::: column
-		Left content
-		:::
+        :::columns
+        ::: column
+        Left content
+        :::
 
-		::: column
-		Right content
-		:::
-		:::
-		"""
+        ::: column
+        Right content
+        :::
+        :::
+        """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)
 
     def test2(self) -> None:
@@ -547,18 +557,19 @@ class Test_end_to_end(hunitest.TestCase):
         - Columns are correctly extracted with content preserved
         - Transformation produces valid typst grid code
         """
-        markdown_input = r"""
-		* Search Over Reasoning
+        markdown_input = """
+        * Search Over Reasoning
 
-		:::columns
-		::: column {width="50%"}
-		- **Problem**: self-consistency samples _independent_ chains and cannot revisit
-		- **Solution**: treat reasoning as _search_ over structure
-		:::
+        :::columns
+        ::: column {width="50%"}
+        - **Problem**: self-consistency samples _independent_ chains and cannot revisit
+        - **Solution**: treat reasoning as _search_ over structure
+        :::
 
-		::: column {width="45%"}
-		Text in second column
-		:::
-		:::
-		"""
+        ::: column {width="45%"}
+        Text in second column
+        :::
+        :::
+        """
+        markdown_input = hprint.dedent(markdown_input)
         self.helper(markdown_input)

@@ -42,6 +42,7 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Prompt_A
         This is the first prompt text.
         """
+        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [("Prompt_A", "This is the first prompt text.")]
         # Run test.
@@ -60,6 +61,7 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Abstract_Art
         Geometric shapes in vibrant colors.
         """
+        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [
             ("Urban_Landscape", "A futuristic cityscape at sunset."),
@@ -80,6 +82,7 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Prompt_B
         Line 1 of prompt B.
         """
+        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [
             ("Prompt_A", "Line 1 of prompt A.\nLine 2 of prompt A."),
@@ -97,6 +100,7 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Another_Prompt_456
         Another prompt.
         """
+        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [
             ("Prompt_Name_123", "This is the prompt text."),
@@ -142,6 +146,7 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Prompt_B
         Another prompt.
         """
+        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [
             (
