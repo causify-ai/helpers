@@ -451,8 +451,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cmd_parts = [sys.argv[0]] + [
             arg for arg in sys.argv[1:] if arg != "--daemon"
         ]
-        # Skip open action since user likely has viewer that auto-refreshes.
-        cmd_parts.extend(["--skip_action=open"])
         cmd = " ".join(shlex.quote(part) for part in cmd_parts)
         _LOG.info("Daemon mode: watching '%s' for changes", args.input)
         dshdlntpd.daemon_watch(args.input, cmd)

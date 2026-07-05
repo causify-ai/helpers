@@ -127,15 +127,20 @@ def daemon_watch(
     )
     hdbg.dassert_file_exists(file_path)
 
-    def _run_cmd() -> None:
+    # TODO(ai_gp): Use system(..., abort_on_error=False)
+    def _run_cmd(cmd_to_run: str) -> None:
         try:
-            hsystem.system(cmd)
+            hsystem.system(cmd_to_run)
         except Exception as e:
             _LOG.error("Daemon: command failed: %s", e)
 
-    # Run immediately on first launch.
+    # Run immediately on first launch, opening the output file so the user
+    # has a viewer (e.g., Skim) attached to it.
     _LOG.info("Initial run...")
-    _run_cmd()
+    _run_cmd(cmd)
+    # On subsequent regenerations skip opening the file since the viewer
+    # already open auto-reloads on change.
+    watch_cmd = cmd + " --skip_action=open"
     prev_hash = _file_hash(file_path)
     stable_hash = None
     time_since_last_change = 0
@@ -158,7 +163,7 @@ def daemon_watch(
             if time_since_last_change >= debounce_sec:
                 # Debounce complete, regenerate.
                 _LOG.info("Debounce complete. Regenerating...")
-                _run_cmd()
+                _run_cmd(watch_cmd)
                 stable_hash = None
 
 

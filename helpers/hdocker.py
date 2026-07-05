@@ -250,6 +250,30 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     return exists, ""
 
 
+def pull_image(image_name: str, use_sudo: bool) -> None:
+    """
+    Pull a Docker image using the appropriate engine.
+
+    E.g.,
+    ```
+    > docker pull pandoc/core:3.7
+    > container image pull pandoc/core:3.7
+    ```
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    #
+    executable = get_docker_executable(use_sudo)
+    engine = get_docker_engine()
+    if engine == "docker":
+        cmd = f"{executable} pull {image_name}"
+    elif engine == "apple":
+        cmd = f"{executable} image pull {image_name}"
+    else:
+        raise ValueError(f"Invalid engine='{engine}'")
+    _LOG.info("Pulling missing Docker image '%s'", image_name)
+    hsystem.system(cmd, suppress_output=False)
+
+
 def container_rm(container_name: str, use_sudo: bool) -> None:
     """
     Remove a Docker container by its name.
@@ -740,7 +764,9 @@ def build_and_run_docker_cmd(
             docker_cmd.append("--entrypoint /bin/bash")
         else:
             docker_cmd.append("--entrypoint ''")
-    # Check that the container image exists.
+    # Check that the container image exists and try to pull it if it's missing.
+    if not image_exists(container_image, use_sudo)[0]:
+        pull_image(container_image, use_sudo)
     hdbg.dassert(
         image_exists(container_image, use_sudo)[0],
         "Container image '%s' does not exist",

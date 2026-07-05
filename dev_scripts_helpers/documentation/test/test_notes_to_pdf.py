@@ -37,6 +37,22 @@ def _get_arch_tag() -> str:
     return tag
 
 
+# TODO(ai_gp): Update docstring.
+# TODO(ai_gp): Find a better name for this function.
+def _safe_read_text(file_name: str) -> str:
+    """
+    Read a file as text, returning "" if it's missing or not valid UTF-8.
+
+    For PDF files, returns the filename instead of attempting to read binary
+    content.
+    """
+    if not os.path.exists(file_name):
+        return ""
+    if file_name.endswith(".pdf"):
+        return os.path.basename(file_name)
+    return hio.from_file(file_name)
+
+
 # #############################################################################
 # Test_notes_to_pdf1
 # #############################################################################
@@ -354,9 +370,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = ""
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        output_txt = _safe_read_text(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -497,9 +511,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = ""
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        output_txt = _safe_read_text(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -619,9 +631,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = ""
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        output_txt = _safe_read_text(out_file)
         _LOG.debug("script_txt=%s", script_txt)
         return script_txt, output_txt
 
@@ -700,11 +710,19 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper(self, cmd_opts: str) -> Tuple[str, str]:
+    def helper(
+        self,
+        *,
+        cmd_opts: str = "",
+        generate_script: bool = True,
+        skip_action_open: bool = True,
+    ) -> Tuple[str, str]:
         """
-        Helper to test action selection.
+        Helper to test action selection and command generation.
 
-        :param cmd_opts: Command line options for action selection
+        :param cmd_opts: Additional command line options
+        :param generate_script: Whether to generate script file (--script flag)
+        :param skip_action_open: Whether to add --skip_action open
         :return: Tuple of (script_txt, output_txt)
         """
         # Prepare inputs.
@@ -720,21 +738,23 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
             f"--input {in_file}",
             "--type pdf",
             f"--output {out_file}",
-            f"--script {script_file}",
-            cmd_opts,
-            "--skip_action open",
         ]
+        if generate_script:
+            cmd.append(f"--script {script_file}")
+        if cmd_opts:
+            cmd.append(cmd_opts)
+        if skip_action_open:
+            cmd.append("--skip_action open")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Run test.
         hsystem.system(cmd)
         # Prepare outputs.
         script_txt = ""
-        if os.path.exists(script_file):
+        if generate_script:
+            hdbg.dassert_file_exists(script_file)
             script_txt = hio.from_file(script_file)
-        output_txt = ""
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        output_txt = _safe_read_text(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -777,25 +797,15 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         """
         Test preview actions mode (no execution).
         """
-        # Prepare inputs.
-        in_file = self.create_simple_input()
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
+        # Get scratch space to check for script file.
         out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, "output.pdf")
         script_file = os.path.join(out_dir, "script.sh")
-        # Construct command.
-        cmd = [
-            exec_path,
-            f"--input {in_file}",
-            "--type pdf",
-            f"--output {out_file}",
-            "--preview_actions",
-        ]
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
-        # Run test.
-        hsystem.system(cmd)
+        # Run test with preview_actions.
+        self.helper(
+            cmd_opts="--preview_actions",
+            generate_script=False,
+            skip_action_open=False,
+        )
         # Check outputs: script file should not be created in preview mode
         self.assertFalse(os.path.exists(script_file))
 
@@ -856,9 +866,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         hsystem.system(cmd)
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
-        output_txt = ""
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        output_txt = _safe_read_text(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -999,9 +1007,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         hsystem.system(cmd)
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
-        output_txt = ""
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        output_txt = _safe_read_text(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1162,9 +1168,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         # Run test.
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
-        output_txt = ""
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        output_txt = _safe_read_text(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1338,9 +1342,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         # Run test.
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
-        output_txt = ""
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        output_txt = _safe_read_text(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
