@@ -436,9 +436,8 @@ def assert_equal(
     tag = "original"
     _append(tag, actual, expected)
     # 1) Remove white spaces.
-    text_purifier = huntepur.TextPurifier()
-    actual = text_purifier.purify_white_spaces(actual)
-    expected = text_purifier.purify_white_spaces(expected)
+    actual = huntepur.purify_white_spaces(actual)
+    expected = huntepur.purify_white_spaces(expected)
     tag = "purify_white_spaces"
     _append(tag, actual, expected)
     # Remove empty leading / trailing lines.
@@ -456,10 +455,9 @@ def assert_equal(
     # Purify text, if needed.
     if purify_text:
         tag = "purify_text"
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_txt_from_client(actual)
+        actual = huntepur.purify_txt_from_client(actual)
         if purify_expected_text:
-            expected = text_purifier.purify_txt_from_client(expected)
+            expected = huntepur.purify_txt_from_client(expected)
         _append(tag, actual, expected)
     # Ensure that there is a single `\n` at the end of the strings.
     actual = actual.rstrip("\n") + "\n"
@@ -1469,8 +1467,7 @@ class TestCase(unittest.TestCase):
         # TODO(gp): Not sure why we purify here and not delegate to `assert_equal`.
         if purify_text:
             _LOG.debug("Purifying actual outcome")
-            text_purifier = huntepur.TextPurifier()
-            actual = text_purifier.purify_txt_from_client(actual)
+            actual = huntepur.purify_txt_from_client(actual)
         _LOG.debug("actual=\n%s", actual)
         outcome_updated = False
         file_exists = os.path.exists(file_name)

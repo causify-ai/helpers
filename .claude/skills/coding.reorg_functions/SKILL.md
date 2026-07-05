@@ -6,65 +6,19 @@ model: haiku
 # Reorganize Python Functions Within a File
 
 - Reorganize the Python functions in the user-provided file according to the
-  following rules
+  general rules in the `coding.rules.md` file for organizing code
 
-## Organize Functions Into Logical Layers
+  - Follow the section `## Organize Functions Into Logical Layers` from the file
+    `.claude/skills/coding.rules.md`
+  - Follow the section `## Order Layers by Abstraction Level` from the file
+    `.claude/skills/coding.rules.md`
+  - Follow the section `## Order Functions Within Each Layer` from the file
+    `.claude/skills/coding.rules.md`
+  - Follow the section `## Keep Related Functions Together` from the file
+    `.claude/skills/coding.rules.md`
+  - Follow the section `## Mark Private Functions` from the file
+    `.claude/skills/coding.rules.md`
 
-- Group related functions into sections separated by headers in the following
-  format:
-  ```python
-  # #############################################################################
-  # <Layer Description>
-  # #############################################################################
-  ```
-
-- Examples of layers:
-  - Constants / configuration
-  - Low-level utility functions
-  - Parsing helpers
-  - Data transformation helpers
-  - Core business logic
-  - Public API functions
-  - CLI / entry points
-
-## Order Layers by Abstraction Level
-
-- Arrange layers from lower-level/simple functionality to higher-level/complex
-  functionality
-
-- General rule:
-  - Fundamental utilities first
-  - High-level orchestration last
-
-## Order Functions Within Each Layer
-
-- Inside each layer, organize functions from:
-  - More primitive / reusable
-  - To more specialized / higher-level
-
-- Functions should generally appear before functions that depend on them.
-
-## Mark File-private Functions as Private
-
-- Rename functions that are only used internally within the file to use a leading
-  underscore
-  - Example:
-    ```python
-    def foo_bar(...):
-    ```
-
-    becomes:
-
-    ```python
-    def _foo_bar(...):
-    ```
-
-- Only do this for functions that are not part of the module's public interface
-
-## Keep Related Functions Together
-- Keep related helper functions physically close together
-  - E.g., if there is a public or private function used only in one place in a
-    file, move that function close to where it is used
 
 ## Additional Guidance
 

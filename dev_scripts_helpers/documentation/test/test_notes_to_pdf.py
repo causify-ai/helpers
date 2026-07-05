@@ -8,9 +8,11 @@ from typing import List, Tuple
 import pytest
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -25,6 +27,14 @@ def _to_output_str(script_txt, output_txt):
     out += output_txt + "\n"
     _LOG.debug("out=\n%s", out)
     return out
+
+
+def _get_arch_tag() -> str:
+    is_docker = hserver.is_inside_docker()
+    docker_tag = "in_docker" if is_docker else "outside_docker"
+    arch_tag = hdocker.get_current_arch()
+    tag = f"{docker_tag}.{arch_tag}"
+    return tag
 
 
 # #############################################################################
@@ -176,6 +186,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         in_file = self.create_input_file1()
         type_ = "pdf"
         cmd_opts = ""
+<<<<<<< HEAD
         # Prepare outputs.
         expected = hprint.dedent(
             r"""
@@ -209,6 +220,16 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         )
         # Run test.
         self.run_notes_to_pdf(in_file, type_, cmd_opts, expected)
+=======
+        # Run the script.
+        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        # Check.
+        txt = f"script_txt:\n{script_txt}\n"
+        txt += f"output_txt:\n{output_txt}\n"
+        #
+        tag = _get_arch_tag()
+        self.check_string(txt, purify_text=True, tag=tag)
+>>>>>>> master
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -219,6 +240,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         in_file = self.create_input_file1()
         type_ = "pdf"
         cmd_opts = "--filter_by_header Header2"
+<<<<<<< HEAD
         # Prepare outputs.
         expected = hprint.dedent(
             r"""
@@ -258,6 +280,19 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         sys.platform == "darwin",
         reason="Container execution and LaTeX rendering with slides produces different output on macOS vs Linux; requires Linux environment",
     )
+=======
+        # Run the script.
+        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        # Check.
+        txt = f"script_txt:\n{script_txt}\n"
+        txt += f"output_txt:\n{output_txt}\n"
+        #
+        tag = _get_arch_tag()
+        self.check_string(txt, purify_text=True, tag=tag)
+
+    @pytest.mark.superslow
+    @pytest.mark.skip(reason="To debug")
+>>>>>>> master
     def test4(self) -> None:
         """
         Test slides generation with embedded LaTeX table content in code block.
@@ -286,6 +321,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         in_file = self.create_input_file_from_txt(txt)
         type_ = "slides"
         cmd_opts = ""
+<<<<<<< HEAD
         # Prepare outputs.
         # Note: Expected output is empty since this test validates the pipeline
         # completes without errors. Full expected output should be filled in
@@ -1508,3 +1544,13 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
         # Expected: generated Typst includes shebang and macro expansions
         # Invariant: LaTeX abbrevs expanded correctly; no unconverted macros
         self.assertIsNotNone(actual)
+=======
+        # Run the script.
+        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        # Check.
+        txt = f"script_txt:\n{script_txt}\n"
+        txt += f"output_txt:\n{output_txt}\n"
+        #
+        tag = _get_arch_tag()
+        self.check_string(txt, purify_text=True, tag=tag)
+>>>>>>> master

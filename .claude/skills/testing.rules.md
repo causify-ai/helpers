@@ -801,6 +801,48 @@ line3
   - You want to test the full argument parsing and main logic flow
   - You don't need subprocess isolation for the test
 
+## Use Helper Methods to Run Executables with Mocked argv
+
+- When testing executables that call `_main()` with `_parse()`, create a
+  `_run_main()` helper method to encapsulate the mocking setup and parser
+  initialization
+- This reduces repetition across test methods and centralizes the setup logic
+
+- **Pattern**:
+  ```python
+  class Test_clean_markdown_py(hunitest.TestCase):
+      """
+      End-to-end tests for the `clean_markdown.py` executable.
+      """
+
+      def _run_main(self, argv: List[str]) -> None:
+          """
+          Run `module._main()` with a mocked `sys.argv`.
+
+          :param argv: command-line argument list to inject via
+              `mock.patch("sys.argv", ...)`
+          """
+          parser = module._parse()
+          with mock.patch("sys.argv", argv):
+              module._main(parser)
+
+      def test1(self) -> None:
+          """
+          Test description.
+          """
+          # Prepare inputs.
+          argv = ["script_name.py", "--arg1", "value1"]
+          # Run test.
+          self._run_main(argv)
+          # Check outputs.
+          # ... assertions on file system state or captured output ...
+  ```
+
+- Benefits:
+  - Avoids repeating `_parse()` and `mock.patch()` setup in every test
+  - Centralizes the idiom for consistency across test classes
+  - Makes test methods more readable and focused on test logic
+
 ## Locate Script Paths Dynamically
 - Do not hardwire paths to executable scripts in tests, instead, use
   `hgit.find_file_in_git_tree()` to locate the script path dynamically

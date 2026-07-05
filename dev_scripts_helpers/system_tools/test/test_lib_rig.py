@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Type
 import pytest
 
 import dev_scripts_helpers.system_tools.lib_rig as dshstliri
+import helpers.hgit as hgit
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -18,6 +19,7 @@ class TestRigScript(hunitest.TestCase):
     Test rig script functionality through hrig module integration.
     """
 
+    # TODO(gp): Use hunteuti.assert...
     def _assert_cmd_invocation(
         self,
         invocations: List[Dict[str, Any]],
@@ -41,7 +43,7 @@ class TestRigScript(hunitest.TestCase):
     def helper(
         self,
         args: List[str],
-        expected_cmd: Optional[str],
+        expected_cmd: str,
         expected_exit_code: Optional[int],
         *,
         side_effect: Optional[Type[Exception]] = None,
@@ -50,10 +52,10 @@ class TestRigScript(hunitest.TestCase):
         Test helper for rig main function.
 
         :param args: Arguments to pass to hrig.main()
-        :param expected_cmd: Expected command string passed to subprocess.run()
-            or None to skip command verification
-        :param expected_exit_code: Expected exit code from hrig.main()
-            or None to skip exit code verification
+        :param expected_cmd: Expected command string or "" to skip command
+            verification
+        :param expected_exit_code: Expected exit code or None to skip exit code
+            verification
         :param side_effect: Exception to raise from subprocess.run()
         """
         # Run test.
@@ -65,7 +67,7 @@ class TestRigScript(hunitest.TestCase):
             except SystemExit as e:
                 exit_code = e.code
         # Check command output.
-        if expected_cmd is not None:
+        if expected_cmd != "":
             self._assert_cmd_invocation(invocations, expected_cmd)
         # Check exit code.
         if expected_exit_code is not None:
@@ -128,7 +130,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--help"]
         expected_exit_code = 0
-        expected_cmd = None
+        expected_cmd = ""
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)
 
@@ -138,7 +140,7 @@ class TestRigScript(hunitest.TestCase):
         """
         # Prepare inputs.
         args = []
-        expected_cmd = None
+        expected_cmd = ""
         expected_exit_code = 0
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)
@@ -154,7 +156,7 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         self.helper(
             args,
-            None,
+            "",
             expected_exit_code,
             side_effect=side_effect,
         )
@@ -208,7 +210,7 @@ class TestRigScript(hunitest.TestCase):
         # This test verifies that --modified flag is parsed correctly,
         # though we can't test the actual git integration without a real repo.
         args = ["TODO", "--modified"]
-        expected_cmd = None
+        expected_cmd = ""
         expected_exit_code = 0
         # Run test (may return 0 even if no files, since git cmd may not work in test).
         self.helper(args, expected_cmd, expected_exit_code)
@@ -220,7 +222,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", "--branch"]
         # Prepare outputs.
-        expected_cmd = None
+        expected_cmd = ""
         expected_exit_code = 0
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)
@@ -232,7 +234,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", "--all"]
         # Prepare outputs.
-        expected_cmd = None
+        expected_cmd = ""
         expected_exit_code = 0
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)
@@ -248,7 +250,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO", "--last_commit"]
         # Prepare outputs.
-        expected_cmd = None
+        expected_cmd = ""
         expected_exit_code = 0
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)
@@ -298,7 +300,8 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^# .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
+        git_root = hgit.find_git_root()
+        expected_cmd = f"rg ^# {git_root}/.claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
         expected_exit_code = 0
         # Run test.
         self.helper(
@@ -318,7 +321,8 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["assert_equal", "--rule"]
         # Prepare outputs.
-        expected_cmd = "rg ^#+.*assert_equal .claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
+        git_root = hgit.find_git_root()
+        expected_cmd = f"rg ^#+.*assert_equal {git_root}/.claude/skills -g *.md --hidden -n --no-heading --color=never -g !.git -i"
         expected_exit_code = 0
         # Run test.
         self.helper(

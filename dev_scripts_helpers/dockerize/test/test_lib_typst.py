@@ -50,7 +50,7 @@ class Test_build_typst_container1(hunitest.TestCase):
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
         expected = "typst 0.14.2 (b33de9de)\n"
-        self.assert_equal(output, expected)
+        self.assert_equal(output, expected, purify_text=True)
 
 
 # #############################################################################

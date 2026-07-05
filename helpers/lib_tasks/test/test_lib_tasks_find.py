@@ -97,8 +97,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         file_names = hlitafin._find_test_class(
             "TestLibTasksRunTests1", file_names
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_file_names(file_names)
+        actual = huntepur.purify_file_names(file_names)
         expected = ["helpers/lib_tasks/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
@@ -111,8 +110,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         file_names = hlitafin._find_test_class(
             "TestLibTasksRunTests1", file_names
         )
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_file_names(file_names)
+        actual = huntepur.purify_file_names(file_names)
         expected = ["helpers/lib_tasks/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
@@ -150,8 +148,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         self.assert_equal(str(act_file_names), str(exp_file_names))
         #
         actual = hlitafin._find_test_class("TestHelloWorld", file_names)
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_file_names(actual)
+        actual = huntepur.purify_file_names(actual)
         expected = [
             "helpers/lib_tasks/test/outcomes/TestLibTasksRunTests1.test_find_test_class3/tmp.scratch/"
             "test/test_this.py::TestHelloWorld"
@@ -189,8 +186,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         #
         file_names = hlitafin._find_test_files(dir_name)
         actual = hlitafin._find_test_decorator("no_container", file_names)
-        text_purifier = huntepur.TextPurifier()
-        actual = text_purifier.purify_file_names(actual)
+        actual = huntepur.purify_file_names(actual)
         expected = [
             "helpers/lib_tasks/test/outcomes/TestLibTasksRunTests1.test_find_test_decorator1/"
             "tmp.scratch/test/test_that.py"
