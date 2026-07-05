@@ -22,7 +22,6 @@ from typing import List, Tuple, Type
 import joblib
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlist as hlist
 import helpers.hparser as hparser
@@ -50,7 +49,6 @@ import linters.amp_format_separating_line as lafoseli
 import linters.amp_isort as lampisor
 import linters.amp_lint_md as lamlimd
 import linters.amp_mypy as lampmypy
-import linters.amp_normalize_import as lamnoimp
 import linters.amp_processjupytext as lampproc
 import linters.amp_pylint as lamppyli
 import linters.amp_remove_empty_lines_in_function as larelinfu
@@ -122,11 +120,6 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "class_method_order",
         "Sorts methods in classes",
         laclmeor._ClassMethodOrder,  # pylint: disable=protected-access
-    ),
-    (
-        "normalize_imports",
-        "Normalizes imports in the code and in the docstring",
-        lamnoimp._NormalizeImports,  # pylint: disable=protected-access
     ),
     (
         "format_separating_line",
@@ -239,13 +232,7 @@ def _get_actions(
         )
     action_names_out, action_classes_out = [], []
     for i, action_name in enumerate(action_names):
-        if action_name == "normalize_imports":
-            # To initialize, Import Normalizer needs a list of all Python files in the directory.
-            root_dir = hgit.get_client_root(super_module=False)
-            py_files = liutils.get_python_files_to_lint(root_dir)
-            action_class = action_classes[i](py_files)
-        else:
-            action_class = action_classes[i]()
+        action_class = action_classes[i]()
         # Drop actions that cannot be executed.
         is_possible = action_class.check_if_possible()
         if not is_possible:

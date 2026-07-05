@@ -117,10 +117,6 @@
   - A wrapper around [`prettier`](https://prettier.io/).
   - Cleans up Markdown files and updates the table of contents
 
-- `amp_normalize_import.py`
-  - Normalizes imports in the code and in the docstring according to our
-    conventions
-
 - `amp_processjupytext.py`
   - A wrapper around [`jupytext`](https://jupytext.readthedocs.io)
   - Keeps paired `.ipynb` and `.py` files synchronized

@@ -485,6 +485,6 @@ TODO(gp): Describe
 #### Lint Everything
 
 ```bash
-> i lint --phases="amp_isort amp_class_method_order amp_normalize_import
+> i lint --phases="amp_isort amp_class_method_order
 amp_format_separating_line amp_black" --files='$(find . -name "\*.py")'
 ```
