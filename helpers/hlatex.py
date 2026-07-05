@@ -6,6 +6,7 @@ import helpers.hlatex as hlatex
 
 import logging
 import re
+import uuid
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
@@ -25,11 +26,12 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
     Run pandoc to convert a markdown file to a latex file.
     """
     hdbg.dassert_isinstance(txt, str)
-    # Save to tmp file.
-    in_file_name = "./tmp.run_pandoc_in.md"
+    # Save to tmp file with unique name to avoid collisions.
+    uid = uuid.uuid4().hex[:8]
+    in_file_name = f"tmp.run_pandoc_in.{uid}.md"
     hio.to_file(in_file_name, txt)
     # Run Pandoc.
-    out_file_name = "./tmp.run_pandoc_out.tex"
+    out_file_name = f"tmp.run_pandoc_out.{uid}.tex"
     cmd = (
         f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
