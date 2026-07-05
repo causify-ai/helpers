@@ -338,7 +338,7 @@ ACTUAL vs EXPECTED: Test_AssertEqual1.test_not_equal1
 --------------------------------------------------------------------------------
 
                                                                           (
-completed failure Lint    Run_linter                                      |  completed       failure Lint    Run_linter
+completed failure Lint    Run_linter                                      | completed       failure Lint    Run_linter
 completed       success Lint    Fast_tests                                (
 completed       success Lint    Slow_tests                                (
 Diff with:

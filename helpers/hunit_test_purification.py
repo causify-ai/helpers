@@ -49,6 +49,7 @@ def purify_txt_from_client(txt: str) -> str:
     #
     txt = purify_app_references(txt)
     txt = purify_amp_references(txt)
+    txt = purify_super_module_references(txt)
     txt = purify_from_env_vars(txt)
     txt = purify_object_representation(txt)
     txt = purify_today_date(txt)
@@ -242,6 +243,40 @@ def purify_app_references(txt: str) -> str:
         (r"(?m)^\./", ""),
     ]
     txt = _apply_regex_replacements(txt, app_patterns)
+    _LOG.debug("After %s: txt=\n%s", hintros.get_function_name(), txt)
+    return txt
+
+
+def purify_super_module_references(txt: str) -> str:
+    """
+    Remove references to the outer super-module checkout dir from module
+    qualnames.
+
+    - `purify_app_references()`/`purify_amp_references()` only handle the
+      literal `app`/`amp` checkout directory names
+    - When `helpers_root` is checked out as a submodule under a super-repo with
+      a different name pytest's import machinery bakes that ancestor dir name
+      into `__module__`/qualname strings (e.g.,
+      `csfy1.helpers_root.helpers.test...`), which this dynamically strips
+      using the actual super-module root name instead of a hardcoded literal
+
+    :param txt: input text containing dotted module qualnames
+    :return: text with the super-module ancestor prefix removed
+    """
+    super_module_root = hgit.get_client_root(super_module=True)
+    if not super_module_root or super_module_root == "/":
+        return txt
+    name = os.path.basename(super_module_root)
+    if not name or name in ("amp", "app"):
+        # Already handled by `purify_amp_references()` / `purify_app_references()`.
+        return txt
+    name_re = re.escape(name)
+    super_module_patterns = [
+        (rf"<{name_re}\.", "<"),
+        (rf"class '{name_re}\.", "class '"),
+        (rf"(?<![\w.]){name_re}\.", ""),
+    ]
+    txt = _apply_regex_replacements(txt, super_module_patterns)
     _LOG.debug("After %s: txt=\n%s", hintros.get_function_name(), txt)
     return txt
 
