@@ -15,7 +15,6 @@ import logging
 
 import dev_scripts_helpers.coding_tools.notify as dsctonot
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -45,11 +44,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, report_command_line=False)
     #
-    history_file = dsctonot._get_history_file_path()
-    history_text = hio.from_file(history_file)
     exclude_substrings = ["last_cmd"]
-    command = dsctonot._parse_last_command(
-        history_text, n=args.n, exclude_substrings=exclude_substrings
+    command = dsctonot._get_nth_command(
+        args.n, exclude_substrings=exclude_substrings
     )
     #
     _LOG.info("Capturing command: %s", command)

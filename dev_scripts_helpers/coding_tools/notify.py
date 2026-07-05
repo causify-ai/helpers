@@ -5,7 +5,12 @@ Notify the user that the last command is completed through different channels:
 - Blinking the current tmux pane until interrupted
 - Using a macOS notification
 
-- The last executed shell command is read from the shell history file
+- The last executed shell command is read from the tmp file written by
+  `last_cmd.sh`, which must be *sourced* (not executed) in the interactive
+  shell so that `history -a` / `history 10` run in that shell's process.
+  A Python child process can't call `history` itself: it can't reach into
+  the parent shell's memory, so it would only ever see its own empty
+  history, never the interactive shell's
 - The directory is the current working directory, since history files don't
   store a per-command `cwd`
 
@@ -34,59 +39,65 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# The tmp file that `last_cmd.sh` dumps `history 10` output to.
+_TMP_HISTORY_FILE = "/tmp/tmp.history.txt"
+
 # #############################################################################
 
 
-def _get_history_file_path() -> str:
-    """
-    Return the path to the current shell's history file.
-
-    :return: absolute path to `~/.zsh_history` or `~/.bash_history`
-    """
-    shell = os.environ.get("SHELL", "")
-    if "zsh" in shell:
-        file_name = "~/.zsh_history"
-    elif "bash" in shell:
-        file_name = "~/.bash_history"
-    else:
-        raise ValueError(f"Can't recognize SHELL='{shell}'")
-    file_name = os.path.expanduser(file_name)
-    return file_name
-
-
-def _parse_last_command(
-    history_text: str,
+def _get_history_commands(
     *,
-    n: int = 1,
+    history_file: str = _TMP_HISTORY_FILE,
     exclude_substrings: Optional[List[str]] = None,
-) -> str:
+) -> List[str]:
     """
-    Extract the n-th most recent command from shell history text.
+    Return the shell history commands, in chronological order (oldest first).
 
-    Handle both plain `bash` history lines and `zsh` extended history lines
-    (e.g., `: 1700000000:0;ls -la`). Commands containing any of
-    `exclude_substrings` are skipped (e.g., to exclude invocations of the
-    calling script itself).
+    Read the output of `history 10` dumped to `history_file` by
+    `last_cmd.sh`, instead of calling `history` here. A Python (or any
+    child) process can't call the shell's `history` builtin itself: it runs
+    in its own process, can't reach into the parent shell's memory, and so
+    would only ever see its own empty history, never the interactive
+    shell's. `last_cmd.sh` must be sourced (not executed) so `history -a`
+    and `history 10` run in that actual interactive shell.
 
-    :param history_text: raw content of a shell history file
-    :param n: index (1 = most recent) of the command to return, counting
-        from the end after exclusions are applied
+    :param history_file: path to the file with `history 10`-style output
+        (each line is `<index> <command>`)
     :param exclude_substrings: skip commands containing any of these
-        substrings
-    :return: n-th most recent command line, with any `zsh` timestamp prefix
-        stripped
+        substrings (e.g., to exclude invocations of the calling script
+        itself)
+    :return: list of history commands
     """
+    hdbg.dassert_file_exists(history_file)
+    history_text = hio.from_file(history_file)
     lines = [line.strip() for line in history_text.splitlines() if line.strip()]
-    # E.g., `: 1700000000:0;ls -la` becomes `ls -la`.
-    zsh_prefix_regex = r"^: \d+:\d+;"
-    commands = [re.sub(zsh_prefix_regex, "", line) for line in lines]
+    hdbg.dassert_lt(0, len(lines), "History is empty")
+    # > history 10
+    #  529  cd ~/src
+    #  530  ls -la
+    # Strip the leading index.
+    commands = [re.sub(r"^\s*\d+\s+", "", line) for line in lines]
     if exclude_substrings:
         commands = [
             command
             for command in commands
             if not any(sub in command for sub in exclude_substrings)
         ]
-    hdbg.dassert_lt(0, len(commands), "History is empty")
+    return commands
+
+
+def _get_nth_command(
+    n: int, *, exclude_substrings: Optional[List[str]] = None
+) -> str:
+    """
+    Return the n-th most recent shell command.
+
+    :param n: index (1 = most recent) of the command to return
+    :param exclude_substrings: skip commands containing any of these
+        substrings
+    :return: n-th most recent command
+    """
+    commands = _get_history_commands(exclude_substrings=exclude_substrings)
     hdbg.dassert_lte(
         n,
         len(commands),
@@ -94,8 +105,8 @@ def _parse_last_command(
         n,
         len(commands),
     )
-    last_command = commands[-n]
-    return last_command
+    command = commands[-n]
+    return command
 
 
 def _get_last_command_and_dir() -> Tuple[str, str]:
@@ -104,10 +115,7 @@ def _get_last_command_and_dir() -> Tuple[str, str]:
 
     :return: tuple of (last command, current working directory)
     """
-    history_file = _get_history_file_path()
-    history_text = hio.from_file(history_file)
-    last_command = _parse_last_command(history_text)
-    #
+    last_command = _get_nth_command(1)
     current_dir = os.getcwd()
     return last_command, current_dir
 
@@ -193,6 +201,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     #
+    hdbg.dassert_in("bash", os.environ.get("SHELL", ""))
     last_command, current_dir = _get_last_command_and_dir()
     message = f"{last_command} (in {current_dir})"
     if args.notify:

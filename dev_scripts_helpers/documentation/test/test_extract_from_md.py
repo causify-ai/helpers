@@ -1,11 +1,13 @@
 import logging
 import os
+from unittest import mock
 
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import dev_scripts_helpers.documentation.extract_from_md as dshdexfm
 
 _LOG = logging.getLogger(__name__)
 
@@ -185,3 +187,102 @@ class Test_extract_from_md_py(hunitest.TestCase):
         self._assert_script_fails(
             "", "Expected script to fail when --select is missing"
         )
+
+
+# #############################################################################
+# Test_extract_from_md_py_main
+# #############################################################################
+
+
+class Test_extract_from_md_py_main(hunitest.TestCase):
+    """
+    Test `_main()` called directly (in-process) with mocked `sys.argv`.
+    """
+
+    def _run_main(self, argv: list) -> str:
+        """
+        Run `dshdexfm._main()` with a mocked `sys.argv`.
+
+        :param argv: command-line argument list to inject via
+            `mock.patch("sys.argv", ...)`
+        :return: content of the output file
+        """
+        parser = dshdexfm._parse()
+        with mock.patch("sys.argv", argv):
+            dshdexfm._main(parser)
+        output_file = argv[argv.index("-o") + 1]
+        actual = hio.from_file(output_file)
+        return actual
+
+    # TODO(ai_gp): Factor out common code.
+    def test1(self) -> None:
+        """
+        Test happy path: extract a section from a markdown file.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.md")
+        output_file = os.path.join(scratch_dir, "output.txt")
+        content = """
+        # Chapter 1
+        Intro text.
+        # Chapter 2
+        Body text.
+        """
+        content = hprint.dedent(content)
+        hio.to_file(input_file, content)
+        argv = [
+            "extract_from_md.py",
+            "-i",
+            input_file,
+            "-o",
+            output_file,
+            "--select",
+            "# Chapter 2",
+        ]
+        # Prepare outputs.
+        expected = """
+        # Chapter 2
+        Body text.
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        actual = self._run_main(argv)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test edge case: extract a slide from a `.txt` slide file.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        output_file = os.path.join(scratch_dir, "output.txt")
+        content = """
+        * Slide 1
+        Slide 1 content.
+        * Slide 2
+        Slide 2 content.
+        """
+        content = hprint.dedent(content)
+        hio.to_file(input_file, content)
+        argv = [
+            "extract_from_md.py",
+            "-i",
+            input_file,
+            "-o",
+            output_file,
+            "--select",
+            "* Slide 1:* Slide 2",
+        ]
+        # Prepare outputs.
+        expected = """
+        ##### Slide 1
+        Slide 1 content.
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        actual = self._run_main(argv)
+        # Check outputs.
+        self.assert_equal(actual, expected)
