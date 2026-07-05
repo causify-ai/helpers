@@ -81,7 +81,7 @@ class Test__get_output_path(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Create a test list for LLM.
+# TODO(gp): Create a test list for LLM.
 @pytest.mark.skip(reason="Requires LLM credentials and external API")
 class Test_summarize_file(hunitest.TestCase):
     """

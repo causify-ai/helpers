@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import List, Tuple
 from unittest import mock
 
 import dev_scripts_helpers.documentation.check_links as dshdchli
@@ -134,7 +135,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
     Test the _extract_urls_from_text_with_original_line_numbers function.
     """
 
-    def _helper(self, text: str, expected):
+    def _helper(self, text: str, expected: List[Tuple[str, int]]) -> None:
         """
         Test helper for `_extract_urls_from_text_with_original_line_numbers()`.
 
@@ -142,6 +143,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         :param expected: Expected list of (url, line_number) tuples
         """
         # Prepare inputs.
+        text = hprint.dedent(text)
         filtered_text = hmarkdo.remove_table_of_contents(text)
         # Run test.
         with mock.patch(
@@ -154,7 +156,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
-    # TODO(ai_gp): Move text = hprint.dedent(text) in _helper
     def test1(self) -> None:
         """
         Test extraction of URLs from Markdown-style links.
@@ -165,7 +166,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         [GitHub repo](https://github.com/gpsaggese/umd_classes/tree/master)
         [Google Sheets](https://docs.google.com/spreadsheets/d/1H_Ev1psuPpUrrRcmBrBb2chfurSo5rPcAdd6i2SIUTQ/edit?gid=0#gid=0)
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             ("https://github.com/gpsaggese/umd_classes/tree/master", 2),
@@ -189,7 +189,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         And another one:
         http://example.com/path
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             (
@@ -216,7 +215,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         https://example.com/standalone
         [Another link](http://test.org/path?param=value)
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             ("https://example.com/link1", 2),
@@ -236,7 +234,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         Some words and sentences.
         No links here at all.
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = []
         # Run test.
@@ -252,7 +249,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         https://example.com
         [Another reference](https://example.com)
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             ("https://example.com", 1),
@@ -271,7 +267,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         Image link: ![](msml610/lectures_source/figures/UMD_Logo.png)
         Another regular link: [Google](https://google.com)
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             ("https://github.com", 1),
@@ -290,7 +285,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         Image: ![](data605/lectures_source/images/lecture_1/lec_1_slide_4_image_1.jpg)
         Another link: https://test.org
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             ("https://example.com", 1),
@@ -310,7 +304,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         Website: [Example](https://example.com)
         Email: user@domain.com
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             ("https://example.com", 2),
@@ -330,7 +323,6 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         [Contact](admin@site.org)
         https://valid-url.com
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             ("https://example.com/page", 1),
@@ -411,10 +403,12 @@ class Test_check_links_in_file(hunitest.TestCase):
     Test the _check_links_in_file function.
     """
 
-    # TODO(ai_gp): Add type hints
     def _helper(
-        self, test_content: str, expected_reachable_urls, expected_broken_count
-    ):
+        self,
+        test_content: str,
+        expected_reachable_urls: List[str],
+        expected_broken_count: int,
+    ) -> None:
         """
         Test helper for `_check_links_in_file()`.
 
@@ -423,6 +417,7 @@ class Test_check_links_in_file(hunitest.TestCase):
         :param expected_broken_count: Expected number of broken URLs
         """
         # Prepare inputs.
+        test_content = hprint.dedent(test_content)
         scratch_dir = self.get_scratch_space()
         test_file = os.path.join(scratch_dir, "test_links.md")
         hio.to_file(test_file, test_content)
@@ -443,7 +438,6 @@ class Test_check_links_in_file(hunitest.TestCase):
             str(sorted(reachable_urls)), str(sorted(expected_reachable_urls))
         )
 
-    # TODO(ai_gp): Move test_content = hprint.dedent(test_content) in _helper
     def test1(self) -> None:
         """
         Test checking links in a file with reachable URLs.
@@ -456,17 +450,18 @@ class Test_check_links_in_file(hunitest.TestCase):
         [Google](https://www.google.com)
         https://www.github.com
         """
-        test_content = hprint.dedent(test_content)
         # Prepare outputs.
         expected_urls = ["https://www.google.com", "https://www.github.com"]
         expected_broken_count = 1
         # Run test.
         self._helper(test_content, expected_urls, expected_broken_count)
 
-    # TODO(ai_gp): Can this be changed so that it can call _helper? If not, why?
     def test2(self) -> None:
         """
         Test checking links in a file with broken URLs.
+
+        Note: This test cannot use _helper() because it requires additional
+        assertions on broken_urls beyond what _helper() provides.
         """
         # Prepare inputs.
         test_content = """

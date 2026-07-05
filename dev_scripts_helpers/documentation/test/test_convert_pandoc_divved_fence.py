@@ -18,29 +18,6 @@ def outcome_to_str(outcome: Dict[str, str]) -> str:
     return outcome_str
 
 
-# TODO(ai_gp): Move to static if it's used in a single place.
-def _find_columns_container(ast: Any) -> Any:
-    """
-    Recursively search AST for the first Div with 'columns' class.
-
-    :param ast: AST or AST element to search
-    :return: First columns container found, or None
-    """
-    if isinstance(ast, dict):
-        if dshdcpdfe._is_columns_container(ast):
-            return ast
-        for value in ast.values():
-            result = _find_columns_container(value)
-            if result is not None:
-                return result
-    elif isinstance(ast, list):
-        for item in ast:
-            result = _find_columns_container(item)
-            if result is not None:
-                return result
-    return None
-
-
 # #############################################################################
 # Test__is_columns_container
 # #############################################################################
@@ -130,6 +107,28 @@ class Test__extract_columns(hunitest.TestCase):
     Test the `_extract_columns()` function.
     """
 
+    @staticmethod
+    def _find_columns_container(ast: Any) -> Any:
+        """
+        Recursively search AST for the first Div with 'columns' class.
+
+        :param ast: AST or AST element to search
+        :return: First columns container found, or None
+        """
+        if isinstance(ast, dict):
+            if dshdcpdfe._is_columns_container(ast):
+                return ast
+            for value in ast.values():
+                result = Test__extract_columns._find_columns_container(value)
+                if result is not None:
+                    return result
+        elif isinstance(ast, list):
+            for item in ast:
+                result = Test__extract_columns._find_columns_container(item)
+                if result is not None:
+                    return result
+        return None
+
     def helper(self, markdown_input: str) -> None:
         """
         Run full pipeline from markdown to extracted columns.
@@ -146,7 +145,7 @@ class Test__extract_columns(hunitest.TestCase):
         )
         outcome["2. ast_input"] = dshdcpdfe.ast_to_str(ast)
         # Find columns container in AST.
-        container = _find_columns_container(ast)
+        container = self._find_columns_container(ast)
         hdbg.dassert(container is not None, "No columns container found in AST")
         # Extract columns.
         actual = dshdcpdfe._extract_columns(container)

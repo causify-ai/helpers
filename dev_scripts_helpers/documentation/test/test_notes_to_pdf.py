@@ -186,50 +186,17 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         in_file = self.create_input_file1()
         type_ = "pdf"
         cmd_opts = ""
-<<<<<<< HEAD
-        # Prepare outputs.
-        expected = hprint.dedent(
-            r"""
-            script_txt:
-            #/bin/bash -xe
-            # cleanup_before
-            ## skipping this action
-            # preprocess_notes
-            $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/input.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
-            # render_images
-            $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
-            # run_pandoc
-            container run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app pandoc/core:3.7 /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.ast.json -t json --fail-if-warnings
-            container run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app pandoc/core:3.7 /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.ast.json --output /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.tex --template /dev_scripts_helpers/documentation/pandoc.latex -f json -t latex --fail-if-warnings -V geometry:margin=1in --number-sections --highlight-style=tango -s
-            # latex
-            cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch
-            container run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app tmp.latex.arm64.417056b0 pdflatex -output-directory /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.tex
-            # latex again
-            # compress_pdf
-            ## skipping this action
-            \\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/output.pdf
-            # copy_to_gdrive
-            ## skipping this action
-            # open
-            ## skipping this action
-            # cleanup_after
-            ## skipping this action
-            output_txt:
-        """,
-            remove_lead_trail_empty_lines_=True,
-        )
-        # Run test.
-        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected)
-=======
+        expected = ""
         # Run the script.
-        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        script_txt, output_txt = self.run_notes_to_pdf(
+            in_file, type_, cmd_opts, expected
+        )
         # Check.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
         #
         tag = _get_arch_tag()
         self.check_string(txt, purify_text=True, tag=tag)
->>>>>>> master
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -240,49 +207,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         in_file = self.create_input_file1()
         type_ = "pdf"
         cmd_opts = "--filter_by_header Header2"
-<<<<<<< HEAD
-        # Prepare outputs.
-        expected = hprint.dedent(
-            r"""
-            script_txt:
-            #/bin/bash -xe
-            # cleanup_before
-            ## skipping this action
-            # preprocess_notes
-            $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.filter_by_header.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
-            # render_images
-            $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
-            # run_pandoc
-            container run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app pandoc/core:3.7 /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.ast.json -t json --fail-if-warnings
-            container run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app pandoc/core:3.7 /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.ast.json --output /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.tex --template /dev_scripts_helpers/documentation/pandoc.latex -f json -t latex --fail-if-warnings -V geometry:margin=1in --number-sections --highlight-style=tango -s
-            # latex
-            cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch
-            container run --rm --user $(id -u):$(id -g) -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN -e CSFY_AWS_PROFILE -e CSFY_AWS_S3_BUCKET -e CSFY_ECR_BASE_PATH -e CSFY_HOST_NAME -e CSFY_HOST_OS_NAME -e CSFY_HOST_OS_VERSION -e CSFY_HOST_USER_NAME --workdir /app --mount type=bind,source=$GIT_ROOT,target=/app tmp.latex.arm64.417056b0 pdflatex -output-directory /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape /dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.tex
-            # latex again
-            # compress_pdf
-            ## skipping this action
-            \\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/tmp.scratch/output.pdf
-            # copy_to_gdrive
-            ## skipping this action
-            # open
-            ## skipping this action
-            # cleanup_after
-            ## skipping this action
-            output_txt:
-        """,
-            remove_lead_trail_empty_lines_=True,
-        )
-        # Run test.
-        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected)
-
-    @pytest.mark.superslow
-    @pytest.mark.skipif(
-        sys.platform == "darwin",
-        reason="Container execution and LaTeX rendering with slides produces different output on macOS vs Linux; requires Linux environment",
-    )
-=======
+        expected = ""
         # Run the script.
-        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        script_txt, output_txt = self.run_notes_to_pdf(
+            in_file, type_, cmd_opts, expected
+        )
         # Check.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
@@ -292,7 +221,6 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     @pytest.mark.superslow
     @pytest.mark.skip(reason="To debug")
->>>>>>> master
     def test4(self) -> None:
         """
         Test slides generation with embedded LaTeX table content in code block.
@@ -321,14 +249,17 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         in_file = self.create_input_file_from_txt(txt)
         type_ = "slides"
         cmd_opts = ""
-<<<<<<< HEAD
-        # Prepare outputs.
-        # Note: Expected output is empty since this test validates the pipeline
-        # completes without errors. Full expected output should be filled in
-        # once the test runs successfully on a Linux environment.
         expected = ""
-        # Run test.
-        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected)
+        # Run the script.
+        script_txt, output_txt = self.run_notes_to_pdf(
+            in_file, type_, cmd_opts, expected
+        )
+        # Check.
+        txt = f"script_txt:\n{script_txt}\n"
+        txt += f"output_txt:\n{output_txt}\n"
+        #
+        tag = _get_arch_tag()
+        self.check_string(txt, purify_text=True, tag=tag)
 
 
 # #############################################################################
@@ -1254,12 +1185,12 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "html"
+        expected = "use_pandoc_ast_transform"
         # Run test.
         script_txt, output_txt = self.helper(type_)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        # TODO(ai_gp): Use a variable expected.
-        self.assert_equal(actual, "use_pandoc_ast_transform", fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -1544,13 +1475,3 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
         # Expected: generated Typst includes shebang and macro expansions
         # Invariant: LaTeX abbrevs expanded correctly; no unconverted macros
         self.assertIsNotNone(actual)
-=======
-        # Run the script.
-        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
-        # Check.
-        txt = f"script_txt:\n{script_txt}\n"
-        txt += f"output_txt:\n{output_txt}\n"
-        #
-        tag = _get_arch_tag()
-        self.check_string(txt, purify_text=True, tag=tag)
->>>>>>> master

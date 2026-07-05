@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List
+from typing import Generator, List
 from unittest import mock
 
 import pytest
@@ -60,22 +60,6 @@ class Test_extract_from_md_py(hunitest.TestCase):
         in_file = os.path.join(self.get_input_dir(), "input.md")
         hio.to_file(in_file, content)
 
-    # TODO(ai_gp): Instead of setup can _create_test_input_file be called in the helper function?
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self) -> None:
-        """
-        Setup and teardown for each test.
-        """
-        self.set_up_test()
-        yield
-        self.tear_down_test()
-
-    def set_up_test(self) -> None:
-        """
-        Create test input file before each test.
-        """
-        self._create_test_input_file()
-
     def _run_script(self, input_file: str, args: str = "") -> str:
         """
         Helper to run the script and return output content.
@@ -111,6 +95,8 @@ class Test_extract_from_md_py(hunitest.TestCase):
         :param args: Command line arguments for the script
         :param expected_output: Expected output content
         """
+        # Prepare inputs.
+        self._create_test_input_file()
         # Prepare outputs.
         expected = hprint.dedent(expected_output)
         # Run test.

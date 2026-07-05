@@ -62,8 +62,13 @@ class Test_count_words_in_file(hunitest.TestCase):
         Test when multi-line text with extra whitespace.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use """ and dedent
-        content = "line one\n\n   line   two  \nline three"
+        content = """
+        line one
+
+           line   two
+        line three
+        """
+        content = hprint.dedent(content)
         # Prepare outputs.
         expected = 6
         # Run test.
@@ -80,7 +85,6 @@ class Test_count_words(hunitest.TestCase):
     Test the `_count_words()` function.
     """
 
-    # TODO(ai_gp): Use List[...] and Dict[...] in the file.
     def helper(
         self,
         file_contents: Dict[str, str],
