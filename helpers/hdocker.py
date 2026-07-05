@@ -679,11 +679,16 @@ def get_docker_mount_info(
     else:
         # Inside a Docker container, the mount path depends on the container
         # style.
-        if use_sibling_container_for_callee and not hserver.is_inside_ci():
-            # For sibling containers, we need to get the Git root on the host.
+        if (
+            use_sibling_container_for_callee
+            and not hserver.is_csfy_dind_enabled()
+            and not hserver.is_inside_ci()
+        ):
+            # For sibling containers (not in DinD, not in CI), we need to get the
+            # Git root on the host.
             caller_mount_path = get_host_git_root()
         else:
-            # For children containers, use the local Git root inside
+            # For children containers or DinD, use the local Git root inside
             # this container.
             caller_mount_path = hgit.find_git_root()
     # The target mount path is always `/app` inside the Docker container.
