@@ -2,7 +2,7 @@
 
 """
 Notify the user that the last command is completed through different channels:
-- Blinking the current tmux pane until interrupted
+- Blinking the current tmux window tab until interrupted
 - Using a macOS notification
 
 - The last executed shell command is read from the tmp file written by
@@ -14,7 +14,7 @@ Notify the user that the last command is completed through different channels:
 - The directory is the current working directory, since history files don't
   store a per-command `cwd`
 
-# Blink the current tmux pane until Ctrl-C.
+# Blink the current tmux window tab until Ctrl-C.
 > notify.py --blink
 
 # Send a one-shot macOS notification.
@@ -39,75 +39,6 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-# The tmp file that `last_cmd.sh` dumps `history 10` output to.
-_TMP_HISTORY_FILE = "/tmp/tmp.history.txt"
-
-# #############################################################################
-
-
-def _get_history_commands(
-    *,
-    history_file: str = _TMP_HISTORY_FILE,
-    exclude_substrings: Optional[List[str]] = None,
-) -> List[str]:
-    """
-    Return the shell history commands, in chronological order (oldest first).
-
-    Read the output of `history 10` dumped to `history_file` by
-    `last_cmd.sh`, instead of calling `history` here. A Python (or any
-    child) process can't call the shell's `history` builtin itself: it runs
-    in its own process, can't reach into the parent shell's memory, and so
-    would only ever see its own empty history, never the interactive
-    shell's. `last_cmd.sh` must be sourced (not executed) so `history -a`
-    and `history 10` run in that actual interactive shell.
-
-    :param history_file: path to the file with `history 10`-style output
-        (each line is `<index> <command>`)
-    :param exclude_substrings: skip commands containing any of these
-        substrings (e.g., to exclude invocations of the calling script
-        itself)
-    :return: list of history commands
-    """
-    hdbg.dassert_file_exists(history_file)
-    history_text = hio.from_file(history_file)
-    lines = [line.strip() for line in history_text.splitlines() if line.strip()]
-    hdbg.dassert_lt(0, len(lines), "History is empty")
-    # > history 10
-    #  529  cd ~/src
-    #  530  ls -la
-    # Strip the leading index.
-    commands = [re.sub(r"^\s*\d+\s+", "", line) for line in lines]
-    if exclude_substrings:
-        commands = [
-            command
-            for command in commands
-            if not any(sub in command for sub in exclude_substrings)
-        ]
-    return commands
-
-
-def _get_nth_command(
-    n: int, *, exclude_substrings: Optional[List[str]] = None
-) -> str:
-    """
-    Return the n-th most recent shell command.
-
-    :param n: index (1 = most recent) of the command to return
-    :param exclude_substrings: skip commands containing any of these
-        substrings
-    :return: n-th most recent command
-    """
-    commands = _get_history_commands(exclude_substrings=exclude_substrings)
-    hdbg.dassert_lte(
-        n,
-        len(commands),
-        "Not enough history: n=%s len(commands)=%s",
-        n,
-        len(commands),
-    )
-    command = commands[-n]
-    return command
-
 
 def _get_last_command_and_dir() -> Tuple[str, str]:
     """
@@ -115,7 +46,8 @@ def _get_last_command_and_dir() -> Tuple[str, str]:
 
     :return: tuple of (last command, current working directory)
     """
-    last_command = _get_nth_command(1)
+    # TODO(ai_gp): Get the last command using 
+    last_command = 
     current_dir = os.getcwd()
     return last_command, current_dir
 
@@ -141,29 +73,33 @@ def _send_notification(
     hsystem.system(cmd)
 
 
-def _blink_pane(title: str) -> None:
+def _blink_pane() -> None:
     """
-    Blink the current tmux pane background until interrupted with Ctrl-C.
+    Blink the current tmux window tab until interrupted with Ctrl-C.
 
-    Restore the original pane title and background color on exit.
+    Blink by renaming the window, alternating between "DONE" and a blank
+    name with the same number of characters as the original window name
+    (so the tab width doesn't change while blinking).
 
-    :param title: text to set as the pane title while blinking
+    Restore the original window name on exit.
     """
-    _, orig_title = hsystem.system_to_one_line(
-        "tmux display-message -p '#{pane_title}'"
+    _, window_id = hsystem.system_to_one_line(
+        "tmux display-message -p '#{window_id}'"
     )
-    hsystem.system(f"tmux select-pane -T 'Finished: {title}'")
+    _, orig_name = hsystem.system_to_one_line(
+        "tmux display-message -p '#{window_name}'"
+    )
+    blank_name = " " * len(orig_name)
     try:
         while True:
-            hsystem.system("tmux select-pane -P 'bg=red'")
+            hsystem.system(f"tmux rename-window -t {window_id} 'DONE'")
             time.sleep(0.4)
-            hsystem.system("tmux select-pane -P 'bg=default'")
+            hsystem.system(f"tmux rename-window -t {window_id} '{blank_name}'")
             time.sleep(0.4)
     except KeyboardInterrupt:
-        _LOG.info("Interrupted, restoring pane state")
+        _LOG.info("Interrupted, restoring window name")
     finally:
-        hsystem.system("tmux select-pane -P 'bg=default'")
-        hsystem.system(f"tmux select-pane -T '{orig_title}'")
+        hsystem.system(f"tmux rename-window -t {window_id} '{orig_name}'")
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -174,7 +110,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--blink",
         action="store_true",
-        help="Blink the tmux pane background until Ctrl-C",
+        help="Blink the tmux window tab until Ctrl-C",
     )
     parser.add_argument(
         "--notify",
@@ -207,7 +143,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.notify:
         _send_notification(message, title=args.title, sound_name=args.sound)
     if args.blink:
-        _blink_pane(last_command)
+        _blink_pane()
 
 
 if __name__ == "__main__":
