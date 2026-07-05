@@ -260,9 +260,11 @@ class Test_show_imports(hunitest.TestCase):
         actual = str(e.exception)
         expected = (
             "The following dirs have to be modules (add `__init__.py`): "
-            "['/app/import_check/test/outcomes/Test_show_imports.test10/input']"
+            "['$GIT_ROOT/import_check/test/outcomes/Test_show_imports.test10/input']"
         )
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(
+            actual, expected, fuzzy_match=True, purify_text=True
+        )
 
     def test11(self) -> None:
         """

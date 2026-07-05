@@ -1,7 +1,10 @@
 import os
 from typing import Optional
 
+import pytest
+
 import helpers.hio as hio
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 import linters2.linter_utils as llinutil
 
@@ -416,6 +419,12 @@ class Test_is_executable(hunitest.TestCase):
         # Run test.
         self.helper(executable_file, permissions, expected)
 
+    @pytest.mark.skipif(
+        hserver.is_host_mac() and hserver.is_inside_docker(),
+        reason="os.access(X_OK) always returns True on a Mac Docker-Desktop "
+        "bind mount, even though the mode bits and actual exec permission "
+        "are correct, see HelpersTask1273",
+    )
     def test2(self) -> None:
         """
         Test with non-executable file.
