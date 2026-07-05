@@ -121,5 +121,6 @@ def run_dockerized_markdown_toc(
         mode,
         override_entrypoint=False,
         wrap_in_bash=True,
+        use_root_user=True,
     )
     return ret
