@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 import sys
-from typing import Tuple
+from typing import List, Tuple
 
 import pytest
 
@@ -861,7 +861,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper(self, skip_actions: list) -> Tuple[str, str]:
+    def helper(self, skip_actions: List[str]) -> Tuple[str, str]:
         """
         Helper to run script generation test.
 

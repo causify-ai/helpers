@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Dict, List
 from unittest import mock
 
 import helpers.hgit as hgit
@@ -11,7 +12,7 @@ import helpers.hunit_test as hunitest
 import dev_scripts_helpers.documentation.extract_toc_from_txt as dshdextt
 
 
-def _get_sample_header_list() -> list:
+def _get_sample_header_list() -> List[hmarkdo.HeaderInfo]:
     """
     Build a sample list of `HeaderInfo` objects for testing.
 
@@ -102,7 +103,7 @@ class Test_count_headers_by_level(hunitest.TestCase):
     Test the `_count_headers_by_level()` function.
     """
 
-    def helper(self, target_level: int, expected: dict) -> None:
+    def helper(self, target_level: int, expected: Dict[str, int]) -> None:
         """
         Test helper for `_count_headers_by_level()`.
 
@@ -134,7 +135,7 @@ class Test_count_headers_by_level(hunitest.TestCase):
         Test no headers of the target level returns an empty dict.
         """
         # Prepare outputs.
-        expected: dict = {}
+        expected: Dict = {}
         # Run test.
         self.helper(target_level=3, expected=expected)
 
@@ -386,7 +387,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
     Test `_main()` called directly (in-process) with mocked `sys.argv`.
     """
 
-    def _run_main(self, argv: list) -> str:
+    def _run_main(self, argv: List[str]) -> str:
         """
         Run `dshdextt._main()` with a mocked `sys.argv`.
 

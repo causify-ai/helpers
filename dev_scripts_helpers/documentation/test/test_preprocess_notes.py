@@ -1,6 +1,5 @@
 import os
-from collections.abc import Sequence
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
 
 import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
@@ -2240,6 +2239,6 @@ class Test_validate_unique_slide_names(hunitest.TestCase):
         Test empty input.
         """
         # Prepare inputs.
-        lines: list = []
+        lines: List = []
         # Run test.
         self.helper_valid(lines)
