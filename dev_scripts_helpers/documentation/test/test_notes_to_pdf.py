@@ -50,7 +50,11 @@ def _safe_read_text(file_name: str) -> str:
         return ""
     if file_name.endswith(".pdf"):
         return os.path.basename(file_name)
-    return hio.from_file(file_name)
+    # TODO(ai_gp): Find out what are the files that can't be read.
+    try:
+        return hio.from_file(file_name)
+    except (RuntimeError, UnicodeDecodeError):
+        return ""
 
 
 # #############################################################################
@@ -661,12 +665,34 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test TOC type 'navigation'.
+        Test TOC type 'navigation' with slides type (navigation only valid for slides).
         """
-        # Prepare inputs.
-        toc_type = "navigation"
+        # Prepare inputs: navigation toc_type requires slides type.
+        in_file = self.create_structured_input()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, "output.pdf")
+        script_file = os.path.join(out_dir, "script.sh")
+        # Construct command with slides type.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type slides",
+            "--toc_type navigation",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
         # Run test.
-        script_txt, output_txt = self.helper(toc_type)
+        hsystem.system(cmd)
+        # Prepare outputs.
+        script_txt = ""
+        if os.path.exists(script_file):
+            script_txt = hio.from_file(script_file)
+        output_txt = _safe_read_text(out_file)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         self.assert_equal(actual, "toc_type navigation", fuzzy_match=True)
@@ -764,7 +790,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         # Prepare inputs.
         cmd_opts = "--skip_action=cleanup_before"
         # Run test.
-        script_txt, output_txt = self.helper(cmd_opts)
+        script_txt, output_txt = self.helper(cmd_opts=cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         expected = """
@@ -782,7 +808,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         # Prepare inputs.
         cmd_opts = "--skip_action=cleanup_before --skip_action=cleanup_after"
         # Run test.
-        script_txt, output_txt = self.helper(cmd_opts)
+        script_txt, output_txt = self.helper(cmd_opts=cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         expected = """

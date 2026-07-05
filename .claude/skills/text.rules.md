@@ -23,6 +23,17 @@ Rules for writing structured text using bullet lists
 - Avoid redundancy in concepts
 - Prefer plain language over academic jargon
 
+## Cut Fluff
+
+- Drop editorializing adjectives and adverbs that add no technical content
+  - E.g., `just`, `simply`, `soft`, `blurted-out`, `surprisingly`
+- Drop trailing qualifier clauses that restate or hedge
+  - E.g., `as a side effect`, `at least on this evaluation`, `(recall the
+    spectrum from earlier)`
+- **Bad**: `greedy decoding often takes the blurted-out final answer, as a side
+  effect`
+- **Good**: `greedy decoding often takes the final answer`
+
 ## Structured Over Prose
 
 - Prefer structured notes over narrative prose
@@ -50,6 +61,10 @@ Rules for writing structured text using bullet lists
 - Use only basic text and ASCII
   - **Bad**: A → B
   - **Good**: A -> B
+- Do not use the em-dash `—` for asides; rephrase with a colon, parentheses, or
+  a new sub-bullet
+  - **Bad**: `generation is sequential — each token needs a forward pass`
+  - **Good**: `generation is sequential: each token needs a forward pass`
 
 ## Use `:` Instead of `-`
 
@@ -134,6 +149,14 @@ Rules for writing structured text using bullet lists
 - Use LaTeX notation for formulas
 - Avoid non-ASCII symbols (use `->` not `→`)
 - Extract concrete examples
+  - Introduce each example as its own `E.g., ...` sub-bullet, not inline
+    mid-sentence; one example per sub-bullet
+  - **Bad**: `open IE extracts triples, e.g., "Curie discovered radium" -> ...`
+  - **Good**:
+    ```markdown
+    - Open IE extracts triples
+      - E.g., "Curie discovered radium" -> (Curie, discovered, radium)
+    ```
 - Remove narrative prose, keep only key facts and relationships
 
 ## Multi-Level Organization
@@ -161,6 +184,21 @@ Rules for writing structured text using bullet lists
 ## Lists Over Prose
 
 - Use lists to structure text and improve legibility
+- Explode a bullet that chains parallel or sequential clauses with `;`, commas,
+  or "and" into one sub-bullet per clause
+  - **Bad**:
+    ```markdown
+    - The agent runs a test (Act), observes a failure (Perceive), reasons about
+      the cause (Plan), and edits the code (Act)
+    ```
+  - **Good**:
+    ```markdown
+    - The agent:
+      - Runs a test (Act)
+      - Observes a failure (Perceive)
+      - Reasons about the cause (Plan)
+      - Edits the code (Act)
+    ```
 - Break dense prose into organized sub-bullets
   - **Bad**
     ```

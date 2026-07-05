@@ -94,6 +94,9 @@ text
 ## Use Verbatim
 - Use verbatim for libraries, executables, scripts
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
+- Backtick each element of a tuple/triple individually, not the whole tuple
+  - **Bad**: `` `(subject, relation, object)` ``
+  - **Good**: `` (`subject`, `relation`, `object`) ``
 
 ## Do Not Combine Bold with Verbatim
 
@@ -113,6 +116,11 @@ text
   - Use for questions and hypothetical scenarios
   - Use for terms being defined or emphasized
   - Use for "what if" scenarios
+
+- Keep the split clean: reserve **bold** for labels/key terms, use _italic_ for
+  emphasized or contrasted terms inside a bullet
+  - **Bad**: `**Composition** vs. **Comparison**` (both bolded mid-bullet)
+  - **Good**: `_Composition_ vs. _Comparison_`
 
 - **Inline code** (`` `code` ``):
   - Use for technical terms, variable names, or code snippets
@@ -144,6 +152,10 @@ text
   - **Good**: `` `lib_llm_cli.py` ``
 - Line counts, version numbers, dates, and similar metrics drift and mislead when stale
 - Prefer stable identifiers (file names, API names) over volatile metadata
+- Avoid version-pinned product/model names in claims that go stale; prefer a
+  generic phrase with a date qualifier
+  - **Bad**: `**GPT-4-Turbo** and **Gemini-1.5-Pro** fail on this task`
+  - **Good**: `frontier models (as of 2024) fail on this task`
 
 # Code Blocks and Commands
 
@@ -156,6 +168,15 @@ text
   - `>` when they are bash commands
   - `docker>` when they are commands run inside Docker
   - `claude>` when they are commands run inside Claude
+  - `prompt>` when they are text typed into an LLM prompt
+  - `LLM>` when they are text emitted by an LLM
+- Render a literal prompt or model output as a fenced code block with the
+  prefix, not as an inline italic quote
+  - **Bad**: `_"Let's think step by step"_`
+  - **Good**:
+    ```text
+    prompt> Let's think step by step
+    ```
 - E.g., convert:
   ```bash
   pipenv install requests
@@ -255,3 +276,6 @@ text
   E = mc^2
   $$
   ```
+- Reserve math mode for real equations; do not wrap plain multipliers or ratios
+  - **Bad**: `$10$-$30\times$ cheaper`
+  - **Good**: `10-30x cheaper`
