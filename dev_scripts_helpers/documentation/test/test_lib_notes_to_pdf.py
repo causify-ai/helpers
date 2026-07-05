@@ -349,7 +349,7 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
                     use_host_tools,
                     dockerized_force_rebuild,
                     dockerized_use_sudo,
-                    extra_opts=extra_opts if extra_opts else None,
+                    extra_opts=extra_opts,
                 )
         # Check outputs.
         cmd = f"pandoc {ast_file} -f json -t {output_format} --fail-if-warnings"
@@ -414,19 +414,23 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         toc_type: str,
         no_pdf: bool,
         expected: str,
-    ) -> None:
+        *,
+        prefix_suffix: str = "tmp.pdf",
+    ) -> str:
         """
         Test helper for run_pandoc_to_pdf.
 
         :param toc_type: Type of table of contents
         :param no_pdf: Whether to only generate TeX
         :param expected: Expected invocation string
+        :param prefix_suffix: Suffix for the prefix path (e.g., "tmp.pdf")
+        :return: Result from run_pandoc_to_pdf
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         curr_path = scratch_dir
         file_name = os.path.join(scratch_dir, "input.txt")
-        prefix = os.path.join(scratch_dir, "tmp.pdf")
+        prefix = os.path.join(scratch_dir, prefix_suffix)
         no_run_latex_again = False
         use_host_tools = True
         dockerized_force_rebuild = False
@@ -457,6 +461,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         self.assert_equal(
             invocations_str, expected, fuzzy_match=True, dedent=True
         )
+        return result
 
     def test1(self) -> None:
         """
@@ -477,40 +482,14 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         Test return TeX file when no_pdf=True.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        curr_path = scratch_dir
-        file_name = os.path.join(scratch_dir, "input.txt")
-        prefix = os.path.join(scratch_dir, "tmp.tex")
         toc_type = "none"
         no_pdf = True
-        template_file = os.path.join(curr_path, "pandoc.latex")
-        hio.to_file(template_file, "LaTeX template")
-        # Run test and capture system calls.
-        with hunteuti.capture_system_calls() as invocations:
-            with mock.patch(
-                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
-            ):
-                no_run_latex_again = False
-                use_host_tools = True
-                dockerized_force_rebuild = False
-                dockerized_use_sudo = False
-                result = dshdlntpd.run_pandoc_to_pdf(
-                    curr_path,
-                    file_name,
-                    prefix,
-                    toc_type,
-                    no_run_latex_again,
-                    use_host_tools,
-                    dockerized_force_rebuild,
-                    dockerized_use_sudo,
-                    no_pdf=no_pdf,
-                )
+        expected = "pandoc"
+        # Run test.
+        result = self.helper(toc_type, no_pdf, expected, prefix_suffix="tmp.tex")
         # Check outputs.
         expected_result = ".tex"
         self.assert_equal(result, expected_result, fuzzy_match=True)
-        invocations_str = hunteuti.invocations_to_str(invocations)
-        expected_invocations = "pandoc"
-        self.assert_equal(invocations_str, expected_invocations, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -639,6 +618,8 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         no_pdf: bool,
         expected: str,
         expected_ext: str,
+        *,
+        toc_type: str = "none",
     ) -> None:
         """
         Test helper for _build_pandoc_cmd.
@@ -647,12 +628,12 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         :param no_pdf: Whether to output TeX instead of PDF
         :param expected: Expected pandoc command
         :param expected_ext: Expected output file extension
+        :param toc_type: Type of table of contents
         """
         # Prepare inputs.
         use_host_tools = True
         dockerized_force_rebuild = False
         dockerized_use_sudo = False
-        toc_type = "none"
         # Run test.
         cmd, output_file = dshdlntpd._build_pandoc_cmd(
             file_name,
@@ -720,10 +701,6 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         file_name = "slides.txt"
         no_pdf = False
         expected_ext = ".pdf"
-        use_host_tools = True
-        dockerized_force_rebuild = False
-        dockerized_use_sudo = False
-        toc_type = "pandoc_native"
         expected = """
         pandoc
         -t beamer
@@ -731,17 +708,7 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         --toc-depth 2
         """
         # Run test.
-        cmd, output_file = dshdlntpd._build_pandoc_cmd(
-            file_name,
-            toc_type,
-            use_host_tools,
-            dockerized_force_rebuild,
-            dockerized_use_sudo,
-            no_pdf=no_pdf,
-        )
-        # Check outputs.
-        self.assert_equal(output_file, expected_ext, fuzzy_match=True)
-        self.assert_equal(cmd, expected, fuzzy_match=True, dedent=True)
+        self.helper(file_name, no_pdf, expected, expected_ext, toc_type="pandoc_native")
 
 
 # #############################################################################

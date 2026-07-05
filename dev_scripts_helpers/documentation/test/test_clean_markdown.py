@@ -1,4 +1,5 @@
 import os
+from typing import List
 from unittest import mock
 
 import helpers.hio as hio
@@ -16,7 +17,7 @@ class Test_clean_markdown_py(hunitest.TestCase):
     End-to-end tests for the `clean_markdown.py` executable.
     """
 
-    def _run_main(self, argv: list) -> None:
+    def _run_main(self, argv: List[str]) -> None:
         """
         Run `dshdclma._main()` with a mocked `sys.argv`.
 
@@ -29,7 +30,7 @@ class Test_clean_markdown_py(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: junk markup is removed from the output file.
+        Test junk markup is removed from the output file.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()

@@ -1,6 +1,9 @@
 import logging
 import os
+from typing import List
 from unittest import mock
+
+import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -57,11 +60,20 @@ class Test_extract_from_md_py(hunitest.TestCase):
         in_file = os.path.join(self.get_input_dir(), "input.md")
         hio.to_file(in_file, content)
 
-    def setUp(self) -> None:
+    # TODO(ai_gp): Instead of setup can _create_test_input_file be called in the helper function?
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> None:
         """
-        Create test input file.
+        Setup and teardown for each test.
         """
-        super().setUp()
+        self.set_up_test()
+        yield
+        self.tear_down_test()
+
+    def set_up_test(self) -> None:
+        """
+        Create test input file before each test.
+        """
         self._create_test_input_file()
 
     def _run_script(self, input_file: str, args: str = "") -> str:
@@ -82,18 +94,15 @@ class Test_extract_from_md_py(hunitest.TestCase):
         actual = hio.from_file(out_file)
         return actual
 
-    def _assert_script_fails(self, args: str, msg: str) -> None:
+    def _assert_script_fails(self, args: str) -> None:
         """
         Helper to assert that _run_script fails with given args.
 
         :param args: additional arguments to pass to script
-        :param msg: failure message if script doesn't raise
         """
-        try:
+        # Run test and check output.
+        with self.assertRaises(RuntimeError):
             self._run_script("input.md", args)
-            self.fail(msg)
-        except Exception as e:
-            _LOG.info(f"Got expected error: {e}")
 
     def helper(self, args: str, expected_output: str) -> None:
         """
@@ -107,7 +116,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         # Run test.
         actual = self._run_script("input.md", args)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -167,9 +176,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         # Prepare inputs.
         args = "--select '## Data Collection:## Results'"
         # Run test and check output.
-        self._assert_script_fails(
-            args, "Expected script to fail when end header not found"
-        )
+        self._assert_script_fails(args)
 
     def test5(self) -> None:
         """
@@ -178,18 +185,14 @@ class Test_extract_from_md_py(hunitest.TestCase):
         # Prepare inputs.
         args = "--select '# Nonexistent'"
         # Run test and check output.
-        self._assert_script_fails(
-            args, "Expected script to fail when start header not found"
-        )
+        self._assert_script_fails(args)
 
     def test6(self) -> None:
         """
         Test error when no --select argument provided.
         """
         # Run test and check output.
-        self._assert_script_fails(
-            "", "Expected script to fail when --select is missing"
-        )
+        self._assert_script_fails("")
 
 
 # #############################################################################
@@ -202,7 +205,7 @@ class Test_extract_from_md_py_main(hunitest.TestCase):
     Test `_main()` called directly (in-process) with mocked `sys.argv`.
     """
 
-    def _run_main(self, argv: list) -> str:
+    def _run_main(self, argv: List[str]) -> str:
         """
         Run `dshdexfm._main()` with a mocked `sys.argv`.
 
@@ -251,7 +254,7 @@ class Test_extract_from_md_py_main(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: extract a section from a markdown file.
+        Test extract a section from a markdown file.
         """
         # Prepare inputs.
         file_name = "input.md"
@@ -272,7 +275,7 @@ class Test_extract_from_md_py_main(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: extract a slide from a `.txt` slide file.
+        Test extract a slide from a `.txt` slide file.
         """
         # Prepare inputs.
         file_name = "input.txt"

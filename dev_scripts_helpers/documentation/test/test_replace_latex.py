@@ -1,4 +1,5 @@
 import os
+from typing import List
 from unittest import mock
 
 import helpers.hio as hio
@@ -36,7 +37,7 @@ class Test_standard_cleanup(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: word substitutions and terse rewording.
+        Test word substitutions and terse rewording.
         """
         # Prepare inputs.
         content = "we know that gaussian iid variables doesn't change"
@@ -49,7 +50,7 @@ class Test_standard_cleanup(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: `iff` is converted to the math symbol.
+        Test `iff` is converted to the math symbol.
         """
         # Prepare inputs.
         content = "this holds iff that holds"
@@ -60,7 +61,7 @@ class Test_standard_cleanup(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test edge case: `\\textit{}` is converted to markdown italics.
+        Test `\\textit{}` is converted to markdown italics.
         """
         # Prepare inputs.
         content = r"\textit{Answer}: some \textit{term} here"
@@ -71,7 +72,7 @@ class Test_standard_cleanup(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test edge case: aggressive mode capitalizes the first bullet letter.
+        Test aggressive mode capitalizes the first bullet letter.
         """
         # Prepare inputs.
         content = "- hello world"
@@ -82,7 +83,7 @@ class Test_standard_cleanup(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test edge case: trailing whitespace is stripped.
+        Test trailing whitespace is stripped.
         """
         # Prepare inputs.
         content = "some line with trailing spaces   "
@@ -102,7 +103,7 @@ class Test_replace_latex_py(hunitest.TestCase):
     End-to-end tests for the `replace_latex.py` executable.
     """
 
-    def _run_main(self, argv: list) -> list:
+    def _run_main(self, argv: List[str]) -> List:
         """
         Run `dshdrela._main()` with a mocked `sys.argv` and capture system
         calls.
@@ -119,7 +120,7 @@ class Test_replace_latex_py(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `checkout` action runs `git checkout`.
+        Test `checkout` action runs `git checkout`.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -151,7 +152,7 @@ class Test_replace_latex_py(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test happy path: `pandoc_before` and `pandoc_after` actions invoke
+        Test `pandoc_before` and `pandoc_after` actions invoke
         `notes_to_pdf.py`.
         """
         # Prepare inputs.
@@ -186,7 +187,7 @@ class Test_replace_latex_py(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test happy path: `replace` action cleans up the file in place.
+        Test `replace` action cleans up the file in place.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()

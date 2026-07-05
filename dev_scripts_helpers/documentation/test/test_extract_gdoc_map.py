@@ -1,4 +1,5 @@
 import os
+from typing import List
 from unittest import mock
 
 import helpers.hio as hio
@@ -32,11 +33,11 @@ class Test_extract_doc_info(hunitest.TestCase):
         # Run test.
         actual = dshdexgm._extract_doc_info(file_path)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected))
 
     def test1(self) -> None:
         """
-        Test happy path: valid JSON with a `doc_id`.
+        Test valid JSON with a `doc_id`.
         """
         # Prepare inputs.
         content = '{"doc_id": "abc123", "resource_id": "x"}'
@@ -47,7 +48,7 @@ class Test_extract_doc_info(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: invalid JSON content returns an empty `doc_id`.
+        Test invalid JSON content returns an empty `doc_id`.
         """
         # Prepare inputs.
         content = "not json"
@@ -58,7 +59,7 @@ class Test_extract_doc_info(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test edge case: valid JSON without a `doc_id` key.
+        Test valid JSON without a `doc_id` key.
         """
         # Prepare inputs.
         content = '{"resource_id": "x"}'
@@ -80,7 +81,7 @@ class Test_find_gdoc_files(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: finds only `.gdoc` files, ignoring other extensions.
+        Test finds only `.gdoc` files, ignoring other extensions.
         """
         # Prepare inputs.
         input_dir = self.get_scratch_space()
@@ -93,20 +94,20 @@ class Test_find_gdoc_files(hunitest.TestCase):
         # Run test.
         actual = dshdexgm._find_gdoc_files(input_dir)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
         """
-        Test edge case: empty directory returns an empty list.
+        Test empty directory returns an empty list.
         """
         # Prepare inputs.
         input_dir = self.get_scratch_space()
         # Prepare outputs.
-        expected: list = []
+        expected: List = []
         # Run test.
         actual = dshdexgm._find_gdoc_files(input_dir)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected))
 
 
 # #############################################################################
@@ -139,7 +140,7 @@ class Test_generate_doc_links_full_path(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: builds a single markdown link with the full
+        Test builds a single markdown link with the full
         relative path in the link text.
         """
         # Prepare inputs.
@@ -155,7 +156,7 @@ class Test_generate_doc_links_full_path(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: files without a `doc_id` are skipped.
+        Test files without a `doc_id` are skipped.
         """
         # Prepare inputs.
         file_path_rel = "my_doc.gdoc"
@@ -178,7 +179,7 @@ class Test_generate_doc_links_default(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: builds a bullet with the path and an indented
+        Test builds a bullet with the path and an indented
         sub-bullet with the link.
         """
         # Prepare inputs.
@@ -210,7 +211,7 @@ class Test_generate_doc_links(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `full_path` style delegates to
+        Test `full_path` style delegates to
         `_generate_doc_links_full_path()`.
         """
         # Prepare inputs.
@@ -232,11 +233,15 @@ class Test_generate_doc_links(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: an invalid style raises an assertion error.
+        Test an invalid style raises an assertion error.
         """
+        # Prepare inputs.
+        gdoc_files = []
+        input_dir = "."
+        style = "invalid"
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dshdexgm._generate_doc_links([], ".", style="invalid")
+            dshdexgm._generate_doc_links(gdoc_files, input_dir, style=style)
 
 
 # #############################################################################
@@ -251,7 +256,7 @@ class Test_extract_gdoc_map(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: writes the generated content to an output file.
+        Test writes the generated content to an output file.
         """
         # Prepare inputs.
         input_dir = self.get_scratch_space()
@@ -273,7 +278,7 @@ class Test_extract_gdoc_map(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: no `.gdoc` files found returns an empty string.
+        Test no `.gdoc` files found returns an empty string.
         """
         # Prepare inputs.
         input_dir = self.get_scratch_space()
@@ -295,7 +300,7 @@ class Test_extract_gdoc_map_py(hunitest.TestCase):
     End-to-end tests for the `extract_gdoc_map.py` executable.
     """
 
-    def _run_main(self, argv: list) -> None:
+    def _run_main(self, argv: List[str]) -> None:
         """
         Run `dshdexgm._main()` with a mocked `sys.argv`.
 
@@ -308,7 +313,7 @@ class Test_extract_gdoc_map_py(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `--style full_path` writes links to the output
+        Test `--style full_path` writes links to the output
         file.
         """
         # Prepare inputs.

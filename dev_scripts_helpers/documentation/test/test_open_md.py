@@ -28,7 +28,7 @@ class Test_convert_ssh_to_https(hunitest.TestCase):
         # Run test.
         actual = dshdopmd._convert_ssh_to_https(ssh_url)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
@@ -40,7 +40,7 @@ class Test_convert_ssh_to_https(hunitest.TestCase):
         # Run test.
         actual = dshdopmd._convert_ssh_to_https(ssh_url)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test3(self) -> None:
         """
@@ -52,7 +52,7 @@ class Test_convert_ssh_to_https(hunitest.TestCase):
         # Run test.
         actual = dshdopmd._convert_ssh_to_https(https_url)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test4(self) -> None:
         """
@@ -64,7 +64,7 @@ class Test_convert_ssh_to_https(hunitest.TestCase):
         # Run test.
         actual = dshdopmd._convert_ssh_to_https(https_url)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test5(self) -> None:
         """
@@ -76,7 +76,7 @@ class Test_convert_ssh_to_https(hunitest.TestCase):
         # Run test.
         actual = dshdopmd._convert_ssh_to_https(unknown_url)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -110,7 +110,7 @@ class Test_find_git_root_for_file(hunitest.TestCase):
         # Run test.
         result = dshdopmd._find_git_root_for_file(file_path)
         # Check outputs.
-        self.assertEqual(result, git_root)
+        self.assert_equal(result, git_root)
 
     def test2(self) -> None:
         """
@@ -126,7 +126,7 @@ class Test_find_git_root_for_file(hunitest.TestCase):
         # Run test.
         result = dshdopmd._find_git_root_for_file(file_path)
         # Check outputs.
-        self.assertEqual(result, git_root)
+        self.assert_equal(result, git_root)
 
     def test3(self) -> None:
         """
@@ -143,11 +143,11 @@ class Test_find_git_root_for_file(hunitest.TestCase):
         # Run test.
         result = dshdopmd._find_git_root_for_file(file_path)
         # Check outputs: should find subrepo git root, not main repo.
-        self.assertEqual(result, subrepo_dir)
+        self.assert_equal(result, subrepo_dir)
 
     def test4(self) -> None:
         """
-        Test edge case: falls back to the main repo root when no ancestor
+        Test falls back to the main repo root when no ancestor
         `.git` directory is found.
         """
         # Prepare inputs.
@@ -160,7 +160,7 @@ class Test_find_git_root_for_file(hunitest.TestCase):
             ):
                 result = dshdopmd._find_git_root_for_file(file_path)
         # Check outputs.
-        self.assertEqual(result, expected_root)
+        self.assert_equal(result, expected_root)
 
 
 # #############################################################################
@@ -175,7 +175,7 @@ class Test_open_file(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: on macOS the `open` command is invoked.
+        Test on macOS the `open` command is invoked.
         """
         # Prepare inputs.
         file_path = "/tmp/test.html"
@@ -196,7 +196,7 @@ class Test_open_file(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: on Linux the `xdg-open` command is invoked.
+        Test on Linux the `xdg-open` command is invoked.
         """
         # Prepare inputs.
         file_path = "/tmp/test.html"
@@ -217,7 +217,7 @@ class Test_open_file(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test edge case: on an unsupported OS no command is invoked.
+        Test on an unsupported OS no command is invoked.
         """
         # Prepare inputs.
         file_path = "/tmp/test.html"
@@ -241,7 +241,7 @@ class Test_run_render_images(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: builds and runs the `render_images.py` command.
+        Test builds and runs the `render_images.py` command.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -288,7 +288,7 @@ class Test_open_on_github(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: builds the GitHub URL and opens it in the browser.
+        Test builds the GitHub URL and opens it in the browser.
         """
         # Prepare inputs.
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -346,7 +346,7 @@ class Test_render_with_pandoc(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `global` backend runs `pandoc` directly.
+        Test `global` backend runs `pandoc` directly.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -379,7 +379,7 @@ class Test_render_with_pandoc(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: an invalid backend raises a `ValueError`.
+        Test an invalid backend raises a `ValueError`.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -394,7 +394,7 @@ class Test_render_with_pandoc(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test edge case: `dockerized` backend runs pandoc via
+        Test `dockerized` backend runs pandoc via
         `run_dockerized_pandoc()`.
         """
         # Prepare inputs.
@@ -453,7 +453,7 @@ class Test_render_with_grip(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `global` backend runs `grip --export`.
+        Test `global` backend runs `grip --export`.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -486,7 +486,7 @@ class Test_render_with_grip(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: an invalid backend raises a `ValueError`.
+        Test an invalid backend raises a `ValueError`.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -501,7 +501,7 @@ class Test_render_with_grip(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test edge case: `dockerized` backend runs `uvx grip --export`.
+        Test `dockerized` backend runs `uvx grip --export`.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -542,7 +542,7 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `dockerized` backend runs `uvx grip` in daemon mode.
+        Test `dockerized` backend runs `uvx grip` in daemon mode.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -572,7 +572,7 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: an invalid backend raises a `ValueError`.
+        Test an invalid backend raises a `ValueError`.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -600,7 +600,7 @@ class Test_open_md_py_main(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `--mode github` dispatches to `_open_on_github()`.
+        Test `--mode github` dispatches to `_open_on_github()`.
         """
         # Prepare inputs.
         input_file = "readme.md"
@@ -616,7 +616,7 @@ class Test_open_md_py_main(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: `--mode grip_daemon` dispatches to
+        Test `--mode grip_daemon` dispatches to
         `_render_with_grip_daemon()`.
         """
         # Prepare inputs.
@@ -644,7 +644,7 @@ class Test_open_md_py_main(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test edge case: `--mode pandoc` dispatches to `_render_with_pandoc()`
+        Test `--mode pandoc` dispatches to `_render_with_pandoc()`
         with the dockerized-force-rebuild arguments.
         """
         # Prepare inputs.
@@ -670,7 +670,7 @@ class Test_open_md_py_main(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test edge case: `--mode grip` dispatches to `_render_with_grip()`.
+        Test `--mode grip` dispatches to `_render_with_grip()`.
         """
         # Prepare inputs.
         input_file = "readme.md"

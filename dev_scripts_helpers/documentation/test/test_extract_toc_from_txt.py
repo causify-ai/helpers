@@ -118,7 +118,7 @@ class Test_count_headers_by_level(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: count level-5 headers per (h1, h2) and h1 totals.
+        Test count level-5 headers per (h1, h2) and h1 totals.
         """
         # Prepare outputs.
         expected = {
@@ -131,7 +131,7 @@ class Test_count_headers_by_level(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: no headers of the target level returns an empty dict.
+        Test no headers of the target level returns an empty dict.
         """
         # Prepare outputs.
         expected: dict = {}
@@ -169,7 +169,7 @@ class Test_format_headers_with_counts(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `headers` mode annotates h1/h2 with slide counts.
+        Test `headers` mode annotates h1/h2 with slide counts.
         """
         # Prepare outputs.
         expected = """
@@ -184,7 +184,7 @@ class Test_format_headers_with_counts(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: `list` mode with headers beyond level 2 use the
+        Test `list` mode with headers beyond level 2 use the
         original indentation-based formatting.
         """
         # Prepare outputs.
@@ -214,7 +214,7 @@ class Test_extract_headers_from_markdown(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: writes markdown headers to the output file.
+        Test writes markdown headers to the output file.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -229,14 +229,12 @@ class Test_extract_headers_from_markdown(hunitest.TestCase):
         content = hprint.dedent(content)
         lines = content.split("\n")
         # Prepare outputs.
-        expected = """
-        # Chapter 1
-        ## Section 1.1
-        """
-        expected = hprint.dedent(expected)
+        expected = content
+        mode = "headers"
+        max_level = 3
         # Run test.
         dshdextt._extract_headers_from_markdown(
-            input_file, lines, "headers", 3, output_file
+            input_file, lines, mode, max_level, output_file
         )
         # Check outputs.
         actual = hio.from_file(output_file)
@@ -255,7 +253,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: writes LaTeX section headers to the output file.
+        Test writes LaTeX section headers to the output file.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -275,9 +273,13 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         ## Section 1.1
         """
         expected = hprint.dedent(expected)
+        # Prepare outputs.
+        mode = "headers"
+        max_level = 3
+        show_num_slides = False
         # Run test.
         dshdextt._extract_headers_from_latex(
-            input_file, lines, "headers", 3, output_file, False
+            input_file, lines, mode, max_level, output_file, show_num_slides
         )
         # Check outputs.
         actual = hio.from_file(output_file)
@@ -296,7 +298,7 @@ class Test_extract_headers_from_txtslides(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: writes txt-slide headers to the output file.
+        Test writes txt-slide headers to the output file.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -316,9 +318,13 @@ class Test_extract_headers_from_txtslides(hunitest.TestCase):
         ## Section 1.1
         """
         expected = hprint.dedent(expected)
+        # Prepare outputs.
+        mode = "headers"
+        max_level = 3
+        show_num_slides = False
         # Run test.
         dshdextt._extract_headers_from_txtslides(
-            input_file, lines, "headers", 3, output_file, False
+            input_file, lines, mode, max_level, output_file, show_num_slides
         )
         # Check outputs.
         actual = hio.from_file(output_file)
@@ -337,7 +343,7 @@ class Test_extract_headers_from_notebook(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: writes headers extracted from markdown cells.
+        Test writes headers extracted from markdown cells.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -357,9 +363,13 @@ class Test_extract_headers_from_notebook(hunitest.TestCase):
         ## Section 1.1
         """
         expected = hprint.dedent(expected)
+        # Prepare outputs.
+        mode = "headers"
+        max_level = 3
+        show_num_slides = False
         # Run test.
         dshdextt._extract_headers_from_notebook(
-            input_file, lines, "headers", 3, output_file, False
+            input_file, lines, mode, max_level, output_file, show_num_slides
         )
         # Check outputs.
         actual = hio.from_file(output_file)
@@ -422,7 +432,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: extracts markdown headers via the `.md` dispatch
+        Test extracts markdown headers via the `.md` dispatch
         branch.
         """
         # Prepare inputs.
@@ -437,7 +447,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: unsupported file extension raises a `ValueError`.
+        Test unsupported file extension raises a `ValueError`.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -459,7 +469,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test happy path: extracts LaTeX headers via the `.tex` dispatch
+        Test extracts LaTeX headers via the `.tex` dispatch
         branch.
         """
         # Prepare inputs.
@@ -470,7 +480,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test happy path: extracts txt-slide headers via the `.txt` dispatch
+        Test extracts txt-slide headers via the `.txt` dispatch
         branch.
         """
         # Prepare inputs.
@@ -481,7 +491,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test happy path: extracts notebook headers via the `.ipynb` dispatch
+        Test extracts notebook headers via the `.ipynb` dispatch
         branch.
         """
         # Prepare inputs.
@@ -497,7 +507,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test6(self) -> None:
         """
-        Test edge case: `cfile` mode writes Vim quickfix formatted output.
+        Test `cfile` mode writes Vim quickfix formatted output.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -522,7 +532,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test edge case: `--count_slides` annotates headers with slide
+        Test `--count_slides` annotates headers with slide
         counts.
         """
         # Prepare inputs.

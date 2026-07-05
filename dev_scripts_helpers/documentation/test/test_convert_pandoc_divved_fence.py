@@ -18,6 +18,7 @@ def outcome_to_str(outcome: Dict[str, str]) -> str:
     return outcome_str
 
 
+# TODO(ai_gp): Move to static if it's used in a single place.
 def _find_columns_container(ast: Any) -> Any:
     """
     Recursively search AST for the first Div with 'columns' class.
@@ -231,7 +232,7 @@ class Test__format_grid_code(hunitest.TestCase):
         :param expected: Expected output
         """
         actual = dshdcpdfe._format_grid_code(widths, contents)
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """

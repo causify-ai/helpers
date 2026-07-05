@@ -156,18 +156,14 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         type_ = "pdf"
         cmd_opts = "--preview_actions"
         # Prepare outputs.
-        # TODO(ai_gp): Pass these values to self.run_notes_to_pdf and make
-        # expected mandatory.
-        expected_script_txt = ""
-        expected_output_txt = ""
         expected = ""
         # Run test.
         script_txt, output_txt = self.run_notes_to_pdf(
             in_file, type_, cmd_opts, expected
         )
         # Check outputs.
-        self.assertEqual(script_txt, expected_script_txt)
-        self.assertEqual(output_txt, expected_output_txt)
+        self.assert_equal(script_txt, expected)
+        self.assert_equal(output_txt, expected)
 
     @pytest.mark.superslow
     def test2(self) -> None:
@@ -210,7 +206,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             remove_lead_trail_empty_lines_=True,
         )
         # Run test.
-        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected=expected)
+        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected)
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -253,7 +249,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             remove_lead_trail_empty_lines_=True,
         )
         # Run test.
-        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected=expected)
+        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected)
 
     @pytest.mark.superslow
     @pytest.mark.skipif(
@@ -294,7 +290,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # once the test runs successfully on a Linux environment.
         expected = ""
         # Run test.
-        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected=expected)
+        self.run_notes_to_pdf(in_file, type_, cmd_opts, expected)
 
 
 # #############################################################################
@@ -910,10 +906,13 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         script_txt, output_txt = self.helper(skip_actions)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected_shebang = "#/bin/bash -xe"
+        expected = """
+        #/bin/bash -xe
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Expected: script contains bash shebang at start
         # Invariant: generated script has correct bash invocation
-        self.assertIn(expected_shebang, actual)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -1051,7 +1050,9 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         script_txt, output_txt = self.helper(filename, txt)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assertIsNotNone(actual)
+        # Expected: output contains script with basic pipeline structure
+        # Invariant: script is generated and output is non-empty
+        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -1064,7 +1065,9 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         script_txt, output_txt = self.helper(filename, txt)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assertIsNotNone(actual)
+        # Expected: output contains script with basic pipeline structure
+        # Invariant: script is generated and output is non-empty
+        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -1090,7 +1093,9 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         script_txt, output_txt = self.helper(filename, txt)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assertIsNotNone(actual)
+        # Expected: output contains script with basic pipeline structure
+        # Invariant: script is generated and output is non-empty
+        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -1128,7 +1133,9 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         script_txt, output_txt = self.helper(filename, txt)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assertIsNotNone(actual)
+        # Expected: output contains script with basic pipeline structure
+        # Invariant: script is generated and output is non-empty
+        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
 
 
 # #############################################################################

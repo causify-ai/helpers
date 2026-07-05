@@ -4,7 +4,6 @@ import os
 import pytest
 
 import dev_scripts_helpers.documentation.render_images as dshdreim
-import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -21,6 +20,30 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_get_rendered_file_paths1(hunitest.TestCase):
+    """
+    Test `_get_rendered_file_paths()`.
+    """
+
+    def helper(
+        self,
+        out_file: str,
+        image_code_idx: int,
+        dst_ext: str,
+        dst_dir: str,
+        expected: str,
+    ) -> None:
+        """
+        Test helper for `_get_rendered_file_paths()`.
+        """
+        # Run test.
+        paths = dshdreim._get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, dst_dir
+        )
+        # Check outputs.
+        actual = "\n".join(paths)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -36,14 +59,8 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
             /a/b/c/d/figs
             figs/e.8.png
             """
-        expected = hprint.dedent(expected)
         # Run test.
-        paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, dst_dir
-        )
-        # Check outputs.
-        actual = "\n".join(paths)
-        self.assert_equal(actual, expected)
+        self.helper(out_file, image_code_idx, dst_ext, dst_dir, expected)
 
     def test2(self) -> None:
         """
@@ -60,14 +77,8 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
             /custom/path/images
             ../../../../custom/path/images/e.8.png
             """
-        expected = hprint.dedent(expected)
         # Run test.
-        paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, dst_dir
-        )
-        # Check outputs.
-        actual = "\n".join(paths)
-        self.assert_equal(actual, expected)
+        self.helper(out_file, image_code_idx, dst_ext, dst_dir, expected)
 
 
 # #############################################################################
@@ -108,11 +119,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         C
         """
         extension = ".md"
-        expected = r"""
-        A
-        B
-        C
-        """
+        expected = in_text
         self.helper(in_text, extension, expected)
 
     def test2(self) -> None:
@@ -163,8 +170,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         in_text = """
         """
         extension = ".md"
-        expected = """
-        """
+        expected = in_text
         self.helper(in_text, extension, expected)
 
     def test5(self) -> None:
@@ -677,7 +683,7 @@ class Test_render_images1(hunitest.TestCase):
         )
         # Check output.
         actual = "\n".join(out_lines)
-        hdbg.dassert_ne(actual, "")
+        self.assertNotEqual(actual, "")
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected, remove_lead_trail_empty_lines=True)
 
@@ -1330,7 +1336,7 @@ class Test_render_images2(hunitest.TestCase):
         )
         actual = "\n".join(out_lines)
         # Check outputs.
-        hdbg.dassert_ne(actual, "")
+        self.assertNotEqual(actual, "")
         expected_file = os.path.join(self.get_output_dir(), "output.txt")
         expected = hio.from_file(expected_file)
         self.assert_equal(actual, expected)

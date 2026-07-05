@@ -1,6 +1,7 @@
 import contextlib
 import io
 import os
+from typing import List
 from unittest import mock
 
 import helpers.hio as hio
@@ -18,7 +19,7 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
     End-to-end tests for the `standardize_book_filename.py` executable.
     """
 
-    def _run_main(self, argv: list) -> str:
+    def _run_main(self, argv: List[str]) -> str:
         """
         Run `dshdstbf._main()` with a mocked `sys.argv` and capture stdout.
 
@@ -55,7 +56,7 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: dry run does not rename file on disk.
+        Test dry run does not rename file on disk.
         """
         # Run test.
         actual = self._helper_dry_run("Some Book Title.pdf")
@@ -65,7 +66,7 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test edge case: `--mv` actually renames file on disk.
+        Test `--mv` actually renames file on disk.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -87,7 +88,7 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test edge case: bare filename with no directory component.
+        Test bare filename with no directory component.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -106,7 +107,7 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test edge case: missing input file raises assertion error.
+        Test missing input file raises assertion error.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()

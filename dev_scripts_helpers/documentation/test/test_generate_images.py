@@ -1,4 +1,5 @@
 import os
+from typing import List
 from unittest import mock
 
 import pytest
@@ -18,10 +19,11 @@ import helpers.hunit_test as hunitest
 
 class Test_parse_descriptions_with_names(hunitest.TestCase):
     """
-    Test the _parse_descriptions_with_names() function for extracting prompts with names.
+    Test the _parse_descriptions_with_names() function for extracting prompts
+    with names.
     """
 
-    def helper(self, content: str, expected: list) -> None:
+    def helper(self, content: str, expected: List) -> None:
         """
         Test helper for _parse_descriptions_with_names().
 
@@ -36,20 +38,23 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected))
 
     def test1(self) -> None:
-        """Test parsing single prompt with name extraction."""
+        """
+        Test parsing single prompt with name extraction.
+        """
         # Prepare inputs.
         content = """
         # Prompt_A
         This is the first prompt text.
         """
-        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [("Prompt_A", "This is the first prompt text.")]
         # Run test.
         self.helper(content, expected)
 
     def test2(self) -> None:
-        """Test parsing multiple prompts with names."""
+        """
+        Test parsing multiple prompts with names.
+        """
         # Prepare inputs.
         content = """
         # Urban_Landscape
@@ -61,7 +66,6 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Abstract_Art
         Geometric shapes in vibrant colors.
         """
-        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [
             ("Urban_Landscape", "A futuristic cityscape at sunset."),
@@ -72,7 +76,9 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         self.helper(content, expected)
 
     def test3(self) -> None:
-        """Test parsing prompts with multi-line text."""
+        """
+        Test parsing prompts with multi-line text.
+        """
         # Prepare inputs.
         content = """
         # Prompt_A
@@ -82,7 +88,6 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Prompt_B
         Line 1 of prompt B.
         """
-        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [
             ("Prompt_A", "Line 1 of prompt A.\nLine 2 of prompt A."),
@@ -92,7 +97,9 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         self.helper(content, expected)
 
     def test4(self) -> None:
-        """Test parsing prompts with underscores and numbers in names."""
+        """
+        Test parsing prompts with underscores and numbers in names.
+        """
         # Prepare inputs.
         content = """
         # Prompt_Name_123
@@ -100,7 +107,6 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Another_Prompt_456
         Another prompt.
         """
-        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [
             ("Prompt_Name_123", "This is the prompt text."),
@@ -110,7 +116,9 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         self.helper(content, expected)
 
     def test5(self) -> None:
-        """Test parsing empty content."""
+        """
+        Test parsing empty content.
+        """
         # Prepare inputs.
         content = ""
         # Prepare outputs.
@@ -119,23 +127,35 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         self.helper(content, expected)
 
     def test6(self) -> None:
-        """Test that content without prompt headers raises assertion error."""
+        """
+        Test that content without prompt headers raises assertion error.
+        """
         # Prepare inputs.
         content = """
         Just some random text
         without any headers.
         """
         content = hprint.dedent(content)
-        # Run test and check output.
+        # Run test.
         with self.assertRaises(AssertionError) as cm:
             dshdgeim._parse_descriptions_with_names(content)
-        # Verify error message contains information about unprocessed lines.
+        # Check outputs.
         error_message = str(cm.exception)
-        self.assertIn("Found lines that were not processed", error_message)
-        self.assertIn("Just some random text", error_message)
+        expected_error = r"""
+        * Failed assertion *
+        cond=False
+        Found lines that were not processed:
+        Just some random text
+        without any headers.
+        """
+        self.assert_equal(
+            error_message, expected_error, fuzzy_match=True, dedent=True
+        )
 
     def test7(self) -> None:
-        """Test parsing prompts with blank lines within text."""
+        """
+        Test parsing prompts with blank lines within text.
+        """
         # Prepare inputs.
         content = """
         # Prompt_A
@@ -146,7 +166,6 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
         # Prompt_B
         Another prompt.
         """
-        content = hprint.dedent(content)
         # Prepare outputs.
         expected = [
             (
@@ -171,35 +190,42 @@ class Test_generate_images(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: dry run with a named prompt does not call the
+        Test dry run with a named prompt does not call the
         OpenAI API.
         """
         # Prepare inputs.
+        prompt_name = "my_prompt"
+        prompt = "a description"
+        count = 2
         dst_dir = self.get_scratch_space()
+        dry_run = True
         # Run test.
         with mock.patch("openai.OpenAI") as mock_openai:
             dshdgeim._generate_images(
-                "my_prompt",
-                "a description",
-                2,
+                prompt_name,
+                prompt,
+                count,
                 dst_dir,
-                dry_run=True,
+                dry_run=dry_run,
             )
         # Check outputs.
         mock_openai.assert_not_called()
 
     def test2(self) -> None:
         """
-        Test edge case: dry run updates the progress bar once per image.
+        Test dry run updates the progress bar once per image.
         """
         # Prepare inputs.
+        prompt_name = "my_prompt"
+        prompt = "a description"
+        count = 3
         dst_dir = self.get_scratch_space()
         progress_bar = mock.MagicMock()
         # Run test.
         dshdgeim._generate_images(
-            "my_prompt",
-            "a description",
-            3,
+            prompt_name,
+            prompt,
+            count,
             dst_dir,
             progress_bar=progress_bar,
             dry_run=True,
@@ -209,19 +235,24 @@ class Test_generate_images(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test edge case: an unsupported model raises a fatal error.
+        Test an unsupported model raises a fatal error.
         """
         # Prepare inputs.
+        prompt_name = "my_prompt"
+        prompt = "a description"
+        count = 1
         dst_dir = self.get_scratch_space()
+        model_name = "unsupported-model"
+        dry_run = True
         # Run test and check output.
         with self.assertRaises(AssertionError):
             dshdgeim._generate_images(
-                "my_prompt",
-                "a description",
-                1,
+                prompt_name,
+                prompt,
+                count,
                 dst_dir,
-                model_name="unsupported-model",
-                dry_run=True,
+                model_name=model_name,
+                dry_run=dry_run,
             )
 
 
@@ -237,27 +268,33 @@ class Test_generate_images_from_file(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: prompt from the command line generates the
-        requested number of images (dry run).
+        Test prompt from the command line generates the requested
+        number of images (dry run).
         """
         # Prepare inputs.
+        prompt = "a simple prompt"
+        input_file = ""
+        style = ""
+        count = 2
         dst_dir = os.path.join(self.get_scratch_space(), "images")
+        dry_run = True
+        no_backup = True
         # Run test.
         dshdgeim._generate_images_from_file(
-            "a simple prompt",
-            "",
-            "",
+            prompt,
+            input_file,
+            style,
             dst_dir,
-            2,
-            dry_run=True,
-            no_backup=True,
+            count,
+            dry_run=dry_run,
+            no_backup=no_backup,
         )
         # Check outputs.
         self.assertTrue(os.path.isdir(dst_dir))
 
     def test2(self) -> None:
         """
-        Test happy path: prompts read from an input file.
+        Test prompts read from an input file.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -271,51 +308,70 @@ class Test_generate_images_from_file(hunitest.TestCase):
         """
         content = hprint.dedent(content)
         hio.to_file(input_file, content)
+        prompt = ""
+        style = ""
+        count = 1
         dst_dir = os.path.join(scratch_dir, "images")
+        dry_run = True
+        no_backup = True
         # Run test.
         dshdgeim._generate_images_from_file(
-            "",
+            prompt,
             input_file,
-            "",
+            style,
             dst_dir,
-            1,
-            dry_run=True,
-            no_backup=True,
+            count,
+            dry_run=dry_run,
+            no_backup=no_backup,
         )
         # Check outputs.
         self.assertTrue(os.path.isdir(dst_dir))
 
     def test3(self) -> None:
         """
-        Test edge case: neither a prompt nor an input file is provided.
+        Test neither a prompt nor an input file is provided.
         """
         # Prepare inputs.
+        prompt = ""
+        input_file = ""
+        style = ""
+        count = 1
         dst_dir = os.path.join(self.get_scratch_space(), "images")
         # Run test and check output.
         with self.assertRaises(AssertionError):
             dshdgeim._generate_images_from_file(
-                "", "", "", dst_dir, 1, dry_run=True
+                prompt, input_file, style, dst_dir, count, dry_run=True
             )
 
     def test4(self) -> None:
         """
-        Test edge case: count outside the allowed [1, 10] range raises an
+        Test count outside the allowed [1, 10] range raises an
         assertion error.
         """
         # Prepare inputs.
+        prompt = "prompt"
+        input_file = ""
+        style = ""
+        count = 11
         dst_dir = os.path.join(self.get_scratch_space(), "images")
         # Run test and check output.
         with self.assertRaises(AssertionError):
             dshdgeim._generate_images_from_file(
-                "prompt", "", "", dst_dir, 11, dry_run=True
+                prompt, input_file, style, dst_dir, count, dry_run=True
             )
 
     def test5(self) -> None:
         """
-        Test happy path: a known style is prepended to the description.
+        Test a known style is prepended to the description.
         """
         # Prepare inputs.
+        prompt_arg = "a prompt"
+        input_file = ""
+        style_arg = "style1"
+        count = 1
         dst_dir = os.path.join(self.get_scratch_space(), "images")
+        dry_run = True
+        no_backup = True
         captured = {}
 
         def _capture(
@@ -331,28 +387,44 @@ class Test_generate_images_from_file(hunitest.TestCase):
             dshdgeim, "_generate_images", side_effect=_capture
         ):
             dshdgeim._generate_images_from_file(
-                "a prompt",
-                "",
-                "style1",
+                prompt_arg,
+                input_file,
+                style_arg,
                 dst_dir,
-                1,
-                dry_run=True,
-                no_backup=True,
+                count,
+                dry_run=dry_run,
+                no_backup=no_backup,
             )
         # Check outputs.
-        self.assertIn("minimalist flat-illustration style", captured["description"])
-        self.assertIn("a prompt", captured["description"])
+        expected = r"""
+        Use a unified minimalist flat-illustration style: clean vector lines, uniform
+        stroke weight, simple geometric shapes, muted blue-gray color palette, no
+        gradients, no shadows, no textures, no writings, centered composition, generous
+        white space.
+
+        a prompt
+        """
+        self.assert_equal(
+            captured["description"],
+            expected,
+            fuzzy_match=True,
+            dedent=True,
+        )
 
     def test6(self) -> None:
         """
-        Test edge case: an invalid style raises a `ValueError`.
+        Test an invalid style raises a `ValueError`.
         """
         # Prepare inputs.
+        prompt = "a prompt"
+        input_file = ""
+        style = "invalid_style"
+        count = 1
         dst_dir = os.path.join(self.get_scratch_space(), "images")
         # Run test and check output.
         with self.assertRaises(ValueError):
             dshdgeim._generate_images_from_file(
-                "a prompt", "", "invalid_style", dst_dir, 1, dry_run=True
+                prompt, input_file, style, dst_dir, count, dry_run=True
             )
 
 
@@ -368,7 +440,7 @@ class Test_generate_images_py_main(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: `--dry_run` avoids real API calls end-to-end.
+        Test `--dry_run` avoids real API calls end-to-end.
         """
         # Prepare inputs.
         dst_dir = os.path.join(self.get_scratch_space(), "images")

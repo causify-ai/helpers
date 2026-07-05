@@ -8,7 +8,10 @@
       "Bash(bash ./tmp.pytest_repro.*.sh)",
       "WebFetch(domain:*)",
       "Bash(gh pr view:*)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(rtk grep *)",
+      "Bash(rtk pytest *)",
+      "Bash(rtk read *)"
     ],
     "deny": [
       "Bash(*git commit:*)",
