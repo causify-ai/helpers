@@ -489,9 +489,7 @@ class Test_end_to_end(hunitest.TestCase):
     End-to-end test using pandoc to convert markdown with columns to typst.
     """
 
-    def helper(
-        self, markdown_input: str
-    ) -> None:
+    def helper(self, markdown_input: str) -> None:
         """
         Run full pipeline from markdown to transformed AST and typst.
 

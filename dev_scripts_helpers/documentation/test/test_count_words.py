@@ -82,7 +82,10 @@ class Test_count_words(hunitest.TestCase):
 
     # TODO(ai_gp): Use List[...] and Dict[...] in the file.
     def helper(
-        self, file_contents: Dict[str, str], expected_total: int, expected_counts: Dict[str, int]
+        self,
+        file_contents: Dict[str, str],
+        expected_total: int,
+        expected_counts: Dict[str, int],
     ) -> None:
         """
         Test helper for `_count_words()`.

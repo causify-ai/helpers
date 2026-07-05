@@ -16,6 +16,7 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 def _to_output_str(script_txt, output_txt):
     out = ""
     out += hprint.frame("script_txt") + "\n"
@@ -24,6 +25,7 @@ def _to_output_str(script_txt, output_txt):
     out += output_txt + "\n"
     _LOG.debug("out=\n%s", out)
     return out
+
 
 # #############################################################################
 # Test_notes_to_pdf1
@@ -352,9 +354,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper(
-        self, in_file: str, type_: str, cmd_opts: str
-    ) -> Tuple[str, str]:
+    def helper(self, in_file: str, type_: str, cmd_opts: str) -> Tuple[str, str]:
         """
         Helper to run filter test and return script and output.
 
@@ -497,9 +497,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper(
-        self, type_: str, cmd_opts: str
-    ) -> Tuple[str, str]:
+    def helper(self, type_: str, cmd_opts: str) -> Tuple[str, str]:
         """
         Helper to test output type generation.
 
@@ -1301,7 +1299,9 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
         # Read the AST JSON intermediate to verify structure.
-        ast_file = os.path.join(out_dir, "tmp.notes_to_pdf.render_image2.txt.ast.json")
+        ast_file = os.path.join(
+            out_dir, "tmp.notes_to_pdf.render_image2.txt.ast.json"
+        )
         ast_txt = ""
         if os.path.exists(ast_file):
             ast_txt = hio.from_file(ast_file)

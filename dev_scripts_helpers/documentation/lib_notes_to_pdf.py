@@ -783,9 +783,7 @@ def _extract_latex_math_defs() -> str:
     for line in hio.from_file(latex_file).split("\n"):
         # Only `\newcommand` / `\def` math macros are kept. Other macros
         # (e.g., `\usepackage`, `\definecolor`, `\setlist`) are dropped.
-        if not (
-            line.startswith("\\newcommand") or line.startswith("\\def")
-        ):
+        if not (line.startswith("\\newcommand") or line.startswith("\\def")):
             continue
         # Drop the `\textcolor`-based helpers; they are handled by a dedicated
         # post-conversion regex instead.

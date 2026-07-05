@@ -67,7 +67,8 @@ def add_file_selection_args(
     """
     file_selection = parser.add_mutually_exclusive_group()
     file_selection.add_argument(
-        "--files", "--input",
+        "--files",
+        "--input",
         dest="files",
         action=_SingleFilesAction,
         help="Select specific files (space-separated list in a single argument)",

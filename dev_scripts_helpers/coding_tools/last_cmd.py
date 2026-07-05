@@ -15,13 +15,8 @@ Capture a command from shell history and copy it to the clipboard.
 
 import argparse
 import logging
-import argparse
-import logging
-import os
-import platform
 import re
-import time
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -132,9 +127,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, report_command_line=False)
     #
     exclude_substrings = ["last_cmd"]
-    command = _get_nth_command(
-        args.n, exclude_substrings=exclude_substrings
-    )
+    command = _get_nth_command(args.n, exclude_substrings=exclude_substrings)
     #
     if not args.no_pb_copy:
         _LOG.debug("Capturing command: %s", command)

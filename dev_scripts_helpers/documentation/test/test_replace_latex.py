@@ -42,9 +42,7 @@ class Test_standard_cleanup(hunitest.TestCase):
         # Prepare inputs.
         content = "we know that gaussian iid variables doesn't change"
         # Prepare outputs.
-        expected = (
-            "you know that Gaussian IID variables does not change"
-        )
+        expected = "you know that Gaussian IID variables does not change"
         # Run test.
         self.helper(content, False, expected)
 

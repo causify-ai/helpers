@@ -383,9 +383,13 @@ def _parse() -> argparse.ArgumentParser:
         help="Don't fail pandoc if there are warnings",
     )
     parser.add_argument(
-        "--no_run_latex_again", action="store_true", default=False,
-        # TODO(ai_gp): Add a comment
-        help="",
+        "--no_run_latex_again",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip the second pdflatex pass. By default pdflatex runs twice to resolve "
+            "cross-references and TOC. Use this flag to skip the re-run for speed."
+        ),
     )
     parser.add_argument(
         "--no_pdf",
@@ -405,9 +409,15 @@ def _parse() -> argparse.ArgumentParser:
             "conversion, instead of default single-shot pandoc"
         ),
     )
-    parser.add_argument("--debug_on_error", action="store_true", default=False,
-        # TODO(ai_gp): Add a comment
-        help="")
+    parser.add_argument(
+        "--debug_on_error",
+        action="store_true",
+        default=False,
+        help=(
+            "Keep intermediate files (.tex, .log) on pandoc/LaTeX compilation "
+            "failure and show error context for debugging"
+        ),
+    )
     parser.add_argument(
         "--gdrive_dir",
         action="store",

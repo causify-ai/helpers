@@ -457,7 +457,9 @@ def git_files(  # type: ignore
         hltltaut.report_task()
     _ = ctx
     # Default to branch=True if no filter option is specified.
-    if not (files or from_file or modified or branch or last_commit or all_files):
+    if not (
+        files or from_file or modified or branch or last_commit or all_files
+    ):
         branch = True
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True

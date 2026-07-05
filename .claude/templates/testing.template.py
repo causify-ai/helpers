@@ -1,8 +1,11 @@
-import logging
-import os
-from typing import Optional
+"""
+Import as:
 
-import helpers.hio as hio
+import .claude.templates.testing.template as ctetetem
+"""
+
+import logging
+
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -120,6 +123,14 @@ class Test_process_data(hunitest.TestCase):
     - Using dedent for multi-line strings
     """
 
+    def _process_data(self, data: str) -> str:
+        """
+        Example function to process data.
+
+        This is a placeholder for the actual function being tested.
+        """
+        return data.strip()
+
     def helper(
         self, input_data: str, expected_output: str, description: str = ""
     ) -> None:
@@ -134,14 +145,6 @@ class Test_process_data(hunitest.TestCase):
         actual = self._process_data(input_data)
         # Check outputs.
         self.assert_equal(actual, expected_output)
-
-    def _process_data(self, data: str) -> str:
-        """
-        Example function to process data.
-
-        This is a placeholder for the actual function being tested.
-        """
-        return data.strip()
 
     def test1(self) -> None:
         """

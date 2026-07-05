@@ -597,6 +597,7 @@ def get_parent_dirs(files: List[str]) -> List[str]:
 
 # TODO(ai_gp): invocations -> sys_calls
 
+
 @contextlib.contextmanager
 def capture_system_calls(
     side_effect: Optional[Any] = None,

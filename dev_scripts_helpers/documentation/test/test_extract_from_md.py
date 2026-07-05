@@ -10,7 +10,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.extract_from_md as dshdexfm
+import dev_scripts_helpers.documentation.extract_from_md as dshdefrmd
 
 _LOG = logging.getLogger(__name__)
 
@@ -213,9 +213,9 @@ class Test_extract_from_md_py_main(hunitest.TestCase):
             `mock.patch("sys.argv", ...)`
         :return: content of the output file
         """
-        parser = dshdexfm._parse()
+        parser = dshdefrmd._parse()
         with mock.patch("sys.argv", argv):
-            dshdexfm._main(parser)
+            dshdefrmd._main(parser)
         output_file = argv[argv.index("-o") + 1]
         actual = hio.from_file(output_file)
         return actual

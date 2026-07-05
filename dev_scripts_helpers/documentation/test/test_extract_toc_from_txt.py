@@ -9,7 +9,7 @@ import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.extract_toc_from_txt as dshdextt
+import dev_scripts_helpers.documentation.extract_toc_from_txt as dshdetftx
 
 
 def _get_sample_header_list() -> List[hmarkdo.HeaderInfo]:
@@ -113,7 +113,9 @@ class Test_count_headers_by_level(hunitest.TestCase):
         # Prepare inputs.
         header_list = _get_sample_header_list()
         # Run test.
-        actual = dshdextt._count_headers_by_level(header_list, target_level=target_level)
+        actual = dshdetftx._count_headers_by_level(
+            header_list, target_level=target_level
+        )
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -160,9 +162,9 @@ class Test_format_headers_with_counts(hunitest.TestCase):
         """
         # Prepare inputs.
         header_list = _get_sample_header_list()
-        counts = dshdextt._count_headers_by_level(header_list, target_level=5)
+        counts = dshdetftx._count_headers_by_level(header_list, target_level=5)
         # Run test.
-        actual = dshdextt._format_headers_with_counts(
+        actual = dshdetftx._format_headers_with_counts(
             header_list, mode, counts, max_level=max_level
         )
         # Check outputs.
@@ -234,7 +236,7 @@ class Test_extract_headers_from_markdown(hunitest.TestCase):
         mode = "headers"
         max_level = 3
         # Run test.
-        dshdextt._extract_headers_from_markdown(
+        dshdetftx._extract_headers_from_markdown(
             input_file, lines, mode, max_level, output_file
         )
         # Check outputs.
@@ -279,7 +281,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         max_level = 3
         show_num_slides = False
         # Run test.
-        dshdextt._extract_headers_from_latex(
+        dshdetftx._extract_headers_from_latex(
             input_file, lines, mode, max_level, output_file, show_num_slides
         )
         # Check outputs.
@@ -324,7 +326,7 @@ class Test_extract_headers_from_txtslides(hunitest.TestCase):
         max_level = 3
         show_num_slides = False
         # Run test.
-        dshdextt._extract_headers_from_txtslides(
+        dshdetftx._extract_headers_from_txtslides(
             input_file, lines, mode, max_level, output_file, show_num_slides
         )
         # Check outputs.
@@ -369,7 +371,7 @@ class Test_extract_headers_from_notebook(hunitest.TestCase):
         max_level = 3
         show_num_slides = False
         # Run test.
-        dshdextt._extract_headers_from_notebook(
+        dshdetftx._extract_headers_from_notebook(
             input_file, lines, mode, max_level, output_file, show_num_slides
         )
         # Check outputs.
@@ -395,9 +397,9 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
             `mock.patch("sys.argv", ...)`
         :return: content of the output file
         """
-        parser = dshdextt._parse()
+        parser = dshdetftx._parse()
         with mock.patch("sys.argv", argv):
-            dshdextt._main(parser)
+            dshdetftx._main(parser)
         output_file = argv[argv.index("--output") + 1]
         actual = hio.from_file(output_file)
         return actual
@@ -462,11 +464,11 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
             "--output",
             output_file,
         ]
-        parser = dshdextt._parse()
+        parser = dshdetftx._parse()
         # Run test and check output.
         with mock.patch("sys.argv", argv):
             with self.assertRaises(ValueError):
-                dshdextt._main(parser)
+                dshdetftx._main(parser)
 
     def test3(self) -> None:
         """

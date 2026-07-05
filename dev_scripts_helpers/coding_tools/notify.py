@@ -40,14 +40,41 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
+def _parse_last_command(history_text: str) -> str:
+    """
+    Return the last command from the text of a shell history file.
+
+    Support both the plain `bash` history format (one command per line)
+    and the `zsh` extended history format (`: <timestamp>:<duration>;
+    <command>`).
+
+    :param history_text: raw content of a shell history file
+    :return: last command in the history
+    """
+    lines = [line.strip() for line in history_text.splitlines() if line.strip()]
+    hdbg.dassert_lt(0, len(lines), "History is empty")
+    last_line = lines[-1]
+    # ```
+    # : 1700000001:0;ls -la
+    # ```
+    match = re.match(r"^:\s*\d+:\d+;(.*)$", last_line)
+    if match:
+        last_command = match.group(1)
+    else:
+        last_command = last_line
+    return last_command
+
+
 def _get_last_command_and_dir() -> Tuple[str, str]:
     """
     Return the last executed shell command and the current directory.
 
     :return: tuple of (last command, current working directory)
     """
-    # TODO(ai_gp): Get the last command using 
-    last_command = 
+    histfile = os.environ.get("HISTFILE", os.path.expanduser("~/.bash_history"))
+    hdbg.dassert_file_exists(histfile)
+    history_text = hio.from_file(histfile)
+    last_command = _parse_last_command(history_text)
     current_dir = os.getcwd()
     return last_command, current_dir
 

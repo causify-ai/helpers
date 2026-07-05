@@ -39,6 +39,7 @@ _LOG = logging.getLogger(__name__)
 
 PandocAst = Dict[str, Any]
 
+
 # TODO(gp): Factor out once there are more AST processing scripts.
 def _load_ast(filepath: str) -> PandocAst:
     """
@@ -255,9 +256,7 @@ def _format_grid_code(widths: List[str], column_contents: List[str]) -> str:
 # #############################################################################
 
 
-def _transform_elem(
-    elem: PandocAst, api_version: List[int]
-) -> PandocAst:
+def _transform_elem(elem: PandocAst, api_version: List[int]) -> PandocAst:
     """
     Transform a single element recursively.
 

@@ -708,12 +708,15 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         --toc-depth 2
         """
         # Run test.
-        self.helper(file_name, no_pdf, expected, expected_ext, toc_type="pandoc_native")
+        self.helper(
+            file_name, no_pdf, expected, expected_ext, toc_type="pandoc_native"
+        )
 
 
 # #############################################################################
 # Test_run_pandoc_to_slides
 # #############################################################################
+
 
 class Test_run_pandoc_to_slides(hunitest.TestCase):
     """
@@ -832,6 +835,74 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
 
         return _side_effect
 
+    @staticmethod
+    def _build_expected_invocations(
+        curr_path: str, file_name: str, typ_file: str, typst_only: bool
+    ) -> List[Dict[str, Any]]:
+        """
+        Build the invocations expected from `run_pandoc_to_typst_slides()`.
+        """
+        file_with_defs = f"{file_name}.with_defs.txt"
+        ast_file = f"{file_with_defs}.ast.json"
+        transformed_ast_file = f"{file_name}.divved.ast.json"
+        template = f"{curr_path}/pandoc_touying.typ"
+        rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+        expected_invocations = [
+            {
+                "function": "hsystem.system",
+                "args": (
+                    f"pandoc {file_with_defs} -t json --fail-if-warnings"
+                    f" -o {ast_file}",
+                ),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                    "print_command": True,
+                },
+            },
+            {
+                "function": "hsystem.system",
+                "args": (
+                    f"convert_pandoc_divved_fence.py -i {ast_file}"
+                    f" -o {transformed_ast_file}",
+                ),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                },
+            },
+            {
+                "function": "hsystem.system",
+                "args": (
+                    f"pandoc {transformed_ast_file} -f json -t typst"
+                    " --fail-if-warnings --number-sections -s"
+                    f" --template {template} --resource-path={rel_path}"
+                    f" -o {typ_file}",
+                ),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                    "print_command": True,
+                },
+            },
+        ]
+        if not typst_only:
+            pdf_file = typ_file.replace(".typ", ".pdf")
+            root = os.getcwd()
+            expected_invocations.append(
+                {
+                    "function": "hsystem.system",
+                    "args": (
+                        f"typst compile --root {root} {typ_file} {pdf_file}",
+                    ),
+                    "kwargs": {
+                        "log_level": logging.DEBUG,
+                        "suppress_output": False,
+                    },
+                }
+            )
+        return expected_invocations
+
     def helper(
         self,
         typst_only: bool,
@@ -904,74 +975,6 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
             expected_str
         )
         hunteuti.assert_invocations(self, invocations, expected_str)
-
-    @staticmethod
-    def _build_expected_invocations(
-        curr_path: str, file_name: str, typ_file: str, typst_only: bool
-    ) -> List[Dict[str, Any]]:
-        """
-        Build the invocations expected from `run_pandoc_to_typst_slides()`.
-        """
-        file_with_defs = f"{file_name}.with_defs.txt"
-        ast_file = f"{file_with_defs}.ast.json"
-        transformed_ast_file = f"{file_name}.divved.ast.json"
-        template = f"{curr_path}/pandoc_touying.typ"
-        rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
-        expected_invocations = [
-            {
-                "function": "hsystem.system",
-                "args": (
-                    f"pandoc {file_with_defs} -t json --fail-if-warnings"
-                    f" -o {ast_file}",
-                ),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                    "print_command": True,
-                },
-            },
-            {
-                "function": "hsystem.system",
-                "args": (
-                    f"convert_pandoc_divved_fence.py -i {ast_file}"
-                    f" -o {transformed_ast_file}",
-                ),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                },
-            },
-            {
-                "function": "hsystem.system",
-                "args": (
-                    f"pandoc {transformed_ast_file} -f json -t typst"
-                    " --fail-if-warnings --number-sections -s"
-                    f" --template {template} --resource-path={rel_path}"
-                    f" -o {typ_file}",
-                ),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                    "print_command": True,
-                },
-            },
-        ]
-        if not typst_only:
-            pdf_file = typ_file.replace(".typ", ".pdf")
-            root = os.getcwd()
-            expected_invocations.append(
-                {
-                    "function": "hsystem.system",
-                    "args": (
-                        f"typst compile --root {root} {typ_file} {pdf_file}",
-                    ),
-                    "kwargs": {
-                        "log_level": logging.DEBUG,
-                        "suppress_output": False,
-                    },
-                }
-            )
-        return expected_invocations
 
     def test1(self) -> None:
         """

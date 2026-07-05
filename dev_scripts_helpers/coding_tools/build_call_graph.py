@@ -32,7 +32,7 @@ import ast
 import importlib.metadata
 import logging
 import os
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 import pydot
 

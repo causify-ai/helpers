@@ -6,7 +6,7 @@ from unittest import mock
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.standardize_book_filename as dshdstbf
+import dev_scripts_helpers.documentation.standardize_book_filename as dshdsbofi
 
 
 # #############################################################################
@@ -27,10 +27,10 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
             `mock.patch("sys.argv", ...)`
         :return: captured stdout
         """
-        parser = dshdstbf._parse()
+        parser = dshdsbofi._parse()
         with contextlib.redirect_stdout(io.StringIO()) as buf:
             with mock.patch("sys.argv", argv):
-                dshdstbf._main(parser)
+                dshdsbofi._main(parser)
         return buf.getvalue()
 
     def _helper_dry_run(
@@ -113,8 +113,8 @@ class Test_standardize_book_filename_py(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "missing.pdf")
         argv = ["standardize_book_filename.py", "--input", input_file]
-        parser = dshdstbf._parse()
+        parser = dshdsbofi._parse()
         # Run test and check output.
         with mock.patch("sys.argv", argv):
             with self.assertRaises(AssertionError):
-                dshdstbf._main(parser)
+                dshdsbofi._main(parser)

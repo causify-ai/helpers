@@ -5,7 +5,7 @@ from unittest import mock
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.extract_gdoc_map as dshdexgm
+import dev_scripts_helpers.documentation.extract_gdoc_map as dshdegdma
 
 
 # #############################################################################
@@ -31,7 +31,7 @@ class Test_extract_doc_info(hunitest.TestCase):
         # Prepare outputs.
         expected = (file_path, expected_doc_id)
         # Run test.
-        actual = dshdexgm._extract_doc_info(file_path)
+        actual = dshdegdma._extract_doc_info(file_path)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -92,7 +92,7 @@ class Test_find_gdoc_files(hunitest.TestCase):
         # Prepare outputs.
         expected = [gdoc_file]
         # Run test.
-        actual = dshdexgm._find_gdoc_files(input_dir)
+        actual = dshdegdma._find_gdoc_files(input_dir)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -105,7 +105,7 @@ class Test_find_gdoc_files(hunitest.TestCase):
         # Prepare outputs.
         expected: List = []
         # Run test.
-        actual = dshdexgm._find_gdoc_files(input_dir)
+        actual = dshdegdma._find_gdoc_files(input_dir)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -134,7 +134,7 @@ class Test_generate_doc_links_full_path(hunitest.TestCase):
         hio.to_file(file_path, content)
         gdoc_files = [file_path]
         # Run test.
-        actual = dshdexgm._generate_doc_links_full_path(gdoc_files, input_dir)
+        actual = dshdegdma._generate_doc_links_full_path(gdoc_files, input_dir)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -194,7 +194,7 @@ class Test_generate_doc_links_default(hunitest.TestCase):
             """
         expected = hprint.dedent(expected)
         # Run test.
-        actual = dshdexgm._generate_doc_links_default(gdoc_files, input_dir)
+        actual = dshdegdma._generate_doc_links_default(gdoc_files, input_dir)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -221,11 +221,10 @@ class Test_generate_doc_links(hunitest.TestCase):
         gdoc_files = [file_path]
         # Prepare outputs.
         expected = (
-            "- [my_doc.gdoc/my_doc]"
-            "(https://docs.google.com/document/d/abc123)"
+            "- [my_doc.gdoc/my_doc](https://docs.google.com/document/d/abc123)"
         )
         # Run test.
-        actual = dshdexgm._generate_doc_links(
+        actual = dshdegdma._generate_doc_links(
             gdoc_files, input_dir, style="full_path"
         )
         # Check outputs.
@@ -241,7 +240,7 @@ class Test_generate_doc_links(hunitest.TestCase):
         style = "invalid"
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dshdexgm._generate_doc_links(gdoc_files, input_dir, style=style)
+            dshdegdma._generate_doc_links(gdoc_files, input_dir, style=style)
 
 
 # #############################################################################
@@ -270,7 +269,7 @@ class Test_extract_gdoc_map(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        actual = dshdexgm.extract_gdoc_map(input_dir, output_file=output_file)
+        actual = dshdegdma.extract_gdoc_map(input_dir, output_file=output_file)
         # Check outputs.
         self.assert_equal(actual, expected)
         actual_file_content = hio.from_file(output_file)
@@ -285,7 +284,7 @@ class Test_extract_gdoc_map(hunitest.TestCase):
         # Prepare outputs.
         expected = ""
         # Run test.
-        actual = dshdexgm.extract_gdoc_map(input_dir)
+        actual = dshdegdma.extract_gdoc_map(input_dir)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -307,9 +306,9 @@ class Test_extract_gdoc_map_py(hunitest.TestCase):
         :param argv: command-line argument list to inject via
             `mock.patch("sys.argv", ...)`
         """
-        parser = dshdexgm._parse()
+        parser = dshdegdma._parse()
         with mock.patch("sys.argv", argv):
-            dshdexgm._main(parser)
+            dshdegdma._main(parser)
 
     def test1(self) -> None:
         """
@@ -332,8 +331,7 @@ class Test_extract_gdoc_map_py(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = (
-            "- [my_doc.gdoc/my_doc]"
-            "(https://docs.google.com/document/d/abc123)"
+            "- [my_doc.gdoc/my_doc](https://docs.google.com/document/d/abc123)"
         )
         # Run test.
         self._run_main(argv)

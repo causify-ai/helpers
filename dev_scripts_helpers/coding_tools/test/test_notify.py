@@ -1,7 +1,7 @@
 import logging
 import os
 
-import dev_scripts_helpers.coding_tools.notify as dsctonot
+import dev_scripts_helpers.coding_tools.notify as dshctono
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -34,7 +34,7 @@ class Test_parse_last_command1(hunitest.TestCase):
         hio.to_file(input_file, history_text)
         # Run test.
         actual_text = hio.from_file(input_file)
-        actual = dsctonot._parse_last_command(actual_text)
+        actual = dshctono._parse_last_command(actual_text)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -86,4 +86,4 @@ class Test_parse_last_command1(hunitest.TestCase):
         history_text = ""
         # Run test.
         with self.assertRaises(AssertionError):
-            _ = dsctonot._parse_last_command(history_text)
+            _ = dshctono._parse_last_command(history_text)

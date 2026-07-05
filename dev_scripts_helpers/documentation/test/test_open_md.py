@@ -254,6 +254,7 @@ class Test_run_render_images(hunitest.TestCase):
         cwd = os.getcwd()
         os.chdir(scratch_dir)
         try:
+
             def _create_output(*_args: object, **_kwargs: object) -> int:
                 hio.to_file(output_file, "rendered")
                 return 0
@@ -338,6 +339,7 @@ class Test_render_with_pandoc(hunitest.TestCase):
         :param content: Content to write to output file
         :return: Callable that creates output file and returns 0
         """
+
         def _side_effect(*_args: object, **_kwargs: object) -> int:
             hio.to_file(output_file, content)
             return 0
@@ -445,6 +447,7 @@ class Test_render_with_grip(hunitest.TestCase):
         :param content: Content to write to output file
         :return: Callable that creates output file and returns 0
         """
+
         def _side_effect(*_args: object, **_kwargs: object) -> int:
             hio.to_file(output_file, content)
             return 0
@@ -583,9 +586,7 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
             dshdopmd, "_run_render_images", return_value=input_file
         ):
             with self.assertRaises(ValueError):
-                dshdopmd._render_with_grip_daemon(
-                    input_file, backend="invalid"
-                )
+                dshdopmd._render_with_grip_daemon(input_file, backend="invalid")
 
 
 # #############################################################################
@@ -634,9 +635,7 @@ class Test_open_md_py_main(hunitest.TestCase):
         ]
         parser = dshdopmd._parse()
         # Run test.
-        with mock.patch.object(
-            dshdopmd, "_render_with_grip_daemon"
-        ) as mock_fn:
+        with mock.patch.object(dshdopmd, "_render_with_grip_daemon") as mock_fn:
             with mock.patch("sys.argv", argv):
                 dshdopmd._main(parser)
         # Check outputs.

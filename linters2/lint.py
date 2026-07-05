@@ -77,6 +77,7 @@ _LOG = logging.getLogger(__name__)
 
 # Invariant: all the action returns an int return code.
 
+
 def _run_common_linting_actions(
     file_paths: List[str],
     actions: List[str],
@@ -97,7 +98,7 @@ def _run_common_linting_actions(
     ret = 0
     files_str = " ".join(file_paths)
     if "pre-commit" in actions:
-        _LOG.info("\n%s",hprint.frame("pre-commit", char1="="))
+        _LOG.info("\n%s", hprint.frame("pre-commit", char1="="))
         cmd = f"pre-commit run --files {files_str} --color always"
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
@@ -137,7 +138,9 @@ def _run_python_linting_actions(
     ret = 0
     files_str = " ".join(file_paths)
     if "normalize_import" in actions:
-        _LOG.info("\n%s", hprint.frame("linters2/normalize_import.py", char1="="))
+        _LOG.info(
+            "\n%s", hprint.frame("linters2/normalize_import.py", char1="=")
+        )
         cmd = (
             f"linters2/normalize_import.py --no_report_command_line {files_str}"
         )
@@ -149,7 +152,10 @@ def _run_python_linting_actions(
             suppress_output=False,
         )
     if "add_class_frames" in actions:
-        _LOG.info("\n%s", hprint.frame("Running linters2/add_class_frames.py", char1="="))
+        _LOG.info(
+            "\n%s",
+            hprint.frame("Running linters2/add_class_frames.py", char1="="),
+        )
         cmd = (
             f"linters2/add_class_frames.py --no_report_command_line {files_str}"
         )
@@ -161,7 +167,9 @@ def _run_python_linting_actions(
             suppress_output=False,
         )
     if "fix_comments" in actions:
-        _LOG.info("\n%s", hprint.frame("Running linters2/fix_comments.py", char1="="))
+        _LOG.info(
+            "\n%s", hprint.frame("Running linters2/fix_comments.py", char1="=")
+        )
         cmd = f"linters2/fix_comments.py --no_report_command_line {files_str}"
         _LOG.debug("> %s", cmd)
         ret |= hsystem.system(
@@ -449,7 +457,7 @@ def _filter_files_by_type(
         elif llinutil.is_py_file(f):
             if "py" not in file_extensions:
                 continue
-            #if not llinutil.is_paired_jupytext_file(f):
+            # if not llinutil.is_paired_jupytext_file(f):
             python_files.append(f)
         elif f.endswith(".md"):
             if "md" not in file_extensions:
@@ -506,7 +514,9 @@ def _select_and_report_files_by_type(
         0,
         msg=f"Unprocessed file types: {unprocessed_types}",
     )
-    _LOG.info("\n%s", hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
+    _LOG.info(
+        "\n%s", hprint.frame(f"Selecting files: {', '.join(selected_types)}")
+    )
     #
     all_files = python_files + jupyter_files + markdown_files
     breakdown = f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, Markdown: {len(markdown_files)}"
@@ -648,11 +658,13 @@ if __name__ == "__main__":
     parser_ = _parse()
     args_ = parser_.parse_args()
     hdbg.init_logger(args_.log_level)
-    # 
+    #
     actions = args_.action if args_.action else list(_DEFAULT_ACTIONS)
     _LOG.info(
         "\n%s",
-        hselacti.actions_to_string(actions, list(_VALID_ACTIONS), add_frame=True)
+        hselacti.actions_to_string(
+            actions, list(_VALID_ACTIONS), add_frame=True
+        ),
     )
     # Get files based on selection mode using hparser helper.
     file_paths_ = hseinout.parse_file_selection_args(args_, remove_dirs=False)
@@ -663,5 +675,7 @@ if __name__ == "__main__":
     python_files_, jupyter_files_, markdown_files_ = (
         _select_and_report_files_by_type(args_, file_paths_)
     )
-    ret_ = _lint_all_files(python_files_, jupyter_files_, markdown_files_, actions, args_)
+    ret_ = _lint_all_files(
+        python_files_, jupyter_files_, markdown_files_, actions, args_
+    )
     sys.exit(ret_)

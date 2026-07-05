@@ -410,7 +410,10 @@ class Test_check_links_in_file(hunitest.TestCase):
     Test the _check_links_in_file function.
     """
 
-    def _helper(self, test_content: str, expected_reachable_urls, expected_broken_count):
+    # TODO(ai_gp): Add type hints
+    def _helper(
+        self, test_content: str, expected_reachable_urls, expected_broken_count
+    ):
         """
         Test helper for `_check_links_in_file()`.
 
@@ -431,7 +434,9 @@ class Test_check_links_in_file(hunitest.TestCase):
                 test_file
             )
         # Check outputs.
-        self.assert_equal(str(len(reachable_urls)), str(len(expected_reachable_urls)))
+        self.assert_equal(
+            str(len(reachable_urls)), str(len(expected_reachable_urls))
+        )
         self.assert_equal(str(len(broken_urls)), str(expected_broken_count))
         self.assert_equal(
             str(sorted(reachable_urls)), str(sorted(expected_reachable_urls))
