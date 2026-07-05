@@ -25,7 +25,6 @@ import logging
 import os
 import platform
 import time
-from typing import Tuple
 
 import dev_scripts_helpers.coding_tools.last_cmd as dsclastc
 import helpers.hdbg as hdbg
@@ -104,6 +103,7 @@ def _blink_pane(timeout: int) -> None:
     _, orig_name = hsystem.system_to_one_line(
         "tmux display-message -p '#{window_name}'"
     )
+    done_name = "DONE" + " " * max(0, len(orig_name) - len("DONE"))
     blank_name = " " * len(orig_name)
     if timeout == -1:
         print("Waiting for CTRL-C...")
@@ -112,14 +112,14 @@ def _blink_pane(timeout: int) -> None:
     start_time = time.time()
     try:
         while timeout == -1 or (time.time() - start_time) < timeout:
-            hsystem.system(f"tmux rename-window -t {window_id} 'DONE'")
+            hsystem.system(f"tmux rename-window -t {window_id} -- '{done_name}'")
             time.sleep(0.5)
-            hsystem.system(f"tmux rename-window -t {window_id} '{blank_name}'")
+            hsystem.system(f"tmux rename-window -t {window_id} -- '{blank_name}'")
             time.sleep(0.5)
     except KeyboardInterrupt:
         _LOG.info("Interrupted, restoring window name")
     finally:
-        hsystem.system(f"tmux rename-window -t {window_id} '{orig_name}'")
+        hsystem.system(f"tmux rename-window -t {window_id} -- '{orig_name}'")
 
 
 def _parse() -> argparse.ArgumentParser:

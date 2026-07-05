@@ -1,4 +1,4 @@
-# Status (updated 2026-07-04)
+# Status (updated 2026-07-05)
 
 ## Plan
 
@@ -38,19 +38,44 @@ mocking, etc.):
 - [x] `test/test_extract_gdoc_map.py` (0% -> 94%)
 - [x] `test/test_extract_toc_from_txt.py` (expanded, -> 98%)
 
-### Phase 3 — IN PROGRESS (1/10 done)
+### Phase 3 — IN PROGRESS (3/10 done)
 
 - [x] `test/test_open_md.py` (expanded, 28% -> 96%, 26 tests passing)
-- [ ] `test/test_generate_images.py` (expanded, 27% -> 74% so far): **2 tests
-      currently FAILING, not yet fixed**:
-  - `Test_generate_images::test3` - `TypeError: 'str' object is not
-    callable` (assumption about `hdbg.dfatal()` signature/behavior is
-    wrong, needs investigation)
-  - `Test_generate_images_py_main::test1` - `args.model` is `None` by
-    default (no `default=""` on the `--model` argparse arg), causing a
-    `dassert_isinstance` failure downstream; either pass `--model`
-    explicitly in the test or check the code path
-- [ ] `test/test_piper_markdown_reader.py` (13% -> ?) - not started
+- [x] `test/test_generate_images.py` (27% -> 73%, all 17 tests passing).
+      Found and fixed 2 real bugs in `generate_images.py`:
+  - `_generate_images()`: `hdbg.dfatal("Unsupported model: %s", model)` used
+    printf-style formatting, but `dfatal(message, assertion_type=None)`
+    takes the 2nd positional arg as an exception class, not a format arg
+    -> `model` string was used as `assertion_type`, raising `TypeError:
+    'str' object is not callable`. Fixed to
+    `hdbg.dfatal(f"Unsupported model: {model}")`.
+  - `_parse()`: `--reference_image` argparse arg had no `default=""`, so
+    `args.reference_image` was `None` when omitted; `_generate_images()`
+    checks `reference_image != ""` to decide `use_reference`, so `None`
+    was treated as "reference provided" and failed
+    `hdbg.dassert_path_exists(None)`. Fixed by adding `default=""`.
+- [x] `test/test_piper_markdown_reader.py` (13% -> 77%, 44 new tests added
+      and passing). Added tests for all pure-logic helpers
+      (`_read_markdown_file`, `_split_by_first_level_bullets`,
+      `_format_markdown`, `_clean_text`, `_count_words`,
+      `_format_reading_time`, `_chunk_text_by_length`,
+      `_get_chunk_filename`, `_get_voice_path`,
+      `_process_sections_to_chunks`), mocked-subprocess tests
+      (`_generate_audio`, `_apply_speed_with_ffmpeg`,
+      `_process_chunk_audio` caching logic), mocked-collaborator tests
+      (`_handle_final_output`), `_parse()`, and `_main()` in dry-run mode
+      (both plain-file and `--select` branches).
+  - Left uncovered (low ROI / needs real hardware or interactive input):
+    `_play_audio_with_controls` (real `pygame`/`pynput` audio playback)
+    and the non-dry-run branch of `_main()` (uses `tqdm` + blocking
+    `input()`).
+  - **Pre-existing environment issue found (not fixed, out of scope)**:
+    `Test__extract_markdown_section::test1,2,4,5,6,7` fail in this sandbox
+    because `_extract_markdown_section()` shells out to `lint_txt.py`,
+    which tries to build a docker container for `prettier` and the local
+    container daemon isn't running (`XPC connection error`). This is a
+    local environment limitation, not a code bug; these tests should pass
+    in an environment with a working container runtime.
 - [ ] `test/test_render_images.py` (64% -> ?) - not started
 - [ ] `test/test_check_links.py` (65% -> ?) - not started
 - [ ] `test/test_lib_notes_to_pdf.py` (72% -> ?) - not started
@@ -61,10 +86,9 @@ mocking, etc.):
 
 ### Next steps
 
-1. Fix the 2 failing tests in `test/test_generate_images.py`, verify full
-   file coverage.
-2. Proceed through the remaining 8 Phase 3 files in the order above.
-3. Then tackle Phase 2, Phase 4, Phase 5 (not yet started).
+1. Proceed through the remaining 7 Phase 3 files in the order above,
+   starting with `test/test_render_images.py`.
+2. Then tackle Phase 2, Phase 4, Phase 5 (not yet started).
 
 ---
 
@@ -235,3 +259,10 @@ Phase 5 — thin docker/network wrappers, low ROI
 Note
 
 test_summarize_chapters.py (46%), test_notes_to_pdf.py (85%), test_piper_markdown_reader.py (80%) are themselves under 100% — worth a quick look for dead/skipped test branches before adding new tests on top.
+
+# Important
+- When writing code you must always follow the instructions in
+  `.claude/skills/coding.rules.md`
+
+- When writing unit tests for follow the instructions in
+  `.claude/skills/testing.rules.md`

@@ -154,6 +154,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
 
+    # TODO(ai_gp): Move text = hprint.dedent(text) in _helper
     def test1(self) -> None:
         """
         Test extraction of URLs from Markdown-style links.
@@ -442,6 +443,7 @@ class Test_check_links_in_file(hunitest.TestCase):
             str(sorted(reachable_urls)), str(sorted(expected_reachable_urls))
         )
 
+    # TODO(ai_gp): Move test_content = hprint.dedent(test_content) in _helper
     def test1(self) -> None:
         """
         Test checking links in a file with reachable URLs.
@@ -461,6 +463,7 @@ class Test_check_links_in_file(hunitest.TestCase):
         # Run test.
         self._helper(test_content, expected_urls, expected_broken_count)
 
+    # TODO(ai_gp): Can this be changed so that it can call _helper? If not, why?
     def test2(self) -> None:
         """
         Test checking links in a file with broken URLs.

@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "source notify2.sh --timeout 5 --title 'CC idle'"
+            "command": "source notify2.sh --timeout 10 --title 'CC idle'"
           }
         ]
       },
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "source notify2.sh --timeout 5 --title 'CC needs input'"
+            "command": "source notify2.sh --timeout 10 --title 'CC needs input'"
           }
         ]
       }
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "source notify2.sh --timeout 5 --title 'CC is stopped'"
+            "command": "source notify2.sh --timeout 10 --title 'CC is stopped'"
           }
         ]
       }
