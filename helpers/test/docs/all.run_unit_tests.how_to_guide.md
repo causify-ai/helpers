@@ -721,13 +721,13 @@ flowchart LR
 
 ### JUnit XML reporting
 
-- `helpers.hpytest.JUnitReporter` parses JUnit XML produced by
+- `helpers.hjunit_reporter.JUnitReporter` parses JUnit XML produced by
   `pytest --junitxml=results.xml` and prints a colored summary
 
   ```python
-  import helpers.hpytest as hpytest
+  import helpers.hjunit_reporter as hjunrepo
 
-  reporter = hpytest.JUnitReporter("results.xml")
+  reporter = hjunrepo.JUnitReporter("results.xml")
   reporter.parse()
   reporter.print_summary()
   ```

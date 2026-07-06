@@ -1,228 +1,119 @@
-import io
-import os
-import pprint
-import re
-from contextlib import redirect_stdout
-
-import pytest
-
-# TODO(heanh): add `junitparser` in `//helpers` image.
-pytest.importorskip("junitparser")
-
-import helpers.hio as hio  # noqa: E402
-import helpers.hpytest as hpytest  # noqa: E402
-import helpers.hunit_test as hunitest  # noqa: E402
-
-
-def _strip_color_codes(text: str) -> str:
-    """
-    Remove ANSI color escape codes from text.
-
-    :param text: text to strip the color codes from
-    :return: text with the color codes removed
-    """
-    # Remove ANSI escape codes.
-    txt = re.sub(r"\033\[[0-9;]*m", "", text)
-    return txt
+import helpers.hprint as hprint
+import helpers.hpytest as hpytest
+import helpers.hunit_test as hunitest
 
 
 # #############################################################################
-# Test_JUnitReporter
+# Test_parse_failed_tests
 # #############################################################################
 
 
-class Test_JUnitReporter(hunitest.TestCase):
-    """
-    Test scenario where there are passed, skipped tests with leads to `PASSED`
-    result.
-    """
+class Test_parse_failed_tests(hunitest.TestCase):
+    def get_pytest_text1(self) -> str:
+        txt = """
+        20:48:15 - ^[[36mINFO ^[[0m hdbg.py init_logger:1018                               > cmd='/venv/bin/pytest helpers_root/dev_scripts_helpers/documentation/'
+        collected 47 items
 
-    def helper(self) -> hpytest.JUnitReporter:
-        """
-        Helper function to create a `JUnitReporter` object.
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1 (2.07 s) FAILED [  2%]
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1 (0.00 s) PASSED [  4%]
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2 (0.00 s) PASSED [  6%]
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3 (0.00 s) PASSED [  8%]
 
-        :return: `JUnitReporter` object
-        """
-        xml_str = """
-        <testsuites>
-            <testsuite name="dummy-test-suite-1" errors="0" failures="0" skipped="1" tests="2" time="2" timestamp="2025-01-01T12:00:00.000000+00:00" hostname="dummy-host">
-                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_dummy_function" time="1" />
-                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_another_function" time="1">
-                    <skipped type="pytest.skip" message="Dummy skip message for testing purposes.">/app/dummy/test/test_module.py:25: Dummy skip message for testing purposes.</skipped>
-                </testcase>
-            </testsuite>
-            <testsuite name="dummy-test-suite-2" errors="0" failures="0" skipped="0" tests="0" time="1" timestamp="2025-01-01T12:01:00.000000+00:00" hostname="dummy-host" />
-        </testsuites>
-        """
-        input_dir = self.get_scratch_space()
-        input_file_path = os.path.join(input_dir, "test.xml")
-        hio.to_file(input_file_path, xml_str)
-        reporter = hpytest.JUnitReporter(input_file_path)
-        return reporter
 
-    def test_parse(self) -> None:
-        """
-        Test parsing the JUnit XML file.
-        """
-        reporter = self.helper()
-        reporter.parse()
-        actual = pprint.pformat(reporter.overall_stats)
-        expected = r"""
-        {'error': 0,
-        'failed': 0,
-        'passed': 1,
-        'skipped': 1,
-        'total_tests': 2,
-        'total_time': 3.0}
-        """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        =================================== FAILURES ===================================
+        _________________________ Test_preprocess_notes1.test1 _________________________
 
-    def test_print_summary(self) -> None:
-        """
-        Test printing the summary of the results from JUnit XML file.
-        """
-        reporter = self.helper()
-        reporter.parse()
-        captured_output = io.StringIO()
-        with redirect_stdout(captured_output):
-            reporter.print_summary()
-        actual = captured_output.getvalue()
-        actual = _strip_color_codes(actual)
-        expected = r"""
-        ======================================================================
-        collected 2 items
+        FAILED helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1 - AttributeError: 'list' object has no attribute 'split'
+        FAILED helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2 - RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes
 
-        ======================================================================
-        Test: dummy-test-suite-1
-        Timestamp: 2025-01-01T12:00:00.000000+00:00
-        ----------------------------------------------------------------------
-        dummy.test.test_module.DummyTestCase::test_dummy_function PASSED (1.000s)
-        dummy.test.test_module.DummyTestCase::test_another_function SKIPPED (1.000s)
-        Summary: 1 passed, 1 skipped in 2.000s
-
-        ======================================================================
-        Test: dummy-test-suite-2
-        Timestamp: 2025-01-01T12:01:00.000000+00:00
-        ----------------------------------------------------------------------
-        Summary: no tests in 1.000s
-
-        ======================================================================
-        Summary: 1 passed, 1 skipped in 3.00s
-        Result: PASSED
+        ======================== 4 failed, 43 passed in 40.48s =========================
         """
+        txt = hprint.dedent(txt)
+        return txt
+
+    def helper(
+        self,
+        txt: str,
+        only_file: bool,
+        only_class: bool,
+        exp_failed_tests: str,
+        exp_num_failed: int,
+        exp_num_passed: int,
+    ) -> None:
+        act_failed_tests, act_num_failed, act_num_passed = (
+            hpytest.parse_failed_tests(txt, only_file, only_class)
+        )
+        act_failed_tests = "\n".join(act_failed_tests)
         self.assert_equal(
-            actual,
-            expected,
+            act_failed_tests,
+            exp_failed_tests,
             dedent=True,
-            fuzzy_match=True,
+            remove_lead_trail_empty_lines=True,
+        )
+        self.assertEqual(act_num_failed, exp_num_failed)
+        self.assertEqual(act_num_passed, exp_num_passed)
+
+    def test1(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = False
+        only_class = False
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1
+        """
+        exp_num_failed = 4
+        exp_num_passed = 43
+        # Check.
+        self.helper(
+            txt,
+            only_file,
+            only_class,
+            exp_failed_tests,
+            exp_num_failed,
+            exp_num_passed,
         )
 
-
-# #############################################################################
-# Test_JUnitReporter2
-# #############################################################################
-
-
-class Test_JUnitReporter2(hunitest.TestCase):
-    """
-    Test scenario where there are passed, error, failed, and skipped tests with
-    leads to `FAILED` result.
-    """
-
-    def helper(self) -> hpytest.JUnitReporter:
+    def test2(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = True
+        only_class = False
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py
         """
-        Helper function to create a `JUnitReporter` object.
+        exp_num_failed = 4
+        exp_num_passed = 43
+        # Check.
+        self.helper(
+            txt,
+            only_file,
+            only_class,
+            exp_failed_tests,
+            exp_num_failed,
+            exp_num_passed,
+        )
 
-        :return: `JUnitReporter` object
+    def test3(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = False
+        only_class = True
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3
         """
-        xml_str = """
-        <testsuites>
-            <testsuite name="dummy-test-suite-1" errors="0" failures="0" skipped="1" tests="2" time="2" timestamp="2025-01-01T12:00:00.000000+00:00" hostname="dummy-host">
-                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_dummy_function" time="1" />
-                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_another_function" time="1">
-                    <skipped type="pytest.skip" message="Dummy skip message for testing purposes.">/app/dummy/test/test_module.py:25: Dummy skip message for testing purposes.</skipped>
-                </testcase>
-            </testsuite>
-            <testsuite name="dummy-test-suite-2" errors="1" failures="1" skipped="0" tests="3" time="3" timestamp="2025-01-01T12:01:00.000000+00:00" hostname="dummy-host">
-                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_passed_function" time="1" />
-                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_failed_function" time="1">
-                    <failure type="AssertionError" message="Dummy failure message for testing purposes.">/app/dummy/test/test_module.py:30: Dummy failure message for testing purposes.</failure>
-                </testcase>
-                <testcase classname="dummy.test.test_module.DummyTestCase" name="test_error_function" time="1">
-                    <error type="RuntimeError" message="Dummy error message for testing purposes.">/app/dummy/test/test_module.py:35: Dummy error message for testing purposes.</error>
-                </testcase>
-            </testsuite>
-            <testsuite name="dummy-test-suite-3" errors="0" failures="0" skipped="0" tests="0" time="1" timestamp="2025-01-01T12:02:00.000000+00:00" hostname="dummy-host" />
-        </testsuites>
-        """
-        input_dir = self.get_scratch_space()
-        input_file_path = os.path.join(input_dir, "test.xml")
-        hio.to_file(input_file_path, xml_str)
-        reporter = hpytest.JUnitReporter(input_file_path)
-        return reporter
-
-    def test_parse(self) -> None:
-        """
-        Test parsing the JUnit XML file.
-        """
-        reporter = self.helper()
-        reporter.parse()
-        actual = pprint.pformat(reporter.overall_stats)
-        expected = r"""
-        {'error': 1,
-        'failed': 1,
-        'passed': 2,
-        'skipped': 1,
-        'total_tests': 5,
-        'total_time': 6.0}
-        """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
-
-    def test_print_summary(self) -> None:
-        """
-        Test printing the summary of the results from JUnit XML file.
-        """
-        reporter = self.helper()
-        reporter.parse()
-        captured_output = io.StringIO()
-        with redirect_stdout(captured_output):
-            reporter.print_summary()
-        actual = captured_output.getvalue()
-        actual = _strip_color_codes(actual)
-        expected = r"""
-        ======================================================================
-        collected 5 items
-
-        ======================================================================
-        Test: dummy-test-suite-1
-        Timestamp: 2025-01-01T12:00:00.000000+00:00
-        ----------------------------------------------------------------------
-        dummy.test.test_module.DummyTestCase::test_dummy_function PASSED (1.000s)
-        dummy.test.test_module.DummyTestCase::test_another_function SKIPPED (1.000s)
-        Summary: 1 passed, 1 skipped in 2.000s
-
-        ======================================================================
-        Test: dummy-test-suite-2
-        Timestamp: 2025-01-01T12:01:00.000000+00:00
-        ----------------------------------------------------------------------
-        dummy.test.test_module.DummyTestCase::test_passed_function PASSED (1.000s)
-        dummy.test.test_module.DummyTestCase::test_failed_function FAILED (1.000s)
-        dummy.test.test_module.DummyTestCase::test_error_function ERROR (1.000s)
-        Summary: 1 passed, 1 failed, 1 error in 3.000s
-
-        ======================================================================
-        Test: dummy-test-suite-3
-        Timestamp: 2025-01-01T12:02:00.000000+00:00
-        ----------------------------------------------------------------------
-        Summary: no tests in 1.000s
-
-        ======================================================================
-        Summary: 2 passed, 1 failed, 1 error, 1 skipped in 6.00s
-        Result: FAILED
-        """
-        self.assert_equal(
-            actual,
-            expected,
-            dedent=True,
-            fuzzy_match=True,
+        exp_num_failed = 4
+        exp_num_passed = 43
+        # Check.
+        self.helper(
+            txt,
+            only_file,
+            only_class,
+            exp_failed_tests,
+            exp_num_failed,
+            exp_num_passed,
         )

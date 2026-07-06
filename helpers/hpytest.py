@@ -6,11 +6,9 @@ import helpers.hpytest as hpytest
 
 import logging
 import os
+import re
 import shutil
-import sys
-from typing import List, Optional
-
-import junitparser
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -87,180 +85,69 @@ def pytest_clean(dir_name: str, preview: bool = False) -> None:
 
 
 # #############################################################################
-# JUnitReporter
+# Parse failed tests.
 # #############################################################################
 
 
-class JUnitReporter:
-    def __init__(self, xml_file: str):
-        self.xml_file = xml_file
-        self.xml_data = None
-        self.overall_stats = {
-            "passed": 0,
-            "failed": 0,
-            "error": 0,
-            "skipped": 0,
-            "total_time": 0.0,
-            "total_tests": 0,
-        }
+def parse_failed_tests(
+    txt: str, only_file: bool, only_class: bool
+) -> Tuple[List[str], int, int]:
+    """
+    Parse the failed tests from the pytest output.
 
-    def _load(self) -> None:
-        """
-        Load the JUnit XML file.
-        """
-        self.xml_data = junitparser.JUnitXml.fromfile(self.xml_file)
-
-    def parse(self):
-        """
-        Parse the JUnit XML file.
-        """
-        try:
-            self._load()
-            # Calculate overall statistics.
-            for suite in self.xml_data:
-                if isinstance(suite, junitparser.TestSuite):
-                    self.overall_stats["total_time"] += suite.time or 0
-                    self.overall_stats["total_tests"] += suite.tests or 0
-                    self.overall_stats["passed"] += (
-                        (suite.tests or 0)
-                        - (suite.failures or 0)
-                        - (suite.errors or 0)
-                        - (suite.skipped or 0)
-                    )
-                    self.overall_stats["failed"] += suite.failures or 0
-                    self.overall_stats["error"] += suite.errors or 0
-                    self.overall_stats["skipped"] += suite.skipped or 0
-        except Exception as e:
-            print(hprint.color_highlight(f"Error parsing XML file: {e}", "red"))
-            sys.exit(1)
-
-    def _get_colored_status(self, case: junitparser.TestCase) -> str:
-        """
-        Get the colored status representation of test case.
-        """
-        if not case.result or len(case.result) == 0:
-            return hprint.color_highlight("PASSED", "green")
-        result_type = case.result[0].__class__.__name__
-        if result_type == "Failure":
-            return hprint.color_highlight("FAILED", "red")
-        elif result_type == "Error":
-            return hprint.color_highlight("ERROR", "red")
-        elif result_type == "Skipped":
-            return hprint.color_highlight("SKIPPED", "yellow")
-        else:
-            return hprint.color_highlight("PASSED", "green")
-
-    def _print_detailed_results(self):
-        print(hprint.color_highlight("=" * 70, "bold"))
-        print(
-            hprint.color_highlight(
-                f"collected {self.overall_stats['total_tests']} items", "bold"
-            )
+    :param only_file: return only the file name
+    :param only_class: return only the class name
+    :return:
+        - failed_tests: list of failed tests
+        - num_failed: number of failed tests
+        - num_passed: number of passed tests
+    """
+    hdbg.dassert_lte(only_file + only_class, 1)
+    failed_tests = []
+    num_failed = num_passed = 0
+    for line in txt.split("\n"):
+        _LOG.debug("line=%s", line)
+        # Remove ANSI color codes (both ESC-based and bracket notation).
+        line = re.sub(r"\x1b\[[0-9;]*m|\[[0-9;]*m", "", line)
+        # Remove other non-printable characters.
+        line = re.sub(r"[^\x20-\x7E]", "", line)
+        # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
+        m = re.search(r"^(FAILED|ERROR) (\S+) -", line)
+        if m:
+            test_name = m.group(2)
+            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
+            failed_tests.append(test_name)
+        # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_gp1 (0.00 s) PASSED [ 36%]
+        m = re.search(r"(\S+) \(\S+ s\) (FAILED|ERROR)", line)
+        if m:
+            test_name = m.group(1)
+            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
+            failed_tests.append(test_name)
+        # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
+        # ======================== 4 failed, 43 passed in 40.48s =========================
+        m = re.search(r"=+\s+(\d+)\s+failed,\s+(\d+)\s+passed.*", line)
+        if m:
+            num_failed = int(m.group(1))
+            num_passed = int(m.group(2))
+    failed_tests = sorted(list(set(failed_tests)))
+    #
+    if num_failed and num_passed and num_failed != len(failed_tests):
+        _LOG.warning(
+            "n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
         )
-        for _, suite in enumerate(self.xml_data):
-            if not isinstance(suite, junitparser.TestSuite):
-                continue
-            # Print suite header.
-            print(f"\n{hprint.color_highlight('=' * 70, 'blue')}")
-            print(hprint.color_highlight(f"Test: {suite.name}", "bold"))
-            print(
-                hprint.color_highlight(
-                    f"Timestamp: {getattr(suite, 'timestamp', 'Unknown')}",
-                    "bold",
-                )
-            )
-            print(hprint.color_highlight("-" * 70, "blue"))
-            # Print each test case.
-            for case in suite:
-                if isinstance(case, junitparser.TestCase):
-                    status_display = self._get_colored_status(case)
-                    test_time = getattr(case, "time", 0) or 0
-                    print(
-                        f"  {case.classname}::{case.name} {status_display} ({test_time:.3f}s)"
-                    )
-            # Print suite summary.
-            suite_passed = (
-                (suite.tests or 0)
-                - (suite.failures or 0)
-                - (suite.errors or 0)
-                - (suite.skipped or 0)
-            )
-            summary_parts = []
-            if suite_passed > 0:
-                summary_parts.append(
-                    hprint.color_highlight(f"{suite_passed} passed", "green")
-                )
-            if suite.failures and suite.failures > 0:
-                summary_parts.append(
-                    hprint.color_highlight(f"{suite.failures} failed", "red")
-                )
-            if suite.errors and suite.errors > 0:
-                summary_parts.append(
-                    hprint.color_highlight(f"{suite.errors} error", "red")
-                )
-            if suite.skipped and suite.skipped > 0:
-                summary_parts.append(
-                    hprint.color_highlight(f"{suite.skipped} skipped", "WARNING")
-                )
-            suite_summary = (
-                ", ".join(summary_parts) if summary_parts else "no tests"
-            )
-            suite_time = getattr(suite, "time", 0) or 0
-            print(
-                hprint.color_highlight(
-                    f"Summary: {suite_summary} in {suite_time:.3f}s", "INFO"
-                )
-            )
-
-    def _print_final_summary(self):
-        summary_parts = []
-        if self.overall_stats["passed"] > 0:
-            summary_parts.append(
-                hprint.color_highlight(
-                    f"{self.overall_stats['passed']} passed", "green"
-                )
-            )
-        if self.overall_stats["failed"] > 0:
-            summary_parts.append(
-                hprint.color_highlight(
-                    f"{self.overall_stats['failed']} failed", "red"
-                )
-            )
-        if self.overall_stats["error"] > 0:
-            summary_parts.append(
-                hprint.color_highlight(
-                    f"{self.overall_stats['error']} error", "red"
-                )
-            )
-        if self.overall_stats["skipped"] > 0:
-            summary_parts.append(
-                hprint.color_highlight(
-                    f"{self.overall_stats['skipped']} skipped", "yellow"
-                )
-            )
-        summary_text = ", ".join(summary_parts) if summary_parts else "no tests"
-        time_text = "in " + hprint.color_highlight(
-            f"{self.overall_stats['total_time']:.2f}s", "bold"
-        )
-        # Determine overall status
-        if self.overall_stats["failed"] > 0 or self.overall_stats["error"] > 0:
-            status_indicator = hprint.color_highlight("FAILED", "red")
-        elif (
-            self.overall_stats["skipped"] > 0
-            and self.overall_stats["passed"] == 0
-        ):
-            status_indicator = hprint.color_highlight("SKIPPED", "yellow")
-        else:
-            status_indicator = hprint.color_highlight("PASSED", "green")
-        # Print summary.
-        print(f"\n{hprint.color_highlight('=' * 70, 'bold')}")
-        print(
-            hprint.color_highlight(
-                f"Summary: {summary_text} {time_text}", "INFO"
-            )
-        )
-        print(hprint.color_highlight(f"Result: {status_indicator}", "INFO"))
-
-    def print_summary(self):
-        self._print_detailed_results()
-        self._print_final_summary()
+    print(f"Failed tests: {num_failed}/{num_passed}")
+    # Filter, if needed.
+    if only_file or only_class:
+        failed_tests_tmp = []
+        for test in failed_tests:
+            # oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3
+            m = re.match(r"(\S+)::(\S+)::\S+$", test)
+            hdbg.dassert(m, f"Can't parse '{test}'")
+            if only_file:
+                failed_tests_tmp.append(m.group(1))
+            elif only_class:
+                failed_tests_tmp.append(m.group(1) + "::" + m.group(2))
+            else:
+                raise RuntimeError("Unexpected")
+        failed_tests = sorted(list(set(failed_tests_tmp)))
+    return failed_tests, num_failed, num_passed

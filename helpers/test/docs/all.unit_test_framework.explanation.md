@@ -48,6 +48,7 @@ graph TD
     conftest["conftest.py\n(registers CLI flags,\ntranslates to global state)"] -->|set_update_tests\nset_incremental_tests| hunit["helpers/hunit_test.py\n(TestCase class)"]
     hunit --> hunitutils["helpers/hunit_test_utils.py\n(UnitTestRenamer, env gates,\ntest discovery)"]
     hunit --> hpytest["helpers/hpytest.py\n(pytest plugin helpers,\ncoverage utilities)"]
+    hunit --> hjunrepo["helpers/hjunit_reporter.py\n(JUnitReporter)"]
     hunit -->|purify_text| hpurify["helpers/hunit_test_purification.py\n(purify_txt_from_client)"]
     hmoto["helpers/hmoto.py\n(S3Mock_TestCase)"] -->|inherits| hunit
     UserTest["user test file\ntest_*.py"] -->|inherits| hunit
@@ -58,6 +59,7 @@ graph TD
 | `helpers/hunit_test.py` | Core `TestCase` base class — golden files, directory helpers, comparison methods |
 | `helpers/hunit_test_utils.py` | Utilities — `UnitTestRenamer`, environment gates, test file discovery, `capture_system_calls()` |
 | `helpers/hpytest.py` | Pytest plugin helpers and coverage utilities |
+| `helpers/hjunit_reporter.py` | `JUnitReporter` — parses JUnit XML and prints a colored summary |
 | `helpers/hunit_test_purification.py` | `purify_txt_from_client()` — strips machine-specific noise (paths, usernames) when `purify_text=True` |
 | `helpers/hmoto.py` | `S3Mock_TestCase` — base class for tests that mock AWS S3 via `moto` |
 | `conftest.py` | Wires pytest command-line flags into global variables in `hunit_test.py` |

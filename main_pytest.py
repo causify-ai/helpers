@@ -16,8 +16,8 @@ import junitparser
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hjunit_reporter as hjunrepo
 import helpers.hparser as hparser
-import helpers.hpytest as hpytest
 import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
@@ -232,7 +232,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         combined_junit_xml_file = "tmp.combined_junit.xml"
         combined_junit_xml.write(combined_junit_xml_file)
         # Print report based on the combined junit xml file.
-        reporter = hpytest.JUnitReporter(combined_junit_xml_file)
+        reporter = hjunrepo.JUnitReporter(combined_junit_xml_file)
         reporter.parse()
         reporter.print_summary()
     except Exception as e:
