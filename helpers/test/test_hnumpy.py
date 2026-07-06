@@ -72,7 +72,9 @@ class TestFloorWithPrecision(hunitest.TestCase):
         precision: int,
         expected: str,
     ) -> None:
-        """ """
+        """
+         
+        """
         actual = hnumpy.floor_with_precision(value, precision)
         self.assert_equal(str(actual), expected)
 

@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Dict, List, Optional
 
@@ -9,7 +8,6 @@ pytest.importorskip("graphviz")
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import helpers.hunit_test_purification as huntepur
 import import_check.show_imports as ichshimp
 
 _LOG = logging.getLogger(__name__)
@@ -249,9 +247,7 @@ class Test_show_imports(hunitest.TestCase):
             "The following dirs have to be modules (add `__init__.py`): "
             "['$GIT_ROOT/import_check/test/outcomes/Test_show_imports.test10/input']"
         )
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test11(self) -> None:
         """

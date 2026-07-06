@@ -185,7 +185,6 @@ class Test_purify_text1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-
     def test13(self) -> None:
         """
         Test purification of a full docker run command with API keys,
@@ -625,8 +624,12 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         Test stripping the super-module prefix from a `<module.Class object
         at 0x...>`-style repr.
         """
-        txt = "<csfy1.helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
-        expected = "<helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
+        txt = (
+            "<csfy1.helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
+        )
+        expected = (
+            "<helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
+        )
         self.helper("/Users/user/src/csfy1", txt, expected)
 
     def test3(self) -> None:
@@ -1289,7 +1292,6 @@ class Test_purify_file_names1(hunitest.TestCase):
 
 
 class Test_purify_apple_container_output1(hunitest.TestCase):
-
     def helper(self, txt: str, expected: str) -> None:
         actual = huntepur.purify_apple_container_output(txt)
         self.assert_equal(actual, expected)
@@ -1298,12 +1300,15 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test removing single container startup line.
         """
-        # TODO(ai_gp): Use variables like
-        # txt = """
-        # ...
-        # txt = hprint.dedent(txt)
-        txt = "[0/6] [0s]\ndot - graphviz version 12.2.1 (20241206.2353)\n"
-        expected = "dot - graphviz version 12.2.1 (20241206.2353)\n\n"
+        txt = """
+        [0/6] [0s]
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """
+        txt = hprint.dedent(txt)
+        expected = """
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """
+        expected = hprint.dedent(expected)
         self.helper(txt, expected)
 
     def test2(self) -> None:
