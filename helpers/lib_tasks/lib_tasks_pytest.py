@@ -1671,6 +1671,7 @@ def pytest_failed(
     _LOG.info("Parsing %s", file_name)
     failed_tests, _, _ = hpytest.parse_failed_tests(txt, only_file, only_class)
     print("\n".join(failed_tests))
+    # TODO(ai_gp): Factor out this into a function in hpytest.py
     # Write the repro in a file.
     repro_file_name = "tmp.pytest_failed.sh"
     repro_txt = "pytest_log " + " ".join(failed_tests) + " $*"

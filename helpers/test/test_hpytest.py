@@ -4,6 +4,98 @@ import helpers.hunit_test as hunitest
 
 
 # #############################################################################
+# Test__parse_github_ci_log
+# #############################################################################
+
+
+class Test__parse_github_ci_log(hunitest.TestCase):
+    def helper(self, txt: str, exp_info: str, exp_log: str) -> None:
+        txt = hprint.dedent(txt)
+        act_info, act_log = hpytest._parse_github_ci_log(txt)
+        act_info_as_str = "\n".join(
+            f"{k}={v}" for k, v in sorted(act_info.items())
+        )
+        self.assert_equal(
+            act_info_as_str,
+            exp_info,
+            dedent=True,
+            remove_lead_trail_empty_lines=True,
+        )
+        self.assert_equal(
+            act_log,
+            exp_log,
+            dedent=True,
+            remove_lead_trail_empty_lines=True,
+        )
+
+    def test1(self) -> None:
+        # Prepare inputs and outputs.
+        txt = (
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:35.1181332Z Current runner version: '2.335.1'\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T18:04:49.3717677Z Post job cleanup.\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T18:04:49.6516170Z Cleaning up orphan processes\n"
+        )
+        exp_info = """
+        github_completed=True
+        github_end_timestamp=2026-07-06T18:04:49.6516170Z
+        github_start_timestamp=2026-07-06T17:59:35.1181332Z
+        github_tag=run_fast_tests
+        """
+        exp_log = """
+        Current runner version: '2.335.1'
+        Post job cleanup.
+        Cleaning up orphan processes
+        """
+        # Check.
+        self.helper(txt, exp_info, exp_log)
+
+    def test2(self) -> None:
+        # Prepare inputs and outputs.
+        txt = (
+            "run_slow_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:35.1181332Z ##[group]Run tests\n"
+            "run_slow_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T18:04:49.3717677Z ##[error]Process completed\n"
+        )
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=2026-07-06T18:04:49.3717677Z
+        github_start_timestamp=2026-07-06T17:59:35.1181332Z
+        github_tag=run_slow_tests
+        """
+        exp_log = """
+        ##[group]Run tests
+        ##[error]Process completed
+        """
+        # Check.
+        self.helper(txt, exp_info, exp_log)
+
+    def test3(self) -> None:
+        # Prepare inputs and outputs: first line has a leading BOM before the timestamp.
+        txt = (
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t﻿"
+            "2026-07-06T17:59:35.1143554Z Current runner version: '2.335.1'\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:35.1181332Z ##[group]Runner Image\n"
+        )
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=2026-07-06T17:59:35.1181332Z
+        github_start_timestamp=2026-07-06T17:59:35.1143554Z
+        github_tag=run_fast_tests
+        """
+        exp_log = """
+        Current runner version: '2.335.1'
+        ##[group]Runner Image
+        """
+        # Check.
+        self.helper(txt, exp_info, exp_log)
+
+
+# #############################################################################
 # Test_parse_failed_tests
 # #############################################################################
 

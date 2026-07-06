@@ -8,7 +8,7 @@ import logging
 import os
 import re
 import shutil
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -87,6 +87,59 @@ def pytest_clean(dir_name: str, preview: bool = False) -> None:
 # #############################################################################
 # Parse failed tests.
 # #############################################################################
+
+
+def _parse_github_ci_log(txt: str) -> Tuple[Dict[str, Any], str]:
+    """
+    Parse a GitHub Actions CI log and strip the per-line step tag.
+
+    Each line of a raw GitHub Actions log is prefixed with a tag like:
+    ```
+    run_fast_tests / run_tests    UNKNOWN STEP    2026-07-06T17:59:35.1181332Z
+    ```
+    This function removes the tag from each line, extracting the job tag and
+    the timestamps of the first and last line, and detects whether the job
+    ran to completion.
+
+    :param txt: raw GitHub Actions log text with tab-separated tags
+    :return:
+        - info: dict with:
+          - `github_tag`: job tag, e.g., "run_fast_tests"
+          - `github_start_timestamp`: timestamp of the first tagged line
+          - `github_end_timestamp`: timestamp of the last tagged line
+          - `github_completed`: True if the log contains "Post job cleanup"
+        - log: the log content with the tags removed
+    """
+    # TODO(ai_gp): Instantiate the dict here and fill it as events are detected
+    # instead of the end.
+    github_tag = None
+    timestamps: List[str] = []
+    lines = []
+    # Match a per-line GitHub Actions step tag, e.g.,
+    # `run_fast_tests / run_tests\tUNKNOWN STEP\t2026-07-06T17:59:35.1181332Z `,
+    # and capture the job tag, the timestamp, and the rest of the line.
+    # TODO(ai_gp): Use the verbose approach to regex.
+    _GITHUB_CI_LOG_TAG_REGEX = re.compile(
+        r"^([^\t]+)\tUNKNOWN STEP\t\ufeff?(\S+)\s?(.*)$"
+    )
+    for line in txt.split("\n"):
+        m = _GITHUB_CI_LOG_TAG_REGEX.match(line)
+        if not m:
+            lines.append(line)
+            continue
+        tag, timestamp, content = m.groups()
+        if github_tag is None:
+            github_tag = tag.split("/")[0].strip()
+        timestamps.append(timestamp)
+        lines.append(content)
+    log = "\n".join(lines)
+    info: Dict[str, Any] = {
+        "github_tag": github_tag,
+        "github_start_timestamp": timestamps[0],
+        "github_end_timestamp": timestamps[-1],
+        "github_completed": "Post job cleanup" in log,
+    }
+    return info, log
 
 
 def parse_failed_tests(
