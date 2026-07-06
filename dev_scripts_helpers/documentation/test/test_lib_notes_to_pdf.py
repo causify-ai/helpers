@@ -164,10 +164,7 @@ class Test_preprocess_notes(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        expected_str = huntepur.TextPurifier().purify_txt_from_client(
-            expected_str
-        )
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
 
 
 # #############################################################################
@@ -217,10 +214,7 @@ class Test_render_images(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        expected_str = huntepur.TextPurifier().purify_txt_from_client(
-            expected_str
-        )
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
 
 
 # #############################################################################
@@ -607,9 +601,10 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Rename this to Test_build_pandoc_latex_cmd
 class Test_build_pandoc_cmd(hunitest.TestCase):
     """
-    Test `_build_pandoc_cmd()` function for slide command building.
+    Test `_build_pandoc_latex_cmd()` function for slide command building.
     """
 
     def helper(
@@ -622,7 +617,7 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         toc_type: str = "none",
     ) -> None:
         """
-        Test helper for _build_pandoc_cmd.
+        Test helper for _build_pandoc_latex_cmd.
 
         :param file_name: Input slide file
         :param no_pdf: Whether to output TeX instead of PDF
@@ -635,7 +630,7 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         dockerized_force_rebuild = False
         dockerized_use_sudo = False
         # Run test.
-        cmd, output_file = dshdlntpd._build_pandoc_cmd(
+        cmd, output_file = dshdlntpd._build_pandoc_latex_cmd(
             file_name,
             toc_type,
             use_host_tools,
@@ -778,10 +773,7 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        expected_str = huntepur.TextPurifier().purify_txt_from_client(
-            expected_str
-        )
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
 
     def test1(self) -> None:
         """
@@ -971,10 +963,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
             curr_path, file_name, typ_file, typst_only
         )
         expected_str = pprint.pformat(expected_invocations)
-        expected_str = huntepur.TextPurifier().purify_txt_from_client(
-            expected_str
-        )
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
 
     def test1(self) -> None:
         """
@@ -1048,10 +1037,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
             curr_path, file_name, typ_file, typst_only
         )
         expected_str = pprint.pformat(expected_invocations)
-        expected_str = huntepur.TextPurifier().purify_txt_from_client(
-            expected_str
-        )
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
 
 
 # #############################################################################
@@ -1089,10 +1075,7 @@ class Test_copy_to_output(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        expected_str = huntepur.TextPurifier().purify_txt_from_client(
-            expected_str
-        )
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
 
     def test2(self) -> None:
         """
@@ -1149,10 +1132,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        expected_str = huntepur.TextPurifier().purify_txt_from_client(
-            expected_str
-        )
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
 
     def test1(self) -> None:
         """
@@ -1214,7 +1194,4 @@ class Test_compress_pdf(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        expected_str = huntepur.TextPurifier().purify_txt_from_client(
-            expected_str
-        )
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
