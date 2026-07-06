@@ -110,54 +110,85 @@ def _parse_github_ci_log(txt: str) -> Tuple[Dict[str, Any], str]:
           - `github_completed`: True if the log contains "Post job cleanup"
         - log: the log content with the tags removed
     """
-    # TODO(ai_gp): Instantiate the dict here and fill it as events are detected
-    # instead of the end.
-    github_tag = None
-    timestamps: List[str] = []
+    info: Dict[str, Any] = {}
     lines = []
     # Match a per-line GitHub Actions step tag, e.g.,
     # `run_fast_tests / run_tests\tUNKNOWN STEP\t2026-07-06T17:59:35.1181332Z `,
     # and capture the job tag, the timestamp, and the rest of the line.
-    # TODO(ai_gp): Use the verbose approach to regex.
-    _GITHUB_CI_LOG_TAG_REGEX = re.compile(
-        r"^([^\t]+)\tUNKNOWN STEP\t\ufeff?(\S+)\s?(.*)$"
+    github_ci_log_tag_regex = re.compile(
+        r"""
+        ^([^\t]+)             # job tag(s)
+        \tUNKNOWN\ STEP\t    # separator
+        \ufeff?                  # optional UTF-8 BOM
+        (\S+)                 # timestamp
+        \s?                   # optional whitespace
+        (.*)$                 # remaining content
+        """,
+        re.VERBOSE
     )
     for line in txt.split("\n"):
-        m = _GITHUB_CI_LOG_TAG_REGEX.match(line)
+        m = github_ci_log_tag_regex.match(line)
         if not m:
             lines.append(line)
             continue
         tag, timestamp, content = m.groups()
-        if github_tag is None:
-            github_tag = tag.split("/")[0].strip()
-        timestamps.append(timestamp)
+        if info["github_tag"] is None:
+            info["github_tag"] = tag.split("/")[0].strip()
+        if info["github_start_timestamp"] is None:
+            info["github_start_timestamp"] = timestamp
+        info["github_end_timestamp"] = timestamp
         lines.append(content)
     log = "\n".join(lines)
-    info: Dict[str, Any] = {
-        "github_tag": github_tag,
-        "github_start_timestamp": timestamps[0],
-        "github_end_timestamp": timestamps[-1],
-        "github_completed": "Post job cleanup" in log,
-    }
+    # TODO(ai_gp): Move it in the loop.
+    info["github_completed"] = "Post job cleanup" in log
     return info, log
 
 
 def parse_failed_tests(
     txt: str, only_file: bool, only_class: bool
-) -> Tuple[List[str], int, int]:
+) -> Dict[str, Any]:
     """
     Parse the failed tests from the pytest output.
 
     :param only_file: return only the file name
     :param only_class: return only the class name
-    :return:
-        - failed_tests: list of failed tests
-        - num_failed: number of failed tests
-        - num_passed: number of passed tests
+    :return: dict with:
+        - `failed_tests`: list of failed tests
+        - `num_failed`: number of failed tests
+        - `num_passed`: number of passed tests
+        - `pytest_started`: True if pytest reached the "test session
+          starts" banner
+        - `pytest_tag`: the `platform ... -- Python ..., pytest-..., ...`
+          line, or `None` if not found
+        - `pytest_collection_completed`: True if the "collected N items"
+          line was printed
+        - `pytest_ended`: True if the final summary line (e.g., "4 failed,
+          43 passed in 40.48s") was printed
+        - `pytest_reported_failed`: number of failed tests from the final
+          summary line, or `None` if not found
+        - `pytest_reported_passed`: number of passed tests from the final
+          summary line, or `None` if not found
+        - `pytest_reported_skipped`: number of skipped tests from the final
+          summary line, or `None` if not found
+        - `pytest_duration_in_secs`: run duration in seconds from the final
+          summary line, or `None` if not found
     """
     hdbg.dassert_lte(only_file + only_class, 1)
     failed_tests = []
     num_failed = num_passed = 0
+    info: Dict[str, Any] = {
+        "failed_tests": None,
+        "num_failed": None,
+        "num_passed": None,
+        "pytest_started": False,
+        "pytest_tag": None,
+        "pytest_collection_completed": False,
+        "pytest_ended": False,
+        "pytest_reported_failed": None,
+        "pytest_reported_passed": None,
+        "pytest_reported_skipped": None,
+        "pytest_duration_in_secs": None,
+    }
     for line in txt.split("\n"):
         _LOG.debug("line=%s", line)
         # Remove ANSI color codes (both ESC-based and bracket notation).
@@ -176,12 +207,33 @@ def parse_failed_tests(
             test_name = m.group(1)
             _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
             failed_tests.append(test_name)
+        # ============================= test session starts ==============================
+        if "test session starts" in line:
+            info["pytest_started"] = True
+        # platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        m = re.search(r"^platform \S+ --.*", line)
+        if m:
+            info["pytest_tag"] = m.group(0)
+        # collected 3361 items / 156 deselected / 7 skipped / 3205 selected
+        # collected 3421 items / 5 skipped
+        if re.search(r"^collected \d+ items", line):
+            info["pytest_collection_completed"] = True
         # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
         # ======================== 4 failed, 43 passed in 40.48s =========================
-        m = re.search(r"=+\s+(\d+)\s+failed,\s+(\d+)\s+passed.*", line)
+        m = re.search(
+            r"=+\s+(\d+)\s+failed,\s+(\d+)\s+passed"
+            r"(?:,\s+(\d+)\s+skipped)?.*?in\s+([\d.]+)s",
+            line,
+        )
         if m:
             num_failed = int(m.group(1))
             num_passed = int(m.group(2))
+            info["pytest_ended"] = True
+            info["pytest_reported_failed"] = num_failed
+            info["pytest_reported_passed"] = num_passed
+            if m.group(3) is not None:
+                info["pytest_reported_skipped"] = int(m.group(3))
+            info["pytest_duration_in_secs"] = float(m.group(4))
     failed_tests = sorted(list(set(failed_tests)))
     #
     if num_failed and num_passed and num_failed != len(failed_tests):
@@ -203,4 +255,7 @@ def parse_failed_tests(
             else:
                 raise RuntimeError("Unexpected")
         failed_tests = sorted(list(set(failed_tests_tmp)))
-    return failed_tests, num_failed, num_passed
+    info["failed_tests"] = failed_tests
+    info["num_failed"] = num_failed
+    info["num_passed"] = num_passed
+    return info

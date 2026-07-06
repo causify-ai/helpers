@@ -132,10 +132,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         exp_num_failed: int,
         exp_num_passed: int,
     ) -> None:
-        act_failed_tests, act_num_failed, act_num_passed = (
-            hpytest.parse_failed_tests(txt, only_file, only_class)
-        )
-        act_failed_tests = "\n".join(act_failed_tests)
+        act_info = hpytest.parse_failed_tests(txt, only_file, only_class)
+        act_failed_tests = "\n".join(act_info["failed_tests"])
+        act_num_failed = act_info["num_failed"]
+        act_num_passed = act_info["num_passed"]
         self.assert_equal(
             act_failed_tests,
             exp_failed_tests,
@@ -209,3 +209,108 @@ class Test_parse_failed_tests(hunitest.TestCase):
             exp_num_failed,
             exp_num_passed,
         )
+
+    def helper_info(self, txt: str, exp_info: str) -> None:
+        txt = hprint.dedent(txt)
+        act_info = hpytest.parse_failed_tests(
+            txt, only_file=False, only_class=False
+        )
+        act_info_as_str = "\n".join(
+            f"{k}={v}" for k, v in sorted(act_info.items())
+        )
+        self.assert_equal(
+            act_info_as_str,
+            exp_info,
+            dedent=True,
+            remove_lead_trail_empty_lines=True,
+        )
+
+    def test4(self) -> None:
+        """
+        Test the status dict when pytest never started (e.g., a Docker image
+        pull failure before pytest runs).
+        """
+        # Prepare inputs.
+        txt = """
+        Traceback (most recent call last):
+          File "invoke", line 8, in <module>
+            sys.exit(program.run())
+        RuntimeError: _system() failed
+        """
+        # Prepare outputs.
+        exp_info = """
+        failed_tests=[]
+        num_failed=0
+        num_passed=0
+        pytest_collection_completed=False
+        pytest_duration_in_secs=None
+        pytest_ended=False
+        pytest_reported_failed=None
+        pytest_reported_passed=None
+        pytest_reported_skipped=None
+        pytest_started=False
+        pytest_tag=None
+        """
+        # Check.
+        self.helper_info(txt, exp_info)
+
+    def test5(self) -> None:
+        """
+        Test the status dict when pytest started and collected tests but did
+        not print the final summary (e.g., the run was killed mid-way).
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 3421 items / 5 skipped
+
+        test_foo.py::Test_foo1::test1 (0.00 s) PASSED [ 0%]
+        """
+        # Prepare outputs.
+        exp_info = """
+        failed_tests=[]
+        num_failed=0
+        num_passed=0
+        pytest_collection_completed=True
+        pytest_duration_in_secs=None
+        pytest_ended=False
+        pytest_reported_failed=None
+        pytest_reported_passed=None
+        pytest_reported_skipped=None
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper_info(txt, exp_info)
+
+    def test6(self) -> None:
+        """
+        Test the status dict when pytest started, collected, and printed the
+        final summary line, including ANSI color codes and a skipped count.
+        """
+        # Prepare inputs.
+        txt = (
+            "\x1b[1m============================= test session starts =====\x1b[0m\n"
+            "platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python\n"
+            "collected 3361 items / 156 deselected / 7 skipped / 3205 selected\n"
+            "\n"
+            "\x1b[31m=========== \x1b[1m34 failed\x1b[0m, \x1b[32m3157 passed\x1b[0m, "
+            "\x1b[33m235 skipped\x1b[0m\x1b[31m in 886.58s (0:14:46)\x1b[0m\x1b[31m ===========\x1b[0m\n"
+        )
+        # Prepare outputs.
+        exp_info = """
+        failed_tests=[]
+        num_failed=34
+        num_passed=3157
+        pytest_collection_completed=True
+        pytest_duration_in_secs=886.58
+        pytest_ended=True
+        pytest_reported_failed=34
+        pytest_reported_passed=3157
+        pytest_reported_skipped=235
+        pytest_started=True
+        pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        """
+        # Check.
+        self.helper_info(txt, exp_info)

@@ -62,9 +62,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt = hio.from_file(args.input)
     # Extract info.
     _LOG.info("Parsing '%s'", args.input)
-    failed_tests, _, _ = hpytest.parse_failed_tests(
-        txt, args.only_file, args.only_class
-    )
+    info = hpytest.parse_failed_tests(txt, args.only_file, args.only_class)
+    failed_tests = info["failed_tests"]
     print("\n".join(failed_tests))
     # Write the repro in a file.
     repro_file_name = "tmp.pytest_failed.sh"
