@@ -8,14 +8,17 @@
       "Bash(bash ./tmp.pytest_repro.*.sh)",
       "WebFetch(domain:*)",
       "Bash(gh pr view:*)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(rtk grep *)",
+      "Bash(rtk pytest *)",
+      "Bash(rtk read *)"
     ],
     "deny": [
       "Bash(*git commit:*)",
       "Bash(*git push:*)"
     ]
   },
-  "model": "sonnet",
+  "model": "haiku",
   "hooks": {
     "Notification": [
       {
@@ -23,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "osascript -e 'display notification \"Claude Code is waiting for your input\" with title \"Claude Code Idle\" sound name \"Glass\"'"
+            "command": "source notify2.sh --timeout 10 --title 'CC idle'"
           }
         ]
       },
@@ -32,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "osascript -e 'display notification \"Claude Code needs your response\" with title \"Claude Code Dialog\" sound name \"Glass\"'"
+            "command": "source notify2.sh --timeout 10 --title 'CC needs input'"
           }
         ]
       }
@@ -43,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "notify.sh"
+            "command": "source notify2.sh --timeout 10 --title 'CC is stopped'"
           }
         ]
       }

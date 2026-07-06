@@ -1,11 +1,16 @@
 import logging
 import os
+from typing import Generator, List
+from unittest import mock
+
+import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import dev_scripts_helpers.documentation.extract_from_md as dshdefrmd
 
 _LOG = logging.getLogger(__name__)
 
@@ -55,13 +60,6 @@ class Test_extract_from_md_py(hunitest.TestCase):
         in_file = os.path.join(self.get_input_dir(), "input.md")
         hio.to_file(in_file, content)
 
-    def setUp(self) -> None:
-        """
-        Create test input file.
-        """
-        super().setUp()
-        self._create_test_input_file()
-
     def _run_script(self, input_file: str, args: str = "") -> str:
         """
         Helper to run the script and return output content.
@@ -80,18 +78,15 @@ class Test_extract_from_md_py(hunitest.TestCase):
         actual = hio.from_file(out_file)
         return actual
 
-    def _assert_script_fails(self, args: str, msg: str) -> None:
+    def _assert_script_fails(self, args: str) -> None:
         """
         Helper to assert that _run_script fails with given args.
 
         :param args: additional arguments to pass to script
-        :param msg: failure message if script doesn't raise
         """
-        try:
+        # Run test and check output.
+        with self.assertRaises(RuntimeError):
             self._run_script("input.md", args)
-            self.fail(msg)
-        except Exception as e:
-            _LOG.info(f"Got expected error: {e}")
 
     def helper(self, args: str, expected_output: str) -> None:
         """
@@ -100,12 +95,14 @@ class Test_extract_from_md_py(hunitest.TestCase):
         :param args: Command line arguments for the script
         :param expected_output: Expected output content
         """
-        # Run test.
-        actual = self._run_script("input.md", args)
+        # Prepare inputs.
+        self._create_test_input_file()
         # Prepare outputs.
         expected = hprint.dedent(expected_output)
+        # Run test.
+        actual = self._run_script("input.md", args)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -113,6 +110,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         """
         # Prepare inputs.
         args = "--select '# Methods:# Results'"
+        # Prepare outputs.
         expected_output = """
         # Methods
 
@@ -133,6 +131,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         """
         # Prepare inputs.
         args = "--select '## Background:## Motivation'"
+        # Prepare outputs.
         expected_output = """
         ## Background
 
@@ -147,6 +146,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         """
         # Prepare inputs.
         args = "--select '# Results'"
+        # Prepare outputs.
         expected_output = """
         # Results
 
@@ -162,9 +162,7 @@ class Test_extract_from_md_py(hunitest.TestCase):
         # Prepare inputs.
         args = "--select '## Data Collection:## Results'"
         # Run test and check output.
-        self._assert_script_fails(
-            args, "Expected script to fail when end header not found"
-        )
+        self._assert_script_fails(args)
 
     def test5(self) -> None:
         """
@@ -173,15 +171,111 @@ class Test_extract_from_md_py(hunitest.TestCase):
         # Prepare inputs.
         args = "--select '# Nonexistent'"
         # Run test and check output.
-        self._assert_script_fails(
-            args, "Expected script to fail when start header not found"
-        )
+        self._assert_script_fails(args)
 
     def test6(self) -> None:
         """
         Test error when no --select argument provided.
         """
         # Run test and check output.
-        self._assert_script_fails(
-            "", "Expected script to fail when --select is missing"
-        )
+        self._assert_script_fails("")
+
+
+# #############################################################################
+# Test_extract_from_md_py_main
+# #############################################################################
+
+
+class Test_extract_from_md_py_main(hunitest.TestCase):
+    """
+    Test `_main()` called directly (in-process) with mocked `sys.argv`.
+    """
+
+    def _run_main(self, argv: List[str]) -> str:
+        """
+        Run `dshdexfm._main()` with a mocked `sys.argv`.
+
+        :param argv: command-line argument list to inject via
+            `mock.patch("sys.argv", ...)`
+        :return: content of the output file
+        """
+        parser = dshdefrmd._parse()
+        with mock.patch("sys.argv", argv):
+            dshdefrmd._main(parser)
+        output_file = argv[argv.index("-o") + 1]
+        actual = hio.from_file(output_file)
+        return actual
+
+    def helper(
+        self, file_name: str, content: str, select_arg: str, expected: str
+    ) -> None:
+        """
+        Test helper for `_main()`.
+
+        :param file_name: Input file name
+        :param content: Input file content
+        :param select_arg: Value for --select argument
+        :param expected: Expected output content
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, file_name)
+        output_file = os.path.join(scratch_dir, "output.txt")
+        content = hprint.dedent(content)
+        hio.to_file(input_file, content)
+        argv = [
+            "extract_from_md.py",
+            "-i",
+            input_file,
+            "-o",
+            output_file,
+            "--select",
+            select_arg,
+        ]
+        # Run test.
+        actual = self._run_main(argv)
+        # Check outputs.
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test extract a section from a markdown file.
+        """
+        # Prepare inputs.
+        file_name = "input.md"
+        content = """
+            # Chapter 1
+            Intro text.
+            # Chapter 2
+            Body text.
+            """
+        select_arg = "# Chapter 2"
+        # Prepare outputs.
+        expected = """
+            # Chapter 2
+            Body text.
+            """
+        # Run test.
+        self.helper(file_name, content, select_arg, expected)
+
+    def test2(self) -> None:
+        """
+        Test extract a slide from a `.txt` slide file.
+        """
+        # Prepare inputs.
+        file_name = "input.txt"
+        content = """
+            * Slide 1
+            Slide 1 content.
+            * Slide 2
+            Slide 2 content.
+            """
+        select_arg = "* Slide 1:* Slide 2"
+        # Prepare outputs.
+        expected = """
+            ##### Slide 1
+            Slide 1 content.
+            """
+        # Run test.
+        self.helper(file_name, content, select_arg, expected)

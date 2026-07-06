@@ -160,6 +160,8 @@ $if(graphics)$
 % margins by default, and it is still possible to overwrite the defaults
 % using explicit options in \includegraphics[width, height, ...]{}
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Fallback for newer Pandoc versions that emit \pandocbounded
+\providecommand{\pandocbounded}[1]{#1}
 $endif$
 $if(links-as-notes)$
 % Make links footnotes instead of hotlinks:
