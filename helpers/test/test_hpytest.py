@@ -128,93 +128,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         txt: str,
         only_file: bool,
         only_class: bool,
-        exp_failed_tests: str,
-        exp_num_failed: int,
-        exp_num_passed: int,
+        exp_info: str,
     ) -> None:
-        act_info = hpytest.parse_failed_tests(txt, only_file, only_class)
-        act_failed_tests = "\n".join(act_info["failed_tests"])
-        act_num_failed = act_info["num_failed"]
-        act_num_passed = act_info["num_passed"]
-        self.assert_equal(
-            act_failed_tests,
-            exp_failed_tests,
-            dedent=True,
-            remove_lead_trail_empty_lines=True,
-        )
-        self.assertEqual(act_num_failed, exp_num_failed)
-        self.assertEqual(act_num_passed, exp_num_passed)
-
-    def test1(self) -> None:
-        # Prepare inputs and outputs.
-        txt = self.get_pytest_text1()
-        only_file = False
-        only_class = False
-        exp_failed_tests = """
-        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
-        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1
-        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1
-        """
-        exp_num_failed = 4
-        exp_num_passed = 43
-        # Check.
-        self.helper(
-            txt,
-            only_file,
-            only_class,
-            exp_failed_tests,
-            exp_num_failed,
-            exp_num_passed,
-        )
-
-    def test2(self) -> None:
-        # Prepare inputs and outputs.
-        txt = self.get_pytest_text1()
-        only_file = True
-        only_class = False
-        exp_failed_tests = """
-        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
-        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py
-        """
-        exp_num_failed = 4
-        exp_num_passed = 43
-        # Check.
-        self.helper(
-            txt,
-            only_file,
-            only_class,
-            exp_failed_tests,
-            exp_num_failed,
-            exp_num_passed,
-        )
-
-    def test3(self) -> None:
-        # Prepare inputs and outputs.
-        txt = self.get_pytest_text1()
-        only_file = False
-        only_class = True
-        exp_failed_tests = """
-        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1
-        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1
-        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3
-        """
-        exp_num_failed = 4
-        exp_num_passed = 43
-        # Check.
-        self.helper(
-            txt,
-            only_file,
-            only_class,
-            exp_failed_tests,
-            exp_num_failed,
-            exp_num_passed,
-        )
-
-    def helper_info(self, txt: str, exp_info: str) -> None:
         txt = hprint.dedent(txt)
-        act_info = hpytest.parse_failed_tests(
-            txt, only_file=False, only_class=False
-        )
+        act_info = hpytest.parse_failed_tests(txt, only_file, only_class)
         act_info_as_str = "\n".join(
             f"{k}={v}" for k, v in sorted(act_info.items())
         )
@@ -224,6 +141,69 @@ class Test_parse_failed_tests(hunitest.TestCase):
             dedent=True,
             remove_lead_trail_empty_lines=True,
         )
+
+    def test1(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = False
+        only_class = False
+        exp_info = """
+        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
+        num_failed=4
+        num_passed=43
+        pytest_collection_completed=True
+        pytest_duration_in_secs=40.48
+        pytest_ended=True
+        pytest_reported_failed=4
+        pytest_reported_passed=43
+        pytest_reported_skipped=None
+        pytest_started=False
+        pytest_tag=None
+        """
+        # Check.
+        self.helper(txt, only_file, only_class, exp_info)
+
+    def test2(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = True
+        only_class = False
+        exp_info = """
+        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py']
+        num_failed=4
+        num_passed=43
+        pytest_collection_completed=True
+        pytest_duration_in_secs=40.48
+        pytest_ended=True
+        pytest_reported_failed=4
+        pytest_reported_passed=43
+        pytest_reported_skipped=None
+        pytest_started=False
+        pytest_tag=None
+        """
+        # Check.
+        self.helper(txt, only_file, only_class, exp_info)
+
+    def test3(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = False
+        only_class = True
+        exp_info = """
+        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3']
+        num_failed=4
+        num_passed=43
+        pytest_collection_completed=True
+        pytest_duration_in_secs=40.48
+        pytest_ended=True
+        pytest_reported_failed=4
+        pytest_reported_passed=43
+        pytest_reported_skipped=None
+        pytest_started=False
+        pytest_tag=None
+        """
+        # Check.
+        self.helper(txt, only_file, only_class, exp_info)
 
     def test4(self) -> None:
         """
@@ -237,6 +217,8 @@ class Test_parse_failed_tests(hunitest.TestCase):
             sys.exit(program.run())
         RuntimeError: _system() failed
         """
+        only_file = False
+        only_class = False
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
@@ -252,7 +234,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_tag=None
         """
         # Check.
-        self.helper_info(txt, exp_info)
+        self.helper(txt, only_file, only_class, exp_info)
 
     def test5(self) -> None:
         """
@@ -267,6 +249,8 @@ class Test_parse_failed_tests(hunitest.TestCase):
 
         test_foo.py::Test_foo1::test1 (0.00 s) PASSED [ 0%]
         """
+        only_file = False
+        only_class = False
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
@@ -282,7 +266,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
         """
         # Check.
-        self.helper_info(txt, exp_info)
+        self.helper(txt, only_file, only_class, exp_info)
 
     def test6(self) -> None:
         """
@@ -298,6 +282,8 @@ class Test_parse_failed_tests(hunitest.TestCase):
             "\x1b[31m=========== \x1b[1m34 failed\x1b[0m, \x1b[32m3157 passed\x1b[0m, "
             "\x1b[33m235 skipped\x1b[0m\x1b[31m in 886.58s (0:14:46)\x1b[0m\x1b[31m ===========\x1b[0m\n"
         )
+        only_file = False
+        only_class = False
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
@@ -313,4 +299,4 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
         """
         # Check.
-        self.helper_info(txt, exp_info)
+        self.helper(txt, only_file, only_class, exp_info)

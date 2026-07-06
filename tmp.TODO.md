@@ -37,15 +37,16 @@ collected 3361 items / 156 deselected / 7 skipped / 3205 selected
 - pytest run completed
 [31m=========== [31m[1m34 failed[0m, [32m3157 passed[0m, [33m235 skipped[0m[31m in 886.58s (0:14:46)[0m[31m ===========[0m
 
-####
+#### [x] 
 
 - Detect if the run terminated
 - Print stats like:
   - how many tests were run, skipped, failed
     - Save result into files
-  - how many are fast, slow, superslow
   - total duration
-  - save the stack traces in different files
+
+- save the stack traces in different files
+- how many are fast, slow, superslow
 
 ### [ ] Rename the output of dev_scripts_helpers/testing/pytest_log
 
