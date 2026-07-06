@@ -1,0 +1,48 @@
+[0m10:52:46 - [36mINFO [0m hdbg.py init_logger:1088                               > cmd='/Users/saggese/src/venv/client_venv.helpers/bin/invoke docker_cmd --stage=local -v 1.6.0 --cmd pytest .'
+[95m# docker_cmd: base_image='', stage='local', version='1.6.0', cmd='pytest .', as_user=True, generate_docker_compose_file=True, use_bash=False, container_dir_name='.', skip_pull=False[0m
+10:53:48 - [41mWARN [0m hdocker.py check_image_compatibility_with_current_arch:349 Image 'causify/helpers:local-saggese-1.6.0' not found: trying to pull it
+Traceback (most recent call last):
+  File "/Users/saggese/src/venv/client_venv.helpers/bin/invoke", line 8, in <module>
+    sys.exit(program.run())
+             ^^^^^^^^^^^^^
+  File "/Users/saggese/src/venv/client_venv.helpers/lib/python3.11/site-packages/invoke/program.py", line 398, in run
+    self.execute()
+  File "/Users/saggese/src/venv/client_venv.helpers/lib/python3.11/site-packages/invoke/program.py", line 583, in execute
+    executor.execute(*self.tasks)
+  File "/Users/saggese/src/venv/client_venv.helpers/lib/python3.11/site-packages/invoke/executor.py", line 140, in execute
+    result = call.task(*args, **call.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/saggese/src/venv/client_venv.helpers/lib/python3.11/site-packages/invoke/tasks.py", line 138, in __call__
+    result = self.body(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/saggese/src/csfy1/helpers_root/helpers/lib_tasks/lib_tasks_docker.py", line 1427, in docker_cmd
+    docker_cmd_ = _get_docker_compose_cmd(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/saggese/src/csfy1/helpers_root/helpers/lib_tasks/lib_tasks_docker.py", line 1272, in _get_docker_compose_cmd
+    docker_cmd_: List[str] = _get_docker_base_cmd(
+                             ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/saggese/src/csfy1/helpers_root/helpers/lib_tasks/lib_tasks_docker.py", line 1196, in _get_docker_base_cmd
+    hdocker.check_image_compatibility_with_current_arch(image)
+  File "/Users/saggese/src/csfy1/helpers_root/helpers/hdocker.py", line 352, in check_image_compatibility_with_current_arch
+    hsystem.system(cmd)
+  File "/Users/saggese/src/csfy1/helpers_root/helpers/hsystem.py", line 333, in system
+    rc, _ = _system(
+            ^^^^^^^^
+  File "/Users/saggese/src/csfy1/helpers_root/helpers/hsystem.py", line 284, in _system
+    raise RuntimeError(msg)
+RuntimeError: 
+################################################################################
+################################################################################
+_system() failed
+################################################################################
+################################################################################
+# _system: cmd='(docker pull causify/helpers:local-saggese-1.6.0) 2>&1', print_command='ON_DEBUG_LEVEL', abort_on_error=True, suppress_error=None, suppress_output=True, blocking=True, wrapper=None, output_file=None, num_error_lines=30, tee=False, dry_run=False, log_level=10
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cmd='(docker pull causify/helpers:local-saggese-1.6.0) 2>&1'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+- rc='1'
+- output='
+request returned 500 Internal Server Error for API route and version http://%2FUsers%2Fsaggese%2F.docker%2Frun%2Fdocker.sock/v1.55/images/create?fromImage=docker.io%2Fcausify%2Fhelpers&tag=local-saggese-1.6.0, check if the server supports the requested API version
+'
+- Output saved in 'tmp.system_output.txt'
+- Command saved in 'tmp.system_cmd.sh'

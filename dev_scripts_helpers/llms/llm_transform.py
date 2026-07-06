@@ -182,6 +182,7 @@ def _run_dockerized_llm_transform(
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
+    # TODO(gp): Find a more robust solution.
     # Override user flag for nested containers that need root access.
     docker_cmd[2] = "--user 0:0"
     docker_cmd.extend(
