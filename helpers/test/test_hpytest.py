@@ -154,7 +154,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         github_start_timestamp=None
         github_tag=None
         num_failed=4
+        num_failed_classes=3
+        num_failed_files=2
         num_passed=43
+        num_skipped_tests=0
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
@@ -163,6 +166,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_reported_skipped=None
         pytest_started=False
         pytest_tag=None
+        skipped_tests=[]
         """
         # Check.
         self.helper(txt, only_file, only_class, exp_info)
@@ -179,7 +183,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         github_start_timestamp=None
         github_tag=None
         num_failed=4
+        num_failed_classes=3
+        num_failed_files=2
         num_passed=43
+        num_skipped_tests=0
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
@@ -188,6 +195,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_reported_skipped=None
         pytest_started=False
         pytest_tag=None
+        skipped_tests=[]
         """
         # Check.
         self.helper(txt, only_file, only_class, exp_info)
@@ -204,7 +212,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         github_start_timestamp=None
         github_tag=None
         num_failed=4
+        num_failed_classes=3
+        num_failed_files=2
         num_passed=43
+        num_skipped_tests=0
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
@@ -213,6 +224,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_reported_skipped=None
         pytest_started=False
         pytest_tag=None
+        skipped_tests=[]
         """
         # Check.
         self.helper(txt, only_file, only_class, exp_info)
@@ -239,7 +251,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         github_start_timestamp=None
         github_tag=None
         num_failed=0
+        num_failed_classes=0
+        num_failed_files=0
         num_passed=0
+        num_skipped_tests=0
         pytest_collection_completed=False
         pytest_duration_in_secs=None
         pytest_ended=False
@@ -248,6 +263,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_reported_skipped=None
         pytest_started=False
         pytest_tag=None
+        skipped_tests=[]
         """
         # Check.
         self.helper(txt, only_file, only_class, exp_info)
@@ -275,7 +291,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         github_start_timestamp=None
         github_tag=None
         num_failed=0
+        num_failed_classes=0
+        num_failed_files=0
         num_passed=0
+        num_skipped_tests=0
         pytest_collection_completed=True
         pytest_duration_in_secs=None
         pytest_ended=False
@@ -284,6 +303,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_reported_skipped=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        skipped_tests=[]
         """
         # Check.
         self.helper(txt, only_file, only_class, exp_info)
@@ -312,7 +332,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         github_start_timestamp=None
         github_tag=None
         num_failed=34
+        num_failed_classes=0
+        num_failed_files=0
         num_passed=3157
+        num_skipped_tests=0
         pytest_collection_completed=True
         pytest_duration_in_secs=886.58
         pytest_ended=True
@@ -321,6 +344,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_reported_skipped=235
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        skipped_tests=[]
         """
         # Check.
         self.helper(txt, only_file, only_class, exp_info)

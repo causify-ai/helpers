@@ -89,6 +89,7 @@ def pytest_clean(dir_name: str, preview: bool = False) -> None:
 # #############################################################################
 
 
+# TODO(ai_gp): use lines: List[str] and return a List[str]
 def _parse_github_ci_log(txt: str) -> Tuple[Dict[str, Any], str]:
     """
     Parse a GitHub Actions CI log and strip the per-line step tag.
@@ -114,6 +115,7 @@ def _parse_github_ci_log(txt: str) -> Tuple[Dict[str, Any], str]:
         "github_tag": None,
         "github_start_timestamp": None,
         "github_end_timestamp": None,
+        "github_completed": False,
     }
     lines = []
     # Match a per-line GitHub Actions step tag, e.g.,
@@ -122,8 +124,8 @@ def _parse_github_ci_log(txt: str) -> Tuple[Dict[str, Any], str]:
     github_ci_log_tag_regex = re.compile(
         r"""
         ^([^\t]+)             # job tag(s)
-        \tUNKNOWN\ STEP\t    # separator
-        \ufeff?                  # optional UTF-8 BOM
+        \tUNKNOWN\ STEP\t     # separator
+        \ufeff?               # optional UTF-8 BOM
         (\S+)                 # timestamp
         \s?                   # optional whitespace
         (.*)$                 # remaining content
@@ -141,13 +143,14 @@ def _parse_github_ci_log(txt: str) -> Tuple[Dict[str, Any], str]:
         if info["github_start_timestamp"] is None:
             info["github_start_timestamp"] = timestamp
         info["github_end_timestamp"] = timestamp
+        if "Post job cleanup" in content:
+            info["github_completed"] = True
         lines.append(content)
     log = "\n".join(lines)
-    # TODO(ai_gp): Move it in the loop.
-    info["github_completed"] = "Post job cleanup" in log
     return info, log
 
 
+# TODO(ai_gp): use lines: List[str] instead of txt
 def parse_failed_tests(
     txt: str, only_file: bool, only_class: bool
 ) -> Dict[str, Any]:
@@ -158,8 +161,12 @@ def parse_failed_tests(
     :param only_class: return only the class name
     :return: dict with:
         - `failed_tests`: list of failed tests
+        - `skipped_tests`: list of skipped tests
         - `num_failed`: number of failed tests
         - `num_passed`: number of passed tests
+        - `num_skipped_tests`: number of skipped tests
+        - `num_failed_files`: number of files with failed tests
+        - `num_failed_classes`: number of test classes with failed tests
         - `pytest_started`: True if pytest reached the "test session
           starts" banner
         - `pytest_tag`: the `platform ... -- Python ..., pytest-..., ...`
@@ -187,17 +194,16 @@ def parse_failed_tests(
     # job info into the result.
     github_info, txt = _parse_github_ci_log(txt)
     failed_tests = []
-    num_failed = num_passed = 0
+    skipped_tests = []
+    num_failed = num_passed = num_skipped = 0
     # Initialize the dict with only what needs to have an initial value,
     # otherwise assign it directly.
     info: Dict[str, Any] = {
-        # TODO(ai_gp): Store the skipped files in 'skipped_tests'
-        # TODO(ai_gp): Add num_skipped_tests
         "failed_tests": None,
-        # TODO(ai_gp): Rename num_failed_tests
+        "skipped_tests": None,
         "num_failed": None,
-        # TODO(ai_gp): Rename num_passed_tests
         "num_passed": None,
+        "num_skipped_tests": None,
         "pytest_started": False,
         "pytest_tag": None,
         "pytest_collection_completed": False,
@@ -226,6 +232,12 @@ def parse_failed_tests(
             test_name = m.group(1)
             _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
             failed_tests.append(test_name)
+        # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_skipped (0.00 s) SKIPPED [ 10%]
+        m = re.search(r"(\S+) \(\S+ s\) SKIPPED", line)
+        if m:
+            test_name = m.group(1)
+            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
+            skipped_tests.append(test_name)
         # ============================= test session starts ==============================
         if "test session starts" in line:
             info["pytest_started"] = True
@@ -254,23 +266,32 @@ def parse_failed_tests(
                 info["pytest_reported_skipped"] = int(m.group(3))
             info["pytest_duration_in_secs"] = float(m.group(4))
     failed_tests = sorted(list(set(failed_tests)))
+    skipped_tests = sorted(list(set(skipped_tests)))
     #
     if num_failed and num_passed and num_failed != len(failed_tests):
         _LOG.warning(
             "n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
         )
-    print(f"Failed tests: {num_failed}/{num_passed}")
-    # TODO(ai_gp): Separate this file from calling filter_failed_tests but
-    # have the caller do this operation.
+    # Compute num_failed_classes and num_failed_files from the unfiltered list.
+    # TODO(ai_gp): Assign the values to the dict directly instead of using temp
+    # vars.
+    num_failed_files = len(filter_failed_tests(
+        failed_tests, only_file=True, only_class=False
+    )) if failed_tests else 0
+    num_failed_classes = len(filter_failed_tests(
+        failed_tests, only_file=False, only_class=True
+    )) if failed_tests else 0
     # Filter, if needed.
+    # TODO(ai_gp): Do not filter here, but have the callers to filter.
     if only_file or only_class:
         failed_tests = filter_failed_tests(failed_tests, only_file, only_class)
-    # TODO(ai_gp): Call 
-    # failed_tests = filter_failed_tests(failed_tests, only_file, only_class)
-    # to compute the num_failed_classes and num_failed_files
     info["failed_tests"] = failed_tests
+    info["skipped_tests"] = skipped_tests
     info["num_failed"] = num_failed
     info["num_passed"] = num_passed
+    info["num_skipped_tests"] = num_skipped
+    info["num_failed_files"] = num_failed_files
+    info["num_failed_classes"] = num_failed_classes
     return info
 
 
