@@ -110,7 +110,11 @@ def _parse_github_ci_log(txt: str) -> Tuple[Dict[str, Any], str]:
           - `github_completed`: True if the log contains "Post job cleanup"
         - log: the log content with the tags removed
     """
-    info: Dict[str, Any] = {}
+    info: Dict[str, Any] = {
+        "github_tag": None,
+        "github_start_timestamp": None,
+        "github_end_timestamp": None,
+    }
     lines = []
     # Match a per-line GitHub Actions step tag, e.g.,
     # `run_fast_tests / run_tests\tUNKNOWN STEP\t2026-07-06T17:59:35.1181332Z `,
@@ -172,13 +176,27 @@ def parse_failed_tests(
           summary line, or `None` if not found
         - `pytest_duration_in_secs`: run duration in seconds from the final
           summary line, or `None` if not found
+        - `github_tag`: job tag from `_parse_github_ci_log()`, or `None` if
+          `txt` is not a GitHub Actions log
+        - `github_start_timestamp`: see `_parse_github_ci_log()`
+        - `github_end_timestamp`: see `_parse_github_ci_log()`
+        - `github_completed`: see `_parse_github_ci_log()`
     """
     hdbg.dassert_lte(only_file + only_class, 1)
+    # Strip the GitHub Actions per-line tags, if any, and merge the extracted
+    # job info into the result.
+    github_info, txt = _parse_github_ci_log(txt)
     failed_tests = []
     num_failed = num_passed = 0
+    # Initialize the dict with only what needs to have an initial value,
+    # otherwise assign it directly.
     info: Dict[str, Any] = {
+        # TODO(ai_gp): Store the skipped files in 'skipped_tests'
+        # TODO(ai_gp): Add num_skipped_tests
         "failed_tests": None,
+        # TODO(ai_gp): Rename num_failed_tests
         "num_failed": None,
+        # TODO(ai_gp): Rename num_passed_tests
         "num_passed": None,
         "pytest_started": False,
         "pytest_tag": None,
@@ -189,6 +207,7 @@ def parse_failed_tests(
         "pytest_reported_skipped": None,
         "pytest_duration_in_secs": None,
     }
+    info.update(github_info)
     for line in txt.split("\n"):
         _LOG.debug("line=%s", line)
         # Remove ANSI color codes (both ESC-based and bracket notation).
@@ -241,21 +260,43 @@ def parse_failed_tests(
             "n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
         )
     print(f"Failed tests: {num_failed}/{num_passed}")
+    # TODO(ai_gp): Separate this file from calling filter_failed_tests but
+    # have the caller do this operation.
     # Filter, if needed.
     if only_file or only_class:
-        failed_tests_tmp = []
-        for test in failed_tests:
-            # oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3
-            m = re.match(r"(\S+)::(\S+)::\S+$", test)
-            hdbg.dassert(m, f"Can't parse '{test}'")
-            if only_file:
-                failed_tests_tmp.append(m.group(1))
-            elif only_class:
-                failed_tests_tmp.append(m.group(1) + "::" + m.group(2))
-            else:
-                raise RuntimeError("Unexpected")
-        failed_tests = sorted(list(set(failed_tests_tmp)))
+        failed_tests = filter_failed_tests(failed_tests, only_file, only_class)
+    # TODO(ai_gp): Call 
+    # failed_tests = filter_failed_tests(failed_tests, only_file, only_class)
+    # to compute the num_failed_classes and num_failed_files
     info["failed_tests"] = failed_tests
     info["num_failed"] = num_failed
     info["num_passed"] = num_passed
     return info
+
+
+def filter_failed_tests(
+    failed_tests: List[str], only_file: bool, only_class: bool
+) -> List[str]:
+    """
+    Filter failed tests down to their file or class name.
+
+    :param failed_tests: list of failed tests, e.g.,
+        `oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3`
+    :param only_file: return only the file name
+    :param only_class: return only the class name
+    :return: filtered, deduped, and sorted list of failed tests
+    """
+    hdbg.dassert_lte(only_file + only_class, 1)
+    failed_tests_tmp = []
+    for test in failed_tests:
+        # oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3
+        m = re.match(r"(\S+)::(\S+)::\S+$", test)
+        hdbg.dassert(m, "Can't parse '%s'", test)
+        if only_file:
+            failed_tests_tmp.append(m.group(1))
+        elif only_class:
+            failed_tests_tmp.append(m.group(1) + "::" + m.group(2))
+        else:
+            raise RuntimeError("Unexpected")
+    failed_tests = sorted(list(set(failed_tests_tmp)))
+    return failed_tests

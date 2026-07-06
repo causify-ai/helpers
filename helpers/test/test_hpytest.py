@@ -149,6 +149,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         only_class = False
         exp_info = """
         failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
         num_failed=4
         num_passed=43
         pytest_collection_completed=True
@@ -170,6 +174,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         only_class = False
         exp_info = """
         failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py']
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
         num_failed=4
         num_passed=43
         pytest_collection_completed=True
@@ -191,6 +199,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         only_class = True
         exp_info = """
         failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3']
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
         num_failed=4
         num_passed=43
         pytest_collection_completed=True
@@ -222,6 +234,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
         num_failed=0
         num_passed=0
         pytest_collection_completed=False
@@ -254,6 +270,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
         num_failed=0
         num_passed=0
         pytest_collection_completed=True
@@ -287,6 +307,10 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
         num_failed=34
         num_passed=3157
         pytest_collection_completed=True
