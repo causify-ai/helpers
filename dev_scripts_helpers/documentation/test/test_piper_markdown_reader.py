@@ -528,9 +528,7 @@ class Test__chunk_text_by_length(hunitest.TestCase):
     Test the _chunk_text_by_length() function.
     """
 
-    def helper(
-        self, text: str, max_length: int, expected: List[str]
-    ) -> None:
+    def helper(self, text: str, max_length: int, expected: List[str]) -> None:
         """
         Test helper for _chunk_text_by_length().
 
@@ -705,18 +703,19 @@ class Test__generate_audio(hunitest.TestCase):
             output_file,
         ]
         # Run test.
-        with mock.patch.object(
-            dshdpmare, "_get_voice_path", return_value=voice_path
-        ), mock.patch(
-            "subprocess.Popen", return_value=mock_process
-        ) as mock_popen:
+        with (
+            mock.patch.object(
+                dshdpmare, "_get_voice_path", return_value=voice_path
+            ),
+            mock.patch(
+                "subprocess.Popen", return_value=mock_process
+            ) as mock_popen,
+        ):
             dshdpmare._generate_audio(
                 text, voice=voice, speed=speed, output_file=output_file
             )
         # Check outputs.
-        mock_process.communicate.assert_called_once_with(
-            input=text, timeout=300
-        )
+        mock_process.communicate.assert_called_once_with(input=text, timeout=300)
         self.assertEqual(mock_popen.call_args.args[0], expected_cmd)
 
     def test2(self) -> None:
@@ -735,9 +734,12 @@ class Test__generate_audio(hunitest.TestCase):
         mock_process.communicate.return_value = ("", "piper error")
         mock_process.returncode = 1
         # Run test and check output.
-        with mock.patch.object(
-            dshdpmare, "_get_voice_path", return_value=voice_path
-        ), mock.patch("subprocess.Popen", return_value=mock_process):
+        with (
+            mock.patch.object(
+                dshdpmare, "_get_voice_path", return_value=voice_path
+            ),
+            mock.patch("subprocess.Popen", return_value=mock_process),
+        ):
             with self.assertRaises(AssertionError):
                 dshdpmare._generate_audio(
                     text, voice=voice, speed=speed, output_file=output_file
@@ -939,11 +941,12 @@ class Test__process_chunk_audio(hunitest.TestCase):
         )
         # Run test.
         try:
-            with mock.patch.object(
-                dshdpmare, "_generate_audio"
-            ) as mock_generate, mock.patch.object(
-                dshdpmare, "_apply_speed_with_ffmpeg"
-            ) as mock_ffmpeg:
+            with (
+                mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+                mock.patch.object(
+                    dshdpmare, "_apply_speed_with_ffmpeg"
+                ) as mock_ffmpeg,
+            ):
                 actual = dshdpmare._process_chunk_audio(
                     chunk_idx, chunk, voice=voice, speed=speed
                 )
@@ -972,11 +975,12 @@ class Test__process_chunk_audio(hunitest.TestCase):
         )
         # Run test.
         try:
-            with mock.patch.object(
-                dshdpmare, "_generate_audio"
-            ) as mock_generate, mock.patch.object(
-                dshdpmare, "_apply_speed_with_ffmpeg"
-            ) as mock_ffmpeg:
+            with (
+                mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+                mock.patch.object(
+                    dshdpmare, "_apply_speed_with_ffmpeg"
+                ) as mock_ffmpeg,
+            ):
                 actual = dshdpmare._process_chunk_audio(
                     chunk_idx, chunk, voice=voice, speed=speed
                 )
@@ -1005,11 +1009,12 @@ class Test__process_chunk_audio(hunitest.TestCase):
         progress_bar = mock.MagicMock()
         # Run test.
         try:
-            with mock.patch.object(
-                dshdpmare, "_generate_audio"
-            ) as mock_generate, mock.patch.object(
-                dshdpmare, "_apply_speed_with_ffmpeg"
-            ) as mock_ffmpeg:
+            with (
+                mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+                mock.patch.object(
+                    dshdpmare, "_apply_speed_with_ffmpeg"
+                ) as mock_ffmpeg,
+            ):
                 actual = dshdpmare._process_chunk_audio(
                     chunk_idx,
                     chunk,
@@ -1180,9 +1185,10 @@ class Test__main(hunitest.TestCase):
             "--no_play",
         ]
         # Run test.
-        with mock.patch.object(
-            dshdpmare, "_generate_audio"
-        ) as mock_generate, mock.patch("sys.argv", argv):
+        with (
+            mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+            mock.patch("sys.argv", argv),
+        ):
             dshdpmare._main(parser)
         # Check outputs.
         mock_generate.assert_not_called()
@@ -1207,13 +1213,15 @@ class Test__main(hunitest.TestCase):
         ]
         extracted_content = "Intro text.\n- A bullet point."
         # Run test.
-        with mock.patch.object(
-            dshdpmare,
-            "_extract_markdown_section",
-            return_value=extracted_content,
-        ) as mock_extract, mock.patch.object(
-            dshdpmare, "_generate_audio"
-        ) as mock_generate, mock.patch("sys.argv", argv):
+        with (
+            mock.patch.object(
+                dshdpmare,
+                "_extract_markdown_section",
+                return_value=extracted_content,
+            ) as mock_extract,
+            mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+            mock.patch("sys.argv", argv),
+        ):
             dshdpmare._main(parser)
         # Check outputs.
         mock_extract.assert_called_once_with(in_file, "# Methods", "# Results")
