@@ -11,7 +11,8 @@ import helpers.hunit_test as hunitest
 class Test__parse_github_ci_log(hunitest.TestCase):
     def helper(self, txt: str, exp_info: str, exp_log: str) -> None:
         txt = hprint.dedent(txt)
-        act_info, act_log = hpytest._parse_github_ci_log(txt)
+        lines = txt.split("\n")
+        act_info, act_log_lines = hpytest._parse_github_ci_log(lines)
         act_info_as_str = "\n".join(
             f"{k}={v}" for k, v in sorted(act_info.items())
         )
@@ -21,6 +22,7 @@ class Test__parse_github_ci_log(hunitest.TestCase):
             dedent=True,
             remove_lead_trail_empty_lines=True,
         )
+        act_log = "\n".join(act_log_lines)
         self.assert_equal(
             act_log,
             exp_log,
@@ -126,12 +128,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
     def helper(
         self,
         txt: str,
-        only_file: bool,
-        only_class: bool,
         exp_info: str,
     ) -> None:
         txt = hprint.dedent(txt)
-        act_info = hpytest.parse_failed_tests(txt, only_file, only_class)
+        lines = txt.split("\n")
+        act_info = hpytest.parse_failed_tests(lines)
         act_info_as_str = "\n".join(
             f"{k}={v}" for k, v in sorted(act_info.items())
         )
@@ -145,8 +146,6 @@ class Test_parse_failed_tests(hunitest.TestCase):
     def test1(self) -> None:
         # Prepare inputs and outputs.
         txt = self.get_pytest_text1()
-        only_file = False
-        only_class = False
         exp_info = """
         failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
         github_completed=False
@@ -169,15 +168,13 @@ class Test_parse_failed_tests(hunitest.TestCase):
         skipped_tests=[]
         """
         # Check.
-        self.helper(txt, only_file, only_class, exp_info)
+        self.helper(txt, exp_info)
 
     def test2(self) -> None:
-        # Prepare inputs and outputs.
+        # Prepare inputs and outputs (now filters are done by callers).
         txt = self.get_pytest_text1()
-        only_file = True
-        only_class = False
         exp_info = """
-        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py']
+        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
         github_completed=False
         github_end_timestamp=None
         github_start_timestamp=None
@@ -198,15 +195,23 @@ class Test_parse_failed_tests(hunitest.TestCase):
         skipped_tests=[]
         """
         # Check.
-        self.helper(txt, only_file, only_class, exp_info)
+        self.helper(txt, exp_info)
+        # Test filtering by file.
+        lines = txt.split("\n")
+        info = hpytest.parse_failed_tests(lines)
+        filtered_files = hpytest.filter_failed_tests(
+            info["failed_tests"], only_file=True, only_class=False
+        )
+        self.assert_equal(
+            str(filtered_files),
+            str(['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py'])
+        )
 
     def test3(self) -> None:
-        # Prepare inputs and outputs.
+        # Prepare inputs and outputs (now filters are done by callers).
         txt = self.get_pytest_text1()
-        only_file = False
-        only_class = True
         exp_info = """
-        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3']
+        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
         github_completed=False
         github_end_timestamp=None
         github_start_timestamp=None
@@ -227,7 +232,17 @@ class Test_parse_failed_tests(hunitest.TestCase):
         skipped_tests=[]
         """
         # Check.
-        self.helper(txt, only_file, only_class, exp_info)
+        self.helper(txt, exp_info)
+        # Test filtering by class.
+        lines = txt.split("\n")
+        info = hpytest.parse_failed_tests(lines)
+        filtered_classes = hpytest.filter_failed_tests(
+            info["failed_tests"], only_file=False, only_class=True
+        )
+        self.assert_equal(
+            str(filtered_classes),
+            str(['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3'])
+        )
 
     def test4(self) -> None:
         """
@@ -241,8 +256,6 @@ class Test_parse_failed_tests(hunitest.TestCase):
             sys.exit(program.run())
         RuntimeError: _system() failed
         """
-        only_file = False
-        only_class = False
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
@@ -266,7 +279,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         skipped_tests=[]
         """
         # Check.
-        self.helper(txt, only_file, only_class, exp_info)
+        self.helper(txt, exp_info)
 
     def test5(self) -> None:
         """
@@ -281,8 +294,6 @@ class Test_parse_failed_tests(hunitest.TestCase):
 
         test_foo.py::Test_foo1::test1 (0.00 s) PASSED [ 0%]
         """
-        only_file = False
-        only_class = False
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
@@ -306,7 +317,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         skipped_tests=[]
         """
         # Check.
-        self.helper(txt, only_file, only_class, exp_info)
+        self.helper(txt, exp_info)
 
     def test6(self) -> None:
         """
@@ -322,8 +333,6 @@ class Test_parse_failed_tests(hunitest.TestCase):
             "\x1b[31m=========== \x1b[1m34 failed\x1b[0m, \x1b[32m3157 passed\x1b[0m, "
             "\x1b[33m235 skipped\x1b[0m\x1b[31m in 886.58s (0:14:46)\x1b[0m\x1b[31m ===========\x1b[0m\n"
         )
-        only_file = False
-        only_class = False
         # Prepare outputs.
         exp_info = """
         failed_tests=[]
@@ -347,4 +356,75 @@ class Test_parse_failed_tests(hunitest.TestCase):
         skipped_tests=[]
         """
         # Check.
-        self.helper(txt, only_file, only_class, exp_info)
+        self.helper(txt, exp_info)
+
+
+# #############################################################################
+# Test_info_to_comments
+# #############################################################################
+
+
+class Test_info_to_comments(hunitest.TestCase):
+    def helper(self, txt: str, exp: str) -> None:
+        lines = txt.split("\n")
+        info = hpytest.parse_failed_tests(lines)
+        act = hpytest.info_to_comments(info)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+    def test1(self) -> None:
+        """
+        Test the commentary for a local run that completed with failures.
+        """
+        # Prepare inputs and outputs.
+        txt = Test_parse_failed_tests().get_pytest_text1()
+        exp = """
+        Run: local
+        Pytest completed: True
+        Failed: 4/47
+        Skipped: 0/47
+        """
+        # Check.
+        self.helper(txt, exp)
+
+    def test2(self) -> None:
+        """
+        Test the commentary for a GitHub CI run with a reported skipped count.
+        """
+        # Prepare inputs and outputs.
+        txt = (
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:35.1181332Z ============================= test session starts =====\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:36.0000000Z platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:37.0000000Z collected 3361 items / 156 deselected / 7 skipped / 3205 selected\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T18:04:49.0000000Z =========== 34 failed, 3157 passed, 235 skipped in 886.58s (0:14:46) ===========\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T18:04:49.3717677Z Post job cleanup.\n"
+        )
+        exp = """
+        Run: GitHub CI (run_fast_tests)
+        Pytest completed: True
+        Failed: 34/3426
+        Skipped: 235/3426
+        """
+        # Check.
+        self.helper(txt, exp)
+
+    def test3(self) -> None:
+        """
+        Test the commentary when pytest never started.
+        """
+        # Prepare inputs and outputs.
+        txt = "RuntimeError: _system() failed"
+        exp = """
+        Run: local
+        Pytest completed: False
+        Failed: 0/0
+        Skipped: 0/0
+        """
+        # Check.
+        self.helper(txt, exp)
