@@ -132,7 +132,7 @@ def _parse_github_ci_log(lines: List[str]) -> Tuple[Dict[str, Any], List[str]]:
         \s?                   # optional whitespace
         (.*)$                 # remaining content
         """,
-        re.VERBOSE
+        re.VERBOSE,
     )
     for line in lines:
         m = github_ci_log_tag_regex.match(line)
@@ -181,7 +181,9 @@ def filter_failed_tests(
     return failed_tests
 
 
-def _set_info_field(info: Dict[str, Any], key: str, value: Any) -> Dict[str, Any]:
+def _set_info_field(
+    info: Dict[str, Any], key: str, value: Any
+) -> Dict[str, Any]:
     """
     Assign `value` to `info[key]`.
 
@@ -196,7 +198,8 @@ def _set_info_field(info: Dict[str, Any], key: str, value: Any) -> Dict[str, Any
     old_value = info[key]
     if old_value is not None:
         hdbg.dassert_eq(
-            old_value, value,
+            old_value,
+            value,
             "info['%s'] was already set to '%s', can't overwrite with '%s'",
             key,
             old_value,
@@ -206,9 +209,7 @@ def _set_info_field(info: Dict[str, Any], key: str, value: Any) -> Dict[str, Any
     return info
 
 
-def parse_failed_tests(
-    lines: List[str]
-) -> Dict[str, Any]:
+def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     """
     Parse the failed tests from the pytest output.
 
@@ -299,13 +300,15 @@ def parse_failed_tests(
         (PASSED|FAILED|ERROR|SKIPPED)
         \s+\[
         """,
-        re.VERBOSE
+        re.VERBOSE,
     )
     # Status tag at the end of a line whose leading "test path" token is not a
     # real node id (e.g., a golden-file path glued to the duration with no
     # separating space, as in the interleaved case above). Used together with
     # `pending_test_id` captured from a preceding `bare_test_id_pattern` line.
-    status_at_end_pattern = re.compile(r"\b(PASSED|FAILED|ERROR|SKIPPED)\s+\[\s*\S*%\]\s*$")
+    status_at_end_pattern = re.compile(
+        r"\b(PASSED|FAILED|ERROR|SKIPPED)\s+\[\s*\S*%\]\s*$"
+    )
     # Pytest "short test summary info" aggregate skip line, e.g.:
     # ```
     # SKIPPED [1] path/to/test.py:13: reason text
@@ -323,7 +326,7 @@ def parse_failed_tests(
         :\s               # colon-space before the reason
         (.*)$             # reason
         """,
-        re.VERBOSE
+        re.VERBOSE,
     )
     pending_test_id: Optional[str] = None
     skipped_summary_tests: List[str] = []
@@ -340,7 +343,7 @@ def parse_failed_tests(
             [0-9;]*       # color codes
             m             # end marker
             """,
-            re.VERBOSE
+            re.VERBOSE,
         )
         line = ansi_color_pattern.sub("", line)
         # Remove other non-printable characters (keep only printable ASCII).
@@ -350,7 +353,7 @@ def parse_failed_tests(
             \x20-\x7E     # printable ASCII range
             ]
             """,
-            re.VERBOSE
+            re.VERBOSE,
         )
         line = nonprintable_pattern.sub("", line)
         # Parse:
@@ -378,7 +381,9 @@ def parse_failed_tests(
         m_collected = collected_pattern.search(line)
         if m_collected:
             _set_info_field(info, "pytest_collection_completed", True)
-            _set_info_field(info, "pytest_num_collected", int(m_collected.group(1)))
+            _set_info_field(
+                info, "pytest_num_collected", int(m_collected.group(1))
+            )
         # A line containing only a test id (no status yet): remember it in
         # case the following line's status ends up glued to unrelated text
         # (see `pending_test_id` above).
@@ -400,7 +405,7 @@ def parse_failed_tests(
             (?:\(WARNING:[^)]*\)\s)?    # optional golden-file update annotation
             (\S+)                       # status (e.g., FAILED, PASSED, ...)
             """,
-            re.VERBOSE
+            re.VERBOSE,
         )
         m = suffix_pattern.search(line)
         # Parse:
@@ -414,7 +419,7 @@ def parse_failed_tests(
             (\S+)            # test path
             \s-              # dash separator
             """,
-            re.VERBOSE
+            re.VERBOSE,
         )
         m2 = prefix_pattern.search(line)
         m3 = no_duration_pattern.search(line)
@@ -436,12 +441,21 @@ def parse_failed_tests(
                 test_name, status = pending_test_id, m4.group(1)
         if test_name is not None:
             pending_test_id = None
-            _LOG.debug("line=%s ->\n\ttest_name='%s', status='%s'", line, test_name, status)
+            _LOG.debug(
+                "line=%s ->\n\ttest_name='%s', status='%s'",
+                line,
+                test_name,
+                status,
+            )
             if duration is not None:
                 try:
                     test_durations[test_name] = float(duration)
                 except ValueError:
-                    _LOG.debug("Could not parse duration='%s' for test='%s'", duration, test_name)
+                    _LOG.debug(
+                        "Could not parse duration='%s' for test='%s'",
+                        duration,
+                        test_name,
+                    )
             if status == "PASSED":
                 passed_tests.append(test_name)
             elif status == "SKIPPED":
@@ -458,7 +472,9 @@ def parse_failed_tests(
         if m5:
             count = int(m5.group(1))
             path = m5.group(2)
-            lineno_or_reason = m5.group(3) if m5.group(3) is not None else m5.group(4)
+            lineno_or_reason = (
+                m5.group(3) if m5.group(3) is not None else m5.group(4)
+            )
             for i in range(count):
                 skipped_summary_tests.append(f"{path}:{lineno_or_reason}#{i}")
         # Parse:
@@ -475,7 +491,7 @@ def parse_failed_tests(
             .*?                      # any other content
             in\s+([\d.]+)s           # duration in seconds
             """,
-            re.VERBOSE
+            re.VERBOSE,
         )
         m = summary_pattern.search(line)
         if m:
@@ -485,9 +501,7 @@ def parse_failed_tests(
             #
             _set_info_field(info, "pytest_num_passed", int(m.group(2)))
             if m.group(3) is not None:
-                _set_info_field(
-                    info, "pytest_num_skipped", int(m.group(3))
-                )
+                _set_info_field(info, "pytest_num_skipped", int(m.group(3)))
             _set_info_field(info, "pytest_duration_in_secs", float(m.group(4)))
     # Set the flags from `None` to `False` now that the loop is done setting
     # each of them at most once.
@@ -503,7 +517,11 @@ def parse_failed_tests(
     # verbose line for), so it is the only one that can match
     # `pytest_num_skipped`. Combining it with `skipped_tests` would
     # double-count, since every skip already appears in the summary too.
-    val = sorted(set(skipped_summary_tests)) if skipped_summary_tests else sorted(set(skipped_tests))
+    val = (
+        sorted(set(skipped_summary_tests))
+        if skipped_summary_tests
+        else sorted(set(skipped_tests))
+    )
     _set_info_field(info, "log_skipped_tests", val)
     _set_info_field(info, "log_num_skipped", len(val))
     #
@@ -555,19 +573,28 @@ def parse_failed_tests(
     for key in required_fields:
         hdbg.dassert_is_not(info[key], None, "info[%s] was not set", key)
     # Verify consistency between log-level and pytest summary counts.
-    if info["pytest_num_passed"] is not None and info["log_num_passed"] != info["pytest_num_passed"]:
+    if (
+        info["pytest_num_passed"] is not None
+        and info["log_num_passed"] != info["pytest_num_passed"]
+    ):
         _LOG.warning(
             "pytest_num_passed=%s log_num_passed=%s",
             info["pytest_num_passed"],
             info["log_num_passed"],
         )
-    if info["pytest_num_skipped"] is not None and info["log_num_skipped"] != info["pytest_num_skipped"]:
+    if (
+        info["pytest_num_skipped"] is not None
+        and info["log_num_skipped"] != info["pytest_num_skipped"]
+    ):
         _LOG.warning(
             "pytest_num_skipped=%s log_num_skipped=%s",
             info["pytest_num_skipped"],
             info["log_num_skipped"],
         )
-    if info["pytest_num_failed"] is not None and info["log_num_failed"] != info["pytest_num_failed"]:
+    if (
+        info["pytest_num_failed"] is not None
+        and info["log_num_failed"] != info["pytest_num_failed"]
+    ):
         _LOG.warning(
             "pytest_num_failed=%s log_num_failed=%s",
             info["pytest_num_failed"],
@@ -575,7 +602,11 @@ def parse_failed_tests(
         )
     # Check that the sum of passed, failed, and skipped is the total number collected.
     if info["pytest_num_collected"] is not None:
-        total_parsed = info["log_num_passed"] + info["log_num_failed"] + info["log_num_skipped"]
+        total_parsed = (
+            info["log_num_passed"]
+            + info["log_num_failed"]
+            + info["log_num_skipped"]
+        )
         if total_parsed != info["pytest_num_collected"]:
             _LOG.warning(
                 "Total parsed tests=%s (passed=%s + failed=%s + skipped=%s) "
@@ -614,7 +645,9 @@ def info_to_comments(info: Dict[str, Any]) -> str:
     # Failed / tot tests and skipped / tot tests.
     # Prefer pytest values (from final summary) over log values (from parsed lines).
     num_passed = info.get("pytest_num_passed") or info.get("log_num_passed") or 0
-    num_skipped = info.get("pytest_num_skipped") or info.get("log_num_skipped") or 0
+    num_skipped = (
+        info.get("pytest_num_skipped") or info.get("log_num_skipped") or 0
+    )
     num_failed = info.get("pytest_num_failed") or info.get("log_num_failed") or 0
     _LOG.debug(hprint.to_str("num_passed num_skipped num_failed"))
     #
@@ -693,7 +726,9 @@ def write_tests_by_duration(info: Dict[str, Any], file_name: str) -> None:
     sorted_tests = sorted(
         test_durations.items(), key=lambda kv: kv[1], reverse=True
     )
-    lines = [f"{duration:.2f} s  {test_name}" for test_name, duration in sorted_tests]
+    lines = [
+        f"{duration:.2f} s  {test_name}" for test_name, duration in sorted_tests
+    ]
     hio.to_file(file_name, "\n".join(lines))
 
 
@@ -736,7 +771,7 @@ def _compute_duration_stats(
 
 
 def compute_duration_stats_by_file(
-    info: Dict[str, Any]
+    info: Dict[str, Any],
 ) -> Dict[str, Dict[str, Any]]:
     """
     Aggregate test durations by file, sorted by total duration descending.
@@ -749,7 +784,7 @@ def compute_duration_stats_by_file(
 
 
 def compute_duration_stats_by_class(
-    info: Dict[str, Any]
+    info: Dict[str, Any],
 ) -> Dict[str, Dict[str, Any]]:
     """
     Aggregate test durations by class, sorted by total duration descending.
@@ -773,13 +808,12 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_ne(file_name, "")
     txt = []
     txt.append(hprint.frame("Duration by file"))
+    # TODO(ai_gp): Change the format to be like 'tests: count, total secs'
+    # Ranked by decreasing total secs
     for key, stat in compute_duration_stats_by_file(info).items():
-        txt.append(
-            f"{stat['total_secs']:.2f} s  {stat['count']} tests  {key}"
-        )
+        txt.append(f"{stat['total_secs']:.2f} s  {stat['count']} tests  {key}")
     txt.append(hprint.frame("Duration by class"))
     for key, stat in compute_duration_stats_by_class(info).items():
-        txt.append(
-            f"{stat['total_secs']:.2f} s  {stat['count']} tests  {key}"
-        )
+        txt.append(f"{stat['total_secs']:.2f} s  {stat['count']} tests  {key}")
+    # TODO(ai_gp): Report the created file in the format tmp.pytest_failed.sorted_class_file.txt
     hio.to_file(file_name, "\n".join(txt))

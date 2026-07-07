@@ -213,9 +213,15 @@ class Test_parse_failed_tests(hunitest.TestCase):
         filtered_files = hpytest.filter_failed_tests(
             info["log_failed_tests"], only_file=True, only_class=False
         )
+        # TODO(ai_gp): Assign to actual_str, expected_str.
         self.assert_equal(
             str(filtered_files),
-            str(['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py'])
+            str(
+                [
+                    "helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py",
+                    "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py",
+                ]
+            ),
         )
 
     def test3(self) -> None:
@@ -253,9 +259,16 @@ class Test_parse_failed_tests(hunitest.TestCase):
         filtered_classes = hpytest.filter_failed_tests(
             info["log_failed_tests"], only_file=False, only_class=True
         )
+        # TODO(ai_gp): Assign to actual_str, expected_str.
         self.assert_equal(
             str(filtered_classes),
-            str(['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3'])
+            str(
+                [
+                    "helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1",
+                    "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1",
+                    "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3",
+                ]
+            ),
         )
 
     def test4(self) -> None:

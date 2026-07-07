@@ -1047,4 +1047,3 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         file_name = f"{self.get_input_dir()}/log.txt"
         cmd = f"invoke pytest_repro --file-name='{file_name}' --show-stacktrace"
         self.helper(cmd)
-

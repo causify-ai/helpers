@@ -122,11 +122,11 @@ def _run_test(
         _LOG.info("Cleaning up Docker image")
         # Delete the Docker image (disk space reporting is now handled by the task itself).
         _ = subprocess.run(
-            f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
+            "invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
         )
         # Prune the Docker images to free up disk space.
         _ = subprocess.run(
-            f"docker system prune -a -f", shell=True, env=env, cwd=runnable_dir
+            "docker system prune -a -f", shell=True, env=env, cwd=runnable_dir
         )
     # pytest returns:
     # - 0 if all tests passed

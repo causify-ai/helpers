@@ -12,12 +12,8 @@ Examples
 # Parse failed tests from a specific log file, keeping only the file names.
 > pytest_failed.py --file_name tmp.log --only_file
 
-# Also write passed/skipped tests, tests by duration, and duration stats.
-> pytest_failed.py \
-    --passed_tests_file tmp.passed.txt \
-    --skipped_tests_file tmp.skipped.txt \
-    --tests_by_duration_file tmp.by_duration.txt \
-    --duration_stats_file tmp.duration_stats.txt
+# TODO(ai_gp): Create a list of files that are created together with
+# example content.
 """
 
 import argparse
@@ -42,7 +38,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "-i", "--input",
+        "-i",
+        "--input",
         action="store",
         # This is the output from pytest_log.
         default="tmp.pytest_script.txt",
@@ -68,6 +65,8 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Copy the list of failed tests to the system clipboard",
     )
+    # TODO(ai_gp): Remove these options and just create standard files,
+    # like tmp.
     parser.add_argument(
         "--passed_tests_file",
         action="store",
@@ -132,20 +131,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
         failed_tests, only_file=True, only_class=False
     )
     _write_repro_script("tmp.pytest_failed.files.sh", failed_files)
-    # Write the optional reports.
-    if args.passed_tests_file:
-        hpytest.write_passed_tests(info, args.passed_tests_file)
-        _LOG.info("Created '%s'", args.passed_tests_file)
-    if args.skipped_tests_file:
-        hpytest.write_skipped_tests(info, args.skipped_tests_file)
-        _LOG.info("Created '%s'", args.skipped_tests_file)
-    if args.tests_by_duration_file:
-        hpytest.write_tests_by_duration(info, args.tests_by_duration_file)
-        _LOG.info("Created '%s'", args.tests_by_duration_file)
-    if args.duration_stats_file:
-        hpytest.write_duration_stats(info, args.duration_stats_file)
-        _LOG.info("Created '%s'", args.duration_stats_file)
+    # Write the reports.
+    # TODO(ai_gp): Use this pattern instead of using args. skipped tests_by_default
+    file_name = "tmp.pytest_failed.passed_tests.txt"
+    hpytest.write_passed_tests(info, file_name)
+    _LOG.info("Created '%s'", file_name)
+    #
+    hpytest.write_skipped_tests(info, args.skipped_tests_file)
+    _LOG.info("Created '%s'", args.skipped_tests_file)
+    #
+    hpytest.write_tests_by_duration(info, args.tests_by_duration_file)
+    _LOG.info("Created '%s'", args.tests_by_duration_file)
+    #
+    hpytest.write_duration_stats(info, args.duration_stats_file)
+    _LOG.info("Created '%s'", args.duration_stats_file)
     # Select the tests to print/copy based on `--only_file`/`--only_class`.
+    # TODO(ai_gp): Save all these results into files
     if args.only_file:
         selected_tests = failed_files
     elif args.only_class:

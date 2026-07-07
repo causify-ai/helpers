@@ -1658,6 +1658,7 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
 # #############################################################################
 
 
+# TODO(ai_gp): Just call pytest_failed with sensible defaults.
 @task
 def pytest_failed(
     ctx, only_file=False, only_class=False, file_name="tmp.pytest_script.txt"
@@ -1674,7 +1675,9 @@ def pytest_failed(
     failed_tests = info["log_failed_tests"]
     # Filter, if needed.
     if only_file or only_class:
-        failed_tests = hpytest.filter_failed_tests(failed_tests, only_file, only_class)
+        failed_tests = hpytest.filter_failed_tests(
+            failed_tests, only_file, only_class
+        )
     print("\n".join(failed_tests))
     # TODO(ai_gp): Factor out this into a function in hpytest.py
     # Write the repro in a file.
