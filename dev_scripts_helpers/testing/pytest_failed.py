@@ -15,13 +15,11 @@ Examples
 
 import argparse
 import logging
-import pprint
 from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
-import helpers.hprint as hprint
 import helpers.hpytest as hpytest
 import helpers.hsystem as hsystem
 
@@ -90,13 +88,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Parsing '%s'", args.input)
     lines = txt.split("\n")
     info = hpytest.parse_failed_tests(lines)
-    # TODO(ai_gp): Factor out this function to print the results.
-    print(hprint.frame("Results"))
-    keys_to_remove = ["log_passed_tests", "log_skipped_tests", "log_failed_tests"]
-    info_to_print = {k: v for k, v in info.items() if k not in keys_to_remove}
-    print(pprint.pformat(info_to_print))
-    print(hprint.frame("Summary"))
-    print(hpytest.info_to_comments(info))
+    # Print the results.
+    print(hpytest.info_to_str(info))
     # Write the repro scripts.
     failed_tests = info["log_failed_tests"]
     _write_repro_script("tmp.pytest_failed.sh", failed_tests)

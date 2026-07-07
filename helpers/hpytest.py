@@ -6,6 +6,7 @@ import helpers.hpytest as hpytest
 
 import logging
 import os
+import pprint
 import re
 import shutil
 from typing import Any, Dict, List, Optional, Tuple
@@ -364,7 +365,7 @@ def parse_failed_tests(
         # collected 3361 items / 156 deselected / 7 skipped / 3205 selected
         # collected 3421 items / 5 skipped
         # ```
-        # TODO(ai_gp): Parse the number of tests collected.
+        # TODO(ai_gp): Parse the number of tests collected and save the info in the dict.
         collected_pattern = re.compile(r"^collected (\S+) items")
         if collected_pattern.search(line):
             _set_info_field(info, "pytest_collection_completed", True)
@@ -380,7 +381,7 @@ def parse_failed_tests(
         # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_skipped (2.07 s) FAILED [ 2%]
         # ... (0.13 s) (WARNING: Test was updated) PASSED [ 82%]
         # ```
-        # TODO(ai_gp): store the duration of each test
+        # TODO(ai_gp): store the duration of each test.
         suffix_pattern = re.compile(
             r"""
             (\S+)                       # test path
@@ -517,9 +518,9 @@ def parse_failed_tests(
     #   GitHub Actions log, `None` for a local run.
     # - `pytest_tag`: only set if the "platform ..." line was printed, e.g.
     #   missing if pytest crashed before printing it.
-    # - `pytest_num_failed/passed/skipped`, `pytest_duration_in_secs`: only
-    #   set if the final summary line was printed, e.g. missing if the run
-    #   was killed mid-way or crashed before completing.
+    # - `pytest_num_failed/passed/skipped`, `pytest_duration_in_secs`: only set
+    #   if the final summary line was printed, e.g. missing if the run was
+    #   killed mid-way or crashed before completing.
     required_fields = (
         "github_completed",
         "pytest_started",
@@ -593,3 +594,19 @@ def info_to_comments(info: Dict[str, Any]) -> str:
     comments.append(f"Skipped: {num_skipped}/{num_total}")
     comments.append(f"Failed: {num_failed}/{num_total}")
     return "\n".join(comments)
+
+
+def info_to_str(info: Dict[str, Any]) -> str:
+    """
+    Print the parsed test results and summary.
+
+    :param info: dict returned by `parse_failed_tests()`
+    """
+    txt = []
+    txt.append(hprint.frame("Results"))
+    keys_to_remove = ["log_passed_tests", "log_skipped_tests", "log_failed_tests"]
+    info_to_print = {k: v for k, v in info.items() if k not in keys_to_remove}
+    txt.append(pprint.pformat(info_to_print))
+    txt.append(hprint.frame("Summary"))
+    txt.append(info_to_comments(info))
+    return "\n".join(txt)
