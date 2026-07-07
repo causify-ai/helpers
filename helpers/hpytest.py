@@ -192,13 +192,14 @@ def _set_info_field(info: Dict[str, Any], key: str, value: Any) -> Dict[str, Any
     """
     hdbg.dassert_in(key, info, "Unknown info field '%s'", key)
     old_value = info[key]
-    hdbg.dassert_is_not(
-        old_value, None,
-        "info['%s'] was already set to '%s', can't overwrite with '%s'",
-        key,
-        old_value,
-        value,
-    )
+    if old_value is not None:
+        hdbg.dassert_eq(
+            old_value, value,
+            "info['%s'] was already set to '%s', can't overwrite with '%s'",
+            key,
+            old_value,
+            value,
+        )
     info[key] = value
     return info
 
@@ -220,31 +221,25 @@ def parse_failed_tests(
     failed_tests = []
     skipped_tests = []
     info: Dict[str, Any] = {
+        # List of passed tests, parsed from the log.
         "log_passed_tests": None,
-        # List of failed tests (full names, not filtered), parsed from the log.
-        # TODO(ai_gp): -> log_failed_tests
-        "failed_tests": None,
+        # List of failed tests, parsed from the log.
+        "log_failed_tests": None,
         # List of skipped tests, parsed from the log.
-        # TODO(ai_gp): -> log_skipped_tests
-        "skipped_tests": None,
+        "log_skipped_tests": None,
         # Number of failed tests from the log.
-        # TODO(ai_gp0: -> log_num_failed
-        "num_failed": None,
+        "log_num_failed": None,
         # Number of passed tests from the log.
-        # TODO(ai_gp): -> log_num_passed
-        "num_passed": None,
+        "log_num_passed": None,
         # Number of skipped tests.
-        # TODO(ai_gp): -> log_num_skipped
-        "num_skipped_tests": None,
+        "log_num_skipped": None,
         # Number of files with failed tests.
-        # TODO(ai_gp): -> log_num_failed_files
-        "num_failed_files": None,
+        "log_num_failed_files": None,
         # Number of test classes with failed tests.
-        # TODO(ai_gp): -> log_num_failed_classes
-        "num_failed_classes": None,
+        "log_num_failed_classes": None,
         # True if pytest reached the "test session starts" banner.
         "pytest_started": None,
-        # The `platform line, like "... -- Python ..., pytest-..., ...".
+        # The platform line, like "... -- Python ..., pytest-..., ...".
         "pytest_tag": None,
         # True if the "collected N items" line was printed.
         "pytest_collection_completed": None,
@@ -252,14 +247,11 @@ def parse_failed_tests(
         # 40.48s".
         "pytest_ended": None,
         # Number of failed tests from the final summary line.
-        # TODO(ai_gp): -> pytest_num_failed
-        "pytest_reported_failed": None,
+        "pytest_num_failed": None,
         # Number of passed tests from the final summary line.
-        # TODO(ai_gp): -> pytest_num_passed
-        "pytest_reported_passed": None,
+        "pytest_num_passed": None,
         # Number of skipped tests from the final summary line.
-        # TODO(ai_gp): -> pytest_num_skipped.
-        "pytest_reported_skipped": None,
+        "pytest_num_skipped": None,
         # Run duration in seconds from the final summary line.
         "pytest_duration_in_secs": None,
         # Job tag from GitHub or `None` if input is not a GitHub Actions log.
@@ -324,13 +316,13 @@ def parse_failed_tests(
             _set_info_field(info, "pytest_ended", True)
             #
             pytest_num_failed = int(m.group(1))
-            _set_info_field(info, "pytest_reported_failed", pytest_num_failed)
+            _set_info_field(info, "pytest_num_failed", pytest_num_failed)
             #
             pytest_num_passed = int(m.group(2))
-            _set_info_field(info, "pytest_reported_passed", pytest_num_passed)
+            _set_info_field(info, "pytest_num_passed", pytest_num_passed)
             if m.group(3) is not None:
                 _set_info_field(
-                    info, "pytest_reported_skipped", int(m.group(3))
+                    info, "pytest_num_skipped", int(m.group(3))
                 )
             _set_info_field(info, "pytest_duration_in_secs", float(m.group(4)))
     # Normalize the tri-state flags (unset `None` -> `False`) now that the
@@ -339,34 +331,43 @@ def parse_failed_tests(
         if info[key] is None:
             info[key] = False
     #
+    _set_info_field(info, "log_passed_tests", [])
+    _set_info_field(info, "log_num_passed", 0)
+    #
     failed_tests = sorted(list(set(failed_tests)))
-    _set_info_field(info, "failed_tests", failed_tests)
-    _set_info_field(info, "num_failed", len(failed_tests))
+    _set_info_field(info, "log_failed_tests", failed_tests)
+    _set_info_field(info, "log_num_failed", len(failed_tests))
     #
-    skipped_tests = sorted(list(set(skipped_tests)))
-    _set_info_field(info, "skipped_tests", skipped_tests)
-    _set_info_field(info, "num_skipped_tests", num_skipped)
-    #
-    _set_info_field(info, "num_passed", num_passed)
-    # Compute num_failed_classes and num_failed_files from the unfiltered list.
-    num_failed_files = (
+    # Compute log_num_failed_classes from the failed test list.
+    log_num_failed_files = (
         len(filter_failed_tests(failed_tests, only_file=True, only_class=False))
         if failed_tests
         else 0
     )
-    _set_info_field(info, "num_failed_files", num_failed_files)
+    _set_info_field(info, "log_num_failed_files", log_num_failed_files)
     #
-    num_failed_classes = (
+    log_num_failed_classes = (
         len(filter_failed_tests(failed_tests, only_file=False, only_class=True))
         if failed_tests
         else 0
     )
-    _set_info_field(info, "num_failed_classes", num_failed_classes)
+    _set_info_field(info, "log_num_failed_classes", log_num_failed_classes)
+    #
+    skipped_tests = sorted(list(set(skipped_tests)))
+    _set_info_field(info, "log_skipped_tests", skipped_tests)
+    _set_info_field(info, "log_num_skipped", len(skipped_tests))
     # Sanity check.
-    if num_failed and num_passed and num_failed != len(failed_tests):
+    # TODO(ai_gp): Check that no value is None.
+    # TODO(ai_gp): Do not assign to intermediate vars.
+    log_num_failed = info["log_num_failed"]
+    log_num_passed = info["log_num_passed"]
+    if log_num_failed and log_num_passed and log_num_failed != len(failed_tests):
         _LOG.warning(
-            "n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
+            "log_num_failed=%s len(failed_tests)=%s", log_num_failed, len(failed_tests)
         )
+    # TODO(ai_gp): Check that info.get("pytest_num_failed") and
+    # info.get("log_num_failed") are the same.
+    # Same for num_passed and num_skipped.
     return info
 
 
@@ -393,19 +394,13 @@ def info_to_comments(info: Dict[str, Any]) -> str:
     # Pytest completed.
     comments.append(f"Pytest completed: {info.get('pytest_ended', False)}")
     # Failed / tot tests and skipped / tot tests.
-    num_failed = info.get("num_failed") or 0
-    num_passed = info.get("num_passed") or 0
-    num_skipped = info.get("pytest_reported_skipped")
+    # Prefer pytest values (from final summary) over log values (from parsed lines).
+    num_failed = info.get("pytest_num_failed") or info.get("log_num_failed") or 0
+    num_passed = info.get("pytest_num_passed") or info.get("log_num_passed") or 0
+    num_skipped = info.get("pytest_num_skipped")
     if num_skipped is None:
-        num_skipped = len(info.get("skipped_tests") or [])
+        num_skipped = len(info.get("log_skipped_tests") or [])
     num_total = num_failed + num_passed + num_skipped
     comments.append(f"Failed: {num_failed}/{num_total}")
     comments.append(f"Skipped: {num_skipped}/{num_total}")
-    # Warn if the failed-test count is inconsistent with the parsed test
-    # names, mirroring the invariant check in `parse_failed_tests()`.
-    failed_tests = info.get("failed_tests") or []
-    if num_failed and failed_tests and num_failed != len(failed_tests):
-        _LOG.warning(
-            "num_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
-        )
     return "\n".join(comments)

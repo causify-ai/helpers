@@ -1671,7 +1671,7 @@ def pytest_failed(
     _LOG.info("Parsing %s", file_name)
     lines = txt.split("\n")
     info = hpytest.parse_failed_tests(lines)
-    failed_tests = info["failed_tests"]
+    failed_tests = info["log_failed_tests"]
     # Filter, if needed.
     if only_file or only_class:
         failed_tests = hpytest.filter_failed_tests(failed_tests, only_file, only_class)

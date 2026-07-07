@@ -90,13 +90,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Parsing '%s'", args.input)
     lines = txt.split("\n")
     info = hpytest.parse_failed_tests(lines)
-    failed_tests = info["failed_tests"]
     print(hprint.frame("Results"))
-    info_to_print = {k: v for k, v in info.items() if k != "failed_tests"}
+    info_to_print = {k: v for k, v in info.items() if k != "log_failed_tests"}
     print(pprint.pformat(info_to_print))
     print(hprint.frame("Summary"))
     print(hpytest.info_to_comments(info))
     # Write the repro scripts.
+    failed_tests = info["log_failed_tests"]
     _write_repro_script("tmp.pytest_failed.sh", failed_tests)
     failed_classes = hpytest.filter_failed_tests(
         failed_tests, only_file=False, only_class=True

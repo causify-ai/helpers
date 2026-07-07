@@ -147,25 +147,26 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Prepare inputs and outputs.
         txt = self.get_pytest_text1()
         exp_info = """
-        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
         github_completed=False
         github_end_timestamp=None
         github_start_timestamp=None
         github_tag=None
-        num_failed=4
-        num_failed_classes=3
-        num_failed_files=2
-        num_passed=43
-        num_skipped_tests=0
+        log_failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
+        log_num_failed=3
+        log_num_failed_classes=3
+        log_num_failed_files=2
+        log_num_passed=0
+        log_num_skipped=0
+        log_passed_tests=[]
+        log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
-        pytest_reported_failed=4
-        pytest_reported_passed=43
-        pytest_reported_skipped=None
+        pytest_num_failed=4
+        pytest_num_passed=43
+        pytest_num_skipped=None
         pytest_started=False
         pytest_tag=None
-        skipped_tests=[]
         """
         # Check.
         self.helper(txt, exp_info)
@@ -174,25 +175,26 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Prepare inputs and outputs (now filters are done by callers).
         txt = self.get_pytest_text1()
         exp_info = """
-        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
         github_completed=False
         github_end_timestamp=None
         github_start_timestamp=None
         github_tag=None
-        num_failed=4
-        num_failed_classes=3
-        num_failed_files=2
-        num_passed=43
-        num_skipped_tests=0
+        log_failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
+        log_num_failed=3
+        log_num_failed_classes=3
+        log_num_failed_files=2
+        log_num_passed=0
+        log_num_skipped=0
+        log_passed_tests=[]
+        log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
-        pytest_reported_failed=4
-        pytest_reported_passed=43
-        pytest_reported_skipped=None
+        pytest_num_failed=4
+        pytest_num_passed=43
+        pytest_num_skipped=None
         pytest_started=False
         pytest_tag=None
-        skipped_tests=[]
         """
         # Check.
         self.helper(txt, exp_info)
@@ -200,7 +202,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         lines = txt.split("\n")
         info = hpytest.parse_failed_tests(lines)
         filtered_files = hpytest.filter_failed_tests(
-            info["failed_tests"], only_file=True, only_class=False
+            info["log_failed_tests"], only_file=True, only_class=False
         )
         self.assert_equal(
             str(filtered_files),
@@ -211,25 +213,26 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Prepare inputs and outputs (now filters are done by callers).
         txt = self.get_pytest_text1()
         exp_info = """
-        failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
         github_completed=False
         github_end_timestamp=None
         github_start_timestamp=None
         github_tag=None
-        num_failed=4
-        num_failed_classes=3
-        num_failed_files=2
-        num_passed=43
-        num_skipped_tests=0
+        log_failed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1']
+        log_num_failed=3
+        log_num_failed_classes=3
+        log_num_failed_files=2
+        log_num_passed=0
+        log_num_skipped=0
+        log_passed_tests=[]
+        log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
-        pytest_reported_failed=4
-        pytest_reported_passed=43
-        pytest_reported_skipped=None
+        pytest_num_failed=4
+        pytest_num_passed=43
+        pytest_num_skipped=None
         pytest_started=False
         pytest_tag=None
-        skipped_tests=[]
         """
         # Check.
         self.helper(txt, exp_info)
@@ -237,7 +240,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         lines = txt.split("\n")
         info = hpytest.parse_failed_tests(lines)
         filtered_classes = hpytest.filter_failed_tests(
-            info["failed_tests"], only_file=False, only_class=True
+            info["log_failed_tests"], only_file=False, only_class=True
         )
         self.assert_equal(
             str(filtered_classes),
@@ -258,25 +261,26 @@ class Test_parse_failed_tests(hunitest.TestCase):
         """
         # Prepare outputs.
         exp_info = """
-        failed_tests=[]
         github_completed=False
         github_end_timestamp=None
         github_start_timestamp=None
         github_tag=None
-        num_failed=0
-        num_failed_classes=0
-        num_failed_files=0
-        num_passed=0
-        num_skipped_tests=0
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=0
+        log_num_skipped=0
+        log_passed_tests=[]
+        log_skipped_tests=[]
         pytest_collection_completed=False
         pytest_duration_in_secs=None
         pytest_ended=False
-        pytest_reported_failed=None
-        pytest_reported_passed=None
-        pytest_reported_skipped=None
+        pytest_num_failed=None
+        pytest_num_passed=None
+        pytest_num_skipped=None
         pytest_started=False
         pytest_tag=None
-        skipped_tests=[]
         """
         # Check.
         self.helper(txt, exp_info)
@@ -296,25 +300,26 @@ class Test_parse_failed_tests(hunitest.TestCase):
         """
         # Prepare outputs.
         exp_info = """
-        failed_tests=[]
         github_completed=False
         github_end_timestamp=None
         github_start_timestamp=None
         github_tag=None
-        num_failed=0
-        num_failed_classes=0
-        num_failed_files=0
-        num_passed=0
-        num_skipped_tests=0
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=0
+        log_num_skipped=0
+        log_passed_tests=[]
+        log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=None
         pytest_ended=False
-        pytest_reported_failed=None
-        pytest_reported_passed=None
-        pytest_reported_skipped=None
+        pytest_num_failed=None
+        pytest_num_passed=None
+        pytest_num_skipped=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
-        skipped_tests=[]
         """
         # Check.
         self.helper(txt, exp_info)
@@ -335,25 +340,26 @@ class Test_parse_failed_tests(hunitest.TestCase):
         )
         # Prepare outputs.
         exp_info = """
-        failed_tests=[]
         github_completed=False
         github_end_timestamp=None
         github_start_timestamp=None
         github_tag=None
-        num_failed=34
-        num_failed_classes=0
-        num_failed_files=0
-        num_passed=3157
-        num_skipped_tests=0
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=0
+        log_num_skipped=0
+        log_passed_tests=[]
+        log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=886.58
         pytest_ended=True
-        pytest_reported_failed=34
-        pytest_reported_passed=3157
-        pytest_reported_skipped=235
+        pytest_num_failed=34
+        pytest_num_passed=3157
+        pytest_num_skipped=235
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
-        skipped_tests=[]
         """
         # Check.
         self.helper(txt, exp_info)
@@ -385,7 +391,7 @@ class Test_info_to_comments(hunitest.TestCase):
         Failed: 4/47
         Skipped: 0/47
         """
-        # Check.
+        # Check. Note: pytest_num_failed=4, pytest_num_passed=43, total=47
         self.helper(txt, exp)
 
     def test2(self) -> None:
