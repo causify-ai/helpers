@@ -218,6 +218,8 @@ def parse_failed_tests(
     # Strip the GitHub Actions per-line tags, if any, and merge the extracted
     # job info into the result.
     github_info, lines = _parse_github_ci_log(lines)
+    #
+    passed_tests = []
     failed_tests = []
     skipped_tests = []
     info: Dict[str, Any] = {
@@ -261,7 +263,6 @@ def parse_failed_tests(
         # Run duration in seconds from the final summary line.
         "pytest_duration_in_secs": None,
     }
-    info.update(github_info)
     for line in lines:
         _LOG.debug("line=%s", line)
         # Remove ANSI color codes (both ESC-based and bracket notation).
@@ -386,8 +387,7 @@ def parse_failed_tests(
             #
             _set_info_field(info, "pytest_num_failed", int(m.group(1)))
             #
-            val = 
-            _set_info_field(info, "pytest_num_passed", int(m.group(2))
+            _set_info_field(info, "pytest_num_passed", int(m.group(2)))
             if m.group(3) is not None:
                 _set_info_field(
                     info, "pytest_num_skipped", int(m.group(3))
@@ -424,9 +424,15 @@ def parse_failed_tests(
         else 0
     )
     _set_info_field(info, "log_num_failed_classes", val)
+    # Add GitHub info.
+    for key, val in github_info.items():
+        _set_info_field(info, key, val)
     # Sanity check.
     # All fields are set and not None.
     for key in info.keys():
+        if key.startswith("github_"):
+            # GitHub info are optional and so can be None.
+            continue
         hdbg.dassert_is_not(info[key], None, "info[%s] was not set", key)
     # Verify consistency between log-level and pytest summary counts.
     if info["pytest_num_passed"] is not None and info["log_num_passed"] != info["pytest_num_passed"]:
