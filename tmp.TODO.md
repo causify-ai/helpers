@@ -45,10 +45,15 @@ collected 3361 items / 156 deselected / 7 skipped / 3205 selected
     - Save result into files
   - total duration
 
-#### [ ] 
+#### [x] collect the times and print a report
+- E.g., rank all the tests by time
+- Rank classes / files by cumulative time
 
-- save the stack traces in different files
-- how many are fast, slow, superslow
+#### [ ] count how many tests were updated and save file
+
+#### [ ] save the stack traces in different files
+
+#### [ ] how many are fast, slow, superslow
 
 ### [ ] Rename the output of dev_scripts_helpers/testing/pytest_log
 

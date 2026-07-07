@@ -12,6 +12,7 @@ import shutil
 from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -223,6 +224,8 @@ def parse_failed_tests(
     passed_tests = []
     failed_tests = []
     skipped_tests = []
+    # From full name of test to duration in secs.
+    test_durations: Dict[str, float] = {}
     info: Dict[str, Any] = {
         # Job tag from GitHub or `None` if input is not a GitHub Actions log.
         "github_tag": None,
@@ -249,6 +252,10 @@ def parse_failed_tests(
         "log_skipped_tests": None,
         # List of failed tests, parsed from the log.
         "log_failed_tests": None,
+        # Number of tests collected by pytest.
+        "pytest_num_collected": None,
+        # Dict mapping test names to their durations in seconds.
+        "log_test_durations": None,
         # Number of passed tests from the log.
         "log_num_passed": None,
         # Number of skipped tests.
@@ -365,10 +372,13 @@ def parse_failed_tests(
         # collected 3361 items / 156 deselected / 7 skipped / 3205 selected
         # collected 3421 items / 5 skipped
         # ```
-        # TODO(ai_gp): Parse the number of tests collected and save the info in the dict.
-        collected_pattern = re.compile(r"^collected (\S+) items")
-        if collected_pattern.search(line):
+        # TODO(ai_gp): Add also information about deselected, skipped, selected
+        # (that are optional).
+        collected_pattern = re.compile(r"^collected (\d+) items")
+        m_collected = collected_pattern.search(line)
+        if m_collected:
             _set_info_field(info, "pytest_collection_completed", True)
+            _set_info_field(info, "pytest_num_collected", int(m_collected.group(1)))
         # A line containing only a test id (no status yet): remember it in
         # case the following line's status ends up glued to unrelated text
         # (see `pending_test_id` above).
@@ -381,12 +391,11 @@ def parse_failed_tests(
         # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_skipped (2.07 s) FAILED [ 2%]
         # ... (0.13 s) (WARNING: Test was updated) PASSED [ 82%]
         # ```
-        # TODO(ai_gp): store the duration of each test.
         suffix_pattern = re.compile(
             r"""
             (\S+)                       # test path
             \s\(                        # space and opening paren
-            \S+\s s                     # duration with "s" suffix
+            (\S+)\s s                   # duration with "s" suffix
             \)\s                        # closing paren and space
             (?:\(WARNING:[^)]*\)\s)?    # optional golden-file update annotation
             (\S+)                       # status (e.g., FAILED, PASSED, ...)
@@ -414,8 +423,9 @@ def parse_failed_tests(
         # only when the line's own leading token isn't a real node id.
         test_name = None
         status = None
+        duration = None
         if m and "::" in m.group(1):
-            test_name, status = m.group(1), m.group(2)
+            test_name, duration, status = m.group(1), m.group(2), m.group(3)
         elif m2:
             status, test_name = m2.group(1), m2.group(2)
         elif m3:
@@ -427,6 +437,11 @@ def parse_failed_tests(
         if test_name is not None:
             pending_test_id = None
             _LOG.debug("line=%s ->\n\ttest_name='%s', status='%s'", line, test_name, status)
+            if duration is not None:
+                try:
+                    test_durations[test_name] = float(duration)
+                except ValueError:
+                    _LOG.debug("Could not parse duration='%s' for test='%s'", duration, test_name)
             if status == "PASSED":
                 passed_tests.append(test_name)
             elif status == "SKIPPED":
@@ -495,6 +510,8 @@ def parse_failed_tests(
     val = sorted(list(set(failed_tests)))
     _set_info_field(info, "log_failed_tests", val)
     _set_info_field(info, "log_num_failed", len(val))
+    #
+    _set_info_field(info, "log_test_durations", test_durations)
     # Compute log_num_failed_classes from the failed test list.
     val = (
         len(filter_failed_tests(failed_tests, only_file=True, only_class=False))
@@ -556,7 +573,19 @@ def parse_failed_tests(
             info["pytest_num_failed"],
             info["log_num_failed"],
         )
-    # TODO(ai_gp): Check that the sum of passed, failed, and skipped is the total number.
+    # Check that the sum of passed, failed, and skipped is the total number collected.
+    if info["pytest_num_collected"] is not None:
+        total_parsed = info["log_num_passed"] + info["log_num_failed"] + info["log_num_skipped"]
+        if total_parsed != info["pytest_num_collected"]:
+            _LOG.warning(
+                "Total parsed tests=%s (passed=%s + failed=%s + skipped=%s) "
+                "does not match collected=%s",
+                total_parsed,
+                info["log_num_passed"],
+                info["log_num_failed"],
+                info["log_num_skipped"],
+                info["pytest_num_collected"],
+            )
     return info
 
 
@@ -604,9 +633,153 @@ def info_to_str(info: Dict[str, Any]) -> str:
     """
     txt = []
     txt.append(hprint.frame("Results"))
-    keys_to_remove = ["log_passed_tests", "log_skipped_tests", "log_failed_tests"]
+    # Omit the per-test lists and durations: they are too verbose for a
+    # summary report and are available separately via `log_test_durations`.
+    keys_to_remove = [
+        "log_passed_tests",
+        "log_skipped_tests",
+        "log_failed_tests",
+        "log_test_durations",
+    ]
     info_to_print = {k: v for k, v in info.items() if k not in keys_to_remove}
     txt.append(pprint.pformat(info_to_print))
     txt.append(hprint.frame("Summary"))
     txt.append(info_to_comments(info))
     return "\n".join(txt)
+
+
+# #############################################################################
+# Write test reports.
+# #############################################################################
+
+
+def write_passed_tests(info: Dict[str, Any], file_name: str) -> None:
+    """
+    Write the list of passed tests, one per line, to a file.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :param file_name: file to write the passed tests to
+    """
+    hdbg.dassert_isinstance(info, dict)
+    hdbg.dassert_ne(file_name, "")
+    hio.to_file(file_name, "\n".join(info["log_passed_tests"]))
+
+
+def write_skipped_tests(info: Dict[str, Any], file_name: str) -> None:
+    """
+    Write the list of skipped tests, one per line, to a file.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :param file_name: file to write the skipped tests to
+    """
+    hdbg.dassert_isinstance(info, dict)
+    hdbg.dassert_ne(file_name, "")
+    hio.to_file(file_name, "\n".join(info["log_skipped_tests"]))
+
+
+def write_tests_by_duration(info: Dict[str, Any], file_name: str) -> None:
+    """
+    Write all timed tests ordered by duration, descending, to a file.
+
+    Passed, failed, and skipped tests are all included, since the goal is to
+    find the slowest tests regardless of outcome.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :param file_name: file to write the sorted tests to
+    """
+    hdbg.dassert_isinstance(info, dict)
+    hdbg.dassert_ne(file_name, "")
+    test_durations = info["log_test_durations"]
+    sorted_tests = sorted(
+        test_durations.items(), key=lambda kv: kv[1], reverse=True
+    )
+    lines = [f"{duration:.2f} s  {test_name}" for test_name, duration in sorted_tests]
+    hio.to_file(file_name, "\n".join(lines))
+
+
+def _compute_duration_stats(
+    test_durations: Dict[str, float], level: str
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Aggregate test durations by file or by class.
+
+    :param test_durations: mapping from full test name to duration in
+        seconds, e.g., `{"a/b.py::TestFoo::test1": 0.12}`
+    :param level: aggregation level, either "file" or "class"
+    :return: mapping from the aggregation key (a file path for `level="file"`,
+        or `file::class` for `level="class"`) to a dict with `count`,
+        `total_secs`, `mean_secs`, sorted by `total_secs` descending, e.g.,
+        ```
+        {"a/b.py::TestFoo": {"count": 2, "total_secs": 0.5, "mean_secs": 0.25}}
+        ```
+    """
+    hdbg.dassert_in(level, ("file", "class"), "Invalid aggregation level")
+    # Group durations by the requested key.
+    durations_by_key: Dict[str, List[float]] = {}
+    for test_name, duration in test_durations.items():
+        parts = test_name.split("::")
+        key = parts[0] if level == "file" else "::".join(parts[:-1])
+        durations_by_key.setdefault(key, []).append(duration)
+    # Compute count / total / mean for each key.
+    stats = {
+        key: {
+            "count": len(durations_),
+            "total_secs": sum(durations_),
+            "mean_secs": sum(durations_) / len(durations_),
+        }
+        for key, durations_ in durations_by_key.items()
+    }
+    stats = dict(
+        sorted(stats.items(), key=lambda kv: kv[1]["total_secs"], reverse=True)
+    )
+    return stats
+
+
+def compute_duration_stats_by_file(
+    info: Dict[str, Any]
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Aggregate test durations by file, sorted by total duration descending.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :return: see `_compute_duration_stats()`
+    """
+    hdbg.dassert_isinstance(info, dict)
+    return _compute_duration_stats(info["log_test_durations"], "file")
+
+
+def compute_duration_stats_by_class(
+    info: Dict[str, Any]
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Aggregate test durations by class, sorted by total duration descending.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :return: see `_compute_duration_stats()`
+    """
+    hdbg.dassert_isinstance(info, dict)
+    return _compute_duration_stats(info["log_test_durations"], "class")
+
+
+def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
+    """
+    Write test duration statistics, aggregated by file and by class, to a
+    file.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :param file_name: file to write the duration statistics to
+    """
+    hdbg.dassert_isinstance(info, dict)
+    hdbg.dassert_ne(file_name, "")
+    txt = []
+    txt.append(hprint.frame("Duration by file"))
+    for key, stat in compute_duration_stats_by_file(info).items():
+        txt.append(
+            f"{stat['total_secs']:.2f} s  {stat['count']} tests  {key}"
+        )
+    txt.append(hprint.frame("Duration by class"))
+    for key, stat in compute_duration_stats_by_class(info).items():
+        txt.append(
+            f"{stat['total_secs']:.2f} s  {stat['count']} tests  {key}"
+        )
+    hio.to_file(file_name, "\n".join(txt))
