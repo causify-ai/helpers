@@ -312,11 +312,13 @@ def parse_failed_tests(
         collected_pattern = re.compile(r"^collected (\S+) items")
         if collected_pattern.search(line):
             _set_info_field(info, "pytest_collection_completed", True)
+        # TODO(ai_gp): Count the updated goldens (WARNING: Test was updated)
         # Parse:
         # ```
         # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_gp1 (0.00 s) PASSED [ 36%]
         # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_skipped (2.07 s) FAILED [ 2%]
         # ```
+        # TODO(ai_gp): store the duration of each test
         suffix_pattern = re.compile(
             r"""
             (\S+)           # test path
