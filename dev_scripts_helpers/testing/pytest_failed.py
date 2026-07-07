@@ -90,8 +90,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Parsing '%s'", args.input)
     lines = txt.split("\n")
     info = hpytest.parse_failed_tests(lines)
+    # TODO(ai_gp): Factor out this function to print the results.
     print(hprint.frame("Results"))
-    info_to_print = {k: v for k, v in info.items() if k != "log_failed_tests"}
+    keys_to_remove = ["log_passed_tests", "log_skipped_tests", "log_failed_tests"]
+    info_to_print = {k: v for k, v in info.items() if k not in keys_to_remove}
     print(pprint.pformat(info_to_print))
     print(hprint.frame("Summary"))
     print(hpytest.info_to_comments(info))

@@ -308,7 +308,8 @@ def parse_failed_tests(
         # collected 3361 items / 156 deselected / 7 skipped / 3205 selected
         # collected 3421 items / 5 skipped
         # ```
-        collected_pattern = re.compile(r"^collected \d+ items")
+        # TODO(ai_gp): Parse the number of tests collected.
+        collected_pattern = re.compile(r"^collected (\S+) items")
         if collected_pattern.search(line):
             _set_info_field(info, "pytest_collection_completed", True)
         # Parse:
@@ -331,7 +332,7 @@ def parse_failed_tests(
             test_name = m.group(1)
             status = m.group(2)
             _LOG.debug("line=%s ->\n\ttest_name='%s', status='%s'", line, test_name, status)
-            if status == "SUCCESS":
+            if status == "PASSED":
                 passed_tests.append(test_name)
             elif status == "SKIPPED":
                 skipped_tests.append(test_name)
@@ -357,7 +358,7 @@ def parse_failed_tests(
             status = m.group(1)
             test_name = m.group(2)
             _LOG.debug("line=%s ->\n\ttest_name='%s', status='%s'", line, test_name, status)
-            if status == "SUCCESS":
+            if status == "PASSED":
                 passed_tests.append(test_name)
             elif status == "SKIPPED":
                 skipped_tests.append(test_name)
@@ -428,11 +429,29 @@ def parse_failed_tests(
     for key, val in github_info.items():
         _set_info_field(info, key, val)
     # Sanity check.
-    # All fields are set and not None.
-    for key in info.keys():
-        if key.startswith("github_"):
-            # GitHub info are optional and so can be None.
-            continue
+    # Only assert non-`None` for fields that must be present:
+    # - `github_*` (except `github_completed`): only present when parsing a
+    #   GitHub Actions log, `None` for a local run.
+    # - `pytest_tag`: only set if the "platform ..." line was printed, e.g.
+    #   missing if pytest crashed before printing it.
+    # - `pytest_num_failed/passed/skipped`, `pytest_duration_in_secs`: only
+    #   set if the final summary line was printed, e.g. missing if the run
+    #   was killed mid-way or crashed before completing.
+    required_fields = (
+        "github_completed",
+        "pytest_started",
+        "pytest_collection_completed",
+        "pytest_ended",
+        "log_passed_tests",
+        "log_skipped_tests",
+        "log_failed_tests",
+        "log_num_passed",
+        "log_num_skipped",
+        "log_num_failed",
+        "log_num_failed_files",
+        "log_num_failed_classes",
+    )
+    for key in required_fields:
         hdbg.dassert_is_not(info[key], None, "info[%s] was not set", key)
     # Verify consistency between log-level and pytest summary counts.
     if info["pytest_num_passed"] is not None and info["log_num_passed"] != info["pytest_num_passed"]:
@@ -482,10 +501,12 @@ def info_to_comments(info: Dict[str, Any]) -> str:
     # Failed / tot tests and skipped / tot tests.
     # Prefer pytest values (from final summary) over log values (from parsed lines).
     num_passed = info.get("pytest_num_passed") or info.get("log_num_passed") or 0
-    num_failed = info.get("pytest_num_failed") or info.get("log_num_failed") or 0
     num_skipped = info.get("pytest_num_skipped") or info.get("log_num_skipped") or 0
+    num_failed = info.get("pytest_num_failed") or info.get("log_num_failed") or 0
+    _LOG.debug(hprint.to_str("num_passed num_skipped num_failed"))
     #
     num_total = num_failed + num_passed + num_skipped
-    comments.append(f"Failed: {num_failed}/{num_total}")
+    comments.append(f"Passed: {num_passed}/{num_total}")
     comments.append(f"Skipped: {num_skipped}/{num_total}")
+    comments.append(f"Failed: {num_failed}/{num_total}")
     return "\n".join(comments)

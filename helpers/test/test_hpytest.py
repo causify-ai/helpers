@@ -155,9 +155,9 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed=3
         log_num_failed_classes=3
         log_num_failed_files=2
-        log_num_passed=0
+        log_num_passed=3
         log_num_skipped=0
-        log_passed_tests=[]
+        log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
@@ -183,9 +183,9 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed=3
         log_num_failed_classes=3
         log_num_failed_files=2
-        log_num_passed=0
+        log_num_passed=3
         log_num_skipped=0
-        log_passed_tests=[]
+        log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
@@ -221,9 +221,9 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed=3
         log_num_failed_classes=3
         log_num_failed_files=2
-        log_num_passed=0
+        log_num_passed=3
         log_num_skipped=0
-        log_passed_tests=[]
+        log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
@@ -308,9 +308,9 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed=0
         log_num_failed_classes=0
         log_num_failed_files=0
-        log_num_passed=0
+        log_num_passed=1
         log_num_skipped=0
-        log_passed_tests=[]
+        log_passed_tests=['test_foo.py::Test_foo1::test1']
         log_skipped_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=None
@@ -388,8 +388,9 @@ class Test_info_to_comments(hunitest.TestCase):
         exp = """
         Run: local
         Pytest completed: True
-        Failed: 4/47
+        Passed: 43/47
         Skipped: 0/47
+        Failed: 4/47
         """
         # Check. Note: pytest_num_failed=4, pytest_num_passed=43, total=47
         self.helper(txt, exp)
@@ -414,8 +415,9 @@ class Test_info_to_comments(hunitest.TestCase):
         exp = """
         Run: GitHub CI (run_fast_tests)
         Pytest completed: True
-        Failed: 34/3426
+        Passed: 3157/3426
         Skipped: 235/3426
+        Failed: 34/3426
         """
         # Check.
         self.helper(txt, exp)
@@ -429,8 +431,9 @@ class Test_info_to_comments(hunitest.TestCase):
         exp = """
         Run: local
         Pytest completed: False
-        Failed: 0/0
+        Passed: 0/0
         Skipped: 0/0
+        Failed: 0/0
         """
         # Check.
         self.helper(txt, exp)
