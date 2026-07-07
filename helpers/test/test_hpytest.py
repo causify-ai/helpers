@@ -364,6 +364,183 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Check.
         self.helper(txt, exp_info)
 
+    def test7(self) -> None:
+        """
+        Test a verbose PASSED line with no duration, e.g., a plain
+        module-level function test that pytest doesn't time.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 2 items
+
+        test_foo.py::test1 (0.00 s) PASSED [ 50%]
+        test_foo.py::test_function PASSED                [100%]
+
+        ======================== 0 failed, 2 passed in 0.01s =========================
+        """
+        # Prepare outputs.
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=2
+        log_num_skipped=0
+        log_passed_tests=['test_foo.py::test1', 'test_foo.py::test_function']
+        log_skipped_tests=[]
+        pytest_collection_completed=True
+        pytest_duration_in_secs=0.01
+        pytest_ended=True
+        pytest_num_failed=0
+        pytest_num_passed=2
+        pytest_num_skipped=None
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
+    def test8(self) -> None:
+        """
+        Test a verbose PASSED line with a golden-file "(WARNING: Test was
+        updated)" annotation inserted between the duration and the status.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 1 items
+
+        test_foo.py::Test1::test_check_string_missing3 (0.13 s) (WARNING: Test was updated) PASSED [100%]
+
+        ======================== 0 failed, 1 passed in 0.13s =========================
+        """
+        # Prepare outputs.
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=1
+        log_num_skipped=0
+        log_passed_tests=['test_foo.py::Test1::test_check_string_missing3']
+        log_skipped_tests=[]
+        pytest_collection_completed=True
+        pytest_duration_in_secs=0.13
+        pytest_ended=True
+        pytest_num_failed=0
+        pytest_num_passed=1
+        pytest_num_skipped=None
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
+    def test9(self) -> None:
+        """
+        Test a PASSED status whose duration/status is glued (no separating
+        space) to a golden-file "WARNING: ..." message printed by the test
+        itself, so the node id ends up alone on the preceding line.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 1 items
+
+        test_foo.py::Test1::test_check_df_missing3
+        WARNING: Update golden outcome file '/some/path/test_df.txt'(0.11 s) (WARNING: Test was updated) PASSED [100%]
+
+        ======================== 0 failed, 1 passed in 0.11s =========================
+        """
+        # Prepare outputs.
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=1
+        log_num_skipped=0
+        log_passed_tests=['test_foo.py::Test1::test_check_df_missing3']
+        log_skipped_tests=[]
+        pytest_collection_completed=True
+        pytest_duration_in_secs=0.11
+        pytest_ended=True
+        pytest_num_failed=0
+        pytest_num_passed=1
+        pytest_num_skipped=None
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
+    def test10(self) -> None:
+        """
+        Test that skips are counted from the "short test summary info"
+        aggregate `SKIPPED [N] ...` lines, which is the only source that
+        accounts for `@pytest.mark.skip`/`skipif` tests (never run, so no
+        per-test verbose line), and that a skip reported both inline and
+        in the summary (a "live" `pytest.skip()` call) isn't double-counted.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 8 items
+
+        test_foo.py::Test1::test_live_skip (0.00 s) SKIPPED [ 33%]
+        test_foo.py::Test1::test2 (0.00 s) PASSED [ 66%]
+        test_foo.py::Test1::test3 (0.00 s) PASSED [100%]
+
+        =========================== short test summary info ============================
+        SKIPPED [1] test_foo.py:10: decorator skip reason
+        SKIPPED [1] test_foo.py:20: live skip reason
+        SKIPPED [4] test_foo.py:30: parametrized skip reason
+
+        ======================== 0 failed, 2 passed, 6 skipped in 0.01s =========================
+        """
+        # Prepare outputs.
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=2
+        log_num_skipped=6
+        log_passed_tests=['test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
+        log_skipped_tests=['test_foo.py:10#0', 'test_foo.py:20#0', 'test_foo.py:30#0', 'test_foo.py:30#1', 'test_foo.py:30#2', 'test_foo.py:30#3']
+        pytest_collection_completed=True
+        pytest_duration_in_secs=0.01
+        pytest_ended=True
+        pytest_num_failed=0
+        pytest_num_passed=2
+        pytest_num_skipped=6
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
 
 # #############################################################################
 # Test_info_to_comments

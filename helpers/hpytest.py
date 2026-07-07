@@ -237,7 +237,14 @@ def parse_failed_tests(
         "pytest_collection_completed": None,
         # List of passed tests, parsed from the log.
         "log_passed_tests": None,
-        # List of skipped tests, parsed from the log.
+        # List of skipped tests, parsed from the log. When the pytest
+        # "short test summary info" section is present, entries are
+        # synthetic `path:line_or_reason#i` keys (not real pytest node
+        # ids), since that section reports a repeat count and a
+        # file[:line] but not the node id. It is used because it is the
+        # only place that reports *every* skipped test: tests skipped via
+        # `@pytest.mark.skip`/`skipif` are never run, so pytest prints no
+        # per-test verbose line (and thus no node id) for them.
         "log_skipped_tests": None,
         # List of failed tests, parsed from the log.
         "log_failed_tests": None,
@@ -263,6 +270,57 @@ def parse_failed_tests(
         # Run duration in seconds from the final summary line.
         "pytest_duration_in_secs": None,
     }
+    # Test id printed alone on a line, with nothing else, e.g., when a
+    # test's own logging (a golden-file "WARNING: ..." message) gets
+    # interleaved with the verbose "(duration s) STATUS" tag on the
+    # *following* line, so the node id and its status end up on two
+    # separate physical lines instead of one:
+    # ```
+    # helpers/test/test_hunit_test.py::TestCheckDataFrame1::test_check_df_missing3
+    # WARNING: Update golden outcome file '.../test_df.txt'(0.11 s) (WARNING: Test was updated) PASSED [ 82%]
+    # ```
+    bare_test_id_pattern = re.compile(r"^(\S+::\S+)\s*$")
+    # Verbose per-test line without a duration, e.g., a plain module-level
+    # function test that pytest doesn't time:
+    # ```
+    # test_foo.py::test_function PASSED                [ 46%]
+    # ```
+    no_duration_pattern = re.compile(
+        r"""
+        (\S+::\S+)                  # test path (must contain ::)
+        \s+
+        (PASSED|FAILED|ERROR|SKIPPED)
+        \s+\[
+        """,
+        re.VERBOSE
+    )
+    # Status tag at the end of a line whose leading "test path" token is
+    # not a real node id (e.g., a golden-file path glued to the duration
+    # with no separating space, as in the interleaved case above). Used
+    # together with `pending_test_id` captured from a preceding
+    # `bare_test_id_pattern` line.
+    status_at_end_pattern = re.compile(r"\b(PASSED|FAILED|ERROR|SKIPPED)\s+\[\s*\S*%\]\s*$")
+    # Pytest "short test summary info" aggregate skip line, e.g.:
+    # ```
+    # SKIPPED [1] path/to/test.py:13: reason text
+    # SKIPPED [4] path/to/test.py: reason text
+    # ```
+    # This is the only place that accounts for tests skipped via
+    # `@pytest.mark.skip`/`skipif`, since those are never run and so never
+    # print a per-test verbose line.
+    skipped_summary_pattern = re.compile(
+        r"""
+        ^SKIPPED\s+
+        \[(\d+)\]\s+      # repeat count
+        (\S+?)            # file path
+        (?::(\d+))?       # optional line number
+        :\s               # colon-space before the reason
+        (.*)$             # reason
+        """,
+        re.VERBOSE
+    )
+    pending_test_id: Optional[str] = None
+    skipped_summary_tests: List[str] = []
     for line in lines:
         _LOG.debug("line=%s", line)
         # Remove ANSI color codes (both ESC-based and bracket notation).
@@ -312,36 +370,31 @@ def parse_failed_tests(
         collected_pattern = re.compile(r"^collected (\S+) items")
         if collected_pattern.search(line):
             _set_info_field(info, "pytest_collection_completed", True)
-        # TODO(ai_gp): Count the updated goldens (WARNING: Test was updated)
+        # A line containing only a test id (no status yet): remember it in
+        # case the following line's status ends up glued to unrelated text
+        # (see `pending_test_id` above).
+        m_bare = bare_test_id_pattern.match(line)
+        if m_bare:
+            pending_test_id = m_bare.group(1)
         # Parse:
         # ```
         # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_gp1 (0.00 s) PASSED [ 36%]
         # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_skipped (2.07 s) FAILED [ 2%]
+        # ... (0.13 s) (WARNING: Test was updated) PASSED [ 82%]
         # ```
         # TODO(ai_gp): store the duration of each test
         suffix_pattern = re.compile(
             r"""
-            (\S+)           # test path
-            \s\(            # space and opening paren
-            \S+\s s         # duration with "s" suffix
-            \)\s            # closing paren and space
-            (\S+)           # status (e.g., FAILED, PASSED, ...)
+            (\S+)                       # test path
+            \s\(                        # space and opening paren
+            \S+\s s                     # duration with "s" suffix
+            \)\s                        # closing paren and space
+            (?:\(WARNING:[^)]*\)\s)?    # optional golden-file update annotation
+            (\S+)                       # status (e.g., FAILED, PASSED, ...)
             """,
             re.VERBOSE
         )
         m = suffix_pattern.search(line)
-        if m:
-            test_name = m.group(1)
-            status = m.group(2)
-            _LOG.debug("line=%s ->\n\ttest_name='%s', status='%s'", line, test_name, status)
-            if status == "PASSED":
-                passed_tests.append(test_name)
-            elif status == "SKIPPED":
-                skipped_tests.append(test_name)
-            elif status in ("FAILED", "ERROR"):
-                failed_tests.append(test_name)
-            else:
-                hdbg.dassert("Invalid status='%s' in line='%s'", status, line)
         # Parse:
         # ```
         # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
@@ -355,10 +408,26 @@ def parse_failed_tests(
             """,
             re.VERBOSE
         )
-        m = prefix_pattern.search(line)
-        if m:
-            status = m.group(1)
-            test_name = m.group(2)
+        m2 = prefix_pattern.search(line)
+        m3 = no_duration_pattern.search(line)
+        # Resolve `(test_name, status)` from whichever pattern matched,
+        # preferring the well-formed ones and falling back to
+        # `pending_test_id` only when the line's own leading token isn't a
+        # real node id.
+        test_name = None
+        status = None
+        if m and "::" in m.group(1):
+            test_name, status = m.group(1), m.group(2)
+        elif m2:
+            status, test_name = m2.group(1), m2.group(2)
+        elif m3:
+            test_name, status = m3.group(1), m3.group(2)
+        elif pending_test_id is not None:
+            m4 = status_at_end_pattern.search(line)
+            if m4:
+                test_name, status = pending_test_id, m4.group(1)
+        if test_name is not None:
+            pending_test_id = None
             _LOG.debug("line=%s ->\n\ttest_name='%s', status='%s'", line, test_name, status)
             if status == "PASSED":
                 passed_tests.append(test_name)
@@ -368,6 +437,17 @@ def parse_failed_tests(
                 failed_tests.append(test_name)
             else:
                 hdbg.dassert("Invalid status='%s' in line='%s'", status, line)
+        # Parse the pytest "short test summary info" aggregate skip lines
+        # (see `skipped_summary_pattern` above); this is the only source
+        # that accounts for every `@pytest.mark.skip`/`skipif` test, since
+        # those never print a per-test verbose line.
+        m5 = skipped_summary_pattern.match(line)
+        if m5:
+            count = int(m5.group(1))
+            path = m5.group(2)
+            lineno_or_reason = m5.group(3) if m5.group(3) is not None else m5.group(4)
+            for i in range(count):
+                skipped_summary_tests.append(f"{path}:{lineno_or_reason}#{i}")
         # Parse:
         # ```
         # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
@@ -406,7 +486,12 @@ def parse_failed_tests(
     _set_info_field(info, "log_passed_tests", val)
     _set_info_field(info, "log_num_passed", len(val))
     #
-    val = sorted(list(set(skipped_tests)))
+    # Prefer the short-summary-derived skip list: it is the only source
+    # that accounts for skips pytest never times (and thus never prints a
+    # per-test verbose line for), so it is the only one that can match
+    # `pytest_num_skipped`. Combining it with `skipped_tests` would
+    # double-count, since every skip already appears in the summary too.
+    val = sorted(set(skipped_summary_tests)) if skipped_summary_tests else sorted(set(skipped_tests))
     _set_info_field(info, "log_skipped_tests", val)
     _set_info_field(info, "log_num_skipped", len(val))
     #
