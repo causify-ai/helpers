@@ -221,28 +221,34 @@ def parse_failed_tests(
     failed_tests = []
     skipped_tests = []
     info: Dict[str, Any] = {
-        # List of passed tests, parsed from the log.
-        "log_passed_tests": None,
-        # List of failed tests, parsed from the log.
-        "log_failed_tests": None,
-        # List of skipped tests, parsed from the log.
-        "log_skipped_tests": None,
-        # Number of failed tests from the log.
-        "log_num_failed": None,
-        # Number of passed tests from the log.
-        "log_num_passed": None,
-        # Number of skipped tests.
-        "log_num_skipped": None,
-        # Number of files with failed tests.
-        "log_num_failed_files": None,
-        # Number of test classes with failed tests.
-        "log_num_failed_classes": None,
+        # Job tag from GitHub or `None` if input is not a GitHub Actions log.
+        "github_tag": None,
+        # See `_parse_github_ci_log()`.
+        "github_start_timestamp": None,
+        "github_end_timestamp": None,
+        "github_completed": None,
         # True if pytest reached the "test session starts" banner.
         "pytest_started": None,
         # The platform line, like "... -- Python ..., pytest-..., ...".
         "pytest_tag": None,
         # True if the "collected N items" line was printed.
         "pytest_collection_completed": None,
+        # List of passed tests, parsed from the log.
+        "log_passed_tests": None,
+        # List of skipped tests, parsed from the log.
+        "log_skipped_tests": None,
+        # List of failed tests, parsed from the log.
+        "log_failed_tests": None,
+        # Number of passed tests from the log.
+        "log_num_passed": None,
+        # Number of skipped tests.
+        "log_num_skipped": None,
+        # Number of failed tests from the log.
+        "log_num_failed": None,
+        # Number of files with failed tests.
+        "log_num_failed_files": None,
+        # Number of test classes with failed tests.
+        "log_num_failed_classes": None,
         # True if pytest reached the final summary line "4 failed, 43 passed in
         # 40.48s".
         "pytest_ended": None,
@@ -254,12 +260,6 @@ def parse_failed_tests(
         "pytest_num_skipped": None,
         # Run duration in seconds from the final summary line.
         "pytest_duration_in_secs": None,
-        # Job tag from GitHub or `None` if input is not a GitHub Actions log.
-        "github_tag": None,
-        # See `_parse_github_ci_log()`.
-        "github_start_timestamp": None,
-        "github_end_timestamp": None,
-        "github_completed": None,
     }
     info.update(github_info)
     for line in lines:
@@ -313,64 +313,57 @@ def parse_failed_tests(
         # Parse:
         # ```
         # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_gp1 (0.00 s) PASSED [ 36%]
+        # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_skipped (2.07 s) FAILED [ 2%]
         # ```
-
+        suffix_pattern = re.compile(
+            r"""
+            (\S+)           # test path
+            \s\(            # space and opening paren
+            \S+\s s         # duration with "s" suffix
+            \)\s            # closing paren and space
+            (\S+)           # status (e.g., FAILED, PASSED, ...)
+            """,
+            re.VERBOSE
+        )
+        m = suffix_pattern.search(line)
+        if m:
+            test_name = m.group(1)
+            status = m.group(2)
+            _LOG.debug("line=%s ->\n\ttest_name='%s', status='%s'", line, test_name, status)
+            if status == "SUCCESS":
+                passed_tests.append(test_name)
+            elif status == "SKIPPED":
+                skipped_tests.append(test_name)
+            elif status in ("FAILED", "ERROR"):
+                failed_tests.append(test_name)
+            else:
+                hdbg.dassert("Invalid status='%s' in line='%s'", status, line)
         # Parse:
         # ```
         # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
         # ```
-        failed_prefix_pattern = re.compile(
+        prefix_pattern = re.compile(
             r"""
-            ^(FAILED|ERROR)  # status at line start
+            ^(\S+)           # status at line start (e.g., FAILED, PASSED, ...)
             \s
             (\S+)            # test path
             \s-              # dash separator
             """,
             re.VERBOSE
         )
-        m = failed_prefix_pattern.search(line)
+        m = prefix_pattern.search(line)
         if m:
+            status = m.group(1)
             test_name = m.group(2)
-            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
-            failed_tests.append(test_name)
-        # Parse:
-        # ```
-        # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_skipped (2.07 s) FAILED [ 2%]
-        # ```
-        failed_suffix_pattern = re.compile(
-            r"""
-            (\S+)           # test path
-            \s\(            # space and opening paren
-            \S+\s s         # duration with "s" suffix
-            \)\s            # closing paren and space
-            (FAILED|ERROR)  # status
-            """,
-            re.VERBOSE
-        )
-        m = failed_suffix_pattern.search(line)
-        if m:
-            test_name = m.group(1)
-            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
-            failed_tests.append(test_name)
-        # Parse:
-        # ```
-        # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_skipped (0.00 s) SKIPPED [ 10%]
-        # ```
-        skipped_pattern = re.compile(
-            r"""
-            (\S+)         # test path
-            \s\(          # space and opening paren
-            \S+\s s       # duration with "s" suffix
-            \)\s          # closing paren and space
-            SKIPPED       # SKIPPED status
-            """,
-            re.VERBOSE
-        )
-        m = skipped_pattern.search(line)
-        if m:
-            test_name = m.group(1)
-            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
-            skipped_tests.append(test_name)
+            _LOG.debug("line=%s ->\n\ttest_name='%s', status='%s'", line, test_name, status)
+            if status == "SUCCESS":
+                passed_tests.append(test_name)
+            elif status == "SKIPPED":
+                skipped_tests.append(test_name)
+            elif status in ("FAILED", "ERROR"):
+                failed_tests.append(test_name)
+            else:
+                hdbg.dassert("Invalid status='%s' in line='%s'", status, line)
         # Parse:
         # ```
         # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
@@ -391,64 +384,51 @@ def parse_failed_tests(
         if m:
             _set_info_field(info, "pytest_ended", True)
             #
-            pytest_num_failed = int(m.group(1))
-            _set_info_field(info, "pytest_num_failed", pytest_num_failed)
+            _set_info_field(info, "pytest_num_failed", int(m.group(1)))
             #
-            pytest_num_passed = int(m.group(2))
-            _set_info_field(info, "pytest_num_passed", pytest_num_passed)
+            val = 
+            _set_info_field(info, "pytest_num_passed", int(m.group(2))
             if m.group(3) is not None:
                 _set_info_field(
                     info, "pytest_num_skipped", int(m.group(3))
                 )
             _set_info_field(info, "pytest_duration_in_secs", float(m.group(4)))
-    # Normalize the tri-state flags (unset `None` -> `False`) now that the
-    # loop is done setting each of them at most once.
+    # Set the flags from `None` to `False` now that the loop is done setting
+    # each of them at most once.
     for key in ("pytest_started", "pytest_collection_completed", "pytest_ended"):
         if info[key] is None:
             info[key] = False
     #
-    _set_info_field(info, "log_passed_tests", [])
-    _set_info_field(info, "log_num_passed", 0)
+    val = sorted(list(set(passed_tests)))
+    _set_info_field(info, "log_passed_tests", val)
+    _set_info_field(info, "log_num_passed", len(val))
     #
-    failed_tests = sorted(list(set(failed_tests)))
-    _set_info_field(info, "log_failed_tests", failed_tests)
-    _set_info_field(info, "log_num_failed", len(failed_tests))
+    val = sorted(list(set(skipped_tests)))
+    _set_info_field(info, "log_skipped_tests", val)
+    _set_info_field(info, "log_num_skipped", len(val))
     #
+    val = sorted(list(set(failed_tests)))
+    _set_info_field(info, "log_failed_tests", val)
+    _set_info_field(info, "log_num_failed", len(val))
     # Compute log_num_failed_classes from the failed test list.
-    log_num_failed_files = (
+    val = (
         len(filter_failed_tests(failed_tests, only_file=True, only_class=False))
         if failed_tests
         else 0
     )
-    _set_info_field(info, "log_num_failed_files", log_num_failed_files)
+    _set_info_field(info, "log_num_failed_files", val)
     #
-    log_num_failed_classes = (
+    val = (
         len(filter_failed_tests(failed_tests, only_file=False, only_class=True))
         if failed_tests
         else 0
     )
-    _set_info_field(info, "log_num_failed_classes", log_num_failed_classes)
-    #
-    skipped_tests = sorted(list(set(skipped_tests)))
-    _set_info_field(info, "log_skipped_tests", skipped_tests)
-    _set_info_field(info, "log_num_skipped", len(skipped_tests))
-    # Sanity check
-    # All required fields are set and not None.
+    _set_info_field(info, "log_num_failed_classes", val)
+    # Sanity check.
+    # All fields are set and not None.
     for key in info.keys():
         hdbg.dassert_is_not(info[key], None, "info[%s] was not set", key)
     # Verify consistency between log-level and pytest summary counts.
-    if info["log_num_failed"] != len(failed_tests):
-        _LOG.warning(
-            "log_num_failed=%s len(failed_tests)=%s",
-            info["log_num_failed"],
-            len(failed_tests),
-        )
-    if info["pytest_num_failed"] is not None and info["log_num_failed"] != info["pytest_num_failed"]:
-        _LOG.warning(
-            "pytest_num_failed=%s log_num_failed=%s",
-            info["pytest_num_failed"],
-            info["log_num_failed"],
-        )
     if info["pytest_num_passed"] is not None and info["log_num_passed"] != info["pytest_num_passed"]:
         _LOG.warning(
             "pytest_num_passed=%s log_num_passed=%s",
@@ -461,6 +441,13 @@ def parse_failed_tests(
             info["pytest_num_skipped"],
             info["log_num_skipped"],
         )
+    if info["pytest_num_failed"] is not None and info["log_num_failed"] != info["pytest_num_failed"]:
+        _LOG.warning(
+            "pytest_num_failed=%s log_num_failed=%s",
+            info["pytest_num_failed"],
+            info["log_num_failed"],
+        )
+    # TODO(ai_gp): Check that the sum of passed, failed, and skipped is the total number.
     return info
 
 
@@ -488,11 +475,10 @@ def info_to_comments(info: Dict[str, Any]) -> str:
     comments.append(f"Pytest completed: {info.get('pytest_ended', False)}")
     # Failed / tot tests and skipped / tot tests.
     # Prefer pytest values (from final summary) over log values (from parsed lines).
-    num_failed = info.get("pytest_num_failed") or info.get("log_num_failed") or 0
     num_passed = info.get("pytest_num_passed") or info.get("log_num_passed") or 0
-    num_skipped = info.get("pytest_num_skipped")
-    if num_skipped is None:
-        num_skipped = len(info.get("log_skipped_tests") or [])
+    num_failed = info.get("pytest_num_failed") or info.get("log_num_failed") or 0
+    num_skipped = info.get("pytest_num_skipped") or info.get("log_num_skipped") or 0
+    #
     num_total = num_failed + num_passed + num_skipped
     comments.append(f"Failed: {num_failed}/{num_total}")
     comments.append(f"Skipped: {num_skipped}/{num_total}")
