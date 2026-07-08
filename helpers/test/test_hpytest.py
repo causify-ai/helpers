@@ -841,6 +841,295 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Check.
         self.helper(txt, exp_info)
 
+    def test15(self) -> None:
+        """
+        Test the final summary line for an all-passing run, e.g.:
+        ```
+        ============================== 3 passed in 0.05s ===============================
+        ```
+        Pytest omits categories with a zero count, so a clean run's summary
+        has no "0 failed," prefix at all. `pytest_ended` and
+        `pytest_num_failed`/`pytest_num_passed` must still be set (with
+        `pytest_num_failed` defaulting to 0), not left as if the summary
+        line was never printed.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 3 items
+
+        test_foo.py::Test1::test1 (0.00 s) PASSED [ 33%]
+        test_foo.py::Test1::test2 (0.00 s) PASSED [ 66%]
+        test_foo.py::Test1::test3 (0.00 s) PASSED [100%]
+
+        ============================== 3 passed in 0.05s ===============================
+        """
+        # Prepare outputs.
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=3
+        log_num_skipped=0
+        log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
+        log_skipped_tests=[]
+        log_test_durations={'test_foo.py::Test1::test1': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
+        pytest_collection_completed=True
+        pytest_duration_in_secs=0.05
+        pytest_ended=True
+        pytest_num_collected=3
+        pytest_num_deselected=None
+        pytest_num_failed=0
+        pytest_num_passed=3
+        pytest_num_selected=None
+        pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
+    def test16(self) -> None:
+        """
+        Test the final summary line for an all-failing run, e.g.:
+        ```
+        ============================== 3 failed in 0.05s ===============================
+        ```
+        Pytest omits the "passed" category entirely when nothing passed, so
+        `pytest_num_passed` must default to 0 rather than staying unset.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 3 items
+
+        test_foo.py::Test1::test1 (0.00 s) FAILED [ 33%]
+        test_foo.py::Test1::test2 (0.00 s) FAILED [ 66%]
+        test_foo.py::Test1::test3 (0.00 s) FAILED [100%]
+
+        ============================== 3 failed in 0.05s ===============================
+        """
+        # Prepare outputs.
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
+        log_failed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
+        log_num_failed=3
+        log_num_failed_classes=1
+        log_num_failed_files=1
+        log_num_passed=0
+        log_num_skipped=0
+        log_passed_tests=[]
+        log_skipped_tests=[]
+        log_test_durations={'test_foo.py::Test1::test1': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
+        pytest_collection_completed=True
+        pytest_duration_in_secs=0.05
+        pytest_ended=True
+        pytest_num_collected=3
+        pytest_num_deselected=None
+        pytest_num_failed=3
+        pytest_num_passed=0
+        pytest_num_selected=None
+        pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
+    def test17(self) -> None:
+        """
+        Test that two distinct "short test summary info" skip groups sharing
+        the same file:line but different reasons aren't merged into one.
+
+        This is a regression test for a real-world case (pytest attributing
+        two different `skipif` conditions to the same reported line):
+        ```
+        SKIPPED [2] test_foo.py:15: mdformat package not installed
+        SKIPPED [3] test_foo.py:15: flowmark package not installed
+        ```
+        Before the fix, both lines built the same synthetic keys (the
+        reason was dropped whenever a line number was present), so the
+        second line's counts collided with and were absorbed by the
+        first's after dedup, undercounting 5 skips as 3.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 5 items
+
+        =========================== short test summary info ============================
+        SKIPPED [2] test_foo.py:15: mdformat package not installed
+        SKIPPED [3] test_foo.py:15: flowmark package not installed
+
+        ======================== 0 failed, 0 passed, 5 skipped in 0.01s =========================
+        """
+        # Prepare outputs.
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=0
+        log_num_skipped=5
+        log_passed_tests=[]
+        log_skipped_tests=['test_foo.py:15:flowmark package not installed#0', 'test_foo.py:15:flowmark package not installed#1', 'test_foo.py:15:flowmark package not installed#2', 'test_foo.py:15:mdformat package not installed#0', 'test_foo.py:15:mdformat package not installed#1']
+        log_test_durations={}
+        pytest_collection_completed=True
+        pytest_duration_in_secs=0.01
+        pytest_ended=True
+        pytest_num_collected=5
+        pytest_num_deselected=None
+        pytest_num_failed=0
+        pytest_num_passed=0
+        pytest_num_selected=None
+        pytest_num_skipped=5
+        pytest_num_skipped_at_collection=None
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
+    def test18(self) -> None:
+        """
+        Test a "short test summary info" skip line with no line number at
+        all, e.g.:
+        ```
+        SKIPPED [27] test_foo.py: some shared reason
+        ```
+        Pytest prints this form (file only, no ":line") when the repeated
+        reason isn't tied to one specific source line.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 2 items
+
+        =========================== short test summary info ============================
+        SKIPPED [2] test_foo.py: some shared reason
+
+        ======================== 0 failed, 0 passed, 2 skipped in 0.01s =========================
+        """
+        # Prepare outputs.
+        exp_info = """
+        github_completed=False
+        github_end_timestamp=None
+        github_start_timestamp=None
+        github_tag=None
+        log_failed_tests=[]
+        log_num_failed=0
+        log_num_failed_classes=0
+        log_num_failed_files=0
+        log_num_passed=0
+        log_num_skipped=2
+        log_passed_tests=[]
+        log_skipped_tests=['test_foo.py:some shared reason#0', 'test_foo.py:some shared reason#1']
+        log_test_durations={}
+        pytest_collection_completed=True
+        pytest_duration_in_secs=0.01
+        pytest_ended=True
+        pytest_num_collected=2
+        pytest_num_deselected=None
+        pytest_num_failed=0
+        pytest_num_passed=0
+        pytest_num_selected=None
+        pytest_num_skipped=2
+        pytest_num_skipped_at_collection=None
+        pytest_started=True
+        pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
+    def test19(self) -> None:
+        """
+        Test that a garbled per-test status line (e.g., the test's own
+        stdout byte-interleaved with the "SKIPPED" tag, corrupting it to
+        "SKIPPEDt)") is flagged with a `_LOG.warning` and excluded from the
+        counts, instead of being silently dropped or miscounted.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 2 items
+
+        test_foo.py::Test1::test1 (0.00 s) PASSED [ 50%]
+        test_foo.py::Test1::test_garbled SKIPPEDt) [100%]
+
+        ======================== 0 failed, 1 passed in 0.01s =========================
+        """
+        lines = hprint.dedent(txt).split("\n")
+        # Check that the garbled line is flagged.
+        with self.assertLogs("helpers.hpytest", level="WARNING") as cm:
+            info = hpytest.parse_failed_tests(lines)
+        self.assertIn(
+            "Could not parse test status", "\n".join(cm.output)
+        )
+        self.assertIn("test_garbled", "\n".join(cm.output))
+        # Check that the garbled test is excluded from the counts (rather
+        # than being counted as passed, failed, or skipped).
+        self.assertEqual(info["log_num_passed"], 1)
+        self.assertEqual(info["log_num_skipped"], 0)
+        self.assertEqual(info["log_num_failed"], 0)
+
+    def test20(self) -> None:
+        """
+        Test a file-level collection error (e.g., a module that failed to
+        import), which pytest reports without a `::` node id, e.g.:
+        ```
+        ERROR test_bar.py - ModuleNotFoundError: No module named 'bar'
+        ```
+        This is a regression test for a crash: `prefix_pattern` didn't
+        require a `::` in the test path (unlike the other status
+        patterns), so this line used to be accepted as a "failed test",
+        and then `filter_failed_tests()` would raise trying to split a
+        bare file path into `path::class::test`. It should instead be
+        flagged as unparseable (via the same warning as `test19()`) and
+        excluded from the counts.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 2 items
+
+        test_foo.py::Test1::test1 (0.00 s) PASSED [100%]
+        ERROR test_bar.py - ModuleNotFoundError: No module named 'bar'
+
+        ======================== 0 failed, 1 passed in 0.05s =========================
+        """
+        lines = hprint.dedent(txt).split("\n")
+        # Check that parsing doesn't crash and flags the bare-path line.
+        with self.assertLogs("helpers.hpytest", level="WARNING") as cm:
+            info = hpytest.parse_failed_tests(lines)
+        self.assertIn(
+            "Could not parse test status", "\n".join(cm.output)
+        )
+        self.assertIn("test_bar.py", "\n".join(cm.output))
+        # Check that the collection error isn't counted as a failed test.
+        self.assertEqual(info["log_num_passed"], 1)
+        self.assertEqual(info["log_num_failed"], 0)
+        self.assertEqual(info["log_failed_tests"], [])
+
 
 # #############################################################################
 # Test_info_to_str
@@ -1184,14 +1473,16 @@ class Test_write_duration_stats(hunitest.TestCase):
         ################################################################################
         Duration by file
         ################################################################################
-        file_b.py: 1, 4.00 secs, mean 4.00 secs
-        file_a.py: 3, 3.50 secs, mean 1.17 secs
+        File | Count | Total (secs) | Mean (secs) | Max (secs)
+        file_b.py | 1 | 4.00 | 4.00 | 4.00
+        file_a.py | 3 | 3.50 | 1.17 | 2.00
         ################################################################################
         Duration by class
         ################################################################################
-        file_b.py::ClassC: 1, 4.00 secs, mean 4.00 secs
-        file_a.py::ClassA: 2, 3.00 secs, mean 1.50 secs
-        file_a.py::ClassB: 1, 0.50 secs, mean 0.50 secs
+        Class | Count | Total (secs) | Mean (secs) | Max (secs)
+        file_b.py::ClassC | 1 | 4.00 | 4.00 | 4.00
+        file_a.py::ClassA | 2 | 3.00 | 1.50 | 2.00
+        file_a.py::ClassB | 1 | 0.50 | 0.50 | 0.50
         """
         # Run test.
         hpytest.write_duration_stats(info, file_name)

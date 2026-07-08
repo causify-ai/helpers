@@ -1662,4 +1662,6 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
 def pytest_failed(ctx, file_name="tmp.pytest_script.txt"):  # type: ignore
     _ = ctx
     hltltaut.report_task()
-    # TODO(ai_gp): call pytest_failed.py with sensible defaults.
+    script_path = "dev_scripts_helpers/testing/pytest_failed.py"
+    cmd = f"python {script_path} -i {file_name}"
+    hsystem.system(cmd, abort_on_error=False, suppress_output=False)

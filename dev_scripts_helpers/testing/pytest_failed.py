@@ -24,7 +24,6 @@ Creates the following files:
 
 import argparse
 import logging
-from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -54,17 +53,6 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-# TODO(ai_gp): Inline this.
-def _write_repro_script(tests: List[str], file_name: str) -> None:
-    """
-    Write an executable script that reruns `tests` via `pytest_log`.
-
-    :param tests: tests, classes, or files to pass to `pytest_log`
-    :param file_name: name of the script to create
-    """
-    hpytest.write_repro_script(tests, file_name)
-
-
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
@@ -80,17 +68,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     print(hpytest.info_to_str(info))
     # Write the repro scripts.
     failed_tests = info["log_failed_tests"]
-    _write_repro_script(failed_tests, "tmp.pytest_failed.sh")
+    hpytest.write_repro_script(failed_tests, "tmp.pytest_failed.sh")
     #
     failed_classes = hpytest.filter_failed_tests(
         failed_tests, only_file=False, only_class=True
     )
-    _write_repro_script(failed_classes, "tmp.pytest_failed.classes.sh")
+    hpytest.write_repro_script(failed_classes, "tmp.pytest_failed.classes.sh")
     #
     failed_files = hpytest.filter_failed_tests(
         failed_tests, only_file=True, only_class=False
     )
-    _write_repro_script(failed_files, "tmp.pytest_failed.files.sh")
+    hpytest.write_repro_script(failed_files, "tmp.pytest_failed.files.sh")
     # Write the reports.
     passed_tests_file = "tmp.pytest_failed.passed_tests.txt"
     hpytest.write_passed_tests(info, passed_tests_file)

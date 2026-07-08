@@ -472,7 +472,13 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         duration = None
         if m and "::" in m.group(1):
             test_name, duration, status = m.group(1), m.group(2), m.group(3)
-        elif m2:
+        elif m2 and "::" in m2.group(2):
+            # A bare file path (e.g., a collection error like "ERROR
+            # test_bar.py - ModuleNotFoundError: ...", with no "::") isn't
+            # a per-test node id, so it's deliberately not accepted here
+            # (unlike the other statuses, `filter_failed_tests()` requires
+            # every failed test to have a `path::class::test` shape, and
+            # would raise on a bare file path).
             status, test_name = m2.group(1), m2.group(2)
         elif m3:
             test_name, status = m3.group(1), m3.group(2)
@@ -537,32 +543,40 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
             location = f"{path}:{lineno}" if lineno is not None else path
             for i in range(count):
                 skipped_summary_tests.append(f"{location}:{reason}#{i}")
-        # Parse:
+        # Parse the pytest final summary line, e.g.:
         # ```
         # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
         # ======================== 4 failed, 43 passed in 40.48s =========================
+        # ============================== 3 passed in 0.05s ===============================
+        # ============================== 3 failed in 0.05s ===============================
         # ```
-        summary_pattern = re.compile(
-            r"""
-            =+\s+                    # leading equals
-            (\d+)\s+failed,\s+       # number of failures
-            (\d+)\s+passed           # number of passes
-            (?:,\s+(\d+)\s+skipped)? # optional skipped count
-            .*?                      # any other content
-            in\s+([\d.]+)s           # duration in seconds
-            """,
-            re.VERBOSE,
-        )
-        m = summary_pattern.search(line)
+        # Pytest only prints categories with a nonzero count: a clean run's
+        # summary is just "N passed" (no "0 failed," prefix) and an
+        # all-failing run's is just "N failed" (no "passed" at all). So
+        # "failed" and "passed" are each matched independently rather than
+        # with one rigid "X failed, Y passed" pattern, and default to 0 (not
+        # left unset) when the summary line is present but the category
+        # isn't mentioned.
+        summary_banner_pattern = re.compile(r"^=+\s.*\bin\s+([\d.]+)s")
+        m = summary_banner_pattern.search(line)
         if m:
+            m_failed = re.search(r"(\d+)\s+failed\b", line)
+            m_passed = re.search(r"(\d+)\s+passed\b", line)
+            m_skipped = re.search(r"(\d+)\s+skipped\b", line)
             _set_info_field(info, "pytest_ended", True)
             #
-            _set_info_field(info, "pytest_num_failed", int(m.group(1)))
+            _set_info_field(
+                info, "pytest_num_failed", int(m_failed.group(1)) if m_failed else 0
+            )
             #
-            _set_info_field(info, "pytest_num_passed", int(m.group(2)))
-            if m.group(3) is not None:
-                _set_info_field(info, "pytest_num_skipped", int(m.group(3)))
-            _set_info_field(info, "pytest_duration_in_secs", float(m.group(4)))
+            _set_info_field(
+                info, "pytest_num_passed", int(m_passed.group(1)) if m_passed else 0
+            )
+            if m_skipped is not None:
+                _set_info_field(
+                    info, "pytest_num_skipped", int(m_skipped.group(1))
+                )
+            _set_info_field(info, "pytest_duration_in_secs", float(m.group(1)))
     # Set the flags from `None` to `False` now that the loop is done setting
     # each of them at most once.
     for key in ("pytest_started", "pytest_collection_completed", "pytest_ended"):
@@ -815,12 +829,13 @@ def _compute_duration_stats(
         parts = test_name.split("::")
         key = parts[0] if level == "file" else "::".join(parts[:-1])
         durations_by_key.setdefault(key, []).append(duration)
-    # Compute count / total / mean for each key.
+    # Compute count / total / mean / max for each key.
     stats = {
         key: {
             "count": len(durations_),
             "total_secs": sum(durations_),
             "mean_secs": sum(durations_) / len(durations_),
+            "max_secs": max(durations_),
         }
         for key, durations_ in durations_by_key.items()
     }
@@ -868,18 +883,18 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_ne(file_name, "")
     txt = []
     txt.append(hprint.frame("Duration by file"))
-    # TODO(ai_gp): Add also the max duration, besides count, tot, mean.
-    # Also print an header.
+    txt.append("File | Count | Total (secs) | Mean (secs) | Max (secs)")
     for key, stat in compute_duration_stats_by_file(info).items():
         txt.append(
-            f"{key}: {stat['count']}, {stat['total_secs']:.2f} secs, "
-            f"{stat['mean_secs']:.2f} secs"
+            f"{key} | {stat['count']} | {stat['total_secs']:.2f} | "
+            f"{stat['mean_secs']:.2f} | {stat['max_secs']:.2f}"
         )
     txt.append(hprint.frame("Duration by class"))
+    txt.append("Class | Count | Total (secs) | Mean (secs) | Max (secs)")
     for key, stat in compute_duration_stats_by_class(info).items():
         txt.append(
-            f"{key}: {stat['count']}, {stat['total_secs']:.2f} secs, "
-            f"{stat['mean_secs']:.2f} secs"
+            f"{key} | {stat['count']} | {stat['total_secs']:.2f} | "
+            f"{stat['mean_secs']:.2f} | {stat['max_secs']:.2f}"
         )
     hio.to_file(file_name, "\n".join(txt))
     _LOG.info("Created '%s'", file_name)
