@@ -25,10 +25,6 @@ class Test_show_imports(hunitest.TestCase):
         dir_name = self.get_input_dir()
         hio.create_dir(dir_name, incremental=True)
         _LOG.debug("Creating dir_name=%s", dir_name)
-        #
-        dir_name = self.get_output_dir()
-        hio.create_dir(dir_name, incremental=True)
-        _LOG.debug("Creating dir_name=%s", dir_name)
 
     def execute_script(
         self,
@@ -67,8 +63,11 @@ class Test_show_imports(hunitest.TestCase):
             # Create the files directly in the target dir.
             for file_name, file_content in files.items():
                 hio.to_file(f"{in_dir}/{file_name}", file_content)
-        # Execute the script.
-        out_dir = self.get_output_dir()
+        # Execute the script, writing the generated file to the scratch space
+        # instead of the golden `output` dir, since it's a byproduct of the
+        # run and not itself the golden outcome (`check_string()` below owns
+        # that).
+        out_dir = self.get_scratch_space()
         output_filename = f"{out_dir}/output.{output_format}"
         module_path = in_dir
         exclude_unimported_dirs = False
