@@ -24,10 +24,12 @@ description: Create instructions to build a children PR
 
 ```
 > export SRC_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass
-> export DST_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass_4
+> export DST_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass_5
 
 > git checkout master
 > git pull
+
+> i git_branch_create -b $DST_BRANCH
 > git checkout -b $DST_BRANCH
 
 > cat > pr_commit_msg.txt << 'EOF'
@@ -41,19 +43,6 @@ Unit Test Infrastructure: Purification, Introspection, Numpy, and Base Updates
 - All changes are related to test utilities and infrastructure improvements
 - Well-isolated changes to testing subsystem
 EOF
-
-> cat > pr_pytest.sh << 'EOF'
-pytest \
-    helpers/test/test_hunit_test_purification.py \
-    helpers/test/test_hintrospection.py \
-    helpers/test/test_hnumpy.py \
-    helpers/test/test_hunit_test.py \
-    -v
-EOF
-
-> chmod +x pr_pytest.sh
-
-> FILES="helpers/hunit_test_purification.py helpers/test/test_hunit_test_purification.py helpers/test/test_hintrospection.py helpers/test/test_hnumpy.py helpers/test/test_hunit_test.py"
 
 # Copy the files through branches.
 > helpers_root/dev_scripts_helpers/git/git_sync_between_branches.sh --src_branch $SRC_BRANCH --dst_branch $DST_BRANCH --files "$FILES"
@@ -72,10 +61,29 @@ helpers/test/test_hintrospection.py
 helpers/test/test_hnumpy.py
 helpers/test/test_hunit_test.py
 > rsync -avR --files-from=/tmp/file_list.txt $SRC_DIR/$SUB_DIR/ $DST_DIR/$SUB_DIR/
-> rsync -av $SRC_DIR/ $DST_DIR/
+> rsync -av $SRC_DIR/$SUB_DIR/ $DST_DIR/$SUB_DIR/
 
 > git add $FILES
 > git commit -am pr_commit_msg.txt
+
+> cat > pr_pytest.sh << 'EOF'
+pytest \
+    helpers/test/test_hunit_test_purification.py \
+    helpers/test/test_hintrospection.py \
+    helpers/test/test_hnumpy.py \
+    helpers/test/test_hunit_test.py \
+    -v
+EOF
+
+> chmod +x pr_pytest.sh
+
+> FILES="helpers/hunit_test_purification.py helpers/test/test_hunit_test_purification.py helpers/test/test_hintrospection.py helpers/test/test_hnumpy.py helpers/test/test_hunit_test.py"
+
+> export CSFY_DOCKER_ENGINE="docker"; i docker_cmd --stage=local -v 1.6.0 --cmd "./pr_pytest.sh 2>&1 | tee build1.txt"
+
+> export CSFY_DOCKER_ENGINE="docker"; ./pr_pytest.sh 2>&1 | tee build2.txt
+
+> export CSFY_DOCKER_ENGINE="apple"; ./pr_pytest.sh 2>&1 | tee build3.txt
 
 > i gh_create_pr --no-draft
 
@@ -83,4 +91,3 @@ helpers/test/test_hunit_test.py
 
 > pr_pytest.sh
 ```
-

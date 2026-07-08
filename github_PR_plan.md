@@ -37,7 +37,7 @@ pytest helpers/test/test_hdocker.py helpers/test/test_hlatex.py -v
 ```
 
 ### PR2: Unit Test Infrastructure (purification, Introspection, Numpy, Base)
-- **Merged**: [ ]
+- **Merged**: [x]
 - **Complexity**: Medium
 - **Risk**: Medium (affects test infrastructure)
 - **Tests included**: Yes
