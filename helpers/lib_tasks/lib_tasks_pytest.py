@@ -21,6 +21,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlist as hlist
 import helpers.hprint as hprint
+import helpers.hpytest as hpytest
 import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -1072,7 +1073,7 @@ def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False):  #
 
 
 @task
-def traceback(ctx, log_name="tmp.pytest_script.txt", purify=True):  # type: ignore
+def traceback(ctx, log_name="tmp.pytest_log.txt", purify=True):  # type: ignore
     """
     Parse the traceback from Pytest and navigate it with vim.
 
@@ -1124,8 +1125,6 @@ def pytest_clean(ctx):  # type: ignore
     """
     hltltaut.report_task()
     _ = ctx
-    import helpers.hpytest as hpytest
-
     hpytest.pytest_clean(".")
 
 
@@ -1659,90 +1658,10 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
 # #############################################################################
 
 
-def _parse_failed_tests(
-    txt: str, only_file: bool, only_class: bool
-) -> Tuple[List[str], int, int]:
-    """
-    Parse the failed tests from the pytest output.
-
-    :param only_file: return only the file name
-    :param only_class: return only the class name
-    :return:
-        - failed_tests: list of failed tests
-        - num_failed: number of failed tests
-        - num_passed: number of passed tests
-    """
-    hdbg.dassert_lte(only_file + only_class, 1)
-    failed_tests = []
-    num_failed = num_passed = 0
-    for line in txt.split("\n"):
-        _LOG.debug("line=%s", line)
-        # Remove ANSI color codes (both ESC-based and bracket notation).
-        line = re.sub(r"\x1b\[[0-9;]*m|\[[0-9;]*m", "", line)
-        # Remove other non-printable characters.
-        line = re.sub(r"[^\x20-\x7E]", "", line)
-        # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
-        m = re.search(r"^(FAILED|ERROR) (\S+) -", line)
-        if m:
-            test_name = m.group(2)
-            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
-            failed_tests.append(test_name)
-        # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_gp1 (0.00 s) PASSED [ 36%]
-        m = re.search(r"(\S+) \(\S+ s\) (FAILED|ERROR)", line)
-        if m:
-            test_name = m.group(1)
-            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
-            failed_tests.append(test_name)
-        # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
-        # ======================== 4 failed, 43 passed in 40.48s =========================
-        m = re.search(r"=+\s+(\d+)\s+failed,\s+(\d+)\s+passed.*", line)
-        if m:
-            num_failed = int(m.group(1))
-            num_passed = int(m.group(2))
-    failed_tests = sorted(list(set(failed_tests)))
-    #
-    if num_failed and num_passed and num_failed != len(failed_tests):
-        _LOG.warning(
-            "n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
-        )
-    print(f"Failed tests: {num_failed}/{num_passed}")
-    # Filter, if needed.
-    if only_file or only_class:
-        failed_tests_tmp = []
-        for test in failed_tests:
-            # oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3
-            m = re.match(r"(\S+)::(\S+)::\S+$", test)
-            hdbg.dassert(m, f"Can't parse '{test}'")
-            if only_file:
-                failed_tests_tmp.append(m.group(1))
-            elif only_class:
-                failed_tests_tmp.append(m.group(1) + "::" + m.group(2))
-            else:
-                raise RuntimeError("Unexpected")
-        failed_tests = sorted(list(set(failed_tests_tmp)))
-    return failed_tests, num_failed, num_passed
-
-
 @task
-def pytest_failed(
-    ctx, only_file=False, only_class=False, file_name="tmp.pytest_script.txt"
-):  # type: ignore
+def pytest_failed(ctx, file_name="tmp.pytest_log.txt"):  # type: ignore
     _ = ctx
     hltltaut.report_task()
-    # Read file.
-    _LOG.info("Reading %s", file_name)
-    txt = hio.from_file(file_name)
-    # Extract info.
-    _LOG.info("Parsing %s", file_name)
-    failed_tests, _, _ = _parse_failed_tests(txt, only_file, only_class)
-    print("\n".join(failed_tests))
-    # Write the repro in a file.
-    repro_file_name = "tmp.pytest_failed.sh"
-    repro_txt = "pytest_log " + " ".join(failed_tests) + " $*"
-    hio.to_file(repro_file_name, repro_txt)
-    #
-    hio.create_executable_script(repro_file_name, repro_txt)
-    _LOG.warning("To run the failed tests run: %s", repro_file_name)
-    # Save to clipboard.
-    txt = " ".join(failed_tests)
-    hsystem.to_pbcopy(txt, pbcopy=True)
+    script_path = "dev_scripts_helpers/testing/pytest_failed.py"
+    cmd = f"python {script_path} -i {file_name}"
+    hsystem.system(cmd, abort_on_error=False, suppress_output=False)

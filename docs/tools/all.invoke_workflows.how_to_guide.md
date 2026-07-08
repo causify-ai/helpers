@@ -381,7 +381,7 @@ TODO(gp): Describe
   ```bash
   docker> pytest_log ...
   ```
-  - This captures the output in a file `tmp.pytest_script.txt`
+  - This captures the output in a file `tmp.pytest_log.txt`
 
 - Get the failed tests (inside or outside the container)
   ```bash

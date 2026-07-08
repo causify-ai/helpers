@@ -16,8 +16,8 @@ import junitparser
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hjunit_reporter as hjunrepo
 import helpers.hparser as hparser
-import helpers.hpytest as hpytest
 import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
@@ -122,11 +122,11 @@ def _run_test(
         _LOG.info("Cleaning up Docker image")
         # Delete the Docker image (disk space reporting is now handled by the task itself).
         _ = subprocess.run(
-            f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
+            "invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
         )
         # Prune the Docker images to free up disk space.
         _ = subprocess.run(
-            f"docker system prune -a -f", shell=True, env=env, cwd=runnable_dir
+            "docker system prune -a -f", shell=True, env=env, cwd=runnable_dir
         )
     # pytest returns:
     # - 0 if all tests passed
@@ -232,7 +232,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         combined_junit_xml_file = "tmp.combined_junit.xml"
         combined_junit_xml.write(combined_junit_xml_file)
         # Print report based on the combined junit xml file.
-        reporter = hpytest.JUnitReporter(combined_junit_xml_file)
+        reporter = hjunrepo.JUnitReporter(combined_junit_xml_file)
         reporter.parse()
         reporter.print_summary()
     except Exception as e:
