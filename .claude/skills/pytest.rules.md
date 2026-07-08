@@ -70,3 +70,4 @@
   ```
 - If the test includes Docker / Apple containers, run it with the differnt
   builds, as per `## Analyze the Effect of Container Builds`
+- After verifying the tests are fixed, update the plan in markdown if present

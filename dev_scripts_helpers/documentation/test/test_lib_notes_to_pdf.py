@@ -16,7 +16,6 @@ from unittest import mock
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import helpers.hunit_test_purification as huntepur
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
@@ -164,7 +163,13 @@ class Test_preprocess_notes(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_invocations(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
 
 # #############################################################################
@@ -214,7 +219,13 @@ class Test_render_images(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_invocations(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
 
 # #############################################################################
@@ -773,7 +784,13 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_invocations(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test1(self) -> None:
         """
@@ -963,7 +980,13 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
             curr_path, file_name, typ_file, typst_only
         )
         expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_invocations(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test1(self) -> None:
         """
@@ -1037,7 +1060,13 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
             curr_path, file_name, typ_file, typst_only
         )
         expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_invocations(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
 
 # #############################################################################
@@ -1075,7 +1104,13 @@ class Test_copy_to_output(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_invocations(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test2(self) -> None:
         """
@@ -1132,7 +1167,13 @@ class Test_copy_to_gdrive(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_invocations(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test1(self) -> None:
         """
@@ -1194,4 +1235,10 @@ class Test_compress_pdf(hunitest.TestCase):
             },
         ]
         expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_invocations(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
