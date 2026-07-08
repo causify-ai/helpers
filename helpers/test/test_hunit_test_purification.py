@@ -185,7 +185,6 @@ class Test_purify_text1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-
     def test13(self) -> None:
         """
         Test purification of a full docker run command with API keys,
@@ -595,6 +594,86 @@ class Test_purify_app_references1(hunitest.TestCase):
         # Test created for helpers.test.test_dbg._Man
         """
         self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_purify_super_module_references1
+# #############################################################################
+
+
+class Test_purify_super_module_references1(hunitest.TestCase):
+    def helper(self, super_module_root: str, txt: str, expected: str) -> None:
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value=super_module_root
+        ):
+            actual = huntepur.purify_super_module_references(txt)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test stripping an arbitrary super-module checkout dir name (e.g.,
+        `csfy1`, as opposed to the hardcoded `amp`/`app` names) from a plain
+        dotted qualname.
+        """
+        txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
+        expected = "helpers_root.helpers.test.test_hobject._Object1"
+        self.helper("/Users/user/src/csfy1", txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test stripping the super-module prefix from a `<module.Class object
+        at 0x...>`-style repr.
+        """
+        txt = (
+            "<csfy1.helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
+        )
+        expected = (
+            "<helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
+        )
+        self.helper("/Users/user/src/csfy1", txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test stripping the super-module prefix from a `class '...'`-style
+        reference.
+        """
+        txt = "class 'csfy1.helpers_root.helpers.test.test_hdbg._Man'"
+        expected = "class 'helpers_root.helpers.test.test_hdbg._Man'"
+        self.helper("/Users/user/src/csfy1", txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test that a super-module name other than `csfy1` is also handled,
+        since the prefix is derived dynamically instead of hardcoded.
+        """
+        txt = "cmamp1.helpers_root.helpers.test.test_hobject._Object1"
+        expected = "helpers_root.helpers.test.test_hobject._Object1"
+        self.helper("/Users/user/src/cmamp1", txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test that `amp`/`app` are left untouched, since those are already
+        handled by `purify_amp_references()`/`purify_app_references()`.
+        """
+        txt = "amp.helpers.test.test_hobject._Object1"
+        expected = "amp.helpers.test.test_hobject._Object1"
+        self.helper("/Users/user/src/amp", txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test that text with no super-module reference is left unchanged.
+        """
+        txt = "helpers.test.test_hobject._Object1"
+        expected = "helpers.test.test_hobject._Object1"
+        self.helper("/Users/user/src/csfy1", txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test that a `/` super-module root (no nesting detected) is a no-op.
+        """
+        txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
+        expected = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
+        self.helper("/", txt, expected)
 
 
 # #############################################################################
@@ -1213,7 +1292,6 @@ class Test_purify_file_names1(hunitest.TestCase):
 
 
 class Test_purify_apple_container_output1(hunitest.TestCase):
-
     def helper(self, txt: str, expected: str) -> None:
         actual = huntepur.purify_apple_container_output(txt)
         self.assert_equal(actual, expected)
@@ -1222,12 +1300,15 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test removing single container startup line.
         """
-        # TODO(ai_gp): Use variables like
-        # txt = """
-        # ...
-        # txt = hprint.dedent(txt)
-        txt = "[0/6] [0s]\ndot - graphviz version 12.2.1 (20241206.2353)\n"
-        expected = "dot - graphviz version 12.2.1 (20241206.2353)\n\n"
+        txt = """
+        [0/6] [0s]
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """
+        txt = hprint.dedent(txt)
+        expected = """
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """
+        expected = hprint.dedent(expected)
         self.helper(txt, expected)
 
     def test2(self) -> None:

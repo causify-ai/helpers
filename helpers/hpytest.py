@@ -941,6 +941,18 @@ def write_skipped_tests(info: Dict[str, Any], file_name: str) -> None:
     hio.to_file(file_name, "\n".join(info["log_skipped_tests"]))
 
 
+def write_failed_tests(info: Dict[str, Any], file_name: str) -> None:
+    """
+    Write the list of failed tests, one per line, to a file.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :param file_name: file to write the failed tests to
+    """
+    hdbg.dassert_isinstance(info, dict)
+    hdbg.dassert_ne(file_name, "")
+    hio.to_file(file_name, "\n".join(info["log_failed_tests"]))
+
+
 def write_updated_tests(info: Dict[str, Any], file_name: str) -> None:
     """
     Write the list of updated tests, one per line, to a file.
@@ -972,7 +984,7 @@ def write_test_stacktraces(info: Dict[str, Any], file_name: str) -> None:
     test_errors = info["log_test_errors"]
     txt = []
     for test_name in sorted(test_errors.keys()):
-        txt.append("\n" + hprint.frame(test_name, char1="-"))
+        txt.append("\n" + hprint.frame(test_name, char1="/"))
         txt.append(test_errors[test_name])
     hio.to_file(file_name, "\n".join(txt))
     _LOG.debug("Created '%s'", file_name)
