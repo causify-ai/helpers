@@ -166,6 +166,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         log_test_durations={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1': 2.07, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3': 0.0}
+        log_test_errors={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1': "AttributeError: 'list' object has no attribute 'split'", 'helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2': "RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes"}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
@@ -201,6 +202,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         log_test_durations={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1': 2.07, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3': 0.0}
+        log_test_errors={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1': "AttributeError: 'list' object has no attribute 'split'", 'helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2': "RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes"}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
@@ -248,6 +250,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         log_test_durations={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1': 2.07, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3': 0.0}
+        log_test_errors={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1': "AttributeError: 'list' object has no attribute 'split'", 'helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2': "RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes"}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
@@ -306,6 +309,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=[]
         log_skipped_tests=[]
         log_test_durations={}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=False
         pytest_duration_in_secs=None
@@ -352,6 +356,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test_foo1::test1']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test_foo1::test1': 0.0}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=None
@@ -399,6 +404,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=[]
         log_skipped_tests=[]
         log_test_durations={}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=886.58
@@ -448,6 +454,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::test1', 'test_foo.py::test_function']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::test1': 0.0}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
@@ -496,6 +503,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test1::test_check_string_missing3']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test1::test_check_string_missing3': 0.13}
+        log_test_errors={}
         log_updated_tests=['test_foo.py::Test1::test_check_string_missing3']
         pytest_collection_completed=True
         pytest_duration_in_secs=0.13
@@ -546,6 +554,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test1::test_check_df_missing3']
         log_skipped_tests=[]
         log_test_durations={}
+        log_test_errors={}
         log_updated_tests=['test_foo.py::Test1::test_check_df_missing3']
         pytest_collection_completed=True
         pytest_duration_in_secs=0.11
@@ -604,6 +613,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
         log_skipped_tests=['test_foo.py:10:decorator skip reason#0', 'test_foo.py:20:live skip reason#0', 'test_foo.py:30:parametrized skip reason#0', 'test_foo.py:30:parametrized skip reason#1', 'test_foo.py:30:parametrized skip reason#2', 'test_foo.py:30:parametrized skip reason#3']
         log_test_durations={'test_foo.py::Test1::test_live_skip': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
@@ -663,6 +673,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02, 'test_foo.py::Test1::test3': 0.03}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.06
@@ -717,6 +728,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test1::test1']
         log_skipped_tests=['test_foo.py::Test2::test_run_fast_tests4']
         log_test_durations={'test_foo.py::Test1::test1': 0.0}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=None
@@ -783,6 +795,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2']
         log_skipped_tests=["test_foo.py:10:could not import 'openai': No module named 'openai'#0"]
         log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02}
+        log_test_errors={'test_foo.py::Test2::test3': 'RuntimeError:'}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=10.0
@@ -852,6 +865,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2']
         log_skipped_tests=["test_foo.py:10:could not import 'openai': No module named 'openai'#0"]
         log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02}
+        log_test_errors={'test_foo.py::Test2::test3': 'RuntimeError:'}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=10.0
@@ -909,6 +923,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test1::test1': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.05
@@ -963,6 +978,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=[]
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test1::test1': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.05
@@ -1024,6 +1040,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=[]
         log_skipped_tests=['test_foo.py:15:flowmark package not installed#0', 'test_foo.py:15:flowmark package not installed#1', 'test_foo.py:15:flowmark package not installed#2', 'test_foo.py:15:mdformat package not installed#0', 'test_foo.py:15:mdformat package not installed#1']
         log_test_durations={}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
@@ -1078,6 +1095,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_passed_tests=[]
         log_skipped_tests=['test_foo.py:some shared reason#0', 'test_foo.py:some shared reason#1']
         log_test_durations={}
+        log_test_errors={}
         log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
@@ -1165,6 +1183,131 @@ class Test_parse_failed_tests(hunitest.TestCase):
         self.assertEqual(info["log_num_passed"], 1)
         self.assertEqual(info["log_num_failed"], 0)
         self.assertEqual(info["log_failed_tests"], [])
+
+    def test21(self) -> None:
+        """
+        Test that a failed test's failure reason spans multiple lines,
+        starting at its "FAILED <test> - <Error>:" tag and running until
+        the next such tag (or the end of the log), e.g., a diff dumped by
+        `hunit_test.assert_equal()`.
+        """
+        # Prepare inputs.
+        txt = """
+        FAILED dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2 - RuntimeError:
+        --------------------------------------------------------------------------------
+        ACTUAL vs EXPECTED: Test_notes_to_pdf1.test2
+        --------------------------------------------------------------------------------
+
+        script_txt:                                                               (
+        #/bin/bash -xe                                                            (
+        Diff with:
+        > ./tmp_diff.sh
+
+        ======================== 1 failed in 40.48s =========================
+        """
+        lines = hprint.dedent(txt).split("\n")
+        info = hpytest.parse_failed_tests(lines)
+        # Prepare outputs.
+        expected = """
+        RuntimeError:
+        --------------------------------------------------------------------------------
+        ACTUAL vs EXPECTED: Test_notes_to_pdf1.test2
+        --------------------------------------------------------------------------------
+
+        script_txt:                                                               (
+        #/bin/bash -xe                                                            (
+        Diff with:
+        > ./tmp_diff.sh
+        """
+        expected = hprint.dedent(expected).strip("\n")
+        # Check.
+        self.assertEqual(
+            info["log_test_errors"][
+                "dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2"
+            ],
+            expected,
+        )
+
+    def test22(self) -> None:
+        """
+        Test that a failed test's failure reason does not absorb an
+        unrelated "short test summary info" section (and its aggregate
+        `SKIPPED [N] ...` lines) that follows it in the log, e.g.:
+        ```
+        FAILED test_foo.py::Test1::test1 - RuntimeError: boom
+        =========================== short test summary info ============================
+        SKIPPED [1] test_foo.py:10: reason
+        ```
+        This is a regression test: without the extra terminators, the
+        header and skip line would be swept into `test1`'s failure reason
+        since neither is a "FAILED" tag nor the final summary banner.
+        """
+        # Prepare inputs.
+        txt = """
+        FAILED test_foo.py::Test1::test1 - RuntimeError: boom
+
+        =========================== short test summary info ============================
+        SKIPPED [1] test_foo.py:10: reason
+
+        ======================== 1 failed, 1 skipped in 0.05s =========================
+        """
+        lines = hprint.dedent(txt).split("\n")
+        info = hpytest.parse_failed_tests(lines)
+        # Check.
+        self.assertEqual(
+            info["log_test_errors"]["test_foo.py::Test1::test1"],
+            "RuntimeError: boom",
+        )
+
+
+# #############################################################################
+# Test_parse_test_errors
+# #############################################################################
+
+
+class Test_parse_test_errors(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test calling `parse_test_errors()` directly, as a second pass over
+        the log once the list of failed tests is already known (e.g., from
+        `parse_failed_tests()["log_failed_tests"]`).
+        """
+        # Prepare inputs.
+        txt = """
+        FAILED test_foo.py::Test1::test1 - RuntimeError: boom
+        FAILED test_foo.py::Test2::test2 - AssertionError: kaboom
+
+        ======================== 2 failed in 0.05s =========================
+        """
+        lines = hprint.dedent(txt).split("\n")
+        failed_tests = ["test_foo.py::Test1::test1", "test_foo.py::Test2::test2"]
+        # Run test.
+        actual = hpytest.parse_test_errors(lines, failed_tests)
+        # Check outputs.
+        expected = {
+            "test_foo.py::Test1::test1": "RuntimeError: boom",
+            "test_foo.py::Test2::test2": "AssertionError: kaboom",
+        }
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a "FAILED <test> - <Error>:" tag for a test that is not
+        in the given `failed_tests` list is ignored, e.g., because the log
+        contains a stray or unrelated tag.
+        """
+        # Prepare inputs.
+        txt = """
+        FAILED test_foo.py::Test1::test1 - RuntimeError: boom
+        FAILED test_foo.py::Test2::test2 - AssertionError: kaboom
+        """
+        lines = hprint.dedent(txt).split("\n")
+        failed_tests = ["test_foo.py::Test1::test1"]
+        # Run test.
+        actual = hpytest.parse_test_errors(lines, failed_tests)
+        # Check outputs.
+        expected = {"test_foo.py::Test1::test1": "RuntimeError: boom"}
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -1480,6 +1623,43 @@ class Test_write_updated_tests(hunitest.TestCase):
         """
         # Run test.
         hpytest.write_updated_tests(info, file_name)
+        # Check outputs.
+        actual = hio.from_file(file_name)
+        self.assert_equal(
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+
+# #############################################################################
+# Test_write_test_errors
+# #############################################################################
+
+
+class Test_write_test_errors(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test that each failed test's parsed failure reason is written to a
+        file, framed by `hprint.frame()` and sorted alphabetically by test
+        name.
+        """
+        # Prepare inputs.
+        txt = Test_parse_failed_tests().get_pytest_text1()
+        lines = txt.split("\n")
+        info = hpytest.parse_failed_tests(lines)
+        file_name = os.path.join(self.get_scratch_space(), "errors.txt")
+        # Prepare outputs.
+        expected = """
+        ################################################################################
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
+        ################################################################################
+        RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes
+        ################################################################################
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1
+        ################################################################################
+        AttributeError: 'list' object has no attribute 'split'
+        """
+        # Run test.
+        hpytest.write_test_errors(info, file_name)
         # Check outputs.
         actual = hio.from_file(file_name)
         self.assert_equal(

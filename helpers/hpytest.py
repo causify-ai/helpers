@@ -91,6 +91,45 @@ def pytest_clean(dir_name: str, preview: bool = False) -> None:
 # #############################################################################
 
 
+# Remove ANSI color codes (ESC-based, caret notation, and bare bracket
+# notation).
+_ANSI_COLOR_PATTERN = re.compile(
+    r"""
+    (?:\x1b|\^\[) # ESC byte, or caret notation for ESC (some logs render the
+                  # ESC byte as visible "^[" text, e.g., "^[[32mPASSED^[[0m"),
+                  # followed in both cases by the literal CSI bracket below
+    \[            # CSI sequence start
+    [0-9;]*       # color codes
+    m             # end marker
+    |
+    \[            # alternative bracket notation (ESC already stripped, only
+                  # the bracket remains)
+    [0-9;]*       # color codes
+    m             # end marker
+    """,
+    re.VERBOSE,
+)
+# Remove other non-printable characters (keep only printable ASCII).
+_NONPRINTABLE_PATTERN = re.compile(
+    r"""
+    [^            # negated character class
+    \x20-\x7E     # printable ASCII range
+    ]
+    """,
+    re.VERBOSE,
+)
+
+
+def _clean_log_line(line: str) -> str:
+    """
+    Strip ANSI color codes and other non-printable characters from a raw
+    pytest log line.
+    """
+    line = _ANSI_COLOR_PATTERN.sub("", line)
+    line = _NONPRINTABLE_PATTERN.sub("", line)
+    return line
+
+
 def _parse_github_ci_log(lines: List[str]) -> Tuple[Dict[str, Any], List[str]]:
     """
     Parse a GitHub Actions CI log and strip the per-line step tag.
@@ -268,6 +307,10 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         "pytest_num_selected": None,
         # Dict mapping test names to their durations in seconds.
         "log_test_durations": None,
+        # Dict mapping failed test names to their parsed failure reason,
+        # i.e., the text from a "FAILED <test> - <Error>:" tag up to, but
+        # not including, the next such tag (or the end of the log).
+        "log_test_errors": None,
         # Number of passed tests from the log.
         "log_num_passed": None,
         # Number of skipped tests.
@@ -346,36 +389,7 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     skipped_summary_tests: List[str] = []
     for line in lines:
         _LOG.debug("line=%s", line)
-        # Remove ANSI color codes (ESC-based, caret notation, and bare
-        # bracket notation).
-        ansi_color_pattern = re.compile(
-            r"""
-            (?:\x1b|\^\[) # ESC byte, or caret notation for ESC (some logs
-                          # render the ESC byte as visible "^[" text, e.g.,
-                          # "^[[32mPASSED^[[0m"), followed in both cases by
-                          # the literal CSI bracket below
-            \[            # CSI sequence start
-            [0-9;]*       # color codes
-            m             # end marker
-            |
-            \[            # alternative bracket notation (ESC already
-                          # stripped, only the bracket remains)
-            [0-9;]*       # color codes
-            m             # end marker
-            """,
-            re.VERBOSE,
-        )
-        line = ansi_color_pattern.sub("", line)
-        # Remove other non-printable characters (keep only printable ASCII).
-        nonprintable_pattern = re.compile(
-            r"""
-            [^            # negated character class
-            \x20-\x7E     # printable ASCII range
-            ]
-            """,
-            re.VERBOSE,
-        )
-        line = nonprintable_pattern.sub("", line)
+        line = _clean_log_line(line)
         # Parse:
         # ```
         # ============================= test session starts ==============================
@@ -618,6 +632,10 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     val = sorted(list(set(failed_tests)))
     _set_info_field(info, "log_failed_tests", val)
     _set_info_field(info, "log_num_failed", len(val))
+    # Now that the failed tests are known, re-parse the log a second time to
+    # extract each one's failure reason.
+    test_errors = parse_test_errors(lines, val)
+    _set_info_field(info, "log_test_errors", test_errors)
     #
     val = sorted(list(set(updated_tests)))
     _set_info_field(info, "log_updated_tests", val)
@@ -716,6 +734,87 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     return info
 
 
+def parse_test_errors(
+    lines: List[str], failed_tests: List[str]
+) -> Dict[str, str]:
+    """
+    Parse the failure reason of each failed test from the pytest log.
+
+    This re-parses the log in a second pass, after `parse_failed_tests()`
+    has determined which tests failed, to extract each failed test's
+    failure reason.
+    The failure reason is the text of its "FAILED <test> - <Error>:" (or "ERROR
+    ...") tag, up to, but not including:
+    - the next such tag
+    - the final summary banner, or
+    - the "short test summary info" section (none of which are part of a
+      test's own failure reason).
+
+    E.g., given
+    ```
+    FAILED helpers/test/test_foo.py::Test1::test1 - RuntimeError:
+    --------------------------------------------------------------------------------
+    ACTUAL vs EXPECTED: Test1.test1
+    --------------------------------------------------------------------------------
+    ...
+    Diff with:
+    > ./tmp_diff.sh
+    FAILED helpers/test/test_foo.py::Test2::test2 - AssertionError: boom
+    ```
+    the reason for `Test1.test1` is everything from "RuntimeError:" through
+    "> ./tmp_diff.sh", and the reason for `Test2.test2` is just
+    "AssertionError: boom".
+
+    :param lines: pytest output lines, same input as `parse_failed_tests()`
+    :param failed_tests: failed test names to extract a failure reason for,
+        e.g., `info["log_failed_tests"]`
+    :return: mapping from failed test name to its parsed failure reason; a
+        failed test with no matching tag in the log is omitted
+    """
+    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(failed_tests, list)
+    failed_tests_set = set(failed_tests)
+    failed_tag_pattern = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)\s-\s(.*)$")
+    summary_banner_pattern = re.compile(r"^=+\s.*\bin\s+([\d.]+)s")
+    skipped_summary_pattern = re.compile(r"^SKIPPED\s+\[\d+\]\s+\S")
+    test_errors: Dict[str, str] = {}
+    current_test: Optional[str] = None
+    current_lines: List[str] = []
+    for raw_line in lines:
+        line = _clean_log_line(raw_line)
+        m_failed_tag = failed_tag_pattern.match(line)
+        if m_failed_tag is not None:
+            # Any well-formed tag line ends whatever reason is currently
+            # being accumulated, whether or not it belongs to a tracked
+            # failed test, so an untracked tag never gets swallowed into a
+            # preceding test's reason.
+            if current_test is not None:
+                test_errors[current_test] = "\n".join(current_lines).strip(
+                    "\n"
+                )
+                current_test = None
+                current_lines = []
+            if (
+                "::" in m_failed_tag.group(1)
+                and m_failed_tag.group(1) in failed_tests_set
+            ):
+                current_test = m_failed_tag.group(1)
+                current_lines = [m_failed_tag.group(2)]
+        elif current_test is not None and (
+            summary_banner_pattern.search(line)
+            or skipped_summary_pattern.match(line)
+            or "short test summary info" in line
+        ):
+            test_errors[current_test] = "\n".join(current_lines).strip("\n")
+            current_test = None
+            current_lines = []
+        elif current_test is not None:
+            current_lines.append(line)
+    if current_test is not None:
+        test_errors[current_test] = "\n".join(current_lines).strip("\n")
+    return test_errors
+
+
 def info_to_comments(info: Dict[str, Any]) -> str:
     """
     Build a short human-readable commentary from a `parse_failed_tests()` dict.
@@ -774,14 +873,16 @@ def info_to_str(info: Dict[str, Any]) -> str:
     """
     txt = []
     txt.append(hprint.frame("Results"))
-    # Omit the per-test lists and durations: they are too verbose for a
-    # summary report and are available separately via `log_test_durations`.
+    # Omit the per-test lists, durations, and errors: they are too verbose
+    # for a summary report and are available separately via
+    # `log_test_durations` / `log_test_errors`.
     keys_to_remove = [
         "log_passed_tests",
         "log_skipped_tests",
         "log_failed_tests",
         "log_updated_tests",
         "log_test_durations",
+        "log_test_errors",
     ]
     info_to_print = {k: v for k, v in info.items() if k not in keys_to_remove}
     txt.append(pprint.pformat(info_to_print))
@@ -829,6 +930,31 @@ def write_updated_tests(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_isinstance(info, dict)
     hdbg.dassert_ne(file_name, "")
     hio.to_file(file_name, "\n".join(info["log_updated_tests"]))
+
+
+def write_test_stacktraces(info: Dict[str, Any], file_name: str) -> None:
+    """
+    Write the failure reason of each failed test, sorted alphabetically, to
+    a file.
+
+    Each test is printed in an `hprint.frame()`, followed by its parsed failure
+    reason (see `log_test_errors` in `parse_failed_tests()`).
+
+    Failed tests with no parsed failure reason (e.g., the log didn't contain a
+    "FAILED <test> - <Error>:" tag for them) are skipped.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :param file_name: file to write the test errors to
+    """
+    hdbg.dassert_isinstance(info, dict)
+    hdbg.dassert_ne(file_name, "")
+    test_errors = info["log_test_errors"]
+    txt = []
+    for test_name in sorted(test_errors.keys()):
+        txt.append(hprint.frame(test_name))
+        txt.append(test_errors[test_name])
+    hio.to_file(file_name, "\n".join(txt))
+    _LOG.info("Created '%s'", file_name)
 
 
 def write_tests_by_duration(info: Dict[str, Any], file_name: str) -> None:

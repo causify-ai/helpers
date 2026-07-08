@@ -21,6 +21,7 @@ Creates the following files:
 - tmp.pytest_failed.updated_tests.txt: list of tests whose golden outcome was updated
 - tmp.pytest_failed.tests_by_duration.txt: tests ordered by duration
 - tmp.pytest_failed.duration_stats.txt: duration statistics by file and class
+- tmp.pytest_failed.stacktraces.txt: failure reason for each failed test
 """
 
 import argparse
@@ -100,6 +101,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     duration_stats_file = "tmp.pytest_failed.duration_stats.txt"
     hpytest.write_duration_stats(info, duration_stats_file)
     _LOG.info("Created '%s'", duration_stats_file)
+    #
+    stacktraces_file = "tmp.pytest_failed.stacktraces.txt"
+    hpytest.write_test_stacktraces(info, stacktraces_file)
+    _LOG.info("Created '%s'", stacktraces_file)
 
 
 if __name__ == "__main__":
