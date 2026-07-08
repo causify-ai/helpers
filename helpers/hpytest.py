@@ -225,6 +225,7 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     passed_tests = []
     failed_tests = []
     skipped_tests = []
+    updated_tests = []
     # From full name of test to duration in secs.
     test_durations: Dict[str, float] = {}
     info: Dict[str, Any] = {
@@ -254,6 +255,9 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         "log_skipped_tests": None,
         # List of failed tests, parsed from the log.
         "log_failed_tests": None,
+        # List of tests whose golden outcome file was updated during the
+        # run, parsed from the "(WARNING: Test was updated)" annotation.
+        "log_updated_tests": None,
         # Number of tests collected by pytest.
         "pytest_num_collected": None,
         # Number of deselected tests from the collection line (optional).
@@ -274,6 +278,9 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         "log_num_failed_files": None,
         # Number of test classes with failed tests.
         "log_num_failed_classes": None,
+        # Number of tests whose golden outcome file was updated during the
+        # run.
+        "log_num_updated": None,
         # True if pytest reached the final summary line "4 failed, 43 passed in
         # 40.48s".
         "pytest_ended": None,
@@ -442,6 +449,13 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
             re.VERBOSE,
         )
         m = suffix_pattern.search(line)
+        # Parse the golden-file update annotation on a per-test result line,
+        # e.g., `... (0.13 s) (WARNING: Test was updated) PASSED [ 82%]`; it
+        # can appear regardless of which pattern below ends up resolving the
+        # test name and status, so it is checked independently on the raw
+        # line rather than being tied to `suffix_pattern`.
+        updated_annotation_pattern = re.compile(r"\(WARNING:\s*Test was updated\)")
+        is_updated = bool(updated_annotation_pattern.search(line))
         # Parse:
         # ```
         # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
@@ -526,6 +540,8 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
                 failed_tests.append(test_name)
             else:
                 hdbg.dassert("Invalid status='%s' in line='%s'", status, line)
+            if is_updated:
+                updated_tests.append(test_name)
         # Handle the pytest "short test summary info" aggregate skip lines
         # (`m5` was matched above, alongside the other status patterns).
         if m5:
@@ -603,6 +619,10 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     _set_info_field(info, "log_failed_tests", val)
     _set_info_field(info, "log_num_failed", len(val))
     #
+    val = sorted(list(set(updated_tests)))
+    _set_info_field(info, "log_updated_tests", val)
+    _set_info_field(info, "log_num_updated", len(val))
+    #
     _set_info_field(info, "log_test_durations", test_durations)
     # Compute log_num_failed_classes from the failed test list.
     val = (
@@ -638,11 +658,13 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         "log_passed_tests",
         "log_skipped_tests",
         "log_failed_tests",
+        "log_updated_tests",
         "log_num_passed",
         "log_num_skipped",
         "log_num_failed",
         "log_num_failed_files",
         "log_num_failed_classes",
+        "log_num_updated",
     )
     for key in required_fields:
         hdbg.dassert_is_not(info[key], None, "info[%s] was not set", key)
@@ -703,8 +725,10 @@ def info_to_comments(info: Dict[str, Any]) -> str:
         ```
         Run: GitHub CI (run_fast_tests)
         Pytest completed: True
+        Duration: 40.48 s
         Failed: 4/47
         Skipped: 0/47
+        Updated: 0/47
         ```
     """
     hdbg.dassert_isinstance(info, dict)
@@ -716,6 +740,14 @@ def info_to_comments(info: Dict[str, Any]) -> str:
         comments.append("Run: local")
     # Pytest completed.
     comments.append(f"Pytest completed: {info.get('pytest_ended', False)}")
+    # Total duration.
+    # Prefer the final summary line's duration; fall back to summing the
+    # per-test durations so the report always has a total even when the run
+    # was killed or crashed before printing the final summary.
+    duration_in_secs = info.get("pytest_duration_in_secs")
+    if duration_in_secs is None:
+        duration_in_secs = sum((info.get("log_test_durations") or {}).values())
+    comments.append(f"Duration: {duration_in_secs:.2f} s")
     # Failed / tot tests and skipped / tot tests.
     # Prefer pytest values (from final summary) over log values (from parsed lines).
     num_passed = info.get("pytest_num_passed") or info.get("log_num_passed") or 0
@@ -723,12 +755,14 @@ def info_to_comments(info: Dict[str, Any]) -> str:
         info.get("pytest_num_skipped") or info.get("log_num_skipped") or 0
     )
     num_failed = info.get("pytest_num_failed") or info.get("log_num_failed") or 0
-    _LOG.debug(hprint.to_str("num_passed num_skipped num_failed"))
+    num_updated = info.get("log_num_updated") or 0
+    _LOG.debug(hprint.to_str("num_passed num_skipped num_failed num_updated"))
     #
     num_total = num_failed + num_passed + num_skipped
     comments.append(f"Passed: {num_passed}/{num_total}")
     comments.append(f"Skipped: {num_skipped}/{num_total}")
     comments.append(f"Failed: {num_failed}/{num_total}")
+    comments.append(f"Updated: {num_updated}/{num_total}")
     return "\n".join(comments)
 
 
@@ -746,6 +780,7 @@ def info_to_str(info: Dict[str, Any]) -> str:
         "log_passed_tests",
         "log_skipped_tests",
         "log_failed_tests",
+        "log_updated_tests",
         "log_test_durations",
     ]
     info_to_print = {k: v for k, v in info.items() if k not in keys_to_remove}
@@ -782,6 +817,18 @@ def write_skipped_tests(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_isinstance(info, dict)
     hdbg.dassert_ne(file_name, "")
     hio.to_file(file_name, "\n".join(info["log_skipped_tests"]))
+
+
+def write_updated_tests(info: Dict[str, Any], file_name: str) -> None:
+    """
+    Write the list of updated tests, one per line, to a file.
+
+    :param info: dict as returned by `parse_failed_tests()`
+    :param file_name: file to write the updated tests to
+    """
+    hdbg.dassert_isinstance(info, dict)
+    hdbg.dassert_ne(file_name, "")
+    hio.to_file(file_name, "\n".join(info["log_updated_tests"]))
 
 
 def write_tests_by_duration(info: Dict[str, Any], file_name: str) -> None:

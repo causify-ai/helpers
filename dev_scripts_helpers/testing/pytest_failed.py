@@ -18,6 +18,7 @@ Creates the following files:
 - tmp.pytest_failed.files.sh: script to rerun failed test files
 - tmp.pytest_failed.passed_tests.txt: list of passed tests
 - tmp.pytest_failed.skipped_tests.txt: list of skipped tests
+- tmp.pytest_failed.updated_tests.txt: list of tests whose golden outcome was updated
 - tmp.pytest_failed.tests_by_duration.txt: tests ordered by duration
 - tmp.pytest_failed.duration_stats.txt: duration statistics by file and class
 """
@@ -87,6 +88,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     skipped_tests_file = "tmp.pytest_failed.skipped_tests.txt"
     hpytest.write_skipped_tests(info, skipped_tests_file)
     _LOG.info("Created '%s'", skipped_tests_file)
+    #
+    updated_tests_file = "tmp.pytest_failed.updated_tests.txt"
+    hpytest.write_updated_tests(info, updated_tests_file)
+    _LOG.info("Created '%s'", updated_tests_file)
     #
     tests_by_duration_file = "tmp.pytest_failed.tests_by_duration.txt"
     hpytest.write_tests_by_duration(info, tests_by_duration_file)

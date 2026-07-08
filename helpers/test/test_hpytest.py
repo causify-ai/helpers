@@ -162,9 +162,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=2
         log_num_passed=3
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         log_test_durations={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1': 2.07, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
@@ -195,9 +197,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=2
         log_num_passed=3
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         log_test_durations={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1': 2.07, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
@@ -240,9 +244,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=2
         log_num_passed=3
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=['helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2', 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3']
         log_skipped_tests=[]
         log_test_durations={'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1': 2.07, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2': 0.0, 'helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=40.48
         pytest_ended=True
@@ -296,9 +302,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=0
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=[]
         log_skipped_tests=[]
         log_test_durations={}
+        log_updated_tests=[]
         pytest_collection_completed=False
         pytest_duration_in_secs=None
         pytest_ended=False
@@ -340,9 +348,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=1
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=['test_foo.py::Test_foo1::test1']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test_foo1::test1': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=None
         pytest_ended=False
@@ -385,9 +395,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=0
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=[]
         log_skipped_tests=[]
         log_test_durations={}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=886.58
         pytest_ended=True
@@ -432,9 +444,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=2
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=['test_foo.py::test1', 'test_foo.py::test_function']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::test1': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
         pytest_ended=True
@@ -478,9 +492,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=1
         log_num_skipped=0
+        log_num_updated=1
         log_passed_tests=['test_foo.py::Test1::test_check_string_missing3']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test1::test_check_string_missing3': 0.13}
+        log_updated_tests=['test_foo.py::Test1::test_check_string_missing3']
         pytest_collection_completed=True
         pytest_duration_in_secs=0.13
         pytest_ended=True
@@ -526,9 +542,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=1
         log_num_skipped=0
+        log_num_updated=1
         log_passed_tests=['test_foo.py::Test1::test_check_df_missing3']
         log_skipped_tests=[]
         log_test_durations={}
+        log_updated_tests=['test_foo.py::Test1::test_check_df_missing3']
         pytest_collection_completed=True
         pytest_duration_in_secs=0.11
         pytest_ended=True
@@ -582,9 +600,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=2
         log_num_skipped=6
+        log_num_updated=0
         log_passed_tests=['test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
         log_skipped_tests=['test_foo.py:10:decorator skip reason#0', 'test_foo.py:20:live skip reason#0', 'test_foo.py:30:parametrized skip reason#0', 'test_foo.py:30:parametrized skip reason#1', 'test_foo.py:30:parametrized skip reason#2', 'test_foo.py:30:parametrized skip reason#3']
         log_test_durations={'test_foo.py::Test1::test_live_skip': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
         pytest_ended=True
@@ -639,9 +659,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=3
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02, 'test_foo.py::Test1::test3': 0.03}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.06
         pytest_ended=True
@@ -691,9 +713,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=1
         log_num_skipped=1
+        log_num_updated=0
         log_passed_tests=['test_foo.py::Test1::test1']
         log_skipped_tests=['test_foo.py::Test2::test_run_fast_tests4']
         log_test_durations={'test_foo.py::Test1::test1': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=None
         pytest_ended=False
@@ -755,9 +779,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=1
         log_num_passed=2
         log_num_skipped=1
+        log_num_updated=0
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2']
         log_skipped_tests=["test_foo.py:10:could not import 'openai': No module named 'openai'#0"]
         log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=10.0
         pytest_ended=True
@@ -822,9 +848,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=1
         log_num_passed=2
         log_num_skipped=1
+        log_num_updated=0
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2']
         log_skipped_tests=["test_foo.py:10:could not import 'openai': No module named 'openai'#0"]
         log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=10.0
         pytest_ended=True
@@ -877,9 +905,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=3
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test1::test1': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.05
         pytest_ended=True
@@ -929,9 +959,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=1
         log_num_passed=0
         log_num_skipped=0
+        log_num_updated=0
         log_passed_tests=[]
         log_skipped_tests=[]
         log_test_durations={'test_foo.py::Test1::test1': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.05
         pytest_ended=True
@@ -988,9 +1020,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=0
         log_num_skipped=5
+        log_num_updated=0
         log_passed_tests=[]
         log_skipped_tests=['test_foo.py:15:flowmark package not installed#0', 'test_foo.py:15:flowmark package not installed#1', 'test_foo.py:15:flowmark package not installed#2', 'test_foo.py:15:mdformat package not installed#0', 'test_foo.py:15:mdformat package not installed#1']
         log_test_durations={}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
         pytest_ended=True
@@ -1040,9 +1074,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_failed_files=0
         log_num_passed=0
         log_num_skipped=2
+        log_num_updated=0
         log_passed_tests=[]
         log_skipped_tests=['test_foo.py:some shared reason#0', 'test_foo.py:some shared reason#1']
         log_test_durations={}
+        log_updated_tests=[]
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
         pytest_ended=True
@@ -1160,6 +1196,7 @@ class Test_info_to_str(hunitest.TestCase):
          'log_num_failed_files': 2,
          'log_num_passed': 3,
          'log_num_skipped': 0,
+         'log_num_updated': 0,
          'pytest_collection_completed': True,
          'pytest_duration_in_secs': 40.48,
          'pytest_ended': True,
@@ -1177,9 +1214,11 @@ class Test_info_to_str(hunitest.TestCase):
         ################################################################################
         Run: local
         Pytest completed: True
+        Duration: 40.48 s
         Passed: 43/47
         Skipped: 0/47
         Failed: 4/47
+        Updated: 0/47
         """
         # Run test.
         act = hpytest.info_to_str(info)
@@ -1212,9 +1251,11 @@ class Test_info_to_comments(hunitest.TestCase):
         exp = """
         Run: local
         Pytest completed: True
+        Duration: 40.48 s
         Passed: 43/47
         Skipped: 0/47
         Failed: 4/47
+        Updated: 0/47
         """
         # Check. Note: pytest_num_failed=4, pytest_num_passed=43, total=47
         self.helper(txt, exp)
@@ -1239,9 +1280,11 @@ class Test_info_to_comments(hunitest.TestCase):
         exp = """
         Run: GitHub CI (run_fast_tests)
         Pytest completed: True
+        Duration: 886.58 s
         Passed: 3157/3426
         Skipped: 235/3426
         Failed: 34/3426
+        Updated: 0/3426
         """
         # Check.
         self.helper(txt, exp)
@@ -1255,9 +1298,11 @@ class Test_info_to_comments(hunitest.TestCase):
         exp = """
         Run: local
         Pytest completed: False
+        Duration: 0.00 s
         Passed: 0/0
         Skipped: 0/0
         Failed: 0/0
+        Updated: 0/0
         """
         # Check.
         self.helper(txt, exp)
@@ -1343,6 +1388,44 @@ class Test_write_skipped_tests(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_write_updated_tests
+# #############################################################################
+
+
+class Test_write_updated_tests(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test that updated tests are written one per line to a file.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 2 items
+
+        test_foo.py::Test1::test_check_string_missing3 (0.13 s) (WARNING: Test was updated) PASSED [ 50%]
+        test_foo.py::Test1::test2 (0.00 s) PASSED [100%]
+
+        ======================== 0 failed, 2 passed in 0.13s =========================
+        """
+        txt = hprint.dedent(txt)
+        lines = txt.split("\n")
+        info = hpytest.parse_failed_tests(lines)
+        file_name = os.path.join(self.get_scratch_space(), "updated.txt")
+        # Prepare outputs.
+        expected = """
+        test_foo.py::Test1::test_check_string_missing3
+        """
+        # Run test.
+        hpytest.write_updated_tests(info, file_name)
+        # Check outputs.
+        actual = hio.from_file(file_name)
+        self.assert_equal(
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+
+# #############################################################################
 # Test_write_tests_by_duration
 # #############################################################################
 
@@ -1410,8 +1493,14 @@ class Test_compute_duration_stats_by_file(hunitest.TestCase):
         info = Test_write_tests_by_duration().get_multi_class_info()
         # Prepare outputs.
         expected = """
-        {'file_b.py': {'count': 1, 'total_secs': 4.0, 'mean_secs': 4.0},
-         'file_a.py': {'count': 3, 'total_secs': 3.5, 'mean_secs': 1.1666666666666667}}
+        {'file_b.py': {'count': 1,
+                       'total_secs': 4.0,
+                       'mean_secs': 4.0,
+                       'max_secs': 4.0},
+         'file_a.py': {'count': 3,
+                       'total_secs': 3.5,
+                       'mean_secs': 1.1666666666666667,
+                       'max_secs': 2.0}}
         """
         # Run test.
         actual = hpytest.compute_duration_stats_by_file(info)
@@ -1439,9 +1528,18 @@ class Test_compute_duration_stats_by_class(hunitest.TestCase):
         info = Test_write_tests_by_duration().get_multi_class_info()
         # Prepare outputs.
         expected = """
-        {'file_b.py::ClassC': {'count': 1, 'total_secs': 4.0, 'mean_secs': 4.0},
-         'file_a.py::ClassA': {'count': 2, 'total_secs': 3.0, 'mean_secs': 1.5},
-         'file_a.py::ClassB': {'count': 1, 'total_secs': 0.5, 'mean_secs': 0.5}}
+        {'file_b.py::ClassC': {'count': 1,
+                               'total_secs': 4.0,
+                               'mean_secs': 4.0,
+                               'max_secs': 4.0},
+         'file_a.py::ClassA': {'count': 2,
+                               'total_secs': 3.0,
+                               'mean_secs': 1.5,
+                               'max_secs': 2.0},
+         'file_a.py::ClassB': {'count': 1,
+                               'total_secs': 0.5,
+                               'mean_secs': 0.5,
+                               'max_secs': 0.5}}
         """
         # Run test.
         actual = hpytest.compute_duration_stats_by_class(info)
