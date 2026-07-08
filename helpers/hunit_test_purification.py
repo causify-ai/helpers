@@ -20,47 +20,6 @@ _LOG = logging.getLogger(__name__)
 _LOG.setLevel(logging.INFO)
 
 
-# #############################################################################
-# Purification functions
-# #############################################################################
-
-
-def purify_txt_from_client(txt: str) -> str:
-    """
-    Apply all purification steps to the input text.
-
-    :param txt: input text to purify
-    :return: purified text
-    """
-    # The order of substitutions is important. We want to start from the "most
-    # specific" (e.g., `amp/helpers/test/...`) to the "least specific" (e.g.,
-    # `amp`).
-    txt = purify_directory_paths(txt)
-    txt = purify_from_environment(txt)
-    # Correct order: -> `app` -> `amp` ->
-    # Start with `app.amp.helpers_root.helpers...`
-    # After purifying app references -> `amp.helpers_root.helpers...`
-    # After purifying amp references -> `helpers_root.helpers...`
-    #
-    # Incorrect order: -> `amp` -> `app` ->
-    # Start with `amp.helpers_root.helpers...`
-    # After purifying `amp` references -> `app.amp.helpers_root.helpers...`
-    # After purifying `app` references -> `amp.helpers_root.helpers...`
-    #
-    txt = purify_app_references(txt)
-    txt = purify_amp_references(txt)
-    txt = purify_from_env_vars(txt)
-    txt = purify_object_representation(txt)
-    txt = purify_today_date(txt)
-    txt = purify_white_spaces(txt)
-    txt = purify_parquet_file_names(txt)
-    txt = purify_helpers(txt)
-    txt = purify_docker_cmd(txt)
-    txt = purify_docker_image_name(txt)
-    txt = purify_apple_container_output(txt)
-    return txt
-
-
 def purify_directory_paths(txt: str) -> str:
     """
     Replace known directory paths with standardized placeholders.
@@ -246,6 +205,40 @@ def purify_app_references(txt: str) -> str:
     return txt
 
 
+def purify_super_module_references(txt: str) -> str:
+    """
+    Remove references to the outer super-module checkout dir from module
+    qualnames.
+
+    - `purify_app_references()`/`purify_amp_references()` only handle the
+      literal `app`/`amp` checkout directory names
+    - When `helpers_root` is checked out as a submodule under a super-repo with
+      a different name pytest's import machinery bakes that ancestor dir name
+      into `__module__`/qualname strings (e.g.,
+      `csfy1.helpers_root.helpers.test...`), which this dynamically strips
+      using the actual super-module root name instead of a hardcoded literal
+
+    :param txt: input text containing dotted module qualnames
+    :return: text with the super-module ancestor prefix removed
+    """
+    super_module_root = hgit.get_client_root(super_module=True)
+    if not super_module_root or super_module_root == "/":
+        return txt
+    name = os.path.basename(super_module_root)
+    if not name or name in ("amp", "app"):
+        # Already handled by `purify_amp_references()` / `purify_app_references()`.
+        return txt
+    name_re = re.escape(name)
+    super_module_patterns = [
+        (rf"<{name_re}\.", "<"),
+        (rf"class '{name_re}\.", "class '"),
+        (rf"(?<![\w.]){name_re}\.", ""),
+    ]
+    txt = _apply_regex_replacements(txt, super_module_patterns)
+    _LOG.debug("After %s: txt=\n%s", hintros.get_function_name(), txt)
+    return txt
+
+
 def purify_from_env_vars(txt: str) -> str:
     """
     Replace environment variable values with their variable names.
@@ -324,17 +317,6 @@ def purify_white_spaces(txt: str) -> str:
     return txt
 
 
-def purify_line_number(txt: str) -> str:
-    """
-    Replace line number with `$LINE_NUMBER`.
-
-    :param txt: input text containing line numbers
-    :return: text with line numbers standardized
-    """
-    txt = re.sub(r"\.py::\d+", ".py::$LINE_NUMBER", txt, flags=re.MULTILINE)
-    return txt
-
-
 def purify_parquet_file_names(txt: str) -> str:
     """
     Replace UUIDs file names to `data.parquet` in the golden outcomes.
@@ -364,12 +346,8 @@ def purify_helpers(txt: str) -> str:
     :param txt: input text containing helper references
     :return: text with standardized helper references
     """
-    txt = re.sub(
-        r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE
-    )
-    txt = re.sub(
-        r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE
-    )
+    txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
+    txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
     txt = re.sub(
         r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE
     )
@@ -561,6 +539,56 @@ def purify_apple_container_output(txt: str) -> str:
 
 
 # #############################################################################
+# Purification functions
+# #############################################################################
+
+
+def purify_txt_from_client(txt: str) -> str:
+    """
+    Apply all purification steps to the input text.
+
+    :param txt: input text to purify
+    :return: purified text
+    """
+    # The order of substitutions is important. We want to start from the "most
+    # specific" (e.g., `amp/helpers/test/...`) to the "least specific" (e.g.,
+    # `amp`).
+    txt = purify_directory_paths(txt)
+    txt = purify_from_environment(txt)
+    # Correct order: -> `app` -> `amp` ->
+    # Start with `app.amp.helpers_root.helpers...`
+    # After purifying app references -> `amp.helpers_root.helpers...`
+    # After purifying amp references -> `helpers_root.helpers...`
+    #
+    # Incorrect order: -> `amp` -> `app` ->
+    # Start with `amp.helpers_root.helpers...`
+    # After purifying `amp` references -> `app.amp.helpers_root.helpers...`
+    # After purifying `app` references -> `amp.helpers_root.helpers...`
+    #
+    txt = purify_app_references(txt)
+    txt = purify_amp_references(txt)
+    txt = purify_super_module_references(txt)
+    txt = purify_from_env_vars(txt)
+    txt = purify_object_representation(txt)
+    txt = purify_today_date(txt)
+    txt = purify_white_spaces(txt)
+    txt = purify_parquet_file_names(txt)
+    txt = purify_helpers(txt)
+    txt = purify_docker_cmd(txt)
+    txt = purify_docker_image_name(txt)
+    txt = purify_apple_container_output(txt)
+    return txt
+
+
+def purify_line_number(txt: str) -> str:
+    """
+    Replace line number with `$LINE_NUMBER`.
+
+    :param txt: input text containing line numbers
+    :return: text with line numbers standardized
+    """
+    txt = re.sub(r"\.py::\d+", ".py::$LINE_NUMBER", txt, flags=re.MULTILINE)
+    return txt
 
 
 def purify_file_names(file_names: List[str]) -> List[str]:

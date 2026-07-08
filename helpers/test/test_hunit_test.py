@@ -5,6 +5,7 @@ import helpers.test.test_unit_test as ttutes
 """
 
 import logging
+import os
 import tempfile
 from typing import Optional, Tuple
 
@@ -338,7 +339,7 @@ ACTUAL vs EXPECTED: Test_AssertEqual1.test_not_equal1
 --------------------------------------------------------------------------------
 
                                                                           (
-completed failure Lint    Run_linter                                      |  completed       failure Lint    Run_linter
+completed failure Lint    Run_linter                                      | completed       failure Lint    Run_linter
 completed       success Lint    Fast_tests                                (
 completed       success Lint    Slow_tests                                (
 Diff with:
@@ -352,12 +353,29 @@ completed       success Lint    Fast_tests
 completed       success Lint    Slow_tests
 """'''
         if actual != expected:
-            hio.to_file("actual.txt", actual)
-            hio.to_file("expected.txt", expected)
+            scratch_dir = self.get_scratch_space()
+            hio.to_file(os.path.join(scratch_dir, "actual.txt"), actual)
+            hio.to_file(os.path.join(scratch_dir, "expected.txt"), expected)
             self.assert_equal(actual, expected, fuzzy_match=False)
         # We don't use self.assert_equal() since this is exactly we are testing,
         # so we use a trusted function.
         self.assertEqual(actual, expected)
+
+    def test_assert_not_equal3(self) -> None:
+        actual = "hello world"
+        expected = "hello world w"
+        tmp_dir = tempfile.mkdtemp()
+        self.assert_equal(
+            actual, expected, abort_on_error=False, dst_dir=tmp_dir
+        )
+        # Compute the signature from the dir.
+        actual = hunitest.get_dir_signature(
+            tmp_dir, include_file_content=True, num_lines=0
+        )
+        actual = huntepur.purify_txt_from_client(actual)
+        actual = actual.replace(tmp_dir, "$TMP_DIR")
+        # Verify that the diff script was created.
+        self.assertIn("tmp_diff.sh", actual)
 
     # For debugging: don't commit code with this test enabled.
     @pytest.mark.skip(

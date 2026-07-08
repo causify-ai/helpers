@@ -1,5 +1,6 @@
 import logging
 import pytest
+import sys
 
 import numpy as np
 import collections
@@ -71,7 +72,6 @@ class TestFloorWithPrecision(hunitest.TestCase):
         precision: int,
         expected: str,
     ) -> None:
-        """ """
         actual = hnumpy.floor_with_precision(value, precision)
         self.assert_equal(str(actual), expected)
 
@@ -204,7 +204,10 @@ class Test_OrderedDict_repr_str(hunitest.TestCase):
         """
         d = collections.OrderedDict({"test": np.int64(42)})
         actual = str(d)
-        expected = "OrderedDict({'test': np.int64(42)})"
+        if sys.version_info >= (3, 12):
+            expected = "OrderedDict({'test': np.int64(42)})"
+        else:
+            expected = "OrderedDict([('test', np.int64(42))])"
         self.assert_equal(actual, expected)
 
     def test_repr_full1(self) -> None:
@@ -213,5 +216,8 @@ class Test_OrderedDict_repr_str(hunitest.TestCase):
         """
         d = collections.OrderedDict({"test": np.int64(42)})
         actual = repr(d)
-        expected = "OrderedDict({'test': np.int64(42)})"
+        if sys.version_info >= (3, 12):
+            expected = "OrderedDict({'test': np.int64(42)})"
+        else:
+            expected = "OrderedDict([('test', np.int64(42))])"
         self.assert_equal(actual, expected)
