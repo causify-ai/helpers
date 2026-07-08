@@ -244,12 +244,13 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         "log_passed_tests": None,
         # List of skipped tests, parsed from the log. When the pytest
         # "short test summary info" section is present, entries are
-        # synthetic `path:line_or_reason#i` keys (not real pytest node
+        # synthetic `path[:line]:reason#i` keys (not real pytest node
         # ids), since that section reports a repeat count and a
-        # file[:line] but not the node id. It is used because it is the
-        # only place that reports *every* skipped test: tests skipped via
-        # `@pytest.mark.skip`/`skipif` are never run, so pytest prints no
-        # per-test verbose line (and thus no node id) for them.
+        # file[:line] plus a reason but not the node id. It is used
+        # because it is the only place that reports *every* skipped test:
+        # tests skipped via `@pytest.mark.skip`/`skipif` are never run, so
+        # pytest prints no per-test verbose line (and thus no node id) for
+        # them.
         "log_skipped_tests": None,
         # List of failed tests, parsed from the log.
         "log_failed_tests": None,
@@ -456,6 +457,13 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         )
         m2 = prefix_pattern.search(line)
         m3 = no_duration_pattern.search(line)
+        # Parse the pytest "short test summary info" aggregate skip lines
+        # (see `skipped_summary_pattern` above); this is the only source
+        # that accounts for every `@pytest.mark.skip`/`skipif` test, since
+        # those never print a per-test verbose line. Computed upfront so it
+        # can also be used below to tell apart a legitimately-handled
+        # aggregate line from a genuinely unparseable one.
+        m5 = skipped_summary_pattern.match(line)
         # Resolve `(test_name, status)` from whichever pattern matched,
         # preferring the well-formed ones and falling back to `pending_test_id`
         # only when the line's own leading token isn't a real node id.
@@ -472,6 +480,21 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
             m4 = status_at_end_pattern.search(line)
             if m4:
                 test_name, status = pending_test_id, m4.group(1)
+        if (
+            test_name is None
+            and not m5
+            and any(
+                tag in line
+                for tag in ("PASSED", "FAILED", "SKIPPED", "ERROR")
+            )
+        ):
+            # The line contains a status tag but none of the patterns above
+            # matched it, e.g., because the test's own stdout got
+            # byte-interleaved with the tag in the captured log (a race
+            # between concurrent writers to the same stream), corrupting it
+            # beyond reliable parsing (e.g., "test_foo SKIPPEDt) [ 26%]").
+            # Flag it instead of silently dropping the test from the count.
+            _LOG.warning("Could not parse test status from line='%s'", line)
         if test_name is not None:
             pending_test_id = None
             _LOG.debug(
@@ -497,19 +520,23 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
                 failed_tests.append(test_name)
             else:
                 hdbg.dassert("Invalid status='%s' in line='%s'", status, line)
-        # Parse the pytest "short test summary info" aggregate skip lines
-        # (see `skipped_summary_pattern` above); this is the only source
-        # that accounts for every `@pytest.mark.skip`/`skipif` test, since
-        # those never print a per-test verbose line.
-        m5 = skipped_summary_pattern.match(line)
+        # Handle the pytest "short test summary info" aggregate skip lines
+        # (`m5` was matched above, alongside the other status patterns).
         if m5:
             count = int(m5.group(1))
             path = m5.group(2)
-            lineno_or_reason = (
-                m5.group(3) if m5.group(3) is not None else m5.group(4)
-            )
+            lineno = m5.group(3)
+            reason = m5.group(4)
+            # Always include the reason in the key, even when a line number
+            # is present: two distinct skip groups can share the same
+            # file:line (e.g., two different `skipif` conditions on nearby
+            # lines that pytest attributes to the same line) but have
+            # different reasons. Dropping the reason would collide their
+            # synthetic keys and undercount the total after dedup via
+            # `set()` below.
+            location = f"{path}:{lineno}" if lineno is not None else path
             for i in range(count):
-                skipped_summary_tests.append(f"{path}:{lineno_or_reason}#{i}")
+                skipped_summary_tests.append(f"{location}:{reason}#{i}")
         # Parse:
         # ```
         # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
@@ -841,10 +868,33 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_ne(file_name, "")
     txt = []
     txt.append(hprint.frame("Duration by file"))
+    # TODO(ai_gp): Add also the max duration, besides count, tot, mean.
+    # Also print an header.
     for key, stat in compute_duration_stats_by_file(info).items():
-        txt.append(f"{key} :{stat['count']}, {stat['total_secs']:.2f} secs")
+        txt.append(
+            f"{key}: {stat['count']}, {stat['total_secs']:.2f} secs, "
+            f"{stat['mean_secs']:.2f} secs"
+        )
     txt.append(hprint.frame("Duration by class"))
     for key, stat in compute_duration_stats_by_class(info).items():
-        txt.append(f"{key}: {stat['count']}, {stat['total_secs']:.2f} secs")
+        txt.append(
+            f"{key}: {stat['count']}, {stat['total_secs']:.2f} secs, "
+            f"{stat['mean_secs']:.2f} secs"
+        )
     hio.to_file(file_name, "\n".join(txt))
+    _LOG.info("Created '%s'", file_name)
+
+
+def write_repro_script(tests: List[str], file_name: str) -> None:
+    """
+    Write an executable script that reruns `tests` via `pytest_log`.
+
+    :param tests: tests, classes, or files to pass to `pytest_log`
+    :param file_name: name of the script to create
+    """
+    if not tests:
+        repro_txt = "# No tests"
+    else:
+        repro_txt = "pytest_log " + " ".join(tests) + " $*"
+    hio.create_executable_script(file_name, repro_txt)
     _LOG.info("Created '%s'", file_name)

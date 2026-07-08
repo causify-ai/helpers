@@ -583,7 +583,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_passed=2
         log_num_skipped=6
         log_passed_tests=['test_foo.py::Test1::test2', 'test_foo.py::Test1::test3']
-        log_skipped_tests=['test_foo.py:10#0', 'test_foo.py:20#0', 'test_foo.py:30#0', 'test_foo.py:30#1', 'test_foo.py:30#2', 'test_foo.py:30#3']
+        log_skipped_tests=['test_foo.py:10:decorator skip reason#0', 'test_foo.py:20:live skip reason#0', 'test_foo.py:30:parametrized skip reason#0', 'test_foo.py:30:parametrized skip reason#1', 'test_foo.py:30:parametrized skip reason#2', 'test_foo.py:30:parametrized skip reason#3']
         log_test_durations={'test_foo.py::Test1::test_live_skip': 0.0, 'test_foo.py::Test1::test2': 0.0, 'test_foo.py::Test1::test3': 0.0}
         pytest_collection_completed=True
         pytest_duration_in_secs=0.01
@@ -756,7 +756,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_passed=2
         log_num_skipped=1
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2']
-        log_skipped_tests=['test_foo.py:10#0']
+        log_skipped_tests=["test_foo.py:10:could not import 'openai': No module named 'openai'#0"]
         log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02}
         pytest_collection_completed=True
         pytest_duration_in_secs=10.0
@@ -823,7 +823,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         log_num_passed=2
         log_num_skipped=1
         log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2']
-        log_skipped_tests=['test_foo.py:10#0']
+        log_skipped_tests=["test_foo.py:10:could not import 'openai': No module named 'openai'#0"]
         log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02}
         pytest_collection_completed=True
         pytest_duration_in_secs=10.0
@@ -1037,12 +1037,12 @@ class Test_write_skipped_tests(hunitest.TestCase):
         file_name = os.path.join(self.get_scratch_space(), "skipped.txt")
         # Prepare outputs.
         expected = """
-        test_foo.py:10#0
-        test_foo.py:20#0
-        test_foo.py:30#0
-        test_foo.py:30#1
-        test_foo.py:30#2
-        test_foo.py:30#3
+        test_foo.py:10:decorator skip reason#0
+        test_foo.py:20:live skip reason#0
+        test_foo.py:30:parametrized skip reason#0
+        test_foo.py:30:parametrized skip reason#1
+        test_foo.py:30:parametrized skip reason#2
+        test_foo.py:30:parametrized skip reason#3
         """
         # Run test.
         hpytest.write_skipped_tests(info, file_name)
@@ -1184,14 +1184,14 @@ class Test_write_duration_stats(hunitest.TestCase):
         ################################################################################
         Duration by file
         ################################################################################
-        file_b.py :1, 4.00 secs
-        file_a.py :3, 3.50 secs
+        file_b.py: 1, 4.00 secs, mean 4.00 secs
+        file_a.py: 3, 3.50 secs, mean 1.17 secs
         ################################################################################
         Duration by class
         ################################################################################
-        file_b.py::ClassC: 1, 4.00 secs
-        file_a.py::ClassA: 2, 3.00 secs
-        file_a.py::ClassB: 1, 0.50 secs
+        file_b.py::ClassC: 1, 4.00 secs, mean 4.00 secs
+        file_a.py::ClassA: 2, 3.00 secs, mean 1.50 secs
+        file_a.py::ClassB: 1, 0.50 secs, mean 0.50 secs
         """
         # Run test.
         hpytest.write_duration_stats(info, file_name)

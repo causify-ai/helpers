@@ -1658,35 +1658,8 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
 # #############################################################################
 
 
-# TODO(ai_gp): Just call pytest_failed with sensible defaults.
 @task
-def pytest_failed(
-    ctx, only_file=False, only_class=False, file_name="tmp.pytest_script.txt"
-):  # type: ignore
+def pytest_failed(ctx, file_name="tmp.pytest_script.txt"):  # type: ignore
     _ = ctx
     hltltaut.report_task()
-    # Read file.
-    _LOG.info("Reading %s", file_name)
-    txt = hio.from_file(file_name)
-    # Extract info.
-    _LOG.info("Parsing %s", file_name)
-    lines = txt.split("\n")
-    info = hpytest.parse_failed_tests(lines)
-    failed_tests = info["log_failed_tests"]
-    # Filter, if needed.
-    if only_file or only_class:
-        failed_tests = hpytest.filter_failed_tests(
-            failed_tests, only_file, only_class
-        )
-    print("\n".join(failed_tests))
-    # TODO(ai_gp): Factor out this into a function in hpytest.py
-    # Write the repro in a file.
-    repro_file_name = "tmp.pytest_failed.sh"
-    repro_txt = "pytest_log " + " ".join(failed_tests) + " $*"
-    hio.to_file(repro_file_name, repro_txt)
-    #
-    hio.create_executable_script(repro_file_name, repro_txt)
-    _LOG.warning("To run the failed tests run: %s", repro_file_name)
-    # Save to clipboard.
-    txt = " ".join(failed_tests)
-    hsystem.to_pbcopy(txt, pbcopy=True)
+    # TODO(ai_gp): call pytest_failed.py with sensible defaults.
