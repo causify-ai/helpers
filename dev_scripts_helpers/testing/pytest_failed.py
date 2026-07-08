@@ -16,6 +16,7 @@ Creates the following files:
 - tmp.pytest_failed.sh: script to rerun failed tests
 - tmp.pytest_failed.classes.sh: script to rerun failed test classes
 - tmp.pytest_failed.files.sh: script to rerun failed test files
+- tmp.pytest_failed.failed_tests.txt: list of failed tests
 - tmp.pytest_failed.passed_tests.txt: list of passed tests
 - tmp.pytest_failed.skipped_tests.txt: list of skipped tests
 - tmp.pytest_failed.updated_tests.txt: list of tests whose golden outcome was updated
@@ -30,6 +31,7 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hpytest as hpytest
 
 _LOG = logging.getLogger(__name__)
@@ -94,9 +96,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "tmp.pytest_failed.repro_files.sh",
     )
     # Write the reports.
+    print(hprint.frame("Failed tests"))
+    print("\n".join(failed_tests))
+    #
+    print(hprint.frame("Test info"))
     passed_tests_file = "tmp.pytest_failed.passed_tests.txt"
     hpytest.write_passed_tests(info, passed_tests_file)
     _LOG.info("Created '%s'", passed_tests_file)
+    #
+    failed_tests_file = "tmp.pytest_failed.failed_tests.txt"
+    hpytest.write_failed_tests(info, failed_tests_file)
+    _LOG.info("Created '%s'", failed_tests_file)
     #
     skipped_tests_file = "tmp.pytest_failed.skipped_tests.txt"
     hpytest.write_skipped_tests(info, skipped_tests_file)
