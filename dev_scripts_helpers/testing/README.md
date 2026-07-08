@@ -8,7 +8,7 @@ This directory has no subdirectories.
 
 - **What It Does**:
   - Parses the failed tests out of a pytest log (default
-    `tmp.pytest_script.txt`), prints a summary, and copies the test names to
+    `tmp.pytest_log.txt`), prints a summary, and copies the test names to
     the clipboard
   - Writes repro scripts to rerun the failed tests, failed test classes, and
     failed test files
@@ -16,7 +16,7 @@ This directory has no subdirectories.
     outcomes, tests ordered by duration, duration statistics, and failure
     stacktraces
 
-- Parse failed tests from the default log file `tmp.pytest_script.txt`
+- Parse failed tests from the default log file `tmp.pytest_log.txt`
   ```bash
   > pytest_failed.py
   ```
@@ -78,9 +78,9 @@ This directory has no subdirectories.
 
 - **What It Does**:
   - Runs `pytest` with the given arguments, tees the output to
-    `tmp.pytest_script.txt`, and preserves pytest's exit code
+    `tmp.pytest_log.txt`, and preserves pytest's exit code
   - Intended to be used together with `pytest_failed.py`, which parses
-    `tmp.pytest_script.txt` by default
+    `tmp.pytest_log.txt` by default
 
 - Run a test file and save the log for later parsing
   ```bash

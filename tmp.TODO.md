@@ -55,6 +55,6 @@ collected 3361 items / 156 deselected / 7 skipped / 3205 selected
 
 #### [x] how many are fast, slow, superslow
 
-### [ ] Rename the output of dev_scripts_helpers/testing/pytest_log
+### [x] Rename the output of dev_scripts_helpers/testing/pytest_log
 
-file_name="tmp.pytest_script.txt"
+file_name="tmp.pytest_log.txt"

@@ -792,7 +792,7 @@ flowchart LR
 - Conceptually executes `pytest $* 2>&1 | tee $file_name` and preserves the
   original exit code
 - It runs `pytest` with all passed arguments and saves the combined stdout/stderr
-  to `tmp.pytest_script.txt`
+  to `tmp.pytest_log.txt`
 
 ## `invoke traceback`
 
@@ -800,7 +800,7 @@ flowchart LR
   navigation
 
 - What it does:
-  - Converts the traceback from `tmp.pytest_script.txt` into a cfile format
+  - Converts the traceback from `tmp.pytest_log.txt` into a cfile format
   - Optionally purifies filenames (strips Docker/client paths)
   - Opens the result in vim with quickfix mode for easy navigation
 
@@ -808,7 +808,7 @@ flowchart LR
   ```
   > pytest_log helpers/test/test_traceback.py
 
-  # Uses tmp.pytest_script.txt by default.
+  # Uses tmp.pytest_log.txt by default.
   invoke traceback                           
 
   # Use custom log file.

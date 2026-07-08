@@ -6,7 +6,7 @@ and copy the test names to the clipboard.
 
 Examples
 
-# Parse failed tests from `tmp.pytest_script.txt`.
+# Parse failed tests from `tmp.pytest_log.txt`.
 > pytest_failed.py
 
 # Parse failed tests from a specific log file, keeping only the file names.
@@ -48,7 +48,7 @@ def _parse() -> argparse.ArgumentParser:
         "--input",
         action="store",
         # This is the output from pytest_log.
-        default="tmp.pytest_script.txt",
+        default="tmp.pytest_log.txt",
         help="Pytest log file to parse for failed tests",
     )
     hparser.add_verbosity_arg(parser)

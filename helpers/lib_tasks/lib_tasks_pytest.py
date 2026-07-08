@@ -1073,7 +1073,7 @@ def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False):  #
 
 
 @task
-def traceback(ctx, log_name="tmp.pytest_script.txt", purify=True):  # type: ignore
+def traceback(ctx, log_name="tmp.pytest_log.txt", purify=True):  # type: ignore
     """
     Parse the traceback from Pytest and navigate it with vim.
 
@@ -1659,7 +1659,7 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
 
 
 @task
-def pytest_failed(ctx, file_name="tmp.pytest_script.txt"):  # type: ignore
+def pytest_failed(ctx, file_name="tmp.pytest_log.txt"):  # type: ignore
     _ = ctx
     hltltaut.report_task()
     script_path = "dev_scripts_helpers/testing/pytest_failed.py"
