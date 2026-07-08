@@ -23,14 +23,14 @@ description: Create instructions to build a children PR
 
 
 ```
-SRC_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass
-TARGET_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass_4
+> export SRC_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass
+> export DST_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass_4
 
-git checkout master
-git pull
-git checkout -b $TARGET_BRANCH
+> git checkout master
+> git pull
+> git checkout -b $DST_BRANCH
 
-cat > pr_commit_msg.txt << 'EOF'
+> cat > pr_commit_msg.txt << 'EOF'
 Unit Test Infrastructure: Purification, Introspection, Numpy, and Base Updates
 
 - Adds new test purification module (hunit_test_purification.py)
@@ -42,7 +42,7 @@ Unit Test Infrastructure: Purification, Introspection, Numpy, and Base Updates
 - Well-isolated changes to testing subsystem
 EOF
 
-cat > pr_pytest.sh << 'EOF'
+> cat > pr_pytest.sh << 'EOF'
 pytest \
     helpers/test/test_hunit_test_purification.py \
     helpers/test/test_hintrospection.py \
@@ -51,15 +51,36 @@ pytest \
     -v
 EOF
 
-chmod +x pr_pytest.sh
+> chmod +x pr_pytest.sh
 
-FILES="helpers/hunit_test_purification.py helpers/test/test_hunit_test_purification.py helpers/test/test_hintrospection.py helpers/test/test_hnumpy.py helpers/test/test_hunit_test.py"
+> FILES="helpers/hunit_test_purification.py helpers/test/test_hunit_test_purification.py helpers/test/test_hintrospection.py helpers/test/test_hnumpy.py helpers/test/test_hunit_test.py"
 
-git checkout $SRC_BRANCH -- $FILES && git add $FILES
+# Copy the files through branches.
+> helpers_root/dev_scripts_helpers/git/git_sync_between_branches.sh --src_branch $SRC_BRANCH --dst_branch $DST_BRANCH --files "$FILES"
 
-git commit -am pr_commit_msg.txt
+# Copy the files from another dir.
+> export SRC_DIR=/Users/saggese/src/csfy1
+> export DST_DIR=/Users/saggese/src/notes1
+> export SUB_DIR=helpers_root
+> diff_to_vimdiff.py --dir1 $SRC_DIR/$SUB_DIR/ --dir2 ./$SUB_DIR/
 
-i gh_create_pr --no-draft
+> echo "$FILES" | tr ' ' '\n' > /tmp/file_list.txt
+> more /tmp/file_list.txt
+helpers/hunit_test_purification.py
+helpers/test/test_hunit_test_purification.py
+helpers/test/test_hintrospection.py
+helpers/test/test_hnumpy.py
+helpers/test/test_hunit_test.py
+> rsync -avR --files-from=/tmp/file_list.txt $SRC_DIR/$SUB_DIR/ $DST_DIR/$SUB_DIR/
+> rsync -av $SRC_DIR/ $DST_DIR/
 
-pr_pytest.sh
+> git add $FILES
+> git commit -am pr_commit_msg.txt
+
+> i gh_create_pr --no-draft
+
+> i gh_watch
+
+> pr_pytest.sh
 ```
+
