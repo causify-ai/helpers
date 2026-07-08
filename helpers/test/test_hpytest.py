@@ -1307,6 +1307,35 @@ class Test_info_to_comments(hunitest.TestCase):
         # Check.
         self.helper(txt, exp)
 
+    def test4(self) -> None:
+        """
+        Test the commentary for a run with multiple updated golden outcomes.
+        """
+        # Prepare inputs and outputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 3 items
+
+        test_foo.py::Test1::test_check_string_missing3 (0.13 s) (WARNING: Test was updated) PASSED [ 33%]
+        test_foo.py::Test1::test_check_string_missing4 (0.05 s) (WARNING: Test was updated) PASSED [ 66%]
+        test_foo.py::Test1::test2 (0.02 s) PASSED [100%]
+
+        ======================== 0 failed, 3 passed in 0.20s =========================
+        """
+        txt = hprint.dedent(txt)
+        exp = """
+        Run: local
+        Pytest completed: True
+        Duration: 0.20 s
+        Passed: 3/3
+        Skipped: 0/3
+        Failed: 0/3
+        Updated: 2/3
+        """
+        # Check.
+        self.helper(txt, exp)
+
 
 # #############################################################################
 # Test_write_passed_tests
@@ -1415,6 +1444,39 @@ class Test_write_updated_tests(hunitest.TestCase):
         # Prepare outputs.
         expected = """
         test_foo.py::Test1::test_check_string_missing3
+        """
+        # Run test.
+        hpytest.write_updated_tests(info, file_name)
+        # Check outputs.
+        actual = hio.from_file(file_name)
+        self.assert_equal(
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+    def test2(self) -> None:
+        """
+        Test that multiple updated tests are all written, one per line.
+        """
+        # Prepare inputs.
+        txt = """
+        ============================= test session starts ==============================
+        platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        collected 3 items
+
+        test_foo.py::Test1::test_check_string_missing3 (0.13 s) (WARNING: Test was updated) PASSED [ 33%]
+        test_foo.py::Test1::test_check_string_missing4 (0.05 s) (WARNING: Test was updated) PASSED [ 66%]
+        test_foo.py::Test1::test2 (0.02 s) PASSED [100%]
+
+        ======================== 0 failed, 3 passed in 0.20s =========================
+        """
+        txt = hprint.dedent(txt)
+        lines = txt.split("\n")
+        info = hpytest.parse_failed_tests(lines)
+        file_name = os.path.join(self.get_scratch_space(), "updated.txt")
+        # Prepare outputs.
+        expected = """
+        test_foo.py::Test1::test_check_string_missing3
+        test_foo.py::Test1::test_check_string_missing4
         """
         # Run test.
         hpytest.write_updated_tests(info, file_name)
