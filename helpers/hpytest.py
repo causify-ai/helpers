@@ -866,10 +866,20 @@ def info_to_comments(info: Dict[str, Any]) -> str:
     _LOG.debug(hprint.to_str("num_passed num_skipped num_failed num_updated"))
     #
     num_total = num_failed + num_passed + num_skipped
-    comments.append(f"Passed: {num_passed}/{num_total}")
-    comments.append(f"Skipped: {num_skipped}/{num_total}")
-    comments.append(f"Failed: {num_failed}/{num_total}")
-    comments.append(f"Updated: {num_updated}/{num_total}")
+    # Align the labels and numerators so that the numbers line up across
+    # lines (e.g., "Passed:  43/47" / "Skipped:  0/47").
+    labels_and_values = [
+        ("Passed", num_passed),
+        ("Skipped", num_skipped),
+        ("Failed", num_failed),
+        ("Updated", num_updated),
+    ]
+    max_label_len = max(len(label) for label, _ in labels_and_values)
+    max_num_len = max(len(str(value)) for _, value in labels_and_values)
+    for label, value in labels_and_values:
+        comments.append(
+            f"{label + ':':<{max_label_len + 1}} {value:>{max_num_len}}/{num_total}"
+        )
     return "\n".join(comments)
 
 
@@ -1081,17 +1091,26 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     _LOG.debug("Created '%s'", file_name)
 
 
-def write_repro_script(tests: List[str], file_name: str) -> None:
+def write_repro_script(
+    tests: List[str],
+    description: str,
+    file_name: str,
+) -> None:
     """
     Write an executable script that reruns `tests` via `pytest_log`.
 
     :param tests: tests, classes, or files to pass to `pytest_log`
+    :param description: comment describing what `tests` contains (e.g.,
+        "failed tests", "failed classes", "failed files")
     :param file_name: name of the script to create
     """
+    lines = ["#!/bin/bash -xe"]
+    lines.append(f"# {description}")
     if not tests:
-        repro_txt = "# No tests"
+        lines.append("# No tests")
     else:
-        repro_txt = "pytest_log " + " ".join(tests) + " $*"
+        lines.append("pytest_log " + " ".join(tests) + " $*")
+    repro_txt = "\n".join(lines)
     hio.create_executable_script(file_name, repro_txt)
     _LOG.info("Created '%s'", file_name)
 

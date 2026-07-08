@@ -1386,10 +1386,10 @@ class Test_info_to_str(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 40.48 s
-        Passed: 43/47
-        Skipped: 0/47
-        Failed: 4/47
-        Updated: 0/47
+        Passed:  43/47
+        Skipped:  0/47
+        Failed:   4/47
+        Updated:  0/47
         """
         # Run test.
         act = hpytest.info_to_str(info)
@@ -1422,10 +1422,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 40.48 s
-        Passed: 43/47
-        Skipped: 0/47
-        Failed: 4/47
-        Updated: 0/47
+        Passed:  43/47
+        Skipped:  0/47
+        Failed:   4/47
+        Updated:  0/47
         """
         # Check. Note: pytest_num_failed=4, pytest_num_passed=43, total=47
         self.helper(txt, exp)
@@ -1451,10 +1451,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: GitHub CI (run_fast_tests)
         Pytest completed: True
         Duration: 886.58 s
-        Passed: 3157/3426
-        Skipped: 235/3426
-        Failed: 34/3426
-        Updated: 0/3426
+        Passed:  3157/3426
+        Skipped:  235/3426
+        Failed:    34/3426
+        Updated:    0/3426
         """
         # Check.
         self.helper(txt, exp)
@@ -1469,9 +1469,9 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: False
         Duration: 0.00 s
-        Passed: 0/0
+        Passed:  0/0
         Skipped: 0/0
-        Failed: 0/0
+        Failed:  0/0
         Updated: 0/0
         """
         # Check.
@@ -1498,9 +1498,9 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 0.20 s
-        Passed: 3/3
+        Passed:  3/3
         Skipped: 0/3
-        Failed: 0/3
+        Failed:  0/3
         Updated: 2/3
         """
         # Check.
@@ -1639,11 +1639,11 @@ class Test_write_updated_tests(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_write_test_errors
+# Test_write_test_stacktraces
 # #############################################################################
 
 
-class Test_write_test_errors(hunitest.TestCase):
+class Test_write_test_stacktraces(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test that each failed test's parsed failure reason is written to a
@@ -1656,17 +1656,18 @@ class Test_write_test_errors(hunitest.TestCase):
         file_name = os.path.join(self.get_scratch_space(), "errors.txt")
         # Prepare outputs.
         expected = """
-        ################################################################################
+        --------------------------------------------------------------------------------
         helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
-        ################################################################################
+        --------------------------------------------------------------------------------
         RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes
-        ################################################################################
+
+        --------------------------------------------------------------------------------
         helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1
-        ################################################################################
+        --------------------------------------------------------------------------------
         AttributeError: 'list' object has no attribute 'split'
         """
         # Run test.
-        hpytest.write_test_errors(info, file_name)
+        hpytest.write_test_stacktraces(info, file_name)
         # Check outputs.
         _check_file_content(self, file_name, expected)
 
