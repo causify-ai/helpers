@@ -96,6 +96,28 @@ class _PydepsRunner:
         # Override pylint to preserve the dir for future use.
         self.tmp_dir = tempfile.TemporaryDirectory(prefix="tmp.pydeps")
 
+    def _build_pydeps_command(
+        self, submodule_path: str, output_filename: str
+    ) -> str:
+        """
+        Build the pydeps command with arguments.
+
+        :param submodule_path: path to the input submodule
+        :param output_filename: output filename for pydeps JSON
+        :return: the complete pydeps command
+        """
+        args = [
+            "--no-output",
+            "--show-deps",
+            submodule_path,
+        ]
+        if self.show_cycles:
+            args.append("--show-cycles")
+        args_str = " ".join(args)
+        # Use uvx to run pydeps without requiring installation.
+        cmd = f"export PYTHONPATH=/src:$PYTHONPATH; uvx pydeps {args_str} > {output_filename}"
+        return cmd
+
     def _run_submodule(self, submodule_path: str) -> str:
         """
         Run the `pydeps` script on the specified submodule.
@@ -103,23 +125,11 @@ class _PydepsRunner:
         :param submodule_path: path to the input submodule
         :return: the output filename
         """
-        # Initialize the `pydeps` arguments used for each call.
-        pydeps_args = [
-            ("--no-output", ""),
-            ("--show-deps", ""),
-            ("", submodule_path),
-        ]
-        if self.show_cycles:
-            pydeps_args.append(("--show-cycles", ""))
         output_name = submodule_path.replace("/", "_")
         # Set the `pydeps` output filename.
         _tmp_output_filename = f"{self.tmp_dir.name}/{output_name}.json"
-        pydeps_args.append((">", _tmp_output_filename))
-        # Before running pydeps we need to make sure that it uses the code
-        # in `/src` and not the ones in `/app` (see DevToolsTask406).
-        cmd = "export PYTHONPATH=/src:$PYTHONPATH; pydeps"
-        for arg_name, arg_value in pydeps_args:
-            cmd += f" {arg_name} {arg_value}"
+        # Build and run the pydeps command.
+        cmd = self._build_pydeps_command(submodule_path, _tmp_output_filename)
         hsystem.system(cmd)
         # Assert that the command produced an output.
         hdbg.dassert_path_exists(

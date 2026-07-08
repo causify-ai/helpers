@@ -1652,14 +1652,14 @@ class Test_write_test_stacktraces(hunitest.TestCase):
         file_name = os.path.join(self.get_scratch_space(), "errors.txt")
         # Prepare outputs.
         expected = """
-        --------------------------------------------------------------------------------
+        ////////////////////////////////////////////////////////////////////////////////
         helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
-        --------------------------------------------------------------------------------
+        ////////////////////////////////////////////////////////////////////////////////
         RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes
 
-        --------------------------------------------------------------------------------
+        ////////////////////////////////////////////////////////////////////////////////
         helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1
-        --------------------------------------------------------------------------------
+        ////////////////////////////////////////////////////////////////////////////////
         AttributeError: 'list' object has no attribute 'split'
         """
         # Run test.

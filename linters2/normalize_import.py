@@ -113,6 +113,12 @@ class LongToShortImportGenerator:
             # Remove the root dir from the file path, e.g., "/app/amp/helpers/git.py"
             # -> "amp/helpers/git.py". Since root dir is not used in an import name.
             file_path = os.path.relpath(file_path, liutils.ROOT_DIR)
+        elif file_path.startswith("/app/"):
+            # Fall back to the dev container's mount point, e.g., when
+            # `file_path` was frozen from a run inside the container (where
+            # `ROOT_DIR` is "/app") but the code executes natively, e.g., on
+            # a Mac, where `ROOT_DIR` is the local checkout path instead.
+            file_path = file_path[len("/app/") :]
         # Remove submodule dirs from the file_path, since they are not specified in import
         # statements, e.g., "helpers_root/helpers/git.py" -> "helpers/git.py".
         submodule_dirs = ["amp/", "helpers_root/"]
