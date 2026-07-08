@@ -1,12 +1,7 @@
 #!/bin/bash
 clear
 
-file_name="tmp.pytest_script.txt"
-# Force Python to leave stdout unbuffered: piping through `tee` makes stdout
-# non-TTY, so CPython switches it from line- to block-buffering, which delays
-# `_LOG` output (e.g., from `--dbg`) until the buffer fills or the process
-# exits, burying live output like tqdm progress bars.
-export PYTHONUNBUFFERED=1
+file_name="tmp.pytest_log.txt"
 cmd="pytest $* 2>&1 | tee $file_name"
 cmd+='; exit ${PIPESTATUS[0]}'
 echo "> $cmd"
