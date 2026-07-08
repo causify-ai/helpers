@@ -256,6 +256,85 @@ def _set_info_field(
     return info
 
 
+def parse_test_errors(
+    lines: List[str], failed_tests: List[str]
+) -> Dict[str, str]:
+    """
+    Parse the failure reason of each failed test from the pytest log.
+
+    This re-parses the log in a second pass, after `parse_failed_tests()`
+    has determined which tests failed, to extract each failed test's
+    failure reason.
+    The failure reason is the text of its "FAILED <test> - <Error>:" (or "ERROR
+    ...") tag, up to, but not including:
+    - the next such tag
+    - the final summary banner, or
+    - the "short test summary info" section (none of which are part of a
+      test's own failure reason).
+
+    E.g., given
+    ```
+    FAILED helpers/test/test_foo.py::Test1::test1 - RuntimeError:
+    --------------------------------------------------------------------------------
+    ACTUAL vs EXPECTED: Test1.test1
+    --------------------------------------------------------------------------------
+    ...
+    Diff with:
+    > ./tmp_diff.sh
+    FAILED helpers/test/test_foo.py::Test2::test2 - AssertionError: boom
+    ```
+    the reason for `Test1.test1` is everything from "RuntimeError:" through
+    "> ./tmp_diff.sh", and the reason for `Test2.test2` is just
+    "AssertionError: boom".
+
+    :param lines: pytest output lines, same input as `parse_failed_tests()`
+    :param failed_tests: failed test names to extract a failure reason for,
+        e.g., `info["log_failed_tests"]`
+    :return: mapping from failed test name to its parsed failure reason; a
+        failed test with no matching tag in the log is omitted
+    """
+    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(failed_tests, list)
+    failed_tests_set = set(failed_tests)
+    failed_tag_pattern = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)\s-\s(.*)$")
+    summary_banner_pattern = re.compile(r"^=+\s.*\bin\s+([\d.]+)s")
+    skipped_summary_pattern = re.compile(r"^SKIPPED\s+\[\d+\]\s+\S")
+    test_errors: Dict[str, str] = {}
+    current_test: Optional[str] = None
+    current_lines: List[str] = []
+    for raw_line in lines:
+        line = _clean_log_line(raw_line)
+        m_failed_tag = failed_tag_pattern.match(line)
+        if m_failed_tag is not None:
+            # Any well-formed tag line ends whatever reason is currently
+            # being accumulated, whether or not it belongs to a tracked
+            # failed test, so an untracked tag never gets swallowed into a
+            # preceding test's reason.
+            if current_test is not None:
+                test_errors[current_test] = "\n".join(current_lines).strip("\n")
+                current_test = None
+                current_lines = []
+            if (
+                "::" in m_failed_tag.group(1)
+                and m_failed_tag.group(1) in failed_tests_set
+            ):
+                current_test = m_failed_tag.group(1)
+                current_lines = [m_failed_tag.group(2)]
+        elif current_test is not None and (
+            summary_banner_pattern.search(line)
+            or skipped_summary_pattern.match(line)
+            or "short test summary info" in line
+        ):
+            test_errors[current_test] = "\n".join(current_lines).strip("\n")
+            current_test = None
+            current_lines = []
+        elif current_test is not None:
+            current_lines.append(line)
+    if current_test is not None:
+        test_errors[current_test] = "\n".join(current_lines).strip("\n")
+    return test_errors
+
+
 def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     """
     Parse the failed tests from the pytest output.
@@ -476,7 +555,9 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         # can appear regardless of which pattern below ends up resolving the
         # test name and status, so it is checked independently on the raw
         # line rather than being tied to `suffix_pattern`.
-        updated_annotation_pattern = re.compile(r"\(WARNING:\s*Test was updated\)")
+        updated_annotation_pattern = re.compile(
+            r"\(WARNING:\s*Test was updated\)"
+        )
         is_updated = bool(updated_annotation_pattern.search(line))
         # Parse:
         # ```
@@ -526,8 +607,7 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
             test_name is None
             and not m5
             and any(
-                tag in line
-                for tag in ("PASSED", "FAILED", "SKIPPED", "ERROR")
+                tag in line for tag in ("PASSED", "FAILED", "SKIPPED", "ERROR")
             )
         ):
             # The line contains a status tag but none of the patterns above
@@ -604,11 +684,15 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
             _set_info_field(info, "pytest_ended", True)
             #
             _set_info_field(
-                info, "pytest_num_failed", int(m_failed.group(1)) if m_failed else 0
+                info,
+                "pytest_num_failed",
+                int(m_failed.group(1)) if m_failed else 0,
             )
             #
             _set_info_field(
-                info, "pytest_num_passed", int(m_passed.group(1)) if m_passed else 0
+                info,
+                "pytest_num_passed",
+                int(m_passed.group(1)) if m_passed else 0,
             )
             if m_skipped is not None:
                 _set_info_field(
@@ -740,87 +824,6 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
                 info["pytest_num_collected"],
             )
     return info
-
-
-def parse_test_errors(
-    lines: List[str], failed_tests: List[str]
-) -> Dict[str, str]:
-    """
-    Parse the failure reason of each failed test from the pytest log.
-
-    This re-parses the log in a second pass, after `parse_failed_tests()`
-    has determined which tests failed, to extract each failed test's
-    failure reason.
-    The failure reason is the text of its "FAILED <test> - <Error>:" (or "ERROR
-    ...") tag, up to, but not including:
-    - the next such tag
-    - the final summary banner, or
-    - the "short test summary info" section (none of which are part of a
-      test's own failure reason).
-
-    E.g., given
-    ```
-    FAILED helpers/test/test_foo.py::Test1::test1 - RuntimeError:
-    --------------------------------------------------------------------------------
-    ACTUAL vs EXPECTED: Test1.test1
-    --------------------------------------------------------------------------------
-    ...
-    Diff with:
-    > ./tmp_diff.sh
-    FAILED helpers/test/test_foo.py::Test2::test2 - AssertionError: boom
-    ```
-    the reason for `Test1.test1` is everything from "RuntimeError:" through
-    "> ./tmp_diff.sh", and the reason for `Test2.test2` is just
-    "AssertionError: boom".
-
-    :param lines: pytest output lines, same input as `parse_failed_tests()`
-    :param failed_tests: failed test names to extract a failure reason for,
-        e.g., `info["log_failed_tests"]`
-    :return: mapping from failed test name to its parsed failure reason; a
-        failed test with no matching tag in the log is omitted
-    """
-    hdbg.dassert_isinstance(lines, list)
-    hdbg.dassert_isinstance(failed_tests, list)
-    failed_tests_set = set(failed_tests)
-    failed_tag_pattern = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)\s-\s(.*)$")
-    summary_banner_pattern = re.compile(r"^=+\s.*\bin\s+([\d.]+)s")
-    skipped_summary_pattern = re.compile(r"^SKIPPED\s+\[\d+\]\s+\S")
-    test_errors: Dict[str, str] = {}
-    current_test: Optional[str] = None
-    current_lines: List[str] = []
-    for raw_line in lines:
-        line = _clean_log_line(raw_line)
-        m_failed_tag = failed_tag_pattern.match(line)
-        if m_failed_tag is not None:
-            # Any well-formed tag line ends whatever reason is currently
-            # being accumulated, whether or not it belongs to a tracked
-            # failed test, so an untracked tag never gets swallowed into a
-            # preceding test's reason.
-            if current_test is not None:
-                test_errors[current_test] = "\n".join(current_lines).strip(
-                    "\n"
-                )
-                current_test = None
-                current_lines = []
-            if (
-                "::" in m_failed_tag.group(1)
-                and m_failed_tag.group(1) in failed_tests_set
-            ):
-                current_test = m_failed_tag.group(1)
-                current_lines = [m_failed_tag.group(2)]
-        elif current_test is not None and (
-            summary_banner_pattern.search(line)
-            or skipped_summary_pattern.match(line)
-            or "short test summary info" in line
-        ):
-            test_errors[current_test] = "\n".join(current_lines).strip("\n")
-            current_test = None
-            current_lines = []
-        elif current_test is not None:
-            current_lines.append(line)
-    if current_test is not None:
-        test_errors[current_test] = "\n".join(current_lines).strip("\n")
-    return test_errors
 
 
 def info_to_comments(info: Dict[str, Any]) -> str:
@@ -1123,6 +1126,11 @@ def write_repro_script(
 # Mark names that indicate a test is statically skipped, i.e., without
 # evaluating any `skipif` condition.
 _SKIP_MARK_NAMES = ("skip", "skipif")
+
+
+# #############################################################################
+# _MarkCollectorPlugin
+# #############################################################################
 
 
 class _MarkCollectorPlugin:

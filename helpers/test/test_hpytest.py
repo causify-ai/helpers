@@ -1164,9 +1164,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Check that the garbled line is flagged.
         with self.assertLogs("helpers.hpytest", level="WARNING") as cm:
             info = hpytest.parse_failed_tests(lines)
-        self.assertIn(
-            "Could not parse test status", "\n".join(cm.output)
-        )
+        self.assertIn("Could not parse test status", "\n".join(cm.output))
         self.assertIn("test_garbled", "\n".join(cm.output))
         # Check that the garbled test is excluded from the counts (rather
         # than being counted as passed, failed, or skipped).
@@ -1204,9 +1202,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Check that parsing doesn't crash and flags the bare-path line.
         with self.assertLogs("helpers.hpytest", level="WARNING") as cm:
             info = hpytest.parse_failed_tests(lines)
-        self.assertIn(
-            "Could not parse test status", "\n".join(cm.output)
-        )
+        self.assertIn("Could not parse test status", "\n".join(cm.output))
         self.assertIn("test_bar.py", "\n".join(cm.output))
         # Check that the collection error isn't counted as a failed test.
         self.assertEqual(info["log_num_passed"], 1)
