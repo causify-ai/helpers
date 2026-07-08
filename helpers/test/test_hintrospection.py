@@ -1,12 +1,10 @@
 import logging
 import os
-import re
 from typing import Any, Callable
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hpickle as hpickle
-import helpers.hstring as hstring
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -357,7 +355,6 @@ class Test_get_function_name1(hunitest.TestCase):
 class Test_get_name_from_function1(hunitest.TestCase):
     def test1(self) -> None:
         actual = hintros.get_name_from_function(test_function)
-        actual = hstring.remove_prefix(actual, "amp.", assert_on_error=False)
         expected = "helpers.test.test_hintrospection.test_function"
         self.assert_equal(actual, expected, purify_text=True)
 
@@ -385,22 +382,14 @@ class Test_get_function_from_string1(hunitest.TestCase):
         # Compute the actual value.
         act_func = hintros.get_function_from_string(func_str)
         actual = hintros.get_name_from_function(act_func)
-        actual = hstring.remove_prefix(actual, "amp.", assert_on_error=False)
         # Compute the expected value.
         exp_func = dummy_function
         expected = hintros.get_name_from_function(exp_func)
-        expected = hstring.remove_prefix(expected, "amp.", assert_on_error=False)
         # Run.
         hdbg.dassert_isinstance(act_func, Callable)
-        # The function can have different names depending on whether `helpers`
-        # is a sub-repo or a super-repo:
-        # helpers.test.test_hintrospection.dummy_function
-        # helpers_root.helpers.test.test_hintrospection.dummy_function
-        #
-        actual = re.sub(
-            r"helpers_root\.helpers\.", "helpers.", actual, flags=re.MULTILINE
+        # `expected` is computed dynamically from `dummy_function`, so it
+        # carries the same checkout-dependent qualname prefix as `actual`
+        # and needs the same purification.
+        self.assert_equal(
+            actual, expected, purify_text=True, purify_expected_text=True
         )
-        expected = re.sub(
-            r"helpers_root\.helpers\.", "helpers.", expected, flags=re.MULTILINE
-        )
-        self.assert_equal(actual, expected, purify_text=True)
