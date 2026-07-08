@@ -169,9 +169,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=40.48
         pytest_ended=True
         pytest_num_collected=47
+        pytest_num_deselected=None
         pytest_num_failed=4
         pytest_num_passed=43
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
         """
@@ -199,9 +202,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=40.48
         pytest_ended=True
         pytest_num_collected=47
+        pytest_num_deselected=None
         pytest_num_failed=4
         pytest_num_passed=43
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
         """
@@ -241,9 +247,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=40.48
         pytest_ended=True
         pytest_num_collected=47
+        pytest_num_deselected=None
         pytest_num_failed=4
         pytest_num_passed=43
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
         """
@@ -294,9 +303,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=None
         pytest_ended=False
         pytest_num_collected=None
+        pytest_num_deselected=None
         pytest_num_failed=None
         pytest_num_passed=None
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
         """
@@ -335,9 +347,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=None
         pytest_ended=False
         pytest_num_collected=3421
+        pytest_num_deselected=None
         pytest_num_failed=None
         pytest_num_passed=None
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=5
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
         """
@@ -377,9 +392,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=886.58
         pytest_ended=True
         pytest_num_collected=3361
+        pytest_num_deselected=156
         pytest_num_failed=34
         pytest_num_passed=3157
+        pytest_num_selected=3205
         pytest_num_skipped=235
+        pytest_num_skipped_at_collection=7
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
         """
@@ -421,9 +439,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=0.01
         pytest_ended=True
         pytest_num_collected=2
+        pytest_num_deselected=None
         pytest_num_failed=0
         pytest_num_passed=2
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
         """
@@ -464,9 +485,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=0.13
         pytest_ended=True
         pytest_num_collected=1
+        pytest_num_deselected=None
         pytest_num_failed=0
         pytest_num_passed=1
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
         """
@@ -509,9 +533,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=0.11
         pytest_ended=True
         pytest_num_collected=1
+        pytest_num_deselected=None
         pytest_num_failed=0
         pytest_num_passed=1
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
         """
@@ -562,9 +589,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=0.01
         pytest_ended=True
         pytest_num_collected=8
+        pytest_num_deselected=None
         pytest_num_failed=0
         pytest_num_passed=2
+        pytest_num_selected=None
         pytest_num_skipped=6
+        pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
         """
@@ -616,9 +646,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=0.06
         pytest_ended=True
         pytest_num_collected=3
+        pytest_num_deselected=None
         pytest_num_failed=0
         pytest_num_passed=3
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
         """
@@ -665,9 +698,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=None
         pytest_ended=False
         pytest_num_collected=3421
+        pytest_num_deselected=None
         pytest_num_failed=None
         pytest_num_passed=None
+        pytest_num_selected=None
         pytest_num_skipped=None
+        pytest_num_skipped_at_collection=5
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
         """
@@ -726,9 +762,79 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_duration_in_secs=10.0
         pytest_ended=True
         pytest_num_collected=5
+        pytest_num_deselected=1
         pytest_num_failed=1
         pytest_num_passed=2
+        pytest_num_selected=4
         pytest_num_skipped=1
+        pytest_num_skipped_at_collection=None
+        pytest_started=True
+        pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        """
+        # Check.
+        self.helper(txt, exp_info)
+
+    def test14(self) -> None:
+        """
+        Test a full GitHub Actions CI log parsed end to end via
+        `parse_failed_tests()`, same as `test13()` but with every
+        PASSED/FAILED/SKIPPED tag and the final summary line wrapped in
+        ANSI color codes rendered as visible caret notation (e.g.,
+        "^[[32mPASSED^[[0m") instead of a real ESC byte, as seen in some
+        captured GitHub Actions logs. The result should be identical to
+        `test13()`'s, since the caret-notation color codes should be
+        stripped just like real ESC-based ones.
+        """
+        # Prepare inputs.
+        txt = (
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:35.1181332Z Current runner version: '2.335.1'\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:36.0000000Z ^[[1m============================= test session starts ==============================^[[0m\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:37.0000000Z platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:38.0000000Z collected 5 items / 1 deselected / 4 selected\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:39.0000000Z test_foo.py::Test1::test1 (0.01 s) ^[[32mPASSED^[[0m^[[32m [ 25%]^[[0m\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:40.0000000Z test_foo.py::Test1::test2 (0.02 s) ^[[32mPASSED^[[0m^[[32m [ 50%]^[[0m\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:41.0000000Z ^[[31mFAILED^[[0m test_foo.py::^[[1mTest2::test3^[[0m - RuntimeError:\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:42.0000000Z =========================== short test summary info ============================\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:43.0000000Z SKIPPED [1] test_foo.py:10: could not import 'openai': No module named 'openai'\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:44.0000000Z ^[[31m= ^[[31m^[[1m1 failed^[[0m, ^[[32m2 passed^[[0m, ^[[33m1 skipped^[[0m, ^[[33m1 deselected^[[0m, ^[[33m1 rerun^[[0m^[[31m in 10.00s (0:00:10)^[[0m^[[31m =^[[0m\n"
+            "run_fast_tests / run_tests\tUNKNOWN STEP\t"
+            "2026-07-06T17:59:45.0000000Z Post job cleanup.\n"
+        )
+        # Prepare outputs.
+        exp_info = """
+        github_completed=True
+        github_end_timestamp=2026-07-06T17:59:45.0000000Z
+        github_start_timestamp=2026-07-06T17:59:35.1181332Z
+        github_tag=run_fast_tests
+        log_failed_tests=['test_foo.py::Test2::test3']
+        log_num_failed=1
+        log_num_failed_classes=1
+        log_num_failed_files=1
+        log_num_passed=2
+        log_num_skipped=1
+        log_passed_tests=['test_foo.py::Test1::test1', 'test_foo.py::Test1::test2']
+        log_skipped_tests=['test_foo.py:10#0']
+        log_test_durations={'test_foo.py::Test1::test1': 0.01, 'test_foo.py::Test1::test2': 0.02}
+        pytest_collection_completed=True
+        pytest_duration_in_secs=10.0
+        pytest_ended=True
+        pytest_num_collected=5
+        pytest_num_deselected=1
+        pytest_num_failed=1
+        pytest_num_passed=2
+        pytest_num_selected=4
+        pytest_num_skipped=1
+        pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
         """
@@ -769,9 +875,12 @@ class Test_info_to_str(hunitest.TestCase):
          'pytest_duration_in_secs': 40.48,
          'pytest_ended': True,
          'pytest_num_collected': 47,
+         'pytest_num_deselected': None,
          'pytest_num_failed': 4,
          'pytest_num_passed': 43,
+         'pytest_num_selected': None,
          'pytest_num_skipped': None,
+         'pytest_num_skipped_at_collection': None,
          'pytest_started': False,
          'pytest_tag': None}
         ################################################################################
@@ -1075,14 +1184,14 @@ class Test_write_duration_stats(hunitest.TestCase):
         ################################################################################
         Duration by file
         ################################################################################
-        4.00 s  1 tests  file_b.py
-        3.50 s  3 tests  file_a.py
+        file_b.py :1, 4.00 secs
+        file_a.py :3, 3.50 secs
         ################################################################################
         Duration by class
         ################################################################################
-        4.00 s  1 tests  file_b.py::ClassC
-        3.00 s  2 tests  file_a.py::ClassA
-        0.50 s  1 tests  file_a.py::ClassB
+        file_b.py::ClassC: 1, 4.00 secs
+        file_a.py::ClassA: 2, 3.00 secs
+        file_a.py::ClassB: 1, 0.50 secs
         """
         # Run test.
         hpytest.write_duration_stats(info, file_name)

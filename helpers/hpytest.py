@@ -338,14 +338,20 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     skipped_summary_tests: List[str] = []
     for line in lines:
         _LOG.debug("line=%s", line)
-        # Remove ANSI color codes (both ESC-based and bracket notation).
+        # Remove ANSI color codes (ESC-based, caret notation, and bare
+        # bracket notation).
         ansi_color_pattern = re.compile(
             r"""
-            \x1b\[        # ESC sequence start
+            (?:\x1b|\^\[) # ESC byte, or caret notation for ESC (some logs
+                          # render the ESC byte as visible "^[" text, e.g.,
+                          # "^[[32mPASSED^[[0m"), followed in both cases by
+                          # the literal CSI bracket below
+            \[            # CSI sequence start
             [0-9;]*       # color codes
             m             # end marker
             |
-            \[            # alternative bracket notation
+            \[            # alternative bracket notation (ESC already
+                          # stripped, only the bracket remains)
             [0-9;]*       # color codes
             m             # end marker
             """,
@@ -836,9 +842,9 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     txt = []
     txt.append(hprint.frame("Duration by file"))
     for key, stat in compute_duration_stats_by_file(info).items():
-        txt.append(f"{keys} :{stat['count']}, {stat['total_secs']:.2f} secs")
+        txt.append(f"{key} :{stat['count']}, {stat['total_secs']:.2f} secs")
     txt.append(hprint.frame("Duration by class"))
     for key, stat in compute_duration_stats_by_class(info).items():
-        txt.append(f"{keys}: {stat['count']}, {stat['total_secs']:.2f} secs")
+        txt.append(f"{key}: {stat['count']}, {stat['total_secs']:.2f} secs")
     hio.to_file(file_name, "\n".join(txt))
     _LOG.info("Created '%s'", file_name)
