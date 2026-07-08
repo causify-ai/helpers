@@ -1,1 +1,1 @@
-vim -c "set nospell" tmp.pytest_script.txt
+vim -c "set nospell" tmp.pytest_log.txt

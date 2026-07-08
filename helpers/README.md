@@ -138,6 +138,8 @@ Modules follow the `h<name>` naming convention and are organized by domain.
   - Unit test utilities including test renaming and helpers
 - `hpytest.py`
   - Pytest integration utilities and test artifact handling
+- `hjunit_reporter.py`
+  - `JUnitReporter` class to parse JUnit XML reports and print a colored summary
 - `hcoverage.py`
   - Code coverage utilities and test coverage analysis helpers
 - `hplayback.py`
