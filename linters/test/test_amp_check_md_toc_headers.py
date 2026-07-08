@@ -200,7 +200,7 @@ class Test_verify_toc_postion(hunitest.TestCase):
             + ["", "# linted file", ""]
             + []
         )
-        self.check_string(output)
+        self.check_string(output, purify_text=True)
 
     def test2(self) -> None:
         """

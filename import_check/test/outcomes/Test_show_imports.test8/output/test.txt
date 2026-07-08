@@ -1,5 +1,4 @@
 strict digraph {
-	numpy [label=numpy color=red shape=folder]
 	subgraph cluster_input {
 		graph [compound=true label=input]
 		node [style=filled]
@@ -8,10 +7,7 @@ strict digraph {
 		"input.subdir1" [label=subdir1 color=cadetblue labelfontcolor=darkslategray shape=folder]
 		"input.subdir2" [label=subdir2 color=cadetblue labelfontcolor=darkslategray shape=folder]
 	}
-	"input.file1" -> numpy
 	"input.file2" -> "input.file1"
 	"input.subdir1" -> "input.file1"
-	"input.subdir1" -> numpy
 	"input.subdir2" -> "input.file1"
-	"input.subdir2" -> numpy
 }
