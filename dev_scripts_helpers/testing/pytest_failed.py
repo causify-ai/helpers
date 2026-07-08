@@ -70,17 +70,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     print(hpytest.info_to_str(info))
     # Write the repro scripts.
     failed_tests = info["log_failed_tests"]
-    hpytest.write_repro_script(failed_tests, "tmp.pytest_failed.sh")
+    hpytest.write_repro_script(failed_tests, "tmp.pytest_failed.repro.sh")
     #
     failed_classes = hpytest.filter_failed_tests(
         failed_tests, only_file=False, only_class=True
     )
-    hpytest.write_repro_script(failed_classes, "tmp.pytest_failed.classes.sh")
+    hpytest.write_repro_script(failed_classes, "tmp.pytest_failed.repro_classes.sh")
     #
     failed_files = hpytest.filter_failed_tests(
         failed_tests, only_file=True, only_class=False
     )
-    hpytest.write_repro_script(failed_files, "tmp.pytest_failed.files.sh")
+    hpytest.write_repro_script(failed_files, "tmp.pytest_failed.repro_files.sh")
     # Write the reports.
     passed_tests_file = "tmp.pytest_failed.passed_tests.txt"
     hpytest.write_passed_tests(info, passed_tests_file)

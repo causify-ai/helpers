@@ -4,6 +4,7 @@ Import as:
 import helpers.hpytest as hpytest
 """
 
+import csv
 import logging
 import os
 import pprint
@@ -11,12 +12,19 @@ import re
 import shutil
 from typing import Any, Dict, List, Optional, Tuple
 
+import pytest
+
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# pytest_clean
+# #############################################################################
 
 
 def _pytest_show_artifacts(
@@ -951,10 +959,10 @@ def write_test_stacktraces(info: Dict[str, Any], file_name: str) -> None:
     test_errors = info["log_test_errors"]
     txt = []
     for test_name in sorted(test_errors.keys()):
-        txt.append(hprint.frame(test_name))
+        txt.append("\n" + hprint.frame(test_name, char1="-"))
         txt.append(test_errors[test_name])
     hio.to_file(file_name, "\n".join(txt))
-    _LOG.info("Created '%s'", file_name)
+    _LOG.debug("Created '%s'", file_name)
 
 
 def write_tests_by_duration(info: Dict[str, Any], file_name: str) -> None:
@@ -1070,7 +1078,7 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
             f"{stat['mean_secs']:.2f} | {stat['max_secs']:.2f}"
         )
     hio.to_file(file_name, "\n".join(txt))
-    _LOG.info("Created '%s'", file_name)
+    _LOG.debug("Created '%s'", file_name)
 
 
 def write_repro_script(tests: List[str], file_name: str) -> None:
@@ -1085,4 +1093,101 @@ def write_repro_script(tests: List[str], file_name: str) -> None:
     else:
         repro_txt = "pytest_log " + " ".join(tests) + " $*"
     hio.create_executable_script(file_name, repro_txt)
+    _LOG.info("Created '%s'", file_name)
+
+
+# #############################################################################
+# Collect test marks.
+# #############################################################################
+
+
+# Mark names that indicate a test is statically skipped, i.e., without
+# evaluating any `skipif` condition.
+_SKIP_MARK_NAMES = ("skip", "skipif")
+
+
+class _MarkCollectorPlugin:
+    """
+    Pytest plugin recording the marks attached to each collected test item.
+    """
+
+    def __init__(self) -> None:
+        self.collected: List[Dict[str, Any]] = []
+
+    def pytest_collection_modifyitems(self, items: List[Any]) -> None:
+        for item in items:
+            mark_names = [marker.name for marker in item.iter_markers()]
+            skipped = any(name in _SKIP_MARK_NAMES for name in mark_names)
+            self.collected.append(
+                {
+                    "nodeid": item.nodeid,
+                    "marks": mark_names,
+                    "skipped": skipped,
+                }
+            )
+
+
+def collect_test_marks(target_path: str) -> List[Dict[str, Any]]:
+    """
+    Collect the pytest marks and static skip status of every test under
+    `target_path`.
+
+    Runs `pytest --collect-only` with `_MarkCollectorPlugin` so that
+    collection happens without any test code actually running.
+
+    :param target_path: file or directory to collect tests from
+    :return: one dict per collected test, e.g.
+        ```
+        [{"nodeid": "helpers/test/test_hio.py::Test1::test1",
+          "marks": ["slow"], "skipped": False}]
+        ```
+    """
+    hdbg.dassert_path_exists(target_path)
+    collector = _MarkCollectorPlugin()
+    exit_code = pytest.main(
+        ["--collect-only", "-q", target_path], plugins=[collector]
+    )
+    hdbg.dassert_in(
+        exit_code,
+        (pytest.ExitCode.OK, pytest.ExitCode.NO_TESTS_COLLECTED),
+        "Pytest collection under '%s' failed with exit code %s",
+        target_path,
+        exit_code,
+    )
+    return collector.collected
+
+
+def marks_to_str(marks_info: List[Dict[str, Any]]) -> str:
+    """
+    Build a human-readable table of test nodeids, marks, and skip status.
+
+    :param marks_info: list of dicts as returned by `collect_test_marks()`
+    :return: table with one row per test, e.g.
+        ```
+        Test | Marks | Skipped
+        helpers/test/test_hio.py::Test1::test1 | slow | False
+        ```
+    """
+    txt = ["Test | Marks | Skipped"]
+    for entry in marks_info:
+        marks_str = ",".join(entry["marks"]) if entry["marks"] else "-"
+        txt.append(f"{entry['nodeid']} | {marks_str} | {entry['skipped']}")
+    return "\n".join(txt)
+
+
+def write_marks_csv(marks_info: List[Dict[str, Any]], file_name: str) -> None:
+    """
+    Write `marks_info` to a CSV file with columns `nodeid,marks,skipped`.
+
+    :param marks_info: list of dicts as returned by `collect_test_marks()`
+    :param file_name: file to write the CSV report to
+    """
+    hdbg.dassert_ne(file_name, "")
+    with open(file_name, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, lineterminator="\n")
+        writer.writerow(["nodeid", "marks", "skipped"])
+        for entry in marks_info:
+            writer.writerow(
+                [entry["nodeid"], ";".join(entry["marks"]), entry["skipped"]]
+            )
     _LOG.info("Created '%s'", file_name)

@@ -9,6 +9,33 @@ import helpers.hunit_test as hunitest
 
 
 # #############################################################################
+# Utilities
+# #############################################################################
+
+
+def _txt_to_info(txt: str) -> Dict[str, Any]:
+    """
+    Dedent `txt` and parse it via `hpytest.parse_failed_tests()`.
+    """
+    txt = hprint.dedent(txt)
+    lines = txt.split("\n")
+    info = hpytest.parse_failed_tests(lines)
+    return info
+
+
+def _check_file_content(
+    self_: hunitest.TestCase, file_name: str, expected: str
+) -> None:
+    """
+    Compare the content of `file_name` against `expected`.
+    """
+    actual = hio.from_file(file_name)
+    self_.assert_equal(
+        actual, expected, dedent=True, remove_lead_trail_empty_lines=True
+    )
+
+
+# #############################################################################
 # Test__parse_github_ci_log
 # #############################################################################
 
@@ -220,10 +247,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Check.
         self.helper(txt, exp_info)
         # Test filtering by file.
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
+        info = _txt_to_info(txt)
+        only_file = True
+        only_class = False
         filtered_files = hpytest.filter_failed_tests(
-            info["log_failed_tests"], only_file=True, only_class=False
+            info["log_failed_tests"], only_file, only_class
         )
         actual_str = "\n".join(filtered_files)
         expected_str = """
@@ -268,10 +296,11 @@ class Test_parse_failed_tests(hunitest.TestCase):
         # Check.
         self.helper(txt, exp_info)
         # Test filtering by class.
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
+        info = _txt_to_info(txt)
+        only_file = False
+        only_class = True
         filtered_classes = hpytest.filter_failed_tests(
-            info["log_failed_tests"], only_file=False, only_class=True
+            info["log_failed_tests"], only_file, only_class
         )
         actual_str = "\n".join(filtered_classes)
         expected_str = """
@@ -1323,8 +1352,7 @@ class Test_info_to_str(hunitest.TestCase):
         """
         # Prepare inputs.
         txt = Test_parse_failed_tests().get_pytest_text1()
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
+        info = _txt_to_info(txt)
         # Prepare outputs.
         exp = """
         ################################################################################
@@ -1378,8 +1406,7 @@ class Test_info_to_str(hunitest.TestCase):
 
 class Test_info_to_comments(hunitest.TestCase):
     def helper(self, txt: str, exp: str) -> None:
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
+        info = _txt_to_info(txt)
         act = hpytest.info_to_comments(info)
         self.assert_equal(
             act, exp, dedent=True, remove_lead_trail_empty_lines=True
@@ -1492,8 +1519,7 @@ class Test_write_passed_tests(hunitest.TestCase):
         """
         # Prepare inputs.
         txt = Test_parse_failed_tests().get_pytest_text1()
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
+        info = _txt_to_info(txt)
         file_name = os.path.join(self.get_scratch_space(), "passed.txt")
         # Prepare outputs.
         expected = """
@@ -1504,10 +1530,7 @@ class Test_write_passed_tests(hunitest.TestCase):
         # Run test.
         hpytest.write_passed_tests(info, file_name)
         # Check outputs.
-        actual = hio.from_file(file_name)
-        self.assert_equal(
-            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        _check_file_content(self, file_name, expected)
 
 
 # #############################################################################
@@ -1537,9 +1560,7 @@ class Test_write_skipped_tests(hunitest.TestCase):
 
         ======================== 0 failed, 2 passed, 6 skipped in 0.01s =========================
         """
-        txt = hprint.dedent(txt)
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
+        info = _txt_to_info(txt)
         file_name = os.path.join(self.get_scratch_space(), "skipped.txt")
         # Prepare outputs.
         expected = """
@@ -1553,10 +1574,7 @@ class Test_write_skipped_tests(hunitest.TestCase):
         # Run test.
         hpytest.write_skipped_tests(info, file_name)
         # Check outputs.
-        actual = hio.from_file(file_name)
-        self.assert_equal(
-            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        _check_file_content(self, file_name, expected)
 
 
 # #############################################################################
@@ -1565,6 +1583,14 @@ class Test_write_skipped_tests(hunitest.TestCase):
 
 
 class Test_write_updated_tests(hunitest.TestCase):
+    def helper(self, txt: str, expected: str) -> None:
+        info = _txt_to_info(txt)
+        file_name = os.path.join(self.get_scratch_space(), "updated.txt")
+        # Run test.
+        hpytest.write_updated_tests(info, file_name)
+        # Check outputs.
+        _check_file_content(self, file_name, expected)
+
     def test1(self) -> None:
         """
         Test that updated tests are written one per line to a file.
@@ -1580,21 +1606,12 @@ class Test_write_updated_tests(hunitest.TestCase):
 
         ======================== 0 failed, 2 passed in 0.13s =========================
         """
-        txt = hprint.dedent(txt)
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
-        file_name = os.path.join(self.get_scratch_space(), "updated.txt")
         # Prepare outputs.
         expected = """
         test_foo.py::Test1::test_check_string_missing3
         """
         # Run test.
-        hpytest.write_updated_tests(info, file_name)
-        # Check outputs.
-        actual = hio.from_file(file_name)
-        self.assert_equal(
-            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        self.helper(txt, expected)
 
     def test2(self) -> None:
         """
@@ -1612,22 +1629,13 @@ class Test_write_updated_tests(hunitest.TestCase):
 
         ======================== 0 failed, 3 passed in 0.20s =========================
         """
-        txt = hprint.dedent(txt)
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
-        file_name = os.path.join(self.get_scratch_space(), "updated.txt")
         # Prepare outputs.
         expected = """
         test_foo.py::Test1::test_check_string_missing3
         test_foo.py::Test1::test_check_string_missing4
         """
         # Run test.
-        hpytest.write_updated_tests(info, file_name)
-        # Check outputs.
-        actual = hio.from_file(file_name)
-        self.assert_equal(
-            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        self.helper(txt, expected)
 
 
 # #############################################################################
@@ -1644,8 +1652,7 @@ class Test_write_test_errors(hunitest.TestCase):
         """
         # Prepare inputs.
         txt = Test_parse_failed_tests().get_pytest_text1()
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
+        info = _txt_to_info(txt)
         file_name = os.path.join(self.get_scratch_space(), "errors.txt")
         # Prepare outputs.
         expected = """
@@ -1661,10 +1668,7 @@ class Test_write_test_errors(hunitest.TestCase):
         # Run test.
         hpytest.write_test_errors(info, file_name)
         # Check outputs.
-        actual = hio.from_file(file_name)
-        self.assert_equal(
-            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        _check_file_content(self, file_name, expected)
 
 
 # #############################################################################
@@ -1691,9 +1695,7 @@ class Test_write_tests_by_duration(hunitest.TestCase):
 
         ======================== 0 failed, 4 passed in 7.50s =========================
         """
-        txt = hprint.dedent(txt)
-        lines = txt.split("\n")
-        info = hpytest.parse_failed_tests(lines)
+        info = _txt_to_info(txt)
         return info
 
     def test1(self) -> None:
@@ -1714,10 +1716,7 @@ class Test_write_tests_by_duration(hunitest.TestCase):
         # Run test.
         hpytest.write_tests_by_duration(info, file_name)
         # Check outputs.
-        actual = hio.from_file(file_name)
-        self.assert_equal(
-            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        _check_file_content(self, file_name, expected)
 
 
 # #############################################################################
@@ -1827,7 +1826,133 @@ class Test_write_duration_stats(hunitest.TestCase):
         # Run test.
         hpytest.write_duration_stats(info, file_name)
         # Check outputs.
-        actual = hio.from_file(file_name)
+        _check_file_content(self, file_name, expected)
+
+
+# #############################################################################
+# Test_collect_test_marks
+# #############################################################################
+
+
+class Test_collect_test_marks(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test that marks and static skip status are collected for a plain, a
+        `slow`-marked, and a `skip`-marked test.
+        """
+        # Prepare inputs.
+        txt = """
+        import pytest
+
+
+        class TestDummy:
+            def test_plain(self):
+                assert True
+
+            @pytest.mark.slow
+            def test_slow(self):
+                assert True
+
+            @pytest.mark.skip(reason="not ready")
+            def test_skipped(self):
+                assert True
+        """
+        txt = hprint.dedent(txt)
+        # `dummy_marks.py` does not match pytest's `test_*.py` discovery
+        # pattern, so it is only collected here because it is passed
+        # explicitly, and is never picked up by a real test run.
+        file_name = os.path.join(self.get_scratch_space(), "dummy_marks.py")
+        hio.to_file(file_name, txt)
+        # Prepare outputs.
+        expected = """
+        TestDummy::test_plain |  | False
+        TestDummy::test_slow | slow | False
+        TestDummy::test_skipped | skip | True
+        """
+        # Run test.
+        marks_info = hpytest.collect_test_marks(file_name)
+        # Check outputs. Drop the scratch-space path prefix from each nodeid
+        # since it is not deterministic across runs.
+        actual = "\n".join(
+            f"{entry['nodeid'].split('::', 1)[1]} | "
+            f"{','.join(entry['marks'])} | {entry['skipped']}"
+            for entry in marks_info
+        )
         self.assert_equal(
             actual, expected, dedent=True, remove_lead_trail_empty_lines=True
         )
+
+
+# #############################################################################
+# Test_marks_to_str
+# #############################################################################
+
+
+class Test_marks_to_str(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test that marks and skip status are rendered as a `|`-separated
+        table, with unmarked tests showing `-`.
+        """
+        # Prepare inputs.
+        marks_info = [
+            {
+                "nodeid": "test_foo.py::Test1::test1",
+                "marks": [],
+                "skipped": False,
+            },
+            {
+                "nodeid": "test_foo.py::Test1::test2",
+                "marks": ["slow", "skip"],
+                "skipped": True,
+            },
+        ]
+        # Prepare outputs.
+        expected = """
+        Test | Marks | Skipped
+        test_foo.py::Test1::test1 | - | False
+        test_foo.py::Test1::test2 | slow,skip | True
+        """
+        # Run test.
+        actual = hpytest.marks_to_str(marks_info)
+        # Check outputs.
+        self.assert_equal(
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+
+# #############################################################################
+# Test_write_marks_csv
+# #############################################################################
+
+
+class Test_write_marks_csv(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test that marks info is written to a CSV file with `nodeid`,
+        `marks`, and `skipped` columns.
+        """
+        # Prepare inputs.
+        marks_info = [
+            {
+                "nodeid": "test_foo.py::Test1::test1",
+                "marks": [],
+                "skipped": False,
+            },
+            {
+                "nodeid": "test_foo.py::Test1::test2",
+                "marks": ["slow", "skip"],
+                "skipped": True,
+            },
+        ]
+        file_name = os.path.join(self.get_scratch_space(), "marks.csv")
+        # Prepare outputs.
+        expected = """
+        nodeid,marks,skipped
+        test_foo.py::Test1::test1,,False
+        test_foo.py::Test1::test2,slow;skip,True
+        """
+        # Run test.
+        hpytest.write_marks_csv(marks_info, file_name)
+        # Check outputs.
+        _check_file_content(self, file_name, expected)
