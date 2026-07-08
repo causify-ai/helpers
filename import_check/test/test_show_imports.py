@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Dict, List, Optional
 
@@ -9,7 +8,6 @@ pytest.importorskip("graphviz")
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import helpers.hunit_test_purification as huntepur
 import import_check.show_imports as ichshimp
 
 _LOG = logging.getLogger(__name__)
@@ -91,20 +89,7 @@ class Test_show_imports(hunitest.TestCase):
             self.check_string(script_output, purify_text=True)
         else:
             script_output = hio.from_file(script_output_filename)
-            # Transform the output from the script by removing the dependencies
-            # from the client.
-            purified_script_output = huntepur.purify_txt_from_client(
-                script_output
-            )
-            purified_script_output = purified_script_output.replace(
-                "$GIT_ROOT", ""
-            )
-            # Check the structured output to prevent errors due to serialization.
-            structured_actual = json.loads(purified_script_output)
-            #
-            expected_filename = f"{out_dir}/test.{output_format}"
-            expected = hio.from_json(expected_filename)
-            self.assertDictEqual(expected, structured_actual)
+            self.check_string(script_output, purify_text=True)
 
     def test1(self) -> None:
         """
@@ -260,9 +245,9 @@ class Test_show_imports(hunitest.TestCase):
         actual = str(e.exception)
         expected = (
             "The following dirs have to be modules (add `__init__.py`): "
-            "['/app/import_check/test/outcomes/Test_show_imports.test10/input']"
+            "['$GIT_ROOT/import_check/test/outcomes/Test_show_imports.test10/input']"
         )
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test11(self) -> None:
         """

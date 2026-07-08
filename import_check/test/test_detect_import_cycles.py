@@ -71,7 +71,9 @@ class Test_detect_import_cycles(hunitest.TestCase):
                 icdeimcy._check_import_cycles(
                     module_path, exclude_unimported_dirs=exclude_unimported_dirs
                 )
-            self.assert_equal(str(e.exception), expected, fuzzy_match=True)
+            self.assert_equal(
+                str(e.exception), expected, fuzzy_match=True, purify_text=True
+            )
 
     def test1(self) -> None:
         """
@@ -266,8 +268,8 @@ class Test_detect_import_cycles(hunitest.TestCase):
         # Run and check the outcome.
         expected = (
             "The following dirs have to be modules (add `__init__.py`): "
-            "['/app/import_check/test/outcomes/Test_detect_import_cycles.test9/input/subdir1', "
-            "'/app/import_check/test/outcomes/Test_detect_import_cycles.test9/input/subdir2']"
+            "['$GIT_ROOT/import_check/test/outcomes/Test_detect_import_cycles.test9/input/subdir1', "
+            "'$GIT_ROOT/import_check/test/outcomes/Test_detect_import_cycles.test9/input/subdir2']"
         )
         self.helper(files, dirs, expected)
 
@@ -328,7 +330,7 @@ class Test_detect_import_cycles(hunitest.TestCase):
         # Run and check the outcome.
         expected = (
             "The following dirs have to be modules (add `__init__.py`): "
-            "['/app/import_check/test/outcomes/Test_detect_import_cycles.test11/input/subdir1']"
+            "['$GIT_ROOT/import_check/test/outcomes/Test_detect_import_cycles.test11/input/subdir1']"
         )
         self.helper(files, dirs, expected)
 
@@ -356,7 +358,7 @@ class Test_detect_import_cycles(hunitest.TestCase):
         # Run and check the outcome.
         expected = (
             "The following dirs have to be modules (add `__init__.py`): "
-            "['/app/import_check/test/outcomes/Test_detect_import_cycles.test12/input']"
+            "['$GIT_ROOT/import_check/test/outcomes/Test_detect_import_cycles.test12/input']"
         )
         self.helper(files, dirs, expected)
 
@@ -387,7 +389,7 @@ class Test_detect_import_cycles(hunitest.TestCase):
         # Run and check the outcome.
         expected = (
             "The following dirs have to be modules (add `__init__.py`): "
-            "['/app/import_check/test/outcomes/Test_detect_import_cycles.test13/input', "
-            "'/app/import_check/test/outcomes/Test_detect_import_cycles.test13/input/subdir1']"
+            "['$GIT_ROOT/import_check/test/outcomes/Test_detect_import_cycles.test13/input', "
+            "'$GIT_ROOT/import_check/test/outcomes/Test_detect_import_cycles.test13/input/subdir1']"
         )
         self.helper(files, dirs, expected)
