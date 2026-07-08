@@ -213,16 +213,12 @@ class Test_parse_failed_tests(hunitest.TestCase):
         filtered_files = hpytest.filter_failed_tests(
             info["log_failed_tests"], only_file=True, only_class=False
         )
-        # TODO(ai_gp): Assign to actual_str, expected_str.
-        self.assert_equal(
-            str(filtered_files),
-            str(
-                [
-                    "helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py",
-                    "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py",
-                ]
-            ),
-        )
+        actual_str = "\n".join(filtered_files)
+        expected_str = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py
+        """
+        self.assert_equal(actual_str, expected_str, dedent=True)
 
     def test3(self) -> None:
         # Prepare inputs and outputs (now filters are done by callers).
@@ -259,17 +255,13 @@ class Test_parse_failed_tests(hunitest.TestCase):
         filtered_classes = hpytest.filter_failed_tests(
             info["log_failed_tests"], only_file=False, only_class=True
         )
-        # TODO(ai_gp): Assign to actual_str, expected_str.
-        self.assert_equal(
-            str(filtered_classes),
-            str(
-                [
-                    "helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1",
-                    "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1",
-                    "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3",
-                ]
-            ),
-        )
+        actual_str = "\n".join(filtered_classes)
+        expected_str = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3
+        """
+        self.assert_equal(actual_str, expected_str, dedent=True)
 
     def test4(self) -> None:
         """

@@ -10,10 +10,16 @@ Examples
 > pytest_failed.py
 
 # Parse failed tests from a specific log file, keeping only the file names.
-> pytest_failed.py --file_name tmp.log --only_file
+> pytest_failed.py --input tmp.log --only_file
 
-# TODO(ai_gp): Create a list of files that are created together with
-# example content.
+Creates the following files:
+- tmp.pytest_failed.sh: script to rerun failed tests
+- tmp.pytest_failed.classes.sh: script to rerun failed test classes
+- tmp.pytest_failed.files.sh: script to rerun failed test files
+- tmp.pytest_failed.passed_tests.txt: list of passed tests
+- tmp.pytest_failed.skipped_tests.txt: list of skipped tests
+- tmp.pytest_failed.tests_by_duration.txt: tests ordered by duration
+- tmp.pytest_failed.duration_stats.txt: duration statistics by file and class
 """
 
 import argparse
@@ -65,32 +71,6 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Copy the list of failed tests to the system clipboard",
     )
-    # TODO(ai_gp): Remove these options and just create standard files,
-    # like tmp.
-    parser.add_argument(
-        "--passed_tests_file",
-        action="store",
-        default="",
-        help="File to write the list of passed tests to",
-    )
-    parser.add_argument(
-        "--skipped_tests_file",
-        action="store",
-        default="",
-        help="File to write the list of skipped tests to",
-    )
-    parser.add_argument(
-        "--tests_by_duration_file",
-        action="store",
-        default="",
-        help="File to write all timed tests ordered by duration to",
-    )
-    parser.add_argument(
-        "--duration_stats_file",
-        action="store",
-        default="",
-        help="File to write test duration statistics by file and class to",
-    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -132,27 +112,32 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _write_repro_script("tmp.pytest_failed.files.sh", failed_files)
     # Write the reports.
-    # TODO(ai_gp): Use this pattern instead of using args. skipped tests_by_default
-    file_name = "tmp.pytest_failed.passed_tests.txt"
-    hpytest.write_passed_tests(info, file_name)
-    _LOG.info("Created '%s'", file_name)
+    passed_tests_file = "tmp.pytest_failed.passed_tests.txt"
+    hpytest.write_passed_tests(info, passed_tests_file)
+    _LOG.info("Created '%s'", passed_tests_file)
     #
-    hpytest.write_skipped_tests(info, args.skipped_tests_file)
-    _LOG.info("Created '%s'", args.skipped_tests_file)
+    skipped_tests_file = "tmp.pytest_failed.skipped_tests.txt"
+    hpytest.write_skipped_tests(info, skipped_tests_file)
+    _LOG.info("Created '%s'", skipped_tests_file)
     #
-    hpytest.write_tests_by_duration(info, args.tests_by_duration_file)
-    _LOG.info("Created '%s'", args.tests_by_duration_file)
+    tests_by_duration_file = "tmp.pytest_failed.tests_by_duration.txt"
+    hpytest.write_tests_by_duration(info, tests_by_duration_file)
+    _LOG.info("Created '%s'", tests_by_duration_file)
     #
-    hpytest.write_duration_stats(info, args.duration_stats_file)
-    _LOG.info("Created '%s'", args.duration_stats_file)
+    duration_stats_file = "tmp.pytest_failed.duration_stats.txt"
+    hpytest.write_duration_stats(info, duration_stats_file)
+    _LOG.info("Created '%s'", duration_stats_file)
     # Select the tests to print/copy based on `--only_file`/`--only_class`.
-    # TODO(ai_gp): Save all these results into files
     if args.only_file:
         selected_tests = failed_files
     elif args.only_class:
         selected_tests = failed_classes
     else:
         selected_tests = failed_tests
+    # Save selected tests to a file.
+    selected_tests_file = "tmp.pytest_failed.selected_tests.txt"
+    hio.to_file(selected_tests_file, "\n".join(selected_tests))
+    _LOG.info("Created '%s'", selected_tests_file)
     if args.print_tests:
         print("\n".join(selected_tests))
     # Save to clipboard.

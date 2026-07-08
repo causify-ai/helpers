@@ -255,6 +255,12 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         "log_failed_tests": None,
         # Number of tests collected by pytest.
         "pytest_num_collected": None,
+        # Number of deselected tests from the collection line (optional).
+        "pytest_num_deselected": None,
+        # Number of skipped tests at collection (optional).
+        "pytest_num_skipped_at_collection": None,
+        # Number of selected tests from the collection line (optional).
+        "pytest_num_selected": None,
         # Dict mapping test names to their durations in seconds.
         "log_test_durations": None,
         # Number of passed tests from the log.
@@ -375,15 +381,36 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
         # collected 3361 items / 156 deselected / 7 skipped / 3205 selected
         # collected 3421 items / 5 skipped
         # ```
-        # TODO(ai_gp): Add also information about deselected, skipped, selected
-        # (that are optional).
-        collected_pattern = re.compile(r"^collected (\d+) items")
+        collected_pattern = re.compile(
+            r"collected\s+(\d+)\s+items"
+            r"(?:\s+/\s+(\d+)\s+deselected)?"
+            r"(?:\s+/\s+(\d+)\s+skipped)?"
+            r"(?:\s+/\s+(\d+)\s+selected)?"
+        )
         m_collected = collected_pattern.search(line)
         if m_collected:
             _set_info_field(info, "pytest_collection_completed", True)
             _set_info_field(
                 info, "pytest_num_collected", int(m_collected.group(1))
             )
+            if m_collected.group(2) is not None:
+                _set_info_field(
+                    info,
+                    "pytest_num_deselected",
+                    int(m_collected.group(2)),
+                )
+            if m_collected.group(3) is not None:
+                _set_info_field(
+                    info,
+                    "pytest_num_skipped_at_collection",
+                    int(m_collected.group(3)),
+                )
+            if m_collected.group(4) is not None:
+                _set_info_field(
+                    info,
+                    "pytest_num_selected",
+                    int(m_collected.group(4)),
+                )
         # A line containing only a test id (no status yet): remember it in
         # case the following line's status ends up glued to unrelated text
         # (see `pending_test_id` above).
@@ -808,12 +835,10 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_ne(file_name, "")
     txt = []
     txt.append(hprint.frame("Duration by file"))
-    # TODO(ai_gp): Change the format to be like 'tests: count, total secs'
-    # Ranked by decreasing total secs
     for key, stat in compute_duration_stats_by_file(info).items():
-        txt.append(f"{stat['total_secs']:.2f} s  {stat['count']} tests  {key}")
+        txt.append(f"{keys} :{stat['count']}, {stat['total_secs']:.2f} secs")
     txt.append(hprint.frame("Duration by class"))
     for key, stat in compute_duration_stats_by_class(info).items():
-        txt.append(f"{stat['total_secs']:.2f} s  {stat['count']} tests  {key}")
-    # TODO(ai_gp): Report the created file in the format tmp.pytest_failed.sorted_class_file.txt
+        txt.append(f"{keys}: {stat['count']}, {stat['total_secs']:.2f} secs")
     hio.to_file(file_name, "\n".join(txt))
+    _LOG.info("Created '%s'", file_name)
