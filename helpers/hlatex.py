@@ -27,11 +27,13 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
     """
     hdbg.dassert_isinstance(txt, str)
     # Save to tmp file with unique name to avoid collisions.
-    uid = uuid.uuid4().hex[:8]
-    in_file_name = f"tmp.run_pandoc_in.{uid}.md"
+    #uid = uuid.uuid4().hex[:8]
+    #in_file_name = f"tmp.run_pandoc_in.{uid}.md"
+    in_file_name = "tmp.run_pandoc_in.md"
     hio.to_file(in_file_name, txt)
     # Run Pandoc.
-    out_file_name = f"tmp.run_pandoc_out.{uid}.tex"
+    #out_file_name = f"tmp.run_pandoc_out.{uid}.tex"
+    out_file_name = "tmp.run_pandoc_out.tex"
     cmd = (
         f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
