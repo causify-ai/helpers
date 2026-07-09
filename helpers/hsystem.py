@@ -47,7 +47,7 @@ _LOG = logging.getLogger(__name__)
 _LOG.trace = lambda *args, **kwargs: None
 
 # Set logging level of this file higher to avoid too much chatter.
-#_LOG.setLevel(logging.INFO)
+# _LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
@@ -210,7 +210,7 @@ def _system(
     try:
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
-        hdbg.dassert_in(print_command, ("ON_DEBUG_LEVEL", True, False))    
+        hdbg.dassert_in(print_command, ("ON_DEBUG_LEVEL", True, False))
         if print_command == True:
             _LOG.info("> %s", cmd)
         with subprocess.Popen(

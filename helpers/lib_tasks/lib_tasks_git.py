@@ -28,6 +28,8 @@ import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
 
+import dev_scripts_helpers.coding_tools.copy_across_clients as dscoac
+
 _LOG = logging.getLogger(__name__)
 
 # pylint: disable=protected-access
@@ -414,9 +416,12 @@ def git_patch_create(  # type: ignore
 def git_files(  # type: ignore
     ctx,
     #
+    files="",
+    from_file="",
     modified=False,
     branch=False,
     last_commit=False,
+    all_files=False,
     #
     file_types="",
     skip_file_types="",
@@ -428,12 +433,21 @@ def git_files(  # type: ignore
     """
     Report which files are changed in the current branch with respect to master.
 
-    The params have the same meaning as in `get_files_to_process()`.
+    File selection options (mutually exclusive):
+    :param files: Specific files (space-separated string)
+    :param from_file: Path to file containing file list (one per line)
+    :param modified: Select files modified in the client
+    :param branch: Select files modified with respect to branch point (default)
+    :param last_commit: Select files from last commit
+    :param all_files: Select all repo files
 
+    Filtering options:
     :param file_types: Comma-separated list of file extensions to include
         (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
     :param skip_file_types: Comma-separated list of file extensions to skip
         (e.g., 'py,ipynb,md'). Empty string keeps all files (default).
+
+    Output options:
     :param only_print_files: only print files without logging headers/footers (default: False)
     :param on_one_line: show results only in "On one line" format (default: False)
     :param mode: Output mode:
@@ -444,10 +458,11 @@ def git_files(  # type: ignore
     if not only_print_files:
         hltltaut.report_task()
     _ = ctx
-    # If no filter option is specified, default to branch=True.
-    files = ""
-    from_file = ""
-    all_ = False
+    # Default to branch=True if no filter option is specified.
+    if not (
+        files or from_file or modified or branch or last_commit or all_files
+    ):
+        branch = True
     # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True
@@ -457,11 +472,11 @@ def git_files(  # type: ignore
         modified,
         branch,
         last_commit,
-        all_,
+        all_files,
         mutually_exclusive=mutually_exclusive,
         remove_dirs=remove_dirs,
     )
-    # Filter by file type using hparser utility.
+    # Filter by file type.
     files_as_list = hseinout.filter_files_by_extensions(
         files_as_list, file_types, skip_file_types
     )
@@ -818,7 +833,7 @@ def git_branch_copy(  # type: ignore
     :param use_patch: apply patching instead of merging
     :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
-    :param method: method to use for generating branch name ('auto', 'github_api', 'linear_scan')
+    :param method: method to use for generating branch name:
         - 'auto' (default): tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
@@ -879,6 +894,70 @@ def git_branch_copy(  # type: ignore
     hltltaut.run(ctx, cmd)
 
 
+@task
+def git_branch_subcopy(  # type: ignore
+    ctx,
+    from_file="",
+    dst_dir="",
+    method="auto",
+):
+    """
+    Create a new branch in a different directory with subset of files.
+
+    :param from_file: path to file containing list of files to copy
+    :param dst_dir: destination directory where new branch will be created
+    :param method: method to use for generating branch name:
+        - 'auto' (default): tries GitHub API first, falls back to linear scan
+        - 'github_api': use only GitHub API method (fast)
+        - 'linear_scan': use only linear scan method (always works)
+    """
+    # Validate inputs.
+    hdbg.dassert_ne(
+        from_file,
+        "",
+        "from_file must be provided",
+    )
+    hdbg.dassert_ne(
+        dst_dir,
+        "",
+        "dst_dir must be provided",
+    )
+    hdbg.dassert(
+        os.path.exists(from_file),
+        f"from_file does not exist: {from_file}",
+    )
+    hdbg.dassert(
+        os.path.isdir(dst_dir),
+        f"dst_dir does not exist or is not a directory: {dst_dir}",
+    )
+    # Get next branch name.
+    branch_name = hgit.get_branch_next_name(method=method)
+    _LOG.info("branch_name='%s'", branch_name)
+    hdbg.dassert_ne(
+        branch_name,
+        None,
+        "Branch name must not be None after generation",
+    )
+    # Allow scratch branches to bypass naming convention.
+    check_branch_name = not branch_name.startswith("gp_scratch")
+    # Navigate to destination directory and create branch.
+    original_dir = os.getcwd()
+    try:
+        os.chdir(dst_dir)
+        cmd = f"git checkout master && invoke git_branch_create --branch-name '{branch_name}'"
+        if not check_branch_name:
+            cmd += " --no-check-branch-name"
+        hltltaut.run(ctx, cmd)
+        # Copy files from current directory to destination directory.
+        from argparse import Namespace
+        args = Namespace(from_file=from_file, files=None)
+        files = dscoac._get_files_to_copy(args)
+        _LOG.info("Copying %d items", len(files))
+        dscoac._copy_files(original_dir, dst_dir, files, dry_run=False)
+    finally:
+        os.chdir(original_dir)
+
+
 # ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -893,7 +972,8 @@ def _git_diff_with_branch(
     diff_type: str,
     file_types: str,
     skip_file_types: str,
-    file_name: str,
+    files_filter: str,
+    from_file_filter: str,
     #
     only_print_files: bool,
     dry_run: bool,
@@ -906,7 +986,7 @@ def _git_diff_with_branch(
     _LOG.debug(
         hprint.to_str(
             "hash_ tag dir_name diff_type subdir file_types skip_file_types"
-            " file_name only_print_files dry_run"
+            " files_filter from_file_filter only_print_files dry_run"
         )
     )
     # Diff only works on non-master branches to avoid comparing with itself.
@@ -928,23 +1008,44 @@ def _git_diff_with_branch(
     )
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
-    # Filter to a single specific file if requested.
-    if file_name:
-        _LOG.debug("Filter by file_name")
+    # Filter by specific files if requested.
+    if files_filter:
+        _LOG.debug("Filter by files_filter")
         _LOG.info("Before filtering files=%s", len(files))
+        filter_files = files_filter.split()
         files_tmp = []
         for f in files:
-            if f == file_name:
+            if f in filter_files:
                 files_tmp.append(f)
-        hdbg.dassert_eq(
-            1,
+        hdbg.dassert_lt(
+            0,
             len(files_tmp),
-            "Can't find file_name='%s' in\n%s",
-            file_name,
+            "No files matching files_filter='%s' in\n%s",
+            files_filter,
             "\n".join(files),
         )
         files = files_tmp
-        _LOG.info("After filtering by file_name: files=%s", len(files))
+        _LOG.info("After filtering by files_filter: files=%s", len(files))
+        _LOG.debug("%s", "\n".join(files))
+    # Filter by file list if requested.
+    if from_file_filter:
+        _LOG.debug("Filter by from_file_filter")
+        _LOG.info("Before filtering files=%s", len(files))
+        with open(from_file_filter) as f:
+            filter_files = [line.strip() for line in f if line.strip()]
+        files_tmp = []
+        for f in files:
+            if f in filter_files:
+                files_tmp.append(f)
+        hdbg.dassert_lt(
+            0,
+            len(files_tmp),
+            "No files matching from_file_filter='%s' in\n%s",
+            from_file_filter,
+            "\n".join(files),
+        )
+        files = files_tmp
+        _LOG.info("After filtering by from_file_filter: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Keep only files with specified extensions (useful for focusing on code vs docs).
     if file_types:
@@ -1063,48 +1164,22 @@ def _git_diff_with_branch_wrapper(
     diff_type: str,
     file_types: str,
     skip_file_types: str,
-    python: bool,
-    file_name: str,
+    files_filter: str,
+    from_file_filter: str,
     #
     only_print_files: bool,
     dry_run: bool,
 ) -> None:
     """
-    Wrapper for _git_diff_with_branch that handles Python-specific filtering
-    and submodules.
+    Wrapper for `_git_diff_with_branch()` that handles submodules.
 
-    Applies Python-specific extension filter if requested, then delegates to
-    _git_diff_with_branch. If include_submodules is True, also runs the diff
-    for the amp submodule if present.
+    Delegates to `_git_diff_with_branch()`. If include_submodules is True, also
+    runs the diff for the amp submodule if present.
 
     Parameters are the same as _git_diff_with_branch with the addition of:
     :param include_submodules: if True, also diff the amp submodule
-    :param python: if True, only diff Python files (overrides extension filters)
     """
     hdbg.dassert_eq(dir_name, ".")
-    # If Python mode is enabled, override all extension filters to only diff Python files.
-    if python:
-        hdbg.dassert_eq(
-            diff_type,
-            "",
-            "Cannot specify diff_type with python mode",
-        )
-        hdbg.dassert_eq(
-            file_types,
-            "",
-            "Cannot specify file_types with python mode",
-        )
-        hdbg.dassert_eq(
-            skip_file_types,
-            "",
-            "Cannot specify skip_file_types with python mode",
-        )
-        hdbg.dassert_eq(
-            file_name,
-            "",
-            "Cannot specify file_name with python mode",
-        )
-        file_types = "py"
     # Diff files in the main repository.
     _git_diff_with_branch(
         ctx,
@@ -1115,7 +1190,8 @@ def _git_diff_with_branch_wrapper(
         diff_type,
         file_types,
         skip_file_types,
-        file_name,
+        files_filter,
+        from_file_filter,
         only_print_files,
         dry_run,
     )
@@ -1132,7 +1208,8 @@ def _git_diff_with_branch_wrapper(
                     diff_type,
                     file_types,
                     skip_file_types,
-                    file_name,
+                    files_filter,
+                    from_file_filter,
                     only_print_files,
                     dry_run,
                 )
@@ -1143,6 +1220,10 @@ def git_branch_diff(  # type: ignore
     ctx,
     target="base",
     hash_value="",
+    # File filtering options.
+    files="",
+    from_file="",
+    last_commit=False,
     # Where to diff.
     subdir="",
     include_submodules=False,
@@ -1150,34 +1231,50 @@ def git_branch_diff(  # type: ignore
     diff_type="",
     file_types="",
     skip_file_types="",
-    python=False,
-    file_name="",
     # What actions.
     only_print_files=False,
     dry_run=False,
 ):
     """
-    Diff files of the current branch with master at the branching point.
+    Diff files of the current branch against a specified point in time.
 
-    :param subdir: subdir to consider for diffing, instead of `.`
-    :param target:
-        - `base`: (default) diff with respect to the branching point
+    Point in time selection:
+    :param target: What to diff against (default: 'base')
+        - `base`: diff with respect to the branching point
         - `master`: diff with respect to `origin/master`
         - `head`: diff modified files
-        - `hash`: diff with respect to hash specified in `hash`
+        - `hash`: diff with respect to hash specified in `hash_value`
     :param hash_value: the hash to use with target="hash"
+    :param last_commit: if True, override target to 'last_commit' for diffing
+        against the previous commit
+
+    File filtering options (optional):
+    :param files: Specific files to diff (space-separated string)
+    :param from_file: Path to file containing file list (one per line)
+
+    Filtering and location options:
+    :param subdir: subdir to consider for diffing, instead of `.`
     :param include_submodules: run recursively on all submodules
     :param diff_type: files to diff using git `--diff-filter` options
     :param file_types: a comma-separated list of extensions to check, e.g.,
         'csv,py'. An empty string means keep all the extensions
     :param skip_file_types: a comma-separated list of extensions to skip, e.g.,
         'txt'. An empty string means do not skip any extension
+
+    Output options:
     :param only_print_files: print files to diff and exit
     :param dry_run: execute diffing script or not
     """
     # Determine the comparison target based on user preference.
     dir_name = "."
-    hdbg.dassert_in(target, ("base", "master", "head", "hash"), "Invalid target")
+    # Let last_commit trigger implicit target selection.
+    if last_commit:
+        target = "last_commit"
+    hdbg.dassert_in(
+        target,
+        ("base", "master", "head", "hash", "last_commit"),
+        "Invalid target",
+    )
     # Resolve target to a specific git hash for consistent diffing.
     if target == "base":
         # Compare against the point where this branch diverged from master.
@@ -1206,6 +1303,15 @@ def git_branch_diff(  # type: ignore
         )
         hash_value = ""
         tag = "head"
+    elif target == "last_commit":
+        # Compare against the previous commit.
+        hdbg.dassert_eq(
+            hash_value,
+            "",
+            "Cannot specify hash_value when target is 'last_commit'",
+        )
+        hash_value = "HEAD^"
+        tag = "last_commit"
     elif target == "hash":
         # Compare against a user-specified commit hash.
         hdbg.dassert_ne(
@@ -1228,8 +1334,8 @@ def git_branch_diff(  # type: ignore
         diff_type,
         file_types,
         skip_file_types,
-        python,
-        file_name,
+        files,
+        from_file,
         #
         only_print_files,
         dry_run,

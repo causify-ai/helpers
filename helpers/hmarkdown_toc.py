@@ -174,6 +174,7 @@ def add_navigation_slides(
     lines: List[str],
     max_level: int,
     expand_all: bool,
+    output_format: str,
     *,
     sanity_check: bool = False,
 ) -> List[str]:
@@ -186,6 +187,7 @@ def add_navigation_slides(
     :param expand_all: if True, expand all headers up to level 2; if False, expand
         only the path to the current header
     :param sanity_check: if True, perform sanity checks
+    :param output_format: output format ("latex" or "typst")
     :return: list of lines with the navigation slides added
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
@@ -197,8 +199,14 @@ def add_navigation_slides(
     tree = hmarkdo.build_header_tree(header_list)
     _LOG.debug("tree=\n%s", tree)
     out: List[str] = []
-    open_modifier = r"_**\textcolor{red}{"
-    close_modifier = r"}**_"
+    if output_format == "typst":
+        open_modifier = '`#text(fill: red, weight: "bold")[#emph['
+        close_modifier = "]]`{=typst}"
+    elif output_format == "latex":
+        open_modifier = r"_**\textcolor{red}{"
+        close_modifier = r"}**_"
+    else:
+        raise ValueError(f"Invalid output_format='{output_format}'")
     for line in lines:
         is_header, level, description = hmarkdo.is_header(line)
         if is_header and level <= max_level:
@@ -225,7 +233,8 @@ def add_navigation_slides(
             # Replace the header slide with the navigation slide.
             # TODO(gp): We assume the slide level is 4.
             # line_tmp = f"#### {description}\n"
-            line_tmp = "####\n"
+            line_tmp = "#### Table of Content\n"
+            # line_tmp = "####\n"
             # line_tmp += '<span style="color:blue">\n' + nav_str
             line_tmp += nav_str
             # line_tmp += "\n</span>\n"
