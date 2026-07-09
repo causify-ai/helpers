@@ -93,7 +93,9 @@ def _copy_files(
     :param files: List of files to copy (relative paths)
     :param dry_run: If True, show what would be done without doing it
     """
-    _LOG.debug("Copying %d files from '%s' to '%s'", len(files), src_dir, dst_dir)
+    _LOG.debug(
+        "Copying %d files from '%s' to '%s'", len(files), src_dir, dst_dir
+    )
     for file_path in files:
         src_file = os.path.join(src_dir, file_path)
         dst_file = os.path.join(dst_dir, file_path)

@@ -7,7 +7,7 @@ import dev_scripts_helpers.coding_tools.test.test_copy_across_clients as dsctcca
 import os
 from unittest import mock
 
-import dev_scripts_helpers.coding_tools.copy_across_clients as dscoac
+import dev_scripts_helpers.coding_tools.copy_across_clients as dshctcacl
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
@@ -28,9 +28,9 @@ class Test_copy_across_clients_py(hunitest.TestCase):
 
         :param argv: Command-line argument list
         """
-        parser = dscoac._parse()
+        parser = dshctcacl._parse()
         with mock.patch("sys.argv", argv):
-            dscoac._main(parser)
+            dshctcacl._main(parser)
 
     def _setup_test_dirs(self, scratch_dir, dir_names=None):
         """
@@ -73,10 +73,13 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         """
         scratch_dir = self.get_scratch_space()
         dirs = self._setup_test_dirs(scratch_dir)
-        self._create_test_files(dirs["dir1"], {
-            "file1.txt": "file1 content",
-            "subdir/file2.txt": "file2 content",
-        })
+        self._create_test_files(
+            dirs["dir1"],
+            {
+                "file1.txt": "file1 content",
+                "subdir/file2.txt": "file2 content",
+            },
+        )
         dir1, dir2 = dirs["dir1"], dirs["dir2"]
         argv = [
             "copy_across_clients.py",
@@ -88,7 +91,9 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         ]
         self._run_main(argv)
         self.assertTrue(os.path.exists(os.path.join(dir2, "file1.txt")))
-        self.assertTrue(os.path.exists(os.path.join(dir2, "subdir", "file2.txt")))
+        self.assertTrue(
+            os.path.exists(os.path.join(dir2, "subdir", "file2.txt"))
+        )
         actual_file1 = hio.from_file(os.path.join(dir2, "file1.txt"))
         actual_file2 = hio.from_file(os.path.join(dir2, "subdir", "file2.txt"))
         self.assertEqual(actual_file1, "file1 content")
@@ -100,10 +105,13 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         """
         scratch_dir = self.get_scratch_space()
         dirs = self._setup_test_dirs(scratch_dir)
-        self._create_test_files(dirs["dir1"], {
-            "file1.txt": "file1 content",
-            "file2.txt": "file2 content",
-        })
+        self._create_test_files(
+            dirs["dir1"],
+            {
+                "file1.txt": "file1 content",
+                "file2.txt": "file2 content",
+            },
+        )
         files_list = os.path.join(scratch_dir, "files.txt")
         hio.to_file(files_list, "file1.txt\nfile2.txt\n")
         dir1, dir2 = dirs["dir1"], dirs["dir2"]
@@ -123,10 +131,13 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         """
         scratch_dir = self.get_scratch_space()
         dirs = self._setup_test_dirs(scratch_dir, ["source", "dest"])
-        self._create_test_files(dirs["source"], {
-            "file1.txt": "file1 content",
-            "subdir/file2.txt": "file2 content",
-        })
+        self._create_test_files(
+            dirs["source"],
+            {
+                "file1.txt": "file1 content",
+                "subdir/file2.txt": "file2 content",
+            },
+        )
         dir1, dir2 = dirs["source"], dirs["dest"]
         argv = [
             "copy_across_clients.py",
@@ -136,7 +147,9 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         ]
         self._run_main(argv)
         self.assertTrue(os.path.exists(os.path.join(dir2, "file1.txt")))
-        self.assertTrue(os.path.exists(os.path.join(dir2, "subdir", "file2.txt")))
+        self.assertTrue(
+            os.path.exists(os.path.join(dir2, "subdir", "file2.txt"))
+        )
 
     def test4(self) -> None:
         """
