@@ -162,7 +162,8 @@ def get_files_to_check(
     return file_paths
 
 
-# TODO(gp): This seems obsolete given the code in linters2/lint.py
+# TODO(gp): This seems obsolete given the code in linters2/lint.py, e.g.,
+# _filter_files_by_type
 def get_python_files_to_lint(dir_name: str) -> List[str]:
     """
     Get Python files for linter excluding jupytext and test Python files.
