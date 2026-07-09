@@ -22,8 +22,24 @@ description: Split the current Git branch / PR in small cohesive PRs to simplify
 
 ## Step 2: Read the changes in the current Git branch
 
-- Analyze the changes done in the current branch
-  - The files modified can be obtained with `i git_files`
+- Get the current branch name dynamically:
+  ```bash
+  git branch --show-current
+  ```
+
+- Obtain the files that need to be merged with
+  ```bash
+  > i git_files
+  ...
+  ```
+
+- Analyze the difference between the current branch and `master` (or
+  `origin/master`):
+  ```bash
+  git diff master...HEAD --name-only
+  # or if master is not available locally:
+  git diff origin/master...HEAD --name-only
+  ```
 
 ## Step 3: Propose PRs
 - Propose a set of PRs that decompose the changes in the current branch, so that

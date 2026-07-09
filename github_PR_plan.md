@@ -1,177 +1,167 @@
-# PR Split Plan for HelpersTask1273_Get_Mac_tests_to_pass
+# PR Split Plan for Gp_scratch_29
 
 ## Info
-- **Branch**: gp_scratch
-- **Base Branch**: master
+- **Branch**: gp_scratch_29
+- **Base Branch**: origin/master
 - **Dir**: /Users/saggese/src/umd_classes1/helpers_root
-- **Task**: Fix macOS test failures (HelpersTask1273_Get_Mac_tests_to_pass)
-- **Last Updated**: 2026-07-09 (after master merge on 2026-06-08)
+- **Task**: Documentation pipeline refactoring and test infrastructure updates
 
-## Status Summary
-
-**Current State**: All 5 PRs ready to submit. All planned files present in gp_scratch.
-- PR1 (Config/Docs): ✅ Files present, ready to create
-- PR2 (Helpers): ✅ Files present, ready after PR1
-- PR3 (Linters): ✅ Files present, ready after PR2
-- PR4 (DevScripts): ✅ Files present, ready after PR2
-- PR5 (Documentation): ✅ Files present, ready after PR2
-
-**Next Steps**: Create PR1 first. Once merged, proceed with PR2→PR3,PR4→PR5 per dependency chain.
+## Summary
+- **Total changed files**: 95
+- **Proposed PRs**: 4
+- **Strategy**: Group changes by functional domain (documentation pipeline,
+  helpers utilities, test framework)
 
 ## Proposed PRs
 
-### PR1: Configuration & Documentation Updates
-- Status: Ready to Create
+### PR1: Helpers Utilities & Core Fixes
 - Merged: [ ]
-- Complexity: Very Low
-- Risk: Very Low
-- Tests included: No (documentation/config only)
-- Files:
-  - `.claude/skills/`
-  - `.claude/templates/`
-  - `.claude/notify.sh`
-  - `.claude/settings.local.json`
-
-- Reasoning:
-  - Pure configuration and documentation updates with no runtime code changes
-  - No test dependencies or execution required
-  - Low risk, enables visual inspection of skill/template improvements
-  - Can merge independently first without blocking other PRs
-
-### PR2: Helper Module Core Refactors
-- Status: Ready (pending PR1 merge)
-- Merged: [ ]
-- Complexity: Low
+- Complexity: Low-Medium
 - Risk: Low
 - Tests included: Yes
 - Files:
-  - `helpers/hunit_test_purification.py`
-  - `helpers/hsystem.py`
+  - `helpers/hdocker.py`
+  - `helpers/hintrospection.py`
+  - `helpers/hmarkdown_coloring.py`
   - `helpers/hmarkdown_toc.py`
   - `helpers/hselect_input_output.py`
-  - `helpers/hmarkdown_coloring.py`
-  - `helpers/hjunit_reporter.py`
-  - `helpers/hintrospection.py`
-  - `helpers/hdocker.py`
-  - `helpers/hlatex.py`
-  - `helpers/hpytest.py`
+  - `helpers/hsystem.py`
   - `helpers/hunit_test_utils.py`
-  - `helpers/lib_tasks/lib_tasks_pytest.py`
   - `helpers/lib_tasks/lib_tasks_git.py`
-  - `helpers/README.md`
-  - Test files: test_hunit_test_purification.py, test_hunit_test.py,
-    test_hmarkdown_coloring.py, test_hmarkdown_select.py, test_hnumpy.py,
-    test_hpytest.py, test_hintrospection.py, test_hdocker.py,
-    test_hjunit_reporter.py
-  - Test outcomes
-
-- Test command:
-  ```bash
-  invoke docker_cmd --cmd "pytest helpers/test/ -v"
-  ```
-
+  - `helpers/test/test_hmarkdown_coloring.py`
+  - `helpers/test/test_hmarkdown_select.py`
+  - `linters2/test/test_linter_utils.py`
 - Reasoning:
-  - Foundation module refactors used by downstream code
-  - Well-tested and isolated to helpers/ directory
-  - Changes are well-contained with matching test files
-  - Necessary before PR3, PR4, PR5 work correctly (esp. TextPurifier removal)
-  - Low complexity: straightforward function refactors and logic improvements
+  - Core utility fixes across multiple helpers modules
+  - All tests included
+  - Low risk, self-contained changes
+  - Can merge first as foundation
 
-### PR3: Linter Module Updates
-- Status: Ready (pending PR2 merge)
+### PR2: Documentation Pipeline - Core Components
+- Merged: [ ]
+- Complexity: High
+- Risk: High (complex pipeline changes)
+- Tests included: Yes
+- Files:
+  - `dev_scripts_helpers/documentation/notes_to_pdf.py`
+  - `dev_scripts_helpers/documentation/lib_notes_to_pdf.py`
+  - `dev_scripts_helpers/documentation/preprocess_notes.py`
+  - `dev_scripts_helpers/documentation/open_md.py`
+  - `dev_scripts_helpers/documentation/convert_pandoc_divved_fence.py`
+  - `dev_scripts_helpers/documentation/pandoc.latex`
+  - `dev_scripts_helpers/documentation/pandoc_touying.typ`
+  - `dev_scripts_helpers/documentation/latex_abbrevs.sty`
+  - `dev_scripts_helpers/documentation/typst_abbrevs.typ`
+  - `dev_scripts_helpers/documentation/notes_to_pdf.README.md`
+  - `dev_scripts_helpers/documentation/notes_to_pdf.README.md.figs/*`
+  - `dev_scripts_helpers/documentation/generate_images.README.md`
+  - `.claude/templates/github_PR_plan.template.md`
+- Reasoning:
+  - Core documentation pipeline refactoring
+  - Notes-to-PDF converter updates with new lib extraction
+  - Pandoc template and LaTeX/Typst formatting updates
+  - High complexity due to pipeline interdependencies
+
+### PR3: Documentation Tool Tests & Outcomes
+- Merged: [ ]
+- Complexity: Medium
+- Risk: Medium (test infrastructure changes)
+- Tests included: Yes
+- Files:
+  - `dev_scripts_helpers/documentation/generate_images.py`
+  - `dev_scripts_helpers/documentation/test/test_clean_markdown.py`
+  - `dev_scripts_helpers/documentation/test/test_convert_pandoc_divved_fence.py`
+  - `dev_scripts_helpers/documentation/test/test_count_words.py`
+  - `dev_scripts_helpers/documentation/test/test_extract_gdoc_map.py`
+  - `dev_scripts_helpers/documentation/test/test_extract_from_md.py`
+  - `dev_scripts_helpers/documentation/test/test_extract_toc_from_txt.py`
+  - `dev_scripts_helpers/documentation/test/test_generate_images.py`
+  - `dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py`
+  - `dev_scripts_helpers/documentation/test/test_notes_to_pdf.py`
+  - `dev_scripts_helpers/documentation/test/test_open_md.py`
+  - `dev_scripts_helpers/documentation/test/test_piper_markdown_reader.py`
+  - `dev_scripts_helpers/documentation/test/test_preprocess_notes.py`
+  - `dev_scripts_helpers/documentation/test/test_render_images.py`
+  - `dev_scripts_helpers/documentation/test/test_replace_latex.py`
+  - `dev_scripts_helpers/documentation/test/test_standardize_book_filename.py`
+  - `dev_scripts_helpers/documentation/test/test_check_links.py`
+  - `dev_scripts_helpers/documentation/test/test_summarize_chapters.py`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test__extract_columns.*`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test__transform_ast.*`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test__transform_elem.*`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test_end_to_end.*`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_typst_abbrevs.*`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/output/outside_docker.arm64.txt`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test3/output/outside_docker.arm64.txt`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_executable1.test3/output/test.txt`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test_extract_toc_from_txt_script1.test*/`
+  - `dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end1.test1/output/test.txt`
+- Reasoning:
+  - Comprehensive test suite for documentation tools
+  - Test outcomes reorganization and consolidation
+  - Many new test files added for improved coverage
+  - Can be merged after core pipeline PR
+  - Depends on PR2 (core components)
+
+### PR4: Cleanup & Temporary Files
 - Merged: [ ]
 - Complexity: Low
 - Risk: Low
-- Tests included: Yes
+- Tests included: No
 - Files:
-  - `linters/base.py`
-  - `linters/test/conftest.py`
-  - `linters2/lint.py`
-  - `linters2/lint_cc.py`
-  - `linters2/normalize_import.py`
-  - `import_check/show_imports.py`
-  - Test files: test_amp_check_md_toc_headers.py, test_amp_dev_scripts.py,
-    test_lint.py, test_detect_import_cycles.py, test_show_imports.py
-  - Test outcomes
-
-- Test command:
-  ```bash
-  invoke docker_cmd --cmd "pytest linters/test/ linters2/test/ import_check/test/ -v"
-  ```
-
+  - `dev_scripts_helpers/coding_tools/copy_across_clients.py`
+  - `dev_scripts_helpers/coding_tools/test/test_copy_across_clients.py`
+  - `.claude/try_openrouter_api.py`
+  - `.claude/skills/github.split_branch_in_PRs/SKILL.md` (updated)
+  - `plan.fixing_unittests.md`
+  - `TODO.HelpersTasl1273.Get_Mac_tests_to_pass.txt`
+  - `TODO.increase_coverage.md`
+  - `run_multiple_builds.sh`
+  - `github_PR_plan.md`
+  - **Deleted files**:
+    - `.claude/skills/github.fix_failing_tests/SKILL.md`
+    - `dev_scripts_helpers/documentation/generate_readme_index.py`
+    - `dev_scripts_helpers/documentation/test/test_generate_readme_index.py`
+    - `docs/code_guidelines/all.reading_other_people_code.how_to_guide.md`
+    - `dev_scripts_helpers/documentation/test/outcomes/Test_generate_readme_index.*`
 - Reasoning:
-  - Isolated domain with no external dependencies beyond helpers (PR2)
-  - Self-contained in linters/ and import_check/ modules
-  - Function rename (\_run_linting_actions) is straightforward refactor
-  - All tests included in same PR as source changes
-  - Can merge independently after PR2
+  - Miscellaneous updates and cleanup
+  - Skill update for improved diff tracking
+  - Removed obsolete generate_readme_index tool
+  - Temporary test files and planning documents
+  - Can be merged last
 
-### PR4: Development Scripts - Utilities & Tools
-- Status: Ready (pending PR2 merge)
-- Merged: [ ]
-- Complexity: Low
-- Risk: Low
-- Tests included: Partial
-- Files:
-  - `dev_scripts_helpers/ai/cc`
-  - `dev_scripts_helpers/coding_tools/`
-  - `dev_scripts_helpers/dockerize/`
-  - `dev_scripts_helpers/llms/`
-  - `dev_scripts_helpers/git/`
-  - `dev_scripts_helpers/misc/capture_last_cmd.sh`
-  - `dev_scripts_helpers/scraping/download_link_articles.py`
-  - `dev_scripts_helpers/system_tools/`
-  - `dev_scripts_helpers/testing/`
-  - `dev_scripts_helpers/thin_client/thin_client_utils.sh`
-  - `dev_scripts_helpers/README.md`
-  - Build/automation
-  - Documentation
-  - Other
+## Merge Order
+1. **PR1** - Helpers utilities (foundation, low risk)
+2. **PR2** - Documentation pipeline core (complex, but foundational)
+3. **PR3** - Documentation tool tests (depends on PR2)
+4. **PR4** - Cleanup & misc (last)
 
-- Test command:
-  ```bash
-  invoke docker_cmd --cmd "pytest dev_scripts_helpers/llms/test/ -v"
-  # Manual: bash -n dev_scripts_helpers/testing/pytest_failed.py
-  # Manual: bash -n dev_scripts_helpers/git/git_sync_between_branches.sh
-  ```
+## Important Notes
 
-- Reasoning:
-  - Utility scripts and automation updates
-  - Low risk: does not affect core library or main test suite
-  - Improvements to CI/build infrastructure and developer tools
-  - Can merge independently after PR1-2
-  - Limited test coverage (mainly LLM module) but scripts are syntactically
-    valid
+### Test Coverage
+All documentation tools have comprehensive test coverage with golden file
+outcomes in `test/outcomes/`. Test outcomes have been reorganized from named
+tests (e.g., `test_md1`, `test_ipynb1`) to numbered tests (e.g., `test1`,
+`test2`, `test3`)
 
-### PR5: Documentation Tools Refactor
-- Status: Ready (pending PR2 merge)
-- Merged: [ ]
-- Complexity: Medium-High
-- Risk: Medium
-- Tests included: Yes
-- Files:
-  - Core tools
-  - Test files
-  - Test outcomes
+### Deleted Files
+The following files have been removed:
 
-- Test command:
-  ```bash
-  invoke docker_cmd --cmd "pytest dev_scripts_helpers/documentation/test/ -v"
-  ```
+- `generate_readme_index.py` - Tool appears to be replaced or obsoleted
+- `test_generate_readme_index.py` - Corresponding test file
+- `github.fix_failing_tests/SKILL.md` - Old skill, functionality moved
+- `all.reading_other_people_code.how_to_guide.md` - Documentation cleanup
 
-- Reasoning:
-  - Largest single change group (68 files) but well-contained in
-    dev_scripts_helpers/documentation/
-  - Depends on PR2 (helpers) for TextPurifier refactor and markdown logic
-  - Function renames (\_build_pandoc_cmd → \_build_pandoc_latex_cmd) require
-    test updates
-  - Comprehensive test coverage with extensive golden file updates
-  - Medium complexity due to size and test outcome validation required
-  - All related tests grouped in same PR
+Verify these deletions are intentional before merging
 
-## Merge Order & Dependencies
-1. **PR1** (Config) → No dependencies, merge first
-2. **PR2** (Helpers) → Foundation for PR3, PR4, PR5
-3. **PR3** (Linters) → Depends on PR2, independent of others
-4. **PR4** (DevScripts) → Depends on PR2, independent of others
-5. **PR5** (Docs) → Depends on PR2, largest group, highest risk
+### File Reorganizations
+Several test outcome directories have been renamed and reorganized:
+
+- `Test_extract_toc_from_txt_script1.test_md1/` → `test1/`
+- `Test_extract_toc_from_txt_script1.test_tex1/` → `test2/`
+- `Test_extract_toc_from_txt_script1.test_txt1/` → `test3/`
+- `Test_extract_toc_from_txt_script1.test_ipynb1/` → `test4/`
+- `Test_extract_toc_from_txt_script1.test_md_with_counts/` → `test5/`
+
+This aligns test naming with project conventions (test1, test2, etc.)
