@@ -405,6 +405,5 @@ def run_dockerized_pandoc(
         mode,
         override_entrypoint=False,
         wrap_in_bash=False,
-        use_root_user=True,
     )
     return ret

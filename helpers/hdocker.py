@@ -744,7 +744,8 @@ def build_and_run_docker_cmd(
     docker_cmd = get_docker_base_cmd(use_sudo)
     # Override user flag for nested containers that need root access.
     if use_root_user:
-        # TODO(ai_gp): Check that docker_cmd[2] starts with --user
+        # TODO(ai_gp): Check that docker_cmd[2] starts with --user or use a
+        # more robust approach.
         docker_cmd[2] = "--user 0:0"
     if override_entrypoint:
         # Use `/bin/bash` as the entrypoint instead of clearing it with `''`.

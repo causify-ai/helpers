@@ -137,7 +137,6 @@ def run_dockerized_imagemagick(
         mode,
         override_entrypoint=True,
         wrap_in_bash=True,
-        use_root_user=True,
     )
     return ret
 
