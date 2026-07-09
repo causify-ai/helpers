@@ -1,16 +1,26 @@
 #!/bin/bash -e
 # """
-# > git commit -am ...; git push
+# Commit all changes and push.
+# Usage: gc [--nv] [MESSAGE]
+#   --nv      Skip pre-commit hooks
+#   MESSAGE   Commit message (default: "Update")
 # """
 
 source helpers.sh
 
-# Parse --nv (no-verify) flag.
+# Parse --nv (no-verify) flag and optional message.
 no_verify=""
+commit_msg="Update"
+
 if [[ "$1" == "--nv" ]]; then
     no_verify="--no-verify"
+    shift
 fi
 
-commit_msg="Update"
+# Use remaining args as commit message, if provided.
+if [[ $# -gt 0 ]]; then
+    commit_msg="$*"
+fi
+
 execute "git commit -am '$commit_msg' $no_verify"
 execute "git push"
