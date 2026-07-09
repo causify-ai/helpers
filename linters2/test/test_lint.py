@@ -15,6 +15,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai_gp): Run skill /coding.factor_common_code
 class Test_filter_files_by_type(hunitest.TestCase):
     """
     Test _filter_files_by_type file categorization logic.
@@ -36,7 +37,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Default filters — py,ipynb extensions.
+        Default filters: py,ipynb extensions.
         """
         # Prepare inputs.
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md", "qux.txt"])
@@ -64,7 +65,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        py extension only — only .py files included.
+        py extension only: only .py files included.
         """
         # Prepare inputs.
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
@@ -91,7 +92,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        ipynb extension only — only .ipynb files included.
+        ipynb extension only: only .ipynb files included.
         """
         # Prepare inputs.
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
@@ -118,7 +119,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        md extension only — only .md files included.
+        md extension only: only .md files included.
         """
         # Prepare inputs.
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
@@ -214,17 +215,18 @@ class Test_filter_files_by_type(hunitest.TestCase):
 # Test_run_common_linting_actions
 # #############################################################################
 
+# TODO(ai_gp): Use the new mock for system capture_system_calls and
+# assert_invocations in all this file instead of patching helpers.system
 
 class Test_run_common_linting_actions(hunitest.TestCase):
     """
     Test _run_common_linting_actions action runner.
     """
 
-    # TODO(ai_gp): Use the new mock for system.
     @umock.patch("helpers.hsystem.system")
     def test1(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["pre-commit"] — exactly 1 call.
+        actions=["pre-commit"]: exactly 1 call.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -250,7 +252,7 @@ class Test_run_common_linting_actions(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        Empty actions — zero calls, return 0.
+        Empty actions: zero calls, return 0.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -284,7 +286,7 @@ class Test_run_python_linting_actions(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test1(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["normalize_import"] — exactly 1 call.
+        actions=["normalize_import"]: exactly 1 call.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -309,7 +311,7 @@ class Test_run_python_linting_actions(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["normalize_import", "add_class_frames"] — 2 calls.
+        actions=["normalize_import", "add_class_frames"]: 2 calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -335,7 +337,7 @@ class Test_run_python_linting_actions(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
         """
-        mock_system returns non-zero — return code is OR-combined.
+        mock_system returns non-zero: return code is OR-combined.
         """
         # Prepare inputs.
         mock_system.side_effect = [0, 1, 0, 0]
@@ -356,7 +358,7 @@ class Test_run_python_linting_actions(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test4(self, mock_system: umock.MagicMock) -> None:
         """
-        Empty actions — zero calls, return 0.
+        Empty actions: zero calls, return 0.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -390,7 +392,7 @@ class Test_lint_python_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test1(self, mock_system: umock.MagicMock) -> None:
         """
-        Empty file list — returns 0 immediately, no calls.
+        Empty file list: returns 0 immediately, no calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -413,7 +415,7 @@ class Test_lint_python_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        Two .py files, default actions — 4 calls with filenames.
+        Two .py files, default actions: 4 calls with filenames.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -441,7 +443,7 @@ class Test_lint_python_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["normalize_import"] — exactly 1 call.
+        actions=["normalize_import"]: exactly 1 call.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -477,7 +479,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test1(self, mock_system: umock.MagicMock) -> None:
         """
-        Empty file list — returns 0 immediately, no calls.
+        Empty file list: returns 0 immediately, no calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -500,7 +502,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        Two notebooks, default actions — 1 shared pre-commit call.
+        Two notebooks, default actions: 1 shared pre-commit call.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -526,7 +528,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["sync_jupytext"] — 2 jupytext calls.
+        actions=["sync_jupytext"]: 2 jupytext calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -556,7 +558,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test4(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["pre-commit"] — 1 shared call.
+        actions=["pre-commit"]: 1 shared call.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -597,7 +599,7 @@ class Test_lint_markdown_files(hunitest.TestCase):
         mock_system: umock.MagicMock,
     ) -> None:
         """
-        Empty file list — returns 0 immediately, no calls.
+        Empty file list: returns 0 immediately, no calls.
         """
         # Prepare inputs.
         lint_script_path = "/fake/lint_txt.py"
@@ -625,7 +627,7 @@ class Test_lint_markdown_files(hunitest.TestCase):
         mock_system: umock.MagicMock,
     ) -> None:
         """
-        Two .md files — 1 call to lint_txt.py with filenames.
+        Two .md files: 1 call to lint_txt.py with filenames.
         """
         # Prepare inputs.
         lint_script_path = "/fake/lint_txt.py"

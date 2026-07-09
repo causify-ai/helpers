@@ -6,8 +6,11 @@ import dev_scripts_helpers.coding_tools.test.test_copy_across_clients as dsctcca
 
 import logging
 import os
+import shutil
 from typing import Dict, List, Optional
 from unittest import mock
+
+import pytest
 
 import dev_scripts_helpers.coding_tools.copy_across_clients as dshctcacl
 import helpers.hio as hio
@@ -140,6 +143,10 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         self.assertTrue(os.path.exists(file1_path))
         self.assertTrue(os.path.exists(file2_path))
 
+    @pytest.mark.skipif(
+        shutil.which("rsync") is None,
+        reason="rsync not installed"
+    )
     def test3(self) -> None:
         """
         Test copying entire directory with --dir option.
