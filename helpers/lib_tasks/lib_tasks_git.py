@@ -831,7 +831,7 @@ def git_branch_copy(  # type: ignore
     :param use_patch: apply patching instead of merging
     :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
-    :param method: method to use for generating branch name ('auto', 'github_api', 'linear_scan')
+    :param method: method to use for generating branch name:
         - 'auto' (default): tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
