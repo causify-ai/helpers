@@ -72,12 +72,14 @@ description: Split the current Git branch / PR in small cohesive PRs to simplify
     changes by running the tests in all the modified files and make sure the PR
     is running successfully, e.g.,
     ```
+    #!/bin/bash
     pytest_log \
       dev_scripts_helpers/coding_tools/test \
       dev_scripts_helpers/dockerize/test \
       linters2/test \
       $@
     ```
+  - Make this script executable with `chmod +x pr<NUM>.pytest.sh`
 
 ## Step 6: Report the output in the following format
 

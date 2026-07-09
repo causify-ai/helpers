@@ -892,6 +892,80 @@ def git_branch_copy(  # type: ignore
     hltltaut.run(ctx, cmd)
 
 
+@task
+def git_branch_subset_copy(  # type: ignore
+    ctx,
+    from_file="",
+    pr=0,
+    method="auto",
+    dst_dir="",
+):
+    """
+    Create a new branch in a different directory with subset of files.
+
+    :param from_file: path to file containing list of files to copy
+    :param pr: PR number to use files from pr<NUM>.files.txt and copy pr<NUM>.pytest.sh
+    :param method: method to use for generating branch name:
+        - 'auto' (default): tries GitHub API first, falls back to linear scan
+        - 'github_api': use only GitHub API method (fast)
+        - 'linear_scan': use only linear scan method (always works)
+    :param dst_dir: destination directory where new branch will be created
+    """
+    # Validate inputs.
+    if pr > 0:
+        hdbg.dassert_eq(from_file, "")
+        # Use PR-based file list.
+        from_file = f"pr{pr}.files.txt"
+    hdbg.dassert_ne(
+        from_file,
+        "",
+        "from_file or --pr must be provided",
+    )
+    hdbg.dassert_ne(
+        dst_dir,
+        "",
+        "dst_dir must be provided",
+    )
+    hdbg.dassert_file_exists(from_file)
+    hdbg.dassert_dir_exists(dst_dir)
+    # Get next branch name.
+    branch_name = hgit.get_branch_next_name(method=method)
+    _LOG.info("branch_name='%s'", branch_name)
+    hdbg.dassert_ne(
+        branch_name,
+        None,
+        "Branch name must not be None after generation",
+    )
+    # Allow scratch branches to bypass naming convention.
+    check_branch_name = not branch_name.startswith("gp_scratch")
+    # Navigate to destination directory and create branch.
+    original_dir = os.getcwd()
+    try:
+        os.chdir(dst_dir)
+        cmd = "git checkout master"
+        hltltaut.run(ctx, cmd)
+        #
+        cmd = f"invoke git_branch_create --branch-name '{branch_name}'"
+        if not check_branch_name:
+            cmd += " --no-check-branch-name"
+        hltltaut.run(ctx, cmd)
+        # Copy files from current directory to destination directory.
+        with open(from_file) as f:
+            files_to_copy = [line.strip() for line in f if line.strip()]
+        _LOG.info("Copying %d files to destination", len(files_to_copy))
+        cmd = f"copy_across_clients.py --dir1 {original_dir} --dir2 {dst_dir} --from_file {from_file}"
+        hsystem.system(cmd)
+        # Copy pytest script if using PR mode.
+        if pr > 0:
+            pytest_src = os.path.join(original_dir, f"pr{pr}.pytest.sh")
+            hdbg.dassert_file_exists(pytest_src)
+            pytest_dst = os.path.join(dst_dir, f"pr{pr}.pytest.sh")
+            _LOG.info("Copying %s to %s", pytest_src, pytest_dst)
+            hsystem.system(f"cp {pytest_src} {pytest_dst}")
+    finally:
+        os.chdir(original_dir)
+
+
 # ///////////////////////////////////////////////////////////////////////////////
 
 

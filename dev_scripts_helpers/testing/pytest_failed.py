@@ -45,27 +45,31 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "-i",
         "--input",
         action="store",
-        # This is the output from pytest_log.
-        default="tmp.pytest_log.txt",
+        default=None,
         help="Pytest log file to parse for failed tests",
+    )
+    group.add_argument(
+        "--files",
+        nargs="+",
+        default=None,
+        help="Multiple pytest log files to parse (space-separated)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Read file.
-    _LOG.info("Reading '%s'", args.input)
-    txt = hio.from_file(args.input)
-    # Extract info, always keeping the full test names so the classes/files
-    # repro scripts can be derived from them.
-    _LOG.info("Parsing '%s'", args.input)
+def _process_single_file(file_path: str) -> dict:
+    """
+    Process a single pytest log file and return summary info.
+    """
+    _LOG.info("Reading '%s'", file_path)
+    txt = hio.from_file(file_path)
+    _LOG.info("Parsing '%s'", file_path)
     lines = txt.split("\n")
     info = hpytest.parse_failed_tests(lines)
     # Print the results.
@@ -127,6 +131,48 @@ def _main(parser: argparse.ArgumentParser) -> None:
     stacktraces_file = "tmp.pytest_failed.stacktraces.txt"
     hpytest.write_test_stacktraces(info, stacktraces_file)
     _LOG.info("Created '%s'", stacktraces_file)
+    # Extract summary info.
+    num_passed = len(info["log_passed_tests"]) if info["log_passed_tests"] else 0
+    num_skipped = len(info["log_skipped_tests"]) if info["log_skipped_tests"] else 0
+    num_failed = len(info["log_failed_tests"]) if info["log_failed_tests"] else 0
+    num_total = num_passed + num_skipped + num_failed
+    passed = "PASS" if num_failed == 0 else "FAIL"
+    return {
+        "build": file_path,
+        "passed": passed,
+        "num_passed": num_passed,
+        "num_skipped": num_skipped,
+        "num_failed": num_failed,
+        "num_total": num_total,
+    }
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Determine input files.
+    files = []
+    if args.files:
+        files = args.files
+    elif args.input:
+        files = [args.input]
+    else:
+        files = ["tmp.pytest_log.txt"]
+    # Process each file and collect summary info.
+    summary = []
+    for file_path in files:
+        summary.append(_process_single_file(file_path))
+    # Print summary table.
+    if len(files) > 1:
+        print(hprint.frame("Summary"))
+        print(f"{'Build':<50} {'Status':<6} {'Passed':<8} {'Skipped':<8} {'Failed':<8} {'Total':<8}")
+        print("-" * 88)
+        for row in summary:
+            print(
+                f"{row['build']:<50} {row['passed']:<6} "
+                f"{row['num_passed']:<8} {row['num_skipped']:<8} "
+                f"{row['num_failed']:<8} {row['num_total']:<8}"
+            )
 
 
 if __name__ == "__main__":
