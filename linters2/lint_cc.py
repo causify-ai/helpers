@@ -302,9 +302,9 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # File selection options (--files, --from_file, --branch, --modified, etc.)
+    # File selection options (--files, --from_file, --branch, --modified, etc.).
     hseinout.add_file_selection_args(parser)
-    # File type filtering options (--file_types, --skip_file_types)
+    # File type filtering options (--file_types, --skip_file_types).
     hseinout.add_file_type_filter_args(parser, file_types_default="py,ipynb,md")
     action_group = parser.add_mutually_exclusive_group()
     action_group.add_argument(

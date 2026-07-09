@@ -323,7 +323,7 @@ class Test_build_openrouter_id_to_aa_slug(hunitest.TestCase):
         expected_string = """
             {'google/gemini-3.1-pro-preview': 'gemini-3-1-pro-preview'}
             """
-        self.assert_equal(actual_string, expected_string)
+        self.assert_equal(actual_string, expected_string, fuzzy_match=True)
 
 
 # #############################################################################

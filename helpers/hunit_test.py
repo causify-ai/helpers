@@ -719,7 +719,7 @@ def get_dir_signature(
     return result
 
 
-# TODO(gp): GSI. Use the copy in helpers/hprint.py
+# TODO(ai_gp): Use the copy in helpers/hprint.py
 def filter_text(regex: str, txt: str) -> str:
     """
     Remove lines in `txt` that match the regex `regex`.

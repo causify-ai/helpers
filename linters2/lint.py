@@ -75,7 +75,10 @@ _LOG = logging.getLogger(__name__)
 # Linting Functions
 # #############################################################################
 
-# Invariant: all the action returns an int return code.
+# Invariants:
+# - All the action returns an int return code
+# - The linter operate on Python files (paired or not) and then if it's a
+#   paired to a Jupyter is synced back
 
 
 def _run_common_linting_actions(
@@ -229,7 +232,6 @@ def _run_coverage(
     :return: return code from pytest and coverage report
     """
     hdbg.dassert_isinstance(file_paths, list)
-    hdbg.dassert_isinstance(actions, list)
     #
     if not file_paths:
         return 0
@@ -336,7 +338,7 @@ def _lint_jupyter_files(
         add_class_frames, sync_jupytext); if None, all actions are performed
     :return: combined return code (OR of all command return codes)
     """
-    hdbg.dassert_isinstance(actions, list)
+    hdbg.dassert_isinstance(file_paths, list)
     hdbg.dassert_isinstance(actions, list)
     #
     _LOG.info(
@@ -427,6 +429,7 @@ def _filter_files_by_type(
     file_extensions: List[str],
     *,
     skip_dassert_exists: bool = False,
+    exclude_paired_jupytext: bool = True,
 ) -> tuple:
     """
     Filter files by type (Python, Jupyter, Markdown, Text).
@@ -435,6 +438,8 @@ def _filter_files_by_type(
     :param file_extensions: list of file extensions to include (e.g., ["py",
         "ipynb", "md", "txt"])
     :param skip_dassert_exists: skip file existence checks
+    :param exclude_paired_jupytext: whether to exclude Python files paired
+        with Jupyter notebooks (default: True)
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
     python_files = []
@@ -457,7 +462,9 @@ def _filter_files_by_type(
         elif llinutil.is_py_file(f):
             if "py" not in file_extensions:
                 continue
-            # if not llinutil.is_paired_jupytext_file(f):
+            # Filter paired jupytext Python files if requested.
+            if exclude_paired_jupytext and llinutil.is_paired_jupytext_file(f):
+                continue
             python_files.append(f)
         elif f.endswith(".md"):
             if "md" not in file_extensions:

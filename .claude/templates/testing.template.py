@@ -49,7 +49,7 @@ class Test_format_compressed_markdown(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test happy path: basic text without formatting.
+        Test basic text without formatting.
         """
         # Prepare inputs.
         text = """
