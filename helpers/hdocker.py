@@ -679,11 +679,16 @@ def get_docker_mount_info(
     else:
         # Inside a Docker container, the mount path depends on the container
         # style.
-        if use_sibling_container_for_callee and not hserver.is_inside_ci():
-            # For sibling containers, we need to get the Git root on the host.
+        if (
+            use_sibling_container_for_callee
+            and not hserver.is_csfy_dind_enabled()
+            and not hserver.is_inside_ci()
+        ):
+            # For sibling containers (not in DinD, not in CI), we need to get the
+            # Git root on the host.
             caller_mount_path = get_host_git_root()
         else:
-            # For children containers, use the local Git root inside
+            # For children containers or DinD, use the local Git root inside
             # this container.
             caller_mount_path = hgit.find_git_root()
     # The target mount path is always `/app` inside the Docker container.
@@ -726,11 +731,21 @@ def build_and_run_docker_cmd(
     *,
     override_entrypoint: bool = False,
     wrap_in_bash: bool = False,
+    use_root_user: bool = False,
 ) -> str:
     """
     Build and execute a Docker command.
+
+    :param use_root_user: If True, run container as root (0:0) instead of current user.
+        Useful for nested containers that are temporary build tools.
     """
+    # TODO(ai_gp): Pass use_root_user to get_docker_base_cmd instead of patching
+    # docker_cmd[2].
     docker_cmd = get_docker_base_cmd(use_sudo)
+    # Override user flag for nested containers that need root access.
+    if use_root_user:
+        # TODO(ai_gp): Check that docker_cmd[2] starts with --user
+        docker_cmd[2] = "--user 0:0"
     if override_entrypoint:
         # Use `/bin/bash` as the entrypoint instead of clearing it with `''`.
         # Docker supports `--entrypoint ''` to clear the entrypoint, but the
