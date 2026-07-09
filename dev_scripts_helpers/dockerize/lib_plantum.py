@@ -132,6 +132,5 @@ def run_dockerized_plantuml(
         mode,
         override_entrypoint=True,
         wrap_in_bash=True,
-        use_root_user=True,
     )
     return ret

@@ -145,7 +145,6 @@ def run_dockerized_svg_with_rsvg_convert(
         mode,
         override_entrypoint=False,
         wrap_in_bash=False,
-        use_root_user=True,
     )
     return ret
 
@@ -278,6 +277,5 @@ def run_dockerized_svg_with_inkscape(
         mode,
         override_entrypoint=False,
         wrap_in_bash=False,
-        use_root_user=True,
     )
     return ret
