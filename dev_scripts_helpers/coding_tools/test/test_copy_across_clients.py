@@ -10,11 +10,6 @@ import shutil
 from typing import Dict, List, Optional
 from unittest import mock
 
-import logging
-import os
-import shutil
-from typing import Dict, List, Optional
-from unittest import mock
 
 import pytest
 
@@ -150,8 +145,7 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         self.assertTrue(os.path.exists(file2_path))
 
     @pytest.mark.skipif(
-        shutil.which("rsync") is None,
-        reason="rsync not installed"
+        shutil.which("rsync") is None, reason="rsync not installed"
     )
     def test3(self) -> None:
         """
