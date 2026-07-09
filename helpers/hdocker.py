@@ -187,10 +187,10 @@ def process_docker_cmd(
         ret = docker_cmd
     elif mode == "system":
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, suppress_output=False)
+        hsystem.system(docker_cmd, print_command=True, suppress_output=False)
         ret = ""
     elif mode == "system_without_output":
-        hsystem.system(docker_cmd, suppress_output=True)
+        hsystem.system(docker_cmd, print_command=True, suppress_output=True)
         ret = ""
     elif mode == "save_to_file":
         file_name = f"tmp.process_docker_cmd.{container_image}.txt"
@@ -242,12 +242,36 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     executable = get_docker_executable(use_sudo)
     # `image inspect` returns 0 if the image exists, 1 otherwise.
     cmd = f"{executable} image inspect {image_name}"
-    rc, output = hsystem.system_to_string(
+    rc, _ = hsystem.system_to_string(
         cmd, abort_on_error=False, suppress_output=True
     )
     exists = rc == 0
     _LOG.debug(hprint.to_str("exists"))
     return exists, ""
+
+
+def pull_image(image_name: str, use_sudo: bool) -> None:
+    """
+    Pull a Docker image using the appropriate engine.
+
+    E.g.,
+    ```
+    > docker pull pandoc/core:3.7
+    > container image pull pandoc/core:3.7
+    ```
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    #
+    executable = get_docker_executable(use_sudo)
+    engine = get_docker_engine()
+    if engine == "docker":
+        cmd = f"{executable} pull {image_name}"
+    elif engine == "apple":
+        cmd = f"{executable} image pull {image_name}"
+    else:
+        raise ValueError(f"Invalid engine='{engine}'")
+    _LOG.info("Pulling missing Docker image '%s'", image_name)
+    hsystem.system(cmd, suppress_output=False)
 
 
 def container_rm(container_name: str, use_sudo: bool) -> None:
@@ -756,7 +780,10 @@ def build_and_run_docker_cmd(
             docker_cmd.append("--entrypoint /bin/bash")
         else:
             docker_cmd.append("--entrypoint ''")
-    # Check that the container image exists.
+    # Check that the container image exists and try to pull it if it's missing.
+    if not image_exists(container_image, use_sudo)[0]:
+        pull_image(container_image, use_sudo)
+        # TODO(ai_gp): If it was pulled then skip building it.
     hdbg.dassert(
         image_exists(container_image, use_sudo)[0],
         "Container image '%s' does not exist",

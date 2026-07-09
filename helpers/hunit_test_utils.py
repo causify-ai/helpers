@@ -595,6 +595,9 @@ def get_parent_dirs(files: List[str]) -> List[str]:
 # #############################################################################
 
 
+# TODO(ai_gp): invocations -> sys_calls
+
+
 @contextlib.contextmanager
 def capture_system_calls(
     side_effect: Optional[Any] = None,
@@ -667,7 +670,11 @@ def capture_system_calls(
                 yield invocations
 
 
-# TODO(ai_gp): assert_syscall_equal
+def invocations_to_str(invocations: List[Dict[str, Any]]) -> str:
+    txt = pprint.pformat(invocations)
+    return txt
+
+
 def assert_invocations(
     self_: Any,
     captured_invocations: List[Dict[str, Any]],
@@ -675,7 +682,7 @@ def assert_invocations(
     **assert_equal_kwargs: Any,
 ) -> None:
     """
-    Compare captured system call invocations with expected string representation.
+    Compare system call invocations with expected string representation.
 
     Formats both the actual captured invocations and expected string using
     `pprint.pformat` for consistent comparison, then asserts equality using
@@ -688,6 +695,6 @@ def assert_invocations(
     :param assert_equal_kwargs: extra kwargs forwarded to `assert_equal()`
         (e.g., `purify_text=True`)
     """
-    actual_str = pprint.pformat(captured_invocations)
+    actual_str = invocations_to_str(captured_invocations)
     hdbg.dassert_isinstance(actual_str, str)
     self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)
