@@ -8,6 +8,8 @@
 # - Usage: cc [--anth|--or_anth|--ds|--dsp|--model MODEL_STR] [--test] [-v] [-p PROMPT] [claude_options]
 # """
 
+#set -x
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 source "$SCRIPT_DIR/../thin_client/thin_client_utils.sh"
 
