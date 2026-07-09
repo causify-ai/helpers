@@ -3,11 +3,12 @@
 r"""
 Copy files or directories from one client directory to another.
 
-Copies files from `dir1` to `dir2`:
+Copies files and directories from `dir1` to `dir2`:
 - If a source file doesn't exist, the destination file is deleted.
-- For directories, the entire directory is copied verbatim using rsync to sync.
+- For directories in the input list, rsync is used to sync them.
+- For files in the input list, they are copied with cp.
 
-Files are interpreted as relative to `dir1` and `dir2`.
+Files and directories are interpreted as relative to `dir1` and `dir2`.
 
 Examples:
 
@@ -17,23 +18,17 @@ Copy specific files:
     --dir2 /path/to/client2 \
     --files file1.txt file2.py
 
-Copy files from a list file:
+Copy files and directories from a list file:
 > copy_across_clients.py \
     --dir1 /path/to/client1 \
     --dir2 /path/to/client2 \
     --from_file files.txt
 
-Copy entire directory:
-> copy_across_clients.py \
-    --dir1 /path/to/client1 \
-    --dir2 /path/to/client2 \
-    --dir
-
 Dry run to see what would be done:
 > copy_across_clients.py \
     --dir1 /path/to/client1 \
     --dir2 /path/to/client2 \
-    --dir \
+    --files subdir1 file1.txt \
     --dry_run
 
 Import as:
@@ -91,6 +86,7 @@ def _copy_files(
     Copy files from `src_dir` to `dst_dir`.
 
     If a source file doesn't exist, the destination file is deleted.
+    Directories are synced using rsync.
 
     :param src_dir: Source directory
     :param dst_dir: Destination directory
@@ -114,8 +110,23 @@ def _copy_files(
             else:
                 _LOG.info("Skipping: source '%s' doesn't exist", src_file)
             continue
+        # Handle directory with rsync.
+        if os.path.isdir(src_file):
+            # Ensure destination directory exists.
+            hio.create_dir(dst_file, incremental=True)
+            cmd_parts = ["rsync", "-av"]
+            if dry_run:
+                cmd_parts.append("--dry-run")
+            cmd_parts.append(f"{src_file}/")
+            cmd_parts.append(dst_file)
+            cmd = " ".join(cmd_parts)
+            if dry_run:
+                _LOG.info("[DRY RUN] %s", cmd)
+            else:
+                _LOG.info("Running: %s", cmd)
+                hsystem.system(cmd)
         # Copy file.
-        if os.path.isfile(src_file):
+        elif os.path.isfile(src_file):
             # Create destination directory if needed.
             dst_file_dir = os.path.dirname(dst_file)
             if dry_run:
@@ -127,41 +138,7 @@ def _copy_files(
                 hsystem.system(cmd)
                 _LOG.info("Copied: '%s' -> '%s'", src_file, dst_file)
         else:
-            _LOG.warning("Source is not a file: '%s'", src_file)
-
-
-def _copy_directory(
-    src_dir: str,
-    dst_dir: str,
-    *,
-    dry_run: bool = False,
-) -> None:
-    """
-    Copy entire directory from src_dir to dst_dir using rsync.
-
-    :param src_dir: Source directory
-    :param dst_dir: Destination directory
-    :param dry_run: If True, show what would be done without doing it
-    """
-    _LOG.debug("Copying directory from '%s' to '%s'", src_dir, dst_dir)
-    # Ensure source directory exists.
-    hdbg.dassert_dir_exists(src_dir)
-    # Build rsync command.
-    cmd_parts = [
-        "rsync",
-        "-av",
-    ]
-    if dry_run:
-        cmd_parts.append("--dry-run")
-    cmd_parts.append(f"{src_dir}/")
-    hdbg.dassert_dir_exists(dst_dir)
-    cmd_parts.append(dst_dir)
-    cmd = " ".join(cmd_parts)
-    if dry_run:
-        _LOG.info("[DRY RUN] %s", cmd)
-    else:
-        _LOG.info("Running: %s", cmd)
-        hsystem.system(cmd)
+            _LOG.warning("Source is neither file nor directory: '%s'", src_file)
 
 
 # #############################################################################
@@ -192,17 +169,12 @@ def _parse() -> argparse.ArgumentParser:
     copy_group.add_argument(
         "--files",
         nargs="+",
-        help="List of files to copy (relative paths)",
+        help="List of files and/or directories to copy (relative paths)",
     )
     copy_group.add_argument(
         "--from_file",
         action="store",
-        help="File containing list of file paths to copy (one per line)",
-    )
-    copy_group.add_argument(
-        "--dir",
-        action="store_true",
-        help="Copy entire directories (uses rsync)",
+        help="File containing list of file/directory paths to copy (one per line)",
     )
     # Optional arguments.
     parser.add_argument(
@@ -229,15 +201,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     dir2 = os.path.abspath(args.dir2)
     _LOG.info("Source directory: '%s'", dir1)
     _LOG.info("Destination directory: '%s'", dir2)
-    # Handle different copy modes.
-    if args.dir:
-        # Copy entire directory from dir1 to dir2.
-        _copy_directory(dir1, dir2, dry_run=args.dry_run)
-    else:
-        # Copy individual files.
-        files = _get_files_to_copy(args)
-        _LOG.info("Copying %d files", len(files))
-        _copy_files(dir1, dir2, files, dry_run=args.dry_run)
+    # Copy files and directories.
+    files = _get_files_to_copy(args)
+    _LOG.info("Copying %d items", len(files))
+    _copy_files(dir1, dir2, files, dry_run=args.dry_run)
     _LOG.info("Done")
 
 
