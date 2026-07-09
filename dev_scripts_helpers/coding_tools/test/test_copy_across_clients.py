@@ -7,6 +7,7 @@ import dev_scripts_helpers.coding_tools.test.test_copy_across_clients as dsctcca
 import os
 from unittest import mock
 
+import dev_scripts_helpers.coding_tools.copy_across_clients as dscoac
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
@@ -27,30 +28,56 @@ class Test_copy_across_clients_py(hunitest.TestCase):
 
         :param argv: Command-line argument list
         """
-        import dev_scripts_helpers.coding_tools.copy_across_clients as dscoac
-
         parser = dscoac._parse()
         with mock.patch("sys.argv", argv):
             dscoac._main(parser)
+
+    def _setup_test_dirs(self, scratch_dir, dir_names=None):
+        """
+        Create and return test directories.
+
+        :param scratch_dir: Base scratch directory
+        :param dir_names: List of directory names to create (default: ["dir1", "dir2"])
+        :return: Dict mapping dir name -> full path
+        """
+        if dir_names is None:
+            dir_names = ["dir1", "dir2"]
+        dirs = {}
+        for name in dir_names:
+            path = os.path.join(scratch_dir, name)
+            hio.create_dir(path, incremental=True)
+            dirs[name] = path
+        return dirs
+
+    def _create_test_files(self, parent_dir, files_spec):
+        """
+        Create test files in a directory structure.
+
+        :param parent_dir: Parent directory path
+        :param files_spec: Dict mapping filename (or "dir/file") -> content
+        :return: Dict mapping relative path -> full path
+        """
+        created = {}
+        for filepath, content in files_spec.items():
+            full_path = os.path.join(parent_dir, filepath)
+            dir_path = os.path.dirname(full_path)
+            if dir_path and dir_path != parent_dir:
+                hio.create_dir(dir_path, incremental=True)
+            hio.to_file(full_path, content)
+            created[filepath] = full_path
+        return created
 
     def test1(self) -> None:
         """
         Test copying specific files with --files option.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        dir1 = os.path.join(scratch_dir, "dir1")
-        dir2 = os.path.join(scratch_dir, "dir2")
-        hio.create_dir(dir1, incremental=True)
-        hio.create_dir(dir2, incremental=True)
-        # Create test files in dir1.
-        file1_path = os.path.join(dir1, "file1.txt")
-        hio.to_file(file1_path, "file1 content")
-        subdir_path = os.path.join(dir1, "subdir")
-        hio.create_dir(subdir_path, incremental=True)
-        file2_path = os.path.join(subdir_path, "file2.txt")
-        hio.to_file(file2_path, "file2 content")
-        # Run test.
+        dirs = self._setup_test_dirs(scratch_dir)
+        self._create_test_files(dirs["dir1"], {
+            "file1.txt": "file1 content",
+            "subdir/file2.txt": "file2 content",
+        })
+        dir1, dir2 = dirs["dir1"], dirs["dir2"]
         argv = [
             "copy_across_clients.py",
             f"--dir1={dir1}",
@@ -60,7 +87,6 @@ class Test_copy_across_clients_py(hunitest.TestCase):
             "subdir/file2.txt",
         ]
         self._run_main(argv)
-        # Check outputs.
         self.assertTrue(os.path.exists(os.path.join(dir2, "file1.txt")))
         self.assertTrue(os.path.exists(os.path.join(dir2, "subdir", "file2.txt")))
         actual_file1 = hio.from_file(os.path.join(dir2, "file1.txt"))
@@ -72,21 +98,15 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         """
         Test copying files from a list file with --from_file option.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        dir1 = os.path.join(scratch_dir, "dir1")
-        dir2 = os.path.join(scratch_dir, "dir2")
-        hio.create_dir(dir1, incremental=True)
-        hio.create_dir(dir2, incremental=True)
-        # Create test files.
-        file1_path = os.path.join(dir1, "file1.txt")
-        hio.to_file(file1_path, "file1 content")
-        file2_path = os.path.join(dir1, "file2.txt")
-        hio.to_file(file2_path, "file2 content")
-        # Create file list.
+        dirs = self._setup_test_dirs(scratch_dir)
+        self._create_test_files(dirs["dir1"], {
+            "file1.txt": "file1 content",
+            "file2.txt": "file2 content",
+        })
         files_list = os.path.join(scratch_dir, "files.txt")
         hio.to_file(files_list, "file1.txt\nfile2.txt\n")
-        # Run test.
+        dir1, dir2 = dirs["dir1"], dirs["dir2"]
         argv = [
             "copy_across_clients.py",
             f"--dir1={dir1}",
@@ -94,7 +114,6 @@ class Test_copy_across_clients_py(hunitest.TestCase):
             f"--from_file={files_list}",
         ]
         self._run_main(argv)
-        # Check outputs.
         self.assertTrue(os.path.exists(os.path.join(dir2, "file1.txt")))
         self.assertTrue(os.path.exists(os.path.join(dir2, "file2.txt")))
 
@@ -102,20 +121,13 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         """
         Test copying entire directory with --dir option.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        dir1 = os.path.join(scratch_dir, "source")
-        dir2 = os.path.join(scratch_dir, "dest")
-        hio.create_dir(dir1, incremental=True)
-        hio.create_dir(dir2, incremental=True)
-        # Create test files.
-        file1_path = os.path.join(dir1, "file1.txt")
-        hio.to_file(file1_path, "file1 content")
-        subdir_path = os.path.join(dir1, "subdir")
-        hio.create_dir(subdir_path, incremental=True)
-        file2_path = os.path.join(subdir_path, "file2.txt")
-        hio.to_file(file2_path, "file2 content")
-        # Run test.
+        dirs = self._setup_test_dirs(scratch_dir, ["source", "dest"])
+        self._create_test_files(dirs["source"], {
+            "file1.txt": "file1 content",
+            "subdir/file2.txt": "file2 content",
+        })
+        dir1, dir2 = dirs["source"], dirs["dest"]
         argv = [
             "copy_across_clients.py",
             f"--dir1={dir1}",
@@ -123,7 +135,6 @@ class Test_copy_across_clients_py(hunitest.TestCase):
             "--dir",
         ]
         self._run_main(argv)
-        # Check outputs.
         self.assertTrue(os.path.exists(os.path.join(dir2, "file1.txt")))
         self.assertTrue(os.path.exists(os.path.join(dir2, "subdir", "file2.txt")))
 
@@ -131,16 +142,10 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         """
         Test dry run with --dry_run option.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        dir1 = os.path.join(scratch_dir, "dir1")
-        dir2 = os.path.join(scratch_dir, "dir2")
-        hio.create_dir(dir1, incremental=True)
-        hio.create_dir(dir2, incremental=True)
-        # Create test file.
-        file1_path = os.path.join(dir1, "file1.txt")
-        hio.to_file(file1_path, "file1 content")
-        # Run test with dry run.
+        dirs = self._setup_test_dirs(scratch_dir)
+        self._create_test_files(dirs["dir1"], {"file1.txt": "file1 content"})
+        dir1, dir2 = dirs["dir1"], dirs["dir2"]
         argv = [
             "copy_across_clients.py",
             f"--dir1={dir1}",
@@ -150,26 +155,18 @@ class Test_copy_across_clients_py(hunitest.TestCase):
             "--dry_run",
         ]
         self._run_main(argv)
-        # Check outputs: file should NOT be copied.
         self.assertFalse(os.path.exists(os.path.join(dir2, "file1.txt")))
 
     def test5(self) -> None:
         """
         Test deletion of destination file when source doesn't exist.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        dir1 = os.path.join(scratch_dir, "dir1")
-        dir2 = os.path.join(scratch_dir, "dir2")
-        hio.create_dir(dir1, incremental=True)
-        hio.create_dir(dir2, incremental=True)
-        # Create source file.
-        file1_path = os.path.join(dir1, "file1.txt")
-        hio.to_file(file1_path, "file1 content")
-        # Create destination file that shouldn't exist (file2.txt not in dir1).
-        file2_dest_path = os.path.join(dir2, "file2.txt")
+        dirs = self._setup_test_dirs(scratch_dir)
+        self._create_test_files(dirs["dir1"], {"file1.txt": "file1 content"})
+        file2_dest_path = os.path.join(dirs["dir2"], "file2.txt")
         hio.to_file(file2_dest_path, "file2 content")
-        # Run test.
+        dir1, dir2 = dirs["dir1"], dirs["dir2"]
         argv = [
             "copy_across_clients.py",
             f"--dir1={dir1}",
@@ -179,28 +176,21 @@ class Test_copy_across_clients_py(hunitest.TestCase):
             "file2.txt",
         ]
         self._run_main(argv)
-        # Check outputs.
         self.assertTrue(os.path.exists(os.path.join(dir2, "file1.txt")))
-        # file2.txt should be deleted since it doesn't exist in dir1.
         self.assertFalse(os.path.exists(file2_dest_path))
 
     def test6(self) -> None:
         """
         Test error when no copy option is provided.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        dir1 = os.path.join(scratch_dir, "dir1")
-        dir2 = os.path.join(scratch_dir, "dir2")
-        hio.create_dir(dir1, incremental=True)
-        hio.create_dir(dir2, incremental=True)
-        # Run test: no --files, --from_file, or --dir provided.
+        dirs = self._setup_test_dirs(scratch_dir)
+        dir1, dir2 = dirs["dir1"], dirs["dir2"]
         argv = [
             "copy_across_clients.py",
             f"--dir1={dir1}",
             f"--dir2={dir2}",
         ]
-        # Should fail due to missing mutually exclusive group.
         with self.assertRaises(SystemExit):
             self._run_main(argv)
 
@@ -208,12 +198,10 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         """
         Test error when directories don't exist.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
+        dirs = self._setup_test_dirs(scratch_dir, ["existing"])
         nonexistent_dir = os.path.join(scratch_dir, "nonexistent")
-        existing_dir = os.path.join(scratch_dir, "existing")
-        hio.create_dir(existing_dir, incremental=True)
-        # Run test: nonexistent_dir doesn't exist.
+        existing_dir = dirs["existing"]
         argv = [
             "copy_across_clients.py",
             f"--dir1={nonexistent_dir}",
@@ -221,6 +209,5 @@ class Test_copy_across_clients_py(hunitest.TestCase):
             "--files",
             "file.txt",
         ]
-        # Should fail due to directory not existing.
         with self.assertRaises(AssertionError):
             self._run_main(argv)
