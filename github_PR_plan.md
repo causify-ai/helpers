@@ -1,14 +1,24 @@
 # PR Split Plan for HelpersTask1273_Get_Mac_tests_to_pass
 
 ## Info
-- **Branch**: gp_scratch_29
-- **Base Branch**: gp_scratch
+- **Branch**: gp_scratch
+- **Base Branch**: master
 - **Dir**: /Users/saggese/src/umd_classes1/helpers_root
 - **Task**: Fix macOS test failures (HelpersTask1273_Get_Mac_tests_to_pass)
+- **Last Updated**: 2026-07-09 (after master merge on 2026-06-08)
+
+## Status Summary
+
+**Current State**: All 5 PRs pending submission. Master was merged into gp_scratch on 2026-06-08 with no conflicts.
+- PR1 (Config/Docs): Ready to create
+- PR2-PR5 (Core work): Depend on PR1 merge
+
+**Next Steps**: Create and merge PR1, then proceed with PR2-PR5 in order per the merge dependency chain below.
 
 ## Proposed PRs
 
 ### PR1: Configuration & Documentation Updates
+- Status: Not Started
 - Merged: [ ]
 - Complexity: Very Low
 - Risk: Very Low
@@ -26,6 +36,7 @@
   - Can merge independently first without blocking other PRs
 
 ### PR2: Helper Module Core Refactors
+- Status: Blocked (waiting for PR1)
 - Merged: [ ]
 - Complexity: Low
 - Risk: Low
@@ -64,6 +75,7 @@
   - Low complexity: straightforward function refactors and logic improvements
 
 ### PR3: Linter Module Updates
+- Status: Blocked (waiting for PR2)
 - Merged: [ ]
 - Complexity: Low
 - Risk: Low
@@ -92,6 +104,7 @@
   - Can merge independently after PR2
 
 ### PR4: Development Scripts - Utilities & Tools
+- Status: Blocked (waiting for PR2)
 - Merged: [ ]
 - Complexity: Low
 - Risk: Low
@@ -128,6 +141,7 @@
     valid
 
 ### PR5: Documentation Tools Refactor
+- Status: Blocked (waiting for PR2)
 - Merged: [ ]
 - Complexity: Medium-High
 - Risk: Medium
