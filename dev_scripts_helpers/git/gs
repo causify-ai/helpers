@@ -1,7 +1,8 @@
 #!/bin/bash -e
 
 # """
-# Print the status of the clients and of the submodules with `git status`.
+# Print the status of the clients and of the submodules with
+# > git status --short
 # """
 
 source helpers.sh
@@ -10,9 +11,9 @@ if [[ -f .gitmodules ]]; then
     echo "===================== supermodule ====================="
 fi;
 
-execute "git status $*"
+execute "git status --short $*"
 
 if [[ -f .gitmodules ]]; then
   echo "===================== submodule ====================="
-  execute "git submodule foreach git status $*"
+  execute "git submodule foreach git status --short $*"
 fi;

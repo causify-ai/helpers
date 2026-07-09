@@ -10,6 +10,7 @@ import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 """
 
 import logging
+import uuid
 from typing import Any, List, Optional
 
 import helpers.hdbg as hdbg
@@ -214,6 +215,7 @@ def run_dockerized_prettier(
         mode,
         override_entrypoint=True,
         wrap_in_bash=True,
+        use_root_user=True,
     )
     return ret
 
@@ -279,7 +281,8 @@ def prettier(
         lines = txt.split("\n")
         lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         txt = "\n".join(lines)
-        # Save to tmp file.
+        # Save to tmp file with unique name to avoid collisions.
+        #tmp_file_name = f"tmp.prettier.{uuid.uuid4().hex[:8]}.{file_type}"
         tmp_file_name = "tmp.prettier." + file_type
         hio.to_file(tmp_file_name, txt)
         in_file_path = tmp_file_name
@@ -334,9 +337,10 @@ def prettier_on_str(
     timer_ = htimer.Timer()
     _LOG.debug("txt=\n%s", txt)
     hdbg.dassert_isinstance(txt, str)
-    # Save string as input.
+    # Save string as input with unique name to avoid collisions.
     # TODO(gp): Use a context manager.
     hdbg.dassert_in(file_type, ["md", "tex", "txt"])
+    #tmp_file_name = f"tmp.prettier_on_str.{uuid.uuid4().hex[:8]}.{file_type}"
     tmp_file_name = "tmp.prettier_on_str." + file_type
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
