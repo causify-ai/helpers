@@ -85,9 +85,10 @@ def get_md_colors_mapping(output_format: str) -> Dict[str, str]:
     """
     hdbg.dassert_in(output_format, ("latex", "typst"))
     if output_format == "latex":
-        return dict(_MD_COLORS_LATEX_MAPPING)
+        ret = dict(_MD_COLORS_LATEX_MAPPING)
     else:
-        return dict(_MD_COLORS_TYPST_MAPPING)
+        ret = dict(_MD_COLORS_TYPST_MAPPING)
+    return ret
 
 
 # Curated list of colors that are visually distinguishable and work well in

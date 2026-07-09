@@ -783,6 +783,7 @@ def build_and_run_docker_cmd(
     # Check that the container image exists and try to pull it if it's missing.
     if not image_exists(container_image, use_sudo)[0]:
         pull_image(container_image, use_sudo)
+        # TODO(ai_gp): If it was pulled then skip building it.
     hdbg.dassert(
         image_exists(container_image, use_sudo)[0],
         "Container image '%s' does not exist",
