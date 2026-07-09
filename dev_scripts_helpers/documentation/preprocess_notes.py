@@ -462,7 +462,7 @@ def _transform_lines(
         # 7) Process color commands.
         if _TRACE:
             _LOG.debug("# Process color commands.")
-        line = hmarkdo.process_color_commands(line)
+        line = hmarkdo.process_color_commands(line, output_format="latex")
         # 7) Process question.
         if _TRACE:
             _LOG.debug("# Process question.")
@@ -540,7 +540,7 @@ def _transform_lines(
             if not hmarkdo.has_color_command(slide_text_str):
                 try:
                     text_out = hmarkdo.colorize_bullet_points_in_slide(
-                        slide_text_str, use_abbreviations=False
+                        slide_text_str, output_format="latex", use_abbreviations=False
                     )
                 except AssertionError as e:
                     context = (
@@ -632,14 +632,14 @@ def _preprocess_lines(
         max_level = 2
         expand_all_navigation = True
         out = hmartoc.add_navigation_slides(
-            out, max_level, expand_all_navigation, sanity_check=True
+            out, max_level, expand_all_navigation, output_format="latex", sanity_check=True
         )
     elif toc_type == "partial_navigation":
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         expand_all_navigation = False
         out = hmartoc.add_navigation_slides(
-            out, max_level, expand_all_navigation, sanity_check=True
+            out, max_level, expand_all_navigation, output_format="latex", sanity_check=True
         )
     elif toc_type == "remove_headers":
         # Remove headers smaller than level 4 so that we leave only the `*`.

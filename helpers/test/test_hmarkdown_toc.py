@@ -267,7 +267,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
         input_text = hprint.dedent(input_text)
         lines = input_text.strip().split("\n")
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all)
+        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all, output_format="latex")
         actual_str = "\n".join(actual)
         # Check outputs.
         expected_str = hprint.dedent(expected)
@@ -288,12 +288,12 @@ class Test_add_navigation_slides(hunitest.TestCase):
         expand_all = False
         # Prepare outputs.
         expected = r"""
-            ####
+            #### Table of Content
             - _**\textcolor{red}{Part 1}**_
               - Section 1.1
 
             Content here
-            ####
+            #### Table of Content
             - Part 1
               - _**\textcolor{red}{Section 1.1}**_
 
@@ -315,7 +315,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
         expand_all = False
         # Prepare outputs.
         expected = r"""
-            ####
+            #### Table of Content
             - _**\textcolor{red}{Main Title}**_
 
             Content
@@ -339,19 +339,19 @@ class Test_add_navigation_slides(hunitest.TestCase):
         max_level = 2
         expand_all = False
         expected = r"""
-            ####
+            #### Table of Content
             - _**\textcolor{red}{Section 1}**_
               - Subsection 1.1
             - Section 2
 
             Some content
-            ####
+            #### Table of Content
             - Section 1
               - _**\textcolor{red}{Subsection 1.1}**_
             - Section 2
 
             More content
-            ####
+            #### Table of Content
             - Section 1
             - _**\textcolor{red}{Section 2}**_
 
@@ -376,19 +376,19 @@ class Test_add_navigation_slides(hunitest.TestCase):
         max_level = 2
         expand_all = True
         expected = r"""
-            ####
+            #### Table of Content
             - _**\textcolor{red}{Section 1}**_
               - Subsection 1.1
             - Section 2
 
             Content 1
-            ####
+            #### Table of Content
             - Section 1
               - _**\textcolor{red}{Subsection 1.1}**_
             - Section 2
 
             Content 1.1
-            ####
+            #### Table of Content
             - Section 1
               - Subsection 1.1
             - _**\textcolor{red}{Section 2}**_
@@ -412,7 +412,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
         expand_all = False
         expected = r"""
             Some initial content
-            ####
+            #### Table of Content
             - _**\textcolor{red}{Section 1}**_
 
             Content under section 1
@@ -436,7 +436,7 @@ class Test_add_navigation_slides(hunitest.TestCase):
         max_level = 1
         expand_all = False
         expected = r"""
-            ####
+            #### Table of Content
             - _**\textcolor{red}{Section 1}**_
 
             Content
