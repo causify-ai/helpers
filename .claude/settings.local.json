@@ -15,7 +15,7 @@
       "Bash(*git push:*)"
     ]
   },
-  "model": "sonnet",
+  "model": "haiku",
   "hooks": {
     "Notification": [
       {
