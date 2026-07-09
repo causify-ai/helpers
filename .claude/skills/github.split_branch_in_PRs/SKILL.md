@@ -1,5 +1,5 @@
 ---
-description: Split the current Git branch / PR in small a
+description: Split the current Git branch / PR in small cohesive PRs to simplify merging
 ---
 
 # Goal

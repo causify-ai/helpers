@@ -21,9 +21,9 @@
 
 ## Tables
 
-- Use markdown tables for structured data comparisons
+- Use markdown tables for structured data comparisons and side-by-side content
 
-- Example:
+- For simple data comparison:
   ```markdown
   \begingroup \scriptsize
   | **Column1** | **Column2** | **Column3** |
@@ -31,6 +31,13 @@
   | Value 1     | Value 2     | Value 3     |
   | Value 4     | Value 5     | Value 6     |
   \endgroup
+  ```
+
+- For side-by-side content (symmetric columns):
+  ```markdown
+  | **Left Heading** | **Right Heading** |
+  |---|---|
+  | - Point 1<br>- Point 2 | - Point 1<br>- Point 2 |
   ```
 
 ## Mermaid Graph

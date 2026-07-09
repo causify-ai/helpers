@@ -2,6 +2,9 @@
 clear
 
 file_name="tmp.pytest_log.txt"
+# Force Python to leave stdout unbuffered which delays `_LOG` output and tqdm
+# progress bars.
+export PYTHONUNBUFFERED=1
 cmd="pytest $* 2>&1 | tee $file_name"
 cmd+='; exit ${PIPESTATUS[0]}'
 echo "> $cmd"

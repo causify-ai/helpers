@@ -742,4 +742,6 @@ tmux_restore_on_exit() {
 # #############################################################################
 
 # Save the last command executed in the system clipboard.
-alias last_cmd='source capture_last_cmd.sh -n 1'
+# `last_cmd.sh` must be sourced (not executed) so `history -a` runs in this
+# shell, see `last_cmd.sh` / `notify.py` for why.
+alias last_cmd='source last_cmd.sh -n 1'

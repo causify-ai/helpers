@@ -3,9 +3,11 @@ description: Make the code more readable and debuggable
 model: haiku
 ---
 
-- I will pass you one of more files `<FILES>`
-
 # Goal
+I will pass you one of more files `<FILES>` and you will make the code more
+readable and debuggable for humans.
+
+# Workflow
 
 ## Add Comments
 - Improve its readability by adding concise comments with these rules
@@ -22,16 +24,14 @@ model: haiku
 - Follow the rules in `.claude/skills/coding.rules.md` `# Comments`
 
 ## Add Functions to Track Entering in a Function
-- For each function add at the beginning either
-  - `_LOG.debug(hprint.func_signature_to_str())` or
-  - `_LOG.debug(hprint.to_str("a b c")`
-     with the variables that are most important and not too big to print (e.g.,
-     large text, dictionary and so on)
+- For free-standing functions and class methods add at the beginning:
+  - `_LOG.debug(hprint.to_str("a b c"))` with the variables that are most
+    important and not too big to print (e.g., large text, dictionary and so on)
+- Use parameter names (omit `self` for methods)
 
 ## Add `_LOG.debug` to Track the Execution in a Function
 - Use `_LOG.debug` to add debugging info in functions that can help a programmer
   to track the issues and execution
-
 
 ## Add `_LOG.debug` to Track the Resulting Values of a Function
 - Refactor code to avoid more than one `return` statement when possible
@@ -49,4 +49,4 @@ model: haiku
 
 - Do not change the behavior of the code in any way
 
-- Follow the rules in `.claude/skills/coding.rules.md`
+- You must follow the rules in `.claude/skills/coding.rules.md`
