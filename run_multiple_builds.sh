@@ -5,15 +5,17 @@ if [ 1 == 1 ]; then
 #TARGET="dev_scripts_helpers/documentation/test/test_notes_to_pdf.py"
 #TARGET="dev_scripts_helpers"
 #TARGET="."
-TARGET="helpers/test/test_hunit_test_purification.py helpers/test/test_hintrospection.py helpers/test/test_hnumpy.py helpers/test/test_hunit_test.py"
+#TARGET="helpers/test/test_hunit_test_purification.py helpers/test/test_hintrospection.py helpers/test/test_hnumpy.py helpers/test/test_hunit_test.py"
+#CMD="pytest_log $TARGET"
+CMD="./pr_test.sh"
 manage_cache.py --action clear_all
-(export CSFY_DOCKER_ENGINE="docker"; i docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log $TARGET") 2>&1 | tee build1.txt
+(export CSFY_DOCKER_ENGINE="docker"; i docker_cmd --stage=local -v 1.6.0 --cmd "$CMD") 2>&1 | tee build1.txt
 #
 manage_cache.py --action clear_all
-(export CSFY_DOCKER_ENGINE="docker"; pytest_log $TARGET) 2>&1 | tee build2.txt
+(export CSFY_DOCKER_ENGINE="docker"; pytest_log $CMD) 2>&1 | tee build2.txt
 #
 manage_cache.py --action clear_all
-(export CSFY_DOCKER_ENGINE="apple"; pytest_log $TARGET) 2>&1 | tee build3.txt
+(export CSFY_DOCKER_ENGINE="apple"; pytest_log $CMD) 2>&1 | tee build3.txt
 fi;
 
 if [ 0 == 1 ]; then

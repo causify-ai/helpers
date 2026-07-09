@@ -5,12 +5,36 @@
 - **Base Branch**: master
 - **Dir**: /Users/saggese/src/csfy1/helpers_root
 - **Task**: Fix macOS test failures
-- **Total PRs**: 8 (2 dependent, 6 independent)
+- **Total PRs**: 8 (4 merged, 4 remaining)
+- **Last Updated**: 2026-07-08
+
+## Current Status Summary
+
+**Progress**: 4 of 8 PRs merged, 4 ready for review/merge
+
+**Merged PRs** (now in master):
+- PR2 (#1277): Unit test infrastructure improvements
+- PR3 (#1280): Import checking infrastructure
+- PR4 (#1281): Remove obsolete amp_normalize_import linter (breaking change)
+- PR5 (#1282): Linter test suite updates (depended on PR4)
+
+**Next Steps** (4 independent PRs ready):
+1. Create and merge PR1 (Docker utilities - hdocker, hlatex)
+2. Create and merge PR6 (Docker script library updates)
+3. Create and merge PR7 (Git utilities and LLM script updates)
+4. Create and merge PR8 (Documentation and test outcome updates)
+5. Clean up temporary files before final merge
+
+**Key Notes**:
+- All critical, blocking changes are complete
+- Remaining 4 PRs have no dependencies on each other
+- All can be merged in parallel or sequence
+- Temporary build/report files should be cleaned up
 
 ## Proposed PRs
 
 ### PR1: Docker Utilities Fix (hdocker, Hlatex)
-- **Merged**: [ ]
+- **Merged**: [ ] (Ready)
 - **Complexity**: Low-Medium
 - **Risk**: Low
 - **Tests included**: Yes
@@ -37,7 +61,7 @@ pytest helpers/test/test_hdocker.py helpers/test/test_hlatex.py -v
 ```
 
 ### PR2: Unit Test Infrastructure (purification, Introspection, Numpy, Base)
-- **Merged**: [x]
+- **Merged**: [x] (#1277)
 - **Complexity**: Medium
 - **Risk**: Medium (affects test infrastructure)
 - **Tests included**: Yes
@@ -64,75 +88,39 @@ pytest helpers/test/test_hdocker.py helpers/test/test_hlatex.py -v
 pytest helpers/test/test_hunit_test_purification.py helpers/test/test_hintrospection.py helpers/test/test_hnumpy.py helpers/test/test_hunit_test.py -v
 ```
 
-### PR3: Import Checking Utilities
-- **Merged**: [ ]
-- **Complexity**: Low-Medium
-- **Risk**: Low-Medium
+### PR3: Import Checking Infrastructure
+- **Merged**: [x] (#1280)
+- **Complexity**: Medium
+- **Risk**: Low
 - **Tests included**: Yes
 - **Dependencies**: None
-- **Blocks**: None
-
-**Files**:
-
-- `import_check/show_imports.py`
-- `import_check/test/test_show_imports.py`
-- `import_check/test/test_detect_import_cycles.py`
-- `import_check/test/outcomes/Test_show_imports.*` (test golden files)
+- **Blocks**: PR4, PR5
 
 **Reasoning**:
+- Import checking and validation infrastructure improvements
+- Independent changes to support better import tooling
+- Well-isolated changes to development utilities
 
-- Improvements to import cycle detection and display
-- Self-contained module with all related tests included
-- Fixes import checking on macOS
-- Low-medium risk as it's isolated to import tooling
-
-**Test Command**:
-```bash
-pytest import_check/test/test_show_imports.py import_check/test/test_detect_import_cycles.py -v
-```
-
-### PR4: Remove Deprecated Normalize_import Linter ⚠️ BREAKING
-- **Merged**: [ ]
+### PR4: Remove normalize_imports Linter ⚠️ BREAKING
+- **Merged**: [x] (#1281)
 - **Complexity**: High
-- **Risk**: Medium-High (breaking change, large deletion)
-- **Tests included**: Yes (removal only)
-- **Dependencies**: None
-- **Blocks**: PR5 (must merge before PR5)
-
-**Files**:
-
-- `linters/amp_normalize_import.py` (DELETED)
-- `linters/test/test_amp_normalize_import.py` (DELETED)
-- `linters/base.py` (refactored to remove normalize_imports references)
-- `linters/test/outcomes/TestEndToEndShortImports.test_normalize_imports/`
-  (outcome updated)
+- **Risk**: Medium-High (breaking change)
+- **Tests included**: Yes
+- **Dependencies**: PR3 (for context)
+- **Blocks**: PR5
 
 **Reasoning**:
-
-- Large, focused deletion of deprecated linter no longer needed
-- Must come BEFORE PR5 since PR5 references the removal
-- Clear scope: removing one complete linter module and its tests
-- Breaking change but necessary cleanup
-- Migration impact: users relying on `amp_normalize_import` should use
-  `amp_isort` or `amp_black`
-
-**Migration Notes**:
-
-- `amp_normalize_import` linter is removed from the system
-- Use `amp_isort` or `amp_black` for import normalization instead
-- Update any automation/CI that called this linter
-
-**Test Command**:
-```bash
-pytest linters/test/ -v -k "not slow and not superslow"
-```
+- Removes obsolete amp_normalize_import linter
+- Breaking change to linter infrastructure
+- Requires downstream test updates (handled in PR5)
+- Must be coordinated with PR5 merge
 
 ### PR5: Linter Test Suite Updates ⚠️ DEPENDS ON PR4
-- **Merged**: [ ]
+- **Merged**: [x] (#1282)
 - **Complexity**: High
 - **Risk**: Medium
 - **Tests included**: Yes
-- **Dependencies**: PR4 (amp_normalize_import removal)
+- **Dependencies**: PR4 (amp_normalize_import removal) - SATISFIED
 - **Blocks**: None
 
 **Files**:
@@ -156,7 +144,7 @@ pytest linters/test/test_amp_dev_scripts.py linters/test/test_amp_check_md_toc_h
 ```
 
 ### PR6: Docker Script Library Updates
-- **Merged**: [ ]
+- **Merged**: [ ] (Ready)
 - **Complexity**: Low
 - **Risk**: Low
 - **Tests included**: No
@@ -187,7 +175,7 @@ pytest linters/test/test_amp_dev_scripts.py linters/test/test_amp_check_md_toc_h
 **Test Command**: N/A (no tests)
 
 ### PR7: Git Utilities and LLM Script Updates
-- **Merged**: [ ]
+- **Merged**: [ ] (Ready)
 - **Complexity**: Low
 - **Risk**: Low
 - **Tests included**: No
@@ -211,7 +199,7 @@ pytest linters/test/test_amp_dev_scripts.py linters/test/test_amp_check_md_toc_h
 **Test Command**: N/A (no tests)
 
 ### PR8: Documentation and Test Outcome Updates
-- **Merged**: [ ]
+- **Merged**: [ ] (Ready)
 - **Complexity**: Low
 - **Risk**: Very Low
 - **Tests included**: No
@@ -221,10 +209,10 @@ pytest linters/test/test_amp_dev_scripts.py linters/test/test_amp_check_md_toc_h
 **Files**:
 
 - `.claude/settings.local.json`
-- `docs/tools/all.invoke_workflows.how_to_guide.md`
-- `docs/tools/linter/all.developing_linter.how_to_guide.md`
 - `.claude/skills/github.split_branch_in_PRs/SKILL.md`
 - `helpers/test/outcomes/Test_check_string_debug1.test1/output/test.txt`
+- `docs/tools/all.invoke_workflows.how_to_guide.md`
+- `docs/tools/linter/all.developing_linter.how_to_guide.md`
 
 **Reasoning**:
 
@@ -237,27 +225,28 @@ pytest linters/test/test_amp_dev_scripts.py linters/test/test_amp_check_md_toc_h
 
 ## Merge Order
 
-### Sequential Dependencies
-1. **First**: PR4 (Remove normalize_imports linter)
-2. **Second**: PR5 (Linter test updates) - DEPENDS ON PR4
+### Status Summary (as of 2026-07-08)
 
-### Can Merge in Parallel (Independent)
-- PR1: Docker utilities
-- PR2: Unit test infrastructure
-- PR3: Import checking
-- PR6: Docker script libraries
-- PR7: Git/LLM utilities
-- PR8: Documentation (best after others)
+**Already Merged into master**:
+- PR2 (#1277): Unit test infrastructure ✓
+- PR3 (#1280): Import checking ✓
+- PR4 (#1281): Remove normalize_imports linter ✓
+- PR5 (#1282): Linter test updates ✓
 
-### Recommended Merge Sequence
+**Remaining to Merge**:
+- PR1: Docker utilities - READY
+- PR6: Docker script libraries - READY
+- PR7: Git/LLM utilities - READY
+- PR8: Documentation updates - READY
+
+### Recommended Merge Sequence for Remaining PRs
+Can merge in any order (all independent):
 1. PR1 (Docker utilities)
-2. PR2 (Unit test infrastructure)
-3. PR3 (Import checking)
-4. PR4 (Remove normalize_imports) - BREAKING
-5. PR5 (Linter tests) - DEPENDS ON PR4
-6. PR6 (Docker script libraries)
-7. PR7 (Git/LLM utilities)
-8. PR8 (Documentation updates)
+2. PR6 (Docker script libraries)
+3. PR7 (Git/LLM utilities)
+4. PR8 (Documentation updates)
+
+All remaining PRs are ready and have no dependencies.
 
 ## Pre-PR Cleanup
 
@@ -284,24 +273,28 @@ These are temporary files created during development and should not be
 committed
 
 ## Risk Assessment Summary
-| PR  | Complexity | Risk     | Impact              |
-| --- | ---------- | -------- | ------------------- |
-| PR1 | Med        | Low      | Isolated utilities  |
-| PR2 | Med        | Med      | Test infrastructure |
-| PR3 | Med        | Low      | Import tooling      |
-| PR4 | High       | Med-High | Breaking change     |
-| PR5 | High       | Med      | Depends on PR4      |
-| PR6 | Low        | Low      | Docker libraries    |
-| PR7 | Low        | Low      | Dev utilities       |
-| PR8 | Low        | V.Low    | Documentation       |
 
-**Overall Risk**: Medium (mainly from PR4 breaking change and PR5 dependency)
+| PR  | Status   | Complexity | Risk     | Impact              |
+| --- | -------- | ---------- | -------- | ------------------- |
+| PR1 | Ready    | Med        | Low      | Isolated utilities  |
+| PR2 | ✓ Merged | Med        | Med      | Test infrastructure |
+| PR3 | ✓ Merged | Med        | Low      | Import tooling      |
+| PR4 | ✓ Merged | High       | Med-High | Breaking change     |
+| PR5 | ✓ Merged | High       | Med      | Depends on PR4      |
+| PR6 | Ready    | Low        | Low      | Docker libraries    |
+| PR7 | Ready    | Low        | Low      | Dev utilities       |
+| PR8 | Ready    | Low        | V.Low    | Documentation       |
+
+**Overall Risk**: Low (all critical/blocking PRs merged, remaining PRs are independent)
 
 ## Testing Strategy
-1. **Fast tests first**: Run PR1, PR2, PR3, PR6, PR7 tests in parallel
-2. **Sequential critical path**: PR4 → PR5 (must maintain order)
-3. **Documentation last**: PR8 has no executable impact
+1. **Remaining PRs can merge in parallel**: No dependencies between PR1, PR6, PR7, PR8
+2. **Tests for remaining PRs**:
+   - PR1: `pytest helpers/test/test_hdocker.py helpers/test/test_hlatex.py -v`
+   - PR6: No tests
+   - PR7: No tests
+   - PR8: No tests (documentation)
+3. **Documentation**: PR8 has no executable impact
 4. **Verify on macOS**: All changes target macOS test compatibility
 
-All test commands use `-v` flag for verbose output and are Python pytest
-commands
+All test commands use `-v` flag for verbose output and are Python pytest commands

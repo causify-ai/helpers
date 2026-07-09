@@ -24,7 +24,7 @@ description: Create instructions to build a children PR
 
 ```
 > export SRC_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass
-> export DST_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass_5
+> export DST_BRANCH=HelpersTask1273_Get_Mac_tests_to_pass_6
 
 > git checkout master
 > git pull
