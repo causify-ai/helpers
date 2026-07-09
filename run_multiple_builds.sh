@@ -8,7 +8,8 @@ rm -rf build1.txt build2.txt build3.txt
 #TARGET="."
 #TARGET="helpers/test/test_hunit_test_purification.py helpers/test/test_hintrospection.py helpers/test/test_hnumpy.py helpers/test/test_hunit_test.py"
 #CMD="pytest_log $TARGET"
-CMD="./pr_test.sh"
+#CMD="./pr_test.sh"
+CMD="./tmp.pytest_failed.repro.sh"
 #
 manage_cache.py --action clear_all
 (export CSFY_DOCKER_ENGINE="docker"; $CMD) 2>&1 | tee build1.txt

@@ -28,6 +28,8 @@ import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
 
+import dev_scripts_helpers.coding_tools.copy_across_clients as dscoac
+
 _LOG = logging.getLogger(__name__)
 
 # pylint: disable=protected-access
@@ -831,7 +833,7 @@ def git_branch_copy(  # type: ignore
     :param use_patch: apply patching instead of merging
     :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
-    :param method: method to use for generating branch name ('auto', 'github_api', 'linear_scan')
+    :param method: method to use for generating branch name:
         - 'auto' (default): tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
@@ -890,6 +892,70 @@ def git_branch_copy(  # type: ignore
     # Squash merge copies all commits as a single change without creating a merge commit.
     cmd = f"git merge --squash --ff {curr_branch_name} && git reset HEAD"
     hltltaut.run(ctx, cmd)
+
+
+@task
+def git_branch_subcopy(  # type: ignore
+    ctx,
+    from_file="",
+    dst_dir="",
+    method="auto",
+):
+    """
+    Create a new branch in a different directory with subset of files.
+
+    :param from_file: path to file containing list of files to copy
+    :param dst_dir: destination directory where new branch will be created
+    :param method: method to use for generating branch name:
+        - 'auto' (default): tries GitHub API first, falls back to linear scan
+        - 'github_api': use only GitHub API method (fast)
+        - 'linear_scan': use only linear scan method (always works)
+    """
+    # Validate inputs.
+    hdbg.dassert_ne(
+        from_file,
+        "",
+        "from_file must be provided",
+    )
+    hdbg.dassert_ne(
+        dst_dir,
+        "",
+        "dst_dir must be provided",
+    )
+    hdbg.dassert(
+        os.path.exists(from_file),
+        f"from_file does not exist: {from_file}",
+    )
+    hdbg.dassert(
+        os.path.isdir(dst_dir),
+        f"dst_dir does not exist or is not a directory: {dst_dir}",
+    )
+    # Get next branch name.
+    branch_name = hgit.get_branch_next_name(method=method)
+    _LOG.info("branch_name='%s'", branch_name)
+    hdbg.dassert_ne(
+        branch_name,
+        None,
+        "Branch name must not be None after generation",
+    )
+    # Allow scratch branches to bypass naming convention.
+    check_branch_name = not branch_name.startswith("gp_scratch")
+    # Navigate to destination directory and create branch.
+    original_dir = os.getcwd()
+    try:
+        os.chdir(dst_dir)
+        cmd = f"git checkout master && invoke git_branch_create --branch-name '{branch_name}'"
+        if not check_branch_name:
+            cmd += " --no-check-branch-name"
+        hltltaut.run(ctx, cmd)
+        # Copy files from current directory to destination directory.
+        from argparse import Namespace
+        args = Namespace(from_file=from_file, files=None)
+        files = dscoac._get_files_to_copy(args)
+        _LOG.info("Copying %d items", len(files))
+        dscoac._copy_files(original_dir, dst_dir, files, dry_run=False)
+    finally:
+        os.chdir(original_dir)
 
 
 # ///////////////////////////////////////////////////////////////////////////////
