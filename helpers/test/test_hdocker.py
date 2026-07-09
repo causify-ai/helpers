@@ -141,7 +141,16 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             check_if_exists,
         )
         # Check output.
-        self.assert_equal(docker_file_path, exp_docker_file_path)
+        # `docker_file_path` is always container-side (e.g., `/app/...`), while
+        # `exp_docker_file_path` is built from the host-side git root, so both
+        # need to be purified to the same `$GIT_ROOT`-relative form to compare
+        # equal regardless of checkout nesting (plain repo vs. submodule).
+        self.assert_equal(
+            docker_file_path,
+            exp_docker_file_path,
+            purify_text=True,
+            purify_expected_text=True,
+        )
         self.assert_equal(mount, exp_mount)
 
     def test1(self) -> None:
@@ -162,7 +171,11 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             "Test_convert_to_docker_path1.test1/input",
             "tmp.llm_transform.in.txt",
         )
-        exp_mount = "type=bind,source=/app,target=/app"
+        # `source` is the host-side Git root mounted into the container
+        # (`/app` inside the container, but the real host path outside of
+        # it), so it must be computed the same way `get_docker_mount_info()`
+        # does instead of hardcoding the container-side `/app`.
+        exp_mount = f"type=bind,source={hgit.find_git_root()},target=/app"
         self.helper(
             in_file_path,
             is_caller_host,
@@ -194,7 +207,8 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             "Test_convert_to_docker_path1.test2/input",
             "tmp.input.md",
         )
-        exp_mount = "type=bind,source=/app,target=/app"
+        # See comment in `test1()` about why this is computed dynamically.
+        exp_mount = f"type=bind,source={hgit.find_git_root()},target=/app"
         self.helper(
             in_file_path,
             is_caller_host,
