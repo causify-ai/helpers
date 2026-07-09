@@ -3,7 +3,7 @@ from typing import Optional
 
 import pytest
 
-import helpers.henv as henv
+import helpers.hserver as hserver
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters2.linter_utils as llinutil
@@ -420,7 +420,7 @@ class Test_is_executable(hunitest.TestCase):
         self.helper(executable_file, permissions, expected)
 
     @pytest.mark.skipif(
-        henv.is_inside_docker(),
+        hserver.is_inside_docker(),
         reason="Docker Desktop on Mac doesn't preserve file permissions accurately on "
         "mounted volumes",
     )
