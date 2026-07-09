@@ -133,7 +133,9 @@ def _process_single_file(file_path: str) -> dict:
     _LOG.info("Created '%s'", stacktraces_file)
     # Extract summary info.
     num_passed = len(info["log_passed_tests"]) if info["log_passed_tests"] else 0
-    num_skipped = len(info["log_skipped_tests"]) if info["log_skipped_tests"] else 0
+    num_skipped = (
+        len(info["log_skipped_tests"]) if info["log_skipped_tests"] else 0
+    )
     num_failed = len(info["log_failed_tests"]) if info["log_failed_tests"] else 0
     num_total = num_passed + num_skipped + num_failed
     passed = "PASS" if num_failed == 0 else "FAIL"
@@ -165,7 +167,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Print summary table.
     if len(files) > 1:
         print(hprint.frame("Summary"))
-        print(f"{'Build':<50} {'Status':<6} {'Passed':<8} {'Skipped':<8} {'Failed':<8} {'Total':<8}")
+        print(
+            f"{'Build':<50} {'Status':<6} {'Passed':<8} {'Skipped':<8} {'Failed':<8} {'Total':<8}"
+        )
         print("-" * 88)
         for row in summary:
             print(

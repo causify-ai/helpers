@@ -113,7 +113,9 @@ def _run_build(
         shell=True,
         check=False,
     )
-    _LOG.info("Build %d completed with exit code %d", build_num, result.returncode)
+    _LOG.info(
+        "Build %d completed with exit code %d", build_num, result.returncode
+    )
 
 
 def _cleanup_old_files() -> None:
@@ -139,7 +141,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.target:
         cmd = _build_pytest_cmd(args.target)
     else:
-        hdbg.dassert_ne(args.script, "", "Either --target or --script must be provided")
+        hdbg.dassert_ne(
+            args.script, "", "Either --target or --script must be provided"
+        )
         cmd = args.script
     _LOG.info("Command to run: %s", cmd)
     # Run 3 builds.
@@ -147,11 +151,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not args.no_delete_cache:
             _clear_cache()
         if build_num == 1:
-            _run_build(build_num, cmd, docker_engine="docker", use_docker_cmd=False)
+            _run_build(
+                build_num, cmd, docker_engine="docker", use_docker_cmd=False
+            )
         elif build_num == 2:
-            _run_build(build_num, cmd, docker_engine="apple", use_docker_cmd=False)
+            _run_build(
+                build_num, cmd, docker_engine="apple", use_docker_cmd=False
+            )
         elif build_num == 3:
-            _run_build(build_num, cmd, docker_engine="docker", use_docker_cmd=True)
+            _run_build(
+                build_num, cmd, docker_engine="docker", use_docker_cmd=True
+            )
     _LOG.info("All builds completed")
 
 
