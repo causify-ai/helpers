@@ -26,7 +26,7 @@ import os
 import platform
 import time
 
-import dev_scripts_helpers.coding_tools.last_cmd as dsclastc
+import dev_scripts_helpers.coding_tools.last_cmd as dshctlacm
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -43,9 +43,7 @@ def _get_last_command() -> str:
 
     :return: tuple of (last command, current working directory)
     """
-    last_command = dsclastc._get_nth_command(
-        1, exclude_substrings=["notify"]
-    )
+    last_command = dshctlacm._get_nth_command(1, exclude_substrings=["notify"])
     return last_command
 
 
@@ -56,16 +54,14 @@ def _get_iterm2_name() -> str:
     :return: iTerm2 session name
     """
     cmd = (
-        "osascript -e 'tell application \"iTerm2\" to name of current "
+        'osascript -e \'tell application "iTerm2" to name of current '
         "session of current window'"
     )
     _, name = hsystem.system_to_one_line(cmd)
     return name
 
 
-def _send_notification(
-    message: str, *, sound_name: str = "Glass"
-) -> None:
+def _send_notification(message: str, *, sound_name: str = "Glass") -> None:
     """
     Send a macOS notification via `osascript`.
 
@@ -75,10 +71,11 @@ def _send_notification(
     :param title: title of the notification
     :param sound_name: name of the macOS sound to play
     """
-    hdbg.dassert_eq(platform.system(), "Darwin",
-        "Notifications are only supported on macOS")
+    hdbg.dassert_eq(
+        platform.system(), "Darwin", "Notifications are only supported on macOS"
+    )
     cmd = (
-        f"osascript -e 'display notification \"{message}\" "
+        f'osascript -e \'display notification "{message}" '
         f'with title "" sound name "{sound_name}"\''
     )
     hsystem.system(cmd)
@@ -114,7 +111,9 @@ def _blink_pane(timeout: int) -> None:
         while timeout == -1 or (time.time() - start_time) < timeout:
             hsystem.system(f"tmux rename-window -t {window_id} -- '{done_name}'")
             time.sleep(0.5)
-            hsystem.system(f"tmux rename-window -t {window_id} -- '{blank_name}'")
+            hsystem.system(
+                f"tmux rename-window -t {window_id} -- '{blank_name}'"
+            )
             time.sleep(0.5)
     except KeyboardInterrupt:
         _LOG.info("Interrupted, restoring window name")

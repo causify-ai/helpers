@@ -371,6 +371,81 @@
             self.helper(input1, expected)
     ```
 
+## Factor Test Code via Helper Methods, Not Setup
+
+- When multiple test methods need the same helper logic
+  - create a helper method within the test class
+  - have each test method call the helper directly
+  - do not factor shared code into `setUp()`, `setUpClass()`, or fixture setup
+    functions
+
+- Reason:
+  - Setup methods are for initializing test state (creating temp dirs, mocking dependencies), not for code shared across test logic
+  - Having each test explicitly call helpers makes the test flow clear and self-documenting
+  - If a helper is not called, the test still runs and you see the actual failure, not a hidden setup issue
+  - Setup-based patterns hide dependencies and make tests harder to understand and debug
+
+- **Bad** (shared test logic in setUp)
+  ```python
+  class TestFunctionName(hunitest.TestCase):
+      def setUp(self) -> None:
+          """
+          Setup shared across all tests.
+          """
+          self.input = "test_input"
+          self.expected = "test_output"
+
+      def test1(self) -> None:
+          """
+          Test case 1.
+          """
+          actual = function_under_test(self.input)
+          self.assert_equal(actual, self.expected)
+
+      def test2(self) -> None:
+          """
+          Test case 2.
+          """
+          actual = function_under_test(self.input)
+          self.assert_equal(actual, self.expected)
+  ```
+
+- **Good** (each test calls helper with explicit inputs)
+  ```python
+  class TestFunctionName(hunitest.TestCase):
+      def helper(self, input_val: str, expected: str) -> None:
+          """
+          Helper for function_under_test.
+
+          :param input_val: Input to test
+          :param expected: Expected output
+          """
+          actual = function_under_test(input_val)
+          self.assert_equal(actual, expected)
+
+      def test1(self) -> None:
+          """
+          Test case 1.
+          """
+          # Prepare inputs.
+          input_val = "test_input"
+          # Prepare outputs.
+          expected = "test_output"
+          # Run test.
+          self.helper(input_val, expected)
+
+      def test2(self) -> None:
+          """
+          Test case 2.
+          """
+          # Prepare inputs.
+          input_val = "test_input"
+          # Prepare outputs.
+          expected = "test_output"
+          # Run test.
+          self.helper(input_val, expected)
+  ```
+
 ## Avoid Base Test Classes for Shared Code
 
 - Do not create derived test classes to share testing utilities
