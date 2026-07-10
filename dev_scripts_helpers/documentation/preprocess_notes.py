@@ -60,22 +60,22 @@ _VALID_ACTIONS = [
 
 
 def _colorize_backticks(
-    in_line: str, *, color: str = "blue", output_format: str
+    in_line: str, color: str, output_format: str,
 ) -> str:
     r"""
-    Convert backtick-wrapped strings to colored format (LaTeX or Typst).
+    Convert backtick-wrapped strings to colored format.
 
-    LaTeX examples:
-    - `store` into `\textcolor{blue}{\texttt{store}}`
-    - `weeks_to_xmas` into `\textcolor{blue}{\texttt{weeks\_to\_xmas}}`
+    For LaTeX output, converts backticks to `\textcolor{color}{\texttt{content}}`
+    E.g., `store` into `\textcolor{blue}{\texttt{store}}`
+    E.g., `weeks_to_xmas` into `\textcolor{blue}{\texttt{weeks\_to\_xmas}}`
 
-    Typst examples:
-    - `store` into `#text(fill: blue)[`store`]`
-    - `weeks_to_xmas` into `#text(fill: blue)[`weeks_to_xmas`]`
+    For Typst output, converts backticks to `#text(fill: color)[`content`]`
+    E.g., `store` into `#text(fill: blue)[`store`]`
+    E.g., `weeks_to_xmas` into `#text(fill: blue)[`weeks_to_xmas`]`
 
     :param in_line: input line to process
-    :param color: color name (LaTeX or Typst format, default: 'blue')
-    :param output_format: output format ('latex' or 'typst') - mandatory
+    :param color: color name
+    :param output_format: "latex" or "typst"
     :return: transformed line with backticks replaced
     """
     hdbg.dassert_in(output_format, ("latex", "typst"))

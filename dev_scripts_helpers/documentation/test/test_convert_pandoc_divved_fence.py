@@ -1,5 +1,8 @@
 import os
+import shutil
 from typing import Any, Dict, List
+
+import pytest
 
 import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dshdcpdfe
 import helpers.hdbg as hdbg
@@ -518,6 +521,9 @@ class Test_end_to_end(hunitest.TestCase):
         actual_outcome = outcome_to_str(outcome)
         self.check_string(actual_outcome)
 
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None, reason="pandoc is not installed"
+    )
     def test1(self) -> None:
         """
         Test full pipeline:

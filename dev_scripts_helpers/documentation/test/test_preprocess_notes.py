@@ -306,9 +306,9 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         )
         # Run test.
         is_qa = False
-        markup_type = "latex"
+        output_format = "latex"
         actual = dshdprno._transform_lines(
-            txt_in_lines, type_, is_qa, markup_type
+            txt_in_lines, type_, is_qa, output_format
         )
         actual = "\n".join(actual)
         # Check outputs.
@@ -683,8 +683,8 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         # Execute function.
         type_ = "pdf"
         is_qa = False
-        markup_type = "latex"
-        actual = dshdprno._transform_lines(txt_in, type_, is_qa, markup_type)
+        output_format = "latex"
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa, output_format)
         actual = "\n".join(actual)
         # Check.
         expected = r"""
@@ -824,9 +824,9 @@ class Test_preprocess_notes_remove_headers1(hunitest.TestCase):
         type_ = "pdf"
         toc_type = "remove_headers"
         is_qa = False
-        markup_type = "latex"
+        output_format = "latex"
         actual = dshdprno._preprocess_lines(
-            txt_in, type_, toc_type, is_qa, markup_type
+            txt_in, type_, toc_type, is_qa, output_format
         )
         actual = "\n".join(actual)
         # Check.
@@ -1611,9 +1611,9 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         :param expected_contains: string that output should contain
         """
         # Run test.
-        markup_type = "latex"
+        output_format = "latex"
         actual = dshdprno._preprocess_lines(
-            lines, type_, toc_type, is_qa, markup_type
+            lines, type_, toc_type, is_qa, output_format
         )
         # Check outputs.
         self.assertIn(expected_contains, "\n".join(actual))
@@ -1651,10 +1651,10 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
         type_ = "pdf"
         toc_type = "remove_headers"
         is_qa = False
-        markup_type = "latex"
+        output_format = "latex"
         # Run test.
         actual = dshdprno._preprocess_lines(
-            lines, type_, toc_type, is_qa, markup_type
+            lines, type_, toc_type, is_qa, output_format
         )
         actual_str = "\n".join(actual)
         # Check outputs.
@@ -1694,8 +1694,8 @@ class Test_transform_lines_qa(hunitest.TestCase):
         :param expected: expected output lines
         """
         # Run test.
-        markup_type = "latex"
-        actual = dshdprno._transform_lines(lines, type_, is_qa, markup_type)
+        output_format = "latex"
+        actual = dshdprno._transform_lines(lines, type_, is_qa, output_format)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -1804,9 +1804,9 @@ class Test_transform_lines_actions(hunitest.TestCase):
         :param expected: expected output lines
         :param actions: optional actions to perform
         """
-        markup_type = "latex"
+        output_format = "latex"
         actual = dshdprno._transform_lines(
-            lines, type_, is_qa, markup_type, actions=actions
+            lines, type_, is_qa, output_format, actions=actions
         )
         self.assertEqual(actual, expected)
 
@@ -1881,10 +1881,10 @@ class Test_preprocess_lines_navigation(hunitest.TestCase):
         type_ = "slides"
         toc_type = "navigation"
         is_qa = False
-        markup_type = "latex"
+        output_format = "latex"
         # Run test.
         actual = dshdprno._preprocess_lines(
-            lines, type_, toc_type, is_qa, markup_type
+            lines, type_, toc_type, is_qa, output_format
         )
         # Check outputs.
         self.assertGreaterEqual(len(actual), len(lines))

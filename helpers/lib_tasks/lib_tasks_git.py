@@ -28,8 +28,6 @@ import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
 
-import dev_scripts_helpers.coding_tools.copy_across_clients as dscoac
-
 _LOG = logging.getLogger(__name__)
 
 # pylint: disable=protected-access
@@ -895,41 +893,41 @@ def git_branch_copy(  # type: ignore
 
 
 @task
-def git_branch_subcopy(  # type: ignore
+def git_branch_subset_copy(  # type: ignore
     ctx,
     from_file="",
-    dst_dir="",
+    pr=0,
     method="auto",
+    dst_dir="",
 ):
     """
     Create a new branch in a different directory with subset of files.
 
     :param from_file: path to file containing list of files to copy
-    :param dst_dir: destination directory where new branch will be created
+    :param pr: PR number to use files from pr<NUM>.files.txt and copy pr<NUM>.pytest.sh
     :param method: method to use for generating branch name:
         - 'auto' (default): tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
+    :param dst_dir: destination directory where new branch will be created
     """
     # Validate inputs.
+    if pr > 0:
+        hdbg.dassert_eq(from_file, "")
+        # Use PR-based file list.
+        from_file = f"pr{pr}.files.txt"
     hdbg.dassert_ne(
         from_file,
         "",
-        "from_file must be provided",
+        "from_file or --pr must be provided",
     )
     hdbg.dassert_ne(
         dst_dir,
         "",
         "dst_dir must be provided",
     )
-    hdbg.dassert(
-        os.path.exists(from_file),
-        f"from_file does not exist: {from_file}",
-    )
-    hdbg.dassert(
-        os.path.isdir(dst_dir),
-        f"dst_dir does not exist or is not a directory: {dst_dir}",
-    )
+    hdbg.dassert_file_exists(from_file)
+    hdbg.dassert_dir_exists(dst_dir)
     # Get next branch name.
     branch_name = hgit.get_branch_next_name(method=method)
     _LOG.info("branch_name='%s'", branch_name)
@@ -944,16 +942,26 @@ def git_branch_subcopy(  # type: ignore
     original_dir = os.getcwd()
     try:
         os.chdir(dst_dir)
-        cmd = f"git checkout master && invoke git_branch_create --branch-name '{branch_name}'"
+        cmd = "git checkout master"
+        hltltaut.run(ctx, cmd)
+        #
+        cmd = f"invoke git_branch_create --branch-name '{branch_name}'"
         if not check_branch_name:
             cmd += " --no-check-branch-name"
         hltltaut.run(ctx, cmd)
         # Copy files from current directory to destination directory.
-        from argparse import Namespace
-        args = Namespace(from_file=from_file, files=None)
-        files = dscoac._get_files_to_copy(args)
-        _LOG.info("Copying %d items", len(files))
-        dscoac._copy_files(original_dir, dst_dir, files, dry_run=False)
+        with open(from_file) as f:
+            files_to_copy = [line.strip() for line in f if line.strip()]
+        _LOG.info("Copying %d files to destination", len(files_to_copy))
+        cmd = f"copy_across_clients.py --dir1 {original_dir} --dir2 {dst_dir} --from_file {from_file}"
+        hsystem.system(cmd)
+        # Copy pytest script if using PR mode.
+        if pr > 0:
+            pytest_src = os.path.join(original_dir, f"pr{pr}.pytest.sh")
+            hdbg.dassert_file_exists(pytest_src)
+            pytest_dst = os.path.join(dst_dir, f"pr{pr}.pytest.sh")
+            _LOG.info("Copying %s to %s", pytest_src, pytest_dst)
+            hsystem.system(f"cp {pytest_src} {pytest_dst}")
     finally:
         os.chdir(original_dir)
 

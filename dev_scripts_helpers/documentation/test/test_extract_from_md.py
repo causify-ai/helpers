@@ -1,9 +1,7 @@
 import logging
 import os
-from typing import Generator, List
+from typing import List
 from unittest import mock
-
-import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio

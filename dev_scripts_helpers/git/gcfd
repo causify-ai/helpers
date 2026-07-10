@@ -1,0 +1,8 @@
+#!/bin/bash -e
+# """
+# > git clean -fd
+# """
+
+source helpers.sh
+
+execute "git clean -fd"
