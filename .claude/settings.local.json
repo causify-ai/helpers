@@ -11,7 +11,8 @@
       "Bash(python3 *)",
       "Bash(rtk grep *)",
       "Bash(rtk pytest *)",
-      "Bash(rtk read *)"
+      "Bash(rtk read *)",
+      "Bash(rtk git *)"
     ],
     "deny": [
       "Bash(*git commit:*)",

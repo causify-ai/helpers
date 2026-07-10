@@ -1,10 +1,11 @@
 ---
-description: Split the current Git branch / PR in small cohesive PRs to simplify merging
+description: Split the current changes in a Git client in small cohesive PRs to simplify merging
 ---
 
 # Goal
 
-- Propose how to split the current Git branch / PR into small PRs to minimize:
+- Propose how to split the changes between current `HEAD` of the branch and
+  `origin/master` into small PRs to minimize:
   - The review complexity
   - The risk of breaking the unit tests
 
@@ -20,10 +21,25 @@ description: Split the current Git branch / PR in small cohesive PRs to simplify
   - Coding: `.claude/skills/coding.rules.md`
   - Unit tests: `.claude/skills/testing.rules.md`
 
-## Step 2: Read the changes in the current Git branch
+## Step 2: Read the changes in the current Git client
 
-- Analyze the changes and propose a set of PRs that decompose the changes in
-   coherent and tightly coupled changes
+- Obtain the files that need to be merged with
+  ```bash
+  git diff --name-status origin/master HEAD
+  ...
+  ```
+
+- Analyze the difference between the current client and `master` (or
+  `origin/master`):
+  ```bash
+  git diff master...HEAD --name-only
+  # or if master is not available locally:
+  git diff origin/master...HEAD --name-only
+  ```
+
+## Step 3: Propose PRs
+- Propose a set of PRs that decompose the changes in the current Git client, so
+  that there are coherent and tightly coupled changes
 
 - Prefer PRs that have the changes to an entire file instead of having to split
   changes in a file across multiple PRs
@@ -35,20 +51,39 @@ description: Split the current Git branch / PR in small cohesive PRs to simplify
   - In this case, the description is multiple bullets explain what each smaller
     unit does
 
-## Step 3: Order the PRs
+## Step 4: Order the PRs
+- Start with the PRs that have low risk and touch most files
 
-- Start with the PRs that have low risk
+## Step 5: Create pytest Command
 
-## Step 4: Create pytest Command
+- For each PR create:
+  - A file `pr<NUM>.files.txt` with the files changed, e.g.,
+    ```
+    .claude/skills
+    .claude/templates
+    .claude/notify.sh
+    .claude/settings.local.json
+    ```
+  - A file `pr<NUM>.pytest.sh` with the pytest command to run to exercise the
+    changes by running the tests in all the modified files and make sure the PR
+    is running successfully, e.g.,
+    ```bash
+    #!/bin/bash
+    pytest_log \
+      dev_scripts_helpers/coding_tools/test \
+      dev_scripts_helpers/dockerize/test \
+      linters2/test \
+      $@
+    ```
+  - Make this script executable with `chmod +x pr<NUM>.pytest.sh`
 
-- For each PR create a command with pytest command to run to exercise the changes
-  by running the tests in all the modified files
-
-## Step 5: Report the output in the following format
+## Step 6: Report the output in the following format
 
 - Create a file `github_PR_plan.md` with the plan to split the PRs, following
   strictly the format in `.claude/templates/github_PR_plan.template.md`
-- Run the linter
+- If the file `github_PR_plan.md` already exists then updated it removing
+  the PRs already merged based on the current `i git_files` and the `git log`
+- Run the linter on `github_PR_plan.md`
   ```
   > lint_txt.py -i github_PR_plan.md
   ```

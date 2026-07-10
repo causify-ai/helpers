@@ -10,6 +10,7 @@ import shutil
 from typing import Dict, List, Optional
 from unittest import mock
 
+
 import pytest
 
 import dev_scripts_helpers.coding_tools.copy_across_clients as dshctcacl
@@ -143,40 +144,7 @@ class Test_copy_across_clients_py(hunitest.TestCase):
         self.assertTrue(os.path.exists(file1_path))
         self.assertTrue(os.path.exists(file2_path))
 
-    @pytest.mark.skipif(
-        shutil.which("rsync") is None,
-        reason="rsync not installed"
-    )
     def test3(self) -> None:
-        """
-        Test copying entire directory with --dir option.
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        dir_names = ["source", "dest"]
-        dirs = self._setup_test_dirs(scratch_dir, dir_names)
-        files_spec = {
-            "file1.txt": "file1 content",
-            "subdir/file2.txt": "file2 content",
-        }
-        self._create_test_files(dirs["source"], files_spec)
-        dir1 = dirs["source"]
-        dir2 = dirs["dest"]
-        argv = [
-            "copy_across_clients.py",
-            f"--dir1={dir1}",
-            f"--dir2={dir2}",
-            "--dir",
-        ]
-        # Run test.
-        self._run_main(argv)
-        # Check outputs.
-        file1_path = os.path.join(dir2, "file1.txt")
-        file2_path = os.path.join(dir2, "subdir", "file2.txt")
-        self.assertTrue(os.path.exists(file1_path))
-        self.assertTrue(os.path.exists(file2_path))
-
-    def test4(self) -> None:
         """
         Test dry run with --dry_run option.
         """

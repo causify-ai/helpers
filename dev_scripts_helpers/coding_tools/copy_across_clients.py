@@ -70,9 +70,6 @@ def _get_files_to_copy(args: argparse.Namespace) -> List[str]:
         content = hio.from_file(args.from_file)
         files = [line.strip() for line in content.split("\n") if line.strip()]
         return files
-    elif args.dir:
-        # Copy entire directory.
-        return ["."]
     else:
         # This should never happen since argparse enforces mutually_exclusive_group.
         raise ValueError("No files specified")
@@ -180,11 +177,6 @@ def _parse() -> argparse.ArgumentParser:
         "--from_file",
         action="store",
         help="File containing list of file/directory paths to copy (one per line)",
-    )
-    copy_group.add_argument(
-        "--dir",
-        action="store_true",
-        help="Copy entire directory from dir1 to dir2",
     )
     # Optional arguments.
     parser.add_argument(
