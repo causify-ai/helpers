@@ -4,7 +4,7 @@ model: haiku
 ---
 
 # Goal
-- Given a pytest target `<TARGET>` (e.g., dev_scripts_helpers/documentation/test/test_notes_to_pdf.py)
+- Given a pytest target `<TARGET>` (e.g., `dev_scripts_helpers/documentation/test/test_notes_to_pdf.py`)
   run the tests, create a plan to fix the tests
 
 # Workflow

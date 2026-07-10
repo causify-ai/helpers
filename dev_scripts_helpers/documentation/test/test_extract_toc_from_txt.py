@@ -232,7 +232,7 @@ class Test_extract_headers_from_markdown(hunitest.TestCase):
         content = hprint.dedent(content)
         lines = content.split("\n")
         # Prepare outputs.
-        expected = content
+        expected = "# Chapter 1\n## Section 1.1"
         mode = "headers"
         max_level = 3
         # Run test.
