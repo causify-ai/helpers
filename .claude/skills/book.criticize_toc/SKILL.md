@@ -7,24 +7,22 @@ model: opus
 - Criticize a proposed chapter (or set of chapters) in a book's table of content
   and propose concrete, ranked improvements to topics, ordering, scope, and
   audience fit
-- Target: a `## N: Title` section of a `book_map.md`
-  - E.g., `## 15: Building Stakeholder Alignment` from `book.springer/book_map.md`
-
-- Read the structure of a `book_map.md` which is defined in
-  `.claude/templates/book_map.template.md`
 
 # Workflow
 
 ## Step 1: Read Context
 - Read `.claude/templates/book_map.template.md` for the expected structure
-- The `book_map.md` it lives in, read whole for context, not just the target
-  section
-  - Read the `**Title**` and `**Target audience**` at the top of `book_map.md`
-  - Read the target chapter's overview line, `### Topics`, and `### Lessons`
-  - Read the `# Part` heading and scope description the chapter belongs to
-  - Read the sibling chapters in that Part and the immediate neighbors, chapter
-    N-1 and N+1, to judge continuity
 
+- Read the `book_map.md` that stores the `### Topics` making up the table of
+  content
+  - Read the `**Title**` and `**Target audience**` at the top of `book_map.md`
+  - Read the target chapter's overview line, `### Topics`
+  - Ignore the rest of the sections besides `### Topics` (i.e., `### Lessons`,
+    `### Tutorials`, `### Related packages`, `### Related books`, `### Related
+    papers`)
+  - Read the `# Part` heading and scope description the chapter belongs to
+  - Read the `### Topics` in the sibling chapters in that Part and the immediate
+    neighbors, chapter N-1 and N+1, to judge continuity
 
 ## Step 2: Criticize
 - Evaluate along these axes, reporting only issues you are confident about:
@@ -53,23 +51,7 @@ model: opus
   ```markdown
   # Criticism: <chapter header>
 
-  ## Internal flow
   1. [CRITICAL/HIGH/MEDIUM/LOW] <issue>: <why>; <suggested fix>
-  ...
-
-  ## Cross-chapter flow
-  ...
-
-  ## Part fit
-  ...
-
-  ## Structure conformance
-  ...
-
-  ## Audience fit
-  ...
-
-  ## Scope and balance
   ...
   ```
 - Follow `.claude/skills/markdown.rules.md` to write the comments
