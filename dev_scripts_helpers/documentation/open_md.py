@@ -51,17 +51,12 @@ def _run_render_images(input_file: str) -> str:
     # Create output filename.
     output_file = "tmp.open_md.render_images.md"
     # Run render_images.py.
-    cmd = [
-        render_images_script,
-        "--input",
-        input_file,
-        "--output",
-        output_file,
-        "--action",
-        "render",
-    ]
-    _LOG.info("Running render_images: %s", " ".join(cmd))
-    hsystem.system(" ".join(cmd))
+    cmd = (
+        f"{render_images_script} --input {input_file} "
+        f"--output {output_file} --action render"
+    )
+    _LOG.info("Running render_images: %s", cmd)
+    hsystem.system(cmd)
     hdbg.dassert_file_exists(output_file)
     return output_file
 
@@ -191,7 +186,8 @@ def _render_with_pandoc(
             f"pandoc {processed_file} "
             f"-o {output_file} "
             f"--resource-path={file_dir} "
-            f"--standalone"
+            f"--standalone "
+            f"--mathjax"
         )
         _LOG.info("Running pandoc: %s", cmd)
         hsystem.system(cmd)
@@ -201,7 +197,8 @@ def _render_with_pandoc(
             f"pandoc {processed_file} "
             f"-o {output_file} "
             f"--resource-path={file_dir} "
-            f"--standalone"
+            f"--standalone "
+            f"--mathjax"
         )
         _LOG.info("Running dockerized pandoc: %s", cmd)
         dshdlipa.run_dockerized_pandoc(

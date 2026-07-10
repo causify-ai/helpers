@@ -59,30 +59,50 @@ _VALID_ACTIONS = [
 # #############################################################################
 
 
-def _colorize_backticks(in_line: str, *, color: str = "blue") -> str:
+def _colorize_backticks(
+    in_line: str, *, color: str = "blue", output_format: str = "latex"
+) -> str:
     r"""
-    Convert backtick-wrapped strings to LaTeX color format.
+    Convert backtick-wrapped strings to colored format.
 
+    For LaTeX output, converts backticks to `\textcolor{color}{\texttt{content}}`
     E.g., `store` into `\textcolor{blue}{\texttt{store}}`
     E.g., `weeks_to_xmas` into `\textcolor{blue}{\texttt{weeks\_to\_xmas}}`
 
+    For Typst output, converts backticks to `#text(fill: color)[`content`]`
+    E.g., `store` into `#text(fill: blue)[`store`]`
+    E.g., `weeks_to_xmas` into `#text(fill: blue)[`weeks_to_xmas`]`
+
     :param in_line: input line to process
-    :param color: LaTeX color name (default: 'blue')
+    :param color: color name (default: 'blue')
+    :param output_format: "latex" (default) or "typst"
     :return: transformed line with backticks replaced
     """
+    hdbg.dassert_in(output_format, ("latex", "typst"))
     line = in_line
     # Pattern to match single backticks (not triple backticks).
     # This matches backtick-wrapped text that doesn't contain triple backticks.
     pattern = r"(?<!`)`(?!`)([^`]+?)(?<!`)`(?!`)"
 
-    def replace_func(m: Match) -> str:
-        """
-        Replace function that escapes underscores in the matched text.
-        """
-        matched_text = m.group(1)
-        # Escape underscores for LaTeX.
-        escaped_text = matched_text.replace("_", r"\_")
-        return rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
+    if output_format == "latex":
+
+        def replace_func(m: Match) -> str:
+            """
+            Replace function that escapes underscores in the matched text.
+            """
+            matched_text = m.group(1)
+            # Escape underscores for LaTeX.
+            escaped_text = matched_text.replace("_", r"\_")
+            return rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
+
+    else:  # output_format == "typst"
+
+        def replace_func(m: Match) -> str:
+            """
+            Replace function for Typst format (no escaping needed).
+            """
+            matched_text = m.group(1)
+            return f"#text(fill: {color})[`{matched_text}`]"
 
     line = re.sub(pattern, replace_func, line)
     if line != in_line:
@@ -377,6 +397,7 @@ def _transform_lines(
     lines: List[str],
     type_: str,
     is_qa: bool,
+    output_format: str = "latex",
     *,
     actions: Optional[List[str]] = None,
 ) -> List[str]:
@@ -386,9 +407,11 @@ def _transform_lines(
     :param lines: list of lines of the notes
     :param type_: type of output to generate (e.g., `pdf`, `html`, `slides`)
     :param is_qa: True if the input is a QA file
+    :param output_format: "latex" (default) or "typst"
     :param actions: optional list of actions to perform
     :return: list of processed lines
     """
+    hdbg.dassert_in(output_format, ("latex", "typst"))
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
     hdbg.dassert_isinstance(lines, list)
     lines = [line.rstrip("\n") for line in lines]
@@ -454,7 +477,7 @@ def _transform_lines(
         if _TRACE:
             _LOG.debug("# Colorize backticks.")
         if not in_code_block:
-            line = _colorize_backticks(line)
+            line = _colorize_backticks(line, output_format=output_format)
         # TODO(gp): Not sure about this.
         # Update code block status based on triple backticks.
         if line.startswith("```"):
@@ -610,6 +633,7 @@ def _preprocess_lines(
     type_: str,
     toc_type: str,
     is_qa: bool,
+    output_format: str = "latex",
     *,
     actions: Optional[List[str]] = None,
 ) -> List[str]:
@@ -620,12 +644,16 @@ def _preprocess_lines(
     :param type_: type of output to generate
     :param toc_type: type of table of contents to add
     :param is_qa: True if the input is a QA file
+    :param output_format: "latex" (default) or "typst"
     :param actions: optional list of actions to perform
     :return: list of preprocessed lines
     """
     hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_in(output_format, ("latex", "typst"))
     # Apply transformations.
-    out = _transform_lines(lines, type_, is_qa=is_qa, actions=actions)
+    out = _transform_lines(
+        lines, type_, is_qa, output_format, actions=actions
+    )
     # Add TOC, if needed.
     if toc_type == "navigation":
         hdbg.dassert_eq(type_, "slides")
@@ -737,6 +765,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.type,
         args.toc_type,
         args.qa,
+        output_format="latex",
         actions=actions,
     )
     out = "\n".join(out)
