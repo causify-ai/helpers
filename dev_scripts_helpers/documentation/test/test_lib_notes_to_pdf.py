@@ -536,7 +536,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         :param expected: Expected invocation string
         """
         # Prepare inputs.
-        prefix = "tmp.html"
+        prefix = "tmp"
         use_host_tools = True
         dockerized_force_rebuild = False
         dockerized_use_sudo = False
@@ -556,7 +556,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
                     dockerized_use_sudo,
                 )
         # Check outputs.
-        self.assert_equal(result, ".html", fuzzy_match=True)
+        self.assert_equal(result, "tmp.html", fuzzy_match=True)
         invocations_str = hunteuti.invocations_to_str(invocations)
         self.assert_equal(
             invocations_str, expected, fuzzy_match=True, dedent=True
@@ -660,11 +660,8 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         # Prepare inputs.
         file_name = "slides.txt"
         no_pdf = False
-        expected_ext = ".pdf"
-        expected = """
-        pandoc
-        -t beamer
-        """
+        expected_ext = "slides.pdf"
+        expected = "pandoc slides.txt -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings --resource-path=. -o slides.pdf"
         # Run test.
         self.helper(file_name, no_pdf, expected, expected_ext)
 
@@ -675,11 +672,8 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         # Prepare inputs.
         file_name = "slides.txt"
         no_pdf = True
-        expected_ext = ".tex"
-        expected = """
-        pandoc
-        -t beamer
-        """
+        expected_ext = "slides.tex"
+        expected = "pandoc slides.txt -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings --resource-path=. -o slides.tex"
         # Run test.
         self.helper(file_name, no_pdf, expected, expected_ext)
 
@@ -690,12 +684,8 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         # Prepare inputs.
         file_name = "subdir/slides.txt"
         no_pdf = False
-        expected_ext = ".pdf"
-        expected = """
-        pandoc
-        -t beamer
-        --resource-path=
-        """
+        expected_ext = "subdir/slides.pdf"
+        expected = "pandoc subdir/slides.txt -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings --resource-path=subdir -o subdir/slides.pdf"
         # Run test.
         self.helper(file_name, no_pdf, expected, expected_ext)
 
@@ -706,13 +696,8 @@ class Test_build_pandoc_cmd(hunitest.TestCase):
         # Prepare inputs.
         file_name = "slides.txt"
         no_pdf = False
-        expected_ext = ".pdf"
-        expected = """
-        pandoc
-        -t beamer
-        --toc
-        --toc-depth 2
-        """
+        expected_ext = "slides.pdf"
+        expected = "pandoc slides.txt -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings --resource-path=. --toc --toc-depth 2 -o slides.pdf"
         # Run test.
         self.helper(
             file_name, no_pdf, expected, expected_ext, toc_type="pandoc_native"

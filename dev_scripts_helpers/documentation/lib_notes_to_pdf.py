@@ -615,7 +615,11 @@ def _build_pandoc_latex_cmd(
     # which is then saved in
     # ./data605/lectures_pdf/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png
     # Find the relative path to the resource path.
-    rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+    dir_path = os.path.dirname(file_name)
+    if dir_path:
+        rel_path = os.path.relpath(dir_path, os.getcwd())
+    else:
+        rel_path = "."
     cmd.append(f"--resource-path={rel_path}")
     # cmd.append("--resource-path=/app/data605/lectures_pdf/")
     if toc_type == "pandoc_native":
