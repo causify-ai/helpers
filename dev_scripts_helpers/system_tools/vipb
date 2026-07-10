@@ -1,0 +1,7 @@
+#!/bin/bash -e
+# """
+# Open with vi the files in the clipboard.
+# """
+FILE=$(pbpaste)
+echo $FILE
+vim $FILE

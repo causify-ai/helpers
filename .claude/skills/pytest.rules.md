@@ -26,6 +26,33 @@
 - Think carefully to see if the root cause and solution is the same for all the 3
   builds
 
+## Assume that the Issue is in the Expected Output
+
+- When there is a mismatch between the expected and actual outcome in a unit test
+  understand if:
+  - The code under test needs to be changed (and the unit test is correct) or
+  - The expected outcome is outdated and needs to be refreshed (while the code
+    under test is correct)
+
+- If the code under test is invalid Python (e.g., a syntax error) or an
+  assertion, fix the Python code and hypothesize that the unit test is correct
+- If the code under test was changed and now the corresponding unit test is not
+	passing, hypothesize that the unit test is not correct
+- Reason about the change in code to make an hypothesis of which is broken
+	(code under test or unit test)
+	- Test the hypothesis and reach a conclusion
+  - If you are not sure, ask the user their opinion
+
+## Updating the Test Outcomes
+- If the issue is clearly a mismatch of the outcome saved with
+  `self.check_string()` update the test outcome by running
+  ```
+  > pytest ... --update_outcomes
+  ```
+- If the issue is clearly a mismatch of the expected output when running
+  `self.assert_equal()`, `self.assertEqual()`, etc, update the expected outcome
+	in the code
+
 # Format for Unit Test Fixing Plan
 
 ## Prepare A Plan to Fix Failures
