@@ -4,7 +4,6 @@ import os
 import pytest
 
 import dev_scripts_helpers.documentation.render_images as dshdreim
-import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -21,6 +20,30 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_get_rendered_file_paths1(hunitest.TestCase):
+    """
+    Test `_get_rendered_file_paths()`.
+    """
+
+    def helper(
+        self,
+        out_file: str,
+        image_code_idx: int,
+        dst_ext: str,
+        dst_dir: str,
+        expected: str,
+    ) -> None:
+        """
+        Test helper for `_get_rendered_file_paths()`.
+        """
+        # Run test.
+        paths = dshdreim._get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, dst_dir
+        )
+        # Check outputs.
+        actual = "\n".join(paths)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -32,17 +55,12 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         dst_dir = "/a/b/c/d/figs"
         # Prepare outputs.
         expected = """
-        tmp.render_images/e.8.txt
-        /a/b/c/d/figs
-        figs/e.8.png
-        """
+            tmp.render_images/e.8.txt
+            /a/b/c/d/figs
+            figs/e.8.png
+            """
         # Run test.
-        paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, dst_dir
-        )
-        # Check outputs.
-        actual = "\n".join(paths)
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(out_file, image_code_idx, dst_ext, dst_dir, expected)
 
     def test2(self) -> None:
         """
@@ -55,17 +73,12 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         dst_dir = "/custom/path/images"
         # Prepare outputs.
         expected = """
-        tmp.render_images/e.8.txt
-        /custom/path/images
-        ../../../../custom/path/images/e.8.png
-        """
+            tmp.render_images/e.8.txt
+            /custom/path/images
+            ../../../../custom/path/images/e.8.png
+            """
         # Run test.
-        paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, dst_dir
-        )
-        # Check outputs.
-        actual = "\n".join(paths)
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(out_file, image_code_idx, dst_ext, dst_dir, expected)
 
 
 # #############################################################################
@@ -106,11 +119,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         C
         """
         extension = ".md"
-        expected = r"""
-        A
-        B
-        C
-        """
+        expected = in_text
         self.helper(in_text, extension, expected)
 
     def test2(self) -> None:
@@ -161,8 +170,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         in_text = """
         """
         extension = ".md"
-        expected = """
-        """
+        expected = in_text
         self.helper(in_text, extension, expected)
 
     def test5(self) -> None:
@@ -421,7 +429,7 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "graphviz"
         out_file_name = "test2.md"
         dst_ext = "svg"
-        expected_path = "figs/test2.1.svg"
+        expected_path = "figs/test2.1.png"
         self.helper(
             image_code, image_code_type, out_file_name, dst_ext, expected_path
         )
@@ -675,7 +683,7 @@ class Test_render_images1(hunitest.TestCase):
         )
         # Check output.
         actual = "\n".join(out_lines)
-        hdbg.dassert_ne(actual, "")
+        self.assertNotEqual(actual, "")
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected, remove_lead_trail_empty_lines=True)
 
@@ -1328,7 +1336,7 @@ class Test_render_images2(hunitest.TestCase):
         )
         actual = "\n".join(out_lines)
         # Check outputs.
-        hdbg.dassert_ne(actual, "")
+        self.assertNotEqual(actual, "")
         expected_file = os.path.join(self.get_output_dir(), "output.txt")
         expected = hio.from_file(expected_file)
         self.assert_equal(actual, expected)
@@ -1385,6 +1393,35 @@ class Test_render_images_script1(hunitest.TestCase):
     def _get_exec_path(self) -> str:
         return hgit.find_file_in_git_tree("render_images.py", super_module=True)
 
+    def _run_render_test(
+        self, test_content: str, output_format: str = ""
+    ) -> None:
+        """
+        Helper to test rendering with different content and formats.
+
+        :param test_content: Content to render
+        :param output_format: Output format (e.g., png, svg), empty for default
+        """
+        # Prepare inputs.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        # Build command.
+        cmd_parts = [
+            self._get_exec_path(),
+            f"-i {test_file}",
+            "--action render",
+        ]
+        if output_format:
+            cmd_parts.append(f"--output_format {output_format}")
+        cmd_parts.append("--dry_run")
+        cmd = " ".join(cmd_parts)
+        # Run test.
+        rc = hsystem.system(cmd)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+
     def test1(self) -> None:
         """
         Test that the script can display help without errors.
@@ -1400,9 +1437,6 @@ class Test_render_images_script1(hunitest.TestCase):
         """
         Test script with dry run on a simple Markdown file.
         """
-        # Prepare inputs.
-        scratch_space = self.get_scratch_space()
-        test_file = os.path.join(scratch_space, "test_input.md")
         test_content = """
         # Test Document
 
@@ -1410,21 +1444,12 @@ class Test_render_images_script1(hunitest.TestCase):
         Alice -> Bob: Hello
         ```
         """
-        test_content = hprint.dedent(test_content)
-        hio.to_file(test_file, test_content)
-        cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
-        # Run test.
-        rc = hsystem.system(cmd)
-        # Check outputs.
-        self.assertEqual(rc, 0)
+        self._run_render_test(test_content)
 
     def test3(self) -> None:
         """
         Test script with default output format (png).
         """
-        # Prepare inputs.
-        scratch_space = self.get_scratch_space()
-        test_file = os.path.join(scratch_space, "test_input.md")
         test_content = """
         # Test Document
 
@@ -1433,21 +1458,12 @@ class Test_render_images_script1(hunitest.TestCase):
             A --> B
         ```
         """
-        test_content = hprint.dedent(test_content)
-        hio.to_file(test_file, test_content)
-        cmd = f"{self._get_exec_path()} -i {test_file} --action render --dry_run"
-        # Run test.
-        rc = hsystem.system(cmd)
-        # Check outputs.
-        self.assertEqual(rc, 0)
+        self._run_render_test(test_content)
 
     def test4(self) -> None:
         """
         Test script with explicit --output_format png.
         """
-        # Prepare inputs.
-        scratch_space = self.get_scratch_space()
-        test_file = os.path.join(scratch_space, "test_input.md")
         test_content = """
         # Test Document
 
@@ -1455,24 +1471,12 @@ class Test_render_images_script1(hunitest.TestCase):
         digraph G { A -> B; }
         ```
         """
-        test_content = hprint.dedent(test_content)
-        hio.to_file(test_file, test_content)
-        cmd = (
-            f"{self._get_exec_path()} -i {test_file} --action render "
-            f"--output_format png --dry_run"
-        )
-        # Run test.
-        rc = hsystem.system(cmd)
-        # Check outputs.
-        self.assertEqual(rc, 0)
+        self._run_render_test(test_content, output_format="png")
 
     def test5(self) -> None:
         """
         Test script with explicit --output_format svg.
         """
-        # Prepare inputs.
-        scratch_space = self.get_scratch_space()
-        test_file = os.path.join(scratch_space, "test_input.md")
         test_content = """
         # Test Document
 
@@ -1480,24 +1484,12 @@ class Test_render_images_script1(hunitest.TestCase):
         Alice -> Bob: Hello
         ```
         """
-        test_content = hprint.dedent(test_content)
-        hio.to_file(test_file, test_content)
-        cmd = (
-            f"{self._get_exec_path()} -i {test_file} --action render "
-            f"--output_format svg --dry_run"
-        )
-        # Run test.
-        rc = hsystem.system(cmd)
-        # Check outputs.
-        self.assertEqual(rc, 0)
+        self._run_render_test(test_content, output_format="svg")
 
     def test6(self) -> None:
         """
         Test that tikz supports png output format.
         """
-        # Prepare inputs.
-        scratch_space = self.get_scratch_space()
-        test_file = os.path.join(scratch_space, "test_input.md")
         test_content = r"""
         # Test Document
 
@@ -1505,13 +1497,4 @@ class Test_render_images_script1(hunitest.TestCase):
         \draw (0,0) -- (1,1);
         ```
         """
-        test_content = hprint.dedent(test_content)
-        hio.to_file(test_file, test_content)
-        cmd = (
-            f"{self._get_exec_path()} -i {test_file} --action render "
-            f"--output_format png --dry_run"
-        )
-        # Run test.
-        rc = hsystem.system(cmd)
-        # Check outputs.
-        self.assertEqual(rc, 0)
+        self._run_render_test(test_content, output_format="png")

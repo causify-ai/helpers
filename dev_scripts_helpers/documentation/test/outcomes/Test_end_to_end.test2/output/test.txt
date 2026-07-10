@@ -1,0 +1,487 @@
+################################################################################
+1. markdown_input
+################################################################################
+* Search Over Reasoning
+
+:::columns
+::: column {width="50%"}
+- **Problem**: self-consistency samples _independent_ chains and cannot revisit
+- **Solution**: treat reasoning as _search_ over structure
+:::
+
+::: column {width="45%"}
+Text in second column
+:::
+:::
+################################################################################
+2. ast_input
+################################################################################
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "BulletList",
+      "c": [
+        [
+          {
+            "t": "Plain",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Search"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "Over"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "Reasoning"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Div",
+      "c": [
+        [
+          "",
+          [
+            "columns"
+          ],
+          []
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": ":::"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "column"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "{width="
+              },
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "50%"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "}"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Strong",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Problem"
+                  }
+                ]
+              },
+              {
+                "t": "Str",
+                "c": ":"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "self-consistency"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "samples"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Emph",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "independent"
+                  }
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "chains"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "and"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "cannot"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "revisit"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Strong",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Solution"
+                  }
+                ]
+              },
+              {
+                "t": "Str",
+                "c": ":"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "treat"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "reasoning"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "as"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Emph",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "search"
+                  }
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "over"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "structure"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": ":::"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "column"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "{width="
+        },
+        {
+          "t": "Quoted",
+          "c": [
+            {
+              "t": "DoubleQuote"
+            },
+            [
+              {
+                "t": "Str",
+                "c": "45%"
+              }
+            ]
+          ]
+        },
+        {
+          "t": "Str",
+          "c": "}"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "t": "Str",
+          "c": "Text"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "in"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "second"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "column"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "t": "Str",
+          "c": ":::"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "t": "Str",
+          "c": ":::"
+        }
+      ]
+    }
+  ]
+}
+################################################################################
+3. ast_output
+################################################################################
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "BulletList",
+      "c": [
+        [
+          {
+            "t": "Plain",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Search"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "Over"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "Reasoning"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "RawBlock",
+      "c": [
+        "typst",
+        "#grid(\n  columns: (),\n  gutter: 0.5em,\n  \n)"
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": ":::"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "column"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "{width="
+        },
+        {
+          "t": "Quoted",
+          "c": [
+            {
+              "t": "DoubleQuote"
+            },
+            [
+              {
+                "t": "Str",
+                "c": "45%"
+              }
+            ]
+          ]
+        },
+        {
+          "t": "Str",
+          "c": "}"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "t": "Str",
+          "c": "Text"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "in"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "second"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "column"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "t": "Str",
+          "c": ":::"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "t": "Str",
+          "c": ":::"
+        }
+      ]
+    }
+  ]
+}
+################################################################################
+4. typst_output
+################################################################################
+- Search Over Reasoning
+
+#grid(
+  columns: (),
+  gutter: 0.5em,
+  
+)
+::: column {width="45%"} Text in second column ::: :::

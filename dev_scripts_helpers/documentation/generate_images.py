@@ -163,7 +163,7 @@ def _generate_images(
             "medium" if low_res else "high"
         )  # gpt-image-1 uses low/medium/high/auto.
     else:
-        hdbg.dfatal("Unsupported model: %s", model)
+        hdbg.dfatal(f"Unsupported model: {model}")
     _LOG.debug("Generating %s images with prompt: '%s'", count, prompt[:100])
     _LOG.debug("Model: %s", model)
     _LOG.debug("Prompt name: %s", prompt_name)
@@ -432,6 +432,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--reference_image",
+        default="",
         help="Path to reference image for DALL-E 2 editing (optional)",
     )
     parser.add_argument(

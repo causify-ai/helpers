@@ -73,6 +73,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     git_add_all_untracked,
     git_backup,
     git_branch_copy,
+    git_branch_subset_copy,
     git_branch_create,
     git_branch_delete_merged,
     git_branch_diff,
