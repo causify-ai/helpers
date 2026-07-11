@@ -3,20 +3,35 @@ description: Summarize a markdown text, keeping the same header structure
 model: sonnet
 ---
 
+# Goal
 - The user will pass:
   - Text `<INPUT>`
-  - A number of words `<NUM_WORDS>`
+  - A number of words `<NUM_WORDS>` (specified as an integer) or a fraction of
+    the size `<FRACTION>` (specified as a float between 0 and 1)
   - Max level of header `<MAX_HEADER_LEV>`
 
-# Read Content
+- You will content in markdown, keeping the same header structure
+
+# Workflow
+
+## Read Content
 - Read the file `<INPUT>` passed by the user
 
-# Summarize Content in Bullet Points
+## Summarize Content in Bullet Points
 - Write a summary in nested bullet points of `<INPUT>` using the rules in:
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 
-# Keep the Structure
+- All math formulas must be as Latex formulas
+
+- Count the words of the content `<ORIG_NUM_WORDS>`
+- Target the length of the entire output to be around `<NUM_WORDS>`, where
+  `<NUM_WORDS>` is given by the user or as `<NUM_WORDS> * <FRACTION>`
+- Print the number of words after the summary
+
+- Format the text wrapped in 80 columns
+
+## Keep the Structure
 
 ### No Header Structure
 - If there is no structure (i.e., the passed text is just a chunk of text) then
@@ -60,28 +75,12 @@ model: sonnet
   # 2. Hello again
   ```
 
-# Styling
-- Use nested bullet points
-- Use Latex formulas
+## Write Output
+- Print the explanation on the screen
+- Write a file `<FILE>` `explanation.<tag>.md` with the explanation 
+  - If the file already exists, don't read it but just overwrite it
 
-# Length
-- Target the length of the entire output to be around `<NUM_WORDS>`
-
-# Write Output
-- Write the result in the passed file `<output>`
-  - If not specified use `summary.md` in the current directory as `<output>`
-- Print on screen the path of the file as
-  ```
-  # Summary file: <output>
-  ```
-
-# Run Lint
-- Run the linter
-  ```
-  > lint_txt.py -i <output>
-  ```
-
-# Answer Follow-up Questions
+## Answer Follow-up Questions
 - Do not do anything else, but wait for the user to ask questions
 - Answer any questions the user asks about the content just read, referencing
   specific sections or concepts from the chapter summary
