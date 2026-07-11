@@ -326,7 +326,9 @@ class Test_count_words_py(hunitest.TestCase):
             line
             for line in output.split("\n")
             if not (
-                "Saving log to file" in line or "> cmd=" in line
+                "Saving log to file" in line
+                or "> cmd=" in line
+                or "Logger already initialized" in line
             )
         ]
         return "\n".join(lines)

@@ -4,9 +4,9 @@
 Run pytest targets or scripts across multiple build configurations.
 
 Executes the same command or pytest target in 3 different build configurations:
-- Build 1: Native docker engine
-- Build 2: Apple engine
-- Build 3: Docker container with local stage
+- docker: Native docker engine
+- apple: Apple engine
+- dev_container: Docker container with local stage
 
 Examples:
 > pytest_multi_build.py --target "helpers/test/test_hunit_test.py"
@@ -18,13 +18,21 @@ import argparse
 import logging
 import os
 import subprocess
-from typing import List
+from typing import Dict, List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+# TODO(ai_gp): Factor out this in a testing/pytest_utils.py
+# Build configurations: name -> (docker_engine, use_docker_cmd)
+_BUILDS: Dict[str, Tuple[str, bool]] = {
+    "docker": ("docker", False),
+    "apple": ("apple", False),
+    "dev_container": ("docker", True),
+}
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -78,7 +86,7 @@ def _build_pytest_cmd(targets: List[str]) -> str:
 
 
 def _run_build(
-    build_num: int,
+    build_name: str,
     cmd: str,
     docker_engine: str,
     *,
@@ -87,15 +95,15 @@ def _run_build(
     """
     Run a single build with specified configuration.
 
-    :param build_num: Build number (1, 2, or 3)
+    :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :param cmd: Command to run
     :param docker_engine: Value for CSFY_DOCKER_ENGINE environment variable
     :param use_docker_cmd: Whether to wrap command in docker_cmd
     """
-    output_file = f"tmp.pytest_multi_build{build_num}.txt"
+    output_file = f"tmp.pytest_multi_build.{build_name}.txt"
     _LOG.info(
-        "Running build %d with CSFY_DOCKER_ENGINE='%s' -> '%s'",
-        build_num,
+        "Running build '%s' with CSFY_DOCKER_ENGINE='%s' -> '%s'",
+        build_name,
         docker_engine,
         output_file,
     )
@@ -114,7 +122,7 @@ def _run_build(
         check=False,
     )
     _LOG.info(
-        "Build %d completed with exit code %d", build_num, result.returncode
+        "Build '%s' completed with exit code %d", build_name, result.returncode
     )
 
 
@@ -122,8 +130,8 @@ def _cleanup_old_files() -> None:
     """
     Clean up old build output files.
     """
-    for build_num in range(1, 4):
-        output_file = f"tmp.pytest_multi_build{build_num}.txt"
+    for build_name in _BUILDS.keys():
+        output_file = f"tmp.pytest_multi_build.{build_name}.txt"
         if os.path.exists(output_file):
             _LOG.debug("Removing old file: %s", output_file)
             os.remove(output_file)
@@ -146,22 +154,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         cmd = args.script
     _LOG.info("Command to run: %s", cmd)
-    # Run 3 builds.
-    for build_num in range(1, 4):
+    # Run all configured builds.
+    for build_name, (docker_engine, use_docker_cmd) in _BUILDS.items():
         if not args.no_delete_cache:
             _clear_cache()
-        if build_num == 1:
-            _run_build(
-                build_num, cmd, docker_engine="docker", use_docker_cmd=False
-            )
-        elif build_num == 2:
-            _run_build(
-                build_num, cmd, docker_engine="apple", use_docker_cmd=False
-            )
-        elif build_num == 3:
-            _run_build(
-                build_num, cmd, docker_engine="docker", use_docker_cmd=True
-            )
+        _run_build(
+            build_name, cmd, docker_engine=docker_engine, use_docker_cmd=use_docker_cmd
+        )
     _LOG.info("All builds completed")
 
 
