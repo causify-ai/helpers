@@ -67,7 +67,7 @@ def get_build_command(
     tests_str = " ".join(tests)
     docker_engine, use_docker_cmd = BUILD_CONFIG[build_name]
     if use_docker_cmd:
-        cmd = f'invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log {tests_str} $*"'
+        cmd = f'export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log {tests_str} $*"'
     else:
         cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; pytest_log {tests_str} $*"
     return cmd

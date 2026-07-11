@@ -98,8 +98,6 @@ def _add_build_env_to_repro(content: str, build_name: str) -> str:
 # #############################################################################
 
 
-
-
 def _format_outcome_table(result: Dict[str, Any]) -> str:
     """
     Format test outcome results as a table.
