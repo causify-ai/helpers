@@ -46,20 +46,16 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai_gp): Change it so that it accepts and returns a string and the caller
-# does a hio.from_file and hio.to_file
-def _add_build_env_to_repro(repro_file: str, build_name: str) -> None:
+def _add_build_env_to_repro(content: str, build_name: str) -> str:
     """
-    Add build-specific environment setup to repro script.
+    Add build-specific environment setup to repro script content.
 
-    :param repro_file: Path to the repro script file
+    :param content: Script content to enhance
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
+    :return: Updated script content with build-specific environment setup
     """
     hdbg.dassert_in(build_name, dshtpyut.BUILD_CONFIG)
     docker_engine, use_docker_cmd = dshtpyut.BUILD_CONFIG[build_name]
-    # Read existing repro script.
-    hdbg.dassert_file_exists(repro_file)
-    content = hio.from_file(repro_file)
     # Prepend environment setup.
     header_parts = [
         "#!/bin/bash",
@@ -67,7 +63,6 @@ def _add_build_env_to_repro(repro_file: str, build_name: str) -> None:
         f"export CSFY_DOCKER_ENGINE='{docker_engine}'",
     ]
     if use_docker_cmd:
-        # TODO(ai_gp): Add the invoke command in the file
         header_parts.extend(
             [
                 "# Note: This build requires docker_cmd wrapper",
@@ -75,13 +70,16 @@ def _add_build_env_to_repro(repro_file: str, build_name: str) -> None:
             ]
         )
     header = "\n".join(header_parts) + "\n\n"
-    # TODO(ai_gp): Why removing the she-bang and re-adding it?
-    # Remove shebang from existing content if present.
+    # Remove shebang from existing content if present to avoid duplication
+    # since we're adding our own header with shebang above. The shebang may
+    # include options like -xe, so we remove everything up to the first newline.
     if content.startswith("#!/bin/bash"):
-        content = content[len("#!/bin/bash\n") :]
+        # Find the end of the first line (the shebang line)
+        first_newline = content.find("\n")
+        if first_newline != -1:
+            content = content[first_newline + 1 :]
     updated_content = header + content
-    hio.to_file(repro_file, updated_content)
-    _LOG.info("Updated repro script: %s", repro_file)
+    return updated_content
 
 
 # #############################################################################
@@ -104,6 +102,25 @@ def _get_output_filename(base: str, *, build_name: str = "") -> str:
             return f"tmp.pytest_failed.{build_name}.{suffix}"
         return f"{base}.{build_name}"
     return base
+
+
+def _format_outcome_table(result: Dict[str, Any]) -> str:
+    """
+    Format test outcome results as a table.
+
+    :param result: Result dict from _process_single_file
+    :return: Formatted table string
+    """
+    lines = [hprint.frame("Test Outcome Summary")]
+    lines.append(
+        f"{'Build':<30} {'Status':>10} {'Passed':>8} {'Skipped':>8} {'Failed':>8} {'Total':>8}"
+    )
+    lines.append("-" * 80)
+    lines.append(
+        f"{result['build']:<30} {result['passed']:>10} {result['num_passed']:>8} "
+        f"{result['num_skipped']:>8} {result['num_failed']:>8} {result['num_total']:>8}"
+    )
+    return "\n".join(lines)
 
 
 def _process_single_file(
@@ -132,10 +149,11 @@ def _process_single_file(
         "Repro script for the failed tests",
         repro_file,
     )
-    # TODO(ai_gp): Pass build_name to hpytest.write_repro_script and have it
-    # generate a file that accounts for the build.
     if build_name:
-        _add_build_env_to_repro(repro_file, build_name)
+        content = hio.from_file(repro_file)
+        updated_content = _add_build_env_to_repro(content, build_name)
+        hio.to_file(repro_file, updated_content)
+        _LOG.info("Updated repro script: %s", repro_file)
     #
     failed_classes = hpytest.filter_failed_tests(
         failed_tests, only_file=False, only_class=True
@@ -250,8 +268,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Process the file.
-    # TODO(ai_gp): Print the outcome as a table like it was in a previous commit.
-    _process_single_file(args.input, build_name=args.build_name)
+    result = _process_single_file(args.input, build_name=args.build_name)
+    # Print outcome summary table.
+    print("\n" + _format_outcome_table(result))
 
 
 if __name__ == "__main__":
