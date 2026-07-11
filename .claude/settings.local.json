@@ -58,5 +58,5 @@
     "type": "command",
     "command": ".claude/statusline.sh"
   },
-  "spinnerTipsEnabled": false
+  "spinnerTipsEnabled": true
 }

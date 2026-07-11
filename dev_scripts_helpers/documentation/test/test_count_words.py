@@ -314,13 +314,22 @@ class Test_count_words_py(hunitest.TestCase):
 
         :param argv: command-line argument list to inject via
             `mock.patch("sys.argv", ...)`
-        :return: captured stdout
+        :return: captured stdout with logger initialization messages removed
         """
         parser = dshdcowo._parse()
         with contextlib.redirect_stdout(io.StringIO()) as buf:
             with mock.patch("sys.argv", argv):
                 dshdcowo._main(parser)
-        return buf.getvalue()
+        output = buf.getvalue()
+        # Remove logger initialization messages that are not part of the actual output
+        lines = [
+            line
+            for line in output.split("\n")
+            if not (
+                "Saving log to file" in line or "> cmd=" in line
+            )
+        ]
+        return "\n".join(lines)
 
     def helper(self, argv: List[str], expected: str) -> None:
         """

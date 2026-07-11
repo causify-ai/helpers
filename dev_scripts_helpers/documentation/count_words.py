@@ -139,10 +139,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     Main entry point.
     """
     args = parser.parse_args()
-    import sys
-    in_pytest = "pytest" in sys.modules
-    if not in_pytest:
-        hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     files_to_process: List[str]
     if args.input_files:
         result = hseinout.parse_input_output_files(args)

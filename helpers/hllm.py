@@ -678,7 +678,3 @@ def apply_prompt_to_dataframe(
         response_data.extend(processed_response)
     df[response_col] = response_data
     return df
-
-
-# Re-export LLMCostTracker for convenience
-LLMCostTracker = hllmcost.LLMCostTracker
