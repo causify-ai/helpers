@@ -5,11 +5,13 @@
 # ///
 
 r"""
-Summarize markdown headers using an LLM.
+Summarize markdown text using an LLM.
 
-The script reads a markdown file and, for each header at a specified level
-(--md_level), extracts the full section (including all nested content) and
-either sends it to an LLM for summarization.
+The script:
+- reads a markdown file
+- for each header at a specified level (--md_level) extracts the full section
+  (including all nested content)
+- uses an LLM for summarization
 
 Results are appended to the output file incrementally.
 
@@ -19,9 +21,6 @@ Examples:
 # Summarize all level-1 chapters with LLM
 > summarize_md.py -i book.md -o book.summary.md --md_level 1
 
-# Compute SHA1 digests instead of LLM summaries (for testing)
-> summarize_md.py -i book.md -o book.digest.md --md_level 1 --test
-
 # Summarize level-2 sections in a range
 > summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
 
@@ -30,6 +29,9 @@ Examples:
 
 # Use a different LLM model
 > summarize_md.py -i book.md -o out.md --md_level 1 --model "claude-3-opus"
+
+# Compute SHA1 digests instead of LLM summaries (for testing)
+> summarize_md.py -i book.md -o book.digest.md --md_level 1 --test
 """
 
 import argparse

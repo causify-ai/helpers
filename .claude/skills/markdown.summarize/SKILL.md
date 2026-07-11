@@ -12,7 +12,7 @@ model: sonnet
 - Read the file `<INPUT>` passed by the user
 
 # Summarize Content in Bullet Points
-- Write a summary in bullet points of `<INPUT>` using the rules in:
+- Write a summary in nested bullet points of `<INPUT>` using the rules in:
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 
@@ -76,9 +76,9 @@ model: sonnet
   ```
 
 # Run Lint
-- Run
+- Run the linter
   ```
-  > $(find /Users/saggese/src/notes1 -name "lint_txt.py") -i <output>
+  > lint_txt.py -i <output>
   ```
 
 # Answer Follow-up Questions

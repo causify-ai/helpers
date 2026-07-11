@@ -60,7 +60,7 @@ _VALID_ACTIONS = [
 
 
 def _colorize_backticks(
-    in_line: str, color: str, output_format: str,
+    in_line: str, output_format: str, *, color: str = "blue"
 ) -> str:
     r"""
     Convert backtick-wrapped strings to colored format.
