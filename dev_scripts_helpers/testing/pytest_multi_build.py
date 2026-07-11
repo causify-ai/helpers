@@ -3,6 +3,8 @@
 """
 Run pytest targets or scripts across multiple build configurations.
 
+For architecture overview, see pytest_testing_system.README.md
+
 Executes the same command or pytest target in 3 different build configurations:
 - docker: Native docker engine
 - apple: Apple engine
@@ -18,21 +20,14 @@ import argparse
 import logging
 import os
 import subprocess
-from typing import Dict, List, Tuple
+from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+import dev_scripts_helpers.testing.pytest_utils as putils
 
 _LOG = logging.getLogger(__name__)
-
-# TODO(ai_gp): Factor out this in a testing/pytest_utils.py
-# Build configurations: name -> (docker_engine, use_docker_cmd)
-_BUILDS: Dict[str, Tuple[str, bool]] = {
-    "docker": ("docker", False),
-    "apple": ("apple", False),
-    "dev_container": ("docker", True),
-}
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -130,7 +125,7 @@ def _cleanup_old_files() -> None:
     """
     Clean up old build output files.
     """
-    for build_name in _BUILDS.keys():
+    for build_name in putils.BUILD_CONFIG.keys():
         output_file = f"tmp.pytest_multi_build.{build_name}.txt"
         if os.path.exists(output_file):
             _LOG.debug("Removing old file: %s", output_file)
@@ -155,7 +150,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cmd = args.script
     _LOG.info("Command to run: %s", cmd)
     # Run all configured builds.
-    for build_name, (docker_engine, use_docker_cmd) in _BUILDS.items():
+    for build_name, (docker_engine, use_docker_cmd) in putils.BUILD_CONFIG.items():
         if not args.no_delete_cache:
             _clear_cache()
         _run_build(

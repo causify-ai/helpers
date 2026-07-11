@@ -3,6 +3,8 @@
 """
 Consolidate failed tests across multiple build configurations.
 
+For architecture overview, see pytest_testing_system.README.md
+
 Reads pytest_failed.py output from multiple builds and creates a summary of
 tests failing across the builds, consolidating all repro commands.
 
@@ -21,15 +23,9 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import dev_scripts_helpers.testing.pytest_utils as putils
 
 _LOG = logging.getLogger(__name__)
-
-# Build configurations: name -> (docker_engine, use_docker_cmd)
-_BUILD_CONFIG: Dict[str, tuple] = {
-    "docker": ("docker", False),
-    "apple": ("apple", False),
-    "dev_container": ("docker", True),
-}
 
 
 # #############################################################################
@@ -37,22 +33,18 @@ _BUILD_CONFIG: Dict[str, tuple] = {
 # #############################################################################
 
 
-def _read_failed_tests(build_name: str) -> Set[str]:
+def _read_failed_tests(build_name: str) -> List[str]:
     """
     Read failed tests from a single build.
 
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
-    :return: Set of failed test names
+    :return: List of failed test names
     """
     failed_file = f"tmp.pytest_failed.{build_name}.failed_tests.txt"
-    # TODO(ai_gp): Use dassert_file_exists
-    if not os.path.exists(failed_file):
-        _LOG.warning("Failed tests file not found: %s", failed_file)
-        return set()
+    hdbg.dassert_file_exists(failed_file)
     txt = hio.from_file(failed_file)
     lines = [line.strip() for line in txt.split("\n") if line.strip()]
-    # TODO(ai_gp): Return List
-    return set(lines)
+    return lines
 
 
 def _read_repro_script(build_name: str) -> str:
@@ -63,10 +55,7 @@ def _read_repro_script(build_name: str) -> str:
     :return: Content of repro script
     """
     repro_file = f"tmp.pytest_failed.{build_name}.repro.sh"
-    # TODO(ai_gp): Use dassert_file_exists
-    if not os.path.exists(repro_file):
-        _LOG.warning("Repro script not found: %s", repro_file)
-        return ""
+    hdbg.dassert_file_exists(repro_file)
     return hio.from_file(repro_file)
 
 
@@ -121,7 +110,7 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
     for build_name in build_names:
         repro_file = f"tmp.pytest_failed.{build_name}.repro.sh"
         if os.path.exists(repro_file):
-            docker_engine, use_docker_cmd = _BUILD_CONFIG.get(
+            docker_engine, use_docker_cmd = putils.BUILD_CONFIG.get(
                 build_name, ("", False)
             )
             content += f"# Build: {build_name} (CSFY_DOCKER_ENGINE={docker_engine})\n"
@@ -136,32 +125,30 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
     return content
 
 
-# TODO(ai_gp): _summary_to_str and then print
-def _print_summary(
+def _summary_to_str(
     build_names: List[str], test_to_builds: Dict[str, Set[str]]
-) -> None:
+) -> str:
     """
-    Print summary of failing tests across builds.
+    Create summary of failing tests across builds.
 
     :param build_names: List of build names
     :param test_to_builds: Dict mapping test name to set of builds where it failed
+    :return: Summary string
     """
-    # TODO(ai_gp): Create a str with all the results and return it
-    print(hprint.frame("Failed Tests Summary"))
-    print(
-        f"{'Test Name':<70} {'Builds':<30}"
-    )
-    print("-" * 100)
+    lines = [hprint.frame("Failed Tests Summary")]
+    lines.append(f"{'Test Name':<70} {'Builds':<30}")
+    lines.append("-" * 100)
     for test_name in sorted(test_to_builds.keys()):
         builds = ", ".join(sorted(test_to_builds[test_name]))
-        print(f"{test_name:<70} {builds:<30}")
-    print(f"\nTotal failing tests: {len(test_to_builds)}")
-    print(f"Across builds: {', '.join(build_names)}")
+        lines.append(f"{test_name:<70} {builds:<30}")
+    lines.append(f"\nTotal failing tests: {len(test_to_builds)}")
+    lines.append(f"Across builds: {', '.join(build_names)}")
     # Count tests failing in multiple builds.
     multi_build_failures = sum(
         1 for builds in test_to_builds.values() if len(builds) > 1
     )
-    print(f"Tests failing in multiple builds: {multi_build_failures}")
+    lines.append(f"Tests failing in multiple builds: {multi_build_failures}")
+    return "\n".join(lines)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -193,7 +180,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Consolidate failed tests.
     test_to_builds = _consolidate_failed_tests(build_names)
     # Print summary.
-    _print_summary(build_names, test_to_builds)
+    summary = _summary_to_str(build_names, test_to_builds)
+    print(summary)
     # Create consolidated repro script.
     repro_content = _create_consolidated_repro(build_names)
     repro_file = "tmp.pytest_failed_multi_build.repro.sh"

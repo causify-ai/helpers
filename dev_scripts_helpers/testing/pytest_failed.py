@@ -4,6 +4,8 @@
 Parse the failed tests out of a pytest log, print them, save a repro script,
 and copy the test names to the clipboard.
 
+For architecture overview, see `pytest_testing_system.README.md`.
+
 Examples
 
 # Parse failed tests from `tmp.pytest_log.txt`.
@@ -27,23 +29,16 @@ Creates the following files:
 
 import argparse
 import logging
-import os
-from typing import Dict, Tuple
+from typing import Dict
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hpytest as hpytest
+import dev_scripts_helpers.testing.pytest_utils as putils
 
 _LOG = logging.getLogger(__name__)
-
-# Build configurations: name -> (docker_engine, use_docker_cmd)
-_BUILD_CONFIG: Dict[str, Tuple[str, bool]] = {
-    "docker": ("docker", False),
-    "apple": ("apple", False),
-    "dev_container": ("docker", True),
-}
 
 
 # #############################################################################
@@ -58,25 +53,23 @@ def _add_build_env_to_repro(repro_file: str, build_name: str) -> None:
     :param repro_file: Path to the repro script file
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     """
-    # TODO(ai_gp): Use hdassert_in
-    if build_name not in _BUILD_CONFIG:
-        _LOG.warning("Unknown build name: %s", build_name)
-        return
-    docker_engine, use_docker_cmd = _BUILD_CONFIG[build_name]
+    hdbg.dassert_in(build_name, putils.BUILD_CONFIG)
+    docker_engine, use_docker_cmd = putils.BUILD_CONFIG[build_name]
     # Read existing repro script.
-    # TODO(ai_gp): Use hdassert_file_exists
-    if not os.path.exists(repro_file):
-        _LOG.warning("Repro file does not exist: %s", repro_file)
-        return
+    hdbg.dassert_file_exists(repro_file)
     content = hio.from_file(repro_file)
     # Prepend environment setup.
-    # TODO(ai_gp): Use """ and hprint.dedent
-    header = f"#!/bin/bash\n# Repro script for build: {build_name}\nexport CSFY_DOCKER_ENGINE='{docker_engine}'\n"
-    # TODO(ai_gp): Add the invoke ... around each commands
+    header_parts = [
+        "#!/bin/bash",
+        f"# Repro script for build: {build_name}",
+        f"export CSFY_DOCKER_ENGINE='{docker_engine}'",
+    ]
     if use_docker_cmd:
-        header += "# Note: This build requires docker_cmd wrapper\n"
-        header += "# Run commands with: invoke docker_cmd --stage=local -v 1.6.0 --cmd \"<command>\"\n"
-    header += "\n"
+        header_parts.extend([
+            "# Note: This build requires docker_cmd wrapper",
+            "# Run commands with: invoke docker_cmd --stage=local -v 1.6.0 --cmd \"<command>\"",
+        ])
+    header = "\n".join(header_parts) + "\n\n"
     # Remove shebang from existing content if present.
     if content.startswith("#!/bin/bash"):
         content = content[len("#!/bin/bash\n"):]
@@ -88,36 +81,6 @@ def _add_build_env_to_repro(repro_file: str, build_name: str) -> None:
 # #############################################################################
 # Parsing
 # #############################################################################
-
-
-def _parse() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "-i",
-        "--input",
-        action="store",
-        default=None,
-        help="Pytest log file to parse for failed tests",
-    )
-    # TODO(ai_gp): Remove this.
-    group.add_argument(
-        "--files",
-        nargs="+",
-        default=None,
-        help="Multiple pytest log files to parse (space-separated)",
-    )
-    parser.add_argument(
-        "--build_name",
-        action="store",
-        default="",
-        help="Build name for output file naming (e.g., 'docker', 'apple', 'dev_container')",
-    )
-    hparser.add_verbosity_arg(parser)
-    return parser
 
 
 def _get_output_filename(base: str, *, build_name: str = "") -> str:
@@ -232,36 +195,34 @@ def _process_single_file(file_path: str, *, build_name: str = "") -> Dict[str, s
     }
 
 
+def _parse() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        action="store",
+        default="tmp.pytest_log.txt",
+        help="Pytest log file to parse for failed tests",
+    )
+    parser.add_argument(
+        "--build_name",
+        action="store",
+        default="",
+        help="Build name for output file naming (e.g., 'docker', 'apple', 'dev_container')",
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Determine input files.
-    # TODO(ai_gp): Remove the iteration around args.files.
-    files = []
-    if args.files:
-        files = args.files
-    elif args.input:
-        files = [args.input]
-    else:
-        files = ["tmp.pytest_log.txt"]
-    # Process each file and collect summary info.
-    summary = []
-    for file_path in files:
-        summary.append(_process_single_file(file_path, args.build_name))
-    # Print summary table.
-    # TODO(ai_gp): Remove this since there is a single build.
-    if len(files) > 1:
-        print(hprint.frame("Summary"))
-        print(
-            f"{'Build':<50} {'Status':<6} {'Passed':<8} {'Skipped':<8} {'Failed':<8} {'Total':<8}"
-        )
-        print("-" * 88)
-        for row in summary:
-            print(
-                f"{row['build']:<50} {row['passed']:<6} "
-                f"{row['num_passed']:<8} {row['num_skipped']:<8} "
-                f"{row['num_failed']:<8} {row['num_total']:<8}"
-            )
+    # Process the file.
+    # TODO(ai_gp): Print the outcome as a table like it was in a previous commit.
+    _process_single_file(file_path, build_name=args.build_name)
 
 
 if __name__ == "__main__":
