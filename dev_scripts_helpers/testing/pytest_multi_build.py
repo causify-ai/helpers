@@ -83,33 +83,28 @@ def _build_pytest_cmd(targets: List[str]) -> str:
 def _run_build(
     build_name: str,
     cmd: str,
-    docker_engine: str,
-    *,
-    use_docker_cmd: bool = False,
 ) -> None:
     """
-    Run a single build with specified configuration.
+    Run a single build with specified command.
 
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
-    :param cmd: Command to run
-    :param docker_engine: Value for CSFY_DOCKER_ENGINE environment variable
-    :param use_docker_cmd: Whether to wrap command in docker_cmd
+    :param cmd: Command to run (e.g., 'pytest_log target1 target2' or './script.sh')
     """
     output_file = f"tmp.pytest_multi_build.{build_name}.txt"
     _LOG.info(
-        "Running build '%s' with CSFY_DOCKER_ENGINE='%s' -> '%s'",
+        "Running build '%s' -> '%s'",
         build_name,
-        docker_engine,
         output_file,
     )
-    # Build full command with environment variable via export.
-    full_cmd = cmd
+    # Build full command with environment setup based on build config.
+    docker_engine, use_docker_cmd = dshtpyut.BUILD_CONFIG[build_name]
     if use_docker_cmd:
-        # TODO(gp): Generalize this.
         opts = "--stage=local -v 1.6.0"
         full_cmd = f'invoke docker_cmd {opts} --cmd "{cmd}"'
+    else:
+        full_cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; {cmd}"
     # Run command and tee output to file.
-    shell_cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; ({full_cmd}) 2>&1 | tee {output_file}"
+    shell_cmd = f"({full_cmd}) 2>&1 | tee {output_file}"
     _LOG.debug("Executing: %s", shell_cmd)
     result = subprocess.run(
         shell_cmd,
@@ -150,18 +145,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cmd = args.script
     _LOG.info("Command to run: %s", cmd)
     # Run all configured builds.
-    for build_name, (
-        docker_engine,
-        use_docker_cmd,
-    ) in dshtpyut.BUILD_CONFIG.items():
+    for build_name in dshtpyut.BUILD_CONFIG.keys():
         if not args.no_delete_cache:
             _clear_cache()
-        _run_build(
-            build_name,
-            cmd,
-            docker_engine=docker_engine,
-            use_docker_cmd=use_docker_cmd,
-        )
+        _run_build(build_name, cmd)
     _LOG.info("All builds completed")
 
 

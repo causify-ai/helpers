@@ -14,17 +14,28 @@ Examples
 # Parse failed tests from a specific log file, keeping only the file names.
 > pytest_failed.py --input tmp.log --only_file
 
-Creates the following files:
-- tmp.pytest_failed.repro.sh: script to rerun failed tests
-- tmp.pytest_failed.repro_classes.sh: script to rerun failed test classes
-- tmp.pytest_failed.repro_files.sh: script to rerun failed test files
-- tmp.pytest_failed.failed_tests.txt: list of failed tests
-- tmp.pytest_failed.passed_tests.txt: list of passed tests
-- tmp.pytest_failed.skipped_tests.txt: list of skipped tests
-- tmp.pytest_failed.updated_tests.txt: list of tests whose golden outcome was updated
-- tmp.pytest_failed.tests_by_duration.txt: tests ordered by duration
-- tmp.pytest_failed.duration_stats.txt: duration statistics by file and class
-- tmp.pytest_failed.stacktraces.txt: failure reason for each failed test
+# Parse failed tests from a specific log with build name.
+> pytest_failed.py --input tmp.log --build_name apple
+
+Creates the following files (with optional `build_name` subdirectory):
+- tmp.pytest_failed.{build_name}/repro.sh: script to rerun failed tests
+- tmp.pytest_failed.{build_name}/repro_classes.sh: script to rerun failed test
+  classes
+- tmp.pytest_failed.{build_name}/repro_files.sh: script to rerun failed test
+  files
+- tmp.pytest_failed.{build_name}/failed_tests.txt: list of failed tests
+- tmp.pytest_failed.{build_name}/passed_tests.txt: list of passed tests
+- tmp.pytest_failed.{build_name}/skipped_tests.txt: list of skipped tests
+- tmp.pytest_failed.{build_name}/updated_tests.txt: list of tests whose golden
+  outcome was updated
+- tmp.pytest_failed.{build_name}/tests_by_duration.txt: tests ordered by
+  duration
+- tmp.pytest_failed.{build_name}/duration_stats.txt: duration statistics by
+  file and class
+- tmp.pytest_failed.{build_name}/stacktraces.txt: failure reason for each
+  failed test
+
+When build_name is not provided, files are created in the current directory.
 """
 
 import argparse
@@ -87,21 +98,6 @@ def _add_build_env_to_repro(content: str, build_name: str) -> str:
 # #############################################################################
 
 
-def _get_output_filename(base: str, *, build_name: str = "") -> str:
-    """
-    Get output filename with optional build_name encoding.
-
-    :param base: Base filename (e.g., 'tmp.pytest_failed.failed_tests.txt')
-    :param build_name: Optional build name to encode in filename
-    :return: Full filename (e.g., 'tmp.pytest_failed.docker.failed_tests.txt')
-    """
-    if build_name:
-        # Insert build_name after tmp.pytest_failed: tmp.pytest_failed.{build_name}.failed_tests.txt
-        if base.startswith("tmp.pytest_failed."):
-            suffix = base[len("tmp.pytest_failed.") :]
-            return f"tmp.pytest_failed.{build_name}.{suffix}"
-        return f"{base}.{build_name}"
-    return base
 
 
 def _format_outcome_table(result: Dict[str, Any]) -> str:
@@ -141,8 +137,8 @@ def _process_single_file(
     print(hpytest.info_to_str(info))
     # Write the repro scripts with build-specific naming if provided.
     failed_tests = info["log_failed_tests"]
-    repro_file = _get_output_filename(
-        "tmp.pytest_failed.repro.sh", build_name=build_name
+    repro_file = dshtpyut.get_output_file_path(
+        "repro.sh", build_name=build_name
     )
     hpytest.write_repro_script(
         failed_tests,
@@ -158,8 +154,8 @@ def _process_single_file(
     failed_classes = hpytest.filter_failed_tests(
         failed_tests, only_file=False, only_class=True
     )
-    repro_classes_file = _get_output_filename(
-        "tmp.pytest_failed.repro_classes.sh", build_name=build_name
+    repro_classes_file = dshtpyut.get_output_file_path(
+        "repro_classes.sh", build_name=build_name
     )
     hpytest.write_repro_script(
         failed_classes,
@@ -170,8 +166,8 @@ def _process_single_file(
     failed_files = hpytest.filter_failed_tests(
         failed_tests, only_file=True, only_class=False
     )
-    repro_files_file = _get_output_filename(
-        "tmp.pytest_failed.repro_files.sh", build_name=build_name
+    repro_files_file = dshtpyut.get_output_file_path(
+        "repro_files.sh", build_name=build_name
     )
     hpytest.write_repro_script(
         failed_files,
@@ -183,44 +179,44 @@ def _process_single_file(
     print("\n".join(failed_tests))
     #
     print(hprint.frame("Test info"))
-    passed_tests_file = _get_output_filename(
-        "tmp.pytest_failed.passed_tests.txt", build_name=build_name
+    passed_tests_file = dshtpyut.get_output_file_path(
+        "passed_tests.txt", build_name=build_name
     )
     hpytest.write_passed_tests(info, passed_tests_file)
     _LOG.info("Created '%s'", passed_tests_file)
     #
-    failed_tests_file = _get_output_filename(
-        "tmp.pytest_failed.failed_tests.txt", build_name=build_name
+    failed_tests_file = dshtpyut.get_output_file_path(
+        "failed_tests.txt", build_name=build_name
     )
     hpytest.write_failed_tests(info, failed_tests_file)
     _LOG.info("Created '%s'", failed_tests_file)
     #
-    skipped_tests_file = _get_output_filename(
-        "tmp.pytest_failed.skipped_tests.txt", build_name=build_name
+    skipped_tests_file = dshtpyut.get_output_file_path(
+        "skipped_tests.txt", build_name=build_name
     )
     hpytest.write_skipped_tests(info, skipped_tests_file)
     _LOG.info("Created '%s'", skipped_tests_file)
     #
-    updated_tests_file = _get_output_filename(
-        "tmp.pytest_failed.updated_tests.txt", build_name=build_name
+    updated_tests_file = dshtpyut.get_output_file_path(
+        "updated_tests.txt", build_name=build_name
     )
     hpytest.write_updated_tests(info, updated_tests_file)
     _LOG.info("Created '%s'", updated_tests_file)
     #
-    tests_by_duration_file = _get_output_filename(
-        "tmp.pytest_failed.tests_by_duration.txt", build_name=build_name
+    tests_by_duration_file = dshtpyut.get_output_file_path(
+        "tests_by_duration.txt", build_name=build_name
     )
     hpytest.write_tests_by_duration(info, tests_by_duration_file)
     _LOG.info("Created '%s'", tests_by_duration_file)
     #
-    duration_stats_file = _get_output_filename(
-        "tmp.pytest_failed.duration_stats.txt", build_name=build_name
+    duration_stats_file = dshtpyut.get_output_file_path(
+        "duration_stats.txt", build_name=build_name
     )
     hpytest.write_duration_stats(info, duration_stats_file)
     _LOG.info("Created '%s'", duration_stats_file)
     #
-    stacktraces_file = _get_output_filename(
-        "tmp.pytest_failed.stacktraces.txt", build_name=build_name
+    stacktraces_file = dshtpyut.get_output_file_path(
+        "stacktraces.txt", build_name=build_name
     )
     hpytest.write_test_stacktraces(info, stacktraces_file)
     _LOG.info("Created '%s'", stacktraces_file)

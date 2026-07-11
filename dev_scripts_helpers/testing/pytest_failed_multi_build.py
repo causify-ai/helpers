@@ -62,9 +62,9 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :return: Dict with build stats
     """
-    passed_file = f"tmp.pytest_failed.{build_name}.passed_tests.txt"
-    failed_file = f"tmp.pytest_failed.{build_name}.failed_tests.txt"
-    skipped_file = f"tmp.pytest_failed.{build_name}.skipped_tests.txt"
+    passed_file = dshtpyut.get_output_file_path("passed_tests.txt", build_name=build_name)
+    failed_file = dshtpyut.get_output_file_path("failed_tests.txt", build_name=build_name)
+    skipped_file = dshtpyut.get_output_file_path("skipped_tests.txt", build_name=build_name)
     input_file = f"tmp.pytest_multi_build.{build_name}.txt"
 
     num_passed = _count_lines_in_file(passed_file)
@@ -152,7 +152,7 @@ def _read_failed_tests(build_name: str) -> List[str]:
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :return: List of failed test names
     """
-    failed_file = f"tmp.pytest_failed.{build_name}.failed_tests.txt"
+    failed_file = dshtpyut.get_output_file_path("failed_tests.txt", build_name=build_name)
     hdbg.dassert_file_exists(failed_file)
     txt = hio.from_file(failed_file)
     lines = [line.strip() for line in txt.split("\n") if line.strip()]
@@ -166,7 +166,7 @@ def _read_repro_script(build_name: str) -> str:
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :return: Content of repro script
     """
-    repro_file = f"tmp.pytest_failed.{build_name}.repro.sh"
+    repro_file = dshtpyut.get_output_file_path("repro.sh", build_name=build_name)
     hdbg.dassert_file_exists(repro_file)
     return hio.from_file(repro_file)
 
@@ -227,21 +227,15 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
     header += "# Consolidated repro script for multiple builds.\n\n"
     content = header
     for build_name in build_names:
-        repro_file = f"tmp.pytest_failed.{build_name}.repro.sh"
+        repro_file = dshtpyut.get_output_file_path("repro.sh", build_name=build_name)
         if os.path.exists(repro_file):
-            docker_engine, use_docker_cmd = dshtpyut.BUILD_CONFIG.get(
-                build_name, ("", False)
-            )
             repro_content = _read_repro_script(build_name)
             tests = _extract_tests_from_repro(repro_content)
 
             if tests:
                 content += f"# Build: {build_name}\n"
-                tests_str = " ".join(tests)
-                if use_docker_cmd:
-                    content += f'invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log {tests_str} $*"\n'
-                else:
-                    content += f"export CSFY_DOCKER_ENGINE='{docker_engine}'; pytest_log {tests_str} $*\n"
+                cmd = dshtpyut.get_build_command(tests, build_name)
+                content += f"{cmd}\n"
                 content += "\n"
     return content
 
