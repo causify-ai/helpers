@@ -29,14 +29,14 @@ Creates the following files:
 
 import argparse
 import logging
-from typing import Dict
+from typing import Any, Dict
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hpytest as hpytest
-import dev_scripts_helpers.testing.pytest_utils as putils
+import dev_scripts_helpers.testing.pytest_utils as dshtpyut
 
 _LOG = logging.getLogger(__name__)
 
@@ -46,6 +46,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai_gp): Change it so that it accepts and returns a string and the caller
+# does a hio.from_file and hio.to_file
 def _add_build_env_to_repro(repro_file: str, build_name: str) -> None:
     """
     Add build-specific environment setup to repro script.
@@ -53,8 +55,8 @@ def _add_build_env_to_repro(repro_file: str, build_name: str) -> None:
     :param repro_file: Path to the repro script file
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     """
-    hdbg.dassert_in(build_name, putils.BUILD_CONFIG)
-    docker_engine, use_docker_cmd = putils.BUILD_CONFIG[build_name]
+    hdbg.dassert_in(build_name, dshtpyut.BUILD_CONFIG)
+    docker_engine, use_docker_cmd = dshtpyut.BUILD_CONFIG[build_name]
     # Read existing repro script.
     hdbg.dassert_file_exists(repro_file)
     content = hio.from_file(repro_file)
@@ -65,14 +67,18 @@ def _add_build_env_to_repro(repro_file: str, build_name: str) -> None:
         f"export CSFY_DOCKER_ENGINE='{docker_engine}'",
     ]
     if use_docker_cmd:
-        header_parts.extend([
-            "# Note: This build requires docker_cmd wrapper",
-            "# Run commands with: invoke docker_cmd --stage=local -v 1.6.0 --cmd \"<command>\"",
-        ])
+        # TODO(ai_gp): Add the invoke command in the file
+        header_parts.extend(
+            [
+                "# Note: This build requires docker_cmd wrapper",
+                '# Run commands with: invoke docker_cmd --stage=local -v 1.6.0 --cmd "<command>"',
+            ]
+        )
     header = "\n".join(header_parts) + "\n\n"
+    # TODO(ai_gp): Why removing the she-bang and re-adding it?
     # Remove shebang from existing content if present.
     if content.startswith("#!/bin/bash"):
-        content = content[len("#!/bin/bash\n"):]
+        content = content[len("#!/bin/bash\n") :]
     updated_content = header + content
     hio.to_file(repro_file, updated_content)
     _LOG.info("Updated repro script: %s", repro_file)
@@ -87,20 +93,22 @@ def _get_output_filename(base: str, *, build_name: str = "") -> str:
     """
     Get output filename with optional build_name encoding.
 
-    :param base: Base filename (e.g., 'tmp.pytest_failed')
+    :param base: Base filename (e.g., 'tmp.pytest_failed.failed_tests.txt')
     :param build_name: Optional build name to encode in filename
-    :return: Full filename
+    :return: Full filename (e.g., 'tmp.pytest_failed.docker.failed_tests.txt')
     """
     if build_name:
-        # Insert build_name after the base: tmp.pytest_failed.docker.ext
-        parts = base.rsplit(".", 1)
-        if len(parts) == 2:
-            return f"{parts[0]}.{build_name}.{parts[1]}"
+        # Insert build_name after tmp.pytest_failed: tmp.pytest_failed.{build_name}.failed_tests.txt
+        if base.startswith("tmp.pytest_failed."):
+            suffix = base[len("tmp.pytest_failed.") :]
+            return f"tmp.pytest_failed.{build_name}.{suffix}"
         return f"{base}.{build_name}"
     return base
 
 
-def _process_single_file(file_path: str, *, build_name: str = "") -> Dict[str, str]:
+def _process_single_file(
+    file_path: str, *, build_name: str = ""
+) -> Dict[str, Any]:
     """
     Process a single pytest log file and return summary info.
 
@@ -116,20 +124,25 @@ def _process_single_file(file_path: str, *, build_name: str = "") -> Dict[str, s
     print(hpytest.info_to_str(info))
     # Write the repro scripts with build-specific naming if provided.
     failed_tests = info["log_failed_tests"]
-    repro_file = _get_output_filename("tmp.pytest_failed.repro.sh", build_name)
+    repro_file = _get_output_filename(
+        "tmp.pytest_failed.repro.sh", build_name=build_name
+    )
     hpytest.write_repro_script(
         failed_tests,
         "Repro script for the failed tests",
         repro_file,
     )
-    # Add environment setup to the repro script if build_name is provided.
+    # TODO(ai_gp): Pass build_name to hpytest.write_repro_script and have it
+    # generate a file that accounts for the build.
     if build_name:
         _add_build_env_to_repro(repro_file, build_name)
     #
     failed_classes = hpytest.filter_failed_tests(
         failed_tests, only_file=False, only_class=True
     )
-    repro_classes_file = _get_output_filename("tmp.pytest_failed.repro_classes.sh", build_name)
+    repro_classes_file = _get_output_filename(
+        "tmp.pytest_failed.repro_classes.sh", build_name=build_name
+    )
     hpytest.write_repro_script(
         failed_classes,
         "Repro script for the classes containing failed tests",
@@ -139,7 +152,9 @@ def _process_single_file(file_path: str, *, build_name: str = "") -> Dict[str, s
     failed_files = hpytest.filter_failed_tests(
         failed_tests, only_file=True, only_class=False
     )
-    repro_files_file = _get_output_filename("tmp.pytest_failed.repro_files.sh", build_name)
+    repro_files_file = _get_output_filename(
+        "tmp.pytest_failed.repro_files.sh", build_name=build_name
+    )
     hpytest.write_repro_script(
         failed_files,
         "Repro script for the files containing failed tests",
@@ -150,31 +165,45 @@ def _process_single_file(file_path: str, *, build_name: str = "") -> Dict[str, s
     print("\n".join(failed_tests))
     #
     print(hprint.frame("Test info"))
-    passed_tests_file = _get_output_filename("tmp.pytest_failed.passed_tests.txt", build_name)
+    passed_tests_file = _get_output_filename(
+        "tmp.pytest_failed.passed_tests.txt", build_name=build_name
+    )
     hpytest.write_passed_tests(info, passed_tests_file)
     _LOG.info("Created '%s'", passed_tests_file)
     #
-    failed_tests_file = _get_output_filename("tmp.pytest_failed.failed_tests.txt", build_name)
+    failed_tests_file = _get_output_filename(
+        "tmp.pytest_failed.failed_tests.txt", build_name=build_name
+    )
     hpytest.write_failed_tests(info, failed_tests_file)
     _LOG.info("Created '%s'", failed_tests_file)
     #
-    skipped_tests_file = _get_output_filename("tmp.pytest_failed.skipped_tests.txt", build_name)
+    skipped_tests_file = _get_output_filename(
+        "tmp.pytest_failed.skipped_tests.txt", build_name=build_name
+    )
     hpytest.write_skipped_tests(info, skipped_tests_file)
     _LOG.info("Created '%s'", skipped_tests_file)
     #
-    updated_tests_file = _get_output_filename("tmp.pytest_failed.updated_tests.txt", build_name)
+    updated_tests_file = _get_output_filename(
+        "tmp.pytest_failed.updated_tests.txt", build_name=build_name
+    )
     hpytest.write_updated_tests(info, updated_tests_file)
     _LOG.info("Created '%s'", updated_tests_file)
     #
-    tests_by_duration_file = _get_output_filename("tmp.pytest_failed.tests_by_duration.txt", build_name)
+    tests_by_duration_file = _get_output_filename(
+        "tmp.pytest_failed.tests_by_duration.txt", build_name=build_name
+    )
     hpytest.write_tests_by_duration(info, tests_by_duration_file)
     _LOG.info("Created '%s'", tests_by_duration_file)
     #
-    duration_stats_file = _get_output_filename("tmp.pytest_failed.duration_stats.txt", build_name)
+    duration_stats_file = _get_output_filename(
+        "tmp.pytest_failed.duration_stats.txt", build_name=build_name
+    )
     hpytest.write_duration_stats(info, duration_stats_file)
     _LOG.info("Created '%s'", duration_stats_file)
     #
-    stacktraces_file = _get_output_filename("tmp.pytest_failed.stacktraces.txt", build_name)
+    stacktraces_file = _get_output_filename(
+        "tmp.pytest_failed.stacktraces.txt", build_name=build_name
+    )
     hpytest.write_test_stacktraces(info, stacktraces_file)
     _LOG.info("Created '%s'", stacktraces_file)
     # Extract summary info.
@@ -222,7 +251,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Process the file.
     # TODO(ai_gp): Print the outcome as a table like it was in a previous commit.
-    _process_single_file(file_path, build_name=args.build_name)
+    _process_single_file(args.input, build_name=args.build_name)
 
 
 if __name__ == "__main__":

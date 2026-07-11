@@ -124,9 +124,7 @@ class LLMCostTracker:
     Track the costs of LLM API calls through one of the providers.
     """
 
-    def __init__(
-        self, provider_name: str = "", model: str = ""
-    ) -> None:
+    def __init__(self, provider_name: str = "", model: str = "") -> None:
         """
         Initialize the class.
         """
@@ -172,9 +170,12 @@ class LLMCostTracker:
         :return: the calculated cost in dollars
         """
         import pandas as pd
+
         # Use provided model or default to self.model.
         current_model = model or self.model
-        hdbg.dassert_ne(current_model, "", "Model must be provided or set at init")
+        hdbg.dassert_ne(
+            current_model, "", "Model must be provided or set at init"
+        )
         # Infer provider from model name if not set.
         current_provider = self.provider_name
         if not current_provider:

@@ -2,6 +2,10 @@
 Shared utilities for pytest testing scripts.
 
 For architecture overview, see pytest_testing_system.README.md
+
+Import as:
+
+import dev_scripts_helpers.testing.pytest_utils as dshtpyut
 """
 
 from typing import Dict, Tuple
