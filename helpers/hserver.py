@@ -794,7 +794,9 @@ def docker_needs_sudo() -> bool:
     rc = os.system("sudo docker run hello-world 2>&1 >/dev/null")
     if rc == 0:
         return True
-    assert False, "Failed to run docker"
+    # If Docker is not running or not accessible, return False (don't need
+    # sudo).
+    return False
 
 
 def get_docker_executable() -> str:
@@ -868,7 +870,9 @@ def get_docker_info() -> str:
     txt_tmp.append(f"has_docker={has_docker_}")
     #
     cmd = r"docker version --format '{{.Server.Version}}'"
-    _, docker_version = _system_to_string(cmd)
+    rc, docker_version = _system_to_string(cmd)
+    if rc != 0:
+        docker_version = "N/A"
     txt_tmp.append(f"docker_version='{docker_version}'")
     #
     docker_needs_sudo_ = docker_needs_sudo()
