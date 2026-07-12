@@ -19,7 +19,6 @@ Examples:
 import argparse
 import logging
 import os
-import subprocess
 from typing import List
 
 import helpers.hdbg as hdbg
@@ -109,13 +108,13 @@ def _run_build(
     else:
         full_cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; {cmd}"
     # Run command and tee output to file for later analysis.
-    shell_cmd = f"({full_cmd}) 2>&1 | tee {output_file}"
-    # TODO(ai_gp): Use hsystem and do not show the output.
-    _LOG.debug("Executing: %s", shell_cmd)
-    result = subprocess.run(
-        shell_cmd,
-        shell=True,
-        check=False,
+    _LOG.debug("Executing: %s", full_cmd)
+    hsystem.system(
+        full_cmd,
+        suppress_output=True,
+        tee=True,
+        output_file=output_file,
+        abort_on_error=False,
     )
     _LOG.info(
         "Build '%s' completed with exit code %d", build_name, result.returncode

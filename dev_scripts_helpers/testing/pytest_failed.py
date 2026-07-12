@@ -254,9 +254,10 @@ def _process_single_file(
     # Prefer the final summary line's duration; fall back to summing per-test
     # durations when the run didn't complete before printing the final summary.
     total_duration = info.get("pytest_duration_in_secs") or 0.0
-    # TODO(ai_gp): Make this part of info.
     if total_duration == 0.0:
         total_duration = sum((info.get("log_test_durations") or {}).values())
+    # TODO(ai_gp): Move this to hpytest.parse_failed_tests(lines)
+    info["total_duration"] = total_duration
     result = {
         "build": file_path,
         "passed": passed,

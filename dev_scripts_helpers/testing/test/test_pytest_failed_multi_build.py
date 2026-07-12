@@ -57,10 +57,8 @@ class Test_read_failed_tests(hunitest.TestCase):
         # Run test.
         result = self._run_test_in_scratch(build_name, "\n".join(tests))
         # Check outputs.
-        # TODO(ai_gp): use assert_equal with expected
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0], tests[0])
-        self.assertEqual(result[1], tests[1])
+        expected = tests
+        self.assert_equal(str(result), str(expected))
 
     def test2(self) -> None:
         """
@@ -71,8 +69,8 @@ class Test_read_failed_tests(hunitest.TestCase):
         # Run test.
         result = self._run_test_in_scratch(build_name, "")
         # Check outputs.
-        # TODO(ai_gp): use assert_equal with expected
-        self.assertEqual(len(result), 0)
+        expected = []
+        self.assert_equal(str(result), str(expected))
 
     def test3(self) -> None:
         """
@@ -89,8 +87,11 @@ class Test_read_failed_tests(hunitest.TestCase):
         # Run test.
         result = self._run_test_in_scratch(build_name, content)
         # Check outputs.
-        # TODO(ai_gp): use assert_equal with expected
-        self.assertEqual(len(result), 2)
+        expected = [
+            "helpers/test/test_module.py::TestClass::test_method1",
+            "helpers/test/test_module.py::TestClass::test_method2",
+        ]
+        self.assert_equal(str(result), str(expected))
 
 
 # #############################################################################
@@ -130,8 +131,11 @@ class Test_read_repro_script(hunitest.TestCase):
         """
         # Prepare inputs.
         build_name = "docker"
-        # TODO(ai_gp): -> """ + hprint.dedent
-        content = "#!/bin/bash\npytest helpers/test/test_module.py"
+        content = """
+        #!/bin/bash
+        pytest helpers/test/test_module.py
+        """
+        content = hprint.dedent(content)
         # Run test.
         result = self._run_test_in_scratch(build_name, content)
         # Check outputs.
