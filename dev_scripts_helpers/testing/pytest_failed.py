@@ -137,9 +137,7 @@ def _process_single_file(
     print(hpytest.info_to_str(info))
     # Write the repro scripts with build-specific naming if provided.
     failed_tests = info["log_failed_tests"]
-    repro_file = dshtpyut.get_output_file_path(
-        "repro.sh", build_name=build_name
-    )
+    repro_file = dshtpyut.get_output_file_path("repro.sh", build_name=build_name)
     hpytest.write_repro_script(
         failed_tests,
         "Repro script for the failed tests",

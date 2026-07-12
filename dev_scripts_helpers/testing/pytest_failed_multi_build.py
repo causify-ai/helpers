@@ -118,7 +118,9 @@ def _read_failed_tests(build_name: str) -> List[str]:
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :return: List of failed test names
     """
-    failed_file = dshtpyut.get_output_file_path("failed_tests.txt", build_name=build_name)
+    failed_file = dshtpyut.get_output_file_path(
+        "failed_tests.txt", build_name=build_name
+    )
     hdbg.dassert_file_exists(failed_file)
     txt = hio.from_file(failed_file)
     lines = [line.strip() for line in txt.split("\n") if line.strip()]
@@ -193,7 +195,9 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
     header += "# Consolidated repro script for multiple builds.\n\n"
     content = header
     for build_name in build_names:
-        repro_file = dshtpyut.get_output_file_path("repro.sh", build_name=build_name)
+        repro_file = dshtpyut.get_output_file_path(
+            "repro.sh", build_name=build_name
+        )
         if os.path.exists(repro_file):
             repro_content = _read_repro_script(build_name)
             tests = _extract_tests_from_repro(repro_content)
@@ -226,9 +230,7 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def _failed_tests_table_to_str(
-    test_to_builds: Dict[str, Set[str]]
-) -> str:
+def _failed_tests_table_to_str(test_to_builds: Dict[str, Set[str]]) -> str:
     """
     Create formatted table of failing tests for file output.
 

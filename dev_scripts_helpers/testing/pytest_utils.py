@@ -53,9 +53,7 @@ def get_output_file_path(basename: str, *, build_name: str = "") -> str:
 # #############################################################################
 
 
-def get_build_command(
-    tests: List[str], build_name: str
-) -> str:
+def get_build_command(tests: List[str], build_name: str) -> str:
     """
     Generate pytest command for a given build and test list.
 

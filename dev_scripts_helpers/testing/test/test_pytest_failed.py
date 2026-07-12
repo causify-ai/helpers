@@ -9,7 +9,12 @@ import os
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.testing.pytest_failed as pf
+import dev_scripts_helpers.testing.pytest_failed as dshtpyfa
+
+
+# #############################################################################
+# Test_get_output_filename
+# #############################################################################
 
 
 # TODO(ai_gp): /coding.factor_common_code
@@ -26,7 +31,7 @@ class Test_get_output_filename(hunitest.TestCase):
         base = "tmp.pytest_failed.repro.sh"
         build_name = ""
         # Run test.
-        actual = pf._get_output_filename(base, build_name=build_name)
+        actual = dshtpyfa._get_output_filename(base, build_name=build_name)
         # Check outputs.
         expected = "tmp.pytest_failed.repro.sh"
         self.assertEqual(actual, expected)
@@ -39,7 +44,7 @@ class Test_get_output_filename(hunitest.TestCase):
         base = "tmp.pytest_failed.repro.sh"
         build_name = "apple"
         # Run test.
-        actual = pf._get_output_filename(base, build_name=build_name)
+        actual = dshtpyfa._get_output_filename(base, build_name=build_name)
         # Check outputs.
         expected = "tmp.pytest_failed.apple.repro.sh"
         self.assertEqual(actual, expected)
@@ -52,7 +57,7 @@ class Test_get_output_filename(hunitest.TestCase):
         base = "tmp.pytest_failed.failed_tests.txt"
         # Run test and check outputs.
         for build_name in ["docker", "dev_container"]:
-            actual = pf._get_output_filename(base, build_name=build_name)
+            actual = dshtpyfa._get_output_filename(base, build_name=build_name)
             self.assertTrue(actual.endswith(".txt"))
             self.assertIn(build_name, actual)
 
@@ -64,10 +69,15 @@ class Test_get_output_filename(hunitest.TestCase):
         base = "custom.output"
         build_name = "docker"
         # Run test.
-        actual = pf._get_output_filename(base, build_name=build_name)
+        actual = dshtpyfa._get_output_filename(base, build_name=build_name)
         # Check outputs.
         expected = "custom.output.docker"
         self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test_process_single_file
+# #############################################################################
 
 
 class Test_process_single_file(hunitest.TestCase):
@@ -103,7 +113,7 @@ class Test_process_single_file(hunitest.TestCase):
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
-            result = pf._process_single_file(log_file)
+            result = dshtpyfa._process_single_file(log_file)
             # Check outputs.
             self.assertGreaterEqual(result["num_total"], 0)
             # Verify output files created.
@@ -135,7 +145,7 @@ class Test_process_single_file(hunitest.TestCase):
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
-            pf._process_single_file(log_file, build_name="docker")
+            dshtpyfa._process_single_file(log_file, build_name="docker")
             # Check outputs.
             repro_file = "tmp.pytest_failed.docker.repro.sh"
             self.assertTrue(os.path.exists(repro_file))
@@ -167,7 +177,7 @@ class Test_process_single_file(hunitest.TestCase):
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
-            pf._process_single_file(log_file)
+            dshtpyfa._process_single_file(log_file)
             # Check outputs - verify all expected files created.
             expected_files = [
                 "tmp.pytest_failed.repro.sh",
@@ -209,7 +219,7 @@ class Test_process_single_file(hunitest.TestCase):
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
-            result = pf._process_single_file(log_file)
+            result = dshtpyfa._process_single_file(log_file)
             # Check outputs.
             expected_keys = [
                 "build",

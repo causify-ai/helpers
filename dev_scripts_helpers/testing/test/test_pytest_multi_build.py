@@ -8,7 +8,12 @@ import os
 
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
-import dev_scripts_helpers.testing.pytest_multi_build as pmb
+import dev_scripts_helpers.testing.pytest_multi_build as dshtpmubu
+
+
+# #############################################################################
+# Test_build_pytest_cmd
+# #############################################################################
 
 
 class Test_build_pytest_cmd(hunitest.TestCase):
@@ -23,7 +28,7 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         # Prepare inputs.
         targets = ["helpers/test/test_module.py"]
         # Run test.
-        actual = pmb._build_pytest_cmd(targets)
+        actual = dshtpmubu._build_pytest_cmd(targets)
         # Check outputs.
         self.assertEqual(actual, "pytest_log helpers/test/test_module.py")
 
@@ -32,9 +37,12 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         Test building command with multiple targets.
         """
         # Prepare inputs.
-        targets = ["helpers/test/test_module1.py", "helpers/test/test_module2.py"]
+        targets = [
+            "helpers/test/test_module1.py",
+            "helpers/test/test_module2.py",
+        ]
         # Run test.
-        actual = pmb._build_pytest_cmd(targets)
+        actual = dshtpmubu._build_pytest_cmd(targets)
         # Check outputs.
         self.assertEqual(
             actual,
@@ -48,9 +56,14 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         # Prepare inputs.
         targets = ["."]
         # Run test.
-        actual = pmb._build_pytest_cmd(targets)
+        actual = dshtpmubu._build_pytest_cmd(targets)
         # Check outputs.
         self.assertEqual(actual, "pytest_log .")
+
+
+# #############################################################################
+# Test_cleanup_old_files
+# #############################################################################
 
 
 class Test_cleanup_old_files(hunitest.TestCase):
@@ -76,7 +89,7 @@ class Test_cleanup_old_files(hunitest.TestCase):
         try:
             os.chdir(scratch_dir)
             # Run test.
-            pmb._cleanup_old_files()
+            dshtpmubu._cleanup_old_files()
             # Check outputs.
             for build_name in ["docker", "apple", "dev_container"]:
                 output_file = f"tmp.pytest_multi_build.{build_name}.txt"
@@ -95,13 +108,18 @@ class Test_cleanup_old_files(hunitest.TestCase):
         try:
             os.chdir(scratch_dir)
             # Run test (should not raise).
-            pmb._cleanup_old_files()
+            dshtpmubu._cleanup_old_files()
             # Check outputs.
             for build_name in ["docker", "apple", "dev_container"]:
                 output_file = f"tmp.pytest_multi_build.{build_name}.txt"
                 self.assertFalse(os.path.exists(output_file))
         finally:
             os.chdir(original_dir)
+
+
+# #############################################################################
+# Test_run_build
+# #############################################################################
 
 
 class Test_run_build(hunitest.TestCase):
@@ -124,7 +142,7 @@ class Test_run_build(hunitest.TestCase):
         try:
             os.chdir(scratch_dir)
             # Run test and verify command contains expected elements.
-            pmb._run_build(
+            dshtpmubu._run_build(
                 build_name,
                 cmd,
                 docker_engine,
@@ -149,7 +167,7 @@ class Test_run_build(hunitest.TestCase):
         try:
             os.chdir(scratch_dir)
             # Run test and verify it completes without error.
-            pmb._run_build(
+            dshtpmubu._run_build(
                 build_name,
                 cmd,
                 docker_engine,
@@ -173,7 +191,7 @@ class Test_run_build(hunitest.TestCase):
             os.chdir(scratch_dir)
             # Run test for each build.
             for build_name in ["docker", "apple", "dev_container"]:
-                pmb._run_build(
+                dshtpmubu._run_build(
                     build_name,
                     cmd,
                     docker_engine,
@@ -182,6 +200,11 @@ class Test_run_build(hunitest.TestCase):
                 # Invariant: function should complete without raising exceptions.
         finally:
             os.chdir(original_dir)
+
+
+# #############################################################################
+# Test_clear_cache
+# #############################################################################
 
 
 class Test_clear_cache(hunitest.TestCase):
@@ -195,7 +218,7 @@ class Test_clear_cache(hunitest.TestCase):
         """
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
-            pmb._clear_cache()
+            dshtpmubu._clear_cache()
         # Check outputs.
         self.assertEqual(len(invocations), 1)
         call_dict = invocations[0]
