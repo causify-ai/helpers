@@ -50,7 +50,6 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hpytest as hpytest
 import helpers.htable as htable
-import dev_scripts_helpers.testing.pytest_utils as dshtpyut
 
 _LOG = logging.getLogger(__name__)
 
@@ -68,8 +67,8 @@ def _add_build_env_to_repro(content: str, build_name: str) -> str:
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :return: Updated script content with build-specific environment setup
     """
-    hdbg.dassert_in(build_name, dshtpyut.BUILD_CONFIG)
-    docker_engine, use_docker_cmd = dshtpyut.BUILD_CONFIG[build_name]
+    hdbg.dassert_in(build_name, hpytest.BUILD_CONFIG)
+    docker_engine, use_docker_cmd = hpytest.BUILD_CONFIG[build_name]
     # Prepend environment setup.
     header_parts = [
         "#!/bin/bash",
@@ -148,7 +147,7 @@ def _process_single_file(
     print(hpytest.info_to_str(info))
     # Write the repro scripts with build-specific naming if provided.
     failed_tests = info["log_failed_tests"]
-    repro_file = dshtpyut.get_output_file_path("repro.sh", build_name=build_name)
+    repro_file = hpytest.get_output_file_path("repro.sh", build_name=build_name)
     hpytest.write_repro_script(
         failed_tests,
         "Repro script for the failed tests",
@@ -163,7 +162,7 @@ def _process_single_file(
     failed_classes = hpytest.filter_failed_tests(
         failed_tests, only_file=False, only_class=True
     )
-    repro_classes_file = dshtpyut.get_output_file_path(
+    repro_classes_file = hpytest.get_output_file_path(
         "repro_classes.sh", build_name=build_name
     )
     hpytest.write_repro_script(
@@ -175,7 +174,7 @@ def _process_single_file(
     failed_files = hpytest.filter_failed_tests(
         failed_tests, only_file=True, only_class=False
     )
-    repro_files_file = dshtpyut.get_output_file_path(
+    repro_files_file = hpytest.get_output_file_path(
         "repro_files.sh", build_name=build_name
     )
     hpytest.write_repro_script(
@@ -186,49 +185,49 @@ def _process_single_file(
     # Write the reports.
     print(hprint.frame("Failed tests"))
     print("\n".join(failed_tests))
-    passed_tests_file = dshtpyut.get_output_file_path(
+    passed_tests_file = hpytest.get_output_file_path(
         "passed_tests.txt", build_name=build_name
     )
     hpytest.write_passed_tests(info, passed_tests_file)
     _LOG.info("Created '%s'", passed_tests_file)
     #
-    failed_tests_file = dshtpyut.get_output_file_path(
+    failed_tests_file = hpytest.get_output_file_path(
         "failed_tests.txt", build_name=build_name
     )
     hpytest.write_failed_tests(info, failed_tests_file)
     _LOG.info("Created '%s'", failed_tests_file)
     #
-    skipped_tests_file = dshtpyut.get_output_file_path(
+    skipped_tests_file = hpytest.get_output_file_path(
         "skipped_tests.txt", build_name=build_name
     )
     hpytest.write_skipped_tests(info, skipped_tests_file)
     _LOG.info("Created '%s'", skipped_tests_file)
     #
-    updated_tests_file = dshtpyut.get_output_file_path(
+    updated_tests_file = hpytest.get_output_file_path(
         "updated_tests.txt", build_name=build_name
     )
     hpytest.write_updated_tests(info, updated_tests_file)
     _LOG.info("Created '%s'", updated_tests_file)
     #
-    tests_by_duration_file = dshtpyut.get_output_file_path(
+    tests_by_duration_file = hpytest.get_output_file_path(
         "tests_by_duration.txt", build_name=build_name
     )
     hpytest.write_tests_by_duration(info, tests_by_duration_file)
     _LOG.info("Created '%s'", tests_by_duration_file)
     #
-    duration_stats_file = dshtpyut.get_output_file_path(
+    duration_stats_file = hpytest.get_output_file_path(
         "duration_stats.txt", build_name=build_name
     )
     hpytest.write_duration_stats(info, duration_stats_file)
     _LOG.info("Created '%s'", duration_stats_file)
     #
-    stacktraces_file = dshtpyut.get_output_file_path(
+    stacktraces_file = hpytest.get_output_file_path(
         "stacktraces.txt", build_name=build_name
     )
     hpytest.write_test_stacktraces(info, stacktraces_file)
     _LOG.info("Created '%s'", stacktraces_file)
     #
-    info_json_file = dshtpyut.get_output_file_path(
+    info_json_file = hpytest.get_output_file_path(
         "info.json", build_name=build_name
     )
     hio.to_json(info_json_file, info)

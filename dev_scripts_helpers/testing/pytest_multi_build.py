@@ -25,7 +25,7 @@ from typing import List
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.testing.pytest_utils as dshtpyut
+import helpers.hpytest as hpytest
 
 _LOG = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ def _run_build(
         output_file,
     )
     # Build full command with environment setup based on build config.
-    docker_engine, use_docker_cmd = dshtpyut.BUILD_CONFIG[build_name]
+    docker_engine, use_docker_cmd = hpytest.BUILD_CONFIG[build_name]
     if use_docker_cmd:
         opts = "--stage=local -v 1.6.0"
         full_cmd = f'invoke docker_cmd {opts} --cmd "{cmd}"'
@@ -120,7 +120,7 @@ def _cleanup_old_files() -> None:
     """
     Clean up old build output files.
     """
-    for build_name in dshtpyut.BUILD_CONFIG.keys():
+    for build_name in hpytest.BUILD_CONFIG.keys():
         output_file = f"tmp.pytest_multi_build.{build_name}.txt"
         if os.path.exists(output_file):
             _LOG.debug("Removing old file: %s", output_file)
@@ -145,7 +145,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cmd = args.script
     _LOG.info("Command to run: %s", cmd)
     # Run all configured builds.
-    for build_name in dshtpyut.BUILD_CONFIG.keys():
+    for build_name in hpytest.BUILD_CONFIG.keys():
         if not args.no_delete_cache:
             _clear_cache()
         _run_build(build_name, cmd)

@@ -27,7 +27,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.htable as htable
-import dev_scripts_helpers.testing.pytest_utils as dshtpyut
+import helpers.hpytest as hpytest
 
 _LOG = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     :return: Dict with build stats
     """
     # Read file.
-    info_file = dshtpyut.get_output_file_path("info.json", build_name=build_name)
+    info_file = hpytest.get_output_file_path("info.json", build_name=build_name)
     hdbg.dassert_file_exists(info_file)
     info = hio.from_json(info_file)
     # Extract info.
@@ -112,7 +112,7 @@ def _read_failed_tests(build_name: str) -> List[str]:
     :param build_name: Build name
     :return: List of failed test names
     """
-    failed_file = dshtpyut.get_output_file_path(
+    failed_file = hpytest.get_output_file_path(
         "failed_tests.txt", build_name=build_name
     )
     hdbg.dassert_file_exists(failed_file)
@@ -150,7 +150,7 @@ def _read_repro_script(build_name: str) -> str:
     :param build_name: Build name
     :return: Content of repro script
     """
-    repro_file = dshtpyut.get_output_file_path(
+    repro_file = hpytest.get_output_file_path(
         "repro.sh", build_name=build_name
     )
     hdbg.dassert_file_exists(repro_file)
@@ -191,7 +191,7 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
     header += "# Consolidated repro script for multiple builds.\n\n"
     content = header
     for build_name in build_names:
-        repro_file = dshtpyut.get_output_file_path(
+        repro_file = hpytest.get_output_file_path(
             "repro.sh", build_name=build_name
         )
         hdbg.dassert_file_exists(repro_file)
@@ -199,7 +199,7 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
         tests = _extract_tests_from_repro(repro_content)
         if tests:
             content += f"# Build: {build_name}\n"
-            cmd = dshtpyut.get_build_command(tests, build_name)
+            cmd = hpytest.get_build_command(tests, build_name)
             content += f"{cmd}\n"
             content += "\n"
     return content
