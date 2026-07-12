@@ -123,9 +123,12 @@ def _preprocess_notes(
     exec_file = hgit.find_file("preprocess_notes.py")
     file1 = file_name
     file2 = f"{prefix}.preprocess_notes.txt"
+    # Map type to output format
+    output_format = "latex" if type_ == "pdf" else "latex"
     cmd = (
         f"{exec_file} --input {file1} --output {file2}"
         + f" --type {type_} --toc_type {toc_type}"
+        + f" --output_format {output_format}"
     )
     _ = _system(cmd)
     file_name = file2

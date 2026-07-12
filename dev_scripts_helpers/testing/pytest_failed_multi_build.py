@@ -44,7 +44,7 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :return: Dict with build stats
     """
-    # Read file.
+    _LOG.debug(hprint.to_str("build_name"))
     info_file = hpytest.get_output_file_path("info.json", build_name=build_name)
     hdbg.dassert_file_exists(info_file)
     info = hio.from_json(info_file)
@@ -63,6 +63,7 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
         "total": num_total,
         "duration": duration,
     }
+    _LOG.debug("return=%s", res)
     return res
 
 
@@ -74,6 +75,7 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
         - E.g., ['docker', 'apple', 'dev_container']
     :return: List of build statistics dicts
     """
+    _LOG.debug(hprint.to_str("build_names"))
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_script = os.path.join(script_dir, "pytest_failed.py")
     hdbg.dassert_file_exists(pytest_failed_script)
@@ -82,6 +84,7 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
         input_file = f"tmp.pytest_multi_build.{build_name}.txt"
         hdbg.dassert_file_exists(input_file)
         _LOG.info("Processing %s from %s", build_name, input_file)
+        # Execute pytest_failed.py for each build configuration to generate intermediate files.
         cmd = " ".join([
             sys.executable,
             pytest_failed_script,
@@ -94,9 +97,9 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
         if rc != 0:
             _LOG.error("Failed to process %s", build_name)
             sys.exit(1)
-        # Get info.
         stats = _extract_build_stats(build_name)
         build_stats.append(stats)
+    _LOG.debug("return=%s items", len(build_stats))
     return build_stats
 
 
@@ -112,12 +115,15 @@ def _read_failed_tests(build_name: str) -> List[str]:
     :param build_name: Build name
     :return: List of failed test names
     """
+    _LOG.debug(hprint.to_str("build_name"))
     failed_file = hpytest.get_output_file_path(
         "failed_tests.txt", build_name=build_name
     )
     hdbg.dassert_file_exists(failed_file)
     txt = hio.from_file(failed_file)
+    # Parse file content into list of non-empty test names.
     lines = [line.strip() for line in txt.split("\n") if line.strip()]
+    _LOG.debug("return=%s tests", len(lines))
     return lines
 
 
@@ -128,13 +134,16 @@ def _consolidate_failed_tests(build_names: List[str]) -> Dict[str, Set[str]]:
     :param build_names: List of build names
     :return: Dict mapping test name to set of builds where it failed
     """
+    _LOG.debug(hprint.to_str("build_names"))
     test_to_builds: Dict[str, Set[str]] = {}
+    # Read failed tests from each build and build a mapping of test -> builds.
     for build_name in build_names:
         failed_tests = _read_failed_tests(build_name)
         for test_name in failed_tests:
             if test_name not in test_to_builds:
                 test_to_builds[test_name] = set()
             test_to_builds[test_name].add(build_name)
+    _LOG.debug("return=%s tests across %d builds", len(test_to_builds), len(build_names))
     return test_to_builds
 
 
@@ -150,11 +159,14 @@ def _read_repro_script(build_name: str) -> str:
     :param build_name: Build name
     :return: Content of repro script
     """
+    _LOG.debug(hprint.to_str("build_name"))
     repro_file = hpytest.get_output_file_path(
         "repro.sh", build_name=build_name
     )
     hdbg.dassert_file_exists(repro_file)
-    return hio.from_file(repro_file)
+    content = hio.from_file(repro_file)
+    _LOG.debug("return=%s bytes", len(content))
+    return content
 
 
 def _extract_tests_from_repro(repro_content: str) -> List[str]:
@@ -164,19 +176,22 @@ def _extract_tests_from_repro(repro_content: str) -> List[str]:
     :param repro_content: Content of repro script
     :return: List of test names
     """
+    _LOG.debug("repro_content len=%s", len(repro_content))
     lines = repro_content.split("\n")
+    # Find and parse the pytest_log line which contains all test names.
     for line in lines:
         line = line.strip()
         if line.startswith("pytest_log"):
-            # Extract everything after "pytest_log "
-            # Format: pytest_log test1 test2 test3 ... $*
+            # Extract test names from: pytest_log test1 test2 test3 ... $*
             parts = line.split()
             if len(parts) > 1:
-                # Remove "pytest_log" and "$*" from the end
                 tests = parts[1:]
+                # Remove trailing $* placeholder if present.
                 if tests and tests[-1] == "$*":
                     tests = tests[:-1]
+                _LOG.debug("return=%s tests", len(tests))
                 return tests
+    _LOG.debug("return=no tests found")
     return []
 
 
@@ -187,9 +202,11 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
     :param build_names: List of build names
     :return: Consolidated repro script content
     """
+    _LOG.debug(hprint.to_str("build_names"))
     header = "#!/bin/bash\n"
     header += "# Consolidated repro script for multiple builds.\n\n"
     content = header
+    # Merge repro scripts from each build, extracting test names and rebuilding commands.
     for build_name in build_names:
         repro_file = hpytest.get_output_file_path(
             "repro.sh", build_name=build_name
@@ -202,6 +219,7 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
             cmd = hpytest.get_build_command(tests, build_name)
             content += f"{cmd}\n"
             content += "\n"
+    _LOG.debug("return=%s bytes", len(content))
     return content
 
 
@@ -219,8 +237,9 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
         dev_container  PASS      1232        1       11      1244       48.5s
         ```
     """
+    _LOG.debug("build_stats=%s items", len(build_stats))
     lines = [hprint.frame("Build Statistics")]
-    # Prepare table data
+    # Convert each build stat dict to table row with pass/fail status.
     table_data = []
     for stats in build_stats:
         status = "PASS" if stats["failed"] == 0 else "FAIL"
@@ -233,13 +252,15 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
             str(stats["total"]),
             str(stats["duration"]),
         ])
-    # Create and format table
+    # Create and format table.
     table_obj = htable.Table(
         table_data,
         ["Build", "Status", "Passed", "Skipped", "Failed", "Total", "Duration"],
     )
     lines.append(str(table_obj))
-    return "\n".join(lines)
+    result = "\n".join(lines)
+    _LOG.debug("return=%s bytes", len(result))
+    return result
 
 
 def _failed_tests_table_to_str(test_to_builds: Dict[str, Set[str]]) -> str:
@@ -249,14 +270,17 @@ def _failed_tests_table_to_str(test_to_builds: Dict[str, Set[str]]) -> str:
     :param test_to_builds: Dict mapping test name to set of builds where it failed
     :return: Formatted table string
     """
-    # Prepare table data
+    _LOG.debug("test_to_builds=%s tests", len(test_to_builds))
+    # Build table with test names and the builds where they failed.
     table_data = []
     for test_name in sorted(test_to_builds.keys()):
         builds = ", ".join(sorted(test_to_builds[test_name]))
         table_data.append([test_name, builds])
-    # Create and format table
+    # Create and format table.
     table_obj = htable.Table(table_data, ["Test Name", "Builds"])
-    return str(table_obj)
+    result = str(table_obj)
+    _LOG.debug("return=%s bytes", len(result))
+    return result
 
 
 def _summary_to_str(
@@ -280,16 +304,19 @@ def _summary_to_str(
         Tests failing in multiple builds: 1
         ```
     """
+    _LOG.debug(hprint.to_str("build_names"))
     lines = [hprint.frame("Failed Tests Summary")]
     lines.append(_failed_tests_table_to_str(test_to_builds))
     lines.append(f"\nTotal failing tests: {len(test_to_builds)}")
     lines.append(f"Across builds: {', '.join(build_names)}")
-    # Count tests failing in multiple builds.
+    # Count tests that fail across multiple builds (likely infrastructure issues).
     multi_build_failures = sum(
         1 for builds in test_to_builds.values() if len(builds) > 1
     )
     lines.append(f"Tests failing in multiple builds: {multi_build_failures}")
-    return "\n".join(lines)
+    result = "\n".join(lines)
+    _LOG.debug("return=%s bytes", len(result))
+    return result
 
 
 # #############################################################################
@@ -319,24 +346,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     Execute consolidation of failed tests across multiple builds.
     """
+    _LOG.debug("_main called")
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     build_names = args.build_names
     _LOG.info(
         "Consolidating failed tests for builds: %s", ", ".join(build_names)
     )
-    # Generate pytest_failed output files for each build.
+    # Generate pytest_failed output files for each build by invoking pytest_failed.py.
     _LOG.info("Generating intermediate files by calling pytest_failed.py...")
     build_stats = _generate_build_files(build_names)
-    # Print build statistics.
+    # Print build statistics summary.
     stats_summary = _build_stats_to_str(build_stats)
     print(stats_summary)
-    # Consolidate failed tests.
+    # Consolidate failed tests across all builds to identify common failures.
     test_to_builds = _consolidate_failed_tests(build_names)
-    # Print summary.
+    # Print summary of failures.
     summary = _summary_to_str(build_names, test_to_builds)
     print(summary)
-    # Create consolidated repro script.
+    # Create consolidated repro script combining tests from all builds.
     repro_content = _create_consolidated_repro(build_names)
     repro_file = "tmp.pytest_failed_multi_build.repro.sh"
     hio.create_executable_script(repro_file, repro_content)

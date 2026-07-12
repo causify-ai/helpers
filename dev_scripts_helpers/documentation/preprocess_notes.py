@@ -733,6 +733,13 @@ def _parse() -> argparse.ArgumentParser:
             "'remove_headers' = remove headers smaller than level 3"
         ),
     )
+    parser.add_argument(
+        "--output_format",
+        action="store",
+        default="latex",
+        choices=["latex", "typst"],
+        help="Output format: 'latex' (default) or 'typst'",
+    )
     # TODO(gp): Unclear what it does.
     parser.add_argument(
         "--qa", action="store_true", default=False, help="The input file is QA"
@@ -765,7 +772,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.type,
         args.toc_type,
         args.qa,
-        output_format="latex",
+        output_format=args.output_format,
         actions=actions,
     )
     out = "\n".join(out)

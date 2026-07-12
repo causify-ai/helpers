@@ -4,23 +4,69 @@ model: haiku
 ---
 
 # Goal
-I will pass you one of more files `<FILES>` and you will make the code more
-readable and debuggable for humans.
+The user will pass you one of more files `<FILES>` and you will make the code
+more readable and debuggable for humans.
 
 # Workflow
 
 ## Add Comments
-- Improve its readability by adding concise comments with these rules
+- Improve code readability by adding concise comments with these rules
 
-- Add comments for every cohesive code block that is at least 5 lines long
+- Add comments for every cohesive code block that is at least 3-5 lines long
   explaining what the code block does
-- Add comments describing important invariants, assumptions, or guarantees
-  maintained by the code
+  - **Bad** (different chunks of code without comments)
+    ```
+    num_passed = info.get("log_num_passed", 0) or 0
+    num_failed = info.get("log_num_failed", 0) or 0
+    duration = f"{info['pytest_duration_in_secs']}s"
+    res = {
+        "passed": num_passed,
+        "failed": num_failed,
+        "duration": duration,
+    }
+    ```
+  - E.g., (add comments to chunks)
+    ```
+    # Extract info.
+    num_passed = info.get("log_num_passed", 0) or 0
+    num_failed = info.get("log_num_failed", 0) or 0
+    duration = f"{info['pytest_duration_in_secs']}s"
+    # Assemble result.
+    res = {
+        "passed": num_passed,
+        "failed": num_failed,
+        "duration": duration,
+    }
+    ```
 - Add comments that explain _why_ rather than _what_
+  - Add comments describing important invariants, assumptions, or guarantees
+    maintained by the code
   - Keep all comments as short and precise as possible
   - Avoid obvious line-by-line comments
   - Do not restate the code in English
+
+- If there are empty comments separating chunks of code, add a comment
+  - **Bad** (empty comment)
+    ```
+    #
+    stacktraces_file = hpytest.get_output_file_path(
+        "stacktraces.txt", build_name=build_name
+    )
+    hpytest.write_test_stacktraces(info, stacktraces_file)
+    _LOG.info("Created '%s'", stacktraces_file)
+    ```
+  - **Good**
+    ```
+    # Stacktraces.
+    stacktraces_file = hpytest.get_output_file_path(
+        "stacktraces.txt", build_name=build_name
+    )
+    hpytest.write_test_stacktraces(info, stacktraces_file)
+    _LOG.info("Created '%s'", stacktraces_file)
+    ```
+
 - Do not remove any comment, only add new ones when needed
+
 - Follow the rules in `.claude/skills/coding.rules.md` `# Comments`
 
 ## Add Functions to Track Entering in a Function

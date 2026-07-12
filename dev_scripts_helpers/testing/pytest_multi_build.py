@@ -64,8 +64,10 @@ def _clear_cache() -> None:
     """
     Clear the cache using manage_cache.py.
     """
+    _LOG.debug("_clear_cache called")
     _LOG.info("Clearing cache...")
     hsystem.system("manage_cache.py --action clear_all")
+    _LOG.debug("cache cleared")
 
 
 def _build_pytest_cmd(targets: List[str]) -> str:
@@ -75,8 +77,10 @@ def _build_pytest_cmd(targets: List[str]) -> str:
     :param targets: list of pytest targets
     :return: command string to run
     """
+    _LOG.debug("targets=%s", len(targets))
     targets_str = " ".join(targets)
     cmd = f"pytest_log {targets_str}"
+    _LOG.debug("return=%s", cmd)
     return cmd
 
 
@@ -90,20 +94,21 @@ def _run_build(
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :param cmd: Command to run (e.g., 'pytest_log target1 target2' or './script.sh')
     """
+    _LOG.debug("build_name=%s", build_name)
     output_file = f"tmp.pytest_multi_build.{build_name}.txt"
     _LOG.info(
         "Running build '%s' -> '%s'",
         build_name,
         output_file,
     )
-    # Build full command with environment setup based on build config.
+    # Build full command with environment setup based on build configuration.
     docker_engine, use_docker_cmd = hpytest.BUILD_CONFIG[build_name]
     if use_docker_cmd:
         opts = "--stage=local -v 1.6.0"
         full_cmd = f'invoke docker_cmd {opts} --cmd "{cmd}"'
     else:
         full_cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; {cmd}"
-    # Run command and tee output to file.
+    # Run command and tee output to file for later analysis.
     shell_cmd = f"({full_cmd}) 2>&1 | tee {output_file}"
     _LOG.debug("Executing: %s", shell_cmd)
     result = subprocess.run(
@@ -120,6 +125,8 @@ def _cleanup_old_files() -> None:
     """
     Clean up old build output files.
     """
+    _LOG.debug("_cleanup_old_files called")
+    # Remove stale output files from previous runs before executing new builds.
     for build_name in hpytest.BUILD_CONFIG.keys():
         output_file = f"tmp.pytest_multi_build.{build_name}.txt"
         if os.path.exists(output_file):
@@ -131,11 +138,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     Execute pytest across multiple build configurations.
     """
+    _LOG.debug("_main called")
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Clean up old files.
+    # Clean up old output files from previous runs.
     _cleanup_old_files()
-    # Determine command to run.
+    # Determine command to execute: either build pytest command from targets or use provided script.
     if args.target:
         cmd = _build_pytest_cmd(args.target)
     else:
@@ -144,7 +152,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         cmd = args.script
     _LOG.info("Command to run: %s", cmd)
-    # Run all configured builds.
+    # Run the same command across all configured build environments.
     for build_name in hpytest.BUILD_CONFIG.keys():
         if not args.no_delete_cache:
             _clear_cache()

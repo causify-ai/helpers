@@ -67,9 +67,10 @@ def _add_build_env_to_repro(content: str, build_name: str) -> str:
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :return: Updated script content with build-specific environment setup
     """
+    _LOG.debug(hprint.to_str("build_name"))
     hdbg.dassert_in(build_name, hpytest.BUILD_CONFIG)
     docker_engine, use_docker_cmd = hpytest.BUILD_CONFIG[build_name]
-    # Prepend environment setup.
+    # Prepend environment setup specific to the build configuration.
     header_parts = [
         "#!/bin/bash",
         f"# Repro script for build: {build_name}",
@@ -83,15 +84,13 @@ def _add_build_env_to_repro(content: str, build_name: str) -> str:
             ]
         )
     header = "\n".join(header_parts) + "\n\n"
-    # Remove shebang from existing content if present to avoid duplication
-    # since we're adding our own header with shebang above. The shebang may
-    # include options like -xe, so we remove everything up to the first newline.
+    # Remove shebang from existing content to avoid duplication when prepending header.
     if content.startswith("#!/bin/bash"):
-        # Find the end of the first line (the shebang line)
         first_newline = content.find("\n")
         if first_newline != -1:
             content = content[first_newline + 1 :]
     updated_content = header + content
+    _LOG.debug("return=%s bytes", len(updated_content))
     return updated_content
 
 
@@ -106,10 +105,10 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
 
     :param result: Result dict from _process_single_file
     :return: Formatted table string
-    TODO(ai_gp): Add example of output
     """
+    _LOG.debug("result keys=%s", list(result.keys()))
     lines = [hprint.frame("Test Outcome Summary")]
-    # Prepare table data
+    # Convert result dict to table row with test counts and status.
     table_data = [[
         result["build"],
         result["passed"],
@@ -119,13 +118,15 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
         str(result["num_total"]),
         f"{result['duration']:.2f}s" if "duration" in result else "N/A",
     ]]
-    # Create and format table
+    # Create and format table.
     table_obj = htable.Table(
         table_data,
         ["Build", "Status", "Passed", "Skipped", "Failed", "Total", "Duration"],
     )
     lines.append(str(table_obj))
-    return "\n".join(lines)
+    result_str = "\n".join(lines)
+    _LOG.debug("return=%s bytes", len(result_str))
+    return result_str
 
 
 def _process_single_file(
@@ -138,14 +139,15 @@ def _process_single_file(
     :param build_name: Build name for output file naming
         - E.g., 'docker', 'apple', 'dev_container'
     """
+    _LOG.debug(hprint.to_str("file_path build_name"))
     _LOG.info("Reading '%s'", file_path)
     txt = hio.from_file(file_path)
     _LOG.info("Parsing '%s'", file_path)
     lines = txt.split("\n")
     info = hpytest.parse_failed_tests(lines)
-    # Print the results.
+    # Print parsed test results summary.
     print(hpytest.info_to_str(info))
-    # Write the repro scripts with build-specific naming if provided.
+    # Write main repro script for failed tests.
     failed_tests = info["log_failed_tests"]
     repro_file = hpytest.get_output_file_path("repro.sh", build_name=build_name)
     hpytest.write_repro_script(
@@ -158,7 +160,7 @@ def _process_single_file(
         updated_content = _add_build_env_to_repro(content, build_name)
         hio.to_file(repro_file, updated_content)
         _LOG.info("Updated repro script: %s", repro_file)
-    #
+    # Write repro script for failed test classes.
     failed_classes = hpytest.filter_failed_tests(
         failed_tests, only_file=False, only_class=True
     )
@@ -170,7 +172,7 @@ def _process_single_file(
         "Repro script for the classes containing failed tests",
         repro_classes_file,
     )
-    #
+    # Write repro script for failed test files.
     failed_files = hpytest.filter_failed_tests(
         failed_tests, only_file=True, only_class=False
     )
@@ -182,57 +184,60 @@ def _process_single_file(
         "Repro script for the files containing failed tests",
         repro_files_file,
     )
-    # Write the reports.
+    # Print failed tests to console.
     print(hprint.frame("Failed tests"))
     print("\n".join(failed_tests))
+    # - Write test result files (passed, failed, skipped, updated).
+    # Passed.
     passed_tests_file = hpytest.get_output_file_path(
         "passed_tests.txt", build_name=build_name
     )
     hpytest.write_passed_tests(info, passed_tests_file)
     _LOG.info("Created '%s'", passed_tests_file)
-    #
+    # Failed.
     failed_tests_file = hpytest.get_output_file_path(
         "failed_tests.txt", build_name=build_name
     )
     hpytest.write_failed_tests(info, failed_tests_file)
     _LOG.info("Created '%s'", failed_tests_file)
-    #
+    # Skipped.
     skipped_tests_file = hpytest.get_output_file_path(
         "skipped_tests.txt", build_name=build_name
     )
     hpytest.write_skipped_tests(info, skipped_tests_file)
     _LOG.info("Created '%s'", skipped_tests_file)
-    #
+    # Updated.
     updated_tests_file = hpytest.get_output_file_path(
         "updated_tests.txt", build_name=build_name
     )
     hpytest.write_updated_tests(info, updated_tests_file)
     _LOG.info("Created '%s'", updated_tests_file)
-    #
+    # - Write analysis files (duration, stacktraces, json info).
+    # By duration.
     tests_by_duration_file = hpytest.get_output_file_path(
         "tests_by_duration.txt", build_name=build_name
     )
     hpytest.write_tests_by_duration(info, tests_by_duration_file)
     _LOG.info("Created '%s'", tests_by_duration_file)
-    #
+    # Stats.
     duration_stats_file = hpytest.get_output_file_path(
         "duration_stats.txt", build_name=build_name
     )
     hpytest.write_duration_stats(info, duration_stats_file)
     _LOG.info("Created '%s'", duration_stats_file)
-    #
+    # Stacktraces.
     stacktraces_file = hpytest.get_output_file_path(
         "stacktraces.txt", build_name=build_name
     )
     hpytest.write_test_stacktraces(info, stacktraces_file)
     _LOG.info("Created '%s'", stacktraces_file)
-    #
+    # Info.
     info_json_file = hpytest.get_output_file_path(
         "info.json", build_name=build_name
     )
     hio.to_json(info_json_file, info)
     _LOG.info("Created '%s'", info_json_file)
-    # Extract summary info.
+    # Extract summary statistics from parsed info.
     num_passed = len(info["log_passed_tests"]) if info["log_passed_tests"] else 0
     num_skipped = (
         len(info["log_skipped_tests"]) if info["log_skipped_tests"] else 0
@@ -240,12 +245,13 @@ def _process_single_file(
     num_failed = len(info["log_failed_tests"]) if info["log_failed_tests"] else 0
     num_total = num_passed + num_skipped + num_failed
     passed = "PASS" if num_failed == 0 else "FAIL"
-    # Calculate total duration from all tests.
-    total_duration = 0.0
-    for test_data in info.get("log_test_data", []):
-        if isinstance(test_data, dict) and "duration" in test_data:
-            total_duration += test_data["duration"]
-    return {
+    # Prefer the final summary line's duration; fall back to summing per-test
+    # durations when the run didn't complete before printing the final summary.
+    total_duration = info.get("pytest_duration_in_secs") or 0.0
+    # TODO(ai_gp): Make this part of info.
+    if total_duration == 0.0:
+        total_duration = sum((info.get("log_test_durations") or {}).values())
+    result = {
         "build": file_path,
         "passed": passed,
         "num_passed": num_passed,
@@ -254,6 +260,8 @@ def _process_single_file(
         "num_total": num_total,
         "duration": total_duration,
     }
+    _LOG.debug("return=%s", result)
+    return result
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -279,11 +287,12 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    _LOG.debug("_main called")
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Process the file.
+    # Process the pytest log file to extract and organize failed tests.
     result = _process_single_file(args.input, build_name=args.build_name)
-    # Print outcome summary table.
+    # Print outcome summary table with test counts and overall status.
     print("\n" + _format_outcome_table(result))
 
 
