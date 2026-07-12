@@ -6,6 +6,7 @@ Tests orchestration of pytest across multiple build configurations.
 
 import os
 
+import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.testing.pytest_multi_build as dshtpmubu
@@ -82,8 +83,7 @@ class Test_cleanup_old_files(hunitest.TestCase):
             output_file = os.path.join(
                 scratch_dir, f"tmp.pytest_multi_build.{build_name}.txt"
             )
-            with open(output_file, "w") as f:
-                f.write("old output")
+            hio.to_file(output_file, "old output")
         # Change working directory for the test.
         original_dir = os.getcwd()
         try:
@@ -134,20 +134,13 @@ class Test_run_build(hunitest.TestCase):
         # Prepare inputs.
         build_name = "docker"
         cmd = "pytest_log helpers/test/"
-        docker_engine = "docker"
-        use_docker_cmd = False
         # Prepare outputs.
         scratch_dir = self.get_scratch_space()
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
             # Run test and verify command contains expected elements.
-            dshtpmubu._run_build(
-                build_name,
-                cmd,
-                docker_engine,
-                use_docker_cmd=use_docker_cmd,
-            )
+            dshtpmubu._run_build(build_name, cmd)
             # Invariant: function should complete without raising exceptions.
         finally:
             os.chdir(original_dir)
@@ -159,20 +152,13 @@ class Test_run_build(hunitest.TestCase):
         # Prepare inputs.
         build_name = "dev_container"
         cmd = "pytest_log helpers/test/"
-        docker_engine = "docker"
-        use_docker_cmd = True
         # Prepare outputs.
         scratch_dir = self.get_scratch_space()
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
             # Run test and verify it completes without error.
-            dshtpmubu._run_build(
-                build_name,
-                cmd,
-                docker_engine,
-                use_docker_cmd=use_docker_cmd,
-            )
+            dshtpmubu._run_build(build_name, cmd)
             # Invariant: function should complete without raising exceptions.
         finally:
             os.chdir(original_dir)
@@ -183,20 +169,15 @@ class Test_run_build(hunitest.TestCase):
         """
         # Prepare inputs.
         cmd = "pytest_log ."
-        docker_engine = "docker"
+        build_names = ["docker", "apple", "dev_container"]
         # Prepare outputs.
         scratch_dir = self.get_scratch_space()
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
             # Run test for each build.
-            for build_name in ["docker", "apple", "dev_container"]:
-                dshtpmubu._run_build(
-                    build_name,
-                    cmd,
-                    docker_engine,
-                    use_docker_cmd=False,
-                )
+            for build_name in build_names:
+                dshtpmubu._run_build(build_name, cmd)
                 # Invariant: function should complete without raising exceptions.
         finally:
             os.chdir(original_dir)

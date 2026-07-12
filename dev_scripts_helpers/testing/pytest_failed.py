@@ -18,26 +18,30 @@ Examples
 > pytest_failed.py --input tmp.log --build_name apple
 
 Creates the following files (with optional `build_name` subdirectory):
-- tmp.pytest_failed.{build_name}/repro.sh: script to rerun failed tests
-- tmp.pytest_failed.{build_name}/repro_classes.sh: script to rerun failed test
-  classes
-- tmp.pytest_failed.{build_name}/repro_files.sh: script to rerun failed test
-  files
-- tmp.pytest_failed.{build_name}/failed_tests.txt: list of failed tests
-- tmp.pytest_failed.{build_name}/passed_tests.txt: list of passed tests
-- tmp.pytest_failed.{build_name}/skipped_tests.txt: list of skipped tests
-- tmp.pytest_failed.{build_name}/updated_tests.txt: list of tests whose golden
-  outcome was updated
-- tmp.pytest_failed.{build_name}/tests_by_duration.txt: tests ordered by
-  duration
-- tmp.pytest_failed.{build_name}/duration_stats.txt: duration statistics by
-  file and class
-- tmp.pytest_failed.{build_name}/stacktraces.txt: failure reason for each
-  failed test
-- tmp.pytest_failed.{build_name}/info.json: parsed test info from
-  hpytest.parse_failed_tests()
+- tmp.pytest_failed.{build_name}/repro.sh:
+  script to rerun failed tests
+- tmp.pytest_failed.{build_name}/repro_classes.sh:
+  script to rerun failed test classes
+- tmp.pytest_failed.{build_name}/repro_files.sh:
+  script to rerun failed test files
+- tmp.pytest_failed.{build_name}/failed_tests.txt:
+  list of failed tests
+- tmp.pytest_failed.{build_name}/passed_tests.txt:
+  list of passed tests
+- tmp.pytest_failed.{build_name}/skipped_tests.txt:
+  list of skipped tests
+- tmp.pytest_failed.{build_name}/updated_tests.txt:
+  list of tests whose golden outcome was updated
+- tmp.pytest_failed.{build_name}/tests_by_duration.txt:
+  tests ordered by duration
+- tmp.pytest_failed.{build_name}/duration_stats.txt:
+  duration statistics by file and class
+- tmp.pytest_failed.{build_name}/stacktraces.txt:
+  failure reason for each failed test
+- tmp.pytest_failed.{build_name}/info.json:
+  parsed test info from hpytest.parse_failed_tests()
 
-When build_name is not provided, files are created in the current directory.
+When `build_name` is not provided, files are created in the current directory.
 """
 
 import argparse

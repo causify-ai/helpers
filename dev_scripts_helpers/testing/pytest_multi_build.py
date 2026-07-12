@@ -3,12 +3,12 @@
 """
 Run pytest targets or scripts across multiple build configurations.
 
-For architecture overview, see pytest_testing_system.README.md
-
 Executes the same command or pytest target in 3 different build configurations:
 - docker: Native docker engine
 - apple: Apple engine
 - dev_container: Docker container with local stage
+
+For architecture overview, see `pytest_testing_system.README.md`.
 
 Examples:
 > pytest_multi_build.py --target "helpers/test/test_hunit_test.py"
@@ -110,6 +110,7 @@ def _run_build(
         full_cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; {cmd}"
     # Run command and tee output to file for later analysis.
     shell_cmd = f"({full_cmd}) 2>&1 | tee {output_file}"
+    # TODO(ai_gp): Use hsystem and do not show the output.
     _LOG.debug("Executing: %s", shell_cmd)
     result = subprocess.run(
         shell_cmd,

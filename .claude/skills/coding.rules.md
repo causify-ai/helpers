@@ -51,6 +51,46 @@
           content = f.read()
   ```
 
+## Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings
+
+- For multi-line strings in code (test fixtures, expected outputs, scripts,
+  documentation examples), use assignment with `"""` and `hprint.dedent()` instead
+  of escaped `\n` in string literals
+- This improves readability, maintainability, and makes the string structure
+  immediately visible
+- Assign the indented string to a variable, then call `hprint.dedent()` on it
+
+- **Bad**: Escaped newlines (hard to read and modify)
+  ```python
+  content = "#!/bin/bash\npytest helpers/test/test_module.py\necho 'done'"
+  bash_script = "set -e\necho 'start'\npytest test.py"
+  config = "key1: value1\nkey2: value2\nkey3: value3"
+  ```
+
+- **Good**: Triple-quote assignment with `hprint.dedent`
+  ```python
+  content = """
+  #!/bin/bash
+  pytest helpers/test/test_module.py
+  echo 'done'
+  """
+  content = hprint.dedent(content)
+
+  bash_script = """
+  set -e
+  echo 'start'
+  pytest test.py
+  """
+  bash_script = hprint.dedent(bash_script)
+
+  config = """
+  key1: value1
+  key2: value2
+  key3: value3
+  """
+  config = hprint.dedent(config)
+  ```
+
 ## Mark Private Functions
 
 - Rename functions that are only used internally within the file to use a leading

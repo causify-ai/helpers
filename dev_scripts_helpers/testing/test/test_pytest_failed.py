@@ -66,8 +66,9 @@ class Test_get_output_filename(hunitest.TestCase):
         """
         # Prepare inputs.
         base = "tmp.pytest_failed.failed_tests.txt"
+        build_names = ["docker", "dev_container"]
         # Run test and check outputs.
-        for build_name in ["docker", "dev_container"]:
+        for build_name in build_names:
             actual = self.helper(base, build_name)
             self.assertTrue(actual.endswith(".txt"))
             self.assertIn(build_name, actual)
@@ -106,13 +107,13 @@ class Test_process_single_file(hunitest.TestCase):
             log_content = hio.from_file("tmp.pytest_multi_build.apple.txt")
         else:
             log_content = """
-            ============================= test session starts ==============================
-            platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0
-            collected 1 item
+                ============================= test session starts ==============================
+                platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0
+                collected 1 item
 
-            test_module.py::TestClass::test_method1 PASSED
-            ========================= 1 passed in 0.50s =========================
-            """
+                test_module.py::TestClass::test_method1 PASSED
+                ========================= 1 passed in 0.50s =========================
+                """
             log_content = hprint.dedent(log_content)
         return log_content
 

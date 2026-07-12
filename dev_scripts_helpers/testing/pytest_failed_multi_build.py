@@ -76,15 +76,17 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
     :return: List of build statistics dicts
     """
     _LOG.debug(hprint.to_str("build_names"))
+    #
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_script = os.path.join(script_dir, "pytest_failed.py")
     hdbg.dassert_file_exists(pytest_failed_script)
+    #
     build_stats = []
     for build_name in build_names:
         input_file = f"tmp.pytest_multi_build.{build_name}.txt"
         hdbg.dassert_file_exists(input_file)
         _LOG.info("Processing %s from %s", build_name, input_file)
-        # Execute pytest_failed.py for each build configuration to generate
+        # Execute `pytest_failed.py` for each build configuration to generate
         # intermediate files.
         cmd = " ".join(
             [
@@ -97,9 +99,7 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
             ]
         )
         rc = hsystem.system(cmd)
-        if rc != 0:
-            _LOG.error("Failed to process %s", build_name)
-            sys.exit(1)
+        #
         stats = _extract_build_stats(build_name)
         build_stats.append(stats)
     _LOG.debug("return=%s items", len(build_stats))
@@ -172,6 +172,7 @@ def _read_repro_script(build_name: str) -> str:
     return content
 
 
+# TODO(gp): Can it be simplified? Shouldn't be just the concat of the scripts?
 def _extract_tests_from_repro(repro_content: str) -> List[str]:
     """
     Extract test names from repro script.
@@ -204,6 +205,7 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
 
     :param build_names: List of build names
     :return: Consolidated repro script content
+    TODO(ai_gp): Add example
     """
     _LOG.debug(hprint.to_str("build_names"))
     header = "#!/bin/bash\n"
@@ -274,6 +276,7 @@ def _failed_tests_table_to_str(test_to_builds: Dict[str, Set[str]]) -> str:
 
     :param test_to_builds: Dict mapping test name to set of builds where it failed
     :return: Formatted table string
+    TODO(ai_gp): Add example
     """
     _LOG.debug("test_to_builds=%s tests", len(test_to_builds))
     # Build table with test names and the builds where they failed.
@@ -314,7 +317,8 @@ def _summary_to_str(
     lines.append(_failed_tests_table_to_str(test_to_builds))
     lines.append(f"\nTotal failing tests: {len(test_to_builds)}")
     lines.append(f"Across builds: {', '.join(build_names)}")
-    # Count tests that fail across multiple builds (likely infrastructure issues).
+    # Count tests that fail across multiple builds (likely infrastructure
+    # issues).
     multi_build_failures = sum(
         1 for builds in test_to_builds.values() if len(builds) > 1
     )
@@ -358,7 +362,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(
         "Consolidating failed tests for builds: %s", ", ".join(build_names)
     )
-    # Generate pytest_failed output files for each build by invoking pytest_failed.py.
+    # Generate pytest_failed output files for each build by invoking
+    # `pytest_failed.py`.
     _LOG.info("Generating intermediate files by calling pytest_failed.py...")
     build_stats = _generate_build_files(build_names)
     # Print build statistics summary.

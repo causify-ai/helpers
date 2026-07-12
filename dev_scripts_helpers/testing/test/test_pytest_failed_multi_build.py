@@ -20,7 +20,7 @@ import dev_scripts_helpers.testing.pytest_failed_multi_build as dshtpfmbu
 
 class Test_read_failed_tests(hunitest.TestCase):
     """
-    Test _read_failed_tests function for reading failed test files.
+    Test `_read_failed_tests` function for reading failed test files.
     """
 
     def _run_test_in_scratch(self, build_name: str, content: str) -> Any:
@@ -32,9 +32,9 @@ class Test_read_failed_tests(hunitest.TestCase):
         :return: Result from _read_failed_tests
         """
         scratch_dir = self.get_scratch_space()
-        failed_file = os.path.join(
-            scratch_dir, f"tmp.pytest_failed.{build_name}.failed_tests.txt"
-        )
+        build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+        hio.create_dir(build_dir, incremental=True)
+        failed_file = os.path.join(build_dir, "failed_tests.txt")
         hio.to_file(failed_file, content)
         original_dir = os.getcwd()
         try:
@@ -57,6 +57,7 @@ class Test_read_failed_tests(hunitest.TestCase):
         # Run test.
         result = self._run_test_in_scratch(build_name, "\n".join(tests))
         # Check outputs.
+        # TODO(ai_gp): use assert_equal with expected
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0], tests[0])
         self.assertEqual(result[1], tests[1])
@@ -70,6 +71,7 @@ class Test_read_failed_tests(hunitest.TestCase):
         # Run test.
         result = self._run_test_in_scratch(build_name, "")
         # Check outputs.
+        # TODO(ai_gp): use assert_equal with expected
         self.assertEqual(len(result), 0)
 
     def test3(self) -> None:
@@ -87,6 +89,7 @@ class Test_read_failed_tests(hunitest.TestCase):
         # Run test.
         result = self._run_test_in_scratch(build_name, content)
         # Check outputs.
+        # TODO(ai_gp): use assert_equal with expected
         self.assertEqual(len(result), 2)
 
 
@@ -109,9 +112,9 @@ class Test_read_repro_script(hunitest.TestCase):
         :return: Result from _read_repro_script
         """
         scratch_dir = self.get_scratch_space()
-        repro_file = os.path.join(
-            scratch_dir, f"tmp.pytest_failed.{build_name}.repro.sh"
-        )
+        build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+        hio.create_dir(build_dir, incremental=True)
+        repro_file = os.path.join(build_dir, "repro.sh")
         hio.to_file(repro_file, content)
         original_dir = os.getcwd()
         try:
@@ -127,6 +130,7 @@ class Test_read_repro_script(hunitest.TestCase):
         """
         # Prepare inputs.
         build_name = "docker"
+        # TODO(ai_gp): -> """ + hprint.dedent
         content = "#!/bin/bash\npytest helpers/test/test_module.py"
         # Run test.
         result = self._run_test_in_scratch(build_name, content)
@@ -199,10 +203,10 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         """
         # Prepare inputs.
         repro_content = """
-        #!/bin/bash
-        # Some other script
-        echo "hello"
-        """
+            #!/bin/bash
+            # Some other script
+            echo "hello"
+            """
         repro_content = hprint.dedent(repro_content)
         # Run test.
         actual = dshtpfmbu._extract_tests_from_repro(repro_content)
@@ -233,9 +237,9 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         :param build_tests: Dict mapping build name to test list
         """
         for build_name, tests in build_tests.items():
-            failed_file = os.path.join(
-                scratch_dir, f"tmp.pytest_failed.{build_name}.failed_tests.txt"
-            )
+            build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+            hio.create_dir(build_dir, incremental=True)
+            failed_file = os.path.join(build_dir, "failed_tests.txt")
             hio.to_file(failed_file, "\n".join(tests))
 
     def _run_test_in_scratch(
@@ -317,9 +321,9 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         :param build_names: List of build names
         """
         for build_name in build_names:
-            repro_file = os.path.join(
-                scratch_dir, f"tmp.pytest_failed.{build_name}.repro.sh"
-            )
+            build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+            hio.create_dir(build_dir, incremental=True)
+            repro_file = os.path.join(build_dir, "repro.sh")
             tests = f"test/test_{build_name}.py::TestClass::test_method"
             content = f"#!/bin/bash -xe\n# Repro script\npytest_log {tests} $*"
             hio.to_file(repro_file, content)
@@ -360,6 +364,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         self.assertIn("export CSFY_DOCKER_ENGINE='docker'", result)
         self.assertIn("export CSFY_DOCKER_ENGINE='apple'", result)
         self.assertIn("pytest_log", result)
+
 
     def test2(self) -> None:
         """

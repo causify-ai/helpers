@@ -282,6 +282,14 @@
         self.helper(txt, expected)
     ```
 
+### Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings
+
+- Always use assignment with `"""` and `hprint.dedent()`, never use escaped `\n`
+  in string literals
+- For test input or expected output strings, follow the rule in
+  `.claude/skills/coding.rules.md` under
+  `## Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings`
+
 ## Use Three Sections in Testing Methods
 
 - Every test method must have three sections with standard comments:

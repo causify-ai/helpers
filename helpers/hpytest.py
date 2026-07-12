@@ -878,7 +878,9 @@ def info_to_comments(info: Dict[str, Any]) -> str:
         ("Failed", num_failed),
         ("Updated", num_updated),
     ]
-    table_data = [[label, f"{value}/{num_total}"] for label, value in labels_and_values]
+    table_data = [
+        [label, f"{value}/{num_total}"] for label, value in labels_and_values
+    ]
     table_obj = htable.Table(table_data, ["Label", "Count"])
     # Extract just the data rows (skip header and separator).
     for line in str(table_obj).split("\n")[2:]:
@@ -1092,8 +1094,13 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     txt.append(hprint.frame("Duration by file"))
     # Build table for file stats.
     file_data = [
-        [key, str(stat['count']), f"{stat['total_secs']:.2f}",
-         f"{stat['mean_secs']:.2f}", f"{stat['max_secs']:.2f}"]
+        [
+            key,
+            str(stat["count"]),
+            f"{stat['total_secs']:.2f}",
+            f"{stat['mean_secs']:.2f}",
+            f"{stat['max_secs']:.2f}",
+        ]
         for key, stat in compute_duration_stats_by_file(info).items()
     ]
     file_table = htable.Table(
@@ -1103,12 +1110,18 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     txt.append(hprint.frame("Duration by class"))
     # Build table for class stats.
     class_data = [
-        [key, str(stat['count']), f"{stat['total_secs']:.2f}",
-         f"{stat['mean_secs']:.2f}", f"{stat['max_secs']:.2f}"]
+        [
+            key,
+            str(stat["count"]),
+            f"{stat['total_secs']:.2f}",
+            f"{stat['mean_secs']:.2f}",
+            f"{stat['max_secs']:.2f}",
+        ]
         for key, stat in compute_duration_stats_by_class(info).items()
     ]
     class_table = htable.Table(
-        class_data, ["Class", "Count", "Total (secs)", "Mean (secs)", "Max (secs)"]
+        class_data,
+        ["Class", "Count", "Total (secs)", "Mean (secs)", "Max (secs)"],
     )
     txt.extend(str(class_table).split("\n"))
     hio.to_file(file_name, "\n".join(txt))
@@ -1262,9 +1275,11 @@ def marks_to_str(marks_info: List[Dict[str, Any]]) -> str:
     """
     # Build table for marks info.
     table_data = [
-        [entry['nodeid'],
-         ",".join(entry["marks"]) if entry["marks"] else "-",
-         str(entry['skipped'])]
+        [
+            entry["nodeid"],
+            ",".join(entry["marks"]) if entry["marks"] else "-",
+            str(entry["skipped"]),
+        ]
         for entry in marks_info
     ]
     table_obj = htable.Table(table_data, ["Test", "Marks", "Skipped"])
