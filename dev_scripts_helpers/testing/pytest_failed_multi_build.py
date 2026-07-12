@@ -67,12 +67,16 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     return res
 
 
-def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
+def _generate_build_files(
+    build_names: List[str], in_build_tag: str = "pytest_multi_build"
+) -> List[Dict[str, Any]]:
     """
     Generate output files for each build by calling `pytest_failed.py`.
 
     :param build_names: List of build names
         - E.g., ['docker', 'apple', 'dev_container']
+    :param in_build_tag: Tag for input files (default: 'pytest_multi_build')
+        - Input files will be named: tmp.<in_build_tag>.<build_name>.txt
     :return: List of build statistics dicts
     """
     _LOG.debug(hprint.to_str("build_names"))
@@ -83,7 +87,7 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
     # Execute pytest_failed.py for each build configuration.
     build_stats = []
     for build_name in build_names:
-        input_file = f"tmp.pytest_multi_build.{build_name}.txt"
+        input_file = f"tmp.{in_build_tag}.{build_name}.txt"
         hdbg.dassert_file_exists(input_file)
         _LOG.info("Processing %s from %s", build_name, input_file)
         # Build command to execute `pytest_failed.py` for this build.
@@ -200,27 +204,33 @@ def _extract_tests_from_repro(repro_content: str) -> List[str]:
     return []
 
 
-def _create_consolidated_repro(build_names: List[str]) -> str:
+def _create_consolidated_repro(
+    build_names: List[str], *, out_build_tag: str = "pytest_multi_build"
+) -> str:
     """
     Create consolidated repro script from multiple builds.
 
     :param build_names: List of build names
         - Example: `['docker', 'apple', 'dev_container']`
+    :param out_build_tag: Tag for BUILD_TAG in generated script (default: 'pytest_multi_build')
     :return: Consolidated repro script content, e.g.,
         ```
         #!/bin/bash
         # Consolidated repro script for multiple builds.
 
+        BUILD_TAG=pytest_multi_build
+
         # Build: docker
-        pytest tests/test_module.py::TestClass::test_method1 ...
+        export CSFY_DOCKER_ENGINE='docker'; pytest_log ... 2>&1 | tee tmp.$BUILD_TAG.docker.txt
 
         # Build: apple
-        pytest tests/test_module.py::TestClass::test_method2 ...
+        export CSFY_DOCKER_ENGINE='apple'; pytest_log ... 2>&1 | tee tmp.$BUILD_TAG.apple.txt
         ```
     """
     _LOG.debug(hprint.to_str("build_names"))
     header = "#!/bin/bash\n"
     header += "# Consolidated repro script for multiple builds.\n\n"
+    header += f"BUILD_TAG={out_build_tag}\n\n"
     content = header
     # Merge repro scripts from each build, extracting test names and rebuilding commands.
     for build_name in build_names:
@@ -233,6 +243,8 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
         if tests:
             content += f"# Build: {build_name}\n"
             cmd = hpytest.get_build_command(tests, build_name)
+            # Add tee logging to capture output
+            cmd += f" 2>&1 | tee tmp.$BUILD_TAG.{build_name}.txt"
             content += f"{cmd}\n"
             content += "\n"
     _LOG.debug("return=%s bytes", len(content))
@@ -364,6 +376,20 @@ def _parse() -> argparse.ArgumentParser:
         default=["docker", "apple", "dev_container"],
         help="Build names to consolidate (default: docker apple dev_container)",
     )
+    parser.add_argument(
+        "--in_build_tag",
+        type=str,
+        default="pytest_multi_build",
+        help="Tag for input files to read (default: pytest_multi_build). "
+        "Files will be named: tmp.<in_build_tag>.<build_name>.txt",
+    )
+    parser.add_argument(
+        "--out_build_tag",
+        type=str,
+        default="pytest_multi_build",
+        help="Tag for BUILD_TAG in generated repro script (default: pytest_multi_build). "
+        "Output files will be named: tmp.<out_build_tag>.<build_name>.txt",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -376,13 +402,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     build_names = args.build_names
+    in_build_tag = args.in_build_tag
+    out_build_tag = args.out_build_tag
     _LOG.info(
         "Consolidating failed tests for builds: %s", ", ".join(build_names)
     )
     # Generate pytest_failed output files for each build by invoking
     # `pytest_failed.py`.
     _LOG.info("Generating intermediate files by calling pytest_failed.py...")
-    build_stats = _generate_build_files(build_names)
+    build_stats = _generate_build_files(build_names, in_build_tag=in_build_tag)
     # Print build statistics summary.
     stats_summary = _build_stats_to_str(build_stats)
     print(stats_summary)
@@ -392,7 +420,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     summary = _summary_to_str(build_names, test_to_builds)
     print(summary)
     # Create consolidated repro script combining tests from all builds.
-    repro_content = _create_consolidated_repro(build_names)
+    repro_content = _create_consolidated_repro(
+        build_names, out_build_tag=out_build_tag
+    )
     repro_file = "tmp.pytest_failed_multi_build.repro.sh"
     hio.create_executable_script(repro_file, repro_content)
     _LOG.info("Created consolidated repro script: %s", repro_file)
