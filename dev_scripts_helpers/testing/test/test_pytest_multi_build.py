@@ -146,13 +146,15 @@ class Test_run_build(hunitest.TestCase):
         # Prepare inputs.
         build_name = "docker"
         cmd = "pytest_log helpers/test/"
+        build_num = 1
+        total_builds = 1
         # Prepare outputs.
         scratch_dir = self.get_scratch_space()
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
             # Run test and verify command contains expected elements.
-            dshtpmubu._run_build(build_name, cmd)
+            dshtpmubu._run_build(build_name, cmd, build_num, total_builds)
             # Invariant: function should complete without raising exceptions.
         finally:
             os.chdir(original_dir)
@@ -164,13 +166,15 @@ class Test_run_build(hunitest.TestCase):
         # Prepare inputs.
         build_name = "dev_container"
         cmd = "pytest_log helpers/test/"
+        build_num = 1
+        total_builds = 1
         # Prepare outputs.
         scratch_dir = self.get_scratch_space()
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
             # Run test and verify it completes without error.
-            dshtpmubu._run_build(build_name, cmd)
+            dshtpmubu._run_build(build_name, cmd, build_num, total_builds)
             # Invariant: function should complete without raising exceptions.
         finally:
             os.chdir(original_dir)
@@ -182,14 +186,15 @@ class Test_run_build(hunitest.TestCase):
         # Prepare inputs.
         cmd = "pytest_log ."
         build_names = ["docker", "apple", "dev_container"]
+        total_builds = len(build_names)
         # Prepare outputs.
         scratch_dir = self.get_scratch_space()
         original_dir = os.getcwd()
         try:
             os.chdir(scratch_dir)
             # Run test for each build.
-            for build_name in build_names:
-                dshtpmubu._run_build(build_name, cmd)
+            for build_num, build_name in enumerate(build_names, start=1):
+                dshtpmubu._run_build(build_name, cmd, build_num, total_builds)
                 # Invariant: function should complete without raising exceptions.
         finally:
             os.chdir(original_dir)
