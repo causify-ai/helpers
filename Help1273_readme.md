@@ -1,3 +1,9 @@
+Build         | Status | Passed | Skipped | Failed | Total | Duration |
+------------- | ------ | ------ | ------- | ------ | ----- | -------- |
+docker        | FAIL   | 38     | 0       | 7      | 45    | 17.17s   |
+apple         | FAIL   | 37     | 0       | 7      | 44    | 21.86s   |
+dev_container | FAIL   | 33     | 0       | 2      | 35    | 24.82s   |
+
 After group4
 
 Build         | Status | Passed | Skipped | Failed | Total | Duration |
