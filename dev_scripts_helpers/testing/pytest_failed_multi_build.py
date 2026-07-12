@@ -18,7 +18,6 @@ Examples:
 import argparse
 import logging
 import os
-import subprocess
 import sys
 from typing import Any, Dict, List, Set
 
@@ -26,6 +25,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import dev_scripts_helpers.testing.pytest_utils as dshtpyut
 
 _LOG = logging.getLogger(__name__)
@@ -67,47 +67,41 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
 
 def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
     """
-    Generate pytest_failed output files for each build by calling pytest_failed.py.
+    Generate output files for each build by calling `pytest_failed.py`.
 
-    :param build_names: List of build names (e.g., ['docker', 'apple', 'dev_container'])
+    :param build_names: List of build names
+        - E.g., ['docker', 'apple', 'dev_container']
     :return: List of build statistics dicts
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_script = os.path.join(script_dir, "pytest_failed.py")
     hdbg.dassert_file_exists(pytest_failed_script)
-
     build_stats = []
     for build_name in build_names:
         input_file = f"tmp.pytest_multi_build.{build_name}.txt"
-        if not os.path.exists(input_file):
-            _LOG.warning(
-                "Input file not found: %s (skipping %s)", input_file, build_name
-            )
-            continue
-
+        hdbg.dassert_file_exists(input_file)
         _LOG.info("Processing %s from %s", build_name, input_file)
-        cmd = [
+        cmd = " ".join([
             sys.executable,
             pytest_failed_script,
             "--input",
             input_file,
             "--build_name",
             build_name,
-        ]
-        # TODO(ai_gp): Use hsystem.system
-        result = subprocess.run(cmd, capture_output=False)
-        if result.returncode != 0:
+        ])
+        # TODO(ai_gp): Print the output of the cmd only at -v debug level.
+        rc = hsystem.system(cmd)
+        if rc != 0:
             _LOG.error("Failed to process %s", build_name)
             sys.exit(1)
-
+        # Get info.
         stats = _extract_build_stats(build_name)
         build_stats.append(stats)
-
     return build_stats
 
 
 # #############################################################################
-# File reading helpers
+# Consolidate failed tests.
 # #############################################################################
 
 
@@ -115,7 +109,7 @@ def _read_failed_tests(build_name: str) -> List[str]:
     """
     Read failed tests from a single build.
 
-    :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
+    :param build_name: Build name
     :return: List of failed test names
     """
     failed_file = dshtpyut.get_output_file_path(
@@ -125,23 +119,6 @@ def _read_failed_tests(build_name: str) -> List[str]:
     txt = hio.from_file(failed_file)
     lines = [line.strip() for line in txt.split("\n") if line.strip()]
     return lines
-
-
-def _read_repro_script(build_name: str) -> str:
-    """
-    Read repro script from a single build.
-
-    :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
-    :return: Content of repro script
-    """
-    repro_file = dshtpyut.get_output_file_path("repro.sh", build_name=build_name)
-    hdbg.dassert_file_exists(repro_file)
-    return hio.from_file(repro_file)
-
-
-# #############################################################################
-# Consolidation logic
-# #############################################################################
 
 
 def _consolidate_failed_tests(build_names: List[str]) -> Dict[str, Set[str]]:
@@ -159,6 +136,25 @@ def _consolidate_failed_tests(build_names: List[str]) -> Dict[str, Set[str]]:
                 test_to_builds[test_name] = set()
             test_to_builds[test_name].add(build_name)
     return test_to_builds
+
+
+# #############################################################################
+# Consolidate repro script.
+# #############################################################################
+
+
+def _read_repro_script(build_name: str) -> str:
+    """
+    Read repro script from a single build.
+
+    :param build_name: Build name
+    :return: Content of repro script
+    """
+    repro_file = dshtpyut.get_output_file_path(
+        "repro.sh", build_name=build_name
+    )
+    hdbg.dassert_file_exists(repro_file)
+    return hio.from_file(repro_file)
 
 
 def _extract_tests_from_repro(repro_content: str) -> List[str]:
@@ -198,15 +194,14 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
         repro_file = dshtpyut.get_output_file_path(
             "repro.sh", build_name=build_name
         )
-        if os.path.exists(repro_file):
-            repro_content = _read_repro_script(build_name)
-            tests = _extract_tests_from_repro(repro_content)
-
-            if tests:
-                content += f"# Build: {build_name}\n"
-                cmd = dshtpyut.get_build_command(tests, build_name)
-                content += f"{cmd}\n"
-                content += "\n"
+        hdbg.dassert_file_exists(repro_file)
+        repro_content = _read_repro_script(build_name)
+        tests = _extract_tests_from_repro(repro_content)
+        if tests:
+            content += f"# Build: {build_name}\n"
+            cmd = dshtpyut.get_build_command(tests, build_name)
+            content += f"{cmd}\n"
+            content += "\n"
     return content
 
 
@@ -215,17 +210,25 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
     Format build statistics as a table.
 
     :param build_stats: List of build statistics dicts
-    :return: Formatted table string
+    :return: Formatted table string, e.g.,
+        ```
+        Build                   Passed   Skipped    Failed    Total   Duration
+        ----------------------------------------------------------------------
+        docker                   1234         0        10     1244       45.2s
+        apple                    1230         2        12     1244       52.1s
+        dev_container            1232         1        11     1244       48.5s
+        ```
     """
     lines = [hprint.frame("Build Statistics")]
     lines.append(
-        f"{'Build':<20} {'Passed':>8} {'Skipped':>8} {'Failed':>8} {'Total':>8} {'Duration':>10}"
+        f"{'Build':<20} {'Passed':>8} {'Skipped':>8} {'Failed':>8} {'Total':>8} {'Duration':>10} {'Status':>8}"
     )
-    lines.append("-" * 70)
+    lines.append("-" * 80)
     for stats in build_stats:
+        status = "PASS" if stats["failed"] == 0 else "FAIL"
         lines.append(
             f"{stats['build']:<20} {stats['passed']:>8} {stats['skipped']:>8} "
-            f"{stats['failed']:>8} {stats['total']:>8} {str(stats['duration']):>10}"
+            f"{stats['failed']:>8} {stats['total']:>8} {str(stats['duration']):>10} {status:>8}"
         )
     return "\n".join(lines)
 
@@ -254,7 +257,18 @@ def _summary_to_str(
 
     :param build_names: List of build names
     :param test_to_builds: Dict mapping test name to set of builds where it failed
-    :return: Summary string
+    :return: Summary string, e.g.,
+        ```
+        Test Name                                              Builds
+        -------------------------------------------------------------------------------------
+        tests/core/test_module.py::TestClass::test_method1      docker, apple
+        tests/core/test_module.py::TestClass::test_method2      docker
+        tests/data/test_pipeline.py::TestPipeline::test_run     apple, dev_container
+
+        Total failing tests: 3
+        Across builds: docker, apple, dev_container
+        Tests failing in multiple builds: 1
+        ```
     """
     lines = [hprint.frame("Failed Tests Summary")]
     lines.append(_failed_tests_table_to_str(test_to_builds))

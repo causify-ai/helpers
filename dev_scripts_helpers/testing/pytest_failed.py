@@ -108,6 +108,7 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
     :return: Formatted table string
     """
     lines = [hprint.frame("Test Outcome Summary")]
+    # TODO(ai_gp): Use helpers/htable.py
     lines.append(
         f"{'Build':<30} {'Status':>10} {'Passed':>8} {'Skipped':>8} {'Failed':>8} {'Total':>8}"
     )
@@ -116,6 +117,13 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
         f"{result['build']:<30} {result['passed']:>10} {result['num_passed']:>8} "
         f"{result['num_skipped']:>8} {result['num_failed']:>8} {result['num_total']:>8}"
     )
+    # TODO(ai_gp): Assume that duration is present add the info to the table above.
+    # Add duration section if available 
+    if "duration" in result:
+        lines.append("")
+        lines.append("Duration")
+        lines.append("-" * 10)
+        lines.append(f"  {result['duration']:.2f}s")
     return "\n".join(lines)
 
 
@@ -232,6 +240,11 @@ def _process_single_file(
     num_failed = len(info["log_failed_tests"]) if info["log_failed_tests"] else 0
     num_total = num_passed + num_skipped + num_failed
     passed = "PASS" if num_failed == 0 else "FAIL"
+    # Calculate total duration from all tests.
+    total_duration = 0.0
+    for test_data in info.get("log_test_data", []):
+        if isinstance(test_data, dict) and "duration" in test_data:
+            total_duration += test_data["duration"]
     return {
         "build": file_path,
         "passed": passed,
@@ -239,6 +252,7 @@ def _process_single_file(
         "num_skipped": num_skipped,
         "num_failed": num_failed,
         "num_total": num_total,
+        "duration": total_duration,
     }
 
 
