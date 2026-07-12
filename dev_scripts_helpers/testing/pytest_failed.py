@@ -34,6 +34,8 @@ Creates the following files (with optional `build_name` subdirectory):
   file and class
 - tmp.pytest_failed.{build_name}/stacktraces.txt: failure reason for each
   failed test
+- tmp.pytest_failed.{build_name}/info.json: parsed test info from
+  hpytest.parse_failed_tests()
 
 When build_name is not provided, files are created in the current directory.
 """
@@ -218,6 +220,12 @@ def _process_single_file(
     )
     hpytest.write_test_stacktraces(info, stacktraces_file)
     _LOG.info("Created '%s'", stacktraces_file)
+    #
+    info_json_file = dshtpyut.get_output_file_path(
+        "info.json", build_name=build_name
+    )
+    hio.to_json(info_json_file, info)
+    _LOG.info("Created '%s'", info_json_file)
     # Extract summary info.
     num_passed = len(info["log_passed_tests"]) if info["log_passed_tests"] else 0
     num_skipped = (

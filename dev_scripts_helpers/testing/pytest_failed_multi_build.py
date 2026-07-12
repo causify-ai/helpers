@@ -3,21 +3,21 @@
 """
 Consolidate failed tests across multiple build configurations.
 
-For architecture overview, see pytest_testing_system.README.md
+- Read output from multiple builds from `pytest_failed.py`
+- Create a summary of tests failing across the builds
+- Consolidate all repro commands in a single one
 
-Reads pytest_failed.py output from multiple builds and creates a summary of
-tests failing across the builds, consolidating all repro commands.
+For architecture overview, see `pytest_testing_system.README.md`.
 
 Examples:
-
 > pytest_failed_multi_build.py
+
 > pytest_failed_multi_build.py --build_names docker apple dev_container
 """
 
 import argparse
 import logging
 import os
-import re
 import subprocess
 import sys
 from typing import Any, Dict, List, Set
@@ -36,61 +36,25 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _strip_ansi_codes(text: str) -> str:
-    """
-    Remove ANSI escape codes from text.
-    """
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
-
-
-def _count_lines_in_file(file_path: str) -> int:
-    """
-    Count non-empty lines in file.
-    """
-    if not os.path.exists(file_path):
-        return 0
-    txt = hio.from_file(file_path)
-    lines = [line.strip() for line in txt.split("\n") if line.strip()]
-    return len(lines)
-
-
 def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     """
-    Extract build statistics from generated files and input log.
+    Extract build statistics from JSON info file.
 
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
     :return: Dict with build stats
     """
-    passed_file = dshtpyut.get_output_file_path("passed_tests.txt", build_name=build_name)
-    failed_file = dshtpyut.get_output_file_path("failed_tests.txt", build_name=build_name)
-    skipped_file = dshtpyut.get_output_file_path("skipped_tests.txt", build_name=build_name)
-    input_file = f"tmp.pytest_multi_build.{build_name}.txt"
-
-    num_passed = _count_lines_in_file(passed_file)
-    num_failed = _count_lines_in_file(failed_file)
-    num_skipped = _count_lines_in_file(skipped_file)
+    # Read file.
+    info_file = dshtpyut.get_output_file_path("info.json", build_name=build_name)
+    hdbg.dassert_file_exists(info_file)
+    info = hio.from_json(info_file)
+    # Extract info.
+    num_passed = info.get("log_num_passed", 0) or 0
+    num_failed = info.get("log_num_failed", 0) or 0
+    num_skipped = info.get("log_num_skipped", 0) or 0
     num_total = num_passed + num_failed + num_skipped
-
-    # Extract duration from pytest output
-    duration = "N/A"
-    if os.path.exists(input_file):
-        content = hio.from_file(input_file)
-        # Look for pytest summary line like "40 passed, 1 skipped in 1.20s"
-        for line in content.split("\n"):
-            clean_line = _strip_ansi_codes(line)
-            if (
-                " in " in clean_line
-                and "s" in clean_line
-                and ("passed" in clean_line or "failed" in clean_line)
-            ):
-                # Extract duration from pattern "in X.XXs"
-                match = re.search(r" in ([\d.]+)s", clean_line)
-                if match:
-                    duration = match.group(1) + "s"
-                    break
-
-    return {
+    duration = f"{info['pytest_duration_in_secs']}s"
+    # Assemble result.
+    res = {
         "build": build_name,
         "passed": num_passed,
         "skipped": num_skipped,
@@ -98,6 +62,7 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
         "total": num_total,
         "duration": duration,
     }
+    return res
 
 
 def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
@@ -129,6 +94,7 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
             "--build_name",
             build_name,
         ]
+        # TODO(ai_gp): Use hsystem.system
         result = subprocess.run(cmd, capture_output=False)
         if result.returncode != 0:
             _LOG.error("Failed to process %s", build_name)
@@ -252,13 +218,11 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
         f"{'Build':<20} {'Passed':>8} {'Skipped':>8} {'Failed':>8} {'Total':>8} {'Duration':>10}"
     )
     lines.append("-" * 70)
-
     for stats in build_stats:
         lines.append(
             f"{stats['build']:<20} {stats['passed']:>8} {stats['skipped']:>8} "
             f"{stats['failed']:>8} {stats['total']:>8} {str(stats['duration']):>10}"
         )
-
     return "\n".join(lines)
 
 
@@ -300,6 +264,11 @@ def _summary_to_str(
     )
     lines.append(f"Tests failing in multiple builds: {multi_build_failures}")
     return "\n".join(lines)
+
+
+# #############################################################################
+# CLI
+# #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
