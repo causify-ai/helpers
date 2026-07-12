@@ -41,11 +41,12 @@ class Test_get_output_filename(hunitest.TestCase):
         # Prepare inputs.
         base = "tmp.pytest_failed.repro.sh"
         build_name = ""
+        # Prepare outputs.
+        expected = base
         # Run test.
         actual = self.helper(base, build_name)
         # Check outputs.
-        expected = base
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
@@ -54,11 +55,12 @@ class Test_get_output_filename(hunitest.TestCase):
         # Prepare inputs.
         base = "tmp.pytest_failed.repro.sh"
         build_name = "apple"
+        # Prepare outputs.
+        expected = "tmp.pytest_failed.apple.repro.sh"
         # Run test.
         actual = self.helper(base, build_name)
         # Check outputs.
-        expected = "tmp.pytest_failed.apple.repro.sh"
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test3(self) -> None:
         """
@@ -80,11 +82,12 @@ class Test_get_output_filename(hunitest.TestCase):
         # Prepare inputs.
         base = "custom.output"
         build_name = "docker"
+        # Prepare outputs.
+        expected = f"{base}.{build_name}"
         # Run test.
         actual = self.helper(base, build_name)
         # Check outputs.
-        expected = f"{base}.{build_name}"
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################

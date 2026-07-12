@@ -76,7 +76,7 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
     :return: List of build statistics dicts
     """
     _LOG.debug(hprint.to_str("build_names"))
-    #
+    # Locate `pytest_failed.py` script in the same directory.
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_script = os.path.join(script_dir, "pytest_failed.py")
     hdbg.dassert_file_exists(pytest_failed_script)
@@ -182,7 +182,7 @@ def _extract_tests_from_repro(repro_content: str) -> List[str]:
     """
     _LOG.debug("repro_content len=%s", len(repro_content))
     lines = repro_content.split("\n")
-    # Find and parse the pytest_log line which contains all test names.
+    # Parse the pytest_log line to extract all test names.
     for line in lines:
         line = line.strip()
         if line.startswith("pytest_log"):
