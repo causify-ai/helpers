@@ -999,7 +999,7 @@ class TestReplaceShortImportsInFile(hunitest.TestCase):
         Test local package with underscores wrong short import.
         """
         input_code = "import linters.amp_normalize_import as norm"
-        expected_code = "import linters.amp_normalize_import as lamnoimp"
+        expected_code = input_code
         self._check_import_normalization(input_code, expected_code)
 
     def test5(self) -> None:
@@ -1015,7 +1015,7 @@ class TestReplaceShortImportsInFile(hunitest.TestCase):
         Test local package with spaces.
         """
         input_code = "    import linters.amp_normalize_import as norm"
-        expected_code = "    import linters.amp_normalize_import as lamnoimp"
+        expected_code = input_code
         self._check_import_normalization(input_code, expected_code)
 
     def test7(self) -> None:

@@ -181,6 +181,7 @@ _COMMON_PANDOC_OPTS = [
     # https://github.com/jgm/skylighting
     "--highlight-style=tango",
     "-s",
+    "--fail-if-warnings",
 ]
 # --filter /Users/$USER/src/github/pandocfilters/examples/tikz.py \
 # -F /Users/$USER/src/github/pandocfilters/examples/lilypond.py \

@@ -59,9 +59,9 @@ class Test_build_png_container1(hunitest.TestCase):
         # the host OS name.
         machine = platform.machine()
         if machine in ("arm64", "aarch64"):
-            expected = "Version: ImageMagick 7.1.2-19 Q16-HDRI aarch64 23897 https://imagemagick.org"
+            expected = "Version: ImageMagick 7.1.2-24 Q16-HDRI aarch64 24116 https://imagemagick.org"
         elif machine in ("x86_64", "amd64"):
-            expected = "Version: ImageMagick 7.1.2-19 Q16-HDRI x86_64 23897 https://imagemagick.org"
+            expected = "Version: ImageMagick 7.1.2-24 Q16-HDRI x86_64 24116 https://imagemagick.org"
         else:
             raise ValueError(f"Invalid machine='{machine}'")
         self.assert_equal(output, expected, purify_text=True)

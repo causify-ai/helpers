@@ -699,7 +699,7 @@ class Test_get_docker_command1(hunitest.TestCase):
         env = {}
         # Run test.
         with umock.patch.object(platform, "system", return_value="Linux"):
-            with umock.patch.dict(os.environ, env, clear=False):
+            with umock.patch.dict(os.environ, env, clear=True):
                 actual = hdocker.get_docker_command()
         # Check outputs.
         expected = "docker"
@@ -765,7 +765,7 @@ class Test_get_docker_command1(hunitest.TestCase):
         env = {}
         # Run test.
         with umock.patch.object(platform, "system", return_value="Darwin"):
-            with umock.patch.dict(os.environ, env, clear=False):
+            with umock.patch.dict(os.environ, env, clear=True):
                 actual = hdocker.get_docker_command()
         # Check outputs.
         expected = "container"
