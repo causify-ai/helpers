@@ -59,6 +59,29 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Output filename generation
+# #############################################################################
+
+
+# TODO(gp): Who uses it? Does it belong to the pytest_utils.py?
+def _get_output_filename(base: str, build_name: str = "") -> str:
+    """
+    Generate output filename with optional build name encoding.
+
+    :param base: Base filename (e.g., 'tmp.pytest_failed.repro.sh')
+    :param build_name: Build name to encode (e.g., 'docker', 'apple', 'dev_container')
+    :return: Filename with build_name inserted, or base if build_name is empty
+    """
+    if not build_name:
+        return base
+    # Insert build_name before the final extension
+    if "." in base:
+        parts = base.rsplit(".", 1)
+        return f"{parts[0]}.{build_name}.{parts[1]}"
+    return f"{base}.{build_name}"
+
+
+# #############################################################################
 # Build environment helpers
 # #############################################################################
 
@@ -251,13 +274,7 @@ def _process_single_file(
     num_failed = len(info["log_failed_tests"]) if info["log_failed_tests"] else 0
     num_total = num_passed + num_skipped + num_failed
     passed = "PASS" if num_failed == 0 else "FAIL"
-    # Prefer the final summary line's duration; fall back to summing per-test
-    # durations when the run didn't complete before printing the final summary.
-    total_duration = info.get("pytest_duration_in_secs") or 0.0
-    if total_duration == 0.0:
-        total_duration = sum((info.get("log_test_durations") or {}).values())
-    # TODO(ai_gp): Move this to hpytest.parse_failed_tests(lines)
-    info["total_duration"] = total_duration
+    total_duration = info.get("total_duration") or 0.0
     result = {
         "build": file_path,
         "passed": passed,

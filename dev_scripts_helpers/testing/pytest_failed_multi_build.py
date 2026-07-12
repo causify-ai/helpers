@@ -171,7 +171,9 @@ def _read_repro_script(build_name: str) -> str:
     return content
 
 
-# TODO(ai_gp): Apply "Consider simplifying the parsing logic: the function extracts test names from repro scripts but could potentially concatenate all scripts instead of parsing each one individually"
+# TODO(gp): Consider simplifying the parsing logic: the function extracts test
+# names from repro scripts but could potentially concatenate all scripts
+# instead of parsing each one individually.
 def _extract_tests_from_repro(repro_content: str) -> List[str]:
     """
     Extract test names from repro script.

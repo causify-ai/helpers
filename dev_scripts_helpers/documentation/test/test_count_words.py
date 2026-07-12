@@ -3,7 +3,7 @@ import io
 import os
 from typing import Dict, List
 
-# TODO(ai_gp): import ...
+# TODO(gp): use an import unittest.mock instead of from ... import mock
 from unittest import mock
 
 import pytest

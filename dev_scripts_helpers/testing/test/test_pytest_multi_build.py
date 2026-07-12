@@ -30,9 +30,8 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         targets = ["helpers/test/test_module.py"]
         # Run test.
         actual = dshtpmubu._build_pytest_cmd(targets)
-        # TODO(ai_gp): Apply "Always Use `self.assert_equal()` when the arguments are strings" instead of `self.assertEqual`
         # Check outputs.
-        self.assertEqual(actual, "pytest_log helpers/test/test_module.py")
+        self.assert_equal(actual, "pytest_log helpers/test/test_module.py")
 
     def test2(self) -> None:
         """
@@ -45,9 +44,8 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         ]
         # Run test.
         actual = dshtpmubu._build_pytest_cmd(targets)
-        # TODO(ai_gp): Apply "Always Use `self.assert_equal()` when the arguments are strings" instead of `self.assertEqual`
         # Check outputs.
-        self.assertEqual(
+        self.assert_equal(
             actual,
             "pytest_log helpers/test/test_module1.py helpers/test/test_module2.py",
         )
@@ -60,9 +58,8 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         targets = ["."]
         # Run test.
         actual = dshtpmubu._build_pytest_cmd(targets)
-        # TODO(ai_gp): Apply "Always Use `self.assert_equal()` when the arguments are strings" instead of `self.assertEqual`
         # Check outputs.
-        self.assertEqual(actual, "pytest_log .")
+        self.assert_equal(actual, "pytest_log .")
 
 
 # #############################################################################
@@ -93,11 +90,16 @@ class Test_cleanup_old_files(hunitest.TestCase):
             os.chdir(scratch_dir)
             # Run test.
             dshtpmubu._cleanup_old_files()
-            # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertFalse()` calls to check individual pieces of file state; instead verify the full state"
             # Check outputs.
+            expected_files = {}
             for build_name in ["docker", "apple", "dev_container"]:
                 output_file = f"tmp.pytest_multi_build.{build_name}.txt"
-                self.assertFalse(os.path.exists(output_file))
+                expected_files[output_file] = False
+            actual_files = {
+                f"tmp.pytest_multi_build.{build_name}.txt": os.path.exists(f"tmp.pytest_multi_build.{build_name}.txt")
+                for build_name in ["docker", "apple", "dev_container"]
+            }
+            self.assert_equal(str(actual_files), str(expected_files))
         finally:
             os.chdir(original_dir)
 
@@ -113,11 +115,16 @@ class Test_cleanup_old_files(hunitest.TestCase):
             os.chdir(scratch_dir)
             # Run test (should not raise).
             dshtpmubu._cleanup_old_files()
-            # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertFalse()` calls to check individual pieces of file state; instead verify the full state"
             # Check outputs.
-            for build_name in ["docker", "apple", "dev_container"]:
-                output_file = f"tmp.pytest_multi_build.{build_name}.txt"
-                self.assertFalse(os.path.exists(output_file))
+            actual_files = {
+                f"tmp.pytest_multi_build.{build_name}.txt": os.path.exists(f"tmp.pytest_multi_build.{build_name}.txt")
+                for build_name in ["docker", "apple", "dev_container"]
+            }
+            expected_files = {
+                f"tmp.pytest_multi_build.{build_name}.txt": False
+                for build_name in ["docker", "apple", "dev_container"]
+            }
+            self.assert_equal(str(actual_files), str(expected_files))
         finally:
             os.chdir(original_dir)
 
@@ -205,10 +212,9 @@ class Test_clear_cache(hunitest.TestCase):
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             dshtpmubu._clear_cache()
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces; instead construct the full expected invocation string and compare with `assert_equal()`"
         # Check outputs.
         self.assertEqual(len(invocations), 1)
         call_dict = invocations[0]
         cmd = call_dict["args"][0]
-        self.assertIn("manage_cache.py", cmd)
-        self.assertIn("--action clear_all", cmd)
+        expected_cmd = "manage_cache.py --action clear_all"
+        self.assert_equal(cmd, expected_cmd)

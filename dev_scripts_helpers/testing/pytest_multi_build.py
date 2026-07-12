@@ -111,8 +111,7 @@ def _run_build(
         full_cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; {cmd}"
     # Run command and capture output.
     _LOG.debug("Executing: %s", full_cmd)
-    # TODO(ai_gp): Fix missing variable assignment - `hsystem.system()` is called but does not return a result that can be assigned to `result`
-    result = hsystem.system(
+    exit_code = hsystem.system(
         full_cmd,
         suppress_output=True,
         tee=True,
@@ -120,7 +119,7 @@ def _run_build(
         abort_on_error=False,
     )
     _LOG.info(
-        "Build '%s' completed with exit code %d", build_name, result.returncode
+        "Build '%s' completed with exit code %d", build_name, exit_code
     )
 
 

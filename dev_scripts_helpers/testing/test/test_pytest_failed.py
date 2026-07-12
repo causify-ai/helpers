@@ -45,6 +45,7 @@ class Test_get_output_filename(hunitest.TestCase):
         expected = base
         # Run test.
         actual = self.helper(base, build_name)
+        # TODO(ai_gp): Move the assertion into the helper.
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -69,12 +70,11 @@ class Test_get_output_filename(hunitest.TestCase):
         # Prepare inputs.
         base = "tmp.pytest_failed.failed_tests.txt"
         build_names = ["docker", "dev_container"]
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Run test and check outputs.
         for build_name in build_names:
             actual = self.helper(base, build_name)
-            self.assertTrue(actual.endswith(".txt"))
-            self.assertIn(build_name, actual)
+            expected = f"tmp.pytest_failed.{build_name}.failed_tests.txt"
+            self.assert_equal(actual, expected)
 
     def test4(self) -> None:
         """
@@ -101,7 +101,6 @@ class Test_process_single_file(hunitest.TestCase):
     Test _process_single_file end-to-end parsing of pytest logs.
     """
 
-    # TODO(ai_gp): Apply "Order Helper Methods First in Test Classes - Name helper methods as `helper`, `helper1`, `helper2`, etc. (with numeric suffix if multiple helpers are needed)" - rename `_get_log_content` to `helper1`
     def _get_log_content(self) -> str:
         """
         Get pytest log content from file or create minimal one.
@@ -122,8 +121,7 @@ class Test_process_single_file(hunitest.TestCase):
             log_content = hprint.dedent(log_content)
         return log_content
 
-    # TODO(ai_gp): Apply "Order Helper Methods First in Test Classes - Name helper methods as `helper`, `helper1`, `helper2`, etc. (with numeric suffix if multiple helpers are needed)" - rename `_run_test_in_scratch` to `helper2`
-    def _run_test_in_scratch(
+    def helper(
         self,
         log_content: str,
         build_name: str = "",
@@ -158,17 +156,19 @@ class Test_process_single_file(hunitest.TestCase):
         # Prepare inputs.
         log_content = self._get_log_content()
         # Run test.
-        result = self._run_test_in_scratch(log_content)
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertTrue(os.path.exists(...))` calls to check individual files; instead compare the entire expected state with `assert_equal()`"
+        result = self.helper(log_content)
         # Check outputs.
         self.assertGreaterEqual(result["num_total"], 0)
         scratch_dir = self.get_scratch_space()
-        repro_file = os.path.join(scratch_dir, "tmp.pytest_failed.repro.sh")
-        self.assertTrue(os.path.exists(repro_file))
-        failed_file = os.path.join(
-            scratch_dir, "tmp.pytest_failed.failed_tests.txt"
-        )
-        self.assertTrue(os.path.exists(failed_file))
+        actual_files = {
+            filename: os.path.exists(os.path.join(scratch_dir, filename))
+            for filename in expected_files.keys()
+        }
+        expected_files = {
+            "tmp.pytest_failed.repro.sh": True,
+            "tmp.pytest_failed.failed_tests.txt": True,
+        }
+        self.assert_equal(str(actual_files), str(expected_files))
 
     def test2(self) -> None:
         """
@@ -178,18 +178,18 @@ class Test_process_single_file(hunitest.TestCase):
         log_content = self._get_log_content()
         build_name = "docker"
         # Run test.
-        self._run_test_in_scratch(log_content, build_name=build_name)
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertTrue(os.path.exists(...))` calls to check individual files; instead compare the entire expected state with `assert_equal()`"
+        self.helper(log_content, build_name=build_name)
         # Check outputs.
         scratch_dir = self.get_scratch_space()
-        repro_file = os.path.join(
-            scratch_dir, f"tmp.pytest_failed.{build_name}.repro.sh"
-        )
-        self.assertTrue(os.path.exists(repro_file))
-        failed_file = os.path.join(
-            scratch_dir, f"tmp.pytest_failed.{build_name}.failed_tests.txt"
-        )
-        self.assertTrue(os.path.exists(failed_file))
+        actual_files = {
+            filename: os.path.exists(os.path.join(scratch_dir, filename))
+            for filename in expected_files.keys()
+        }
+        expected_files = {
+            f"tmp.pytest_failed.{build_name}.repro.sh": True,
+            f"tmp.pytest_failed.{build_name}.failed_tests.txt": True,
+        }
+        self.assert_equal(str(actual_files), str(expected_files))
 
     def test3(self) -> None:
         """
@@ -210,13 +210,15 @@ class Test_process_single_file(hunitest.TestCase):
             "tmp.pytest_failed.stacktraces.txt",
         ]
         # Run test.
-        self._run_test_in_scratch(log_content)
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertTrue(os.path.exists(...))` calls to check individual files in a loop; instead compare the entire expected file list with `assert_equal()`"
+        self.helper(log_content)
         # Check outputs: verify all expected files created.
         scratch_dir = self.get_scratch_space()
-        for expected_file in expected_files:
-            file_path = os.path.join(scratch_dir, expected_file)
-            self.assertTrue(os.path.exists(file_path))
+        actual_files = {
+            filename: os.path.exists(os.path.join(scratch_dir, filename))
+            for filename in expected_files
+        }
+        expected_state = {filename: True for filename in expected_files}
+        self.assert_equal(str(actual_files), str(expected_state))
 
     def test4(self) -> None:
         """
@@ -233,8 +235,8 @@ class Test_process_single_file(hunitest.TestCase):
             "num_total",
         ]
         # Run test.
-        result = self._run_test_in_scratch(log_content)
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn(key, result)` calls to check individual dict keys; instead compare the entire result dict with `assert_equal()`"
+        result = self.helper(log_content)
         # Check outputs.
-        for key in expected_keys:
-            self.assertIn(key, result)
+        actual_keys = set(result.keys())
+        expected_key_set = set(expected_keys)
+        self.assert_equal(str(sorted(actual_keys)), str(sorted(expected_key_set)))
