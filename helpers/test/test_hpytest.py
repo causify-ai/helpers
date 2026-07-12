@@ -207,6 +207,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
+        total_duration=40.48
         """
         # Check.
         self.helper(txt, exp_info)
@@ -243,6 +244,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
+        total_duration=40.48
         """
         # Check.
         self.helper(txt, exp_info)
@@ -292,6 +294,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
+        total_duration=40.48
         """
         # Check.
         self.helper(txt, exp_info)
@@ -352,6 +355,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
+        total_duration=0.0
         """
         # Check.
         self.helper(txt, exp_info)
@@ -399,6 +403,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=5
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.0
         """
         # Check.
         self.helper(txt, exp_info)
@@ -447,6 +452,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=7
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        total_duration=886.58
         """
         # Check.
         self.helper(txt, exp_info)
@@ -497,6 +503,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.01
         """
         # Check.
         self.helper(txt, exp_info)
@@ -546,6 +553,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.13
         """
         # Check.
         self.helper(txt, exp_info)
@@ -597,6 +605,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.11
         """
         # Check.
         self.helper(txt, exp_info)
@@ -656,6 +665,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.01
         """
         # Check.
         self.helper(txt, exp_info)
@@ -716,6 +726,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.06
         """
         # Check.
         self.helper(txt, exp_info)
@@ -771,6 +782,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=5
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.0
         """
         # Check. Note: the truncated `test_get_system_signature1` id is
         # never resolved to a status, so it is dropped rather than counted.
@@ -838,6 +850,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        total_duration=10.0
         """
         # Check.
         self.helper(txt, exp_info)
@@ -908,6 +921,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        total_duration=10.0
         """
         # Check.
         self.helper(txt, exp_info)
@@ -966,6 +980,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.05
         """
         # Check.
         self.helper(txt, exp_info)
@@ -1021,6 +1036,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.05
         """
         # Check.
         self.helper(txt, exp_info)
@@ -1083,6 +1099,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.01
         """
         # Check.
         self.helper(txt, exp_info)
@@ -1138,6 +1155,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.01
         """
         # Check.
         self.helper(txt, exp_info)
