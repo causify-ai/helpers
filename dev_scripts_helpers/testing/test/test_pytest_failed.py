@@ -155,6 +155,10 @@ class Test_process_single_file(hunitest.TestCase):
         """
         # Prepare inputs.
         log_content = self._get_log_content()
+        expected_files = {
+            "repro.sh": True,
+            "failed_tests.txt": True,
+        }
         # Run test.
         result = self.helper(log_content)
         # Check outputs.
@@ -163,10 +167,6 @@ class Test_process_single_file(hunitest.TestCase):
         actual_files = {
             filename: os.path.exists(os.path.join(scratch_dir, filename))
             for filename in expected_files.keys()
-        }
-        expected_files = {
-            "tmp.pytest_failed.repro.sh": True,
-            "tmp.pytest_failed.failed_tests.txt": True,
         }
         self.assert_equal(str(actual_files), str(expected_files))
 
@@ -177,6 +177,10 @@ class Test_process_single_file(hunitest.TestCase):
         # Prepare inputs.
         log_content = self._get_log_content()
         build_name = "docker"
+        expected_files = {
+            os.path.join(f"tmp.pytest_failed.{build_name}", "repro.sh"): True,
+            os.path.join(f"tmp.pytest_failed.{build_name}", "failed_tests.txt"): True,
+        }
         # Run test.
         self.helper(log_content, build_name=build_name)
         # Check outputs.
@@ -184,10 +188,6 @@ class Test_process_single_file(hunitest.TestCase):
         actual_files = {
             filename: os.path.exists(os.path.join(scratch_dir, filename))
             for filename in expected_files.keys()
-        }
-        expected_files = {
-            f"tmp.pytest_failed.{build_name}.repro.sh": True,
-            f"tmp.pytest_failed.{build_name}.failed_tests.txt": True,
         }
         self.assert_equal(str(actual_files), str(expected_files))
 
@@ -198,16 +198,16 @@ class Test_process_single_file(hunitest.TestCase):
         # Prepare inputs.
         log_content = self._get_log_content()
         expected_files = [
-            "tmp.pytest_failed.repro.sh",
-            "tmp.pytest_failed.repro_classes.sh",
-            "tmp.pytest_failed.repro_files.sh",
-            "tmp.pytest_failed.passed_tests.txt",
-            "tmp.pytest_failed.failed_tests.txt",
-            "tmp.pytest_failed.skipped_tests.txt",
-            "tmp.pytest_failed.updated_tests.txt",
-            "tmp.pytest_failed.tests_by_duration.txt",
-            "tmp.pytest_failed.duration_stats.txt",
-            "tmp.pytest_failed.stacktraces.txt",
+            "repro.sh",
+            "repro_classes.sh",
+            "repro_files.sh",
+            "passed_tests.txt",
+            "failed_tests.txt",
+            "skipped_tests.txt",
+            "updated_tests.txt",
+            "tests_by_duration.txt",
+            "duration_stats.txt",
+            "stacktraces.txt",
         ]
         # Run test.
         self.helper(log_content)
@@ -228,6 +228,7 @@ class Test_process_single_file(hunitest.TestCase):
         log_content = self._get_log_content()
         expected_keys = [
             "build",
+            "duration",
             "passed",
             "num_passed",
             "num_failed",

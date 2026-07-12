@@ -74,10 +74,12 @@ def _get_output_filename(base: str, build_name: str = "") -> str:
     """
     if not build_name:
         return base
-    # Insert build_name before the final extension
-    if "." in base:
-        parts = base.rsplit(".", 1)
-        return f"{parts[0]}.{build_name}.{parts[1]}"
+    # For `tmp.pytest_failed.*` files, insert `build_name` after the prefix.
+    prefix = "tmp.pytest_failed."
+    if base.startswith(prefix):
+        rest = base[len(prefix):]
+        return f"{prefix}{build_name}.{rest}"
+    # For other files, append build_name at the end
     return f"{base}.{build_name}"
 
 
