@@ -89,7 +89,6 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
             "--build_name",
             build_name,
         ])
-        # TODO(ai_gp): Print the output of the cmd only at -v debug level.
         rc = hsystem.system(cmd)
         if rc != 0:
             _LOG.error("Failed to process %s", build_name)
@@ -212,19 +211,21 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
     :param build_stats: List of build statistics dicts
     :return: Formatted table string, e.g.,
         ```
-        Build                   Passed   Skipped    Failed    Total   Duration
-        ----------------------------------------------------------------------
-        docker                   1234         0        10     1244       45.2s
-        apple                    1230         2        12     1244       52.1s
-        dev_container            1232         1        11     1244       48.5s
+        Build             Passed   Skipped    Failed    Total   Duration
+        ----------------------------------------------------------------
+        docker             1234         0        10     1244       45.2s
+        apple              1230         2        12     1244       52.1s
+        dev_container      1232         1        11     1244       48.5s
         ```
     """
     lines = [hprint.frame("Build Statistics")]
+    # TODO(ai_gp): Use helpers/htable.py
     lines.append(
         f"{'Build':<20} {'Passed':>8} {'Skipped':>8} {'Failed':>8} {'Total':>8} {'Duration':>10} {'Status':>8}"
     )
     lines.append("-" * 80)
     for stats in build_stats:
+        # TODO(ai_gp): Move status first after Build and before passed
         status = "PASS" if stats["failed"] == 0 else "FAIL"
         lines.append(
             f"{stats['build']:<20} {stats['passed']:>8} {stats['skipped']:>8} "
@@ -241,6 +242,7 @@ def _failed_tests_table_to_str(test_to_builds: Dict[str, Set[str]]) -> str:
     :return: Formatted table string
     """
     lines = []
+    # TODO(ai_gp): Use helpers/htable.py
     lines.append(f"{'Test Name':<70} {'Builds':<30}")
     lines.append("-" * 100)
     for test_name in sorted(test_to_builds.keys()):
@@ -260,7 +262,7 @@ def _summary_to_str(
     :return: Summary string, e.g.,
         ```
         Test Name                                              Builds
-        -------------------------------------------------------------------------------------
+        -----------------------------------------------------------------------------
         tests/core/test_module.py::TestClass::test_method1      docker, apple
         tests/core/test_module.py::TestClass::test_method2      docker
         tests/data/test_pipeline.py::TestPipeline::test_run     apple, dev_container
