@@ -49,6 +49,7 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hpytest as hpytest
+import helpers.htable as htable
 import dev_scripts_helpers.testing.pytest_utils as dshtpyut
 
 _LOG = logging.getLogger(__name__)
@@ -106,24 +107,25 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
 
     :param result: Result dict from _process_single_file
     :return: Formatted table string
+    TODO(ai_gp): Add example of output
     """
     lines = [hprint.frame("Test Outcome Summary")]
-    # TODO(ai_gp): Use helpers/htable.py
-    lines.append(
-        f"{'Build':<30} {'Status':>10} {'Passed':>8} {'Skipped':>8} {'Failed':>8} {'Total':>8}"
+    # Prepare table data
+    table_data = [[
+        result["build"],
+        result["passed"],
+        str(result["num_passed"]),
+        str(result["num_skipped"]),
+        str(result["num_failed"]),
+        str(result["num_total"]),
+        f"{result['duration']:.2f}s" if "duration" in result else "N/A",
+    ]]
+    # Create and format table
+    table_obj = htable.Table(
+        table_data,
+        ["Build", "Status", "Passed", "Skipped", "Failed", "Total", "Duration"],
     )
-    lines.append("-" * 80)
-    lines.append(
-        f"{result['build']:<30} {result['passed']:>10} {result['num_passed']:>8} "
-        f"{result['num_skipped']:>8} {result['num_failed']:>8} {result['num_total']:>8}"
-    )
-    # TODO(ai_gp): Assume that duration is present add the info to the table above.
-    # Add duration section if available 
-    if "duration" in result:
-        lines.append("")
-        lines.append("Duration")
-        lines.append("-" * 10)
-        lines.append(f"  {result['duration']:.2f}s")
+    lines.append(str(table_obj))
     return "\n".join(lines)
 
 
@@ -134,7 +136,8 @@ def _process_single_file(
     Process a single pytest log file and return summary info.
 
     :param file_path: Path to pytest log file
-    :param build_name: Build name for output file naming (e.g., 'docker', 'apple', 'dev_container')
+    :param build_name: Build name for output file naming
+        - E.g., 'docker', 'apple', 'dev_container'
     """
     _LOG.info("Reading '%s'", file_path)
     txt = hio.from_file(file_path)
@@ -183,8 +186,6 @@ def _process_single_file(
     # Write the reports.
     print(hprint.frame("Failed tests"))
     print("\n".join(failed_tests))
-    #
-    print(hprint.frame("Test info"))
     passed_tests_file = dshtpyut.get_output_file_path(
         "passed_tests.txt", build_name=build_name
     )

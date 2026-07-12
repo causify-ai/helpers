@@ -22,11 +22,6 @@ BUILD_CONFIG: Dict[str, Tuple[str, bool]] = {
 }
 
 
-# #############################################################################
-# Path management
-# #############################################################################
-
-
 def get_output_file_path(basename: str, *, build_name: str = "") -> str:
     """
     Get output file path with optional build_name encoding in directory structure.
@@ -42,15 +37,9 @@ def get_output_file_path(basename: str, *, build_name: str = "") -> str:
     """
     if build_name:
         dir_name = f"tmp.pytest_failed.{build_name}"
-        if not os.path.exists(dir_name):
-            hio.create_dir(dir_name, incremental=True)
+        hio.create_dir(dir_name, incremental=True)
         return os.path.join(dir_name, basename)
     return basename
-
-
-# #############################################################################
-# Command generation
-# #############################################################################
 
 
 def get_build_command(tests: List[str], build_name: str) -> str:

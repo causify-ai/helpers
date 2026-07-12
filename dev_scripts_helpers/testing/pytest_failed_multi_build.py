@@ -26,6 +26,7 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.htable as htable
 import dev_scripts_helpers.testing.pytest_utils as dshtpyut
 
 _LOG = logging.getLogger(__name__)
@@ -211,26 +212,33 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
     :param build_stats: List of build statistics dicts
     :return: Formatted table string, e.g.,
         ```
-        Build             Passed   Skipped    Failed    Total   Duration
-        ----------------------------------------------------------------
-        docker             1234         0        10     1244       45.2s
-        apple              1230         2        12     1244       52.1s
-        dev_container      1232         1        11     1244       48.5s
+        Build          Status   Passed   Skipped   Failed   Total   Duration
+        -----------------------------------------------------------------------
+        docker         PASS      1234        0       10      1244       45.2s
+        apple          FAIL      1230        2       12      1244       52.1s
+        dev_container  PASS      1232        1       11      1244       48.5s
         ```
     """
     lines = [hprint.frame("Build Statistics")]
-    # TODO(ai_gp): Use helpers/htable.py
-    lines.append(
-        f"{'Build':<20} {'Passed':>8} {'Skipped':>8} {'Failed':>8} {'Total':>8} {'Duration':>10} {'Status':>8}"
-    )
-    lines.append("-" * 80)
+    # Prepare table data
+    table_data = []
     for stats in build_stats:
-        # TODO(ai_gp): Move status first after Build and before passed
         status = "PASS" if stats["failed"] == 0 else "FAIL"
-        lines.append(
-            f"{stats['build']:<20} {stats['passed']:>8} {stats['skipped']:>8} "
-            f"{stats['failed']:>8} {stats['total']:>8} {str(stats['duration']):>10} {status:>8}"
-        )
+        table_data.append([
+            stats["build"],
+            status,
+            str(stats["passed"]),
+            str(stats["skipped"]),
+            str(stats["failed"]),
+            str(stats["total"]),
+            str(stats["duration"]),
+        ])
+    # Create and format table
+    table_obj = htable.Table(
+        table_data,
+        ["Build", "Status", "Passed", "Skipped", "Failed", "Total", "Duration"],
+    )
+    lines.append(str(table_obj))
     return "\n".join(lines)
 
 
@@ -241,14 +249,14 @@ def _failed_tests_table_to_str(test_to_builds: Dict[str, Set[str]]) -> str:
     :param test_to_builds: Dict mapping test name to set of builds where it failed
     :return: Formatted table string
     """
-    lines = []
-    # TODO(ai_gp): Use helpers/htable.py
-    lines.append(f"{'Test Name':<70} {'Builds':<30}")
-    lines.append("-" * 100)
+    # Prepare table data
+    table_data = []
     for test_name in sorted(test_to_builds.keys()):
         builds = ", ".join(sorted(test_to_builds[test_name]))
-        lines.append(f"{test_name:<70} {builds:<30}")
-    return "\n".join(lines)
+        table_data.append([test_name, builds])
+    # Create and format table
+    table_obj = htable.Table(table_data, ["Test Name", "Builds"])
+    return str(table_obj)
 
 
 def _summary_to_str(

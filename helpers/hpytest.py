@@ -879,6 +879,7 @@ def info_to_comments(info: Dict[str, Any]) -> str:
     ]
     max_label_len = max(len(label) for label, _ in labels_and_values)
     max_num_len = max(len(str(value)) for _, value in labels_and_values)
+    # TODO(ai_gp): Use helpers/htable.py
     for label, value in labels_and_values:
         comments.append(
             f"{label + ':':<{max_label_len + 1}} {value:>{max_num_len}}/{num_total}"
@@ -1089,6 +1090,7 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_ne(file_name, "")
     txt = []
     txt.append(hprint.frame("Duration by file"))
+    # TODO(ai_gp): Use helpers/htable.py
     txt.append("File | Count | Total (secs) | Mean (secs) | Max (secs)")
     for key, stat in compute_duration_stats_by_file(info).items():
         txt.append(
@@ -1131,19 +1133,8 @@ def write_repro_script(
 
 
 # #############################################################################
-# Collect test marks.
-# #############################################################################
-
-
-# Mark names that indicate a test is statically skipped, i.e., without
-# evaluating any `skipif` condition.
-_SKIP_MARK_NAMES = ("skip", "skipif")
-
-
-# #############################################################################
 # _MarkCollectorPlugin
 # #############################################################################
-
 
 class _MarkCollectorPlugin:
     """
@@ -1154,9 +1145,12 @@ class _MarkCollectorPlugin:
         self.collected: List[Dict[str, Any]] = []
 
     def pytest_collection_modifyitems(self, items: List[Any]) -> None:
+        # Mark names that indicate a test is statically skipped, i.e., without
+        # evaluating any `skipif` condition.
+        skip_mark_names = ("skip", "skipif")
         for item in items:
             mark_names = [marker.name for marker in item.iter_markers()]
-            skipped = any(name in _SKIP_MARK_NAMES for name in mark_names)
+            skipped = any(name in skip_mark_names for name in mark_names)
             self.collected.append(
                 {
                     "nodeid": item.nodeid,
@@ -1207,6 +1201,7 @@ def marks_to_str(marks_info: List[Dict[str, Any]]) -> str:
         helpers/test/test_hio.py::Test1::test1 | slow | False
         ```
     """
+    # TODO(ai_gp): Use helpers/htable.py
     txt = ["Test | Marks | Skipped"]
     for entry in marks_info:
         marks_str = ",".join(entry["marks"]) if entry["marks"] else "-"
