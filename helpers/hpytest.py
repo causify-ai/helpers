@@ -18,9 +18,9 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.htable as htable
 
 _LOG = logging.getLogger(__name__)
-
 
 
 # #############################################################################
@@ -878,13 +878,12 @@ def info_to_comments(info: Dict[str, Any]) -> str:
         ("Failed", num_failed),
         ("Updated", num_updated),
     ]
-    max_label_len = max(len(label) for label, _ in labels_and_values)
-    max_num_len = max(len(str(value)) for _, value in labels_and_values)
-    # TODO(ai_gp): Use helpers/htable.py
-    for label, value in labels_and_values:
-        comments.append(
-            f"{label + ':':<{max_label_len + 1}} {value:>{max_num_len}}/{num_total}"
-        )
+    table_data = [[label, f"{value}/{num_total}"] for label, value in labels_and_values]
+    table_obj = htable.Table(table_data, ["Label", "Count"])
+    # Extract just the data rows (skip header and separator).
+    for line in str(table_obj).split("\n")[2:]:
+        if line.strip():
+            comments.append(line)
     return "\n".join(comments)
 
 
@@ -1091,20 +1090,27 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_ne(file_name, "")
     txt = []
     txt.append(hprint.frame("Duration by file"))
-    # TODO(ai_gp): Use helpers/htable.py
-    txt.append("File | Count | Total (secs) | Mean (secs) | Max (secs)")
-    for key, stat in compute_duration_stats_by_file(info).items():
-        txt.append(
-            f"{key} | {stat['count']} | {stat['total_secs']:.2f} | "
-            f"{stat['mean_secs']:.2f} | {stat['max_secs']:.2f}"
-        )
+    # Build table for file stats.
+    file_data = [
+        [key, str(stat['count']), f"{stat['total_secs']:.2f}",
+         f"{stat['mean_secs']:.2f}", f"{stat['max_secs']:.2f}"]
+        for key, stat in compute_duration_stats_by_file(info).items()
+    ]
+    file_table = htable.Table(
+        file_data, ["File", "Count", "Total (secs)", "Mean (secs)", "Max (secs)"]
+    )
+    txt.extend(str(file_table).split("\n"))
     txt.append(hprint.frame("Duration by class"))
-    txt.append("Class | Count | Total (secs) | Mean (secs) | Max (secs)")
-    for key, stat in compute_duration_stats_by_class(info).items():
-        txt.append(
-            f"{key} | {stat['count']} | {stat['total_secs']:.2f} | "
-            f"{stat['mean_secs']:.2f} | {stat['max_secs']:.2f}"
-        )
+    # Build table for class stats.
+    class_data = [
+        [key, str(stat['count']), f"{stat['total_secs']:.2f}",
+         f"{stat['mean_secs']:.2f}", f"{stat['max_secs']:.2f}"]
+        for key, stat in compute_duration_stats_by_class(info).items()
+    ]
+    class_table = htable.Table(
+        class_data, ["Class", "Count", "Total (secs)", "Mean (secs)", "Max (secs)"]
+    )
+    txt.extend(str(class_table).split("\n"))
     hio.to_file(file_name, "\n".join(txt))
     _LOG.debug("Created '%s'", file_name)
 
@@ -1188,6 +1194,7 @@ def get_build_command(tests: List[str], build_name: str) -> str:
 # _MarkCollectorPlugin
 # #############################################################################
 
+
 class _MarkCollectorPlugin:
     """
     Pytest plugin recording the marks attached to each collected test item.
@@ -1253,12 +1260,15 @@ def marks_to_str(marks_info: List[Dict[str, Any]]) -> str:
         helpers/test/test_hio.py::Test1::test1 | slow | False
         ```
     """
-    # TODO(ai_gp): Use helpers/htable.py
-    txt = ["Test | Marks | Skipped"]
-    for entry in marks_info:
-        marks_str = ",".join(entry["marks"]) if entry["marks"] else "-"
-        txt.append(f"{entry['nodeid']} | {marks_str} | {entry['skipped']}")
-    return "\n".join(txt)
+    # Build table for marks info.
+    table_data = [
+        [entry['nodeid'],
+         ",".join(entry["marks"]) if entry["marks"] else "-",
+         str(entry['skipped'])]
+        for entry in marks_info
+    ]
+    table_obj = htable.Table(table_data, ["Test", "Marks", "Skipped"])
+    return str(table_obj)
 
 
 def write_marks_csv(marks_info: List[Dict[str, Any]], file_name: str) -> None:

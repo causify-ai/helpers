@@ -84,15 +84,18 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
         input_file = f"tmp.pytest_multi_build.{build_name}.txt"
         hdbg.dassert_file_exists(input_file)
         _LOG.info("Processing %s from %s", build_name, input_file)
-        # Execute pytest_failed.py for each build configuration to generate intermediate files.
-        cmd = " ".join([
-            sys.executable,
-            pytest_failed_script,
-            "--input",
-            input_file,
-            "--build_name",
-            build_name,
-        ])
+        # Execute pytest_failed.py for each build configuration to generate
+        # intermediate files.
+        cmd = " ".join(
+            [
+                sys.executable,
+                pytest_failed_script,
+                "--input",
+                input_file,
+                "--build_name",
+                build_name,
+            ]
+        )
         rc = hsystem.system(cmd)
         if rc != 0:
             _LOG.error("Failed to process %s", build_name)
@@ -143,7 +146,9 @@ def _consolidate_failed_tests(build_names: List[str]) -> Dict[str, Set[str]]:
             if test_name not in test_to_builds:
                 test_to_builds[test_name] = set()
             test_to_builds[test_name].add(build_name)
-    _LOG.debug("return=%s tests across %d builds", len(test_to_builds), len(build_names))
+    _LOG.debug(
+        "return=%s tests across %d builds", len(test_to_builds), len(build_names)
+    )
     return test_to_builds
 
 
@@ -160,9 +165,7 @@ def _read_repro_script(build_name: str) -> str:
     :return: Content of repro script
     """
     _LOG.debug(hprint.to_str("build_name"))
-    repro_file = hpytest.get_output_file_path(
-        "repro.sh", build_name=build_name
-    )
+    repro_file = hpytest.get_output_file_path("repro.sh", build_name=build_name)
     hdbg.dassert_file_exists(repro_file)
     content = hio.from_file(repro_file)
     _LOG.debug("return=%s bytes", len(content))
@@ -243,15 +246,17 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
     table_data = []
     for stats in build_stats:
         status = "PASS" if stats["failed"] == 0 else "FAIL"
-        table_data.append([
-            stats["build"],
-            status,
-            str(stats["passed"]),
-            str(stats["skipped"]),
-            str(stats["failed"]),
-            str(stats["total"]),
-            str(stats["duration"]),
-        ])
+        table_data.append(
+            [
+                stats["build"],
+                status,
+                str(stats["passed"]),
+                str(stats["skipped"]),
+                str(stats["failed"]),
+                str(stats["total"]),
+                str(stats["duration"]),
+            ]
+        )
     # Create and format table.
     table_obj = htable.Table(
         table_data,

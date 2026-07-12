@@ -1382,10 +1382,10 @@ class Test_info_to_str(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 40.48 s
-        Passed:  43/47
-        Skipped:  0/47
-        Failed:   4/47
-        Updated:  0/47
+        Passed  | 43/47 |
+        Skipped | 0/47  |
+        Failed  | 4/47  |
+        Updated | 0/47  |
         """
         # Run test.
         act = hpytest.info_to_str(info)
@@ -1418,10 +1418,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 40.48 s
-        Passed:  43/47
-        Skipped:  0/47
-        Failed:   4/47
-        Updated:  0/47
+        Passed  | 43/47 |
+        Skipped | 0/47  |
+        Failed  | 4/47  |
+        Updated | 0/47  |
         """
         # Check. Note: pytest_num_failed=4, pytest_num_passed=43, total=47
         self.helper(txt, exp)
@@ -1447,10 +1447,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: GitHub CI (run_fast_tests)
         Pytest completed: True
         Duration: 886.58 s
-        Passed:  3157/3426
-        Skipped:  235/3426
-        Failed:    34/3426
-        Updated:    0/3426
+        Passed  | 3157/3426 |
+        Skipped | 235/3426  |
+        Failed  | 34/3426   |
+        Updated | 0/3426    |
         """
         # Check.
         self.helper(txt, exp)
@@ -1465,10 +1465,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: False
         Duration: 0.00 s
-        Passed:  0/0
-        Skipped: 0/0
-        Failed:  0/0
-        Updated: 0/0
+        Passed  | 0/0   |
+        Skipped | 0/0   |
+        Failed  | 0/0   |
+        Updated | 0/0   |
         """
         # Check.
         self.helper(txt, exp)
@@ -1494,10 +1494,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 0.20 s
-        Passed:  3/3
-        Skipped: 0/3
-        Failed:  0/3
-        Updated: 2/3
+        Passed  | 3/3   |
+        Skipped | 0/3   |
+        Failed  | 0/3   |
+        Updated | 2/3   |
         """
         # Check.
         self.helper(txt, exp)
@@ -1809,16 +1809,18 @@ class Test_write_duration_stats(hunitest.TestCase):
         ################################################################################
         Duration by file
         ################################################################################
-        File | Count | Total (secs) | Mean (secs) | Max (secs)
-        file_b.py | 1 | 4.00 | 4.00 | 4.00
-        file_a.py | 3 | 3.50 | 1.17 | 2.00
+        File      | Count | Total (secs) | Mean (secs) | Max (secs) |
+        --------- | ----- | ------------ | ----------- | ---------- |
+        file_b.py | 1     | 4.00         | 4.00        | 4.00       |
+        file_a.py | 3     | 3.50         | 1.17        | 2.00       |
         ################################################################################
         Duration by class
         ################################################################################
-        Class | Count | Total (secs) | Mean (secs) | Max (secs)
-        file_b.py::ClassC | 1 | 4.00 | 4.00 | 4.00
-        file_a.py::ClassA | 2 | 3.00 | 1.50 | 2.00
-        file_a.py::ClassB | 1 | 0.50 | 0.50 | 0.50
+        Class             | Count | Total (secs) | Mean (secs) | Max (secs) |
+        ----------------- | ----- | ------------ | ----------- | ---------- |
+        file_b.py::ClassC | 1     | 4.00         | 4.00        | 4.00       |
+        file_a.py::ClassA | 2     | 3.00         | 1.50        | 2.00       |
+        file_a.py::ClassB | 1     | 0.50         | 0.50        | 0.50       |
         """
         # Run test.
         hpytest.write_duration_stats(info, file_name)
@@ -1906,9 +1908,10 @@ class Test_marks_to_str(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = """
-        Test | Marks | Skipped
-        test_foo.py::Test1::test1 | - | False
-        test_foo.py::Test1::test2 | slow,skip | True
+        Test                      | Marks     | Skipped |
+        ------------------------- | --------- | ------- |
+        test_foo.py::Test1::test1 | -         | False   |
+        test_foo.py::Test1::test2 | slow,skip | True    |
         """
         # Run test.
         actual = hpytest.marks_to_str(marks_info)

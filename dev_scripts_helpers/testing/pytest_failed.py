@@ -109,15 +109,17 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
     _LOG.debug("result keys=%s", list(result.keys()))
     lines = [hprint.frame("Test Outcome Summary")]
     # Convert result dict to table row with test counts and status.
-    table_data = [[
-        result["build"],
-        result["passed"],
-        str(result["num_passed"]),
-        str(result["num_skipped"]),
-        str(result["num_failed"]),
-        str(result["num_total"]),
-        f"{result['duration']:.2f}s" if "duration" in result else "N/A",
-    ]]
+    table_data = [
+        [
+            result["build"],
+            result["passed"],
+            str(result["num_passed"]),
+            str(result["num_skipped"]),
+            str(result["num_failed"]),
+            str(result["num_total"]),
+            f"{result['duration']:.2f}s" if "duration" in result else "N/A",
+        ]
+    ]
     # Create and format table.
     table_obj = htable.Table(
         table_data,

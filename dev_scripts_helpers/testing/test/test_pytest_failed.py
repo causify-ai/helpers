@@ -23,9 +23,7 @@ class Test_get_output_filename(hunitest.TestCase):
     Test _get_output_filename function for output file naming.
     """
 
-    def helper(
-        self, base: str, build_name: str
-    ) -> str:
+    def helper(self, base: str, build_name: str) -> str:
         """
         Test helper for _get_output_filename.
 

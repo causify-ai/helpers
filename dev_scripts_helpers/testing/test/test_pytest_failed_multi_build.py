@@ -23,9 +23,7 @@ class Test_read_failed_tests(hunitest.TestCase):
     Test _read_failed_tests function for reading failed test files.
     """
 
-    def _run_test_in_scratch(
-        self, build_name: str, content: str
-    ) -> Any:
+    def _run_test_in_scratch(self, build_name: str, content: str) -> Any:
         """
         Helper method to run test in scratch directory.
 
@@ -102,9 +100,7 @@ class Test_read_repro_script(hunitest.TestCase):
     Test _read_repro_script function for reading repro scripts.
     """
 
-    def _run_test_in_scratch(
-        self, build_name: str, content: str
-    ) -> str:
+    def _run_test_in_scratch(self, build_name: str, content: str) -> str:
         """
         Helper method to run test in scratch directory.
 
@@ -149,9 +145,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
     Test _extract_tests_from_repro function for extracting test names.
     """
 
-    def helper(
-        self, repro_content: str, expected_count: int
-    ) -> Any:
+    def helper(self, repro_content: str, expected_count: int) -> Any:
         """
         Test helper for _extract_tests_from_repro.
 
@@ -360,9 +354,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         result = self._run_test_in_scratch(build_names)
         # Check outputs.
         self.assertIn("#!/bin/bash", result)
-        self.assertIn(
-            "Consolidated repro script for multiple builds.", result
-        )
+        self.assertIn("Consolidated repro script for multiple builds.", result)
         self.assertIn("# Build: docker", result)
         self.assertIn("# Build: apple", result)
         self.assertIn("export CSFY_DOCKER_ENGINE='docker'", result)
@@ -380,9 +372,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         # Check outputs.
         self.assertIn("#!/bin/bash", result)
         self.assertIn("# Build: dev_container", result)
-        self.assertIn(
-            "invoke docker_cmd --stage=local -v 1.6.0 --cmd", result
-        )
+        self.assertIn("invoke docker_cmd --stage=local -v 1.6.0 --cmd", result)
         self.assertIn("pytest_log", result)
 
 
