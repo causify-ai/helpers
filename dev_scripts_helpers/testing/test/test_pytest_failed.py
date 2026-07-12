@@ -69,6 +69,7 @@ class Test_get_output_filename(hunitest.TestCase):
         # Prepare inputs.
         base = "tmp.pytest_failed.failed_tests.txt"
         build_names = ["docker", "dev_container"]
+        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Run test and check outputs.
         for build_name in build_names:
             actual = self.helper(base, build_name)
@@ -100,6 +101,7 @@ class Test_process_single_file(hunitest.TestCase):
     Test _process_single_file end-to-end parsing of pytest logs.
     """
 
+    # TODO(ai_gp): Apply "Order Helper Methods First in Test Classes - Name helper methods as `helper`, `helper1`, `helper2`, etc. (with numeric suffix if multiple helpers are needed)" - rename `_get_log_content` to `helper1`
     def _get_log_content(self) -> str:
         """
         Get pytest log content from file or create minimal one.
@@ -120,6 +122,7 @@ class Test_process_single_file(hunitest.TestCase):
             log_content = hprint.dedent(log_content)
         return log_content
 
+    # TODO(ai_gp): Apply "Order Helper Methods First in Test Classes - Name helper methods as `helper`, `helper1`, `helper2`, etc. (with numeric suffix if multiple helpers are needed)" - rename `_run_test_in_scratch` to `helper2`
     def _run_test_in_scratch(
         self,
         log_content: str,
@@ -156,6 +159,7 @@ class Test_process_single_file(hunitest.TestCase):
         log_content = self._get_log_content()
         # Run test.
         result = self._run_test_in_scratch(log_content)
+        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertTrue(os.path.exists(...))` calls to check individual files; instead compare the entire expected state with `assert_equal()`"
         # Check outputs.
         self.assertGreaterEqual(result["num_total"], 0)
         scratch_dir = self.get_scratch_space()
@@ -175,6 +179,7 @@ class Test_process_single_file(hunitest.TestCase):
         build_name = "docker"
         # Run test.
         self._run_test_in_scratch(log_content, build_name=build_name)
+        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertTrue(os.path.exists(...))` calls to check individual files; instead compare the entire expected state with `assert_equal()`"
         # Check outputs.
         scratch_dir = self.get_scratch_space()
         repro_file = os.path.join(
@@ -206,6 +211,7 @@ class Test_process_single_file(hunitest.TestCase):
         ]
         # Run test.
         self._run_test_in_scratch(log_content)
+        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertTrue(os.path.exists(...))` calls to check individual files in a loop; instead compare the entire expected file list with `assert_equal()`"
         # Check outputs: verify all expected files created.
         scratch_dir = self.get_scratch_space()
         for expected_file in expected_files:
@@ -228,6 +234,7 @@ class Test_process_single_file(hunitest.TestCase):
         ]
         # Run test.
         result = self._run_test_in_scratch(log_content)
+        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn(key, result)` calls to check individual dict keys; instead compare the entire result dict with `assert_equal()`"
         # Check outputs.
         for key in expected_keys:
             self.assertIn(key, result)

@@ -80,14 +80,13 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_script = os.path.join(script_dir, "pytest_failed.py")
     hdbg.dassert_file_exists(pytest_failed_script)
-    #
+    # Execute pytest_failed.py for each build configuration.
     build_stats = []
     for build_name in build_names:
         input_file = f"tmp.pytest_multi_build.{build_name}.txt"
         hdbg.dassert_file_exists(input_file)
         _LOG.info("Processing %s from %s", build_name, input_file)
-        # Execute `pytest_failed.py` for each build configuration to generate
-        # intermediate files.
+        # Build command to execute `pytest_failed.py` for this build.
         cmd = " ".join(
             [
                 sys.executable,
@@ -98,8 +97,8 @@ def _generate_build_files(build_names: List[str]) -> List[Dict[str, Any]]:
                 build_name,
             ]
         )
-        rc = hsystem.system(cmd)
-        #
+        hsystem.system(cmd)
+        # Extract build statistics from generated output.
         stats = _extract_build_stats(build_name)
         build_stats.append(stats)
     _LOG.debug("return=%s items", len(build_stats))
@@ -172,7 +171,7 @@ def _read_repro_script(build_name: str) -> str:
     return content
 
 
-# TODO(gp): Can it be simplified? Shouldn't be just the concat of the scripts?
+# TODO(ai_gp): Apply "Consider simplifying the parsing logic: the function extracts test names from repro scripts but could potentially concatenate all scripts instead of parsing each one individually"
 def _extract_tests_from_repro(repro_content: str) -> List[str]:
     """
     Extract test names from repro script.
@@ -204,8 +203,18 @@ def _create_consolidated_repro(build_names: List[str]) -> str:
     Create consolidated repro script from multiple builds.
 
     :param build_names: List of build names
-    :return: Consolidated repro script content
-    TODO(ai_gp): Add example
+        - Example: `['docker', 'apple', 'dev_container']`
+    :return: Consolidated repro script content, e.g.,
+        ```
+        #!/bin/bash
+        # Consolidated repro script for multiple builds.
+
+        # Build: docker
+        pytest tests/test_module.py::TestClass::test_method1 ...
+
+        # Build: apple
+        pytest tests/test_module.py::TestClass::test_method2 ...
+        ```
     """
     _LOG.debug(hprint.to_str("build_names"))
     header = "#!/bin/bash\n"
@@ -275,8 +284,14 @@ def _failed_tests_table_to_str(test_to_builds: Dict[str, Set[str]]) -> str:
     Create formatted table of failing tests for file output.
 
     :param test_to_builds: Dict mapping test name to set of builds where it failed
-    :return: Formatted table string
-    TODO(ai_gp): Add example
+        - Example: `{'test1': {'docker', 'apple'}, 'test2': {'docker'}}`
+    :return: Formatted table string, e.g.,
+        ```
+        Test Name              Builds
+        -------------------------------------------
+        tests/test_module.py::test1   docker, apple
+        tests/test_module.py::test2   docker
+        ```
     """
     _LOG.debug("test_to_builds=%s tests", len(test_to_builds))
     # Build table with test names and the builds where they failed.

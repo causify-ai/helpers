@@ -670,6 +670,33 @@
     """
     ```
 
+## Use Backticks for Scripts, Linux Commands, and Executables
+
+- When referring to scripts, Linux commands, or executables in comments and
+  docstrings, enclose them in backticks
+- This applies to:
+  - Script filenames: `pytest_failed.py`, `extract_toc_from_txt.py`
+  - Command-line tools: `grep`, `sed`, `awk`, `git`
+  - Executables: `python`, `bash`, `curl`
+
+- **Bad**: Referring to scripts without backticks
+  ```python
+  # Locate pytest_failed.py script in the same directory.
+  ```
+- **Good**: Referring to scripts with backticks
+  ```python
+  # Locate `pytest_failed.py` script in the same directory.
+  ```
+
+- **Bad**: Referring to commands without backticks
+  ```python
+  # Run grep to find matching lines.
+  ```
+- **Good**: Referring to commands with backticks
+  ```python
+  # Run `grep` to find matching lines.
+  ```
+
 # Comments
 
 ## Add Comments Liberally
