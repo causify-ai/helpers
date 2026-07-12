@@ -73,8 +73,10 @@ def _build_pytest_cmd(targets: List[str]) -> str:
     """
     Build pytest command from targets.
 
-    :param targets: list of pytest targets
-    :return: command string to run
+    :param targets: list of pytest targets, e.g.,
+        `['helpers/test/test_hunit_test.py', 'helpers/test/test_hio.py']`
+    :return: command string to run, e.g.,
+        `'pytest_log helpers/test/test_hunit_test.py helpers/test/test_hio.py'`
     """
     _LOG.debug("targets=%s", len(targets))
     targets_str = " ".join(targets)
@@ -107,9 +109,10 @@ def _run_build(
         full_cmd = f'invoke docker_cmd {opts} --cmd "{cmd}"'
     else:
         full_cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; {cmd}"
-    # Run command and tee output to file for later analysis.
+    # Run command and capture output.
     _LOG.debug("Executing: %s", full_cmd)
-    hsystem.system(
+    # TODO(ai_gp): Fix missing variable assignment - `hsystem.system()` is called but does not return a result that can be assigned to `result`
+    result = hsystem.system(
         full_cmd,
         suppress_output=True,
         tee=True,
@@ -126,7 +129,7 @@ def _cleanup_old_files() -> None:
     Clean up old build output files.
     """
     _LOG.debug("_cleanup_old_files called")
-    # Remove stale output files from previous runs before executing new builds.
+    # Remove stale output files from previous runs.
     for build_name in hpytest.BUILD_CONFIG.keys():
         output_file = f"tmp.pytest_multi_build.{build_name}.txt"
         if os.path.exists(output_file):

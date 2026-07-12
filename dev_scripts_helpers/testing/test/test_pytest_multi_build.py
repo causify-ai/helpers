@@ -30,6 +30,7 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         targets = ["helpers/test/test_module.py"]
         # Run test.
         actual = dshtpmubu._build_pytest_cmd(targets)
+        # TODO(ai_gp): Apply "Always Use `self.assert_equal()` when the arguments are strings" instead of `self.assertEqual`
         # Check outputs.
         self.assertEqual(actual, "pytest_log helpers/test/test_module.py")
 
@@ -44,6 +45,7 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         ]
         # Run test.
         actual = dshtpmubu._build_pytest_cmd(targets)
+        # TODO(ai_gp): Apply "Always Use `self.assert_equal()` when the arguments are strings" instead of `self.assertEqual`
         # Check outputs.
         self.assertEqual(
             actual,
@@ -58,6 +60,7 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         targets = ["."]
         # Run test.
         actual = dshtpmubu._build_pytest_cmd(targets)
+        # TODO(ai_gp): Apply "Always Use `self.assert_equal()` when the arguments are strings" instead of `self.assertEqual`
         # Check outputs.
         self.assertEqual(actual, "pytest_log .")
 
@@ -90,6 +93,7 @@ class Test_cleanup_old_files(hunitest.TestCase):
             os.chdir(scratch_dir)
             # Run test.
             dshtpmubu._cleanup_old_files()
+            # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertFalse()` calls to check individual pieces of file state; instead verify the full state"
             # Check outputs.
             for build_name in ["docker", "apple", "dev_container"]:
                 output_file = f"tmp.pytest_multi_build.{build_name}.txt"
@@ -109,6 +113,7 @@ class Test_cleanup_old_files(hunitest.TestCase):
             os.chdir(scratch_dir)
             # Run test (should not raise).
             dshtpmubu._cleanup_old_files()
+            # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertFalse()` calls to check individual pieces of file state; instead verify the full state"
             # Check outputs.
             for build_name in ["docker", "apple", "dev_container"]:
                 output_file = f"tmp.pytest_multi_build.{build_name}.txt"
@@ -200,6 +205,7 @@ class Test_clear_cache(hunitest.TestCase):
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             dshtpmubu._clear_cache()
+        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces; instead construct the full expected invocation string and compare with `assert_equal()`"
         # Check outputs.
         self.assertEqual(len(invocations), 1)
         call_dict = invocations[0]
