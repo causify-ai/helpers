@@ -124,7 +124,7 @@ class LLMCostTracker:
     Track the costs of LLM API calls through one of the providers.
     """
 
-    def __init__(self, provider_name: str, model: str) -> None:
+    def __init__(self, provider_name: str = "", model: str = "") -> None:
         """
         Initialize the class.
         """
@@ -158,16 +158,31 @@ class LLMCostTracker:
         self,
         completion: Any,
         *,
+        model: str = "",
         models_info_file: str = "",
     ) -> float:
         """
         Calculate the cost of an API call, based on the provider.
 
         :param completion: the completion response from API
+        :param model: the model name (optional, uses self.model if not provided)
+        :param models_info_file: path to models info CSV file
         :return: the calculated cost in dollars
         """
         import pandas as pd
 
+        # Use provided model or default to self.model.
+        current_model = model or self.model
+        hdbg.dassert_ne(
+            current_model, "", "Model must be provided or set at init"
+        )
+        # Infer provider from model name if not set.
+        current_provider = self.provider_name
+        if not current_provider:
+            if "/" in current_model:
+                current_provider = "openrouter"
+            else:
+                current_provider = "openai"
         # Get the number of input and output tokens.
         usage = getattr(completion, "usage", None)
         hdbg.dassert(
@@ -187,7 +202,7 @@ class LLMCostTracker:
                 f"Unknown usage structure on completion object: {usage}"
             )
         # Get the provider and model details.
-        if self.provider_name == "openai":
+        if current_provider == "openai":
             # Get the pricing for the selected model.
             # TODO(gp): Use pricing from OpenAI or Openrouter API.
             # https://openai.com/api/pricing/
@@ -201,13 +216,13 @@ class LLMCostTracker:
                 "gpt-5.1": {"prompt": 1.25, "completion": 10.0},
                 "gpt-5-mini": {"prompt": 0.25, "completion": 2.00},
             }
-            hdbg.dassert_in(self.model, pricing)
-            model_pricing = pricing[self.model]
+            hdbg.dassert_in(current_model, pricing)
+            model_pricing = pricing[current_model]
             # Calculate the cost.
             cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
                 completion_tokens / 1e6
             ) * model_pricing["completion"]
-        elif self.provider_name == "openrouter":
+        elif current_provider == "openrouter":
             # If the model info file doesn't exist, download one.
             if models_info_file == "":
                 models_info_file = _get_models_info_file()
@@ -218,8 +233,8 @@ class LLMCostTracker:
             else:
                 model_info_df = pd.read_csv(models_info_file)
             # Extract pricing for this model.
-            hdbg.dassert_in(self.model, model_info_df["id"].values)
-            row = model_info_df.loc[model_info_df["id"] == self.model].iloc[0]
+            hdbg.dassert_in(current_model, model_info_df["id"].values)
+            row = model_info_df.loc[model_info_df["id"] == current_model].iloc[0]
             prompt_price = row["prompt_pricing"]
             completion_price = row["completion_pricing"]
             # Compute cost.
@@ -228,6 +243,6 @@ class LLMCostTracker:
                 + completion_tokens * completion_price
             )
         else:
-            raise ValueError(f"Unknown provider: {self.provider_name}")
+            raise ValueError(f"Unknown provider: {current_provider}")
         _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
         return cost

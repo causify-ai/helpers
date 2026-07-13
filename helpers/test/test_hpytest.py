@@ -207,6 +207,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
+        total_duration=40.48
         """
         # Check.
         self.helper(txt, exp_info)
@@ -243,6 +244,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
+        total_duration=40.48
         """
         # Check.
         self.helper(txt, exp_info)
@@ -292,6 +294,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
+        total_duration=40.48
         """
         # Check.
         self.helper(txt, exp_info)
@@ -352,6 +355,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=False
         pytest_tag=None
+        total_duration=0.0
         """
         # Check.
         self.helper(txt, exp_info)
@@ -399,6 +403,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=5
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.0
         """
         # Check.
         self.helper(txt, exp_info)
@@ -447,6 +452,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=7
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        total_duration=886.58
         """
         # Check.
         self.helper(txt, exp_info)
@@ -497,6 +503,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.01
         """
         # Check.
         self.helper(txt, exp_info)
@@ -546,6 +553,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.13
         """
         # Check.
         self.helper(txt, exp_info)
@@ -597,6 +605,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.11
         """
         # Check.
         self.helper(txt, exp_info)
@@ -656,6 +665,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.01
         """
         # Check.
         self.helper(txt, exp_info)
@@ -716,6 +726,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.06
         """
         # Check.
         self.helper(txt, exp_info)
@@ -771,6 +782,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=5
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.0
         """
         # Check. Note: the truncated `test_get_system_signature1` id is
         # never resolved to a status, so it is dropped rather than counted.
@@ -838,6 +850,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        total_duration=10.0
         """
         # Check.
         self.helper(txt, exp_info)
@@ -908,6 +921,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /venv/bin/python
+        total_duration=10.0
         """
         # Check.
         self.helper(txt, exp_info)
@@ -966,6 +980,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.05
         """
         # Check.
         self.helper(txt, exp_info)
@@ -1021,6 +1036,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.05
         """
         # Check.
         self.helper(txt, exp_info)
@@ -1083,6 +1099,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.01
         """
         # Check.
         self.helper(txt, exp_info)
@@ -1138,6 +1155,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         pytest_num_skipped_at_collection=None
         pytest_started=True
         pytest_tag=platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0 -- /venv/bin/python3
+        total_duration=0.01
         """
         # Check.
         self.helper(txt, exp_info)
@@ -1382,10 +1400,10 @@ class Test_info_to_str(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 40.48 s
-        Passed:  43/47
-        Skipped:  0/47
-        Failed:   4/47
-        Updated:  0/47
+        Passed  | 43/47 |
+        Skipped | 0/47  |
+        Failed  | 4/47  |
+        Updated | 0/47  |
         """
         # Run test.
         act = hpytest.info_to_str(info)
@@ -1418,10 +1436,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 40.48 s
-        Passed:  43/47
-        Skipped:  0/47
-        Failed:   4/47
-        Updated:  0/47
+        Passed  | 43/47 |
+        Skipped | 0/47  |
+        Failed  | 4/47  |
+        Updated | 0/47  |
         """
         # Check. Note: pytest_num_failed=4, pytest_num_passed=43, total=47
         self.helper(txt, exp)
@@ -1447,10 +1465,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: GitHub CI (run_fast_tests)
         Pytest completed: True
         Duration: 886.58 s
-        Passed:  3157/3426
-        Skipped:  235/3426
-        Failed:    34/3426
-        Updated:    0/3426
+        Passed  | 3157/3426 |
+        Skipped | 235/3426  |
+        Failed  | 34/3426   |
+        Updated | 0/3426    |
         """
         # Check.
         self.helper(txt, exp)
@@ -1465,10 +1483,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: False
         Duration: 0.00 s
-        Passed:  0/0
-        Skipped: 0/0
-        Failed:  0/0
-        Updated: 0/0
+        Passed  | 0/0   |
+        Skipped | 0/0   |
+        Failed  | 0/0   |
+        Updated | 0/0   |
         """
         # Check.
         self.helper(txt, exp)
@@ -1494,10 +1512,10 @@ class Test_info_to_comments(hunitest.TestCase):
         Run: local
         Pytest completed: True
         Duration: 0.20 s
-        Passed:  3/3
-        Skipped: 0/3
-        Failed:  0/3
-        Updated: 2/3
+        Passed  | 3/3   |
+        Skipped | 0/3   |
+        Failed  | 0/3   |
+        Updated | 2/3   |
         """
         # Check.
         self.helper(txt, exp)
@@ -1809,16 +1827,18 @@ class Test_write_duration_stats(hunitest.TestCase):
         ################################################################################
         Duration by file
         ################################################################################
-        File | Count | Total (secs) | Mean (secs) | Max (secs)
-        file_b.py | 1 | 4.00 | 4.00 | 4.00
-        file_a.py | 3 | 3.50 | 1.17 | 2.00
+        File      | Count | Total (secs) | Mean (secs) | Max (secs) |
+        --------- | ----- | ------------ | ----------- | ---------- |
+        file_b.py | 1     | 4.00         | 4.00        | 4.00       |
+        file_a.py | 3     | 3.50         | 1.17        | 2.00       |
         ################################################################################
         Duration by class
         ################################################################################
-        Class | Count | Total (secs) | Mean (secs) | Max (secs)
-        file_b.py::ClassC | 1 | 4.00 | 4.00 | 4.00
-        file_a.py::ClassA | 2 | 3.00 | 1.50 | 2.00
-        file_a.py::ClassB | 1 | 0.50 | 0.50 | 0.50
+        Class             | Count | Total (secs) | Mean (secs) | Max (secs) |
+        ----------------- | ----- | ------------ | ----------- | ---------- |
+        file_b.py::ClassC | 1     | 4.00         | 4.00        | 4.00       |
+        file_a.py::ClassA | 2     | 3.00         | 1.50        | 2.00       |
+        file_a.py::ClassB | 1     | 0.50         | 0.50        | 0.50       |
         """
         # Run test.
         hpytest.write_duration_stats(info, file_name)
@@ -1906,9 +1926,10 @@ class Test_marks_to_str(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = """
-        Test | Marks | Skipped
-        test_foo.py::Test1::test1 | - | False
-        test_foo.py::Test1::test2 | slow,skip | True
+        Test                      | Marks     | Skipped |
+        ------------------------- | --------- | ------- |
+        test_foo.py::Test1::test1 | -         | False   |
+        test_foo.py::Test1::test2 | slow,skip | True    |
         """
         # Run test.
         actual = hpytest.marks_to_str(marks_info)

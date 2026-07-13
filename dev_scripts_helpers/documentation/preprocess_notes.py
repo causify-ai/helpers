@@ -45,7 +45,7 @@ _NUM_SPACES = 2
 _TRACE = False
 
 
-_DEFAULT_ACTIONS = None
+_DEFAULT_ACTIONS: List[str] = []
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",
@@ -809,11 +809,13 @@ def _preprocess_lines(
     :param type_: type of output to generate
     :param toc_type: type of table of contents to add
     :param is_qa: True if the input is a QA file
+    :param output_format: "latex" (default) or "typst"
     :param actions: optional list of actions to perform
     :param output_format: output format for color commands (latex or typst)
     :return: list of preprocessed lines
     """
     hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_in(output_format, ("latex", "typst"))
     # Apply transformations.
     out = _transform_lines(lines, type_, is_qa, output_format, actions=actions)
     # Add TOC, if needed.
