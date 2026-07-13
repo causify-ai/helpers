@@ -1,1 +1,1 @@
-Execute instr2.md
+Execute the prompt in ./instr2.md
