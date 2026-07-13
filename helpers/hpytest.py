@@ -1168,8 +1168,11 @@ def write_repro_script(
 
 # Build configurations: name -> (docker_engine, use_docker_cmd).
 BUILD_CONFIG: Dict[str, Tuple[str, bool]] = {
+    # Use "docker" as docker_engine, but run outside the container.
     "docker": ("docker", False),
+    # Use "apple" as docker_engine, but run outside the container.
     "apple": ("apple", False),
+    # Use "docker" and run inside the container.
     "dev_container": ("docker", True),
 }
 

@@ -42,18 +42,33 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     Extract build statistics from JSON info file.
 
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
-    :return: Dict with build stats
+    :return: Dict with build stats (includes 'incomplete' flag if data is missing)
     """
     _LOG.debug(hprint.to_str("build_name"))
     info_file = hpytest.get_output_file_path("info.json", build_name=build_name)
-    hdbg.dassert_file_exists(info_file)
+    # Check if info file exists.
+    if not os.path.exists(info_file):
+        _LOG.warning("Info file not found for %s: %s", build_name, info_file)
+        res = {
+            "build": build_name,
+            "passed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "total": 0,
+            "duration": "N/A",
+            "incomplete": True,
+        }
+        _LOG.debug("return=%s (incomplete)", res)
+        return res
     info = hio.from_json(info_file)
+    # Check for pytest completion token (pytest_ended indicates run completed).
+    pytest_completed = "pytest_ended" in info
     # Extract info.
     num_passed = info.get("log_num_passed", 0) or 0
     num_failed = info.get("log_num_failed", 0) or 0
     num_skipped = info.get("log_num_skipped", 0) or 0
     num_total = num_passed + num_failed + num_skipped
-    duration = f"{info['pytest_duration_in_secs']}s"
+    duration = f"{info['pytest_duration_in_secs']}s" if 'pytest_duration_in_secs' in info else "N/A"
     # Assemble result.
     res = {
         "build": build_name,
@@ -62,6 +77,7 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
         "failed": num_failed,
         "total": num_total,
         "duration": duration,
+        "incomplete": not pytest_completed,
     }
     _LOG.debug("return=%s", res)
     return res
@@ -88,7 +104,13 @@ def _generate_build_files(
     build_stats = []
     for build_name in build_names:
         input_file = f"tmp.{in_build_tag}.{build_name}.txt"
-        hdbg.dassert_file_exists(input_file)
+        # Check if input file exists; skip pytest_failed.py if missing.
+        if not os.path.exists(input_file):
+            _LOG.warning("Input file not found for %s: %s", build_name, input_file)
+            # Extract build statistics (will return incomplete status).
+            stats = _extract_build_stats(build_name)
+            build_stats.append(stats)
+            continue
         _LOG.info("Processing %s from %s", build_name, input_file)
         # Build command to execute `pytest_failed.py` for this build.
         cmd = " ".join(
@@ -119,13 +141,15 @@ def _read_failed_tests(build_name: str) -> List[str]:
     Read failed tests from a single build.
 
     :param build_name: Build name
-    :return: List of failed test names
+    :return: List of failed test names (empty if file not found)
     """
     _LOG.debug(hprint.to_str("build_name"))
     failed_file = hpytest.get_output_file_path(
         "failed_tests.txt", build_name=build_name
     )
-    hdbg.dassert_file_exists(failed_file)
+    if not os.path.exists(failed_file):
+        _LOG.warning("Failed tests file not found for %s: %s", build_name, failed_file)
+        return []
     txt = hio.from_file(failed_file)
     # Parse file content into list of non-empty test names.
     lines = [line.strip() for line in txt.split("\n") if line.strip()]
@@ -165,11 +189,13 @@ def _read_repro_script(build_name: str) -> str:
     Read repro script from a single build.
 
     :param build_name: Build name
-    :return: Content of repro script
+    :return: Content of repro script (empty string if file not found)
     """
     _LOG.debug(hprint.to_str("build_name"))
     repro_file = hpytest.get_output_file_path("repro.sh", build_name=build_name)
-    hdbg.dassert_file_exists(repro_file)
+    if not os.path.exists(repro_file):
+        _LOG.warning("Repro script not found for %s: %s", build_name, repro_file)
+        return ""
     content = hio.from_file(repro_file)
     _LOG.debug("return=%s bytes", len(content))
     return content
@@ -234,11 +260,11 @@ def _create_consolidated_repro(
     content = header
     # Merge repro scripts from each build, extracting test names and rebuilding commands.
     for build_name in build_names:
-        repro_file = hpytest.get_output_file_path(
-            "repro.sh", build_name=build_name
-        )
-        hdbg.dassert_file_exists(repro_file)
         repro_content = _read_repro_script(build_name)
+        # Skip builds with missing repro files.
+        if not repro_content:
+            _LOG.info("Skipping %s (no repro script found)", build_name)
+            continue
         tests = _extract_tests_from_repro(repro_content)
         if tests:
             content += f"# Build: {build_name}\n"
@@ -261,16 +287,20 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
         Build          Status   Passed   Skipped   Failed   Total   Duration
         -----------------------------------------------------------------------
         docker         PASS      1234        0       10      1244       45.2s
-        apple          FAIL      1230        2       12      1244       52.1s
-        dev_container  PASS      1232        1       11      1244       48.5s
+        apple          INCOMPLETE   0        0        0        0          N/A
+        dev_container  FAIL      1232        1       11      1244       48.5s
         ```
     """
     _LOG.debug("build_stats=%s items", len(build_stats))
     lines = [hprint.frame("Build Statistics")]
-    # Convert each build stat dict to table row with pass/fail status.
+    # Convert each build stat dict to table row with pass/fail/incomplete
+    # status.
     table_data = []
     for stats in build_stats:
-        status = "PASS" if stats["failed"] == 0 else "FAIL"
+        if stats.get("incomplete", False):
+            status = "INCOMPLETE"
+        else:
+            status = "PASS" if stats["failed"] == 0 else "FAIL"
         table_data.append(
             [
                 stats["build"],
