@@ -291,10 +291,11 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         # Run test.
         result = self.helper(build_names, build_tests)
         # Check outputs.
-        # TODO(ai_gp): Compare with pprint of result and self.assert_equal
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result["test_method1"], {"docker"})
-        self.assertEqual(result["test_method2"], {"docker"})
+        expected = {
+            "test_method1": {"docker"},
+            "test_method2": {"docker"},
+        }
+        self.assert_equal(str(result), str(expected))
 
     def test2(self) -> None:
         """
@@ -309,11 +310,12 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         # Run test.
         result = self.helper(build_names, build_tests)
         # Check outputs.
-        # TODO(ai_gp): Compare with pprint of result and self.assert_equal
-        self.assertEqual(len(result), 3)
-        self.assertEqual(result["test_method1"], {"docker"})
-        self.assertEqual(result["test_method2"], {"docker", "apple"})
-        self.assertEqual(result["test_method3"], {"apple"})
+        expected = {
+            "test_method1": {"docker"},
+            "test_method2": {"docker", "apple"},
+            "test_method3": {"apple"},
+        }
+        self.assert_equal(str(result), str(expected))
 
 
 # #############################################################################
@@ -379,7 +381,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         BUILD_TAG=pytest_multi_build
 
         # Build: docker
-        export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test/test_docker.py::TestClass::test_method $*" 2>&1 | tee tmp.$BUILD_TAG.docker.txt
+        export CSFY_DOCKER_ENGINE='docker'; pytest_log test/test_docker.py::TestClass::test_method $* 2>&1 | tee tmp.$BUILD_TAG.docker.txt
 
         # Build: apple
         export CSFY_DOCKER_ENGINE='apple'; pytest_log test/test_apple.py::TestClass::test_method $* 2>&1 | tee tmp.$BUILD_TAG.apple.txt
@@ -397,7 +399,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         actual = self.helper(build_names)
         # Check outputs.
         # Expected: Bash script with dev_container-specific repro command.
-        # dev_container uses invoke docker_cmd, unlike docker/apple which use plain pytest_log.
+        # dev_container uses invoke docker_cmd, docker/apple use plain pytest_log.
         expected = """
         #!/bin/bash
         # Consolidated repro script for multiple builds.
@@ -549,12 +551,15 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         with _chdir_context(scratch_dir):
             # Call extract_build_stats.
             result = dshtpfmbu._extract_build_stats("dev_container")
-        # TODO(ai_gp): Compare with pprint of result and self.assert_equal
         # Check outputs - should be marked incomplete.
-        self.assertEqual(result["build"], "dev_container")
-        self.assertTrue(result["incomplete"])
-        self.assertEqual(result["passed"], 100)
-        self.assertEqual(result["failed"], 5)
+        build = result["build"]
+        incomplete = result["incomplete"]
+        passed = result["passed"]
+        failed = result["failed"]
+        self.assert_equal(str(build), "dev_container")
+        self.assert_equal(str(incomplete), "True")
+        self.assert_equal(str(passed), "100")
+        self.assert_equal(str(failed), "5")
 
     def test_with_pytest_ended_token_completes(self) -> None:
         """
@@ -578,12 +583,15 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         with _chdir_context(scratch_dir):
             # Call extract_build_stats.
             result = dshtpfmbu._extract_build_stats("docker")
-        # TODO(ai_gp): Compare with pprint of result and self.assert_equal
         # Check outputs - should NOT be marked incomplete.
-        self.assertEqual(result["build"], "docker")
-        self.assertFalse(result["incomplete"])
-        self.assertEqual(result["passed"], 100)
-        self.assertEqual(result["failed"], 0)
+        build = result["build"]
+        incomplete = result["incomplete"]
+        passed = result["passed"]
+        failed = result["failed"]
+        self.assert_equal(str(build), "docker")
+        self.assert_equal(str(incomplete), "False")
+        self.assert_equal(str(passed), "100")
+        self.assert_equal(str(failed), "0")
 
 
 # #############################################################################
@@ -684,7 +692,7 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         BUILD_TAG=pytest_multi_build
 
         # Build: docker
-        export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test_docker.py $*" 2>&1 | tee tmp.$BUILD_TAG.docker.txt
+        export CSFY_DOCKER_ENGINE='docker'; pytest_log test_docker.py $* 2>&1 | tee tmp.$BUILD_TAG.docker.txt
 
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
@@ -717,7 +725,7 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         BUILD_TAG=pytest_multi_build
 
         # Build: docker
-        export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test_docker.py $*" 2>&1 | tee tmp.$BUILD_TAG.docker.txt
+        export CSFY_DOCKER_ENGINE='docker'; pytest_log test_docker.py $* 2>&1 | tee tmp.$BUILD_TAG.docker.txt
 
         # Build: apple
         export CSFY_DOCKER_ENGINE='apple'; pytest_log test_apple.py $* 2>&1 | tee tmp.$BUILD_TAG.apple.txt
