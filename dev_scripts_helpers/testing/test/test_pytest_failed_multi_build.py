@@ -460,3 +460,200 @@ class Test_summary_to_str(hunitest.TestCase):
         # Check outputs.
         self.assertIn("Total failing tests: 0", actual)
         self.assertIn("Tests failing in multiple builds: 0", actual)
+
+
+# #############################################################################
+# Test_extract_build_stats_missing_pytest_ended
+# #############################################################################
+
+
+class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
+    """
+    Test _extract_build_stats marks INCOMPLETE when pytest_ended token missing.
+    """
+
+    def test_missing_pytest_ended_token(self) -> None:
+        """
+        Test that missing pytest_ended token marks build as INCOMPLETE.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        build_dir = os.path.join(scratch_dir, "tmp.pytest_failed.dev_container")
+        hio.create_dir(build_dir, incremental=True)
+        # Create info.json without pytest_ended token.
+        info_data = {
+            "pytest_started": "2024-01-01T00:00:00",
+            "log_num_passed": 100,
+            "log_num_failed": 5,
+            "log_num_skipped": 2,
+            "pytest_duration_in_secs": 45.2,
+        }
+        info_file = os.path.join(build_dir, "info.json")
+        hio.to_json(info_file, info_data)
+        original_dir = os.getcwd()
+        try:
+            os.chdir(scratch_dir)
+            # Call extract_build_stats.
+            result = dshtpfmbu._extract_build_stats("dev_container")
+            # Check outputs - should be marked incomplete.
+            self.assertEqual(result["build"], "dev_container")
+            self.assertTrue(result["incomplete"])
+            self.assertEqual(result["passed"], 100)
+            self.assertEqual(result["failed"], 5)
+        finally:
+            os.chdir(original_dir)
+
+    def test_with_pytest_ended_token_completes(self) -> None:
+        """
+        Test that presence of pytest_ended token marks build as COMPLETE.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        build_dir = os.path.join(scratch_dir, "tmp.pytest_failed.docker")
+        hio.create_dir(build_dir, incremental=True)
+        # Create info.json WITH pytest_ended token.
+        info_data = {
+            "pytest_started": "2024-01-01T00:00:00",
+            "pytest_ended": "2024-01-01T00:00:45",
+            "log_num_passed": 100,
+            "log_num_failed": 0,
+            "log_num_skipped": 2,
+            "pytest_duration_in_secs": 45.2,
+        }
+        info_file = os.path.join(build_dir, "info.json")
+        hio.to_json(info_file, info_data)
+        original_dir = os.getcwd()
+        try:
+            os.chdir(scratch_dir)
+            # Call extract_build_stats.
+            result = dshtpfmbu._extract_build_stats("docker")
+            # Check outputs - should NOT be marked incomplete.
+            self.assertEqual(result["build"], "docker")
+            self.assertFalse(result["incomplete"])
+            self.assertEqual(result["passed"], 100)
+            self.assertEqual(result["failed"], 0)
+        finally:
+            os.chdir(original_dir)
+
+
+# #############################################################################
+# Test_build_stats_to_str_incomplete_status
+# #############################################################################
+
+
+class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
+    """
+    Test _build_stats_to_str displays INCOMPLETE status correctly.
+    """
+
+    def test_incomplete_status_display(self) -> None:
+        """
+        Test that INCOMPLETE status is displayed in stats table.
+        """
+        # Prepare inputs.
+        build_stats = [
+            {
+                "build": "docker",
+                "passed": 235,
+                "skipped": 9,
+                "failed": 19,
+                "total": 263,
+                "duration": "45.2s",
+                "incomplete": False,
+            },
+            {
+                "build": "apple",
+                "passed": 0,
+                "skipped": 0,
+                "failed": 0,
+                "total": 0,
+                "duration": "N/A",
+                "incomplete": True,
+            },
+            {
+                "build": "dev_container",
+                "passed": 240,
+                "skipped": 8,
+                "failed": 0,
+                "total": 248,
+                "duration": "50.1s",
+                "incomplete": False,
+            },
+        ]
+        # Run test.
+        result = dshtpfmbu._build_stats_to_str(build_stats)
+        # Check outputs.
+        self.assertIn("Build Statistics", result)
+        self.assertIn("docker", result)
+        self.assertIn("FAIL", result)  # docker has failures
+        self.assertIn("apple", result)
+        self.assertIn("INCOMPLETE", result)  # apple is incomplete
+        self.assertIn("dev_container", result)
+        self.assertIn("PASS", result)  # dev_container passed
+
+
+# #############################################################################
+# Test_create_consolidated_repro_with_missing_files
+# #############################################################################
+
+
+class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
+    """
+    Test _create_consolidated_repro skips builds with missing repro files.
+    """
+
+    def test_skips_missing_repro_files(self) -> None:
+        """
+        Test that missing repro scripts are skipped without crashing.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        # Create repro file only for docker build.
+        docker_dir = os.path.join(scratch_dir, "tmp.pytest_failed.docker")
+        hio.create_dir(docker_dir, incremental=True)
+        docker_repro = os.path.join(docker_dir, "repro.sh")
+        hio.to_file(docker_repro, "#!/bin/bash\npytest_log test_docker.py $*")
+        # apple and dev_container directories don't have repro.sh.
+        original_dir = os.getcwd()
+        try:
+            os.chdir(scratch_dir)
+            # Call with all three builds.
+            result = dshtpfmbu._create_consolidated_repro(
+                ["docker", "apple", "dev_container"]
+            )
+            # Check outputs.
+            self.assertIn("#!/bin/bash", result)
+            self.assertIn("# Build: docker", result)
+            self.assertNotIn("# Build: apple", result)  # Should be skipped.
+            self.assertNotIn("# Build: dev_container", result)  # Should be skipped.
+        finally:
+            os.chdir(original_dir)
+
+    def test_consolidates_only_available_builds(self) -> None:
+        """
+        Test that only builds with repro scripts are consolidated.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        # Create repro files for docker and apple.
+        for build_name in ["docker", "apple"]:
+            build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+            hio.create_dir(build_dir, incremental=True)
+            repro_file = os.path.join(build_dir, "repro.sh")
+            content = f"#!/bin/bash\npytest_log test_{build_name}.py $*"
+            hio.to_file(repro_file, content)
+
+        original_dir = os.getcwd()
+        try:
+            os.chdir(scratch_dir)
+            # Call with all three builds (only docker and apple have files).
+            result = dshtpfmbu._create_consolidated_repro(
+                ["docker", "apple", "dev_container"]
+            )
+            # Check outputs.
+            self.assertIn("# Build: docker", result)
+            self.assertIn("# Build: apple", result)
+            self.assertNotIn("# Build: dev_container", result)
+            self.assertIn("pytest_log", result)
+        finally:
+            os.chdir(original_dir)
