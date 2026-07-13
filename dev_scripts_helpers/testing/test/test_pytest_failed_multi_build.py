@@ -54,7 +54,7 @@ class Test_read_failed_tests(hunitest.TestCase):
         hio.to_file(failed_file, content)
         with _chdir_context(scratch_dir):
             result = dshtpfmbu._read_failed_tests(build_name)
-            return result
+        return result
 
     def test1(self) -> None:
         """
@@ -131,7 +131,7 @@ class Test_read_repro_script(hunitest.TestCase):
         hio.to_file(repro_file, content)
         with _chdir_context(scratch_dir):
             result = dshtpfmbu._read_repro_script(build_name)
-            return result
+        return result
 
     def test1(self) -> None:
         """
@@ -277,7 +277,7 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         self._create_failed_test_files(scratch_dir, build_tests)
         with _chdir_context(scratch_dir):
             result = dshtpfmbu._consolidate_failed_tests(build_names)
-            return result
+        return result
 
     def test1(self) -> None:
         """
@@ -291,6 +291,7 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         # Run test.
         result = self.helper(build_names, build_tests)
         # Check outputs.
+        # TODO(ai_gp): Compare with pprint of result and self.assert_equal
         self.assertEqual(len(result), 2)
         self.assertEqual(result["test_method1"], {"docker"})
         self.assertEqual(result["test_method2"], {"docker"})
@@ -308,6 +309,7 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         # Run test.
         result = self.helper(build_names, build_tests)
         # Check outputs.
+        # TODO(ai_gp): Compare with pprint of result and self.assert_equal
         self.assertEqual(len(result), 3)
         self.assertEqual(result["test_method1"], {"docker"})
         self.assertEqual(result["test_method2"], {"docker", "apple"})
@@ -365,40 +367,48 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         """
         Test creating consolidated repro script for docker and apple builds.
         """
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Prepare inputs.
         build_names = ["docker", "apple"]
         # Run test.
         actual = self.helper(build_names)
         # Check outputs.
-        # Expected: Bash script with consolidated repro commands for both builds.
-        # Invariant: Contains shebang, comment, build markers, engine exports, and
-        # pytest_log commands.
-        self.assertIn("#!/bin/bash", actual)
-        self.assertIn("Consolidated repro script for multiple builds.", actual)
-        self.assertIn("# Build: docker", actual)
-        self.assertIn("# Build: apple", actual)
-        self.assertIn("export CSFY_DOCKER_ENGINE='docker'", actual)
-        self.assertIn("export CSFY_DOCKER_ENGINE='apple'", actual)
-        self.assertIn("pytest_log", actual)
+        expected = """
+        #!/bin/bash
+        # Consolidated repro script for multiple builds.
+
+        BUILD_TAG=pytest_multi_build
+
+        # Build: docker
+        export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test/test_docker.py::TestClass::test_method $*" 2>&1 | tee tmp.$BUILD_TAG.docker.txt
+
+        # Build: apple
+        export CSFY_DOCKER_ENGINE='apple'; pytest_log test/test_apple.py::TestClass::test_method $* 2>&1 | tee tmp.$BUILD_TAG.apple.txt
+
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test2(self) -> None:
         """
         Test creating consolidated repro script with dev_container build.
         """
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Prepare inputs.
         build_names = ["dev_container"]
         # Run test.
         actual = self.helper(build_names)
         # Check outputs.
         # Expected: Bash script with dev_container-specific repro command.
-        # Invariant: Contains shebang, build marker, invoke docker_cmd, and
-        # pytest_log commands.
-        self.assertIn("#!/bin/bash", actual)
-        self.assertIn("# Build: dev_container", actual)
-        self.assertIn("invoke docker_cmd --stage=local -v 1.6.0 --cmd", actual)
-        self.assertIn("pytest_log", actual)
+        # dev_container uses invoke docker_cmd, unlike docker/apple which use plain pytest_log.
+        expected = """
+        #!/bin/bash
+        # Consolidated repro script for multiple builds.
+
+        BUILD_TAG=pytest_multi_build
+
+        # Build: dev_container
+        export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test/test_dev_container.py::TestClass::test_method $*" 2>&1 | tee tmp.$BUILD_TAG.dev_container.txt
+
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
 
 # #############################################################################
@@ -430,7 +440,6 @@ class Test_summary_to_str(hunitest.TestCase):
         """
         Test summary string generation with single build failures.
         """
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Prepare inputs.
         build_names = ["docker"]
         test_to_builds = {
@@ -440,18 +449,25 @@ class Test_summary_to_str(hunitest.TestCase):
         # Run test.
         actual = self.helper(build_names, test_to_builds)
         # Check outputs.
-        # Expected: Summary report with test names and counts.
-        # Invariant: Contains header, individual test names, and total count.
-        self.assertIn("Failed Tests Summary", actual)
-        self.assertIn("test_method1", actual)
-        self.assertIn("test_method2", actual)
-        self.assertIn("Total failing tests: 2", actual)
+        expected = """
+        ################################################################################
+        Failed Tests Summary
+        ################################################################################
+        Test Name    | Builds |
+        ------------ | ------ |
+        test_method1 | docker |
+        test_method2 | docker |
+
+        Total failing tests: 2
+        Across builds: docker
+        Tests failing in multiple builds: 0
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test2(self) -> None:
         """
         Test summary with cross-build failures.
         """
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Prepare inputs.
         build_names = ["docker", "apple", "dev_container"]
         test_to_builds = {
@@ -462,26 +478,44 @@ class Test_summary_to_str(hunitest.TestCase):
         # Run test.
         actual = self.helper(build_names, test_to_builds)
         # Check outputs.
-        # Expected: Summary with aggregated counts across builds.
-        # Invariant: Correct total and cross-build failure counts.
-        self.assertIn("Total failing tests: 3", actual)
-        self.assertIn("Tests failing in multiple builds: 2", actual)
+        expected = """
+        ################################################################################
+        Failed Tests Summary
+        ################################################################################
+        Test Name | Builds |
+        ------------ | -------------------- |
+        test_method1 | apple, docker |
+        test_method2 | docker |
+        test_method3 | apple, dev_container |
+
+        Total failing tests: 3
+        Across builds: docker, apple, dev_container
+        Tests failing in multiple builds: 2
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test3(self) -> None:
         """
         Test summary with empty failures.
         """
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Prepare inputs.
         build_names = ["docker", "apple"]
         test_to_builds = {}
         # Run test.
         actual = self.helper(build_names, test_to_builds)
         # Check outputs.
-        # Expected: Summary with zero counts.
-        # Invariant: All counts report zero.
-        self.assertIn("Total failing tests: 0", actual)
-        self.assertIn("Tests failing in multiple builds: 0", actual)
+        expected = """
+        ################################################################################
+        Failed Tests Summary
+        ################################################################################
+        Test Name | Builds |
+        --------- | ------ |
+
+        Total failing tests: 0
+        Across builds: docker, apple
+        Tests failing in multiple builds: 0
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
 
 # #############################################################################
@@ -515,11 +549,12 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         with _chdir_context(scratch_dir):
             # Call extract_build_stats.
             result = dshtpfmbu._extract_build_stats("dev_container")
-            # Check outputs - should be marked incomplete.
-            self.assertEqual(result["build"], "dev_container")
-            self.assertTrue(result["incomplete"])
-            self.assertEqual(result["passed"], 100)
-            self.assertEqual(result["failed"], 5)
+        # TODO(ai_gp): Compare with pprint of result and self.assert_equal
+        # Check outputs - should be marked incomplete.
+        self.assertEqual(result["build"], "dev_container")
+        self.assertTrue(result["incomplete"])
+        self.assertEqual(result["passed"], 100)
+        self.assertEqual(result["failed"], 5)
 
     def test_with_pytest_ended_token_completes(self) -> None:
         """
@@ -543,11 +578,12 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         with _chdir_context(scratch_dir):
             # Call extract_build_stats.
             result = dshtpfmbu._extract_build_stats("docker")
-            # Check outputs - should NOT be marked incomplete.
-            self.assertEqual(result["build"], "docker")
-            self.assertFalse(result["incomplete"])
-            self.assertEqual(result["passed"], 100)
-            self.assertEqual(result["failed"], 0)
+        # TODO(ai_gp): Compare with pprint of result and self.assert_equal
+        # Check outputs - should NOT be marked incomplete.
+        self.assertEqual(result["build"], "docker")
+        self.assertFalse(result["incomplete"])
+        self.assertEqual(result["passed"], 100)
+        self.assertEqual(result["failed"], 0)
 
 
 # #############################################################################
@@ -564,7 +600,6 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         """
         Test that INCOMPLETE status is displayed in stats table.
         """
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Prepare inputs.
         build_stats = [
             {
@@ -598,15 +633,18 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         # Run test.
         actual = dshtpfmbu._build_stats_to_str(build_stats)
         # Check outputs.
-        # Expected: Build statistics table with status indicators.
-        # Invariant: Contains all build names with correct status (PASS/FAIL/INCOMPLETE).
-        self.assertIn("Build Statistics", actual)
-        self.assertIn("docker", actual)
-        self.assertIn("FAIL", actual)  # docker has failures
-        self.assertIn("apple", actual)
-        self.assertIn("INCOMPLETE", actual)  # apple is incomplete
-        self.assertIn("dev_container", actual)
-        self.assertIn("PASS", actual)  # dev_container passed
+        # Expected: Build statistics table with status indicators for each build.
+        expected = """
+        ################################################################################
+        Build Statistics
+        ################################################################################
+        Build | Status | Passed | Skipped | Failed | Total | Duration |
+        ------------- | ---------- | ------ | ------- | ------ | ----- | -------- |
+        docker | FAIL | 235 | 9 | 19 | 263 | 45.2s |
+        apple | INCOMPLETE | 0 | 0 | 0 | 0 | N/A |
+        dev_container | PASS | 240 | 8 | 0 | 248 | 50.1s |
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
 
 # #############################################################################
@@ -623,7 +661,6 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         """
         Test that missing repro scripts are skipped without crashing.
         """
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         # Create repro file only for docker build.
@@ -637,20 +674,25 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
             actual = dshtpfmbu._create_consolidated_repro(
                 ["docker", "apple", "dev_container"]
             )
-            # Check outputs.
-            # Expected: Consolidated script includes only available builds.
-            # Invariant: Only includes docker section, skips missing apple and
-            # dev_container sections.
-            self.assertIn("#!/bin/bash", actual)
-            self.assertIn("# Build: docker", actual)
-            self.assertNotIn("# Build: apple", actual)  # Should be skipped.
-            self.assertNotIn("# Build: dev_container", actual)  # Should be skipped.
+        # Check outputs.
+        # Expected: Consolidated script includes only available builds.
+        # Only docker has a repro.sh file, so only docker section appears.
+        expected = """
+        #!/bin/bash
+        # Consolidated repro script for multiple builds.
+
+        BUILD_TAG=pytest_multi_build
+
+        # Build: docker
+        export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test_docker.py $*" 2>&1 | tee tmp.$BUILD_TAG.docker.txt
+
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test_consolidates_only_available_builds(self) -> None:
         """
         Test that only builds with repro scripts are consolidated.
         """
-        # TODO(ai_gp): Apply "Replace Checking Invariants with `assert_equal` - Do not use multiple `assertIn()` calls to check individual pieces of a string output; instead compare the entire output with `assert_equal()`"
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         # Create repro files for docker and apple.
@@ -665,10 +707,20 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
             actual = dshtpfmbu._create_consolidated_repro(
                 ["docker", "apple", "dev_container"]
             )
-            # Check outputs.
-            # Expected: Consolidated script includes only builds with repro files.
-            # Invariant: Contains docker and apple sections, skips dev_container.
-            self.assertIn("# Build: docker", actual)
-            self.assertIn("# Build: apple", actual)
-            self.assertNotIn("# Build: dev_container", actual)
-            self.assertIn("pytest_log", actual)
+        # Check outputs.
+        # Expected: Consolidated script includes only builds with repro files.
+        # Docker and apple have repro.sh files, but dev_container is skipped.
+        expected = """
+        #!/bin/bash
+        # Consolidated repro script for multiple builds.
+
+        BUILD_TAG=pytest_multi_build
+
+        # Build: docker
+        export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test_docker.py $*" 2>&1 | tee tmp.$BUILD_TAG.docker.txt
+
+        # Build: apple
+        export CSFY_DOCKER_ENGINE='apple'; pytest_log test_apple.py $* 2>&1 | tee tmp.$BUILD_TAG.apple.txt
+
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
