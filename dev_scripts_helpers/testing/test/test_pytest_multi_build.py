@@ -6,6 +6,8 @@ Tests orchestration of pytest across multiple build configurations.
 
 import os
 
+import pytest
+
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -179,6 +181,7 @@ class Test_run_build(hunitest.TestCase):
         finally:
             os.chdir(original_dir)
 
+    @pytest.mark.slow
     def test3(self) -> None:
         """
         Test with different build configurations.
