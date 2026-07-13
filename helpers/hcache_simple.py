@@ -1100,7 +1100,13 @@ def get_disk_cache(func_name: str) -> _FunctionCacheType:
     # Load data from existing file.
     cache_type = get_cache_property(func_name, "type")
     _LOG.trace(hprint.to_str("cache_type"))
-    func_cache_data = _load_func_cache_data_from_file(file_name, cache_type)
+    try:
+        func_cache_data = _load_func_cache_data_from_file(file_name, cache_type)
+    except FileNotFoundError:
+        # Handle race condition: file checked existence but was deleted before
+        # open. Return empty.
+        _LOG.trace("Cache file deleted before load (race condition)")
+        return {}
     return func_cache_data
 
 
