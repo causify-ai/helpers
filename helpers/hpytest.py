@@ -18,6 +18,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.htable as htable
 
 _LOG = logging.getLogger(__name__)
 
@@ -823,6 +824,14 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
                 info["log_num_skipped"],
                 info["pytest_num_collected"],
             )
+    # Calculate total duration, preferring the final summary line's duration.
+    # Fall back to summing per-test durations when the run didn't complete.
+    total_duration = info.get("pytest_duration_in_secs") or 0.0
+    if total_duration == 0.0:
+        total_duration = sum(
+            (info.get("log_test_durations") or {}).values(), 0.0
+        )
+    info["total_duration"] = total_duration
     return info
 
 
@@ -877,12 +886,14 @@ def info_to_comments(info: Dict[str, Any]) -> str:
         ("Failed", num_failed),
         ("Updated", num_updated),
     ]
-    max_label_len = max(len(label) for label, _ in labels_and_values)
-    max_num_len = max(len(str(value)) for _, value in labels_and_values)
-    for label, value in labels_and_values:
-        comments.append(
-            f"{label + ':':<{max_label_len + 1}} {value:>{max_num_len}}/{num_total}"
-        )
+    table_data = [
+        [label, f"{value}/{num_total}"] for label, value in labels_and_values
+    ]
+    table_obj = htable.Table(table_data, ["Label", "Count"])
+    # Extract just the data rows (skip header and separator).
+    for line in str(table_obj).split("\n")[2:]:
+        if line.strip():
+            comments.append(line)
     return "\n".join(comments)
 
 
@@ -904,6 +915,7 @@ def info_to_str(info: Dict[str, Any]) -> str:
         "log_updated_tests",
         "log_test_durations",
         "log_test_errors",
+        "total_duration",
     ]
     info_to_print = {k: v for k, v in info.items() if k not in keys_to_remove}
     txt.append(pprint.pformat(info_to_print))
@@ -1089,19 +1101,38 @@ def write_duration_stats(info: Dict[str, Any], file_name: str) -> None:
     hdbg.dassert_ne(file_name, "")
     txt = []
     txt.append(hprint.frame("Duration by file"))
-    txt.append("File | Count | Total (secs) | Mean (secs) | Max (secs)")
-    for key, stat in compute_duration_stats_by_file(info).items():
-        txt.append(
-            f"{key} | {stat['count']} | {stat['total_secs']:.2f} | "
-            f"{stat['mean_secs']:.2f} | {stat['max_secs']:.2f}"
-        )
+    # Build table for file stats.
+    file_data = [
+        [
+            key,
+            str(stat["count"]),
+            f"{stat['total_secs']:.2f}",
+            f"{stat['mean_secs']:.2f}",
+            f"{stat['max_secs']:.2f}",
+        ]
+        for key, stat in compute_duration_stats_by_file(info).items()
+    ]
+    file_table = htable.Table(
+        file_data, ["File", "Count", "Total (secs)", "Mean (secs)", "Max (secs)"]
+    )
+    txt.extend(str(file_table).split("\n"))
     txt.append(hprint.frame("Duration by class"))
-    txt.append("Class | Count | Total (secs) | Mean (secs) | Max (secs)")
-    for key, stat in compute_duration_stats_by_class(info).items():
-        txt.append(
-            f"{key} | {stat['count']} | {stat['total_secs']:.2f} | "
-            f"{stat['mean_secs']:.2f} | {stat['max_secs']:.2f}"
-        )
+    # Build table for class stats.
+    class_data = [
+        [
+            key,
+            str(stat["count"]),
+            f"{stat['total_secs']:.2f}",
+            f"{stat['mean_secs']:.2f}",
+            f"{stat['max_secs']:.2f}",
+        ]
+        for key, stat in compute_duration_stats_by_class(info).items()
+    ]
+    class_table = htable.Table(
+        class_data,
+        ["Class", "Count", "Total (secs)", "Mean (secs)", "Max (secs)"],
+    )
+    txt.extend(str(class_table).split("\n"))
     hio.to_file(file_name, "\n".join(txt))
     _LOG.debug("Created '%s'", file_name)
 
@@ -1131,13 +1162,54 @@ def write_repro_script(
 
 
 # #############################################################################
-# Collect test marks.
+# Multi build
 # #############################################################################
 
 
-# Mark names that indicate a test is statically skipped, i.e., without
-# evaluating any `skipif` condition.
-_SKIP_MARK_NAMES = ("skip", "skipif")
+# Build configurations: name -> (docker_engine, use_docker_cmd).
+BUILD_CONFIG: Dict[str, Tuple[str, bool]] = {
+    "docker": ("docker", False),
+    "apple": ("apple", False),
+    "dev_container": ("docker", True),
+}
+
+
+def get_output_file_path(basename: str, *, build_name: str = "") -> str:
+    """
+    Get output file path with optional build_name encoding in directory structure.
+
+    Creates directory `tmp.pytest_failed.{build_name}/` and stores file inside.
+    For example:
+    - basename='duration_stats.txt', build_name='apple'
+    - Returns: 'tmp.pytest_failed.apple/duration_stats.txt'
+
+    :param basename: Filename (e.g., 'duration_stats.txt')
+    :param build_name: Optional build name to create directory
+    :return: Full file path
+    """
+    if build_name:
+        dir_name = f"tmp.pytest_failed.{build_name}"
+        hio.create_dir(dir_name, incremental=True)
+        return os.path.join(dir_name, basename)
+    return basename
+
+
+def get_build_command(tests: List[str], build_name: str) -> str:
+    """
+    Generate pytest command for a given build and test list.
+
+    :param tests: List of test names to run
+    :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
+    :return: Complete shell command to run tests
+    """
+    hdbg.dassert_in(build_name, BUILD_CONFIG, "Unknown build name")
+    tests_str = " ".join(tests)
+    docker_engine, use_docker_cmd = BUILD_CONFIG[build_name]
+    if use_docker_cmd:
+        cmd = f"export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd \"pytest_log {tests_str} $*\""
+    else:
+        cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; pytest_log {tests_str} $*"
+    return cmd
 
 
 # #############################################################################
@@ -1154,9 +1226,12 @@ class _MarkCollectorPlugin:
         self.collected: List[Dict[str, Any]] = []
 
     def pytest_collection_modifyitems(self, items: List[Any]) -> None:
+        # Mark names that indicate a test is statically skipped, i.e., without
+        # evaluating any `skipif` condition.
+        skip_mark_names = ("skip", "skipif")
         for item in items:
             mark_names = [marker.name for marker in item.iter_markers()]
-            skipped = any(name in _SKIP_MARK_NAMES for name in mark_names)
+            skipped = any(name in skip_mark_names for name in mark_names)
             self.collected.append(
                 {
                     "nodeid": item.nodeid,
@@ -1207,11 +1282,17 @@ def marks_to_str(marks_info: List[Dict[str, Any]]) -> str:
         helpers/test/test_hio.py::Test1::test1 | slow | False
         ```
     """
-    txt = ["Test | Marks | Skipped"]
-    for entry in marks_info:
-        marks_str = ",".join(entry["marks"]) if entry["marks"] else "-"
-        txt.append(f"{entry['nodeid']} | {marks_str} | {entry['skipped']}")
-    return "\n".join(txt)
+    # Build table for marks info.
+    table_data = [
+        [
+            entry["nodeid"],
+            ",".join(entry["marks"]) if entry["marks"] else "-",
+            str(entry["skipped"]),
+        ]
+        for entry in marks_info
+    ]
+    table_obj = htable.Table(table_data, ["Test", "Marks", "Skipped"])
+    return str(table_obj)
 
 
 def write_marks_csv(marks_info: List[Dict[str, Any]], file_name: str) -> None:
