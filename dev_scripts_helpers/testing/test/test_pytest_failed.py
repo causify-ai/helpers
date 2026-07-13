@@ -179,7 +179,9 @@ class Test_process_single_file(hunitest.TestCase):
         build_name = "docker"
         expected_files = {
             os.path.join(f"tmp.pytest_failed.{build_name}", "repro.sh"): True,
-            os.path.join(f"tmp.pytest_failed.{build_name}", "failed_tests.txt"): True,
+            os.path.join(
+                f"tmp.pytest_failed.{build_name}", "failed_tests.txt"
+            ): True,
         }
         # Run test.
         self.helper(log_content, build_name=build_name)
@@ -240,4 +242,6 @@ class Test_process_single_file(hunitest.TestCase):
         # Check outputs.
         actual_keys = set(result.keys())
         expected_key_set = set(expected_keys)
-        self.assert_equal(str(sorted(actual_keys)), str(sorted(expected_key_set)))
+        self.assert_equal(
+            str(sorted(actual_keys)), str(sorted(expected_key_set))
+        )

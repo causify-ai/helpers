@@ -98,7 +98,9 @@ class Test_cleanup_old_files(hunitest.TestCase):
                 output_file = f"tmp.pytest_multi_build.{build_name}.txt"
                 expected_files[output_file] = False
             actual_files = {
-                f"tmp.pytest_multi_build.{build_name}.txt": os.path.exists(f"tmp.pytest_multi_build.{build_name}.txt")
+                f"tmp.pytest_multi_build.{build_name}.txt": os.path.exists(
+                    f"tmp.pytest_multi_build.{build_name}.txt"
+                )
                 for build_name in ["docker", "apple", "dev_container"]
             }
             self.assert_equal(str(actual_files), str(expected_files))
@@ -119,7 +121,9 @@ class Test_cleanup_old_files(hunitest.TestCase):
             dshtpmubu._cleanup_old_files()
             # Check outputs.
             actual_files = {
-                f"tmp.pytest_multi_build.{build_name}.txt": os.path.exists(f"tmp.pytest_multi_build.{build_name}.txt")
+                f"tmp.pytest_multi_build.{build_name}.txt": os.path.exists(
+                    f"tmp.pytest_multi_build.{build_name}.txt"
+                )
                 for build_name in ["docker", "apple", "dev_container"]
             }
             expected_files = {

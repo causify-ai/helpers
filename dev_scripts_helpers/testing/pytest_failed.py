@@ -77,7 +77,7 @@ def _get_output_filename(base: str, build_name: str = "") -> str:
     # For `tmp.pytest_failed.*` files, insert `build_name` after the prefix.
     prefix = "tmp.pytest_failed."
     if base.startswith(prefix):
-        rest = base[len(prefix):]
+        rest = base[len(prefix) :]
         return f"{prefix}{build_name}.{rest}"
     # For other files, append build_name at the end
     return f"{base}.{build_name}"

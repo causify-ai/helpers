@@ -7,7 +7,7 @@ import helpers.hdocker as hdocker
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddut
 import dev_scripts_helpers.dockerize.lib_png as dshdlipn
 
 
@@ -104,7 +104,7 @@ class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
         \end{document}
         """
-        in_file_path = dshddout.create_test_file(self, txt, extension="tex")
+        in_file_path = dshddut.create_test_file(self, txt, extension="tex")
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         cmd_opts = ["-density 300", "-quality 10"]
         force_rebuild = False
@@ -142,7 +142,7 @@ class Test_run_dockerized_imagemagick1(hunitest.TestCase):
           <circle cx="50" cy="50" r="40" fill="blue" />
         </svg>
         """
-        in_file_path = dshddout.create_test_file(self, txt, extension="svg")
+        in_file_path = dshddut.create_test_file(self, txt, extension="svg")
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         cmd_opts = ["-density 300", "-quality 90"]
         force_rebuild = False

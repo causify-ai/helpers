@@ -241,7 +241,9 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         :param build_tests: Dict mapping build name to test list
         """
         for build_name, tests in build_tests.items():
-            build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+            build_dir = os.path.join(
+                scratch_dir, f"tmp.pytest_failed.{build_name}"
+            )
             hio.create_dir(build_dir, incremental=True)
             failed_file = os.path.join(build_dir, "failed_tests.txt")
             hio.to_file(failed_file, "\n".join(tests))
@@ -325,7 +327,9 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         :param build_names: List of build names
         """
         for build_name in build_names:
-            build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+            build_dir = os.path.join(
+                scratch_dir, f"tmp.pytest_failed.{build_name}"
+            )
             hio.create_dir(build_dir, incremental=True)
             repro_file = os.path.join(build_dir, "repro.sh")
             tests = f"test/test_{build_name}.py::TestClass::test_method"
@@ -368,7 +372,6 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         self.assertIn("export CSFY_DOCKER_ENGINE='docker'", result)
         self.assertIn("export CSFY_DOCKER_ENGINE='apple'", result)
         self.assertIn("pytest_log", result)
-
 
     def test2(self) -> None:
         """

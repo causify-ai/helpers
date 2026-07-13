@@ -121,9 +121,7 @@ def _run_build(
         output_file=output_file,
         abort_on_error=False,
     )
-    _LOG.info(
-        "Build '%s' completed with exit code %d", build_name, exit_code
-    )
+    _LOG.info("Build '%s' completed with exit code %d", build_name, exit_code)
 
 
 def _cleanup_old_files() -> None:

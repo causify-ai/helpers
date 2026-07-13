@@ -828,7 +828,9 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     # Fall back to summing per-test durations when the run didn't complete.
     total_duration = info.get("pytest_duration_in_secs") or 0.0
     if total_duration == 0.0:
-        total_duration = sum((info.get("log_test_durations") or {}).values(), 0.0)
+        total_duration = sum(
+            (info.get("log_test_durations") or {}).values(), 0.0
+        )
     info["total_duration"] = total_duration
     return info
 
