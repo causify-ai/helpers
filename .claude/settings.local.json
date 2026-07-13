@@ -16,6 +16,7 @@
     ],
     "deny": [
       "Bash(*git commit:*)",
+      "Bash(*git commit -m *)",
       "Bash(*git push:*)"
     ]
   },
@@ -57,5 +58,5 @@
     "type": "command",
     "command": ".claude/statusline.sh"
   },
-  "spinnerTipsEnabled": false
+  "spinnerTipsEnabled": true
 }

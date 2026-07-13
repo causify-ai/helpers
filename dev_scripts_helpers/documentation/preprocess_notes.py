@@ -45,7 +45,7 @@ _NUM_SPACES = 2
 _TRACE = False
 
 
-_DEFAULT_ACTIONS = None
+_DEFAULT_ACTIONS: List[str] = []
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",
@@ -563,7 +563,9 @@ def _transform_lines(
             if not hmarkdo.has_color_command(slide_text_str):
                 try:
                     text_out = hmarkdo.colorize_bullet_points_in_slide(
-                        slide_text_str, output_format="latex", use_abbreviations=False
+                        slide_text_str,
+                        output_format="latex",
+                        use_abbreviations=False,
                     )
                 except AssertionError as e:
                     context = (
@@ -651,23 +653,29 @@ def _preprocess_lines(
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_in(output_format, ("latex", "typst"))
     # Apply transformations.
-    out = _transform_lines(
-        lines, type_, is_qa, output_format, actions=actions
-    )
+    out = _transform_lines(lines, type_, is_qa, output_format, actions=actions)
     # Add TOC, if needed.
     if toc_type == "navigation":
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         expand_all_navigation = True
         out = hmartoc.add_navigation_slides(
-            out, max_level, expand_all_navigation, output_format="latex", sanity_check=True
+            out,
+            max_level,
+            expand_all_navigation,
+            output_format="latex",
+            sanity_check=True,
         )
     elif toc_type == "partial_navigation":
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         expand_all_navigation = False
         out = hmartoc.add_navigation_slides(
-            out, max_level, expand_all_navigation, output_format="latex", sanity_check=True
+            out,
+            max_level,
+            expand_all_navigation,
+            output_format="latex",
+            sanity_check=True,
         )
     elif toc_type == "remove_headers":
         # Remove headers smaller than level 4 so that we leave only the `*`.
@@ -733,6 +741,13 @@ def _parse() -> argparse.ArgumentParser:
             "'remove_headers' = remove headers smaller than level 3"
         ),
     )
+    parser.add_argument(
+        "--output_format",
+        action="store",
+        default="latex",
+        choices=["latex", "typst"],
+        help="Output format: 'latex' (default) or 'typst'",
+    )
     # TODO(gp): Unclear what it does.
     parser.add_argument(
         "--qa", action="store_true", default=False, help="The input file is QA"
@@ -760,12 +775,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = txt.split("\n")
     # Expand include directives before other preprocessing.
     lines = _expand_includes(lines)
+    output_format = "latex"
     out = _preprocess_lines(
         lines,
         args.type,
         args.toc_type,
         args.qa,
-        output_format="latex",
+        output_format=output_format,
         actions=actions,
     )
     out = "\n".join(out)

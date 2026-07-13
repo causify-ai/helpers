@@ -297,7 +297,10 @@ def get_main_cache_dir() -> str:
 
     :return: The absolute path to the main cache directory.
     """
-    git_dir = hgit.find_git_root()
+    # Start from this module's directory to find the correct git root,
+    # not from the current working directory which may be different.
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    git_dir = hgit.find_git_root(current_dir)
     cache_dir = os.path.abspath(git_dir)
     return cache_dir
 

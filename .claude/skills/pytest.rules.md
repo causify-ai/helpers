@@ -59,7 +59,8 @@
 - Create a plan `plan.fixing_unittests.md` for fixing the tests based on common
   issues
   ```
-  # [ ] Group1: short description
+  # [ ] Group 1: <short description>
+  - Failing tests:
   dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf_actions::test1
   dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf_actions::test2
   dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf_edge_cases::test1
@@ -70,15 +71,16 @@
   - Potential fix: ...
     - ...
 
-  # [ ] Group2: ...
+  - Fix complexity: low / medium / high
+
+  # [ ] Group 2: ...
   ...
   ```
 - Write the comments as bullet points according to `.claude/skills/markdown.rules.md`
-- Do not make any change to the code, but only propose the fixes
+- Reorder the groups so that the groups are organized in order of increasing
+  complexity
 
-## Rank the Issues by Complexity
-- At the end of the plan, create a table ranking the issues in terms of
-  complexity for a fix
+- Do not make any change to the code, but only propose the fixes
 
 # Verification of the Fix
 
