@@ -34,13 +34,17 @@ def _cmd_open_html(file_name: str, os_name: str) -> Optional[str]:
     }
     hdbg.dassert_in(os_name, os_cmds)
     exec_name = os_cmds[os_name]
-    if not hsystem.check_exec(exec_name):
-        _LOG.warning(
-            "Can't execute the command '%s' on this platform", exec_name
-        )
-        return None
-    # Build the command.
+    # Build the command (don't check if it exists, as we may be generating
+    # a command for a different OS than the current one).
     full_cmd = f"{exec_name} {file_name}"
+    # Warn if the command won't work on the current system.
+    current_os = hsystem.get_os_name()
+    if current_os != os_name and not hsystem.check_exec(exec_name):
+        _LOG.warning(
+            "Can't execute '%s' command on current platform (%s), but this is expected",
+            exec_name,
+            current_os,
+        )
     if os_name == "Linux":
         _LOG.warning(
             "To open files faster launch in background '%s &'", exec_name
