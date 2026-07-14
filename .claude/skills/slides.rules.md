@@ -312,7 +312,7 @@ Use these commands consistently across all slides:
 
 - `$\Pr(...)$`: Probability
 - `$\Pr(... | ...)$`: Conditional probability (use `|`, do not use `\mid`)
-- `$\EE[...]$`: Expectation (mean)
+- `$\EE[...]$`: Expectation (mean), instead of  `\mathbb{E}`
 - `$\VV[...]$`: Variance
 - `$\mathcal{X}$`: Sets or spaces (use calligraphic)
 - `\defeq`: "Defined as"
