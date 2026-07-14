@@ -23,12 +23,14 @@ Examples:
 import argparse
 import logging
 import os
+import re
 
 import requests
 import readability  # type: ignore
 import markdownify  # type: ignore
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hselect_action as hselect_action
 import helpers.hsystem as hsystem
@@ -98,8 +100,12 @@ def _convert_using_python(
     # Extract article content.
     doc = readability.Document(html_content)
     article_html = doc.summary()
-    # Convert to markdown.
-    markdown_content = markdownify.markdownify(article_html)
+    # Convert to markdown with proper header handling.
+    markdown_content = markdownify.markdownify(
+        article_html,
+        heading_style="atx",
+        escape_misc=False,
+    )
     # Save markdown file.
     hio.to_file(output_md_file, markdown_content)
     _LOG.info("Saved markdown to '%s'", output_md_file)
@@ -131,13 +137,69 @@ def _convert_html(
 # #############################################################################
 
 
-def _cleanup(html_file: str) -> None:
+def _remove_data_uri_images(content: str) -> str:
     """
-    Clean up temporary HTML file.
+    Remove markdown images with data URI sources.
 
-    :param html_file: Path to HTML file to remove
+    Removes image syntax `![...](data:...)` that embeds base64-encoded data,
+    such as inline SVG icons, which are not needed in the final markdown output.
+
+    :param content: Markdown content to clean
+    :return: Markdown content with data URI images removed
     """
-    _LOG.info("Cleaning up markdown file...")
+    # Remove image syntax with data URI sources: ![...](data:...)
+    # The pattern captures the entire markdown image including optional attributes.
+    pattern = r"!\[[^\]]*\]\(data:[^)]*\)(?:{[^}]*})?"
+    cleaned = re.sub(pattern, "", content)
+    return cleaned
+
+
+def _cleanup_markdown_file(md_file: str) -> None:
+    """
+    Clean up markdown file by removing unnecessary content.
+
+    Removes data URI images (e.g., base64-encoded SVG icons) that are not
+    needed in the final markdown output.
+
+    :param md_file: Path to markdown file to clean
+    """
+    _LOG.info("Cleaning up markdown file: '%s'...", md_file)
+    # Read markdown content.
+    content = hio.from_file(md_file)
+    # Remove data URI images.
+    cleaned = _remove_data_uri_images(content)
+    # Write cleaned content back.
+    hio.to_file(md_file, cleaned)
+    _LOG.info("Markdown file cleaned: '%s'", md_file)
+
+
+def _cleanup(md_file: str) -> None:
+    """
+    Clean up markdown file by removing unnecessary content.
+
+    :param md_file: Path to markdown file to clean
+    """
+    _cleanup_markdown_file(md_file)
+
+
+# #############################################################################
+# Lint action
+# #############################################################################
+
+
+def _lint(output_md_file: str) -> None:
+    """
+    Lint the markdown file using lint_txt.py.
+
+    :param output_md_file: Path to markdown file to lint
+    """
+    _LOG.info("Linting markdown file: '%s'...", output_md_file)
+    # Find lint_txt.py in the git tree.
+    script_path = None
+    script_path = hgit.find_file_in_git_tree("lint_txt.py")
+    cmd = f"{script_path} --input {output_md_file} --output {output_md_file}"
+    hsystem.system(cmd, abort_on_error=False)
+    _LOG.info("Linting completed for '%s'", output_md_file)
 
 
 # #############################################################################
@@ -148,7 +210,7 @@ def _cleanup(html_file: str) -> None:
 _ENGINES = ["pandoc", "python"]
 
 # Available and default actions.
-_VALID_ACTIONS = ["download", "convert", "cleanup"]
+_VALID_ACTIONS = ["download", "convert", "cleanup", "lint"]
 _DEFAULT_ACTIONS = ["download", "convert"]
 
 
@@ -215,7 +277,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             elif action == "convert":
                 _convert_html(html_file, args.output, args.engine)
             elif action == "cleanup":
-                _cleanup(html_file)
+                _cleanup(args.output)
+            elif action == "lint":
+                _lint(args.output)
 
 
 if __name__ == "__main__":
