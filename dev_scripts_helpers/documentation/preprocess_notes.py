@@ -914,7 +914,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default="latex",
         choices=["latex", "typst"],
-        help="Output format for color commands (latex or typst)",
+        help="Output format (latex or typst)",
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
