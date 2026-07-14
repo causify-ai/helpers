@@ -86,19 +86,26 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         Test mixed content with data URIs and regular images.
         """
         # Prepare inputs.
-        input_content = (
-            "![](data:image/svg+xml;base64,abc){.icon}\n"
-            "\n"
-            "# Content\n"
-            "\n"
-            "![Regular](https://example.com/pic.jpg)\n"
-            "\n"
-            "![](data:image/svg+xml;base64,def){.icon}\n"
-        )
+        input_content = """
+        ![](data:image/svg+xml;base64,abc){.icon}
+
+        # Content
+
+        ![Regular](https://example.com/pic.jpg)
+
+        ![](data:image/svg+xml;base64,def){.icon}
+        """
+        input_content = hprint.dedent(input_content)
         # Prepare outputs.
-        expected = (
-            "\n\n# Content\n\n![Regular](https://example.com/pic.jpg)\n\n\n"
-        )
+        expected = """
+
+        # Content
+
+        ![Regular](https://example.com/pic.jpg)
+
+
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
 
@@ -136,9 +143,18 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         Test data URI without class attribute.
         """
         # Prepare inputs.
-        input_content = "![](data:image/svg+xml;base64,abc)\n\nContent.\n"
+        input_content = """
+        ![](data:image/svg+xml;base64,abc)
+
+        Content.
+        """
+        input_content = hprint.dedent(input_content)
         # Prepare outputs.
-        expected = "\n\nContent.\n"
+        expected = """
+
+        Content.
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
 
@@ -147,11 +163,18 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         Test inline data URI with alt text.
         """
         # Prepare inputs.
-        input_content = (
-            "![icon](data:image/svg+xml;base64,abc){.icon}\n\nText.\n"
-        )
+        input_content = """
+        ![icon](data:image/svg+xml;base64,abc){.icon}
+
+        Text.
+        """
+        input_content = hprint.dedent(input_content)
         # Prepare outputs.
-        expected = "\n\nText.\n"
+        expected = """
+
+        Text.
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
 
@@ -160,15 +183,22 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         Test multiple consecutive data URIs.
         """
         # Prepare inputs.
-        input_content = (
-            "![](data:image/svg+xml;base64,abc){.i1}\n"
-            "![](data:image/svg+xml;base64,def){.i2}\n"
-            "![](data:image/svg+xml;base64,ghi){.i3}\n"
-            "\n"
-            "Text.\n"
-        )
+        input_content = """
+        ![](data:image/svg+xml;base64,abc){.i1}
+        ![](data:image/svg+xml;base64,def){.i2}
+        ![](data:image/svg+xml;base64,ghi){.i3}
+
+        Text.
+        """
+        input_content = hprint.dedent(input_content)
         # Prepare outputs.
-        expected = "\n\n\n\nText.\n"
+        expected = """
+
+
+
+        Text.
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
 
@@ -177,12 +207,17 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         Test data URI with special characters in alt text.
         """
         # Prepare inputs.
-        input_content = (
-            "![Sun & Moon](data:image/svg+xml;base64,abc)\n"
-            "\n"
-            "![alt](https://example.com/pic.png)\n"
-        )
+        input_content = """
+        ![Sun & Moon](data:image/svg+xml;base64,abc)
+
+        ![alt](https://example.com/pic.png)
+        """
+        input_content = hprint.dedent(input_content)
         # Prepare outputs.
-        expected = "\n\n![alt](https://example.com/pic.png)\n"
+        expected = """
+
+        ![alt](https://example.com/pic.png)
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
