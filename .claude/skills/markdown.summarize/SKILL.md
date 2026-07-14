@@ -14,24 +14,17 @@ model: sonnet
 
 # Workflow
 
-## Read Content
+## Step 1: Read Content
 - Read the file `<INPUT>` passed by the user
 
-## Summarize Content in Bullet Points
-- Write a summary in nested bullet points of `<INPUT>` using the rules in:
-  - `.claude/skills/markdown.rules.md`
-  - `.claude/skills/text.rules.md`
+## Step 2: Extract the Header Section
 
-- All math formulas must be as Latex formulas
+- Extract the header sections based on `<INPUT>` and on `<MAX_HEADER_LEV>`
 
-- Count the words of the content `<ORIG_NUM_WORDS>`
-- Target the length of the entire output to be around `<NUM_WORDS>`, where
-  `<NUM_WORDS>` is given by the user or as `<NUM_WORDS> * <FRACTION>`
-- Print the number of words after the summary
+### Extract the Header Structure from `<INPUT>`
 
-- Format the text wrapped in 80 columns
-
-## Keep the Structure
+- Extract the header structure from the `<INPUT>`
+- Print it
 
 ### No Header Structure
 - If there is no structure (i.e., the passed text is just a chunk of text) then
@@ -74,6 +67,27 @@ model: sonnet
 
   # 2. Hello again
   ```
+
+### Print Header Structure
+
+- Print the structure of the headers to follow
+
+
+## Summarize Content in Bullet Points
+- Write a summary in nested bullet points of `<INPUT>` using the rules in:
+  - `.claude/skills/markdown.rules.md`
+  - `.claude/skills/text.rules.md`
+
+- All math formulas must be as Latex formulas
+
+- Count the words of the content `<ORIG_NUM_WORDS>`
+- Target the length of the entire output to be around `<NUM_WORDS>`, where
+  `<NUM_WORDS>` is given by the user or as `<NUM_WORDS> * <FRACTION>`
+- Print the number of words after the summary
+
+- Format the text wrapped in 80 columns
+
+## Keep the Structure
 
 ## Write Output
 - Print the explanation on the screen
