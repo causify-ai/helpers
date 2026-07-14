@@ -6,6 +6,7 @@ import sys
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import dev_scripts_helpers.documentation.html_to_md as html_to_md
 
 
 class Test_remove_data_uri_images(hunitest.TestCase):
@@ -21,7 +22,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         :param expected: Expected output after cleanup
         """
         # Run test.
-        actual = _remove_data_uri_images(input_content)
+        actual = html_to_md._remove_data_uri_images(input_content)
         # Check outputs.
         self.assert_equal(actual, expected)
 

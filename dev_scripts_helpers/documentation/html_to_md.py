@@ -25,10 +25,6 @@ import logging
 import os
 import re
 
-import requests
-import readability  # type: ignore
-import markdownify  # type: ignore
-
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -49,6 +45,8 @@ def _download_html(input_url: str, output_html_file: str) -> None:
     :param input_url: URL to download from
     :param output_html_file: Path to save the HTML file
     """
+    # Lazy imports to run unit tests.
+    import requests
     _LOG.info("Downloading HTML from '%s'...", input_url)
     response = requests.get(input_url)
     response.raise_for_status()
@@ -94,6 +92,9 @@ def _convert_using_python(
     :param input_html_file: Path to input HTML file
     :param output_md_file: Path to output markdown file
     """
+    # Lazy imports to run unit tests.
+    import readability  # type: ignore
+    import markdownify  # type: ignore
     _LOG.info("Converting HTML to markdown using python libraries...")
     # Read HTML file.
     html_content = hio.from_file(input_html_file)
