@@ -4,8 +4,6 @@
 # dependencies = ["readability-lxml", "markdownify", "requests"]
 # ///
 
-# TODO(ai_gp): Rename this file html_to_md.py
-
 r"""
 Download an HTML page and convert it to markdown.
 
@@ -15,21 +13,20 @@ Supports two conversion engines:
 
 Examples:
 
-> html_to_markdown.py --input https://example.com --output output.md
+> html_to_md.py --input https://example.com --output output.md
 
-> html_to_markdown.py --input https://example.com --output output.md --engine pandoc
+> html_to_md.py --input https://example.com --output output.md --engine pandoc
 
-> html_to_markdown.py --input https://example.com --output output.md --engine python
+> html_to_md.py --input https://example.com --output output.md --engine python
 """
 
 import argparse
 import logging
 import os
-import requests
 
-# TODO(ai_gp): Use import instead of from import
-from readability import Document
-from markdownify import markdownify as md
+import requests
+import readability  # type: ignore
+import markdownify  # type: ignore
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -37,21 +34,6 @@ import helpers.hselect_action as hselect_action
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
-
-# #############################################################################
-# Constants
-# #############################################################################
-
-# Supported conversion engines.
-# TODO(ai_gp): Inline this vars
-_ENGINE_PANDOC = "pandoc"
-_ENGINE_PYTHON = "python"
-
-_ENGINES = [_ENGINE_PANDOC, _ENGINE_PYTHON]
-
-# Available and default actions.
-_VALID_ACTIONS = ["download", "convert", "cleanup"]
-_DEFAULT_ACTIONS = ["download", "convert"]
 
 # #############################################################################
 # Download action
@@ -114,10 +96,10 @@ def _convert_using_python(
     # Read HTML file.
     html_content = hio.from_file(input_html_file)
     # Extract article content.
-    doc = Document(html_content)
+    doc = readability.Document(html_content)
     article_html = doc.summary()
     # Convert to markdown.
-    markdown_content = md(article_html)
+    markdown_content = markdownify.markdownify(article_html)
     # Save markdown file.
     hio.to_file(output_md_file, markdown_content)
     _LOG.info("Saved markdown to '%s'", output_md_file)
@@ -136,10 +118,12 @@ def _convert_html(
     :param engine: Conversion engine to use ('pandoc' or 'python')
     """
     hdbg.dassert_in(engine, _ENGINES, "Invalid engine specified")
-    if engine == _ENGINE_PANDOC:
+    if engine == "pandoc":
         _convert_using_pandoc(input_html_file, output_md_file)
-    elif engine == _ENGINE_PYTHON:
+    elif engine == "python":
         _convert_using_python(input_html_file, output_md_file)
+    else:
+        raise ValueError(f"Invalid engine '{engine}'")
 
 
 # #############################################################################
@@ -160,6 +144,13 @@ def _cleanup(html_file: str) -> None:
 # CLI
 # #############################################################################
 
+# Supported conversion engines.
+_ENGINES = ["pandoc", "python"]
+
+# Available and default actions.
+_VALID_ACTIONS = ["download", "convert", "cleanup"]
+_DEFAULT_ACTIONS = ["download", "convert"]
+
 
 def _parse() -> argparse.ArgumentParser:
     """
@@ -170,24 +161,22 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
     )
-    # TODO(ai_gp): Make it mandatory
     parser.add_argument(
         "--input",
         type=str,
-        default="",
+        required=True,
         help="Input: URL or HTML file path",
     )
-    # TODO(ai_gp): Make it mandatory
     parser.add_argument(
         "--output",
         type=str,
-        default="",
+        required=True,
         help="Output markdown file path",
     )
     parser.add_argument(
         "--engine",
         type=str,
-        default=_ENGINE_PYTHON,
+        default="python",
         choices=_ENGINES,
         help="Conversion engine to use",
     )
@@ -202,39 +191,27 @@ def _main(parser: argparse.ArgumentParser) -> None:
     :param parser: ArgumentParser instance
     """
     args = parser.parse_args()
-    hdbg.dassert_ne(
-        args.input,
-        "",
-        "Input URL or file path must be specified with --input",
-    )
-    hdbg.dassert_ne(
-        args.output,
-        "",
-        "Output file path must be specified with --output",
-    )
     # Determine HTML file path.
     html_file = args.output.replace(".md", ".html")
     if html_file == args.output:
-        # TODO(ai_gp): Add a tmp before the basename.
-        html_file = args.output + ".html"
+        # Add a tmp prefix before the basename.
+        html_dir = os.path.dirname(args.output) or "."
+        html_basename = os.path.basename(args.output)
+        html_file = os.path.join(html_dir, f"tmp_{html_basename.replace('.md', '.html')}")
     # Get selected actions.
     actions = hselect_action.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    # TODO(ai_gp): Print actions.
+    _LOG.info("Selected actions: %s", actions)
     # Execute actions.
     while actions:
         action = actions[0]
         to_execute, actions = hselect_action.mark_action(action, actions)
         if to_execute:
             if action == "download":
-                # TODO(ai_gp): If the file already exists skip downloading.
-                if args.input.startswith("http://") or args.input.startswith(
-                    "https://"
-                ):
-                    _download_html(args.input, html_file)
+                # If the file already exists skip downloading.
+                if os.path.exists(html_file):
+                    _LOG.info("HTML file already exists: '%s', skipping download", html_file)
                 else:
-                    # Input is a file path, use it directly.
-                    _LOG.info("Using existing HTML file: '%s'", args.input)
-                    html_file = args.input
+                    _download_html(args.input, html_file)
             elif action == "convert":
                 _convert_html(html_file, args.output, args.engine)
             elif action == "cleanup":

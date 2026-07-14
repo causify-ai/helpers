@@ -3,31 +3,39 @@ description: Add a rule to the set of rules
 model: haiku
 ---
 
+# Goal
 - The user passes:
-  - The description of a rule / behavior to be added to a rule file
-  - (Optional) `<RULE_FILE>` in the format `.claude/skills/*.rules.md`
+  - The description of a rule / behavior `<CONTENT>` to be added to a rule file
+  - (Optional) The target rule file to update `<RULE_FILE>` in the format
+    `.claude/skills/*.rules.md`
 
-# Step 1
-- Read `.claude/skills/skill.rules.md`
+# Workflow
 
-# Step 2
+## Step 1: Read Skill Rules
+- Read `.claude/skills/skill.rules.md` about conventions and rules to write
+  skills
+
+## Step 2: Determine Target Rule File
 - If the user didn't specify `<RULE_FILE>`, decide in which of the files `<RULE_FILE>`
-  the new rule needs to be added
+  the new rule needs to be added based on the content of `<CONTENT>`
 - The available rules are:
   ```bash
   > ls -1 .claude/skills/*.rules.md
   ```
-- Read the rules file `<RULE_FILE>` to understand its structure and existing rules
 
-# Step 3
+## Step 3: Read Target Rule File
+- Read the target rules file `<RULE_FILE>` to understand its structure and
+  existing rules
+
+## Step 4
 - Report the proposed rule `<RULE>` to be added, following the conventions in:
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 
-# Step 3
-- Find the proper header 1 (see `.claude/skills/skill.rules.md`
-  `## Keep Rules Organized in the Rule File`) that is related to the `<RULE>`
+## Step 5
+- Find the proper header 1 that is related to the `<RULE>`
+  - See `.claude/skills/skill.rules.md` `## Keep Rules Organized in the Rule File`
 
-# Step 4
-- Then add the rule `<RULE>` to the file `<RULE_FILE>` following the conventions in
+## Step 6
+- Add the rule `<RULE>` to the file `<RULE_FILE>` following the conventions in
   `.claude/skills/skill.rules.md`
