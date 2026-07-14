@@ -34,6 +34,7 @@ import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.htmux as htmux
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 _LOG = logging.getLogger(__name__)
@@ -453,7 +454,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         ]
         cmd = " ".join(shlex.quote(part) for part in cmd_parts)
         _LOG.info("Daemon mode: watching '%s' for changes", args.input)
-        dshdlntpd.daemon_watch(args.input, cmd)
+        with htmux.window_name("notes_to_pdf"):
+            dshdlntpd.daemon_watch(args.input, cmd)
     else:
         _run_all(args)
 
