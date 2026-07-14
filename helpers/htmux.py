@@ -60,7 +60,9 @@ def get_window_name() -> Optional[str]:
     """
     hdbg.dassert(_in_tmux())
     _LOG.debug("Fetching tmux window name")
-    window_name = _run_tmux_command(["tmux", "display-message", "-p", "#{window_name}"])
+    window_name = _run_tmux_command(
+        ["tmux", "display-message", "-p", "#{window_name}"]
+    )
     _LOG.debug("window_name='%s'", window_name)
     return window_name
 

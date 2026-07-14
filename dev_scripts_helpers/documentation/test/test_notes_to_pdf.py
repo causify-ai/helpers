@@ -2,7 +2,6 @@ import glob
 import logging
 import os
 import shutil
-import sys
 from typing import List, Tuple
 
 import pytest

@@ -28,7 +28,7 @@ import re
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hselect_action as hselect_action
+import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -47,6 +47,7 @@ def _download_html(input_url: str, output_html_file: str) -> None:
     """
     # Lazy imports to run unit tests.
     import requests
+
     _LOG.info("Downloading HTML from '%s'...", input_url)
     response = requests.get(input_url)
     response.raise_for_status()
@@ -72,8 +73,8 @@ def _convert_using_pandoc(
     _LOG.info("Converting HTML to markdown using pandoc...")
     cmd = [
         "pandoc",
-        f"-f html",
-        f"-t markdown",
+        "-f html",
+        "-t markdown",
         f"-i {input_html_file}",
         f"-o {output_md_file}",
     ]
@@ -95,6 +96,7 @@ def _convert_using_python(
     # Lazy imports to run unit tests.
     import readability  # type: ignore
     import markdownify  # type: ignore
+
     _LOG.info("Converting HTML to markdown using python libraries...")
     # Read HTML file.
     html_content = hio.from_file(input_html_file)
@@ -124,7 +126,6 @@ def _convert_html(
     :param output_md_file: Path to output markdown file
     :param engine: Conversion engine to use ('pandoc' or 'python')
     """
-    hdbg.dassert_in(engine, _ENGINES, "Invalid engine specified")
     if engine == "pandoc":
         _convert_using_pandoc(input_html_file, output_md_file)
     elif engine == "python":
@@ -243,7 +244,7 @@ def _parse() -> argparse.ArgumentParser:
         choices=_ENGINES,
         help="Conversion engine to use",
     )
-    hselect_action.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     return parser
 
 
@@ -260,19 +261,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Add a tmp prefix before the basename.
         html_dir = os.path.dirname(args.output) or "."
         html_basename = os.path.basename(args.output)
-        html_file = os.path.join(html_dir, f"tmp_{html_basename.replace('.md', '.html')}")
+        html_file = os.path.join(
+            html_dir, f"tmp_{html_basename.replace('.md', '.html')}"
+        )
     # Get selected actions.
-    actions = hselect_action.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(
+        args, _VALID_ACTIONS, _DEFAULT_ACTIONS
+    )
     _LOG.info("Selected actions: %s", actions)
     # Execute actions.
     while actions:
         action = actions[0]
-        to_execute, actions = hselect_action.mark_action(action, actions)
+        to_execute, actions = hselacti.mark_action(action, actions)
         if to_execute:
             if action == "download":
                 # If the file already exists skip downloading.
                 if os.path.exists(html_file):
-                    _LOG.info("HTML file already exists: '%s', skipping download", html_file)
+                    _LOG.info(
+                        "HTML file already exists: '%s', skipping download",
+                        html_file,
+                    )
                 else:
                     _download_html(args.input, html_file)
             elif action == "convert":

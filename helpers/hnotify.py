@@ -38,7 +38,11 @@ def _get_notify_script_path() -> str:
 
 
 def _run_notify(
-    title : str, *, sound: str = "Glass", timeout: int = -1, no_blink: bool = False
+    title: str,
+    *,
+    sound: str = "Glass",
+    timeout: int = -1,
+    no_blink: bool = False,
 ) -> None:
     """
     Call the notify script to send notification or blink window.
@@ -74,8 +78,11 @@ def _run_notify(
 
 @contextlib.contextmanager
 def notify(
-    title: str, *,
-    sound: str = "Glass", timeout: int = -1, no_blink: bool = False
+    title: str,
+    *,
+    sound: str = "Glass",
+    timeout: int = -1,
+    no_blink: bool = False,
 ) -> Generator[None, None, None]:
     """
     Context manager that notifies on exit via `notify.py`.

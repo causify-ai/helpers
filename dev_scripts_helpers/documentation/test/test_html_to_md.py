@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
-import os
-import re
-import sys
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.html_to_md as html_to_md
+import dev_scripts_helpers.documentation.html_to_md as dshdhtomd
+
+
+# #############################################################################
+# Test_remove_data_uri_images
+# #############################################################################
 
 
 class Test_remove_data_uri_images(hunitest.TestCase):
@@ -22,7 +24,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         :param expected: Expected output after cleanup
         """
         # Run test.
-        actual = html_to_md._remove_data_uri_images(input_content)
+        actual = dshdhtomd._remove_data_uri_images(input_content)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -95,13 +97,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         )
         # Prepare outputs.
         expected = (
-            "\n"
-            "\n"
-            "# Content\n"
-            "\n"
-            "![Regular](https://example.com/pic.jpg)\n"
-            "\n"
-            "\n"
+            "\n\n# Content\n\n![Regular](https://example.com/pic.jpg)\n\n\n"
         )
         # Run test.
         self.helper(input_content, expected)
@@ -151,7 +147,9 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         Test inline data URI with alt text.
         """
         # Prepare inputs.
-        input_content = "![icon](data:image/svg+xml;base64,abc){.icon}\n\nText.\n"
+        input_content = (
+            "![icon](data:image/svg+xml;base64,abc){.icon}\n\nText.\n"
+        )
         # Prepare outputs.
         expected = "\n\nText.\n"
         # Run test.
