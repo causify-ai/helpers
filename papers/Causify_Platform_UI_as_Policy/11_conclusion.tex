@@ -1,17 +1,15 @@
 % ##############################################################################
-  \section{Conclusion}
-  Multi-tenant SaaS systems often fail in a deeply human way: the backend
-  tells the truth, and the UI tells a story. The story is usually optimistic.
-  Sometimes it is dangerously optimistic.
+\section{Conclusion}
+\label{sec:conclusion}
 
-  \uiPolicy{} replaces optimism with a contract. By materializing a
-  tenant/role UI contract (\uiData{}) server-side and deriving both UX and
-  authorization from a unified ability model, \system{} reduces frontend/backend
-  drift, turns tenant variability into configuration, and enables safe \viewas{}
-  workflows without shared admin accounts.
+Multi-tenant SaaS often fails in a very human way. The backend tells the truth. The UI tells a hopeful story. Users then discover the truth one failed click at a time.
 
-  The headline is simple:
-  \begin{quote}
-    \textbf{If the UI can lie about access, it is part of the security boundary.}
-  \end{quote}
-  Once you accept that, the rest becomes engineering.
+\uiPolicy{} replaces hope with a contract. A tenant and role receive a materialized UI contract. The web tier renders from it. Abilities are built server-side and exported only for UX. Backend APIs remain authoritative. Support engineers can view the tenant world without sharing credentials or erasing the actor identity.
+
+The pattern is not exotic. That is part of its appeal. It is a disciplined arrangement of familiar pieces: identity, policy data, server rendering, ability rules, module gating, and audit logs. The value comes from refusing to let the frontend maintain its own little mythology of who can do what.
+
+\begin{quote}
+\textbf{The sidebar is a security boundary when users rely on it to understand what they are allowed to do.}
+\end{quote}
+
+Once a team accepts that, UI truthfulness becomes an engineering property instead of a product accident.
