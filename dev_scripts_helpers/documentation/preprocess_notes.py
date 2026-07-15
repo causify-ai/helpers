@@ -81,8 +81,11 @@ def _colorize_backticks(
     hdbg.dassert_in(output_format, ("latex", "typst"))
     line = in_line
     # Pattern to match single backticks (not triple backticks).
-    # This matches backtick-wrapped text that doesn't contain triple backticks.
-    pattern = r"(?<!`)`(?!`)([^`]+?)(?<!`)`(?!`)"
+    # This matches backtick-wrapped text that doesn't contain triple backticks
+    # and is not followed by curly braces (e.g., excludes `hello`{...}).
+    # Prevents: opening backtick not followed by backtick or brace,
+    # and closing backtick not followed by backtick or brace.
+    pattern = r"(?<!})`(?!`|\{)([^`]+?)(?<!`)`(?!`)(?!\{)"
 
     def replace_func(m: Match) -> str:
         """
