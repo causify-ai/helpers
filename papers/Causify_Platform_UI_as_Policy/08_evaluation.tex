@@ -1,268 +1,110 @@
 % ##############################################################################
-  \section{Evaluation}
-  \label{sec:evaluation} We evaluate \uiPolicy{} along three axes: (i) \emph{truthfulness}
-  (does the UI advertise only what the system will allow?), (ii) \emph{operational
-  leverage} (does tenant variability become configuration rather than
-  redeploy?), and (iii) \emph{runtime overhead} (what does materialization
-  cost?).
+\section{Evaluation}
+\label{sec:evaluation}
 
-% ==============================================================================
-  \subsection{Truthfulness invariant: ``no broken doors''}
-  We treat truthful UX as a property to be tested, not hoped for.
+We evaluate \uiPolicy{} along five dimensions: truthfulness, operational leverage, policy depth, runtime cost, and defense in depth. The results are from one production deployment of \system{}. They should be read as an experience report, not a controlled experiment.
 
-  \begin{definition}[Truthful UX]
-    A UI is \emph{truthful} if, for any effective tenant/role context,
-    every reachable UI action corresponds to a backend operation that
-    will not be rejected solely due to authorization, under the same context.
-  \end{definition}
+\subsection{Threat model}
+\label{sec:threat_model}
 
-  We cannot prove this property for arbitrary UIs, but we can enforce
-  strong sufficient conditions in \system{}:
+\uiPolicy{} addresses stale UI gates, impersonation abuse, and client-side authorization bypass. It does not attempt to replace standard cloud controls for secrets, network isolation, IAM, or database security.
 
-  \begin{theorem}[Sufficient conditions for truthful module navigation]
-    Assume: (i) navigation is rendered exclusively from \texttt{view\_as.modules}
-    returned by \texttt{/v2/me}; (ii) module configuration is served only
-    if \texttt{can('view', module)} holds server-side; and (iii) backend
-    APIs enforce authorization independently of the client. Then the UI
-    will not present a module entry that the backend would deny for that
-    effective context.
-  \end{theorem}
+The policy store is the new critical surface. Moving policy from code to DynamoDB shifts the blast radius of a bad write from a code branch to the UI contract of a tenant. The mitigation is not denial. Operators must treat policy-store writes with the same seriousness as code deploys.
 
-  \begin{proof}[Proof sketch]
-    By (i), the UI cannot render a module entry unless it is present in
-    the server-materialized module list for the effective context. By (ii),
-    even if a client attempts to force-load configuration for an
-    unauthorized module, the web tier denies it. Finally, by (iii), even
-    a compromised UI cannot bypass backend authorization. Together these
-    eliminate the most common drift path: UI showing modules the backend
-    will not honor.
-  \end{proof}
+\subsection{Truthful UX coverage}
+\label{sec:truthful_coverage}
 
-  \paragraph{Practical test harness.}
-  We recommend an automated ``door check'': for each tenant/role pair,
-  render the sidebar from \texttt{/v2/me}, visit each module route, and confirm
-  that: (a) the route renders (or redirects) consistently with
-  permissions, and (b) module-layout requests are denied for unauthorized
-  modules. This can be implemented as integration tests in CI and is
-  especially valuable after policy migrations.
+Table~\ref{tab:eval_summary} summarizes the production policy surface and coverage. Coverage means that a surface conditionally renders based on at least one CASL ability check, module membership test, or module-layout field.
 
-% ==============================================================================
-  \subsection{Operational leverage: configuration over redeploy}
-  \uiPolicy{} turns tenant onboarding into a data operation:
-  \begin{itemize}
-    \item Add tenant record in DynamoDB (e.g., \texttt{group.<role>.modules}
-      and \texttt{.moduleLayout} fields).
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{X r}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Modules defined in policy store & 7 \\
+    CASL permission subjects & 25+ \\
+    \code{moduleLayout} config fields & 150+ \\
+    Tenant onboardings requiring deployment & 0 \\
+    \midrule
+    \textbf{Policy surface coverage} & \\
+    Navigation items & 8/11 (73\%) \\
+    Module components & 7/7 (100\%) \\
+    Configuration tabs & 5/6 (83\%) \\
+    \midrule
+    \textbf{UI elements hidden for restricted tenants} & \\
+    Single-module tenant & 6/7 (86\%) \\
+    Two-module tenant & 5/7 (71\%) \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Policy adoption and coverage in production. The remaining navigation entries are generic surfaces such as profile, documentation, and global account actions.}
+  \label{tab:eval_summary}
+\end{table}
 
-    \item Add Cognito groups following the \texttt{tenant:role}
-      convention.
+High-value surfaces are covered. Module components are fully policy-driven. Configuration tabs are almost fully covered. Navigation still has universal entries, which is expected. Those entries are intentionally shared across tenants and roles.
 
-    \item Users immediately receive a correct UI contract via \texttt{/v2/me}.
-  \end{itemize}
+Before adoption, permission and navigation mismatches produced recurring support escalations that needed developer investigation. Since adoption, we have observed no drift incidents against policy-gated surfaces. This is not a universal claim about all authorization bugs. It is a narrower result: the architecture eliminated the stale-gate class for surfaces that were migrated to the contract.
 
-  The measurable KPI is not philosophical; it is mundane: \emph{how
-  often does onboarding require a code change?} We recommend tracking: (1)
-  number of deployments triggered by tenant enablement or layout changes,
-  and (2) mean time from ``tenant policy edit'' to ``tenant UI reflects
-  change''. ETag support reduces repeated fetch cost while preserving rapid
-  propagation.
+\subsection{Runtime cost}
+\label{sec:runtime_cost}
 
-% ==============================================================================
-  \subsection{Runtime overhead: materialization and caching}
-  The control plane sets a short cache TTL and ETag headers for \texttt{/v2/me},
-  enabling clients to revalidate cheaply (304 responses).
-  Materialization cost is dominated by: (i) JWT decoding and role resolution,
-  (ii) DynamoDB read for tenant policy, (iii) JSON parsing for layout fragments.
+Table~\ref{tab:runtime} reports full-materialization latency for \code{/v2/me}. The path includes JWT validation, tenant and role reads, layout-fragment assembly, impersonation-list assembly, and CASL rule construction.
 
-  We recommend reporting:
-  \begin{itemize}
-    \item P50/P95 latency for \texttt{/v2/me} (cold vs warm),
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabularx}{0.55\textwidth}{X r}
+    \toprule
+    \textbf{Metric} & \textbf{512 MB Lambda (ms)} \\
+    \midrule
+    P50 & 856 \\
+    P75 & 938 \\
+    P90 & 1,038 \\
+    P95 & 1,112 \\
+    P99 & 1,176 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Controller Lambda full-materialization latency from 1,368 production observations, March--April 2026, 512 MB configuration.}
+  \label{tab:runtime}
+\end{table}
 
-    \item average response size and 304 hit rate (conditional requests),
+Full materialization is not the steady-state path. ETag-conditional revalidations dominate normal traffic at a 91\% cache-hit rate. Those return HTTP 304 with a P50 of 68 ms, with median user-visible revalidation latency of roughly 75 ms.
 
-    \item number of JSON fragments parsed per request (proxy for config
-      complexity).
-  \end{itemize}
+\subsection{Operational leverage}
+\label{sec:operational_leverage}
 
-  \paragraph{What we do not claim.}
-  We do not claim \uiPolicy{} eliminates all authorization bugs. It does
-  reduce a specific, expensive class: frontend/backend drift and the
-  operational churn it causes.
+The production deployment serves more than ten tenants, each with multiple users across roles. Adding a tenant requires a policy-store record and Cognito group assignment. Enabling a module or changing layout is a policy update. No code deployment is required for routine tenant onboarding.
 
-% ==============================================================================
-  \subsection{Policy-driven UI footprint: how much of the codebase obeys policy?}
-  \label{sec:eval_footprint}
-  A useful question is: what fraction of the UI is actually derived from
-  policy, and how large is the policy surface relative to the application?
-  We measure the production codebase.
+The operational gain is mundane and valuable. A tenant change stops being a front-end release. Support can reason from one contract. QA can fetch \code{/v2/me} and inspect exactly which product world the user will see.
 
-  \begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{X r}
-      \toprule
-      \textbf{Component} & \textbf{Size} \\
-      \midrule
-      Total TypeScript/TSX files              & 881 files \\
-      Total lines of code                     & $\sim$187{,}800 \\
-      React components                        & 225 \\
-      UI primitive components (Radix-based)   & 52 \\
-      Domain-specific components              & 170+ \\
-      Custom React hooks                      & 33 \\
-      Next.js page routes                     & 27 \\
-      Next.js layout files                    & 17 \\
-      \midrule
-      \textit{Policy-driven rendering:}       & \\
-      Components using config/module gating   & 48 \\
-      Modules defined in module mapping       & 7 \\
-      CASL permission subjects                & 14+ default features \\
-      Sidebar modes supported via config      & 6 \\
-      \bottomrule
-    \end{tabularx}
-    \caption{UI codebase footprint. 48 of 225 components ($\sim$21\%)
-    directly consume policy inputs (module flags, layout config, or
-    CASL abilities) to determine what to render. The remaining components
-    are presentation-only and inherit policy decisions from their parents.}
-    \label{tab:ui_footprint}
-  \end{table}
+\subsection{Defense in depth}
+\label{sec:defense_in_depth}
 
-% ==============================================================================
-  \subsection{Authorization layers: defense-in-depth accounting}
-  \label{sec:eval_layers}
-  \uiPolicy{} does not rely on a single enforcement point. We count the
-  distinct layers a request traverses and the code that implements each.
+Six layers protect the path between browser and backend.
 
-  \begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{l c X}
-      \toprule
-      \textbf{Layer} & \textbf{Enforcement} & \textbf{Mechanism} \\
-      \midrule
-      Edge middleware     & Server & Next.js middleware: session check, security headers, path routing \\
-      Server components   & Server & \texttt{getSession()} in server components, redirect on missing auth \\
-      CASL abilities      & Server + Client & Built server-side from \texttt{/v2/me}, packed and exported to client for UX \\
-      Module gating       & Server & \texttt{can('view', module)} checked before serving layout config \\
-      View-as signing     & Server & HMAC-signed \texttt{X-View-As-Sig} header, browser never holds secret \\
-      Control plane       & Server & Lambda middleware validates JWT, view-as allow-list, schema prefix \\
-      \bottomrule
-    \end{tabularx}
-    \caption{Authorization layers in the UI-as-Policy stack. Six layers
-    enforce policy between the browser and the data plane. The client
-    uses CASL for UX consistency but is never trusted for security.}
-    \label{tab:auth_layers}
-  \end{table}
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{l c X}
+    \toprule
+    \textbf{Layer} & \textbf{Where enforced} & \textbf{Mechanism} \\
+    \midrule
+    Edge middleware & Server & Session check, path validation, and security headers. \\
+    Server components & Server & Redirect on missing or invalid session. \\
+    CASL abilities & Server + client & Built server-side from \code{/v2/me}; exported for UX only. \\
+    Module gating & Server & \code{can('view', module)} before layout is returned. \\
+    View-as signing & Server & HMAC-signed effective context; secret never reaches the browser. \\
+    Control plane & Server & JWT validation, allow-list membership, and schema-prefix derivation. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Defense-in-depth layers. The client participates in UX decisions, but backend and control-plane checks remain authoritative.}
+  \label{tab:defense_layers}
+\end{table}
 
-% ==============================================================================
-  \subsection{Module gating: how much surface does policy remove?}
-  \label{sec:eval_module_gating}
-  The platform defines 7 modules (Horizon, Grid, Optima, Panorama,
-  Frontier, Sentinel, DataMap). Navigation, page routes, and layout
-  fragments are rendered only for enabled modules. We quantify the
-  reduction.
+A broken client-side rule should at worst produce a confusing interface. It should not produce a permitted backend response.
 
-  \begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{X c c}
-      \toprule
-      \textbf{Tenant profile} & \textbf{Visible modules} & \textbf{Reduction} \\
-      \midrule
-      Full platform (all 7 modules)     & 7 & --- \\
-      Energy tenant (Grid only)         & 1 & $\sim$86\% \\
-      Supply chain tenant (Horizon only) & 1 & $\sim$86\% \\
-      Two-module tenant                 & 2 & $\sim$71\% \\
-      \bottomrule
-    \end{tabularx}
-    \caption{Module visibility reduction. A single-module tenant sees
-    one sidebar entry, one dashboard card, and one set of pages out of
-    seven. Routes, layout fragments, and API clients for disabled modules
-    are never loaded.}
-    \label{tab:module_gating}
-  \end{table}
+\subsection{What the evaluation does not show}
+\label{sec:eval_limits}
 
-  Combined with the control plane's OpenAPI filtering (which removes
-  67 to 90\% of API endpoints for limited-module tenants), this means
-  a single-module tenant sees a UI and API surface that is a small
-  fraction of the full platform.
-
-% ==============================================================================
-  \subsection{Configuration surface: what is policy-as-data?}
-  \label{sec:eval_config_surface}
-  The paper claims UI structure comes from data, not code. We inventory
-  the policy surface stored in DynamoDB and consumed at runtime.
-
-  \begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{l c X}
-      \toprule
-      \textbf{Config element} & \textbf{Count} & \textbf{What it controls} \\
-      \midrule
-      Module list per role         & per tenant/role & Which sidebar entries, dashboard cards, and routes appear \\
-      \texttt{moduleLayout} fields & per tenant/role & TopBar (title, search, notifications, theme, help), SideBar (mode, profile, collapsibility), feedback, settings tabs \\
-      Sidebar modes                & 6 variants      & hover, classic, auto-collapse, always-expanded, mini, drawer \\
-      Sub-module access            & per module       & Fine-grained feature access within a module (e.g., \texttt{horizon:supply-chain}) \\
-      Module aliases               & per tenant       & Backend URL overrides for white-label deployments \\
-      \bottomrule
-    \end{tabularx}
-    \caption{Policy-as-data surface. Every element listed is stored in
-    DynamoDB and consumed at runtime via \texttt{/v2/me} and the
-    module-layout endpoint. Changes take effect without code deployment.}
-    \label{tab:config_surface}
-  \end{table}
-
-% ==============================================================================
-  \subsection{Policy coverage: what percentage of the UI is policy-driven?}
-  \label{sec:eval_policy_coverage}
-  To measure how deeply policy penetrates the UI, we count every
-  surface element and classify it as \emph{always visible},
-  \emph{policy-gated} (shown/hidden by module or role), or
-  \emph{policy-configured} (behavior controlled by \texttt{moduleLayout}).
-
-  \begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{X c c c}
-      \toprule
-      \textbf{UI surface} & \textbf{Total} & \textbf{Policy-driven} & \textbf{Coverage} \\
-      \midrule
-      Sidebar navigation items      & 11 & 8  & 73\% \\
-      Dashboard module cards         & 7  & 7  & 100\% \\
-      Page routes                    & 22 & 8  & 36\% \\
-      Settings tabs                  & 6  & 5  & 83\% \\
-      CASL permission subjects       & 25+ & 25+ & 100\% \\
-      \texttt{moduleLayout} config fields & 150+ & 150+ & 100\% \\
-      \bottomrule
-    \end{tabularx}
-    \caption{Policy coverage across UI surfaces. High-value surfaces
-    (navigation, dashboard, settings, layout configuration) are
-    overwhelmingly policy-driven. Page routes have lower coverage
-    because generic pages (profile, docs, what's new) are always
-    accessible.}
-    \label{tab:policy_coverage}
-  \end{table}
-
-  \paragraph{Permission model depth.}
-  The CASL ability model defines 3 actions (\texttt{view},
-  \texttt{manage}, \texttt{use}) across 25+ subjects: 7 modules,
-  5 generic pages, 16 feature permissions (\texttt{feature:export},
-  \texttt{feature:charts}, \texttt{feature:notifications}, etc.),
-  sub-module subjects (e.g., \texttt{horizon:supply-chain}), and
-  config-driven subjects derived from \texttt{moduleLayout} paths
-  (e.g., \texttt{settings:tabs:data-connectors:enabled}). The 150+
-  \texttt{moduleLayout} fields control everything from sidebar mode
-  (6 variants) to individual chart visibility, KPI card layout, and
-  per-tab settings access.
-
-% ==============================================================================
-  \subsection{Interpretation}
-  The quantitative results confirm the three evaluation axes. The
-  truthfulness invariant is supported by 6 defense layers and a
-  permission model (CASL) that is built server-side and exported to the
-  client (never the reverse). Operational leverage is confirmed by the
-  policy-as-data surface: module lists, layout fragments, sidebar modes,
-  and sub-module access are all DynamoDB records that take effect without
-  deployment. Runtime composition is validated by the codebase structure:
-  61\% of discrete UI surface elements (28 of 46 across navigation,
-  dashboard, routes, and settings) are policy-driven,
-  single-module tenants see an 86\% reduction in visible modules, and
-  high-value surfaces (navigation, dashboard, settings) have 73 to
-  100\% policy coverage with 150+ configurable layout fields.
-
-  The UI is not merely ``gated.'' It is \emph{composed from policy},
-  and the numbers show how much of the surface that policy controls.
+The evaluation is correctness-oriented. It shows that covered surfaces derive from a server contract and that the deployed system carries useful production metrics. It does not include a controlled before/after incident study, nor does it prove absence of drift in legacy surfaces. Longitudinal drift measurement and a full tenant-matrix CI gate remain future work.

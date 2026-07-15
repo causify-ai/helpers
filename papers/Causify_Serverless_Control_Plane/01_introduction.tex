@@ -1,62 +1,30 @@
-% ##############################################################################
-  \section{Introduction}
-  A serious platform is a collection of promises: \emph{this tenant's
-  data stays with this tenant}, \emph{this user can do this action},
-  \emph{this module exists for this role}, \emph{this request is scoped
-  correctly}. Most systems keep those promises until the product grows. Then
-  governance becomes folklore and enforcement becomes opportunistic: a
-  check in the UI, a check in a service, a check in a gateway, a check in
-  someone's memory.
+\section{Introduction}
 
-  We take the opposite approach: instead of letting policy leak into the
-  compute fabric, we concentrate governance into a \emph{thin, serverless
-  control plane} that produces explicit contracts. The control plane is not
-  ``the backend.'' It is a very specific thing: an identity- and tenancy-aware
-  decision layer that:
-  \begin{itemize}
-    \item resolves \emph{who} is calling and \emph{as whom} they are operating
-      (\viewas{}),
+A platform is a set of promises. This tenant's data stays with this tenant. This actor may perform this action. This module exists for this role. This job is running under the scope it claims to carry.
 
-    \item derives tenant scoping signals that downstream systems must not
-      guess,
+Small systems keep those promises with local code and human memory. A handler checks a role. A service reads a header. A worker receives a schema name. A support engineer knows which tenant should be visible. Then the product grows. Tenants multiply. Modules become products. Support workflows need impersonation. Batch jobs and long-running services start sharing the same data model. The old local checks still work, right up until they do not.
 
-    \item controls which platform modules and APIs are visible/accessible
-      for the effective context,
+The failure is usually not cinematic. It is boring and therefore hard to notice. One service trusts a tenant field supplied by its caller. Another re-derives tenancy from stale membership data. A generated API spec includes routes for modules the effective tenant cannot use. A job launches with the right identity but the wrong database prefix. The incident report never says ``the architecture lacked taste,'' but that is often the root cause.
 
-    \item emits cache-friendly responses aligned with HTTP semantics (ETag
-      + \texttt{If-None-Match}) \cite{rfc9110}.
-  \end{itemize}
+This paper describes the architecture we use to keep those decisions in one place. The pattern has two halves:
 
-  The data plane is everything that runs compute: Kubernetes services,
-  batch jobs, workers, schedulers, and on-demand tasks. It does not
-  decide what a tenant is. It receives a scoped context and does work.
+\begin{itemize}
+  \item A \emph{serverless control plane} resolves identity, effective tenant context, module capability, API surface, impersonation state, and scoping signals.
+  \item A \emph{container data plane} runs product services, analytics jobs, data workflows, and on-demand compute using the scope injected by the control plane.
+\end{itemize}
 
-  \paragraph{Why this matters.}
-  In causal AI and enterprise analytics platforms, the expensive part is
-  not the UI. It is the \emph{combination} of: multi-tenant isolation, module-level
-  capability boundaries, and long-running compute. If tenant scoping is inconsistent,
-  you do not have a platform; you have a roulette wheel with logs.
+The control plane is intentionally thin. It is not a place to put business logic, model execution, or every convenient helper function. It is the place where the platform answers the questions other services should not be answering for themselves: who is this actor, which tenant context is effective, which modules exist, which API surface should be visible, and which scope must flow downstream.
 
-  \paragraph{Contributions.}
-  This paper contributes:
-  \begin{itemize}
-    \item \textbf{A practical control-plane pattern:} serverless
-      governance (API Gateway + Lambda) that materializes tenant context
-      and exposes versioned contracts
-      \cite{aws_lambda_docs,aws_api_gateway,aws_powertools}.
+The data plane is the execution fabric. In our deployment it includes EKS services, module Lambdas, Airflow-driven workflows, and Fargate jobs. The important rule is simple. The data plane can receive scope. It does not own the authority to derive it.
 
-    \item \textbf{A contract-first API surface:} \texttt{/v2/me} as a materialized
-      context contract, plus OpenAPI minimization to keep the visible
-      surface aligned with enabled modules.
+\paragraph{Contributions.}
+This paper makes four contributions:
 
-    \item \textbf{Defense-in-depth against tenant confusion:} explicit
-      actor vs effective context, allow-listed \viewas{}, and server-injected
-      scoping signals (e.g., schema prefixes).
+\begin{itemize}
+  \item It names three governance failure modes in multi-tenant platforms: scope ambiguity, governance scatter, and surface drift.
+  \item It describes a concrete control-plane pattern built around a versioned identity contract, server-side scope injection, module-gated routing, OpenAPI surface filtering, and auditable \viewas{}.
+  \item It shows how the pattern integrates with a container data plane running EKS services, DataMap pipeline orchestration, Optima-style optimization workloads, Airflow DAGs, module Lambdas, RDS Proxy, PostgreSQL schema isolation, and Fargate jobs.
+  \item It reports production measurements from Causify AI: 12 governed data-plane services, 135 lines of shared Lambda governance, 67--90\% API-surface reduction for limited-module tenants, 91\% identity-contract cache hits, and zero actor/effective-tenant mismatches detected across eight months within the limits of the audit method.
+\end{itemize}
 
-    \item \textbf{Operational lessons:} caching strategy, blast-radius reduction,
-      and incident clarity when the ``truth'' about tenancy lives at the
-      edge.
-  \end{itemize}
-
-  A small amount of humor is allowed, because without it, this paper
-  would be a tragedy.
+The pattern is not a new authorization theory. It is a way to make existing authorization ideas operationally hard to ignore. In a multi-tenant platform, governance should feel dull. Dull is good. Dull means the same thing happens on Tuesday afternoon as happened during the sales demo.

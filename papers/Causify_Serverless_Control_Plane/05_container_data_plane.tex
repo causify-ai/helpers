@@ -1,875 +1,171 @@
-% ##############################################################################
-  \section{Container Data Plane Integration}
-  \label{sec:data_plane_integration} If the control plane is the cortex,
-  the data plane is the muscle: it runs services, workflows, and compute-heavy
-  tasks. In \system{}, the data plane is intentionally heterogeneous,
-  because the workloads are heterogeneous.
+\section{Container Data Plane Integration}
+\label{sec:data-plane}
 
-% ==============================================================================
-  \subsection{Kubernetes services on EKS: long-running platform components}
-  Long-running components live on Kubernetes (EKS) \cite{eks_docs}. This
-  includes web-facing services and platform internals.
+The data plane runs the work that would make a control plane miserable: APIs, long-running services, data pipelines, optimization workloads, scheduled jobs, and integration workers. In the deployed system, that means EKS namespaces, Horizon/Grid-style module Lambdas, DataMap pipeline orchestration, Optima-style optimization services, Airflow DAGs, connector jobs, and Fargate tasks.
 
-  A representative example is the Causify Console deployment: it runs
-  behind an internal AWS ALB ingress (TLS enforced, WAF attached, Shield
-  enabled, and access logs streamed to S3). The same patterns appear for
-  Airflow's webserver ingress, which is also internal and protected.
+This is why the paper uses ``container data plane'' rather than ``Kubernetes backend.'' The execution fabric is mixed on purpose. Some work belongs in services, some in Lambdas, some in short-lived containers, some in scheduled pipelines, and some in connector workers. The governance rule should not change with the substrate.
 
-  \paragraph{Airflow on Kubernetes (workflow plane).}
-  Airflow is deployed in the \texttt{airflow} namespace with separate components
-  (e.g., scheduler, webserver, dag-processor) and a \texttt{git-sync}
-  deployment to pull DAGs. The scheduler is autoscaled via HPA (CPU and
-  memory utilization targets), and operational hygiene is handled via
-  cleanup cronjobs.
+\subsection{Representative execution surfaces}
 
-  Secrets are integrated using an ESO service account annotated for IRSA
-  (\texttt{eks.amazonaws.com/role-arn}) to fetch secrets from AWS Secrets
-  Manager. This allows Kubernetes workloads to consume secrets without
-  static credentials.
+Table~\ref{tab:execution_surfaces} summarizes the main surfaces governed by the control plane. The details differ; the contract does not. Each surface receives a small scope envelope, rejects missing scope, and avoids rediscovering tenant identity from user input.
 
-  In short: Kubernetes runs the things that must keep running.
+\begin{table}[H]
+  \centering
+  \scriptsize
+  \begin{tabularx}{0.94\textwidth}{p{0.18\textwidth} p{0.30\textwidth} X}
+    \toprule
+    \textbf{Surface} & \textbf{Workload shape} & \textbf{Control-plane responsibility} \\
+    \midrule
+    Horizon/Grid module Lambdas & Tenant-scoped query and analytics APIs & Gate module routes, inject \scopeprefix{}, preserve actor/effective context \\
+    DataMap orchestration & Subject $\rightarrow$ Analysis $\rightarrow$ Graph pipelines and graph-version history & Attach tenant, user, subject, analysis, and version scope before pipeline execution \\
+    Optima-style optimization & Long-running portfolio and scenario optimization jobs & Launch scoped compute and keep job intent tied to effective tenant context \\
+    Airflow DAGs & Scheduled and ad-hoc data workflows & Receive scope and environment context rather than resolving membership inside DAG code \\
+    Connector workers & External-system sync, webhook, and ingestion jobs & Bind connector metadata, credentials, and job events to tenant-owned records \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Representative data-plane surfaces. The substrate varies, but governance enters through the same control-plane boundary.}
+  \label{tab:execution_surfaces}
+\end{table}
 
-% ==============================================================================
-  \subsection{Module backends as Lambda services: Horizon and Grid}
-  Some module backends are implemented as dedicated Lambda functions (Horizon/Grid)
-  that implement their own routing tables and connect directly to a Postgres
-  database (using Secrets Manager and a proxy endpoint via environment
-  variables).
+\subsection{Module Lambdas: Horizon and Grid}
 
-  These backends are deliberately strict about tenant scoping. For
-  example, the Horizon Lambda extracts \texttt{schema\_prefix} from
-  query parameters and refuses to operate without it (treating it as required
-  input). It then derives schema names such as \texttt{\{schema\_prefix\}\_core}
-  internally.
+Horizon and Grid are useful examples because they look like ordinary product APIs until tenant scope gets involved. Horizon serves module-specific queries and derived views. Grid serves time-series analytics, predictions, and derived signals. Both sit behind module-gated routes in the control plane.
 
-  This makes an architectural point:
-  \begin{quote}
-    \textbf{The control plane decides scope; the module backend enforces
-    it locally.}
-  \end{quote}
+The control plane first resolves the actor and effective tenant, checks that the module is enabled, then delegates to the module Lambda with an explicit scope envelope. The downstream Lambda treats \scopeprefix{} as required input. If it is absent, the request fails before any domain logic runs.
 
-  The control plane ensures \texttt{schema\_prefix} is derived from authenticated
-  context and injected downstream; the module backend ensures it does
-  not run without scope.
-
-% ==============================================================================
-  \subsection{Airflow $\rightarrow$ ECS/Fargate: burst compute without cluster
-  debt}
-  Not all compute belongs in Kubernetes. For bounded, bursty jobs (pipelines,
-  model runs, data downloads), Airflow dispatches ECS tasks (Fargate by
-  default) \cite{ecs_runtask,fargate_docs}.
-
-  Airflow DAGs for Horizon and Grid use a helper that produces a configured
-  ECS operator. The helper sets CPU/memory, ephemeral storage, and VPC
-  networking (private subnets and security groups by region). It also wraps
-  the operator with retry logic for known ECS capacity failures.
-
-  \begin{samepage}
-    \begin{lstlisting}[style=python,caption={Airflow launches ECS tasks via a custom operator that retries known capacity/provisioning failures.},label={lst:ecs_retry}]
-class EcsRunTaskOperator_withRetry(EcsRunTaskOperator):
-    _KNOWN_ERRORS = ["Capacity is unavailable at this time."]
-    _MAX_NUM_ATTEMPTS = 2
-    _RETRY_DELAY_SECS = 15
+\begin{lstlisting}[style=python, caption={Simplified module Lambda scope check.}]
+class TenantScopedHandler:
+    def __init__(self, query_params):
+        self.schema_prefix = query_params.get("schema_prefix")
+        if not self.schema_prefix:
+            raise BadRequestError("schema_prefix is required")
+        validate_schema_prefix(self.schema_prefix)
+        self.core_schema = f"{self.schema_prefix}_core"
 \end{lstlisting}
-  \end{samepage}
 
-  \begin{samepage}
-    \begin{lstlisting}[style=python,caption={The ECS task operator is configured with VPC networking, resources, and long waiter timeouts (pragmatic fix for real-world behavior).},label={lst:ecs_operator_cfg}]
-task = EcsRunTaskOperator_withRetry(
-  task_definition=task_definition,
-  launch_type="FARGATE",
-  overrides={
-    "cpu": str(cpu_units),
-    "memory": str(memory_mb),
-    "ephemeralStorage": {"sizeInGiB": ephemeralStorageGb},
-    "containerOverrides": [{"name": task_definition, "command": task_cmd}],
-  },
-  network_configuration={"awsvpcConfiguration": {...}},
-)
-\end{lstlisting}
-  \end{samepage}
+The Lambda does not decide whether \code{acme} is the right tenant. It only checks that the scope is present and syntactically safe. The authority for deriving \code{acme} remains in the control plane. That division is subtle but important. If every module Lambda is allowed to rediscover tenant membership, the boundary is gone.
 
-  This pattern yields a clean separation: Airflow orchestrates workflows;
-  ECS/Fargate executes job containers; Kubernetes remains focused on
-  long-lived services.
+\subsection{Scope envelope}
 
-% ==============================================================================
-  \subsection{Why this mixed data plane is intentional}
-  A single execution substrate is aesthetically pleasing and
-  operationally tempting. It is also how you end up running batch workloads
-  in the same cluster as your interactive services and wondering why everything
-  is on fire.
+The envelope passed downstream is intentionally small. It carries just enough information for execution to be correct and auditable, not enough to turn every service into a policy interpreter.
 
-  The platform embraces the reality that:
-  \begin{itemize}
-    \item Kubernetes is excellent for long-running services and controllable
-      scaling.
+\begin{table}[H]
+  \centering
+  \scriptsize
+  \begin{tabularx}{0.94\textwidth}{p{0.22\textwidth} p{0.26\textwidth} X}
+    \toprule
+    \textbf{Field} & \textbf{Typical consumers} & \textbf{Purpose} \\
+    \midrule
+    \code{actor_id} & Audit logs, support workflows & Preserves the real authenticated identity \\
+    \code{effective_tenant} & All tenant-scoped services & Names the tenant context in effect after optional \viewas{} resolution \\
+    \code{effective_role} & Module APIs, UI contracts & Carries the role used for capability checks \\
+    \scopeprefix{} & Horizon/Grid, query services, jobs & Selects the tenant database namespace, e.g., \texttt{\{prefix\}\_core} \\
+    \code{modules} & API filtering, route guards & Declares enabled product modules for the effective context \\
+    \code{subject_id}, \code{analysis_id}, \code{version_id} & DataMap & Locates a stable artifact hierarchy for graph refinement and history \\
+    \code{connector_id}, \code{job_id} & Connector workers & Binds external-system sync to tenant-owned metadata and credentials \\
+    \bottomrule
+  \end{tabularx}
+  \caption{The scope envelope. The control plane derives it; data-plane systems consume it.}
+  \label{tab:scope_envelope}
+\end{table}
 
-    \item Fargate is excellent for isolated burst compute and operational
-      simplicity.
+The point is not to standardize these exact field names forever. The point is to stop hiding tenancy in query parameters, environment variables, README files, and tribal memory.
 
-    \item Lambda is excellent for narrowly scoped APIs and fast fan-out.
-  \end{itemize}
+\subsection{DataMap as a scoped artifact pipeline}
 
-  The art is not choosing one. The art is choosing boundaries.
+DataMap has a different shape from Horizon and Grid. It is closer to an interactive modeling studio: a user starts from a subject, creates analyses, generates or refines causal graphs, and keeps history across versions. The workflow is naturally iterative. A graph is not overwritten casually; it is refined, versioned, and attached to the subject and analysis that produced it.
 
-% ==============================================================================
-  \subsection{Domain Module Lambdas: Horizon and Grid as Tenant-Scoped Query
-  Planes}
-  The platform uses dedicated module backends for Horizon and Grid as
-  AWS Lambda services. This is not ``Lambda because serverless is trendy.''
-  It is Lambda because these modules behave like \emph{query planes}:
-  they must respond quickly, enforce scoping strictly, and scale to
-  spiky interactive traffic without dragging an entire Kubernetes
-  service along for every request.
+Figure~\ref{fig:datamap_flow} shows the artifact hierarchy. The control plane does not need to understand graph semantics. It does need to attach the right tenant and user context before the pipeline creates, reads, or updates artifacts.
 
-  \paragraph{Horizon Lambda.}
-  Horizon is opinionated and explicit: every request must name its
-  tenant scope via \texttt{schema\_prefix}. If it is missing, the request
-  is rejected early. The Lambda then derives its working schema (\texttt{core\_schema
-  = \{schema\_prefix\}\_core}), and constructs a service layer that
-  executes queries against tenant-scoped tables. To keep the system calm
-  under transient failures, Horizon uses short retry backoff and
-  structured JSON logs to keep debugging deterministic instead of
-  mystical.
-
-  \begin{samepage}
-    \begin{lstlisting}[style=python,caption={Horizon Lambda enforces tenant scope explicitly: \texttt{schema\_prefix} is required and used to derive \texttt{core\_schema}.},label={lst:horizon_scope}]
-q = self.event.get("queryStringParameters") or {}
-self.schema_prefix = q.get("schema_prefix")
-if not self.schema_prefix:
-    raise BadRequestError("schema_prefix is required")
-self.core_schema = f"{self.schema_prefix}_core"
-\end{lstlisting}
-  \end{samepage}
-
-  \paragraph{Database access: Secrets Manager + RDS Proxy.}
-  Operationally, each module Lambda follows a three-step pattern to reach
-  tenant data: (i) fetch database credentials from AWS Secrets Manager
-  \cite{aws_secrets_manager} at cold start, (ii) connect through an RDS Proxy
-  endpoint over TLS, and (iii) execute parameterized SQL using a small, testable
-  service layer.
-
-  \begin{samepage}
-    \begin{lstlisting}[style=python,caption={Database connection via Secrets Manager and RDS Proxy: credentials are never embedded, and the proxy manages connection pooling across Lambda invocations.},label={lst:rds_proxy}]
-_SECRET_ARN = os.environ["DB_SECRET_ARN"]
-_PROXY      = os.environ["PROXY_ENDPOINT"]
-_DB_NAME    = os.environ["DB_NAME"]
-
-@retryable
-def build() -> PgClient:
-    sec = boto3.client("secretsmanager")
-          .get_secret_value(SecretId=_SECRET_ARN)["SecretString"]
-    creds = json.loads(sec)
-    conn = psycopg2.connect(
-        host=_PROXY, dbname=_DB_NAME,
-        user=creds["username"], password=creds["password"],
-        sslmode="require",
-    )
-    return PgClient(conn)
-\end{lstlisting}
-  \end{samepage}
-
-  This completes the scope propagation story end-to-end: identity is validated
-  in the control plane, a reusable \scopeenv{} is attached to downstream
-  execution (i.e., \texttt{schema\_prefix} is derived and injected into the
-  delegation event), the module Lambda uses that prefix to derive \texttt{\{schema\_prefix\}\_core},
-  and the database connection itself goes through a managed proxy that handles
-  connection pooling and IAM-based access. At no point does a client
-  parameter touch the database path.
-
-  \paragraph{Grid Lambda.}
-  Grid is similarly scope-driven, but its shape is slightly different: it
-  serves time-series analytics, predictions, and derived signals, and
-  uses the schema prefix to select the correct core tables. The design is
-  intentionally boring: a mapping of features to tables and columns is
-  built around the tenant's core schema, which avoids hardcoding tenant-specific
-  logic into application code.
-
-  \begin{samepage}
-    \begin{lstlisting}[style=python,caption={Grid Lambda uses \texttt{schema\_prefix} to select tenant-scoped core tables.},label={lst:grid_scope}]
-core_table = f"{schema_prefix}_core.load_predictions"
-prob_table = f"{schema_prefix}_core.threshold_cross_probability"
-\end{lstlisting}
-  \end{samepage}
-
-  \paragraph{Why Lambdas for these modules?}
-  Because these modules sit at a boundary where traffic is bursty and latency
-  matters: interactive dashboards behave like a strobe light, not a steady
-  lamp. Lambda matches that rhythm. Kubernetes excels at steady-state services
-  and background work; module Lambdas excel at sharp edges where cold
-  requests show up at inconvenient times.
-
-  \paragraph{The contract with the control plane.}
-  Neither Horizon nor Grid is allowed to ``discover'' its tenant. Both
-  consume scope. In practice, \texttt{schema\_prefix} is injected by the
-  control plane and forwarded through delegating routers. This is the
-  anti-confused-deputy rule in executable form: \emph{tenancy is derived
-  from identity, not from client parameters.}
-
-% ==============================================================================
-  \subsection{Reusable Scope is more than prefixes: the \scopeenv{}}
-  The platform carries a small \scopeenv{} across layers so that
-  execution substrates can remain policy-agnostic. Different modules consume
-  different parts of the envelope:
-
-  \begin{table}[H]
-    \centering
-    \small
-    \begin{tabular}{p{3.0cm} p{4.8cm} p{6.2cm}}
-      \toprule \textbf{Scope key}                                                     & \textbf{Used by}                           & \textbf{Purpose}                                                                                               \\
-      \midrule \texttt{tenant\_id}                                                    & Control plane, connectors, DynamoDB models & Canonical tenant identity for governance, job routing, and data isolation                                      \\
-      \addlinespace \texttt{user\_id}                                                 & DataMap sessions/turns, preferences        & Per-user session isolation; multi-session without table sprawl                                                 \\
-      \addlinespace \texttt{role} / groups                                            & Control plane module gates                 & Capability surface: what can be called/seen for effective context                                              \\
-      \addlinespace DB scope (e.g., prefix/core schema \emph{and/or} tenant\_id+RLS)  & Horizon/Grid query planes                  & Maps tenant identity to database partitioning strategy (schema/core tables, and optionally row-level policies) \\
-      \addlinespace \texttt{subject\_id}, \texttt{analysis\_id}, \texttt{session\_id} & DataMap                                    & Stable artifact hierarchy: Subject $\rightarrow$ Analysis $\rightarrow$ Graph $\rightarrow$ Versions           \\
-      \addlinespace \texttt{connector\_key}, \texttt{job\_type}, \texttt{job\_id}     & Connectors/DataPull                        & Job orchestration, reconciliation windows, and per-connector status tracking                                   \\
-      \bottomrule
-    \end{tabular}
-    \caption{The \scopeenv{} is intentionally small: enough keys for
-    correct execution, not a dump of "everything we know."}
-    \label{tab:scope_envelope}
-  \end{table}
-
-% ==============================================================================
-  \subsection{DataMap Studio: Subject $\rightarrow$ Analysis $\rightarrow$
-  Graph, With Memory}
-  DataMap is the platform's causal exploration workbench: a guided flow that
-  turns datasets into structured hypotheses and causality graphs without
-  forcing users to juggle a zoo of unrelated artifacts.
-
-  The studio is organized around a simple hierarchy:
-
-  \begin{center}
-    \textbf{Subject} $\rightarrow$ \textbf{Analysis} $\rightarrow$ \textbf{Graph}
-    \quad (and each Graph can have \textbf{Versions})
-  \end{center}
-
-  This hierarchy is not aesthetic; it is a data model that prevents sprawl.
-  It supports: (i) multiple analyses per subject, (ii) multiple graph
-  versions per analysis, and (iii) per-user, multi-session workflows
-  without multiplying tables per feature.
-
-  \paragraph{Refine-in-place, but keep history.}
-  DataMap behaves like a whiteboard that remembers. Users can refine
-  nodes/edges in place, then view version history and roll back if an iteration
-  gets weird. This makes experimentation safe: curiosity is encouraged,
-  and regret is supported.
-
-  \begin{figure}[H]
-    \centering
-    \resizebox{\textwidth}{!}{%
-    \begin{cleanpic}
-      [ dmbox/.style={cbox, text width=38mm, minimum height=16mm, font=\small\sffamily},
-        elabel/.style={font=\footnotesize\sffamily, above=2.5mm, pos=0.5},
-      ]
-      \node[dmbox, fill=webteal!25, draw=webteal!50] (subj)
-        {\textbf{Subject}\\``What domain\\are we studying?''};
-      \node[dmbox, fill=webteal!25, draw=webteal!50, right=32mm of subj] (ana)
-        {\textbf{Analysis}\\drivers, questions,\\constraints};
-      \node[dmbox, fill=webteal!25, draw=webteal!50, right=32mm of ana] (graph)
-        {\textbf{Graph}\\nodes/edges,\\notes, scores};
-      \node[dmbox, fill=storelavender!25, draw=storelavender!50, below=16mm of graph] (ver)
-        {\textbf{Versions}\\diff, history, restore};
-
-      \draw[carrow] (subj) -- node[elabel] {create/select} (ana);
-      \draw[carrow] (ana) -- node[elabel] {generate/refine} (graph);
-      \draw[carrow] (graph) -- node[clabel, right=1mm] {save} (ver);
-      \draw[carrow] (ver.west) .. controls +(left:16mm) and +(down:14mm) ..
-        node[clabel, left=1mm] {restore} (graph.south);
-    \end{cleanpic}%
-    }% end resizebox
-    \caption{DataMap Studio flow: a stable artifact hierarchy that supports
-    iteration without data-model sprawl.}
-    \label{fig:datamap_flow}
-  \end{figure}
-
-  \paragraph{Any data source.}
-  DataMap treats ingestion as a pluggable boundary. A dataset upload is just
-  one implementation of ``data source.'' The same workflow can support
-  connectors and query-backed sources without changing the studio's
-  conceptual model.
-
-  \paragraph{Multi-session without table sprawl.}
-  Instead of creating new tables for every ``session'' or feature variant,
-  DataMap stores sessions and versions as \emph{keyed artifacts} attached
-  to the Subject/Analysis hierarchy. In practice, this supports:
-  \begin{itemize}
-    \item multiple concurrent sessions per user,
-
-    \item multiple users working in parallel,
-
-    \item and a clean audit trail of graph evolution.
-  \end{itemize}
-
-  The result is a studio that feels fluid while staying structurally disciplined.
-  It is creativity with guardrails.
-
-  \paragraph{One table, several item types.}
-  DataMap uses a single DynamoDB table per environment (e.g., \texttt{causify\_console\_datamap\_\{env\}})
-  that stores a small set of item types: \texttt{SUBJECT}, \texttt{ANALYSIS},
-  \texttt{GRAPH} (versioned), \texttt{SESSION}, and \texttt{TURN}. The
-  partition/sort keys are compositional, so the hierarchy is queryable without
-  joins.
-
-  \begin{samepage}
-    \begin{lstlisting}[style=dynamo,caption={DataMap key patterns (verbatim structure).},label={lst:datamap_keys_v2}]
-  SUBJECT
-    PK: TENANT#<tenant_id>#SUBJECT#<subject_id>
-    SK: SUBJECT
-    Attrs: subject_type, subject_key (JSON), display_name, description,
-           s3_uri_metadata, status, created_ts, created_by, ...
-
-  ANALYSIS
-    PK: TENANT#<tenant_id>#SUBJECT#<subject_id>
-    SK: ANALYSIS#<analysis_id>    (analysis_id = ULID/UUID)
-    Attrs: title, created_ts, created_by_user, last_graph_id, tags[]
-
-  GRAPH (versioned output)
-    PK: TENANT#<tenant_id>#SUBJECT#<subject_id>#ANALYSIS#<analysis_id>
-    SK: GRAPH#<version_ts_desc>   (store as ~ts or negative epoch for newest-first)
-    Attrs: graph_id (ULID), graph_json OR s3_key_graph_json,
-           summary[], changes[] (refine deltas),
-           model, prompt_version, temperature, trace_id,
-           created_by_user, session_id, size_bytes, optional ttl
-
-  SESSION (per-user working session)
-    PK: TENANT#<tenant_id>#USER#<user_id>
-    SK: SESSION#<session_id>
-    Attrs: subject_id, analysis_id (optional), started_ts, last_graph_id,
-           status (active|closed), ttl
-
-  TURN (multi-turn chat/history)
-    PK: TENANT#<tenant_id>#SESSION#<session_id>
-    SK: TURN#<seq>   (001, 002, ... or timestamp)
-    Attrs: role (user|system|assistant|...), content, result_graph_id (optional),
-           trace_id, optional ttl
-  \end{lstlisting}
-  \end{samepage}
-
-  The key design is compositional: partition keys encode tenancy and hierarchy;
-  sort keys encode artifact identity and time.
-
-  \paragraph{Versioning without drama.}
-  Graph versions store either embedded graph JSON or a pointer to an S3 key.
-  They also store refine deltas (\texttt{changes[]}), summaries, and trace
-  metadata (\texttt{trace\_id}, \texttt{prompt\_version}, \texttt{temperature})
-  so the system can explain not just \emph{what} changed, but \emph{why}.
-
-  \paragraph{Indexes that match the product.}
-  The GSIs follow the user journeys:
-  \begin{itemize}
-    \item \textbf{Recent sessions per user:} \texttt{GSI1PK = TENANT\#<tenant\_id>\#USER\#<user\_id>},
-      \texttt{GSI1SK = TS\#<started\_ts>}.
-
-    \item \textbf{Latest graph per analysis:} \texttt{GSI2PK = TENANT\#<tenant\_id>\#SUBJECT\#<subject\_id>\#ANALYSIS\#<analysis\_id>},
-      \texttt{GSI2SK = GRAPH\#<version\_ts\_desc>} (query with \texttt{limit=1}).
-
-    \item \textbf{All graphs by user:} \texttt{GSI3PK = USER\#<user\_id>},
-      \texttt{GSI3SK = TS\#<version\_ts\_desc>}.
-  \end{itemize}
-
-  \paragraph{Storage symmetry with S3.}
-  Datasets are stored read-only in S3; exports are organized by tenant/subject/analysis/graph
-  prefixes, with server-side encryption and blocked public access.
-  DynamoDB stores the "shape" and history; S3 stores the heavy artifacts.
-  TTL can be used for demo cleanup where appropriate.
-
-  This model yields to our desired studio behavior: refine in place,
-  view history, restore earlier versions, support multiple analyses per
-  subject, and allow many concurrent user sessions---all without creating
-  new tables every time the product team has an idea.
-
-  The studio remains fast because the ``truth'' is indexable, and the ``bulk''
-  is object storage.
-
-% ==============================================================================
-  \subsection{Tenant meta as data: membership, connectors, billing,
-  preferences, audit}
-  Beyond modules and compute, a multi-tenant platform needs "tenant meta"
-  primitives: who belongs to a tenant, which connectors are configured,
-  whether billing allows a module, and what defaults a user prefers. We
-  model this in DynamoDB with small, purpose-built tables and GSIs that match
-  access patterns:
-
-  \begin{itemize}
-    \item \textbf{Membership/seats:} \texttt{PK=tenant\_id}, \texttt{SK=user\_id}
-      with GSI by email to resolve invites and multi-tenant users.
-
-    \item \textbf{Invites:} unguessable \texttt{invite\_token} as primary
-      key; on acceptance, create membership row and add Cognito group \texttt{\{tenant\_id\}:\{role\}}.
-
-    \item \textbf{Connector state:} \texttt{PK=tenant\_id}, \texttt{SK=connector\_key}
-      storing status, last sync timestamps, and a reference to credentials
-      stored in Secrets Manager (not raw secrets).
-
-    \item \textbf{Billing:} one row per tenant with GSIs for Payment
-      Gateway (e.g., Stripe) customer/subscription lookup so webhooks
-      can map events $\rightarrow$ tenant deterministically.
-
-    \item \textbf{Preferences:} \texttt{PK=tenant\_id}, \texttt{SK=user\_id}
-      for default modules, locale/theme, etc.
-
-    \item \textbf{Audit log:} \texttt{PK=tenant\_id}, \texttt{SK=timestamp\#uuid}
-      with action\_type and payload.
-  \end{itemize}
-
-  The platform benefit is operational: these models make onboarding,
-  licensing, connector operations, and UX defaults \emph{data operations}
-  rather than application forks.
-
-% ==============================================================================
-  \subsection{Connector ingestion case study: control plane + job intent
-  + Kubernetes workers}
-  Connectors are where multi-tenancy fails quietly unless scope is explicit.
-  A reusable pattern emerges in connector-heavy multi-tenant products (e.g.,
-  CPG connectors such as Shopify/Amazon): \emph{keep the connector hot
-  path API-driven and multi-tenant by design}, and use workflow engines only
-  for offline analytics. Our ingestion architecture therefore mirrors
-  the paper's thesis: \emph{thin control plane, heavy execution plane}.
 \begin{figure}[H]
   \centering
-  \resizebox{\textwidth}{!}{%
+  \resizebox{0.86\textwidth}{!}{%
   \begin{tikzpicture}[
-    sbox/.style={
-      draw=gray!50, rounded corners=3pt, align=center,
-      inner sep=6pt, font=\small\sffamily, text=black,
-      minimum height=12mm,
-      drop shadow={shadow xshift=0.4mm, shadow yshift=-0.4mm, opacity=0.15}
-    },
-    pinkbox/.style  ={sbox, draw=warnred!50,        fill=warnred!6},
-    bluebox/.style  ={sbox, draw=cpblue!50,          fill=cpblue!7},
-    purplebox/.style={sbox, draw=storelavender!65,   fill=storelavender!10},
-    greenbox/.style ={sbox, draw=dpgreen!55,         fill=dpgreen!8},
-    % greenhex is drawn manually via append after command (wide hexagon)
-    greenhex/.style={
-      draw=dpgreen!55, fill=dpgreen!8, align=center,
-      inner sep=6pt, font=\scriptsize\sffamily, text=black,
-      minimum height=18mm, minimum width=50mm,
-      signal, signal to=east and west, signal pointer angle=120,
-      drop shadow={shadow xshift=0.4mm, shadow yshift=-0.4mm, opacity=0.15}
-    },
-    cyl/.style={
-      sbox, cylinder, cylinder uses custom fill,
-      shape border rotate=90, aspect=0.25,
-      minimum width=26mm, minimum height=13mm
-    },
-    orangecyl/.style={cyl, draw=burstpeach!65, fill=burstpeach!10,
-                      cylinder end fill=burstpeach!20},
-    bluecyl/.style  ={cyl, draw=cpblue!50,     fill=cpblue!7,
-                      cylinder end fill=cpblue!15},
-    arr/.style ={-{Latex[length=2.2mm]}, semithick, color=black!50},
-    garr/.style={-{Latex[length=2.2mm]}, semithick, color=dpgreen!70},
-    darr/.style={-{Latex[length=2.2mm]}, semithick, color=black!50, densely dotted},
-    L/.style={
-      font=\scriptsize\sffamily, text=black!75, align=center,
-      fill=white, fill opacity=0.92, text opacity=1,
-      inner sep=2pt, rounded corners=1pt
-    },
-    GL/.style={
-      font=\scriptsize\sffamily, text=dpgreen!85, align=center,
-      fill=white, fill opacity=0.92, text opacity=1,
-      inner sep=2pt, rounded corners=1pt
-    },
-    container/.style={rounded corners=6pt},
+    node distance=12mm and 18mm,
+    box/.style={draw, rounded corners=3pt, align=center, minimum width=28mm, minimum height=11mm, font=\small\sffamily},
+    arrow/.style={-{Latex[length=2.3mm]}, thick, color=gray!75},
+    note/.style={font=\scriptsize\sffamily, align=center}
   ]
+    \node[box, fill=blue!10, draw=blue!55!black] (tenant) {Tenant scope\\\scopeprefix{}};
+    \node[box, fill=green!10, draw=green!55!black, right=of tenant] (subject) {Subject\\business object};
+    \node[box, fill=green!10, draw=green!55!black, right=of subject] (analysis) {Analysis\\question/context};
+    \node[box, fill=orange!15, draw=orange!60!black, right=of analysis] (graph) {Graph\\current version};
+    \node[box, fill=violet!12, draw=violet!55!black, below=16mm of graph] (history) {History\\prior versions};
+    \node[box, fill=gray!10, draw=gray!60!black, below=16mm of analysis] (source) {Data source\\dataset now, connector later};
 
-    % ══════════════════════════════════════════════════════════════
-    %  LAYOUT PLAN
-    %
-    %  Container left walls:
-    %    External Platforms  x = -1.5
-    %    Control Plane       x = -1.5
-    %    Data Plane          x =  3
-    %
-    %  Vertical routing lanes OUTSIDE all containers (x < -1.5):
-    %    x = -4     Shopify Webhooks → API Gateway
-    %    x = -3.3   SQS → backfill worker
-    %    x = -2.7   SQS → amazon worker
-    %    x = -2.1   SQS → realtime worker
-    %
-    %  Arrows exit CP through LEFT wall, travel down outside,
-    %  then enter DP through LEFT wall horizontally.
-    %
-    %  Right-side routing lanes (API calls, shifted left of SQS):
-    %    x = 16.8   SP-API calls
-    %    x = 17.3   API calls
-    % ══════════════════════════════════════════════════════════════
-
-    % ── Container backgrounds ──
-
-    \fill[gray!3, draw=gray!20, container]
-      (-1.5, 17.2) rectangle (28, 11.2)
-      node[font=\sffamily\small, text=gray!50,
-           anchor=north west] at (-1.3, 17.1) {External Platforms};
-
-    \fill[cpblue!2, draw=cpblue!20, container]
-      (-3.5, 10.8) rectangle (28, 1.5)
-      node[font=\sffamily\small\bfseries, text=cpblue!70,
-           anchor=north west] at (-1.3, 10.7) {Control Plane (AWS)};
-
-    \fill[dpgreen!3, draw=dpgreen!25, container]
-      (3, 0.8) rectangle (16.5, -14.5)
-      node[font=\sffamily\small\bfseries, text=dpgreen!70,
-           anchor=north west] at (3.2, 0.6) {Data Plane (Kubernetes)};
-
-    \fill[burstpeach!3, draw=burstpeach!35, container]
-      (19, 0.8) rectangle (27, -14.5)
-      node[font=\sffamily\small\bfseries, text=burstpeach!70,
-           anchor=north] at (23, 0.6) {Storage \& DB};
-
-    % ══════════════════════════════════════════════════════════════
-    %  NODES
-    % ══════════════════════════════════════════════════════════════
-
-    % ── External Platforms ──
-    \node[pinkbox, text width=24mm]  (shopwh)  at (4, 14.2)
-      {Shopify\\Webhooks};
-    \node[bluebox, text width=25mm]  (shopapi) at (23, 15.5)
-      {Shopify APIs\\REST / GraphQL};
-    \node[bluebox, text width=25mm]  (amzapi)  at (23, 12.8)
-      {Amazon\\SP-API};
-
-    % ── Control Plane — upper row (y = 8.5) ──
-    \node[bluebox, text width=26mm]  (evbridge) at (4, 8.5)
-      {EventBridge\\schedules};
-    \node[bluebox, text width=42mm]  (cpgconn)  at (13, 8.5)
-      {\textbf{Controller Lambda:}\\
-       \textbf{CPG Connectors}\\
-       {\scriptsize(API + Webhook handler)}};
-    \node[bluecyl]                   (dynamo)   at (23.5, 8.5)
-      {DynamoDB};
-
-    % ── Control Plane — lower row (y = 4) ──
-    \node[purplebox, text width=24mm] (console) at (-1, 4)
-      {CPG Console\\{\scriptsize(Tenant Admin)}};
-    \node[purplebox, text width=22mm] (apigw)   at (8, 4)
-      {API Gateway};
-    \node[purplebox, text width=22mm] (ctrllam) at (13, 4)
-      {Controller\\Lambda};
-    \node[bluebox, text width=20mm]   (sqs)     at (18.5, 4)
-      {SQS\\{\scriptsize jobs \& events}};
-    \node[pinkbox, text width=36mm]   (secrets) at (24.5, 4)
-      {Secrets Manager\\{\scriptsize(tokens) $\|$ DynamoDB}};
-
-    % ── Data Plane — workers (x = 11) ──
-    \node[greenhex, text width=34mm, minimum height=22mm, minimum width=56mm] (k8sback) at (11, -3)
-      {K8s Job/Deployment\\(or ECS tasks or Step Function)\\
-       Shopify backfill worker};
-    \node[greenhex, text width=26mm] (k8samz)  at (11, -7.5)
-      {K8s Job/Deployment\\Amazon worker};
-    \node[greenhex, text width=34mm] (k8srt)   at (11, -11.5)
-      {K8s Deployment\\Shopify realtime worker};
-
-    % ── Storage (x = 23) ──
-    \node[orangecyl]  (s3)       at (23, -2.5)
-      {S3\\{\scriptsize raw connector data}};
-    \node[orangecyl]  (postgres) at (23, -10.5)
-      {Postgres\\{\scriptsize cpg\_stage / cpg\_core}};
-
-    % ══════════════════════════════════════════════════════════════
-    %  ARROWS
-    % ══════════════════════════════════════════════════════════════
-
-    %% ── Control-plane horizontal chains ──
-    \draw[arr] (console.east) --
-      node[L, above] {configure connectors / start sync} (apigw.west);
-    \draw[arr] (apigw.east) -- (ctrllam.west);
-    \draw[arr] (sqs.east) --
-      node[L, above] {update status} (secrets.west);
-
-    \draw[arr, densely dashed]
-      (evbridge.east) -- node[L, above] {cron schedules} (cpgconn.west);
-    \draw[arr] (cpgconn.east) --
-      node[L, above, pos=0.65] {store connector metadata} (dynamo.west);
-
-    %% ── Ctrl Lambda ↑ CPG Connectors ──
-    \draw[arr] (ctrllam.north) -- node[L, right] {invoke} (cpgconn.south);
-
-    %% ══════════════════════════════════════════════════════════════
-    %%  Shopify Webhooks → API Gateway
-    %%  Route: down inside External → EXIT External left wall →
-    %%         down outside at x=-4 → ENTER CP left wall at y=4 →
-    %%         right to apigw.west
-    %% ══════════════════════════════════════════════════════════════
-    \draw[arr, color=warnred!55]
-      (shopwh.south) -- (4, 12.5)          % straight down
-      -- (-3, 12.5)                         % straight left to extreme left
-      node[L, text=warnred!75, above, pos=0.5] {webhooks}
-      -- (-3, 6)                            % straight down outside containers
-      -- (8, 6)                             % straight right into CP, above components
-      -- (apigw.north);                     % straight down to API Gateway
-
-    %% ── CPG Connectors → SQS / Secrets ──
-    \draw[arr]
-      ([xshift=5mm]cpgconn.south) -- ++(0,-1.2)
-      -| node[L, right, pos=0.6] {enqueue jobs / events} (sqs.north);
-    \draw[arr]
-      ([xshift=12mm]cpgconn.south) -- ++(0,-0.6)
-      -| node[L, right, pos=0.3] {store access tokens} (secrets.north);
-
-    %% ══════════════════════════════════════════════════════════════
-    %%  SQS → three workers
-    %%  Route for each:
-    %%    SQS down inside CP → left → EXIT CP left wall (x=-1.5) →
-    %%    down OUTSIDE both containers → ENTER DP left wall (x=3) →
-    %%    right inside DP to worker.west
-    %% ══════════════════════════════════════════════════════════════
-
-    %  backfill: SQS down → left lane at x=1.5 → right into DP
-    \draw[arr]
-      ([xshift=-2mm]sqs.south) -- ++(0,-1.5)  % down inside CP
-      -- (1.5, 2.0)                            % left to lane
-      -- (1.5, -3)                             % down to worker y
-      -- node[L, above] {backfill + incremental}
-      (k8sback.west);                          % right into DP
-
-    %  amazon: SQS down → left lane at x=0.5 → right into DP
-    \draw[arr]
-      (sqs.south) -- ++(0,-1.0)               % down inside CP
-      -- (0.5, 2.5)                            % left to lane
-      -- (0.5, -7.5)                           % down to worker y
-      -- node[L, above] {amazon jobs}
-      (k8samz.west);                           % right into DP
-
-    %  realtime: SQS down → left lane at x=-0.5 → right into DP
-    \draw[arr]
-      ([xshift=2mm]sqs.south) -- ++(0,-0.5)   % down inside CP
-      -- (-0.5, 3.0)                           % left to lane
-      -- (-0.5, -11.5)                         % down to worker y
-      -- node[L, above] {realtime events}
-      (k8srt.west);                            % right into DP
-
-    %% ── Workers → Secrets Manager (read token, solid) ──
-    %% Route: up from worker → horizontal at y=1.1 (between CP and DP) → up to secrets
-    \draw[arr]
-      ([xshift=12mm]k8sback.north) -- (12.2, 1.1)     % straight up to gap
-      -- node[L, above] {read token}
-         (24.5, 1.1)                                    % straight right along gap
-      -- (24.5, 2.8);                                   % straight up to secrets bottom
-
-    %% ── Workers → External APIs (green, shifted left of SQS) ──
-    \draw[garr]
-      ([yshift=2mm]k8sback.east) -- (17.3,-2.8)
-      -- (17.3,15.5) -- node[GL, below] {API calls} (shopapi.west);
-    \draw[garr]
-      ([yshift=2mm]k8samz.east) -- (16.8,-7.3)
-      -- (16.8,12.8) -- node[GL, below] {SP-API calls} (amzapi.west);
-
-    %% ── Workers → S3 (green) ──
-    \draw[garr]
-      (k8sback.east) -- (18.8,-3)
-      -- node[GL, left, pos=0.55] {raw} (18.8,-2.5)
-      -- (s3.west);
-    \draw[garr]
-      ([yshift=-1mm]k8samz.east) -- (19.4,-7.6)
-      -- node[GL, left, pos=0.55] {raw} (19.4,-4.3)
-      -- ([yshift=-4mm]s3.west);
-
-    %% ── Workers → Postgres (green, staggered x-lanes) ──
-    \draw[garr]
-      ([yshift=-3mm]k8sback.east) -- (20,-3.3)
-      -- node[GL, right, pos=0.55] {normalized load}
-      (20,-8.2) -- ([yshift=4mm]postgres.west);
-    \draw[garr]
-      ([yshift=-4mm]k8samz.east) -- (20.5,-7.9)
-      -- (20.5,-10.5)
-      -- node[GL, above] {normalized load}
-      (postgres.west);
-    \draw[garr]
-      (k8srt.east) -- (20.9,-11.5)
-      -- (20.9,-12.5)
-      -- node[GL, above] {upsert}
-      ([yshift=-4mm]postgres.west);
-
+    \draw[arrow] (tenant) -- (subject);
+    \draw[arrow] (subject) -- (analysis);
+    \draw[arrow] (analysis) -- (graph);
+    \draw[arrow] (source) -- (analysis);
+    \draw[arrow] (graph.south west) .. controls +(-8mm,-4mm) and +(-8mm,4mm) .. node[note,left] {save\\version} (history.north west);
+    \draw[arrow] (history.north east) .. controls +(8mm,4mm) and +(8mm,-4mm) .. node[note,right] {restore} (graph.south east);
   \end{tikzpicture}%
-  }% end resizebox
-  \caption{Connector ingestion architecture. The CPG Console drives
-    connector configuration through the control plane (API Gateway
-    $\rightarrow$ Controller Lambda $\rightarrow$ CPG Connectors),
-    which stores metadata in DynamoDB, credentials in Secrets Manager,
-    and enqueues job intents into SQS\@. The data plane executes on
-    Kubernetes via three worker types: short-lived Jobs for Shopify
-    backfills, Jobs/Deployments for Amazon syncs, and an always-running
-    Deployment for Shopify real-time webhook consumption. All workers
-    write raw data to S3 and normalized data to Postgres
-    (\texttt{cpg\_stage}\,/\,\texttt{cpg\_core}). EventBridge provides
-    cron scheduling for Amazon pulls and webhook routing for Shopify
-    events.}
-  \label{fig:connector_arch}
+  }
+  \caption{DataMap artifact flow. Tenant scope is attached before the pipeline touches subjects, analyses, graph versions, or connector-backed inputs.}
+  \label{fig:datamap_flow}
 \end{figure}
-  \paragraph{Control plane responsibilities.}
-  When a tenant connects a source (e.g., Shopify), the request flows
-  through API Gateway into the platform control plane and a domain
-  controller service. That service:
-  \begin{itemize}
-    \item completes OAuth/auth, validates scopes, and handles webhook registration
-      via EventBridge,
 
-    \item stores connector metadata in DynamoDB (tenant, external identifiers,
-      status, last sync timestamps),
+A typical storage layout mirrors the same hierarchy. The exact table and bucket names are deployment details, but the key pattern is stable.
 
-    \item stores access tokens in Secrets Manager,
-
-    \item and enqueues job intents into SQS (e.g., \texttt{job\_type=historical\_backfill}
-      or \texttt{incremental\_sync}) with \texttt{tenant\_id} and
-      connector identifiers \cite{aws_sqs_docs}.
-  \end{itemize}
-  The UI hits \texttt{/v1/cpg/connectors/...} endpoints which read/write
-  job state from Dynamo so the tenant can see \emph{sync in progress /
-  completed / failed} per connector.
-
-% ------------------------------------------------------------------------------
-  \subsubsection{Data plane: historical backfill}
-  For historical download, the data plane uses Shopify Bulk Operations to
-  fetch large datasets efficiently. A \texttt{StartHistoricalPull} Lambda
-  validates scopes, starts bulk operations, and stores \texttt{bulk\_operation\_id}
-  and configuration in Dynamo. When Shopify completes the bulk operation,
-  a webhook routes via EventBridge into a \texttt{ProcessBulkResult} Lambda
-  \cite{aws_eventbridge_docs} that:
-  \begin{itemize}
-    \item downloads the JSONL result,
-
-    \item writes it to \texttt{S3/raw/} (partitioned by shop+date),
-
-    \item and writes staging extracts into \texttt{cpg\_stage}
-      \cite{aws_s3_docs}.
-  \end{itemize}
-  Normalization into the canonical model is executed by either Step
-  Functions, ECS ETL, or a container worker on Kubernetes (depending on workload
-  shape and cost profile)
-  \cite{aws_stepfunctions_docs,ecs_runtask,fargate_docs,eks_docs}.
-
-% ------------------------------------------------------------------------------
-  \subsubsection{Data plane: near-real-time (webhooks + always-running
-  workers)}
-  For ongoing updates, we combine Shopify webhooks with always-running workers
-  on Kubernetes:
-  \begin{itemize}
-    \item Shopify calls our webhook URLs (API Gateway $\rightarrow$
-      Lambda),
-
-    \item the webhook handler validates the HMAC signature, maps shop
-      domain $\rightarrow$ tenant/connector in Dynamo,
-
-    \item and writes a compact event into SQS (optionally storing full
-      payload in S3 for replay).
-  \end{itemize}
-  On Kubernetes, an always-running \texttt{shopify-realtime-worker}
-  consumes events, hydrates details when needed, and applies upsert
-  semantics into \texttt{cpg\_stage} / \texttt{cpg\_core}.
-
-  To cover missed webhooks, we can run periodic reconciliation (EventBridge
-  cron or Kubernetes cron): scan active connectors, enqueue an \texttt{incremental\_sync}
-  job with a window since \texttt{last\_incremental\_sync\_at}, and
-  process it with the same worker image. This yields near-real-time freshness
-  without depending on Airflow or long-lived Lambdas.
-
-% ------------------------------------------------------------------------------
-  \subsubsection{Amazon follows the same shape}
-  Amazon SP-API does not provide the same webhook story, so everything
-  is scheduled: EventBridge triggers a small coordinator Lambda that lists
-  active Amazon connectors and enqueues backfill/incremental jobs in SQS
-  per seller account. A Kubernetes worker image handles both backfills (short-lived
-  Jobs) and incremental syncs (Jobs or a Deployment), writing raw to S3 and
-  populating \texttt{cpg\_stage} / \texttt{cpg\_core}.
-
-% ------------------------------------------------------------------------------
-  \subsubsection{Role of Airflow}
-  Airflow is intentionally \emph{not} in the Shopify/Amazon datapull
-  path. We use Airflow later for offline analytics and forecasting \emph{on
-  top of} \texttt{cpg\_core} (nightly demand forecasts, promo elasticity
-  jobs, heavy batch analysis), keeping ingestion API-driven and multi-tenant
-  by design.
-
-% ------------------------------------------------------------------------------
-  \subsubsection{Tenant isolation in Postgres: tenant\_id + optional RLS
-  safety net}
-  Unlike schema-per-tenant systems, the CPG module uses shared schemas (\texttt{cpg\_stage},
-  \texttt{cpg\_core}) with \texttt{tenant\_id BIGINT NOT NULL} on tenant-owned
-  tables. The schema DDL makes this explicit across dimensions and facts
-  (e.g., \texttt{cpg\_core.fact\_order\_line} includes \texttt{tenant\_id}):
-
-  \newpage
-  \begin{samepage}
-    \begin{lstlisting}[style=sql,caption={Shared schemas + tenant\_id column.},label={lst:cpg_tenant_id}]
-CREATE SCHEMA IF NOT EXISTS {schema_prefix}_stage;
-CREATE SCHEMA IF NOT EXISTS {schema_prefix}_core;
-
-CREATE TABLE IF NOT EXISTS {schema_prefix}_core.fact_order_line (
-    order_line_pk BIGSERIAL PRIMARY KEY,
-    tenant_id     BIGINT    NOT NULL,
-    order_pk                BIGINT        NOT NULL REFERENCES {schema_prefix}_core.fact_order_header(order_pk),
-    sku_id                  BIGINT        NOT NULL REFERENCES {schema_prefix}_core.dim_sku(sku_id),
-    external_order_item_id  VARCHAR(255),        -- Shopify line_item.id, Amazon OrderItemId, etc.
-    ...
-
-    UNIQUE (tenant_id, order_pk, sku_id, COALESCE(external_order_item_id, ''))
-);
-
-CREATE INDEX IF NOT EXISTS fact_order_line_tenant_sku_idx
-    ON {schema_prefix}_core.fact_order_line (tenant_id, sku_id);
+\begin{lstlisting}[style=python, caption={Representative DataMap artifact key pattern.}]
+subject_key  = f"tenant#{tenant_id}#subject#{subject_id}"
+analysis_key = f"{subject_key}#analysis#{analysis_id}"
+graph_key    = f"{analysis_key}#graph#{graph_id}#version#{version}"
+object_key = (
+    f"tenants/{tenant_id}/subjects/{subject_id}/"
+    f"analyses/{analysis_id}/graphs/{graph_id}/{version}.json"
+)
 \end{lstlisting}
-  \end{samepage}
 
-  At runtime, the safest pattern is belt-and-suspenders: queries explicitly
-  filter by \texttt{tenant\_id}, and row-level security (RLS) can be enabled
-  as a backstop. A common approach is to bind tenant scope into the DB
-  session using a custom setting (GUC):
+That shape is deliberately boring. It makes version history auditable, lets multiple analyses exist under one subject, and leaves room for data sources to evolve from uploaded datasets to connector-backed queries without changing the tenant boundary.
 
-  \begin{samepage}
-    \begin{lstlisting}[style=sql,caption={Optional RLS backstop: bind tenant scope into the session and enforce via policy.},label={lst:rls_policy}]
--- application sets scope per request
-SET LOCAL app.tenant_id = '<tenant_id>';
+\subsection{Connector ingestion}
 
-ALTER TABLE {schema_prefix}_core.fact_order_line ENABLE ROW LEVEL SECURITY;
+Connector ingestion adds one more wrinkle: external systems. A connector has tenant-owned metadata, tenant-owned credentials, webhooks or polling jobs, and downstream events. The control plane owns the connector record and launches or receives work under tenant scope. Connector workers execute sync logic; they do not decide which tenant owns a token or destination.
 
-CREATE POLICY tenant_isolation_fact_order_line
-ON {schema_prefix}_core.fact_order_line
-USING (tenant_id = current_setting('app.tenant_id')::BIGINT);
-\end{lstlisting}
-  \end{samepage}
+\begin{figure}[H]
+  \centering
+  \resizebox{0.88\textwidth}{!}{%
+  \begin{tikzpicture}[
+    node distance=12mm and 18mm,
+    box/.style={draw, rounded corners=3pt, align=center, minimum width=31mm, minimum height=11mm, font=\small\sffamily},
+    arrow/.style={-{Latex[length=2.3mm]}, thick, color=gray!75}
+  ]
+    \node[box, fill=yellow!18, draw=yellow!55!black] (admin) {Tenant admin\\console action};
+    \node[box, fill=blue!10, draw=blue!55!black, right=of admin] (cp) {Control plane\\connector API};
+    \node[box, fill=violet!12, draw=violet!55!black, above right=of cp] (meta) {DynamoDB\\metadata + status};
+    \node[box, fill=red!8, draw=red!55!black, below right=of cp] (secrets) {Secrets Manager\\tokens};
+    \node[box, fill=green!10, draw=green!55!black, right=34mm of cp] (worker) {Connector worker\\sync / webhook};
+    \node[box, fill=orange!12, draw=orange!55!black, right=of worker] (events) {Tenant-scoped\\jobs + events};
 
-  This is the same paper thesis in SQL form: execution may be fast, but scope
-  must be explicit.
+    \draw[arrow] (admin) -- (cp);
+    \draw[arrow] (cp) -- (meta);
+    \draw[arrow] (cp) -- (secrets);
+    \draw[arrow] (cp) -- node[above, font=\scriptsize] {launch scoped job} (worker);
+    \draw[arrow] (worker) -- (events);
+    \draw[arrow] (worker) |- (meta);
+  \end{tikzpicture}%
+  }
+  \caption{Connector ingestion boundary. The control plane owns tenant metadata and credential binding; workers perform sync and event handling inside the injected tenant scope.}
+  \label{fig:connector_boundary}
+\end{figure}
 
-% ==============================================================================
-  \subsection{Optima: heavy compute as container services, governed by
-  serverless wrappers}
-  Some analytics do not fit inside Lambda without turning the deployment
-  into a gym membership: NumPy/pandas/CVXPY-class workloads either
-  exceed practical packaging limits or produce unacceptable cold starts.
-  We therefore implement Optima-style modules as \emph{container-native
-  compute} governed by the same control plane contracts as the rest of
-  the platform.
+This is the same pattern again. Interactive APIs, modeling pipelines, optimization jobs, and connector workers all receive scope. None of them should need a private theory of tenancy.
 
-  \paragraph{The pattern.}
-  Optima follows a three-part architecture that is intentionally reusable:
-  \begin{itemize}
-    \item \textbf{Thin serverless wrapper:} validates identity, derives effective
-      context, enforces licensing/seat gates, and emits a job intent (scope
-      + parameters).
+\subsection{Database scoping}
 
-    \item \textbf{Heavy container compute:} executes optimization/simulation/forecast
-      workloads on EKS/ECS/Fargate with warm dependencies and
-      predictable runtime behavior.
+Database credentials are managed by AWS Secrets Manager~\cite{aws_secrets_manager} and reached through RDS Proxy~\cite{aws_rds_proxy}. Per-tenant isolation uses PostgreSQL schemas: module Lambdas set \code{search_path} to a tenant-specific schema such as \code{acme_core} before executing queries~\cite{postgresql_set}.
 
-    \item \textbf{Artifact-first I/O:} large inputs/outputs move via S3
-      (often with presigned upload URLs), keeping API Gateway and the control
-      plane slim and reliable \cite{aws_s3_presigned,aws_s3_docs}.
-  \end{itemize}
+PostgreSQL does not allow parameter binding for \code{SET search_path}, so \scopeprefix{} is validated before use. The control plane validates before forwarding. Module Lambdas re-validate before issuing the statement. This second check is defense in depth. It protects against malformed strings. It does not replace authoritative derivation.
 
-  \paragraph{Synchronous vs asynchronous UX.}
-  For small computations, the wrapper can call the service synchronously.
-  For heavy tasks, the wrapper returns immediately with a \texttt{job\_id}
-  and a status endpoint; results are stored as S3 artifacts and referenced
-  by metadata. This avoids API Gateway timeout constraints while
-  preserving a clean user experience.
+\subsection{On-demand jobs}
 
-  \paragraph{Why.}
-  Optima is a proof that the control plane is not tied to a single execution
-  substrate. The same governance primitives—module gating, effective context,
-  scope envelope, auditability—apply whether execution happens in a Lambda
-  query plane (Horizon/Grid), a Kubernetes service (DataMap), a connector
-  worker fleet, or a heavy compute service (Optima). The platform is cohesive
-  because governance is cohesive.
+Fargate jobs receive scope at launch time through the ECS \code{RunTask} payload~\cite{ecs_runtask}. The job does not perform a new user lookup and does not resolve tenant membership. It receives a scoped job intent and runs.
+
+That rule keeps batch work inside the same governance model as interactive APIs. Jobs are not a back door. They are data-plane executions with a larger time budget.
+
+\subsection{One-directional dependency}
+
+The direction of dependency is deliberate. The control plane calls into the data plane. The data plane does not call back to ask who it is allowed to be. This avoids a circular governance path where every service is both execution engine and policy interpreter.
+
+The resulting contract is simple enough for engineers to remember: if a service needs tenant scope, it receives it from the control plane. If a service needs to invent tenant scope, the design has already failed.

@@ -1,206 +1,45 @@
-% ##############################################################################
-  \section{Operations and Reliability}
-  \label{sec:ops} The control plane/data plane separation is not only a design
-  preference; it is an operations strategy. When the platform misbehaves
-  (and it will), we want failures to be legible: \emph{what decided} and
-  \emph{what executed} should be distinguishable without reading tea leaves
-  in CloudWatch at 03:00.
+\section{Operations and Reliability}
+\label{sec:operations}
 
-% ==============================================================================
-  \subsection{Operational invariants}
-  We operate the system around invariants that make incidents less
-  creative:
+The control-plane boundary helped most in the ordinary work of operating tenants. It made changes smaller, logs clearer, and failure modes less mysterious.
 
-  \begin{itemize}
-    \item \textbf{I1 (No implicit tenancy):} every downstream call has
-      explicit tenant scope derived from authenticated context (e.g., \texttt{schema\_prefix}).
+\subsection{Lifecycle operations}
 
-    \item \textbf{I2 (Control plane decides):} capability and scope are
-      determined in the control plane and forwarded as inputs. Compute services
-      do not infer tenants.
+Most tenant lifecycle changes are data changes:
 
-    \item \textbf{I3 (Contracts are cache-friendly):} high-frequency
-      contracts (notably \texttt{/v2/me}) support conditional requests via
-      ETag/\texttt{If-None-Match} \cite{rfc9110}.
+\begin{itemize}
+  \item add a tenant,
+  \item enable or disable a module,
+  \item change module layout,
+  \item grant or revoke an impersonation target,
+  \item change a tenant schema prefix.
+\end{itemize}
 
-    \item \textbf{I4 (Actor remains attributable):} \viewas{} never overwrites
-      the actor; logs always contain both actor and effective context.
-  \end{itemize}
+These updates touch the tenant policy store and are visible at the next full materialization. Adding a new module type still requires code: routes, handlers, decorators, defaults, tests, and documentation. That is the right split. Routine tenant operations should not redeploy 12 services. New product surface should still go through engineering review.
 
-  These invariants are boring in the best possible way: they make
-  debugging mechanical.
+\subsection{ETag revalidation}
 
-% ==============================================================================
-  \subsection{Execution fabric: one platform, multiple shapes}
-  A platform that runs only one kind of workload is either very small or
-  lying. In \system{}, different workload shapes map to different execution
-  substrates:
+The \code{/v2/me} contract is called often enough that performance matters. Revalidating identity and effective context on every page load is valuable; re-sending the full payload each time is wasteful. ETag-based conditional requests keep the contract cheap enough to use as the platform's source of truth.
 
-  \begin{itemize}
-    \item \textbf{Control plane Lambda:} high fan-in governance calls (auth/context),
-      stable contracts, strict middleware enforcement
-      \cite{aws_lambda_docs,aws_powertools}.
+The steady-state hit rate is 91\%. A \code{304 Not Modified} response returns at 68 ms P50. Full materialization is slower, but less frequent. That is a reasonable trade: correctness is checked often, while expensive identity assembly happens when it has something to say.
 
-    \item \textbf{Module Lambdas (Horizon/Grid):} bursty interactive
-      query planes with strict tenant scoping and fast scaling
-      characteristics.
+\subsection{Logs and incident handling}
 
-    \item \textbf{Kubernetes services (EKS):} long-running services, schedulers,
-      and stateful components that benefit from steady orchestration
-      \cite{eks_docs}.
+Every request logs actor tenant, effective tenant, module context, and \scopeprefix{} where applicable. The distinction between actor and effective tenant is not a compliance flourish; it is how support sessions remain explainable.
 
-    \item \textbf{Airflow + ECS/Fargate:} bursty bounded jobs where
-      isolation is valuable and cluster debt is undesirable
-      \cite{ecs_runtask,fargate_docs}.
-  \end{itemize}
+A representative incident query looks for mismatches between actor tenant, effective tenant, and impersonation state. That catches missing-prefix requests and non-impersonation context divergence. It does not catch a wrong value that was consistently derived upstream. The logs are useful, not omniscient.
 
-  Figure~\ref{fig:workload_topology} presents these layers visually.
+\subsection{Adoption path}
 
-  \begin{figure}[H]
-    \centering
-    \resizebox{0.55\textwidth}{!}{%
-    \begin{cleanpic}
-      [ comp/.style={cbox, text width=28mm, minimum height=13mm}, layerband/.style={draw=gray!55, rounded corners=5pt, inner sep=8pt, drop shadow={shadow xshift=0.6mm, shadow yshift=-0.6mm, opacity=0.3}},
-      ]
-      % === Serverless Layer ===
-      \node[comp, fill=cpblue!25, draw=cpblue!50] (cp)
-      {\textbf{CP Lambda}\\(auth/context)}; \node[comp, fill=cpblue!25, draw=cpblue!50,
-      right=10mm of cp] (hz) {\textbf{Horizon}\\Lambda}; \node[comp, fill=cpblue!25,
-      draw=cpblue!50, right=10mm of hz] (gr) {\textbf{Grid}\\Lambda}; \node[font=\scriptsize\sffamily\bfseries,
-      text=cpblue!80!black, anchor=south west] at ([shift={(2pt,4pt)}]cp.north
-      west) (t1) {Serverless Layer};
+Migration does not need a flag day. The practical sequence is:
 
-      % === Container Layer ===
-      \node[comp, fill=dpgreen!25, draw=dpgreen!50, below=22mm of cp] (con)
-      {\textbf{Console}\\(Next.js)}; \node[comp, fill=dpgreen!25, draw=dpgreen!50,
-      right=10mm of con] (af) {\textbf{Airflow}\\(scheduler)}; \node[comp,
-      fill=dpgreen!25, draw=dpgreen!50, right=10mm of af] (dm) {\textbf{DataMap}\\Service};
-      \node[comp, fill=dpgreen!25, draw=dpgreen!50, right=10mm of dm] (opt)
-      {\textbf{Optima}\\(heavy compute)};
-      \node[font=\scriptsize\sffamily\bfseries, text=dpgreen!80!black,
-      anchor=south west] at ([shift={(2pt,4pt)}]con.north west) (t2)
-      {Container Layer (EKS)};
+\begin{enumerate}
+  \item deploy the control plane Lambda, tenant table, and \code{/v2/me} endpoint,
+  \item route selected service calls through the control plane,
+  \item replace local middleware with shared context handling,
+  \item add module decorators to routes,
+  \item move per-service module flags into the central tenant record,
+  \item turn on OpenAPI filtering for tenants with limited modules.
+\end{enumerate}
 
-      % === Burst Compute Layer ===
-      \node[comp, fill=burstpeach!28, draw=burstpeach!55, below=22mm of con]
-      (f1) {\textbf{ECS/Fargate}\\task (Horizon)}; \node[comp, fill=burstpeach!28,
-      draw=burstpeach!55, right=10mm of f1] (f2) {\textbf{ECS/Fargate}\\task (Grid)};
-      \node[comp, fill=burstpeach!28, draw=burstpeach!55, right=10mm of f2]
-      (f3) {\textbf{ECS/Fargate}\\task (pipeline)}; \node[font=\scriptsize\sffamily\bfseries,
-      text=burstpeach!80!black, anchor=south west] at ([shift={(2pt,4pt)}]f1.north
-      west) (t3) {Burst Compute Layer};
-
-      % === Layer bands on background (fit includes title nodes) ===
-      \begin{pgfonlayer}{background}
-        \node[layerband, fill=cpblue!8, fit=(t1)(cp)(hz)(gr)] (sl) {};
-        \node[layerband, fill=dpgreen!8, fit=(t2)(con)(af)(dm)(opt)] (cl) {};
-        \node[layerband, fill=burstpeach!8, fit=(t3)(f1)(f2)(f3)]
-          (bl)
-          {};
-      \end{pgfonlayer}
-
-      % === Arrows between layer bands (labels sit in the gap) ===
-      \draw[carrow] (sl.south) -- node[clabel, right] {delegate} (cl.north);
-      \draw[carrow] (cl.south) -- node[clabel, right] {dispatch} (bl.north);
-    \end{cleanpic}%
-    }% end resizebox
-    \caption{Workload topology: serverless functions handle governance and
-    bursty queries; containers run long-lived services; Fargate provides
-    isolated burst compute dispatched by Airflow.}
-    \label{fig:workload_topology}
-  \end{figure}
-
-  \begin{table}[H]
-    \centering
-    \small \resizebox{\textwidth}{!}{%
-    \begin{tabular}{p{2.8cm} p{3.4cm} p{2.6cm} p{3.5cm} p{3.5cm}}
-      \toprule \textbf{Component}            & \textbf{Purpose}                                      & \textbf{Scale pattern}   & \textbf{Tenant scoping source}                                                                 & \textbf{Operational failure mode}                                      \\
-      \midrule Control Plane (Lambda)        & context, policy materialization, surface minimization & spiky, fan-in, cacheable & JWT + group-derived role; \viewas{} allow-list; derives \texttt{schema\_prefix}                & cold starts, upstream auth issues, config parsing failures             \\
-      \addlinespace Horizon Lambda           & interactive query plane (KPIs, etc.)                  & bursty dashboard traffic & tenant\_id + derived DB scope (e.g., \texttt{schema\_prefix}); refuses missing scope           & DB connection pressure, slow queries, missing scope rejected early     \\
-      \addlinespace Grid Lambda              & interactive analytics / signals                       & bursty; periodic spikes  & tenant\_id + derived DB scope (e.g., \texttt{schema\_prefix}); scope injected by control plane & slow queries; stale caches; scope mismatch surfaces as explicit error  \\
-      \addlinespace DataMap Service (EKS)    & studio workflow + APIs                                & steady + autoscaled      & request context from platform + persistent storage model                                       & resource contention, rollout issues, noisy-neighbor within cluster     \\
-      \addlinespace Optima (EKS/ECS)        & compute-heavy optimization / batch analytics          & steady or bursty (async) & tenant\_id + job intent (and optional artifact pointers in S3)                                 & queue backlogs, capacity/provisioning tails, long-running job timeouts \\
-      \addlinespace Airflow + ECS/Fargate    & pipelines + bounded jobs                              & scheduled + bursty       & job params include explicit tenant scope (passed as env/args)                                  & capacity/provisioning failures; retries; long tail run times           \\
-      \bottomrule
-    \end{tabular}%
-    }% end resizebox
-    \caption{Module backend comparison: different workload shapes, one
-    scoping principle.}
-    \label{tab:module_backend_comparison}
-  \end{table}
-
-% ==============================================================================
-  \subsection{Delegation pipeline: scope injection as an operational safety
-  rail}
-  The most useful operational feature is not fancy dashboards; it is the
-  elimination of ambiguous scope. Figure~\ref{fig:delegation_scope}
-  shows the delegation pipeline for a module request where the control
-  plane forwards to a module Lambda and injects derived tenant scope.
-
-  \begin{figure}[H]
-    \centering
-    \resizebox{\textwidth}{!}{%
-    \begin{cleanpic}
-      [node distance=14mm and 14mm]
-      % --- Row 1: request path ---
-      \node[cwide, text width=34mm, fill=webteal!25, draw=webteal!50] (user)
-      {\textbf{User}\\browser}; \node[cwide, text width=38mm, fill=webteal!25,
-      draw=webteal!50, right=18mm of user] (web) {\textbf{Web Tier}\\server session\\(stores \viewas{})};
-      \node[cwide, text width=38mm, fill=cpblue!25, draw=cpblue!50,
-      right=18mm of web] (cp) {\textbf{Control Plane}\\Lambda\\(middleware)};
-
-      % --- Row 2: delegation path ---
-      \node[cwide, text width=38mm, fill=cpblue!25, draw=cpblue!50, below=18mm
-      of cp] (mod) {\textbf{Module Lambda}\\Horizon/Grid}; \node[cwide,
-      text width=38mm, fill=storelavender!25, draw=storelavender!50, right=18mm
-      of mod] (db) {\textbf{Tenant DB}\\RDS/Postgres};
-
-      % --- Row 1 arrows ---
-      \draw[carrow] (user) -- node[clabel, above] {request page} (web); \draw[carrow]
-      ([yshift=2mm]web.east) -- node[clabel, above]
-      {\texttt{/v2/me}\\ETag revalidate} ([yshift=2mm]cp.west); \draw[carrow]
-      ([yshift=-2mm]web.east) -- node[clabel, below] {module API call} ([yshift=-2mm]cp.west);
-
-      % --- Row 1 → Row 2 arrow ---
-      \draw[carrow] (cp.south) -- node[clabel, right]
-      {delegate + inject\\\texttt{schema\_prefix}} (mod.north);
-
-      % --- Row 2 arrow ---
-      \draw[carrow] (mod) -- node[clabel, above]
-      {queries within\\\texttt{\{prefix\}\_core}} (db);
-
-      % --- Annotation ---
-      \path (mod.south) ++(0,-8mm) node[anchor=north, clabel, text width=140mm,
-      font=\small\sffamily]
-      {\textbf{Key safety rail:} the client does not choose tenant scope. The control plane derives it from identity/\viewas{}, injects it downstream, and logs both actor and effective context.};
-    \end{cleanpic}%
-    }% end resizebox
-    \caption{Control plane delegation with scope injection. Tenant scope
-    is derived, not supplied.}
-    \label{fig:delegation_scope}
-  \end{figure}
-
-% ==============================================================================
-  \subsection{Observability: attribution beats volume}
-  A multi-tenant platform does not need more logs; it needs more \emph{attribution}.
-  We treat actor and effective context as first-class log fields and
-  propagate request IDs end-to-end (web tier $\rightarrow$ control plane
-  $\rightarrow$ module backends). This keeps incident timelines coherent
-  and prevents the classic failure mode where operators spend hours proving
-  what tenant a request belonged to.
-
-% ==============================================================================
-  \subsection{Change management: policy edits are production changes}
-  Because tenant/module configuration is loaded at runtime, changes to
-  it are treated as production changes. Operationally, that means:
-  \begin{itemize}
-    \item schema validation and strict JSON parsing (fail fast, do not half-render),
-
-    \item reviewed changes (diffable, rollbackable),
-
-    \item and staged rollouts when altering module surfaces.
-  \end{itemize}
-
-  The platform remains evolvable because governance changes are data
-  operations, but they remain safe because those data operations are handled
-  with the same discipline as code.
+The migration of 12 services took approximately 160 engineer-hours across two sprints, including tests. That is not free. It is still cheaper than carrying a permanent governance tax in every service.

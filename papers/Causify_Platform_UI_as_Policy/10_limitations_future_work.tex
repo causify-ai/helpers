@@ -1,36 +1,20 @@
 % ##############################################################################
-  \section{Limitations and Future Work}
-  \label{sec:futurework} \uiPolicy{} makes a specific trade: it shifts some product definition into
-  data. This buys flexibility, but it introduces new responsibilities.
+\section{Limitations and Future Work}
+\label{sec:futurework}
 
-  \paragraph{Policy schema validation.}
-  Today, malformed \texttt{moduleLayout} JSON is rejected at runtime.
-  Future work should include:
-  \begin{itemize}
-    \item a versioned JSON schema for layout fragments,
+\uiPolicy{} trades hidden frontend logic for explicit policy data. That is a better place for the complexity, not a magic deletion of it.
 
-    \item offline validation tooling (CI + pre-commit),
+\paragraph{Schema governance.}
+The current system rejects malformed layout at materialization time. A stronger version would use versioned JSON Schema, offline validation, and migration tooling before records reach production.
 
-    \item migration helpers when layout structures evolve.
-  \end{itemize}
+\paragraph{Propagation delay.}
+Policy changes currently take effect at the next page load or full materialization. DynamoDB Streams, policy-version bumps, or push invalidation would shorten the window for urgent changes.
 
-  \paragraph{Signature verification in the control plane.}
-  The web tier signs \texttt{X-View-As}. Verifying \texttt{X-View-As-Sig}
-  in the control plane would strengthen defense-in-depth and make header
-  provenance auditable end-to-end.
+\paragraph{View-as verification.}
+The signing flow narrows replay and header-injection risk. A future hardening step is end-to-end signature verification in the control plane, with key identifiers and rotation metadata logged alongside activation events.
 
-  \paragraph{Push-based invalidation.}
-  ETags and short TTL caching work well for most edits, but critical
-  policy updates may benefit from push invalidation (e.g., event-driven cache
-  busting or policy version bumps in the session).
+\paragraph{Coverage beyond migrated surfaces.}
+The invariant holds for surfaces migrated to the contract. Legacy components still need audit and migration. A full tenant-matrix CI gate should become a release door, not a best-effort test.
 
-  \paragraph{Finer-grained capabilities.}
-  Today, capabilities are primarily module-centric. Extending to feature-
-  and resource-level controls (within a module) is feasible, but must preserve
-  the single-source-of-truth property and avoid reintroducing drift through
-  ad-hoc UI conditions.
-
-  \paragraph{Governance and authoring experience.}
-  A policy-as-data system needs governance: who can change tenant policy,
-  how changes are reviewed, and how rollbacks work. A structured policy
-  editor (with preview and diffing) is a natural next step.
+\paragraph{Authoring experience.}
+A policy-as-data system deserves an operator interface: preview, diff, approval, rollback, and tenant-scoped simulation. Without that, the policy store risks becoming the new place where tribal knowledge hides.
