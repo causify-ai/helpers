@@ -213,7 +213,7 @@ _ENGINES = ["pandoc", "python"]
 
 # Available and default actions.
 _VALID_ACTIONS = ["download", "convert", "cleanup", "lint"]
-_DEFAULT_ACTIONS = ["download", "convert"]
+_DEFAULT_ACTIONS = ["download", "convert", "cleanup", "lint"]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -226,13 +226,13 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
     )
     parser.add_argument(
-        "--input",
+        "-i", "--input",
         type=str,
         required=True,
         help="Input: URL or HTML file path",
     )
     parser.add_argument(
-        "--output",
+        "-o", "--output",
         type=str,
         required=True,
         help="Output markdown file path",
