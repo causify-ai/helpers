@@ -16,18 +16,20 @@ In lint_txt.py
   - Added _filter_actions_by_format() to auto-filter unsupported actions
   - Integration: _perform_actions() now filters based on file format
 
-- [ ] Move the code from lint_txt.py to lib_lint_txt.py, using an approach
-  similar to
-  ./dev_scripts_helpers/documentation/lib_notes_to_pdf.py
-  ./dev_scripts_helpers/documentation/notes_to_pdf.py
-  ./dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
-  ./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
+- [ ] Move extract_protected_content inside preprocess
 
 - [ ] Rename the phase prettier to beautify
   - For md only lint, ...
 
 - [ ] preprocess and postprocess are used to transform / comment out stuff that the
   beautifier doesn't like, or support (e.g., since it's not markdown like *)
+
+- [ ] Move the code from lint_txt.py to lib_lint_txt.py, using an approach
+  similar to
+  ./dev_scripts_helpers/documentation/lib_notes_to_pdf.py
+  ./dev_scripts_helpers/documentation/notes_to_pdf.py
+  ./dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
+  ./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
 
 # Conventions
 - When writing code you must always follow the instructions in

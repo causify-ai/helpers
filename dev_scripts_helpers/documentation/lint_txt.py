@@ -659,57 +659,62 @@ def _perform_actions(
 
 # #############################################################################
 
-_VALID_ACTIONS = [
-    # Preprocess the given text before applying `prettier`.
-    "preprocess",
-    # Prettify the given text with `prettier` for both latex and markdown.
-    "prettier",
-    # Post-process the given text.
-    "postprocess",
-    # Remove unwanted indentation added by prettier to code block lines
-    # starting with `>`.
-    "remove_code_block_extra_indentation",
-    # Remove page separator lines (---).
-    "remove_page_separators",
-    # Remove empty lines after headers and before code blocks.
-    "handle_empty_lines",
-    # Add blank lines between consecutive headers.
-    "add_blank_lines_between_headers",
-    # Convert `* ` bullets to `- `.
-    "convert_asterisk_bullets_to_dashes",
-    # Remove trailing periods from bullet points, headers, and numbered lists.
-    "remove_trailing_periods",
-    # Replace ` — ` with `: ` after non-whitespace.
-    "replace_em_dash_with_colon",
-    # Remove markdown syntax from text (bold, italic, links, images, etc.).
-    "remove_markdown_formatting",
-    # TODO(ai_gp): Add
-    "frame_chapters",
-    # TODO(ai_gp): Add
-    "capitalize_header",
-    # Refresh the table of contents.
-    "refresh_toc",
-    # Check if URLs in the file are reachable.
-    "check_links",
-]
-
-
-# Map actions to supported file formats (targets).
-_ACTIONS_BY_TARGET = {
+_VALID_ACTIONS = {
+    # Preprocess text before formatting: normalize artifacts, handle math equations.
+    # - Convert Google Docs smart quotes to ASCII
+    # - Protect math blocks (`$$...$$`)
+    # - Normalize bullet points and whitespace
     "preprocess": ["md", "tex", "txt", "emd"],
+    # Apply prettier/mdformat formatting.
+    # - Wrap lines to specified width
+    # - Reformat bullet lists and code blocks
+    # - Normalize markdown/text syntax
     "prettier": ["md", "tex", "txt", "emd"],
+    # Post-process formatted text: restore protected content, capitalize lists.
+    # - Restore starred bullets `*` -> `*`
+    # - Capitalize first letter of bullet points
+    # - Remove empty lines around code blocks
     "postprocess": ["md", "tex", "txt", "emd"],
+    # Remove extra indentation added by prettier inside code blocks.
+    # - Fixes over-indented code lines
     "remove_code_block_extra_indentation": ["md", "tex", "txt", "emd"],
+    # Remove page separator lines (`---`).
+    # - Cleans up document structure
     "remove_page_separators": ["md", "tex", "txt", "emd"],
+    # Remove empty lines after headers and before code blocks.
+    # - `# Header\n\ntext` -> `# Header\ntext`
+    # - `text\n\n\`\`\`` -> `text\n\`\`\``
     "handle_empty_lines": ["md", "emd"],
+    # Add blank lines between consecutive markdown headers.
+    # - `# H1\n## H2` -> `# H1\n\n## H2`
     "add_blank_lines_between_headers": ["md", "emd"],
+    # Convert asterisk bullets (`*`) to dash bullets (`-`).
+    # - `* item` -> `- item`
+    # - `* nested` -> `- nested`
     "convert_asterisk_bullets_to_dashes": ["md", "txt", "emd"],
+    # Remove trailing periods from bullet points and list items.
+    # - `- item.` -> `- item`
+    # - `1) numbered.` -> `1) numbered`
     "remove_trailing_periods": ["md", "tex", "txt", "emd"],
+    # Replace em dash (`—`) with colon (`:`) in list items.
+    # - `- term — definition` -> `- term: definition`
     "replace_em_dash_with_colon": ["md", "tex", "txt", "emd"],
+    # Remove markdown syntax from text: bold, italic, links, images, headers.
+    # - `**bold** *italic* [link](url)` -> `bold italic link`
+    # - `# Header` -> `Header`
     "remove_markdown_formatting": ["md", "emd"],
+    # Add visual frame around section headers.
+    # - `# Chapter` -> `# ###############\n# Chapter\n# ###############`
     "frame_chapters": ["md", "tex", "txt", "emd"],
+    # Capitalize first letter of bullet points and headers.
+    # - `- hello world` -> `- Hello world`
+    # - `# my title` -> `# My Title`
     "capitalize_header": ["md", "txt", "emd"],
+    # Regenerate table of contents (markdown only).
+    # - `<!-- toc --> ... <!-- tocstop -->` -> auto-generated TOC
     "refresh_toc": ["md", "emd"],
+    # Validate all URLs in the document are reachable.
+    # - Performs HTTP requests to check link status
     "check_links": ["md", "tex", "txt", "emd"],
 }
 
@@ -722,8 +727,8 @@ def _is_action_supported_for_format(action: str, extension: str) -> bool:
     :param extension: The file extension (md, tex, txt, emd).
     :return: True if the action is supported, False otherwise.
     """
-    hdbg.dassert_in(action, _ACTIONS_BY_TARGET, msg=f"Unknown action: {action}")
-    return extension in _ACTIONS_BY_TARGET[action]
+    hdbg.dassert_in(action, _VALID_ACTIONS, msg=f"Unknown action: {action}")
+    return extension in _VALID_ACTIONS[action]
 
 
 def _filter_actions_by_format(
@@ -795,10 +800,10 @@ def _revert_from_backup(file_path: str) -> None:
     _LOG.info("File reverted successfully")
 
 
-# All actions excluding a few one.
+# Default actions (excluding some that need explicit opt-in).
 _DEFAULT_ACTIONS = [
     action
-    for action in _VALID_ACTIONS
+    for action in _VALID_ACTIONS.keys()
     if action
     not in [
         "frame_chapters",
@@ -935,7 +940,7 @@ def _parser() -> argparse.ArgumentParser:
         default=False,
         help="Revert a file from its backup copy",
     )
-    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, list(_VALID_ACTIONS.keys()), _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -957,10 +962,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _revert_from_backup(in_file_name)
         return
     # Print actions (once for all files).
-    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, list(_VALID_ACTIONS.keys()), _DEFAULT_ACTIONS)
     add_frame = True
     actions_as_str = hselacti.actions_to_string(
-        actions, _VALID_ACTIONS, add_frame
+        actions, list(_VALID_ACTIONS.keys()), add_frame
     )
     _LOG.info("\n%s", actions_as_str)
     # Check if processing multiple files or a single file.

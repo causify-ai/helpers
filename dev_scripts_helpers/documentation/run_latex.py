@@ -69,7 +69,7 @@ def _report_log_warnings(log_file_path: str) -> List[str]:
             "Log file '%s' not found; skipping warning check", log_file_path
         )
         return []
-    lines = hio.from_file(log_file_path).splitlines()
+    lines = hio.from_file(log_file_path, encoding="latin-1").splitlines()
     warnings = [line for line in lines if _WARNING_REGEX.match(line)]
     for warning in warnings:
         _LOG.warning("%s", warning)
