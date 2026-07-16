@@ -37,16 +37,17 @@ In lint_txt.py
     ```
     while it should be left unchanged
 
-- [ ] Move extract_protected_content inside preprocess
+- [x] 6 Move extract_protected_content inside preprocess
 
-- [ ] Add a --daemon mode to run_latex.py similar to notes_to_pdf.py (with the
+- [x] 7 Add a --daemon mode to run_latex.py similar to notes_to_pdf.py (with the
   debounce) and also change the tmux name using the context manager
 
-- [ ] Rename the phase prettier to beautify
+- [ ] 8 Rename the phase prettier to beautify
   - For md only lint, ...
 
-- [ ] preprocess and postprocess are used to transform / comment out stuff that the
-  beautifier doesn't like, or support (e.g., since it's not markdown like *)
+- [ ] preprocess and postprocess should be used to transform / comment out stuff
+  that the beautifier doesn't like, or support (e.g., since it's not markdown
+  like *)
 
 - [ ] Move the code from lint_txt.py to lib_lint_txt.py, using an approach
   similar to

@@ -21,10 +21,10 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 import argparse
 import logging
 import os
-import shlex
 import sys
 from typing import Any, List, Optional, Tuple, cast
 
+import helpers.hdaemon as hdaem
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
@@ -34,7 +34,6 @@ import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import helpers.htmux as htmux
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 _LOG = logging.getLogger(__name__)
@@ -431,11 +430,7 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use the host tools instead of the dockerized ones",
     )
-    parser.add_argument(
-        "--daemon",
-        action="store_true",
-        help="Watch input file for changes and regenerate on change",
-    )
+    hdaem.add_daemon_arg(parser)
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -448,14 +443,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
-        # Build command without --daemon flag for daemon_watch to execute.
-        cmd_parts = [sys.argv[0]] + [
-            arg for arg in sys.argv[1:] if arg != "--daemon"
-        ]
-        cmd = " ".join(shlex.quote(part) for part in cmd_parts)
-        _LOG.info("Daemon mode: watching '%s' for changes", args.input)
-        with htmux.window_name("notes_to_pdf"):
-            dshdlntpd.daemon_watch(args.input, cmd)
+        # TODO(ai_gp): Assign to variables and pass those.
+        hdaem.run_daemon_mode(args.input, "notes_to_pdf", watch_cmd_suffix=" --skip_action=open")
     else:
         _run_all(args)
 

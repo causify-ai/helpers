@@ -92,7 +92,11 @@ class Test_lint_txt1(hunitest.TestCase):
         :param txt: Input text to preprocess
         :param expected: Expected output after preprocessing
         """
-        _helper_process_lines(self, txt, expected, dshdlitx._preprocess_txt)
+        def preprocess_wrapper(lines: List[str]) -> List[str]:
+            processed_lines, _ = dshdlitx._preprocess_txt(lines, "txt")
+            return processed_lines
+
+        _helper_process_lines(self, txt, expected, preprocess_wrapper)
 
     # //////////////////////////////////////////////////////////////////////////
 

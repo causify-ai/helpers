@@ -18,13 +18,12 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
-import hashlib
 import logging
 import os
 import re
-import time
 from typing import Any, List, Optional, Tuple
 
+import helpers.hdaemon as hdaem
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -86,85 +85,6 @@ def _mark_action(
     if not to_execute:
         _append_script("## skipping this action")
     return to_execute, actions
-
-
-# #############################################################################
-# Daemon Logic
-# #############################################################################
-
-
-def _file_hash(file_path: str) -> str:
-    """
-    Compute MD5 hash of a file.
-    """
-    hasher = hashlib.md5()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):
-            hasher.update(chunk)
-    return hasher.hexdigest()
-
-
-def daemon_watch(
-    file_path: str, cmd: str, *, wait_in_sec: int = 1, debounce_sec: int = 2
-) -> None:
-    """
-    Watch a file for changes and re-run command with debouncing.
-
-    Polls the file at regular intervals by computing its MD5 hash. When a
-    change is detected, waits for `debounce_sec` seconds with no further
-    changes before executing the command. This prevents repeatedly running
-    the command while the user is still editing the file.
-
-    :param file_path: Path to file to monitor
-    :param cmd: Command to execute when file changes
-    :param wait_in_sec: Poll interval in seconds (default: 1)
-    :param debounce_sec: Debounce duration in seconds (default: 2)
-    """
-    _LOG.info(
-        "Daemon mode: watching '%s' for changes (poll every 1s, debounce %ds)...",
-        file_path,
-        debounce_sec,
-    )
-    hdbg.dassert_file_exists(file_path)
-
-    # TODO(ai_gp): Use system(..., abort_on_error=False)
-    def _run_cmd(cmd_to_run: str) -> None:
-        try:
-            hsystem.system(cmd_to_run)
-        except Exception as e:
-            _LOG.error("Daemon: command failed: %s", e)
-
-    # Run immediately on first launch, opening the output file so the user
-    # has a viewer (e.g., Skim) attached to it.
-    _LOG.info("Initial run...")
-    _run_cmd(cmd)
-    # On subsequent regenerations skip opening the file since the viewer
-    # already open auto-reloads on change.
-    watch_cmd = cmd + " --skip_action=open"
-    prev_hash = _file_hash(file_path)
-    stable_hash = None
-    time_since_last_change = 0
-    while True:
-        time.sleep(wait_in_sec)
-        cur_hash = _file_hash(file_path)
-        if cur_hash != prev_hash:
-            # File changed, start debounce.
-            _LOG.info(
-                "File changed (hash: %s -> %s). Debouncing...",
-                prev_hash,
-                cur_hash,
-            )
-            stable_hash = cur_hash
-            time_since_last_change = 0
-            prev_hash = cur_hash
-        elif stable_hash is not None:
-            # In debounce period, tracking time without changes.
-            time_since_last_change += 1
-            if time_since_last_change >= debounce_sec:
-                # Debounce complete, regenerate.
-                _LOG.info("Debounce complete. Regenerating...")
-                _run_cmd(watch_cmd)
-                stable_hash = None
 
 
 # #############################################################################

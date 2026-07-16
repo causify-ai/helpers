@@ -42,11 +42,17 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _preprocess_txt(lines: List[str]) -> List[str]:
+# TODO(ai_gp): Use Tuple and Dict[str, ...]
+def _preprocess_txt(lines: List[str], extension: str) -> tuple[List[str], dict]:
     """
     Preprocess the given text before applying `prettier`.
 
+    Extracts protected content (fenced blocks, comments, math blocks) before
+    processing and returns both the processed lines and the protected map for
+    later restoration.
+
     E.g.,
+    - Extract protected content (fenced blocks, comments, math blocks)
     - Handle stars `*` from txt files
     - Remove various artifacts (e.g., from Google Docs)
     - Format math equations
@@ -54,9 +60,12 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     - Format frames
 
     :param lines: The lines to be processed.
-    :return: The preprocessed lines.
+    :param extension: The file extension (md, tex, txt, emd).
+    :return: Tuple of (preprocessed lines, protected content map).
     """
     _LOG.debug("lines=%s", lines)
+    # 0) Extract protected content (fenced blocks, comments, math blocks).
+    lines, protected_map = htexprot.extract_protected_content(lines, extension)
     # 1) Remove some artifacts when copying from Google Docs.
     # TODO(gp): Extract this into remove_google_docs_artifacts() since it is
     # used in other places.
@@ -125,7 +134,7 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     # 6) Remove more than 2 consecutive empty lines.
     hprint.remove_empty_lines(txt_new, mode="no_consecutive_empty_lines")
     hdbg.dassert_isinstance(txt_new, list)
-    return txt_new
+    return txt_new, protected_map
 
 
 def _remove_page_separators(lines: List[str]) -> List[str]:
@@ -563,12 +572,11 @@ def _perform_actions(
     yaml_frontmatter: List[str] = []
     if is_md_file:
         yaml_frontmatter, lines = hmartoc.extract_yaml_frontmatter(lines)
-    # Extract protected content (fenced blocks, comments, math blocks).
-    lines, protected_map = htexprot.extract_protected_content(lines, extension)
-    # Pre-process text.
+    # Pre-process text (including protected content extraction).
     action = "preprocess"
+    protected_map: dict = {}
     if _to_execute_action(action, actions):
-        lines = _preprocess_txt(lines)
+        lines, protected_map = _preprocess_txt(lines, extension)
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):

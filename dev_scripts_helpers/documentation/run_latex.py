@@ -21,7 +21,10 @@ Usage examples:
 > run_latex.py --input book.tex --num_passes 3
 
 # Build, copy to Google Drive, and open the PDF in Skim.
-> run_latex.py --input book.tex --open
+> run_latex.py --input book.tex -a copy_to_gdrive -a open
+
+# Watch mode: rebuild on file changes, skip opening on subsequent runs.
+> run_latex.py --input book.tex --daemon
 
 Import as:
 
@@ -36,15 +39,33 @@ import re
 import shutil
 from typing import List
 
+import helpers.hdaemon as hdaem
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
+import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import helpers.hselect_action as hselacti
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 
 _LOG = logging.getLogger(__name__)
+
+# #############################################################################
+# Actions
+# #############################################################################
+
+_VALID_ACTIONS = [
+    "compile",
+    "copy_to_gdrive",
+    "open",
+]
+
+_DEFAULT_ACTIONS = [
+    "compile",
+    "copy_to_gdrive",
+    "open",
+]
 
 # #############################################################################
 # Compilation
@@ -219,16 +240,9 @@ def _parse() -> argparse.ArgumentParser:
             "2 (resolve cross-references), 3 (full build with bibliography)"
         ),
     )
-    parser.add_argument(
-        "--copy_to_gdrive",
-        action="store_true",
-        default=False,
-        help=(
-            "Copy the resulting PDF to the Google Drive folders used"
-        ),
-    )
+    hdaem.add_daemon_arg(parser)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
-    dshddout.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -244,19 +258,29 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if out_file_path == "":
         out_file_path = hio.change_filename_extension(in_file_path, "tex", "pdf")
     out_file_path = os.path.abspath(out_file_path)
-    # Compile.
-    _compile_latex(
-        in_file_path,
-        out_file_path,
-        args.num_passes,
-        force_rebuild=args.dockerized_force_rebuild,
-        use_sudo=args.dockerized_use_sudo,
-    )
-    _LOG.info("Output written to '%s'", out_file_path)
-    if args.copy_to_gdrive:
-        _copy_to_google_drive(out_file_path)
-    if args.open:
-        dshddout.open_file_on_macos(out_file_path)
+    # Handle daemon mode.
+    if args.daemon:
+        # Skip "open" action on watch runs (viewer auto-reloads).
+        hdaem.run_daemon_mode(in_file_path, "run_latex", watch_cmd_suffix=" --skip_action=open")
+    else:
+        # Get actions.
+        actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+        # Compile action.
+        if "compile" in actions:
+            _compile_latex(
+                in_file_path,
+                out_file_path,
+                args.num_passes,
+                force_rebuild=args.dockerized_force_rebuild,
+                use_sudo=args.dockerized_use_sudo,
+            )
+            _LOG.info("Output written to '%s'", out_file_path)
+        # Copy to Google Drive action.
+        if "copy_to_gdrive" in actions:
+            _copy_to_google_drive(out_file_path)
+        # Open action.
+        if "open" in actions:
+            hopen.open_file(out_file_path)
 
 
 if __name__ == "__main__":
