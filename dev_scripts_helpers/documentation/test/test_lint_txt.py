@@ -2178,6 +2178,35 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.superslow
+    def test10(self) -> None:
+        """
+        Verifies that consecutive tex comment lines stay separate after
+        prettier formatting.
+        """
+        txt = r"""
+        % git_hash=f15bc6b9, timestamp=2026-07-15 14:41:12 EDT
+        %%%% Chapter file for Why Decisions, Not Predictions %%%%
+        % This chapter file can be compiled standalone or included in the root book.tex
+        """
+        expected = txt
+        file_name = "test.tex"
+        self.helper(txt, expected, file_name)
+
+    @pytest.mark.superslow
+    def test11(self) -> None:
+        """
+        Verifies that a comment line followed by LaTeX content does not get
+        merged.
+        """
+        txt = r"""
+        % From: '* Why Traditional ML Falls Short'
+        \textbf{Why Traditional ML Falls Short}
+        """
+        expected = txt
+        file_name = "test.tex"
+        self.helper(txt, expected, file_name)
+
 
 # #############################################################################
 # Test_lint_txt_py1

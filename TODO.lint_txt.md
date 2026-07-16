@@ -16,7 +16,7 @@ In lint_txt.py
   - Added _filter_actions_by_format() to auto-filter unsupported actions
   - Integration: _perform_actions() now filters based on file format
 
-- [ ] 5 Fix extract_protected_content so that
+- [x] 5 Fix extract_protected_content so that
   ```
   % git_hash=f15bc6b9, timestamp=2026-07-15 14:41:12 EDT
   %%%% Chapter file for Why Decisions, Not Predictions %%%%
@@ -38,6 +38,9 @@ In lint_txt.py
     while it should be left unchanged
 
 - [ ] Move extract_protected_content inside preprocess
+
+- [ ] Add a --daemon mode to run_latex.py similar to notes_to_pdf.py (with the
+  debounce) and also change the tmux name using the context manager
 
 - [ ] Rename the phase prettier to beautify
   - For md only lint, ...
