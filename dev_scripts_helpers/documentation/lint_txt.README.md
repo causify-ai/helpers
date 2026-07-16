@@ -49,9 +49,6 @@
 
 ## Available Actions
 
-- All actions are listed in order of execution
-- Default actions exclude: `frame_chapters`, `refresh_toc`, `check_links`, `remove_markdown_formatting`
-
 ### Text Processing Actions
 
 - **preprocess**: Handle Google Docs artifacts, convert special characters, format math equations

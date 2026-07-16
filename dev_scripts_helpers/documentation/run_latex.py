@@ -11,11 +11,11 @@ in Skim on macOS.
 
 Usage examples:
 
-# Two-pass build (resolves cross-references), default.
+# Quick single-pass build (default)
 > run_latex.py --input book.tex
 
-# Quick single-pass build.
-> run_latex.py --input book.tex --num_passes 1
+# Two-pass build (resolves cross-references).
+> run_latex.py --input book.tex --num_passes 2
 
 # Full build with bibliography (two passes, bibtex, two more passes).
 > run_latex.py --input book.tex --num_passes 3
@@ -47,29 +47,13 @@ import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
-# Constants
+# Compilation
 # #############################################################################
 
-# Google Drive folders that `run_latex.sh` copies the resulting PDF to, if
-# they are mounted on the host.
-_GDRIVE_PAPERS_DIR = (
-    "/Users/saggese/Library/CloudStorage/GoogleDrive-gp@causify.ai/"
-    "Shared drives/Eng - External (GP)/Papers"
-)
-_GDRIVE_INTERNAL_DIR = (
-    "/Users/saggese/Library/CloudStorage/GoogleDrive-gp@causify.ai/"
-    "Shared drives/Eng - External (GP)/Internal_Papers_Latest"
-)
-
-# Matches the LaTeX log warning lines that `run_latex.sh` greps for.
+# Matches the LaTeX log warning lines.
 _WARNING_REGEX = re.compile(
     r"^(LaTeX Warning:|Package .* Warning:|Class .* Warning:)"
 )
-
-
-# #############################################################################
-# Post-build helpers
-# #############################################################################
 
 
 def _report_log_warnings(log_file_path: str) -> List[str]:
@@ -90,30 +74,6 @@ def _report_log_warnings(log_file_path: str) -> List[str]:
     for warning in warnings:
         _LOG.warning("%s", warning)
     return warnings
-
-
-def _copy_to_google_drive(out_file_path: str) -> None:
-    """
-    Copy the compiled PDF to the Google Drive folders used for `run_latex.sh`.
-
-    Mirrors the shell script's behavior: copy only into folders that are
-    actually mounted on the host, warning and skipping otherwise.
-
-    :param out_file_path: path to the compiled PDF to copy
-    """
-    for gdrive_dir in (_GDRIVE_PAPERS_DIR, _GDRIVE_INTERNAL_DIR):
-        if os.path.isdir(gdrive_dir):
-            _LOG.info("Copying '%s' to '%s'", out_file_path, gdrive_dir)
-            shutil.copy2(out_file_path, gdrive_dir)
-        else:
-            _LOG.warning(
-                "Google Drive folder '%s' not found, skipping copy", gdrive_dir
-            )
-
-
-# #############################################################################
-# Compilation
-# #############################################################################
 
 
 def _compile_latex(
@@ -189,6 +149,43 @@ def _compile_latex(
 
 
 # #############################################################################
+# Post-build helpers
+# #############################################################################
+
+
+# Google Drive folders to copy the resulting PDF to, if they are mounted on the
+# host.
+_GDRIVE_PAPERS_DIR = (
+    "/Users/saggese/Library/CloudStorage/GoogleDrive-gp@causify.ai/"
+    "Shared drives/Eng - External (GP)/Papers"
+)
+_GDRIVE_INTERNAL_DIR = (
+    "/Users/saggese/Library/CloudStorage/GoogleDrive-gp@causify.ai/"
+    "Shared drives/Eng - External (GP)/Internal_Papers_Latest"
+)
+
+
+def _copy_to_google_drive(out_file_path: str) -> None:
+    """
+    Copy the compiled PDF to the Google Drive folders.
+
+    Mirrors the shell script's behavior: copy only into folders that are
+    actually mounted on the host, warning and skipping otherwise.
+
+    :param out_file_path: path to the compiled PDF to copy
+    """
+    for gdrive_dir in (_GDRIVE_PAPERS_DIR, _GDRIVE_INTERNAL_DIR):
+        if os.path.isdir(gdrive_dir):
+            _LOG.info("Copying '%s' to '%s'", out_file_path, gdrive_dir)
+            shutil.copy2(out_file_path, gdrive_dir)
+        else:
+            _LOG.warning(
+                "Google Drive folder '%s' not found, skipping copy", gdrive_dir
+            )
+
+
+
+# #############################################################################
 # CLI
 # #############################################################################
 
@@ -215,7 +212,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--num_passes",
         type=int,
-        default=2,
+        default=1,
         choices=[1, 2, 3],
         help=(
             "Number of `pdflatex` compilation passes: 1 (quick), "
@@ -227,8 +224,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help=(
-            "Copy the resulting PDF to the Google Drive folders used for "
-            "`run_latex.sh`"
+            "Copy the resulting PDF to the Google Drive folders used"
         ),
     )
     hdocker.add_dockerized_script_arg(parser)

@@ -1,4 +1,5 @@
 #!/usr/bin/env -S uv run
+
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
@@ -556,6 +557,8 @@ def _perform_actions(
         1,
         msg="Invalid file type",
     )
+    # Filter actions based on file format.
+    actions = _filter_actions_by_format(actions, extension)
     # Extract YAML front matter if present (only for markdown files).
     yaml_frontmatter: List[str] = []
     if is_md_file:
@@ -691,19 +694,59 @@ _VALID_ACTIONS = [
 ]
 
 
-# By default, exclude refresh_toc, check_links, and remove_markdown_formatting
-# actions. Users can explicitly enable them via --action.
-_DEFAULT_ACTIONS = [
-    action
-    for action in _VALID_ACTIONS
-    if action
-    not in [
-        "frame_chapters",
-        "refresh_toc",
-        "check_links",
-        "remove_markdown_formatting",
-    ]
-]
+# Map actions to supported file formats (targets).
+_ACTIONS_BY_TARGET = {
+    "preprocess": ["md", "tex", "txt", "emd"],
+    "prettier": ["md", "tex", "txt", "emd"],
+    "postprocess": ["md", "tex", "txt", "emd"],
+    "remove_code_block_extra_indentation": ["md", "tex", "txt", "emd"],
+    "remove_page_separators": ["md", "tex", "txt", "emd"],
+    "handle_empty_lines": ["md", "emd"],
+    "add_blank_lines_between_headers": ["md", "emd"],
+    "convert_asterisk_bullets_to_dashes": ["md", "txt", "emd"],
+    "remove_trailing_periods": ["md", "tex", "txt", "emd"],
+    "replace_em_dash_with_colon": ["md", "tex", "txt", "emd"],
+    "remove_markdown_formatting": ["md", "emd"],
+    "frame_chapters": ["md", "tex", "txt", "emd"],
+    "capitalize_header": ["md", "txt", "emd"],
+    "refresh_toc": ["md", "emd"],
+    "check_links": ["md", "tex", "txt", "emd"],
+}
+
+
+def _is_action_supported_for_format(action: str, extension: str) -> bool:
+    """
+    Check if an action is supported for a given file format.
+
+    :param action: The action name.
+    :param extension: The file extension (md, tex, txt, emd).
+    :return: True if the action is supported, False otherwise.
+    """
+    hdbg.dassert_in(action, _ACTIONS_BY_TARGET, msg=f"Unknown action: {action}")
+    return extension in _ACTIONS_BY_TARGET[action]
+
+
+def _filter_actions_by_format(
+    actions: Optional[List[str]], extension: str
+) -> Optional[List[str]]:
+    """
+    Filter actions to keep only those supported by the given format.
+
+    Warns about unsupported actions and removes them from the list.
+
+    :param actions: List of actions to filter, or None (all default actions).
+    :param extension: The file extension (md, tex, txt, emd).
+    :return: Filtered list of actions, or None if input was None.
+    """
+    if actions is None:
+        return None
+    filtered = [a for a in actions if _is_action_supported_for_format(a, extension)]
+    unsupported = [a for a in actions if not _is_action_supported_for_format(a, extension)]
+    for action in unsupported:
+        _LOG.warning(
+            "Action '%s' is not supported for .%s files, skipping", action, extension
+        )
+    return filtered if filtered else None
 
 
 def _get_backup_filename(file_path: str) -> str:
@@ -750,6 +793,20 @@ def _revert_from_backup(file_path: str) -> None:
     _LOG.info("Reverting from backup: %s -> %s", backup_path, file_path)
     hsystem.system(f"cp {backup_path} {file_path}")
     _LOG.info("File reverted successfully")
+
+
+# All actions excluding a few one.
+_DEFAULT_ACTIONS = [
+    action
+    for action in _VALID_ACTIONS
+    if action
+    not in [
+        "frame_chapters",
+        "refresh_toc",
+        "check_links",
+        "remove_markdown_formatting",
+    ]
+]
 
 
 def _process_single_file(

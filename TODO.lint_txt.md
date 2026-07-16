@@ -8,7 +8,20 @@ In lint_txt.py
   inferring them from the extension
   - tex, txt, md, emd
 
-- [ ] Decide which actions are possible depending given the file format
+- [x] Document in dev_scripts_helpers/documentation/lint_txt.README.md
+
+- [x] Propose which actions should be possible depending given the file format
+  - Implemented _ACTIONS_BY_FORMAT mapping (md, tex, txt, emd)
+  - Added _get_supported_actions_for_format() helper
+  - Added _filter_actions_by_format() to auto-filter unsupported actions
+  - Integration: _perform_actions() now filters based on file format
+
+- [ ] Move the code from lint_txt.py to lib_lint_txt.py, using an approach
+  similar to
+  ./dev_scripts_helpers/documentation/lib_notes_to_pdf.py
+  ./dev_scripts_helpers/documentation/notes_to_pdf.py
+  ./dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
+  ./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
 
 - [ ] Rename the phase prettier to beautify
   - For md only lint, ...
