@@ -1,20 +1,41 @@
 In lint_txt.py
 
-- [x] Add documentation to dev_scripts_helpers/documentation/lint_txt.README.md
+- [x] 1 Add documentation to dev_scripts_helpers/documentation/lint_txt.README.md
   based on lint_txt.py using .claude/skills/markdown.rules.md and
   .claude/skills/text.rules.md
 
-- [x] Add a command line option to force recognizing a certain format, instead of
+- [x] 2 Add a command line option to force recognizing a certain format, instead of
   inferring them from the extension
   - tex, txt, md, emd
 
-- [x] Document in dev_scripts_helpers/documentation/lint_txt.README.md
+- [x] 3 Document in dev_scripts_helpers/documentation/lint_txt.README.md
 
-- [x] Propose which actions should be possible depending given the file format
+- [x] 4 Propose which actions should be possible depending given the file format
   - Implemented _ACTIONS_BY_FORMAT mapping (md, tex, txt, emd)
   - Added _get_supported_actions_for_format() helper
   - Added _filter_actions_by_format() to auto-filter unsupported actions
   - Integration: _perform_actions() now filters based on file format
+
+- [ ] 5 Fix extract_protected_content so that
+  ```
+  % git_hash=f15bc6b9, timestamp=2026-07-15 14:41:12 EDT
+  %%%% Chapter file for Why Decisions, Not Predictions %%%%
+  % This chapter file can be compiled standalone or included in the root book.tex
+  ```
+  is left alone and not converted to
+  ```
+  % git_hash=f15bc6b9, timestamp=2026-07-15 14:41:12 EDT %%%% Chapter file for Why Decisions, Not Predictions %%%% % This chapter file can be compiled standalone or included in the root book.tex
+  ```
+  - Also 
+    ```
+    % From: '* Why Traditional ML Falls Short'
+    \textbf{Why Traditional ML Falls Short}
+    ```
+    is converted into
+    ```
+    % From: '* Why Traditional ML Falls Short' \textbf{Why Traditional ML Falls Short}
+    ```
+    while it should be left unchanged
 
 - [ ] Move extract_protected_content inside preprocess
 
