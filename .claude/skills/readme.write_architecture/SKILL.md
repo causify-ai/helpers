@@ -6,8 +6,8 @@ model: haiku
 # Goal
 
 - Analyze a Python file `<FILE>` passed by the user and generate or update
-  `README.<FILE>.md` with architecture documentation in Markdown using bullet
-  points
+  `<FILE>.README.md` with documentation (Markdown using bullet points) about its
+  architecture, code organization, idioms, and so on
 
 # Workflow
 
@@ -29,16 +29,18 @@ model: haiku
 - Make sure there is a note in the docstring of the corresponding files
   pointing to `<FILE>.README.md`, e.g.,
   ```
-  For a description of the architecture of this file 
+  For a description of the architecture of this file, see the file
+  <FILE>.README.md
+  ```
 
 ## Step 3: Generate Document
 
 - Follow the template `.claude/templates/architecture_doc.template.md`
 
 - Generate the documentation with these sections using markdown and
-  bullet points following 
-  - Follow the rules in `.claude/skills/markdown.rules.md` for markdown formatting
-  - Follow the rules in `.claude/skills/text.rules.md` for text formatting
+  bullet points following the rules in
+  - `.claude/skills/markdown.rules.md` for markdown formatting
+  - `.claude/skills/text.rules.md` for text formatting
 
 ## Step 4: Update Document
 
@@ -78,11 +80,6 @@ model: haiku
   - Operational understanding: What does someone need to know to work with
     this code?
 
-## Formatting
-- Follow the rules in `.claude/skills/coding.rules.md` for Python code style
-- Follow the rules in `.claude/skills/markdown.rules.md` for markdown formatting
-- Follow the rules in `.claude/skills/text.rules.md` for text formatting
-
 # Constraints
 
 - Do not modify the original `<FILE>`
@@ -93,10 +90,3 @@ model: haiku
 - Do not invent architecture that is not present in the code
 - When uncertain about intent, mark the observation as an assumption
 - Do not use emojis or decorative formatting
-
-# Verification
-
-- Verify that `<FILE>.README.md` was created or updated
-- Verify that at least one Mermaid diagram is present
-- Verify that assumptions are clearly labeled as assumptions
-- Verify that the file renders correctly as GitHub-flavored Markdown

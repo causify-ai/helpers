@@ -9,6 +9,9 @@
 """
 See instructions at
 docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md.
+
+For a description of the architecture of this file, see the file
+lint_txt.README.md in the same directory.
 """
 
 import argparse
@@ -420,6 +423,29 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     return lines_new
 
 
+def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
+    """
+    Replace em dash followed by a space with a colon.
+
+    When a non-whitespace character is followed by ` — ` (em dash surrounded
+    by spaces), the em dash is replaced with `: ` (colon space e.g., for list
+    items).
+
+    Example: `- foo — bar` -> `- foo: bar`
+
+    :param lines: The lines to be processed.
+    :return: The lines with em dashes replaced by colons.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for line in lines:
+        # Replace em dash with colon when preceded by a non-whitespace char.
+        line = re.sub(r"(\S)\s*—\s+", r"\1: ", line)
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 # TODO(gp): Clarify what are the transformations for this.
 # TODO(gp): Reuse the code in htext_protect
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
@@ -485,34 +511,13 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
-def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
-    """
-    Replace em dash followed by a space with a colon.
-
-    When a non-whitespace character is followed by ` — ` (em dash surrounded
-    by spaces), the em dash is replaced with `: ` (colon space e.g., for list
-    items).
-
-    Example: `- foo — bar` -> `- foo: bar`
-
-    :param lines: The lines to be processed.
-    :return: The lines with em dashes replaced by colons.
-    """
-    _LOG.debug("lines=%s", lines)
-    lines_new: List[str] = []
-    for line in lines:
-        # Replace em dash with colon when preceded by a non-whitespace char.
-        line = re.sub(r"(\S)\s*—\s+", r"\1: ", line)
-        lines_new.append(line)
-    hdbg.dassert_isinstance(lines_new, list)
-    return lines_new
-
-
 def _perform_actions(
     lines: List[str],
     in_file_name: str,
     *,
     actions: Optional[List[str]] = None,
+    # TODO(ai_gp): Make it mandatory.
+    file_type_override: str = "",
     **kwargs: Any,
 ) -> List[str]:
     """
@@ -525,23 +530,32 @@ def _perform_actions(
     :param in_file_name: The name of the input file.
     :param actions: A list of actions to be performed on the text. If
         None, all default actions are performed.
+    :param file_type_override: Force a specific file type (md, tex, txt, emd).
+        If provided, overrides detection from file extension.
     :param kwargs: Additional keyword arguments to be passed to the
         actions.
     :return: The processed lines.
     """
     hdbg.dassert_isinstance(lines, list)
+    # Determine the extension: use override if provided, otherwise infer from filename.
+    if file_type_override:
+        hdbg.dassert_in(file_type_override, ["md", "tex", "txt", "emd"])
+        extension = file_type_override
+    else:
+        extension = os.path.splitext(in_file_name)[1]
+        # Remove the . from the extenstion (e.g., ".txt").
+        hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
+        extension = extension[1:]
     # Get the file type.
-    is_md_file = in_file_name.endswith(".md")
-    is_tex_file = in_file_name.endswith(".tex")
-    is_txt_file = in_file_name.endswith(".txt")
+    is_md_file = extension == "md"
+    is_tex_file = extension == "tex"
+    is_txt_file = extension == "txt"
+    is_emd_file = extension == "emd"
     hdbg.dassert_eq(
-        is_md_file + is_tex_file + is_txt_file, 1, msg="Invalid file type"
+        is_md_file + is_tex_file + is_txt_file + is_emd_file,
+        1,
+        msg="Invalid file type",
     )
-    #
-    extension = os.path.splitext(in_file_name)[1]
-    # Remove the . from the extenstion (e.g., ".txt").
-    hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
-    extension = extension[1:]
     # Extract YAML front matter if present (only for markdown files).
     yaml_frontmatter: List[str] = []
     if is_md_file:
@@ -643,40 +657,36 @@ def _perform_actions(
 # #############################################################################
 
 _VALID_ACTIONS = [
-    # _preprocess(): preprocess the given text before applying `prettier`.
+    # Preprocess the given text before applying `prettier`.
     "preprocess",
-    # _prettier(): prettify the given text with `prettier` for both latex and
-    # markdown.
+    # Prettify the given text with `prettier` for both latex and markdown.
     "prettier",
-    # _postprocess(): post-process the given text.
+    # Post-process the given text.
     "postprocess",
-    # _remove_code_block_extra_indentation(): remove unwanted indentation
-    # added by prettier to code block lines starting with `>`.
+    # Remove unwanted indentation added by prettier to code block lines
+    # starting with `>`.
     "remove_code_block_extra_indentation",
-    # _remove_page_separators(): remove page separator lines (---).
+    # Remove page separator lines (---).
     "remove_page_separators",
-    # _handle_empty_lines(): remove empty lines after headers and before code
-    # blocks.
+    # Remove empty lines after headers and before code blocks.
     "handle_empty_lines",
-    # _add_blank_lines_between_headers(): add blank lines between consecutive
-    # headers.
+    # Add blank lines between consecutive headers.
     "add_blank_lines_between_headers",
-    # _convert_asterisk_bullets_to_dashes(): convert `* ` bullets to `- `.
+    # Convert `* ` bullets to `- `.
     "convert_asterisk_bullets_to_dashes",
-    # _remove_trailing_periods(): remove trailing periods from bullet points,
-    # headers, and numbered lists.
+    # Remove trailing periods from bullet points, headers, and numbered lists.
     "remove_trailing_periods",
-    # _replace_em_dash_with_colon(): replace ` — ` with `: ` after non-whitespace.
+    # Replace ` — ` with `: ` after non-whitespace.
     "replace_em_dash_with_colon",
-    # _remove_markdown_formatting(): remove markdown syntax from text (bold,
-    # italic, links, images, etc.).
+    # Remove markdown syntax from text (bold, italic, links, images, etc.).
     "remove_markdown_formatting",
-    #
+    # TODO(ai_gp): Add
     "frame_chapters",
+    # TODO(ai_gp): Add
     "capitalize_header",
-    # _refresh_toc(): refresh the table of contents.
+    # Refresh the table of contents.
     "refresh_toc",
-    # _check_links(): check if URLs in the file are reachable.
+    # Check if URLs in the file are reachable.
     "check_links",
 ]
 
@@ -780,6 +790,7 @@ def _process_single_file(
         lines,
         in_file_name,
         actions=actions,
+        file_type_override=args.type,
         **kwargs,
     )
     # Write output.
@@ -800,7 +811,11 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=str,
         default="",
-        help="The type of the input file, e.g., `md`, `tex`, `txt`",
+        choices=["", "md", "tex", "txt", "emd"],
+        help=(
+            "Force the file type instead of inferring from extension. "
+            "When reading from stdin, this option is required."
+        ),
     )
     parser.add_argument(
         "-w",

@@ -344,7 +344,7 @@ The supported File types and code blocks are:
   ````
   This will generate 3 AI images and embed them in the document
 
-## `lint_notes.py`
+## `lint_txt.py`
 
 ### What It Does
 - Tidy up notes in different formats (selected with the file extension or
