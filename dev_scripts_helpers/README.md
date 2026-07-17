@@ -1,4 +1,6 @@
-# Dev_scripts_helpers
+# Dev Scripts Helpers
+
+Development automation scripts and utilities organized by functionality. Provides tools for Git operations, GitHub workflows, Docker management, testing, documentation generation, and media processing.
 
 ## Directory Structure
 

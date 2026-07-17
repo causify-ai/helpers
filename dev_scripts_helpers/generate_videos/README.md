@@ -1,215 +1,211 @@
-<!-- toc -->
+# Generate Videos
 
-- [Video Narration Tools](#video-narration-tools)
-  * [Setup](#setup)
-  * [Tools Overview](#tools-overview)
-    + [`convert_png_to_movie.py`](#convert_png_to_moviepy)
-    + [`create_presentation_video.py`](#create_presentation_videopy)
-    + [`download_synthesia_video.py`](#download_synthesia_videopy)
-    + [`extract_png_from_ppt.py`](#extract_png_from_pptpy)
-    + [`generate_slide_script.py`](#generate_slide_scriptpy)
-    + [`generate_synthesia_videos.py`](#generate_synthesia_videospy)
-    + [`get_synthesia_status.py`](#get_synthesia_statuspy)
-    + [`convert_pdf_to_flip_video.py`](#convert_pdf_to_flip_videopy)
-    + [`stop_synthesia_videos.py`](#stop_synthesia_videospy)
-  * [Synthesia Workflow](#synthesia-workflow)
-- [To Reorg](#to-reorg)
-- [Generate images from prompt](#generate-images-from-prompt)
-- [Create videos from storyboards](#create-videos-from-storyboards)
-- [Create video lessons with picture-in-picture](#create-video-lessons-with-picture-in-picture)
-- [Create videos of GP talking (Synthesia)](#create-videos-of-gp-talking-synthesia)
-- [Create voice of GP talking (ElevenLabs)](#create-voice-of-gp-talking-elevenlabs)
-- [Create map of Google maps](#create-map-of-google-maps)
-- [Process slides](#process-slides)
-- [Create narration from slides](#create-narration-from-slides)
-- [Lint slides](#lint-slides)
+Tools for video generation and manipulation. Supports conversion between media formats, Synthesia API integration, PDF animation, and presentation video composition with picture-in-picture overlays.
 
-<!-- tocstop -->
+## Structure of the Dir
 
-# Video Narration Tools
+This directory has no subdirectories.
 
-## Setup
+## Description of Files
 
-- Install the needed packages
+- `convert_pdf_to_flip_video.py`
+  - Create page-flip animation from PDF with customizable transitions
+- `convert_png_to_movie.py`
+  - Convert PNG images to separate MP4 files with specified duration
+- `create_presentation_video.py`
+  - Compose presentation video from slides with picture-in-picture overlays
+- `download_synthesia_video.py`
+  - Download completed Synthesia API videos using download URLs
+- `extract_png_from_ppt.py`
+  - Extract images and convert PowerPoint slides to PNG format
+- `generate_slide_script.py`
+  - Generate presentation scripts from markdown slides using LLM
+- `generate_synthesia_videos.py`
+  - Create avatar videos from text scripts via Synthesia API
+- `get_synthesia_status.py`
+  - Retrieve and display Synthesia video generation job status
+- `stop_synthesia_videos.py`
+  - Cancel Synthesia video generation jobs via API
 
+# Description of Executables
+
+## `convert_png_to_movie.py`
+
+### What It Does
+
+- Converts individual PNG files to separate MP4 videos using moviepy
+- Each image displayed for specified duration
+- Batch processing support for directory of images
+
+### Examples
+
+- Convert PNG directory to MP4s:
   ```bash
-  > python3 -m venv ~/src/venv/client_venv.movie
-
-  # Activate venv
-  > source ~/src/venv/client_venv.movie/bin/activate
-
-  > pip install -r dev_scripts_helpers/videos/requirements_video.txt
+  > convert_png_to_movie.py --in_dir ./slides --duration 3.0
   ```
 
-- Activate env
+## `create_presentation_video.py`
+
+### What It Does
+
+- Composes presentation video from slide MP4s with picture-in-picture overlays
+- Supports custom PIP positioning via plan-based configuration
+- Handles multiple video layers and transitions
+
+### Examples
+
+- Create presentation with PIP:
   ```bash
-  > source ~/src/venv/client_venv.movie/bin/activate
+  > create_presentation_video.py --in_dir ./videos --out_file final.mp4
   ```
 
-## Tools Overview
+## `extract_png_from_ppt.py`
 
-### `convert_png_to_movie.py`
+### What It Does
 
-Converts individual PNG files to separate MP4 movies using moviepy. Each movie
-displays a single image for a specified duration.
+- Extracts embedded images from PowerPoint presentations
+- Converts PowerPoint slides to PNG format
+- Batch processing for multiple presentations
 
-Example:
+### Examples
 
-```bash
-> convert_png_to_movie.py --in_dir ./slides --duration 3.0
-```
-
-### `create_presentation_video.py`
-
-Creates a composite presentation video from slide MP4 files with
-picture-in-picture (PIP) overlays. Supports both default positioning and custom
-plan-based positioning for pip and comment videos.
-
-Example:
-
-```bash
-> create_presentation_video.py --in_dir ./videos --out_file final.mp4
-```
-
-### `download_synthesia_video.py`
-
-Downloads completed videos from the Synthesia API using their download URLs and
-saves them with meaningful names.
-
-Example:
-
-```bash
-> download_synthesia_video.py --ids "id1 id2 id3"
-```
-
-### `extract_png_from_ppt.py`
-
-Extracts images and converts slides from PowerPoint presentations to PNG files.
-Can extract both embedded images and convert slides to images.
-
-### `generate_slide_script.py`
-
-Generates presentation scripts from markdown slides using LLM processing.
-Processes markdown slides (identified by headers starting with '\*') and creates
-scripts by passing groups of N slides to an LLM for analysis.
-
-Example:
-
-```bash
-> generate_slide_script.py --in_file slides.md --out_file script.md --slides_per_group 3
-```
-
-### `generate_synthesia_videos.py`
-
-Creates videos from text scripts using the Synthesia API with chosen avatars.
-Supports dry-run mode for testing.
-
-Example:
-
-```bash
-> generate_synthesia_videos.py --in_dir videos --limit "1:3" --dry_run
-```
-
-### `get_synthesia_status.py`
-
-Retrieves and displays the status of video generation jobs from the Synthesia
-API in a formatted table.
-
-Example:
-
-```bash
-> get_synthesia_status.py
-ID                                    Created              Updated              Title                          Status    Download
-------------------------------------  -------------------  -------------------  -----------------------------  --------  --------
-260927bd-aedf-4a62-8dd8-06abdd434900  2025-08-30 10:26:33  2025-08-30 10:30:16  Untitled                       complete  Yes
-```
-
-### `convert_pdf_to_flip_video.py`
-
-Creates a movie from a PDF that simulates turning pages. Supports different
-transition styles like crossfade and slide animations.
-
-Example:
-
-```bash
-> convert_pdf_to_flip_video.py file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
-```
-
-### `stop_synthesia_videos.py`
-
-Cancels video generation jobs from the Synthesia API using their Cancel Video
-Generation endpoint.
-
-Example:
-
-```bash
-> stop_synthesia_videos.py --ids "id1 id2 id3"
-```
-
-## Synthesia Workflow
-
-- Check the status of Synthesia:
-
+- Extract images from presentation:
   ```bash
-  > get_synthesia_status.py
-  ID                                    Created              Updated              Title                          Status    Download
-  ------------------------------------  -------------------  -------------------  -----------------------------  --------  --------
-  260927bd-aedf-4a62-8dd8-06abdd434900  2025-08-30 10:26:33  2025-08-30 10:30:16  Untitled                       complete  Yes
+  > extract_png_from_ppt.py --input presentation.pptx --output ./images
   ```
 
-- Generate Synthesia videos
+## `generate_slide_script.py`
+
+### What It Does
+
+- Generates presentation scripts from markdown slides using LLM
+- Groups N slides per LLM call for efficient processing
+- Identifies slides by markdown headers starting with '\*'
+
+### Examples
+
+- Generate script from slides:
+  ```bash
+  > generate_slide_script.py --in_file slides.md --out_file script.md --slides_per_group 3
   ```
+
+## `generate_synthesia_videos.py`
+
+### What It Does
+
+- Creates avatar videos from text scripts via Synthesia API
+- Supports avatar selection and customization
+- Dry-run mode for testing without API calls
+
+### Examples
+
+- Generate videos with dry run:
+  ```bash
   > generate_synthesia_videos.py --dry_run --in_dir videos -v DEBUG
   ```
 
-- Check the status of Synthesia:
+- Generate specific slide range:
   ```bash
-  > get_synthesia_status.py
-  ID                                    Created              Updated              Title                          Status       Download
-  ------------------------------------  -------------------  -------------------  -----------------------------  -----------  --------
-  a3bd32dd-87f7-4653-aac9-d1d07968f358  2025-09-10 12:09:20  2025-09-10 12:09:24  slide1                         in_progress  No
+  > generate_synthesia_videos.py --in_dir videos --slide 002:009
   ```
 
-# To Reorg
+## `get_synthesia_status.py`
 
-./dev_scripts_helpers/video_narration/generate_synthesia_videos.py --in_file
-script.txt --out_file output --test
+### What It Does
 
-# Generate images from prompt
-generate_images.py
-dev_scripts_helpers/generate_images.py "A sunset over mountains" --dst_dir ./images --low_res
-OpenAI
+- Retrieves video generation job status from Synthesia API
+- Displays formatted table with job IDs, timestamps, and status
+- Shows download availability for completed videos
 
-# Create videos from storyboards
-Veo3
-dev_scripts_helpers/google_veo3/
-dev_scripts_helpers/google_veo3/generate_images.py --test_name test --dst_dir images2 --use_rest_api
+### Examples
 
-# Create video lessons with picture-in-picture
-dev_scripts_helpers/video_narration/
-dev_scripts_helpers/video_narration/README.md
+- Check Synthesia job status:
+  ```bash
+  > get_synthesia_status.py
+  ```
 
-# Create videos of GP talking (Synthesia)
-generate_synthesia_videos.py
-./dev_scripts_helpers/video_narration/generate_synthesia_videos.py --in_file script.txt --out_file output
-generate_synthesia_videos.py --dry_run --in_dir videos -v DEBUG --slide 002:009
+## `download_synthesia_video.py`
 
-# Create voice of GP talking (ElevenLabs)
-generate_elevenlabs_voice.py
+### What It Does
 
-# Create map of Google maps
-./create_google_drive_map.py --in_dir '/Users/saggese/Library/CloudStorage/GoogleDrive-gp@causify.ai/Shared drives' --action tree
-./create_google_drive_map.py --in_dir '/Users/saggese/Library/CloudStorage/GoogleDrive-gp@causify.ai/Shared drives' --action table
+- Downloads completed Synthesia videos using download URLs
+- Saves videos with meaningful filenames
+- Batch download support for multiple jobs
 
-# Process slides
-dev_scripts_helpers/documentation/process_slides.py --in_file Lesson04-Models.txt --out_file test.txt --limit 0:10 --action slide_reduce
+### Examples
 
-# Create narration from slides
-generate_slide_script.py
+- Download completed videos:
+  ```bash
+  > download_synthesia_video.py --ids "id1 id2 id3"
+  ```
 
-# Lint slides
-lint_txt.py
-i docker_bash --base-image=623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp --skip-pull
-sudo /bin/bash -c "(source /venv/bin/activate; pip install openai)"
-process_slides.py --in_file msml610/lectures_source/Lesson04-Models.txt --out_file test.txt --limit 0:10 --action slide_reduce
-lint_txt.py -i test.txt --use_dockerized_prettier
+## `stop_synthesia_videos.py`
+
+### What It Does
+
+- Cancels in-progress Synthesia video generation jobs
+- Uses Synthesia API cancel endpoint
+- Batch cancellation support
+
+### Examples
+
+- Cancel video generation jobs:
+  ```bash
+  > stop_synthesia_videos.py --ids "id1 id2 id3"
+  ```
+
+## `convert_pdf_to_flip_video.py`
+
+### What It Does
+
+- Creates page-flip animation from PDF documents
+- Supports multiple transition styles (crossfade, slide)
+- Customizable frame rate and page duration
+
+### Examples
+
+- Convert PDF to flip video:
+  ```bash
+  > convert_pdf_to_flip_video.py file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
+  ```
+
+# Description of Workflows
+
+## Complete Synthesia Video Pipeline
+
+1. Check current Synthesia job status:
+   ```bash
+   > get_synthesia_status.py
+   ```
+
+2. Generate new Synthesia videos in dry-run mode:
+   ```bash
+   > generate_synthesia_videos.py --dry_run --in_dir videos -v DEBUG
+   ```
+
+3. Monitor job completion status:
+   ```bash
+   > get_synthesia_status.py
+   ```
+
+4. Download completed videos:
+   ```bash
+   > download_synthesia_video.py --ids "job_id1 job_id2"
+   ```
+
+## Video Composition Workflow
+
+1. Convert slides to PNG format:
+   ```bash
+   > extract_png_from_ppt.py --input slides.pptx --output ./slides_png
+   ```
+
+2. Convert PNGs to individual MP4s:
+   ```bash
+   > convert_png_to_movie.py --in_dir ./slides_png --duration 3.0
+   ```
+
+3. Compose presentation with overlays:
+   ```bash
+   > create_presentation_video.py --in_dir ./slide_videos --out_file presentation.mp4
+   ```

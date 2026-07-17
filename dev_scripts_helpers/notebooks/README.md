@@ -1,62 +1,56 @@
-# Notebooks Directory
+# Notebooks
 
-Tools and utilities for working with Jupyter notebooks, including format
-conversion, image extraction, publishing, and testing workflows.
+Tools and utilities for Jupyter notebook management. Supports format conversion,
+image extraction, publishing, table of contents generation, and end-to-end
+testing workflows.
 
 ## Structure of the Dir
 
 - `test/`
   - Unit tests for notebook utilities and image extraction tools
 - `test/outcomes/`
-  - Test result files and expected outputs for notebook test cases
+  - Test result files and expected outputs for test cases
 
 ## Description of Files
 
 - `__init__.py`
-  - Package initialization importing notebook test case utilities for testing workflows
-
-- `conftest.py`
-  - pytest configuration and fixtures for notebook-related tests
-
+  - Package initialization for notebook test utilities
 - `add_toc_to_notebook.py`
-  - Automatically generates and adds a table of contents to Jupyter notebooks
-
+  - Automatically generate and add table of contents to Jupyter notebooks
 - `all.extract_notebook_images.how_to_guide.md`
-  - Guide for extracting images from annotated Jupyter notebook cells
-
+  - Guide for extracting images from annotated notebook cells
+- `conftest.py`
+  - Pytest configuration and fixtures for notebook tests
 - `dockerized_extract_notebook_images.py`
-  - Extracts marked regions from notebooks and converts them to images using Docker
-
+  - Dockerized image extraction from marked notebook regions
 - `extract_notebook_images.py`
-  - Wrapper to run notebook image extraction inside Docker container with dynamic build
-
+  - Wrapper for Docker-based notebook image extraction
 - `ipynb_format.py`
-  - Formats code cells in Jupyter notebooks using yapf style configuration
-
+  - Format notebook code cells using yapf style configuration
+- `notebook.pair.sh`
+  - Set up jupytext pairing for notebooks in a directory
+- `notebook.remove.sh`
+  - Remove jupytext pairing configuration from notebooks
+- `notebook.restore.sh`
+  - Restore Python files from paired notebooks
+- `notebook.sync.sh`
+  - Synchronize paired notebooks and Python files
 - `process_jupytext.py`
-  - Automates jupytext workflows including pairing, syncing, testing, and
-    comparing notebook conversions
-
+  - Automate jupytext workflows (pair, sync, test, diff)
+- `process_all_jupytext.sh`
+  - Batch process all notebooks in directory tree
 - `profile_test_durations.py`
-  - Notebook for analyzing and visualizing test execution durations and performance
-
+  - Analyze and visualize test execution time distributions
 - `publish_notebook.py`
-  - Converts notebooks to HTML and publishes to browser, S3, or webserver
-
+  - Convert notebooks to HTML and publish to S3 or browser
 - `run_jupyter_server.py`
-  - Manages Jupyter notebook server lifecycle including start, stop, and port management
-
-- `run_notebook_test_case.py`
-  - Test case base class for running notebooks end-to-end with configuration
-
+  - Manage Jupyter server lifecycle (start, stop, kill)
 - `run_notebook.py`
-  - Executes notebooks with specified configs and handles parallel execution and publishing
-
-- `test/test_dockerized_extract_notebook_images.py`
-  - Tests for extracting regions from notebooks using Docker-based extraction
-
-- `test/test_extract_notebook_images.py`
-  - Integration tests for dockerized notebook image extractor with container rebuild
+  - Execute notebooks with configuration builders and parallel support
+- `run_notebook_test_case.py`
+  - Test case base class for end-to-end notebook execution
+- `jupytext_pair.sh`
+  - Pair all notebooks in directory with Python files
 
 ## Description of Executables
 

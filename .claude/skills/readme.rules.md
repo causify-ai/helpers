@@ -102,14 +102,20 @@ Find all executable files and create one `##` header per tool.
   ````
 
 - Use `> ` prefix (no `$` prompt)
+- Do NOT use bold headers (`**text**`) for example descriptions
+- Each example must have a bullet point with description and indented code block
 
-- **Bad**: Don't mix markdown bold with code:
-  ```markdown
-  **Generate slides:**
+**Example of correct format:**
+
+```markdown
+- Generate slides with navigation breadcrumbs:
   ```bash
-  > notes_to_pdf.py --input lecture.txt --output lecture.pdf
+  > notes_to_pdf.py \
+      --input lecture.txt \
+      --output lecture.pdf \
+      --type slides
   ```
-  ```
+```
 
 ### Inline Commands
 

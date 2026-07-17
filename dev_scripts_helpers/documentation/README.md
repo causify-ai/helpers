@@ -1,46 +1,33 @@
-# Summary
-- This document provides a comprehensive guide to the documentation toolchain
-  that converts raw notes, slides, and LaTeX into polished PDFs, slide decks,
-  and HTML
-- The toolchain supports multiple documentation workflows including standard
-  LaTeX, Causify markdown extensions, notes format, slides, books, and Jupyter
-  books
-- The document catalogs over 30 specialized tools organized into categories:
-  core documentation tools, extraction and conversion tools, dockerized tools,
-  utility and processing tools, generation and publishing tools, and shell
-  script utilities
-- Each tool is documented with its purpose, usage examples, and integration with
-  the broader documentation ecosystem
-- The toolchain emphasizes automation, consistency, and ease of use through
-  command-line interfaces and editor integration
+# Documentation Tools
 
-# Structure of the Dir
+Documentation generation toolchain for converting raw notes, slides, and LaTeX
+into polished PDFs, HTML, and presentations. Supports multiple workflows
+including standard LaTeX, Causify markdown extensions, notes, slides, books, and
+Jupyter books with 30+ specialized tools for automation and consistency.
+
+## Structure of the Dir
+
 - `OLD/`
   - Archived legacy scripts and tools no longer in active use
 - `test/`
   - Unit tests for documentation processing scripts and utilities
 
-# Description of Files
+## Description of Files
+
 - `check_links.instr.md`
-  - Instructions and examples for using the check_links.py script to validate
-    URLs
+  - Instructions for validating URLs in documentation files
 - `create_google_drive_map.md`
-  - Documentation explaining how to generate directory structure summaries with
-    LLM analysis
+  - Guide for generating directory structure summaries with LLM
 - `generate_all_projects.md`
-  - Guide for generating documentation across multiple project repositories
+  - Instructions for generating documentation across repositories
 - `latex_abbrevs.sty`
-  - LaTeX style file with custom abbreviation macros for vectors, matrices, and
-    mathcal notation
+  - LaTeX style file with vector, matrix, and mathcal notation macros
 - `pandoc.latex`
   - Custom Pandoc LaTeX template for document conversion with styling
-    configurations
 
-# Documentation Toolchain
-- This is a high‑level guide to the workflows that turn raw notes, slides, Latex
-  into polished PDFs, slide decks, etc
+# Documentation Workflows
 
-- There are several documentation workflows available:
+The toolchain supports multiple documentation workflows:
   - **latex**
     - Standard Latex code to convert into PDF files
     - E.g., [`//cmamp/papers`]

@@ -1,22 +1,34 @@
-# Summary
+# Linters
 
-Comprehensive linting and code formatting tools for Python, Jupyter notebooks, and Markdown files. Includes support for type checking, import normalization, code validation, and integration with Claude Code for intelligent formatting and analysis.
+Comprehensive linting and code formatting tools for Python, Jupyter notebooks,
+and Markdown. Supports type checking, import normalization, code validation, and
+Claude Code integration for intelligent formatting.
 
-# Structure of the Dir
+## Structure of the Dir
 
-- `test/`: Unit tests for linting modules, test fixtures, and golden file outcomes
+- `test/`
+  - Unit tests for linting modules with test fixtures and expected outcomes
 
-# Description of Files
+## Description of Files
 
-- `add_class_frames.py`: Injects class frame decorators with class names before class initialization for debugging
-- `dockerized_ty.py`: Wrapper to execute ty type checker within a Docker container with standard configuration
-- `fix_comments.py`: Converts single-line docstrings to multi-line format
-- `lint.py`: Unified linter orchestrating Python, Jupyter, and Markdown file checking with multiple backend tools
-- `lint_cc.py`: Claude Code integration for intelligent file formatting and linting using topic-based rules and skills
-- `linter_utils.py`: Utility functions supporting linting operations, file filtering, and directory exclusion patterns
-- `normalize_import.py`: Refactors Python imports to canonical forms with standardized docstrings and short import aliases
-- `pyright_cfile.py`: Adapter converting pyright type checker output to cfile-compatible diagnostic format
-- `README.md`: This documentation file
+- `add_class_frames.py`
+  - Inject class frame decorators with class names for debugging clarity
+- `dockerized_ty.py`
+  - Execute ty type checker in Docker container with standard configuration
+- `fix_comments.py`
+  - Convert single-line docstrings to multi-line format
+- `lint.py`
+  - Unified linter for Python, Jupyter, and Markdown with multiple backends
+- `lint_cc.py`
+  - Claude Code integration for topic-based intelligent formatting
+- `linter_utils.py`
+  - Shared utilities for linting operations and file filtering
+- `normalize_import.py`
+  - Refactor Python imports to canonical forms with short aliases
+- `pyright_cfile.py`
+  - Convert pyright type checker output to vim cfile format
+- `README.md`
+  - This documentation file
 
 # Description of Executables
 

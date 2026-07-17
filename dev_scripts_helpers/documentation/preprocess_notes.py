@@ -45,7 +45,7 @@ _NUM_SPACES = 2
 _TRACE = False
 
 
-_DEFAULT_ACTIONS: List[str] = []
+_DEFAULT_ACTIONS: List[str] = ["colorize_bullets"]
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",

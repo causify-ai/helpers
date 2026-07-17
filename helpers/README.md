@@ -1,8 +1,9 @@
-# Summary
+# Helpers
 
-The `helpers/` directory is the core Python library providing utilities,
-development tools, and infrastructure components for the helpers ecosystem.
-Modules follow the `h<name>` naming convention and are organized by domain.
+Core Python library providing utilities, development tools, and infrastructure
+components. 100+ modules follow `h<name>` naming convention organized by domain
+including data processing, testing, caching, markdown, and external services
+integration.
 
 # Directory Structure
 
