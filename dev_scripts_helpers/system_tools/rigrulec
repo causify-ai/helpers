@@ -1,0 +1,6 @@
+#!/bin/bash
+# """
+# Run rig --rule to show rules from .claude/skills skill files.
+# """
+
+rig --rule --cfile "$@"

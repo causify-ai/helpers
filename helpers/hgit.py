@@ -506,6 +506,7 @@ def find_git_root(path: str = ".") -> str:
 # TODO(gp): There are several functions doing the same work.
 # helpers_root/helpers/hgit.py:827:def find_file_in_git_tree(
 # helpers_root/helpers/hsystem.py:757:def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
+# TODO(gp): Add a caching decorator
 def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     """
     Find a file within a directory hierarchy, excluding version control and cache dirs.

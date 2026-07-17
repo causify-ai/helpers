@@ -213,7 +213,9 @@ def extract_protected_content(
             placeholder = f"<<<PROTECTED_COMMENT_{counter:03d}>>>"
             protected_map[placeholder] = line
             counter += 1
-            lines_new.append(placeholder)
+            # Prefix placeholder with '%' so the LaTeX parser still recognizes
+            # this line as a comment and never reflows/joins it with neighbors.
+            lines_new.append(f"%{placeholder}")
             continue
         # Regular line: keep as-is.
         lines_new.append(line)
@@ -249,7 +251,11 @@ def restore_protected_content(
         restored = False
         for placeholder, original in protected_map.items():
             if placeholder in line:
-                if line.strip() == placeholder:
+                stripped = line.strip()
+                # Exact match or LaTeX comment with '%' prefix (and optional space).
+                if stripped == placeholder or re.fullmatch(
+                    rf"%\s*{re.escape(placeholder)}", stripped
+                ):
                     # Placeholder is entire line: replace with multi-line content.
                     lines_new.extend(original.split("\n"))
                     restored = True
