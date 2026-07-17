@@ -403,8 +403,8 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         use_abbreviations = True
         # Prepare outputs.
         expected = r"""
-        - **#red[Item One]**
-        - **#blue[Item Two]**
+        - `#text(fill: red, weight: "bold")[Item One]`{=typst}
+        - `#text(fill: blue, weight: "bold")[Item Two]`{=typst}
         """
         # Run test.
         self.helper(text, expected, use_abbreviations=use_abbreviations)

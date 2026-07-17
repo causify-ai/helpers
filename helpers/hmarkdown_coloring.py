@@ -350,8 +350,8 @@ def colorize_bullet_points_in_slide(
                 typst_color = typst_mapping[color_to_use]
                 # Typst: no escaping needed for underscores/ampersands in text mode.
                 if use_abbreviations:
-                    # Abbreviated: #colorname[text]
-                    ret = f"**#{color_to_use}[{text}]**"
+                    # Abbreviated: wrap in backticks for proper typst syntax
+                    ret = f'`#text(fill: {typst_color}, weight: "bold")[{text}]`{{=typst}}'
                 else:
                     # Full: #text(fill: color)[text]
                     ret = f'#text(fill: {typst_color}, weight: "bold")[{text}]'
