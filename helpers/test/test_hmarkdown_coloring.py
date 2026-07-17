@@ -114,28 +114,28 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test with multiple bold items and nested bullet structure.
+        Test with multiple `@text@` markers and nested bullet structure.
         """
         # Prepare inputs.
         text = r"""
-        - **VC Theory**
+        - @VC Theory@
             - Measures model
 
-        - **Bias-Variance Decomposition**
+        - @Bias-Variance Decomposition@
             - Prediction error
-                - **Bias**
-                - **Variance**
+                - @Bias@
+                - @Variance@
 
-        - **Computation Complexity**
+        - @Computation Complexity@
             - Balances model
             - Related to
             - E.g., Minimum
 
-        - **Bayesian Approach**
+        - @Bayesian Approach@
             - Treats ML as probability
             - Combines prior knowledge with observed data to update belief about a model
 
-        - **Problem in ML Theory:**
+        - @Problem in ML Theory:@
             - Assumptions may not align with practical problems
         """
         all_md_colors = [
@@ -202,7 +202,7 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         - _"If I were given one hour to save the planet, I would spend 59 minutes
         defining the problem and one minute resolving it"_ (Albert Einstein)
 
-        - **Not all phases are equally important!**
+        - @Not all phases are equally important!@
         - Question $>$ Data $>$ Features $>$ Algorithm
         - Clarity of the question impacts project success
         - Quality and relevance of data are crucial for performance
@@ -254,6 +254,63 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         ::::
         :::
         """
+        # Run test.
+        self.helper(text, expected)
+
+    def test3(self) -> None:
+        """
+        Test `@label@` and `**text**` combined on one line: only the `@...@`
+        marker is colorized, `**text**` stays plain bold.
+        """
+        # Prepare inputs.
+        text = r"""
+        - @Definition@: **Knowledge Representation (KR)** is the study of how to formally
+          encode information so that machines can reason with it
+        """
+        # Prepare outputs.
+        expected = r"""
+        - **\red{Definition}**: **Knowledge Representation (KR)** is the study of how to formally
+          encode information so that machines can reason with it
+        """
+        # Run test.
+        self.helper(text, expected)
+
+    def test4(self) -> None:
+        """
+        Test that plain `**text**` with no `@...@` marker is left unchanged.
+        """
+        # Prepare inputs.
+        text = r"""
+        This has **plain bold** only, no color markers.
+        """
+        # Prepare outputs.
+        expected = text
+        # Run test.
+        self.helper(text, expected)
+
+    def test5(self) -> None:
+        """
+        Test that email addresses are not mistaken for `@...@` markers.
+        """
+        # Prepare inputs.
+        text = "Contact **Dr. Saggese** at gsaggese@umd.edu for questions."
+        # Prepare outputs: `**Dr. Saggese**` stays plain bold, email untouched.
+        expected = text
+        # Run test.
+        self.helper(text, expected)
+
+    def test6(self) -> None:
+        """
+        Test that two raw emails on the same non-table line are not merged
+        into a single false-positive `@...@` marker.
+        """
+        # Prepare inputs.
+        text = (
+            "101: Name: Florian, Home: florian@wobegon.org, "
+            "Office: fk@phc.com"
+        )
+        # Prepare outputs: no marker detected, text unchanged.
+        expected = text
         # Run test.
         self.helper(text, expected)
 
@@ -377,9 +434,9 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         """
         # Prepare inputs.
         text = r"""
-        - **Item One**
-        - **Item Two**
-        - **Item Three**
+        - @Item One@
+        - @Item Two@
+        - @Item Three@
         """
         use_abbreviations = False
         # Prepare outputs.
@@ -397,8 +454,8 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         """
         # Prepare inputs.
         text = r"""
-        - **Item One**
-        - **Item Two**
+        - @Item One@
+        - @Item Two@
         """
         use_abbreviations = True
         # Prepare outputs.
@@ -411,11 +468,11 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test Typst output with single bold item.
+        Test Typst output with a single `@...@` marker.
         """
         # Prepare inputs.
         text = r"""
-        Some text with **one bold item** and more text.
+        Some text with @one bold item@ and more text.
         """
         use_abbreviations = False
         # Prepare outputs.
@@ -427,17 +484,18 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test that Typst output preserves code blocks.
+        Test that Typst output preserves code blocks (markers inside are not
+        colorized).
         """
         # Prepare inputs.
         text = r"""
-        - **First**
+        - @First@
 
         ```python
-        **not_bold** = True
+        # @not_a_marker@ = True
         ```
 
-        - **Second**
+        - @Second@
         """
         use_abbreviations = False
         # Prepare outputs.
@@ -445,7 +503,7 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         - `#text(fill: red, weight: "bold")[First]`{=typst}
 
         ```python
-        **not_bold** = True
+        # @not_a_marker@ = True
         ```
 
         - `#text(fill: blue, weight: "bold")[Second]`{=typst}
@@ -459,11 +517,11 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         """
         # Prepare inputs.
         text = r"""
-        - **One**
-        - **Two**
-        - **Three**
-        - **Four**
-        - **Five**
+        - @One@
+        - @Two@
+        - @Three@
+        - @Four@
+        - @Five@
         """
         use_abbreviations = False
         all_md_colors = [
@@ -510,7 +568,7 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         Test abbreviated syntax produces valid Typst with color and weight.
         """
-        text = "- **Definition**: Knowledge Representation"
+        text = "- @Definition@: Knowledge Representation"
         output_format = "typst"
 
         result = hmarkdo.colorize_bullet_points_in_slide(
@@ -524,7 +582,7 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         Test full syntax produces valid Typst with color and weight.
         """
-        text = "- **Definition**: Knowledge Representation"
+        text = "- @Definition@: Knowledge Representation"
         output_format = "typst"
 
         result = hmarkdo.colorize_bullet_points_in_slide(
@@ -536,12 +594,12 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
 
     def test_multiple_bold_items_different_colors(self) -> None:
         """
-        Test multiple bold items get different colors.
+        Test multiple `@...@` markers get different colors.
         """
         text = r"""
-        - **Definition**: First item
-        - **Fact**: Second item
-        - **Example**: Third item
+        - @Definition@: First item
+        - @Fact@: Second item
+        - @Example@: Third item
         """
         output_format = "typst"
 
@@ -558,9 +616,9 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
 
     def test_bold_text_with_special_characters(self) -> None:
         """
-        Test bold text containing special characters is properly colorized.
+        Test marker text containing special characters is properly colorized.
         """
-        text = "- **Key insight**: Use `_` for emphasis"
+        text = "- @Key insight@: Use `_` for emphasis"
         output_format = "typst"
 
         result = hmarkdo.colorize_bullet_points_in_slide(
@@ -572,24 +630,24 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
 
     def test_bold_and_italic_combined(self) -> None:
         """
-        Test bold and italic text formatting together.
+        Test marker and italic text formatting together.
         """
-        text = "- **Definition**: _Knowledge Representation_ is important"
+        text = "- @Definition@: _Knowledge Representation_ is important"
         output_format = "typst"
 
         result = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=False
         )
 
-        # Verify bold is colorized, italic remains
+        # Verify marker is colorized, italic remains
         self.assertIn('`#text(fill: red, weight: "bold")[Definition]`{=typst}', result)
         self.assertIn('_Knowledge Representation_', result)
 
     def test_no_bold_text_unchanged(self) -> None:
         """
-        Test that lines without bold text are unchanged.
+        Test that lines without `@...@` markers are unchanged.
         """
-        text = "- Just regular text without bold"
+        text = "- Just regular text without markers"
         output_format = "typst"
 
         result = hmarkdo.colorize_bullet_points_in_slide(
@@ -602,7 +660,7 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         Test that abbreviated and full syntax produce equivalent Typst output.
         """
-        text = "- **Item**: Description"
+        text = "- @Item@: Description"
         output_format = "typst"
 
         abbreviated = hmarkdo.colorize_bullet_points_in_slide(
@@ -620,7 +678,7 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         Test that colors requiring rgb() values are properly formatted.
         """
-        text = "- **Item1**: Test\n- **Item2**: Test\n- **Item3**: Test\n- **Item4**: Test\n- **Item5**: Test"
+        text = "- @Item1@: Test\n- @Item2@: Test\n- @Item3@: Test\n- @Item4@: Test\n- @Item5@: Test"
         output_format = "typst"
         all_md_colors = ["red", "orange", "violet", "magenta", "pink"]
 
