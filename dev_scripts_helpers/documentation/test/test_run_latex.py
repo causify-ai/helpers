@@ -358,7 +358,13 @@ class Test_run_latex_py(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file_path = os.path.join(self.get_scratch_space(), "book.tex")
-        argv = ["run_latex.py", "--input", in_file_path]
+        argv = [
+            "run_latex.py",
+            "--input",
+            in_file_path,
+            "--skip_action=copy_to_gdrive",
+            "--skip_action=open",
+        ]
         # Prepare outputs.
         expected_out_file_path = os.path.join(
             self.get_scratch_space(), "book.pdf"
@@ -385,6 +391,8 @@ class Test_run_latex_py(hunitest.TestCase):
             in_file_path,
             "--output",
             out_file_path,
+            "--skip_action=copy_to_gdrive",
+            "--skip_action=open",
         ]
         # Run test.
         with mock.patch.object(
@@ -397,28 +405,38 @@ class Test_run_latex_py(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test that `--open` opens the compiled PDF on macOS.
+        Test that the "open" action opens the compiled PDF on macOS.
         """
         # Prepare inputs.
         in_file_path = os.path.join(self.get_scratch_space(), "book.tex")
         out_file_path = os.path.join(self.get_scratch_space(), "book.pdf")
-        argv = ["run_latex.py", "--input", in_file_path, "--open"]
+        argv = [
+            "run_latex.py",
+            "--input",
+            in_file_path,
+            "--skip_action",
+            "copy_to_gdrive",
+        ]
         # Run test.
         with mock.patch.object(dshdrula.dshdlila, "run_basic_latex"):
-            with mock.patch.object(
-                dshdrula.dshddout, "open_file_on_macos"
-            ) as mock_open:
+            with mock.patch.object(dshdrula.hopen, "open_file") as mock_open:
                 self._run_main(argv)
         # Check outputs.
         mock_open.assert_called_once_with(out_file_path)
 
     def test4(self) -> None:
         """
-        Test that `--copy_to_gdrive` triggers the Google Drive copy.
+        Test that `--action copy_to_gdrive` triggers the Google Drive copy.
         """
         # Prepare inputs.
         in_file_path = os.path.join(self.get_scratch_space(), "book.tex")
-        argv = ["run_latex.py", "--input", in_file_path, "--copy_to_gdrive"]
+        argv = [
+            "run_latex.py",
+            "--input",
+            in_file_path,
+            "--action",
+            "copy_to_gdrive",
+        ]
         # Run test.
         with mock.patch.object(dshdrula.dshdlila, "run_basic_latex"):
             with mock.patch.object(
