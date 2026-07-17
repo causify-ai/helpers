@@ -1,55 +1,34 @@
 % ##############################################################################
-  \section{Introduction}
-  A multi-tenant product makes promises. Every menu item, route, and page
-  is a promise that says: ``if you click this, something meaningful will
-  happen.'' When those promises are not backed by policy, the UI turns into
-  a museum of broken doors: very interactive, not very useful.
+\section{Introduction}
+\label{sec:introduction}
 
-  The canonical failure mode is subtle. The backend is (usually) correct:
-  it checks authorization and rejects requests. The frontend, however,
-  often carries its own parallel permission model---a collage of route
-  guards, role checks, and hardcoded navigation conditions. These two models
-  drift as the product grows. Users see actions that fail at runtime; teams
-  ship patchy fixes; and eventually someone adds a ``temporary'' admin
-  override that becomes permanent.
+A multi-tenant product makes promises. Every route, button, module, and sidebar entry says something to the user. It says: this belongs to you; this will work; this is part of your world.
 
-  We adopt a simple principle:
+Those promises are easy to break. The backend may enforce authorization correctly, while the frontend carries a separate permission model made from route guards, role checks, feature flags, and tenant-specific conditionals. The two models rarely fail in one dramatic incident. They drift one small decision at a time. A restricted tenant sees a billing module. A support engineer clicks into a page that was never enabled for that role. A module fetches configuration, discovers the user cannot use it, and renders a blank shell.
 
-  \begin{quote}
-    \textbf{The UI is a security boundary. If the UI can misrepresent access,
-    it is part of the authorization problem.}
-  \end{quote}
+That is not only ugly product behavior. It is authorization drift. The UI is now describing a world the backend will not honor.
 
-  This paper describes how \system{} implements \uiPolicy{} using \uiData{}.
-  The backend produces a tenant-scoped \emph{UI contract} consisting of:
-  (i) the set of enabled modules for the effective tenant/role, and (ii)
-  structured layout fragments that drive navigation and module
-  configuration. The web tier renders a capability-driven interface composed
-  from these fragments and guarded by the same authorization semantics derived
-  server-side.
+We adopt a blunt rule.
 
-  \paragraph{What is \uiPolicy{}?}
-  \uiPolicy{} is not ``authorization in the frontend.'' The backend
-  remains the enforcement point.\@ \uiPolicy{} means the UI is derived
-  from the same policy inputs as authorization, so the user experience does
-  not drift away from what the system will actually permit.
+\begin{quote}
+\textbf{If the UI can lie about access, it is part of the security boundary.}
+\end{quote}
 
-  \paragraph{Contributions.}
-  \begin{itemize}
-    \item \textbf{\uiData{} as a UI contract:} a data model and delivery
-      pattern where tenants and roles receive an explicit, runtime UI contract
-      (modules + layout fragments), rather than a hardcoded UI with
-      scattered conditional logic.
+\uiPolicy{} is the discipline we use to make that boundary honest. The backend remains the enforcement point. The UI does not become trusted security code. Instead, the UI is rendered from a server-materialized contract that comes from the same policy inputs used for authorization. The frontend stops guessing.
 
-    \item \textbf{Server-authoritative abilities exported for UX:} a
-      single source of truth for permissions built on the server and
-      packed for client-side UX (CASL), minimizing frontend/backend divergence
-      \cite{casl_docs}.
+The core primitive is \uiData{}: a tenant- and role-scoped UI contract containing enabled modules, layout fragments, and the effective support context. The web tier consumes that contract to compose navigation and module layouts. It also builds the client-side ability model from a server-side profile, then exports packed rules for user-experience decisions. Backend APIs continue to authorize every request.
 
-    \item \textbf{Auditable \viewas{} semantics:} an explicit separation
-      between \emph{actor} identity and \emph{effective} tenant/role
-      context, enabling safe support/QA workflows without shared admin accounts.
+\paragraph{Concrete failure.}
+During onboarding for a restricted tenant, a frontend conditional for a billing module was not updated with the backend entitlement record. The sidebar showed the billing link. The backend returned HTTP 403. Three support escalations later, the discrepancy traced back to a stale if-block. Under \uiPolicy{}, the sidebar is rendered from the server-materialized module list; there is no standalone billing conditional to forget.
 
-    \item \textbf{Concrete implementation:} an end-to-end architecture
-      using Cognito, Lambda (Powertools), DynamoDB, and Next.js \cite{aws_cognito_user_pools,aws_cognito_groups,aws_powertools,iron_session}.
-  \end{itemize}
+\paragraph{Contributions.}
+This paper makes four contributions.
+
+\begin{itemize}
+  \item It names the representation gap between backend enforcement and frontend rendering, then states a Truthful UX invariant for policy-gated surfaces.
+  \item It describes \uiData{}, a production pattern where tenant modules and layout fragments are materialized as a runtime UI contract instead of being scattered through frontend code.
+  \item It shows how server-built CASL abilities, module layout checks, and backend enforcement keep the client useful without making it trusted.
+  \item It presents a view-as support workflow with immutable actor attribution, server-enforced allow-lists, signed effective-context headers, and searchable audit logs.
+\end{itemize}
+
+The implementation uses Next.js, Cognito, AWS Lambda, DynamoDB, iron-session, and CASL \cite{aws_cognito_user_pools,aws_cognito_groups,aws_lambda,aws_dynamodb,iron_session,casl_docs}. The pattern itself is not tied to those choices.

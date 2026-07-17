@@ -1,177 +1,153 @@
-% Serverless Control Plane, Container Data Plane: Operating an Enterprise Causal AI Platform
+% Serverless Control Plane, Container Data Plane.
+% Canonical full version for arXiv / technical-report use.
 
-\input{papers/template/style.tex}
+\documentclass[11pt, reqno]{amsart}
 
-\hypersetup{hidelinks}
-
-% Paper-specific polish (template already includes float, listings, tikz, etc.)
+% Page and typography.
+\usepackage[margin=1in]{geometry}
 \usepackage{microtype}
-\usepackage{doi}
-\usepackage{url}
-\usepackage[font=small, labelfont=bf]{caption}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{enumitem}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usetikzlibrary{arrows.meta, positioning, fit, calc, backgrounds, shapes.geometric}
+
 \setlength{\emergencystretch}{2em}
+\setlist[itemize]{leftmargin=1.6em, itemsep=0.25em, topsep=0.35em}
+\setlist[enumerate]{leftmargin=1.8em, itemsep=0.25em, topsep=0.35em}
 \raggedbottom
 
-% Keep listings intact (no page splits) and calm.
-\lstset{style=mystyle, float=H, floatplacement=H}
-
-% --- Listing styles used by code snippets in this paper ---
+% Colors.
+\definecolor{CausifyBlue}{RGB}{3,105,161}
 \definecolor{CausifyBg}{RGB}{248,248,248}
 \definecolor{CausifyFrame}{RGB}{220,220,220}
 \definecolor{CausifyComment}{RGB}{110,110,110}
 \definecolor{CausifyKeyword}{RGB}{36,74,140}
+\definecolor{CausifyString}{RGB}{24,110,90}
 \definecolor{CausifyNumber}{RGB}{125,125,125}
 
-\lstdefinestyle{json}{ basicstyle=\ttfamily\footnotesize, frame=single,
-backgroundcolor=
-\color{CausifyBg}
-, rulecolor=
-\color{CausifyFrame}
-, numbers=left, numberstyle=\tiny
-\color{CausifyNumber}
-, breaklines=true, columns=fullflexible, keepspaces=true,
-showstringspaces=false, xleftmargin=0.06\textwidth, xrightmargin=0.06\textwidth
+% Listings.
+\lstdefinestyle{causify}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{CausifyBg},
+  frame=single,
+  rulecolor=\color{CausifyFrame},
+  framerule=0.4pt,
+  framesep=6pt,
+  xleftmargin=2pt,
+  xrightmargin=2pt,
+  numbers=left,
+  numberstyle=\tiny\color{CausifyNumber},
+  numbersep=8pt,
+  keywordstyle=\bfseries\color{CausifyKeyword},
+  commentstyle=\itshape\color{CausifyComment},
+  stringstyle=\color{CausifyString},
+  showstringspaces=false,
+  breaklines=true,
+  breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{CausifyNumber}{$\hookrightarrow$}\space},
+  tabsize=2,
+  columns=fullflexible,
+  keepspaces=true,
+  captionpos=b,
+  aboveskip=0.8\baselineskip,
+  belowskip=0.8\baselineskip
 }
 
-\lstdefinestyle{python}{ basicstyle=\ttfamily\footnotesize, frame=single,
-backgroundcolor=
-\color{CausifyBg}
-, rulecolor=
-\color{CausifyFrame}
-, numbers=left, numberstyle=\tiny
-\color{CausifyNumber}
-, breaklines=true, columns=fullflexible, keepspaces=true,
-showstringspaces=false, commentstyle=\itshape
-\color{CausifyComment}
-, keywordstyle=\bfseries
-\color{CausifyKeyword}
-, morekeywords={def,class,if,else,elif,for,while,return,import,from,as,try,except,finally,with,lambda,yield,assert,pass,break,continue,in,is,not,and,or,True,False,None,async,await},
-xleftmargin=0.06\textwidth, xrightmargin=0.06\textwidth }
-
-% --- SQL / Postgres listings -----------------------------------------------
-\lstdefinestyle{sql}{%
-style=mystyle, language=SQL, showstringspaces=false, breaklines=true,
-keepspaces=true, upquote=true, morekeywords={%
-BIGSERIAL,TIMESTAMPTZ,JSONB,UUID,ILIKE,UNNEST,LATERAL,RETURNING, MATERIALIZED,CONCURRENTLY,IF,EXISTS, ENABLE,DISABLE,ROW,LEVEL,SECURITY,POLICY, CURRENT_SETTING,SET,LOCAL } }
-
-% --- DynamoDB key-pattern / schema listings --------------------------------
-\lstdefinelanguage{DynamoDB}{%
-sensitive=true, morecomment=[l]{--}, morecomment=[l]{\#}, morekeywords={%
-PK,SK,GSI,LSI, TENANT,USER,SUBJECT,ANALYSIS,GRAPH,SESSION,TURN, TTL,Attrs,Type,Item,Items, partition,sort,keys,index,indexes },
-morestring=[b]", }
-
-\lstdefinestyle{dynamo}{%
-style=mystyle, language=DynamoDB, showstringspaces=false, breaklines=true,
-keepspaces=true, columns=fullflexible }
-
-% --- TikZ: load shadows library and override global scaling ---
-\usetikzlibrary{
-  shadows,
-  backgrounds,
-  arrows.meta,
-  positioning,
-  fit,
-  calc,
-  shapes.geometric,
-  shapes.symbols
-}
-\pgfdeclarelayer{background} \pgfsetlayers{background,main}
-
-% Environment that resets the template's global TikZ scaling (0.85*0.85)
-% so diagrams render at their declared sizes.
-\newenvironment{cleanpic}[1][]{%
-\begingroup \tikzset{every picture/.style={}}%
-\begin{tikzpicture}[#1]%
-}{%
-\end{tikzpicture}%
-\endgroup%
+\lstdefinestyle{json}{
+  style=causify,
+  morestring=[b]",
+  literate={\\_}{{\_}}1
 }
 
-% --- TikZ color palette for diagrams ---
-\definecolor{cpblue}{RGB}{66,133,244} % control plane
-\definecolor{dpgreen}{RGB}{52,168,83} % data plane / containers
-\definecolor{idpyellow}{RGB}{251,188,4} % identity provider
-\definecolor{storelavender}{RGB}{171,148,206}% storage / config
-\definecolor{webteal}{RGB}{0,172,193} % web tier
-\definecolor{warnred}{RGB}{234,67,53} % security / hardening
-\definecolor{burstpeach}{RGB}{255,183,130} % burst compute
+\lstdefinestyle{python}{
+  style=causify,
+  morekeywords={def,class,return,raise,if,else,elif,for,in,not,and,or,True,False,None,with,as,try,except,finally,import,from,lambda}
+}
 
-% --- Modern diagram styles (used inside cleanpic) ---
-\tikzset{ cbox/.style={ draw=gray!60, rounded corners=3pt, align=center, inner sep=7pt, font=\small\sffamily, text=black, minimum height=13mm, drop shadow={shadow xshift=0.6mm, shadow yshift=-0.6mm, opacity=0.35} }, cwide/.style={cbox, text width=50mm, minimum height=16mm}, carrow/.style={-{Latex[length=2.5mm]}, thick, color=gray!75}, clabel/.style={font=\scriptsize\sffamily, text=black, align=center} }
-
-% Macros
+% Macros.
 \newcommand{\system}{\textsc{Causify Platform}}
 \newcommand{\console}{\textsc{Causify Console}}
 \newcommand{\control}{control plane}
 \newcommand{\dataplane}{data plane}
-\newcommand{\viewas}{\texttt{view-as}}
-\newcommand{\etag}{\texttt{ETag}}
-\newcommand{\ifnonematch}{\texttt{If-None-Match}}
-\newcommand{\scopeenv}{\emph{scope envelope}}
+\newcommand{\viewas}{\texttt{view\_as}}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\scopeprefix}{\code{schema_prefix}}
+
+\newenvironment{authorbio}[1]{%
+  \par\noindent\textbf{#1}\nobreakspace\ignorespaces
+}{\par\vspace{0.4em}}
+
+\title[Serverless Control Plane]{Serverless Control Plane, Container Data Plane\\
+\large A Governance Boundary for Multi-Tenant AI Platforms}
+
+\author[Ghasemnezhad et al.]{Shayan Ghasemnezhad, Giacinto Paolo (GP) Saggese, Paul Smith, Heanh Sok, and Vedanshubhai Joshi}
+\date{July 2026}
 
 \begin{document}
-  \title{Serverless Control Plane, Container Data Plane:\\ \large Operating
-  an Enterprise Causal AI Platform}
 
-  % \author{\textbf{[Author Name]}\\
-  % [Affiliation]\\
-  % \texttt{[email]}}
+\begin{abstract}
+Multi-tenant AI platforms fail in a plain, dangerous way. Services learn to make their own guesses about identity, tenancy, and capability. A query service trusts a caller-supplied tenant hint. A job runner accepts a schema prefix from a request payload. An OpenAPI document advertises endpoints for modules a tenant never bought. None of these decisions looks dramatic in isolation. Together, they turn governance into folklore.
 
-  \date{\today}
+We describe a production architecture that puts the folklore behind a boundary. A serverless control plane materializes identity, effective tenant context, module capability, API surface, impersonation state, and tenant-scoping signals. A container data plane executes workloads in Kubernetes, Lambda-backed modules, and on-demand Fargate jobs without owning policy. The important property is not AWS Lambda or EKS by themselves; it is the split. The control plane decides and attests. The data plane executes inside injected scope.
 
-  \begin{abstract}
-    Enterprise AI platforms fail in a predictable way: compute scales, tenants
-    multiply, and governance quietly gets smeared across everything that
-    happens to be running. Authorization checks drift into services,
-    tenant scoping leaks into query parameters, and the ``platform'' becomes
-    a distributed guessing game about identity, tenancy, and intent.
+We report eight months of operational experience at Causify AI. The system concentrates shared governance in a 135-line Lambda middleware spine, unifies enforcement across 12 data-plane services, reduces visible API surface by 67--90\% for limited-module tenants from a 48-endpoint base, and moves five of six common tenant lifecycle operations to reviewed data changes instead of deployments. From 1,368 production observations, full \code{/v2/me} materialization at 512 MB shows 856 ms P50 latency; ETag revalidation handles 91\% of steady-state traffic at 68 ms P50. Structured-log correlation found zero actor/effective-tenant mismatches within the limits of the detection method. The pattern has been useful in production: make tenancy explicit, inject scope downstream, and stop asking every service to rediscover the truth.
+\end{abstract}
 
-    We describe a production architecture that makes the guessing illegal:
-    a \emph{serverless control plane} that materializes tenant context into
-    explicit, cacheable contracts, paired with a \emph{container data
-    plane} that executes workloads without owning policy. Our control plane
-    is an AWS Lambda API (Powertools) fronted by API Gateway. It
-    authenticates users, derives effective context (including a safe
-    \viewas{} mechanism), resolves reusable tenant scoping signals (e.g.,
-    schema prefixes, tenant identifiers, user/session scope, connector keys,
-    and job intent), minimizes API surface by filtering OpenAPI and
-    endpoint access by enabled modules, and uses ETags and conditional requests
-    to make ``who am I?'' fast and cheap at scale.
+\maketitle
+\markboth{GHASEMNEZHAD ET AL.}{SERVERLESS CONTROL PLANE}
 
-    The data plane runs long-lived services on Kubernetes (EKS) and can
-    run burst compute as on-demand containers (e.g., ECS/Fargate). The key
-    property is not the stack; it is the boundary: the control plane decides
-    and attests; the data plane executes. We discuss design goals,
-    contracts, middleware structure, defense-in-depth against confused-deputy
-    and tenant-confusion risks, and operational outcomes that come from keeping
-    governance thin, explicit, and boring.
-  \end{abstract}
+\noindent\textbf{Keywords.} multi-tenant SaaS; AI platform; authorization; serverless architecture; control plane; data plane; scope injection; confused deputy; API governance; AWS Lambda; Kubernetes
 
-  \maketitle
+\setcounter{tocdepth}{1}
+\tableofcontents
 
-  \setcounter{tocdepth}{1}
-  \tableofcontents
-  \input{papers/Causify_Serverless_Control_Plane/01_introduction.tex}
+\input{01_introduction.tex}
+\input{02_problem_statement.tex}
+\input{03_architecture_overview.tex}
+\input{04_control_plane_design.tex}
+\input{05_container_data_plane.tex}
+\input{06_security.tex}
+\input{07_operations_reliability.tex}
+\input{08_evaluation.tex}
+\input{09_related_work.tex}
+\input{10_limitations_future_work.tex}
+\input{11_conclusion.tex}
 
-  \input{papers/Causify_Serverless_Control_Plane/02_problem_statement.tex}
+\bibliographystyle{plainurl}
+\bibliography{references}
 
-  \input{papers/Causify_Serverless_Control_Plane/03_architecture_overview.tex}
+\section*{About the Authors}
 
-  \input{papers/Causify_Serverless_Control_Plane/04_control_plane_design.tex}
+\begin{authorbio}{Shayan Ghasemnezhad}
+is Infrastructure and DevOps Lead at Causify AI, Turin, Italy. His research interests include platform engineering and cloud solutions architecture, production AI/ML systems, and secure, reliable infrastructure operations. Ghasemnezhad received his Bachelor's degree in Digital Management from Ca' Foscari University of Venice. Contact him at shayan@causify.ai.
+\end{authorbio}
 
-  \input{papers/Causify_Serverless_Control_Plane/05_container_data_plane.tex}
+\begin{authorbio}{Giacinto Paolo (GP) Saggese}
+is Co-founder and CTO at Causify AI, Potomac, Maryland, USA. His research interests include machine learning, fintech, and the commercialization of research. Saggese received his Ph.D. degree in Electrical and Computer Engineering from the University of Illinois Urbana-Champaign. He is an Adjunct Professor at the University of Maryland, College Park. Contact him at gp@causify.ai.
+\end{authorbio}
 
-  \input{papers/Causify_Serverless_Control_Plane/06_security.tex}
+\begin{authorbio}{Paul Smith}
+is Co-founder and Chief Scientist at Causify AI, Cary, North Carolina, USA. His research interests include causal inference, Bayesian modeling, and time-series prediction. Smith received his Ph.D. degree in Mathematics from UCLA. Contact him at paul@causify.ai.
+\end{authorbio}
 
-  \input{papers/Causify_Serverless_Control_Plane/07_operations_reliability.tex}
+\begin{authorbio}{Heanh Sok}
+is Software Engineer at Causify AI, College Park, Maryland, USA. His research interests include big data systems, distributed systems, and AI/ML engineering and operations. Sok received his Master's degree in Data Science from the University of Maryland, College Park. Contact him at h.sok@causify.ai.
+\end{authorbio}
 
-  \input{papers/Causify_Serverless_Control_Plane/08_evaluation.tex}
-
-  \input{papers/Causify_Serverless_Control_Plane/09_related_work.tex}
-
-  \input{papers/Causify_Serverless_Control_Plane/10_limitations_future_work.tex}
-
-  \input{papers/Causify_Serverless_Control_Plane/11_conclusion.tex}
-  \bibliographystyle{amsplain}
-  \bibliography{papers/Causify_Serverless_Control_Plane/references.bib}
+\begin{authorbio}{Vedanshubhai Joshi}
+is Software Engineer at Causify AI, Indiana, USA. His research interests include platform infrastructure, multi-tenant API design, and data engineering pipelines. Joshi received his Master's degree in Computer Science from Purdue University. Contact him at v.joshi@causify.ai.
+\end{authorbio}
 \end{document}

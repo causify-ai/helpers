@@ -1,67 +1,56 @@
 % ##############################################################################
-  \section{Problem Statement and Motivation}
-  A tenant-aware product must satisfy requirements that are individually
-  straightforward but jointly annoying:
+\section{Authorization Drift}
+\label{sec:problem}
 
-  \begin{itemize}
-    \item \textbf{R1 (Backend correctness):} authorization must be
-      enforced on the server and remain non-bypassable.
+Most SaaS platforms start with a clean idea. The backend enforces access. The frontend checks enough state to avoid showing nonsense. That works while the product is small.
 
-    \item \textbf{R2 (UX truthfulness):} the UI should not advertise
-      actions the user cannot perform. (No broken doors.)
+Then tenants diverge. One customer buys Grid, another buys Horizon, a demo tenant gets DataMap, and support engineers need temporary visibility into each of them. A few flags become a few route guards. A layout component grows tenant-specific branches. A module entry appears in one sidebar but not another. The backend remains the final authority, yet the UI has become a second policy system without the same discipline.
 
-    \item \textbf{R3 (Tenant variability):} tenants differ by enabled
-      modules, default views, and configuration. Roles differ within a tenant.
+We call the gap between these two models the \emph{representation gap}. It is the distance between what the backend will permit and what the UI presents as available.
 
-    \item \textbf{R4 (Low operational overhead):} onboarding or changing
-      a tenant should not require code forks or redeploys.
+\subsection{Requirements}
+\label{sec:requirements}
 
-    \item \textbf{R5 (Support at scale):} operators need safe mechanisms
-      to reproduce tenant issues (e.g., impersonation) while preserving
-      auditability.
-  \end{itemize}
+A multi-tenant UI policy system must satisfy five requirements.
 
-  Traditional RBAC can handle coarse role-based access, but often struggles
-  when permissions must vary across tenants and evolve rapidly. ABAC
-  provides a more expressive foundation \cite{nist_abac}, but it does not
-  automatically solve the \emph{UI drift problem}: even a perfectly designed
-  backend policy can still leave the frontend guessing.
+\begin{description}[leftmargin=2.2em, style=nextline]
+  \item[R1. No stale gates.] Policy-gated UI elements shown to a user must correspond to backend operations the system will actually permit for the user's current tenant and role.
+  \item[R2. Configuration over redeploy.] Enabling a tenant or changing a module entitlement should be a reviewed data change, not a code release.
+  \item[R3. Safe impersonation.] Support engineers need the tenant's perspective without shared credentials and without bypassing the authorization model.
+  \item[R4. Defense in depth.] The UI must never be the only barrier. Backend APIs authorize requests even when a browser is tampered with.
+  \item[R5. Support at scale.] Operators need scoped concurrent sessions and searchable audit trails, especially when several engineers are debugging different tenants at the same time.
+\end{description}
 
-  A common alternative is feature flags: ship everything and selectively
-  enable parts \cite{fowler_feature_toggles}. Feature flags help decouple
-  rollout from deployment, but they tend to accumulate into a second
-  configuration universe: one system decides what exists, another
-  decides what is visible, and neither system owns the UX contract.
+Traditional RBAC handles a useful slice of this problem \cite{sandhu_rbac}. ABAC gives a richer model for attribute-derived decisions \cite{nist_abac}. Feature flags help with release control \cite{fowler_feature_toggles}. Policy engines such as OPA, Cedar, and OpenFGA centralize authorization decisions \cite{opa_docs,cedar_docs,aws_verified_permissions,openfga_docs}.
 
-  \begin{table}[H]
-    \centering
-    \small
-    \begin{tabularx}{\textwidth}{X c c}
-      \toprule
-      \textbf{Capability} & \textbf{Traditional} & \textbf{\uiPolicy{}} \\
-      \midrule
-      Backend enforcement & \cmark & \cmark \\
-      Role-based access & \cmark & \cmark \\
-      Tenant isolation & \cmark & \cmark \\
-      Unified policy & \xmark & \cmark \\
-      Derived UI & \xmark & \cmark \\
-      Auto-sync & \xmark & \cmark \\
-      Module independence & \xmark & \cmark \\
-      Config-only tenants & \xmark & \cmark \\
-      Zero redeploy & \xmark & \cmark \\
-      UI truthfulness & \xmark & \cmark \\
-      \bottomrule
-    \end{tabularx}
-    \caption{Capability comparison: traditional authorization versus \uiPolicy{}.
-    Both approaches provide core security; \uiPolicy{} adds consistency
-    and operational efficiency.}
-    \label{tab:comparison}
-  \end{table}
+None of those choices automatically tells the frontend what world to render. They answer what is allowed. They do not prescribe how permission decisions become navigation, layout, module configuration, and support workflow. That missing layer is where \uiPolicy{} sits.
 
-  \paragraph{Motivation.}
-  We want a system where: (i) tenant/role variability is expressed as data,
-  (ii) the backend can materialize an authoritative view of ``what this
-  user sees'', (iii) the frontend consumes that view to compose navigation
-  and defaults, and (iv) authorization semantics remain consistent
-  across backend and frontend. The motivation is not to make the UI dynamic
-  for its own sake, but to make it \emph{honest}.
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{X c c c}
+    \toprule
+    \textbf{Need} & \textbf{RBAC / ABAC} & \textbf{Feature flags} & \textbf{\uiPolicy{}} \\
+    \midrule
+    Backend authorization & \cmark & \xmark & \cmark \\
+    Tenant-level variability & Partial & \cmark & \cmark \\
+    UI derived from policy & \xmark & Partial & \cmark \\
+    Config-only tenant changes & Partial & \cmark & \cmark \\
+    Auditable view-as support & \xmark & \xmark & \cmark \\
+    Defense against stale UI gates & \xmark & \xmark & \cmark \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Where \uiPolicy{} fits. It does not replace authorization frameworks. It uses their decisions to make the rendered interface truthful.}
+  \label{tab:comparison}
+\end{table}
+
+\subsection{The Truthful UX invariant}
+\label{sec:truthful_ux}
+
+For policy-gated surfaces, we use the following invariant.
+
+\begin{quote}
+\textbf{A rendered UI affordance must be backed by a server-side policy decision in the same effective tenant and role context.}
+\end{quote}
+
+The invariant is intentionally narrow. It does not claim every pixel on the page is authorization-sensitive. A help link or account menu may be universal. It does claim that navigation, modules, layouts, and policy-gated actions should not be rendered from a parallel frontend guess.

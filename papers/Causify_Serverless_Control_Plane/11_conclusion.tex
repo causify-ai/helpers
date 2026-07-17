@@ -1,35 +1,8 @@
 \section{Conclusion}
-  \label{sec:conclusion} In multi-tenant platforms, the expensive bugs
-  are rarely clever. They are mundane: a missing scope field, a stale spec,
-  an endpoint that exists when it should not, a job that runs under the wrong
-  context. The platform fails not because compute is hard, but because governance
-  becomes ambiguous.
+\label{sec:conclusion}
 
-  This paper described a production pattern that makes ambiguity unwelcome:
-  a \emph{serverless control plane} that materializes identity,
-  effective context, capability surface, and tenant scoping into
-  explicit contracts, paired with a \emph{container data plane} that
-  executes workloads without owning policy.
+The hardest bugs in multi-tenant platforms are often small enough to look harmless. A scope field comes from the wrong place. A generated spec shows too much. A worker accepts a tenant hint it should never have trusted. A support session loses track of the real actor. The platform still runs, but trust leaks out of it.
 
-  The results are practical:
-  \begin{itemize}
-    \item tenancy becomes explicit (actor vs.\ effective context),
+The control-plane/data-plane split described here is a way to stop that leak. The control plane materializes identity, effective context, module surface, impersonation state, and tenant scope. The data plane runs the work. That separation kept governance reviewable across 12 services, reduced endpoint exposure for limited tenants, moved routine tenant changes out of deployments, and made incident analysis less dependent on memory.
 
-    \item scope is injected rather than guessed (\texttt{schema\_prefix}
-      and friends),
-
-    \item surface drift is reduced (filtered OpenAPI + module gating),
-
-    \item and "who am I?" becomes cheap enough to ask often (ETag + conditional
-      requests).
-  \end{itemize}
-
-  The thesis is simple:
-  \begin{quote}
-    \textbf{Governance is a product feature. Put it in one place, make
-    it explicit, and keep it boring.}
-  \end{quote}
-
-  The data plane can remain ambitious. The control plane should remain calm.
-  In a world where platforms grow faster than documentation, calm is a competitive
-  advantage.
+The thesis is intentionally plain: governance is part of the product. Put it behind a boundary, make it explicit, and keep it boring enough to operate. The data plane can be ambitious. The control plane should be calm.

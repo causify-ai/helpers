@@ -1,25 +1,35 @@
-% Capability-driven multi-tenant SaaS with UI-as-Policy (UI-as-Data)
+% UI-as-Policy: capability-driven UI contracts for multi-tenant SaaS.
+% Canonical full version for arXiv / technical report use.
 
-\input{papers/template/style.tex}
+\documentclass[11pt, reqno]{amsart}
 
-\hypersetup{hidelinks}
-
-% Extra packages / tweaks specific to this paper.
+% Page and typography.
+\usepackage[margin=1in]{geometry}
 \usepackage{microtype}
-\usepackage{doi}
-\usepackage{url}
-\usepackage{listings}
-\usepackage{xcolor}
-\usepackage{tikz}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{enumitem}
+\usepackage{amsfonts, amssymb}
+\usepackage{booktabs}
 \usepackage{tabularx}
-\usepackage{fontawesome5}
-\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{array}
+\usepackage{float}
+\usepackage{needspace}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
 \usetikzlibrary{arrows.meta, positioning, shapes.multipart, fit, calc, backgrounds, decorations.pathmorphing, decorations.pathreplacing}
 
-% Prevent overfull lines without turning the whole paper into \sloppy.
 \setlength{\emergencystretch}{2em}
+\setlist[itemize]{leftmargin=1.6em, itemsep=0.25em, topsep=0.35em}
+\setlist[enumerate]{leftmargin=1.8em, itemsep=0.25em, topsep=0.35em}
 
-% Listings setup
+% Colors and listings.
 \definecolor{CausifyBg}{RGB}{248,248,248}
 \definecolor{CausifyFrame}{RGB}{220,220,220}
 \definecolor{CausifyComment}{RGB}{110,110,110}
@@ -27,145 +37,117 @@
 \definecolor{CausifyString}{RGB}{24,110,90}
 \definecolor{CausifyNumber}{RGB}{125,125,125}
 
-\lstdefinestyle{causify}{ basicstyle=\ttfamily\footnotesize, backgroundcolor=
-\color{CausifyBg}
-, frame=single, rulecolor=
-\color{CausifyFrame}
-, framerule=0.4pt, framesep=6pt, xleftmargin=2pt, xrightmargin=2pt, numbers=left,
-numberstyle=\tiny
-\color{CausifyNumber}
-, numbersep=8pt, keywordstyle=\bfseries
-\color{CausifyKeyword}
-, commentstyle=\itshape
-\color{CausifyComment}
-, stringstyle=
-\color{CausifyString}
-, showstringspaces=false, breaklines=true, breakatwhitespace=true, postbreak=\mbox{\textcolor{CausifyNumber}{$\hookrightarrow$}\space},
-tabsize=2, columns=fullflexible, keepspaces=true, captionpos=b,
-aboveskip=0.8\baselineskip, belowskip=0.8\baselineskip, float=H, floatplacement=H,
-texcl=false, mathescape=false, extendedchars=true }
-
-% Center code listings with consistent margins
-\lstset{
-  xleftmargin=\parindent,
-  xrightmargin=\parindent,
+\lstdefinestyle{causify}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{CausifyBg},
+  frame=single,
+  rulecolor=\color{CausifyFrame},
+  framerule=0.4pt,
+  framesep=6pt,
+  xleftmargin=2pt,
+  xrightmargin=2pt,
+  numbers=left,
+  numberstyle=\tiny\color{CausifyNumber},
+  numbersep=8pt,
+  keywordstyle=\bfseries\color{CausifyKeyword},
+  commentstyle=\itshape\color{CausifyComment},
+  stringstyle=\color{CausifyString},
+  showstringspaces=false,
+  breaklines=true,
+  breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{CausifyNumber}{$\hookrightarrow$}\space},
+  tabsize=2,
+  columns=fullflexible,
+  keepspaces=true,
+  captionpos=b,
+  aboveskip=0.8\baselineskip,
+  belowskip=0.8\baselineskip
 }
 
-% Simple JSON style - minimal processing to avoid brace issues
-\lstdefinestyle{json}{ basicstyle=\ttfamily\footnotesize, frame=single,
-backgroundcolor=
-\color{CausifyBg}
-, rulecolor=
-\color{CausifyFrame}
-, numbers=left, numberstyle=\tiny
-\color{CausifyNumber}
-, breaklines=true, columns=fullflexible, keepspaces=true,
-showstringspaces=false }
-
-% Simple TypeScript style - minimal processing
-\lstdefinestyle{typescript}{ basicstyle=\ttfamily\footnotesize, frame=single,
-backgroundcolor=
-\color{CausifyBg}
-, rulecolor=
-\color{CausifyFrame}
-, numbers=left, numberstyle=\tiny
-\color{CausifyNumber}
-, breaklines=true, columns=fullflexible, keepspaces=true,
-showstringspaces=false, commentstyle=\itshape
-\color{CausifyComment}
-, keywordstyle=\bfseries
-\color{CausifyKeyword}
-, morekeywords={const,let,var,export,import,from,return,interface,type,extends,async,await,if,else,for,while,break,switch,case,default,try,catch,throw,new,typeof,instanceof,Promise,true,false,null,undefined}
+\lstdefinestyle{json}{
+  style=causify,
+  numbers=left,
+  morestring=[b]",
+  literate={\\_}{{\_}}1
 }
 
-% Simple Python style - minimal processing
-\lstdefinestyle{python}{ basicstyle=\ttfamily\footnotesize, frame=single,
-backgroundcolor=
-\color{CausifyBg}
-, rulecolor=
-\color{CausifyFrame}
-, numbers=left, numberstyle=\tiny
-\color{CausifyNumber}
-, breaklines=true, columns=fullflexible, keepspaces=true,
-showstringspaces=false, commentstyle=\itshape
-\color{CausifyComment}
-, keywordstyle=\bfseries
-\color{CausifyKeyword}
-, morekeywords={def,class,if,else,elif,for,while,return,import,from,as,try,except,finally,with,lambda,yield,assert,pass,break,continue,in,is,not,and,or,True,False,None,async,await}
+\lstdefinestyle{typescript}{
+  style=causify,
+  morekeywords={const,let,var,export,import,from,return,interface,type,extends,async,await,if,else,for,while,break,switch,case,default,try,catch,throw,new,typeof,instanceof,Promise,true,false,null,undefined}
 }
 
-% Macros
+% Macros.
 \newcommand{\system}{\textsc{Causify Platform}}
 \newcommand{\console}{\textsc{Causify Console}}
 \newcommand{\uiData}{UI-as-Data}
 \newcommand{\uiPolicy}{UI-as-Policy}
-\newcommand{\policy}{Policy-as-Data}
-\newcommand{\viewas}{\texttt{view-as}}
+\newcommand{\viewas}{\texttt{view\_as}}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\cmark}{\textcolor{green!60!black}{\ensuremath{\checkmark}}}
+\newcommand{\xmark}{\textcolor{red!70!black}{\ensuremath{\times}}}
 
-\graphicspath{{papers/Causify_Platform_UI_as_Policy/}}
+\newenvironment{authorbio}[1]{%
+  \par\noindent\textbf{#1}\nobreakspace\ignorespaces
+}{\par\vspace{0.4em}}
+
+\title[UI-as-Policy]{The Sidebar Is a Security Boundary\\
+\large UI-as-Policy: Unified Permission and Layout System for Multi-Tenant Platforms}
+
+\author[Ghasemnezhad et al.]{Shayan Ghasemnezhad, Giacinto Paolo (GP) Saggese, Paul Smith, Heanh Sok, and Vedanshubhai Joshi}
+\date{July 2026}
 
 \begin{document}
-  \title{The Sidebar Is a Security Boundary\\ \large UI-AS-POLICY for
-  Capability-Driven Multi-Tenant SaaS}
 
-  % \author{\textbf{[Author Name]}\\
-  % [Affiliation]\\
-  % \texttt{[email]}}
+\begin{abstract}
+Multi-tenant SaaS products often develop a small, expensive lie. The backend knows what a user may do; the frontend guesses what the user should see. Those guesses drift as tenants, roles, and modules change. The result is familiar to anyone who has operated a real platform: buttons that end in HTTP 403, pages that load and then deny access, support tickets that trace back to stale conditionals, and a product surface that quietly stops matching the authorization model.
 
-  \date{\today}
+We present \uiPolicy{}, a production-tested pattern that treats the UI as a first-class policy surface. The backend materializes a tenant- and role-scoped UI contract at runtime. The web tier derives navigation, module visibility, layout, and client-side ability rules from that contract, while backend APIs continue to enforce authorization independently. Policy lives as data, so tenant onboarding and module changes become reviewed configuration updates rather than redeploys.
 
-  \begin{abstract}
-    Multi-tenant SaaS products tend to develop a particular kind of split-brain:
-    the backend enforces permissions, while the frontend \emph{guesses}
-    what the user should be able to see. Over time, those guesses drift.
-    The UI becomes a polite liar (buttons that 403) and occasionally a dangerous
-    liar (surfaces that imply access that should never exist).
+The paper contributes a name for the failure mode, a Truthful UX invariant for policy-gated surfaces, and an implementation pattern built around \uiData{}, server-built CASL abilities, and auditable support impersonation. We report production measurements from \system{}: seven modules defined in the policy store, 25+ permission subjects, 150+ layout fields, zero-deployment tenant onboarding, 73--100\% policy coverage on high-value UI surfaces, a 91\% ETag cache-hit rate for identity revalidation, and 856 ms P50 full-materialization latency for the \code{/v2/me} control-plane contract.
+\end{abstract}
 
-    We present \uiPolicy{}: a capability-driven architecture where the UI
-    is treated as a first-class policy surface. The central idea is
-    \uiData{}: the backend materializes a tenant- and role-scoped \emph{UI
-    contract} (enabled modules and structured layout fragments) and
-    delivers it at runtime. The web tier then composes navigation and module
-    experiences from this contract while deriving an identical authorization
-    model server-side and exporting it to the client in a packed form for
-    UX consistency.
+\maketitle
+\markboth{GHASEMNEZHAD ET AL.}{UI-AS-POLICY}
 
-    Our production implementation couples (i) a control plane API (AWS
-    Lambda) that returns \texttt{/v2/me} with an explicit \emph{actor} vs.\ \emph{\viewas}
-    split, (ii) tenant policy stored as data in DynamoDB (modules and layout
-    fragments), and (iii) server-authoritative abilities (CASL) serialized
-    for the client. This design reduces tenant onboarding friction (configuration
-    over redeploy), minimizes frontend/backend authorization drift, and
-    enables safe support impersonation without sacrificing auditability.
-  \end{abstract}
+\noindent\textbf{Keywords.} multi-tenant SaaS; authorization; UI policy; server-driven UI; impersonation; authorization drift; policy-as-data
 
-  \maketitle
+\setcounter{tocdepth}{1}
+\tableofcontents
 
-  \setcounter{tocdepth}{1}
-  \tableofcontents
+\input{01_introduction.tex}
+\input{02_problem_statement.tex}
+\input{03_system_overview.tex}
+\input{04_policy_model.tex}
+\input{05_runtime_composition.tex}
+\input{06_safe_impersonation.tex}
+\input{07_implementation_notes.tex}
+\input{08_evaluation.tex}
+\input{09_related_work.tex}
+\input{10_limitations_future_work.tex}
+\input{11_conclusion.tex}
 
-  \input{01_introduction.tex}
+\bibliographystyle{plainurl}
+\bibliography{references}
 
-  \input{02_problem_statement.tex}
+\section*{About the Authors}
 
-  \input{03_system_overview.tex}
+\begin{authorbio}{Shayan Ghasemnezhad}
+is Infrastructure and DevOps Lead at Causify AI, Turin, Italy. His research interests include platform engineering and cloud solutions architecture, production AI/ML systems, and secure, reliable infrastructure operations. Ghasemnezhad received his Bachelor's degree in Digital Management from Ca' Foscari University of Venice. Contact him at shayan@causify.ai.
+\end{authorbio}
 
-  \input{04_policy_model.tex}
+\begin{authorbio}{Giacinto Paolo (GP) Saggese}
+is Co-founder and CTO at Causify AI, Potomac, Maryland, USA. His research interests include machine learning, fintech, and the commercialization of research. Saggese received his Ph.D. degree in Electrical and Computer Engineering from the University of Illinois Urbana-Champaign. He is an Adjunct Professor at the University of Maryland, College Park. Contact him at gp@causify.ai.
+\end{authorbio}
 
-  \input{05_runtime_composition.tex}
+\begin{authorbio}{Paul Smith}
+is Co-founder and Chief Scientist at Causify AI, Cary, North Carolina, USA. His research interests include causal inference, Bayesian modeling, and time-series prediction. Smith received his Ph.D. degree in Mathematics from UCLA. Contact him at paul@causify.ai.
+\end{authorbio}
 
-  \input{06_safe_impersonation.tex}
+\begin{authorbio}{Heanh Sok}
+is Software Engineer at Causify AI, College Park, Maryland, USA. His research interests include big data systems, distributed systems, and AI/ML engineering and operations. Sok received his Master's degree in Data Science from the University of Maryland, College Park. Contact him at h.sok@causify.ai.
+\end{authorbio}
 
-  \input{07_implementation_notes.tex}
-
-  \input{08_evaluation.tex}
-
-  \input{09_related_work.tex}
-
-  \input{10_limitations_future_work.tex}
-
-  \input{11_conclusion.tex}
-
-  \bibliographystyle{amsplain}
-  \bibliography{references}
+\begin{authorbio}{Vedanshubhai Joshi}
+is Software Engineer at Causify AI, Indiana, USA. His research interests include platform infrastructure, multi-tenant API design, and data engineering pipelines. Joshi received his Master's degree in Computer Science from Purdue University. Contact him at v.joshi@causify.ai.
+\end{authorbio}
 \end{document}
