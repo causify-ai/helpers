@@ -1,20 +1,16 @@
-- [x] 1 Move the rules from .claude/skills/readme.create/SKILL.md to
-.claude/skills/readme.rules.md and make reference to them
+Create a script implementing 
+dev_scripts_helpers/git/git_create_nested_worktree.sh
 
-- [x] 2 Compare the content in 
-.claude/skills/readme.create/SKILL.md and .claude/skills/readme.rules.md 
+# Conventions
+- When writing code you must always follow the instructions in
+  `.claude/skills/coding.rules.md`
 
-vs some examples 
-./dev_scripts_helpers/ai/README.md ./dev_scripts_helpers/coding_tools/README.md ./dev_scripts_helpers/documentation/README.md
+- When writing testing code you must always follow the instructions in
+  `.claude/skills/testing.rules.md`
 
-and report the issues and improvements
-
-- [x] 3
-Create a template for README.md in 
-.claude/templates/readme.template.md
-
-based on 
-.claude/skills/readme.create/SKILL.md 
-.claude/skills/readme.rules.md 
-and some examples 
-./dev_scripts_helpers/ai/README.md ./dev_scripts_helpers/coding_tools/README.md ./dev_scripts_helpers/documentation/README.md
+# Create a plan, if needed
+- If the task is not perfectly clear
+  - You MUST not perform it
+  - Ask for clarifications
+  - Create a `plan.md` in the same directory with 5 bullet points explaining what
+    the plan is

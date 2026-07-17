@@ -880,6 +880,13 @@ def run_pandoc_to_typst_slides(
         r"#text(fill: red, \1)",
         txt,
     )
+    # Replace #strong[...] with explicit black bold text to prevent color bleed
+    # from preceding markers
+    txt = re.sub(
+        r"#strong\[([^\]]+)\]",
+        r'#text(fill: black, weight: "bold")[\1]',
+        txt,
+    )
     hio.to_file(typ_file, txt)
     # Return the `.typ` file if typst_only mode is requested.
     if typst_only:

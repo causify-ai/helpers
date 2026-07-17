@@ -858,11 +858,14 @@ def full_tree_to_str(
     close_modifier: str = "**",
     current_level: int = 1,
     indent: int = 0,
+    ancestry: Optional[_HeaderTree] = None,
+    _compute_ancestry: bool = True,
 ) -> str:
     """
     Return the tree as a string, expanding all nodes up to max_expand_level.
 
-    The selected node (matching level and description) is highlighted.
+    The selected node (matching level and description in the current ancestry
+    path) is highlighted.
 
     :param tree: tree to convert to a string
     :param level: level of the selected node
@@ -872,13 +875,24 @@ def full_tree_to_str(
     :param close_modifier: modifier to use for the close of the selected node
     :param current_level: current level in recursion (internal use)
     :param indent: indent of the tree
+    :param ancestry: ancestry path to the selected node (computed on first call)
+    :param _compute_ancestry: internal flag to compute ancestry only on first call
     :return: string representation of the tree with all nodes expanded up to max_expand_level
     """
+    # Compute ancestry only on first call (when _compute_ancestry is True).
+    if ancestry is None and _compute_ancestry:
+        ancestry = _find_header_tree_ancestry(tree, level, description)
     prefix = "  " * indent + "- "
     result = []
     for node in tree:
-        # Check if this is the selected node
-        is_selected = node.level == level and node.description == description
+        # Check if this node is on the path to the selected node
+        is_on_path = (
+            ancestry is not None
+            and len(ancestry) > 0
+            and node is ancestry[0]
+        )
+        # The node is selected (highlighted) only if it's the last in the ancestry.
+        is_selected = is_on_path and ancestry is not None and len(ancestry) == 1
         val = prefix
         if is_selected:
             val += open_modifier + node.description + close_modifier
@@ -888,6 +902,10 @@ def full_tree_to_str(
             result.append(val)
         # Expand children if we haven't reached max_expand_level
         if node.children and current_level < max_expand_level:
+            # Pass the remaining ancestry for recursive calls
+            child_ancestry: Optional[_HeaderTree] = None
+            if is_on_path and ancestry is not None:
+                child_ancestry = ancestry[1:]
             val = full_tree_to_str(
                 node.children,
                 level,
@@ -897,6 +915,8 @@ def full_tree_to_str(
                 close_modifier=close_modifier,
                 current_level=current_level + 1,
                 indent=indent + 1,
+                ancestry=child_ancestry,
+                _compute_ancestry=False,
             )
             if val:
                 result.append(val)
