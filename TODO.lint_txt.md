@@ -43,18 +43,17 @@ In lint_txt.py
   debounce) and also change the tmux name using the context manager
 
 - [ ] 8 Rename the phase prettier to beautify
-  - For md only lint, ...
 
-- [ ] preprocess and postprocess should be used to transform / comment out stuff
-  that the beautifier doesn't like, or support (e.g., since it's not markdown
-  like *)
-
-- [ ] Move the code from lint_txt.py to lib_lint_txt.py, using an approach
+- [ ] 9 Move the code from lint_txt.py to lib_lint_txt.py, using an approach
   similar to
   ./dev_scripts_helpers/documentation/lib_notes_to_pdf.py
   ./dev_scripts_helpers/documentation/notes_to_pdf.py
   ./dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
   ./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
+
+- [ ] preprocess and postprocess should be used to transform / comment out stuff
+  that the beautifier doesn't like, or support (e.g., since it's not markdown
+  like *)
 
 # Conventions
 - When writing code you must always follow the instructions in
