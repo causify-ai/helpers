@@ -123,6 +123,7 @@ def daemon_watch(
     # has a viewer (e.g., Skim) attached to it.
     _LOG.info("Initial run...")
     _run_cmd(cmd)
+    _LOG.info("Initial run complete")
     # Build watch command with optional suffix.
     watch_cmd = cmd if watch_cmd_suffix is None else cmd + watch_cmd_suffix
     prev_hash = file_hash(file_path)
@@ -148,4 +149,5 @@ def daemon_watch(
                 # Debounce complete, regenerate.
                 _LOG.info("Debounce complete. Regenerating...")
                 _run_cmd(watch_cmd)
+                _LOG.info("Regeneration complete")
                 stable_hash = None
