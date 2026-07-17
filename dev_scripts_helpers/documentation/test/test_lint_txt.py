@@ -4,7 +4,7 @@ from typing import Callable, List
 
 import pytest
 
-import dev_scripts_helpers.documentation.lint_txt as dshdlitx
+import dev_scripts_helpers.documentation.lib_lint_txt as dshdlilint
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -93,7 +93,7 @@ class Test_lint_txt1(hunitest.TestCase):
         :param expected: Expected output after preprocessing
         """
         def preprocess_wrapper(lines: List[str]) -> List[str]:
-            processed_lines, _ = dshdlitx._preprocess_txt(lines, "txt")
+            processed_lines, _ = dshdlilint._preprocess_txt(lines, "txt")
             return processed_lines
 
         _helper_process_lines(self, txt, expected, preprocess_wrapper)
@@ -187,7 +187,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         :param expected: Expected output after removing page separators
         """
         _helper_process_lines(
-            self, txt, expected, dshdlitx._remove_page_separators
+            self, txt, expected, dshdlilint._remove_page_separators
         )
 
     def test1(self) -> None:
@@ -318,7 +318,7 @@ class Test__handle_empty_lines(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after handling empty lines
         """
-        _helper_process_lines(self, txt, expected, dshdlitx._handle_empty_lines)
+        _helper_process_lines(self, txt, expected, dshdlilint._handle_empty_lines)
 
     def test1(self) -> None:
         """
@@ -579,7 +579,7 @@ class Test_add_blank_lines_between_headers(hunitest.TestCase):
         :param expected: Expected output after adding blank lines
         """
         _helper_process_lines(
-            self, txt, expected, dshdlitx._add_blank_lines_between_headers
+            self, txt, expected, dshdlilint._add_blank_lines_between_headers
         )
 
     def test1(self) -> None:
@@ -768,7 +768,7 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         :param expected: Expected output after converting asterisk bullets
         """
         _helper_process_lines(
-            self, txt, expected, dshdlitx._convert_asterisk_bullets_to_dashes
+            self, txt, expected, dshdlilint._convert_asterisk_bullets_to_dashes
         )
 
     def test1(self) -> None:
@@ -980,7 +980,7 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         :param expected: Expected output after removing trailing periods
         """
         _helper_process_lines(
-            self, txt, expected, dshdlitx._remove_trailing_periods
+            self, txt, expected, dshdlilint._remove_trailing_periods
         )
 
     def test1(self) -> None:
@@ -1302,7 +1302,7 @@ class Test_remove_markdown_formatting(hunitest.TestCase):
         :param expected: Expected output after removing markdown formatting
         """
         _helper_process_lines(
-            self, txt, expected, dshdlitx._remove_markdown_formatting
+            self, txt, expected, dshdlilint._remove_markdown_formatting
         )
 
     def test1(self) -> None:
@@ -1596,7 +1596,7 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
         :param expected: Expected output after removing extra indentation
         """
         _helper_process_lines(
-            self, txt, expected, dshdlitx._remove_code_block_extra_indentation
+            self, txt, expected, dshdlilint._remove_code_block_extra_indentation
         )
 
     def test1(self) -> None:
@@ -1925,7 +1925,7 @@ class Test_lint_txt2(hunitest.TestCase):
         lines = txt_str.split("\n")
         file_name = os.path.join(self.get_scratch_space(), file_name)
         # Run function.
-        actual = dshdlitx._perform_actions(lines, file_name)
+        actual = dshdlilint._perform_actions(lines, file_name)
         # Check.
         actual = "\n".join(actual)
         if expected:
@@ -2266,7 +2266,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
             txt = hio.from_file(in_file)
             lines = txt.split("\n")
             # Process the content directly.
-            out_lines = dshdlitx._perform_actions(
+            out_lines = dshdlilint._perform_actions(
                 lines,
                 in_file,
                 actions=None,
@@ -2384,10 +2384,10 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
         txt = hio.from_file(in_file)
         lines = txt.split("\n")
         # Process the content directly with default actions (no link checking).
-        out_lines = dshdlitx._perform_actions(
+        out_lines = dshdlilint._perform_actions(
             lines,
             in_file,
-            actions=dshdlitx._DEFAULT_ACTIONS,
+            actions=dshdlilint.DEFAULT_ACTIONS,
             width=80,
             use_dockerized_prettier=True,
             use_dockerized_markdown_toc=True,
@@ -2429,10 +2429,10 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
             output_txt_1 = self.run_lint_txt(in_file, type_)
             # Format the output again using the same formatter.
             lines = output_txt_1.split("\n")
-            output_lines = dshdlitx._perform_actions(
+            output_lines = dshdlilint._perform_actions(
                 lines,
                 in_file,
-                actions=dshdlitx._DEFAULT_ACTIONS,
+                actions=dshdlilint.DEFAULT_ACTIONS,
                 width=80,
                 use_dockerized_prettier=True,
                 use_dockerized_markdown_toc=True,
@@ -2459,7 +2459,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Prepare inputs.
         file_path = "test.md"
         # Run test.
-        actual = dshdlitx._get_backup_filename(file_path)
+        actual = dshdlilint._get_backup_filename(file_path)
         # Check outputs.
         expected = "tmp.lint_txt.test.md"
         self.assertEqual(actual, expected)
@@ -2471,7 +2471,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Prepare inputs.
         file_path = ".claude/skills/testing.rules.md"
         # Run test.
-        actual = dshdlitx._get_backup_filename(file_path)
+        actual = dshdlilint._get_backup_filename(file_path)
         # Check outputs.
         expected = ".claude/skills/tmp.lint_txt.testing.rules.md"
         self.assertEqual(actual, expected)
@@ -2483,7 +2483,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Prepare inputs.
         file_path = "path/to/nested/directory/file.txt"
         # Run test.
-        actual = dshdlitx._get_backup_filename(file_path)
+        actual = dshdlilint._get_backup_filename(file_path)
         # Check outputs.
         expected = "path/to/nested/directory/tmp.lint_txt.file.txt"
         self.assertEqual(actual, expected)
@@ -2495,7 +2495,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Prepare inputs.
         file_path = "directory/some.config.yaml"
         # Run test.
-        actual = dshdlitx._get_backup_filename(file_path)
+        actual = dshdlilint._get_backup_filename(file_path)
         # Check outputs.
         expected = "directory/tmp.lint_txt.some.config.yaml"
         self.assertEqual(actual, expected)
@@ -2519,7 +2519,7 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
         :param expected: Expected output after replacing em dashes
         """
         _helper_process_lines(
-            self, txt, expected, dshdlitx._replace_em_dash_with_colon
+            self, txt, expected, dshdlilint._replace_em_dash_with_colon
         )
 
     def test1(self) -> None:
