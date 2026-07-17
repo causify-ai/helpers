@@ -444,7 +444,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
         watch_suffix = " --skip_action=open"
-        hdaem.run_daemon_mode(input_file, "notes_to_pdf", watch_cmd_suffix=watch_suffix)
+        hdaem.run_daemon_mode(args.input, "notes_to_pdf", watch_cmd_suffix=watch_suffix)
     else:
         _run_all(args)
 

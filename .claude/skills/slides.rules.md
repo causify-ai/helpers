@@ -23,27 +23,32 @@
 - **Contrast approaches**: Show what doesn't work vs what does
 
 ## Problem-Solution Arc
-- Introduce hard topics as a `**Problem**` $\to$ `**(Naive) Solution**` $\to$
-  `**Solution**` progression so students see why the final approach is needed
+- Introduce hard topics as a progression
+  `**Problem**` $\to$ `**(Naive) Solution**` $\to$ `**Solution**`
+  so students see why the final approach is needed
 - Make the naive solution's weaknesses explicit with `Cons:` sub-bullets, then
   let the real solution address them
+
 - Example arc (from Lesson 06.1):
+  ```
   - Slide 1: `**Problem**`: logic-based AI fails under uncertainty (partial
     observability, non-determinism, ...)
   - Slide 2: `**(Naive) Solution**`: belief states + exhaustive rules, each with
     a `Cons:` line
   - Slide 3: `**Solution**`: combine _probability_ and _utility functions_
+  ```
 
 ## Recurring Running Example
-- Carry one concrete example across many slides to build intuition
-  incrementally, varying the question asked of it
+- Carry one concrete example across many slides to build intuition incrementally,
+  varying the question asked of it
   - E.g., the "Garden World" ($Rain$, $Sprinkler$, $WetGrass$, $Weather$) is
     reused to illustrate conditional independence, explaining away, marginal vs
     conditional dependence, and sampling
 - Reuse the identical diagram across slides that revisit the same example so the
   student anchors on a stable picture
 - Pair each abstract concept with at least one domain example beyond the running
-  one (e.g., medical diagnosis, finance, car insurance) to show generality
+  one to show generality
+  - E.g., medical diagnosis, finance, car insurance
 
 ## Defining Terms
 - When a concept has multiple common names, list them up front with an `Aka:`
@@ -96,16 +101,29 @@
 - Don't use emoji
 - Don't use page separators
 - Don't use unicode characters but use LaTeX symbols if needed
-  - Instead of → use `$\to$`
+  - Instead of `→` use `$\to$`
 
 ## Slide Structure
 - Each slide should start with:
   ```markdown
-  * Slide title
+  * <slide title>
   ```
 - Each slide contains bullet points arranged in a hierarchical structure
   - Every line starts with a bullet point
   - Do not use period at the end of a phrase
+  ```markdown
+  * <slide title>
+
+  - **Definition**:
+    - ...
+    - ...
+
+  - **Problem**:
+    - ...
+
+  - **Solution**:
+    - ...
+  ```
 
 ## Use Bold for Slide Sections
 - Every first level bullet point (starting with `- ` and not `*`) should start
@@ -115,18 +133,18 @@
     - The definition term needs to be in italic
     - E.g.,
       ```
-      - **Definition**: A _time series_ is modeled as a random process,
+      - **Definition**: A _time series_ is modeled as a random process, ...
       ```
   - **Question**: A question to introduce a problem
   - **Goal**: What we are trying to achieve before describing how
   - **Problem**: A difficulty or open issue that motivates a solution
+  - **(Naive) Solution**: A first, flawed attempt whose cons motivate a better
+    one
   - **Solution**: A solution to a previously introduced problem
   - **Pros** / **Cons**: Advantages and disadvantages of an approach
   - **Example**: Concrete illustration
   - **Intuition**: Explains the "why it makes sense"
   - **Key idea**: The single most important takeaway
-  - **(Naive) Solution**: A first, flawed attempt whose cons motivate a better
-    one
   - **Remark**: A simple but useful fact
   - **Fact**: A statement asserted as true, used without proof
   - **Theorem**: A central, proven result
@@ -138,30 +156,8 @@
   - **Input** / **Output**: What an algorithm consumes and produces
   - **Limitations**: Conditions under which the approach fails or is weak
   - **Counterexample**: Shows what doesn't work
-  - **Interpretation**: What the result means in context
 
-- Do not change the title `* <title>`, but only the content of the slide
-
-- Use a numbered list under a bold label when the sub-points are an ordered
-  procedure or an enumerated set; use bullets otherwise:
-  ```markdown
-  - **Problem**: Real-world agents face _uncertainty_ from:
-    1. Partial observability
-       - Agent can't see the full state of the world
-    2. Non-determinism
-       - Actions don't always have predictable outcomes
-  ```
-
-- Template:
-  ```markdown
-  * <slide title>
-
-  - **<Bold label>**:
-    - ...
-    - ...
-  ```
-
-### Example
+### Example1
 - **Good**
   ```markdown
   * Individual Treatment Effect
@@ -179,6 +175,7 @@
     - Represent it in theory, but can't recover it from data
   ```
 
+### Example2
 - **Good**
   ```markdown
   * Potential Outcomes
@@ -204,6 +201,17 @@
     - $Y|T=t$ is _"what a business that cut the prices sold"_
 ```
 
+## Numbered List Bullets
+- Use a numbered list under a bold label when the sub-points are an ordered
+  procedure or an enumerated set; use bullets otherwise:
+  ```markdown
+  - **Problem**: Real-world agents face _uncertainty_ from:
+    1. Partial observability
+       - Agent can't see the full state of the world
+    2. Non-determinism
+       - Actions don't always have predictable outcomes
+  ```
+
 ## Use Italic
 - Use _italic_ (`_text_`) for:
   - Quoted statements
@@ -221,7 +229,7 @@
   - Variable names
   - Implementation-oriented notation
 
-## Tables
+## Typst Tables
 - Create tables using the `styled-table` function from
   `./dev_scripts_helpers/documentation/pandoc_touying.typ` to maintain
   consistent formatting and professional appearance across all slides
@@ -335,41 +343,6 @@ Use these commands consistently across all slides:
   $$Rain \not\perp Sprinkler \iff Rain \leftrightarrow Sprinkler$$
   ```
 
-### Color-Coded Variables in Equations
-- Color variables to highlight different parts and make multi-step derivations
-  easier to follow
-- Wrap each variable in a color command:
-
-  | Command        | Use For                                                     |
-  | -------------- | ----------------------------------------------------------- |
-  | `\blue{...}`   | Variables being isolated, subtracted, or primary focus      |
-  | `\red{...}`    | Variables being substituted or replaced                     |
-  | `\green{...}`  | Results, children nodes                                     |
-  | `\gray{...}`   | Already-processed terms, less relevant parts                |
-  | `\violet{...}` | Variables outside the main variable set, secondary groups   |
-  | `\teal{...}`   | Additional grouped variables                                |
-  | `\olive{...}`  | Further grouped variables                                   |
-  | `\orange{...}` | Supplementary variables                                     |
-  | `\brown{...}`  | Hidden or unobservable variables (e.g., in causal diagrams) |
-  | `\black{...}`  | Explicitly black text (override inherited color)            |
-
-- Example: showing variable elimination step by step:
-  ```latex
-  \Pr(\blue{x_1, ..., x_{n-1}}, \red{x_n})
-  = \Pr(\red{x_n} | \blue{x_{n-1}, ..., x_1}) \Pr(\blue{x_{n-1}, ..., x_1})
-  ```
-
-- Example: multi-line elimination with distinct colors:
-  ```latex
-  \begin{align*}
-  & \Pr(\gray{x_1}, \violet{x_2}, ..., \teal{x_{n-2}}, \olive{x_{n-1}}, \orange{x_n}) \\
-  & = \Pr(\orange{x_n} | x_{n-1}, ..., x_1) \Pr(x_{n-1}, ..., x_1) \\
-  & = \Pr(\orange{x_n} | x_{n-1}, ..., x_1)
-  \Pr(\olive{x_{n-1}} | x_{n-2}, ..., x_1) \Pr(x_{n-2}, ..., x_1) \\
-  & = ...
-  \end{align*}
-  ```
-
 ### Spacing and Breaks
 - Use comments (`//`) for internal notes (not rendered in output)
 - Do NOT use page separators (`---` markdown syntax)
@@ -431,16 +404,16 @@ Use these commands consistently across all slides:
 
 # Example Slide Styles
 
-## Side-by-Side Content
+## Side-by-Side Symmetric Content
 
-- For symmetric content (two equal columns):
+- For symmetric content use two equal columns:
   ```markdown
   | **Left Heading** | **Right Heading** |
   |---|---|
   | - Point 1<br>- Point 2 | - Point 1<br>- Point 2 |
   ```
 
-- E.g.,
+### Example
   ```
   | Property | Chatbot | Agent |
   |---|---|---|
@@ -450,6 +423,7 @@ Use these commands consistently across all slides:
   | Failure mode | Wrong answer | Wrong answer *or* wrong action taken |
   ```
 
+## Side-by-Side Asymmetric Content
 - For asymmetric content (text + diagram):
   ```markdown
   ::: columns
@@ -458,7 +432,7 @@ Use these commands consistently across all slides:
   - Multiple bullet points
   - Detailed explanation
   ::::
-  :::: {.column width=35%}
+  :::: {.column width=30%}
   ```graphviz
   [diagram code here]
   ```
@@ -485,7 +459,8 @@ Use these commands consistently across all slides:
   - **Example**: [concrete, real-world scenario that demonstrates the concept]
   ```
 
-- Real example
+### Example
+// TODO(ai_gp): Doesn't follow our format with **Definition**
   ```markdown
   * Machine Learning: Definition
 
@@ -495,7 +470,7 @@ Use these commands consistently across all slides:
     - Improves with data
     - Performs tasks without hardcoded rules
 
-  - Formally: _"A computer program is said to learn from experience E with respect 
+  - **Formally**: _"A computer program is said to learn from experience E with respect 
     to some task T and some performance measure P, if P(T) improves with experience E"_
     (Mitchell, 1998)
 
@@ -538,7 +513,7 @@ Use these commands consistently across all slides:
     - Disadvantage 3: [why it's problematic]
   ```
 
-- Example (from Lesson 01.1):
+### Example
   ```markdown
   - AI as Thinking Humanly: Pros and Cons
 
