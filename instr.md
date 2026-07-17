@@ -1,7 +1,7 @@
 - [x] 1 Move the rules from .claude/skills/readme.create/SKILL.md to
 .claude/skills/readme.rules.md and make reference to them
 
-- [ ] 2 Compare the content in 
+- [x] 2 Compare the content in 
 .claude/skills/readme.create/SKILL.md and .claude/skills/readme.rules.md 
 
 vs some examples 
@@ -9,7 +9,7 @@ vs some examples
 
 and report the issues and improvements
 
-- [ ] 3
+- [x] 3
 Create a template for README.md in 
 .claude/templates/readme.template.md
 

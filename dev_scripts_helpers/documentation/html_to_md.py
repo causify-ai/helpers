@@ -149,10 +149,12 @@ def _remove_data_uri_images(content: str) -> str:
     :param content: Markdown content to clean
     :return: Markdown content with data URI images removed
     """
-    # Remove image syntax with data URI sources: ![...](data:...)
-    # The pattern captures the entire markdown image including optional attributes.
+    # Remove image syntax with data URI sources: ![...](data:...) including
+    # optional attributes.
     pattern = r"!\[[^\]]*\]\(data:[^)]*\)(?:{[^}]*})?"
     cleaned = re.sub(pattern, "", content)
+    # Remove excess blank lines from image removal.
+    cleaned = cleaned.strip()
     return cleaned
 
 
