@@ -1,5 +1,5 @@
 ---
-description: Write a README.md for a directory with sections for structure, files, and executable descriptions
+description: Write or update a README.md for a directory with sections for structure, files, and executable descriptions
 model: haiku
 ---
 
@@ -65,7 +65,6 @@ model: haiku
     ```bash
     > ./generate_class_images.py "A sunset over mountains" --dst_dir ./images
     ```
-
   ````
 
 - Examples of this file are:
