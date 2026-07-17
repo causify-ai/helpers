@@ -1,4 +1,4 @@
-- [ ] 1 Move the rules from .claude/skills/readme.create/SKILL.md to
+- [x] 1 Move the rules from .claude/skills/readme.create/SKILL.md to
 .claude/skills/readme.rules.md and make reference to them
 
 - [ ] 2 Compare the content in 

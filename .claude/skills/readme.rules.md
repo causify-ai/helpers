@@ -20,9 +20,9 @@ Conventions for writing a README for a directory with executables.
 # Section Details
 
 ## Summary Section
-- Single paragraph describing the directory's purpose
+- Single paragraph describing the directory's purpose in terms of 2-3 short
+  bullet points
 - Answer: "What does this directory do?"
-- Keep to 2-3 bullet points
 
 ## Structure of the Dir Section
 - Bullet list of subdirectories (if any)

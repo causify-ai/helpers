@@ -11,28 +11,23 @@ refactoring.
 ## Description of Files
 
 - `clean_up_text_files.sh`
-  - Ensures text files end with exactly one newline to satisfy linter
-    requirements
+  - Ensures text files end with exactly one newline for linter compliance
 - `code_stats.sh`
   - Counts files and lines of code across different file types in repository
 - `compile_all.py`
-  - Compiles all Python files in repository to check for syntax errors
+  - Compiles Python files in directory tree to check for syntax errors
 - `create_class_diagram.sh`
   - Generates UML class diagrams from Python code using pyreverse and graphviz
 - `ctags.sh`
   - Generates ctags file for Python code using dockerized universal-ctags
 - `diff_to_vimdiff.py`
-  - Transforms diff output into vimdiff script for interactive directory
-    comparison
+  - Transforms diff output into vimdiff script for interactive directory comparison
 - `find_unused_golden_files.py`
-  - Identifies golden test files with no corresponding test methods or vice
-    versa
+  - Identifies unused golden test files and mismatched test method definitions
 - `grsync.py`
-  - Syncs directories between local and remote machines using rsync with
-    git-aware exclusions
+  - Syncs directories between local and remote machines using rsync with git-aware exclusions
 - `invite_github_collaborator.py`
-  - Checks GitHub user status and sends repository collaboration invitations via
-    API
+  - Sends GitHub repository collaboration invitations via API with status checking
 - `manage_cache.py`
   - Manages hcache_simple global cache with clear, list, and test operations
 - `measure_import_times.py`
@@ -46,26 +41,21 @@ refactoring.
 - `reorder_python_code.md`
   - Documentation explaining design and usage of reorder_python_code.py tool
 - `reorder_python_code.py`
-  - Reorganizes functions from single Python file into multiple files using
-    markdown map
+  - Reorganizes functions from Python file into multiple files using markdown map
 - `remove_jupyter_metadata.sh`
   - Strips output and metadata from Jupyter notebooks using gitleaks detection
 - `run_profiling.sh`
   - Template script for running cProfile and line_profiler on Python code
 - `script_template.py`
-  - Template for creating new Python scripts with standard argument parsing and
-    logging
+  - Template for new Python scripts with standard argument parsing and logging
 - `split_in_files.py`
-  - Splits file with special tags into separate output files with optional
-    common section, supports multiple chunks per file and append mode
+  - Splits file with special tags into separate output files with common sections
 - `toml_merge.py`
-  - Merges multiple pyproject.toml files handling dependencies and
-    dev-dependencies
+  - Merges multiple pyproject.toml files handling dependencies and dev-dependencies
 - `traceback_to_cfile.py`
   - Parses Python tracebacks and generates vim cfile for navigation
 - `transform_template.py`
-  - Template for scripts that read from stdin/file, transform, and write to
-    stdout/file
+  - Template for scripts that read from stdin/file, transform, and output
 - `url.py`
   - Converts between file paths, GitHub URLs, and Jupyter URLs
 
@@ -85,6 +75,12 @@ refactoring.
 
 ```bash
 > ./compile_all.py
+```
+
+**Compile with verbose output to identify problematic files**
+
+```bash
+> ./compile_all.py -v DEBUG
 ```
 
 **Use as module import**
@@ -233,6 +229,12 @@ refactoring.
 > ./reorder_python_code.py --input_file helpers/hpandas.py --map_file hpandas_map.md
 ```
 
+**Preview changes without writing files (dry run)**
+
+```bash
+> ./reorder_python_code.py --input_file module.py --map_file map.md --dry_run
+```
+
 **Run with debug logging to see processing details**
 
 ```bash
@@ -317,6 +319,12 @@ refactoring.
 > ./url.py https://github.com/org/repo/blob/main/notebooks/analysis.ipynb
 ```
 
+**Convert local file path to GitHub URL**
+
+```bash
+> ./url.py /path/to/notebooks/analysis.ipynb
+```
+
 **Short output without headers**
 
 ```bash
@@ -337,6 +345,12 @@ refactoring.
 
 ```bash
 > ./toml_merge.py --in_file base/pyproject.toml --in_file extra/pyproject.toml --out_file merged.toml
+```
+
+**Merge multiple files in sequence**
+
+```bash
+> ./toml_merge.py --in_file file1.toml --in_file file2.toml --in_file file3.toml --out_file result.toml
 ```
 
 **Merge multiple files with debug logging**
@@ -499,4 +513,116 @@ themselves and any untagged content.
 
 ```bash
 > ./split_in_files.py --input_file input.txt --output_dir ./output -v DEBUG
+```
+
+### `clean_up_text_files.sh`
+
+#### What It Does
+
+- Ensures text files end with exactly one newline
+- Satisfies linter requirements for file formatting
+- Processes all files in directory recursively
+
+#### Examples
+
+**Clean up text files in current directory**
+
+```bash
+> ./clean_up_text_files.sh
+```
+
+**Clean specific directory**
+
+```bash
+> ./clean_up_text_files.sh /path/to/text/files
+```
+
+**Verify changes before applying**
+
+```bash
+> ./clean_up_text_files.sh --dry-run
+```
+
+### `code_stats.sh`
+
+#### What It Does
+
+- Counts files and lines of code across different file types
+- Reports statistics by language/file type
+- Useful for repository size and complexity analysis
+
+#### Examples
+
+**Show code statistics for current repository**
+
+```bash
+> ./code_stats.sh
+```
+
+**Count code in specific directory**
+
+```bash
+> ./code_stats.sh /path/to/project
+```
+
+**Show detailed breakdown by file type**
+
+```bash
+> ./code_stats.sh --detailed
+```
+
+### `invite_github_collaborator.py`
+
+#### What It Does
+
+- Checks GitHub user status and validity
+- Sends repository collaboration invitations via GitHub API
+- Handles API authentication and error responses
+
+#### Examples
+
+**Invite single user to repository**
+
+```bash
+> ./invite_github_collaborator.py --user github_username
+```
+
+**Invite multiple users from file**
+
+```bash
+> ./invite_github_collaborator.py --users_file collaborators.txt
+```
+
+**Check user status before inviting**
+
+```bash
+> ./invite_github_collaborator.py --user github_username --check_only
+```
+
+### `remove_jupyter_metadata.sh`
+
+#### What It Does
+
+- Strips output and metadata from Jupyter notebooks
+- Uses gitleaks for detection and cleanup
+- Reduces notebook file size and removes sensitive data
+
+#### Examples
+
+**Clean notebook file**
+
+```bash
+> ./remove_jupyter_metadata.sh notebook.ipynb
+```
+
+**Process all notebooks in directory**
+
+```bash
+> ./remove_jupyter_metadata.sh ./notebooks/*.ipynb
+```
+
+**Preview changes before applying**
+
+```bash
+> ./remove_jupyter_metadata.sh notebook.ipynb --dry-run
 ```
