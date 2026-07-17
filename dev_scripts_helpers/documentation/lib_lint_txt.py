@@ -30,7 +30,7 @@ _LOG = logging.getLogger(__name__)
 
 def _preprocess_txt(lines: List[str], extension: str) -> Tuple[List[str], Dict[str, Any]]:
     """
-    Preprocess the given text before applying `prettier`.
+    Preprocess the given text before applying `beautify`.
 
     Extracts protected content (fenced blocks, comments, math blocks) before
     processing and returns both the processed lines and the protected map for
@@ -55,9 +55,9 @@ def _preprocess_txt(lines: List[str], extension: str) -> Tuple[List[str], Dict[s
     # TODO(gp): Extract this into remove_google_docs_artifacts() since it is
     # used in other places.
     txt = "\n".join(lines)
-    txt = re.sub(r""", '"', txt)
-    txt = re.sub(r""", '"', txt)
-    txt = re.sub(r"'", "'", txt)
+    txt = re.sub(r"“", '"', txt)
+    txt = re.sub(r"”", '"', txt)
+    txt = re.sub(r"[‘’]", "'", txt)
     # Convert
     #   ## **How We Ask for Feedback at Causify**
     # to
@@ -110,7 +110,7 @@ def _preprocess_txt(lines: List[str], extension: str) -> Tuple[List[str], Dict[s
                 txt_new.append(m.group(1) + m.group(2 + i))
             continue
         txt_new.append(line)
-    # 5) Replace multiple empty lines with one, to avoid `prettier` to start
+    # 5) Replace multiple empty lines with one, to avoid `beautify` to start
     #    using `*` instead of `-`.
     txt_new_as_str = "\n".join(txt_new)
     txt_new_as_str = re.sub(r"\n\s*\n", "\n\n", txt_new_as_str)
@@ -347,7 +347,7 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     """
     Remove extra indentation from code block lines.
 
-    Prettier may add unwanted indentation to lines inside code blocks,
+    Beautify may add unwanted indentation to lines inside code blocks,
     especially in indented contexts (lists, nested blocks). This function
     detects and removes that extra indentation while preserving the block's
     base indentation.
@@ -364,7 +364,7 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     first_code_line = True
     for line in lines:
         # Handle case where code and opening delimiter are on same line
-        # due to inline placeholder restoration (prettier put them together).
+        # due to inline placeholder restoration (beautify put them together).
         if "\n" in line and "```" in line:
             m = re.match(r"^(\s*```[^\n]*)\n(.*)", line, re.DOTALL)
             if m:
@@ -561,8 +561,8 @@ def _perform_actions(
     protected_map: dict = {}
     if _to_execute_action(action, actions):
         lines, protected_map = _preprocess_txt(lines, extension)
-    # Prettify.
-    action = "prettier"
+    # Beautify.
+    action = "beautify"
     if _to_execute_action(action, actions):
         txt = "\n".join(lines)
         # Use hmarkdown_formatting for markdown files with specified backend/mode,
@@ -661,13 +661,13 @@ VALID_ACTIONS = {
     # - Wrap lines to specified width
     # - Reformat bullet lists and code blocks
     # - Normalize markdown/text syntax
-    "prettier": ["md", "tex", "txt", "emd"],
+    "beautify": ["md", "tex", "txt", "emd"],
     # Post-process formatted text: restore protected content, capitalize lists.
     # - Restore starred bullets `*` -> `*`
     # - Capitalize first letter of bullet points
     # - Remove empty lines around code blocks
     "postprocess": ["md", "tex", "txt", "emd"],
-    # Remove extra indentation added by prettier inside code blocks.
+    # Remove extra indentation added by beautify inside code blocks.
     # - Fixes over-indented code lines
     "remove_code_block_extra_indentation": ["md", "tex", "txt", "emd"],
     # Remove page separator lines (`---`).

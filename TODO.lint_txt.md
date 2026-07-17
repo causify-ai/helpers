@@ -42,17 +42,10 @@ In lint_txt.py
 - [x] 7 Add a --daemon mode to run_latex.py similar to notes_to_pdf.py (with the
   debounce) and also change the tmux name using the context manager
 
-- [ ] 8 Rename the phase prettier to beautify
+- [x] 8 Rename the phase prettier to beautify
 
 - [x] 9 Move the code from lint_txt.py to lib_lint_txt.py, using an approach
   similar to
-  ./dev_scripts_helpers/documentation/lib_notes_to_pdf.py
-  ./dev_scripts_helpers/documentation/notes_to_pdf.py
-  ./dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
-  ./dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
-  - Created lib_lint_txt.py with all core functions and logic
-  - Updated lint_txt.py to be a CLI wrapper around lib_lint_txt
-  - Updated test_lint_txt.py to import from lib_lint_txt
 
 - [ ] preprocess and postprocess should be used to transform / comment out stuff
   that the beautifier doesn't like, or support (e.g., since it's not markdown

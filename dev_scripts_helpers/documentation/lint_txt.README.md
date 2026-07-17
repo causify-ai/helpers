@@ -44,7 +44,7 @@
 
 - Run specific actions only:
   ```bash
-  > ./lint_txt.py --in my_file.md --action preprocess prettier postprocess
+  > ./lint_txt.py --in my_file.md --action preprocess beautify postprocess
   ```
 
 ## Available Actions
@@ -57,7 +57,7 @@
   - Formats math blocks for better readability
   - Collapses multiple blank lines
 
-- **prettier**: Format text with prettier or alternative backends
+- **beautify**: Format text with prettier or alternative backends
   - Markdown: supports `prettier`, `mdformat`, `flowmark` backends
   - LaTeX and text: uses prettier
   - Configurable line width (default: 80 characters)
@@ -66,7 +66,7 @@
 - **postprocess**: Restore preprocessed content and apply final formatting
   - Undoes temporary bullet markers (`STAR`, `SSTAR` back to `*`, `**`)
   - Capitalizes first letter of list items and numbered lists
-  - Handles edge cases from prettier processing
+  - Handles edge cases from beautify processing
 
 ### Structural Actions
 
@@ -108,7 +108,7 @@
 
 ### Code Block Actions
 
-- **remove_code_block_extra_indentation**: Fix indentation added by prettier
+- **remove_code_block_extra_indentation**: Fix indentation added by beautify
   - Removes unwanted indentation in code blocks
   - Preserves intended indentation structure
   - Runs after content restoration to handle side effects
@@ -136,7 +136,7 @@
 ### Formatting Configuration
 
 - `-w, --width <width>`: Maximum line width (default: 80)
-  - Applied by prettier during formatting
+  - Applied by beautify during formatting
 
 - `--backend <backend>`: Markdown formatting backend (markdown files only)
   - Options: `prettier`, `mdformat`, `flowmark`
@@ -175,7 +175,7 @@
 
 - Protected content extraction (code blocks, comments, math)
 - Preprocess (normalize input, handle artifacts)
-- Prettier (format according to style guide)
+- Beautify (format according to style guide)
 - Postprocess (restore temporary markers, finalize)
 - Structural adjustments (spacing, separators)
 - Advanced transformations (markdown removal, link checking)
@@ -226,7 +226,7 @@
 ### Format and Refresh Table of Contents
 
 ```bash
-> ./lint_txt.py --in documentation.md --action preprocess prettier postprocess refresh_toc
+> ./lint_txt.py --in documentation.md --action preprocess beautify postprocess refresh_toc
 ```
 
 ### Convert Markdown to Plain Text
