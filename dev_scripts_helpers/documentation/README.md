@@ -179,10 +179,9 @@
 
 ## Core Documentation Tools
 
-// TODO(ai_gp): Organize the commands in h3 sections by type of operation (like
-done in `List of Tools`)
+### Document Conversion
 
-## `notes_to_pdf.py`
+#### `notes_to_pdf.py`
 
 ### What It Does
 - Convert plain‑text notes into polished **PDF**, **HTML**, or **Beamer slides**
@@ -248,7 +247,7 @@ done in `List of Tools`)
   > notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf
   ```
 
-## `render_images.py`
+#### `render_images.py`
 
 ### What It Does
 - This script auto renders figures by:
@@ -344,7 +343,9 @@ The supported File types and code blocks are:
   ````
   This will generate 3 AI images and embed them in the document
 
-## `lint_notes.py`
+### Text Formatting and Cleanup
+
+#### `lint_txt.py`
 
 ### What It Does
 - Tidy up notes in different formats (selected with the file extension or
@@ -391,7 +392,7 @@ The supported File types and code blocks are:
   :%!lint_txt.py
   ```
 
-## `clean_markdown.py`
+#### `clean_markdown.py`
 
 ### What It Does
 - Clean up HTML markup in Markdown files

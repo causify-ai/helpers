@@ -22,10 +22,12 @@ import os
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hnotify as hnotify
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hpytest as hpytest
+import helpers.htmux as htmux
 
 _LOG = logging.getLogger(__name__)
 
@@ -188,4 +190,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
 
 if __name__ == "__main__":
-    _main(_parse())
+    with htmux.window_name("pytest_multi_build"):
+        with hnotify.notify(title="pytest_multi_build"):
+            _main(_parse())

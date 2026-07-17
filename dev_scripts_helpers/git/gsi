@@ -1,0 +1,10 @@
+#!/bin/bash -e
+# """
+# Print the files in the client that are potentially useful
+# """
+
+gs | \grep -v ?
+
+echo
+echo "========== Potentially useful ==========="
+gs | \grep ? | \grep -v " tmp" | \grep -v "/outcomes/" | \grep -E "\.(py|md|txt)$"
