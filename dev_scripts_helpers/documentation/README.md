@@ -179,8 +179,8 @@
 
 ## Core Documentation Tools
 
-// TODO(ai_gp): Organize the commands in h3 sections by type of operation (like
-done in `List of Tools`)
+// TODO(gp): Organize the commands in h3 sections by type of operation (like
+// done in `List of Tools`)
 
 ## `notes_to_pdf.py`
 

@@ -510,7 +510,7 @@ def _perform_actions(
     in_file_name: str,
     *,
     actions: Optional[List[str]] = None,
-    # TODO(ai_gp): Make it mandatory.
+    # TODO(ai_gp): Make it mandatory and move before the *.
     file_type_override: str = "",
     **kwargs: Any,
 ) -> List[str]:

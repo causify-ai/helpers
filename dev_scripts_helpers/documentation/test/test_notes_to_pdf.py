@@ -49,7 +49,7 @@ def _safe_read_text(file_name: str) -> str:
         return ""
     if file_name.endswith(".pdf"):
         return os.path.basename(file_name)
-    # TODO(ai_gp): Find out what are the files that can't be read.
+    # TODO(ai_gp2): Find out what are the files that can't be read.
     try:
         return hio.from_file(file_name)
     except (RuntimeError, UnicodeDecodeError):
