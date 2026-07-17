@@ -443,8 +443,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
-        # TODO(ai_gp): Assign to variables and pass those.
-        hdaem.run_daemon_mode(args.input, "notes_to_pdf", watch_cmd_suffix=" --skip_action=open")
+        watch_suffix = " --skip_action=open"
+        hdaem.run_daemon_mode(input_file, "notes_to_pdf", watch_cmd_suffix=watch_suffix)
     else:
         _run_all(args)
 

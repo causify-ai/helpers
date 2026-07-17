@@ -29,51 +29,18 @@ import dev_scripts_helpers.documentation.lib_lint_txt as dshdlilint
 
 _LOG = logging.getLogger(__name__)
 
-
-# TODO(ai_gp): Move to lib_lint_txt.py
-def _process_single_file(
-    in_file_name: str,
-    out_file_name: str,
-    args: argparse.Namespace,
-    actions: Optional[List[str]],
-) -> None:
-    """
-    Process a single file.
-
-    :param in_file_name: Input file name.
-    :param out_file_name: Output file name.
-    :param args: Parsed arguments.
-    :param actions: List of actions to perform.
-    """
-    # If the input is stdin, then user needs to specify the type.
-    if in_file_name == "-":
-        hdbg.dassert_ne(args.type, "")
-    # Create backup before processing (if processing in-place).
-    if in_file_name == out_file_name and in_file_name != "-":
-        dshdlilint._create_backup(in_file_name)
-    # Read input.
-    lines = hseinout.from_file(in_file_name)
-    _LOG.debug("in_file_name=%s", in_file_name)
-    # Process.
-    kwargs = {
-        "width": args.width,
-        "use_dockerized_prettier": args.use_dockerized_prettier,
-        "use_dockerized_markdown_toc": args.use_dockerized_markdown_toc,
-    }
-    # Add backend and mode if specified.
-    if args.backend:
-        kwargs["backend"] = args.backend
-    if args.mode:
-        kwargs["mode"] = args.mode
-    out_lines = dshdlilint._perform_actions(
-        lines,
-        in_file_name,
-        actions=actions,
-        file_type_override=args.type,
-        **kwargs,
-    )
-    # Write output.
-    hseinout.to_file(out_lines, out_file_name)
+# Default actions (excluding some that need explicit opt-in).
+DEFAULT_ACTIONS = [
+    action
+    for action in dshdlilint.VALID_ACTIONS.keys()
+    if action
+    not in [
+        "frame_chapters",
+        "refresh_toc",
+        "check_links",
+        "remove_markdown_formatting",
+    ]
+]
 
 
 # #############################################################################
@@ -159,8 +126,8 @@ def _parser() -> argparse.ArgumentParser:
     )
     hselacti.add_action_arg(
         parser,
-        list(dshdlilint._VALID_ACTIONS.keys()),
-        dshdlilint.DEFAULT_ACTIONS,
+        list(dshdlilint.VALID_ACTIONS.keys()),
+        DEFAULT_ACTIONS,
     )
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -185,12 +152,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Print actions (once for all files).
     actions = hselacti.select_actions(
         args,
-        list(dshdlilint._VALID_ACTIONS.keys()),
-        dshdlilint.DEFAULT_ACTIONS,
+        list(dshdlilint.VALID_ACTIONS.keys()),
+        DEFAULT_ACTIONS,
     )
     add_frame = True
     actions_as_str = hselacti.actions_to_string(
-        actions, list(dshdlilint._VALID_ACTIONS.keys()), add_frame
+        actions, list(dshdlilint.VALID_ACTIONS.keys()), add_frame
     )
     _LOG.info("\n%s", actions_as_str)
     # Check if processing multiple files or a single file.
@@ -203,13 +170,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _LOG.error("File not found: %s", file_path)
                 continue
             _LOG.info("Processing: %s", file_path)
-            _process_single_file(file_path, file_path, args, actions)
+            dshdlilint._process_single_file(file_path, file_path, args, actions)
     else:
         # Process single file (original behavior).
         in_file_name, out_file_name = hseinout.parse_input_output_args(
             args, clear_screen=False
         )
-        _process_single_file(in_file_name, out_file_name, args, actions)
+        dshdlilint._process_single_file(in_file_name, out_file_name, args, actions)
 
 
 if __name__ == "__main__":

@@ -36,20 +36,23 @@ def _get_arch_tag() -> str:
     return tag
 
 
-# TODO(ai_gp): Update docstring.
-# TODO(ai_gp): Find a better name for this function.
-def _safe_read_text(file_name: str) -> str:
+def _read_file_with_fallback(file_name: str) -> str:
     """
-    Read a file as text, returning "" if it's missing or not valid UTF-8.
+    Attempt to read file as text with graceful fallback for missing/unreadable files.
 
-    For PDF files, returns the filename instead of attempting to read binary
-    content.
+    Returns empty string if file doesn't exist or can't be decoded as UTF-8.
+    For PDF files, returns the filename instead of attempting to read binary content.
+
+    Note: Files that fail with RuntimeError or UnicodeDecodeError likely contain
+    binary data, invalid encoding, or insufficient permissions.
+
+    :param file_name: Path to file to read.
+    :return: File contents as string, or empty string if unreadable.
     """
     if not os.path.exists(file_name):
         return ""
     if file_name.endswith(".pdf"):
         return os.path.basename(file_name)
-    # TODO(ai_gp2): Find out what are the files that can't be read.
     try:
         return hio.from_file(file_name)
     except (RuntimeError, UnicodeDecodeError):
@@ -373,7 +376,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -514,7 +517,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -634,7 +637,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         _LOG.debug("script_txt=%s", script_txt)
         return script_txt, output_txt
 
@@ -691,7 +694,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         self.assert_equal(actual, "toc_type navigation", fuzzy_match=True)
@@ -779,7 +782,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         if generate_script:
             hdbg.dassert_file_exists(script_file)
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -891,7 +894,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         hsystem.system(cmd)
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1032,7 +1035,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         hsystem.system(cmd)
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1193,7 +1196,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         # Run test.
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1367,7 +1370,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         # Run test.
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_file_with_fallback(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:

@@ -518,7 +518,18 @@ def _build_pandoc_latex_cmd(
     no_pdf: bool = False,
     fail_on_warnings: bool = True,
 ) -> Tuple[str, str]:
-    # TODO(ai_gp): Add docstring.
+    """
+    Build pandoc command to convert file to LaTeX beamer slides.
+
+    :param file_name: Input file name.
+    :param toc_type: Table of contents type (e.g., 'pandoc_native').
+    :param use_host_tools: Whether to use host tools or containerized pandoc.
+    :param dockerized_force_rebuild: Force rebuild of Docker image.
+    :param dockerized_use_sudo: Use sudo for Docker commands.
+    :param no_pdf: If True, output .tex instead of .pdf.
+    :param fail_on_warnings: If True, fail pandoc on warnings.
+    :return: Tuple of (command string, output file name).
+    """
     cmd = []
     cmd.append(f"pandoc {file_name}")
     #

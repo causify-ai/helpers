@@ -4,12 +4,14 @@ Core library for linting and formatting text files.
 Provides transformation functions and file processing logic used by lint_txt.py.
 """
 
+import argparse
 import logging
 import os
 import re
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hselect_input_output as hseinout
 import helpers.hgit as hgit
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
@@ -26,8 +28,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai_gp): Use Tuple and Dict[str, ...]
-def _preprocess_txt(lines: List[str], extension: str) -> tuple[List[str], dict]:
+def _preprocess_txt(lines: List[str], extension: str) -> Tuple[List[str], Dict[str, Any]]:
     """
     Preprocess the given text before applying `prettier`.
 
@@ -508,10 +509,9 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
 def _perform_actions(
     lines: List[str],
     in_file_name: str,
+    file_type_override: str = "",
     *,
     actions: Optional[List[str]] = None,
-    # TODO(ai_gp): Make it mandatory and move before the *.
-    file_type_override: str = "",
     **kwargs: Any,
 ) -> List[str]:
     """
@@ -651,8 +651,7 @@ def _perform_actions(
 
 # #############################################################################
 
-# TODO(ai_gp): Make public
-_VALID_ACTIONS = {
+VALID_ACTIONS = {
     # Preprocess text before formatting: normalize artifacts, handle math equations.
     # - Convert Google Docs smart quotes to ASCII
     # - Protect math blocks (`$$...$$`)
@@ -720,8 +719,8 @@ def _is_action_supported_for_format(action: str, extension: str) -> bool:
     :param extension: The file extension (md, tex, txt, emd).
     :return: True if the action is supported, False otherwise.
     """
-    hdbg.dassert_in(action, _VALID_ACTIONS, msg=f"Unknown action: {action}")
-    return extension in _VALID_ACTIONS[action]
+    hdbg.dassert_in(action, VALID_ACTIONS, msg=f"Unknown action: {action}")
+    return extension in VALID_ACTIONS[action]
 
 
 def _filter_actions_by_format(
@@ -793,16 +792,46 @@ def _revert_from_backup(file_path: str) -> None:
     _LOG.info("File reverted successfully")
 
 
-# TODO(ai_gp): Move to dev_scripts_helpers/documentation/lint_txt.py
-# Default actions (excluding some that need explicit opt-in).
-DEFAULT_ACTIONS = [
-    action
-    for action in _VALID_ACTIONS.keys()
-    if action
-    not in [
-        "frame_chapters",
-        "refresh_toc",
-        "check_links",
-        "remove_markdown_formatting",
-    ]
-]
+def _process_single_file(
+    in_file_name: str,
+    out_file_name: str,
+    args: argparse.Namespace,
+    actions: Optional[List[str]],
+) -> None:
+    """
+    Process a single file.
+
+    :param in_file_name: Input file name.
+    :param out_file_name: Output file name.
+    :param args: Parsed arguments.
+    :param actions: List of actions to perform.
+    """
+    # If the input is stdin, then user needs to specify the type.
+    if in_file_name == "-":
+        hdbg.dassert_ne(args.type, "")
+    # Create backup before processing (if processing in-place).
+    if in_file_name == out_file_name and in_file_name != "-":
+        _create_backup(in_file_name)
+    # Read input.
+    lines = hseinout.from_file(in_file_name)
+    _LOG.debug("in_file_name=%s", in_file_name)
+    # Process.
+    kwargs = {
+        "width": args.width,
+        "use_dockerized_prettier": args.use_dockerized_prettier,
+        "use_dockerized_markdown_toc": args.use_dockerized_markdown_toc,
+    }
+    # Add backend and mode if specified.
+    if args.backend:
+        kwargs["backend"] = args.backend
+    if args.mode:
+        kwargs["mode"] = args.mode
+    out_lines = _perform_actions(
+        lines,
+        in_file_name,
+        file_type_override=args.type,
+        actions=actions,
+        **kwargs,
+    )
+    # Write output.
+    hseinout.to_file(out_lines, out_file_name)
