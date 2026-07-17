@@ -1,78 +1,60 @@
-**Title**:
-- [PRIMARY TITLE]: <one-line description of core theme>
+# TOC
 
-- [ALTERNATIVE TITLE]: <alternative framing of same topic>
+- **Title**: <primary title>
+- <alternative framing of same topic>
 
-**Target audience:**
-- E.g.,
-  - Senior engineers, domain experts, practitioners with X background
-  - Prerequisites: knowledge of Y, experience with Z
+- **Target audience:**
+  - E.g.,
+    - Senior engineers, domain experts, practitioners with X background
+    - Prerequisites: knowledge of Y, experience with Z
 
-# Part I: [PART TITLE]
+# Part I: <Part Title>
 
 - Part I establishes the "why" and "what"
   - Introduces core problems, motivations, and foundational concepts that the
     book addresses
   - E.g., "Why Businesses Need Decisions, not Predictions" in a causal ML book.
 
-## 1: [CHAPTER TITLE]
+## 1, <Chapter Title>
 
-- 1-2 sentence overview of chapter scope and learning outcomes
+### Goals
+- Goal 1
+- Goal 2
 
 ### Topics
-- [TOPIC 1]: <detailed description of concept, problem, or technique>
-- [TOPIC 2]: <detailed description of concept, problem, or technique>
-- [TOPIC 3]: <detailed description of concept, problem, or technique>
+- <Detailed description of concept, problem, or technique>
+- <Detailed description of concept, problem, or technique>
+- <Detailed description of concept, problem, or technique>
 
 ### TODO
-- [ ] [TASK 1] <e.g., add worked examples from industry>
-- [ ] [TASK 2] <e.g., integrate case studies>
-- [ ] [TASK 3] <e.g., fill gaps in theory coverage>
+- [ ] <E.g., add worked examples from industry>
+- [ ] <E.g., integrate case studies>
+- [ ] <E.g., fill gaps in theory coverage>
 
 ### Lessons
-- `[LESSON PATH]` <path to existing lecture, tutorial, or resource>
-  - [COVERAGE] — <one-liner on what this resource covers and how it fits; coverage levels: FULL/PART/WEAK>
+- `lesson path` <path to existing lecture, tutorial, or resource>
+  - <coverage>: <one-liner on what this resource covers and how it fits; coverage levels>
 
 ### Tutorials
-- [Tutorial title]: <brief description of what it teaches>
+- <Tutorial title>: <brief description of what it teaches>
 
 ### Related packages
-- [PACKAGE_NAME] ([POPULARITY]): <brief description of what it does and relevance>
+- <package_name> (<popularity>): <brief description of what it does and relevance>
   - Example: `DoWhy (6,600): Causal inference using graphical models`
 
 ### Related books
-- [B001] [Author], "[Title]", [Year]
-  - <why this book is relevant; what readers should take from it>
+- Reference to books following the conventions of `.claude/skills/references.rules.md`
+- [B001] <Author et al.>, "<Title>" (<Year>)
 
 ### Related papers
-- [P001] [Author et al.], "[Title]", [Year]
-  [URL or DOI]
-  - <key insight or method from paper; why it matters for this chapter>
+- Reference to papers following the conventions of `.claude/skills/references.rules.md`
+- [P001] <Author et al.>, "<Title>" (<Year>) <lInk>
 
-## 2: [CHAPTER TITLE]
+## 2, <Chapter Title>
 
-<1-2 sentence overview>
+...
 
-### Topics
-- [TOPIC 1]: <detailed description>
-- [TOPIC 2]: <detailed description>
-
-### Lessons
-- `[LESSON PATH]`
-  - [COVERAGE] — <description>
-
-### Tutorials
-
-### Related packages
-
-### Related books
-- [B###] [Author], "[Title]", [Year]
-
-### Related papers
-- [P###] [Author et al.], "[Title]", [Year]
-  [URL]
-
-# Part II: [PART TITLE] <advanced theory; depth; technical foundations>
+# Part II: ...
 
 ...
 

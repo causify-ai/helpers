@@ -7,7 +7,7 @@ model: haiku
   books), find the following information
   - Title
   - Authors
-    - Use the format from `.claude/skills/book.rules.md` and
+    - Use the format from `.claude/skills/references.rules.md` and
       `## Format of Authors`
   - Publisher
   - Year
