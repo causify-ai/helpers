@@ -40,7 +40,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
         image_name = dshdlipr.get_prettier_container_image_name(file_type)
-        # TODO(ai_gp): Different expected value for darwin vs linux.
+        # TODO(gp): Different expected value for darwin vs linux.
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'

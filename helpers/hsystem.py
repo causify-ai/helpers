@@ -188,7 +188,7 @@ def _system(
     if wrapper:
         cmd = wrapper + " && " + cmd
     # Handle `log_level`.
-    # TODO(ai_gp): Convert echo -> "PRINT" and echo_frame -> "PRINT_FRAME"
+    # TODO(ai_gp): Rename "echo" -> "PRINT" and "echo_frame" -> "PRINT_FRAME"
     if isinstance(log_level, str):
         hdbg.dassert_in(log_level, ("echo", "echo_frame"))
         if log_level == "echo_frame":
@@ -416,7 +416,7 @@ def get_first_line(output: str) -> str:
     return output
 
 
-# TODO(ai_gp): Move it to a more general file, e.g., `helpers/printing.py`?
+# TODO(ai_gp): Move it to `helpers/printing.py`
 def text_to_list(txt: str) -> List[str]:
     """
     Convert a string (e.g., from system_to_string) into a list of lines.

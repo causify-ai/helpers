@@ -258,8 +258,8 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         image_name = dshdlipa._get_pandoc_container_image_name(container_type)
         hdbg.dassert(hdocker.image_exists(image_name, use_sudo))
         # Run version command inside container.
-        # TODO(ai_gp): Add also latex --version in the bash -c below
-        # TODO(ai_gp): Use different expected output for darwin vs linux.
+        # TODO(gp): Add also latex --version in the bash -c below
+        # TODO(gp): Use different expected output for darwin vs linux.
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'

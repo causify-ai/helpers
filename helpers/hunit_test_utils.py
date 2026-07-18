@@ -595,7 +595,7 @@ def get_parent_dirs(files: List[str]) -> List[str]:
 # #############################################################################
 
 
-# TODO(ai_gp): invocations -> sys_calls
+# TODO(ai_gp): Rename variables and functions using invocations -> sys_calls
 
 
 @contextlib.contextmanager

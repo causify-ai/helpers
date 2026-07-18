@@ -763,7 +763,7 @@ def build_and_run_docker_cmd(
     :param use_root_user: If True, run container as root (0:0) instead of current user.
         Useful for nested containers that are temporary build tools.
     """
-    # TODO(ai_gp): Pass use_root_user to get_docker_base_cmd instead of patching
+    # TODO(gp): Pass use_root_user to get_docker_base_cmd instead of patching
     # docker_cmd[2].
     docker_cmd = get_docker_base_cmd(use_sudo)
     # Override user flag for nested containers that need root access.

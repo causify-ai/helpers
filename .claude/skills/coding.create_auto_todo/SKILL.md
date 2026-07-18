@@ -4,9 +4,9 @@ description: Create a plan for fixing TODOs
 
 # Goal
 - Given a list of TODOs provided by the user in the form
-```
-./helpers/hmarkdown_coloring.py:235:def colorize_bullet_points_in_slide(
-```
+  ```
+  ./helpers/hmarkdown_coloring.py:235:def colorize_bullet_points_in_slide(
+  ```
 
 # Workflow
 
@@ -56,17 +56,9 @@ description: Create a plan for fixing TODOs
     best practices
 - For renaming, make sure the entire code base is checked to make sure everything
   is updated
-- For change of function signature: 
-
-## Step 3
-- 
+  - Follow `.claude/skills/coding.rename/SKILL.md`
+- For change of function signature, make sure all the calling instances have been
+  updated
 
 ## Step 3
 - Wait for the user to review and approve this file
-
-## Step 4
-- Given the 
-
-## Implementation Details
-
-<Technical details>
