@@ -41,11 +41,11 @@ def _build_ripgrep_command(
     :return: Command list ready for subprocess
     """
     cmd = ["rg", pattern]
-    if files:
-        # Replace directory with the explicit file list.
-        cmd.extend(files)
-    else:
-        cmd.append(directory)
+    # Look also in hidden files, like `.claude`.
+    cmd.append("--hidden")
+    # Add user-provided ripgrep options.
+    cmd.extend(rg_opts)
+    # Add file type filters before directory.
     if extensions:
         for ext in extensions:
             # Ensure extensions don't have a dot prefix since ripgrep expects
@@ -57,9 +57,12 @@ def _build_ripgrep_command(
                 ext,
             )
             cmd.extend(["-g", f"*.{ext}"])
-    # Look also in hidden files, like `.claude`.
-    cmd.append("--hidden")
-    cmd.extend(rg_opts)
+    # Add directory or files last.
+    if files:
+        # Replace directory with the explicit file list.
+        cmd.extend(files)
+    else:
+        cmd.append(directory)
     return cmd
 
 
@@ -208,11 +211,11 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
             todo_pattern = parsed.todo_str
         ripgrep_pattern = rf"^\s*(#|//)\s*TODO\({todo_pattern}\)"
         # Directory and extensions can come from positional args.
+        if len(parsed.positional) > 0:
+            ripgrep_dir = parsed.positional[0]
         if len(parsed.positional) > 1:
-            ripgrep_dir = parsed.positional[1]
-        if len(parsed.positional) > 2:
             ripgrep_extensions = [
-                ext.strip() for ext in parsed.positional[2].split(",")
+                ext.strip() for ext in parsed.positional[1].split(",")
             ]
             for ext in ripgrep_extensions:
                 hdbg.dassert(

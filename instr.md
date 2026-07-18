@@ -1,6 +1,3 @@
-Create a script implementing 
-dev_scripts_helpers/git/git_create_nested_worktree.sh
-
 # Conventions
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
