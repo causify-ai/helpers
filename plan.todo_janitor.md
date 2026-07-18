@@ -1,361 +1,466 @@
 # TODO Janitor Plan
 
-## [x] Group 1: Code Refactoring - Move Assertions and Logic
-
-### [ ] 1.1: Move Assertion Into Test Helper
-**File**: `dev_scripts_helpers/testing/test/test_pytest_failed.py:48`
-
-**Type**: cosmetic
-
-**Reason**:
-
-- Comment suggests assertion should be in `helper()` method, not test body
-- Improves test readability and reusability
-
-**Potential fix**:
-
-- Extract `self.assert_equal(actual, expected)` into `helper()` method
-- Remove assertion line from test
-
-**Fix complexity**: low
-
-**How to verify**: Run test, ensure assertion still passes
-
-### [ ] 1.2: Move Coverage Logic to \_run_python_linting_actions
-**File**: `linters2/lint.py:316`
-
-**Type**: refactoring
-
-**Reason**:
-
-- Coverage runs on all Python files including paired jupytext (should be grouped
-  with other actions)
-- Centralizes linting action orchestration
-
-**Potential fix**:
-
-- Move coverage block (lines 318-322) into `_run_python_linting_actions()`
-  function
-- Add "coverage" to actions list handling
-
-**Fix complexity**: medium
-
-**How to verify**: Run lint actions, coverage still executes for all Python
-files
-
-### [ ] 1.3: Use Pbcopy Function From Hsystem.py
-**File**: `helpers/lib_tasks/lib_tasks_utils.py:242`
-
-**Type**: refactoring (eliminate duplication)
-
-**Reason**:
-
-- `_to_pbcopy()` is a duplicate of existing `hsystem.py` utility
-- Single source of truth for clipboard operations
-
-**Potential fix**:
-
-- Remove `_to_pbcopy()` function (lines 242-254)
-- Replace call: `_to_pbcopy(txt, pbcopy)` → `hsystem.to_pbcopy(txt, pbcopy)`
-- Verify `hsystem.to_pbcopy()` exists and has same signature
-
-**Fix complexity**: low
-
-**How to verify**: Import `hsystem.to_pbcopy()`, run clipboard operation
-
-### [ ] 1.4: Use Hprint.filter_text Instead of Local Copy
-**File**: `helpers/hunit_test.py:744`
-
-**Type**: refactoring (eliminate duplication)
-
-**Reason**:
-
-- `filter_text()` is copied from `hprint.py`
-- Single source of truth for filtering
-
-**Potential fix**:
-
-- Remove `filter_text()` function (lines 744-758)
-- Replace calls: `filter_text(...)` → `hprint.filter_text(...)`
-- Verify `hprint.filter_text()` exists with same behavior
-
-**Fix complexity**: low
-
-**How to verify**: Run test, verify text filtering works identically
-
-## [ ] Group 2: Import and Dependency Management
-
-### [ ] 2.1: Conditional PIL Import
-**File**: `helpers/hgraphviz.py:19`
-
-**Type**: improvement
-
-**Reason**:
-
-- PIL (Pillow) should be conditionally imported (not always required)
-- Reduces hard dependency for users who don't need image features
-
-**Potential fix**:
-
-- Move PIL import inside functions that use it
-- Add try/except wrapper for graceful error if PIL unavailable
-- Document required dependency
-
-**Fix complexity**: medium
-
-**How to verify**: Verify import doesn't break if PIL missing, test image
-functions
-
-## [ ] Group 3: Variable and Function Naming
-
-### [ ] 3.1: Rename Invocations → Sys_calls
-**File**: `helpers/hunit_test_utils.py:598`
-
-**Type**: improvement (naming clarity)
-
-**Reason**:
-
-- "sys_calls" more clearly describes system calls vs generic "invocations"
-- Improves code readability and consistency
-
-**Potential fix**:
-
-- Rename variable `invocations` → `sys_calls` in `capture_system_calls()` and
-  callers
-- Update docstrings referencing "invocations"
-- Find all calls to this context manager and update variable names
-
-**Fix complexity**: high (requires grep/search across codebase)
-
-**How to verify**: Run tests using `capture_system_calls()`, verify renamed
-variables work
-
-### [ ] 3.2: Rename Echo/echo_frame → PRINT/PRINT_FRAME
-**File**: `helpers/hsystem.py:191`
-
-**Type**: improvement (naming consistency)
-
-**Reason**:
-
-- Function names should be uppercase for log level constants
-- Better matches Python logging conventions (DEBUG, INFO, etc.)
-
-**Potential fix**:
-
-- Rename string constant `"echo"` → `"PRINT"`
-- Rename string constant `"echo_frame"` → `"PRINT_FRAME"`
-- Update all references in validation (line 193)
-- Update all references in `system()` function calls
-
-**Fix complexity**: high (requires grep/search across codebase)
-
-**How to verify**: Run system calls with both log levels, verify output
-formatting
-
-## [ ] Group 4: Code Movement (consolidation)
-
-### [ ] 4.1: Move Text_to_list to Printing.py
-**File**: `helpers/hsystem.py:419`
-
-**Type**: refactoring (module organization)
-
-**Reason**:
-
-- `text_to_list()` is text formatting utility, belongs in `printing.py` not
-  `hsystem.py`
-- Better module cohesion (hsystem should focus on system operations)
-
-**Potential fix**:
-
-- Move `text_to_list()` function to `helpers/hprint.py`
-- Remove from `hsystem.py` (lines 419-426)
-- Update imports in `hsystem.py` if needed
-- Find all callers, update imports
-
-**Fix complexity**: high (requires grep/search across codebase)
-
-**How to verify**: Run tests, verify text conversion works with new import path
-
-### [ ] 4.2: Move Find_file_with_dir to Hio.py
-**File**: `helpers/hsystem.py:948`
-
-**Type**: refactoring (module organization)
-
-**Reason**:
-
-- `find_file_with_dir()` is file I/O operation, belongs in `hio.py` not
-  `hsystem.py`
-- Better module cohesion
-
-**Potential fix**:
-
-- Move `find_file_with_dir()` function to `helpers/hio.py`
-- Remove from `hsystem.py` (lines 948-960+)
-- Update imports in `hsystem.py` if needed
-- Find all callers, update imports
-
-**Fix complexity**: high (requires grep/search across codebase)
-
-**How to verify**: Run tests, verify file finding works with new import path
-
-## [ ] Group 5: Test Refactoring
-
-### [ ] 5.1: Use Capture_system_calls Mock in Test_lint.py
-**File**: `linters2/test/test_lint.py:218`
-
-**Type**: improvement (testing infrastructure)
-
-**Reason**:
-
-- Use new `capture_system_calls()` mock instead of patching
-  `helpers.hsystem.system`
-- Cleaner, more maintainable test code
-- Consistent test patterns across codebase
-
-**Potential fix**:
-
-- Replace `@umock.patch("helpers.hsystem.system")` with context manager approach
-- Use `capture_system_calls()` to capture calls
-- Use `assert_invocations()` to verify calls
-
-**Fix complexity**: high (entire test class needs refactoring)
-
-**How to verify**: Run test, verify all assertions pass with new mocking
-approach
-
-### [ ] 5.2: Use Capture_system_calls Mock in Test_hmodule.py
-**File**: `helpers/test/test_hmodule.py:67`
-
-**Type**: improvement (testing infrastructure)
-
-**Reason**:
-
-- Same as 5.1: replace manual mock with `capture_system_calls()`
-- Cleaner test code
-
-**Potential fix**:
-
-- Replace manual `system_calls` list and `mock_system_to_string()`
-- Use `capture_system_calls()` context manager
-- Use `assert_invocations()` to verify calls
-
-**Fix complexity**: medium (single test method)
-
-**How to verify**: Run test, verify pip install calls captured correctly
-
-### [ ] 5.3: Factor Common Code in Test_lint.py
-**File**: `linters2/test/test_lint.py:18`
-
-**Type**: refactoring (test code organization)
-
-**Reason**:
-
-- Multiple test classes have duplicated setup/helper code
-- Should use /coding.factor_common_code skill to consolidate
-
-**Potential fix**:
-
-- Identify common patterns in `Test_filter_files_by_type` class
-- Extract shared methods (e.g., `_create_files()`) to base class or helper
-  function
-
-**Fix complexity**: medium
-
-**How to verify**: Run tests, ensure factored code behavior unchanged
-
-## [ ] Group 6: Code Improvements
-
-### [ ] 6.1: Use re.VERBOSE for Regex Pattern
-**File**: `helpers/hmarkdown_coloring.py:227`
-
-**Type**: improvement (code readability)
-
-**Reason**:
-
-- Regex pattern is complex, hard to read
-- `re.VERBOSE` allows inline comments for clarity
-- Pattern explanation already exists in comment block
-
-**Potential fix**:
-
-- Convert regex to multi-line with `re.VERBOSE` flag
-- Add inline comments explaining each part:
-  - `(?<!\w)` - negative lookbehind for non-word char
-  - `@` - literal @
-  - `([^@\n]+)` - capture group: non-@ chars
-  - `@` - literal closing @
-- Update regex compile: `re.compile(_COLOR_MARKER_REGEX, re.VERBOSE)`
-
-**Fix complexity**: low
-
-**How to verify**: Test regex still matches same patterns as before
-
-### [ ] 6.2: Robust Docker_cmd[2] Validation
-**File**: `helpers/hdocker.py:771`
-
-**Type**: improvement (robustness)
-
-**Reason**:
-
-- Current approach assumes `docker_cmd[2]` is user flag (fragile)
-- Should validate or use more robust method
-
-**Potential fix**:
-
-- Option A: Validate that `docker_cmd[2]` starts with `--user` before modifying
-- Option B: Find `--user` flag by searching entire list, replace its value
-- Option C: Pass `use_root_user` to `get_docker_base_cmd()` and handle there
-
-**Fix complexity**: medium
-
-**How to verify**: Test with root/non-root users, verify flag correctly set
-
-### [ ] 6.3: Skip Building If Image Was Pulled
-**File**: `helpers/hdocker.py:786`
-
-**Type**: improvement (optimization)
-
-**Reason**:
-
-- If image successfully pulled, building is redundant
-- Can save time and resource usage
-
-**Potential fix**:
-
-- Capture return value from `pull_image()`
-- Only proceed to build if pull returned failure/false
-- Add comment explaining logic
-
-**Fix complexity**: low
-
-**How to verify**: Test image pull success path, verify build skipped
-
-## [ ] Group 7: Simplification (use Existing Utils)
-
-### [ ] 7.1: Use System_to_one_line() Helper
-**File**: `helpers/hgit.py:406`
-
-**Type**: improvement (code reuse)
-
-**Reason**:
-
-- Lines 407-409 manually implement what `system_to_one_line()` does
-- Should use existing utility function
-
-**Potential fix**:
-
-- Replace lines 407-409:
-  ```python
-  _, out = hsystem.system_to_string(cmd)
-  out = out.rstrip("\n")
-  hdbg.dassert_eq(len(out.split("\n")), 1, msg=f"Invalid out='{out}'")
-  ```
-  with:
-  ```python
-  _, out = hsystem.system_to_one_line(cmd)
-  ```
-- Remove assertion (already in `system_to_one_line()`)
-
-**Fix complexity**: low
-
-**How to verify**: Test git root finding, verify same output
+## [ ] 1: Refactor Regex to Use re.VERBOSE and Comments
+
+### Info
+- Original description:
+  `./helpers/hmarkdown_coloring.py:227:# TODO(ai_gp): Use re.VERBOSE and comments`
+
+### Proposed Fix
+- Type: improvement/cosmetic
+- Reason: Current regex is hard to read. Using re.VERBOSE with inline comments
+  improves maintainability
+- Proposed fix:
+  - Replace `_COLOR_MARKER_REGEX = r"(?<!\w)@([^@\n]+)@"` with a verbose version
+  - Add comments explaining each part of the pattern
+- Confidence in the fix: high
+- Fix complexity: low
+- Verification plan:
+  - Run tests for `hmarkdown_coloring.py` to verify regex still works
+  - Check that colorize functions still produce expected output
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 2: Use System_to_one_line() in Hgit.py
+
+### Info
+- Original description:
+  `./helpers/hgit.py:406:# TODO(ai_gp): Use system_to_one_line().`
+
+### Proposed Fix
+- Type: code reuse/simplification
+- Reason: `system_to_one_line()` is designed exactly for this use case - run
+  command and get single line output
+- Proposed fix:
+  - Replace manual `hsystem.system_to_string()` + `.rstrip()` + assertion with
+    single `system_to_one_line()` call
+  - Simplifies error handling and makes intent clearer
+- Confidence in the fix: high
+- Fix complexity: low
+- Verification plan:
+  - Run tests in `test_hgit.py` to verify get_client_root still works
+  - Test with both regular repo and superproject cases
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 3: Use Filter_text From Helpers/hprint.py
+
+### Info
+- Original description:
+  `./helpers/hunit_test.py:744:# TODO(ai_gp): Use the copy in helpers/hprint.py`
+
+### Proposed Fix
+- Type: code reuse/deduplication
+- Reason: `filter_text()` is duplicated - better to import from single source
+- Proposed fix:
+  - Check if `hprint.filter_text()` exists and is compatible
+  - Replace `hunit_test.filter_text()` with import from `hprint`
+  - Update all callers to use `hprint.filter_text()`
+- Confidence in the fix: high
+- Fix complexity: low
+- Verification plan:
+  - Run tests in `test_hunit_test.py` to verify filter_text still works
+  - Grep codebase for uses of `hunit_test.filter_text` and verify they work
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 4: Use Conditional Import for PIL in Hgraphviz.py
+
+### Info
+- Original description:
+  `./helpers/hgraphviz.py:19:# TODO(ai_gp): Use import PIL if possible.`
+
+### Proposed Fix
+- Type: improvement/dependency
+- Reason: PIL may not be available in all environments - conditional import
+  allows graceful degradation
+- Proposed fix:
+  - Wrap PIL import in try/except block
+  - Provide clear error message if PIL is needed but not available
+  - Mark which functions require PIL
+- Confidence in the fix: medium
+- Fix complexity: low
+- Verification plan:
+  - Run tests for `hgraphviz.py` (if PIL available)
+  - Test behavior when PIL is not available
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 5: Move Assertion Into Test Helper
+
+### Info
+- Original description:
+  `./dev_scripts_helpers/testing/test/test_pytest_failed.py:48:# TODO(ai_gp): Move the assertion into the helper.`
+
+### Proposed Fix
+- Type: refactoring/test improvement
+- Reason: Moving assertion into helper consolidates test logic and reduces
+  duplication
+- Proposed fix:
+  - Modify `self.helper()` to include the assertion
+  - Remove assertion from test method
+  - Update other test methods that use this helper
+- Confidence in the fix: high
+- Fix complexity: medium
+- Verification plan:
+  - Run all tests in `test_pytest_failed.py` to verify they still pass
+  - Verify assertion still catches errors
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 6: Move Coverage Action to \_run_python_linting_actions
+
+### Info
+- Original description:
+  `./linters2/lint.py:316:# TODO(ai_gp): Move this to _run_python_linting_actions`
+
+### Proposed Fix
+- Type: refactoring/code organization
+- Reason: Coverage is a Python linting action and should be part of the unified
+  linting flow
+- Proposed fix:
+  - Move coverage handling from `_lint_python_files()` into
+    `_run_python_linting_actions()`
+  - Update action list handling to include "coverage"
+  - Remove duplicate coverage check from `_lint_python_files()`
+- Confidence in the fix: high
+- Fix complexity: medium
+- Verification plan:
+  - Run `invoke run_coverage` to verify it still works
+  - Test lint with coverage action included
+  - Verify coverage metrics are generated correctly
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 7: Update Test Mocks to Use Capture_system_calls (test_hmodule.py)
+
+### Info
+- Original description:
+  `./helpers/test/test_hmodule.py:67:# TODO(ai_gp): Use the new mock for system capture_system_calls and assert_invocations`
+
+### Proposed Fix
+- Type: test improvement/modernization
+- Reason: New `capture_system_calls()` mock is more readable and maintainable
+  than manual mocking
+- Proposed fix:
+  - Replace manual mock setup with `capture_system_calls()` context manager
+  - Use `assert_invocations()` helper for assertions
+  - Update test assertions to use new mock output format
+- Confidence in the fix: medium
+- Fix complexity: medium
+- Verification plan:
+  - Run tests in `test_hmodule.py` to verify they still pass
+  - Verify captured calls match expected system invocations
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 8: Update Test Mocks in Test_lint.py
+
+### Info
+- Original description:
+  `./linters2/test/test_lint.py:218:# TODO(ai_gp): Use the new mock for system capture_system_calls and assert_invocations in all this file instead of patching helpers.system`
+
+### Proposed Fix
+- Type: test improvement/modernization
+- Reason: Replace all manual patching of `helpers.system` with
+  `capture_system_calls()` for consistency
+- Proposed fix:
+  - Find all places where `@umock.patch("helpers.hsystem.system")` is used
+  - Replace with `capture_system_calls()` context manager
+  - Update assertions to use captured invocations
+- Confidence in the fix: medium
+- Fix complexity: medium
+- Verification plan:
+  - Run all tests in `test_lint.py` to verify they still pass
+  - Verify test coverage is maintained
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 9: Apply Factor_common_code to Test_filter_files_by_type
+
+### Info
+- Original description:
+  `./linters2/test/test_lint.py:18:# TODO(ai_gp): Run skill /coding.factor_common_code`
+
+### Proposed Fix
+- Type: refactoring/code deduplication
+- Reason: Test class likely has repeated setup or test patterns that can be
+  consolidated
+- Proposed fix:
+  - Run `/coding.factor_common_code` skill on this test class
+  - Extract common test patterns into helper methods
+  - Reduce code duplication in test methods
+- Confidence in the fix: medium
+- Fix complexity: medium
+- Verification plan:
+  - Run tests in `Test_filter_files_by_type` to verify all pass
+  - Verify test behavior unchanged despite refactoring
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 10: Use Existing \_to_pbcopy From Hsystem.py
+
+### Info
+- Original description:
+  `./helpers/lib_tasks/lib_tasks_utils.py:242:# TODO(ai_gp): Use the one in ./helpers/hsystem.py`
+
+### Proposed Fix
+- Type: code reuse/deduplication
+- Reason: `_to_pbcopy()` is duplicated - import from single authoritative
+  location
+- Proposed fix:
+  - Check if `hsystem._to_pbcopy()` exists and is compatible
+  - Replace version in `lib_tasks_utils.py` with import from `hsystem`
+  - Update any callers to use `hsystem._to_pbcopy()`
+- Confidence in the fix: high
+- Fix complexity: medium
+- Verification plan:
+  - Run pbcopy tests to verify functionality unchanged
+  - Verify both copy-to-clipboard and print-to-stdout paths work
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 11: Make Docker_cmd[2] Modification More Robust
+
+### Info
+- Original description:
+  `./helpers/hdocker.py:771:# TODO(ai_gp): Check that docker_cmd[2] starts with --user or use a more robust approach.`
+
+### Proposed Fix
+- Type: bug/robustness improvement
+- Reason: Direct array index assumption is fragile and could break with docker
+  base command changes
+- Proposed fix:
+  - Search for `--user` flag in docker_cmd by index or value
+  - Replace it if found, append if not found
+  - Or refactor to pass `use_root_user` to `get_docker_base_cmd()` instead
+- Confidence in the fix: medium
+- Fix complexity: medium
+- Verification plan:
+  - Run docker tests to verify user flag is correctly set
+  - Test both with and without override
+  - Test that command structure is preserved
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 12: Skip Build If Image Was Pulled Successfully
+
+### Info
+- Original description:
+  `./helpers/hdocker.py:786:# TODO(ai_gp): If it was pulled then skip building it.`
+
+### Proposed Fix
+- Type: optimization/improvement
+- Reason: If pull was successful, building is redundant and wastes
+  time/resources
+- Proposed fix:
+  - Capture return value of `pull_image()` call
+  - If pull succeeded, skip the build step
+  - Only build if pull failed/image wasn't found
+- Confidence in the fix: medium
+- Fix complexity: medium
+- Verification plan:
+  - Run docker image creation tests
+  - Verify that build is skipped when image is pulled
+  - Verify fallback to build when pull fails
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 13: Use System_to_one_line() Simplification and Minor Refactor
+
+### Info
+- Original description: Multiple small code movements and cleanups
+
+### Proposed Fix
+- Type: refactoring/code organization
+- Reason: Consolidate related code movements before major renames
+- Proposed fix:
+  - Complete items 1-12 first
+  - These provide foundation for larger refactors
+- Confidence in the fix: high
+- Fix complexity: high
+- Verification plan:
+  - Run full test suite after all refactors
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 14: Move Text_to_list() to Helpers/printing.py
+
+### Info
+- Original description:
+  `./helpers/hsystem.py:419:# TODO(ai_gp): Move it to \`helpers/printing.py\``
+
+### Proposed Fix
+- Type: code movement/reorganization
+- Reason: `text_to_list()` is text/string utility, not system utility - belongs
+  in printing module
+- Proposed fix:
+  - Create `helpers/printing.py` if it doesn't exist, or use `hprint.py`
+  - Move `text_to_list()` function to appropriate module
+  - Update import in `hsystem.py` or remove if no longer needed in that module
+  - Grep codebase for all imports and usages of `hsystem.text_to_list()`
+  - Update all imports to use new location
+- Confidence in the fix: high
+- Fix complexity: high
+- Verification plan:
+  - Run full test suite to verify all imports work
+  - Verify `text_to_list()` output unchanged
+  - Check no circular imports introduced
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 15: Move Find_file_with_dir() to Hio.py
+
+### Info
+- Original description: `./helpers/hsystem.py:948:# TODO(ai_gp): Move to hio.py`
+
+### Proposed Fix
+- Type: code movement/reorganization
+- Reason: File finding utilities belong in I/O module, not system module
+- Proposed fix:
+  - Move `find_file_with_dir()` function to `hio.py`
+  - Update import in `hsystem.py` if still needed internally
+  - Grep codebase for all imports and usages of `hsystem.find_file_with_dir()`
+  - Update all imports to use new location (`hio.find_file_with_dir()`)
+- Confidence in the fix: high
+- Fix complexity: high
+- Verification plan:
+  - Run full test suite to verify all imports work
+  - Verify `find_file_with_dir()` output unchanged
+  - Check no circular imports introduced
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 16: Rename "echo" → "PRINT" and "echo_frame" → "PRINT_FRAME"
+
+### Info
+- Original description:
+  `./helpers/hsystem.py:191:# TODO(ai_gp): Rename "echo" -> "PRINT" and "echo_frame" -> "PRINT_FRAME"`
+
+### Proposed Fix
+- Type: refactoring/renaming
+- Reason: PRINT\_\* is more consistent naming convention and clearer
+- Proposed fix:
+  - Global rename: "echo" → "PRINT" and "echo_frame" → "PRINT_FRAME"
+  - Search all files for uses of `log_level="echo"` or `log_level="echo_frame"`
+  - Update all occurrences
+  - Update validation logic in `hsystem.py`
+- Confidence in the fix: high
+- Fix complexity: high
+- Verification plan:
+  - Grep entire codebase for "echo" in context of log_level
+  - Run tests to verify all print operations still work
+  - Verify no hardcoded string comparisons break
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
+
+## [ ] 17: Rename "invocations" → "sys_calls" Throughout Codebase
+
+### Info
+- Original description:
+  `./helpers/hunit_test_utils.py:598:# TODO(ai_gp): Rename variables and functions using invocations -> sys_calls`
+
+### Proposed Fix
+- Type: refactoring/renaming (consistency)
+- Reason: "sys_calls" is shorter and more consistent with existing naming
+  patterns
+- Proposed fix:
+  - Global rename: all uses of "invocations" (variable, parameter, return) →
+    "sys_calls"
+  - Update function docstrings and comments
+  - Rename any functions/methods that include "invocation" to use "sys_call"
+  - Examples: `capture_system_calls()`, `assert_invocations()` → needs careful
+    consideration
+- Confidence in the fix: high
+- Fix complexity: high
+- Verification plan:
+  - Grep codebase for "invocation" and "sys_call" to understand current usage
+  - Run full test suite after renaming
+  - Verify all system call capturing still works
+
+### Status
+- Status: proposed
+- GitHub issue title:
+- GitHub issue link:
+- PR link:
+- Git worktree:
