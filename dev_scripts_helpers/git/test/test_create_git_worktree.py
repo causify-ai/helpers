@@ -10,6 +10,7 @@ import os
 import unittest.mock as mock
 
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.git.create_git_worktree as dshgcgiwo
 
 
@@ -150,6 +151,33 @@ class Test_parse_issue_number_from_url(hunitest.TestCase):
         # Run test.
         self.helper(url, expected)
 
+    # TODO(ai_gp): Use helper
+    def test3(self) -> None:
+        """
+        Test parsing URL with multiple trailing slashes.
+        """
+        # Prepare inputs.
+        url = "https://github.com/causify-ai/helpers/issues/123///"
+        # Prepare outputs.
+        expected = 123
+        # Run test.
+        actual = dshgcgiwo._parse_issue_number_from_url(url)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test parsing URL with large issue number.
+        """
+        # Prepare inputs.
+        url = "https://github.com/causify-ai/helpers/issues/9999"
+        # Prepare outputs.
+        expected = 9999
+        # Run test.
+        actual = dshgcgiwo._parse_issue_number_from_url(url)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
 
 # #############################################################################
 # Test_create_git_worktree_py
@@ -182,3 +210,31 @@ class Test_create_git_worktree_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             with self.assertRaises(AssertionError):
                 dshgcgiwo._main(parser)
+
+    def test2(self) -> None:
+        """
+        Test creating branch and worktree captures correct git commands.
+        """
+        # Prepare inputs.
+        branch_name = "HelpersTask1290_Test_Branch"
+        issue_id = 1290
+        # Run test and capture system calls.
+        with hunteuti.capture_system_calls() as invocations:
+            with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
+                worktree_path = dshgcgiwo._create_branch_and_worktree(
+                    branch_name, issue_id
+                )
+        # Check outputs.
+        expected = """
+        [{'args': ('git branch HelpersTask1290_Test_Branch master',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}},
+         {'args': ('git worktree add /home/user/helpers1_worktree_1290 '
+                   'HelpersTask1290_Test_Branch',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}}]
+        """
+        hunteuti.assert_invocations(self, invocations, expected, dedent=True)
+        # Verify returned worktree path.
+        expected_path = "/home/user/helpers1_worktree_1290"
+        self.assertEqual(worktree_path, expected_path)

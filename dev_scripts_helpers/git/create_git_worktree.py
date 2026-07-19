@@ -6,9 +6,8 @@ Create a GitHub issue and corresponding git worktree.
 Workflow:
 1. Creates a GitHub issue with the provided title and body
 2. Extracts the issue number from the created issue
-3. Asserts there are no subrepos in the repository
-4. Creates a git branch and worktree based on the issue
-5. Prints instructions for using the worktree
+3. Creates a git branch and worktree based on the issue
+4. Prints instructions for using the worktree
 
 Import as:
 
@@ -57,6 +56,7 @@ def _format_title_for_branch(raw_title: str, issue_id: int) -> str:
     for char in "- ' ` \"".split():
         title = title.replace(char, "_")
     # Add the prefix with issue number.
+    # TODO(ai_gp): Generalize this to other repos.
     task_prefix = "HelpersTask"
     branch_name = f"{task_prefix}{issue_id}_{title}"
     return branch_name
@@ -127,7 +127,7 @@ def _check_no_subrepos() -> None:
     has_subrepos = hgit.has_submodules()
     hdbg.dassert(
         not has_subrepos,
-        "Repository has submodules; worktree creation not supported for repos with subrepos",
+        "Repository has submodules; worktree not supported yet",
     )
 
 
@@ -202,13 +202,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info("Using instruction file: %s", args.instr_file)
     # Normalize assignee (convert @me to current user).
     assignee = args.gh_assignee
-    if assignee == "@me":
-        # Get current GitHub user.
-        cmd = "gh auth status --show-token 2>&1 | grep 'Logged in to'"
-        _, output = hsystem.system_to_string(cmd)
-        # Extract username from output (format: "Logged in to github.com as username").
-        assignee = output.split()[-1]
-        _LOG.info("Using current user as assignee: %s", assignee)
     # Create GitHub issue.
     issue_id, _ = _create_github_issue(
         args.gh_issue_title,
