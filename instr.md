@@ -6,6 +6,8 @@ that accepts
 --gh_assignee <assignee> (@me by default)
 --instr_file optional
 
+Check that instr_file exists
+
 that performs the following actions
 
   > gh issue create --title <title> --body-file <body_file> --assignee <assignee>
@@ -13,6 +15,12 @@ that performs the following actions
 Get the issue number and the title
 
 > i gh_issue_title -i 1290
+
+Assert if there are subrepos using the functions in hgit.py
+
+The name of worktree path is the same name as the current repo
+(e.g., /User/saggese/src/helpers1) but using the GH issue number
+(e.g., WORKTREE_PATH=/Users/saggese/src/helpers1290)
 
 Create branch and worktree
 git branch $FEATURE_NAME master
