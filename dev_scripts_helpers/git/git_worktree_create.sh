@@ -6,6 +6,8 @@
 # subrepo_path (look for subrepos and add helpers)
 #
 
+gh issue create --title "Fix bug X" --body "Description here" --assignee @me
+
 FEATURE_NAME="HelpersTask"
 WORKTREE_PATH="../4-worktree"
 SUBREPO_PATH="path/to/subrepo"  # Update this with your subrepo path

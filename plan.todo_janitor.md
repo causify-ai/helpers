@@ -1,6 +1,6 @@
 # TODO Janitor Plan
 
-## [ ] 1: Refactor Regex to Use re.VERBOSE and Comments
+## [ ] Issue1: Refactor Regex to Use re.VERBOSE and Comments
 
 ### Info
 - Original description:
@@ -20,13 +20,12 @@
   - Check that colorize functions still produce expected output
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
+- Status: filed
+- GitHub issue link: https://github.com/causify-ai/helpers/issues/1290
 - Git worktree:
+- PR link:
 
-## [ ] 2: Use System_to_one_line() in Hgit.py
+## [ ] Issue2: Use System_to_one_line() in Hgit.py
 
 ### Info
 - Original description:
@@ -53,7 +52,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 3: Use Filter_text From Helpers/hprint.py
+## [ ] Issue3: Use Filter_text From Helpers/hprint.py
 
 ### Info
 - Original description:
@@ -79,7 +78,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 4: Use Conditional Import for PIL in Hgraphviz.py
+## [ ] Issue4: Use Conditional Import for PIL in Hgraphviz.py
 
 ### Info
 - Original description:
@@ -106,7 +105,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 5: Move Assertion Into Test Helper
+## [ ] Issue5: Move Assertion Into Test Helper
 
 ### Info
 - Original description:
@@ -133,7 +132,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 6: Move Coverage Action to \_run_python_linting_actions
+## [ ] Issue6: Move Coverage Action to \_run_python_linting_actions
 
 ### Info
 - Original description:
@@ -162,7 +161,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 7: Update Test Mocks to Use Capture_system_calls (test_hmodule.py)
+## [ ] Issue7: Update Test Mocks to Use Capture_system_calls (test_hmodule.py)
 
 ### Info
 - Original description:
@@ -189,7 +188,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 8: Update Test Mocks in Test_lint.py
+## [ ] Issue8: Update Test Mocks in Test_lint.py
 
 ### Info
 - Original description:
@@ -216,7 +215,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 9: Apply Factor_common_code to Test_filter_files_by_type
+## [ ] Issue9: Apply Factor_common_code to Test_filter_files_by_type
 
 ### Info
 - Original description:
@@ -243,7 +242,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 10: Use Existing \_to_pbcopy From Hsystem.py
+## [ ] Issue10: Use Existing \_to_pbcopy From Hsystem.py
 
 ### Info
 - Original description:
@@ -270,7 +269,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 11: Make Docker_cmd[2] Modification More Robust
+## [ ] Issue11: Make Docker_cmd[2] Modification More Robust
 
 ### Info
 - Original description:
@@ -298,7 +297,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 12: Skip Build If Image Was Pulled Successfully
+## [ ] Issue12: Skip Build If Image Was Pulled Successfully
 
 ### Info
 - Original description:
@@ -326,7 +325,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 13: Use System_to_one_line() Simplification and Minor Refactor
+## [ ] Issue13: Use System_to_one_line() Simplification and Minor Refactor
 
 ### Info
 - Original description: Multiple small code movements and cleanups
@@ -349,7 +348,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 14: Move Text_to_list() to Helpers/printing.py
+## [ ] Issue14: Move Text_to_list() to Helpers/printing.py
 
 ### Info
 - Original description:
@@ -379,7 +378,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 15: Move Find_file_with_dir() to Hio.py
+## [ ] Issue15: Move Find_file_with_dir() to Hio.py
 
 ### Info
 - Original description: `./helpers/hsystem.py:948:# TODO(ai_gp): Move to hio.py`
@@ -406,7 +405,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 16: Rename "echo" → "PRINT" and "echo_frame" → "PRINT_FRAME"
+## [ ] Issue16: Rename "echo" → "PRINT" and "echo_frame" → "PRINT_FRAME"
 
 ### Info
 - Original description:
@@ -434,7 +433,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] 17: Rename "invocations" → "sys_calls" Throughout Codebase
+## [ ] Issue17: Rename "invocations" → "sys_calls" Throughout Codebase
 
 ### Info
 - Original description:

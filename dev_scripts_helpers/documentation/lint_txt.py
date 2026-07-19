@@ -9,10 +9,10 @@
 
 """
 See instructions at
-docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md.
+`docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md`
 
 For a description of the architecture of this file, see the file
-lint_txt.README.md in the same directory.
+`lint_txt.README.md` in the same directory.
 """
 
 import argparse
