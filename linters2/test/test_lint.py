@@ -215,8 +215,8 @@ class Test_filter_files_by_type(hunitest.TestCase):
 # Test_run_common_linting_actions
 # #############################################################################
 
-# TODO(ai_gp): Use the new mock for system capture_system_calls and
-# assert_invocations in all this file instead of patching helpers.system
+# TODO(ai_gp): Use the new mock for system capture_sys_calls and
+# assert_sys_calls in all this file instead of patching helpers.system
 
 class Test_run_common_linting_actions(hunitest.TestCase):
     """
