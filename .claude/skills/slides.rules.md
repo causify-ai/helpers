@@ -115,14 +115,14 @@
 ### Tags
 - **Definition**: A definition of a concept
   - Use `@Definition@` formatting (not `**Definition**`)
-  - The definition term needs to be in italic
+  - The definition term needs to be in bold
   - E.g.,
     ```
-    - @Definition@: A _time series_ is modeled as a random process, ...
+    - @Definition@: A **time series** is modeled as a random process, ...
     ```
   - E.g., (Lesson 11.01):
     ```
-    - @Definition@: Bayesian updating revises a belief over an unknown $\theta$
+    - @Definition@: **Bayesian updating** revises a belief over an unknown $\theta$
       by combining a _prior_ with the _likelihood_ of observed data $X$
     ```
 - **Question**: A question to introduce a problem
