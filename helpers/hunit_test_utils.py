@@ -595,37 +595,34 @@ def get_parent_dirs(files: List[str]) -> List[str]:
 # #############################################################################
 
 
-# TODO(ai_gp): invocations -> sys_calls
-
-
 @contextlib.contextmanager
-def capture_system_calls(
+def capture_sys_calls(
     side_effect: Optional[Any] = None,
 ) -> Generator[List[Dict[str, Any]], None, None]:
     """
     Context manager that captures all system calls to `subprocess.run()`,
     `hsystem.system()`, and `hsystem.system_to_string()`, returning them as a
-    list of invocations.
+    list of system calls.
 
-    Each invocation is a dict with 'function', 'args', and 'kwargs' keys.
+    Each system call is a dict with 'function', 'args', and 'kwargs' keys.
 
     Example:
     ```python
-    with capture_system_calls() as invocations:
+    with capture_sys_calls() as sys_calls:
         my_function()
     # Check captured calls.
-    assert len(invocations) == 1
-    assert invocations[0]['function'] == 'subprocess.run'
+    assert len(sys_calls) == 1
+    assert sys_calls[0]['function'] == 'subprocess.run'
     ```
 
     :param side_effect: Exception or return value to use for mocked calls
-    :return: List of invocations, each as {'function': str, 'args': tuple,
+    :return: List of system calls, each as {'function': str, 'args': tuple,
              'kwargs': dict}
     """
-    invocations: List[Dict[str, Any]] = []
+    sys_calls: List[Dict[str, Any]] = []
 
-    def _mock_invocation(function_name: str, *args: Any, **kwargs: Any) -> None:
-        invocations.append(
+    def _mock_sys_call(function_name: str, *args: Any, **kwargs: Any) -> None:
+        sys_calls.append(
             {
                 "function": function_name,
                 "args": args,
@@ -643,19 +640,19 @@ def capture_system_calls(
                 raise side_effect
 
     def mock_subprocess_run(*args: Any, **kwargs: Any) -> Any:
-        _mock_invocation("subprocess.run", *args, **kwargs)
+        _mock_sys_call("subprocess.run", *args, **kwargs)
         _handle_side_effect()
         return None
 
     def mock_hsystem_system(*args: Any, **kwargs: Any) -> Any:
-        _mock_invocation("hsystem.system", *args, **kwargs)
+        _mock_sys_call("hsystem.system", *args, **kwargs)
         _handle_side_effect()
         return 0
 
     def mock_hsystem_system_to_string(
         *args: Any, **kwargs: Any
     ) -> Tuple[int, str]:
-        _mock_invocation("hsystem.system_to_string", *args, **kwargs)
+        _mock_sys_call("hsystem.system_to_string", *args, **kwargs)
         _handle_side_effect()
         return (0, "")
 
@@ -667,34 +664,40 @@ def capture_system_calls(
                 "helpers.hsystem.system_to_string",
                 side_effect=mock_hsystem_system_to_string,
             ):
-                yield invocations
+                yield sys_calls
 
 
-def invocations_to_str(invocations: List[Dict[str, Any]]) -> str:
-    txt = pprint.pformat(invocations)
+def sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:
+    """
+    Format system calls list as a string using `pprint.pformat()`.
+
+    :param sys_calls: List of system calls to format
+    :return: Formatted string representation
+    """
+    txt = pprint.pformat(sys_calls)
     return txt
 
 
-def assert_invocations(
+def assert_sys_calls(
     self_: Any,
-    captured_invocations: List[Dict[str, Any]],
+    captured_sys_calls: List[Dict[str, Any]],
     expected_str: str,
     **assert_equal_kwargs: Any,
 ) -> None:
     """
-    Compare system call invocations with expected string representation.
+    Compare system calls with expected string representation.
 
-    Formats both the actual captured invocations and expected string using
+    Formats both the actual captured system calls and expected string using
     `pprint.pformat` for consistent comparison, then asserts equality using
     the test case's `assert_equal()` method.
 
     :param self_: Test case instance that provides `assert_equal()` method
-    :param captured_invocations: List of captured invocations from
-        `capture_system_calls()`
-    :param expected_str: Expected string representation of invocations
+    :param captured_sys_calls: List of captured system calls from
+        `capture_sys_calls()`
+    :param expected_str: Expected string representation of system calls
     :param assert_equal_kwargs: extra kwargs forwarded to `assert_equal()`
         (e.g., `purify_text=True`)
     """
-    actual_str = invocations_to_str(captured_invocations)
+    actual_str = sys_calls_to_str(captured_sys_calls)
     hdbg.dassert_isinstance(actual_str, str)
     self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)

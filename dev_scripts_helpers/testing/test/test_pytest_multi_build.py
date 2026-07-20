@@ -222,11 +222,11 @@ class Test_clear_cache(hunitest.TestCase):
         Test that _clear_cache calls manage_cache.py.
         """
         # Run test and capture system calls.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             dshtpmubu._clear_cache()
         # Check outputs.
-        self.assertEqual(len(invocations), 1)
-        call_dict = invocations[0]
+        self.assertEqual(len(sys_calls), 1)
+        call_dict = sys_calls[0]
         cmd = call_dict["args"][0]
         expected_cmd = "manage_cache.py --action clear_all"
         self.assert_equal(cmd, expected_cmd)

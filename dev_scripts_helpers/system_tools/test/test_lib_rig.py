@@ -19,25 +19,25 @@ class TestRigScript(hunitest.TestCase):
     Test rig script functionality through hrig module integration.
     """
 
-    # TODO(gp): Use hunteuti.assert...
+    # TODO(gp): Use hunteuti.assert_sys_calls()...
     def _assert_cmd_invocation(
         self,
-        invocations: List[Dict[str, Any]],
+        sys_calls: List[Dict[str, Any]],
         expected_cmd: str,
     ) -> None:
         """
-        Assert that the captured invocations match the expected command.
+        Assert that the captured system calls match the expected command.
 
-        :param invocations: Captured system call invocations
+        :param sys_calls: Captured system calls
         :param expected_cmd: Expected command string
         """
-        self.assertEqual(len(invocations), 1, "Expected exactly one invocation")
+        self.assertEqual(len(sys_calls), 1, "Expected exactly one call")
         self.assertEqual(
-            invocations[0]["function"],
+            sys_calls[0]["function"],
             "subprocess.run",
             "Expected subprocess.run call",
         )
-        actual_cmd = " ".join(invocations[0]["args"][0])
+        actual_cmd = " ".join(sys_calls[0]["args"][0])
         self.assertEqual(actual_cmd, expected_cmd)
 
     def helper(
@@ -59,16 +59,14 @@ class TestRigScript(hunitest.TestCase):
         :param side_effect: Exception to raise from subprocess.run()
         """
         # Run test.
-        with hunteuti.capture_system_calls(
-            side_effect=side_effect
-        ) as invocations:
+        with hunteuti.capture_sys_calls(side_effect=side_effect) as sys_calls:
             try:
                 exit_code = dshstliri.main(args)
             except SystemExit as e:
                 exit_code = e.code
         # Check command output.
         if expected_cmd != "":
-            self._assert_cmd_invocation(invocations, expected_cmd)
+            self._assert_cmd_invocation(sys_calls, expected_cmd)
         # Check exit code.
         if expected_exit_code is not None:
             self.assertEqual(exit_code, expected_exit_code)

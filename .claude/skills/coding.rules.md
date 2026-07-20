@@ -16,9 +16,14 @@
 
 - Use type hints from the `typing` module instead of newer PEP 604 syntax
 - Use `Tuple`, `Dict`, `Optional` instead of `tuple`, `dict`, `|` union syntax
+- Make sure the composite types (e.g., `tuple`, `Dict`) have included types
   - **Bad**: Use newer PEP 604 syntax
     ```python
     def process(data: dict[str, str], item: str | None) -> tuple[str, int]:
+
+    def process(data: dict, item: str | None) -> tuple:
+
+    def process(data: Dict, item: str | None) -> tuple:
         ...
     ```
   - **Good**: Use `typing` module
@@ -26,6 +31,10 @@
     from typing import Dict, Tuple, Optional
     
     def process(data: Dict[str, str], item: Optional[str]) -> Tuple[str, int]:
+        ...
+    ```
+  - **Bad**: Use newer PEP 604 syntax
+    ```python
         ...
     ```
 

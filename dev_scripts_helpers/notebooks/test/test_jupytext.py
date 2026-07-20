@@ -201,10 +201,10 @@ class Test_jupytext_py(hunitest.TestCase):
         with open(ipynb_file, "w") as f:
             f.write("{}")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             dshnprju._pair(ipynb_file)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (
                     "jupytext --update-metadata "
@@ -216,13 +216,13 @@ class Test_jupytext_py(hunitest.TestCase):
             },
             {
                 "args": (
-                    "jupytext --test --stop --to py:percent " f"{ipynb_file}",
+                    f"jupytext --test --stop --to py:percent {ipynb_file}",
                 ),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
             {
-                "args": ("jupytext --to py:percent " f"{ipynb_file}",),
+                "args": (f"jupytext --to py:percent {ipynb_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
@@ -232,8 +232,8 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test6(self) -> None:
         """
@@ -248,10 +248,10 @@ class Test_jupytext_py(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             dshnprju._test(ipynb_file, "test")
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (
                     f"jupytext --to py:percent {ipynb_file} -o "
@@ -261,22 +261,20 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {},
             },
             {
-                "args": (
-                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
-                ),
+                "args": (f"diff {py_file} tmp.jupytext_diff.test_notebook.py",),
                 "function": "hsystem.system_to_string",
                 "kwargs": {"abort_on_error": False},
             },
             {
                 "args": (
-                    "jupytext --test --stop --to py:percent " f"{ipynb_file}",
+                    f"jupytext --test --stop --to py:percent {ipynb_file}",
                 ),
                 "function": "hsystem.system_to_string",
                 "kwargs": {"abort_on_error": False},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test7(self) -> None:
         """
@@ -291,10 +289,10 @@ class Test_jupytext_py(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             dshnprju._test(ipynb_file, "test_strict")
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (
                     f"jupytext --to py:percent {ipynb_file} -o "
@@ -304,9 +302,7 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {},
             },
             {
-                "args": (
-                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
-                ),
+                "args": (f"diff {py_file} tmp.jupytext_diff.test_notebook.py",),
                 "function": "hsystem.system_to_string",
                 "kwargs": {"abort_on_error": False},
             },
@@ -319,8 +315,8 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {"abort_on_error": False},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test8(self) -> None:
         """
@@ -335,23 +331,23 @@ class Test_jupytext_py(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             dshnprju._sync(ipynb_file)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
-                "args": ("jupytext --to py " f"{ipynb_file}",),
+                "args": (f"jupytext --to py {ipynb_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
             {
-                "args": ("jupytext --sync " f"{ipynb_file}",),
+                "args": (f"jupytext --sync {ipynb_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test9(self) -> None:
         """
@@ -366,23 +362,23 @@ class Test_jupytext_py(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             dshnprju._sync(py_file)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
-                "args": ("jupytext --to ipynb --update " f"{py_file}",),
+                "args": (f"jupytext --to ipynb --update {py_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
             {
-                "args": ("jupytext --sync " f"{py_file}",),
+                "args": (f"jupytext --sync {py_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test10(self) -> None:
         """
@@ -394,10 +390,10 @@ class Test_jupytext_py(hunitest.TestCase):
         with open(ipynb_file, "w") as f:
             f.write("{}")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             dshnprju._extract_python_from_notebook(ipynb_file)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (
                     f"jupytext --to py:percent {ipynb_file} -o "
@@ -407,8 +403,8 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test11(self) -> None:
         """
@@ -423,10 +419,10 @@ class Test_jupytext_py(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             _, _ = dshnprju._is_notebook_in_sync(ipynb_file)
         # Check outputs: should have extract and diff calls.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (
                     f"jupytext --to py:percent {ipynb_file} -o "
@@ -436,15 +432,13 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {},
             },
             {
-                "args": (
-                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
-                ),
+                "args": (f"diff {py_file} tmp.jupytext_diff.test_notebook.py",),
                 "function": "hsystem.system_to_string",
                 "kwargs": {"abort_on_error": False},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test12(self) -> None:
         """
@@ -468,25 +462,23 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action pair 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (cmd,),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test14(self) -> None:
         """
@@ -495,25 +487,23 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action test 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (cmd,),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test15(self) -> None:
         """
@@ -522,25 +512,23 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action test_strict 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (cmd,),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test16(self) -> None:
         """
@@ -550,27 +538,25 @@ class Test_jupytext_py(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         py_file = f"{scratch_dir}/test_notebook.py"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action sync 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "args": (cmd,),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected_str)
+        expected_str = pprint.pformat(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test17(self) -> None:
         """
@@ -579,9 +565,7 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action invalid_action 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -625,9 +609,7 @@ class Test_jupytext_py_end_to_end(hunitest.TestCase):
         py_text += "\na = 0"
         hio.to_file(file_path, py_text)
         # Run test.
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {file_path} --action sync 2>&1"
         hsystem.system(cmd)
         cmd = f"{executable} -f {file_path} --action test 2>&1"

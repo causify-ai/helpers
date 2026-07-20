@@ -181,18 +181,18 @@ class Test_open_file(hunitest.TestCase):
         file_path = "/tmp/test.html"
         # Run test.
         with mock.patch("platform.system", return_value="Darwin"):
-            with hunteuti.capture_system_calls() as invocations:
+            with hunteuti.capture_sys_calls() as sys_calls:
                 dshdopmd._open_file(file_path)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "function": "subprocess.run",
                 "args": (["open", file_path],),
                 "kwargs": {"check": True},
             }
         ]
-        expected = hunteuti.invocations_to_str(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected)
+        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test2(self) -> None:
         """
@@ -202,18 +202,18 @@ class Test_open_file(hunitest.TestCase):
         file_path = "/tmp/test.html"
         # Run test.
         with mock.patch("platform.system", return_value="Linux"):
-            with hunteuti.capture_system_calls() as invocations:
+            with hunteuti.capture_sys_calls() as sys_calls:
                 dshdopmd._open_file(file_path)
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "function": "subprocess.run",
                 "args": (["xdg-open", file_path],),
                 "kwargs": {"check": True},
             }
         ]
-        expected = hunteuti.invocations_to_str(expected_invocations)
-        hunteuti.assert_invocations(self, invocations, expected)
+        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test3(self) -> None:
         """
@@ -223,10 +223,10 @@ class Test_open_file(hunitest.TestCase):
         file_path = "/tmp/test.html"
         # Run test.
         with mock.patch("platform.system", return_value="Windows"):
-            with hunteuti.capture_system_calls() as invocations:
+            with hunteuti.capture_sys_calls() as sys_calls:
                 dshdopmd._open_file(file_path)
         # Check outputs.
-        self.assertEqual(invocations, [])
+        self.assertEqual(sys_calls, [])
 
 
 # #############################################################################
@@ -555,20 +555,20 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
         with mock.patch.object(
             dshdopmd, "_run_render_images", return_value=input_file
         ):
-            with hunteuti.capture_system_calls() as invocations:
+            with hunteuti.capture_sys_calls() as sys_calls:
                 dshdopmd._render_with_grip_daemon(
                     input_file, backend="dockerized"
                 )
         # Check outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "function": "hsystem.system",
                 "args": (f"uvx grip -b --quiet {input_file}",),
                 "kwargs": {},
             }
         ]
-        expected = hunteuti.invocations_to_str(expected_invocations)
-        actual = hunteuti.invocations_to_str(invocations)
+        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
+        actual = hunteuti.sys_calls_to_str(sys_calls)
         self.assert_equal(
             actual, expected, purify_text=True, purify_expected_text=True
         )
