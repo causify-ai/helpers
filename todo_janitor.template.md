@@ -17,7 +17,7 @@
   - Are in progress with [.]
   - Fail with [v]
 
-# Step 1: [ ] Fix Issue
+# Step 1: [x] Fix Issue
 
 ## Issue Description
 
