@@ -16,10 +16,8 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import networkx as nx
 
-try:
-    from PIL import Image
-except ImportError:
-    Image = None
+# TODO(ai_gp): Use `import PIL` and PIL.image instead of `from ...`
+from PIL import Image
 
 import helpers.hdbg as hdbg
 
@@ -113,8 +111,6 @@ def plot_dag_with_graphviz(
     :param figsize: Size of output graph as (width, height) in inches
     :param dpi: Resolution in dots per inch
     """
-    if Image is None:
-        raise ImportError("PIL is required for plot_dag_with_graphviz(). Install with: pip install Pillow")
     if figsize is None:
         figsize = DAG_FIGURE_SIZE
     dot_str = _graph_to_graphviz_dot(

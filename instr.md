@@ -1,13 +1,7 @@
-In invoke git_branch_create also create an empty draft PR associated with that branch
-add an option to not create the PR
+Implement TODO(ai_gp) in .claude/control_cc_commit.py
+src/helpers2/helpers/test/test_hmodule.py and helpers/hgraphviz.py
 
-In dev_scripts_helpers/git/create_git_worktree.py
-replace creating a branch with git to using the invoke git_branch_create
-
-# Step 2
-- In dev_scripts_helpers/git/create_git_worktree.py
-commit in the new branch todo_janitor.current_issue.md and
-  todo_janitor.template.md
+Add unit tests only for _enable_git_commands and _disable_git_commands
 
 # Conventions
 - When writing code you must always follow the instructions in

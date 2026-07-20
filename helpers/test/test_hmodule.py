@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 from unittest import mock
 
 import helpers.hdbg as hdbg
@@ -61,10 +61,12 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         def mock_has_module(module: str) -> bool:
             return module in expected_installed
 
-        # Capture system calls while returning proper mock objects.
+        # TODO(ai_gp): Use capture_sys_calls and assert_sys_calls
+        # from ./helpers/hunit_test_utils.py instead of reimplementing 
+        # this functionality.
         system_calls: List[str] = []
 
-        def mock_system_to_string(cmd: str) -> tuple[int, str]:
+        def mock_system_to_string(cmd: str) -> Tuple[int, str]:
             system_calls.append(cmd)
             return (0, "")
 
@@ -72,10 +74,14 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         with mock.patch.object(
             hmodule, "has_module", side_effect=mock_has_module
         ):
+            # TODO(gp): use the capture_sys_calls from ./helpers/hunit_test_utils.py.
             with mock.patch.object(
-                hmodule, "_system_to_string", side_effect=mock_system_to_string
+                hmodule,
+                "_system_to_string",
+                side_effect=mock_system_to_string,
             ):
                 with mock.patch.object(hdbg, "dassert_file_exists"):
+                    #
                     hmodule.install_module_if_not_present(
                         import_name,
                         package_name=package_name,
