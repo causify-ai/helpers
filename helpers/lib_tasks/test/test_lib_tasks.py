@@ -149,15 +149,15 @@ class TestDryRunTasks1(hunitest.TestCase):
         actual = hprint.remove_non_printable_chars(actual)
         # docker_ps: sudo=False
         regex = r"# \S+:"
-        actual = hunitest.filter_text(regex, actual)
+        actual = hprint.filter_text(regex, actual)
         #
         regex = r"(WARN|INFO)\s+hcache_simple.py"
-        actual = hunitest.filter_text(regex, actual)
+        actual = hprint.filter_text(regex, actual)
         # Filter out `no module` warnings.
         # TODO(Grisha): add the "no module warning" filtering
         # to `purify_text()` in `check_string()`.
         regex = "WARN.*No module"
-        actual = hunitest.filter_text(regex, actual)
+        actual = hprint.filter_text(regex, actual)
         if check_string:
             self.check_string(actual)
 

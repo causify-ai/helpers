@@ -741,31 +741,6 @@ def get_dir_signature(
     return result
 
 
-# TODO(ai_gp): Use the copy in helpers/hprint.py
-def filter_text(regex: str, txt: str) -> str:
-    """
-    Remove lines in `txt` that match the regex `regex`.
-    """
-    _LOG.debug("Filtering with '%s'", regex)
-    if regex is None:
-        return txt
-    txt_out = []
-    txt_as_arr = txt.split("\n")
-    for line in txt_as_arr:
-        if re.search(regex, line):
-            _LOG.debug("Skipping line='%s'", line)
-            continue
-        txt_out.append(line)
-    # We can only remove lines.
-    hdbg.dassert_lte(
-        len(txt_out),
-        len(txt_as_arr),
-        "txt_out=\n'''%s'''\ntxt=\n'''%s'''",
-        "\n".join(txt_out),
-        "\n".join(txt_as_arr),
-    )
-    txt = "\n".join(txt_out)
-    return txt
 
 
 def diff_strings(
