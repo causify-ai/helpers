@@ -64,8 +64,8 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         # Mock `_system_to_string` to track pip install calls.
         system_calls: List[str] = []
 
-        # TODO(ai_gp): Use the new mock for system capture_system_calls and
-        # assert_invocations
+        # TODO(ai_gp): Use the new mock for system capture_sys_calls and
+        # assert_sys_calls
         def mock_system_to_string(cmd: str) -> Tuple[int, str]:
             system_calls.append(cmd)
             return (0, "")

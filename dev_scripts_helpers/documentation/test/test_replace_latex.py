@@ -108,13 +108,13 @@ class Test_replace_latex_py(hunitest.TestCase):
 
         :param argv: command-line argument list to inject via
             `mock.patch("sys.argv", ...)`
-        :return: list of captured system call invocations
+        :return: list of captured system calls
         """
         parser = dshdrela._parse()
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             with mock.patch("sys.argv", argv):
                 dshdrela._main(parser)
-        return invocations
+        return sys_calls
 
     def test1(self) -> None:
         """
@@ -132,17 +132,17 @@ class Test_replace_latex_py(hunitest.TestCase):
             file_path,
         ]
         # Prepare outputs.
-        expected_invocations = [
+        expected_sys_calls = [
             {
                 "function": "hsystem.system",
                 "args": (f"git checkout -- {file_path}",),
                 "kwargs": {},
             }
         ]
-        expected = hunteuti.invocations_to_str(expected_invocations)
+        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
         # Run test.
         actual = self._run_main(argv)
-        actual = hunteuti.invocations_to_str(actual)
+        actual = hunteuti.sys_calls_to_str(actual)
         # Check outputs.
         self.assert_equal(
             actual, expected, purify_text=True, purify_expected_text=True
@@ -170,14 +170,14 @@ class Test_replace_latex_py(hunitest.TestCase):
         cmd = (
             f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {file_path}"
         )
-        expected_invocations = [
+        expected_sys_calls = [
             {"function": "hsystem.system", "args": (cmd,), "kwargs": {}},
             {"function": "hsystem.system", "args": (cmd,), "kwargs": {}},
         ]
-        expected = hunteuti.invocations_to_str(expected_invocations)
+        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
         # Run test.
         actual = self._run_main(argv)
-        actual = hunteuti.invocations_to_str(actual)
+        actual = hunteuti.sys_calls_to_str(actual)
         # Check outputs.
         self.assert_equal(
             actual, expected, purify_text=True, purify_expected_text=True

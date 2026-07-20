@@ -700,11 +700,11 @@ class Test_get_parent_dirs(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_capture_system_calls
+# Test_capture_sys_calls
 # #############################################################################
 
 
-class Test_capture_system_calls(hunitest.TestCase):
+class Test_capture_sys_calls(hunitest.TestCase):
     """
     Test system call capture functionality.
     """
@@ -721,9 +721,9 @@ class Test_capture_system_calls(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             subprocess.run(["echo", "hello"], check=False)
-        actual = pprint.pformat(invocations)
+        actual = pprint.pformat(sys_calls)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -739,9 +739,9 @@ class Test_capture_system_calls(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system("echo hello", suppress_output=True)
-        actual = pprint.pformat(invocations)
+        actual = pprint.pformat(sys_calls)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -757,9 +757,9 @@ class Test_capture_system_calls(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system_to_string("echo test", suppress_output=True)
-        actual = pprint.pformat(invocations)
+        actual = pprint.pformat(sys_calls)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -778,10 +778,10 @@ class Test_capture_system_calls(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system("echo hello", suppress_output=True)
             hsystem.system_to_string("echo world", suppress_output=True)
-        actual = pprint.pformat(invocations)
+        actual = pprint.pformat(sys_calls)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -794,31 +794,31 @@ class Test_capture_system_calls(hunitest.TestCase):
         side_effect = RuntimeError("Test error")
         # Run test and check output.
         with self.assertRaises(expected_exception):
-            with hunteuti.capture_system_calls(side_effect=side_effect):
+            with hunteuti.capture_sys_calls(side_effect=side_effect):
                 hsystem.system("echo test", suppress_output=True)
 
     def test6(self) -> None:
         """
-        Compare captured invocations with expected string representation.
+        Compare captured system calls with expected string representation.
         """
         # Prepare outputs.
-        expected_invocations_str = (
+        expected_sys_calls_str = (
             "[{'args': ('echo test',),\n"
             "  'function': 'hsystem.system',\n"
             "  'kwargs': {'suppress_output': True}}]"
         )
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system("echo test", suppress_output=True)
         # Check outputs.
-        hunteuti.assert_invocations(self, invocations, expected_invocations_str)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_sys_calls_str)
 
     def test7(self) -> None:
         """
-        Assert invocations with multiple calls.
+        Assert system calls with multiple calls.
         """
         # Prepare outputs.
-        expected_invocations_str = (
+        expected_sys_calls_str = (
             "[{'args': ('echo hello',),\n"
             "  'function': 'hsystem.system',\n"
             "  'kwargs': {'suppress_output': True}},\n"
@@ -827,20 +827,20 @@ class Test_capture_system_calls(hunitest.TestCase):
             "  'kwargs': {'suppress_output': True}}]"
         )
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system("echo hello", suppress_output=True)
             hsystem.system("echo world", suppress_output=True)
         # Check outputs.
-        hunteuti.assert_invocations(self, invocations, expected_invocations_str)
+        hunteuti.assert_sys_calls(self, sys_calls, expected_sys_calls_str)
 
     def test8(self) -> None:
         """
-        Assert empty invocations list.
+        Assert empty system calls list.
         """
         # Prepare outputs.
-        expected_num_invocations = 0
+        expected_num_sys_calls = 0
         # Run test.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as sys_calls:
             pass
         # Check outputs.
-        self.assertEqual(len(invocations), expected_num_invocations)
+        self.assertEqual(len(sys_calls), expected_num_sys_calls)
