@@ -230,10 +230,14 @@ class Test_create_branch(hunitest.TestCase):
                 "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                 return_value=False,
             ):
-                dshgcgiwo._create_branch(branch_name)
-        # Check outputs.
+                with mock.patch(
+                    "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
+                ):
+                    dshgcgiwo._create_branch(branch_name, create_pr=True)
+        # Check outputs: should call invoke git_branch_create with PR creation enabled.
         expected = """
-        [{'args': ('git branch HelpersTask1290_Test_Branch master',),
+        [{'args': ('invoke git_branch_create --branch-name '
+                   'HelpersTask1290_Test_Branch',),
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}}]
         """
@@ -251,9 +255,34 @@ class Test_create_branch(hunitest.TestCase):
                 "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                 return_value=True,
             ):
-                dshgcgiwo._create_branch(branch_name)
+                dshgcgiwo._create_branch(branch_name, create_pr=True)
         # Check outputs: no system calls should be made.
         expected = "[]"
+        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
+
+    def test3(self) -> None:
+        """
+        Test creating a branch without creating a PR.
+        """
+        # Prepare inputs.
+        branch_name = "HelpersTask1290_Test_Branch_No_PR"
+        # Run test and capture system calls.
+        with hunteuti.capture_sys_calls() as invocations:
+            with mock.patch(
+                "dev_scripts_helpers.git.create_git_worktree._branch_exists",
+                return_value=False,
+            ):
+                with mock.patch(
+                    "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
+                ):
+                    dshgcgiwo._create_branch(branch_name, create_pr=False)
+        # Check outputs: should call invoke git_branch_create with PR creation disabled.
+        expected = """
+        [{'args': ('invoke git_branch_create --branch-name '
+                   'HelpersTask1290_Test_Branch_No_PR --no-create-pr',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}}]
+        """
         hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
 
 
@@ -318,68 +347,7 @@ class Test_create_git_worktree_py(hunitest.TestCase):
             with self.assertRaises(AssertionError):
                 dshgcgiwo._main(parser)
 
-    def test2(self) -> None:
-        """
-        Test backward compatibility: _create_branch_and_worktree creates both.
-        """
-        # Prepare inputs.
-        branch_name = "HelpersTask1290_Test_Branch"
-        issue_id = 1290
-        # Run test and capture system calls.
-        with hunteuti.capture_sys_calls() as invocations:
-            with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
-                with mock.patch(
-                    "dev_scripts_helpers.git.create_git_worktree._branch_exists",
-                    return_value=False,
-                ):
-                    worktree_path = dshgcgiwo._create_branch_and_worktree(
-                        branch_name, issue_id
-                    )
-        # Check outputs.
-        expected = """
-        [{'args': ('git branch HelpersTask1290_Test_Branch master',),
-          'function': 'hsystem.system',
-          'kwargs': {'log_level': 20}},
-         {'args': ('git worktree add /home/user/helpers1_worktree_1290 '
-                   'HelpersTask1290_Test_Branch',),
-          'function': 'hsystem.system',
-          'kwargs': {'log_level': 20}}]
-        """
-        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
-        # Verify returned worktree path.
-        expected_path = "/home/user/helpers1_worktree_1290"
-        self.assertEqual(worktree_path, expected_path)
-
     def test3(self) -> None:
-        """
-        Test backward compatibility: skipping branch creation if exists.
-        """
-        # Prepare inputs.
-        branch_name = "HelpersTask1290_Existing_Branch"
-        issue_id = 1290
-        # Run test and mock branch_exists to return True.
-        with hunteuti.capture_sys_calls() as invocations:
-            with mock.patch(
-                "dev_scripts_helpers.git.create_git_worktree._branch_exists",
-                return_value=True,
-            ):
-                with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
-                    worktree_path = dshgcgiwo._create_branch_and_worktree(
-                        branch_name, issue_id
-                    )
-        # Check outputs: only worktree creation, no branch creation.
-        expected = """
-        [{'args': ('git worktree add /home/user/helpers1_worktree_1290 '
-                   'HelpersTask1290_Existing_Branch',),
-          'function': 'hsystem.system',
-          'kwargs': {'log_level': 20}}]
-        """
-        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
-        # Verify returned worktree path.
-        expected_path = "/home/user/helpers1_worktree_1290"
-        self.assertEqual(worktree_path, expected_path)
-
-    def test4(self) -> None:
         """
         Test --create_worktree flag when False (default).
         """
@@ -410,16 +378,20 @@ class Test_create_git_worktree_py(hunitest.TestCase):
                             "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                             return_value=False,
                         ):
-                            dshgcgiwo._main(parser)
-        # Check outputs: only branch creation, no worktree creation.
+                            with mock.patch(
+                                "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
+                            ):
+                                dshgcgiwo._main(parser)
+        # Check outputs: branch creation via invoke, no worktree creation.
         expected = """
-        [{'args': ('git branch HelpersTask1290_Test_Issue_Title master',),
+        [{'args': ('invoke git_branch_create --branch-name '
+                   'HelpersTask1290_Test_Issue_Title',),
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}}]
         """
         hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
 
-    def test5(self) -> None:
+    def test4(self) -> None:
         """
         Test --create_worktree flag when True.
         """
@@ -453,12 +425,16 @@ class Test_create_git_worktree_py(hunitest.TestCase):
                         ):
                             with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
                                 with mock.patch(
-                                    "builtins.print"
-                                ):  # Mock print to avoid output
-                                    dshgcgiwo._main(parser)
-        # Check outputs: both branch and worktree creation.
+                                    "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
+                                ):
+                                    with mock.patch(
+                                        "builtins.print"
+                                    ):  # Mock print to avoid output
+                                        dshgcgiwo._main(parser)
+        # Check outputs: branch creation via invoke and worktree creation.
         expected = """
-        [{'args': ('git branch HelpersTask1290_Test_Issue_Title master',),
+        [{'args': ('invoke git_branch_create --branch-name '
+                   'HelpersTask1290_Test_Issue_Title',),
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}},
          {'args': ('git worktree add /home/user/helpers1_worktree_1290 '

@@ -145,22 +145,64 @@ def _branch_exists(branch_name: str) -> bool:
         return False
 
 
-def _create_branch(branch_name: str) -> None:
+def _commit_issue_files(branch_name: str) -> None:
     """
-    Create a git branch from master.
+    Copy and commit issue files to the new branch.
 
-    Skip creation if branch already exists.
+    Copies `todo_janitor.current_issue.md` and `todo_janitor.template.md`
+    from the repository root to the current branch and commits them.
+
+    :param branch_name: Name of the branch to commit files to
+    """
+    # Check if issue files exist in repo root.
+    repo_root = hgit.get_client_root(super_module=False)
+    # current_issue -> todo_janitor.ISSUE.md
+    # template -> todo_janitor.WORKFLOW.md
+    current_issue_file = os.path.join(repo_root, "todo_janitor.current_issue.md")
+    template_file = os.path.join(repo_root, "todo_janitor.template.md")
+    hdbg.dassert_file_exists(current_issue_file)
+    _LOG.info("Copying issue files to branch '%s'", branch_name)
+    cmd = f"cp {shlex.quote(current_issue_file)} ISSUE.md"
+    hsystem.system(cmd)
+    hdbg.dassert_file_exists(template_file)
+    cmd = f"cp {shlex.quote(template_file)} WORKFLOW.md"
+    hsystem.system(cmd)
+    # Stage and commit the files.
+    cmd = "git add ISSUE.md WORKFLOW.md"
+    hsystem.system(cmd)
+    cmd = 'git commit -m "Add issue description and workflow template"'
+    rc = hsystem.system(cmd, abort_on_error=False)
+    if rc != 0:
+        _LOG.warning("Failed to commit issue files (may already exist)")
+    # Push the commit to remote.
+    cmd = "git push"
+    hsystem.system(cmd)
+
+
+def _create_branch(branch_name: str, create_pr: bool = True) -> None:
+    """
+    Create a git branch from master using invoke git_branch_create.
+
+    Delegates to `invoke git_branch_create` which handles:
+    - Creating the branch from master
+    - Pushing to upstream
+    - Optionally creating a draft PR
 
     :param branch_name: Name for the new branch
+    :param create_pr: Whether to create a draft PR (default: True)
     """
-    # Check if branch already exists.
+    # Skip if branch already exists (invoke will also check this).
     if _branch_exists(branch_name):
         _LOG.warning("Branch '%s' already exists, skipping creation", branch_name)
-    else:
-        # Create branch from master.
-        cmd = f"git branch {branch_name} master"
-        _LOG.info("Creating branch: %s", cmd)
-        hsystem.system(cmd, log_level=logging.INFO)
+        return
+    # Use invoke git_branch_create to create branch and optionally PR.
+    cmd = f"invoke git_branch_create --branch-name {shlex.quote(branch_name)}"
+    if not create_pr:
+        cmd += " --no-create-pr"
+    _LOG.info("Creating branch via invoke: %s", cmd)
+    hsystem.system(cmd, log_level=logging.INFO)
+    # Commit issue files to the new branch.
+    _commit_issue_files(branch_name)
 
 
 def _create_worktree(branch_name: str, issue_id: int) -> str:
@@ -180,21 +222,6 @@ def _create_worktree(branch_name: str, issue_id: int) -> str:
     # Create worktree.
     cmd = f"git worktree add {worktree_path} {branch_name}"
     hsystem.system(cmd, log_level=logging.INFO)
-    return worktree_path
-
-
-def _create_branch_and_worktree(branch_name: str, issue_id: int) -> str:
-    """
-    Create a git branch and corresponding worktree.
-
-    Calls _create_branch() and _create_worktree() for backward compatibility.
-
-    :param branch_name: Name for the new branch
-    :param issue_id: GitHub issue number (for path naming)
-    :return: Path to the created worktree
-    """
-    _create_branch(branch_name)
-    worktree_path = _create_worktree(branch_name, issue_id)
     return worktree_path
 
 
@@ -229,12 +256,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level)
     _LOG.debug(
         "gh_issue_id=%s gh_issue_title=%s gh_issue_body_file=%s gh_assignee=%s "
-        "create_worktree=%s",
+        "create_worktree=%s create_pr=%s",
         args.gh_issue_id,
         args.gh_issue_title,
         args.gh_issue_body_file,
         args.gh_assignee,
         args.create_worktree,
+        args.create_pr,
     )
     # Check optional instr_file parameter.
     if args.instr_file:
@@ -266,7 +294,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Assert no subrepos.
     _check_no_subrepos()
     # Create branch.
-    _create_branch(branch_name)
+    _create_branch(branch_name, create_pr=args.create_pr)
     # Create worktree if requested.
     if args.create_worktree:
         worktree_path = _create_worktree(branch_name, issue_id)
@@ -320,6 +348,19 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help="Create git worktree (default: False, only create branch)",
+    )
+    # TODO(ai_gp): Use one
+    parser.add_argument(
+        "--create_pr",
+        action="store_true",
+        default=True,
+        help="Create a draft PR for the branch (default: True)",
+    )
+    parser.add_argument(
+        "--no_create_pr",
+        action="store_false",
+        dest="create_pr",
+        help="Skip creating a draft PR for the branch",
     )
     hparser.add_verbosity_arg(parser)
     return parser

@@ -4,6 +4,11 @@ add an option to not create the PR
 In dev_scripts_helpers/git/create_git_worktree.py
 replace creating a branch with git to using the invoke git_branch_create
 
+# Step 2
+- In dev_scripts_helpers/git/create_git_worktree.py
+commit in the new branch todo_janitor.current_issue.md and
+  todo_janitor.template.md
+
 # Conventions
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
