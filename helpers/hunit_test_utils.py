@@ -482,12 +482,12 @@ def check_env_to_str(
     self_: Any, expected: str, *, skip_secrets_vars: bool = False
 ) -> None:
     actual = henv.env_to_str(system_signature=False)
-    actual = hunitest.filter_text("get_name", actual)
-    actual = hunitest.filter_text("get_repo_map", actual)
-    actual = hunitest.filter_text("CSFY_HOST_", actual)
+    actual = hprint.filter_text("get_name", actual)
+    actual = hprint.filter_text("get_repo_map", actual)
+    actual = hprint.filter_text("CSFY_HOST_", actual)
     if skip_secrets_vars:
         # TODO(gp): Difference between amp and cmamp.
-        actual = hunitest.filter_text(
+        actual = hprint.filter_text(
             "AM_AWS_|CSFY_AWS_|GH_ACTION_ACCESS_TOKEN", actual
         )
     self_.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)

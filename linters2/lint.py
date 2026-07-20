@@ -206,6 +206,12 @@ def _run_python_linting_actions(
             capture_output=False,
         )
         ret |= result.returncode
+    if "coverage" in actions:
+        _LOG.info("\n%s", hprint.frame("Running coverage", char1="="))
+        ret |= _run_coverage(
+            file_paths,
+            abort_on_error=abort_on_error,
+        )
     return ret
 
 
@@ -313,13 +319,6 @@ def _lint_python_files(
         actions,
         abort_on_error=abort_on_error,
     )
-    # TODO(ai_gp): Move this to _run_python_linting_actions
-    # Coverage runs on all Python files including paired jupytext.
-    if "coverage" in actions:
-        ret |= _run_coverage(
-            file_paths,
-            abort_on_error=abort_on_error,
-        )
     return ret
 
 

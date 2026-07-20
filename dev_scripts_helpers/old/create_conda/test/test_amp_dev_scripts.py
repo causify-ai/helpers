@@ -53,8 +53,8 @@ class Test_set_env_amp(hunitest.TestCase):
         _, txt = hsystem.system_to_string(executable)
         # There is a difference between running the same test from different
         # repos, so we remove this line.
-        txt = hunitest.filter_text("curr_path=", txt)
-        txt = hunitest.filter_text("server_name=", txt)
+        txt = hprint.filter_text("curr_path=", txt)
+        txt = hprint.filter_text("server_name=", txt)
         self.check_string(txt)
 
     def test_setenv_sh1(self) -> None:
@@ -334,7 +334,7 @@ dependencies:
 #        output = self._helper(txt, file_name, as_system_call)
 #        # Remove the line:
 #        # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
-#        output = hunitest.filter_text("No tags for table", output)
+#        output = hprint.filter_text("No tags for table", output)
 #        # Check.
 #        self.check_string(output)
 #
