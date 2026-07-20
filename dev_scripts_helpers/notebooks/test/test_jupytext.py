@@ -216,13 +216,13 @@ class Test_jupytext_py(hunitest.TestCase):
             },
             {
                 "args": (
-                    "jupytext --test --stop --to py:percent " f"{ipynb_file}",
+                    f"jupytext --test --stop --to py:percent {ipynb_file}",
                 ),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
             {
-                "args": ("jupytext --to py:percent " f"{ipynb_file}",),
+                "args": (f"jupytext --to py:percent {ipynb_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
@@ -261,15 +261,13 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {},
             },
             {
-                "args": (
-                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
-                ),
+                "args": (f"diff {py_file} tmp.jupytext_diff.test_notebook.py",),
                 "function": "hsystem.system_to_string",
                 "kwargs": {"abort_on_error": False},
             },
             {
                 "args": (
-                    "jupytext --test --stop --to py:percent " f"{ipynb_file}",
+                    f"jupytext --test --stop --to py:percent {ipynb_file}",
                 ),
                 "function": "hsystem.system_to_string",
                 "kwargs": {"abort_on_error": False},
@@ -304,9 +302,7 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {},
             },
             {
-                "args": (
-                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
-                ),
+                "args": (f"diff {py_file} tmp.jupytext_diff.test_notebook.py",),
                 "function": "hsystem.system_to_string",
                 "kwargs": {"abort_on_error": False},
             },
@@ -340,12 +336,12 @@ class Test_jupytext_py(hunitest.TestCase):
         # Check outputs.
         expected_sys_calls = [
             {
-                "args": ("jupytext --to py " f"{ipynb_file}",),
+                "args": (f"jupytext --to py {ipynb_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
             {
-                "args": ("jupytext --sync " f"{ipynb_file}",),
+                "args": (f"jupytext --sync {ipynb_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
@@ -371,12 +367,12 @@ class Test_jupytext_py(hunitest.TestCase):
         # Check outputs.
         expected_sys_calls = [
             {
-                "args": ("jupytext --to ipynb --update " f"{py_file}",),
+                "args": (f"jupytext --to ipynb --update {py_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
             {
-                "args": ("jupytext --sync " f"{py_file}",),
+                "args": (f"jupytext --sync {py_file}",),
                 "function": "hsystem.system",
                 "kwargs": {},
             },
@@ -436,9 +432,7 @@ class Test_jupytext_py(hunitest.TestCase):
                 "kwargs": {},
             },
             {
-                "args": (
-                    f"diff {py_file} tmp.jupytext_diff.test_notebook.py",
-                ),
+                "args": (f"diff {py_file} tmp.jupytext_diff.test_notebook.py",),
                 "function": "hsystem.system_to_string",
                 "kwargs": {"abort_on_error": False},
             },
@@ -468,9 +462,7 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action pair 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -495,9 +487,7 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action test 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -522,9 +512,7 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action test_strict 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -550,9 +538,7 @@ class Test_jupytext_py(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         py_file = f"{scratch_dir}/test_notebook.py"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action sync 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -579,9 +565,7 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {ipynb_file} --action invalid_action 2>&1"
         with open(ipynb_file, "w") as f:
             f.write("{}")
@@ -625,9 +609,7 @@ class Test_jupytext_py_end_to_end(hunitest.TestCase):
         py_text += "\na = 0"
         hio.to_file(file_path, py_text)
         # Run test.
-        executable = hgit.find_file_in_git_tree(
-            "jupytext.py"
-        )
+        executable = hgit.find_file_in_git_tree("jupytext.py")
         cmd = f"{executable} -f {file_path} --action sync 2>&1"
         hsystem.system(cmd)
         cmd = f"{executable} -f {file_path} --action test 2>&1"

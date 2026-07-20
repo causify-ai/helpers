@@ -218,6 +218,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 # TODO(ai_gp): Use the new mock for system capture_sys_calls and
 # assert_sys_calls in all this file instead of patching helpers.system
 
+
 class Test_run_common_linting_actions(hunitest.TestCase):
     """
     Test _run_common_linting_actions action runner.

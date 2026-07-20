@@ -59,9 +59,7 @@ class TestRigScript(hunitest.TestCase):
         :param side_effect: Exception to raise from subprocess.run()
         """
         # Run test.
-        with hunteuti.capture_sys_calls(
-            side_effect=side_effect
-        ) as sys_calls:
+        with hunteuti.capture_sys_calls(side_effect=side_effect) as sys_calls:
             try:
                 exit_code = dshstliri.main(args)
             except SystemExit as e:
