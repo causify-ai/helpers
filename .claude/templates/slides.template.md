@@ -55,7 +55,7 @@
   ```markdown
   * <Term>: Definition
 
-  - **Definition**: <Term> is [concise definition in plain language]
+  - @Definition@: <Term> is [concise definition in plain language]
     - Property or characteristic 1
     - Property or characteristic 2
     - Property or characteristic 3
@@ -69,11 +69,10 @@
   ```
 
 ### Example
-// TODO(ai_gp): Doesn't follow our format with **Definition**
   ```markdown
   * Machine Learning: Definition
 
-  - **Machine learning** is building machines to do useful things without being 
+  - @Definition@: Machine learning is building machines to do useful things without being 
     explicitly programmed
     - Learns from experience
     - Improves with data

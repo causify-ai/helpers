@@ -21,6 +21,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
 
@@ -186,8 +187,13 @@ def process_docker_cmd(
     if mode == "return_cmd":
         ret = docker_cmd
     elif mode == "system":
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, print_command=True, suppress_output=False)
+        # Capture output to filter out Apple container progress lines.
+        _, output = hsystem.system_to_string(docker_cmd, abort_on_error=True)
+        # Remove Apple container startup progress lines (e.g., "[0/6] [0s]").
+        output = huntepur.purify_apple_container_output(output)
+        # Print filtered output if not empty.
+        if output:
+            print(output)
         ret = ""
     elif mode == "system_without_output":
         hsystem.system(docker_cmd, print_command=True, suppress_output=True)

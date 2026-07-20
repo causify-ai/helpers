@@ -114,14 +114,15 @@
 
 ### Tags
 - **Definition**: A definition of a concept
+  - Use `@Definition@` formatting (not `**Definition**`)
   - The definition term needs to be in italic
   - E.g.,
     ```
-    - **Definition**: A _time series_ is modeled as a random process, ...
+    - @Definition@: A _time series_ is modeled as a random process, ...
     ```
   - E.g., (Lesson 11.01):
     ```
-    - **Definition**: Bayesian updating revises a belief over an unknown $\theta$
+    - @Definition@: Bayesian updating revises a belief over an unknown $\theta$
       by combining a _prior_ with the _likelihood_ of observed data $X$
     ```
 - **Question**: A question to introduce a problem
@@ -219,7 +220,7 @@
 - **Good**
   ```markdown
   * Individual Treatment Effect
-  - **Definition**: the impact of the treatment $T$ on the outcome $Y$ for an
+  - @Definition@: the impact of the treatment $T$ on the outcome $Y$ for an
     individual unit $i$ is:
     $$\tau_i \defeq Y_i|do(T=t_1) - Y_i|do(T=t_0)$$
     - The effect $\tau_i$ of going from treatment $t_0$ to $t_1$ for unit $i$ is
@@ -239,7 +240,7 @@
   * Potential Outcomes
   - Aka "counterfactuals"
 
-  - **Definition**: the $do()$ operator represents _"unit $i$ outcome $Y$ if
+  - @Definition@: the $do()$ operator represents _"unit $i$ outcome $Y$ if
     treatment is set to $t$"_
     - $Y_{t,i}$ is Rubin's notation
     - $Y_i | do(T_i = t)$ is Pearl's notation

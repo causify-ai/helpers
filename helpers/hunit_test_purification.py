@@ -523,14 +523,20 @@ def purify_apple_container_output(txt: str) -> str:
     - [1/6] Fetching image [0s]
     - [2/6] Unpacking image [0s]
     - [6/6] Starting container [0s]
+    - ... [0/6] [0s]
+    - ... [1/6] Fetching image [0s]
 
     :param txt: input text containing container output
     :return: text with container startup lines removed
     """
-    # Match lines starting with a `[step/total]` progress marker, e.g.
-    # `[0/6]` or `[1/6] Fetching image [0s]`. This avoids matching unrelated
-    # bracketed content, e.g. `['helpers/test/test_file.py']`.
-    progress_line_pattern = re.compile(r"^\[\d+/\d+\]")
+    # Match lines containing a `[step/total]` progress marker, optionally
+    # preceded by `... `. Examples:
+    # `... [0/6]`
+    # `... [1/6] Fetching image [0s]`,
+    # `[0/6] [0s]`.
+    # This avoids matching unrelated bracketed content, e.g.
+    # `['helpers/test/test_file.py']`.
+    progress_line_pattern = re.compile(r"^\s*(?:\.\.\.\s+)?\[\d+/\d+\]")
     lines = txt.split("\n")
     filtered_lines = [
         line for line in lines if not progress_line_pattern.match(line)
