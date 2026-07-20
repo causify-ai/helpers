@@ -1,37 +1,7 @@
-Create a script in ./dev_scripts_helpers/git/create_git_worktree.py
-that accepts
+In ./dev_scripts_helpers/git/create_git_worktree.py
+if the GH file is already created, skip that
 
---gh_issue_title <title>
---gh_issue_body_file <body_file>
---gh_assignee <assignee> (@me by default)
---instr_file optional
-
-Check that instr_file exists
-
-that performs the following actions
-
-  > gh issue create --title <title> --body-file <body_file> --assignee <assignee>
-
-Get the issue number and the title
-
-> i gh_issue_title -i 1290
-
-Assert if there are subrepos using the functions in hgit.py
-
-The name of worktree path is the same name as the current repo
-(e.g., /User/saggese/src/helpers1) but using the GH issue number
-(e.g., WORKTREE_PATH=/Users/saggese/src/helpers1290)
-
-Create branch and worktree
-git branch $FEATURE_NAME master
-> git worktree add $WORKTREE_PATH $FEATURE_NAME
-
-Print the instructions on how to go in that 
-> cd $WORKTREE_PATH
-> dev_scripts_helpers/thin_client/tmux.py --index 1290
-
-- Test using end-to-end with `## Use the Mocking Infrastructure`
-	from `.claude/skills/testing.rules.md`
+If the branch already exists, skip that
 
 # Conventions
 - When writing code you must always follow the instructions in

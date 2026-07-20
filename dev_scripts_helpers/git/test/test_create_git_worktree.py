@@ -151,7 +151,6 @@ class Test_parse_issue_number_from_url(hunitest.TestCase):
         # Run test.
         self.helper(url, expected)
 
-    # TODO(ai_gp): Use helper
     def test3(self) -> None:
         """
         Test parsing URL with multiple trailing slashes.
@@ -161,9 +160,7 @@ class Test_parse_issue_number_from_url(hunitest.TestCase):
         # Prepare outputs.
         expected = 123
         # Run test.
-        actual = dshgcgiwo._parse_issue_number_from_url(url)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(url, expected)
 
     def test4(self) -> None:
         """
@@ -174,14 +171,41 @@ class Test_parse_issue_number_from_url(hunitest.TestCase):
         # Prepare outputs.
         expected = 9999
         # Run test.
-        actual = dshgcgiwo._parse_issue_number_from_url(url)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(url, expected)
 
 
 # #############################################################################
 # Test_create_git_worktree_py
 # #############################################################################
+
+
+class Test_branch_exists(hunitest.TestCase):
+    """
+    Tests for `_branch_exists()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that function returns False for non-existent branch.
+        """
+        # Prepare inputs.
+        branch_name = "NonExistentBranch12345"
+        # Run test.
+        actual = dshgcgiwo._branch_exists(branch_name)
+        # Check outputs.
+        self.assertFalse(actual)
+
+    def test2(self) -> None:
+        """
+        Test that function returns True for existing branch when mocked.
+        """
+        # Prepare inputs.
+        branch_name = "SomeBranch"
+        # Run test and mock the system call.
+        with mock.patch("helpers.hsystem.system", return_value=None):
+            actual = dshgcgiwo._branch_exists(branch_name)
+        # Check outputs.
+        self.assertTrue(actual)
 
 
 class Test_create_git_worktree_py(hunitest.TestCase):
@@ -221,9 +245,13 @@ class Test_create_git_worktree_py(hunitest.TestCase):
         # Run test and capture system calls.
         with hunteuti.capture_system_calls() as invocations:
             with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
-                worktree_path = dshgcgiwo._create_branch_and_worktree(
-                    branch_name, issue_id
-                )
+                with mock.patch(
+                    "dev_scripts_helpers.git.create_git_worktree._branch_exists",
+                    return_value=False,
+                ):
+                    worktree_path = dshgcgiwo._create_branch_and_worktree(
+                        branch_name, issue_id
+                    )
         # Check outputs.
         expected = """
         [{'args': ('git branch HelpersTask1290_Test_Branch master',),
@@ -231,6 +259,35 @@ class Test_create_git_worktree_py(hunitest.TestCase):
           'kwargs': {'log_level': 20}},
          {'args': ('git worktree add /home/user/helpers1_worktree_1290 '
                    'HelpersTask1290_Test_Branch',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}}]
+        """
+        hunteuti.assert_invocations(self, invocations, expected, dedent=True)
+        # Verify returned worktree path.
+        expected_path = "/home/user/helpers1_worktree_1290"
+        self.assertEqual(worktree_path, expected_path)
+
+    def test3(self) -> None:
+        """
+        Test skipping branch creation if branch already exists.
+        """
+        # Prepare inputs.
+        branch_name = "HelpersTask1290_Existing_Branch"
+        issue_id = 1290
+        # Run test and mock branch_exists to return True.
+        with hunteuti.capture_system_calls() as invocations:
+            with mock.patch(
+                "dev_scripts_helpers.git.create_git_worktree._branch_exists",
+                return_value=True,
+            ):
+                with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
+                    worktree_path = dshgcgiwo._create_branch_and_worktree(
+                        branch_name, issue_id
+                    )
+        # Check outputs: only worktree creation, no branch creation.
+        expected = """
+        [{'args': ('git worktree add /home/user/helpers1_worktree_1290 '
+                   'HelpersTask1290_Existing_Branch',),
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}}]
         """

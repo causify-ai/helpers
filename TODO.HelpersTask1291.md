@@ -48,35 +48,6 @@ claude> /coding.create_auto_todo cfile
 
 - Pick the issue from `plan.todo_janitor.md`
 
-- Create a GitHub issue in a certain repo
-  > gh issue create --title "Fix bug X" --body "Description here" --assignee @me
-  or 
-  > gh issue create --title "Refactor Regex to Use re.VERBOSE and Comments" --body-file ...
-  or
-  > i gh_issue_title
-
-GitHub issue link: https://github.com/causify-ai/helpers/issues/1290
-
-- Get the name of the issue
-```
-> i gh_issue_title -i 1290
-```
-HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments
-
-- Create a branch and a worktree
-export WORKTREE_PATH=/Users/saggese/src/helpers1290
-export FEATURE_NAME="HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments"
-
-// Create branch and worktree in main repo
-git branch $FEATURE_NAME master
-> git worktree add $WORKTREE_PATH $FEATURE_NAME
-Preparing worktree (checking out 'HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments')
-HEAD is now at 614270bf gp_scratch_30 (#1289)
-
-// Create a new iterm
-> cd $WORKTREE_PATH
-> dev_scripts_helpers/thin_client/tmux.py --index 1290
-
 # Create CC Instructions
 // Create instructions for CC
   ````
@@ -123,7 +94,82 @@ HEAD is now at 614270bf gp_scratch_30 (#1289)
 
   ````
 
-- Update the CC task plan
+# Create the Branch
+create_git_worktree.py --gh_issue_title "Rename invocations to sys_calls Throughout Codebase" --gh_issue_body body.txt --instr_file instr2.md
+
+create_git_worktree.py --gh_issue_id 1292 --instr_file instr2.md
+
+- Create a GitHub issue in a certain repo
+  > gh issue create --title "Fix bug X" --body "Description here" --assignee @me
+  or 
+  > gh issue create --title "Refactor Regex to Use re.VERBOSE and Comments" --body-file ...
+  or
+  > i gh_issue_title
+
+GitHub issue link: https://github.com/causify-ai/helpers/issues/1290
+
+- Get the name of the issue
+```
+> i gh_issue_title -i 1290
+```
+HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments
+
+- Create a branch and a worktree
+export WORKTREE_PATH=/Users/saggese/src/helpers1290
+export FEATURE_NAME="HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments"
+
+// Create branch and worktree in main repo
+git branch $FEATURE_NAME master
+> git worktree add $WORKTREE_PATH $FEATURE_NAME
+Preparing worktree (checking out 'HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments')
+HEAD is now at 614270bf gp_scratch_30 (#1289)
+
+// Create a new iterm
+> cd $WORKTREE_PATH
+> dev_scripts_helpers/thin_client/tmux.py --index 1290
+
+# Does i git_create_...
+
+> git push
+fatal: The current branch HelpersTask1292_Rename_invocations_to_sys_calls_Throughout_Codebase has no upstream branch.
+To push the current branch and set the remote as upstream, use
+
+    git push --set-upstream origin HelpersTask1292_Rename_invocations_to_sys_calls_Throughout_Codebase
+
+Move the i git_create_branch to a script
+
+./helpers/lib_tasks/lib_tasks_git.py def git_branch_create(
+
+And create an empty branch in draft mode
+
+i gh_create_pr --no-draft
+
+# Extend
+
+i gh_watch
+
+Make it i gh_workflow_list --daemon and make it exit when all the builds are done and
+exit with error or not
+
+> more instr2.md
+- Wait that all the checks are complete and passing
+  i gh_workflow_list
+
+  - If the tests are passing, run all the tests locally
+    pytest_multi_build.py --target .
+
+    - If there are not issues, then mark the PR as ready
+      gh pr  comment --body "All tests are passing"
+
+      - Ask to review
+
+# Update the CC task plan
+
+orchestrate_task.py --plan ... --action
+
+--action stage_todo calling create_git_worktree.py (
+    - create the body and instr.md
+    - update the todo
 
 # Commit the changes
 - TODO(gp): Need to figure out how to enable it for special trees
@@ -135,7 +181,7 @@ HEAD is now at 614270bf gp_scratch_30 (#1289)
 - Test locally the PR for all the builds
 
 # Step 6
-- If everything is p
+- If everything is 
 
 # Create a worktree for subrepo
 

@@ -102,8 +102,7 @@ def _create_github_issue(
         "create",
         f"--title {title}",
         f"--body-file {body_file}",
-        f"--assignee {assignee}",
-        "--json url",
+        f"--assignee {assignee}"
     ]
     cmd_str = " ".join(cmd)
     _LOG.info("Creating GitHub issue: %s", cmd_str)
@@ -112,12 +111,13 @@ def _create_github_issue(
     # Parse the JSON output to get the URL.
     data = json.loads(output)
     issue_url = data["url"]
-    _LOG.info("Created issue at: %s", issue_url)
+    _LOG.info("Created issue at: '%s'", issue_url)
     # Extract issue number from URL.
     issue_number = _parse_issue_number_from_url(issue_url)
     return issue_number, issue_url
 
 
+# TODO(ai_gp): Inline
 def _check_no_subrepos() -> None:
     """
     Assert that the repository does not have any submodules.
@@ -131,24 +131,46 @@ def _check_no_subrepos() -> None:
     )
 
 
+def _branch_exists(branch_name: str) -> bool:
+    """
+    Check if a git branch already exists.
+
+    :param branch_name: Name of the branch to check
+    :return: True if branch exists, False otherwise
+    """
+    cmd = f"git show-ref --verify refs/heads/{branch_name}"
+    try:
+        hsystem.system(cmd, suppress_output=True)
+        return True
+    except Exception:
+        return False
+
+
 def _create_branch_and_worktree(branch_name: str, issue_id: int) -> str:
     """
     Create a git branch and corresponding worktree.
+
+    Skip creation if branch already exists.
 
     :param branch_name: Name for the new branch
     :param issue_id: GitHub issue number (for path naming)
     :return: Path to the created worktree
     """
-    # Create branch from master.
-    cmd = f"git branch {branch_name} master"
-    _LOG.info("Creating branch: %s", cmd)
-    hsystem.system(cmd, log_level=logging.INFO)
+    # Check if branch already exists.
+    if _branch_exists(branch_name):
+        _LOG.warning("Branch '%s' already exists, skipping creation", branch_name)
+    else:
+        # Create branch from master.
+        cmd = f"git branch {branch_name} master"
+        _LOG.info("Creating branch: %s", cmd)
+        hsystem.system(cmd, log_level=logging.INFO)
     # Determine worktree path (parent directory of current repo).
     current_dir = os.getcwd()
     parent_dir = os.path.dirname(current_dir)
     repo_name = os.path.basename(current_dir)
-    worktree_path = os.path.join(parent_dir, f"{repo_name}_worktree_{issue_id}")
-    _LOG.info("Creating worktree at: %s", worktree_path)
+    # TODO(ai_gp): Remore the last number.
+    worktree_path = os.path.join(parent_dir, f"{repo_name}{issue_id}")
+    _LOG.info("Creating worktree at: '%s'", worktree_path)
     # Create worktree.
     cmd = f"git worktree add {worktree_path} {branch_name}"
     hsystem.system(cmd, log_level=logging.INFO)
@@ -163,14 +185,11 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
     :param issue_id: GitHub issue number
     """
     msg = f"""
-  Worktree created successfully!
+    Worktree created successfully!
 
-  To enter the worktree:
-  > cd {worktree_path}
-
-  To open tmux session:
-  > dev_scripts_helpers/thin_client/tmux.py --index {issue_id}
-  """
+    To open tmux session:
+    > cd {worktree_path}; dev_scripts_helpers/thin_client/tmux.py --index {issue_id}
+    """
     msg = hprint.dedent(msg)
     msg = hprint.color_highlight(msg, "green")
     print(msg)
@@ -188,7 +207,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
     _LOG.debug(
-        "gh_issue_title=%s gh_issue_body_file=%s gh_assignee=%s",
+        "gh_issue_id=%s gh_issue_title=%s gh_issue_body_file=%s gh_assignee=%s",
+        args.gh_issue_id,
         args.gh_issue_title,
         args.gh_issue_body_file,
         args.gh_assignee,
@@ -199,27 +219,32 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.instr_file,
             "Instruction file does not exist",
         )
-        _LOG.info("Using instruction file: %s", args.instr_file)
-    # Normalize assignee (convert @me to current user).
-    assignee = args.gh_assignee
-    # Create GitHub issue.
-    issue_id, _ = _create_github_issue(
-        args.gh_issue_title,
-        args.gh_issue_body_file,
-        assignee,
-    )
+        _LOG.info("Using instruction file: '%s'", args.instr_file)
+    # Determine issue ID.
+    if args.gh_issue_id:
+        # Skip GitHub issue creation if ID is provided.
+        issue_id = args.gh_issue_id
+        _LOG.info("Using existing GitHub issue: %s", issue_id)
+    else:
+        # Create new GitHub issue.
+        issue_id, _ = _create_github_issue(
+            args.gh_issue_title,
+            args.gh_issue_body_file,
+            args.gh_assignee,
+        )
     # Get issue title for branch naming.
     cmd = f"gh issue view {issue_id} --json title --jq .title"
     _, issue_title = hsystem.system_to_string(cmd)
     issue_title = issue_title.strip()
-    _LOG.info("Issue title: %s", issue_title)
+    _LOG.info("Issue title: '%s'", issue_title)
     # Format branch name.
     branch_name = _format_title_for_branch(issue_title, issue_id)
-    _LOG.info("Branch name: %s", branch_name)
+    _LOG.info("Branch name: '%s'", branch_name)
     # Assert no subrepos.
     _check_no_subrepos()
     # Create branch and worktree.
     worktree_path = _create_branch_and_worktree(branch_name, issue_id)
+    # TODO(ai_gp): cp the instr_file to the dir.
     # Print usage instructions.
     _print_usage_instructions(worktree_path, issue_id)
 
@@ -233,6 +258,12 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--gh_issue_id",
+        type=int,
+        default=0,
+        help="Existing GitHub issue ID (skip creating new issue if provided)",
     )
     parser.add_argument(
         "--gh_issue_title",
