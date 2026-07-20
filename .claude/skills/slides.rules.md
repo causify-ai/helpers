@@ -113,9 +113,16 @@
   with a bold label `<bold label>` for pedagogical structure
 
 ### Tags
-- **Definition**: A definition of a concept
-  - Use `@Definition@` formatting (not `**Definition**`)
-  - The definition term needs to be in bold
+
+- Use `@TAG@` formatting (not `**Bold**:`) for semantic markup
+- The tag appears before the colon and in italics/boldface, making the tag system
+  more visible and machine-readable
+
+#### Core Definition & Structure Tags
+
+- **Definition**: Defines a concept formally
+  - Use `@Definition@` formatting
+  - The defined term should be in bold
   - E.g.,
     ```
     - @Definition@: A **time series** is modeled as a random process, ...
@@ -125,47 +132,72 @@
     - @Definition@: **Bayesian updating** revises a belief over an unknown $\theta$
       by combining a _prior_ with the _likelihood_ of observed data $X$
     ```
-- **Question**: A question to introduce a problem
-  - E.g., (Lesson 11.01):
+
+- **Components**: Describes building blocks, parts, or elements of a structure
+  - Use when breaking down a concept into its parts
+  - E.g., (from Lesson 03.3):
     ```
-    - **Question**: does the data provide evidence for or against a specific
-      hypothesis, such as "this coin is fair" or "this treatment has no effect"?
+    - @Components@
+      - _Classes_: abstract groups (e.g., $Person$, $Animal$)
+      - _Properties_: binary relations (e.g., $hasChild$, $ownsPet$)
+      - _Instances_: specific objects (e.g., $GP$, $Nuvolo$)
     ```
-- **Goal**: What we are trying to achieve before describing how
-  - E.g., (Lesson 11.01):
+
+- **Characteristics** / **Properties**: Notable features or qualities
+  - Use `@Characteristics@` or `@Properties@` to list key attributes
+  - E.g.,
     ```
-    - **Goal**: Analyze and study algorithms for the _simple_ end of the decision
-      spectrum
+    - @Characteristics@
+      - Deals with incomplete, uncertain, ambiguous information
+      - Relies on defaults, heuristics, patterns not strict proofs
     ```
-- **Assumptions**: Preconditions or constraints that apply
-  - E.g., (Lesson 11.01):
+
+#### Content Organization Tags
+
+- **Comparison**: Contrasts different approaches or perspectives
+  - Use when showing what distinguishes one method from another
+  - E.g., (from Lesson 03.3):
     ```
-    - **Assumptions**
-      - Single agent, one objective, a model that is either fully known or
-        learnable from direct interaction
-      - No hierarchy, no policy-gradient search, no other agents to coordinate
+    - @Comparison@:
+      - _Classical logic_: once proven, conclusions remain true
+      - _Non-monotonic logic_: conclusions change with new facts
     ```
+
+- **Example** (singular): A single concrete illustration
+  - Use for one specific example with detail
+  - E.g., (from Lesson 03.3):
+    ```
+    - @Example@: _"All students take some course"_:
+      $\text{Student} \equiv \exists \text{takes}.\text{Course}$
+    ```
+
+- **Examples** (plural): Multiple concrete illustrations
+  - Use `@Examples@` when listing several instance of a concept
+  - E.g., (from Lesson 03.3):
+    ```
+    - @Examples@:
+      - _Propositional logic_: world consists of facts
+      - _First-order logic_: objects with relations
+      - _Temporal logic_: facts hold at particular times
+    ```
+
 - **Problem**: A difficulty or open issue that motivates a solution
   - E.g., (Lesson 02.01):
     ```
     - **Problem**: a purely predictive model learns $\Pr(Y | X)$ from historical
       data and absorbs any association in the data, spurious or not
     ```
-- **(Naive) Solution**: A first, flawed attempt whose cons motivate a better one
+
+- **Intuition**: Explains the "why it makes sense" conceptually
+  - Use to provide reasoning or conceptual clarity
   - E.g., (Lesson 11.01):
     ```
-    - **(Naive) Solution**: grid the parameter space and evaluate the posterior
-      pointwise
-      - Cons: the grid grows exponentially with the number of parameters,
-        infeasible beyond a handful of dimensions
+    - **Intuition**: the posterior is a compromise between what was believed
+      before and what the data says now
     ```
-- **Solution**: A solution to a previously introduced problem
-  - E.g., (Lesson 11.01):
-    ```
-    - **Solution 1: Markov Chain Monte Carlo (MCMC)**
-      - Build a Markov chain whose stationary distribution is the posterior,
-        then simulate it
-    ```
+
+#### Evaluation & Application Tags
+
 - **Pros** / **Cons**: Advantages and disadvantages of an approach
   - E.g., (Lesson 02.01):
     ```
@@ -174,37 +206,93 @@
     
     - **Cons**
       - Unknown workings of the human mind
-      - Anthropocentric definition (not applicable to non-human intelligence)
     ```
-- **Example**: Concrete illustration
-  - E.g., (Lesson 02.01):
+
+- **Challenges**: Difficulties, limitations, or constraints
+  - Use `@Challenges@` to highlight what is hard or problematic
+  - E.g., (from Lesson 03.3):
     ```
-    - **Example**: ice cream sales and drowning deaths are highly correlated
-      - Predictor: _"more ice cream $\to$ predict more drownings"_ (accurate)
-      - Decision built on it: _"ban ice cream to cut drownings"_ (disastrous)
-      - Confounder: hot weather drives both
+    - @Challenges@
+      - Knowledge is vast, informal, imprecisely defined
+      - Difficult to encode in machine-readable form
     ```
-- **Intuition**: Explains the "why it makes sense"
+
+- **Techniques** / **Methods**: Approaches or procedures for achieving something
+  - Use when describing how something is done
+  - E.g., (from Lesson 03.3):
+    ```
+    - @Techniques@
+      - Knowledge graphs, non-monotonic logic, probabilistic reasoning
+    ```
+
+- **Variants**: Different types or variations of a concept
+  - E.g., (from Lesson 03.3):
+    ```
+    - @Variants@:
+      - _OWL Lite_: simpler, for classification hierarchies
+      - _OWL DL_: full expressiveness with decidable reasoning
+    ```
+
+- **Applications**: Practical uses or domains where a concept applies
+  - Use `@Applications@` to show real-world relevance
+  - E.g., (from Lesson 03.3):
+    ```
+    - @Applications@: semantic search, biomedical data, knowledge graphs
+    ```
+
+#### Traditional Mathematical Tags
+
+- **Question**: A question to introduce a problem
   - E.g., (Lesson 11.01):
     ```
-    - **Intuition**: the posterior is a compromise between what was believed
-      before and what the data says now
-      - A narrow, confident prior needs more data to move
-      - A flat, uninformative prior lets the likelihood dominate
+    - **Question**: does the data provide evidence for or against a specific
+      hypothesis, such as "this coin is fair" or "this treatment has no effect"?
     ```
+
+- **Goal**: What we are trying to achieve before describing how
+  - E.g., (Lesson 11.01):
+    ```
+    - **Goal**: Analyze and study algorithms for the _simple_ end of the decision
+      spectrum
+    ```
+
+- **Assumptions**: Preconditions or constraints that apply
+  - E.g., (Lesson 11.01):
+    ```
+    - **Assumptions**
+      - Single agent, one objective, a model that is either fully known or
+        learnable from direct interaction
+    ```
+
+- **(Naive) Solution**: A first, flawed attempt whose cons motivate a better one
+  - E.g., (Lesson 11.01):
+    ```
+    - **(Naive) Solution**: grid the parameter space and evaluate the posterior
+      pointwise
+      - Cons: the grid grows exponentially with the number of parameters
+    ```
+
+- **Solution**: A solution to a previously introduced problem
+  - E.g., (Lesson 11.01):
+    ```
+    - **Solution 1: Markov Chain Monte Carlo (MCMC)**
+      - Build a Markov chain whose stationary distribution is the posterior
+    ```
+
 - **Key idea**: The single most important takeaway
   - E.g., (Lesson 02.01):
     ```
     - **Key idea**: shipping a prediction when the business needs a decision delivers
       little or no business value, however accurate the prediction is
     ```
+
 - **Remark**: A simple but useful fact
   - E.g., (Lesson 11.01):
     ```
-    - **Remark**: sequential updating (one toss at a time) and batch updating
-      (all tosses at once) reach the same posterior
+    - **Remark**: sequential updating and batch updating reach the same posterior
       - The order evidence arrives in does not change the final belief
     ```
+
 - **Fact**: A statement asserted as true, used without proof
 - **Theorem**: A central, proven result
 - **Proof**: The argument establishing a theorem (often numbered steps)
@@ -215,6 +303,26 @@
 - **Input** / **Output**: What an algorithm consumes and produces
 - **Limitations**: Conditions under which the approach fails or is weak
 - **Counterexample**: Shows what doesn't work
+
+### Tag Ordering Convention
+
+- When organizing content within a slide, use this preferred tag order (apply
+  only relevant tags):
+
+  1. **Motivation** or **Problem**: why this matters or what problem exists
+  2. **Definition**: formal definition of the concept
+  3. **Comparison** or **Characteristics**: how it differs from others, key
+     features
+  4. **Examples** or **Example**: concrete illustrations
+  5. **Components**: parts or building blocks (for structured concepts)
+  6. **Intuition**: conceptual explanation (why it works)
+  7. **Pros** / **Challenges**: advantages and disadvantages
+  8. **Techniques** or **Variants**: variations or methods
+  9. **Applications**: practical uses and domains
+
+- This ordering places context and definition first, then concrete examples,
+  evaluation, and finally applications, mirroring the pedagogical progression
+  from abstract to concrete.
 
 ### Example1
 - **Good**

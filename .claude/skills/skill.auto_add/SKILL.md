@@ -1,5 +1,5 @@
 ---
-description: Add a rule to the set of rules
+description: Add a rule to the set of rules, automatically inferring new rules
 model: haiku
 ---
 
