@@ -27,7 +27,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] Issue3: Use Filter_text From Helpers/hprint.py
+## [x] Issue3: Use Filter_text From Helpers/hprint.py
 
 ### Info
 - Original description:
@@ -47,11 +47,11 @@
   - Grep codebase for uses of `hunit_test.filter_text` and verify they work
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
-- Git worktree:
+- Status: completed
+- GitHub issue title: Fix code duplication and test structure issues
+- GitHub issue link: https://github.com/causify-ai/helpers/issues/1298
+- PR link: https://github.com/causify-ai/helpers/pull/1298
+- Git worktree: 2b0e06d4
 
 ## [ ] Issue4: Use Conditional Import for PIL in Hgraphviz.py
 
@@ -80,7 +80,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] Issue5: Move Assertion Into Test Helper
+## [x] Issue5: Move Assertion Into Test Helper
 
 ### Info
 - Original description:
@@ -101,13 +101,13 @@
   - Verify assertion still catches errors
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
-- Git worktree:
+- Status: completed
+- GitHub issue title: Fix code duplication and test structure issues
+- GitHub issue link: https://github.com/causify-ai/helpers/issues/1298
+- PR link: https://github.com/causify-ai/helpers/pull/1298
+- Git worktree: 2b0e06d4
 
-## [ ] Issue6: Move Coverage Action to \_run_python_linting_actions
+## [x] Issue6: Move Coverage Action to \_run_python_linting_actions
 
 ### Info
 - Original description:
@@ -130,11 +130,11 @@
   - Verify coverage metrics are generated correctly
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
-- Git worktree:
+- Status: completed
+- GitHub issue title: Fix code duplication and test structure issues
+- GitHub issue link: https://github.com/causify-ai/helpers/issues/1298
+- PR link: https://github.com/causify-ai/helpers/pull/1298
+- Git worktree: 2b0e06d4
 
 ## [ ] Issue7: Update Test Mocks to Use Capture_system_calls (test_hmodule.py)
 
