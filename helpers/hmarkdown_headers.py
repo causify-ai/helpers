@@ -731,27 +731,69 @@ def build_header_tree(header_list: HeaderList) -> _HeaderTree:
 
 
 def _find_header_tree_ancestry(
-    tree: _HeaderTree, level: int, description: str
+    tree: _HeaderTree,
+    level: int,
+    description: str,
+    context_ancestry: Optional[_HeaderTree] = None,
 ) -> Optional[_HeaderTree]:
     """
     Recursively search for the node matching (level, description).
 
-    If found, return the ancestry as a list from the root down to that
-    node. Otherwise return None.
+    If context_ancestry is provided, search for a node that matches the
+    hierarchy. Otherwise, return the first matching node.
 
     :param tree: header tree to search
     :param level: header level to match
     :param description: header description to match
-    :return: ancestry list from root to matching node, or None if not
-        found
+    :param context_ancestry: optional current hierarchy for context-aware search
+    :return: ancestry list from root to matching node, or None if not found
     """
+    fallback_result = None
     for node in tree:
         if node.level == level and node.description == description:
-            return [node]
-        result = _find_header_tree_ancestry(node.children, level, description)
+            candidate = [node]
+            if context_ancestry and _matches_context(context_ancestry, candidate):
+                return candidate
+            if not fallback_result:
+                fallback_result = candidate
+        result = _find_header_tree_ancestry(
+            node.children, level, description, context_ancestry
+        )
         if result:
-            return [node] + result
-    return None
+            candidate = [node] + result
+            if context_ancestry and _matches_context(context_ancestry, candidate):
+                return candidate
+            if not fallback_result:
+                fallback_result = candidate
+    return fallback_result
+
+
+def _matches_context(
+    context: _HeaderTree, found_path: _HeaderTree
+) -> bool:
+    """
+    Check if found_path is reachable from context.
+
+    If context represents the current header hierarchy, check if found_path
+    extends that hierarchy. This handles cases with duplicate subsection
+    names under different parents.
+
+    :param context: current hierarchy context (e.g., [Propositional logic])
+    :param found_path: path to the found node in the tree (e.g., [Propositional logic, Syntax])
+    :return: True if found_path starts with the same path as context
+    """
+    if len(context) == 0:
+        return True
+    if len(found_path) < len(context):
+        return False
+    for i, ctx_node in enumerate(context):
+        found_node = found_path[i]
+        if (
+            ctx_node.level != found_node.level
+            or ctx_node.description != found_node.description
+        ):
+            return False
+    return True
 
 
 def header_tree_to_str(
@@ -819,6 +861,7 @@ def selected_navigation_to_str(
     *,
     open_modifier: str = "**",
     close_modifier: str = "**",
+    current_ancestry: Optional[_HeaderTree] = None,
 ) -> str:
     """
     Given a level and description for the selected node, print the navigation.
@@ -828,9 +871,10 @@ def selected_navigation_to_str(
     :param description: description of the selected node
     :param open_modifier: modifier for opening the selected node
     :param close_modifier: modifier for closing the selected node
+    :param current_ancestry: optional current hierarchy for context-aware search
     :return: navigation string with selected node highlighted
     """
-    ancestry = _find_header_tree_ancestry(tree, level, description)
+    ancestry = _find_header_tree_ancestry(tree, level, description, current_ancestry)
     hdbg.dassert_ne(
         ancestry,
         None,
@@ -860,6 +904,7 @@ def full_tree_to_str(
     indent: int = 0,
     ancestry: Optional[_HeaderTree] = None,
     _compute_ancestry: bool = True,
+    current_ancestry: Optional[_HeaderTree] = None,
 ) -> str:
     """
     Return the tree as a string, expanding all nodes up to max_expand_level.
@@ -877,15 +922,15 @@ def full_tree_to_str(
     :param indent: indent of the tree
     :param ancestry: ancestry path to the selected node (computed on first call)
     :param _compute_ancestry: internal flag to compute ancestry only on first call
+    :param current_ancestry: optional current hierarchy for context-aware search
     :return: string representation of the tree with all nodes expanded up to max_expand_level
     """
-    # Compute ancestry only on first call (when _compute_ancestry is True).
     if ancestry is None and _compute_ancestry:
-        ancestry = _find_header_tree_ancestry(tree, level, description)
+        ancestry = _find_header_tree_ancestry(tree, level, description, current_ancestry)
     prefix = "  " * indent + "- "
     result = []
     for node in tree:
-        # Check if this node is on the path to the selected node
+        # Check if this node is on the path to the selected node.
         is_on_path = (
             ancestry is not None
             and len(ancestry) > 0
@@ -900,9 +945,9 @@ def full_tree_to_str(
             val += node.description
         if val:
             result.append(val)
-        # Expand children if we haven't reached max_expand_level
+        # Expand children if we haven't reached max_expand_level.
         if node.children and current_level < max_expand_level:
-            # Pass the remaining ancestry for recursive calls
+            # Pass the remaining ancestry for recursive calls.
             child_ancestry: Optional[_HeaderTree] = None
             if is_on_path and ancestry is not None:
                 child_ancestry = ancestry[1:]
