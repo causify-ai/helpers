@@ -47,21 +47,26 @@ are in progress [.], or failed [v]
 
 - Get PR number from output (e.g., #123)
 
+- Extract the PR number as 
+  ```
+  > GH_PR_NUM=$(gh pr view --json number -q .number); echo $GH_PR_NUM
+  1293
+  ```
+
 ## [ ] Run and Monitor GitHub CI
 - Start monitoring GitHub CI checks:
   ```
-  > gh pr checks --watch <PR#>
+  > gh pr checks --watch $GH_PR_NUM
   ```
-
 - Monitor for any failures
 
 - If GitHub CI is passing: 
   ```
-  > gh pr comment <PR#> --body "✅ GitHub CI checks passing. Local tests running..."
+  > gh pr comment $GH_PR_NUM --body "✅ GitHub CI checks passing. Local tests running..."
   ```
 - If any failures, document error and post:
   ```
-  > gh pr comment <PR#> --body "⚠️ Test failures found: [error summary]. Investigating..."
+  > gh pr comment $GH_PR_NUM --body "⚠️ Test failures found: [error summary]. Investigating..."
   ```
 
 # Step 3: [ ] Run Local Regressions
@@ -69,25 +74,42 @@ are in progress [.], or failed [v]
 ## [ ] Run and Monitor Local Regressions
 - Run full test suite locally:
   ```
-  > pytest_multi_build.py --target .
+  > pytest_multi_build.py --target . 2>&1 --timeout -1 | tee tmp.todo_janitor.pytest_multi_build.log
   ```
+- Wait for the script to terminate
 
-- Monitor for any failures
+- Check the output of the local regressions with:
+  ```
+  > pytest_failed_multi_build.py 2>&1 | tee tmp.todo_janitor.pytest_failed_multi_build.log
+  ```
 
 - If local tests pass:
   ```
-  > gh pr comment <PR#> --body "✅ All tests passing locally. Ready for review."
+  > gh pr comment $GH_PR_NUM --body "✅ All tests passing locally. Ready for review."
   ```
 - If any failures, document error and post:
   ```
-  > gh pr comment <PR#> --body "⚠️ Test failures found: [error summary]. Investigating..."
+  > gh pr comment $GH_PR_NUM --body "⚠️ Test failures found: [error summary]. Investigating..."
   ```
   
 # Step 4: [ ] Submit PR for Review
 
 ## [ ] Convert to ready-for-review
-- Once all checks (GitHub CI + local tests) are passing:
-  > gh pr ready <PR#>
-  
+- Once all checks (GitHub CI + local tests) are passing
+
+- Mark the PR ready for review
+  ```
+  > gh pr ready $GH_PR_NUM
+  ```
+
 - Request review from codeowner:
-  > gh pr request-review <PR#>
+  ```
+  > gh pr request-review $GH_PR_NUM
+  ```
+
+- Update the GitHub issue with the info
+  ```
+  > GH_ISSUE_NUM=$(git branch --show-current | sed 's/.*Task\([0-9]*\).*/\1/')
+  > gh issue comment $GH_ISSUE_NUM --body "PR ${GH_PR_NUM} ready to review and merge"
+  https://github.com/causify-ai/helpers/issues/1292#issuecomment-5024710557
+  ```
