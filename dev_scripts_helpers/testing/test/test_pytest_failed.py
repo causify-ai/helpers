@@ -23,16 +23,16 @@ class Test_get_output_filename(hunitest.TestCase):
     Test _get_output_filename function for output file naming.
     """
 
-    def helper(self, base: str, build_name: str) -> str:
+    def helper(self, base: str, build_name: str, expected: str) -> None:
         """
         Test helper for _get_output_filename.
 
         :param base: Base filename
         :param build_name: Build configuration name
-        :return: Generated output filename
+        :param expected: Expected output filename
         """
         actual = dshtpyfa._get_output_filename(base, build_name=build_name)
-        return actual
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -43,11 +43,8 @@ class Test_get_output_filename(hunitest.TestCase):
         build_name = ""
         # Prepare outputs.
         expected = base
-        # Run test.
-        actual = self.helper(base, build_name)
-        # TODO(ai_gp): Move the assertion into the helper.
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        # Run test and check outputs.
+        self.helper(base, build_name, expected)
 
     def test2(self) -> None:
         """
@@ -58,10 +55,8 @@ class Test_get_output_filename(hunitest.TestCase):
         build_name = "apple"
         # Prepare outputs.
         expected = "tmp.pytest_failed.apple.repro.sh"
-        # Run test.
-        actual = self.helper(base, build_name)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        # Run test and check outputs.
+        self.helper(base, build_name, expected)
 
     def test3(self) -> None:
         """
@@ -72,9 +67,8 @@ class Test_get_output_filename(hunitest.TestCase):
         build_names = ["docker", "dev_container"]
         # Run test and check outputs.
         for build_name in build_names:
-            actual = self.helper(base, build_name)
             expected = f"tmp.pytest_failed.{build_name}.failed_tests.txt"
-            self.assert_equal(actual, expected)
+            self.helper(base, build_name, expected)
 
     def test4(self) -> None:
         """
@@ -85,10 +79,8 @@ class Test_get_output_filename(hunitest.TestCase):
         build_name = "docker"
         # Prepare outputs.
         expected = f"{base}.{build_name}"
-        # Run test.
-        actual = self.helper(base, build_name)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        # Run test and check outputs.
+        self.helper(base, build_name, expected)
 
 
 # #############################################################################

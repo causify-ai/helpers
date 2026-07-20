@@ -232,6 +232,6 @@ class Test_correct_method_order(hunitest.TestCase):
         txt = hprint.dedent(txt)
         actual = laclmeor.order_methods(txt)
         # Remove empty lines since they can create issues.
-        actual = hunitest.filter_text(r"^\s*$", actual)
-        expected = hunitest.filter_text(r"^\s*$", expected)
+        actual = hprint.filter_text(r"^\s*$", actual)
+        expected = hprint.filter_text(r"^\s*$", expected)
         self.assert_equal(actual, expected, dedent=True)
