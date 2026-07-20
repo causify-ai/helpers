@@ -145,16 +145,15 @@ orchestrate_task.py --plan ... --action
 # Commit the changes
 - TODO(gp): Need to figure out how to enable it for special trees
 
-# Step 4: 
-- Create a PR
+### [ ] Convert CC flow to script
+- Convert todo_janitor.template.md into a single script since CC doesn't
+  follow the directions
 
-# Step 5
-- Test locally the PR for all the builds
+### [ ] Add lint.py
 
-# Step 6
-- If everything is 
+### [ ] Run pyright
 
-# Create a worktree for subrepo
+## [ ] Create a worktree for subrepo
 
 ```
 SUBREPO_PATH="path/to/subrepo"  # Update this with your subrepo path

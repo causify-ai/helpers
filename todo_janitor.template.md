@@ -1,23 +1,29 @@
-Update the steps of this issue as they are completed successfully with [x]),
-are in progress [.], or failed [v]
-
-# Step 1: [ ] Fix Issue
+# Instructions
 - Fix the following issue following the conventions
+  - When writing code you must always follow the instructions in
+    `.claude/skills/coding.rules.md`
 
-- When writing code you must always follow the instructions in
-  `.claude/skills/coding.rules.md`
-
-- When testing code you must always follow the instructions in
-  `.claude/skills/testing.rules.md`
+  - When testing code you must always follow the instructions in
+    `.claude/skills/testing.rules.md`
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
   - When the task is complex, create a `plan.md` with 5 bullet points explaining
     what the plan is
 
-## Issue
+## Keep this File Updated
+- For every part of this instructions that are complete, update the steps as they:
+  - Are completed successfully with [x]
+  - Are in progress with [.]
+  - Fail with [v]
 
-...
+# Step 1: [ ] Fix Issue
+
+## Issue Description
+
+The issue is:
+
+`@todo_janitor.current_issue.md`
 
 # Step 2: [ ] Run CI Regressions
 
@@ -42,6 +48,8 @@ are in progress [.], or failed [v]
   ```
 - Monitor for any failures
 
+## [ ] Verify CI Regressions
+
 - If GitHub CI is passing: 
   ```
   > gh pr comment $GH_PR_NUM --body "✅ GitHub CI checks passing. Local tests running..."
@@ -53,7 +61,7 @@ are in progress [.], or failed [v]
 
 # Step 3: [ ] Run Local Regressions
   
-## [ ] Run and Monitor Local Regressions
+## [ ] Run Full Local Regressions
 - Run full test suite locally:
   ```
   > pytest_multi_build.py --target . 2>&1 --timeout -1 | tee tmp.todo_janitor.pytest_multi_build.log
@@ -64,6 +72,8 @@ are in progress [.], or failed [v]
   ```
   > pytest_failed_multi_build.py 2>&1 | tee tmp.todo_janitor.pytest_failed_multi_build.log
   ```
+
+## [ ] Verify Full Local Regressions
 
 - If local tests pass:
   ```
