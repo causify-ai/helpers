@@ -208,6 +208,89 @@ class Test_branch_exists(hunitest.TestCase):
         self.assertTrue(actual)
 
 
+# #############################################################################
+# Test_create_branch
+# #############################################################################
+
+
+class Test_create_branch(hunitest.TestCase):
+    """
+    Tests for `_create_branch()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test creating a new branch that doesn't exist.
+        """
+        # Prepare inputs.
+        branch_name = "HelpersTask1290_Test_Branch"
+        # Run test and capture system calls.
+        with hunteuti.capture_sys_calls() as invocations:
+            with mock.patch(
+                "dev_scripts_helpers.git.create_git_worktree._branch_exists",
+                return_value=False,
+            ):
+                dshgcgiwo._create_branch(branch_name)
+        # Check outputs.
+        expected = """
+        [{'args': ('git branch HelpersTask1290_Test_Branch master',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}}]
+        """
+        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
+
+    def test2(self) -> None:
+        """
+        Test that branch creation is skipped if branch already exists.
+        """
+        # Prepare inputs.
+        branch_name = "HelpersTask1290_Existing_Branch"
+        # Run test and mock branch_exists to return True.
+        with hunteuti.capture_sys_calls() as invocations:
+            with mock.patch(
+                "dev_scripts_helpers.git.create_git_worktree._branch_exists",
+                return_value=True,
+            ):
+                dshgcgiwo._create_branch(branch_name)
+        # Check outputs: no system calls should be made.
+        expected = "[]"
+        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
+
+
+# #############################################################################
+# Test_create_worktree
+# #############################################################################
+
+
+class Test_create_worktree(hunitest.TestCase):
+    """
+    Tests for `_create_worktree()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test creating a worktree.
+        """
+        # Prepare inputs.
+        branch_name = "HelpersTask1290_Test_Branch"
+        issue_id = 1290
+        # Run test and capture system calls.
+        with hunteuti.capture_sys_calls() as invocations:
+            with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
+                worktree_path = dshgcgiwo._create_worktree(branch_name, issue_id)
+        # Check outputs.
+        expected = """
+        [{'args': ('git worktree add /home/user/helpers1_worktree_1290 '
+                   'HelpersTask1290_Test_Branch',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}}]
+        """
+        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
+        # Verify returned worktree path.
+        expected_path = "/home/user/helpers1_worktree_1290"
+        self.assertEqual(worktree_path, expected_path)
+
+
 class Test_create_git_worktree_py(hunitest.TestCase):
     """
     End-to-end tests for the `create_git_worktree.py` executable.
@@ -237,13 +320,13 @@ class Test_create_git_worktree_py(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test creating branch and worktree captures correct git commands.
+        Test backward compatibility: _create_branch_and_worktree creates both.
         """
         # Prepare inputs.
         branch_name = "HelpersTask1290_Test_Branch"
         issue_id = 1290
         # Run test and capture system calls.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as invocations:
             with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
                 with mock.patch(
                     "dev_scripts_helpers.git.create_git_worktree._branch_exists",
@@ -262,20 +345,20 @@ class Test_create_git_worktree_py(hunitest.TestCase):
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}}]
         """
-        hunteuti.assert_invocations(self, invocations, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
         # Verify returned worktree path.
         expected_path = "/home/user/helpers1_worktree_1290"
         self.assertEqual(worktree_path, expected_path)
 
     def test3(self) -> None:
         """
-        Test skipping branch creation if branch already exists.
+        Test backward compatibility: skipping branch creation if exists.
         """
         # Prepare inputs.
         branch_name = "HelpersTask1290_Existing_Branch"
         issue_id = 1290
         # Run test and mock branch_exists to return True.
-        with hunteuti.capture_system_calls() as invocations:
+        with hunteuti.capture_sys_calls() as invocations:
             with mock.patch(
                 "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                 return_value=True,
@@ -291,7 +374,96 @@ class Test_create_git_worktree_py(hunitest.TestCase):
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}}]
         """
-        hunteuti.assert_invocations(self, invocations, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
         # Verify returned worktree path.
         expected_path = "/home/user/helpers1_worktree_1290"
         self.assertEqual(worktree_path, expected_path)
+
+    def test4(self) -> None:
+        """
+        Test --create_worktree flag when False (default).
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        body_file = os.path.join(scratch_dir, "body.md")
+        with open(body_file, "w") as f:
+            f.write("Test body")
+        argv = [
+            "create_git_worktree.py",
+            "--gh_issue_id",
+            "1290",
+            "--instr_file",
+            body_file,
+        ]
+        # Run test with mocked system calls.
+        parser = dshgcgiwo._parse()
+        with mock.patch("sys.argv", argv):
+            with hunteuti.capture_sys_calls() as invocations:
+                with mock.patch(
+                    "helpers.hsystem.system_to_string",
+                    return_value=("", "Test Issue Title"),
+                ):
+                    with mock.patch(
+                        "dev_scripts_helpers.git.create_git_worktree._check_no_subrepos"
+                    ):
+                        with mock.patch(
+                            "dev_scripts_helpers.git.create_git_worktree._branch_exists",
+                            return_value=False,
+                        ):
+                            dshgcgiwo._main(parser)
+        # Check outputs: only branch creation, no worktree creation.
+        expected = """
+        [{'args': ('git branch HelpersTask1290_Test_Issue_Title master',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}}]
+        """
+        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
+
+    def test5(self) -> None:
+        """
+        Test --create_worktree flag when True.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        body_file = os.path.join(scratch_dir, "body.md")
+        with open(body_file, "w") as f:
+            f.write("Test body")
+        argv = [
+            "create_git_worktree.py",
+            "--gh_issue_id",
+            "1290",
+            "--instr_file",
+            body_file,
+            "--create_worktree",
+        ]
+        # Run test with mocked system calls.
+        parser = dshgcgiwo._parse()
+        with mock.patch("sys.argv", argv):
+            with hunteuti.capture_sys_calls() as invocations:
+                with mock.patch(
+                    "helpers.hsystem.system_to_string",
+                    return_value=("", "Test Issue Title"),
+                ):
+                    with mock.patch(
+                        "dev_scripts_helpers.git.create_git_worktree._check_no_subrepos"
+                    ):
+                        with mock.patch(
+                            "dev_scripts_helpers.git.create_git_worktree._branch_exists",
+                            return_value=False,
+                        ):
+                            with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
+                                with mock.patch(
+                                    "builtins.print"
+                                ):  # Mock print to avoid output
+                                    dshgcgiwo._main(parser)
+        # Check outputs: both branch and worktree creation.
+        expected = """
+        [{'args': ('git branch HelpersTask1290_Test_Issue_Title master',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}},
+         {'args': ('git worktree add /home/user/helpers1_worktree_1290 '
+                   'HelpersTask1290_Test_Issue_Title',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}}]
+        """
+        hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)

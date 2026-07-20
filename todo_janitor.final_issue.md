@@ -15,27 +15,70 @@ are in progress [.], or failed [v]
   - When the task is complex, create a `plan.md` with 5 bullet points explaining
     what the plan is
 
+## Issue
+
+```
+## [ ] Issue3: Use Filter_text From Helpers/hprint.py
+
 ### Info
 - Original description:
-  `./helpers/hunit_test_utils.py:598:# TODO(ai_gp): Rename variables and functions using invocations -> sys_calls`
+  `./helpers/hunit_test.py:744:# TODO(ai_gp): Use the copy in helpers/hprint.py`
 
 ### Proposed Fix
-- Type: refactoring/renaming (consistency)
-- Reason: "sys_calls" is shorter and more consistent with existing naming
-  patterns
+- Type: code reuse/deduplication
+- Reason: `filter_text()` is duplicated - better to import from single source
 - Proposed fix:
-  - Global rename: all uses of "invocations" (variable, parameter, return) →
-    "sys_calls"
-  - Update function docstrings and comments
-  - Rename any functions/methods that include "invocation" to use "sys_call"
-  - Examples: `capture_system_calls()`, `assert_invocations()` → needs careful
-    consideration
+  - Check if `hprint.filter_text()` exists and is compatible
+  - Replace `hunit_test.filter_text()` with import from `hprint`
+  - Update all callers to use `hprint.filter_text()`
 - Confidence in the fix: high
-- Fix complexity: high
+- Fix complexity: low
 - Verification plan:
-  - Grep codebase for "invocation" and "sys_call" to understand current usage
-  - Run full test suite after renaming
-  - Verify all system call capturing still works
+  - Run tests in `test_hunit_test.py` to verify filter_text still works
+  - Grep codebase for uses of `hunit_test.filter_text` and verify they work
+
+## [ ] Issue5: Move Assertion Into Test Helper
+
+### Info
+- Original description:
+  `./dev_scripts_helpers/testing/test/test_pytest_failed.py:48:# TODO(ai_gp): Move the assertion into the helper.`
+
+### Proposed Fix
+- Type: refactoring/test improvement
+- Reason: Moving assertion into helper consolidates test logic and reduces
+  duplication
+- Proposed fix:
+  - Modify `self.helper()` to include the assertion
+  - Remove assertion from test method
+  - Update other test methods that use this helper
+- Confidence in the fix: high
+- Fix complexity: medium
+- Verification plan:
+  - Run all tests in `test_pytest_failed.py` to verify they still pass
+  - Verify assertion still catches errors
+
+## [ ] Issue6: Move Coverage Action to \_run_python_linting_actions
+
+### Info
+- Original description:
+  `./linters2/lint.py:316:# TODO(ai_gp): Move this to _run_python_linting_actions`
+
+### Proposed Fix
+- Type: refactoring/code organization
+- Reason: Coverage is a Python linting action and should be part of the unified
+  linting flow
+- Proposed fix:
+  - Move coverage handling from `_lint_python_files()` into
+    `_run_python_linting_actions()`
+  - Update action list handling to include "coverage"
+  - Remove duplicate coverage check from `_lint_python_files()`
+- Confidence in the fix: high
+- Fix complexity: medium
+- Verification plan:
+  - Run `invoke run_coverage` to verify it still works
+  - Test lint with coverage action included
+  - Verify coverage metrics are generated correctly
+```
 
 # Step 2: [ ] Run CI Regressions
 
@@ -113,3 +156,4 @@ are in progress [.], or failed [v]
   > gh issue comment $GH_ISSUE_NUM --body "PR ${GH_PR_NUM} ready to review and merge"
   https://github.com/causify-ai/helpers/issues/1292#issuecomment-5024710557
   ```
+

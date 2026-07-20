@@ -1,30 +1,5 @@
 # TODO Janitor Plan
 
-## [ ] Issue1: Refactor Regex to Use re.VERBOSE and Comments
-
-### Info
-- Original description:
-  `./helpers/hmarkdown_coloring.py:227:# TODO(ai_gp): Use re.VERBOSE and comments`
-
-### Proposed Fix
-- Type: improvement/cosmetic
-- Reason: Current regex is hard to read. Using re.VERBOSE with inline comments
-  improves maintainability
-- Proposed fix:
-  - Replace `_COLOR_MARKER_REGEX = r"(?<!\w)@([^@\n]+)@"` with a verbose version
-  - Add comments explaining each part of the pattern
-- Confidence in the fix: high
-- Fix complexity: low
-- Verification plan:
-  - Run tests for `hmarkdown_coloring.py` to verify regex still works
-  - Check that colorize functions still produce expected output
-
-### Status
-- Status: filed
-- GitHub issue link: https://github.com/causify-ai/helpers/issues/1290
-- Git worktree:
-- PR link:
-
 ## [ ] Issue2: Use System_to_one_line() in Hgit.py
 
 ### Info
@@ -433,7 +408,7 @@
 - PR link:
 - Git worktree:
 
-## [ ] Issue17: Rename "invocations" → "sys_calls" Throughout Codebase
+## [x] Issue17: Rename "invocations" → "sys_calls" Throughout Codebase
 
 ### Info
 - Original description:
@@ -458,8 +433,8 @@
   - Verify all system call capturing still works
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
-- Git worktree:
+- Status: completed
+- GitHub issue title: HelpersTask1292_Rename_invocations_to_sys_calls_Throughout_Codebase
+- GitHub issue link: https://github.com/causify-ai/helpers/issues/1292
+- PR link: https://github.com/causify-ai/helpers/pull/1293
+- Git worktree: b2934832

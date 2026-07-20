@@ -15,10 +15,10 @@ import dev_scripts_helpers.git.create_git_worktree as dscgicgw
 """
 
 import argparse
-import json
 import logging
 import os
 import re
+import shlex
 from typing import Tuple
 
 import helpers.hdbg as hdbg
@@ -100,17 +100,16 @@ def _create_github_issue(
         "gh",
         "issue",
         "create",
-        f"--title {title}",
-        f"--body-file {body_file}",
-        f"--assignee {assignee}"
+        f"--title {shlex.quote(title)}",
+        f"--body-file {shlex.quote(body_file)}",
+        f"--assignee {shlex.quote(assignee)}"
     ]
     cmd_str = " ".join(cmd)
     _LOG.info("Creating GitHub issue: %s", cmd_str)
     _, output = hsystem.system_to_string(cmd_str)
     _LOG.debug("GitHub create output:\n%s", output)
-    # Parse the JSON output to get the URL.
-    data = json.loads(output)
-    issue_url = data["url"]
+    # Output is the URL directly
+    issue_url = output.strip()
     _LOG.info("Created issue at: '%s'", issue_url)
     # Extract issue number from URL.
     issue_number = _parse_issue_number_from_url(issue_url)
@@ -146,15 +145,13 @@ def _branch_exists(branch_name: str) -> bool:
         return False
 
 
-def _create_branch_and_worktree(branch_name: str, issue_id: int) -> str:
+def _create_branch(branch_name: str) -> None:
     """
-    Create a git branch and corresponding worktree.
+    Create a git branch from master.
 
     Skip creation if branch already exists.
 
     :param branch_name: Name for the new branch
-    :param issue_id: GitHub issue number (for path naming)
-    :return: Path to the created worktree
     """
     # Check if branch already exists.
     if _branch_exists(branch_name):
@@ -164,16 +161,40 @@ def _create_branch_and_worktree(branch_name: str, issue_id: int) -> str:
         cmd = f"git branch {branch_name} master"
         _LOG.info("Creating branch: %s", cmd)
         hsystem.system(cmd, log_level=logging.INFO)
+
+
+def _create_worktree(branch_name: str, issue_id: int) -> str:
+    """
+    Create a git worktree for the given branch.
+
+    :param branch_name: Name of the branch to create worktree for
+    :param issue_id: GitHub issue number (for path naming)
+    :return: Path to the created worktree
+    """
     # Determine worktree path (parent directory of current repo).
     current_dir = os.getcwd()
     parent_dir = os.path.dirname(current_dir)
     repo_name = os.path.basename(current_dir)
-    # TODO(ai_gp): Remore the last number.
-    worktree_path = os.path.join(parent_dir, f"{repo_name}{issue_id}")
+    worktree_path = os.path.join(parent_dir, f"{repo_name}_worktree_{issue_id}")
     _LOG.info("Creating worktree at: '%s'", worktree_path)
     # Create worktree.
     cmd = f"git worktree add {worktree_path} {branch_name}"
     hsystem.system(cmd, log_level=logging.INFO)
+    return worktree_path
+
+
+def _create_branch_and_worktree(branch_name: str, issue_id: int) -> str:
+    """
+    Create a git branch and corresponding worktree.
+
+    Calls _create_branch() and _create_worktree() for backward compatibility.
+
+    :param branch_name: Name for the new branch
+    :param issue_id: GitHub issue number (for path naming)
+    :return: Path to the created worktree
+    """
+    _create_branch(branch_name)
+    worktree_path = _create_worktree(branch_name, issue_id)
     return worktree_path
 
 
@@ -207,11 +228,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
     _LOG.debug(
-        "gh_issue_id=%s gh_issue_title=%s gh_issue_body_file=%s gh_assignee=%s",
+        "gh_issue_id=%s gh_issue_title=%s gh_issue_body_file=%s gh_assignee=%s "
+        "create_worktree=%s",
         args.gh_issue_id,
         args.gh_issue_title,
         args.gh_issue_body_file,
         args.gh_assignee,
+        args.create_worktree,
     )
     # Check optional instr_file parameter.
     if args.instr_file:
@@ -242,11 +265,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Branch name: '%s'", branch_name)
     # Assert no subrepos.
     _check_no_subrepos()
-    # Create branch and worktree.
-    worktree_path = _create_branch_and_worktree(branch_name, issue_id)
-    # TODO(ai_gp): cp the instr_file to the dir.
-    # Print usage instructions.
-    _print_usage_instructions(worktree_path, issue_id)
+    # Create branch.
+    _create_branch(branch_name)
+    # Create worktree if requested.
+    if args.create_worktree:
+        worktree_path = _create_worktree(branch_name, issue_id)
+        # TODO(ai_gp): cp the instr_file to the dir.
+        # Print usage instructions.
+        _print_usage_instructions(worktree_path, issue_id)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -288,6 +314,12 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         default="",
         help="Optional path to instruction file",
+    )
+    parser.add_argument(
+        "--create_worktree",
+        action="store_true",
+        default=False,
+        help="Create git worktree (default: False, only create branch)",
     )
     hparser.add_verbosity_arg(parser)
     return parser

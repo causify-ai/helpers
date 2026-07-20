@@ -1,3 +1,9 @@
+In invoke git_branch_create also create an empty draft PR associated with that branch
+add an option to not create the PR
+
+In dev_scripts_helpers/git/create_git_worktree.py
+replace creating a branch with git to using the invoke git_branch_create
+
 # Conventions
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
