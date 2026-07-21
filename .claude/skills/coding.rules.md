@@ -16,9 +16,14 @@
 
 - Use type hints from the `typing` module instead of newer PEP 604 syntax
 - Use `Tuple`, `Dict`, `Optional` instead of `tuple`, `dict`, `|` union syntax
+- Make sure the composite types (e.g., `tuple`, `Dict`) have included types
   - **Bad**: Use newer PEP 604 syntax
     ```python
     def process(data: dict[str, str], item: str | None) -> tuple[str, int]:
+
+    def process(data: dict, item: str | None) -> tuple:
+
+    def process(data: Dict, item: str | None) -> tuple:
         ...
     ```
   - **Good**: Use `typing` module
@@ -26,6 +31,10 @@
     from typing import Dict, Tuple, Optional
     
     def process(data: Dict[str, str], item: Optional[str]) -> Tuple[str, int]:
+        ...
+    ```
+  - **Bad**: Use newer PEP 604 syntax
+    ```python
         ...
     ```
 
@@ -49,6 +58,46 @@
   if os.path.exists(file_path):
       with open(file_path, "r") as f:
           content = f.read()
+  ```
+
+## Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings
+
+- For multi-line strings in code (test fixtures, expected outputs, scripts,
+  documentation examples), use assignment with `"""` and `hprint.dedent()` instead
+  of escaped `\n` in string literals
+- This improves readability, maintainability, and makes the string structure
+  immediately visible
+- Assign the indented string to a variable, then call `hprint.dedent()` on it
+
+- **Bad**: Escaped newlines (hard to read and modify)
+  ```python
+  content = "#!/bin/bash\npytest helpers/test/test_module.py\necho 'done'"
+  bash_script = "set -e\necho 'start'\npytest test.py"
+  config = "key1: value1\nkey2: value2\nkey3: value3"
+  ```
+
+- **Good**: Triple-quote assignment with `hprint.dedent`
+  ```python
+  content = """
+  #!/bin/bash
+  pytest helpers/test/test_module.py
+  echo 'done'
+  """
+  content = hprint.dedent(content)
+
+  bash_script = """
+  set -e
+  echo 'start'
+  pytest test.py
+  """
+  bash_script = hprint.dedent(bash_script)
+
+  config = """
+  key1: value1
+  key2: value2
+  key3: value3
+  """
+  config = hprint.dedent(config)
   ```
 
 ## Mark Private Functions
@@ -630,6 +679,33 @@
     """
     ```
 
+## Use Backticks for Scripts, Linux Commands, and Executables
+
+- When referring to scripts, Linux commands, or executables in comments and
+  docstrings, enclose them in backticks
+- This applies to:
+  - Script filenames: `pytest_failed.py`, `extract_toc_from_txt.py`
+  - Command-line tools: `grep`, `sed`, `awk`, `git`
+  - Executables: `python`, `bash`, `curl`
+
+- **Bad**: Referring to scripts without backticks
+  ```python
+  # Locate pytest_failed.py script in the same directory.
+  ```
+- **Good**: Referring to scripts with backticks
+  ```python
+  # Locate `pytest_failed.py` script in the same directory.
+  ```
+
+- **Bad**: Referring to commands without backticks
+  ```python
+  # Run grep to find matching lines.
+  ```
+- **Good**: Referring to commands with backticks
+  ```python
+  # Run `grep` to find matching lines.
+  ```
+
 # Comments
 
 ## Add Comments Liberally
@@ -637,6 +713,66 @@
   liberally
   - Leave existing comments unless they are incorrect, even if they explain
     WHAT code does and they are redundant
+
+## Add Comments for Code Blocks
+- Add comments for every cohesive code block that is at least 3-5 lines long
+  explaining what the code block does
+  - **Bad** (different chunks of code without comments)
+    ```python
+    num_passed = info.get("log_num_passed", 0) or 0
+    num_failed = info.get("log_num_failed", 0) or 0
+    duration = f"{info['pytest_duration_in_secs']}s"
+    res = {
+        "passed": num_passed,
+        "failed": num_failed,
+        "duration": duration,
+    }
+    ```
+  - **Good** (add comments to chunks)
+    ```python
+    # Extract info.
+    num_passed = info.get("log_num_passed", 0) or 0
+    num_failed = info.get("log_num_failed", 0) or 0
+    duration = f"{info['pytest_duration_in_secs']}s"
+    # Assemble result.
+    res = {
+        "passed": num_passed,
+        "failed": num_failed,
+        "duration": duration,
+    }
+    ```
+
+## Comment Explains Why, Not What
+- Add comments that explain _why_ rather than _what_
+  - Add comments describing important invariants, assumptions, or guarantees
+    maintained by the code
+  - Keep all comments as short and precise as possible
+  - Avoid obvious line-by-line comments
+  - Do not restate the code in English
+
+## Replace Empty Lines with Comments
+- If there are empty comments separating chunks of code, add a comment
+  - **Bad** (empty comment)
+    ```python
+    #
+    stacktraces_file = hpytest.get_output_file_path(
+        "stacktraces.txt", build_name=build_name
+    )
+    hpytest.write_test_stacktraces(info, stacktraces_file)
+    _LOG.info("Created '%s'", stacktraces_file)
+    ```
+  - **Good**
+    ```python
+    # Stacktraces.
+    stacktraces_file = hpytest.get_output_file_path(
+        "stacktraces.txt", build_name=build_name
+    )
+    hpytest.write_test_stacktraces(info, stacktraces_file)
+    _LOG.info("Created '%s'", stacktraces_file)
+    ```
+
+## Do Not Remove Comments
+- Do not remove any comment, only add new ones when needed
 
 ## Comment Chunk of Code
 - Use comments to separate logical chunks of code
@@ -857,6 +993,34 @@
 - Use `_LOG.debug` to add debugging info that can help a programmer to track the
   issues
   - Always use lazy % formatting in logging functions
+
+## Add Debug Logging for Function Entry
+
+- For free-standing functions and class methods add at the beginning:
+  - `_LOG.debug(hprint.to_str("a b c"))` with the variables that are most
+    important and not too big to print (e.g., large text, dictionary and so on)
+- Use parameter names (omit `self` for methods)
+
+## Add Debug Logging for Function Execution
+
+- Use `_LOG.debug` to add debugging info in functions that can help a programmer
+  to track the issues and execution
+
+## Add Debug Logging for Function Results
+
+- Refactor code to avoid more than one `return` statement when possible
+- Instrument the code to print the exit value of a function
+  ```python
+  _LOG.debug("return=%s", ...)
+  ```
+
+## Debug Logging Conventions
+
+- Use `_LOG.debug(hprint.to_str("a b c")` when possible
+- Do not print large objects, e.g.:
+  - If there is an array of objects print only the first element
+  - If there is a dictionary print only the first key
+- Do not change the behavior of the code in any way
 
 ## Enclose Variables in Single Quotes in Log Messages
 

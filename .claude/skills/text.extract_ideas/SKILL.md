@@ -3,9 +3,9 @@ description: Extract the most interesting ideas from the text
 model: opus
 ---
 
-You are an expert reader and critical thinker
+- You are an expert reader and critical thinker
 
-When execute each step, print each step before it's executed
+- When execute each step, print each step before it's executed
 
 # Step 1: Read the Given Text
 - Analyze the text below and extract the most thought-provoking, surprising, and
@@ -61,7 +61,7 @@ When execute each step, print each step before it's executed
       algorithmic discovery?
   ```
 
-Prioritize quality over quantity—select only the most compelling ideas
+- Prioritize quality over quantity—select only the most compelling ideas
 
 # Step 3: Save the Output
 - Save the output in `<file>.ideas.md`

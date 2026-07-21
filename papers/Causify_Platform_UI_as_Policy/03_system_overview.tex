@@ -1,21 +1,18 @@
 % ##############################################################################
-  \clearpage
-  \section{System Overview}
-  This section introduces the end-to-end flow and the artifacts exchanged
-  between components. The key is that the backend produces a \emph{materialized}
-  UI contract scoped by tenant and role, and the frontend renders it
-  without inventing policy.
+\section{System Overview}
+\label{sec:system_overview}
 
-% ==============================================================================
-  \subsection{High-level architecture}
-  Figure~\ref{fig:architecture} shows the main components and control
-  flow.
+\uiPolicy{} has one moving part that matters more than the rest: the backend materializes a UI contract before the web tier renders the product. The contract is scoped to the authenticated actor, the effective tenant, and the effective role. The browser receives a product surface that has already been shaped by policy.
+
+\subsection{Request lifecycle}
+\label{sec:lifecycle}
+
+Figure~\ref{fig:architecture} shows the request lifecycle.
 
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
-    % Styles
     actor/.style={draw, rectangle, rounded corners, align=center, minimum width=32mm,
                   minimum height=18mm, font=\footnotesize, fill=gray!8},
     arrow/.style={-{Latex[length=2.5mm]}, thick},
@@ -23,178 +20,98 @@
     lbl/.style={font=\scriptsize, fill=white, inner sep=2pt, align=center},
     lifeline/.style={dashed, gray}
   ]
-    % === Actor boxes (top) with full descriptions ===
-    \node[actor] (user) at (0,0) {\textbf{Browser}\\[2pt]\tiny User Agent};
+    \node[actor] (user) at (0,0) {\textbf{Browser}\\[2pt]\tiny User agent};
+    \node[actor] (idp) at (3.5,0) {\textbf{Identity Provider}\\[2pt]\tiny Cognito User Pools\\[-1pt]\tiny JWT + groups};
+    \node[actor] (web) at (7.5,0) {\textbf{Web Tier}\\[2pt]\tiny Next.js\\[-1pt]\tiny server session};
+    \node[actor] (api) at (11.5,0) {\textbf{Control Plane API}\\[2pt]\tiny AWS Lambda\\[-1pt]\tiny \texttt{/v2/me}};
+    \node[actor] (ddb) at (15.5,0) {\textbf{Policy Store}\\[2pt]\tiny DynamoDB\\[-1pt]\tiny modules + layout};
 
-    \node[actor] (idp) at (3.5,0) {\textbf{Identity Provider}\\[2pt]\tiny Cognito User Pools\\[-1pt]\tiny (JWT + groups)};
-
-    \node[actor] (web) at (7.5,0) {\textbf{Web Tier}\\[2pt]\tiny Next.js (server + client)\\[-1pt]\tiny iron-session (encrypted)};
-
-    \node[actor] (api) at (11.5,0) {\textbf{Control Plane API}\\[2pt]\tiny AWS Lambda + Powertools\\[-1pt]\tiny \texttt{/v2/me} (actor, view-as)};
-
-    \node[actor] (ddb) at (15.5,0) {\textbf{Tenant Policy Store}\\[2pt]\tiny DynamoDB\\[-1pt]\tiny (modules + layout fragments)};
-
-    % === Lifelines ===
     \draw[lifeline] (user.south) -- ++(0,-13);
     \draw[lifeline] (idp.south) -- ++(0,-13);
     \draw[lifeline] (web.south) -- ++(0,-13);
     \draw[lifeline] (api.south) -- ++(0,-13);
     \draw[lifeline] (ddb.south) -- ++(0,-13);
 
-    % === Messages ===
-
-    % 1. Login to IdP
     \draw[arrow] (0,-1.5) -- node[lbl, above] {(1) Login request} (3.5,-1.5);
-    \draw[returnarrow] (3.5,-2.1) -- node[lbl, above] {JWT issued + groups} (0,-2.1);
-
-    % 2. Page request with JWT
+    \draw[returnarrow] (3.5,-2.1) -- node[lbl, above] {JWT + groups} (0,-2.1);
     \draw[arrow] (0,-3) -- node[lbl, above] {(2) Page request + JWT cookie} (7.5,-3);
-
-    % 3. Store session (self-call)
     \draw[arrow] (7.5,-3.8) -- ++(0.6,0) -- ++(0,-0.5) -- ++(-0.6,0);
-    \node[lbl, right] at (8.2,-4.05) {(3) Store session (iron-session)};
-
-    % 4. Fetch profile /v2/me
+    \node[lbl, right] at (8.2,-4.05) {(3) Store encrypted session};
     \draw[arrow] (7.5,-5) -- node[lbl, above] {(4) GET \texttt{/v2/me}} (11.5,-5);
-    \node[lbl] at (9.5,-5.5) {\tiny Authorization: Bearer + X-View-As header};
-
-    % 5. Query tenant policy
+    \node[lbl] at (9.5,-5.5) {Bearer token + optional view-as header};
     \draw[arrow] (11.5,-6.2) -- node[lbl, above] {(5) Query tenant policy} (15.5,-6.2);
-    \draw[returnarrow] (15.5,-6.8) -- node[lbl, above] {modules + moduleLayout (JSON)} (11.5,-6.8);
-
-    % 6. Return materialized UI contract
-    \draw[returnarrow] (11.5,-7.6) -- node[lbl, above] {(6) \{actor, view\_as, modules, module\_layout, impersonatable\}} (7.5,-7.6);
-
-    % 7. Build CASL abilities (self-call)
+    \draw[returnarrow] (15.5,-6.8) -- node[lbl, above] {modules + layout fragments} (11.5,-6.8);
+    \draw[returnarrow] (11.5,-7.6) -- node[lbl, above] {(6) UI contract} (7.5,-7.6);
     \draw[arrow] (7.5,-8.4) -- ++(0.6,0) -- ++(0,-0.5) -- ++(-0.6,0);
-    \node[lbl, right] at (8.2,-8.65) {(7) Build CASL abilities from profile};
-
-    % 8. Return HTML + packed rules
-    \draw[returnarrow] (7.5,-9.5) -- node[lbl, above] {(8) HTML + packed CASL rules for client UX} (0,-9.5);
-
-    % 9. Lazy load module layout
-    \draw[arrow] (0,-10.3) -- node[lbl, above] {(9) GET \texttt{/api/auth/user/module-layout?module=X}} (7.5,-10.3);
-    \draw[returnarrow] (7.5,-10.9) -- node[lbl, above] {merged config (defaults + tenant fragments)} (0,-10.9);
-
-    % Time arrow on left
+    \node[lbl, right] at (8.2,-8.65) {(7) Build CASL abilities};
+    \draw[returnarrow] (7.5,-9.5) -- node[lbl, above] {(8) HTML + packed rules for UX} (0,-9.5);
+    \draw[arrow] (0,-10.3) -- node[lbl, above] {(9) GET module layout} (7.5,-10.3);
+    \draw[returnarrow] (7.5,-10.9) -- node[lbl, above] {merged defaults + tenant fragments} (0,-10.9);
     \draw[-{Latex[length=2.5mm]}, thick] (-1.8,-0.8) -- (-1.8,-13);
     \node[font=\scriptsize, rotate=90] at (-2.1,-6.5) {time};
-
   \end{tikzpicture}%
   }
-  \caption{\system{} sequence diagram showing the complete request lifecycle.
-  (1--2) Browser authenticates via Cognito and receives JWT with group claims.
-  (3--4) Web Tier stores session and fetches materialized profile from Control Plane.
-  (5--6) Control Plane queries DynamoDB for tenant policy and returns the UI contract.
-  (7--8) Server builds CASL abilities and returns HTML with packed rules.
-  (9) Module layouts are lazy-loaded on demand.}
+  \caption{Production request lifecycle. The web tier calls \code{/v2/me}, receives a materialized UI contract, builds server-side abilities, and renders the client with packed rules for UX. Module layouts are lazy-loaded and checked server-side before they are returned.}
   \label{fig:architecture}
 \end{figure}
 
-% ==============================================================================
-  \subsection{Request lifecycle (what happens on a typical page load)}
-  The core request lifecycle is:
+The key response is step 6. \code{/v2/me} is not just a profile endpoint. It is the control-plane contract that tells the web tier which tenant world it should render.
 
-  \begin{enumerate}
-    \item \textbf{Authentication:} a user authenticates via Cognito and
-      the web tier receives a JWT that includes group membership
-      \cite{aws_cognito_user_pools,aws_cognito_groups}.
+\subsection{The UI contract}
+\label{sec:ui_contract}
 
-    \item \textbf{Control-plane materialization (\texttt{/v2/me}):} the
-      web tier calls the control plane with \texttt{Authorization: Bearer
-      \ldots} and optionally \texttt{X-View-As: tenant\_id=\ldots;role=\ldots}. The
-      Lambda middleware validates the token, computes \texttt{user\_role},
-      computes an \texttt{impersonatable} allow-list, validates \viewas{}
-      selections against that allow-list, and returns:
-      \begin{itemize}
-        \item \texttt{actor}: immutable identity (who is calling),
+A simplified response looks like this.
 
-        \item \texttt{view\_as}: effective tenant/role and derived modules/layout,
-
-        \item \texttt{impersonatable}: permissible \viewas{} targets for
-          support/QA.
-      \end{itemize}
-      The response includes caching and ETag support to reduce repeated materialization
-      overhead (useful when the UI pings ``who am I?'' often).
-
-    \item \textbf{Server-authoritative abilities:} the web tier builds
-      the canonical permission model from the server-side session
-      profile and exports packed rules for the client (CASL)
-      \cite{casl_docs}. The client uses these rules for UX (what to show),
-      while backend APIs remain authoritative for security (what is allowed).
-
-    \item \textbf{Runtime UI composition:} the UI composes navigation
-      and module defaults from \texttt{module\_layout} returned by \texttt{/v2/me}.
-      Module-specific layout is lazily loaded and merged with shipped defaults,
-      so configuration can be partial (override the sidebar, not the
-      universe).
-  \end{enumerate}
-
-% ==============================================================================
-  \subsection{Key abstractions and artifacts}
-  Table~\ref{tab:artifacts} summarizes the artifacts that make the
-  system composable and auditable.
-
-  \begin{table}[H]
-    \centering
-    \small
-    \begin{tabularx}{\textwidth}{>{\ttfamily\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{2.8cm} X X}
-      \toprule
-      \textnormal{\textbf{Artifact}} & \textbf{Where defined} & \textbf{Produced by} & \textbf{Used for} \\
-      \midrule
-      actor & JWT + derived claims & \texttt{/v2/me} (Lambda) & Auditability: the real caller identity never changes. \\
-      view\_as & \texttt{X-View-As} header & \texttt{/v2/me} (validated) & Effective tenant/role context for modules + layout. \\
-      impersonatable & Derived from actor role & \texttt{/v2/me} & Guardrail: explicit allow-list of \viewas{} targets. \\
-      modules & Tenant policy record & \texttt{/v2/me} & Capability list for UI composition and ability building. \\
-      module\_layout & Tenant policy (JSON) & \texttt{/v2/me} & Structured UI contract: navigation + module defaults. \\
-      \textnormal{Packed CASL rules} & Ability builder & \texttt{/api/\ldots/ability} & Client UX consistency: hide forbidden UI\@. \\
-      \bottomrule
-    \end{tabularx}
-    \caption{The system's core artifacts: identity, effective context, capability
-    set, and UI contract. The same policy inputs drive both authorization
-    and UX.}
-    \label{tab:artifacts}
-  \end{table}
-
-% ==============================================================================
-  \subsection{Why this is different from ``dynamic UI''}
-  Many systems have tenant-specific UIs. The distinguishing property
-  here is not mere variability; it is \emph{policy alignment}.\@ \uiPolicy{}
-  ensures that what the user sees is derived from the same tenant/role-scoped
-  policy that determines what the system will allow. In short: the UI
-  stops improvising.
-
-% ==============================================================================
-  \subsection{Module architecture: independence with shared policy}
-  \label{sec:modules}
-
-  \system{} implements a modular architecture where each functional area
-  operates as an \emph{independent module}. Every module follows an identical
-  structural pattern:
-
-  \begin{itemize}
-    \item \textbf{Server layout} (\texttt{layout.tsx}): enforces CASL access
-      before rendering.
-    \item \textbf{Client component} (\texttt{client.tsx}): interactive UI,
-      state management, and data fetching.
-    \item \textbf{Dedicated API routes} (\texttt{/api/\{module\}/}): inherit
-      the same CASL and \viewas{} context.
-  \end{itemize}
-
-  This yields a key property: modules are \emph{independently evolvable} and
-  can be enabled or disabled per tenant via policy without creating dead
-  routes or broken doors. Listing~\ref{lst:module_layout} illustrates the protection pattern.
-
-  \begin{samepage}
-  \begin{lstlisting}[style=typescript,caption={Module protection pattern: server layout enforces CASL before rendering.},label={lst:module_layout}]
-// app/(protected)/(app)/{module}/layout.tsx
-import { requireAccess } from '@/lib/core/casl/server'
-
-export default async function ModuleLayout({
-  children
-}: { children: React.ReactNode }) {
-  await requireAccess('module-name')
-  return <>{children}</>
+\Needspace{22\baselineskip}
+\begin{lstlisting}[style=json, caption={Representative \code{/v2/me} response for a two-module tenant.}, label={lst:v2me}]
+{
+  "actor": {
+    "sub": "u123",
+    "email": "engineer@example.com"
+  },
+  "view_as": {
+    "tenant_id": "acme",
+    "role": "admin",
+    "modules": ["horizon", "grid"],
+    "module_layout": { "sidebar": "full" }
+  },
+  "impersonatable": [
+    {"tenant_id": "acme", "roles": ["member", "admin"]},
+    {"tenant_id": "globex", "roles": ["member"]}
+  ]
 }
 \end{lstlisting}
-  \end{samepage}
+
+The fields separate two identities that are often blurred.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{>{\ttfamily\raggedright\arraybackslash}p{3cm} X X}
+    \toprule
+    \textnormal{\textbf{Field}} & \textbf{Meaning} & \textbf{Why it matters} \\
+    \midrule
+    actor & The real authenticated identity. & The audit trail always points to the human or service account that made the request. \\
+    view\_as & The effective tenant and role context. & Support workflows can adopt a tenant perspective without erasing the actor. \\
+    modules & Enabled modules for the effective context. & Navigation and module entry points come from policy data. \\
+    module\_layout & Structured layout fragments and defaults. & Tenant-specific UI shape travels with policy instead of frontend conditionals. \\
+    impersonatable & Server-computed allow-list of view-as targets. & The UI can offer only the targets the backend will accept. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Core fields in the materialized UI contract.}
+  \label{tab:contract_fields}
+\end{table}
+
+\subsection{Module structure}
+\label{sec:modules}
+
+The platform defines seven independently evolvable modules: Horizon, Grid, Optima, Panorama, Frontier, Sentinel, and DataMap. Each module follows the same shape.
+
+\begin{itemize}
+  \item A server layout checks the effective ability before rendering.
+  \item A client module renders the experience selected by the contract.
+  \item API routes inherit the same effective context from the server session.
+  \item Module-specific layout is fetched only after a server-side ability check.
+\end{itemize}
+
+That last point is important. Layout is treated as privileged data. If a user cannot view a module, the server will not return its layout even if a modified browser requests it directly.

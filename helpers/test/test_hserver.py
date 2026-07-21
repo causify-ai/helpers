@@ -149,7 +149,7 @@ class Test_hserver_inside_docker_container_on_csfy_server1(
         super().setUp()
         self.exp_config_func_to_str = ""
         self.exp_get_docker_info = hprint.dedent(r"""
-            # Docker info
+            Docker info
               has_docker=True
               docker_needs_sudo=False
               has_privileged_mode=True
@@ -195,7 +195,7 @@ class Test_hserver_outside_docker_container_on_csfy_server1(
         super().setUp()
         self.exp_config_func_to_str = ""
         self.exp_get_docker_info = hprint.dedent(r"""
-            # Docker info
+            Docker info
               has_docker=True
               docker_needs_sudo=False
               has_privileged_mode=True
@@ -241,7 +241,7 @@ class Test_hserver_inside_docker_container_on_gp_mac1(
         super().setUp()
         self.exp_config_func_to_str = ""
         self.exp_get_docker_info = hprint.dedent(r"""
-            # Docker info
+            Docker info
               has_docker=True
               docker_needs_sudo=False
               has_privileged_mode=True
@@ -288,7 +288,7 @@ class Test_hserver_outside_docker_container_on_gp_mac1(
         super().setUp()
         self.exp_config_func_to_str = ""
         self.exp_get_docker_info = hprint.dedent(r"""
-            # Docker info
+            Docker info
               has_docker=True
               docker_needs_sudo=False
               has_privileged_mode=True

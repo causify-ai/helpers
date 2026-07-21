@@ -282,6 +282,14 @@
         self.helper(txt, expected)
     ```
 
+### Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings
+
+- Always use assignment with `"""` and `hprint.dedent()`, never use escaped `\n`
+  in string literals
+- For test input or expected output strings, follow the rule in
+  `.claude/skills/coding.rules.md` under
+  `## Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings`
+
 ## Use Three Sections in Testing Methods
 
 - Every test method must have three sections with standard comments:
@@ -442,6 +450,76 @@
           input_val = "test_input"
           # Prepare outputs.
           expected = "test_output"
+          # Run test.
+          self.helper(input_val, expected)
+  ```
+
+## Order Helper Methods First in Test Classes
+
+- Place helper methods at the top of the test class, immediately after the class
+  docstring and before any test methods
+- Name helper methods as `helper`, `helper1`, `helper2`, etc. (with numeric
+  suffix if multiple helpers are needed)
+- This makes helper code visible first and clearly separates helper logic from
+  test cases
+
+- **Bad** (test methods mixed with helpers)
+  ```python
+  class TestFunctionName(hunitest.TestCase):
+
+      def test1(self) -> None:
+          """
+          Test case 1.
+          """
+          self._run_test(input1, expected1)
+
+      def _run_test(self, input_val: str, expected: str) -> None:
+          """
+          Helper logic.
+          """
+          actual = function_under_test(input_val)
+          self.assert_equal(actual, expected)
+
+      def test2(self) -> None:
+          """
+          Test case 2.
+          """
+          self._run_test(input2, expected2)
+  ```
+
+- **Good** (helpers placed first)
+  ```python
+  class TestFunctionName(hunitest.TestCase):
+
+      def helper(self, input_val: str, expected: str) -> None:
+          """
+          Helper for function_under_test.
+
+          :param input_val: Input to test
+          :param expected: Expected output
+          """
+          actual = function_under_test(input_val)
+          self.assert_equal(actual, expected)
+
+      def test1(self) -> None:
+          """
+          Test case 1.
+          """
+          # Prepare inputs.
+          input_val = "test_input"
+          # Prepare outputs.
+          expected = "test_output"
+          # Run test.
+          self.helper(input_val, expected)
+
+      def test2(self) -> None:
+          """
+          Test case 2.
+          """
+          # Prepare inputs.
+          input_val = "different_input"
+          # Prepare outputs.
+          expected = "different_output"
           # Run test.
           self.helper(input_val, expected)
   ```
@@ -941,7 +1019,7 @@ line3
 - Follow the command line building conventions in
   `.claude/skills/coding.rules.md` under `## How to Build Command Lines`
 
-## Use the Mocking Infrastructure
+## Use the SysCall Mocking Infrastructure
 - For testing executables use end-to-end tests that:
   1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
      and record calls to `subprocess.run()`, `hsystem.system()`, and

@@ -1,221 +1,29 @@
 % ##############################################################################
-  \section{Implementation Notes}
-  This section grounds \uiPolicy{} in concrete engineering choices. The goal
-  is not to sell a specific stack, but to show the mechanics that make
-  the UI \emph{provably less prone to lying}.
+\section{Implementation Notes}
+\label{sec:implementation}
 
-% ==============================================================================
-  \subsection{Control plane: Lambda as policy materializer}
-  The control plane is an AWS Lambda REST API built with Powertools for AWS
-  Lambda (Python) \cite{aws_powertools}. The handler uses an \texttt{APIGatewayRestResolver}
-  and exposes both \texttt{/v1/me} (legacy) and \texttt{/v2/me} (actor/\viewas{}
-  model).
+The deployed system uses AWS-managed identity and data services, a server-rendered web tier, and a modular React application. The details below are not requirements for the pattern, but they show where the sharp edges live.
 
-  Three middlewares do most of the heavy lifting:
+\subsection{Control plane}
+\label{sec:control_plane}
 
-  \begin{enumerate}
-    \item \textbf{Authentication \& context middleware.} It validates
-      the JWT, extracts \texttt{custom:tenantId}, derives the role from \texttt{cognito:groups},
-      computes \texttt{available\_impersonations}, validates \texttt{X-View-As}
-      (if present) against that allow-list, and resolves \texttt{schema\_prefix}
-      from the effective tenant.
+The control plane is an AWS Lambda API behind API Gateway. Middleware validates Cognito JWTs, resolves tenant membership from the policy store, computes effective role and module access, applies view-as guardrails, and returns the \code{/v2/me} contract. AWS Lambda Powertools provides the middleware structure and observability hooks \cite{aws_powertools}.
 
-    \item \textbf{ETag middleware.} It supports conditional requests via
-      \texttt{If-None-Match} and returns \texttt{304 Not Modified} when
-      appropriate, reducing repeated payload bytes.
+The endpoint uses ETag and \code{If-None-Match} semantics so repeated identity checks do not force full materialization. Full materialization still happens when the identity fingerprint changes, when the session changes, or when a page load needs a fresh contract.
 
-    \item \textbf{Response headers middleware.} It adds security headers
-      (CSP, HSTS, etc.) and sets a short shared cache TTL suitable for profile-like
-      resources.
-  \end{enumerate}
+\subsection{Web tier}
+\label{sec:web_tier}
 
-  \paragraph{Semicolon-delimited \viewas{} header.}
-  \viewas{} is expressed as a semicolon-delimited header that the middleware
-  parses into a dict, e.g.\ \texttt{tenant\_id=acme;role=member}. This is
-  intentionally simple: it is easy to generate, easy to log, and hard to
-  misunderstand at 03:00.
+The web tier stores session state with iron-session \cite{iron_session}. Server components read the session, call the control plane, build CASL abilities, and render the application shell. Packed CASL rules are sent to the client for UX consistency. They are treated as hints, never authority.
 
-  \begin{samepage}
-  \begin{lstlisting}[style=python,caption={Control-plane middleware enforces view-as via allow-lists and resolves effective tenant scope. (Simplified from production code.)},label={lst:middleware_auth}]
-# Token -> Claims -> Tenant_Id -> User_Role
-tenant_id = claims["custom:tenantId"]
-user_role = extract_user_role_from_groups(tenant_id, claims.get("cognito:groups"))
+\subsection{Policy store governance}
+\label{sec:policy_store_governance}
 
-available = get_available_impersonations(tenant_id, user_role, claims.get("cognito:groups"))
-view_as = parse_semicolon_header(event["headers"].get("X-View-As"))
-if view_as:
-    assert "tenant_id" in view_as and "role" in view_as
-    assert view_as["tenant_id"] in [x["tenant_id"] for x in available]
-    assert view_as["role"] in roles_for(view_as["tenant_id"], available)
+Moving UI policy into DynamoDB changes the operational surface. A buggy write can alter the UI contract for an entire tenant. That is better than sprinkling tenant logic through a codebase, but it is not free.
 
-effective_tenant = view_as["tenant_id"] if view_as else tenant_id
-claims["schema_prefix"] = get_tenant_by_id(effective_tenant).schema_prefix
-event["claims"] = claims
-\end{lstlisting}
-  \end{samepage}
+In production, writes are IAM-scoped, reviewed, and parsed strictly at materialization. Future work should add versioned JSON Schema validation and CI checks before policy records reach production. Policy-as-data still needs governance; it simply makes the governance visible.
 
-  \paragraph{Policy parsing is strict.}
-  Tenant policy lives in DynamoDB and includes \texttt{moduleLayout}
-  fragments stored as JSON strings. During materialization, each
-  fragment is parsed; invalid JSON is treated as an error (not as ``best
-  effort''). This avoids serving half-valid policies that produce
-  inconsistent UI composition.
+\subsection{Caching trade-off}
+\label{sec:caching_tradeoff}
 
-% ==============================================================================
-  \subsection{Edge security: middleware as first defense}
-  \label{sec:edge}
-
-  The web tier implements defense-in-depth via Next.js middleware. Before
-  any server component renders, the middleware:
-
-  \begin{enumerate}
-    \item \textbf{Validates paths:} rejects path traversal attempts
-      (\texttt{..}, null bytes, encoded sequences).
-
-    \item \textbf{Applies security headers:} Content-Security-Policy,
-      HSTS (production), X-Frame-Options (DENY), X-Content-Type-Options.
-
-    \item \textbf{Checks session:} redirects unauthenticated users to
-      the identity provider, preserving the original path for post-login redirect.
-  \end{enumerate}
-
-  Importantly, middleware handles \emph{authentication} and transport-level
-  security; \emph{authorization} remains with the CASL-based policy model
-  enforced in server layouts.
-
-\begin{figure}[H]
-  \centering
-  \begin{tikzpicture}[
-    layer/.style={draw, rectangle, rounded corners=3pt, minimum width=100mm,
-                  minimum height=11mm, font=\small, align=center, fill=#1},
-    arrow/.style={-{Latex[length=2.5mm]}, thick}
-  ]
-    % ==================== LAYERS (top to bottom) ====================
-
-    % Layer 1: Edge Middleware
-    \node[layer=orange!20] (l1) at (0, 4.5) {
-      \textbf{Edge Middleware} --- path validation, security headers, session redirect
-    };
-
-    % Layer 2: Authentication
-    \node[layer=yellow!20] (l2) at (0, 3.0) {
-      \textbf{Authentication} --- JWT validation, session establishment
-    };
-
-    % Layer 3: Authorization
-    \node[layer=green!20] (l3) at (0, 1.5) {
-      \textbf{Authorization} --- CASL ability checks, module/route protection
-    };
-
-    % Layer 4: API Enforcement
-    \node[layer=blue!15] (l4) at (0, 0) {
-      \textbf{API Enforcement} --- \viewas{} validation, tenant scoping
-    };
-
-    % Layer 5: Client UX (outside trust boundary)
-    \node[layer=purple!12, dashed] (l5) at (0, -1.5) {
-      \textbf{Client UX} --- truthful rendering (not trusted for security)
-    };
-
-    % ==================== REQUEST FLOW ====================
-
-    % Request arrow on left
-    \draw[arrow, line width=1.2pt] (-6, 5) -- (-6, -2);
-    \node[font=\scriptsize\bfseries, rotate=90] at (-6.5, 1.5) {Request Flow};
-
-    % ==================== SECURITY BOUNDARY ====================
-
-    % Bracket on right side
-    \draw[thick, decorate, decoration={brace, amplitude=6pt, mirror}]
-      (5.5, 5) -- (5.5, -0.5);
-    \node[font=\scriptsize\bfseries, rotate=-90, text=gray!70!black] at (6.3, 2.25) {Security Boundary};
-
-    % Trust boundary line
-    \draw[dashed, red!50, line width=1pt] (-5.5, -0.75) -- (5.5, -0.75);
-    \node[font=\tiny\bfseries, text=red!50!black, fill=white, inner sep=2pt] at (0, -0.75) {TRUST BOUNDARY};
-
-  \end{tikzpicture}
-  \caption{Defense-in-depth architecture. Each layer provides independent protection:
-  Edge blocks malformed requests; Authentication validates tokens;
-  Authorization enforces CASL permissions; API validates \viewas{} and scopes tenants.
-  Layers 1--4 form the security boundary. The Client layer uses server-exported
-  rules for truthful UX but is never trusted for authorization.}
-  \label{fig:defense}
-\end{figure}
-
-% ==============================================================================
-  \subsection{Web tier: Next.js as the contract consumer}
-  The web tier is implemented in Next.js and serves two roles: (i) it renders
-  UI, and (ii) it mediates between the browser and the control plane so
-  that sensitive context (like signed \viewas{} headers) remains server-side.
-
-  \paragraph{Session storage.}
-  We use \texttt{iron-session} \cite{iron_session} to store encrypted session
-  data in cookies. In practice, we keep a separation between:
-  \begin{itemize}
-    \item \textbf{main session:} authentication tokens and durable user
-      profile,
-
-    \item \textbf{\viewas{} session:} view-as headers (and signature), stored
-      server-side and not exposed to client JavaScript.
-  \end{itemize}
-
-  \paragraph{Server-side API client.}
-  The web tier uses a server API client that attaches:
-  \begin{itemize}
-    \item \texttt{Authorization: Bearer <JWT>}
-
-    \item optional \texttt{X-View-As: tenant\_id=\ldots;role=\ldots}
-
-    \item optional \texttt{X-View-As-Sig: <hmac>}
-  \end{itemize}
-  to calls to the control plane. The browser never needs to construct
-  these headers directly.
-
-% ==============================================================================
-  \subsection{Ability endpoint: exporting truth for UX (not for security)}
-  The endpoint \texttt{/api/auth/user/ability} returns packed CASL rules.
-  The server constructs the ability from the authoritative session
-  profile and then exports it for UI gating \cite{casl_docs}. The endpoint
-  is explicitly non-cacheable to avoid stale UX when switching tenants/roles.
-
-  \begin{samepage}
-  \begin{lstlisting}[style=typescript,caption={Ability rules are built and packed on the server. The client uses them for truthful UX, not as a security gate.},label={lst:ability_endpoint}]
-export const GET = withAuth(async () => {
-  const packedRules = await getUserAbilityRules()
-  return NextResponse.json(
-    { rules: packedRules, timestamp: Date.now() },
-    { headers: { 'Cache-Control': 'private, no-cache, no-store' } }
-  )
-})
-\end{lstlisting}
-  \end{samepage}
-
-% ==============================================================================
-  \subsection{Module layout endpoint: lazy config with server checks}
-  The endpoint \texttt{/api/\allowbreak{}auth/\allowbreak{}user/\allowbreak{}module-layout}
-  implements on-demand module config retrieval. It deep-merges tenant
-  fragments over shipped defaults and applies a server-side CASL check
-  before returning module-specific layouts (all modules other than \texttt{common}
-  require \texttt{can(\allowbreak{}'view',\allowbreak{} module)}).
-
-  This endpoint is where we enforce the rule:
-
-  \begin{quote}
-    \textbf{A module configuration is itself a privileged resource.}
-  \end{quote}
-
-  If the user cannot view a module, the server will not serve its
-  configuration, even if the client asks nicely.
-
-% ==============================================================================
-  \subsection{Signing \viewas{}: a belt to match the suspenders}
-  The web tier provides \texttt{/api/\allowbreak{}auth/\allowbreak{}view-as/\allowbreak{}sign}.
-  It validates a requested tenant/role selection against \texttt{impersonatable}
-  (from \texttt{/v2/me}), then generates an HMAC-SHA256 signature over
-  the \texttt{X-View-As} string and stores \texttt{viewAs} and \texttt{viewAsSig}
-  in the server-side session.
-
-  This is defense-in-depth. The control plane still enforces allow-lists;
-  the signature primarily protects against accidental header fabrication
-  and makes tampering more detectable in logs.
+A policy edit takes effect at the next full materialization or page load. That is acceptable for tenant onboarding and module toggles, which are operator actions. For urgent security changes, push invalidation or policy-version bumps would shorten the window. We discuss this in Section~\ref{sec:futurework}.

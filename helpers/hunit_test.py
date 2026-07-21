@@ -322,11 +322,33 @@ def _remove_spaces(txt: str) -> str:
 def _remove_banner_lines(txt: str) -> str:
     """
     Remove lines of separating characters long at least 20 characters.
+
+    Examples of lines to remove:
+    - "################"
+    - "=================="
+    - "------  -------  ------"  (from tabulate table separators)
+    - "->->->->->->->->->->"
     """
     txt_tmp: List[str] = []
+    # Pattern to match lines with mostly separators (with optional spaces)
+    # Matches lines that have at least 20 chars of separators/spaces.
+    separator_pattern = re.compile(
+        r"""
+        ^\s*                    # Optional leading whitespace
+        [\#\-><=\s]{20,}        # At least 20 separators or spaces
+        \s*$                    # Optional trailing whitespace
+        """,
+        re.VERBOSE,
+    )
+    # Pattern to check if line actually contains separator chars.
+    has_separators = re.compile(r"[\#\-><=]")
     for line in txt.split("\n"):
-        if re.match(r"^\s*[\#\-><=]{20,}\s*$", line):
-            continue
+        if separator_pattern.match(line):
+            # Check if line contains mostly separators (at least 50% non-space)
+            non_space_chars = len(line.replace(" ", ""))
+            if non_space_chars > 0 and non_space_chars / len(line) > 0.5:
+                if has_separators.search(line):
+                    continue
         txt_tmp.append(line)
     txt = "\n".join(txt_tmp)
     return txt
@@ -719,31 +741,6 @@ def get_dir_signature(
     return result
 
 
-# TODO(ai_gp): Use the copy in helpers/hprint.py
-def filter_text(regex: str, txt: str) -> str:
-    """
-    Remove lines in `txt` that match the regex `regex`.
-    """
-    _LOG.debug("Filtering with '%s'", regex)
-    if regex is None:
-        return txt
-    txt_out = []
-    txt_as_arr = txt.split("\n")
-    for line in txt_as_arr:
-        if re.search(regex, line):
-            _LOG.debug("Skipping line='%s'", line)
-            continue
-        txt_out.append(line)
-    # We can only remove lines.
-    hdbg.dassert_lte(
-        len(txt_out),
-        len(txt_as_arr),
-        "txt_out=\n'''%s'''\ntxt=\n'''%s'''",
-        "\n".join(txt_out),
-        "\n".join(txt_as_arr),
-    )
-    txt = "\n".join(txt_out)
-    return txt
 
 
 def diff_strings(

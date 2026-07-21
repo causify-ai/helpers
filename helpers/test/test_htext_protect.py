@@ -221,7 +221,7 @@ class Test__extract_protected_content(hunitest.TestCase):
         # Prepare outputs.
         expected = """
         Some LaTeX text.
-        <<<PROTECTED_COMMENT_001>>>
+        %<<<PROTECTED_COMMENT_001>>>
         More text.
         """
         expected_map_size = 1
@@ -308,6 +308,31 @@ class Test__extract_protected_content(hunitest.TestCase):
         <<<PROTECTED_MATH_003>>>
         $$
         End.
+        """
+        expected_map_size = 3
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
+    def test11(self) -> None:
+        """
+        Test consecutive LaTeX comments are protected individually.
+
+        This is the regression test for TODO 5: ensure consecutive comment
+        lines each get their own %%-prefixed placeholder and stay separate
+        after extraction (not collapsed or merged).
+        """
+        # Prepare inputs.
+        txt = """
+        % git_hash=f15bc6b9, timestamp=2026-07-15 14:41:12 EDT
+        %%%% Chapter file for Why Decisions, Not Predictions %%%%
+        % This chapter file can be compiled standalone or included in the root book.tex
+        """
+        file_type = "tex"
+        # Prepare outputs: each line gets its own %%-prefixed placeholder.
+        expected = """
+        %<<<PROTECTED_COMMENT_001>>>
+        %<<<PROTECTED_COMMENT_002>>>
+        %<<<PROTECTED_COMMENT_003>>>
         """
         expected_map_size = 3
         # Run test.
@@ -472,6 +497,52 @@ class Test__restore_protected_content(hunitest.TestCase):
 
         ```
         After.
+        """
+        # Run test.
+        self.helper(txt, protected_map, expected)
+
+    def test6(self) -> None:
+        """
+        Test restoring LaTeX comment with %%-prefixed placeholder.
+
+        Regression test for TODO 5: verify that %%-prefixed LaTeX comment
+        placeholders are correctly restored to their original lines.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before.
+        %<<<PROTECTED_COMMENT_001>>>
+        Text after.
+        """
+        protected_map = {"<<<PROTECTED_COMMENT_001>>>": "% This is a LaTeX comment"}
+        # Prepare outputs.
+        expected = """
+        Text before.
+        % This is a LaTeX comment
+        Text after.
+        """
+        # Run test.
+        self.helper(txt, protected_map, expected)
+
+    def test7(self) -> None:
+        """
+        Test restoring LaTeX comment with space after %% in placeholder.
+
+        Verify that minor formatting variations (space after %%) are tolerated
+        and correctly restored.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before.
+        % <<<PROTECTED_COMMENT_001>>>
+        Text after.
+        """
+        protected_map = {"<<<PROTECTED_COMMENT_001>>>": "% This is a LaTeX comment"}
+        # Prepare outputs.
+        expected = """
+        Text before.
+        % This is a LaTeX comment
+        Text after.
         """
         # Run test.
         self.helper(txt, protected_map, expected)

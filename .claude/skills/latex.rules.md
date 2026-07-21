@@ -11,6 +11,8 @@
 - `\vx`, `\vy` for vectors
 - `\mA` for matrices
 - `|` instead of `\mid`
+- `\argmax` instead of `\arg\max` for the argmax operator
+- `\argmin` instead of `\arg\min` for the argmin operator
 - Do not use `\left[`, `\left(`, `\right]`, `\right)` unless necessary
 
 # Formula Formatting
@@ -58,7 +60,7 @@
   - **Good**
     ```
     $$
-    a^* = \arg\max_a
+    a^* = \argmax_a
       \mathbb{E}_{M \sim P(M \mid D)}\left[
         \text{Goal} \mid do(a), M
       \right]

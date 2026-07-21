@@ -35,8 +35,14 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
             "/data/shared1": "/shared_folder1",
             "/data/shared2": "/shared_folder2",
         }
-        with umock.patch.object(
-            hserver, "get_shared_data_dirs", return_value=mock_mapping
+        with (
+            umock.patch.object(
+                hserver, "get_shared_data_dirs", return_value=mock_mapping
+            ),
+            umock.patch.object(hserver, "is_inside_docker", return_value=True),
+            umock.patch.object(
+                hserver, "is_inside_ecs_container", return_value=False
+            ),
         ):
             # Test replacing shared root path.
             path1 = "/data/shared1/asset1"
@@ -62,8 +68,14 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         mock_mapping = {
             "/data/shared": "/shared_folder",
         }
-        with umock.patch.object(
-            hserver, "get_shared_data_dirs", return_value=mock_mapping
+        with (
+            umock.patch.object(
+                hserver, "get_shared_data_dirs", return_value=mock_mapping
+            ),
+            umock.patch.object(hserver, "is_inside_docker", return_value=True),
+            umock.patch.object(
+                hserver, "is_inside_ecs_container", return_value=False
+            ),
         ):
             # Test if `ecs_tokyo` is replaced if `replace_ecs_tokyo = True`.
             path1 = 'object("/data/shared/ecs_tokyo/asset2/item")'
@@ -687,7 +699,7 @@ class Test_get_docker_command1(hunitest.TestCase):
         env = {}
         # Run test.
         with umock.patch.object(platform, "system", return_value="Linux"):
-            with umock.patch.dict(os.environ, env, clear=False):
+            with umock.patch.dict(os.environ, env, clear=True):
                 actual = hdocker.get_docker_command()
         # Check outputs.
         expected = "docker"
@@ -753,7 +765,7 @@ class Test_get_docker_command1(hunitest.TestCase):
         env = {}
         # Run test.
         with umock.patch.object(platform, "system", return_value="Darwin"):
-            with umock.patch.dict(os.environ, env, clear=False):
+            with umock.patch.dict(os.environ, env, clear=True):
                 actual = hdocker.get_docker_command()
         # Check outputs.
         expected = "container"

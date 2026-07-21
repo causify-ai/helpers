@@ -303,6 +303,66 @@ def run_dockerized_latex(
     return ret
 
 
+def run_dockerized_bibtex(
+    in_file_path: str,
+    *,
+    mode: str = "system",
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Run `bibtex` in a Docker container.
+
+    `bibtex` has no `-output-directory` option, so we `cd` into the
+    directory holding the `.aux` file (converted to its Docker path) and
+    invoke it with the file's base name.
+
+    :param in_file_path: path to the `.aux` file to run `bibtex` on
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_file_extension(in_file_path, "aux")
+    # Build the container, if needed.
+    container_image = build_latex_container_image(
+        force_rebuild=force_rebuild, use_sudo=use_sudo
+    )
+    # Convert the `.aux` file path to its Docker path.
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = hdocker.get_docker_mount_context()
+    docker_in_file_path = hdocker.convert_caller_to_callee_docker_path(
+        in_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    # Build the `bibtex` command.
+    docker_dir_name = os.path.dirname(docker_in_file_path)
+    base_name = os.path.splitext(os.path.basename(docker_in_file_path))[0]
+    bibtex_cmd = f"cd {docker_dir_name} && bibtex {base_name}"
+    _LOG.debug("> %s", bibtex_cmd)
+    ret = hdocker.build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        _DOCKERFILE,
+        bibtex_cmd,
+        mode,
+        override_entrypoint=True,
+        wrap_in_bash=True,
+    )
+    return ret
+
+
 def run_basic_latex(
     in_file_name: str,
     cmd_opts: List[str],

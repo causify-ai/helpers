@@ -1,55 +1,17 @@
-  \section{Related Work}
-  \label{sec:related}
-  \paragraph{Control plane vs.\ data plane as a systems pattern.}
-  The separation of decision-making from execution is foundational in
-  systems architecture. Kubernetes formalizes this distinction inside the
-  cluster: control plane components manage desired state while worker
-  nodes execute workloads \cite{k8s_components,k8s_architecture}. Managed
-  Kubernetes offerings extend the idea by externalizing control plane operations
-  behind a service boundary \cite{eks_docs}. This paper applies the
-  split to multi-tenant governance: tenancy and scope are decisions;
-  compute is execution.
+\section{Related Work}
+\label{sec:related-work}
 
-  \paragraph{Multi-tenant Kubernetes frameworks.}
-  Prior work has explored explicit control-plane/data-plane isolation for
-  multi-tenant Kubernetes, including frameworks that provide per-tenant
-  control planes while sharing underlying compute resources (e.g., VirtualCluster)
-  \cite{virtualcluster}. Our focus differs: we do not attempt to re-slice
-  Kubernetes itself; we keep tenant governance in a platform control plane
-  and propagate explicit scope into execution substrates (Kubernetes, ECS/Fargate,
-  and module backends).
+\paragraph{Authorization models.}
+NIST SP 800-162 formalizes attribute-based access control \cite{nist_sp800162}. OPA and Cedar provide richer policy languages for complex authorization logic \cite{opa_docs,cedar_docs}. Zanzibar models relationship-based authorization at global scale \cite{zanzibar}. The pattern in this paper does not replace these systems. It focuses on a narrower integration problem: deriving tenant context once, materializing it as a contract, and injecting scope into services that should not be interpreting identity for themselves.
 
-  \paragraph{Policy engines and authorization languages.}
-  OPA provides a general-purpose policy engine that centralizes decision
-  logic and evaluation \cite{opa_docs}. Cedar (and Amazon Verified
-  Permissions) formalize policy evaluation with a dedicated language and
-  service boundary \cite{cedar_docs,aws_verified_permissions}. Our work
-  is compatible with these systems but focuses on a narrower objective: producing
-  \emph{cacheable governance contracts} (context, surface, scope) that
-  downstream systems consume without improvising tenancy.
+\paragraph{AWS SaaS architecture.}
+The AWS SaaS Lens recommends control-plane/data-plane separation for multi-tenant SaaS systems \cite{aws_saas_lens}. Our contribution is a concrete instantiation of that advice for a production AI platform: a versioned identity contract, explicit actor/effective context, OpenAPI filtering, and schema-prefix injection into module and job execution paths.
 
-  \paragraph{Authorization at scale.}
-  Zanzibar demonstrates authorization as a global consistency problem and
-  highlights the importance of uniform interpretation of identity and context
-  across services \cite{zanzibar}. While \system{} does not implement Zanzibar's
-  relationship store, the lesson applies directly: once systems scale, "context
-  correctness" becomes a distributed property, not a local detail. Our
-  design addresses this through explicit contracts and scope injection
-  rather than relationship evaluation.
+\paragraph{OIDC and OAuth.}
+The \code{/v2/me} endpoint resembles an OpenID Connect UserInfo endpoint \cite{oidc_core}. The \viewas{} mechanism resembles delegated context, but it is intentionally narrower than general OAuth delegation \cite{oauth2}. We did not need a universal identity framework. We needed a precise platform contract that support workflows and service calls could consume consistently.
 
-  \paragraph{Serverless APIs for governance.}
-  Serverless functions are a natural fit for governance endpoints: spiky
-  traffic, small payloads, and a strong need for structured logs
-  \cite{aws_lambda_docs,aws_powertools}. The main tradeoff is cold-start
-  tail latency; we mitigate this by keeping the control plane thin and
-  using HTTP conditional requests for frequent identity contracts
-  \cite{rfc9110}.
+\paragraph{Service mesh enforcement.}
+Service meshes such as Istio and Linkerd can enforce network-level authorization \cite{istio_authz,linkerd_policy}. They are useful, but network authorization is not enough for module-level tenant policy, OpenAPI surface filtering, or PostgreSQL schema-prefix injection. We keep those decisions at the application boundary where tenant semantics are visible.
 
-  \paragraph{Workflow orchestration and batch execution.}
-  Airflow is a widely used workflow platform for building and operating batch-oriented
-  pipelines \cite{airflow_docs}. Executing tasks in isolated containers
-  (e.g., ECS/Fargate) is a pragmatic strategy for burst compute where
-  operational simplicity and isolation matter
-  \cite{ecs_runtask,fargate_docs}. In our architecture, workflows
-  execute jobs, but job scope is derived from authenticated tenant context
-  rather than client-supplied parameters.
+\paragraph{Serverless and container execution.}
+Lambda, API Gateway, DynamoDB, EKS, and Fargate are standard cloud primitives \cite{aws_lambda_docs,aws_api_gateway,dynamodb_docs,eks_docs,fargate_docs}. The paper is not claiming novelty in the primitives. The useful part is the boundary between them: serverless functions for short governance decisions and containers for long-running execution.

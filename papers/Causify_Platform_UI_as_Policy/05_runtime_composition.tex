@@ -1,116 +1,33 @@
 % ##############################################################################
-  \section{Runtime Composition: Making the UI Tell the Truth}
-  This section describes how the web tier turns the UI contract into pixels
-  without giving the browser a second job as an authorization engine.
+\section{Runtime Composition}
+\label{sec:runtime_composition}
 
-% ==============================================================================
-  \subsection{Abilities: one source of truth, exported for UX}
-  Authorization is enforced server-side, but the UI still needs to know
-  what to show. We use CASL \cite{casl_docs} to represent abilities and explicitly
-  avoid duplicating rules in the frontend.
+The UI is assembled in two steps. First, the server renders the shell from the \code{/v2/me} contract. Then module-specific layout is fetched on demand through a server route that repeats the ability check.
 
-  \paragraph{Design.}
-  \begin{itemize}
-    \item The server builds the canonical ability from session-backed profile
-      data (modules + role).
+\subsection{Navigation from modules}
+\label{sec:navigation_from_modules}
 
-    \item The server serializes the ability rules using CASL's packed format.
+The sidebar does not know which tenant bought which product. It receives a module list. A single-module tenant sees one product surface. A two-module tenant sees two. A support engineer in view-as mode sees the module set of the effective tenant, not the broader support account.
 
-    \item The client unpacks these rules to construct an identical ability
-      object for UI/UX gating only.
-  \end{itemize}
+This sounds almost too simple, which is the point. The system should not need a code search to answer why a sidebar entry appeared.
 
-  \begin{samepage}
-  \begin{lstlisting}[style=typescript,caption={Server-authoritative abilities: rules are built server-side and packed for client use. The backend remains the enforcement point.},label={lst:casl_pack}]
-import { packRules } from '@casl/ability/extra'
+\subsection{Lazy layout loading}
+\label{sec:lazy_layout}
 
-// GET /api/auth/user/ability
-const ability = await getUserAbility()
-return { rules: packRules(ability.rules) }
-\end{lstlisting}
-  \end{samepage}
+Module layout is loaded through a dedicated endpoint. Before returning layout, the server checks whether the effective context can view the requested module. Disabled modules therefore fail closed twice: the navigation never links to them, and direct layout fetches return HTTP 403.
 
-  \paragraph{Two-layer protection (by design).}
-  The client uses the ability to hide inaccessible UI elements and prevent
-  dead ends. Server components and API routes still enforce
-  authorization. In other words: the UI is truthful, but it is not trusted.
+Tenant fragments are deep-merged over shipped defaults. That gives operators useful flexibility without handing them the whole product definition. A tenant can change a dashboard default, sidebar mode, or integration panel while stable module code still owns the implementation.
 
-% ==============================================================================
-  \subsection{From modules to navigation: composition, not conditionals}
-  The module list in \texttt{view\_as.modules} drives the UI skeleton:
+\subsection{CI door check}
+\label{sec:ci_door_check}
 
-  \begin{itemize}
-    \item The sidebar renders only modules in the list.
+The Truthful UX invariant can be tested per release. For each tenant and role in a test matrix, the check is straightforward.
 
-    \item Module pages are protected server-side (redirects/404) when the
-      user lacks \texttt{view} permission on that subject.
+\begin{enumerate}
+  \item Fetch \code{/v2/me} and extract the enabled module set $M$.
+  \item Assert that \code{/api/auth/user/module-layout?module=X} returns HTTP 200 for $X \in M$ and HTTP 403 for $X \notin M$.
+  \item Assert that routes belonging to $M$ render successfully, while routes outside $M$ reject or redirect.
+  \item Assert that the packed CASL rules are derived from the same server profile used to build the page.
+\end{enumerate}
 
-    \item Cross-module UI behaviors (top bar, settings entry points,
-      feedback widgets) are controlled by \texttt{common} layout
-      fragments.
-  \end{itemize}
-
-  This yields an important property: tenant onboarding becomes a
-  configuration change, not a UI rewrite. The product behaves like a
-  platform instead of a branching forest of \texttt{if (tenant == \ldots)}.
-
-% ==============================================================================
-  \subsection{Lazy module layout fetching and deep merging}
-  Shipping an entire tenant UI contract on every request is wasteful.
-  Instead, we lazy-load module-specific configuration on demand.
-
-  \paragraph{Mechanism.}
-  The web tier exposes:
-  \begin{center}
-    \texttt{/api/auth/user/module-layout?module=<name>}
-  \end{center}
-  This endpoint:
-  \begin{enumerate}
-    \item constructs a fallback default layout for \texttt{common} and (optionally)
-      the requested module,
-
-    \item checks module access via server-side CASL for non-\texttt{common}
-      modules,
-
-    \item merges the tenant-provided layout fragments from \texttt{/v2/me}
-      over defaults using a recursive deep-merge.
-  \end{enumerate}
-
-  \begin{samepage}
-  \begin{lstlisting}[style=typescript,caption={Merge semantics: nested objects recursively merge, primitives/arrays replace. This enables partial overrides without forcing tenants to copy entire configs.},label={lst:merge_semantics}]
-function deepMerge(target, source) {
-  const result = { ...target }
-  for (const key in source) {
-    const s = source[key]
-    const t = result[key]
-    if (s !== null && s !== undefined) {
-      if (isObject(s) && isObject(t)) result[key] = deepMerge(t, s)
-      else result[key] = s
-    }
-  }
-  return result
-}
-\end{lstlisting}
-  \end{samepage}
-
-  \paragraph{Why deep-merge matters.}
-  Deep-merge keeps tenant config surgical. A tenant can override \texttt{common.sideBar.defaultCollapsed}
-  without duplicating the rest of the UI definition, keeping
-  configuration maintainable and reviewable.
-
-% ==============================================================================
-  \subsection{Truthful UX as an invariant}
-  We treat ``no broken doors'' as an invariant:
-
-  \begin{itemize}
-    \item If the backend denies access to a module, the module does not
-      appear in navigation.
-
-    \item If a user tries a direct URL, server-side checks redirect/deny.
-
-    \item If config asks for a module the user lacks, CASL checks
-      prevent module config from being served.
-  \end{itemize}
-
-  Put differently: the UI is not permitted to hallucinate. (That is
-  reserved for marketing.)
+The check is not a replacement for backend authorization tests. It catches a different problem: a frontend that has started to tell a different story from the backend.

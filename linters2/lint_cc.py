@@ -101,7 +101,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
         },
         "book": {
             "role": "role.ai_researcher.md",
-            "rules": ["book.rules.md"],
+            "rules": ["references.rules.md"],
             "templates": [],
         },
         "coding": {

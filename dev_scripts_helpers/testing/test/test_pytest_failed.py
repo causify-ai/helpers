@@ -1,0 +1,239 @@
+"""
+Unit tests for pytest_failed.py module.
+
+Tests free-standing functions and end-to-end behavior of the pytest log parser.
+"""
+
+import os
+from typing import Any
+
+import helpers.hio as hio
+import helpers.hprint as hprint
+import helpers.hunit_test as hunitest
+import dev_scripts_helpers.testing.pytest_failed as dshtpyfa
+
+
+# #############################################################################
+# Test_get_output_filename
+# #############################################################################
+
+
+class Test_get_output_filename(hunitest.TestCase):
+    """
+    Test _get_output_filename function for output file naming.
+    """
+
+    def helper(self, base: str, build_name: str, expected: str) -> None:
+        """
+        Test helper for _get_output_filename.
+
+        :param base: Base filename
+        :param build_name: Build configuration name
+        :param expected: Expected output filename
+        """
+        actual = dshtpyfa._get_output_filename(base, build_name=build_name)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test basic filename without build_name.
+        """
+        # Prepare inputs.
+        base = "tmp.pytest_failed.repro.sh"
+        build_name = ""
+        # Prepare outputs.
+        expected = base
+        # Run test and check outputs.
+        self.helper(base, build_name, expected)
+
+    def test2(self) -> None:
+        """
+        Test filename with build_name encoding.
+        """
+        # Prepare inputs.
+        base = "tmp.pytest_failed.repro.sh"
+        build_name = "apple"
+        # Prepare outputs.
+        expected = "tmp.pytest_failed.apple.repro.sh"
+        # Run test and check outputs.
+        self.helper(base, build_name, expected)
+
+    def test3(self) -> None:
+        """
+        Test with different build names.
+        """
+        # Prepare inputs.
+        base = "tmp.pytest_failed.failed_tests.txt"
+        build_names = ["docker", "dev_container"]
+        # Run test and check outputs.
+        for build_name in build_names:
+            expected = f"tmp.pytest_failed.{build_name}.failed_tests.txt"
+            self.helper(base, build_name, expected)
+
+    def test4(self) -> None:
+        """
+        Test filename with non-standard base.
+        """
+        # Prepare inputs.
+        base = "custom.output"
+        build_name = "docker"
+        # Prepare outputs.
+        expected = f"{base}.{build_name}"
+        # Run test and check outputs.
+        self.helper(base, build_name, expected)
+
+
+# #############################################################################
+# Test_process_single_file
+# #############################################################################
+
+
+class Test_process_single_file(hunitest.TestCase):
+    """
+    Test _process_single_file end-to-end parsing of pytest logs.
+    """
+
+    def _get_log_content(self) -> str:
+        """
+        Get pytest log content from file or create minimal one.
+
+        :return: Log file content string
+        """
+        if os.path.exists("tmp.pytest_multi_build.apple.txt"):
+            log_content = hio.from_file("tmp.pytest_multi_build.apple.txt")
+        else:
+            log_content = """
+                ============================= test session starts ==============================
+                platform darwin -- Python 3.11.11, pytest-8.3.2, pluggy-1.5.0
+                collected 1 item
+
+                test_module.py::TestClass::test_method1 PASSED
+                ========================= 1 passed in 0.50s =========================
+                """
+            log_content = hprint.dedent(log_content)
+        return log_content
+
+    def helper(
+        self,
+        log_content: str,
+        build_name: str = "",
+    ) -> Any:
+        """
+        Helper to create log file and run process test.
+
+        :param log_content: Content to write to log file
+        :param build_name: Optional build name
+        :return: Result from _process_single_file
+        """
+        scratch_dir = self.get_scratch_space()
+        log_file = os.path.join(scratch_dir, "test.log.txt")
+        hio.to_file(log_file, log_content)
+        original_dir = os.getcwd()
+        try:
+            os.chdir(scratch_dir)
+            if build_name:
+                result = dshtpyfa._process_single_file(
+                    log_file, build_name=build_name
+                )
+            else:
+                result = dshtpyfa._process_single_file(log_file)
+            return result
+        finally:
+            os.chdir(original_dir)
+
+    def test1(self) -> None:
+        """
+        Test with real pytest log file produces output files.
+        """
+        # Prepare inputs.
+        log_content = self._get_log_content()
+        expected_files = {
+            "repro.sh": True,
+            "failed_tests.txt": True,
+        }
+        # Run test.
+        result = self.helper(log_content)
+        # Check outputs.
+        self.assertGreaterEqual(result["num_total"], 0)
+        scratch_dir = self.get_scratch_space()
+        actual_files = {
+            filename: os.path.exists(os.path.join(scratch_dir, filename))
+            for filename in expected_files.keys()
+        }
+        self.assert_equal(str(actual_files), str(expected_files))
+
+    def test2(self) -> None:
+        """
+        Test with build_name creates properly named output files.
+        """
+        # Prepare inputs.
+        log_content = self._get_log_content()
+        build_name = "docker"
+        expected_files = {
+            os.path.join(f"tmp.pytest_failed.{build_name}", "repro.sh"): True,
+            os.path.join(
+                f"tmp.pytest_failed.{build_name}", "failed_tests.txt"
+            ): True,
+        }
+        # Run test.
+        self.helper(log_content, build_name=build_name)
+        # Check outputs.
+        scratch_dir = self.get_scratch_space()
+        actual_files = {
+            filename: os.path.exists(os.path.join(scratch_dir, filename))
+            for filename in expected_files.keys()
+        }
+        self.assert_equal(str(actual_files), str(expected_files))
+
+    def test3(self) -> None:
+        """
+        Test output files are created for all report types.
+        """
+        # Prepare inputs.
+        log_content = self._get_log_content()
+        expected_files = [
+            "repro.sh",
+            "repro_classes.sh",
+            "repro_files.sh",
+            "passed_tests.txt",
+            "failed_tests.txt",
+            "skipped_tests.txt",
+            "updated_tests.txt",
+            "tests_by_duration.txt",
+            "duration_stats.txt",
+            "stacktraces.txt",
+        ]
+        # Run test.
+        self.helper(log_content)
+        # Check outputs: verify all expected files created.
+        scratch_dir = self.get_scratch_space()
+        actual_files = {
+            filename: os.path.exists(os.path.join(scratch_dir, filename))
+            for filename in expected_files
+        }
+        expected_state = {filename: True for filename in expected_files}
+        self.assert_equal(str(actual_files), str(expected_state))
+
+    def test4(self) -> None:
+        """
+        Test dict returned has expected keys.
+        """
+        # Prepare inputs.
+        log_content = self._get_log_content()
+        expected_keys = [
+            "build",
+            "duration",
+            "passed",
+            "num_passed",
+            "num_failed",
+            "num_skipped",
+            "num_total",
+        ]
+        # Run test.
+        result = self.helper(log_content)
+        # Check outputs.
+        actual_keys = set(result.keys())
+        expected_key_set = set(expected_keys)
+        self.assert_equal(
+            str(sorted(actual_keys)), str(sorted(expected_key_set))
+        )

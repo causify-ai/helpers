@@ -7,38 +7,40 @@ model: opus
 
 - Create a comprehensive outline for an interactive Jupyter notebook that teaches
   a concept through visualization and hands-on exploration
-- The outline describes what each cell will contain without writing any code,
-  serving as a blueprint for implementation
-- **Output**: A `notebook_outline.<tag>.md` markdown file that describes each
-  notebook cell
+- The outline describes what each the notebook will contain without writing any
+  code, serving as a blueprint for implementation
+- **Output**: A `notebook_outline.<tag>.md` markdown file that describes the
+  notebook units
 
 # Key Principles
 
 - Make sure to follow the section `Effective Notebook Design Principles` from the
   file `.claude/skills/notebook.rules.md`
-- **Outline format**: Describe cells in markdown structure
-  (`notebook_outline.<tag>.md`), not in code
+- Describe cells in markdown structure (`notebook_outline.<tag>.md`), not in code
 
-# Cell Outline Structure
+# Outline Unit Structure
 
-- Each cell in the outline corresponds to a triplet of cells in the final notebook:
+- Each unit in the outline corresponds to a triplet of cells in the final
+  notebook:
   - **Markdown cell**: Section header, goal, and pedagogical content (before viz)
   - **Code cell**: Visualization, widgets, and interactive controls
   - **Markdown cell**: Key observations and what to learn (after viz)
 
 ## Numbering and Naming
 
-- Number cells incrementally: `Cell 1`, `Cell 2`, etc.
-- Use descriptive titles that signal the learning objective (not just "Plot" or
-  "Widget")
+- Number units incrementally:
+  - E.g., `Cell 1`, `Cell 2`, etc.
+- Use descriptive titles that signal the learning objective
+  - Not just "Plot" or "Widget"
 - Keep titles concise (5-7 words)
 
-## Cell Description Template
+## Outline Unit Description Template
 
-- Each cell in the outline describes the full visualization triplet (3 notebook
-  cells: pre-visualization markdown, code, and post-visualization markdown).
+- Each outline unit describes the full visualization triplet
+  - 3 notebook cells: pre-visualization markdown, code, and post-visualization
+    markdown
 
-- Use this structure for each cell:
+- Use this structure for each unit:
   ```markdown
   ## Cell i: <Concise Learning Objective>
 
@@ -65,8 +67,8 @@ model: opus
 ### Goal (Required)
 
 - 1-2 bullet points stating the learning objectives
-- If this is not the first cell, reference how it builds on prior concepts
-- Answer: "Why is this cell important?"
+- If this is not the first outline unit, reference how it builds on prior concepts
+  - Answers the question "Why is this outline unit important?"
 
 ### Plots and Their Descriptions (Required)
 
@@ -75,23 +77,30 @@ model: opus
   separate section
 - Be specific about what the visualization shows (not implementation details)
 - Include: axes labels, color scheme, what each panel displays
-- Example: "_Population bin_: Shows full population as colored marbles"
+- Example:
+  ```
+  _Population bin_: Shows full population as colored marbles
+  ```
 
 ### Widgets (If Applicable)
 
-- List each control with its name and range (e.g., "Slider for mu: 0.0-1.0")
+- List each control with its name and range
+  - E.g., `Slider for mu in [0.0, 1.0]`
 - Each widget description is placed close to the widget itself (in its
   `description` parameter or as an adjacent label)
-- Explain the immediate effect of changing each parameter on the display
+- Explain the effect of changing each parameter on the display
 - Keep widgets focused on pedagogically important parameters
 - Avoid: redundant controls, parameters students won't care about
 
 ### Key Observations (Required, Post-Visualization)
 
-- List 2-3 bullet points of discoveries students should make
+- List 2-3 bullet points of discoveries students should make by
+  - looking at the output or visualization
+  - interacting with the widgets
 - These appear in a markdown cell **after** the visualization cell
 - Focus on learning outcomes, not mechanics
-- Include what experiments can be done and what students will learn
+- Include what experiments can be done with the widgets and what students will
+  learn
 - Do NOT repeat the Goal: go deeper
 
 ### Comments Panel (Required)
@@ -99,17 +108,20 @@ model: opus
 - Contains only variable state and observations associated to the current state
 - Remove general commentary like "key insight" or "key idea"
 - Include current parameter values, sample statistics, and state observations
-- Example: current mu value, number of samples, sample mean/std
+  - E.g., current mu value, number of samples, sample mean/std
 
 ### Implementation (Required)
 
-- Name specific libraries (matplotlib, plotly, ipywidgets, etc.)
-- List key functions or classes (e.g., "ipywidgets.FloatSlider, matplotlib.animation")
-- Note performance considerations if relevant to the student experience
+- Name specific libraries
+  - E.g., `matplotlib`, `plotly`, `ipywidgets`, etc.
+- List key functions or classes
+  - E.g., `ipywidgets.FloatSlider`, `matplotlib.animation`
 
 # Example Outline
 
-- Here's a well-structured cell outline to emulate:
+- Here's a well-structured unit outline to emulate:
+
+- Description (pre-visualization) cell
   ```markdown
   ## Cell 1: Visualizing Population Distribution
 
@@ -119,7 +131,7 @@ model: opus
   - Understand that we can only observe samples, not the full population
   ```
 
-- Visualization
+- Visualization cell
   ```markdown
   **Implementation**: Matplotlib animation for marbles, ipywidgets FloatSlider
     for control, matplotlib patches for marble visualization
@@ -146,9 +158,10 @@ model: opus
 
 # Important Conventions
 
-- Always follow these guidelines:
-  - `.claude/skills/notebook.rules.md`: General notebook formatting conventions,
-    including the `Utilities vs. Notebook Responsibilities` section for
-    organizing utility files and notebooks
+- Follow `.claude/skills/notebook.rules.md` for general notebook formatting
+  conventions, including the `Utilities vs. Notebook Responsibilities` section
+  for organizing utility files and notebooks
+
+- When writing markdown text follow
   - `.claude/skills/markdown.rules.md`: Markdown formatting rules
   - `.claude/skills/text.rules.md`: Bullet point conventions

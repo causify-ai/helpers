@@ -167,7 +167,7 @@ class Test_linter_py1(hunitest.TestCase):
         # '$GIT_ROOT/linters/test/outcomes/.../hello.md: is not referenced in README.md'.
         log_filters = ["No tags for table", "is not referenced in README.md"]
         for log_filter in log_filters:
-            output = hunitest.filter_text(log_filter, output)
+            output = hprint.filter_text(log_filter, output)
         # Check.
         self.check_string(output, purify_text=True)
 
@@ -191,7 +191,7 @@ class Test_linter_py1(hunitest.TestCase):
         # '$GIT_ROOT/linters/test/outcomes/.../hello.md: is not referenced in README.md'.
         log_filters = ["No tags for table", "is not referenced in README.md"]
         for log_filter in log_filters:
-            output = hunitest.filter_text(log_filter, output)
+            output = hprint.filter_text(log_filter, output)
         # Check.
         self.check_string(output, purify_text=True)
 
@@ -213,7 +213,7 @@ class Test_linter_py1(hunitest.TestCase):
         output = self.run_linter(text, file_name, as_system_call)
         # Remove the line:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
-        output = hunitest.filter_text("No tags for table", output)
+        output = hprint.filter_text("No tags for table", output)
         # Check.
         self.check_string(output, purify_text=True)
 
@@ -235,7 +235,7 @@ class Test_linter_py1(hunitest.TestCase):
         output = self.run_linter(text, file_name, as_system_call)
         # Remove the line:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
-        output = hunitest.filter_text("No tags for table", output)
+        output = hprint.filter_text("No tags for table", output)
         # Check.
         self.check_string(output, purify_text=True)
 

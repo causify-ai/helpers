@@ -1,40 +1,21 @@
 % ##############################################################################
-  \section{Related Work}
-  \label{sec:relatedwork}
-  \paragraph{ABAC, RBAC, and policy expressiveness.}
-  ABAC formalizes authorization decisions based on attributes rather than
-  static roles and is a standard reference point \cite{nist_abac}.
-  \uiPolicy{} is compatible with ABAC: the server may compute abilities
-  using attributes, but the key contribution here is the UI
-  contract that prevents the frontend from guessing.
+\section{Related Work}
+\label{sec:related_work}
 
-  \paragraph{Feature toggles and product variability.}
-  Feature flags separate release from deployment and are widely used for
-  rollout control \cite{fowler_feature_toggles}. However, feature flags alone
-  do not guarantee UI truthfulness: they can become a parallel universe
-  of conditions that diverge from authorization.\@ \uiPolicy{} can be
-  viewed as feature toggles with teeth: configuration is scoped by tenant/role
-  and validated against the same ability model.
+\paragraph{RBAC, ABAC, and policy formalisms.}
+Role-based access control formalizes role-to-permission assignment \cite{sandhu_rbac}. ABAC derives decisions from attributes rather than static roles \cite{nist_abac}. XACML standardized the policy-enforcement-point and policy-decision-point split \cite{xacml}. \uiPolicy{} is compatible with these models. Its concern is the next step: how an authorization decision becomes a rendered product surface.
 
-  \paragraph{Policy engines and external authorization services.}
-  OPA provides a general-purpose policy engine and a declarative
-  language to offload authorization decisions \cite{opa_docs}. Cedar (used
-  by Amazon Verified Permissions) provides a language for authorization policies
-  and standardized evaluation models \cite{cedar_docs,aws_verified_permissions}.
-  These systems are highly relevant when the goal is centralized
-  authorization logic.\@ \uiPolicy{} is orthogonal: we focus on how policy
-  decisions become UI structure in a multi-tenant product.
+\paragraph{Feature flags.}
+Feature flags separate release from deployment \cite{fowler_feature_toggles}. They are useful, but they can become a parallel entitlement system. \uiPolicy{} borrows the operational convenience of configuration while binding it to tenant and role semantics.
 
-  \paragraph{Relationship-based authorization and global systems.}
-  Zanzibar describes a global, consistent authorization system used
-  across Google services \cite{zanzibar}. While \system{} does not
-  implement a Zanzibar-style relationship store, Zanzibar underscores an
-  important theme: authorization becomes a distributed-systems problem
-  at scale.\@ \uiPolicy{} addresses a nearby problem: when authorization scales,
-  the UI must not become an unreliable narrator.
+\paragraph{Policy engines.}
+OPA, Cedar, Amazon Verified Permissions, and OpenFGA provide ways to centralize policy logic \cite{opa_docs,cedar_docs,aws_verified_permissions,openfga_docs}. These systems can feed \uiPolicy{}. They do not, by themselves, make a sidebar, module layout, or settings page truthful.
 
-  \paragraph{Impersonation and operational risk.}
-  OWASP explicitly highlights account impersonation as a security risk in
-  citizen development contexts \cite{owasp_impersonation}. Our \viewas{}
-  design aligns with the recommended mitigations: explicit actor
-  attribution, guardrails, and defense-in-depth.
+\paragraph{Relationship-based authorization.}
+Zanzibar describes Google's global authorization system for relationship-based permissions \cite{zanzibar}. It shows how authorization becomes a distributed-systems problem at scale. \uiPolicy{} deals with a nearby problem inside product code: keeping the UI aligned with whatever authorization system the backend trusts.
+
+\paragraph{Server-driven UI.}
+Server-driven UI architectures return layout and interaction structure from the server \cite{airbnb_sdui}. \uiPolicy{} is narrower and stricter. It uses a server contract to shape the UI, and it ties that contract to authorization inputs.
+
+\paragraph{Impersonation risk.}
+OWASP calls out broken access control as a top web security risk and flags account impersonation as a dangerous operational shortcut \cite{owasp_broken_access,owasp_impersonation}. The view-as design in this paper follows the safer pattern: keep actor attribution immutable, validate effective context server-side, and log both identities.

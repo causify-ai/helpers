@@ -1,42 +1,5 @@
 # Architecture Diagrams
 
-## Architecture Diagrams
-
-<!-- toc -->
-
-- [Summary](#summary)
-- [Brief Introduction to C4](#brief-introduction-to-c4)
-  * [Different Levels of Detail](#different-levels-of-detail)
-    + [(System) Context (Level 1)](#system-context-level-1)
-    + [Container (Level 2)](#container-level-2)
-    + [Component (Level 3)](#component-level-3)
-    + [Code (Level 4)](#code-level-4)
-- [Our Conventions for C4 Diagrams](#our-conventions-for-c4-diagrams)
-  * [Mapping C4 and Code Structure](#mapping-c4-and-code-structure)
-    + [(System) Context (Level 1)](#system-context-level-1-1)
-    + [Container (Level 2)](#container-level-2-1)
-    + [Component (Level 3)](#component-level-3-1)
-    + [Component (Level 4)](#component-level-4)
-  * [Use Classes!](#use-classes)
-  * [Generating Class Diagram](#generating-class-diagram)
-- [Mermaid](#mermaid)
-  * [Class Diagram](#class-diagram)
-  * [Support for C4](#support-for-c4)
-  * [Render On-Line](#render-on-line)
-- [PlantUML](#plantuml)
-  * [PlantUML is Markdown](#plantuml-is-markdown)
-    + [Our Conventions](#our-conventions)
-  * [Plotting Online](#plotting-online)
-- [UML - Unified Modeling Language](#uml---unified-modeling-language)
-  * [UML Class Diagrams](#uml-class-diagrams)
-    + [Class Notation](#class-notation)
-    + [Class Relationships](#class-relationships)
-      - [Inheritance/Generalization](#inheritancegeneralization)
-      - [Association](#association)
-    + [Complete Example](#complete-example)
-
-<!-- tocstop -->
-
 ## Summary
 
 - We use C4 as a way to describe graphically software architecture together with
