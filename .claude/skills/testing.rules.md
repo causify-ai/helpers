@@ -1,10 +1,10 @@
 - This file contains all the conventions and rules to write unit tests
 
-# Test Design
+# Testing Philosophy
 
 ## Test One Thing
-- A test class tests only one function or class; a test method tests only one
-  case
+- A test class tests only one function or class
+- A test method tests only one case
 - Keeps failures easy to diagnose: one thing broken means one test fails
 
 ## Keep Tests Self-Contained
@@ -12,8 +12,9 @@
 - Specify input data explicitly inside the test; do not rely on shared state
 
 ## Test From the Outside-In
-- Start with public-facing behavior before internal helpers
-- Interface-level tests survive refactors; implementation-level tests do not
+- Start with testing public-facing behavior before testing internal helpers
+- Interface-level tests survive refactors, while implementation-level tests do
+  not
 
 ## Keep Testing Code in Sync with Tested Code
 - When renaming a tested class or file, rename the test class and test file
