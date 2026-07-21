@@ -1,7 +1,3 @@
-# Wishlist
-- It will be nice to have everything running in a tmux so that it's easy to drop
-  in and check the status
-
 # Create list of tasks
 
 - From master find the tasks to execute
@@ -43,7 +39,6 @@
 - This is the master list of what needs to be done
 
 # Make sure that the list is updated
-
   ```
   claude> Look at the last merged git PRs in master and in the current repo and mark the completed issues in plan.todo_janitor.md
   ```
