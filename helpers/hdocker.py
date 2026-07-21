@@ -482,7 +482,9 @@ def replace_shared_root_path(
 # about the Dockerized flow.
 
 
-def get_docker_base_cmd(use_sudo: bool, *, use_root_user: bool = False) -> List[str]:
+def get_docker_base_cmd(
+    use_sudo: bool, *, use_root_user: bool = False
+) -> List[str]:
     """
     Get the base command for running a Docker container.
 

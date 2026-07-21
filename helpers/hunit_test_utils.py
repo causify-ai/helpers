@@ -23,7 +23,6 @@ import helpers.hio as hio
 import helpers.hserver as hserver
 import helpers.hstring as hstring
 import helpers.hsystem as hsystem
-import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 

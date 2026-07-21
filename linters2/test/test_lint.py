@@ -56,7 +56,14 @@ class Test_filter_files_by_type(hunitest.TestCase):
         hio.to_file(notebook_ipynb, "")
         file_paths = [standalone_py, paired_py, notebook_ipynb]
         file_types = ["py", "ipynb"]
-        return standalone_py, paired_py, paired_ipynb, notebook_ipynb, file_paths, file_types
+        return (
+            standalone_py,
+            paired_py,
+            paired_ipynb,
+            notebook_ipynb,
+            file_paths,
+            file_types,
+        )
 
     def _assert_filter_results(
         self,
@@ -69,7 +76,9 @@ class Test_filter_files_by_type(hunitest.TestCase):
         *,
         sort_py: bool = False,
     ) -> None:
-        """Assert filter results match expectations."""
+        """
+        Assert filter results match expectations.
+        """
         if sort_py:
             self.assertEqual(sorted(actual_py), sorted(expected_py))
         else:
@@ -88,7 +97,9 @@ class Test_filter_files_by_type(hunitest.TestCase):
         exclude_paired_jupytext: Optional[bool] = None,
         sort_py: bool = False,
     ) -> None:
-        """Run _filter_files_by_type and check results."""
+        """
+        Run _filter_files_by_type and check results.
+        """
         kwargs = {"skip_dassert_exists": True}
         if exclude_paired_jupytext is not None:
             kwargs["exclude_paired_jupytext"] = exclude_paired_jupytext
@@ -235,7 +246,9 @@ class Test_run_common_linting_actions(hunitest.TestCase):
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
-                "args": ("pre-commit run --files file1.py file2.py --color always",),
+                "args": (
+                    "pre-commit run --files file1.py file2.py --color always",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -302,7 +315,9 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
-                "args": ("linters2/normalize_import.py --no_report_command_line file1.py",),
+                "args": (
+                    "linters2/normalize_import.py --no_report_command_line file1.py",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -335,7 +350,9 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
-                "args": ("linters2/normalize_import.py --no_report_command_line file1.py",),
+                "args": (
+                    "linters2/normalize_import.py --no_report_command_line file1.py",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -344,7 +361,9 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             },
             {
                 "function": "hsystem.system",
-                "args": ("linters2/add_class_frames.py --no_report_command_line file1.py",),
+                "args": (
+                    "linters2/add_class_frames.py --no_report_command_line file1.py",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -463,7 +482,9 @@ class Test_lint_python_files(hunitest.TestCase):
             },
             {
                 "function": "hsystem.system",
-                "args": ("linters2/normalize_import.py --no_report_command_line foo.py bar.py",),
+                "args": (
+                    "linters2/normalize_import.py --no_report_command_line foo.py bar.py",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -472,7 +493,9 @@ class Test_lint_python_files(hunitest.TestCase):
             },
             {
                 "function": "hsystem.system",
-                "args": ("linters2/add_class_frames.py --no_report_command_line foo.py bar.py",),
+                "args": (
+                    "linters2/add_class_frames.py --no_report_command_line foo.py bar.py",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -481,7 +504,9 @@ class Test_lint_python_files(hunitest.TestCase):
             },
             {
                 "function": "hsystem.system",
-                "args": ("linters2/fix_comments.py --no_report_command_line foo.py bar.py",),
+                "args": (
+                    "linters2/fix_comments.py --no_report_command_line foo.py bar.py",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -514,7 +539,9 @@ class Test_lint_python_files(hunitest.TestCase):
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
-                "args": ("linters2/normalize_import.py --no_report_command_line foo.py",),
+                "args": (
+                    "linters2/normalize_import.py --no_report_command_line foo.py",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -581,7 +608,9 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
-                "args": ("pre-commit run --files foo.ipynb bar.ipynb --color always",),
+                "args": (
+                    "pre-commit run --files foo.ipynb bar.ipynb --color always",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
@@ -656,7 +685,9 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
-                "args": ("pre-commit run --files foo.ipynb bar.ipynb --color always",),
+                "args": (
+                    "pre-commit run --files foo.ipynb bar.ipynb --color always",
+                ),
                 "kwargs": {
                     "print_command": False,
                     "abort_on_error": True,
