@@ -403,10 +403,7 @@ def get_client_root(super_module: bool) -> str:
         # > git rev-parse --show-toplevel
         # /Users/saggese/src/.../amp
         cmd = "git rev-parse --show-toplevel"
-    # TODO(ai_gp): Use system_to_one_line().
-    _, out = hsystem.system_to_string(cmd)
-    out = out.rstrip("\n")
-    hdbg.dassert_eq(len(out.split("\n")), 1, msg=f"Invalid out='{out}'")
+    _, out = hsystem.system_to_one_line(cmd)
     client_root: str = os.path.realpath(out)
     return client_root
 
@@ -714,6 +711,8 @@ def is_in_helpers_as_supermodule() -> bool:
     return is_helpers() and not is_inside_submodule(".")
 
 
+# TODO(gp): Be consistent with submodule and sub-module in the code. Same for
+#  supermodule.
 def is_in_amp_as_submodule() -> bool:
     """
     Return whether we are in the `amp` repo and it's a sub-module, e.g., of

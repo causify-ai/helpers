@@ -943,14 +943,14 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         # TODO(Grisha): add the "no module warning" filtering to
         # `purify_text()` in `check_string()`.
         regex = "WARN.*No module"
-        actual = hunitest.filter_text(regex, actual)
+        actual = hprint.filter_text(regex, actual)
         # Remove "Encountered unexpected exception importing solver GLPK"
         # generated on Mac.
         regex = "Encountered unexpected exception importing solver GLPK"
-        actual = hunitest.filter_text(regex, actual)
+        actual = hprint.filter_text(regex, actual)
         # ImportError("cannot import name 'glpk' from 'cvxopt' (/venv/lib/python3.9/site-packages/cvxopt/__init__.py)")
         regex = r"""ImportError\("cannot import name"""
-        actual = hunitest.filter_text(regex, actual)
+        actual = hprint.filter_text(regex, actual)
         # Modify the outcome for reproducibility.
         actual = hprint.remove_non_printable_chars(actual)
         actual = re.sub(r"[0-9]{2}:[0-9]{2}:[0-9]{2} - ", r"HH:MM:SS - ", actual)
@@ -975,9 +975,9 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         #
         actual = "\n".join([line_cmd] + lines_test_output)
         regex = "init_logger"
-        actual = hunitest.filter_text(regex, actual)
+        actual = hprint.filter_text(regex, actual)
         regex = r"(WARN|INFO)\s+hcache_simple.py"
-        actual = hunitest.filter_text(regex, actual)
+        actual = hprint.filter_text(regex, actual)
         # Check the outcome.
         self.check_string(actual, purify_text=True, fuzzy_match=True)
 

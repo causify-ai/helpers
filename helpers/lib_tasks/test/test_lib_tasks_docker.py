@@ -63,17 +63,17 @@ class Test_generate_compose_file1(hunitest.TestCase):
             file_name,
         )
         # Remove all the env variables that are function of the host.
-        txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
-        txt_tmp = hunitest.filter_text("CSFY_GIT_ROOT_PATH", txt_tmp)
-        txt_tmp = hunitest.filter_text("CSFY_HELPERS_ROOT_PATH", txt_tmp)
-        txt_tmp = hunitest.filter_text(
+        txt_tmp = hprint.filter_text("CSFY_HOST_", txt_tmp)
+        txt_tmp = hprint.filter_text("CSFY_GIT_ROOT_PATH", txt_tmp)
+        txt_tmp = hprint.filter_text("CSFY_HELPERS_ROOT_PATH", txt_tmp)
+        txt_tmp = hprint.filter_text(
             "CSFY_USE_HELPERS_AS_NESTED_MODULE", txt_tmp
         )
-        txt_tmp = hunitest.filter_text("_API_KEY", txt_tmp)
+        txt_tmp = hprint.filter_text("_API_KEY", txt_tmp)
         txt.append(txt_tmp)
         #
         txt = "\n".join(txt)
-        txt = hunitest.filter_text(r"working_dir", txt)
+        txt = hprint.filter_text(r"working_dir", txt)
         self.check_string(txt)
 
     @pytest.mark.skipif(sys.platform == "darwin", reason="")
@@ -170,8 +170,8 @@ class Test_generate_compose_file2(hunitest.TestCase):
                 file_name,
             )
         # Remove all the env variables that are function of the host.
-        txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
-        txt_tmp = hunitest.filter_text("_API_KEY", txt_tmp)
+        txt_tmp = hprint.filter_text("CSFY_HOST_", txt_tmp)
+        txt_tmp = hprint.filter_text("_API_KEY", txt_tmp)
         txt.append(txt_tmp)
         #
         txt = "\n".join(txt)
@@ -254,7 +254,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         actual = re.sub(timestamp_regex, "", actual)
         actual = huntepur.purify_txt_from_client(actual)
         # This is required when different repos run Docker with user vs root / remap.
-        actual = hunitest.filter_text("--user", actual)
+        actual = hprint.filter_text("--user", actual)
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     @pytest.mark.requires_ck_infra

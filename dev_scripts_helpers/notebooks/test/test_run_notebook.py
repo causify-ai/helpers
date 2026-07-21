@@ -155,7 +155,7 @@ def _compare_dir_signature(self: Any, dir_name: str, expected: str) -> None:
     actual = huntepur.purify_txt_from_client(actual)
     # Remove lines like:
     # $GIT_ROOT/core/dataflow_model/.../log.20210705_100612.txt
-    actual = hunitest.filter_text(r"^.*/log\.\S+\.txt$", actual)
+    actual = hprint.filter_text(r"^.*/log\.\S+\.txt$", actual)
     expected = hprint.dedent(expected)
     self.assert_equal(actual, expected, fuzzy_match=True)
 

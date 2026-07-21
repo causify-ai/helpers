@@ -1062,7 +1062,7 @@ class _Pylint(_Action):
         output = [line for line in output if ("-" * 20) not in line]
         # Remove:
         #    ************* Module dev_scripts.generate_script_catalog
-        output_as_str = hunitest.filter_text(
+        output_as_str = hprint.filter_text(
             re.escape("^************* Module "), "\n".join(output)
         )
         # Remove empty lines.
