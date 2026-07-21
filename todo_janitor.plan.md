@@ -1,6 +1,6 @@
 # TODO Janitor Plan
 
-## [ ] Issue2: Use System_to_one_line() in Hgit.py
+## [x] Issue2: Use System_to_one_line() in Hgit.py
 
 ### Info
 - Original description:
@@ -21,11 +21,11 @@
   - Test with both regular repo and superproject cases
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
-- Git worktree:
+- Status: completed
+- GitHub issue title: HelpersTask1299_TODO_clean_up
+- GitHub issue link: https://github.com/causify-ai/helpers/issues/1299
+- PR link: https://github.com/causify-ai/helpers/pull/1300
+- Git worktree: 511147ea
 
 ## [x] Issue3: Use Filter_text From Helpers/hprint.py
 
@@ -53,7 +53,7 @@
 - PR link: https://github.com/causify-ai/helpers/pull/1298
 - Git worktree: 2b0e06d4
 
-## [ ] Issue4: Use Conditional Import for PIL in Hgraphviz.py
+## [x] Issue4: Use Conditional Import for PIL in Hgraphviz.py
 
 ### Info
 - Original description:
@@ -74,11 +74,11 @@
   - Test behavior when PIL is not available
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
-- Git worktree:
+- Status: completed
+- GitHub issue title: HelpersTask1299_TODO_clean_up
+- GitHub issue link: https://github.com/causify-ai/helpers/issues/1299
+- PR link: https://github.com/causify-ai/helpers/pull/1300
+- Git worktree: 511147ea
 
 ## [x] Issue5: Move Assertion Into Test Helper
 
@@ -136,7 +136,7 @@
 - PR link: https://github.com/causify-ai/helpers/pull/1298
 - Git worktree: 2b0e06d4
 
-## [ ] Issue7: Update Test Mocks to Use Capture_system_calls (test_hmodule.py)
+## [x] Issue7: Update Test Mocks to Use Capture_system_calls (test_hmodule.py)
 
 ### Info
 - Original description:
@@ -157,13 +157,13 @@
   - Verify captured calls match expected system invocations
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
-- Git worktree:
+- Status: completed
+- GitHub issue title: HelpersTask1299_TODO_clean_up
+- GitHub issue link: https://github.com/causify-ai/helpers/issues/1299
+- PR link: https://github.com/causify-ai/helpers/pull/1300
+- Git worktree: 511147ea
 
-## [ ] Issue8: Update Test Mocks in Test_lint.py
+## [x] Issue8: Update Test Mocks in Test_lint.py
 
 ### Info
 - Original description:
@@ -184,11 +184,11 @@
   - Verify test coverage is maintained
 
 ### Status
-- Status: proposed
-- GitHub issue title:
-- GitHub issue link:
-- PR link:
-- Git worktree:
+- Status: completed
+- GitHub issue title: Renaming invocations to sys_calls
+- GitHub issue link: Completed as part of Issue17 refactoring
+- PR link: https://github.com/causify-ai/helpers/pull/1293
+- Git worktree: b2934832
 
 ## [ ] Issue9: Apply Factor_common_code to Test_filter_files_by_type
 
