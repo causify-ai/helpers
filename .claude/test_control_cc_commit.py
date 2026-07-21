@@ -1,20 +1,34 @@
-"""
-Unit tests for control_cc_commit.py
-"""
-
 from typing import Dict
 
 import helpers.hunit_test as hunitest
-
-# Import the module to test
 import control_cc_commit as cc_control
 
 
 class Test_enable_git_commands(hunitest.TestCase):
     """Test cases for _enable_git_commands function."""
 
-    def test_enable_when_denials_exist(self) -> None:
-        """Test enabling when git denials are in the deny list."""
+    def helper(
+        self,
+        settings: Dict,
+        expected_result: bool,
+        expected_deny_list: list,
+    ) -> None:
+        """
+        Test helper for _enable_git_commands.
+
+        :param settings: Input settings dictionary
+        :param expected_result: Expected return value
+        :param expected_deny_list: Expected deny list after execution
+        """
+        # Run test.
+        result = cc_control._enable_git_commands(settings)
+        # Check outputs.
+        self.assertEqual(result, expected_result)
+        self.assertEqual(settings["permissions"]["deny"], expected_deny_list)
+
+    def test1(self) -> None:
+        """Test enabling when all git denials are in the deny list."""
+        # Prepare inputs.
         settings: Dict = {
             "permissions": {
                 "deny": [
@@ -25,21 +39,27 @@ class Test_enable_git_commands(hunitest.TestCase):
                 ]
             }
         }
-        result = cc_control._enable_git_commands(settings)
-        self.assertTrue(result)
-        self.assertEqual(settings["permissions"]["deny"], ["SomeOtherDenial"])
+        # Prepare outputs.
+        expected_result = True
+        expected_deny_list = ["SomeOtherDenial"]
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_list)
 
-    def test_enable_when_no_denials_exist(self) -> None:
+    def test2(self) -> None:
         """Test enabling when there are no git denials to remove."""
+        # Prepare inputs.
         settings: Dict = {
             "permissions": {"deny": ["SomeOtherDenial"]}
         }
-        result = cc_control._enable_git_commands(settings)
-        self.assertFalse(result)
-        self.assertEqual(settings["permissions"]["deny"], ["SomeOtherDenial"])
+        # Prepare outputs.
+        expected_result = False
+        expected_deny_list = ["SomeOtherDenial"]
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_list)
 
-    def test_enable_when_partial_denials_exist(self) -> None:
+    def test3(self) -> None:
         """Test enabling when only some git denials are present."""
+        # Prepare inputs.
         settings: Dict = {
             "permissions": {
                 "deny": [
@@ -48,54 +68,85 @@ class Test_enable_git_commands(hunitest.TestCase):
                 ]
             }
         }
-        result = cc_control._enable_git_commands(settings)
-        self.assertTrue(result)
-        self.assertEqual(settings["permissions"]["deny"], ["SomeOtherDenial"])
+        # Prepare outputs.
+        expected_result = True
+        expected_deny_list = ["SomeOtherDenial"]
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_list)
 
-    def test_enable_with_empty_deny_list(self) -> None:
+    def test4(self) -> None:
         """Test enabling when deny list is empty."""
+        # Prepare inputs.
         settings: Dict = {"permissions": {"deny": []}}
-        result = cc_control._enable_git_commands(settings)
-        self.assertFalse(result)
-        self.assertEqual(settings["permissions"]["deny"], [])
+        # Prepare outputs.
+        expected_result = False
+        expected_deny_list = []
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_list)
 
-    def test_enable_when_no_permissions_key(self) -> None:
+    def test5(self) -> None:
         """Test enabling when permissions key doesn't exist."""
+        # Prepare inputs.
         settings: Dict = {}
-        result = cc_control._enable_git_commands(settings)
-        self.assertFalse(result)
-        self.assertIn("permissions", settings)
-        self.assertEqual(settings["permissions"]["deny"], [])
+        # Prepare outputs.
+        expected_result = False
+        expected_deny_list = []
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_list)
 
-    def test_enable_when_no_deny_key(self) -> None:
+    def test6(self) -> None:
         """Test enabling when deny key doesn't exist under permissions."""
+        # Prepare inputs.
         settings: Dict = {"permissions": {}}
-        result = cc_control._enable_git_commands(settings)
-        self.assertFalse(result)
-        self.assertEqual(settings["permissions"]["deny"], [])
+        # Prepare outputs.
+        expected_result = False
+        expected_deny_list = []
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_list)
 
 
 class Test_disable_git_commands(hunitest.TestCase):
     """Test cases for _disable_git_commands function."""
 
-    def test_disable_when_denials_dont_exist(self) -> None:
+    def helper(
+        self,
+        settings: Dict,
+        expected_result: bool,
+        expected_deny_set: set,
+    ) -> None:
+        """
+        Test helper for _disable_git_commands.
+
+        :param settings: Input settings dictionary
+        :param expected_result: Expected return value
+        :param expected_deny_set: Expected deny list as a set after execution
+        """
+        # Run test.
+        result = cc_control._disable_git_commands(settings)
+        # Check outputs.
+        self.assertEqual(result, expected_result)
+        self.assertEqual(set(settings["permissions"]["deny"]), expected_deny_set)
+
+    def test1(self) -> None:
         """Test disabling when git denials don't already exist."""
+        # Prepare inputs.
         settings: Dict = {
             "permissions": {"deny": ["SomeOtherDenial"]}
         }
-        result = cc_control._disable_git_commands(settings)
-        self.assertTrue(result)
-        expected_denials = [
+        # Prepare outputs.
+        expected_result = True
+        expected_deny_set = {
             "SomeOtherDenial",
             "Bash(*git commit:*)",
             "Bash(*git commit -m *)",
             "Bash(*git push:*)",
-        ]
-        # Check that all expected denials are present (order may vary).
-        self.assertEqual(set(settings["permissions"]["deny"]), set(expected_denials))
+        }
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_set)
 
-    def test_disable_when_all_denials_exist(self) -> None:
+    def test2(self) -> None:
         """Test disabling when all git denials already exist."""
+        # Prepare inputs.
         settings: Dict = {
             "permissions": {
                 "deny": [
@@ -105,15 +156,15 @@ class Test_disable_git_commands(hunitest.TestCase):
                 ]
             }
         }
-        result = cc_control._disable_git_commands(settings)
-        self.assertFalse(result)
-        self.assertEqual(
-            set(settings["permissions"]["deny"]),
-            set(cc_control._GIT_DENIALS),
-        )
+        # Prepare outputs.
+        expected_result = False
+        expected_deny_set = set(cc_control._GIT_DENIALS)
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_set)
 
-    def test_disable_when_partial_denials_exist(self) -> None:
+    def test3(self) -> None:
         """Test disabling when only some git denials already exist."""
+        # Prepare inputs.
         settings: Dict = {
             "permissions": {
                 "deny": [
@@ -122,44 +173,54 @@ class Test_disable_git_commands(hunitest.TestCase):
                 ]
             }
         }
-        result = cc_control._disable_git_commands(settings)
-        self.assertTrue(result)
-        expected_denials = [
+        # Prepare outputs.
+        expected_result = True
+        expected_deny_set = {
             "Bash(*git commit:*)",
             "SomeOtherDenial",
             "Bash(*git commit -m *)",
             "Bash(*git push:*)",
-        ]
-        self.assertEqual(set(settings["permissions"]["deny"]), set(expected_denials))
+        }
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_set)
 
-    def test_disable_with_empty_deny_list(self) -> None:
+    def test4(self) -> None:
         """Test disabling when deny list is empty."""
+        # Prepare inputs.
         settings: Dict = {"permissions": {"deny": []}}
-        result = cc_control._disable_git_commands(settings)
-        self.assertTrue(result)
-        self.assertEqual(set(settings["permissions"]["deny"]), set(cc_control._GIT_DENIALS))
+        # Prepare outputs.
+        expected_result = True
+        expected_deny_set = set(cc_control._GIT_DENIALS)
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_set)
 
-    def test_disable_when_no_permissions_key(self) -> None:
+    def test5(self) -> None:
         """Test disabling when permissions key doesn't exist."""
+        # Prepare inputs.
         settings: Dict = {}
-        result = cc_control._disable_git_commands(settings)
-        self.assertTrue(result)
-        self.assertIn("permissions", settings)
-        self.assertEqual(set(settings["permissions"]["deny"]), set(cc_control._GIT_DENIALS))
+        # Prepare outputs.
+        expected_result = True
+        expected_deny_set = set(cc_control._GIT_DENIALS)
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_set)
 
-    def test_disable_when_no_deny_key(self) -> None:
+    def test6(self) -> None:
         """Test disabling when deny key doesn't exist under permissions."""
+        # Prepare inputs.
         settings: Dict = {"permissions": {}}
-        result = cc_control._disable_git_commands(settings)
-        self.assertTrue(result)
-        self.assertEqual(set(settings["permissions"]["deny"]), set(cc_control._GIT_DENIALS))
+        # Prepare outputs.
+        expected_result = True
+        expected_deny_set = set(cc_control._GIT_DENIALS)
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_set)
 
-    def test_disable_preserves_other_denials(self) -> None:
+    def test7(self) -> None:
         """Test that disabling preserves unrelated denials."""
+        # Prepare inputs.
         other_denials = ["Bash(*rm:*)", "Edit(*dangerous*)"]
         settings: Dict = {"permissions": {"deny": other_denials.copy()}}
-        result = cc_control._disable_git_commands(settings)
-        self.assertTrue(result)
-        # All denials should be present.
-        expected = set(other_denials + cc_control._GIT_DENIALS)
-        self.assertEqual(set(settings["permissions"]["deny"]), expected)
+        # Prepare outputs.
+        expected_result = True
+        expected_deny_set = set(other_denials + cc_control._GIT_DENIALS)
+        # Run test.
+        self.helper(settings, expected_result, expected_deny_set)
