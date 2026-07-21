@@ -7,7 +7,9 @@ model: opus
 - Given a markdown file with slides about technical material, review the content
   for correctness, clarity, and structural organization
 
-# Step 11: Propose Structural Improvements
+# Step 1: Propose Structural Improvements
+
+- Read the conventions in `.claude/skills/slides.rules.md`
 
 ## Change Order of Slides
 - Propose how to organize the slides in a different flow, separating cohesive
@@ -19,8 +21,8 @@ model: opus
     ## Topic 1.1
 
     * Slide 1
-
     * Slide 2
+    ...
     ```
 
 ## Slides to Remove
@@ -47,6 +49,3 @@ model: opus
 - Number each suggestion so that it's easy to refer to
 - Ask the user which improvements need to be done
 - After the user approves a subset of changes, perform the changes in place
-
-## Follow Conventions
-- Follow the conventions in `.claude/skills/slides.rules.md`

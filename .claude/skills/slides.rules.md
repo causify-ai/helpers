@@ -86,6 +86,9 @@
 - Don't use unicode characters but use LaTeX symbols if needed
   - Instead of `→` use `$\to$`
 
+## Use 80 columns
+- Wrap text into 80 columns
+
 ## Slide Structure
 - Each slide should start with:
   ```markdown
