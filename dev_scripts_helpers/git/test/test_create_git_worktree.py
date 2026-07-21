@@ -175,7 +175,7 @@ class Test_parse_issue_number_from_url(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_create_git_worktree_py
+# Test_branch_exists
 # #############################################################################
 
 
@@ -320,6 +320,11 @@ class Test_create_worktree(hunitest.TestCase):
         self.assertEqual(worktree_path, expected_path)
 
 
+# #############################################################################
+# Test_create_git_worktree_py
+# #############################################################################
+
+
 class Test_create_git_worktree_py(hunitest.TestCase):
     """
     End-to-end tests for the `create_git_worktree.py` executable.
@@ -410,6 +415,7 @@ class Test_create_git_worktree_py(hunitest.TestCase):
         ]
         # Run test with mocked system calls.
         parser = dshgcgiwo._parse()
+        # TODO(ai_gp): Find a better way to mock since this is insane.
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
@@ -423,7 +429,9 @@ class Test_create_git_worktree_py(hunitest.TestCase):
                             "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                             return_value=False,
                         ):
-                            with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
+                            with mock.patch(
+                                "os.getcwd", return_value="/home/user/helpers1"
+                            ):
                                 with mock.patch(
                                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                                 ):

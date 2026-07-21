@@ -112,7 +112,12 @@ def plot_dag_with_graphviz(
     if figsize is None:
         figsize = DAG_FIGURE_SIZE
     dot_str = _graph_to_graphviz_dot(
-        G, title, node_colors=node_colors, edge_colors=edge_colors, size=figsize, dpi=dpi
+        G,
+        title,
+        node_colors=node_colors,
+        edge_colors=edge_colors,
+        size=figsize,
+        dpi=dpi,
     )
     # Render to PNG with specified DPI.
     g = graphviz.Source(dot_str, format="png")

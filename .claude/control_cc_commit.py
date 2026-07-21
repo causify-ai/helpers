@@ -10,8 +10,7 @@ Usage:
 import argparse
 import json
 import logging
-import os
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import helpers.hdbg as hdbg
 
@@ -77,7 +76,9 @@ def _enable_git_commands(settings: Dict) -> bool:
     settings["permissions"]["deny"] = deny_list
     removed = initial_len != len(deny_list)
     if removed:
-        _LOG.info("Removed %d git commit/push denials", initial_len - len(deny_list))
+        _LOG.info(
+            "Removed %d git commit/push denials", initial_len - len(deny_list)
+        )
     else:
         _LOG.info("No git commit/push denials to remove")
     return removed
@@ -103,7 +104,9 @@ def _disable_git_commands(settings: Dict) -> bool:
     settings["permissions"]["deny"] = deny_list
     added = len(deny_list) != initial_len
     if added:
-        _LOG.info("Added %d git commit/push denials", len(deny_list) - initial_len)
+        _LOG.info(
+            "Added %d git commit/push denials", len(deny_list) - initial_len
+        )
     else:
         _LOG.info("Git commit/push denials already present")
     return added
@@ -163,8 +166,10 @@ def _main(args: argparse.Namespace) -> None:
     # Save if changed.
     if changed:
         _save_settings(settings_path, settings)
-        _LOG.info("Git commit/push permissions: %s",
-                  "ENABLED" if args.enable else "DISABLED")
+        _LOG.info(
+            "Git commit/push permissions: %s",
+            "ENABLED" if args.enable else "DISABLED",
+        )
     else:
         _LOG.info("No changes made to settings")
 

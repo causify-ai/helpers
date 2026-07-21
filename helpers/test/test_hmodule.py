@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import List, Optional, Union
 from unittest import mock
 
 import helpers.hdbg as hdbg
@@ -62,7 +62,7 @@ class Test_install_module_if_not_present(hunitest.TestCase):
             return module in expected_installed
 
         # TODO(ai_gp): Use capture_sys_calls and assert_sys_calls
-        # from ./helpers/hunit_test_utils.py instead of reimplementing 
+        # from ./helpers/hunit_test_utils.py instead of reimplementing
         # this functionality.
         system_calls: List[str] = []
 
