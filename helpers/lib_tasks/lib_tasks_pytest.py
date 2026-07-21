@@ -1489,7 +1489,7 @@ def _run(
         cmd,
         abort_on_error=abort_on_error,
         suppress_output=False,
-        log_level="echo_frame",
+        log_level="PRINT_FRAME",
         output_file=output_file,
         tee=tee,
     )

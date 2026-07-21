@@ -847,7 +847,7 @@ def get_submodule_paths() -> List[str]:
     _, txt = hsystem.system_to_string(cmd)
     _LOG.debug("txt=%s", txt)
     # Convert the output string to a list of paths.
-    files: List[str] = hsystem.text_to_list(txt)
+    files: List[str] = hprint.text_to_list(txt)
     _LOG.debug("files=%s", files)
     return files
 
@@ -2021,6 +2021,6 @@ def delete_branches(
         hsystem.system(
             cmd,
             suppress_output=False,
-            log_level="echo",
+            log_level="PRINT",
             abort_on_error=abort_on_error,
         )

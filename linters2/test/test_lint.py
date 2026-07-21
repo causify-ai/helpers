@@ -1,6 +1,6 @@
 import os
 import unittest.mock as umock
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -58,11 +58,57 @@ class Test_filter_files_by_type(hunitest.TestCase):
         file_types = ["py", "ipynb"]
         return standalone_py, paired_py, paired_ipynb, notebook_ipynb, file_paths, file_types
 
+    def _assert_filter_results(
+        self,
+        actual_py: List[str],
+        actual_ipynb: List[str],
+        actual_md: List[str],
+        expected_py: List[str],
+        expected_ipynb: List[str],
+        expected_md: List[str],
+        *,
+        sort_py: bool = False,
+    ) -> None:
+        """Assert filter results match expectations."""
+        if sort_py:
+            self.assertEqual(sorted(actual_py), sorted(expected_py))
+        else:
+            self.assertEqual(actual_py, expected_py)
+        self.assertEqual(actual_ipynb, expected_ipynb)
+        self.assertEqual(actual_md, expected_md)
+
+    def _run_and_check_filter(
+        self,
+        file_paths: List[str],
+        file_types: List[str],
+        expected_py: List[str],
+        expected_ipynb: List[str],
+        expected_md: List[str],
+        *,
+        exclude_paired_jupytext: Optional[bool] = None,
+        sort_py: bool = False,
+    ) -> None:
+        """Run _filter_files_by_type and check results."""
+        kwargs = {"skip_dassert_exists": True}
+        if exclude_paired_jupytext is not None:
+            kwargs["exclude_paired_jupytext"] = exclude_paired_jupytext
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+            file_paths, file_types, **kwargs
+        )
+        self._assert_filter_results(
+            py_files,
+            ipynb_files,
+            md_files,
+            expected_py,
+            expected_ipynb,
+            expected_md,
+            sort_py=sort_py,
+        )
+
     def test1(self) -> None:
         """
         Default filters: py,ipynb extensions.
         """
-        # Prepare inputs.
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md", "qux.txt"])
         file_paths = [
             paths["foo.py"],
@@ -70,153 +116,100 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["baz.md"],
             paths["qux.txt"],
         ]
-        file_types = ["py", "ipynb"]
-        # Prepare outputs.
-        expected_py_files = [paths["foo.py"]]
-        expected_ipynb_files = [paths["bar.ipynb"]]
-        expected_md_files = []
-        # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._run_and_check_filter(
             file_paths,
-            file_types,
-            skip_dassert_exists=True,
+            ["py", "ipynb"],
+            [paths["foo.py"]],
+            [paths["bar.ipynb"]],
+            [],
         )
-        # Check outputs.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test2(self) -> None:
         """
         py extension only: only .py files included.
         """
-        # Prepare inputs.
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
             paths["foo.py"],
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        file_types = ["py"]
-        # Prepare outputs.
-        expected_py_files = [paths["foo.py"]]
-        expected_ipynb_files = []
-        expected_md_files = []
-        # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._run_and_check_filter(
             file_paths,
-            file_types,
-            skip_dassert_exists=True,
+            ["py"],
+            [paths["foo.py"]],
+            [],
+            [],
         )
-        # Check outputs.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test3(self) -> None:
         """
         ipynb extension only: only .ipynb files included.
         """
-        # Prepare inputs.
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
             paths["foo.py"],
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        file_types = ["ipynb"]
-        # Prepare outputs.
-        expected_py_files = []
-        expected_ipynb_files = [paths["bar.ipynb"]]
-        expected_md_files = []
-        # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._run_and_check_filter(
             file_paths,
-            file_types,
-            skip_dassert_exists=True,
+            ["ipynb"],
+            [],
+            [paths["bar.ipynb"]],
+            [],
         )
-        # Check outputs.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test4(self) -> None:
         """
         md extension only: only .md files included.
         """
-        # Prepare inputs.
         paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
             paths["foo.py"],
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        file_types = ["md"]
-        # Prepare outputs.
-        expected_py_files = []
-        expected_ipynb_files = []
-        expected_md_files = [paths["baz.md"]]
-        # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._run_and_check_filter(
             file_paths,
-            file_types,
-            skip_dassert_exists=True,
+            ["md"],
+            [],
+            [],
+            [paths["baz.md"]],
         )
-        # Check outputs.
-        # TODO(ai_gp): Move this inside the helper.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test5(self) -> None:
         """
         Paired jupytext .py files excluded by default.
         """
-        # Prepare inputs.
         standalone_py, _, _, notebook_ipynb, file_paths, file_types = (
             self._setup_jupytext_test_files()
         )
-        exclude_paired_jupytext = True
-        # Prepare outputs.
-        expected_py_files = [standalone_py]
-        expected_ipynb_files = [notebook_ipynb]
-        expected_md_files = []
-        # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._run_and_check_filter(
             file_paths,
             file_types,
-            skip_dassert_exists=True,
-            exclude_paired_jupytext=exclude_paired_jupytext,
+            [standalone_py],
+            [notebook_ipynb],
+            [],
+            exclude_paired_jupytext=True,
         )
-        # Check outputs.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test6(self) -> None:
         """
         With exclude_paired_jupytext=False, paired .py files included.
         """
-        # Prepare inputs.
         standalone_py, paired_py, _, notebook_ipynb, file_paths, file_types = (
             self._setup_jupytext_test_files()
         )
-        exclude_paired_jupytext = False
-        # Prepare outputs.
-        expected_py_files = [standalone_py, paired_py]
-        expected_ipynb_files = [notebook_ipynb]
-        expected_md_files = []
-        # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._run_and_check_filter(
             file_paths,
             file_types,
-            skip_dassert_exists=True,
-            exclude_paired_jupytext=exclude_paired_jupytext,
+            [standalone_py, paired_py],
+            [notebook_ipynb],
+            [],
+            exclude_paired_jupytext=False,
+            sort_py=True,
         )
-        # Check outputs.
-        self.assertEqual(sorted(py_files), sorted(expected_py_files))
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
 
 # #############################################################################
@@ -371,24 +364,23 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         expected_str = hunteuti.sys_calls_to_str(expected_sys_calls)
         hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
-    @umock.patch("helpers.hsystem.system")
-    def test3(self, mock_system: umock.MagicMock) -> None:
+    def test3(self) -> None:
         """
         mock_system returns non-zero: return code is OR-combined.
         """
         # Prepare inputs.
-        mock_system.side_effect = [0, 1, 0, 0]
         file_paths = ["file1.py"]
         actions = lilint._DEFAULT_ACTIONS
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 1
         # Run test.
-        ret = lilint._run_python_linting_actions(
-            file_paths,
-            actions,
-            abort_on_error=abort_on_error,
-        )
+        with hunteuti.capture_sys_calls(side_effect=[0, 1, 0, 0]) as sys_calls:
+            ret = lilint._run_python_linting_actions(
+                file_paths,
+                actions,
+                abort_on_error=abort_on_error,
+            )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
 

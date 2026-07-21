@@ -1074,3 +1074,12 @@ def to_info(tag: str, txt: Union[str, List[str]]) -> str:
     # _dassert_one_trailing_newline(txt_tmp)
     _LOG.debug("'%s'", txt_tmp)
     return txt_tmp
+
+
+def text_to_list(txt: str) -> List[str]:
+    """
+    Convert a string (e.g., from system_to_string) into a list of lines.
+    """
+    res = [line.rstrip().lstrip() for line in txt.split("\n")]
+    res = [line for line in res if line != ""]
+    return res

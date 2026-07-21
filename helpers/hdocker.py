@@ -482,7 +482,7 @@ def replace_shared_root_path(
 # about the Dockerized flow.
 
 
-def get_docker_base_cmd(use_sudo: bool) -> List[str]:
+def get_docker_base_cmd(use_sudo: bool, *, use_root_user: bool = False) -> List[str]:
     """
     Get the base command for running a Docker container.
 
@@ -495,6 +495,7 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     ```
 
     :param use_sudo: Whether to use sudo for Docker commands.
+    :param use_root_user: If True, run as root (0:0) instead of current user.
     :return: The base command for running a Docker container.
     """
     docker_executable = get_docker_executable(use_sudo)
@@ -503,10 +504,11 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     vars_to_pass = sorted(vars_to_pass)
     vars_to_pass_as_str = " ".join(f"-e {v}" for v in vars_to_pass)
     # Build the command as a list.
+    user_flag = "--user 0:0" if use_root_user else "--user $(id -u):$(id -g)"
     docker_cmd = [
         docker_executable,
         "run --rm",
-        "--user $(id -u):$(id -g)",
+        user_flag,
         vars_to_pass_as_str,
     ]
     # Handle coverage.
@@ -763,14 +765,7 @@ def build_and_run_docker_cmd(
     :param use_root_user: If True, run container as root (0:0) instead of current user.
         Useful for nested containers that are temporary build tools.
     """
-    # TODO(ai_gp): Pass use_root_user to get_docker_base_cmd instead of patching
-    # docker_cmd[2].
-    docker_cmd = get_docker_base_cmd(use_sudo)
-    # Override user flag for nested containers that need root access.
-    if use_root_user:
-        # TODO(ai_gp): Check that docker_cmd[2] starts with --user or use a
-        # more robust approach.
-        docker_cmd[2] = "--user 0:0"
+    docker_cmd = get_docker_base_cmd(use_sudo, use_root_user=use_root_user)
     if override_entrypoint:
         # Use `/bin/bash` as the entrypoint instead of clearing it with `''`.
         # Docker supports `--entrypoint ''` to clear the entrypoint, but the
@@ -781,9 +776,11 @@ def build_and_run_docker_cmd(
         else:
             docker_cmd.append("--entrypoint ''")
     # Check that the container image exists and try to pull it if it's missing.
-    if not image_exists(container_image, use_sudo)[0]:
+    image_exists_before = image_exists(container_image, use_sudo)[0]
+    if not image_exists_before:
+        # Pull the image. If pull succeeds, image is ready to use.
+        # If pull fails, hsystem.system() will raise an exception.
         pull_image(container_image, use_sudo)
-        # TODO(ai_gp): If it was pulled then skip building it.
     hdbg.dassert(
         image_exists(container_image, use_sudo)[0],
         "Container image '%s' does not exist",

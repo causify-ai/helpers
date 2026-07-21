@@ -148,7 +148,7 @@ def _system(
 
     To print the command and see the output call this as:
     ```
-    _system(cmd, suppress_output=False, log_level="echo")
+    _system(cmd, suppress_output=False, log_level="PRINT")
     ```
 
     See `system()` for options.
@@ -188,12 +188,11 @@ def _system(
     if wrapper:
         cmd = wrapper + " && " + cmd
     # Handle `log_level`.
-    # TODO(gp): Make it "ECHO" or "PRINT".
     if isinstance(log_level, str):
-        hdbg.dassert_in(log_level, ("echo", "echo_frame"))
-        if log_level == "echo_frame":
+        hdbg.dassert_in(log_level, ("PRINT", "PRINT_FRAME"))
+        if log_level == "PRINT_FRAME":
             print(hprint.frame(f"> {cmd}"))
-        elif log_level == "echo":
+        elif log_level == "PRINT":
             print(f"> {cmd}")
         else:
             raise ValueError(f"Invalid log_level='{log_level}'")
@@ -414,16 +413,6 @@ def get_first_line(output: str) -> str:
     output = output_as_arr[0]
     output = output.rstrip().lstrip()
     return output
-
-
-# TODO(gp): Move it to a more general file, e.g., `helpers/printing.py`?
-def text_to_list(txt: str) -> List[str]:
-    """
-    Convert a string (e.g., from system_to_string) into a list of lines.
-    """
-    res = [line.rstrip().lstrip() for line in txt.split("\n")]
-    res = [line for line in res if line != ""]
-    return res
 
 
 def system_to_one_line(cmd: str, *args: Any, **kwargs: Any) -> Tuple[int, str]:

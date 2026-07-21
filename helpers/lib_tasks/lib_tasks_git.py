@@ -721,7 +721,7 @@ def _delete_branches(ctx: Any, tag: str, confirm_delete: bool) -> None:
         raise ValueError(f"Invalid tag='{tag}'")
     # TODO(gp): Use system_to_lines
     _, txt = hsystem.system_to_string(find_cmd, abort_on_error=False)
-    branches = hsystem.text_to_list(txt)
+    branches = hprint.text_to_list(txt)
     # Print info.
     _LOG.info(
         "There are %d %s branches to delete:\n%s",

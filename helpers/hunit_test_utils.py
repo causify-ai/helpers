@@ -595,6 +595,7 @@ def get_parent_dirs(files: List[str]) -> List[str]:
 # #############################################################################
 
 
+# TODO(ai_gp): Add more comments, more examples of usage, and more unit tests.
 @contextlib.contextmanager
 def capture_sys_calls(
     side_effect: Optional[Any] = None,
@@ -615,11 +616,14 @@ def capture_sys_calls(
     assert sys_calls[0]['function'] == 'subprocess.run'
     ```
 
-    :param side_effect: Exception or return value to use for mocked calls
+    :param side_effect: Exception, return value, or list of return values to
+        use for mocked calls. If a list/tuple, successive calls use successive
+        values.
     :return: List of system calls, each as {'function': str, 'args': tuple,
              'kwargs': dict}
     """
     sys_calls: List[Dict[str, Any]] = []
+    call_counts: Dict[str, int] = {}
 
     def _mock_sys_call(function_name: str, *args: Any, **kwargs: Any) -> None:
         sys_calls.append(
@@ -630,30 +634,43 @@ def capture_sys_calls(
             }
         )
 
-    def _handle_side_effect() -> None:
-        if side_effect is not None:
-            if isinstance(side_effect, type) and issubclass(
-                side_effect, BaseException
-            ):
-                raise side_effect()
-            elif isinstance(side_effect, BaseException):
-                raise side_effect
+    def _get_side_effect_value(function_name: str) -> Any:
+        if side_effect is None:
+            return None
+        if isinstance(side_effect, (list, tuple)):
+            count = call_counts.get(function_name, 0)
+            if count < len(side_effect):
+                return side_effect[count]
+            return side_effect[-1] if side_effect else None
+        return side_effect
+
+    def _handle_side_effect(function_name: str) -> Any:
+        call_counts[function_name] = call_counts.get(function_name, 0) + 1
+        effect = _get_side_effect_value(function_name)
+        if effect is not None:
+            if isinstance(effect, type) and issubclass(effect, BaseException):
+                raise effect()
+            elif isinstance(effect, BaseException):
+                raise effect
+        return effect
 
     def mock_subprocess_run(*args: Any, **kwargs: Any) -> Any:
         _mock_sys_call("subprocess.run", *args, **kwargs)
-        _handle_side_effect()
+        _handle_side_effect("subprocess.run")
         return None
 
     def mock_hsystem_system(*args: Any, **kwargs: Any) -> Any:
         _mock_sys_call("hsystem.system", *args, **kwargs)
-        _handle_side_effect()
+        effect = _handle_side_effect("hsystem.system")
+        if effect is not None and not isinstance(effect, BaseException):
+            return effect
         return 0
 
     def mock_hsystem_system_to_string(
         *args: Any, **kwargs: Any
     ) -> Tuple[int, str]:
         _mock_sys_call("hsystem.system_to_string", *args, **kwargs)
-        _handle_side_effect()
+        _handle_side_effect("hsystem.system_to_string")
         return (0, "")
 
     with mock.patch("subprocess.run", side_effect=mock_subprocess_run):

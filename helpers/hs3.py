@@ -1009,7 +1009,7 @@ def copy_data_from_s3_to_local_dir(
         dst_local_dir,
     )
     cmd = f"aws s3 sync {src_s3_dir} {dst_local_dir} --profile {aws_profile}"
-    hsystem.system(cmd, suppress_output=False, log_level="echo")
+    hsystem.system(cmd, suppress_output=False, log_level="PRINT")
 
 
 def retrieve_archived_data_from_s3(
