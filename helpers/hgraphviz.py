@@ -15,9 +15,7 @@ import matplotlib.axes as maxes
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import networkx as nx
-
-# TODO(ai_gp): Use import PIL if possible.
-from PIL import Image
+import PIL.Image
 
 import helpers.hdbg as hdbg
 
@@ -114,12 +112,17 @@ def plot_dag_with_graphviz(
     if figsize is None:
         figsize = DAG_FIGURE_SIZE
     dot_str = _graph_to_graphviz_dot(
-        G, title, node_colors=node_colors, edge_colors=edge_colors, size=figsize, dpi=dpi
+        G,
+        title,
+        node_colors=node_colors,
+        edge_colors=edge_colors,
+        size=figsize,
+        dpi=dpi,
     )
     # Render to PNG with specified DPI.
     g = graphviz.Source(dot_str, format="png")
     png_data = g.pipe(format="png")
-    img = Image.open(io.BytesIO(png_data))
+    img = PIL.Image.open(io.BytesIO(png_data))
     if ax is not None:
         ax.imshow(img)
         ax.axis("off")

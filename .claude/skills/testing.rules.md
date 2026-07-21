@@ -1019,7 +1019,7 @@ line3
 - Follow the command line building conventions in
   `.claude/skills/coding.rules.md` under `## How to Build Command Lines`
 
-## Use the Mocking Infrastructure
+## Use the SysCall Mocking Infrastructure
 - For testing executables use end-to-end tests that:
   1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
      and record calls to `subprocess.run()`, `hsystem.system()`, and

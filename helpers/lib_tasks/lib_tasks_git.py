@@ -579,15 +579,19 @@ def git_branch_create(  # type: ignore
     suffix="",
     only_branch_from_master=True,
     check_branch_name=True,
+    create_pr=True,
 ):
     """
     Create and push upstream branch `branch_name` or the one corresponding to
     `issue_id` in repo_short_name `repo_short_name`.
 
+    Optionally creates a draft PR for the new branch.
+
     E.g.,
     ```
     > git checkout -b LemTask169_Get_GH_actions
     > git push --set- upstream origin LemTask169_Get_GH_actions
+    > gh pr create --draft  # if create_pr=True
     ```
 
     :param branch_name: name of the branch to create (e.g.,
@@ -602,6 +606,7 @@ def git_branch_create(  # type: ignore
     :param only_branch_from_master: only allow to branch from master
     :param check_branch_name: make sure the name of the branch is valid like
         `{Amp,...}TaskXYZ_...`
+    :param create_pr: create a draft PR for the new branch (default: True)
     """
     hltltaut.report_task()
     if issue_id > 0:
@@ -676,6 +681,13 @@ def git_branch_create(  # type: ignore
     hltltaut.run(ctx, cmd)
     cmd = f"git push --set-upstream origin {branch_name}"
     hltltaut.run(ctx, cmd)
+    # Create a draft PR if requested.
+    if create_pr:
+        _LOG.info("Creating draft PR for branch '%s'", branch_name)
+        try:
+            hltltagh.gh_create_pr(ctx, draft=True)
+        except Exception as e:
+            _LOG.warning("Failed to create PR: %s", e)
 
 
 # TODO(gp): @all Move to hgit.
