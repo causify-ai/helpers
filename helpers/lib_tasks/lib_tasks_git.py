@@ -580,6 +580,7 @@ def git_branch_create(  # type: ignore
     only_branch_from_master=True,
     check_branch_name=True,
     create_pr=True,
+    from_master=False,
 ):
     """
     Create and push upstream branch `branch_name` or the one corresponding to
@@ -607,6 +608,7 @@ def git_branch_create(  # type: ignore
     :param check_branch_name: make sure the name of the branch is valid like
         `{Amp,...}TaskXYZ_...`
     :param create_pr: create a draft PR for the new branch (default: True)
+    :param from_master: if True, explicitly checkout master before creating branch
     """
     hltltaut.report_task()
     if issue_id > 0:
@@ -661,18 +663,21 @@ def git_branch_create(  # type: ignore
         "Branch '%s' already exists",
         branch_name,
     )
-    # Make sure we are branching from `master`, unless that's what the user wants.
-    # TODO(Vlad): Remove before merging - temporarily allowing branching from non-master.
-    curr_branch = hgit.get_branch_name()
-    if curr_branch != "master":
-        if only_branch_from_master:
-            _LOG.warning(
-                f"Branching from '{curr_branch}' instead of 'master'. "
-                "This is temporarily allowed but should be reviewed before merging."
-            )
-            # hdbg.dfatal(
-            #     f"You should branch from master and not from '{curr_branch}'"
-            # )
+    # Checkout master if explicitly requested.
+    if from_master:
+        _LOG.info("Checking out master before creating branch")
+        cmd = "git checkout master"
+        hltltaut.run(ctx, cmd)
+    else:
+        # Make sure we are branching from `master`, unless that's what the user
+        # wants.
+        curr_branch = hgit.get_branch_name()
+        if curr_branch != "master":
+            if only_branch_from_master:
+                _LOG.warning(
+                    f"Branching from '{curr_branch}' instead of 'master'. "
+                    "This is temporarily allowed but should be reviewed before merging."
+                )
     # Fetch master.
     cmd = "git pull --autostash --rebase"
     hltltaut.run(ctx, cmd)

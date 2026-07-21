@@ -52,13 +52,11 @@
 
 - Go in helpers1 tree (which is the one from which everything is orchestrated)
 
-- Pick an issue from `plan.todo_janitor.md` and create a `todo_janitor.issue.md`
-
-# Create CC Instructions
-
-- Create instructions for CC from `todo_janitor.instr.md`
+- Pick an issue from `todo_janitor.plan.md` and create a `todo_janitor.current_issue.md`
 
 # Create the Branch / Worktree
+create_git_worktree.py --gh_issue_title 'TODO clean up' --gh_issue_body_file todo_janitor.current_issue.md
+
   ```
   > create_git_worktree.py --gh_issue_title "Rename invocations to sys_calls Throughout Codebase" --gh_issue_body body.txt --instr_file instr2.md
 
@@ -94,28 +92,7 @@ HEAD is now at 614270bf gp_scratch_30 (#1289)
 > cd $WORKTREE_PATH
 > dev_scripts_helpers/thin_client/tmux.py --index 1290
 
-# Does i git_create_...
-
-> git push
-fatal: The current branch HelpersTask1292_Rename_invocations_to_sys_calls_Throughout_Codebase has no upstream branch.
-To push the current branch and set the remote as upstream, use
-
-    git push --set-upstream origin HelpersTask1292_Rename_invocations_to_sys_calls_Throughout_Codebase
-
-Move the i git_create_branch to a script
-
-./helpers/lib_tasks/lib_tasks_git.py def git_branch_create(
-
-And create an empty branch in draft mode
-
-i gh_create_pr --no-draft
-
-#
-Inject todo_janitor.current_issue.md into todo_janitor.template.md -> todo_janitor.instr.md
-
-create_git_worktree.py --gh_issue_title 'Clean up' --gh_issue_body_file todo_janitor.current_issue.md
-
-# Extend
+### Extend
 
 i gh_watch
 
@@ -133,6 +110,11 @@ exit with error or not
       gh pr  comment --body "All tests are passing"
 
       - Ask to review
+
+## Go to the new
+> gco <branch>
+
+claude> Execute todo_janitor.template.md
 
 # Update the CC task plan
 

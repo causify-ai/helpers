@@ -1,8 +1,9 @@
-- Implement TODO(ai_gp) in .claude/control_cc_commit.py
-src/helpers2/helpers/test/test_hmodule.py and helpers/hgraphviz.py
+In create_git_worktree.py make sure that the client is clean (using the functions from the invoke commands)
 
-- Add unit tests only for _enable_git_commands and _disable_git_commands
-  in .claude/control_cc_commit.py
+Change i git_create_branch to allow to create a branch from master and use that
+in create_git_worktree.py
+
+After creating the branch and copying the files, go back to the original branch
 
 # Conventions
 - When writing code you must always follow the instructions in

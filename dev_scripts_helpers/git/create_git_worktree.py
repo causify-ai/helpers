@@ -102,7 +102,7 @@ def _create_github_issue(
         "create",
         f"--title {shlex.quote(title)}",
         f"--body-file {shlex.quote(body_file)}",
-        f"--assignee {shlex.quote(assignee)}",
+        f"--assignee {shlex.quote(assignee)}"
     ]
     cmd_str = " ".join(cmd)
     _LOG.info("Creating GitHub issue: %s", cmd_str)
@@ -184,27 +184,38 @@ def _create_branch(branch_name: str, create_pr: bool = True) -> None:
     Create a git branch from master using invoke git_branch_create.
 
     Delegates to `invoke git_branch_create` which handles:
+    - Ensuring client is clean
     - Creating the branch from master
     - Pushing to upstream
     - Optionally creating a draft PR
+    - Returning to the original branch after commit
 
     :param branch_name: Name for the new branch
     :param create_pr: Whether to create a draft PR (default: True)
     """
-    # Skip if branch already exists (invoke will also check this).
-    if _branch_exists(branch_name):
-        _LOG.warning(
-            "Branch '%s' already exists, skipping creation", branch_name
-        )
-        return
-    # Use invoke git_branch_create to create branch and optionally PR.
-    cmd = f"invoke git_branch_create --branch-name {shlex.quote(branch_name)}"
-    if not create_pr:
-        cmd += " --no-create-pr"
-    _LOG.info("Creating branch via invoke: %s", cmd)
-    hsystem.system(cmd, log_level=logging.INFO)
-    # Commit issue files to the new branch.
-    _commit_issue_files(branch_name)
+    # Ensure working directory is clean before branching.
+    hgit.is_client_clean(dir_name=".", abort_if_not_clean=True)
+    # Save current branch to return to it later.
+    original_branch = hgit.get_branch_name()
+    _LOG.info("Original branch: '%s'", original_branch)
+    try:
+        # Skip if branch already exists (invoke will also check this).
+        if _branch_exists(branch_name):
+            _LOG.warning("Branch '%s' already exists, skipping creation", branch_name)
+            return
+        # Use invoke git_branch_create to create branch and optionally PR.
+        cmd = f"invoke git_branch_create --branch-name {shlex.quote(branch_name)} --from-master"
+        if not create_pr:
+            cmd += " --no-create-pr"
+        _LOG.info("Creating branch via invoke: %s", cmd)
+        hsystem.system(cmd, log_level=logging.INFO)
+        # Commit issue files to the new branch (we're now on the new branch).
+        _commit_issue_files(branch_name)
+    finally:
+        # Return to the original branch.
+        _LOG.info("Returning to original branch: '%s'", original_branch)
+        cmd = f"git checkout {original_branch}"
+        hsystem.system(cmd, log_level=logging.INFO)
 
 
 def _create_worktree(branch_name: str, issue_id: int) -> str:

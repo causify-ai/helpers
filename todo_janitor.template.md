@@ -1,5 +1,5 @@
 # Instructions
-- Fix the following issue following the conventions
+- Fix the one or more create_git_worktree.pfollowing issues following the conventions
   - When writing code you must always follow the instructions in
     `.claude/skills/coding.rules.md`
 
@@ -17,44 +17,89 @@
   - Are in progress with [.]
   - Fail with [v]
 
-# Step 1: [x] Fix Issue
+# Step 1: [ ] Fix Issues
 
-## Issue Description
-
-The issue is:
+## Issues Description
 
 `@todo_janitor.current_issue.md`
 
-# Step 2: [x] Run CI Regressions
+# Step 2: [ ] Run CI Regressions
 
-## [x] Create PR and start monitoring
-- PR #1300 created
+## [ ] Create PR and start monitoring
+- Create PR in draft mode first:
+  ```
+  > gh pr create --draft --title "Rename invocations to sys_calls throughout codebase"
+  ```
 
-## [x] Run and Monitor GitHub CI
-- GitHub CI checks passing ✅
+- Get PR number from output (e.g., #123)
 
-## [x] Verify CI Regressions
-- Posted comment: GitHub CI checks passing
+- Extract the PR number as 
+  ```
+  > GH_PR_NUM=$(gh pr view --json number -q .number); echo $GH_PR_NUM
+  1293
+  ```
 
-# Step 3: [x] Run Local Regressions
+## [ ] Run and Monitor GitHub CI
+- Start monitoring GitHub CI checks:
+  ```
+  > gh pr checks --watch $GH_PR_NUM
+  ```
+- Monitor for any failures
+
+## [ ] Verify CI Regressions
+
+- If GitHub CI is passing: 
+  ```
+  > gh pr comment $GH_PR_NUM --body "✅ GitHub CI checks passing. Local tests running..."
+  ```
+- If any failures, document error and post:
+  ```
+  > gh pr comment $GH_PR_NUM --body "⚠️ Test failures found: [error summary]. Investigating..."
+  ```
+
+# Step 3: [ ] Run Local Regressions
   
-## [x] Run Full Local Regressions
-- Test suite: 130 passed, 7 skipped ✅
+## [ ] Run Full Local Regressions
+- Run full test suite locally:
+  ```
+  > pytest_multi_build.py --target . 2>&1 --timeout -1 | tee tmp.todo_janitor.pytest_multi_build.log
+  ```
+- Wait for the script to terminate
 
-## [x] Verify Full Local Regressions
-- Posted comment: All tests passing locally
+- Check the output of the local regressions with:
+  ```
+  > pytest_failed_multi_build.py 2>&1 | tee tmp.todo_janitor.pytest_failed_multi_build.log
+  ```
+
+## [ ] Verify Full Local Regressions
+
+- If local tests pass:
+  ```
+  > gh pr comment $GH_PR_NUM --body "✅ All tests passing locally. Ready for review."
+  ```
+- If any failures, document error and post:
+  ```
+  > gh pr comment $GH_PR_NUM --body "⚠️ Test failures found: [error summary]. Investigating..."
+  ```
   
-# Step 4: [x] Submit PR for Review
+# Step 4: [ ] Submit PR for Review
 
-## [x] Convert to ready-for-review
-- PR #1300 marked ready for review ✅
-- Issue #1299 updated with PR information ✅
-- All checks passing: GitHub CI ✅ + Local tests ✅
+## [ ] Convert to ready-for-review
+- Once all checks (GitHub CI + local tests) are passing
 
-## Summary
-All three TODO items successfully fixed and tested:
-- Issue2: hgit.py - Use system_to_one_line() instead of manual rstrip
-- Issue4: hgraphviz.py - Add conditional PIL import with error handling  
-- Issue7: test_hmodule.py - Refactored test mocks for better capture
+- Mark the PR ready for review
+  ```
+  > gh pr ready $GH_PR_NUM
+  ```
 
-Verification: 130 tests passed, 7 skipped
+- Request review from codeowner:
+  ```
+  > gh pr request-review $GH_PR_NUM
+  ```
+
+- Update the GitHub issue with the info
+  ```
+  > GH_ISSUE_NUM=$(git branch --show-current | sed 's/.*Task\([0-9]*\).*/\1/')
+  > gh issue comment $GH_ISSUE_NUM --body "PR ${GH_PR_NUM} ready to review and merge"
+  https://github.com/causify-ai/helpers/issues/1292#issuecomment-5024710557
+  ```

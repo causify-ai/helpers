@@ -233,11 +233,21 @@ class Test_create_branch(hunitest.TestCase):
                 with mock.patch(
                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                 ):
-                    dshgcgiwo._create_branch(branch_name, create_pr=True)
-        # Check outputs: should call invoke git_branch_create with PR creation enabled.
+                    with mock.patch(
+                        "helpers.hgit.get_branch_name", return_value="master"
+                    ):
+                        dshgcgiwo._create_branch(branch_name, create_pr=True)
+        # Check outputs: should call invoke git_branch_create with PR creation enabled and from-master flag.
         expected = """
-        [{'args': ('invoke git_branch_create --branch-name '
-                   'HelpersTask1290_Test_Branch',),
+        [{'args': ('cd . && (git diff --cached --name-only; git ls-files -m) | sort | '
+                   'uniq',),
+          'function': 'hsystem.system_to_string',
+          'kwargs': {}},
+         {'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch '
+                   '--from-master',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}},
+         {'args': ('git checkout master',),
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}}]
         """
@@ -255,9 +265,21 @@ class Test_create_branch(hunitest.TestCase):
                 "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                 return_value=True,
             ):
-                dshgcgiwo._create_branch(branch_name, create_pr=True)
-        # Check outputs: no system calls should be made.
-        expected = "[]"
+                with mock.patch(
+                    "helpers.hgit.get_branch_name", return_value="master"
+                ):
+                    dshgcgiwo._create_branch(branch_name, create_pr=True)
+        # Check outputs: should check if clean and return early since branch exists,
+        # then still return to original branch in the finally block.
+        expected = """
+        [{'args': ('cd . && (git diff --cached --name-only; git ls-files -m) | sort | '
+                   'uniq',),
+          'function': 'hsystem.system_to_string',
+          'kwargs': {}},
+         {'args': ('git checkout master',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}}]
+        """
         hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
 
     def test3(self) -> None:
@@ -275,11 +297,21 @@ class Test_create_branch(hunitest.TestCase):
                 with mock.patch(
                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                 ):
-                    dshgcgiwo._create_branch(branch_name, create_pr=False)
-        # Check outputs: should call invoke git_branch_create with PR creation disabled.
+                    with mock.patch(
+                        "helpers.hgit.get_branch_name", return_value="master"
+                    ):
+                        dshgcgiwo._create_branch(branch_name, create_pr=False)
+        # Check outputs: should call invoke git_branch_create with PR creation disabled and from-master flag.
         expected = """
-        [{'args': ('invoke git_branch_create --branch-name '
-                   'HelpersTask1290_Test_Branch_No_PR --no-create-pr',),
+        [{'args': ('cd . && (git diff --cached --name-only; git ls-files -m) | sort | '
+                   'uniq',),
+          'function': 'hsystem.system_to_string',
+          'kwargs': {}},
+         {'args': ('invoke git_branch_create --branch-name '
+                   'HelpersTask1290_Test_Branch_No_PR --from-master --no-create-pr',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}},
+         {'args': ('git checkout master',),
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}}]
         """
@@ -386,11 +418,21 @@ class Test_create_git_worktree_py(hunitest.TestCase):
                             with mock.patch(
                                 "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                             ):
-                                dshgcgiwo._main(parser)
-        # Check outputs: branch creation via invoke, no worktree creation.
+                                with mock.patch(
+                                    "helpers.hgit.get_branch_name",
+                                    return_value="master",
+                                ):
+                                    with mock.patch(
+                                        "helpers.hgit.is_client_clean"
+                                    ):
+                                        dshgcgiwo._main(parser)
+        # Check outputs: branch creation via invoke with from-master flag, no worktree creation.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
-                   'HelpersTask1290_Test_Issue_Title',),
+                   'HelpersTask1290_Test_Issue_Title --from-master',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}},
+         {'args': ('git checkout master',),
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}}]
         """
@@ -436,13 +478,23 @@ class Test_create_git_worktree_py(hunitest.TestCase):
                                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                                 ):
                                     with mock.patch(
-                                        "builtins.print"
-                                    ):  # Mock print to avoid output
-                                        dshgcgiwo._main(parser)
-        # Check outputs: branch creation via invoke and worktree creation.
+                                        "helpers.hgit.get_branch_name",
+                                        return_value="master",
+                                    ):
+                                        with mock.patch(
+                                            "helpers.hgit.is_client_clean"
+                                        ):
+                                            with mock.patch(
+                                                "builtins.print"
+                                            ):  # Mock print to avoid output
+                                                dshgcgiwo._main(parser)
+        # Check outputs: branch creation via invoke with from-master flag and worktree creation.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
-                   'HelpersTask1290_Test_Issue_Title',),
+                   'HelpersTask1290_Test_Issue_Title --from-master',),
+          'function': 'hsystem.system',
+          'kwargs': {'log_level': 20}},
+         {'args': ('git checkout master',),
           'function': 'hsystem.system',
           'kwargs': {'log_level': 20}},
          {'args': ('git worktree add /home/user/helpers1_worktree_1290 '
