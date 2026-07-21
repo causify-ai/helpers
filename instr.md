@@ -1,7 +1,8 @@
-Implement TODO(ai_gp) in .claude/control_cc_commit.py
+- Implement TODO(ai_gp) in .claude/control_cc_commit.py
 src/helpers2/helpers/test/test_hmodule.py and helpers/hgraphviz.py
 
-Add unit tests only for _enable_git_commands and _disable_git_commands
+- Add unit tests only for _enable_git_commands and _disable_git_commands
+  in .claude/control_cc_commit.py
 
 # Conventions
 - When writing code you must always follow the instructions in

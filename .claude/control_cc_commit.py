@@ -11,51 +11,15 @@ import argparse
 import json
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import helpers.hdbg as hdbg
 
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
-# Constants
-# #############################################################################
-
-# Git commit and push permissions to control.
-_GIT_DENIALS = [
-    "Bash(*git commit:*)",
-    "Bash(*git commit -m *)",
-    "Bash(*git push:*)",
-]
-
-
-# #############################################################################
 # Helpers
 # #############################################################################
-
-
-# TODO(ai_gp): Allow .claude/settings.local.json to be specified through command
-# line and it's .claude/settings.local.json by default. Do a dassert_file_exists
-def _get_settings_path() -> str:
-    """
-    Get path to .claude/settings.local.json.
-
-    Searches up from the current directory to find the project's .claude
-    directory.
-
-    :return: Absolute path to settings.local.json
-    """
-    # Start from current directory and search up.
-    current_dir = os.getcwd()
-    while current_dir != "/":
-        claude_dir = os.path.join(current_dir, ".claude")
-        if os.path.isdir(claude_dir):
-            settings_file = os.path.join(claude_dir, "settings.local.json")
-            return settings_file
-        current_dir = os.path.dirname(current_dir)
-    # Not found, use default path.
-    hdbg.dfatal("Could not find .claude directory in parent directories")
-    return ""
 
 
 def _load_settings(settings_path: str) -> Dict:
@@ -66,6 +30,7 @@ def _load_settings(settings_path: str) -> Dict:
     :return: Parsed JSON settings dictionary
     """
     hdbg.dassert_file_exists(settings_path)
+    # TODO(ai_gp): Is there a function in json?
     with open(settings_path, "r") as f:
         settings = json.load(f)
     return settings
@@ -80,9 +45,18 @@ def _save_settings(settings_path: str, settings: Dict) -> None:
     :param settings_path: Path to settings.local.json
     :param settings: Settings dictionary to save
     """
+    # TODO(ai_gp): Is there a function in json?
     with open(settings_path, "w") as f:
         json.dump(settings, f, indent=2)
     _LOG.info("Settings saved to '%s'", settings_path)
+
+
+# Git commit and push permissions to control.
+_GIT_DENIALS = [
+    "Bash(*git commit:*)",
+    "Bash(*git commit -m *)",
+    "Bash(*git push:*)",
+]
 
 
 def _enable_git_commands(settings: Dict) -> bool:
@@ -149,6 +123,12 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
     )
+    parser.add_argument(
+        "--settings",
+        type=str,
+        default=".claude/settings.local.json",
+        help="Path to CC settings.local.json",
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "--enable",
@@ -170,8 +150,9 @@ def _main(args: argparse.Namespace) -> None:
     :param args: Parsed command line arguments
     """
     # Find and load settings.
-    settings_path = _get_settings_path()
+    settings_path = args.settings
     _LOG.info("Using settings file: '%s'", settings_path)
+    hdbg.dassert_file_exists(settings_path)
     settings = _load_settings(settings_path)
     # Apply changes.
     changed = False

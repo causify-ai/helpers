@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Union
 from unittest import mock
 
 import helpers.hdbg as hdbg
