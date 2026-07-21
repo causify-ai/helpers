@@ -61,11 +61,11 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         def mock_has_module(module: str) -> bool:
             return module in expected_installed
 
-        # Mock `_system_to_string` to track pip install calls.
+        # TODO(ai_gp): Use capture_sys_calls and assert_sys_calls
+        # from ./helpers/hunit_test_utils.py instead of reimplementing
+        # this functionality.
         system_calls: List[str] = []
 
-        # TODO(ai_gp): Use the new mock for system capture_sys_calls and
-        # assert_sys_calls
         def mock_system_to_string(cmd: str) -> Tuple[int, str]:
             system_calls.append(cmd)
             return (0, "")
@@ -74,6 +74,7 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         with mock.patch.object(
             hmodule, "has_module", side_effect=mock_has_module
         ):
+            # TODO(gp): use the capture_sys_calls from ./helpers/hunit_test_utils.py.
             with mock.patch.object(
                 hmodule,
                 "_system_to_string",

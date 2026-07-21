@@ -175,7 +175,7 @@ class Test_parse_issue_number_from_url(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_create_git_worktree_py
+# Test_branch_exists
 # #############################################################################
 
 
@@ -234,7 +234,9 @@ class Test_create_branch(hunitest.TestCase):
                 with mock.patch(
                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                 ):
-                    dshgcgiwo._create_branch(branch_name, original_branch, create_pr=True)
+                    dshgcgiwo._create_branch(
+                        branch_name, original_branch, create_pr=True
+                    )
         # Check outputs: should call invoke git_branch_create with PR creation enabled.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
@@ -257,7 +259,9 @@ class Test_create_branch(hunitest.TestCase):
                 "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                 return_value=True,
             ):
-                dshgcgiwo._create_branch(branch_name, original_branch, create_pr=True)
+                dshgcgiwo._create_branch(
+                    branch_name, original_branch, create_pr=True
+                )
         # Check outputs: no system calls should be made.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
@@ -278,7 +282,9 @@ class Test_create_branch(hunitest.TestCase):
                 with mock.patch(
                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                 ):
-                    dshgcgiwo._create_branch(branch_name, original_branch, create_pr=False)
+                    dshgcgiwo._create_branch(
+                        branch_name, original_branch, create_pr=False
+                    )
         # Check outputs: should call invoke git_branch_create with PR creation disabled.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
@@ -321,6 +327,11 @@ class Test_create_worktree(hunitest.TestCase):
         # Verify returned worktree path.
         expected_path = "/home/user/helpers1_worktree_1290"
         self.assertEqual(worktree_path, expected_path)
+
+
+# #############################################################################
+# Test_create_git_worktree_py
+# #############################################################################
 
 
 class Test_create_git_worktree_py(hunitest.TestCase):
@@ -430,7 +441,9 @@ class Test_create_git_worktree_py(hunitest.TestCase):
                             "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                             return_value=False,
                         ):
-                            with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
+                            with mock.patch(
+                                "os.getcwd", return_value="/home/user/helpers1"
+                            ):
                                 with mock.patch(
                                     "helpers.hgit.get_branch_name",
                                     return_value="HelpersTask1290_Test_Issue_Title",

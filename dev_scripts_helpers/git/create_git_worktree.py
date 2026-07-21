@@ -102,7 +102,7 @@ def _create_github_issue(
         "create",
         f"--title {shlex.quote(title)}",
         f"--body-file {shlex.quote(body_file)}",
-        f"--assignee {shlex.quote(assignee)}"
+        f"--assignee {shlex.quote(assignee)}",
     ]
     cmd_str = " ".join(cmd)
     _LOG.info("Creating GitHub issue: %s", cmd_str)
@@ -174,7 +174,9 @@ def _commit_issue_files(branch_name: str, original_branch: str) -> None:
     hsystem.system(cmd)
 
 
-def _create_branch(branch_name: str, original_branch: str, create_pr: bool = True) -> None:
+def _create_branch(
+    branch_name: str, original_branch: str, create_pr: bool = True
+) -> None:
     """
     Create a git branch from master using invoke git_branch_create.
 
@@ -189,7 +191,9 @@ def _create_branch(branch_name: str, original_branch: str, create_pr: bool = Tru
     """
     # Skip if branch already exists (invoke will also check this).
     if _branch_exists(branch_name):
-        _LOG.warning("Branch '%s' already exists, skipping creation", branch_name)
+        _LOG.warning(
+            "Branch '%s' already exists, skipping creation", branch_name
+        )
         return
     # Use invoke git_branch_create to create branch and optionally PR.
     cmd = f"invoke git_branch_create --branch-name {shlex.quote(branch_name)}"

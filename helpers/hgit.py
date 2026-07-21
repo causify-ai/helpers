@@ -403,10 +403,7 @@ def get_client_root(super_module: bool) -> str:
         # > git rev-parse --show-toplevel
         # /Users/saggese/src/.../amp
         cmd = "git rev-parse --show-toplevel"
-    # TODO(gp): Use system_to_one_line().
-    _, out = hsystem.system_to_string(cmd)
-    out = out.rstrip("\n")
-    hdbg.dassert_eq(len(out.split("\n")), 1, msg=f"Invalid out='{out}'")
+    _, out = hsystem.system_to_one_line(cmd)
     client_root: str = os.path.realpath(out)
     return client_root
 
