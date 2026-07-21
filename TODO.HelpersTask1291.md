@@ -1,8 +1,6 @@
-# Wishlist
-- It will be nice to have everything running in a tmux so that it's easy to drop
-  in and check the status
+# Create todo_janitor plan
 
-# Create list of tasks
+## Create list of tasks
 
 - From master find the tasks to execute
   ```
@@ -25,7 +23,7 @@
   ./helpers/hsystem.py:948:# TODO(ai_gp): Move to hio.py
   ```
 
-# Review list of tasks
+## Review list of tasks
 - Review the list of potential tasks
   ```
   > vic
@@ -34,7 +32,7 @@
 - Review the issues one by one
 - Make sure that `cfile` is the desired one
 
-# Create list of CC tasks
+## Create list of CC tasks
 - Create the list of CC tasks from the cfile
   ```
   claude> /coding.create_auto_todo cfile
@@ -42,80 +40,33 @@
 - Review and edit `plan.todo_janitor.md`
 - This is the master list of what needs to be done
 
-# Make sure that the list is updated
+# Pick Issues to Fix
+
+## Make sure that the list is updated
 
   ```
   claude> Look at the last merged git PRs in master and in the current repo and mark the completed issues in plan.todo_janitor.md
   ```
 
-# Pick an Issue and Create the Branch
+## Pick an Issue and Create the Branch
 
 - Go in helpers1 tree (which is the one from which everything is orchestrated)
 
 - Pick an issue from `plan.todo_janitor.md` and create a `todo_janitor.issue.md`
 
-# Create CC Instructions
+## Create CC Instructions
 
 - Create instructions for CC from `todo_janitor.instr.md`
 
-# Create the Branch / Worktree
+## Create the Branch / Worktree
   ```
+  > create_git_worktree.py --gh_issue_title 'Clean up' --gh_issue_body_file todo_janitor.current_issue.md
   > create_git_worktree.py --gh_issue_title "Rename invocations to sys_calls Throughout Codebase" --gh_issue_body body.txt --instr_file instr2.md
 
   > create_git_worktree.py --gh_issue_id 1292 --instr_file instr2.md
   ```
 
-- Create a GitHub issue in a certain repo
-  > gh issue create --title "Fix bug X" --body "Description here" --assignee @me
-  or 
-  > gh issue create --title "Refactor Regex to Use re.VERBOSE and Comments" --body-file ...
-  or
-  > i gh_issue_title
-
-GitHub issue link: https://github.com/causify-ai/helpers/issues/1290
-
-- Get the name of the issue
-```
-> i gh_issue_title -i 1290
-```
-HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments
-
-- Create a branch and a worktree
-export WORKTREE_PATH=/Users/saggese/src/helpers1290
-export FEATURE_NAME="HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments"
-
-// Create branch and worktree in main repo
-git branch $FEATURE_NAME master
-> git worktree add $WORKTREE_PATH $FEATURE_NAME
-Preparing worktree (checking out 'HelpersTask1290_Refactor_Regex_to_Use_re.VERBOSE_and_Comments')
-HEAD is now at 614270bf gp_scratch_30 (#1289)
-
-// Create a new iterm
-> cd $WORKTREE_PATH
-> dev_scripts_helpers/thin_client/tmux.py --index 1290
-
-# Does i git_create_...
-
-> git push
-fatal: The current branch HelpersTask1292_Rename_invocations_to_sys_calls_Throughout_Codebase has no upstream branch.
-To push the current branch and set the remote as upstream, use
-
-    git push --set-upstream origin HelpersTask1292_Rename_invocations_to_sys_calls_Throughout_Codebase
-
-Move the i git_create_branch to a script
-
-./helpers/lib_tasks/lib_tasks_git.py def git_branch_create(
-
-And create an empty branch in draft mode
-
-i gh_create_pr --no-draft
-
-#
-Inject todo_janitor.current_issue.md into todo_janitor.template.md -> todo_janitor.instr.md
-
-create_git_worktree.py --gh_issue_title 'Clean up' --gh_issue_body_file todo_janitor.current_issue.md
-
-# Extend
+### Extend gh_watch to terminate
 
 i gh_watch
 
@@ -134,16 +85,28 @@ exit with error or not
 
       - Ask to review
 
-# Update the CC task plan
+### Update the CC task plan
+- Automate some of the work above
+  ```
+  orchestrate_task.py --plan ... --action
 
-orchestrate_task.py --plan ... --action
+  --action stage_todo calling create_git_worktree.py (
+      - create the body and instr.md
+      - update the todo
+  ```
 
---action stage_todo calling create_git_worktree.py (
-    - create the body and instr.md
-    - update the todo
+# Fix the issue
+- Go to helper...
 
-# Commit the changes
-- TODO(gp): Need to figure out how to enable it for special trees
+- git checkout HelpersTask1299_TODO_clean_up
+
+- Enable CC to commit
+  - Use .claude/cc_control
+```
+claude> Execute todo_janitor.template.md
+```
+
+## Commit the changes
 
 ### [ ] Convert CC flow to script
 - Convert todo_janitor.template.md into a single script since CC doesn't
@@ -152,6 +115,8 @@ orchestrate_task.py --plan ... --action
 ### [ ] Add lint.py
 
 ### [ ] Run pyright
+
+# Mix
 
 ## [ ] Create a worktree for subrepo
 

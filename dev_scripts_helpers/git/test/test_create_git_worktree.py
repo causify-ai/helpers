@@ -224,6 +224,7 @@ class Test_create_branch(hunitest.TestCase):
         """
         # Prepare inputs.
         branch_name = "HelpersTask1290_Test_Branch"
+        original_branch = "master"
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as invocations:
             with mock.patch(
@@ -233,7 +234,7 @@ class Test_create_branch(hunitest.TestCase):
                 with mock.patch(
                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                 ):
-                    dshgcgiwo._create_branch(branch_name, create_pr=True)
+                    dshgcgiwo._create_branch(branch_name, original_branch, create_pr=True)
         # Check outputs: should call invoke git_branch_create with PR creation enabled.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
@@ -249,13 +250,14 @@ class Test_create_branch(hunitest.TestCase):
         """
         # Prepare inputs.
         branch_name = "HelpersTask1290_Existing_Branch"
+        original_branch = "master"
         # Run test and mock branch_exists to return True.
         with hunteuti.capture_sys_calls() as invocations:
             with mock.patch(
                 "dev_scripts_helpers.git.create_git_worktree._branch_exists",
                 return_value=True,
             ):
-                dshgcgiwo._create_branch(branch_name, create_pr=True)
+                dshgcgiwo._create_branch(branch_name, original_branch, create_pr=True)
         # Check outputs: no system calls should be made.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
@@ -266,6 +268,7 @@ class Test_create_branch(hunitest.TestCase):
         """
         # Prepare inputs.
         branch_name = "HelpersTask1290_Test_Branch_No_PR"
+        original_branch = "master"
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as invocations:
             with mock.patch(
@@ -275,7 +278,7 @@ class Test_create_branch(hunitest.TestCase):
                 with mock.patch(
                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                 ):
-                    dshgcgiwo._create_branch(branch_name, create_pr=False)
+                    dshgcgiwo._create_branch(branch_name, original_branch, create_pr=False)
         # Check outputs: should call invoke git_branch_create with PR creation disabled.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
@@ -379,9 +382,13 @@ class Test_create_git_worktree_py(hunitest.TestCase):
                             return_value=False,
                         ):
                             with mock.patch(
-                                "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
+                                "helpers.hgit.get_branch_name",
+                                return_value="HelpersTask1290_Test_Issue_Title",
                             ):
-                                dshgcgiwo._main(parser)
+                                with mock.patch(
+                                    "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
+                                ):
+                                    dshgcgiwo._main(parser)
         # Check outputs: branch creation via invoke, no worktree creation.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
@@ -425,12 +432,16 @@ class Test_create_git_worktree_py(hunitest.TestCase):
                         ):
                             with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
                                 with mock.patch(
-                                    "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
+                                    "helpers.hgit.get_branch_name",
+                                    return_value="HelpersTask1290_Test_Issue_Title",
                                 ):
                                     with mock.patch(
-                                        "builtins.print"
-                                    ):  # Mock print to avoid output
-                                        dshgcgiwo._main(parser)
+                                        "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
+                                    ):
+                                        with mock.patch(
+                                            "builtins.print"
+                                        ):  # Mock print to avoid output
+                                            dshgcgiwo._main(parser)
         # Check outputs: branch creation via invoke and worktree creation.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
