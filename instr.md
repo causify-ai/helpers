@@ -1,16 +1,18 @@
-In dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
-verify this invariants
+Fix the code in git_branch_create so that when running
+i git_branch_create -b gp_scratch_32
 
-- [ ] No use of `self.check_string`
-  - Follow `## Never Use self.check_string()`
-- [ ] No `self.assertIn` but check the entire output value with an assert_equal
-  - Follow `## Only use assert_equal`
-- [ ] No function is called with hardwired parameters, but they are assigned to a
-  variable and then used
-  - Follow `## Assign Variables and Then Call Functions`
-- [ ] No repeated code, use at least one `def helper()` per class
-  - Follow `## Use Helper Methods When You Have Repetitive Tests`
-- [ ] All unit tests pass
+before 
+gh pr create --repo github.com/causify-ai/helpers --draft --title "gp_scratch_32" --body ""
+
+do a fake commit 
+git commit --allow-empty -m "Draft PR"
+
+to avoid
+
+
+Creating draft pull request for gp_scratch_32 into master in causify-ai/helpers
+
+pull request create failed: GraphQL: No commits between master and gp_scratch_32 (createPullRequest)
 
 # Conventions
 - When writing code you must always follow the instructions in
