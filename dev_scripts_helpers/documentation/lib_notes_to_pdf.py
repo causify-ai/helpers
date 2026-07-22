@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Convert a txt file into a PDF / HTML / slides using `pandoc`.
 
