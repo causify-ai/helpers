@@ -1,8 +1,12 @@
-import hashlib
+"""
+Import as:
+
+import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
+"""
+
 import logging
 import os
 import re
-import time
 from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg

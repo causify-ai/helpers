@@ -21,12 +21,10 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 import argparse
 import logging
 import os
-import re
 import sys
-from typing import Any, List, Optional, Tuple, cast
+from typing import List, cast
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hopen as hopen
@@ -34,10 +32,6 @@ import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
-import dev_scripts_helpers.dockerize.lib_latex as dshdlila
-import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
-import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 
 _LOG = logging.getLogger(__name__)
 
