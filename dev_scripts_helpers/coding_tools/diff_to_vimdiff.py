@@ -107,6 +107,97 @@ def _remove_files_from_file_list(
     hdbg.dassert_eq(len(files), len(removed_files) + len(kept_files))
 
 
+def _load_file_list(from_file: str) -> set:
+    """
+    Load list of files from a file (one per line).
+
+    :param from_file: Path to file containing file paths
+    :return: Set of normalized file paths
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.info("Loading file list from '%s'", from_file)
+    hdbg.dassert_path_exists(from_file)
+    txt = hio.from_file(from_file)
+    files = set()
+    for line in txt.split("\n"):
+        line = line.strip()
+        if line and not line.startswith("#"):
+            files.add(line)
+    _LOG.info("Loaded %d files from list", len(files))
+    return files
+
+
+def _filter_diff_output(
+    diff_file: str, from_file: Optional[str]
+) -> None:
+    """
+    Filter diff output to only include files in from_file.
+
+    - Read the diff file
+    - Keep only lines that contain file paths in from_file
+    - Write the filtered result back
+
+    :param diff_file: Path to file with diff output
+    :param from_file: Path to file containing files to keep, or None
+    """
+    if from_file is None:
+        return
+    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.info("Filtering diff output using '%s'", from_file)
+    # Load set of files to keep.
+    files_to_keep = _load_file_list(from_file)
+    # Read diff output.
+    txt = hio.from_file(diff_file)
+    lines = txt.split("\n")
+    _LOG.debug("Found %d lines in diff output", len(lines))
+    # Filter lines to keep only those matching files in from_file.
+    filtered_lines = []
+    for line in lines:
+        if line == "":
+            continue
+        keep = False
+        # Extract file paths from diff output lines.
+        if line.startswith("Only in "):
+            # Format: "Only in /path/to/dir: filename"
+            m = re.match(r"^Only in (\S+): (\S+)$", line)
+            if m:
+                file_path = f"{m.group(1)}/{m.group(2)}"
+                if _path_matches_any(file_path, files_to_keep):
+                    keep = True
+        elif line.startswith("Files "):
+            # Format: "Files /path/to/file1 and /path/to/file2 differ"
+            m = re.match(r"^Files (\S+) and (\S+) differ$", line)
+            if m:
+                if _path_matches_any(m.group(1), files_to_keep):
+                    keep = True
+        _LOG.debug("line='%s': -> keep=%s", line, keep)
+        if keep:
+            filtered_lines.append(line)
+    _LOG.debug("Found %d lines to keep", len(filtered_lines))
+    # Write filtered output back.
+    hio.to_file(diff_file, "\n".join(filtered_lines))
+
+
+def _path_matches_any(path: str, file_list: set) -> bool:
+    """
+    Check if path matches any entry in file_list.
+
+    Handles both absolute and relative paths by comparing normalized versions.
+
+    :param path: File path to check
+    :param file_list: Set of file paths to match against
+    :return: True if path matches any entry in file_list
+    """
+    # Normalize path for comparison.
+    norm_path = os.path.normpath(path)
+    for file_to_keep in file_list:
+        norm_file = os.path.normpath(file_to_keep)
+        # Check if path contains or matches the file path.
+        if norm_path.endswith(norm_file) or norm_file in norm_path:
+            return True
+    return False
+
+
 # #############################################################################
 
 
@@ -400,11 +491,11 @@ def _parse() -> argparse.ArgumentParser:
         help="Diff content of only files that are not present in both dirs",
     )
     parser.add_argument(
-        "--select_files",
+        "--from_file",
         action="store",
         default=None,
         help="Specify a file that contains the files to actually consider "
-        "for the diff",
+        "for the diff (one per line)",
     )
     parser.add_argument(
         "--ignore_files",
@@ -462,6 +553,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.ignore_files,
         not args.skip_tmp,
     )
+    # Filter diff output if from_file is specified.
+    _filter_diff_output(diff_file, args.from_file)
     _LOG.info("Processing diff output to generate vimdiff script")
     _parse_diff_output(diff_file, dir1, dir2, args)
     _LOG.info("Done")

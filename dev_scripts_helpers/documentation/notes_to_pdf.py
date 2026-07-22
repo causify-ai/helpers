@@ -26,6 +26,7 @@ import sys
 from typing import Any, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
+import helpers.hdaemon as hdaem
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -452,8 +453,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             arg for arg in sys.argv[1:] if arg != "--daemon"
         ]
         cmd = " ".join(shlex.quote(part) for part in cmd_parts)
-        _LOG.info("Daemon mode: watching '%s' for changes", args.input)
-        dshdlntpd.daemon_watch(args.input, cmd)
+        hdaem.daemon_watch(args.input, cmd)
     else:
         _run_all(args)
 
