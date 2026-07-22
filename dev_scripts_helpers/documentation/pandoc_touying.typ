@@ -44,7 +44,10 @@ $endif$
 )
 
 // Make the inline math font bigger.
-#show math.equation.where(block: false): set text(size: 1.15em)
+//#show math.equation.where(block: false): set text(size: 1.15em)
+
+// Scale display math to match slide text size (not oversized).
+#show math.equation.where(block: true): set text(size: 0.95em)
 
 // Make the inline verbatim font bigger.
 #show raw.where(block: false): set text(size: 1.15em)

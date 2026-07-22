@@ -791,8 +791,8 @@ def run_pandoc_to_typst_slides(
     ast_file = f"{file_with_defs}.ast.json"
     # Step 2: transform Div[columns] -> RawBlock[typst #grid()] for multi-column layouts.
     transformed_ast_file = f"{file_name}.divved.ast.json"
-    convert_script = hgit.find_file("convert_pandoc_divved_fence.py")
-    cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file}"
+    convert_script = hgit.find_file("transform_pandoc_ast_to_typst.py")
+    cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file} -a divved_fence"
     _ = _system(cmd)
     hdbg.dassert_path_exists(transformed_ast_file)
     # Step 3: JSON AST -> typst.

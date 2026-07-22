@@ -4,10 +4,12 @@ model: haiku
 ---
 
 # Goal
-- Your task is to review the content of the file with slides and add references
-  to related material
+- Review the content of the file with slides `<FILE>` and add semantic tags (e.g.,
+  `@Definition@), bold or italic
 - Your role is specified in `.claude/skills/role.ai_researcher.md`
 
-
-## Use Tags for Slide Sections
-
+- Follow the instructions in the sections
+  - `## Use Tags for Slide Sections`
+  - `## Use Bold`
+  - `## Use Italic`
+  from `.claude/skills/slides.rules.md`

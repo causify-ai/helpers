@@ -399,6 +399,11 @@
        - Actions don't always have predictable outcomes
   ```
 
+## Use Bold
+- Use bold **term** when
+  - Defining a term as part of `@Definition` tag
+  - Highlighting a term that is particular important
+
 ## Use Italic
 - Use _italic_ (`_text_`) for:
   - Quoted statements
@@ -408,6 +413,29 @@
   - Key terms
   - Important concepts
   - Emphasized definitions
+
+### Emphasis Precedence: Bold Over Italic
+- When a bullet point or line contains both bold and italic text, **bold takes
+  precedence**: make the entire emphasis bold rather than mixing styles
+- This keeps visual hierarchy clear and reduces visual noise
+
+- Examples
+  - **Bad** (mixing bold and italic on same line):
+    ```markdown
+    - _Order the nodes_ according to **cause-effect dependencies**
+    ```
+  - **Good** (bold for the entire emphasized phrase):
+    ```markdown
+    - **Order the nodes** according to cause-effect dependencies
+    ```
+  - **Bad** (mixing styles in emphasis):
+    ```markdown
+    - The _parents_ of $X$ (shown in **bold** for importance)
+    ```
+  - **Good** (consistent bold emphasis):
+    ```markdown
+    - **Parents** of $X$: the nodes that influence $X$
+    ```
 
 ## Use Inline Verbatim
 - Use inline verbatim (`code`) for:
@@ -528,6 +556,23 @@ Use these commands consistently across all slides:
   ```markdown
   $$Rain \perp Sprinkler | Weather$$
   $$Rain \not\perp Sprinkler \iff Rain \leftrightarrow Sprinkler$$
+  ```
+
+### Avoid `\text{...}` in Math Mode
+- Do **not** use `\text{...}` for variable or concept names inside `$ $`
+- Write identifiers directly in math mode without `\text{}` wrapper
+- Cleaner rendering and simpler code
+
+- **Bad**
+  ```markdown
+  $\Pr(\text{Rain}) = 0.5$
+  $\text{Parents}(X_i)$
+  ```
+
+- **Good**
+  ```markdown
+  $\Pr(Rain) = 0.5$
+  $Parents(X_i)$
   ```
 
 ### Spacing and Breaks
