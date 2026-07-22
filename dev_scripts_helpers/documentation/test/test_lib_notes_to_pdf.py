@@ -469,7 +469,11 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Check outputs.
         invocations_str = hunteuti.sys_calls_to_str(invocations)
         self.assert_equal(
-            invocations_str, expected, fuzzy_match=True, dedent=True, purify_text=True
+            invocations_str,
+            expected,
+            fuzzy_match=True,
+            dedent=True,
+            purify_text=True,
         )
         return result
 
@@ -532,7 +536,9 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         result = self.helper(toc_type, no_pdf, expected, prefix_suffix="tmp.tex")
         # Check outputs.
         expected_result = r"$GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex"
-        self.assert_equal(result, expected_result, fuzzy_match=True, purify_text=True)
+        self.assert_equal(
+            result, expected_result, fuzzy_match=True, purify_text=True
+        )
 
     def test3(self) -> None:
         """
@@ -601,7 +607,11 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         self.assert_equal(result, "tmp.html", fuzzy_match=True)
         invocations_str = hunteuti.sys_calls_to_str(invocations)
         self.assert_equal(
-            invocations_str, expected, fuzzy_match=True, dedent=True, purify_text=True
+            invocations_str,
+            expected,
+            fuzzy_match=True,
+            dedent=True,
+            purify_text=True,
         )
 
     def test1(self) -> None:
