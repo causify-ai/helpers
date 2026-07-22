@@ -1,6 +1,8 @@
 # Google Drive Tools
 
-This directory contains tools for working with Google Drive files and directories.
+Tools for working with Google Drive files and directories. Enables directory
+structure analysis, LLM-powered summarization, and conversion between Google
+Drive URLs and local filesystem paths.
 
 ## Structure of the Dir
 
@@ -11,87 +13,87 @@ This directory has no subdirectories.
 - `__init__.py`
   - Python package initialization file
 - `create_google_drive_map.md`
-  - Documentation for the create_google_drive_map.py script
+  - Documentation and usage guide for the create_google_drive_map.py script
 - `create_google_drive_map.py`
-  - Processes directories by generating tree output and creating AI summaries with LLM
+  - Generates directory structure summaries with tree output and LLM analysis
 - `to_local_dir.py`
-  - Converts Google Drive URLs (documents, sheets, files, or folders) to local directory paths
+  - Converts Google Drive URLs to local filesystem paths with account detection
 
-## Description of Executables
+# Description of Executables
 
-### `create_google_drive_map.py`
+## `create_google_drive_map.py`
 
-#### What It Does
+### What It Does
 
-- Processes directories by generating tree output and creating AI summaries
-- Runs tree command on each directory, then uses LLM to summarize the content
-- Can combine all summaries into a single markdown file and create directory metadata tables
-- Supports selective action execution and custom output locations
+- Generates directory structure summaries from Google Drive folders
+- Runs tree command on each directory, then LLM summarizes content
+- Combines all summaries into markdown and creates directory metadata tables
+- Supports selective action execution with flexible output locations
 
-#### Examples
+### Examples
 
-- Process a directory with default settings (tree and LLM actions):
+- Process directory with default tree and LLM actions:
   ```bash
-  > ./create_google_drive_map.py --in_dir /path/to/process
+  > create_google_drive_map.py --in_dir /path/to/process
   ```
 
-- Process directories and save output to a custom location:
+- Run only tree collection without LLM:
   ```bash
-  > ./create_google_drive_map.py --in_dir /path/to/analyze --out_dir results
+  > create_google_drive_map.py --in_dir /path/to/process --action tree
   ```
 
-- Run only the tree action on directories:
+- Combine existing LLM summaries into single file:
   ```bash
-  > ./create_google_drive_map.py --in_dir /path/to/process --action tree
+  > create_google_drive_map.py --in_dir /path/to/process --action combine
   ```
 
-- Combine existing LLM outputs into a single markdown file:
+- Create metadata table for directories:
   ```bash
-  > ./create_google_drive_map.py --in_dir /path/to/process --action combine --out_dir existing_results
+  > create_google_drive_map.py --in_dir /path/to/process --action table
   ```
 
-- Process only the first 3 directories:
+- Process first 3 directories only:
   ```bash
-  > ./create_google_drive_map.py --in_dir /path/to/process --limit 1:3
+  > create_google_drive_map.py --in_dir /path/to/process --limit 1:3
   ```
 
-- Start fresh by deleting existing output directory:
+- Start fresh from scratch:
   ```bash
-  > ./create_google_drive_map.py --in_dir /path/to/process --from_scratch
+  > create_google_drive_map.py --in_dir /path/to/process --from_scratch
   ```
 
-### `to_local_dir.py`
+## `to_local_dir.py`
 
-#### What It Does
+### What It Does
 
-- Converts Google Drive URLs (documents, sheets, files, or folders) to local file system paths
-- Supports automatic account detection across multiple Google Drive accounts (causify, gmail, umd)
-- Can search for files or folders by name across all configured accounts
-- Verifies if the local path exists and reports the result
+- Converts Google Drive URLs (documents, sheets, files, folders) to local filesystem paths
+- Supports automatic account detection across multiple Google accounts
+- Searches files/folders by name across configured accounts
+- Verifies local path existence and reports status
 
-#### Examples
+### Examples
 
-- Convert a Google Drive document URL to local path with automatic account detection:
+- Convert Google Drive document URL with automatic detection:
   ```bash
-  > ./to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit"
+  > to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit"
   ```
 
-- Convert a Google Drive folder URL to local path:
+- Convert Google Drive folder URL to local path:
   ```bash
-  > ./to_local_dir.py --url "https://drive.google.com/drive/u/0/folders/15eHDd9GUCJp8Y5YSpxJXZGqP0xiGvjfP"
+  > to_local_dir.py --url "https://drive.google.com/drive/u/0/folders/15eHDd9GUCJp8Y5YSpxJXZGqP0xiGvjfP"
   ```
 
-- Convert a URL with explicit account specification:
+- Use explicit account specification:
   ```bash
-  > ./to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit" --account causify
+  > to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit" --account causify
   ```
 
-- Find a file or folder by name in a specific account:
+- Find file by name in specific account:
   ```bash
-  > ./to_local_dir.py --file_name "My Document" --account gmail
+  > to_local_dir.py --file_name "My Document" --account gmail
   ```
 
-- Find a file or folder by name with automatic account detection:
+- Search with automatic account detection:
   ```bash
-  > ./to_local_dir.py --file_name "My Folder" --account auto
+  > to_local_dir.py --file_name "My Folder" --account auto
   ```

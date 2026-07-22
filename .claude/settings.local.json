@@ -58,5 +58,13 @@
     "type": "command",
     "command": ".claude/statusline.sh"
   },
-  "spinnerTipsEnabled": true
+  "spinnerTipsEnabled": true,
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true
+  },
+  "effortLevel": "xhigh",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "auto",
+  "editorMode": "vim",
+  "verbose": true
 }

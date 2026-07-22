@@ -20,7 +20,7 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# TODO(ai_gp): Add a set_model / get_model to set a global model to be
+# TODO(gp): Add a set_model / get_model to set a global model to be
 # used when calling this code unless it's specified in the function
 
 # #############################################################################
@@ -85,7 +85,7 @@ def _get_type_format_instruction(return_type: Any) -> str:
     return "Return ONLY the result, no other text."
 
 
-# TODO(ai_gp): Add a mode strict to make sure the input is 1-1 with something
+# TODO(gp): Add a mode strict to make sure the input is 1-1 with something
 # that can be coerced (e.g., not removing invalid chars).
 def _coerce_value(response: str, target_type: Any) -> Any:
     """

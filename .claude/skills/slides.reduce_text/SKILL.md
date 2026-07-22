@@ -1,5 +1,5 @@
 ---
-description: Reduce the text in slide leaving the structure unchanged
+description: Reduce the text in a slide leaving the structure unchanged
 model: haiku
 ---
 
@@ -9,8 +9,6 @@ model: haiku
 
 ## Follow Conventions
 - Follow the conventions in `.claude/skills/slides.rules.md`
-
-## Slide Title
 - If a line starts with an asterisk `*`, it's the slide title and leave it
   unchanged
 
@@ -19,23 +17,26 @@ model: haiku
 - Maintain the structure of the text in terms of bullet and sub-bullet points
 - Keep all the figures
 - Leave bold lines untouched
-  - E.g.,
+
+- Example
+  - The input slide is
     ```
     - **Collections of data**
       - Aggregated, organized data sets for analysis
       - E.g., customer purchase histories in a CRM system
     ```
-  - **Bad**
-    ```
-    - **Collections of data**: organized datasets for analysis
-      - E.g., customer purchase histories in CRM
-    ```
-  - **Good**
-    ```
-    - **Collections of data**
-      - Organized datasets for analysis
-      - E.g., customer purchase histories in CRM
-    ```
+  - The output:
+    - **Bad**
+      ```
+      - **Collections of data**: organized datasets for analysis
+        - E.g., customer purchase histories in CRM
+      ```
+    - **Good**
+      ```
+      - **Collections of data**
+        - Organized datasets for analysis
+        - E.g., customer purchase histories in CRM
+      ```
 
 ## Reduce Text
 - Reduce text keeping the structure of the bullets untouched
@@ -43,7 +44,8 @@ model: haiku
   - Be concise: remove filler words (e.g., "the", "that", "very")
   - Use active voice (e.g., "Improve accuracy," not "Accuracy can be improved")
   - Prefer short phrases over full sentences
-- E.g.,
+
+- Example:
   - For a slide in input like:
   ```
   * Slide title
@@ -81,7 +83,7 @@ model: haiku
     - E.g., model to anticipate customer churn based on behavioral data
   ```
 
-- Output is
+- Output
   ```
   - **Collections of data**
     - Organized datasets for analysis  

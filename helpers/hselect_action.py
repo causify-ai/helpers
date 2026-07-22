@@ -66,11 +66,10 @@ def add_action_arg(
     :return: parser with the option added
     """
     # Add epilog with list of available actions to avoid repeating them.
-    actions_list = ", ".join(valid_actions)
+    actions_list = "\n".join([f"- {action}" for action in valid_actions])
     if parser.epilog:
-        parser.epilog += f"\n\nAvailable actions: {actions_list}"
-    else:
-        parser.epilog = f"Available actions: {actions_list}"
+        parser.epilog += "\n\n"
+    parser.epilog = f"Available actions:\n{actions_list}"
     # Create mutually exclusive group for action selection.
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(

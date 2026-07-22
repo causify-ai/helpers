@@ -1,17 +1,16 @@
-# Summary
-This directory provides Git utility commands and scripts for streamlined
-development workflows. It offers convenient shortcuts for common Git operations
-including status checks, diff visualization, conflict resolution, submodule
-management, branch analysis, and repository maintenance. The tools are designed
-to improve developer productivity by automating frequent Git tasks and providing
-cleaner output formats
+# Git Tools
 
-# Structure of the Dir
-- **git_hooks/**: Git hooks system for enforcing code quality and preventing
-  secrets from being committed. Includes pre-commit validation, commit message
-  checking, and secret detection via gitleaks
-- **gitleaks/**: Secret scanning configuration and rules for detecting sensitive
-  information (API keys, credentials, etc.) in commits
+Git utility commands and scripts for streamlined development workflows. Provides
+convenient shortcuts for status checks, diff visualization, conflict resolution,
+submodule management, branch analysis, and repository maintenance with secret
+detection and hooks.
+
+## Structure of the Dir
+
+- `git_hooks/`
+  - Git hooks for code quality, commit validation, and secret detection via gitleaks
+- `gitleaks/`
+  - Secret scanning configuration and rules for detecting sensitive information
 
 # Description of Files
 This directory contains several categories of Git utilities:

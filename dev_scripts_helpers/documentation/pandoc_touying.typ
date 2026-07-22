@@ -94,10 +94,14 @@ $endif$
   )
 }
 
+// Use Computer Modern Sans - standard TeX font (sans-serif variant).
+// Fails if Computer Modern not available in container (no fallback).
+#set text(font: "CMU Sans Serif", size: 20pt, fill: black)
+#show heading: set text(font: "CMU Sans Serif", size: 28pt)
 // Use DejaVu Sans (available in Alpine) with reduced size.
 // Applied AFTER theme to override theme defaults.
-#set text(font: "DejaVu Sans", size: 20pt, fill: black)
-#show heading: set text(font: "DejaVu Sans", size: 28pt)
+//#set text(font: "DejaVu Sans", size: 20pt, fill: black)
+//#show heading: set text(font: "DejaVu Sans", size: 28pt)
 
 // Track list nesting depth with counter
 #let list-nesting = counter("list-nesting")

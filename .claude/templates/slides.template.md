@@ -1,7 +1,8 @@
-# Example Slide Styles
+# Slide Templates & Examples
 
 ## Frontmatter
 
+```markdown
 // type=UMD_slides
 // course_title=MSML610: Advanced Machine Learning
 // lesson_title=L03.1: Knowledge Representation
@@ -9,245 +10,458 @@
 // references=
 // - Russell et al.: _"Artificial Intelligence: A Modern Approach"_ (4th ed, 2020)
 //  - Chap 7: Logical agents
-//  - Chap 8, First-order logic
-//  - Chap 9: Inference in first-order logic
-//  - Chap 10, Knowledge representation
+```
 
-## Side-by-Side Symmetric Content
+## Slide Structure
 
-- For symmetric content use two equal columns:
+Each slide starts with `*` and contains hierarchical bullet points. Every
+first-level bullet must have a bold label or tag:
+
+```markdown
+* Slide Title
+
+- **Label**: bullet content
+- **Another label**: more content
+```
+
+## Core Tags & Examples
+
+### Definition
+- Use `@Definition@` with the term in **bold**:
   ```markdown
-  | **Left Heading** | **Right Heading** |
-  |---|---|
-  | - Point 1<br>- Point 2 | - Point 1<br>- Point 2 |
+  * Time Series: Definition
+
+  - @Definition@: A **time series** is modeled as a random process, typically indexed
+    by time with sequential observations
+    - Property 1
+    - Property 2
   ```
 
-### Example
-  ```
-  | Property | Chatbot | Agent |
-  |---|---|---|
-  | Output | Text only | Text and side effects (files, API calls, transactions) |
-  | State | Conversation history | Environment state + memory |
-  | Loop | Single turn → response | Perceive → plan → act, repeated |
-  | Failure mode | Wrong answer | Wrong answer *or* wrong action taken |
-  ```
-
-## Side-by-Side Asymmetric Content
-- For asymmetric content (text + diagram):
+### Question
+- Introduce problems or engagement:
   ```markdown
-  ::: columns
-  :::: {.column width=65%}
-  - Main content with text
-  - Multiple bullet points
-  - Detailed explanation
-  ::::
-  :::: {.column width=30%}
-  ```graphviz
-  [diagram code here]
-  ```
-  ::::
-  :::
+  - @Question@: does the data provide evidence for or against a specific
+    hypothesis, such as "this coin is fair" or "this treatment has no effect"?
   ```
 
-## Definition Slide
-
-- Use for introducing a new concept or term
+### Goal
+- State what you're trying to achieve:
   ```markdown
-  * <Term>: Definition
-
-  - **Definition**: <Term> is [concise definition in plain language]
-    - Property or characteristic 1
-    - Property or characteristic 2
-    - Property or characteristic 3
-
-  - Mathematically:
-    $$
-    [mathematical formula or equation]
-    $$
-
-  - **Example**: [concrete, real-world scenario that demonstrates the concept]
+  - @Goal@: Analyze and study algorithms for the _simple_ end of the decision
+    spectrum
   ```
 
-### Example
-// TODO(ai_gp): Doesn't follow our format with **Definition**
+### Assumptions
+- Preconditions or constraints:
   ```markdown
-  * Machine Learning: Definition
-
-  - **Machine learning** is building machines to do useful things without being 
-    explicitly programmed
-    - Learns from experience
-    - Improves with data
-    - Performs tasks without hardcoded rules
-
-  - **Formally**: _"A computer program is said to learn from experience E with respect 
-    to some task T and some performance measure P, if P(T) improves with experience E"_
-    (Mitchell, 1998)
-
-  - **Example**: Computer vision system that learns to recognize cats from labeled 
-    image datasets without being programmed with cat detection rules
+  - @Assumptions@
+    - Single agent, one objective, a model either fully known or learnable
+    - No hierarchy, no policy-gradient search
   ```
 
-## Algorithm Slide
-- Use for describing a step-by-step procedure or algorithm
+### Problem
+- Difficulty motivating a solution:
   ```markdown
-  * <Algorithm Name>
-
-  - **Input**: [describe what data/values go in]
-  - **Output**: [describe what the algorithm produces]
-
-  - **Steps**:
-    1. Initialize parameters or setup phase
-    2. Main algorithm step or iteration
-    3. Update or transform values
-    4. Convergence check or termination condition
-
-  - **Complexity**:
-    - Time: $O(...)$
-    - Space: $O(...)$
+  - @Problem@: a purely predictive model learns $\Pr(Y | X)$ from historical
+    data and absorbs any association, spurious or not
   ```
 
-## Pros/Cons Slide
-- Use for evaluating approaches or concepts against criteria.
+### (Naive) Solution
+- First, flawed attempt whose cons motivate a better one:
   ```markdown
-  - <Topic>: Advantages and Disadvantages
-
-  - **Pros**
-    - Advantage 1: [why it's good]
-    - Advantage 2: [why it's good]
-    - Advantage 3: [why it's good]
-
-  - **Cons**
-    - Disadvantage 1: [why it's problematic]
-    - Disadvantage 2: [why it's problematic]
-    - Disadvantage 3: [why it's problematic]
+  - @Naive Solution@: grid the parameter space and evaluate the posterior pointwise
+    - Cons: the grid grows exponentially with the number of parameters,
+      infeasible beyond a handful of dimensions
   ```
 
-### Example
+### Solution
+- Solution to a previously introduced problem:
   ```markdown
-  - AI as Thinking Humanly: Pros and Cons
+  - @Solution@: Markov Chain Monte Carlo (MCMC)
+    - Build a Markov chain whose stationary distribution is the posterior
+    - Simulate to generate samples
+  ```
 
-  - **Pros**
+### Pros / Cons
+- Advantages and disadvantages:
+  ```markdown
+  - @Pros@
     - Express precise theory of the human mind as a computer program
+    - Provides theoretical foundation
 
-  - **Cons**
+  - @Cons@
     - Unknown workings of the human mind
     - Anthropocentric definition (not applicable to non-human intelligence)
   ```
 
-## Question Slide
-- Use for posing rhetorical or engagement questions
+### Example
+- Concrete illustration:
   ```markdown
-  * <Question or Topic>
-
-  - **Question**: [specific question that engages the audience]
-
-  - Consider these options:
-    - Option A: [description]
-    - Option B: [description]
-    - Option C: [description]
-
-  - **Answer**: Option X because [reasoning]
-
-  - **Key takeaway**: [what students should learn from this]
+  - @Example@: ice cream sales and drowning deaths are highly correlated
+    - Predictor: _"more ice cream → predict more drownings"_ (accurate)
+    - Decision built on it: _"ban ice cream to cut drownings"_ (disastrous)
+    - Confounder: hot weather drives both
   ```
 
-## Theorem / Proof Slide
-- Use for stating a result and deriving it in numbered steps
+### Intuition
+- Explains the "why it makes sense":
   ```markdown
-  * <Theorem Name>
-  - **Theorem**: [statement of the result, with the conditions it holds under]
-
-  - **Proof**
-  1. **<First step name>** [what is done and why]
-     $$
-     [equation for step 1, with \blue{}/\red{} colors to track variables]
-     $$
-  2. Apply the same formula **recursively** until [termination condition]
-     \begin{align*}
-     & [line 1] \\
-     & = [line 2] \\
-     & = ... \\
-     & = [closed form] \\
-     \end{align*}
+  - @Intuition@: the posterior is a compromise between what was believed
+    before and what the data says now
+    - A narrow, confident prior needs more data to move
+    - A flat, uninformative prior lets the likelihood dominate
   ```
-- Real example (from Lesson 06.2 — chain rule): isolate one variable per step,
-  color it to show what is being peeled off, and end at a product/closed form
 
-## Worked Computation Slide
-- Use for a `**Problem**` $\to$ `**Solution**` numeric or symbolic derivation
-  tied to a diagram
+### Key Idea
+- Single most important takeaway:
   ```markdown
-  * <Topic>: Example
-  ::: columns
-  :::: {.column width=60%}
-  - **Problem**: [what to compute, stated in words and symbols]
-  ::::
-  :::: {.column width=35%}
-  ```graphviz
-  [the network the computation refers to]
+  - @Key idea@: shipping a prediction when the business needs a decision delivers
+    little or no business value, however accurate the prediction is
   ```
-  ::::
-  :::
 
-  - **Solution**
-  - [express the target as a product of CPTs / conditional probabilities]
-    \begin{align*}
-    & \Pr(\text{query}) \\
-    & = \Pr(\cdot | \cdot) \cdot \\
-    & \hspace{1cm} \Pr(\cdot | \cdot) \cdot \\
-    & \hspace{1cm} ... \\
-    \end{align*}
-  ```
-- Use `\hspace{1cm}` to indent continuation lines of a long product so factors
-  align visually
-
-## Annotated-Diagram Slide (Target / Roles)
-- Use when classifying the nodes of a diagram into roles (e.g., a Markov
-  blanket: target, parents, children, spouses)
-- Color the bold role labels to match the node `fillcolor` in the diagram so the
-  text and picture reinforce each other:
+### Remark
+- Simple but useful fact:
   ```markdown
-  * Markov Blanket: <Domain> Example
-  ::: columns
-  :::: {.column width=30%}
-  - Consider [the system]
-  ::::
-  :::: {.column width=70%}
-  ```graphviz
-  [diagram with role-colored nodes]
+  - @Remark@: sequential updating (one toss at a time) and batch updating
+    (all tosses at once) reach the same posterior
+    - The order evidence arrives in does not change the final belief
   ```
-  ::::
-  :::
-  - **\red{Target node}**
-    - $X$ — [the variable of interest]
-  - **\blue{Parent nodes}**
-    - [direct causes / influences of $X$]
-  - **\green{Children nodes}**
-    - [outcomes directly influenced by $X$]
-  - [closing takeaway: knowing these roles is sufficient to predict $X$]
-  ```
-- Reuse this same template across multiple domains (medical, economic, finance)
-  to show the abstraction generalizes — only the nodes change, not the structure
 
-## Node-Coloring Legend Slide
-- When a complex diagram uses fill colors to encode variable categories, state
-  the legend in bold colored labels above the diagram:
-  ```markdown
-  * <Topic>: <System> (2/2)
-  - **\blue{Blue nodes}**: [category, e.g., observable inputs]
-  - **\brown{Brown nodes}**: [category, e.g., hidden / unobservable variables]
-  - **\violet{Violet nodes}**: [category, e.g., target variables]
-  ```graphviz
-  [large multi-node network using those fill colors]
-  ```
-  ```
-- Split a large worked system across two slides — `(1/2)` for the textual
-  problem setup, `(2/2)` for the full diagram
+### Other Tags
+- `@Fact@`: A statement asserted as true, used without proof
+- `@Theorem@`: A central, proven result
+- `@Proof@`: The argument establishing a theorem (often numbered steps)
+- `@Proposition@`: A result worth stating, but not as central as a theorem
+- `@Lemma@`: Stepping stone used to prove a bigger result
+- `@Claim@`: A smaller assertion inside a proof or argument
+- `@Algorithm@`: A step-by-step procedure (with @Input@/@Output@)
+- `@Input@` / `@Output@`: What an algorithm consumes and produces
+- `@Limitations@`: Conditions under which the approach fails or is weak
+- `@Counterexample@`: Shows what doesn't work
 
-## Multi-Slide Continuation
-- For a topic that spans several slides, repeat the same `* <Title>` verbatim on
-  each slide rather than numbering them, OR append `(1/2)`, `(2/2)` when the
-  parts are explicitly sequential halves of one whole
-- Keep the running-example diagram identical across the continuation slides;
-  vary only the surrounding text and the conditional-independence question being
-  asked
+## Slide Types
+
+### Definition Slide
+
+```markdown
+* Machine Learning: Definition
+
+- @Definition@: **Machine learning** is the field of building systems to perform
+  useful tasks without being explicitly programmed
+  - Learns from experience
+  - Improves with data
+  - Performs tasks without hardcoded rules
+
+- Formally: _"A computer program is said to learn from experience E with respect
+  to some task T and some performance measure P, if P(T) improves with experience E"_
+  (Mitchell, 1998)
+
+- @Example@: Computer vision system learning to recognize cats from labeled
+  image datasets without being programmed with detection rules
+```
+
+### Algorithm Slide
+
+```markdown
+* Gradient Descent
+
+- @Input@: differentiable loss function $L$, learning rate $\alpha$
+- @Output@: parameters minimizing $L$
+
+- @Steps@:
+  1. Initialize parameters randomly
+  2. Compute gradient $\nabla L$ w.r.t. current parameters
+  3. Update: $\theta \leftarrow \theta - \alpha \nabla L$
+  4. Repeat until convergence
+
+- @Complexity@:
+  - Time: $O(n \cdot d \cdot \text{iterations})$ where $n$ = samples, $d$ = dimensions
+  - Space: $O(d)$
+```
+
+### Problem-Solution Arc
+
+Introduce hard topics progressively:
+
+```markdown
+* Problem: Uncertainty in AI
+
+- @Problem@: logic-based AI fails under uncertainty
+  - Partial observability (agent can't see full state)
+  - Non-determinism (actions don't have predictable outcomes)
+
+- @Naive Solution@: belief states + exhaustive rules
+  - Cons: exponential blowup in state space with each new source of uncertainty
+
+- @Solution@: combine _probability_ and _utility functions_
+  - Probability handles uncertainty
+  - Utility expresses preferences
+```
+
+### Pros/Cons Slide
+
+```markdown
+* AI Approaches: Thinking Humanly vs. Thinking Rationally
+
+- **Thinking Humanly Approach**
+  - _Pros_
+    - Express precise theory of the human mind as a computer program
+  - _Cons__
+    - Unknown workings of the human mind
+    - Anthropocentric (not applicable to non-human intelligence)
+
+- **Thinking Rationally Approach**
+  - _Pros_
+    - Well-defined, mathematically grounded
+    - Applicable to any intelligent agent
+  - _Cons_
+    - Requires complete knowledge representation
+    - Computationally intractable for complex domains
+```
+
+### Theorem / Proof Slide
+
+```markdown
+* Bayes' Theorem
+
+- @Theorem@: For any random variables $X$ and $E$,
+  $$
+  \Pr(X | E) = \frac{\Pr(E | X) \Pr(X)}{\Pr(E)}
+  $$
+
+- @Proof@:
+  1. Start with definition of conditional probability:
+     $$\Pr(X, E) = \Pr(X | E) \Pr(E) = \Pr(E | X) \Pr(X)$$
+  2. Rearrange to isolate $\Pr(X | E)$:
+     $$\Pr(X | E) = \frac{\Pr(E | X) \Pr(X)}{\Pr(E)}$$
+```
+
+### Side-by-Side: Text + Diagram
+
+```markdown
+* Model Checking Example
+
+::: columns
+:::: {.column width=65%}
+- @Problem@: Determine if sentence $\alpha$ is entailed by knowledge base $KB$
+
+- @Approach@: Model enumeration
+  - Generate all possible models
+  - Check if $\alpha$ is true in every model where $KB$ is true
+  - If yes, then $KB \models \alpha$
+
+- @Complexity@: $O(2^n)$ where $n$ = number of variables
+::::
+:::: {.column width=30%}
+```graphviz
+digraph {
+  rankdir=TB
+  KB [label="Knowledge\nBase"]
+  Models [label="Enumerate\nAll Models"]
+  Check [label="Check α\nin each model"]
+  Result [label="Entails?"]
+  KB -> Models -> Check -> Result
+}
+```
+::::
+:::
+```
+
+### Side-by-Side: Symmetric Content (Table)
+
+```markdown
+* Chatbot vs. Agent Comparison
+
+| Property | Chatbot | Agent |
+|---|---|---|
+| Output | Text only | Text and side effects (files, API calls) |
+| State | Conversation history | Environment state + memory |
+| Loop | Single turn → response | Perceive → plan → act (repeated) |
+| Failure | Wrong answer | Wrong answer _or_ wrong action |
+```
+
+### Annotated Diagram (Roles)
+
+```markdown
+* Markov Blanket: Medical Diagnosis Example
+
+::: columns
+:::: {.column width=30%}
+- The variables that shield a target node from all others
+::::
+:::: {.column width=70%}
+```graphviz
+digraph {
+  Disease [label="Disease", fillcolor=red, style=filled]
+  Symptom [label="Symptom", fillcolor=blue, style=filled]
+  Test [label="Test Result", fillcolor=blue, style=filled]
+  Treatment [label="Treatment", fillcolor=green, style=filled]
+  Outcome [label="Outcome", fillcolor=green, style=filled]
+  
+  Disease -> Symptom
+  Disease -> Test
+  Symptom -> Treatment
+  Test -> Treatment
+  Treatment -> Outcome
+}
+```
+::::
+:::
+
+- **\red{Target}**: Disease — what we want to predict
+- **\blue{Parents}**: Symptom, Test Result — direct evidence about disease
+- **\green{Children}**: Treatment, Outcome — affected by the disease
+- **Key insight**: Knowing parents and children is sufficient to predict Disease;
+  other variables are conditionally independent
+```
+
+### Running Example Across Multiple Slides
+
+Keep the same diagram and expand the question:
+
+```markdown
+* Weather World: Conditional Independence (1/3)
+
+::: columns
+:::: {.column width=50%}
+- Variables: $Rain$, $Sprinkler$, $WetGrass$, $Weather$
+
+- @Question@: Is $Rain \perp Sprinkler$?
+::::
+:::: {.column width=45%}
+[diagram showing all nodes, no edges]
+::::
+:::
+
+- @Answer@: No, they are not independent
+  - Both cause wet grass, so observing wet grass creates dependence
+
+---
+
+* Weather World: Conditional Independence (2/3)
+
+::: columns
+:::: {.column width=50%}
+- @Question@: Is $Rain \perp Sprinkler | WetGrass$?
+  - Given that we observe wet grass
+::::
+:::: {.column width=45%}
+[same diagram]
+::::
+:::
+
+- @Answer@: No, they are _explained-away dependent_
+  - If grass is wet and sprinkler is off, rain becomes more likely
+
+---
+
+* Weather World: Conditional Independence (3/3)
+
+::: columns
+:::: {.column width=50%}
+- @Question@: Is $Rain \perp Sprinkler | Weather$?
+  - Given that we know the weather
+::::
+:::: {.column width=45%}
+[same diagram]
+::::
+:::
+
+- @Answer@: Yes, they are conditionally independent given weather
+  - Weather is the common cause; conditioning on it blocks the path
+```
+
+## Formatting Rules
+
+### Punctuation & Structure
+- Do **not** use periods at the end of bullet points
+- Every first-level bullet must have a **bold label**
+- Use `**bold**` for labels and defined terms
+- Use `_italic_` for quoted statements and emphasis
+
+### Notation & Symbols
+- Bind symbols to meaning: `$Rain$ = _"it's raining"_`
+- Use LaTeX symbols, not unicode: `$\to$` not `→`
+- Standard commands: `$\Pr(...)$`, `$\EE[...]$`, `$\VV[...]$`, `$\perp$`, `$\land$`, `$\lor$`, `$\lnot$`
+
+### Slide Density
+- Maximum 5–7 bullet points per slide (excluding sub-bullets)
+- Maximum 2–3 lines per bullet point
+- Use diagrams instead of long text
+
+### Pedagogical Progression
+- Start with **motivation**: explain why it matters
+- Then **intuition**: explain the concept informally
+- Then **formalism**: provide mathematical definition
+- End with **example**: concrete scenario demonstrating the concept
+
+### Problem-Solution Pattern
+- Present hard topics as progression:
+  `**Problem**` → `**(Naive) Solution**` → `**Solution**`
+- State the problem
+- Show why naive solution fails (explicit `Cons:`)
+- Introduce the real solution that addresses those cons
+
+### Running Examples
+- Use one concrete example across many slides
+- Reuse the identical diagram on each slide (student anchor point)
+- Vary the question or aspect asked of the example each time
+- Pair with domain examples (medical, finance, etc.) to show generality
+
+## Column Layout
+
+For side-by-side content:
+
+```markdown
+::: columns
+:::: {.column width=60%}
+Left content here
+::::
+:::: {.column width=35%}
+Right content here (diagram, etc.)
+::::
+:::
+```
+
+Common widths: 50/45, 60/35, 65/30
+
+## Mathematical Equations
+
+Indented LaTeX for complex expressions to show nesting:
+
+```markdown
+$$
+a^*
+  = \arg\max_{a \in \mathcal{A}}
+      \EE_{\theta \sim \Pr(\theta | \mathcal{D})}
+      \left[
+        \EE_{Y \sim \Pr(Y | do(a), \theta)}[U(Y)]
+      \right]
+$$
+```
+
+Multi-line alignment:
+
+```markdown
+\begin{align*}
+& \Pr(x_1, x_2) \\
+& = \Pr(x_1) \Pr(x_2 | x_1)
+\end{align*}
+```
+
+## Typst Tables
+
+```markdown
+```{=typst}
+#styled-table(
+  headers: ("Method", "Accuracy", "Speed"),
+  rows: (
+    ("Baseline", "75%", "Fast"),
+    ("Proposed", "92%", "Slow"),
+    ("Optimized", "90%", "Fast"),
+  ),
+)
+```
+```
+
+Parameters: `headers` (required), `rows` (required), `caption`, `col-widths`, `bold-first-col`

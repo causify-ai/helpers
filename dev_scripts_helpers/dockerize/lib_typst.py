@@ -55,15 +55,32 @@ RUN ARCH=$(uname -m) && \
 # Verify installation.
 RUN typst --version
 
-# Install fonts used by Typst slides.
-# - DejaVu Sans (sans-serif): installed from Alpine's ttf-dejavu package (most
-#   reliable).
-# - Lato (body text): attempted from Google Fonts (with -f to ignore 404s if
-#   URL changes).
-# Typst scans /usr/share/fonts/ on Linux for font discovery.
-RUN apk add --no-cache ttf-dejavu && \
-    BASE="https://raw.githubusercontent.com/google/fonts/main" && \
+# Install Computer Modern fonts - fail if unavailable or not working (no fallback).
+RUN apk add --no-cache fontconfig python3 py3-fonttools && \
+    mkdir -p /usr/share/fonts/cmu && \
+    CTAN_MIRROR="https://ctan.math.illinois.edu/fonts/cm-unicode/fonts" && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunrm.otf" \
+        -o /usr/share/fonts/cmu/CMUSerif-Regular.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunbx.otf" \
+        -o /usr/share/fonts/cmu/CMUSerif-Bold.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunti.otf" \
+        -o /usr/share/fonts/cmu/CMUSerif-Italic.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunbi.otf" \
+        -o /usr/share/fonts/cmu/CMUSerif-BoldItalic.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunss.otf" \
+        -o /usr/share/fonts/cmu/CMUSans-Regular.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunsx.otf" \
+        -o /usr/share/fonts/cmu/CMUSans-Bold.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunsi.otf" \
+        -o /usr/share/fonts/cmu/CMUSans-Italic.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunso.otf" \
+        -o /usr/share/fonts/cmu/CMUSans-BoldItalic.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmuntt.otf" \
+        -o /usr/share/fonts/cmu/CMUTypewriter-Regular.otf && \
+    curl -fsSL "${{CTAN_MIRROR}}/otf/cmunbx.otf" \
+        -o /usr/share/fonts/cmu/CMUTypewriter-Bold.otf && \
     mkdir -p /usr/share/fonts/lato && \
+    BASE="https://raw.githubusercontent.com/google/fonts/main" && \
     curl -fsSL "${{BASE}}/ofl/lato/Lato-Regular.ttf" \
         -o /usr/share/fonts/lato/Lato-Regular.ttf && \
     curl -fsSL "${{BASE}}/ofl/lato/Lato-Bold.ttf" \
@@ -71,7 +88,18 @@ RUN apk add --no-cache ttf-dejavu && \
     curl -fsSL "${{BASE}}/ofl/lato/Lato-Italic.ttf" \
         -o /usr/share/fonts/lato/Lato-Italic.ttf && \
     curl -fsSL "${{BASE}}/ofl/lato/Lato-BoldItalic.ttf" \
-        -o /usr/share/fonts/lato/Lato-BoldItalic.ttf
+        -o /usr/share/fonts/lato/Lato-BoldItalic.ttf && \
+    fc-cache -f -v /usr/share/fonts/cmu && \
+    echo "=== Verifying Computer Modern fonts ===" && \
+    ls -lh /usr/share/fonts/cmu/ && \
+    test -f /usr/share/fonts/cmu/CMUSans-Regular.otf || (echo "FATAL: CMU Sans font files missing" && exit 1) && \
+    printf 'import sys; from fontTools.ttLib import TTFont; font = TTFont("/usr/share/fonts/cmu/CMUSans-Regular.otf"); name_table = font["name"]; print("Sans families:", [r.toUnicode() for r in name_table.names if r.nameID == 1])' | python3 && \
+    printf '#set text(font: "CMU Sans Serif")\n= Test\nComputer Modern Sans test.' > /tmp/test_cm_sans.typ && \
+    typst compile --font-path /usr/share/fonts/cmu /tmp/test_cm_sans.typ /tmp/test_cm_sans.pdf 2>&1 | tee /tmp/typst_test.log && \
+    (! grep -q "unknown font family" /tmp/typst_test.log) || (echo "FATAL: Typst cannot find CMU Sans Serif fonts" && cat /tmp/typst_test.log && exit 1) && \
+    test -f /tmp/test_cm_sans.pdf || (echo "FATAL: Could not generate PDF with CMU Sans Serif" && exit 1) && \
+    echo "=== Computer Modern Sans fonts verified ===" && \
+    rm -f /tmp/test_cm_sans.typ /tmp/test_cm_sans.pdf /tmp/typst_test.log
 
 # Pre-cache the Touying package (and its transitive dependencies) by compiling a
 # stub document that imports it. The cache lives under `XDG_CACHE_HOME` so it is

@@ -2,12 +2,14 @@
 
 # Pass
 # feature_name (e.g., HelpersXYZ)
-# worktree_path (e.g., /Users/saggese/src/umd_classesXYZ), it should be found automatically
+# worktree_path (e.g., /Users/saggese/src/umd_classes4), it should be found automatically
 # subrepo_path (look for subrepos and add helpers)
 #
 
-FEATURE_NAME="my-feature"
-WORKTREE_PATH="../${FEATURE_NAME}-worktree"
+gh issue create --title "Fix bug X" --body "Description here" --assignee @me
+
+FEATURE_NAME="HelpersTask"
+WORKTREE_PATH="../4-worktree"
 SUBREPO_PATH="path/to/subrepo"  # Update this with your subrepo path
 
 # Create branch and worktree in main repo
