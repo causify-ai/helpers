@@ -1,5 +1,6 @@
 # Visual Elements
 
+## Types of Illustrations
 - Illustrations can be of different types:
   - Table
   - Mermaid graph
@@ -8,7 +9,7 @@
   - Images
   - Website screenshots
 
-# Color Palette
+## Color Palette
 
 - Use consistently throughout all diagrams:
   - **Red/Pink** `#F4A6A6`: Agents, actors, primary entities

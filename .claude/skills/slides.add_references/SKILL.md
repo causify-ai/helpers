@@ -1,5 +1,5 @@
 ---
-description: Enrich a slide with references to academic papers and books
+description: Enrich slides with references to academic papers and books
 model: haiku
 ---
 
