@@ -387,8 +387,8 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(
-            actual, "filter_by_lines", fuzzy_match=True, purify_text=True
+        self.check_string(
+            actual, tag="filter_by_lines", fuzzy_match=True, purify_text=True
         )
 
     def test2(self) -> None:
@@ -403,8 +403,8 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(
-            actual, "filter_by_lines", fuzzy_match=True, purify_text=True
+        self.check_string(
+            actual, tag="filter_by_lines", fuzzy_match=True, purify_text=True
         )
 
     def test3(self) -> None:
@@ -419,8 +419,8 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(
-            actual, "filter_by_lines", fuzzy_match=True, purify_text=True
+        self.check_string(
+            actual, tag="filter_by_lines", fuzzy_match=True, purify_text=True
         )
 
     def test4(self) -> None:
@@ -435,8 +435,8 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(
-            actual, "filter_by_header", fuzzy_match=True, purify_text=True
+        self.check_string(
+            actual, tag="filter_by_header", fuzzy_match=True, purify_text=True
         )
 
     def test5(self) -> None:
@@ -451,8 +451,8 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(
-            actual, "filter_by_slides", fuzzy_match=True, purify_text=True
+        self.check_string(
+            actual, tag="filter_by_slides", fuzzy_match=True, purify_text=True
         )
 
 

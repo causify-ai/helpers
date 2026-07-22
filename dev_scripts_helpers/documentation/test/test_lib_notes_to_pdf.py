@@ -12,7 +12,6 @@ import pprint
 from typing import Any, Dict, List
 from unittest import mock
 
-import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -333,7 +332,9 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
                     toc_type,
                 )
         # Check outputs.
-        self.assert_equal(result, "$GIT_ROOT/tmp.html", fuzzy_match=True, purify_text=True)
+        self.assert_equal(
+            result, "$GIT_ROOT/tmp.html", fuzzy_match=True, purify_text=True
+        )
         invocations_str = hunteuti.sys_calls_to_str(invocations)
         self.assert_equal(
             invocations_str,
