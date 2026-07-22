@@ -867,18 +867,19 @@ def run_pandoc_to_typst_slides(
             return f'image("/{path}"{params})'
 
     txt = re.sub(r'image\s*\(\s*"([^"]*)"\s*([^)]*)\)', convert_image_path, txt)
-    # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
-    # \textcolor{blue}{...} to typst blue text.
-    txt = re.sub(
-        r"\\textcolor\{blue\}\{([^}]+)\}",
-        r"#text(fill: blue, \1)",
-        txt,
-    )
-    txt = re.sub(
-        r"\\textcolor\{red\}\{([^}]+)\}",
-        r"#text(fill: red, \1)",
-        txt,
-    )
+    if False:
+        # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
+        # \textcolor{blue}{...} to typst blue text.
+        txt = re.sub(
+            r"\\textcolor\{blue\}\{([^}]+)\}",
+            r"#text(fill: blue, \1)",
+            txt,
+        )
+        txt = re.sub(
+            r"\\textcolor\{red\}\{([^}]+)\}",
+            r"#text(fill: red, \1)",
+            txt,
+        )
     # Replace #strong[...] with explicit black bold text to prevent color bleed
     # from preceding markers
     txt = re.sub(

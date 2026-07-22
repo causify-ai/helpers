@@ -667,12 +667,10 @@
   during comparison
 
 - Examples:
-
   - **Bad**: Escaped newlines (hard to read)
     ```python
     text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
     ```
-
   - **Bad**: Text not aligned to variable indentation
     ```python
     # Prepare inputs.
@@ -682,7 +680,6 @@ line2
 line3
     """
     ```
-
   - **Good**: Multi-line string aligned and dedented (readable and maintainable)
     ```python
     # Prepare inputs.
@@ -696,7 +693,6 @@ line3
     """
     text = hprint.dedent(text)
     ```
-
   - **Good**: Using dedent in assertion (convenient for comparisons)
     ```python
     # Prepare outputs.
