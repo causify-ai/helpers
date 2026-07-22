@@ -14,7 +14,7 @@ model: opus
 ## Step 1
 - Extract the current table of content of the slides
   ```
-  extract_toc_from_txt.py -i <FILE> --max_level 5 --mode headers 2>&1 | tee slides.before.txt
+  > extract_toc_from_txt.py -i <FILE> --max_level 5 --mode headers 2>&1 | tee slides.before.txt
   ```
 
 ## Step 2
