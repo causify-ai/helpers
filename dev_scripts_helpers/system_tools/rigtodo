@@ -1,6 +1,11 @@
 #!/bin/bash
 # """
-# Run rig --todo to search for TODO(ai_gp) patterns.
+# Run rig --todo to search for TODO patterns.
+# If no --todo is provided, defaults to ai_gp.
 # """
 
-rig --todo "$@"
+if [[ "$@" == *"--todo"* ]]; then
+    rig "$@"
+else
+    rig --todo ai_gp "$@"
+fi

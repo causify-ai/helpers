@@ -1,21 +1,23 @@
 ---
-description: Read, criticize, and propose improvements for proposed slides
+description: Read, criticize, and propose improvements for lectures slides
 model: opus
 ---
 
 # Goal
-- Criticize a proposed slide deck (or subset of slides) and propose concrete,
-  ranked improvements to content, flow, visual clarity, pacing, and audience fit
+- Review and criticize a slide deck (or subset of slides)
+- Identify mistakes and improvement opportunities, focusing on factual errors,
+  rather than style suggestions
+- Propose concrete, ranked improvements to content, flow, visual clarity, pacing,
+  and audience fit
 
 # Workflow
 
-## Step 1: Read Context
-- Read `.claude/skills/slides.rules.md` for the rules that slides follow
+## Step 1: Read the Material
+- Read `.claude/skills/slides.rules.md` for the rules that slides must follow
 
-- Read the slide deck file
+- Read the slide deck file passed by the user
   - Note the deck title, target audience, and stated learning objectives (if any)
   - Read all slides sequentially to understand the narrative arc
-  - Note speaker notes, timing cues, or visual descriptions if present
 
 - Read context about the presentation:
   - What is the venue/duration? (lecture, conference talk, workshop, etc.)
@@ -61,9 +63,11 @@ model: opus
   - **MEDIUM**: reduces clarity or engagement
   - **LOW**: minor polish or consistency
 
-- Follow `.claude/skills/text.criticize/SKILL.md` tone and structure
+## Step 3: Write Result
+- Write results using the same format and file as in 
+  `## Step 4: Write the Results` in `.claude/skills/text.criticize/SKILL.md`
 
-## Step 3: Wait for Approval
+## Step 4: Wait for Approval
 - Present the criticism to the user
 - Wait for the user to select items to apply by index and give corrections
 - Only then edit the slide deck

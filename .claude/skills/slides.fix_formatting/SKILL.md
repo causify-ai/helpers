@@ -3,9 +3,9 @@ description: Fix formatting conventions in slides (bold labels, LaTeX, punctuati
 model: haiku
 ---
 
+# Goal
 - Given a markdown file with slides, fix formatting issues without changing the
   content or structure
-
 - Read `.claude/skills/slides.rules.md` and apply the formatting rules strictly
 
 ## What to Fix
@@ -31,4 +31,4 @@ model: haiku
 ## Leave Structure and Content Unchanged
 - Do not change the structure of the text (titles, bullet hierarchy, div fenced
   blocks)
-- Do not change the substantive content — only formatting
+- Do not change the substantive content: change only formatting

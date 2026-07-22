@@ -37,7 +37,8 @@
     },
   )
 
-  set text(font: "Times New Roman", size: 9.5pt, lang: "en")
+  set text(font: "CMU Sans Serif", size: 9.5pt, lang: "en")
+  //set text(font: "Times New Roman", size: 9.5pt, lang: "en")
   set par(justify: true, leading: 0.6em)
   set heading(numbering: "1.1.1")
 
@@ -124,10 +125,12 @@
     breakable: false,
     stroke: 0.5pt + rgb("#E0E0E0"),
   )[
-    #set text(weight: "bold", size: 8pt, font: "Courier New")
+    #set text(weight: "bold", size: 8pt, font: "CMU Typewriter")
+    //#set text(weight: "bold", size: 8pt, font: "Courier New")
     Figure. #name
     #v(0.2em)
-    #set text(weight: "regular", size: 7.8pt, font: "Courier New", fill: black)
+    #set text(weight: "regular", size: 7.8pt, font: "CMU Typewriter", fill: black)
+    //#set text(weight: "regular", size: 7.8pt, font: "Courier New", fill: black)
     #content
   ]
 }

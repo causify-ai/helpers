@@ -1007,7 +1007,7 @@ def safe_rm_file(dir_path: str) -> None:
     _LOG.debug("Successfully removed directory: %s", dir_path)
 
 
-# TODO(ai_gp): Add unit tests.
+# TODO(gp): Add unit tests.
 def is_subdir(dir1: str, dir2: str) -> bool:
     """
     Check if `dir1` is a subdirectory of `dir2`.

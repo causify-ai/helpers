@@ -21,6 +21,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
 
@@ -186,8 +187,13 @@ def process_docker_cmd(
     if mode == "return_cmd":
         ret = docker_cmd
     elif mode == "system":
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, print_command=True, suppress_output=False)
+        # Capture output to filter out Apple container progress lines.
+        _, output = hsystem.system_to_string(docker_cmd, abort_on_error=True)
+        # Remove Apple container startup progress lines (e.g., "[0/6] [0s]").
+        output = huntepur.purify_apple_container_output(output)
+        # Print filtered output if not empty.
+        if output:
+            print(output)
         ret = ""
     elif mode == "system_without_output":
         hsystem.system(docker_cmd, print_command=True, suppress_output=True)
@@ -763,7 +769,7 @@ def build_and_run_docker_cmd(
     :param use_root_user: If True, run container as root (0:0) instead of current user.
         Useful for nested containers that are temporary build tools.
     """
-    # TODO(ai_gp): Pass use_root_user to get_docker_base_cmd instead of patching
+    # TODO(gp): Pass use_root_user to get_docker_base_cmd instead of patching
     # docker_cmd[2].
     docker_cmd = get_docker_base_cmd(use_sudo)
     # Override user flag for nested containers that need root access.

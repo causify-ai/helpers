@@ -3,18 +3,17 @@ description: Explain a lecture slide
 model: haiku
 ---
 
-# Role
-- Your role is specified in `.claude/skills/role.ai_researcher.md`
+# Goal
+- Your role is specified in `.claude/skills/role.ai_researcher.md` and you need
+  to explain the concepts in simple ways
 
-# Step 1: Pick the File
+# Workflow
+
+## Step 1: Read the File
 - Given a file `<FILE>` from the user storing lecture slides in the format
   described in `.claude/skills/slide.rules.md`
-- Print the name of the file as:
-  ```
-  File: <FILE>
-  ```
 
-# Step 2: Extract
+## Step 2: Extract
 - The user selects one or more slides `<SLIDE>` by:
   1) Specifying a slide by its title;
     ```
@@ -27,9 +26,10 @@ model: haiku
   2) Tagging a section in `<FILE>` with `<START>` and `<END>`
 - Extract the slides from the file
 
-# Step 3: Explain
+## Step 3: Explain
 - Explain the slide in bullet points using the conventions in
-  `.claude/skills/text.rules.md`
+  `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
+- Focus on brevity, intuition, and simplicity
 
-# Step 4: Answer 
+## Step 4: Answer 
 - Answer follow-on users questions about the slide

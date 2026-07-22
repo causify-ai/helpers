@@ -1,69 +1,159 @@
-# system_tools/
+# System Tools
 
-General-purpose developer system utilities: file operations, screenshots,
-notifications, editor shortcuts, and other everyday workflow tools.
+General-purpose developer utilities for file operations, screenshots,
+notifications, and editor shortcuts. Provides quick access to common workflow
+tasks and system integration.
 
-## Screenshots & Capture
+## Structure of the Dir
 
-- **[save_screenshot.py](save_screenshot.py)**: Capture a macOS screen region
-  (interactive) and save as PNG.
-- **[website_screenshot.py](website_screenshot.py)**: Capture a full-page
-  screenshot of a URL using Playwright (headless browser).
-- **[capture_notebook_cells.py](capture_notebook_cells.py)**: Extract specific
-  cells from a Jupyter notebook as an image.
+This directory has no subdirectories.
 
-## File Operations
+## Description of Files
 
-- **[ffind.py](ffind.py)**: Find files/dirs by name pattern.
-- **[replace_text.py](replace_text.py)**: Search and replace text across files.
-- **[zip_files.py](zip_files.py)**: Compress files in a directory tree.
-- **[compress_files.sh](compress_files.sh)**: Compress files using gzip.
-- **[create_links.py](create_links.py)**: Create symbolic links in bulk.
-- **[extract_cfile.py](extract_cfile.py)**: Extract code from C-style files.
-- **[remove_escape_chars.py](remove_escape_chars.py)**: Strip escape characters
-  from text files.
-- **[remove_empty_lines.sh](remove_empty_lines.sh)**: Remove blank lines from
-  files.
-- **[remove_redundant_paths.sh](remove_redundant_paths.sh)**: Remove duplicate
-  or nested paths from a list.
-- **[remove_symlink.sh](remove_symlink.sh)**: Remove a symbolic link.
-- **[fix_perms.sh](fix_perms.sh)**: Fix file permissions in a directory tree.
+- `capture_notebook_cells.py`
+  - Extract specific cells from Jupyter notebooks as PNG images
+- `compress_files.sh`
+  - Compress files using gzip in a directory tree
+- `create_links.py`
+  - Create symbolic links in bulk for directory linking
+- `email_notify.py`
+  - Send email notifications via SMTP
+- `extract_cfile.py`
+  - Extract code from C-style vim cfile format
+- `ffind.py`
+  - Find files and directories by name pattern
+- `fix_perms.sh`
+  - Fix file permissions recursively in a directory tree
+- `git_fix_perms.sh`
+  - Correct git repository file permissions
+- `lib_rig.py`
+  - Library and rig management utilities
+- `mdm_utils.py`
+  - Markdown management utilities and helpers
+- `remove_empty_lines.sh`
+  - Remove blank lines from files
+- `remove_escape_chars.py`
+  - Strip escape characters from text files
+- `remove_redundant_paths.sh`
+  - Remove duplicate and nested paths from a list
+- `remove_symlink.sh`
+  - Remove symbolic links safely
+- `replace_text.py`
+  - Search and replace text across multiple files
+- `save_screenshot.py`
+  - Capture macOS screen regions interactively as PNG
+- `tg.py`
+  - Send notifications via Telegram
+- `tree.sh`
+  - Display directory tree listing
+- `website_screenshot.py`
+  - Capture full-page screenshots of URLs using Playwright
+- `zip_files.py`
+  - Compress files into ZIP archives
 
-## Notifications & Messaging
+# Description of Executables
 
-- **[tg.py](tg.py)**: Send a notification via Telegram.
-- **[email_notify.py](email_notify.py)**: Send an email notification.
+## `save_screenshot.py`
 
-## Editor Shortcuts (vi* / v* helpers)
+### What It Does
 
-Quick-launch scripts that open files in `vim` with various filters:
+- Captures macOS screen regions interactively with mouse selection
+- Saves screenshots as PNG files with customizable output location
+- Supports full screen or region capture with visual feedback
 
-- **`viack`**: Open vim on files matching an `ack`/`ag` search.
-- **`vic`**: Open vim on files matching a pattern.
-- **`vif`**: Open vim on files from `find`.
-- **`vil`**: Open vim on files from `locate`.
-- **`vile`**: Open vim on files ending with a given extension.
-- **`vit`**: Open vim on files from a tag list.
-- **`viw`**: Open vim with a word/phrase search.
-- **`vi_all_py.sh`**: Open all Python files in vim.
-- **`i`** / **`il`** / **`it`**: Shortcut aliases for quick file opening.
+### Examples
 
-## Path & Environment
+- Capture screen region and save as PNG:
+  ```bash
+  > save_screenshot.py
+  ```
 
-- **`path`**: Display/manipulate `$PATH`.
-- **`print_paths.sh`**: Print each `$PATH` entry on its own line.
-- **`export_vars.sh`**: Export environment variables from a file.
-- **`mkbak`**: Create a timestamped backup of a file.
-- **`mk_targets`**: Generate build targets.
+## `website_screenshot.py`
 
-## Development Utilities
+### What It Does
 
-- **[tree.sh](tree.sh)**: Directory tree listing.
-- **[timestamp](timestamp)**: Print a formatted timestamp.
-- **`ack`**: Grep replacement wrapper.
-- **[lib_rig.py](lib_rig.py)**: Library / rig management.
-- **`mdm`** / **[mdm_utils.py](mdm_utils.py)**: Markdown management utilities.
-- **`rig`** / **`rigc`** / **`rigdef`** / **`rigdefc`** / **`rigrule`** / **`rigtodo`** / **`rigtodoc`**: Rig workflow helpers.
-- **`vigit`** / **`vigitp`**: Open git-tracked files in vim.
-- **[git_fix_perms.sh](git_fix_perms.sh)**: Fix git file permissions.
-- **`kga`**: Kubernetes alias helper.
+- Captures full-page website screenshots using Playwright headless browser
+- Saves rendered output as PNG for documentation or testing
+- Supports multiple pages and custom viewport sizes
+
+### Examples
+
+- Capture full webpage:
+  ```bash
+  > website_screenshot.py --url "https://example.com" --output screenshot.png
+  ```
+
+## `ffind.py`
+
+### What It Does
+
+- Finds files and directories by name pattern or glob expression
+- Supports recursive directory search with multiple filters
+- Outputs results suitable for pipeline processing
+
+### Examples
+
+- Find Python files in directory tree:
+  ```bash
+  > ffind.py --pattern "*.py" /path/to/search
+  ```
+
+## `replace_text.py`
+
+### What It Does
+
+- Search and replace text across multiple files
+- Supports regex patterns and file type filtering
+- Provides preview and dry-run modes before applying changes
+
+### Examples
+
+- Replace text in files:
+  ```bash
+  > replace_text.py --search "old" --replace "new" /path/to/files
+  ```
+
+## `tg.py`
+
+### What It Does
+
+- Sends notifications via Telegram bot
+- Integrates with system messages and alerts
+- Requires Telegram API configuration
+
+### Examples
+
+- Send Telegram notification:
+  ```bash
+  > tg.py "Your message here"
+  ```
+
+## `email_notify.py`
+
+### What It Does
+
+- Sends email notifications via SMTP
+- Supports HTML and plain text email formats
+- Configurable sender and recipient addresses
+
+### Examples
+
+- Send email notification:
+  ```bash
+  > email_notify.py --to recipient@example.com --subject "Alert" --body "Message"
+  ```
+
+## `create_links.py`
+
+### What It Does
+
+- Creates symbolic links in bulk for multiple files or directories
+- Supports batch link creation with pattern matching
+- Preserves link structure for directory hierarchies
+
+### Examples
+
+- Create symbolic links:
+  ```bash
+  > create_links.py --source /path/to/source --destination /path/to/links
+  ```

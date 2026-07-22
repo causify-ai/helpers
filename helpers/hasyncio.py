@@ -224,7 +224,7 @@ def _poll_iterate(
     return num_iter, (success, value)
 
 
-# TODO(ai_gp): -> async_poll
+# TODO(gp): -> async_poll
 async def poll(
     polling_func: PollingFunction,
     sleep_in_secs: float,
@@ -303,7 +303,7 @@ def sync_poll(
 def get_poll_kwargs(
     get_wall_clock_time: hdateti.GetWallClockTime,
     *,
-    # TODO(ai_gp): Avoid using defaults.
+    # TODO(gp): Avoid using defaults but force the callers to specify it.
     sleep_in_secs: float = 1.0,
     timeout_in_secs: float = 10.0,
 ) -> Dict[str, Any]:

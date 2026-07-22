@@ -1,6 +1,6 @@
 ---
-description: Create a detailed markdown outline (notebook_outline file) for a Jupyter notebook, specifying each cell's content, purpose, visuals, and interactivity to teach concepts through example and discovery
-model: opus
+description: Create a detailed markdown outline for a Jupyter notebook, specifying each cell's content, purpose, visuals, and interactivity to teach concepts through example and discovery
+model: sonnet
 ---
 
 # Goal
@@ -9,7 +9,7 @@ model: opus
   a concept through visualization and hands-on exploration
 - The outline describes what each the notebook will contain without writing any
   code, serving as a blueprint for implementation
-- **Output**: A `notebook_outline.<tag>.md` markdown file that describes the
+- The output is a `notebook_outline.<tag>.md` markdown file that describes the
   notebook units
 
 # Key Principles
@@ -156,7 +156,13 @@ model: opus
     (which we can't do)
   ```
 
-# Important Conventions
+# Lint
+- After generating the file `notebook_outline.<tag>.md`
+  ```
+  > lint_txt.py -i `notebook_outline.<tag>.md`
+  ```
+
+# Conventions
 
 - Follow `.claude/skills/notebook.rules.md` for general notebook formatting
   conventions, including the `Utilities vs. Notebook Responsibilities` section

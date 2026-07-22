@@ -1,33 +1,23 @@
-<!-- toc -->
+# LLM Tools
 
-- [Summary](#summary)
-- [Description of Executables](#description-of-executables)
-  * [`llm_transform.py`](#llm_transformpy)
-    + [What It Does](#what-it-does-1)
-    + [Examples](#examples-1)
-  * [`llm_apply_cfile.py`](#llm_apply_cfilepy)
-    + [What It Does](#what-it-does-2)
-    + [Examples](#examples-2)
-  * [`inject_todos.py`](#inject_todospy)
-    + [What It Does](#what-it-does-3)
-    + [Examples](#examples-3)
-  * [`ai_review.py`](#ai_reviewpy)
-    + [What It Does](#what-it-does-4)
-    + [Examples](#examples-4)
-  * [`print_daily_cost.py`](#print_daily_costpy)
-    + [What It Does](#what-it-does-5)
-    + [Examples](#examples-5)
-  * [Dockerized Variants](#dockerized-variants)
-    + [What They Do](#what-they-do)
+CLI tools for applying LLM transformations to code and text files. Supports code review, refactoring, text transformation, and TODO injection with Dockerized execution for dependency isolation.
 
-<!-- tocstop -->
+## Structure of the Dir
 
-# Summary
+This directory has no subdirectories.
 
-This directory contains a suite of CLI tools for applying Large Language Model
-(LLM) transformations to code and text files. The tools support code review,
-refactoring, text transformation, and automated TODO injection, with
-Docker-based execution to handle dependencies and API credentials.
+## Description of Files
+
+- `ai_review.py`
+  - Alternative LLM interface for review-focused transformations with post-processing
+- `inject_todos.py`
+  - Inject TODO comments from cfile into source files
+- `llm_apply_cfile.py`
+  - Apply line-by-line transformations from cfile in Docker containers
+- `llm_transform.py`
+  - Apply predefined and custom LLM transformations to code files
+- `print_daily_cost.py`
+  - Fetch and display daily API costs from OpenAI and Anthropic
 
 # Description of Executables
 

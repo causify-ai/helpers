@@ -1,21 +1,8 @@
+# Documentation
 
-
-<!-- toc -->
-
-- [Readme](#readme)
-  * [How to organize the docs](#how-to-organize-the-docs)
-    + [Dir vs no-dirs](#dir-vs-no-dirs)
-    + [Tracking reviews and improvements](#tracking-reviews-and-improvements)
-    + [How to search the documentation](#how-to-search-the-documentation)
-  * [File description](#file-description)
-  * [Dir structure](#dir-structure)
-
-<!-- tocstop -->
-
-# Readme
-
-- This file is the entrypoint of all the documentation and describes all the
-  documentation files in the `docs` directory
+Comprehensive documentation system for software components, development
+processes, and team workflows. Organized by functionality, component, and team
+with active review tracking and executable documentation validation.
 
 ## How to organize the docs
 
