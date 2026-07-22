@@ -81,7 +81,7 @@ def _run_all(args: argparse.Namespace) -> None:
     #
     if args.script:
         _LOG.info("Logging the actions into a script")
-        dshdlntpd._SCRIPT = ["#/bin/bash -xe"]
+        dshdlntpd._SCRIPT = ["#!/bin/bash -xe"]
     #
     file_name = args.input
     hdbg.dassert_path_exists(file_name)
