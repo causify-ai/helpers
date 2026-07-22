@@ -346,7 +346,7 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"\red{Hello world}"
         # Prepare outputs.
-        expected = r'#text(fill: red, weight: "bold")[Hello world]'
+        expected = r'`#text(fill: red, weight: "bold")[Hello world]`{=typst}'
         # Run test.
         self.helper(txt_in, expected)
 
@@ -357,7 +357,7 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"\blue{x + y = z}"
         # Prepare outputs.
-        expected = r'#text(fill: blue, weight: "bold")[x + y = z]'
+        expected = r'`#text(fill: blue, weight: "bold")[x + y = z]`{=typst}'
         # Run test.
         self.helper(txt_in, expected)
 
@@ -368,7 +368,7 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"The \red{quick} \blue{fox} \green{jumps}"
         # Prepare outputs.
-        expected = r'The #text(fill: red, weight: "bold")[quick] #text(fill: blue, weight: "bold")[fox] #text(fill: green, weight: "bold")[jumps]'
+        expected = r'The `#text(fill: red, weight: "bold")[quick]`{=typst} `#text(fill: blue, weight: "bold")[fox]`{=typst} `#text(fill: green, weight: "bold")[jumps]`{=typst}'
         # Run test.
         self.helper(txt_in, expected)
 
@@ -379,7 +379,22 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"\violet{important}"
         # Prepare outputs.
-        expected = r'#text(fill: rgb("#8B00FF"), weight: "bold")[important]'
+        expected = r'`#text(fill: rgb("#8B00FF"), weight: "bold")[important]`{=typst}'
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test5(self) -> None:
+        r"""
+        Test that bold text in Typst output is wrapped in typst code fence.
+
+        This test verifies the fix for the issue where colored text like
+        `\red{Target node}` is not rendered properly in typst because it's
+        missing the `{=typst}` fence syntax needed by pandoc.
+        """
+        # Prepare inputs.
+        txt_in = r"- **\red{Target node}**"
+        # Prepare outputs - should be wrapped with backticks and {=typst}.
+        expected = r'- **`#text(fill: red, weight: "bold")[Target node]`{=typst}**'
         # Run test.
         self.helper(txt_in, expected)
 

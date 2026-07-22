@@ -181,7 +181,8 @@ def process_color_commands(in_line: str, output_format: str) -> str:
                 else:
                     ret = rf"\textcolor{{{output_color}}}{{\text{{{content}}}}}"
             elif output_format == "typst":
-                ret = f'#text(fill: {output_color}, weight: "bold")[{content}]'
+                typst_code = f'#text(fill: {output_color}, weight: "bold")[{content}]'
+                ret = f"`{typst_code}`{{=typst}}"
             else:
                 raise ValueError("Invalid output_format='%s'" % output_format)
             return ret
