@@ -512,7 +512,10 @@ def assert_equal(
     tag = "final"
     _append(tag, actual, expected)
     #
-    is_equal = expected == actual
+    if fuzzy_match:
+        is_equal = expected in actual
+    else:
+        is_equal = expected == actual
     _LOG.debug(hprint.to_str("is_equal"))
     if is_equal:
         return is_equal
