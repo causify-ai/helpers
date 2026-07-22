@@ -10,7 +10,7 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddut
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 
 
@@ -154,7 +154,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         :param expected: Expected HTML output with table of contents
         """
         # Prepare inputs.
-        in_file_path = dshddout.create_test_file(self, txt, extension="md")
+        in_file_path = dshddut.create_test_file(self, txt, extension="md")
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")
         cmd_opts = [
             "pandoc",
@@ -258,8 +258,8 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         image_name = dshdlipa._get_pandoc_container_image_name(container_type)
         hdbg.dassert(hdocker.image_exists(image_name, use_sudo))
         # Run version command inside container.
-        # TODO(ai_gp): Add also latex --version in the bash -c below
-        # TODO(ai_gp): Use different expected output for darwin vs linux.
+        # TODO(gp): Add also latex --version in the bash -c below
+        # TODO(gp): Use different expected output for darwin vs linux.
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'
@@ -324,7 +324,9 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
         ('sample.md --output output.md --data-dir data --template default '
         '--extract-media media --verbose --extra')"""
         # Run test.
-        actual = pprint.pformat(dshdlipa._convert_pandoc_arguments_to_cmd(params))
+        actual = pprint.pformat(
+            dshdlipa._convert_pandoc_arguments_to_cmd(params)
+        )
         # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 

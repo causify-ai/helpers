@@ -75,7 +75,6 @@ def _get_input_output_files(
         input_file = ""
     # Resolve output destination: file, stdout, or in-place edit of input.
     if not output_arg:
-        # TODO(ai_gp): Use a dassert_imply
         hdbg.dassert(
             input_file and input_file != "-",
             "Output must be specified when using --input_text or stdin. "

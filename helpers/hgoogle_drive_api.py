@@ -127,7 +127,7 @@ def get_credentials(
 
 
 # TODO(gp): Extend this to work with v3, v4, etc.
-# TODO(ai_gp): Make it private if it's not called by anybody else.
+# TODO(gp): Make it private if it's not called by anybody else.
 def get_sheets_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     """
     Get Google Sheets service with provided credentials.

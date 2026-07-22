@@ -2,7 +2,12 @@
 description: Fix the slides incrementally
 ---
 
-- The user will pass `<FILE>` a pointer to a txt file storing slides
+# Goal
+
+- The user will pass `<FILE>` a pointer to a file storing slides you will fix
+  `<FILE>` 5 slides at the time, to allow the user to review and fix things up
+
+# Workflow
 
 - Read `.claude/skills/slides.rules.md`
 

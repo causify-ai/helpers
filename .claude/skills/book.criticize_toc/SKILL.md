@@ -1,23 +1,26 @@
 ---
-description: Read, criticize, and propose improvements for a proposed book chapter in a table of content
+description: Read, criticize, and propose improvements for a table of content of a book
 model: opus
 ---
 
 # Goal
-- Criticize a proposed chapter (or set of chapters) in a book's table of content
-  and propose concrete, ranked improvements to topics, ordering, scope, and
-  audience fit
+- Review and criticize the table of content for a chapter (or set of chapters) in
+  a book
+- Identify mistakes and improvement opportunities, focusing on factual errors,
+  rather than style suggestions
+- Propose concrete, ranked improvements to topics, ordering, scope, and audience fit
 
 # Workflow
 
-## Step 1: Read Context
-- Read `.claude/templates/book_map.template.md` for the expected structure
+## Step 1: Read the Material
+- Read `.claude/templates/book_map.template.md` for the expected structure of a
+  table of content of a book
 
 - Read the `book_map.md` that stores the `### Topics` making up the table of
-  content
+  content for the book
   - Read `**Title**`, `**Target audience**` at the top of `book_map.md`
   - Read the `# Part` heading description the chapter belongs to
-  - Read the target chapter's overview line, `### Topics`
+  - Read the target chapter's `### Topics` that the user refers to
   - Ignore the rest of the sections besides `### Topics`
     - I.e., `### Lessons`, `### Tutorials`, `### Related packages`,
       `### Related books`, `### Related papers`
@@ -25,7 +28,8 @@ model: opus
     neighbors, chapter N-1 and N+1, to judge continuity
 
 ## Step 2: Criticize
-- Read `.claude/skills/text.criticize/SKILL.md`
+- Read `.claude/skills/text.criticize/SKILL.md` to understand general approaches
+  to review and criticize text
 
 - Evaluate along these axes, reporting only issues you are confident about:
   - **Internal flow**:
@@ -58,16 +62,11 @@ model: opus
   - **MEDIUM**: hurts clarity or completeness
   - **LOW**: minor polish
 
-- Emit one section per axis, most severe issue first:
-  ```markdown
-  # Criticism: <chapter header>
+## Step 3: Write Result
+- Write results using the same format and file as in 
+  `## Step 4: Write the Results` in `.claude/skills/text.criticize/SKILL.md`
 
-  1. [CRITICAL/HIGH/MEDIUM/LOW] <issue>: <why>; <suggested fix>
-  ...
-  ```
-- Follow `.claude/skills/markdown.rules.md` to write the comments
-
-## Step 3: Wait for Approval
+## Step 4: Wait for Approval
 - Present the criticism to the user
 - Wait for the user to select items to apply by index and give corrections
 - Only then edit `book_map.md`

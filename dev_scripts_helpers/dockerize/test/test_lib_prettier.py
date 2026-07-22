@@ -11,7 +11,7 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddut
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class Test_build_prettier_md_txt_tex_container1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         docker_executable = hdocker.get_docker_executable(use_sudo)
         image_name = dshdlipr.get_prettier_container_image_name(file_type)
-        # TODO(ai_gp): Different expected value for darwin vs linux.
+        # TODO(gp): Different expected value for darwin vs linux.
         cmd = (
             f"{docker_executable} run --rm"
             f' --entrypoint "" {image_name}'
@@ -156,7 +156,7 @@ class Test_run_dockerized_prettier_md1(hunitest.TestCase):
         :param expected: Expected formatted output
         """
         # Prepare inputs.
-        in_file_path = dshddout.create_test_file(self, txt, extension="txt")
+        in_file_path = dshddut.create_test_file(self, txt, extension="txt")
         file_type = "md"
         cmd_opts: List[str] = [
             "--parser",
@@ -280,7 +280,7 @@ class Test_run_dockerized_prettier_txt1(hunitest.TestCase):
         :param expected: Expected formatted output
         """
         # Prepare inputs.
-        in_file_path = dshddout.create_test_file(self, txt, extension="txt")
+        in_file_path = dshddut.create_test_file(self, txt, extension="txt")
         file_type = "txt"
         cmd_opts: List[str] = [
             "--parser",

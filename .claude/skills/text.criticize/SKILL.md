@@ -4,15 +4,19 @@ model: opus
 ---
 
 # Goal
-- Review text files (markdown, blog posts, documentation) and identify mistakes
-  and improvement opportunities, focusing on factual errors, rather than style
-  suggestions
+- Review and criticize the text (markdown, blog posts, documentation)
+- Identify mistakes and improvement opportunities, focusing on factual errors,
+  rather than style suggestions
+- Propose concrete improvements to content, flow, visual clarity, pacing,
+  and audience fit
 
 # Workflow
 
-## Step 1: Identify and Rank Mistakes
-- Read the text carefully and identify factual errors, incorrect statements, or
-  broken logic
+## Step 1: Read the Material
+- Read the text passed by the user carefully
+
+## Step 2: Identify and Rank Mistakes
+- Identify mistakes in the passed text
 
 ### Definition
 - Criteria for mistakes:
@@ -27,31 +31,10 @@ model: opus
   - _Medium_: Could improve clarity or accuracy
   - _Low_: Minor inconsistency or incomplete statement
 
-### Output format
-- The output format is like:
-  ```markdown
-  # Mistakes
+### TODOs
+- Ignore the TODOs that already exist in the text
 
-  1. <file>:<line_number> [HIGH/MEDIUM/LOW] Short description of error
-  2. <file>:<line_number> [HIGH/MEDIUM/LOW] Why this is wrong and what the correct statement should be
-  ...
-  ```
-
-
-  ```markdown
-  # Mistakes
-
-  1. README.md:12 [HIGH] Claims "pip install X" but pip package is named "X-lib"
-  2. tutorial.md:45 [HIGH] Says Python 3.9 is required, but code uses 3.11+ syntax
-  3. docs.md:8 [MEDIUM] Link to API docs is outdated (2023 version, current is 2024)
-  ```
-
-- Save this in a file related to the file being processed
-  `<DIR>/<FILE>.MISTAKES.md`
-  - E.g., `msml610/lectures_source/Lesson03.1-Knowledge_representation.txt`
-    -> `msml610/lectures_source/Lesson03.1-Knowledge_representation.MISTAKES.txt`
-
-## Step 2: Suggest Improvements
+## Step 3: Suggest Improvements
 - Identify opportunities to improve clarity, structure, or completeness without
   changing facts
 
@@ -68,30 +51,27 @@ model: opus
   - _Medium_: Moderately improves clarity or adds useful detail
   - _Low_: Minor improvement in readability or polish
 
-### Output format
-- The output format is like:
+## Step 4: Write the Results
+- The output format is a vim cfile following `.claude/skills/cfile.rules.md`
   ```markdown
-  # Improvements
-
-  1. <file>:<line_number> [HIGH/MEDIUM/LOW] Specific suggestion for how to improve
-  2. ...
+  <full path file>:<line_number>:1 [HIGH/MEDIUM/LOW] Short description of error
+  <full path file>:<line_number>:1 [HIGH/MEDIUM/LOW] Why this is wrong and what the correct statement should be
+  ...
   ```
 
-- Example:
+- Example
   ```markdown
-  # Improvements
-
-  1. README.md:5 [HIGH] Add example of basic usage after the description
-  2. tutorial.md:22 [MEDIUM] Break this paragraph into two—too much information in one block
-  3. docs.md:15 [MEDIUM] Define "caching strategy" before using the term
+  msml610/lectures_source/README.md:12 [HIGH] Claims "pip install X" but pip package is named "X-lib"
+  msml610/lectures_source/README.md:5 [HIGH] Add example of basic usage after the description
+  helpers/docs.md:8 [MEDIUM] Link to API docs is outdated (2023 version, current is 2024)
   ```
 
 - Save this in a file related to the file being processed
-  `<DIR>/<FILE>.IMPROVEMENTS.md`
+  `<DIR>/<FILE>.CRITIZE.md`
   - E.g., `msml610/lectures_source/Lesson03.1-Knowledge_representation.txt`
-    -> `msml610/lectures_source/Lesson03.1-Knowledge_representation.IMPROVEMENTS.txt`
+    -> `msml610/lectures_source/Lesson03.1-Knowledge_representation.CRITICIZE.txt`
 
-## Step 3: Wait for User Approval
+## Step 5: Wait for User Approval
 - Wait for user to:
   - Select which mistakes and improvements using the index to fix
   - Provide any additional context or corrections
