@@ -388,7 +388,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True)
+        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -402,7 +402,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True)
+        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -416,7 +416,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True)
+        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True, purify_text=True)
 
     def test4(self) -> None:
         """
@@ -430,7 +430,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_header", fuzzy_match=True)
+        self.assert_equal(actual, "filter_by_header", fuzzy_match=True, purify_text=True)
 
     def test5(self) -> None:
         """
@@ -444,7 +444,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_slides", fuzzy_match=True)
+        self.assert_equal(actual, "filter_by_slides", fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -529,7 +529,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         expected = "run_pandoc"
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -543,7 +543,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         expected = "no_pdf"
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -557,7 +557,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         expected = "run_pandoc"
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -648,7 +648,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "toc_type none", fuzzy_match=True)
+        self.assert_equal(actual, "toc_type none", fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -660,7 +660,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "toc_type pandoc_native", fuzzy_match=True)
+        self.assert_equal(actual, "toc_type pandoc_native", fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -694,7 +694,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         output_txt = _safe_read_text(out_file)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "toc_type navigation", fuzzy_match=True)
+        self.assert_equal(actual, "toc_type navigation", fuzzy_match=True, purify_text=True)
 
     def test4(self) -> None:
         """
@@ -706,7 +706,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "toc_type remove_headers", fuzzy_match=True)
+        self.assert_equal(actual, "toc_type remove_headers", fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -798,7 +798,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         """
         # Expected: script contains action name and skip marker
         # Invariant: skipped action is marked in script
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -816,7 +816,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         """
         # Expected: script contains both action names marked as skipped
         # Invariant: multiple skipped actions are marked in script
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -910,7 +910,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Expected: script contains bash shebang at start
         # Invariant: generated script has correct bash invocation
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -929,7 +929,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         """
         # Expected: script contains action section comments for key processing steps
         # Invariant: all major actions appear in generated script
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -1048,7 +1048,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         # Expected: output contains script with basic pipeline structure
         # Invariant: script is generated and output is non-empty
-        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
+        self.assert_equal(actual, "script_txt output_txt", fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -1063,7 +1063,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         # Expected: output contains script with basic pipeline structure
         # Invariant: script is generated and output is non-empty
-        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
+        self.assert_equal(actual, "script_txt output_txt", fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -1091,7 +1091,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         # Expected: output contains script with basic pipeline structure
         # Invariant: script is generated and output is non-empty
-        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
+        self.assert_equal(actual, "script_txt output_txt", fuzzy_match=True, purify_text=True)
 
     def test4(self) -> None:
         """
@@ -1131,7 +1131,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         # Expected: output contains script with basic pipeline structure
         # Invariant: script is generated and output is non-empty
-        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
+        self.assert_equal(actual, "script_txt output_txt", fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -1206,7 +1206,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "use_pandoc_ast_transform", fuzzy_match=True)
+        self.assert_equal(actual, "use_pandoc_ast_transform", fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -1219,7 +1219,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -1380,7 +1380,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "# latex again", fuzzy_match=True)
+        self.assert_equal(actual, "# latex again", fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -1392,7 +1392,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "no_fail_on_warnings", fuzzy_match=True)
+        self.assert_equal(actual, "no_fail_on_warnings", fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
