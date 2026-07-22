@@ -135,24 +135,21 @@ def process_color_commands(in_line: str, output_format: str) -> str:
     - `\red{abc}` -> `\textcolor{red}{\text{abc}}`
     - `\blue{x + y}` -> `\textcolor{blue}{x + y}`
 
-    For Typst output, uses `#text(fill: color)[content]` syntax.
+    For Typst output, uses `#text(fill: color)[content]` syntax wrapped in a
+    code fence so pandoc treats it as typst syntax even inside math blocks.
     E.g. (Typst):
-    - `\red{abc}` -> `#text(fill: red)[abc]`
-    - `\blue{x + y}` -> `#text(fill: blue)[x + y]`
+    - `\red{abc}` -> `#text(fill: red)[abc]` (as backtick-wrapped typst code)
+    - `\blue{x + y}` -> `#text(fill: blue)[x + y]` (as backtick-wrapped typst code)
 
-    Note: For typst output, color commands inside math delimiters ($...$) are
-    not processed, as typst syntax is incompatible with LaTeX math mode.
+    Color commands are processed even inside math delimiters ($...$, $$...$$)
+    for both formats: LaTeX color syntax works in math mode, and typst code
+    fences are recognized by pandoc even inside math blocks.
 
     :param in_line: input line to process
     :param output_format: "latex" (default) or "typst"
     :return: line with color commands transformed
     """
     hdbg.dassert_in(output_format, ("latex", "typst"))
-    # For typst output, skip processing \red{} commands if line contains math
-    # delimiters to avoid inserting typst syntax inside LaTeX math mode (which
-    # pandoc can't parse).
-    if output_format == "typst" and ("$" in in_line or "$$" in in_line):
-        return in_line
     color_mapping = get_md_colors_mapping(output_format)
     for md_color, output_color in color_mapping.items():
         # This regex matches color commands like \red{content}, \blue{content},

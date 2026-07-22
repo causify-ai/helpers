@@ -592,8 +592,10 @@ def _transform_lines(
     in_skip_block = False
     # True inside a code block.
     in_code_block = False
-    # True inside a math block ($$...$$).
+    # True inside a display math block ($$...$$).
     in_math_block = False
+    # True inside an inline math context ($...$).
+    in_inline_math = False
     for i, line in enumerate(lines):
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
@@ -641,16 +643,26 @@ def _transform_lines(
         # Update code block status based on triple backticks.
         if line.startswith("```"):
             in_code_block = not in_code_block
-        # Update math block status based on $$.
-        if "$$" in line:
+        # Update math block status based on $$ and $ BEFORE color processing.
+        # This ensures we skip colors on lines with math delimiters for typst output.
+        # Count how many times $$ appears and toggle in_math_block accordingly.
+        dollar_pair_count = line.count("$$")
+        for _ in range(dollar_pair_count):
             in_math_block = not in_math_block
-        # 7) Process color commands (skip if inside math block or inline math).
+        # For lines without $$, check for single $ (inline math).
+        if dollar_pair_count == 0:
+            single_dollar_count = line.count("$")
+            if single_dollar_count % 2 == 1:
+                in_inline_math = not in_inline_math
+        # 7) Process color commands.
         if _TRACE:
             _LOG.debug("# Process color commands.")
-        # Skip color processing inside math blocks: color syntax doesn't work
-        # in math mode.
-        # Use the specified output format (latex or typst) for non-math content.
-        if not in_math_block:
+        # For LaTeX output: \textcolor{} works in math mode, so process colors everywhere.
+        # For Typst output: The backtick-wrapped syntax can't be used in LaTeX math
+        # blocks, so skip processing on lines with or inside math delimiters.
+        has_math_delimiters = ("$$" in line) or in_math_block or in_inline_math
+        should_skip_for_typst = (output_format == "typst") and has_math_delimiters
+        if output_format == "latex" or not should_skip_for_typst:
             line = hmarkdo.process_color_commands(
                 line, output_format=output_format
             )

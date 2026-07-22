@@ -398,6 +398,34 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Run test.
         self.helper(txt_in, expected)
 
+    def test6(self) -> None:
+        r"""
+        Test color commands inside math mode are converted for typst.
+
+        This test reproduces the bug where color commands like `\blue{...}`
+        inside `$$...$$` math blocks are not converted to typst syntax,
+        causing them to not render properly.
+        """
+        # Prepare inputs with color commands inside math mode.
+        txt_in = r"$$\Pr(\blue{x_1}, \red{x_2}) = \blue{x_1} \red{x_2}$$"
+        # For typst output, color commands inside math should be converted.
+        expected = r'$$\Pr(`#text(fill: blue, weight: "bold")[x_1]`{=typst}, `#text(fill: red, weight: "bold")[x_2]`{=typst}) = `#text(fill: blue, weight: "bold")[x_1]`{=typst} `#text(fill: red, weight: "bold")[x_2]`{=typst}$$'
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test7(self) -> None:
+        r"""
+        Test that colors work inside inline math mode too.
+
+        This test verifies color commands work in inline math ($...$) delimiters.
+        """
+        # Prepare inputs with color in inline math
+        txt_in = r"Solve $\blue{a + b} = \red{c}$ using the method."
+        # For typst output, color commands should be converted even in inline math
+        expected = r'Solve $`#text(fill: blue, weight: "bold")[a + b]`{=typst} = `#text(fill: red, weight: "bold")[c]`{=typst}$ using the method.'
+        # Run test.
+        self.helper(txt_in, expected)
+
 
 # #############################################################################
 # Test_colorize_bullet_points_in_slide2
