@@ -1,10 +1,10 @@
 - This file contains all the conventions and rules to write unit tests
 
-# Test Design
+# Testing Philosophy
 
 ## Test One Thing
-- A test class tests only one function or class; a test method tests only one
-  case
+- A test class tests only one function or class
+- A test method tests only one case
 - Keeps failures easy to diagnose: one thing broken means one test fails
 
 ## Keep Tests Self-Contained
@@ -12,8 +12,9 @@
 - Specify input data explicitly inside the test; do not rely on shared state
 
 ## Test From the Outside-In
-- Start with public-facing behavior before internal helpers
-- Interface-level tests survive refactors; implementation-level tests do not
+- Start with testing public-facing behavior before testing internal helpers
+- Interface-level tests survive refactors, while implementation-level tests do
+  not
 
 ## Keep Testing Code in Sync with Tested Code
 - When renaming a tested class or file, rename the test class and test file
@@ -666,12 +667,10 @@
   during comparison
 
 - Examples:
-
   - **Bad**: Escaped newlines (hard to read)
     ```python
     text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
     ```
-
   - **Bad**: Text not aligned to variable indentation
     ```python
     # Prepare inputs.
@@ -681,7 +680,6 @@ line2
 line3
     """
     ```
-
   - **Good**: Multi-line string aligned and dedented (readable and maintainable)
     ```python
     # Prepare inputs.
@@ -695,7 +693,6 @@ line3
     """
     text = hprint.dedent(text)
     ```
-
   - **Good**: Using dedent in assertion (convenient for comparisons)
     ```python
     # Prepare outputs.
@@ -813,7 +810,7 @@ line3
   substitute for test assertions
   - Always use `self.assert*` family instead
 
-## Replace Checking Invariants with `assert_equal`
+## Only use `assert_equal`
 - Do not use multiple `assertIn()` calls to check individual pieces of a string
   output; instead compare the entire output with `assert_equal()`
   - **Bad** (multiple assertIn checks on parts of the output)
@@ -841,6 +838,26 @@ line3
     }
     """
     # Check outputs.
+    self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+    ```
+  - **Bad**
+    ```python
+    # Check outputs.
+    # Expected: contains the output from the command (paths are variable)
+    # Invariant: output contains expected sections and key values
+    self.assertIn("Processing complete", actual)
+    self.assertIn("Files: ", actual)
+    self.assertIn("Status: SUCCESS", actual)
+    ```
+  - **Good** (with fuzzy matching and explanatory comment)
+    ```python
+    # Check outputs.
+    # Expected from command: "Processed /path/to/file.txt in 0.123s"
+    # Invariant: message format is consistent and success status is present
+    expected = """
+    Processed .*/path/to/file.txt in [0-9.]+s
+    Status: SUCCESS
+    """
     self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
     ```
 
@@ -1048,38 +1065,6 @@ line3
       hunteuti.assert_invocations(self, invocations, expected_invocations_str)
   ```
 
-## Document Output Assertions When Exact Matching is Not Possible
-- When checking end-to-end output from a test, if it is not possible to check the
-  exact output (e.g., since the output depends on environment-specific details),
-  add a comment above the assertion showing:
-  1. How the output should look like from the actual command
-  2. The invariant being checked (what property must hold true)
-
-- This documents the intent of the test for future maintainers when exact string
-  matching is not feasible
-
-- **Good** (comment shows expected format and what is being validated)
-  ```python
-  # Check outputs.
-  # Expected: contains the output from the command (paths are variable)
-  # Invariant: output contains expected sections and key values
-  self.assertIn("Processing complete", actual)
-  self.assertIn("Files: ", actual)
-  self.assertIn("Status: SUCCESS", actual)
-  ```
-
-- **Good** (with fuzzy matching and explanatory comment)
-  ```python
-  # Check outputs.
-  # Expected from command: "Processed /path/to/file.txt in 0.123s"
-  # Invariant: message format is consistent and success status is present
-  expected = """
-  Processed .*/path/to/file.txt in [0-9.]+s
-  Status: SUCCESS
-  """
-  self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
-  ```
-
 ## Mock LLM APIs
 
 - When testing code that calls LLM APIs (e.g., OpenAI, Claude), use
@@ -1143,11 +1128,12 @@ line3
 
 # Verification
 - [ ] No use of `self.check_string`
+  - Follow `## Never Use self.check_string()`
 - [ ] No `self.assertIn` but check the entire output value with an assert_equal
-  - See `## Use an Expected Output and `assert_equal``
-- [ ] No function is called with hardwired parameters, but they are assigned
-  to a variable and then used
-  - See `## Assign Variables and Then Call Functions`
+  - Follow `## Only use assert_equal`
+- [ ] No function is called with hardwired parameters, but they are assigned to a
+  variable and then used
+  - Follow `## Assign Variables and Then Call Functions`
 - [ ] No repeated code, use at least one `def helper()` per class
-  - See `## Use Helper Methods When You Have Repetitive Tests`
+  - Follow `## Use Helper Methods When You Have Repetitive Tests`
 - [ ] All unit tests pass

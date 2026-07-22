@@ -1,121 +1,142 @@
-# Thin Client Scripts
+# Thin Client
 
-This directory contains scripts for setting up and managing thin client
-repositories that use `helpers_root` as a submodule.
+Scripts for setting up and managing thin client repositories using `helpers_root` as a submodule. Automates configuration linking, environment setup, and testing workflows.
 
-## Scripts
+## Structure of the Dir
 
-### `create_all_helpers_links.py`
+This directory has no subdirectories.
 
-Creates symbolic links from the current repository to standard configuration
-files in `helpers_root`.
+## Description of Files
 
-**Purpose:**
+- `build.py`
+  - Install required dependencies for thin environment
+- `create_all_helpers_links.py`
+  - Create symbolic links to configuration files in helpers_root
+- `setenv.sh`
+  - Set up environment variables for thin client development
+- `sync_super_repo.sh`
+  - Synchronize files between super-repo and helpers_root
+- `test_helpers.sh`
+  - Test helpers setup in thin environment
+- `test_super_repo.sh`
+  - Test super-repo setup in thin environment
+- `tmux.py`
+  - Create and manage tmux sessions for development
 
-- Automates the creation of symbolic links for common configuration files
-- Enables thin client repositories to share configuration with `helpers_root`
-- Reduces duplication and ensures consistency across repositories
+# Description of Executables
 
-**Standard Files Linked:**
+## `create_all_helpers_links.py`
 
-- `.claude/` - Claude Code configuration
-- `.coveragerc` - Test coverage configuration
-- `.gitignore` - Git ignore patterns
-- `.gitleaksignore` - Gitleaks scan exclusions
-- `.isort.cfg` - Import sorting configuration
-- `.pre-commit-config.yaml` - Pre-commit hooks
-- `CLAUDE.md` - Claude Code project context
-- `conftest.py` - Pytest configuration
-- `linters2/` - Linting scripts
-- `pyproject.toml` - Python project configuration
-- `pytest.ini` - Pytest settings
+### What It Does
 
-**Usage:**
+- Automates creation of symbolic links to helpers_root configuration files
+- Links standard config files to enable repository configuration sharing
+- Reduces duplication and ensures consistency across thin client repos
+- Supports force recreation and dry-run modes
 
-```bash
-# Create all missing links
-> create_all_helpers_links.py
+### Examples
 
-# Force recreate all links (even if they exist)
-> create_all_helpers_links.py --force
+- Create all missing configuration links:
+  ```bash
+  > create_all_helpers_links.py
+  ```
 
-# Preview what would be done without making changes
-> create_all_helpers_links.py --dry_run
-```
+- Force recreate all links (overwrite existing):
+  ```bash
+  > create_all_helpers_links.py --force
+  ```
 
-**Import as:**
+- Preview changes without executing:
+  ```bash
+  > create_all_helpers_links.py --dry_run
+  ```
 
-```python
-import dev_scripts_helpers.thin_client.create_all_helpers_links as dstcrcahl
-```
+## `build.py`
 
-**See also:**
+### What It Does
 
-- [Managing common files](/docs/tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
-- [Creating a super-repo with helpers](/docs/tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md#create-symbolic-links)
+- Installs required dependencies for thin environment setup
+- Configures Python packages and system requirements
+- Prepares development environment for thin client workflows
 
-### `build.py`
+### Examples
 
-Builds the thin environment by installing required dependencies.
+- Build thin environment:
+  ```bash
+  > build.py
+  ```
 
-**Usage:**
+## `setenv.sh`
 
-```bash
-> build.py
-```
+### What It Does
 
-### `setenv.sh`
+- Configures environment variables for thin client development
+- Sets up paths and development configuration
+- Activates thin client environment settings
 
-Sets up the environment variables for the thin client.
+### Examples
 
-**Usage:**
+- Source environment configuration:
+  ```bash
+  > source setenv.sh
+  ```
 
-```bash
-> source setenv.sh
-```
+## `sync_super_repo.sh`
 
-### `tmux.py`
+### What It Does
 
-Creates and manages tmux sessions for development.
+- Synchronizes files between super-repo and helpers_root submodule
+- Ensures consistency across multiple repositories
+- Updates linked configurations and shared utilities
 
-**Usage:**
+### Examples
 
-```bash
-> tmux.py
-```
+- Sync super-repo configuration:
+  ```bash
+  > sync_super_repo.sh
+  ```
 
-### `sync_super_repo.sh`
+## `tmux.py`
 
-Synchronizes files between a super-repo and its `helpers_root` directory.
+### What It Does
 
-**Usage:**
+- Creates and manages tmux sessions for development workflows
+- Configures terminal multiplexing for parallel development
+- Sets up project-specific session layouts
 
-```bash
-> sync_super_repo.sh
-```
+### Examples
 
-### `test_helpers.sh`
+- Create tmux session:
+  ```bash
+  > tmux.py
+  ```
 
-Tests the helpers setup in the thin environment.
+## `test_helpers.sh`
 
-**Usage:**
+### What It Does
 
-```bash
-> test_helpers.sh
-```
+- Validates helpers setup in thin environment
+- Runs sanity checks on helper module installation
+- Verifies thin environment configuration
 
-### `test_super_repo.sh`
+### Examples
 
-Tests the super-repo setup in the thin environment.
+- Test helpers installation:
+  ```bash
+  > test_helpers.sh
+  ```
 
-**Usage:**
+## `test_super_repo.sh`
 
-```bash
-> test_super_repo.sh
-```
+### What It Does
 
-## Related Documentation
+- Validates super-repo setup in thin environment
+- Runs integration tests for super-repo configuration
+- Verifies submodule and symlink integrity
 
-- [Thin Environment Reference](/docs/tools/thin_environment/all.thin_environment.reference.md)
-- [Creating a Super-Repo with Helpers](/docs/tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md)
-- [Managing Symbolic Links Between Directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.md)
+### Examples
+
+- Test super-repo setup:
+  ```bash
+  > test_super_repo.sh
+  ```
