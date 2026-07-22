@@ -829,7 +829,7 @@ def get_tqdm_progress_bar() -> tqdm:
     """
     # Use appropriate tqdm for notebook or terminal.
     try:
-        from IPython import get_ipython
+        from IPython.core.getipython import get_ipython
 
         if get_ipython() is not None:
             from tqdm.notebook import tqdm as notebook_tqdm
