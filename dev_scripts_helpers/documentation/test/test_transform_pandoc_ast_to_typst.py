@@ -590,7 +590,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test basic \textcolor transformation.
         """
-        transformer = dsdoctap.ColorTransformer(verbose=False)
+        transformer = dsdoctap.ColorTransformer()
         latex_string = r"\textcolor{red}{hello}"
         result = transformer.textcolor_to_typst(latex_string)
         expected = r"#text(fill: red)[hello]"
@@ -600,7 +600,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test \textcolor with special characters.
         """
-        transformer = dsdoctap.ColorTransformer(verbose=False)
+        transformer = dsdoctap.ColorTransformer()
         latex_string = r"\textcolor{blue}{test [content]}"
         result = transformer.textcolor_to_typst(latex_string)
         expected = r"#text(fill: blue)[test \[content\]]"
@@ -610,7 +610,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test \color command (placeholder behavior).
         """
-        transformer = dsdoctap.ColorTransformer(verbose=False)
+        transformer = dsdoctap.ColorTransformer()
         latex_string = r"\color{green}"
         result = transformer.color_to_typst(latex_string)
         expected = r"\color{green}"
@@ -620,7 +620,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test transformation of Math node with \textcolor.
         """
-        transformer = dsdoctap.ColorTransformer(verbose=False)
+        transformer = dsdoctap.ColorTransformer()
         node = {
             "t": "Math",
             "c": ["DisplayMath", r"\textcolor{red}{x + y}"],
@@ -635,7 +635,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test Math node without color commands remains unchanged.
         """
-        transformer = dsdoctap.ColorTransformer(verbose=False)
+        transformer = dsdoctap.ColorTransformer()
         node = {
             "t": "Math",
             "c": ["DisplayMath", "x + y"],
@@ -649,7 +649,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         """
         Test walking full AST and transforming Math nodes.
         """
-        transformer = dsdoctap.ColorTransformer(verbose=False)
+        transformer = dsdoctap.ColorTransformer()
         ast = {
             "t": "Para",
             "c": [
@@ -664,10 +664,148 @@ class Test_ColorTransformer(hunitest.TestCase):
         """
         Test that stats are properly collected.
         """
-        transformer = dsdoctap.ColorTransformer(verbose=False)
+        transformer = dsdoctap.ColorTransformer()
         transformer.textcolor_to_typst(r"\textcolor{red}{a}")
         transformer.textcolor_to_typst(r"\textcolor{blue}{b}")
         transformer.color_to_typst(r"\color{green}")
         stats = transformer.get_stats()
         self.assertEqual(stats["textcolor_count"], 2)
         self.assertEqual(stats["color_count"], 1)
+
+
+# #############################################################################
+# Test_ChainRuleTheorem
+# #############################################################################
+
+
+class Test_ChainRuleTheorem(hunitest.TestCase):
+    """
+    Test the AST transformation with real-world mathematical content:
+    Chain Rule for Joint Distributions theorem with LaTeX colors.
+    """
+
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None, reason="pandoc is not installed"
+    )
+    def test_theorem_with_colored_math(self) -> None:
+        """
+        Test AST transformation of Chain Rule theorem with colored LaTeX.
+
+        Input: Markdown with theorem statement, proof, and colored math
+        expressions using LaTeX \textcolor directives.
+
+        Expected behavior:
+        - Markdown parses to valid AST with Math nodes
+        - Color transformation converts \textcolor{color}{content} to
+          #text(fill: color)[content]
+        - AST converts to valid typst code
+        - Bullet points and nested structures are preserved
+        - Aligned math environment (align*) is correctly handled
+        """
+        markdown_input = hprint.dedent(
+            r"""
+            # Chain Rule for a Joint Distribution
+
+            - **Theorem**: A joint distribution can always be expressed using the
+              chain rule for any:
+              - Subset of its random variables
+              - Ordering of the random variables
+
+            - **Proof**
+              1. **Express one variable** conditionally to the remaining ones
+                 $$
+                 \Pr(\textcolor{blue}{x_1, ..., x_{n-1}}, \textcolor{red}{x_n})
+                 = \Pr(\textcolor{red}{x_n} | \textcolor{blue}{x_{n-1}, ..., x_1})
+                 \Pr(\textcolor{blue}{x_{n-1}, ..., x_1})
+                 $$
+
+              2. Apply the same formula **recursively**, until you get an
+                 unconditional probability
+                 $$
+                 \begin{align*}
+                 & \Pr(\textcolor{gray}{x_1}, \textcolor{violet}{x_2}, ...,
+                   \textcolor{teal}{x_{n-2}}, \textcolor{olive}{x_{n-1}},
+                   \textcolor{orange}{x_n}) \\
+                 & = \Pr(\textcolor{orange}{x_n} | x_{n-1}, ..., x_1)
+                   \Pr(x_{n-1}, ..., x_1) \\
+                 & = \Pr(\textcolor{orange}{x_n} | x_{n-1}, ..., x_1)
+                   \Pr(\textcolor{olive}{x_{n-1}} | x_{n-2}, ..., x_1)
+                   \Pr(x_{n-2}, ..., x_1) \\
+                 & ... \\
+                 & = \Pr(\textcolor{orange}{x_n} | x_{n-1}, ..., x_1)
+                   \Pr(\textcolor{olive}{x_{n-1}} | x_{n-2}, ..., x_1)
+                   \Pr(\textcolor{teal}{x_{n-2}} | x_{n-3}, ..., x_1)
+                   ...
+                   \Pr(\textcolor{violet}{x_2} | x_1) \Pr(\textcolor{gray}{x_1}) \\
+                 & = \prod_{i=1}^n \Pr(x_i | x_{i-1}, ..., x_1)
+                 \end{align*}
+                 $$
+            """
+        )
+        scratch_dir = self.get_scratch_space()
+        outcome = {}
+        outcome["1. markdown_input"] = markdown_input
+
+        # Convert markdown to AST.
+        ast, _, _ = dsdoctap.convert_markdown_to_pandoc_ast(
+            markdown_input, scratch_dir
+        )
+        outcome["2. ast_generated"] = "AST generated successfully"
+
+        # Transform AST: apply color transformation.
+        transformed_ast = dsdoctap._transform_ast_color_text(ast)
+        outcome["3. color_transform_applied"] = "Color transformation applied"
+
+        # Convert transformed AST to typst.
+        transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
+        ast_str = dsdoctap.ast_to_str(transformed_ast)
+        hio.to_file(transformed_ast_file, ast_str)
+        typst_output, _ = dsdoctap.convert_pandoc_ast_to_typst(
+            transformed_ast_file, scratch_dir
+        )
+        outcome["4. typst_output_length"] = f"{len(typst_output)} characters"
+        outcome["5. typst_output_preview"] = typst_output[:500] + "..."
+
+        actual_outcome = outcome_to_str(outcome)
+        self.check_string(actual_outcome)
+
+    def test_colored_math_in_display_equation(self) -> None:
+        """
+        Test color transformation in display math environment.
+
+        Verifies that \textcolor commands in $$ ... $$ equations are
+        properly transformed to #text(fill: color)[...] syntax.
+        """
+        transformer = dsdoctap.ColorTransformer()
+        latex_formula = (
+            r"\Pr(\textcolor{blue}{x_1, ..., x_{n-1}}, "
+            r"\textcolor{red}{x_n}) = \Pr(\textcolor{red}{x_n} | "
+            r"\textcolor{blue}{x_{n-1}, ..., x_1})"
+        )
+        result = transformer.transform_formula(latex_formula)
+        # Verify all colors were transformed.
+        self.assertIn("blue", result)
+        self.assertIn("red", result)
+        self.assertNotIn(r"\textcolor", result)
+        self.assertIn("#text(fill:", result)
+
+    def test_multiple_colors_in_formula(self) -> None:
+        """
+        Test transformation with multiple colors in single formula.
+
+        Input uses 6 different colors (gray, violet, teal, olive, orange)
+        to highlight different random variables.
+        """
+        transformer = dsdoctap.ColorTransformer()
+        latex_formula = (
+            r"\Pr(\textcolor{gray}{x_1}, \textcolor{violet}{x_2}, "
+            r"\textcolor{teal}{x_{n-2}}, \textcolor{olive}{x_{n-1}}, "
+            r"\textcolor{orange}{x_n})"
+        )
+        result = transformer.transform_formula(latex_formula)
+        # Verify all colors present in result.
+        expected_colors = ["gray", "violet", "teal", "olive", "orange"]
+        for color in expected_colors:
+            self.assertIn(color, result)
+        # Verify all \textcolor removed.
+        self.assertNotIn(r"\textcolor", result)
