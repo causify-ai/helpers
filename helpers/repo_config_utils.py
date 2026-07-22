@@ -375,6 +375,28 @@ class RepoConfig:
         value = self._data["docker_info"].get("release_team")
         return value
 
+    # python_info
+
+    def get_python_version(self) -> str:
+        """
+        Return the pinned Python interpreter version for the repo.
+
+        The version is the single source of truth used by the thin env build,
+        the dev container build, and any Lambda / IaC code that needs to keep
+        Python consistent across surfaces. Pinning is done at major.minor
+        granularity (e.g., `"3.12"`).
+
+        :return: Pinned Python version (e.g., `"3.12"`)
+            - Defaults to `"3.12"` if the `python_info.python_version` key is
+              missing from `repo_config.yaml` to keep older consumer repos
+              that have not been bumped yet building without surprises
+        """
+        # `.get` chain so older `repo_config.yaml` files that pre-date
+        # `python_info` keep working.
+        python_info = self._data.get("python_info") or {}
+        value = python_info.get("python_version") or "3.12"
+        return str(value)
+
     # s3_bucket_info
 
     def get_unit_test_bucket_path(self) -> str:

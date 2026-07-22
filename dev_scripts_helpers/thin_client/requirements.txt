@@ -5,14 +5,23 @@ boto3 >= 1.20.17
 requests <= 2.31.0
 # Keep in sync with `.github/gh_requirements.txt`, see CmTask6488.
 docker < 7
-docker-compose >= 1.29.0
+# `docker-compose` Python package is intentionally NOT listed: the dev
+# container's `install_dind.sh` installs the standalone `docker-compose`
+# binary (and modern Docker also ships `docker compose` as a plugin) so
+# the Python package buys nothing here, and its hard cap on `pyyaml < 6`
+# breaks installs on Python 3.12 (HelpersTask8928).
 invoke >= 1.5.0
 junitparser
 poetry
+# `uv` is the new default thin-env builder; keep it on the requirements
+# list so a pip-fallback build (`build.py --use_pip`) still ends up with
+# a working `uv` inside the venv.
+uv >= 0.11.0
 pytest >= 6.0.0
 s3fs  # For tools like `publish_notebook.py`.
 tqdm
-# On Mac and locally on Linux there is an issue related to this package
-# (see HelpersTask377), so we might want to pin it down.
-# pyyaml == 5.3.1
-pyyaml
+# `pyyaml >= 6.0.1` is the first release that builds cleanly under Python
+# 3.12 (older 5.x line fails due to a setuptools / cython incompatibility,
+# which is what HelpersTask377 was working around). Pinning the floor
+# here keeps both the uv and the pip-fallback flow happy.
+pyyaml >= 6.0.1

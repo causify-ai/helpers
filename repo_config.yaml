@@ -18,6 +18,15 @@ docker_info:
   use_sibling_container_in_unit_tests: True
   release_team: dev_system
 
+python_info:
+  # Single source of truth for the Python interpreter version used across the
+  # repo (thin env, dev container, Lambda layers). Pin major.minor only so
+  # patch-level upgrades inside the Ubuntu base image (or `uv python install`)
+  # do not require a config bump.
+  # Procedure for bumping this: see
+  # `docs/build_system/all.python_version.how_to_guide.md`.
+  python_version: "3.12"
+
 s3_bucket_info:
   unit_test_bucket_name: s3://cryptokaizen-unit-test
   html_bucket_name: s3://cryptokaizen-html

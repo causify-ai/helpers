@@ -76,7 +76,118 @@ class Test_repo_config1(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
+    def test3(self) -> None:
+        """
+        Test that `get_python_version()` falls back to the default when the
+        `python_info` section is absent from `repo_config.yaml`.
+        """
+        # Prepare inputs.
+        repo_config = self._get_repo_config()
+        # Prepare outputs.
+        expected = "3.12"
+        # Run test.
+        actual = repo_config.get_python_version()
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
     # TODO(gp): Test all the methods of the RepoConfig class.
+
+
+# #############################################################################
+# Test_get_python_version
+# #############################################################################
+
+
+class Test_get_python_version(hunitest.TestCase):
+    """
+    Test `RepoConfig.get_python_version()` end-to-end via `from_file()`.
+    """
+
+    def helper(self, yaml_txt: str, expected: str) -> None:
+        """
+        Materialize `yaml_txt` to disk, load it through `RepoConfig`, and
+        compare the parsed Python version to `expected`.
+
+        :param yaml_txt: YAML body to write
+        :param expected: Expected return of `get_python_version()`
+        """
+        # Prepare inputs.
+        yaml_txt = hprint.dedent(yaml_txt)
+        file_name = os.path.join(self.get_scratch_space(), "yaml.txt")
+        hio.to_file(file_name, yaml_txt)
+        repo_config = hrecouti.RepoConfig.from_file(file_name)
+        # Run test.
+        actual = repo_config.get_python_version()
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that a `python_info.python_version` value is returned verbatim.
+        """
+        # Prepare inputs.
+        yaml_txt = """
+        repo_info:
+          repo_name: helpers
+          github_repo_account: causify-ai
+          github_host_name: github.com
+          invalid_words:
+          issue_prefix: HelpersTask
+
+        docker_info:
+          docker_image_name: helpers
+
+        python_info:
+          python_version: "3.13"
+
+        s3_bucket_info:
+          unit_test_bucket_name: s3://cryptokaizen-unit-test
+          html_bucket_name: s3://cryptokaizen-html
+          html_ip: http://172.30.2.44
+
+        runnable_dir_info:
+          use_helpers_as_nested_module: False
+          venv_tag: helpers
+          dir_suffix: helpers
+        """
+        # Prepare outputs.
+        expected = "3.13"
+        # Run test.
+        self.helper(yaml_txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a missing `python_version` key inside an existing
+        `python_info` section falls back to the default.
+        """
+        # Prepare inputs.
+        yaml_txt = """
+        repo_info:
+          repo_name: helpers
+          github_repo_account: causify-ai
+          github_host_name: github.com
+          invalid_words:
+          issue_prefix: HelpersTask
+
+        docker_info:
+          docker_image_name: helpers
+
+        python_info:
+
+        s3_bucket_info:
+          unit_test_bucket_name: s3://cryptokaizen-unit-test
+          html_bucket_name: s3://cryptokaizen-html
+          html_ip: http://172.30.2.44
+
+        runnable_dir_info:
+          use_helpers_as_nested_module: False
+          venv_tag: helpers
+          dir_suffix: helpers
+        """
+        # Prepare outputs.
+        expected = "3.12"
+        # Run test.
+        self.helper(yaml_txt, expected)
 
 
 # #############################################################################
