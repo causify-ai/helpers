@@ -312,26 +312,25 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         """
         Create markdown input with slide structure.
 
+        Uses `*` markers to denote slides, which is the format expected by
+        `extract_slides_from_markdown()`.
+
         :return: Path to the created markdown file
         """
         txt = """
-        ---
-        # Slide 1: Introduction
+        * Slide 1: Introduction
 
         This is the introduction slide.
 
-        ---
-        # Slide 2: Methods
+        * Slide 2: Methods
 
         This slide describes methods.
 
-        ---
-        # Slide 3: Results
+        * Slide 3: Results
 
         This slide shows results.
 
-        ---
-        # Slide 4: Conclusion
+        * Slide 4: Conclusion
 
         This is the conclusion slide.
         """

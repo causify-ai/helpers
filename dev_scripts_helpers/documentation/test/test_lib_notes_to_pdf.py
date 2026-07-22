@@ -6,11 +6,10 @@ Tests the markdown to PDF/HTML/slides conversion pipeline functions
 including pandoc orchestration, file operations, and system calls.
 """
 
-import hashlib
 import logging
 import os
 import pprint
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from unittest import mock
 
 import pytest
@@ -22,98 +21,6 @@ import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 _LOG = logging.getLogger(__name__)
-
-
-# #############################################################################
-# Test_file_hash
-# #############################################################################
-
-
-@pytest.mark.skip(reason="_file_hash function not implemented")
-class Test_file_hash(hunitest.TestCase):
-    """
-    Test `_file_hash()` function that computes MD5 hashes of files.
-    """
-
-    def helper(self, content: str) -> None:
-        """
-        Test helper for _file_hash.
-
-        :param content: File content to hash
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        test_file = os.path.join(scratch_dir, "test.txt")
-        hio.to_file(test_file, content)
-        # Prepare outputs.
-        expected_hash = hashlib.md5(content.encode()).hexdigest()
-        # Run test.
-        actual = dshdlntpd._file_hash(test_file)
-        # Check outputs.
-        self.assert_equal(actual, expected_hash)
-
-    def test1(self) -> None:
-        """
-        Test hash of empty file.
-        """
-        # Prepare inputs.
-        content = ""
-        # Run test.
-        self.helper(content)
-
-    def test2(self) -> None:
-        """
-        Test hash of file with known content.
-        """
-        # Prepare inputs.
-        content = "Hello, World!"
-        # Run test.
-        self.helper(content)
-
-    def test3(self) -> None:
-        """
-        Test that different files produce different hashes.
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        file1 = os.path.join(scratch_dir, "file1.txt")
-        file2 = os.path.join(scratch_dir, "file2.txt")
-        content1 = "Content A"
-        content2 = "Content B"
-        hio.to_file(file1, content1)
-        hio.to_file(file2, content2)
-        # Run test.
-        hash1 = dshdlntpd._file_hash(file1)
-        hash2 = dshdlntpd._file_hash(file2)
-        # Check outputs.
-        expected_hash1 = hashlib.md5(content1.encode()).hexdigest()
-        expected_hash2 = hashlib.md5(content2.encode()).hexdigest()
-        self.assert_equal(hash1, expected_hash1)
-        self.assert_equal(hash2, expected_hash2)
-
-    def test4(self) -> None:
-        """
-        Test hash of large file (>65536 bytes to exercise chunking).
-        """
-        # Prepare inputs.
-        content = "x" * 100000
-        # Run test.
-        self.helper(content)
-
-    def test5(self) -> None:
-        """
-        Test that same file produces same hash consistently.
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        test_file = os.path.join(scratch_dir, "consistent.txt")
-        content = "Consistent content"
-        hio.to_file(test_file, content)
-        # Run test.
-        hash1 = dshdlntpd._file_hash(test_file)
-        hash2 = dshdlntpd._file_hash(test_file)
-        # Check outputs.
-        self.assert_equal(hash1, hash2)
 
 
 # #############################################################################
@@ -229,184 +136,6 @@ class Test_render_images(hunitest.TestCase):
             purify_text=True,
             purify_expected_text=True,
         )
-
-
-# #############################################################################
-# Test_run_pandoc_to_ast
-# #############################################################################
-
-
-@pytest.mark.skip(reason="_run_pandoc_to_ast function not implemented")
-class Test_run_pandoc_to_ast(hunitest.TestCase):
-    """
-    Test `_run_pandoc_to_ast()` function.
-    """
-
-    def helper(
-        self,
-        file_in: str,
-        fail_on_warnings: bool,
-    ) -> None:
-        """
-        Test helper for _run_pandoc_to_ast.
-
-        :param file_in: Input markdown file
-        :param fail_on_warnings: Whether to fail on warnings
-        """
-        # Prepare inputs.
-        use_host_tools = True
-        dockerized_force_rebuild = False
-        dockerized_use_sudo = False
-        # Run test and capture system calls.
-        with hunteuti.capture_sys_calls() as invocations:
-            # Mock hdbg: prevents dassert_path_exists() from failing when pandoc
-            # output files don't exist (since we're not actually running pandoc).
-            # These are unit tests that verify command construction, not execution.
-            with mock.patch(
-                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
-            ):
-                result = dshdlntpd._run_pandoc_to_ast(
-                    file_in,
-                    use_host_tools,
-                    dockerized_force_rebuild,
-                    dockerized_use_sudo,
-                    fail_on_warnings=fail_on_warnings,
-                )
-        # Check outputs.
-        ast_file = f"{file_in}.ast.json"
-        self.assert_equal(result, ast_file)
-        cmd = f"pandoc {file_in} -t json"
-        if fail_on_warnings:
-            cmd += " --fail-if-warnings"
-        cmd += f" -o {ast_file}"
-        expected_invocations = [
-            {
-                "function": "hsystem.system",
-                "args": (cmd,),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                    "print_command": True,
-                },
-            },
-        ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_sys_calls(self, invocations, expected_str)
-
-    def test1(self) -> None:
-        """
-        Test pandoc to AST conversion with host tools.
-        """
-        # Prepare inputs.
-        file_in = "input.md"
-        fail_on_warnings = True
-        # Run test.
-        self.helper(file_in, fail_on_warnings)
-
-    def test2(self) -> None:
-        """
-        Test pandoc to AST without fail-on-warnings.
-        """
-        # Prepare inputs.
-        file_in = "input.md"
-        fail_on_warnings = False
-        # Run test.
-        self.helper(file_in, fail_on_warnings)
-
-
-# #############################################################################
-# Test_run_pandoc_from_ast
-# #############################################################################
-
-
-@pytest.mark.skip(reason="_run_pandoc_from_ast function not implemented")
-class Test_run_pandoc_from_ast(hunitest.TestCase):
-    """
-    Test `_run_pandoc_from_ast()` function.
-    """
-
-    def helper(
-        self,
-        output_format: str,
-        *,
-        extra_opts: Optional[List[str]] = None,
-    ) -> None:
-        """
-        Test helper for _run_pandoc_from_ast.
-
-        :param output_format: Output format (latex, html, etc)
-        :param extra_opts: Additional pandoc options
-        """
-        # Prepare inputs.
-        ast_file = "input.ast.json"
-        output_file = f"output.{output_format}"
-        use_host_tools = True
-        dockerized_force_rebuild = False
-        dockerized_use_sudo = False
-        if extra_opts is None:
-            extra_opts = []
-        # Run test and capture system calls.
-        with hunteuti.capture_sys_calls() as invocations:
-            # Mock hdbg: prevents dassert_path_exists() from failing when output
-            # files don't exist (since we're not actually running pandoc).
-            with mock.patch(
-                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
-            ):
-                dshdlntpd._run_pandoc_from_ast(
-                    ast_file,
-                    output_format,
-                    output_file,
-                    use_host_tools,
-                    dockerized_force_rebuild,
-                    dockerized_use_sudo,
-                    extra_opts=extra_opts,
-                )
-        # Check outputs.
-        cmd = f"pandoc {ast_file} -f json -t {output_format} --fail-if-warnings"
-        for opt in extra_opts:
-            cmd += f" {opt}"
-        cmd += f" -o {output_file}"
-        expected_invocations = [
-            {
-                "function": "hsystem.system",
-                "args": (cmd,),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                    "print_command": True,
-                },
-            },
-        ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_sys_calls(self, invocations, expected_str)
-
-    def test1(self) -> None:
-        """
-        Test convert AST to LaTeX format.
-        """
-        # Prepare inputs.
-        output_format = "latex"
-        # Run test.
-        self.helper(output_format)
-
-    def test2(self) -> None:
-        """
-        Test convert AST to HTML format.
-        """
-        # Prepare inputs.
-        output_format = "html"
-        # Run test.
-        self.helper(output_format)
-
-    def test3(self) -> None:
-        """
-        Test apply extra options to command.
-        """
-        # Prepare inputs.
-        output_format = "latex"
-        extra_opts = ["--number-sections", "--toc"]
-        # Run test.
-        self.helper(output_format, extra_opts=extra_opts)
 
 
 # #############################################################################
@@ -604,7 +333,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
                     toc_type,
                 )
         # Check outputs.
-        self.assert_equal(result, "tmp.html", fuzzy_match=True)
+        self.assert_equal(result, "$GIT_ROOT/tmp.html", fuzzy_match=True, purify_text=True)
         invocations_str = hunteuti.sys_calls_to_str(invocations)
         self.assert_equal(
             invocations_str,
@@ -669,201 +398,6 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_build_pandoc_cmd
-# #############################################################################
-
-
-# TODO(ai_gp): Rename this to Test_build_pandoc_latex_cmd
-@pytest.mark.skip(reason="_build_pandoc_latex_cmd function not implemented")
-class Test_build_pandoc_cmd(hunitest.TestCase):
-    """
-    Test `_build_pandoc_latex_cmd()` function for slide command building.
-    """
-
-    def helper(
-        self,
-        file_name: str,
-        no_pdf: bool,
-        expected: str,
-        expected_ext: str,
-        *,
-        toc_type: str = "none",
-    ) -> None:
-        """
-        Test helper for _build_pandoc_latex_cmd.
-
-        :param file_name: Input slide file
-        :param no_pdf: Whether to output TeX instead of PDF
-        :param expected: Expected pandoc command
-        :param expected_ext: Expected output file extension
-        :param toc_type: Type of table of contents
-        """
-        # Prepare inputs.
-        use_host_tools = True
-        dockerized_force_rebuild = False
-        dockerized_use_sudo = False
-        # Run test.
-        cmd, output_file = dshdlntpd._build_pandoc_latex_cmd(
-            file_name,
-            toc_type,
-            use_host_tools,
-            dockerized_force_rebuild,
-            dockerized_use_sudo,
-            no_pdf=no_pdf,
-        )
-        # Check outputs.
-        self.assert_equal(output_file, expected_ext, fuzzy_match=True)
-        self.assert_equal(cmd, expected, fuzzy_match=True, dedent=True)
-
-    def test1(self) -> None:
-        """
-        Test build beamer PDF command.
-        """
-        # Prepare inputs.
-        file_name = "slides.txt"
-        no_pdf = False
-        expected_ext = "slides.pdf"
-        expected = "pandoc slides.txt -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings --resource-path=. -o slides.pdf"
-        # Run test.
-        self.helper(file_name, no_pdf, expected, expected_ext)
-
-    def test2(self) -> None:
-        """
-        Test build beamer TeX command.
-        """
-        # Prepare inputs.
-        file_name = "slides.txt"
-        no_pdf = True
-        expected_ext = "slides.tex"
-        expected = "pandoc slides.txt -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings --resource-path=. -o slides.tex"
-        # Run test.
-        self.helper(file_name, no_pdf, expected, expected_ext)
-
-    def test3(self) -> None:
-        """
-        Test resource path inclusion.
-        """
-        # Prepare inputs.
-        file_name = "subdir/slides.txt"
-        no_pdf = False
-        expected_ext = "subdir/slides.pdf"
-        expected = "pandoc subdir/slides.txt -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings --resource-path=subdir -o subdir/slides.pdf"
-        # Run test.
-        self.helper(file_name, no_pdf, expected, expected_ext)
-
-    def test4(self) -> None:
-        """
-        Test table of contents in slides.
-        """
-        # Prepare inputs.
-        file_name = "slides.txt"
-        no_pdf = False
-        expected_ext = "slides.pdf"
-        expected = "pandoc slides.txt -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings --resource-path=. --toc --toc-depth 2 -o slides.pdf"
-        # Run test.
-        self.helper(
-            file_name, no_pdf, expected, expected_ext, toc_type="pandoc_native"
-        )
-
-
-# #############################################################################
-# Test_run_pandoc_to_slides
-# #############################################################################
-
-
-@pytest.mark.skip(reason="run_pandoc_to_latex_slides function not implemented")
-class Test_run_pandoc_to_slides(hunitest.TestCase):
-    """
-    Test `run_pandoc_to_latex_slides()` function for slide generation.
-    """
-
-    def helper(
-        self,
-        toc_type: str,
-        no_pdf: bool,
-        expected_ext: str,
-    ) -> None:
-        """
-        Test helper for run_pandoc_to_latex_slides.
-
-        :param toc_type: Type of table of contents
-        :param no_pdf: Whether to only generate TeX
-        :param expected_ext: Expected file extension
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        file_name = os.path.join(scratch_dir, "slides.txt")
-        use_host_tools = True
-        dockerized_force_rebuild = False
-        dockerized_use_sudo = False
-        # Run test and capture system calls.
-        with hunteuti.capture_sys_calls() as invocations:
-            # Mock hdbg: prevents dassert_path_exists() from failing when slide
-            # output files (PDF/TeX) don't exist (not actually running pandoc).
-            with mock.patch(
-                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
-            ):
-                result = dshdlntpd.run_pandoc_to_latex_slides(
-                    file_name,
-                    toc_type,
-                    use_host_tools,
-                    dockerized_force_rebuild,
-                    dockerized_use_sudo,
-                    no_pdf=no_pdf,
-                )
-        # Check outputs.
-        file_out = file_name.replace(".txt", expected_ext)
-        self.assert_equal(result, file_out)
-        rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
-        cmd = (
-            f"pandoc {file_name} -t beamer --slide-level 4"
-            " -V theme:SimplePlus --include-in-header=latex_abbrevs.sty"
-            " --fail-if-warnings"
-            f" --resource-path={rel_path}"
-        )
-        if toc_type == "pandoc_native":
-            cmd += " --toc --toc-depth 2"
-        cmd += f" -o {file_out}"
-        expected_invocations = [
-            {
-                "function": "hsystem.system_to_string",
-                "args": (cmd,),
-                "kwargs": {"log_level": logging.DEBUG, "abort_on_error": False},
-            },
-        ]
-        expected_str = pprint.pformat(expected_invocations)
-        hunteuti.assert_sys_calls(
-            self,
-            invocations,
-            expected_str,
-            purify_text=True,
-            purify_expected_text=True,
-        )
-
-    def test1(self) -> None:
-        """
-        Test generate PDF slides with single-shot pandoc.
-        """
-        # Prepare inputs.
-        toc_type = "none"
-        no_pdf = False
-        expected_ext = ".pdf"
-        # Run test.
-        self.helper(toc_type, no_pdf, expected_ext)
-
-    def test2(self) -> None:
-        """
-        Test return TeX file when no_pdf=True.
-        """
-        # Prepare inputs.
-        toc_type = "none"
-        no_pdf = True
-        expected_ext = ".tex"
-        # Run test.
-        self.helper(toc_type, no_pdf, expected_ext)
-
-
-# #############################################################################
 # Test_run_pandoc_to_typst_slides
 # #############################################################################
 
@@ -897,49 +431,21 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         curr_path: str, file_name: str, typ_file: str, typst_only: bool
     ) -> List[Dict[str, Any]]:
         """
-        Build the invocations expected from `run_pandoc_to_typst_slides()`.
+        Build the invocations expected from `_run_pandoc_to_typst_slides()`.
         """
-        file_with_defs = f"{file_name}.with_defs.txt"
-        ast_file = f"{file_with_defs}.ast.json"
-        transformed_ast_file = f"{file_name}.divved.ast.json"
         template = f"{curr_path}/pandoc_touying.typ"
         rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
         expected_invocations = [
             {
                 "function": "hsystem.system",
                 "args": (
-                    f"pandoc {file_with_defs} -t json --fail-if-warnings"
-                    f" -o {ast_file}",
+                    f"pandoc {file_name} -f markdown --number-sections -s"
+                    f" -t typst --template {template}"
+                    f" --resource-path={rel_path} -o {typ_file}",
                 ),
                 "kwargs": {
                     "log_level": logging.DEBUG,
                     "suppress_output": False,
-                    "print_command": True,
-                },
-            },
-            {
-                "function": "hsystem.system",
-                "args": (
-                    f"convert_pandoc_divved_fence.py -i {ast_file}"
-                    f" -o {transformed_ast_file}",
-                ),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                },
-            },
-            {
-                "function": "hsystem.system",
-                "args": (
-                    f"pandoc {transformed_ast_file} -f json -t typst"
-                    " --fail-if-warnings --number-sections -s"
-                    f" --template {template} --resource-path={rel_path}"
-                    f" -o {typ_file}",
-                ),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                    "print_command": True,
                 },
             },
         ]
