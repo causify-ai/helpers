@@ -223,9 +223,8 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
 '$GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',),
 'function': 'hsystem.system',
 'kwargs': {'log_level': 10, 'suppress_output': False}},
-{'args': ('find $GIT_ROOT \\( -path '
-"'*/.git' -o -path '*/.mypy_cache' \\) -prune -o -name "
-'"dev_scripts_helpers" -print',),
+{'args': ("find $GIT_ROOT \\( -path '*/.git' -o -path '*/.mypy_cache' \\) -prune "
+'-o -name "dev_scripts_helpers" -print',),
 'function': 'hsystem.system_to_string',
 'kwargs': {}},
 {'args': ('cp -f documentation/latex_abbrevs.sty '

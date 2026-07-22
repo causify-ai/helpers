@@ -81,7 +81,7 @@ def _run_all(args: argparse.Namespace) -> None:
     #
     if args.script:
         _LOG.info("Logging the actions into a script")
-        dshdlntpd._SCRIPT = ["#!/bin/bash -xe"]
+        dshdlntpd._append_script("#!/bin/bash -xe")
     #
     file_name = args.input
     hdbg.dassert_path_exists(file_name)
@@ -214,9 +214,7 @@ def _run_all(args: argparse.Namespace) -> None:
         dshdlntpd._cleanup_after(prefix)
     # Save script, if needed.
     if args.script:
-        hdbg.dassert_is_not(dshdlntpd._SCRIPT, None)
-        script = cast(List[str], dshdlntpd._SCRIPT)
-        txt = "\n".join(script)
+        txt = "\n".join(dshdlntpd._SCRIPT)
         hio.to_file(args.script, txt)
         _LOG.info("Saved script into '%s'", args.script)
     # Check that everything was executed.

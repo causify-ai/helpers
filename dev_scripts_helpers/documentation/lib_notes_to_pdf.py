@@ -25,12 +25,14 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
-_SCRIPT: Optional[List[str]] = None
+_SCRIPT: List[str] = []
 
 
 def _append_script(msg: str) -> None:
-    if _SCRIPT is not None:
-        _SCRIPT.append(msg)
+    old_len = len(_SCRIPT)
+    _SCRIPT.append(msg)
+    hdbg.dassert_lt(old_len, len(_SCRIPT))
+    _LOG.debug("_SCRIPT=\n%s", "\n".join(_SCRIPT))
 
 
 def _report_phase(phase: str) -> None:
