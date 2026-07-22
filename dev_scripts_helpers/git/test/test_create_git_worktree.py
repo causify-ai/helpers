@@ -202,6 +202,7 @@ class Test_branch_exists(hunitest.TestCase):
         # Prepare inputs.
         branch_name = "SomeBranch"
         # Run test and mock the system call.
+        # TODO(ai_gp): Use with hunteuti.capture_sys_calls() as invocations:
         with mock.patch("helpers.hsystem.system", return_value=None):
             actual = dshgcgiwo._branch_exists(branch_name)
         # Check outputs.
@@ -218,6 +219,7 @@ class Test_create_branch(hunitest.TestCase):
     Tests for `_create_branch()` function.
     """
 
+    # TODO(ai_gp): Create a helper with /coding.factor_common_code
     def test1(self) -> None:
         """
         Test creating a new branch that doesn't exist.
@@ -234,7 +236,8 @@ class Test_create_branch(hunitest.TestCase):
                     "dev_scripts_helpers.git.create_git_worktree._commit_issue_files"
                 ):
                     dshgcgiwo._create_branch(branch_name, create_pr=True)
-        # Check outputs: should call invoke git_branch_create with PR creation enabled.
+        # Check outputs: should call invoke git_branch_create with PR creation
+        # enabled.
         expected = """
         [{'args': ('invoke git_branch_create --branch-name '
                    'HelpersTask1290_Test_Branch',),

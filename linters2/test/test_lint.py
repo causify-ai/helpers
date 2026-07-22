@@ -13,6 +13,7 @@ import linters2.lint as lilint
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code in a helper.
 class Test_filter_files_by_type(hunitest.TestCase):
     """
     Test _filter_files_by_type file categorization logic.
@@ -224,10 +225,8 @@ class Test_filter_files_by_type(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code in a helper.
 class Test_run_common_linting_actions(hunitest.TestCase):
-    """
-    Test _run_common_linting_actions action runner.
-    """
 
     def test1(self) -> None:
         """
@@ -291,6 +290,7 @@ class Test_run_common_linting_actions(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code in a helper.
 class Test_run_python_linting_actions(hunitest.TestCase):
     """
     Test _run_python_linting_actions action runner for Python files.

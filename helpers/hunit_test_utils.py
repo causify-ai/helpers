@@ -11,6 +11,7 @@ import logging
 import os
 import pprint
 import re
+import sys
 from typing import Any, Dict, Generator, List, Optional, Tuple
 import unittest.mock as mock
 
@@ -667,14 +668,28 @@ def capture_sys_calls(
                 yield sys_calls
 
 
-def sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:
+def _sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:
     """
     Format system calls list as a string using `pprint.pformat()`.
 
     :param sys_calls: List of system calls to format
     :return: Formatted string representation
     """
-    txt = pprint.pformat(sys_calls)
+    # `pprint.pformat()` is unstable so we format it by hand, using the
+    # knowledge of the structure.
+    # txt = pprint.pformat(sys_calls, width=sys.maxsize)
+    hdbg.dassert_isinstance(sys_calls, list)
+    txt_list = ["["]
+    for dict_ in sys_calls:
+        hdbg.dassert_isinstance(dict_, dict)
+        dict_as_list = ["    {"]
+        for k, v in dict_.items():
+            dict_as_list.append("    '%s': %s" % (k, v))
+        dict_as_list.append("    },")
+        dict_as_str = "\n".join(dict_as_list)
+        txt_list.append(dict_as_str)
+    txt_list.append("]")
+    txt = "\n".join(txt_list)
     return txt
 
 
@@ -698,6 +713,7 @@ def assert_sys_calls(
     :param assert_equal_kwargs: extra kwargs forwarded to `assert_equal()`
         (e.g., `purify_text=True`)
     """
-    actual_str = sys_calls_to_str(captured_sys_calls)
+    actual_str = _sys_calls_to_str(captured_sys_calls)
     hdbg.dassert_isinstance(actual_str, str)
+    hdbg.dassert_isinstance(expected_str, str)
     self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)

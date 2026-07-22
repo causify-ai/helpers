@@ -109,6 +109,9 @@ class Test_render_images(hunitest.TestCase):
         expected_result = f"{prefix}.render_image2.txt"
         self.assert_equal(result, expected_result)
         git_root = hgit.find_git_root()
+        # TODO(ai_gp): Use
+        # expected_str = """ ... """
+        # expected_str = hprint.dedent(...)
         expected_invocations = [
             {
                 "function": "hsystem.system_to_string",
@@ -143,9 +146,6 @@ class Test_render_images(hunitest.TestCase):
 
 
 class Test_run_pandoc_to_pdf(hunitest.TestCase):
-    """
-    Test `run_pandoc_to_pdf()` function for PDF generation.
-    """
 
     def helper(
         self,

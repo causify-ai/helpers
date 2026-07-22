@@ -101,6 +101,7 @@ class Test_replace_latex_py(hunitest.TestCase):
     End-to-end tests for the `replace_latex.py` executable.
     """
 
+    # TODO(ai_gp): -> helper
     def _run_main(self, argv: List[str]) -> List:
         """
         Run `dshdrela._main()` with a mocked `sys.argv` and capture system
@@ -116,6 +117,7 @@ class Test_replace_latex_py(hunitest.TestCase):
                 dshdrela._main(parser)
         return sys_calls
 
+    # TODO(ai_gp): Factor out common code in the helper
     def test1(self) -> None:
         """
         Test `checkout` action runs `git checkout`.
@@ -132,6 +134,7 @@ class Test_replace_latex_py(hunitest.TestCase):
             file_path,
         ]
         # Prepare outputs.
+        # TODO(ai_gp): Do not use a structure but use a string.
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
