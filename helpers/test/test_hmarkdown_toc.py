@@ -267,7 +267,9 @@ class Test_add_navigation_slides(hunitest.TestCase):
         input_text = hprint.dedent(input_text)
         lines = input_text.strip().split("\n")
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all, output_format="latex")
+        actual = hmartoc.add_navigation_slides(
+            lines, max_level, expand_all, output_format="latex"
+        )
         actual_str = "\n".join(actual)
         # Check outputs.
         expected_str = hprint.dedent(expected)

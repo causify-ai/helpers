@@ -24,7 +24,7 @@ import os
 import sys
 from typing import Any, List, Optional, Tuple, cast
 
-import helpers.hdaemon as hdaem
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
@@ -430,7 +430,7 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use the host tools instead of the dockerized ones",
     )
-    hdaem.add_daemon_arg(parser)
+    hdaemon.add_daemon_arg(parser)
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -444,7 +444,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
         watch_suffix = " --skip_action=open"
-        hdaem.run_daemon_mode(args.input, "notes_to_pdf", watch_cmd_suffix=watch_suffix)
+        hdaemon.run_daemon_mode(
+            args.input, "notes_to_pdf", watch_cmd_suffix=watch_suffix
+        )
     else:
         _run_all(args)
 

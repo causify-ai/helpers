@@ -18,21 +18,19 @@ For a description of the architecture of this file, see the file
 import argparse
 import logging
 import os
-from typing import List, Optional
 
-import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
-import dev_scripts_helpers.documentation.lib_lint_txt as dshdlilint
+import dev_scripts_helpers.documentation.lib_lint_txt as dshdllitx
 
 _LOG = logging.getLogger(__name__)
 
 # Default actions (excluding some that need explicit opt-in).
 DEFAULT_ACTIONS = [
     action
-    for action in dshdlilint.VALID_ACTIONS.keys()
+    for action in dshdllitx.VALID_ACTIONS.keys()
     if action
     not in [
         "frame_chapters",
@@ -126,7 +124,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     hselacti.add_action_arg(
         parser,
-        list(dshdlilint.VALID_ACTIONS.keys()),
+        list(dshdllitx.VALID_ACTIONS.keys()),
         DEFAULT_ACTIONS,
     )
     hdocker.add_dockerized_script_arg(parser)
@@ -142,22 +140,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
         files = hseinout.parse_input_output_files(args)
         if files:
             for file_path in files:
-                dshdlilint._revert_from_backup(file_path)
+                dshdllitx._revert_from_backup(file_path)
         else:
             in_file_name, _ = hseinout.parse_input_output_args(
                 args, clear_screen=False
             )
-            dshdlilint._revert_from_backup(in_file_name)
+            dshdllitx._revert_from_backup(in_file_name)
         return
     # Print actions (once for all files).
     actions = hselacti.select_actions(
         args,
-        list(dshdlilint.VALID_ACTIONS.keys()),
+        list(dshdllitx.VALID_ACTIONS.keys()),
         DEFAULT_ACTIONS,
     )
     add_frame = True
     actions_as_str = hselacti.actions_to_string(
-        actions, list(dshdlilint.VALID_ACTIONS.keys()), add_frame
+        actions, list(dshdllitx.VALID_ACTIONS.keys()), add_frame
     )
     _LOG.info("\n%s", actions_as_str)
     # Check if processing multiple files or a single file.
@@ -170,13 +168,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _LOG.error("File not found: %s", file_path)
                 continue
             _LOG.info("Processing: %s", file_path)
-            dshdlilint._process_single_file(file_path, file_path, args, actions)
+            dshdllitx._process_single_file(file_path, file_path, args, actions)
     else:
         # Process single file (original behavior).
         in_file_name, out_file_name = hseinout.parse_input_output_args(
             args, clear_screen=False
         )
-        dshdlilint._process_single_file(in_file_name, out_file_name, args, actions)
+        dshdllitx._process_single_file(
+            in_file_name, out_file_name, args, actions
+        )
 
 
 if __name__ == "__main__":

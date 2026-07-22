@@ -2,6 +2,10 @@
 Core library for linting and formatting text files.
 
 Provides transformation functions and file processing logic used by lint_txt.py.
+
+Import as:
+
+import dev_scripts_helpers.documentation.lib_lint_txt as dshdllitx
 """
 
 import argparse
@@ -28,7 +32,9 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _preprocess_txt(lines: List[str], extension: str) -> Tuple[List[str], Dict[str, Any]]:
+def _preprocess_txt(
+    lines: List[str], extension: str
+) -> Tuple[List[str], Dict[str, Any]]:
     """
     Preprocess the given text before applying `beautify`.
 
@@ -506,6 +512,109 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
+# #############################################################################
+
+VALID_ACTIONS = {
+    # Preprocess text before formatting: normalize artifacts, handle math equations.
+    # - Convert Google Docs smart quotes to ASCII
+    # - Protect math blocks (`$$...$$`)
+    # - Normalize bullet points and whitespace
+    "preprocess": ["md", "tex", "txt", "emd"],
+    # Apply prettier/mdformat formatting.
+    # - Wrap lines to specified width
+    # - Reformat bullet lists and code blocks
+    # - Normalize markdown/text syntax
+    "beautify": ["md", "tex", "txt", "emd"],
+    # Post-process formatted text: restore protected content, capitalize lists.
+    # - Restore starred bullets `*` -> `*`
+    # - Capitalize first letter of bullet points
+    # - Remove empty lines around code blocks
+    "postprocess": ["md", "tex", "txt", "emd"],
+    # Remove extra indentation added by beautify inside code blocks.
+    # - Fixes over-indented code lines
+    "remove_code_block_extra_indentation": ["md", "tex", "txt", "emd"],
+    # Remove page separator lines (`---`).
+    # - Cleans up document structure
+    "remove_page_separators": ["md", "tex", "txt", "emd"],
+    # Remove empty lines after headers and before code blocks.
+    # - `# Header\n\ntext` -> `# Header\ntext`
+    # - `text\n\n\`\`\`` -> `text\n\`\`\``
+    "handle_empty_lines": ["md", "emd"],
+    # Add blank lines between consecutive markdown headers.
+    # - `# H1\n## H2` -> `# H1\n\n## H2`
+    "add_blank_lines_between_headers": ["md", "emd"],
+    # Convert asterisk bullets (`*`) to dash bullets (`-`).
+    # - `* item` -> `- item`
+    # - `* nested` -> `- nested`
+    "convert_asterisk_bullets_to_dashes": ["md", "txt", "emd"],
+    # Remove trailing periods from bullet points and list items.
+    # - `- item.` -> `- item`
+    # - `1) numbered.` -> `1) numbered`
+    "remove_trailing_periods": ["md", "tex", "txt", "emd"],
+    # Replace em dash (`—`) with colon (`:`) in list items.
+    # - `- term — definition` -> `- term: definition`
+    "replace_em_dash_with_colon": ["md", "tex", "txt", "emd"],
+    # Remove markdown syntax from text: bold, italic, links, images, headers.
+    # - `**bold** *italic* [link](url)` -> `bold italic link`
+    # - `# Header` -> `Header`
+    "remove_markdown_formatting": ["md", "emd"],
+    # Add visual frame around section headers.
+    # - `# Chapter` -> `# ###############\n# Chapter\n# ###############`
+    "frame_chapters": ["md", "tex", "txt", "emd"],
+    # Capitalize first letter of bullet points and headers.
+    # - `- hello world` -> `- Hello world`
+    # - `# my title` -> `# My Title`
+    "capitalize_header": ["md", "txt", "emd"],
+    # Regenerate table of contents (markdown only).
+    # - `<!-- toc --> ... <!-- tocstop -->` -> auto-generated TOC
+    "refresh_toc": ["md", "emd"],
+    # Validate all URLs in the document are reachable.
+    # - Performs HTTP requests to check link status
+    "check_links": ["md", "tex", "txt", "emd"],
+}
+
+
+def _is_action_supported_for_format(action: str, extension: str) -> bool:
+    """
+    Check if an action is supported for a given file format.
+
+    :param action: The action name.
+    :param extension: The file extension (md, tex, txt, emd).
+    :return: True if the action is supported, False otherwise.
+    """
+    hdbg.dassert_in(action, VALID_ACTIONS, msg=f"Unknown action: {action}")
+    return extension in VALID_ACTIONS[action]
+
+
+def _filter_actions_by_format(
+    actions: Optional[List[str]], extension: str
+) -> Optional[List[str]]:
+    """
+    Filter actions to keep only those supported by the given format.
+
+    Warns about unsupported actions and removes them from the list.
+
+    :param actions: List of actions to filter, or None (all default actions).
+    :param extension: The file extension (md, tex, txt, emd).
+    :return: Filtered list of actions, or None if input was None.
+    """
+    if actions is None:
+        return None
+    filtered = [
+        a for a in actions if _is_action_supported_for_format(a, extension)
+    ]
+    unsupported = [
+        a for a in actions if not _is_action_supported_for_format(a, extension)
+    ]
+    for action in unsupported:
+        _LOG.warning(
+            "Action '%s' is not supported for .%s files, skipping",
+            action,
+            extension,
+        )
+    return filtered if filtered else None
+
+
 def _perform_actions(
     lines: List[str],
     in_file_name: str,
@@ -538,7 +647,9 @@ def _perform_actions(
     else:
         extension = os.path.splitext(in_file_name)[1]
         # Remove the . from the extenstion (e.g., ".txt").
-        hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
+        hdbg.dassert(
+            extension.startswith("."), "Invalid extension='%s'", extension
+        )
         extension = extension[1:]
     # Get the file type.
     is_md_file = extension == "md"
@@ -647,103 +758,6 @@ def _perform_actions(
     # Reattach YAML front matter if it was extracted.
     lines = hmartoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines
-
-
-# #############################################################################
-
-VALID_ACTIONS = {
-    # Preprocess text before formatting: normalize artifacts, handle math equations.
-    # - Convert Google Docs smart quotes to ASCII
-    # - Protect math blocks (`$$...$$`)
-    # - Normalize bullet points and whitespace
-    "preprocess": ["md", "tex", "txt", "emd"],
-    # Apply prettier/mdformat formatting.
-    # - Wrap lines to specified width
-    # - Reformat bullet lists and code blocks
-    # - Normalize markdown/text syntax
-    "beautify": ["md", "tex", "txt", "emd"],
-    # Post-process formatted text: restore protected content, capitalize lists.
-    # - Restore starred bullets `*` -> `*`
-    # - Capitalize first letter of bullet points
-    # - Remove empty lines around code blocks
-    "postprocess": ["md", "tex", "txt", "emd"],
-    # Remove extra indentation added by beautify inside code blocks.
-    # - Fixes over-indented code lines
-    "remove_code_block_extra_indentation": ["md", "tex", "txt", "emd"],
-    # Remove page separator lines (`---`).
-    # - Cleans up document structure
-    "remove_page_separators": ["md", "tex", "txt", "emd"],
-    # Remove empty lines after headers and before code blocks.
-    # - `# Header\n\ntext` -> `# Header\ntext`
-    # - `text\n\n\`\`\`` -> `text\n\`\`\``
-    "handle_empty_lines": ["md", "emd"],
-    # Add blank lines between consecutive markdown headers.
-    # - `# H1\n## H2` -> `# H1\n\n## H2`
-    "add_blank_lines_between_headers": ["md", "emd"],
-    # Convert asterisk bullets (`*`) to dash bullets (`-`).
-    # - `* item` -> `- item`
-    # - `* nested` -> `- nested`
-    "convert_asterisk_bullets_to_dashes": ["md", "txt", "emd"],
-    # Remove trailing periods from bullet points and list items.
-    # - `- item.` -> `- item`
-    # - `1) numbered.` -> `1) numbered`
-    "remove_trailing_periods": ["md", "tex", "txt", "emd"],
-    # Replace em dash (`—`) with colon (`:`) in list items.
-    # - `- term — definition` -> `- term: definition`
-    "replace_em_dash_with_colon": ["md", "tex", "txt", "emd"],
-    # Remove markdown syntax from text: bold, italic, links, images, headers.
-    # - `**bold** *italic* [link](url)` -> `bold italic link`
-    # - `# Header` -> `Header`
-    "remove_markdown_formatting": ["md", "emd"],
-    # Add visual frame around section headers.
-    # - `# Chapter` -> `# ###############\n# Chapter\n# ###############`
-    "frame_chapters": ["md", "tex", "txt", "emd"],
-    # Capitalize first letter of bullet points and headers.
-    # - `- hello world` -> `- Hello world`
-    # - `# my title` -> `# My Title`
-    "capitalize_header": ["md", "txt", "emd"],
-    # Regenerate table of contents (markdown only).
-    # - `<!-- toc --> ... <!-- tocstop -->` -> auto-generated TOC
-    "refresh_toc": ["md", "emd"],
-    # Validate all URLs in the document are reachable.
-    # - Performs HTTP requests to check link status
-    "check_links": ["md", "tex", "txt", "emd"],
-}
-
-
-def _is_action_supported_for_format(action: str, extension: str) -> bool:
-    """
-    Check if an action is supported for a given file format.
-
-    :param action: The action name.
-    :param extension: The file extension (md, tex, txt, emd).
-    :return: True if the action is supported, False otherwise.
-    """
-    hdbg.dassert_in(action, VALID_ACTIONS, msg=f"Unknown action: {action}")
-    return extension in VALID_ACTIONS[action]
-
-
-def _filter_actions_by_format(
-    actions: Optional[List[str]], extension: str
-) -> Optional[List[str]]:
-    """
-    Filter actions to keep only those supported by the given format.
-
-    Warns about unsupported actions and removes them from the list.
-
-    :param actions: List of actions to filter, or None (all default actions).
-    :param extension: The file extension (md, tex, txt, emd).
-    :return: Filtered list of actions, or None if input was None.
-    """
-    if actions is None:
-        return None
-    filtered = [a for a in actions if _is_action_supported_for_format(a, extension)]
-    unsupported = [a for a in actions if not _is_action_supported_for_format(a, extension)]
-    for action in unsupported:
-        _LOG.warning(
-            "Action '%s' is not supported for .%s files, skipping", action, extension
-        )
-    return filtered if filtered else None
 
 
 def _get_backup_filename(file_path: str) -> str:

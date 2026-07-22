@@ -23,7 +23,6 @@ import os
 import re
 from typing import Any, List, Optional, Tuple
 
-import helpers.hdaemon as hdaem
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio

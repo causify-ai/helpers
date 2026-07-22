@@ -306,8 +306,7 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         """
         # Prepare inputs.
         text = (
-            "101: Name: Florian, Home: florian@wobegon.org, "
-            "Office: fk@phc.com"
+            "101: Name: Florian, Home: florian@wobegon.org, Office: fk@phc.com"
         )
         # Prepare outputs: no marker detected, text unchanged.
         expected = text
@@ -556,6 +555,7 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out a helper. Use expected string.
 class Test_bold_text_colorization_e2e(hunitest.TestCase):
     """
     End-to-end tests for bold text colorization in slides with Typst output.
@@ -570,11 +570,9 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         text = "- @Definition@: Knowledge Representation"
         output_format = "typst"
-
         result = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=True
         )
-
         expected = '- `#text(fill: red, weight: "bold")[Definition]`{=typst}: Knowledge Representation'
         self.assert_equal(result, expected)
 
@@ -584,11 +582,9 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         text = "- @Definition@: Knowledge Representation"
         output_format = "typst"
-
         result = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=False
         )
-
         expected = '- `#text(fill: red, weight: "bold")[Definition]`{=typst}: Knowledge Representation'
         self.assert_equal(result, expected)
 
@@ -602,16 +598,14 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         - @Example@: Third item
         """
         output_format = "typst"
-
         result = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=False
         )
-
-        # Verify each bold item has a different color
-        self.assertIn('fill: red', result)
-        self.assertIn('fill: green', result)
-        self.assertIn('fill: blue', result)
-        # Verify all have weight: "bold"
+        # Verify each bold item has a different color.
+        self.assertIn("fill: red", result)
+        self.assertIn("fill: green", result)
+        self.assertIn("fill: blue", result)
+        # Verify all have weight: "bold".
         self.assertEqual(result.count('weight: "bold"'), 3)
 
     def test_bold_text_with_special_characters(self) -> None:
@@ -620,13 +614,13 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         text = "- @Key insight@: Use `_` for emphasis"
         output_format = "typst"
-
         result = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=False
         )
-
-        # Verify the bold part is colorized with proper syntax
-        self.assertIn('`#text(fill: red, weight: "bold")[Key insight]`{=typst}', result)
+        # Verify the bold part is colorized with proper syntax.
+        self.assertIn(
+            '`#text(fill: red, weight: "bold")[Key insight]`{=typst}', result
+        )
 
     def test_bold_and_italic_combined(self) -> None:
         """
@@ -634,14 +628,14 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         text = "- @Definition@: _Knowledge Representation_ is important"
         output_format = "typst"
-
         result = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=False
         )
-
-        # Verify marker is colorized, italic remains
-        self.assertIn('`#text(fill: red, weight: "bold")[Definition]`{=typst}', result)
-        self.assertIn('_Knowledge Representation_', result)
+        # Verify marker is colorized, italic remains.
+        self.assertIn(
+            '`#text(fill: red, weight: "bold")[Definition]`{=typst}', result
+        )
+        self.assertIn("_Knowledge Representation_", result)
 
     def test_no_bold_text_unchanged(self) -> None:
         """
@@ -649,11 +643,9 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         text = "- Just regular text without markers"
         output_format = "typst"
-
         result = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=False
         )
-
         self.assert_equal(result, text)
 
     def test_abbreviated_vs_full_syntax_equivalence(self) -> None:
@@ -662,16 +654,13 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         text = "- @Item@: Description"
         output_format = "typst"
-
         abbreviated = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=True
         )
-
         full = hmarkdo.colorize_bullet_points_in_slide(
             text, output_format, use_abbreviations=False
         )
-
-        # Both should produce the same Typst syntax
+        # Both should produce the same Typst syntax.
         self.assert_equal(abbreviated, full)
 
     def test_rgb_color_values_in_typst(self) -> None:
@@ -681,11 +670,12 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         text = "- @Item1@: Test\n- @Item2@: Test\n- @Item3@: Test\n- @Item4@: Test\n- @Item5@: Test"
         output_format = "typst"
         all_md_colors = ["red", "orange", "violet", "magenta", "pink"]
-
         result = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=False, all_md_colors=all_md_colors
+            text,
+            output_format,
+            use_abbreviations=False,
+            all_md_colors=all_md_colors,
         )
-
-        # Verify rgb() colors are present (for items where rgb is needed)
+        # Verify rgb() colors are present (for items where rgb is needed).
         self.assertIn('rgb("#8B00FF")', result)  # violet
         self.assertIn('rgb("#FF00FF")', result)  # magenta

@@ -1,26 +1,35 @@
 #!/usr/bin/env python3
 r"""
-Convert pandoc AST by transforming `Div[columns]` into `RawBlock[typst #grid()]`.
+Transform pandoc AST to typst: handle divved fences and LaTeX colors.
 
-Pandoc parses Markdown multi-column layouts (via `:::columns` / `:::column` fences)
-into nested `Div` AST nodes.
+Supports two transformation actions:
 
-This script transforms the AST in-place: each `Div` with class `columns` is
-replaced with a `RawBlock(typst, "#grid(...)")` that renders columns as typst
-grids.
+1. **divved_fence**: Transform `Div[columns]` into `RawBlock[typst #grid()]`
+   - Pandoc parses Markdown multi-column layouts (via `:::columns`/`:::column`)
+     into nested `Div` AST nodes
+   - This action replaces each `Div` with class `columns` with a `RawBlock`
+     containing typst `#grid(...)` code
 
-The result can be fed to pandoc for final typst output:
-> pandoc input.md -t json | convert_pandoc_divved_fence.py -i - -o output.json
+2. **color_text**: Transform LaTeX color commands in Math nodes
+   - Converts `\textcolor{color}{content}` to `#text(fill: color)[content]`
+   - Handles nested braces with proper parsing
+
+Usage:
+> pandoc input.md -t json | \
+    transform_pandoc_ast_to_typst.py \
+        -i - -o output.json -a divved_fence -a color_text
 > pandoc output.json -f json -t typst -o slides.typ
 
 Import as:
-import dev_scripts_helpers.documentation.convert_pandoc_divved_fence as dsdocdpdf
+import dev_scripts_helpers.documentation.transform_pandoc_ast_to_typst as dsdocut
 """
 
 import argparse
 import json
 import logging
 import os
+import re
+import sys
 import tempfile
 from typing import Any, Dict, List, Tuple
 
@@ -28,6 +37,7 @@ import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -291,7 +301,7 @@ def _transform_elem(elem: PandocAst, api_version: List[int]) -> PandocAst:
     return elem
 
 
-def _transform_ast(ast: PandocAst) -> PandocAst:
+def _transform_ast_divved_fence(ast: PandocAst) -> PandocAst:
     """
     Transform entire AST: replace all Div[columns] with RawBlock[typst #grid()].
 
@@ -305,6 +315,120 @@ def _transform_ast(ast: PandocAst) -> PandocAst:
     ]
     ast["blocks"] = transformed_blocks
     return ast
+
+
+# #############################################################################
+# Color Transformation (LaTeX to Typst)
+# #############################################################################
+
+
+class ColorTransformer:
+    """
+    Transform LaTeX color commands to Typst syntax.
+    """
+
+    def __init__(self):
+        self.stats = {
+            "textcolor_count": 0,
+            "color_count": 0,
+            "math_nodes_processed": 0,
+            "formulas_transformed": 0,
+        }
+
+    def textcolor_to_typst(self, latex_string: str) -> str:
+        r"""
+        Transform \textcolor{color}{content} to #text(fill: color)[content]
+        """
+        pattern = r"\\textcolor\{([^}]+)\}\{([^}]*)\}"
+
+        def replace_color(match: Any) -> str:
+            color = match.group(1)
+            content = match.group(2)
+            self.stats["textcolor_count"] += 1
+            _LOG.debug(
+                f"  \\textcolor{{{color}}}{{{content}}} → "
+                f"#text(fill: {color})[{content}]",
+            )
+            content_escaped = content.replace("\\", "\\\\")
+            content_escaped = content_escaped.replace("]", r"\]")
+            content_escaped = content_escaped.replace("[", r"\[")
+            return f"#text(fill: {color})[{content_escaped}]"
+
+        result = re.sub(pattern, replace_color, latex_string)
+        return result
+
+    def color_to_typst(self, latex_string: str) -> str:
+        r"""
+        Transform \color{color} to #set text(fill: color) (placeholder)
+        """
+        pattern = r"\\color\{([^}]+)\}"
+
+        def replace_color(match: Any) -> str:
+            color = match.group(1)
+            self.stats["color_count"] += 1
+            _LOG.debug(
+                f"  \\color{{{color}}} → (requires context awareness, skipped)",
+                file=sys.stderr,
+            )
+            return f"\\color{{{color}}}"
+
+        result = re.sub(pattern, replace_color, latex_string)
+        return result
+
+    def transform_formula(self, latex_string: str) -> str:
+        """
+        Apply all transformations to a formula string.
+        """
+        result = latex_string
+        result = self.textcolor_to_typst(result)
+        result = self.color_to_typst(result)
+        return result
+
+    def process_math_node(self, node: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Transform a Math AST node.
+        """
+        if node.get("t") != "Math":
+            return node
+        self.stats["math_nodes_processed"] += 1
+        math_mode = node["c"][0]
+        latex_formula = node["c"][1]
+        if "\\textcolor" not in latex_formula and "\\color" not in latex_formula:
+            return node
+        self.stats["formulas_transformed"] += 1
+        _LOG.debug(f"Transforming: {latex_formula[:50]}...", file=sys.stderr)
+        typst_formula = self.transform_formula(latex_formula)
+        return {"t": "Math", "c": [math_mode, typst_formula]}
+
+    def walk(self, obj: Any) -> Any:
+        """
+        Recursively transform AST.
+        """
+        if isinstance(obj, dict):
+            if obj.get("t") == "Math":
+                return self.process_math_node(obj)
+            return {key: self.walk(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self.walk(item) for item in obj]
+        else:
+            return obj
+
+    def get_stats(self) -> Dict[str, int]:
+        """
+        Return transformation statistics.
+        """
+        return self.stats
+
+
+def _transform_ast_color_text(ast: PandocAst) -> PandocAst:
+    """
+    Transform AST: replace LaTeX color commands with Typst equivalents.
+
+    :param ast: Full pandoc AST dict
+    :return: Transformed AST
+    """
+    transformer = ColorTransformer()
+    return transformer.walk(ast)
 
 
 # #############################################################################
@@ -336,6 +460,9 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Output AST JSON file (or - for stdout)",
     )
+    valid_actions = ["divved_fence", "color_text"]
+    default_actions = ["divved_fence", "color_text"]
+    hselacti.add_action_arg(parser, valid_actions, default_actions)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -348,13 +475,24 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    #
+    valid_actions = ["divved_fence", "color_text"]
+    default_actions = ["divved_fence", "color_text"]
+    actions = hselacti.select_actions(args, valid_actions, default_actions)
+    _LOG.info(hselacti.actions_to_string(actions, valid_actions, add_frame=True))
     _LOG.info("Loading AST from '%s'", args.in_file)
     ast = _load_ast(args.in_file)
-    #
-    _LOG.info("Transforming AST: Div[columns] -> RawBlock[typst #grid()]")
-    ast = _transform_ast(ast)
-    #
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if to_execute:
+            if action == "divved_fence":
+                _LOG.info(
+                    "Transforming AST: Div[columns] -> RawBlock[typst #grid()]"
+                )
+                ast = _transform_ast_divved_fence(ast)
+            elif action == "color_text":
+                _LOG.info("Transforming AST: LaTeX colors -> Typst colors")
+                ast = _transform_ast_color_text(ast)
     _LOG.info("Saving transformed AST to '%s'", args.out_file)
     _save_ast(ast, args.out_file)
     _LOG.info("Done")

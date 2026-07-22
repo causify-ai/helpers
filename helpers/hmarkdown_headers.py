@@ -730,47 +730,7 @@ def build_header_tree(header_list: HeaderList) -> _HeaderTree:
     return tree
 
 
-def _find_header_tree_ancestry(
-    tree: _HeaderTree,
-    level: int,
-    description: str,
-    context_ancestry: Optional[_HeaderTree] = None,
-) -> Optional[_HeaderTree]:
-    """
-    Recursively search for the node matching (level, description).
-
-    If context_ancestry is provided, search for a node that matches the
-    hierarchy. Otherwise, return the first matching node.
-
-    :param tree: header tree to search
-    :param level: header level to match
-    :param description: header description to match
-    :param context_ancestry: optional current hierarchy for context-aware search
-    :return: ancestry list from root to matching node, or None if not found
-    """
-    fallback_result = None
-    for node in tree:
-        if node.level == level and node.description == description:
-            candidate = [node]
-            if context_ancestry and _matches_context(context_ancestry, candidate):
-                return candidate
-            if not fallback_result:
-                fallback_result = candidate
-        result = _find_header_tree_ancestry(
-            node.children, level, description, context_ancestry
-        )
-        if result:
-            candidate = [node] + result
-            if context_ancestry and _matches_context(context_ancestry, candidate):
-                return candidate
-            if not fallback_result:
-                fallback_result = candidate
-    return fallback_result
-
-
-def _matches_context(
-    context: _HeaderTree, found_path: _HeaderTree
-) -> bool:
+def _matches_context(context: _HeaderTree, found_path: _HeaderTree) -> bool:
     """
     Check if found_path is reachable from context.
 
@@ -794,6 +754,48 @@ def _matches_context(
         ):
             return False
     return True
+
+
+def _find_header_tree_ancestry(
+    tree: _HeaderTree,
+    level: int,
+    description: str,
+    context_ancestry: Optional[_HeaderTree] = None,
+) -> Optional[_HeaderTree]:
+    """
+    Recursively search for the node matching (level, description).
+
+    If context_ancestry is provided, search for a node that matches the
+    hierarchy. Otherwise, return the first matching node.
+
+    :param tree: header tree to search
+    :param level: header level to match
+    :param description: header description to match
+    :param context_ancestry: optional current hierarchy for context-aware search
+    :return: ancestry list from root to matching node, or None if not found
+    """
+    fallback_result = None
+    for node in tree:
+        if node.level == level and node.description == description:
+            candidate = [node]
+            if context_ancestry and _matches_context(
+                context_ancestry, candidate
+            ):
+                return candidate
+            if not fallback_result:
+                fallback_result = candidate
+        result = _find_header_tree_ancestry(
+            node.children, level, description, context_ancestry
+        )
+        if result:
+            candidate = [node] + result
+            if context_ancestry and _matches_context(
+                context_ancestry, candidate
+            ):
+                return candidate
+            if not fallback_result:
+                fallback_result = candidate
+    return fallback_result
 
 
 def header_tree_to_str(
@@ -874,7 +876,9 @@ def selected_navigation_to_str(
     :param current_ancestry: optional current hierarchy for context-aware search
     :return: navigation string with selected node highlighted
     """
-    ancestry = _find_header_tree_ancestry(tree, level, description, current_ancestry)
+    ancestry = _find_header_tree_ancestry(
+        tree, level, description, current_ancestry
+    )
     hdbg.dassert_ne(
         ancestry,
         None,
@@ -926,15 +930,15 @@ def full_tree_to_str(
     :return: string representation of the tree with all nodes expanded up to max_expand_level
     """
     if ancestry is None and _compute_ancestry:
-        ancestry = _find_header_tree_ancestry(tree, level, description, current_ancestry)
+        ancestry = _find_header_tree_ancestry(
+            tree, level, description, current_ancestry
+        )
     prefix = "  " * indent + "- "
     result = []
     for node in tree:
         # Check if this node is on the path to the selected node.
         is_on_path = (
-            ancestry is not None
-            and len(ancestry) > 0
-            and node is ancestry[0]
+            ancestry is not None and len(ancestry) > 0 and node is ancestry[0]
         )
         # The node is selected (highlighted) only if it's the last in the ancestry.
         is_selected = is_on_path and ancestry is not None and len(ancestry) == 1

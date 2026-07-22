@@ -11,7 +11,7 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddut
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
@@ -156,7 +156,7 @@ class Test_run_dockerized_prettier_md1(hunitest.TestCase):
         :param expected: Expected formatted output
         """
         # Prepare inputs.
-        in_file_path = dshddout.create_test_file(self, txt, extension="txt")
+        in_file_path = dshddut.create_test_file(self, txt, extension="txt")
         file_type = "md"
         cmd_opts: List[str] = [
             "--parser",
@@ -280,7 +280,7 @@ class Test_run_dockerized_prettier_txt1(hunitest.TestCase):
         :param expected: Expected formatted output
         """
         # Prepare inputs.
-        in_file_path = dshddout.create_test_file(self, txt, extension="txt")
+        in_file_path = dshddut.create_test_file(self, txt, extension="txt")
         file_type = "txt"
         cmd_opts: List[str] = [
             "--parser",
