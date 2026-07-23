@@ -239,13 +239,13 @@ class Test_run_common_linting_actions(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('pre-commit run --files file1.py file2.py --color always',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('pre-commit run --files file1.py file2.py --color always',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._run_common_linting_actions(
@@ -255,7 +255,6 @@ class Test_run_common_linting_actions(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test2(self) -> None:
@@ -268,7 +267,8 @@ class Test_run_common_linting_actions(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = "[]"
+        expected = r"""[
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._run_common_linting_actions(
@@ -302,13 +302,13 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('linters2/normalize_import.py --no_report_command_line file1.py',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('linters2/normalize_import.py --no_report_command_line file1.py',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._run_python_linting_actions(
@@ -318,7 +318,6 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test2(self) -> None:
@@ -331,18 +330,18 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('linters2/normalize_import.py --no_report_command_line file1.py',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}},
-         {'function': 'hsystem.system',
-          'args': ('linters2/add_class_frames.py --no_report_command_line file1.py',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('linters2/normalize_import.py --no_report_command_line file1.py',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+    {
+    'function': hsystem.system
+    'args': ('linters2/add_class_frames.py --no_report_command_line file1.py',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._run_python_linting_actions(
@@ -352,7 +351,6 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     @umock.patch("helpers.hsystem.system")
@@ -386,7 +384,8 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = "[]"
+        expected = r"""[
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._run_python_linting_actions(
@@ -419,7 +418,8 @@ class Test_lint_python_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = "[]"
+        expected = r"""[
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_python_files(
@@ -441,28 +441,28 @@ class Test_lint_python_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('pre-commit run --files foo.py bar.py --color always',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}},
-         {'function': 'hsystem.system',
-          'args': ('linters2/normalize_import.py --no_report_command_line foo.py bar.py',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}},
-         {'function': 'hsystem.system',
-          'args': ('linters2/add_class_frames.py --no_report_command_line foo.py bar.py',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}},
-         {'function': 'hsystem.system',
-          'args': ('linters2/fix_comments.py --no_report_command_line foo.py bar.py',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('pre-commit run --files foo.py bar.py --color always',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+    {
+    'function': hsystem.system
+    'args': ('linters2/normalize_import.py --no_report_command_line foo.py bar.py',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+    {
+    'function': hsystem.system
+    'args': ('linters2/add_class_frames.py --no_report_command_line foo.py bar.py',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+    {
+    'function': hsystem.system
+    'args': ('linters2/fix_comments.py --no_report_command_line foo.py bar.py',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_python_files(
@@ -472,7 +472,6 @@ class Test_lint_python_files(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test3(self) -> None:
@@ -485,13 +484,13 @@ class Test_lint_python_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('linters2/normalize_import.py --no_report_command_line foo.py',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('linters2/normalize_import.py --no_report_command_line foo.py',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_python_files(
@@ -501,7 +500,6 @@ class Test_lint_python_files(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
 
@@ -525,7 +523,8 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = "[]"
+        expected = r"""[
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_jupyter_files(
@@ -547,13 +546,13 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('pre-commit run --files foo.ipynb bar.ipynb --color always',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('pre-commit run --files foo.ipynb bar.ipynb --color always',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_jupyter_files(
@@ -563,7 +562,6 @@ class Test_lint_jupyter_files(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test3(self) -> None:
@@ -576,18 +574,18 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('jupytext --sync foo.ipynb',),
-          'kwargs': {'print_command': True,
-                     'abort_on_error': True,
-                     'suppress_output': False}},
-         {'function': 'hsystem.system',
-          'args': ('jupytext --sync bar.ipynb',),
-          'kwargs': {'print_command': True,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('jupytext --sync foo.ipynb',)
+    'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False}
+    },
+    {
+    'function': hsystem.system
+    'args': ('jupytext --sync bar.ipynb',)
+    'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_jupyter_files(
@@ -597,7 +595,6 @@ class Test_lint_jupyter_files(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test4(self) -> None:
@@ -610,13 +607,13 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('pre-commit run --files foo.ipynb bar.ipynb --color always',),
-          'kwargs': {'print_command': False,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('pre-commit run --files foo.ipynb bar.ipynb --color always',)
+    'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_jupyter_files(
@@ -626,7 +623,6 @@ class Test_lint_jupyter_files(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
 
@@ -655,7 +651,8 @@ class Test_lint_markdown_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = "[]"
+        expected = r"""[
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_markdown_files(
@@ -681,13 +678,13 @@ class Test_lint_markdown_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = """
-        [{'function': 'hsystem.system',
-          'args': ('/fake/lint_txt.py --input_files doc.md readme.md',),
-          'kwargs': {'print_command': True,
-                     'abort_on_error': True,
-                     'suppress_output': False}}]
-        """
+        expected = r"""[
+    {
+    'function': hsystem.system
+    'args': ('/fake/lint_txt.py --input_files doc.md readme.md',)
+    'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False}
+    },
+]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_markdown_files(
@@ -696,5 +693,4 @@ class Test_lint_markdown_files(hunitest.TestCase):
             )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
-        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
