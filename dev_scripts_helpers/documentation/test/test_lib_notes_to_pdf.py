@@ -123,7 +123,6 @@ class Test_render_images(hunitest.TestCase):
 
 
 class Test_run_pandoc_to_pdf(hunitest.TestCase):
-
     def helper(
         self,
         toc_type: str,

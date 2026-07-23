@@ -569,7 +569,14 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(self, sys_calls, expected_str, dedent=True, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_sys_calls(
+            self,
+            sys_calls,
+            expected_str,
+            dedent=True,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test2(self) -> None:
         """

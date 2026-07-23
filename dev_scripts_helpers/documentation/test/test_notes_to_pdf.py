@@ -679,9 +679,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         expected = r"""toc_type none"""
         expected = hprint.dedent(expected)
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -695,9 +693,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         expected = r"""toc_type pandoc_native"""
         expected = hprint.dedent(expected)
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -733,9 +729,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         expected = r"""toc_type navigation"""
         expected = hprint.dedent(expected)
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test4(self) -> None:
         """
@@ -749,9 +743,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         expected = r"""toc_type remove_headers"""
         expected = hprint.dedent(expected)
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -1466,9 +1458,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         expected = r"""# latex again"""
         expected = hprint.dedent(expected)
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """

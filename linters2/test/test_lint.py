@@ -3,7 +3,6 @@ import unittest.mock as umock
 from typing import Dict, List, Tuple
 
 import helpers.hio as hio
-import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import linters2.lint as lilint
@@ -58,7 +57,14 @@ class Test_filter_files_by_type(hunitest.TestCase):
         hio.to_file(notebook_ipynb, "")
         file_paths = [standalone_py, paired_py, notebook_ipynb]
         file_types = ["py", "ipynb"]
-        return standalone_py, paired_py, paired_ipynb, notebook_ipynb, file_paths, file_types
+        return (
+            standalone_py,
+            paired_py,
+            paired_ipynb,
+            notebook_ipynb,
+            file_paths,
+            file_types,
+        )
 
     def test1(self) -> None:
         """
@@ -228,7 +234,6 @@ class Test_filter_files_by_type(hunitest.TestCase):
 
 # TODO(ai_gp): Factor out common code in a helper.
 class Test_run_common_linting_actions(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         actions=["pre-commit"]: exactly 1 call.

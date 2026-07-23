@@ -22,7 +22,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import List, cast
+from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio

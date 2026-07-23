@@ -146,7 +146,14 @@ class Test_replace_latex_py(hunitest.TestCase):
         actual = self._run_main(argv)
         # Check outputs.
         expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(self, actual, expected_str, dedent=True, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_sys_calls(
+            self,
+            actual,
+            expected_str,
+            dedent=True,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test2(self) -> None:
         """
@@ -183,7 +190,14 @@ class Test_replace_latex_py(hunitest.TestCase):
         actual = self._run_main(argv)
         # Check outputs.
         expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(self, actual, expected_str, dedent=True, purify_text=True, purify_expected_text=True)
+        hunteuti.assert_sys_calls(
+            self,
+            actual,
+            expected_str,
+            dedent=True,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test3(self) -> None:
         """

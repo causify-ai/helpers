@@ -9,9 +9,7 @@ import contextlib
 import glob
 import logging
 import os
-import pprint
 import re
-import sys
 from typing import Any, Dict, Generator, List, Optional, Tuple
 import unittest.mock as mock
 
@@ -24,7 +22,6 @@ import helpers.hio as hio
 import helpers.hserver as hserver
 import helpers.hstring as hstring
 import helpers.hsystem as hsystem
-import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 

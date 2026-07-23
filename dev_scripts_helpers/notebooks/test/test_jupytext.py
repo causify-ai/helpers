@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import dev_scripts_helpers.notebooks.jupytext as dshnprju
+import dev_scripts_helpers.notebooks.jupytext as dshenoju
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -31,7 +31,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         # Prepare inputs.
         output_txt = "Some random output without jupytext_version"
         # Run test.
-        result = dshnprju._is_jupytext_version_different(output_txt)
+        result = dshenoju._is_jupytext_version_different(output_txt)
         # Check outputs.
         self.assertFalse(result)
 
@@ -42,7 +42,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         # Prepare inputs.
         output_txt = "#       jupytext_version: 1.3.3"
         # Run test.
-        result = dshnprju._is_jupytext_version_different(output_txt)
+        result = dshenoju._is_jupytext_version_different(output_txt)
         # Check outputs.
         self.assertFalse(result)
 
@@ -57,7 +57,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
             "#       jupytext_version: 1.3.0"
         )
         # Run test.
-        result = dshnprju._is_jupytext_version_different(output_txt)
+        result = dshenoju._is_jupytext_version_different(output_txt)
         # Check outputs.
         self.assertTrue(result)
 
@@ -81,7 +81,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         # Run test.
-        result = dshnprju._is_jupytext_version_different(txt)
+        result = dshenoju._is_jupytext_version_different(txt)
         # Check outputs.
         self.assertTrue(result)
 
@@ -105,7 +105,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         # Run test.
-        result = dshnprju._is_jupytext_version_different(txt)
+        result = dshenoju._is_jupytext_version_different(txt)
         # Check outputs.
         self.assertFalse(result)
 
@@ -134,7 +134,7 @@ class Test_find_paired_file(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        result = dshnprju._find_paired_file(ipynb_file)
+        result = dshenoju._find_paired_file(ipynb_file)
         # Check outputs.
         self.assertEqual(result, py_file)
 
@@ -151,7 +151,7 @@ class Test_find_paired_file(hunitest.TestCase):
         with open(py_file, "w") as f:
             f.write("")
         # Run test.
-        result = dshnprju._find_paired_file(py_file)
+        result = dshenoju._find_paired_file(py_file)
         # Check outputs.
         self.assertEqual(result, ipynb_file)
 
@@ -166,7 +166,7 @@ class Test_find_paired_file(hunitest.TestCase):
             f.write("{}")
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dshnprju._find_paired_file(ipynb_file)
+            dshenoju._find_paired_file(ipynb_file)
 
     def test4(self) -> None:
         """
@@ -179,7 +179,7 @@ class Test_find_paired_file(hunitest.TestCase):
             f.write("")
         # Run test and check output.
         with self.assertRaises((AssertionError, TypeError)):
-            dshnprju._find_paired_file(invalid_file)
+            dshenoju._find_paired_file(invalid_file)
 
 
 # #############################################################################
@@ -203,7 +203,7 @@ class Test_jupytext_py(hunitest.TestCase):
             f.write("{}")
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshnprju._pair(ipynb_file)
+            dshenoju._pair(ipynb_file)
         # Check outputs.
         expected = """
         [{'args': ('jupytext --update-metadata '
@@ -238,7 +238,7 @@ class Test_jupytext_py(hunitest.TestCase):
             f.write("")
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshnprju._test(ipynb_file, "test")
+            dshenoju._test(ipynb_file, "test")
         # Check outputs.
         expected = """
         [{'args': (f'jupytext --to py:percent {ipynb_file} -o '
@@ -269,7 +269,7 @@ class Test_jupytext_py(hunitest.TestCase):
             f.write("")
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshnprju._test(ipynb_file, "test_strict")
+            dshenoju._test(ipynb_file, "test_strict")
         # Check outputs.
         expected = """
         [{'args': (f'jupytext --to py:percent {ipynb_file} -o '
@@ -301,7 +301,7 @@ class Test_jupytext_py(hunitest.TestCase):
             f.write("")
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshnprju._sync(ipynb_file)
+            dshenoju._sync(ipynb_file)
         # Check outputs.
         expected = """
         [{'args': (f'jupytext --to py {ipynb_file}',),
@@ -328,7 +328,7 @@ class Test_jupytext_py(hunitest.TestCase):
             f.write("")
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshnprju._sync(py_file)
+            dshenoju._sync(py_file)
         # Check outputs.
         expected = """
         [{'args': (f'jupytext --to ipynb --update {py_file}',),
@@ -352,7 +352,7 @@ class Test_jupytext_py(hunitest.TestCase):
             f.write("{}")
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshnprju._extract_python_from_notebook(ipynb_file)
+            dshenoju._extract_python_from_notebook(ipynb_file)
         # Check outputs.
         expected = """
         [{'args': (f'jupytext --to py:percent {ipynb_file} -o '
@@ -377,7 +377,7 @@ class Test_jupytext_py(hunitest.TestCase):
             f.write("")
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
-            _, _ = dshnprju._is_notebook_in_sync(ipynb_file)
+            _, _ = dshenoju._is_notebook_in_sync(ipynb_file)
         # Check outputs: should have extract and diff calls.
         expected = """
         [{'args': (f'jupytext --to py:percent {ipynb_file} -o '
@@ -404,7 +404,7 @@ class Test_jupytext_py(hunitest.TestCase):
         with open(file2, "w") as f:
             f.write("file2")
         # Run test.
-        dshnprju._report_newer_file(file1, file2)
+        dshenoju._report_newer_file(file1, file2)
 
     def test13(self) -> None:
         """
@@ -518,7 +518,7 @@ class Test_jupytext_py(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_jupytext
+# Test_jupytext_py_end_to_end
 # #############################################################################
 
 
