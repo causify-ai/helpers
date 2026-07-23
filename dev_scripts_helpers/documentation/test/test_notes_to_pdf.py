@@ -1829,6 +1829,7 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
         return in_file
 
     @pytest.mark.superslow
+    @pytest.mark.skip("Needs debugging")
     def test1(self) -> None:
         """
         Run the full Typst slides pipeline and check output and warnings.

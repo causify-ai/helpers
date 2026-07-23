@@ -551,6 +551,8 @@ def _run_pandoc_to_typst_slides(
     txt = re.sub(r'image\("([^"]*)"\)', convert_image_path, txt)
     # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
     # \textcolor{blue}{...} to typst blue text.
+    # TODO(ai_gp): Not sure if they are needed any longer, since we handle the
+    # colors properly.
     txt = re.sub(
         r"\\textcolor\{blue\}\{([^}]+)\}",
         r"#text(fill: blue, \1)",
@@ -562,6 +564,7 @@ def _run_pandoc_to_typst_slides(
         txt,
     )
     # Convert escaped backslashes for math mode.
+    # TODO(ai_gp): Not sure if they are needed any longer.
     txt = re.sub(r"\\\\EE\b", r"\\mathbb{E}", txt)
     txt = re.sub(r"\\\\VV\b", r"\\mathbb{V}", txt)
     hio.to_file(typ_file, txt)
@@ -572,8 +575,16 @@ def _run_pandoc_to_typst_slides(
     # - Compile the Typst file to PDF.
     _report_phase("typst compile")
     pdf_file = typ_file.replace(".typ", ".pdf")
+    if False:
+        # Copy typst_abbrevs.typ to output dir so pandoc_touying.typ can include it.
+        typst_abbrevs_file = hgit.find_file_in_git_tree("typst_abbrevs.typ")
+        hdbg.dassert_file_exists(typst_abbrevs_file)
+        out_dir = os.path.dirname(typ_file)
+        cmd = f"cp -f {typst_abbrevs_file} {out_dir}"
+        _ = _system(cmd)
     if use_host_tools:
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
+        #cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
         _ = _system(cmd)
     else:
         dshdlity.run_dockerized_typst(
