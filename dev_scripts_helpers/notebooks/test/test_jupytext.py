@@ -205,9 +205,8 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._pair(ipynb_file)
         # Check outputs.
-        expected = """
-        [{'args': ('jupytext --update-metadata '
-                   '\'{"jupytext":{"formats":"ipynb,py:percent"}}\' '
+        expected = r"""
+        [{'args': ('jupytext --update-metadata ' ''{"jupytext":{"formats":"ipynb,py:percent"}}' '
                    f'{ipynb_file}',),
           'function': 'hsystem.system',
           'kwargs': {}},
@@ -222,7 +221,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test6(self) -> None:
         """
@@ -240,9 +239,8 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._test(ipynb_file, "test")
         # Check outputs.
-        expected = """
-        [{'args': (f'jupytext --to py:percent {ipynb_file} -o '
-                   'tmp.jupytext_diff.test_notebook.py',),
+        expected = r"""
+        [{'args': (f'jupytext --to py:percent {ipynb_file} -o ''tmp.jupytext_diff.test_notebook.py',),
           'function': 'hsystem.system',
           'kwargs': {}},
          {'args': (f'diff {py_file} tmp.jupytext_diff.test_notebook.py',),
@@ -253,7 +251,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {'abort_on_error': False}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test7(self) -> None:
         """
@@ -271,9 +269,8 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._test(ipynb_file, "test_strict")
         # Check outputs.
-        expected = """
-        [{'args': (f'jupytext --to py:percent {ipynb_file} -o '
-                   'tmp.jupytext_diff.test_notebook.py',),
+        expected = r"""
+        [{'args': (f'jupytext --to py:percent {ipynb_file} -o ''tmp.jupytext_diff.test_notebook.py',),
           'function': 'hsystem.system',
           'kwargs': {}},
          {'args': (f'diff {py_file} tmp.jupytext_diff.test_notebook.py',),
@@ -285,7 +282,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {'abort_on_error': False}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected
 
     def test8(self) -> None:
         """
@@ -312,7 +309,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test9(self) -> None:
         """
@@ -339,7 +336,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test10(self) -> None:
         """
@@ -361,7 +358,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test11(self) -> None:
         """
@@ -389,7 +386,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {'abort_on_error': False}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test12(self) -> None:
         """
@@ -427,7 +424,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test14(self) -> None:
         """
@@ -450,7 +447,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test15(self) -> None:
         """
@@ -473,7 +470,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test16(self) -> None:
         """
@@ -499,7 +496,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test17(self) -> None:
         """

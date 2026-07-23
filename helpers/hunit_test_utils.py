@@ -713,4 +713,8 @@ def assert_sys_calls(
     actual_str = _sys_calls_to_str(captured_sys_calls)
     hdbg.dassert_isinstance(actual_str, str)
     hdbg.dassert_isinstance(expected_str, str)
+    if "dedent" not in assert_equal_kwargs:
+        assert_equal_kwargs["dedent"] = True
+    if "fuzzy_match" not in assert_equal_kwargs:
+        assert_equal_kwargs["fuzzy_match"] = True
     self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)
