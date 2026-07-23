@@ -199,34 +199,35 @@ class Test_jupytext_py(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
+        py_file = f"{scratch_dir}/test_notebook.py"
         with open(ipynb_file, "w") as f:
             f.write("{}")
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._pair(ipynb_file)
         # Check outputs.
-        expected = r"""
+        expected = f"""
         [
-        {
+        {{
         'function': hsystem.system
-        'args': ('jupytext --update-metadata \'{"jupytext":{"formats":"ipynb,py:percent"}}\' /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
-        'kwargs': {}
-        },
-        {
+        'args': ('jupytext --update-metadata \\'{{\"jupytext\":{{\"formats\":\"ipynb,py:percent\"}}}}\\' $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
+        'kwargs': {{}}
+        }},
+        {{
         'function': hsystem.system
-        'args': ('jupytext --test --stop --to py:percent /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
-        'kwargs': {}
-        },
-        {
+        'args': ('jupytext --test --stop --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
+        'kwargs': {{}}
+        }},
+        {{
         'function': hsystem.system
-        'args': ('jupytext --to py:percent /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
-        'kwargs': {}
-        },
-        {
+        'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
+        'kwargs': {{}}
+        }},
+        {{
         'function': hsystem.system
-        'args': ('git add /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.py',)
-        'kwargs': {}
-        },
+        'args': ('git add $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.py',)
+        'kwargs': {{}}
+        }},
         ]
         """
         expected = hprint.dedent(expected)

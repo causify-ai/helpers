@@ -20,24 +20,35 @@ model: haiku
   tests are failing due to mismatching outputs
 
 ## Step 2
-- If the result is checked with `self.check_string()`
-  - Run the test adding the pytest option `--update_golden` to refresh the output
-- If the result is checked with `self.assert_equal()` or similar assertion
-  (e.g., `hunteuti.assert_sys_calls()`, `self.assertEqual()`)
-  read the file `tmp.final.actual.txt` containing the actual variable and update
-  `expected` variable
-  ```
-  expected = """
-  [{'args': (f'jupytext --to ipynb --update {py_file}',),
-    'function': 'hsystem.system',
-    'kwargs': {}},
-   {'args': (f'jupytext --sync {py_file}',),
-    'function': 'hsystem.system',
-    'kwargs': {}}]
-  """
-  ```
-  - Follow the `## Code Formatting in Tests` in .claude/skills/testing.rules.md
-    - `# Test Input and Output Handling`
+- Check each failing test method and find out if the result is checked with
+  - `self.check_string()`
+  - `self.assert_equal()` or similar assertion (e.g.,
+    `hunteuti.assert_sys_calls()`, `self.assertEqual()`)
+
+- Print a table with the following info:
+  path of test | fail / pass | check_string or assert_equal
+
+## Step 3
+- For each test method
+  - If the result is checked with `self.check_string()`
+    - Run the test adding the pytest option `--update_golden` to refresh the output
+  - If the result is checked with `self.assert_equal()` or similar assertion
+    (e.g., `hunteuti.assert_sys_calls()`, `self.assertEqual()`)
+    read the file `tmp.final.actual.txt` containing the actual variable and update
+    `expected` variable
+    ```
+    expected = """
+    [{'args': (f'jupytext --to ipynb --update {py_file}',),
+      'function': 'hsystem.system',
+      'kwargs': {}},
+     {'args': (f'jupytext --sync {py_file}',),
+      'function': 'hsystem.system',
+      'kwargs': {}}]
+    """
+    ```
+
+- Follow the `## Code Formatting in Tests` in .claude/skills/testing.rules.md
+  - `# Test Input and Output Handling`
 
 - Do not change way of checking results
   - E.g., do not replace `self.assert*()` with `self.check_string()` and vice
