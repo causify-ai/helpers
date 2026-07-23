@@ -263,7 +263,10 @@ class Test_create_branch(hunitest.TestCase):
             ):
                 dshgcgiwo._create_branch(branch_name, create_pr=True)
         # Check outputs: no system calls should be made.
-        expected_str = r"""[]"""
+        expected_str = r"""
+        [
+        ]
+        """
         expected_str = hprint.dedent(expected_str)
         hunteuti.assert_sys_calls(self, invocations, expected_str)
 

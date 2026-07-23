@@ -17,8 +17,12 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 if hserver.is_inside_ci():
-    pytest.skip("Can't run in CI since building the docker images takes too long")
+    pytest.skip(
+        "Can't run in CI since building the docker images takes too long",
+        allow_module_level=True)
+
 
 def _to_output_str(script_txt, output_txt):
     out = ""
