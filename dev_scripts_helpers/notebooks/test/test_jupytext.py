@@ -314,21 +314,19 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._sync(ipynb_file)
         # Check outputs.
-        expected = f"""
-        [
+        ipynb_path = str(ipynb_file)
+        expected = f"""[
         {{
         'function': hsystem.system
-        'args': ('jupytext --to py {ipynb_file}',)
+        'args': ('jupytext --to py {ipynb_path}',)
         'kwargs': {{}}
         }},
         {{
         'function': hsystem.system
-        'args': ('jupytext --sync {ipynb_file}',)
+        'args': ('jupytext --sync {ipynb_path}',)
         'kwargs': {{}}
-        }}
-        ]
-        """
-        expected = hprint.dedent(expected)
+        }},
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test9(self) -> None:
@@ -347,21 +345,19 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._sync(py_file)
         # Check outputs.
-        expected = f"""
-        [
+        py_path = str(py_file)
+        expected = f"""[
         {{
         'function': hsystem.system
-        'args': ('jupytext --to ipynb --update {py_file}',)
+        'args': ('jupytext --to ipynb --update {py_path}',)
         'kwargs': {{}}
         }},
         {{
         'function': hsystem.system
-        'args': ('jupytext --sync {py_file}',)
+        'args': ('jupytext --sync {py_path}',)
         'kwargs': {{}}
-        }}
-        ]
-        """
-        expected = hprint.dedent(expected)
+        }},
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test10(self) -> None:
@@ -383,7 +379,7 @@ class Test_jupytext_py(hunitest.TestCase):
         'function': hsystem.system
         'args': ('jupytext --to py:percent {ipynb_file} -o tmp.jupytext_diff.test_notebook.py',)
         'kwargs': {{}}
-        }}
+        }},
         ]
         """
         expected = hprint.dedent(expected)
@@ -416,7 +412,7 @@ class Test_jupytext_py(hunitest.TestCase):
         'function': hsystem.system_to_string
         'args': ('diff {py_file} tmp.jupytext_diff.test_notebook.py',)
         'kwargs': {{'abort_on_error': False}}
-        }}
+        }},
         ]
         """
         expected = hprint.dedent(expected)
@@ -452,16 +448,13 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = f"""
-        [
+        expected = f"""[
         {{
         'function': hsystem.system
-        'args': ('{executable} -f {ipynb_file} --action pair 2>&1',)
+        'args': ('{cmd}',)
         'kwargs': {{}}
-        }}
-        ]
-        """
-        expected = hprint.dedent(expected)
+        }},
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test14(self) -> None:
@@ -479,16 +472,13 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = f"""
-        [
+        expected = f"""[
         {{
         'function': hsystem.system
-        'args': ('{executable} -f {ipynb_file} --action test 2>&1',)
+        'args': ('{cmd}',)
         'kwargs': {{}}
-        }}
-        ]
-        """
-        expected = hprint.dedent(expected)
+        }},
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test15(self) -> None:
@@ -506,16 +496,13 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = f"""
-        [
+        expected = f"""[
         {{
         'function': hsystem.system
-        'args': ('{executable} -f {ipynb_file} --action test_strict 2>&1',)
+        'args': ('{cmd}',)
         'kwargs': {{}}
-        }}
-        ]
-        """
-        expected = hprint.dedent(expected)
+        }},
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test16(self) -> None:
@@ -536,16 +523,13 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = f"""
-        [
+        expected = f"""[
         {{
         'function': hsystem.system
-        'args': ('{executable} -f {ipynb_file} --action sync 2>&1',)
+        'args': ('{cmd}',)
         'kwargs': {{}}
-        }}
-        ]
-        """
-        expected = hprint.dedent(expected)
+        }},
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test17(self) -> None:
