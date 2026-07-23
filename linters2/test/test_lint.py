@@ -389,7 +389,8 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = r"""[]"""
+        expected = r"""[
+        ]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._run_python_linting_actions(
@@ -422,7 +423,8 @@ class Test_lint_python_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = "[]"
+        expected = r"""[
+        ]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_python_files(
@@ -526,7 +528,8 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = "[]"
+        expected = r"""[
+        ]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_jupyter_files(
@@ -653,7 +656,8 @@ class Test_lint_markdown_files(hunitest.TestCase):
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 0
-        expected = "[]"
+        expected = r"""[
+        ]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             ret = lilint._lint_markdown_files(
