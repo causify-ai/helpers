@@ -8,7 +8,6 @@ including pandoc orchestration, file operations, and system calls.
 
 import logging
 import os
-import pprint
 from typing import Any, Dict, List
 from unittest import mock
 
@@ -71,13 +70,12 @@ class Test_preprocess_notes(hunitest.TestCase):
                 "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
+        expected_str = repr(expected_invocations)
         hunteuti.assert_sys_calls(
             self,
             invocations,
             expected_str,
-            purify_text=True,
-            purify_expected_text=True,
+            dedent=True,
         )
 
 
@@ -130,13 +128,12 @@ class Test_render_images(hunitest.TestCase):
                 "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
+        expected_str = repr(expected_invocations)
         hunteuti.assert_sys_calls(
             self,
             invocations,
             expected_str,
-            purify_text=True,
-            purify_expected_text=True,
+            dedent=True,
         )
 
 
@@ -195,7 +192,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                     tex_only=no_pdf,
                 )
         # Check outputs.
-        invocations_str = hunteuti.sys_calls_to_str(invocations)
+        invocations_str = repr(invocations)
         self.assert_equal(
             invocations_str,
             expected,
@@ -334,7 +331,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         self.assert_equal(
             result, "$GIT_ROOT/tmp.html", fuzzy_match=True, purify_text=True
         )
-        invocations_str = hunteuti.sys_calls_to_str(invocations)
+        invocations_str = repr(invocations)
         self.assert_equal(
             invocations_str,
             expected,
@@ -533,7 +530,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         expected_invocations = self._build_expected_invocations(
             curr_path, file_name, typ_file, typst_only
         )
-        expected_str = pprint.pformat(expected_invocations)
+        expected_str = repr(expected_invocations)
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -613,7 +610,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         expected_invocations = self._build_expected_invocations(
             curr_path, file_name, typ_file, typst_only
         )
-        expected_str = pprint.pformat(expected_invocations)
+        expected_str = repr(expected_invocations)
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -657,7 +654,7 @@ class Test_copy_to_output(hunitest.TestCase):
                 },
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
+        expected_str = repr(expected_invocations)
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -720,7 +717,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
                 },
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
+        expected_str = repr(expected_invocations)
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -788,7 +785,7 @@ class Test_compress_pdf(hunitest.TestCase):
                 },
             },
         ]
-        expected_str = pprint.pformat(expected_invocations)
+        expected_str = repr(expected_invocations)
         hunteuti.assert_sys_calls(
             self,
             invocations,

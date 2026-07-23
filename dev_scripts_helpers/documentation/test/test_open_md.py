@@ -3,6 +3,7 @@ import tempfile
 from unittest import mock
 
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.documentation.open_md as dshdopmd
@@ -184,15 +185,13 @@ class Test_open_file(hunitest.TestCase):
             with hunteuti.capture_sys_calls() as sys_calls:
                 dshdopmd._open_file(file_path)
         # Check outputs.
-        expected_sys_calls = [
-            {
-                "function": "subprocess.run",
-                "args": (["open", file_path],),
-                "kwargs": {"check": True},
-            }
-        ]
-        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        expected = f"""
+        [{{'function': 'subprocess.run',
+          'args': (['open', '{file_path}'],),
+          'kwargs': {{'check': True}}}}]
+        """
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -205,15 +204,13 @@ class Test_open_file(hunitest.TestCase):
             with hunteuti.capture_sys_calls() as sys_calls:
                 dshdopmd._open_file(file_path)
         # Check outputs.
-        expected_sys_calls = [
-            {
-                "function": "subprocess.run",
-                "args": (["xdg-open", file_path],),
-                "kwargs": {"check": True},
-            }
-        ]
-        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        expected = f"""
+        [{{'function': 'subprocess.run',
+          'args': (['xdg-open', '{file_path}'],),
+          'kwargs': {{'check': True}}}}]
+        """
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test3(self) -> None:
         """
@@ -560,18 +557,13 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
                     input_file, backend="dockerized"
                 )
         # Check outputs.
-        expected_sys_calls = [
-            {
-                "function": "hsystem.system",
-                "args": (f"uvx grip -b --quiet {input_file}",),
-                "kwargs": {},
-            }
-        ]
-        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
-        actual = hunteuti.sys_calls_to_str(sys_calls)
-        self.assert_equal(
-            actual, expected, purify_text=True, purify_expected_text=True
-        )
+        expected = f"""
+        [{{'function': 'hsystem.system',
+          'args': ('uvx grip -b --quiet {input_file}',),
+          'kwargs': {{}}}}]
+        """
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test2(self) -> None:
         """

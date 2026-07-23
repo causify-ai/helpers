@@ -1,6 +1,5 @@
 import logging
 import os
-import pprint
 import subprocess
 from typing import Optional
 
@@ -704,6 +703,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out the common code.
 class Test_capture_sys_calls(hunitest.TestCase):
     """
     Test system call capture functionality.
@@ -719,13 +719,12 @@ class Test_capture_sys_calls(hunitest.TestCase):
           'function': 'subprocess.run',
           'kwargs': {'check': False}}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             subprocess.run(["echo", "hello"], check=False)
-        actual = pprint.pformat(sys_calls)
         # Check outputs.
-        self.assert_equal(actual, expected)
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -737,13 +736,12 @@ class Test_capture_sys_calls(hunitest.TestCase):
           'function': 'hsystem.system',
           'kwargs': {'suppress_output': True}}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system("echo hello", suppress_output=True)
-        actual = pprint.pformat(sys_calls)
         # Check outputs.
-        self.assert_equal(actual, expected)
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test3(self) -> None:
         """
@@ -755,13 +753,12 @@ class Test_capture_sys_calls(hunitest.TestCase):
           'function': 'hsystem.system_to_string',
           'kwargs': {'suppress_output': True}}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system_to_string("echo test", suppress_output=True)
-        actual = pprint.pformat(sys_calls)
         # Check outputs.
-        self.assert_equal(actual, expected)
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test4(self) -> None:
         """
@@ -776,14 +773,13 @@ class Test_capture_sys_calls(hunitest.TestCase):
           'function': 'hsystem.system_to_string',
           'kwargs': {'suppress_output': True}}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system("echo hello", suppress_output=True)
             hsystem.system_to_string("echo world", suppress_output=True)
-        actual = pprint.pformat(sys_calls)
         # Check outputs.
-        self.assert_equal(actual, expected)
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, sys_calls, expected, dedent=True)
 
     def test5(self) -> None:
         """
