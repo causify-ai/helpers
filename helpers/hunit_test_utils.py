@@ -717,4 +717,6 @@ def assert_sys_calls(
         assert_equal_kwargs["dedent"] = True
     if "fuzzy_match" not in assert_equal_kwargs:
         assert_equal_kwargs["fuzzy_match"] = True
+    if "purify_text" not in assert_equal_kwargs:
+        assert_equal_kwargs["purify_text"] = True
     self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)

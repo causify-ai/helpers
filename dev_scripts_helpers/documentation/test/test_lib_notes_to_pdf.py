@@ -53,7 +53,7 @@ class Test_preprocess_notes(hunitest.TestCase):
         expected_str = r"""[
         {
         'function': hsystem.system_to_string
-        'args': ('find /Users/saggese/src/umd_classes1/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
+        'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
         'kwargs': {}
         },
         {
@@ -100,12 +100,12 @@ class Test_render_images(hunitest.TestCase):
         expected_str = r"""[
         {
         'function': hsystem.system_to_string
-        'args': ('find /Users/saggese/src/umd_classes1/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "render_images.py" -print',)
+        'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "render_images.py" -print',)
         'kwargs': {}
         },
         {
         'function': hsystem.system
-        'args': (' --input /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_render_images.test1/tmp.scratch/notes.txt --output /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_render_images.test1/tmp.scratch/tmp.notes.render_image.txt --action render',)
+        'args': (' --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_render_images.test1/tmp.scratch/notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_render_images.test1/tmp.scratch/tmp.notes.render_image.txt --action render',)
         'kwargs': {'log_level': 10, 'suppress_output': False}
         },
         ]"""
