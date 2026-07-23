@@ -17,6 +17,8 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+if hserver.is_inside_ci():
+    pytest.skip("Can't run in CI since building the docker images takes too long")
 
 def _to_output_str(script_txt, output_txt):
     out = ""
@@ -292,9 +294,6 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Getting stuck inside CI"
-)
 class Test_notes_to_pdf_filters(hunitest.TestCase):
     """
     Test `notes_to_pdf.py` filter options (by header, lines, slides, name).

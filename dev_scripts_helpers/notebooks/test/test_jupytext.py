@@ -206,19 +206,28 @@ class Test_jupytext_py(hunitest.TestCase):
             dshenoju._pair(ipynb_file)
         # Check outputs.
         expected = r"""
-        [{'args': ('jupytext --update-metadata ' ''{"jupytext":{"formats":"ipynb,py:percent"}}' '
-                   f'{ipynb_file}',),
-          'function': 'hsystem.system',
-          'kwargs': {}},
-         {'args': (f'jupytext --test --stop --to py:percent {ipynb_file}',),
-          'function': 'hsystem.system',
-          'kwargs': {}},
-         {'args': (f'jupytext --to py:percent {ipynb_file}',),
-          'function': 'hsystem.system',
-          'kwargs': {}},
-         {'args': (f'git add {scratch_dir}/test_notebook.py',),
-          'function': 'hsystem.system',
-          'kwargs': {}}]
+        [
+        {
+        'function': hsystem.system
+        'args': ('jupytext --update-metadata \'{"jupytext":{"formats":"ipynb,py:percent"}}\' /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': ('jupytext --test --stop --to py:percent /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': ('jupytext --to py:percent /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.ipynb',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': ('git add /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test5/tmp.scratch/test_notebook.py',)
+        'kwargs': {}
+        },
+        ]
         """
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
@@ -239,16 +248,19 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._test(ipynb_file, "test")
         # Check outputs.
-        expected = r"""
-        [{'args': (f'jupytext --to py:percent {ipynb_file} -o ''tmp.jupytext_diff.test_notebook.py',),
-          'function': 'hsystem.system',
-          'kwargs': {}},
-         {'args': (f'diff {py_file} tmp.jupytext_diff.test_notebook.py',),
-          'function': 'hsystem.system_to_string',
-          'kwargs': {'abort_on_error': False}},
-         {'args': (f'jupytext --test --stop --to py:percent {ipynb_file}',),
-          'function': 'hsystem.system_to_string',
-          'kwargs': {'abort_on_error': False}}]
+        expected = f"""
+        [
+        {{
+        'function': hsystem.system
+        'args': ('jupytext --to py:percent {ipynb_file} -o tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {{}}
+        }},
+        {{
+        'function': hsystem.system_to_string
+        'args': ('diff {py_file} tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {{'abort_on_error': False}}
+        }},
+        ]
         """
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
