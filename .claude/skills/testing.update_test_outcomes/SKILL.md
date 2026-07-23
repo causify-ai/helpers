@@ -27,6 +27,15 @@ model: haiku
 
 - Print a table with the following info:
   path of test | fail / pass | check_string or assert_equal
+  ```
+  | Path | Test | Status | Assertion Method |
+  |------|------|--------|------------------|
+  | dev_scripts_helpers/documentation/test/test_notes_to_pdf.py | Test_notes_to_pdf_latex_options::test1 | FAIL | self.assert_equal() with fuzzy_match=True |
+  | dev_scripts_helpers/documentation/test/test_notes_to_pdf.py | Test_notes_to_pdf_latex_options::test2 | FAIL | self.assert_equal() with fuzzy_match=True |
+  | dev_scripts_helpers/documentation/test/test_notes_to_pdf.py | Test_notes_to_pdf_output_types::test1 | FAIL | self.assert_equal() with fuzzy_match=True |
+  ```
+
+- Save this to a file `tmp.update_test_outcomes.failing_tests.md`
 
 ## Step 3
 - For each test method

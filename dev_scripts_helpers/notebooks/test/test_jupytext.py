@@ -249,20 +249,20 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._test(ipynb_file, "test")
         # Check outputs.
-        expected = f"""
-        [
-        {{
-        'function': hsystem.system
-        'args': ('jupytext --to py:percent {ipynb_file} -o tmp.jupytext_diff.test_notebook.py',)
-        'kwargs': {{}}
-        }},
-        {{
-        'function': hsystem.system_to_string
-        'args': ('diff {py_file} tmp.jupytext_diff.test_notebook.py',)
-        'kwargs': {{'abort_on_error': False}}
-        }},
-        ]
-        """
+        expected = r"""
+[
+{
+'function': hsystem.system
+'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test6/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
+'kwargs': {}
+},
+{
+'function': hsystem.system_to_string
+'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test6/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
+'kwargs': {'abort_on_error': False}
+},
+]
+"""
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
@@ -282,20 +282,20 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._test(ipynb_file, "test_strict")
         # Check outputs.
-        expected = f"""
-        [
-        {{
-        'function': hsystem.system
-        'args': ('jupytext --to py:percent {ipynb_file} -o tmp.jupytext_diff.test_notebook.py',)
-        'kwargs': {{}}
-        }},
-        {{
-        'function': hsystem.system_to_string
-        'args': ('diff {py_file} tmp.jupytext_diff.test_notebook.py',)
-        'kwargs': {{'abort_on_error': False}}
-        }},
-        ]
-        """
+        expected = r"""
+[
+{
+'function': hsystem.system
+'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test7/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
+'kwargs': {}
+},
+{
+'function': hsystem.system_to_string
+'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test7/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
+'kwargs': {'abort_on_error': False}
+},
+]
+"""
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
@@ -315,19 +315,18 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._sync(ipynb_file)
         # Check outputs.
-        ipynb_path = str(ipynb_file)
-        expected = f"""[
-        {{
-        'function': hsystem.system
-        'args': ('jupytext --to py {ipynb_path}',)
-        'kwargs': {{}}
-        }},
-        {{
-        'function': hsystem.system
-        'args': ('jupytext --sync {ipynb_path}',)
-        'kwargs': {{}}
-        }},
-        ]"""
+        expected = r"""[
+{
+'function': hsystem.system
+'args': ('jupytext --to py $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test8/tmp.scratch/test_notebook.ipynb',)
+'kwargs': {}
+},
+{
+'function': hsystem.system
+'args': ('jupytext --sync $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test8/tmp.scratch/test_notebook.ipynb',)
+'kwargs': {}
+},
+]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test9(self) -> None:
@@ -346,19 +345,18 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._sync(py_file)
         # Check outputs.
-        py_path = str(py_file)
-        expected = f"""[
-        {{
-        'function': hsystem.system
-        'args': ('jupytext --to ipynb --update {py_path}',)
-        'kwargs': {{}}
-        }},
-        {{
-        'function': hsystem.system
-        'args': ('jupytext --sync {py_path}',)
-        'kwargs': {{}}
-        }},
-        ]"""
+        expected = r"""[
+{
+'function': hsystem.system
+'args': ('jupytext --to ipynb --update $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test9/tmp.scratch/test_notebook.py',)
+'kwargs': {}
+},
+{
+'function': hsystem.system
+'args': ('jupytext --sync $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test9/tmp.scratch/test_notebook.py',)
+'kwargs': {}
+},
+]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test10(self) -> None:
@@ -374,15 +372,15 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._extract_python_from_notebook(ipynb_file)
         # Check outputs.
-        expected = f"""
-        [
-        {{
-        'function': hsystem.system
-        'args': ('jupytext --to py:percent {ipynb_file} -o tmp.jupytext_diff.test_notebook.py',)
-        'kwargs': {{}}
-        }},
-        ]
-        """
+        expected = r"""
+[
+{
+'function': hsystem.system
+'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test10/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
+'kwargs': {}
+},
+]
+"""
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
@@ -402,20 +400,20 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             _, _ = dshenoju._is_notebook_in_sync(ipynb_file)
         # Check outputs: should have extract and diff calls.
-        expected = f"""
-        [
-        {{
-        'function': hsystem.system
-        'args': ('jupytext --to py:percent {ipynb_file} -o tmp.jupytext_diff.test_notebook.py',)
-        'kwargs': {{}}
-        }},
-        {{
-        'function': hsystem.system_to_string
-        'args': ('diff {py_file} tmp.jupytext_diff.test_notebook.py',)
-        'kwargs': {{'abort_on_error': False}}
-        }},
-        ]
-        """
+        expected = r"""
+[
+{
+'function': hsystem.system
+'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test11/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
+'kwargs': {}
+},
+{
+'function': hsystem.system_to_string
+'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test11/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
+'kwargs': {'abort_on_error': False}
+},
+]
+"""
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
@@ -449,13 +447,13 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = f"""[
-        {{
-        'function': hsystem.system
-        'args': ('{cmd}',)
-        'kwargs': {{}}
-        }},
-        ]"""
+        expected = r"""[
+{
+'function': hsystem.system
+'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test13/tmp.scratch/test_notebook.ipynb --action pair 2>&1',)
+'kwargs': {}
+},
+]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test14(self) -> None:
@@ -473,13 +471,13 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = f"""[
-        {{
-        'function': hsystem.system
-        'args': ('{cmd}',)
-        'kwargs': {{}}
-        }},
-        ]"""
+        expected = r"""[
+{
+'function': hsystem.system
+'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test14/tmp.scratch/test_notebook.ipynb --action test 2>&1',)
+'kwargs': {}
+},
+]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test15(self) -> None:
@@ -497,13 +495,13 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = f"""[
-        {{
-        'function': hsystem.system
-        'args': ('{cmd}',)
-        'kwargs': {{}}
-        }},
-        ]"""
+        expected = r"""[
+{
+'function': hsystem.system
+'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test15/tmp.scratch/test_notebook.ipynb --action test_strict 2>&1',)
+'kwargs': {}
+},
+]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test16(self) -> None:
@@ -524,13 +522,13 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = f"""[
-        {{
-        'function': hsystem.system
-        'args': ('{cmd}',)
-        'kwargs': {{}}
-        }},
-        ]"""
+        expected = r"""[
+{
+'function': hsystem.system
+'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test16/tmp.scratch/test_notebook.ipynb --action sync 2>&1',)
+'kwargs': {}
+},
+]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test17(self) -> None:
