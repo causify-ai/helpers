@@ -14,6 +14,7 @@ from unittest import mock
 
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
@@ -50,17 +51,17 @@ class Test_preprocess_notes(hunitest.TestCase):
         expected_result = f"{prefix}.preprocess_notes.txt"
         self.assert_equal(result, expected_result)
         expected_str = r"""[
-    {
-    'function': hsystem.system_to_string
-    'args': ('find /Users/saggese/src/umd_classes1/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
-    'kwargs': {}
-    },
-    {
-    'function': hsystem.system
-    'args': (' --input input.txt --output tmp.pandoc.preprocess_notes.txt --type pdf --toc_type pandoc_native --output_format latex',)
-    'kwargs': {'log_level': 10, 'suppress_output': False}
-    },
-]"""
+        {
+        'function': hsystem.system_to_string
+        'args': ('find /Users/saggese/src/umd_classes1/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': (' --input input.txt --output tmp.pandoc.preprocess_notes.txt --type pdf --toc_type pandoc_native --output_format latex',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -97,17 +98,17 @@ class Test_render_images(hunitest.TestCase):
         expected_result = f"{prefix}.render_image2.txt"
         self.assert_equal(result, expected_result)
         expected_str = r"""[
-    {
-    'function': hsystem.system_to_string
-    'args': ('find /Users/saggese/src/umd_classes1/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "render_images.py" -print',)
-    'kwargs': {}
-    },
-    {
-    'function': hsystem.system
-    'args': (' --input /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_render_images.test1/tmp.scratch/notes.txt --output /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_render_images.test1/tmp.scratch/tmp.notes.render_image.txt --action render',)
-    'kwargs': {'log_level': 10, 'suppress_output': False}
-    },
-]"""
+        {
+        'function': hsystem.system_to_string
+        'args': ('find /Users/saggese/src/umd_classes1/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "render_images.py" -print',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': (' --input /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_render_images.test1/tmp.scratch/notes.txt --output /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_render_images.test1/tmp.scratch/tmp.notes.render_image.txt --action render',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -188,6 +189,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         no_pdf = False
+        # TODO(ai_gp): Format better.
         expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}, {'function': 'hsystem.system_to_string', 'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "dev_scripts_helpers" -print',), 'kwargs': {}}, {'function': 'hsystem.system', 'args': ('cp -f documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch',), 'kwargs': {'log_level': 10, 'suppress_output': False}}, {'function': 'hsystem.system', 'args': ('pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch -interaction=nonstopmode -halt-on-error -shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected)
@@ -199,6 +201,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         no_pdf = True
+        # TODO(ai_gp): Format better.
         expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         result = self.helper(toc_type, no_pdf, expected, prefix_suffix="tmp.tex")
@@ -215,6 +218,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "pandoc_native"
         no_pdf = True
+        # TODO(ai_gp): Format better.
         expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/tmp.pdf.tex --toc --toc-depth 2',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected)
@@ -280,6 +284,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "none"
+        # TODO(ai_gp): Format better.
         expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
@@ -291,6 +296,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "pandoc_native"
+        # TODO(ai_gp): Format better.
         expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
@@ -302,6 +308,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "notes.md"
         toc_type = "none"
+        # TODO(ai_gp): Format better.
         expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
@@ -457,20 +464,125 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         Test Typst 3-stage pipeline stages.
         """
         # Prepare inputs.
-        typst_only = False
-        expected_ext = ".pdf"
-        # Run test.
-        self.helper(typst_only, expected_ext)
+        scratch_dir = self.get_scratch_space()
+        curr_path = scratch_dir
+        file_name = os.path.join(scratch_dir, "slides.txt")
+        hio.to_file(file_name, "# Slides\n\nContent")
+        use_host_tools = True
+        dockerized_force_rebuild = False
+        dockerized_use_sudo = False
+        # Create template file.
+        template_file = os.path.join(curr_path, "pandoc_touying.typ")
+        hio.to_file(template_file, "Typst template")
+        # Create the intermediate `.typ` file.
+        typ_file = file_name.replace(".txt", ".typ")
+        hio.to_file(typ_file, "placeholder typst content")
+        real_dev_scripts_helpers_dir = hgit.find_file("dev_scripts_helpers")
+        # Run test and capture system calls.
+        with hunteuti.capture_sys_calls() as invocations:
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                with mock.patch.object(
+                    dshdlntpd.hgit,
+                    "find_file",
+                    side_effect=self._find_file_side_effect(
+                        real_dev_scripts_helpers_dir
+                    ),
+                ):
+                    with mock.patch(
+                        "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
+                    ):
+                        result = dshdlntpd._run_pandoc_to_typst_slides(
+                            curr_path,
+                            file_name,
+                            use_host_tools,
+                            dockerized_force_rebuild,
+                            dockerized_use_sudo,
+                            typst_only=False,
+                        )
+        # Check outputs.
+        self.assert_equal(result, file_name.replace(".txt", ".pdf"))
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test1/tmp.scratch/slides.txt -f markdown --number-sections -s -t typst --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test1/tmp.scratch/pandoc_touying.typ --resource-path=dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test1/tmp.scratch -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test1/tmp.scratch/slides.typ',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        {
+        'function': hsystem.system
+        'args': ('typst compile --root $GIT_ROOT $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test1/tmp.scratch/slides.typ $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test1/tmp.scratch/slides.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
+        expected_str = hprint.dedent(expected_str)
+        hunteuti.assert_sys_calls(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test2(self) -> None:
         """
         Test return .typ file when typst_only=True.
         """
         # Prepare inputs.
-        typst_only = True
-        expected_ext = ".typ"
-        # Run test.
-        self.helper(typst_only, expected_ext)
+        scratch_dir = self.get_scratch_space()
+        curr_path = scratch_dir
+        file_name = os.path.join(scratch_dir, "slides.txt")
+        hio.to_file(file_name, "# Slides\n\nContent")
+        use_host_tools = True
+        dockerized_force_rebuild = False
+        dockerized_use_sudo = False
+        # Create template file.
+        template_file = os.path.join(curr_path, "pandoc_touying.typ")
+        hio.to_file(template_file, "Typst template")
+        # Create the intermediate `.typ` file.
+        typ_file = file_name.replace(".txt", ".typ")
+        hio.to_file(typ_file, "placeholder typst content")
+        real_dev_scripts_helpers_dir = hgit.find_file("dev_scripts_helpers")
+        # Run test and capture system calls.
+        with hunteuti.capture_sys_calls() as invocations:
+            with mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
+            ):
+                with mock.patch.object(
+                    dshdlntpd.hgit,
+                    "find_file",
+                    side_effect=self._find_file_side_effect(
+                        real_dev_scripts_helpers_dir
+                    ),
+                ):
+                    with mock.patch(
+                        "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
+                    ):
+                        result = dshdlntpd._run_pandoc_to_typst_slides(
+                            curr_path,
+                            file_name,
+                            use_host_tools,
+                            dockerized_force_rebuild,
+                            dockerized_use_sudo,
+                            typst_only=True,
+                        )
+        # Check outputs.
+        self.assert_equal(result, file_name.replace(".txt", ".typ"))
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test2/tmp.scratch/slides.txt -f markdown --number-sections -s -t typst --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test2/tmp.scratch/pandoc_touying.typ --resource-path=dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test2/tmp.scratch -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test2/tmp.scratch/slides.typ',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
+        expected_str = hprint.dedent(expected_str)
+        hunteuti.assert_sys_calls(
+            self,
+            invocations,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
     def test3(self) -> None:
         """
@@ -520,10 +632,19 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         expected_typ_content = 'image("/path/to/image.png")'
         actual_typ_content = hio.from_file(typ_file)
         self.assert_equal(actual_typ_content, expected_typ_content)
-        expected_invocations = self._build_expected_invocations(
-            curr_path, file_name, typ_file, typst_only
-        )
-        expected_str = repr(expected_invocations)
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt -f markdown --number-sections -s -t typst --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/pandoc_touying.typ --resource-path=dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        {
+        'function': hsystem.system
+        'args': ('typst compile --root $GIT_ROOT $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
+        expected_str = hprint.dedent(expected_str)
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -558,12 +679,12 @@ class Test_copy_to_output(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(result, output)
         expected_str = r"""[
-    {
-    'function': hsystem.system
-    'args': ('\\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/source.txt $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/output.txt',)
-    'kwargs': {'log_level': 10, 'suppress_output': False}
-    },
-]"""
+        {
+        'function': hsystem.system
+        'args': ('\\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/source.txt $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/output.txt',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -616,6 +737,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         # Check outputs.
         basename = os.path.basename(input_).replace(".txt", "." + ext)
         dst_file = os.path.join(gdrive_dir, basename)
+        # TODO(ai_gp): Fix this.
         expected_invocations = [
             {
                 "function": "hsystem.system",
@@ -651,12 +773,12 @@ class Test_copy_to_gdrive(hunitest.TestCase):
             dshdlntpd._copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
         expected_str = r"""[
-    {
-    'function': hsystem.system
-    'args': ('\\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/output.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/notes.pdf',)
-    'kwargs': {'log_level': 10, 'suppress_output': False}
-    },
-]"""
+        {
+        'function': hsystem.system
+        'args': ('\\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/output.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/notes.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
         hunteuti.assert_sys_calls(
             self,
             invocations,
@@ -690,17 +812,18 @@ class Test_compress_pdf(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(result, pdf_file)
         expected_str = r"""[
-            {
-            'function': hsystem.system
-            'args': ('/opt/homebrew/bin/gs -sDEVICE=pdfwrite -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=$GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',)
-            'kwargs': {'log_level': 10, 'suppress_output': False}
-            },
-            {
-            'function': hsystem.system
-            'args': ('mv $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',)
-            'kwargs': {'log_level': 10, 'suppress_output': False}
-            },
+        {
+        'function': hsystem.system
+        'args': ('/opt/homebrew/bin/gs -sDEVICE=pdfwrite -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=$GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        {
+        'function': hsystem.system
+        'args': ('mv $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
         ]"""
+        expected_str = hprint.dedent(expected_str)
         hunteuti.assert_sys_calls(
             self,
             invocations,

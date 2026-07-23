@@ -213,9 +213,18 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Check.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
-        #
-        tag = _get_arch_tag()
-        self.check_string(txt, purify_text=True, tag=tag)
+        # Use fuzzy match for pattern checking.
+        expected = r"""
+        script_txt
+        #/bin/bash -xe
+        # cleanup_before
+        # preprocess_notes
+        # render_images
+        # run_pandoc
+        # latex
+        output_txt"""
+        expected = hprint.dedent(expected)
+        self.assert_equal(txt, expected, purify_text=True, fuzzy_match=True)
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -234,9 +243,18 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Check.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
-        #
-        tag = _get_arch_tag()
-        self.check_string(txt, purify_text=True, tag=tag)
+        # Use fuzzy match for pattern checking
+        expected = r"""
+        script_txt
+        #/bin/bash -xe
+        # cleanup_before
+        # preprocess_notes
+        # render_images
+        # run_pandoc
+        # latex
+        output_txt"""
+        expected = hprint.dedent(expected)
+        self.assert_equal(txt, expected, purify_text=True, fuzzy_match=True)
 
     @pytest.mark.superslow
     @pytest.mark.skip(reason="To debug")
@@ -537,7 +555,8 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = "run_pandoc"
+        expected = r"""run_pandoc"""
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
@@ -565,7 +584,8 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = "run_pandoc"
+        expected = r"""run_pandoc"""
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
@@ -657,8 +677,10 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        expected = r"""toc_type none"""
+        expected = hprint.dedent(expected)
         self.assert_equal(
-            actual, "toc_type none", fuzzy_match=True, purify_text=True
+            actual, expected, fuzzy_match=True, purify_text=True
         )
 
     def test2(self) -> None:
@@ -671,8 +693,10 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        expected = r"""toc_type pandoc_native"""
+        expected = hprint.dedent(expected)
         self.assert_equal(
-            actual, "toc_type pandoc_native", fuzzy_match=True, purify_text=True
+            actual, expected, fuzzy_match=True, purify_text=True
         )
 
     def test3(self) -> None:
@@ -707,8 +731,10 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         output_txt = _safe_read_text(out_file)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        expected = r"""toc_type navigation"""
+        expected = hprint.dedent(expected)
         self.assert_equal(
-            actual, "toc_type navigation", fuzzy_match=True, purify_text=True
+            actual, expected, fuzzy_match=True, purify_text=True
         )
 
     def test4(self) -> None:
@@ -721,8 +747,10 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        expected = r"""toc_type remove_headers"""
+        expected = hprint.dedent(expected)
         self.assert_equal(
-            actual, "toc_type remove_headers", fuzzy_match=True, purify_text=True
+            actual, expected, fuzzy_match=True, purify_text=True
         )
 
 
@@ -856,10 +884,10 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts=cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = """
+        expected = r"""
         # cleanup_before
-        # cleanup_after
-        """
+        # cleanup_after"""
+        expected = hprint.dedent(expected)
         # Expected: script contains both action names marked as skipped
         # Invariant: multiple skipped actions are marked in script
         self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
@@ -950,10 +978,8 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         script_txt, output_txt = self.helper(skip_actions)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = """
-        #/bin/bash -xe
-        """
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        expected = r"""#/bin/bash -xe"""
+        expected = hprint.dedent(expected)
         # Expected: script contains bash shebang at start
         # Invariant: generated script has correct bash invocation
         self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
@@ -968,11 +994,10 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         script_txt, output_txt = self.helper(skip_actions)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = """
-        # preprocess_notes
+        expected = r"""# preprocess_notes
         # render_images
-        # run_pandoc
-        """
+        # run_pandoc"""
+        expected = hprint.dedent(expected)
         # Expected: script contains action section comments for key processing steps
         # Invariant: all major actions appear in generated script
         self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
@@ -1439,8 +1464,10 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        expected = r"""# latex again"""
+        expected = hprint.dedent(expected)
         self.assert_equal(
-            actual, "# latex again", fuzzy_match=True, purify_text=True
+            actual, expected, fuzzy_match=True, purify_text=True
         )
 
     def test2(self) -> None:

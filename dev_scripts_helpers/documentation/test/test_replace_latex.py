@@ -135,16 +135,18 @@ class Test_replace_latex_py(hunitest.TestCase):
             file_path,
         ]
         # Prepare outputs.
-        expected = f"""
-        [{{'function': 'hsystem.system',
-          'args': ('git checkout -- {file_path}',),
-          'kwargs': {{}}}}]
-        """
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('git checkout -- $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test1/tmp.scratch/test.txt',)
+        'kwargs': {}
+        },
+        ]"""
         # Run test.
         actual = self._run_main(argv)
         # Check outputs.
-        expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, actual, expected, dedent=True)
+        expected_str = hprint.dedent(expected_str)
+        hunteuti.assert_sys_calls(self, actual, expected_str, dedent=True, purify_text=True, purify_expected_text=True)
 
     def test2(self) -> None:
         """
@@ -165,18 +167,23 @@ class Test_replace_latex_py(hunitest.TestCase):
             file_path,
         ]
         # Prepare outputs.
-        cmd = (
-            f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {file_path}"
-        )
-        expected = f"""
-        [{{'function': 'hsystem.system', 'args': ('{cmd}',), 'kwargs': {{}}}},
-         {{'function': 'hsystem.system', 'args': ('{cmd}',), 'kwargs': {{}}}}]
-        """
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',)
+        'kwargs': {}
+        },
+        ]"""
         # Run test.
         actual = self._run_main(argv)
         # Check outputs.
-        expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, actual, expected, dedent=True)
+        expected_str = hprint.dedent(expected_str)
+        hunteuti.assert_sys_calls(self, actual, expected_str, dedent=True, purify_text=True, purify_expected_text=True)
 
     def test3(self) -> None:
         """
