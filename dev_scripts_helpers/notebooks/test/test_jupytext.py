@@ -282,7 +282,7 @@ class Test_jupytext_py(hunitest.TestCase):
           'kwargs': {'abort_on_error': False}}]
         """
         expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, sys_calls, expected
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test8(self) -> None:
         """

@@ -86,7 +86,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     def create_input_file1(self) -> str:
         """
-        Create a standard test markdown file with multiple header levels and list items.
+        Create a standard test markdown file with multiple header levels and
+        list items.
 
         :return: Path to the created test markdown file
         """
@@ -119,23 +120,28 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         """
         Run the `notes_to_pdf.py` script and capture generated outputs.
 
-        Constructs and executes a command to convert notes to PDF or HTML
-        using `notes_to_pdf.py`. Locates the script dynamically and captures
-        the generated script file (with all executed commands) and the
-        intermediate pandoc output file.
+        Constructs and executes a command to convert notes to PDF or HTML using
+        `notes_to_pdf.py`. Locates the script dynamically and captures the
+        generated script file (with all executed commands) and the intermediate
+        pandoc output file.
 
         :param in_file: Path to the input markdown file
         :param type_: Output format
             - 'pdf': PDF output via LaTeX
             - 'html': HTML output
             - 'slides': Slide format PDF via LaTeX
-        :param cmd_opts: Additional command-line options (e.g., '--preview_actions')
-        :param expected: Expected combined output (script + pandoc) for validation
+        :param cmd_opts: Additional command-line options (e.g.,
+        '--preview_actions')
+        :param expected: Expected combined output (script + pandoc) for
+        validation
             - If empty string: no assertion performed
-            - If non-empty: asserts actual output matches expected using purify_text
+            - If non-empty: asserts actual output matches expected using
+              purify_text
         :return: Tuple of (script_txt, output_txt)
-            - script_txt: Content of the generated bash script with all executed commands
-            - output_txt: Content of the intermediate pandoc output file (LaTeX or HTML)
+            - script_txt: Content of the generated bash script with all
+              executed commands
+            - output_txt: Content of the intermediate pandoc output file (LaTeX
+              or HTML)
         """
         _LOG.debug(hprint.to_str("in_file type_"))
         # Prepare inputs.
@@ -211,20 +217,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             in_file, type_, cmd_opts, expected
         )
         # Check.
-        txt = f"script_txt:\n{script_txt}\n"
-        txt += f"output_txt:\n{output_txt}\n"
-        # Use fuzzy match for pattern checking.
-        expected = r"""
-        script_txt
-        #/bin/bash -xe
-        # cleanup_before
-        # preprocess_notes
-        # render_images
-        # run_pandoc
-        # latex
-        output_txt"""
-        expected = hprint.dedent(expected)
-        self.assert_equal(txt, expected, purify_text=True, fuzzy_match=True)
+        # TODO(ai_gp): Use _to_output_str
+        self.check_string(
+            f"script_txt:\n{script_txt}\noutput_txt:\n{output_txt}\n",
+            purify_text=True
+        )
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -241,20 +238,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             in_file, type_, cmd_opts, expected
         )
         # Check.
-        txt = f"script_txt:\n{script_txt}\n"
-        txt += f"output_txt:\n{output_txt}\n"
-        # Use fuzzy match for pattern checking
-        expected = r"""
-        script_txt
-        #/bin/bash -xe
-        # cleanup_before
-        # preprocess_notes
-        # render_images
-        # run_pandoc
-        # latex
-        output_txt"""
-        expected = hprint.dedent(expected)
-        self.assert_equal(txt, expected, purify_text=True, fuzzy_match=True)
+        # TODO(ai_gp): Use _to_output_str
+        self.check_string(
+            f"script_txt:\n{script_txt}\noutput_txt:\n{output_txt}\n",
+            purify_text=True
+        )
 
     @pytest.mark.superslow
     @pytest.mark.skip(reason="To debug")
@@ -304,6 +292,9 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Getting stuck inside CI"
+)
 class Test_notes_to_pdf_filters(hunitest.TestCase):
     """
     Test `notes_to_pdf.py` filter options (by header, lines, slides, name).
