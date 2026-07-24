@@ -854,3 +854,93 @@ class Test_capture_sys_calls(hunitest.TestCase):
             pass
         # Check outputs.
         self.assertEqual(len(sys_calls), expected_num_sys_calls)
+
+
+# #############################################################################
+# Test_sys_calls_to_str
+# #############################################################################
+
+
+class Test_sys_calls_to_str(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Convert single system call to string representation.
+        """
+        cmd = "pandoc input.md -t json"
+        expected_sys_calls = [
+            {
+                "function": "hsystem.system",
+                "args": (cmd,),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                    "print_command": True,
+                },
+            },
+        ]
+        expected_str = r"""
+        [
+            {
+            'function': hsystem.system,
+            'args': ('pandoc input.md -t json',),
+            'kwargs': {'log_level': 10, 'suppress_output': False, 'print_command': True},
+            },
+        ]"""
+        expected_str = hprint.dedent(expected_str)
+        # Run test.
+        actual_str = hunteuti._sys_calls_to_str(expected_sys_calls)
+        # Check outputs.
+        self.assert_equal(actual_str, expected_str)
+
+    def test2(self) -> None:
+        """
+        Convert multiple system calls to string representation.
+        """
+        expected_sys_calls = [
+            {
+                "function": "hsystem.system",
+                "args": ("find . -name '*.py'",),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False,
+                },
+            },
+            {
+                "function": "hsystem.system_to_string",
+                "args": ("echo test",),
+                "kwargs": {},
+            },
+        ]
+        expected_str = r"""
+        [
+            {
+            'function': hsystem.system,
+            'args': ("find . -name '*.py'",),
+            'kwargs': {'log_level': 10, 'suppress_output': False},
+            },
+            {
+            'function': hsystem.system_to_string,
+            'args': ('echo test',),
+            'kwargs': {},
+            },
+        ]"""
+        expected_str = hprint.dedent(expected_str)
+        # Run test.
+        actual_str = hunteuti._sys_calls_to_str(expected_sys_calls)
+        # Check outputs.
+        self.assert_equal(actual_str, expected_str)
+
+    def test3(self) -> None:
+        """
+        Empty system calls list returns formatted empty list.
+        """
+        expected_sys_calls = []
+        expected_str = r"""
+        [
+        ]"""
+        expected_str = hprint.dedent(expected_str)
+        # Run test.
+        actual_str = hunteuti._sys_calls_to_str(expected_sys_calls)
+        # Check outputs.
+        self.assert_equal(actual_str, expected_str)

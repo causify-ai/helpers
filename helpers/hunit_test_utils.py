@@ -671,6 +671,7 @@ def _sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:
 
     :param sys_calls: List of system calls to format
     :return: Formatted string representation
+    // TODO(ai_gp): Add example
     """
     # `pprint.pformat()` is unstable so we format it by hand, using the
     # knowledge of the structure.
@@ -681,7 +682,8 @@ def _sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:
         hdbg.dassert_isinstance(dict_, dict)
         dict_as_list = ["    {"]
         for k, v in dict_.items():
-            dict_as_list.append("    '%s': %s" % (k, v))
+            hdbg.dassert_isinstance(k, str)
+            dict_as_list.append("    '%s': %s," % (k, v))
         dict_as_list.append("    },")
         dict_as_str = "\n".join(dict_as_list)
         txt_list.append(dict_as_str)

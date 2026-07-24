@@ -1,18 +1,23 @@
-In src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
+Add unit test for 
 
-Use
-  ```
-  expected = r"""
-  [
-  {'function': 'hsystem.system', 
-  'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 
-  'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
-  ```
-  instead of 
-  ```
-  expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
+_sys_calls_to_str
 
-  ```
+using one of the examples of 
+        expected_sys_calls = [
+            {
+                "function": "hsystem.system",
+                "args": (cmd,),
+                "kwargs": {
+                    "log_level": logging.DEBUG,
+                    "suppress_output": False, "print_command": True,
+                },
+            },
+        ]
+        expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
+
+in
+
+Test_run_pandoc_from_ast
 
 # Conventions
 - When writing code you must always follow the instructions in
