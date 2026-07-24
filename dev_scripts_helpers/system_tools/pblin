@@ -1,0 +1,8 @@
+#!/bin/bash
+# """
+# Linearize the clipboard.
+# """
+
+printf '%s' "$(pbpaste | xargs)" | pbcopy
+echo "clipboard="
+pbpaste

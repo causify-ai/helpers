@@ -12,6 +12,7 @@
 #import "@preview/touying:0.6.1": *
 #import themes.simple: *
 
+//#include "./typst_abbrevs.typ"
 #include "../../helpers_root/dev_scripts_helpers/documentation/typst_abbrevs.typ"
 
 // Configure theme to match beamer's 4:3 aspect ratio.
