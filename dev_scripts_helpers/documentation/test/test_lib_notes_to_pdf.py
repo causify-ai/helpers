@@ -50,14 +50,14 @@ class Test_preprocess_notes(hunitest.TestCase):
         expected_str = r"""
         [
         {
-        'function': hsystem.system_to_string
-        'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
-        'kwargs': {}
+        'function': hsystem.system_to_string,
+        'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',),
+        'kwargs': {},
         },
         {
-        'function': hsystem.system
-        'args': (' --input input.txt --output tmp.pandoc.preprocess_notes.txt --type pdf --toc_type pandoc_native --output_format latex',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': (' --input input.txt --output tmp.pandoc.preprocess_notes.txt --type pdf --toc_type pandoc_native --output_format latex',),
+        'kwargs': {'log_level': 10, 'suppress_output': False},
         },
         ]
         """
@@ -403,7 +403,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         [
         {'function': hsystem.system,
         'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.pdf.tex',),
-        'kwargs': {'log_level': 10, 'suppress_output': False}}]
+        'kwargs': {'log_level': 10, 'suppress_output': False}, },]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -420,7 +420,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         [
         {'function': hsystem.system,
         'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/tmp.pdf.tex --toc --toc-depth 2',),
-        'kwargs': {'log_level': 10, 'suppress_output': False}}]
+        'kwargs': {'log_level': 10, 'suppress_output': False}, },]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -494,7 +494,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         [
         {'function': 'hsystem.system',
         'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html",),
-        'kwargs': {'log_level': 10, 'suppress_output': False}}]
+        'kwargs': {'log_level': 10, 'suppress_output': False},},]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -511,7 +511,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         [
         {'function': 'hsystem.system',
         'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",),
-        'kwargs': {'log_level': 10, 'suppress_output': False}}]
+        'kwargs': {'log_level': 10, 'suppress_output': False},},]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -528,7 +528,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         [
         {'function': 'hsystem.system',
         'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",),
-        'kwargs': {'log_level': 10, 'suppress_output': False}}]
+        'kwargs': {'log_level': 10, 'suppress_output': False},},]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -968,14 +968,14 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         self.assert_equal(actual_typ_content, expected_typ_content)
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt -f markdown --number-sections -s -t typst --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/pandoc_touying.typ --resource-path=dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt -f markdown --number-sections -s -t typst --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/pandoc_touying.typ --resource-path=dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ',),
+        'kwargs': {'log_level': 10, 'suppress_output': False},
         },
         {
-        'function': hsystem.system
-        'args': ('typst compile --root $GIT_ROOT/helpers_root $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.pdf',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('typst compile --root $GIT_ROOT/helpers_root $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.pdf',),
+        'kwargs': {'log_level': 10, 'suppress_output': False},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -1015,9 +1015,9 @@ class Test_copy_to_output(hunitest.TestCase):
         expected_str = r"""
         [
         {
-        'function': hsystem.system
-        'args': ('\\cp -af $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/source.txt $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/output.txt',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('\\cp -af $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/source.txt $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/output.txt',),
+        'kwargs': {'log_level': 10, 'suppress_output': False},
         },
         ]
         """
@@ -1112,9 +1112,9 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         # Check outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('\\cp -af $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/output.pdf $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/notes.pdf',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('\\cp -af $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/output.pdf $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/notes.pdf',),
+        'kwargs': {'log_level': 10, 'suppress_output': False},
         },
         ]"""
         hunteuti.assert_sys_calls(
@@ -1151,14 +1151,14 @@ class Test_compress_pdf(hunitest.TestCase):
         self.assert_equal(result, pdf_file)
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('/opt/homebrew/bin/gs -sDEVICE=pdfwrite -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=$GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('/opt/homebrew/bin/gs -sDEVICE=pdfwrite -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=$GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',),
+        'kwargs': {'log_level': 10, 'suppress_output': False},
         },
         {
-        'function': hsystem.system
-        'args': ('mv $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('mv $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',),
+        'kwargs': {'log_level': 10, 'suppress_output': False},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
