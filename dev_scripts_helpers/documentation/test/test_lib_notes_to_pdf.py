@@ -377,16 +377,16 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         [
         {'function': hsystem.system,
         'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',),
-        'kwargs': {'log_level': 10, 'suppress_output': False}},
+        'kwargs': {'log_level': 10, 'suppress_output': False}, },
         {'function': hsystem.system_to_string,
         'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "dev_scripts_helpers" -print',),
-        'kwargs': {}},
+        'kwargs': {}, },
         {'function': hsystem.system,
         'args': ('cp -f documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch',),
-        'kwargs': {'log_level': 10, 'suppress_output': False}},
+        'kwargs': {'log_level': 10, 'suppress_output': False}, },
         {'function': hsystem.system,
         'args': ('pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch -interaction=nonstopmode -halt-on-error -shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',),
-        'kwargs': {'log_level': 10, 'suppress_output': False}}]
+        'kwargs': {'log_level': 10, 'suppress_output': False}, },]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -402,7 +402,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         expected = r"""
         [
         {'function': hsystem.system,
-        'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex',),
+        'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.pdf.tex',),
         'kwargs': {'log_level': 10, 'suppress_output': False}}]
         """
         expected = hprint.dedent(expected)

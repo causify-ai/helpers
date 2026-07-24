@@ -716,9 +716,9 @@ class Test_capture_sys_calls(hunitest.TestCase):
         # Prepare outputs.
         expected = r"""[
         {
-        'function': subprocess.run
-        'args': (['echo', 'hello'],)
-        'kwargs': {'check': False}
+        'function': subprocess.run,
+        'args': (['echo', 'hello'],),
+        'kwargs': {'check': False},
         },
         ]"""
         # Run test.
@@ -734,9 +734,9 @@ class Test_capture_sys_calls(hunitest.TestCase):
         # Prepare outputs.
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('echo hello',)
-        'kwargs': {'suppress_output': True}
+        'function': hsystem.system,
+        'args': ('echo hello',),
+        'kwargs': {'suppress_output': True},
         },
         ]"""
         # Run test.
@@ -752,9 +752,9 @@ class Test_capture_sys_calls(hunitest.TestCase):
         # Prepare outputs.
         expected = r"""[
         {
-        'function': hsystem.system_to_string
-        'args': ('echo test',)
-        'kwargs': {'suppress_output': True}
+        'function': hsystem.system_to_string,
+        'args': ('echo test',),
+        'kwargs': {'suppress_output': True},
         },
         ]"""
         # Run test.
@@ -770,14 +770,14 @@ class Test_capture_sys_calls(hunitest.TestCase):
         # Prepare outputs.
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('echo hello',)
-        'kwargs': {'suppress_output': True}
+        'function': hsystem.system,
+        'args': ('echo hello',),
+        'kwargs': {'suppress_output': True},
         },
         {
-        'function': hsystem.system_to_string
-        'args': ('echo world',)
-        'kwargs': {'suppress_output': True}
+        'function': hsystem.system_to_string,
+        'args': ('echo world',),
+        'kwargs': {'suppress_output': True},
         },
         ]"""
         # Run test.
@@ -806,9 +806,9 @@ class Test_capture_sys_calls(hunitest.TestCase):
         # Prepare outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('echo test',)
-        'kwargs': {'suppress_output': True}
+        'function': hsystem.system,
+        'args': ('echo test',),
+        'kwargs': {'suppress_output': True},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -825,14 +825,14 @@ class Test_capture_sys_calls(hunitest.TestCase):
         # Prepare outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('echo hello',)
-        'kwargs': {'suppress_output': True}
+        'function': hsystem.system,
+        'args': ('echo hello',),
+        'kwargs': {'suppress_output': True},
         },
         {
-        'function': hsystem.system
-        'args': ('echo world',)
-        'kwargs': {'suppress_output': True}
+        'function': hsystem.system,
+        'args': ('echo world',),
+        'kwargs': {'suppress_output': True},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -944,3 +944,72 @@ class Test_sys_calls_to_str(hunitest.TestCase):
         actual_str = hunteuti._sys_calls_to_str(expected_sys_calls)
         # Check outputs.
         self.assert_equal(actual_str, expected_str)
+
+
+# #############################################################################
+# Test_assert_sys_calls
+# #############################################################################
+
+
+class Test_assert_sys_calls(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test that assert_sys_calls passes with single system call.
+        """
+        expected_str = r"""
+        [
+            {
+            'function': hsystem.system,
+            'args': ('echo test',),
+            'kwargs': {'suppress_output': True},
+            },
+        ]
+        """
+        expected_str = hprint.dedent(expected_str)
+        # Capture and compare.
+        with hunteuti.capture_sys_calls() as sys_calls:
+            hsystem.system("echo test", suppress_output=True)
+        # Check outputs - should pass with fuzzy_match=True.
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
+
+    def test2(self) -> None:
+        """
+        Test assert_sys_calls with multiple calls.
+        """
+        expected_str = r"""
+        [
+            {
+            'function': hsystem.system,
+            'args': ('echo hello',),
+            'kwargs': {'suppress_output': True},
+            },
+            {
+            'function': hsystem.system_to_string,
+            'args': ('echo world',),
+            'kwargs': {'suppress_output': True},
+            },
+        ]
+        """
+        expected_str = hprint.dedent(expected_str)
+        # Capture and compare.
+        with hunteuti.capture_sys_calls() as sys_calls:
+            hsystem.system("echo hello", suppress_output=True)
+            hsystem.system_to_string("echo world", suppress_output=True)
+        # Check outputs.
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
+
+    def test3(self) -> None:
+        """
+        Test that assert_sys_calls correctly handles empty calls list.
+        """
+        expected_str = r"""
+        [
+        ]
+        """
+        expected_str = hprint.dedent(expected_str)
+        # Capture empty system calls.
+        with hunteuti.capture_sys_calls() as sys_calls:
+            pass
+        # Check outputs.
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)

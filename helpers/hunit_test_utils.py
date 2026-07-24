@@ -670,8 +670,16 @@ def _sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:
     Format system calls list as a string using `pprint.pformat()`.
 
     :param sys_calls: List of system calls to format
-    :return: Formatted string representation
-    // TODO(ai_gp): Add example
+    :return: Formatted string representation, e.g.,
+        ```
+        [
+            {
+            'function': hsystem.system,
+            'args': ('pandoc input.md -t json',),
+            'kwargs': {'log_level': 10, 'suppress_output': False, 'print_command': True},
+            },
+        ]
+        ```
     """
     # `pprint.pformat()` is unstable so we format it by hand, using the
     # knowledge of the structure.
@@ -721,4 +729,9 @@ def assert_sys_calls(
         assert_equal_kwargs["fuzzy_match"] = True
     if "purify_text" not in assert_equal_kwargs:
         assert_equal_kwargs["purify_text"] = True
+    # TODO(ai_gp): Improve the fuzzy_match in hunittest.py
+    #actual_str = actual_str.replace("\n", "")
+    #actual_str = re.sub(r'\s+', ' ', actual_str)
+    #expected_str = expected_str.replace("\n", "")
+    #expected_str = re.sub(r'\s+', ' ', expected_str)
     self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)
