@@ -45,7 +45,7 @@ _NUM_SPACES = 2
 _TRACE = False
 
 
-_DEFAULT_ACTIONS: List[str] = []
+_DEFAULT_ACTIONS: List[str] = ["colorize_bullets"]
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",
@@ -60,7 +60,7 @@ _VALID_ACTIONS = [
 
 
 def _colorize_backticks(
-    in_line: str, *, color: str = "blue", output_format: str = "latex"
+    in_line: str, output_format: str, *, color: str = "blue"
 ) -> str:
     r"""
     Convert backtick-wrapped strings to colored format.
@@ -74,35 +74,34 @@ def _colorize_backticks(
     E.g., `weeks_to_xmas` into `#text(fill: blue)[`weeks_to_xmas`]`
 
     :param in_line: input line to process
-    :param color: color name (default: 'blue')
-    :param output_format: "latex" (default) or "typst"
+    :param color: color name
+    :param output_format: "latex" or "typst"
     :return: transformed line with backticks replaced
     """
     hdbg.dassert_in(output_format, ("latex", "typst"))
     line = in_line
     # Pattern to match single backticks (not triple backticks).
-    # This matches backtick-wrapped text that doesn't contain triple backticks.
-    pattern = r"(?<!`)`(?!`)([^`]+?)(?<!`)`(?!`)"
+    # This matches backtick-wrapped text that doesn't contain triple backticks
+    # and is not followed by curly braces (e.g., excludes `hello`{...}).
+    # Prevents: opening backtick not followed by backtick or brace,
+    # and closing backtick not followed by backtick or brace.
+    pattern = r"(?<!})`(?!`|\{)([^`]+?)(?<!`)`(?!`)(?!\{)"
 
-    if output_format == "latex":
-
-        def replace_func(m: Match) -> str:
-            """
-            Replace function that escapes underscores in the matched text.
-            """
-            matched_text = m.group(1)
+    def replace_func(m: Match) -> str:
+        """
+        Replace function that converts backticks to format-specific syntax.
+        """
+        matched_text = m.group(1)
+        if output_format == "latex":
             # Escape underscores for LaTeX.
             escaped_text = matched_text.replace("_", r"\_")
-            return rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
-
-    else:  # output_format == "typst"
-
-        def replace_func(m: Match) -> str:
-            """
-            Replace function for Typst format (no escaping needed).
-            """
-            matched_text = m.group(1)
-            return f"#text(fill: {color})[`{matched_text}`]"
+            txt = rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
+        else:  # typst
+            # Typst doesn't need underscore escaping in backticks.
+            # Use #text with backticks for monospace colored text.
+            txt = f"#text(fill: {color})[`{matched_text}`]"
+            txt = "``" + txt + "``{=typst}"
+        return txt
 
     line = re.sub(pattern, replace_func, line)
     if line != in_line:
@@ -227,6 +226,149 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
     # Return the body lines (excluding the header line itself).
     result = lines[header_line_idx + 1 : end_idx]
     return result
+
+
+# #############################################################################
+# Process title slide.
+# #############################################################################
+
+
+def extract_slide_metadata(
+    lines: List[str],
+) -> Tuple[Dict[str, str], List[str]]:
+    r"""
+    Extract metadata directives from the top of the file.
+
+    Scans for consecutive lines matching `^// (\\w+)=(.+)$` at the start of the
+    file. Stops at the first non-matching line. Returns a tuple of the metadata
+    dict and the remaining lines (without the metadata directives).
+
+    :param lines: list of input lines
+    :return: (metadata_dict, remaining_lines)
+    """
+    metadata: Dict[str, str] = {}
+    i = 0
+    pattern = re.compile(r"^//\s*(\w+)=(.+)$")
+    for i, line in enumerate(lines):
+        m = pattern.match(line)
+        if m:
+            metadata[m.group(1).strip()] = m.group(2).strip()
+        else:
+            break
+    else:
+        # All lines were metadata
+        i += 1
+    return metadata, lines[i:]
+
+
+# TODO(ai_gp2): Move this to the umd_repo.
+def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
+    r"""
+    Generate LaTeX title slide from metadata.
+
+    Creates a pandoc Div-based title slide using `\vspace`, `\begingroup`,
+    and `\blue{}` commands matching existing hand-crafted format.
+
+    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :return: list of lines forming the title slide
+    """
+    course_title = metadata.get("course_title", "")
+    lesson_title = metadata.get("lesson_title", "")
+    # Determine logo path based on course title.
+    logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
+    if "data605" in course_title.lower() or "DATA605" in course_title:
+        logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+    lines = [
+        "::: columns",
+        ":::: {.column width=20%}",
+        f"![]({logo_path})",
+        "::::",
+        ":::: {.column width=80%}",
+        "",
+        course_title,
+        "::::",
+        ":::",
+        "",
+        r"\vspace{2cm}",
+        "",
+        f"**$$\\text{{\\blue{{{lesson_title}}}}}$$**",
+        "",
+        r"\vspace{3cm}",
+        "",
+        "**Instructor**: Dr. GP Saggese - gsaggese@umd.edu",
+        "",
+    ]
+    return lines
+
+
+# TODO(ai_gp2): Move this to the umd_repo.
+def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
+    """
+    Generate Typst title slide from metadata.
+
+    Creates a Typst grid-based title slide with text formatting and colors.
+
+    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :return: list of lines forming the title slide
+    """
+    course_title = metadata.get("course_title", "")
+    lesson_title = metadata.get("lesson_title", "")
+    # Determine logo path based on course title.
+    logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
+    if "data605" in course_title.lower() or "DATA605" in course_title:
+        logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+    txt = r"""
+        ====
+
+        #slide[
+          #grid(
+            columns: (20%, 80%),
+            gutter: 0.5cm,
+            align(top + left)[#image("{}", width: 3.5cm)],
+            align(top + left)[
+              #v(0.2cm)
+              #text(size: 28pt)[{}]
+            ]
+          )
+
+          #v(1.5cm)
+          #align(center)[#text(size: 32pt, weight: "bold", fill: rgb("#0066CC"))[{}]]
+
+          #v(2.5cm)
+          #text(size: 24pt)[Instructor: Dr. GP Saggese - #link("mailto:gsaggese@umd.edu")[_gsaggese\@umd.edu_]]
+        ]
+    """.format(logo_path, course_title, lesson_title)
+    txt = hprint.dedent(txt)
+    lines = [
+        "```{=typst}",
+        txt,
+        "```",
+        "",
+    ]
+    return lines
+
+
+def _generate_title_slide(
+    metadata: Dict[str, str], output_format: str
+) -> List[str]:
+    """
+    Dispatch to format-specific title slide generator.
+
+    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :param output_format: 'latex' or 'typst'
+    :return: list of lines forming the title slide
+    """
+    hdbg.dassert_in(output_format, ("latex", "typst"))
+    if output_format == "latex":
+        txt = _generate_title_slide_latex(metadata)
+    elif output_format == "typst":
+        txt = _generate_title_slide_typst(metadata)
+    else:
+        raise ValueError(f"Invalid output_format='{output_format}'")
+    return txt
+
+
+# #############################################################################
 
 
 def _expand_includes(lines: List[str]) -> List[str]:
@@ -397,7 +539,7 @@ def _transform_lines(
     lines: List[str],
     type_: str,
     is_qa: bool,
-    output_format: str = "latex",
+    output_format: str,
     *,
     actions: Optional[List[str]] = None,
 ) -> List[str]:
@@ -407,27 +549,27 @@ def _transform_lines(
     :param lines: list of lines of the notes
     :param type_: type of output to generate (e.g., `pdf`, `html`, `slides`)
     :param is_qa: True if the input is a QA file
-    :param output_format: "latex" (default) or "typst"
     :param actions: optional list of actions to perform
+    :param output_format: output format for color commands (latex or typst)
     :return: list of processed lines
     """
-    hdbg.dassert_in(output_format, ("latex", "typst"))
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
     hdbg.dassert_isinstance(lines, list)
     lines = [line.rstrip("\n") for line in lines]
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
-    if lines[0] != "---":
-        txt = r"""
-        ---
-        fontsize: 10pt
-        ---
-        \let\emph\textit
-        \let\uline\underline
-        \let\ul\underline
-        """
-        txt = hprint.dedent(txt)
-        out.append(txt)
+    if output_format == "latex":
+        if lines[0] != "---":
+            txt = r"""
+            ---
+            fontsize: 10pt
+            ---
+            \let\emph\textit
+            \let\uline\underline
+            \let\ul\underline
+            """
+            txt = hprint.dedent(txt)
+            out.append(txt)
     # b) Process text.
     # TODO(gp): We should use the approach of replacing chunks of text
     # that doesn't have to be transformed with placeholders.
@@ -435,6 +577,10 @@ def _transform_lines(
     in_skip_block = False
     # True inside a code block.
     in_code_block = False
+    # True inside a display math block ($$...$$).
+    in_math_block = False
+    # True inside an inline math context ($...$).
+    in_inline_math = False
     for i, line in enumerate(lines):
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
@@ -482,10 +628,29 @@ def _transform_lines(
         # Update code block status based on triple backticks.
         if line.startswith("```"):
             in_code_block = not in_code_block
+        # Update math block status based on $$ and $ BEFORE color processing.
+        # This ensures we skip colors on lines with math delimiters for typst output.
+        # Count how many times $$ appears and toggle in_math_block accordingly.
+        dollar_pair_count = line.count("$$")
+        for _ in range(dollar_pair_count):
+            in_math_block = not in_math_block
+        # For lines without $$, check for single $ (inline math).
+        if dollar_pair_count == 0:
+            single_dollar_count = line.count("$")
+            if single_dollar_count % 2 == 1:
+                in_inline_math = not in_inline_math
         # 7) Process color commands.
         if _TRACE:
             _LOG.debug("# Process color commands.")
-        line = hmarkdo.process_color_commands(line, output_format="latex")
+        # For LaTeX output: \textcolor{} works in math mode, so process colors everywhere.
+        # For Typst output: The backtick-wrapped syntax can't be used in LaTeX math
+        # blocks, so skip processing on lines with or inside math delimiters.
+        has_math_delimiters = ("$$" in line) or in_math_block or in_inline_math
+        should_skip_for_typst = (output_format == "typst") and has_math_delimiters
+        if output_format == "latex" or not should_skip_for_typst:
+            line = hmarkdo.process_color_commands(
+                line, output_format=output_format
+            )
         # 7) Process question.
         if _TRACE:
             _LOG.debug("# Process question.")
@@ -560,22 +725,17 @@ def _transform_lines(
             :return: colorized slide text as a list of lines
             """
             slide_text_str = "\n".join(slide_text)
-            if not hmarkdo.has_color_command(slide_text_str):
-                try:
-                    text_out = hmarkdo.colorize_bullet_points_in_slide(
-                        slide_text_str,
-                        output_format="latex",
-                        use_abbreviations=False,
-                    )
-                except AssertionError as e:
-                    context = (
-                        f"\nError occurred while processing slide:\n"
-                        f"  Title: {slide_title}\n"
-                        f"  Line: {slide_line_number}"
-                    )
-                    raise AssertionError(str(e) + context) from e
-            else:
-                text_out = slide_text_str
+            try:
+                text_out = hmarkdo.colorize_bullet_points_in_slide(
+                    slide_text_str, output_format, use_abbreviations=False
+                )
+            except AssertionError as e:
+                context = (
+                    f"\nError occurred while processing slide:\n"
+                    f"  Title: {slide_title}\n"
+                    f"  Line: {slide_line_number}"
+                )
+                raise AssertionError(str(e) + context) from e
             text_out = text_out.split("\n")
             return text_out
 
@@ -635,7 +795,7 @@ def _preprocess_lines(
     type_: str,
     toc_type: str,
     is_qa: bool,
-    output_format: str = "latex",
+    output_format: str,
     *,
     actions: Optional[List[str]] = None,
 ) -> List[str]:
@@ -648,6 +808,7 @@ def _preprocess_lines(
     :param is_qa: True if the input is a QA file
     :param output_format: "latex" (default) or "typst"
     :param actions: optional list of actions to perform
+    :param output_format: output format for color commands (latex or typst)
     :return: list of preprocessed lines
     """
     hdbg.dassert_isinstance(lines, list)
@@ -663,7 +824,7 @@ def _preprocess_lines(
             out,
             max_level,
             expand_all_navigation,
-            output_format="latex",
+            output_format,
             sanity_check=True,
         )
     elif toc_type == "partial_navigation":
@@ -674,7 +835,7 @@ def _preprocess_lines(
             out,
             max_level,
             expand_all_navigation,
-            output_format="latex",
+            output_format,
             sanity_check=True,
         )
     elif toc_type == "remove_headers":
@@ -741,16 +902,16 @@ def _parse() -> argparse.ArgumentParser:
             "'remove_headers' = remove headers smaller than level 3"
         ),
     )
+    # TODO(gp): Unclear what it does.
+    parser.add_argument(
+        "--qa", action="store_true", default=False, help="The input file is QA"
+    )
     parser.add_argument(
         "--output_format",
         action="store",
         default="latex",
         choices=["latex", "typst"],
-        help="Output format: 'latex' (default) or 'typst'",
-    )
-    # TODO(gp): Unclear what it does.
-    parser.add_argument(
-        "--qa", action="store_true", default=False, help="The input file is QA"
+        help="Output format (latex or typst)",
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
@@ -775,13 +936,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = txt.split("\n")
     # Expand include directives before other preprocessing.
     lines = _expand_includes(lines)
-    output_format = "latex"
+    # Extract and expand metadata directives into title slide.
+    metadata, lines = extract_slide_metadata(lines)
+    if metadata.get("type") == "UMD_slides":
+        title_lines = _generate_title_slide(metadata, args.output_format)
+        lines = title_lines + lines
     out = _preprocess_lines(
         lines,
         args.type,
         args.toc_type,
         args.qa,
-        output_format=output_format,
+        args.output_format,
         actions=actions,
     )
     out = "\n".join(out)

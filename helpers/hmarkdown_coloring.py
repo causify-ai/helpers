@@ -135,24 +135,21 @@ def process_color_commands(in_line: str, output_format: str) -> str:
     - `\red{abc}` -> `\textcolor{red}{\text{abc}}`
     - `\blue{x + y}` -> `\textcolor{blue}{x + y}`
 
-    For Typst output, uses `#text(fill: color)[content]` syntax.
+    For Typst output, uses `#text(fill: color)[content]` syntax wrapped in a
+    code fence so pandoc treats it as typst syntax even inside math blocks.
     E.g. (Typst):
-    - `\red{abc}` -> `#text(fill: red)[abc]`
-    - `\blue{x + y}` -> `#text(fill: blue)[x + y]`
+    - `\red{abc}` -> `#text(fill: red)[abc]` (as backtick-wrapped typst code)
+    - `\blue{x + y}` -> `#text(fill: blue)[x + y]` (as backtick-wrapped typst code)
 
-    Note: For typst output, color commands inside math delimiters ($...$) are
-    not processed, as typst syntax is incompatible with LaTeX math mode.
+    Color commands are processed even inside math delimiters ($...$, $$...$$)
+    for both formats: LaTeX color syntax works in math mode, and typst code
+    fences are recognized by pandoc even inside math blocks.
 
     :param in_line: input line to process
     :param output_format: "latex" (default) or "typst"
     :return: line with color commands transformed
     """
     hdbg.dassert_in(output_format, ("latex", "typst"))
-    # For typst output, skip processing \red{} commands if line contains math
-    # delimiters to avoid inserting typst syntax inside LaTeX math mode (which
-    # pandoc can't parse).
-    if output_format == "typst" and ("$" in in_line or "$$" in in_line):
-        return in_line
     color_mapping = get_md_colors_mapping(output_format)
     for md_color, output_color in color_mapping.items():
         # This regex matches color commands like \red{content}, \blue{content},
@@ -181,7 +178,8 @@ def process_color_commands(in_line: str, output_format: str) -> str:
                 else:
                     ret = rf"\textcolor{{{output_color}}}{{\text{{{content}}}}}"
             elif output_format == "typst":
-                ret = f'#text(fill: {output_color}, weight: "bold")[{content}]'
+                typst_code = f'#text(fill: {output_color}, weight: "bold")[{content}]'
+                ret = f"`{typst_code}`{{=typst}}"
             else:
                 raise ValueError("Invalid output_format='%s'" % output_format)
             return ret
@@ -220,8 +218,18 @@ def has_color_command(text: str) -> bool:
     return False
 
 
+# Regex matching `@text@` markers requesting colorized bold text. The opening
+# `@` must not be preceded by a word character so that email addresses like
+# `foo@bar.com` are not mistaken for markers (real markers are always preceded
+# by whitespace or punctuation, e.g., `- @Definition@:`).
+# TODO(ai_gp): Use re.VERBOSE and comments
+_COLOR_MARKER_REGEX = r"(?<!\w)@([^@\n]+)@"
+
+
 # TODO(gp): -> List[str]
 # TODO(gp): Use hmarkdown.process_lines() and test it.
+# TODO(gp): Consider use_abbreviations which seems to make things more complex
+# than needed
 def colorize_bullet_points_in_slide(
     txt: str,
     output_format: str,
@@ -231,11 +239,22 @@ def colorize_bullet_points_in_slide(
     all_md_colors: Optional[List[str]] = None,
 ) -> str:
     r"""
-    Colorize bold markdown items `**text**` with color commands.
+    Colorize `@text@` markers with color commands; leave `**text**` as-is.
 
-    Scans the text line-by-line for bold markdown items and wraps each in a
-    color command. Skips code blocks and tables to preserve their formatting.
-    Bold items are colored sequentially using the provided color list.
+    Scans the text line-by-line for `@text@` markers and replaces each with
+    colored bold text, e.g., `@text@` -> `**\red{text}**`. Regular bold
+    markdown `**text**` is left untouched, so it renders as plain (black)
+    bold. Skips code blocks and tables to preserve their formatting. `@text@`
+    markers are colored sequentially using the provided color list.
+
+    E.g.:
+    ```
+    - @Definition@: **Knowledge Representation (KR)** is ...
+    ```
+    becomes (LaTeX, abbreviated):
+    ```
+    - **\red{Definition}**: **Knowledge Representation (KR)** is ...
+    ```
 
     For LaTeX output (default), emits `**\red{text}**` or
     `**\textcolor{red}{text}**` depending on use_abbreviations.
@@ -243,20 +262,20 @@ def colorize_bullet_points_in_slide(
     For Typst output, emits `#red[text]` (abbreviated, if supported by
     template) or `#text(fill: red)[text]` (full).
 
-    :param txt: Markdown text containing bold items to colorize
+    :param txt: Markdown text containing `@text@` markers to colorize
     :param use_abbreviations:
         - If True, use abbreviated color syntax (e.g., `\red{foo}` for LaTeX,
           `#red[foo]` for Typst)
         - If False, use full syntax (e.g., `\textcolor{red}{foo}` for LaTeX,
           `#text(fill: red)[foo]` for Typst)
     :param interpolate_colors:
-        - If True, evenly space selected colors across all bold items
+        - If True, evenly space selected colors across all `@text@` markers
         - If False, use a predefined sequence for common counts (1-4 items get
           fixed color sets, more items cycle through all_md_colors)
     :param all_md_colors: List of available colors to cycle through
         - Default: curated list from `get_md_colors()`
     :param output_format: "latex" (default) or "typst"
-    :return: Markdown text with bold items wrapped in color commands
+    :return: Markdown text with `@text@` markers replaced by colored bold text
     """
     hdbg.dassert_isinstance(txt, str)
     hdbg.dassert_in(output_format, ("latex", "typst"))
@@ -268,19 +287,17 @@ def colorize_bullet_points_in_slide(
     _LOG.debug("Found %s fenced blocks", len(fence_map))
     lines, table_map = replace_tables_with_tags(lines)
     _LOG.debug("Found %s tables", len(table_map))
-    # Count bold markers (**) to determine how many bold items exist.
-    tot_bold = 0
-    # Scan the text line by line and count how many bold items there are.
+    # Count `@text@` markers to determine how many colorized items exist.
+    tot_markers = 0
+    # Scan the text line by line and count how many markers there are.
     for line in lines:
-        # Count the number of bold items.
-        num_bold = len(re.findall(r"\*\*", line))
-        tot_bold += num_bold
-    _LOG.debug("tot_bold=%s", tot_bold)
-    if tot_bold == 0:
+        # Count the number of `@text@` markers.
+        num_markers = len(re.findall(_COLOR_MARKER_REGEX, line))
+        tot_markers += num_markers
+    _LOG.debug("tot_markers=%s", tot_markers)
+    if tot_markers == 0:
         return txt
-    # Divide by 2 since each bold item is wrapped with ** on both sides.
-    # hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
-    num_bolds = tot_bold // 2
+    num_bolds = tot_markers
 
     def _interpolate_colors(num_bolds: int) -> List[str]:
         """
@@ -315,7 +332,7 @@ def colorize_bullet_points_in_slide(
 
         def color_replacer(match: Match[str]) -> str:
             r"""
-            Replace strings like "**foo**" with colored version.
+            Replace a `@foo@` marker with colored bold text.
             """
             nonlocal color_idx
             text = match.group(1)
@@ -349,16 +366,17 @@ def colorize_bullet_points_in_slide(
                 )
                 typst_color = typst_mapping[color_to_use]
                 # Typst: no escaping needed for underscores/ampersands in text mode.
+                # TODO(gp): They seem exactly the same?
                 if use_abbreviations:
-                    # Abbreviated: #colorname[text]
-                    ret = f"**#{color_to_use}[{text}]**"
+                    # Abbreviated: wrap in backticks for proper typst syntax
+                    ret = f'`#text(fill: {typst_color}, weight: "bold")[{text}]`{{=typst}}'
                 else:
                     # Full: #text(fill: color)[text]
                     ret = f'#text(fill: {typst_color}, weight: "bold")[{text}]'
                     ret = "`" + ret + "`{=typst}"
             return ret
 
-        line = re.sub(r"\*\*([^*]+)\*\*", color_replacer, line)
+        line = re.sub(_COLOR_MARKER_REGEX, color_replacer, line)
         txt_out.append(line)
     # Restore code blocks and tables that were temporarily replaced with tags.
     txt_out = replace_tags_with_fenced_blocks(txt_out, fence_map)

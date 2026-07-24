@@ -45,7 +45,10 @@ $endif$
 )
 
 // Make the inline math font bigger.
-#show math.equation.where(block: false): set text(size: 1.15em)
+//#show math.equation.where(block: false): set text(size: 1.15em)
+
+// Scale display math to match slide text size (not oversized).
+#show math.equation.where(block: true): set text(size: 0.95em)
 
 // Make the inline verbatim font bigger.
 #show raw.where(block: false): set text(size: 1.15em)
@@ -97,7 +100,7 @@ $endif$
 
 // Use Computer Modern Sans - standard TeX font (sans-serif variant).
 // Fails if Computer Modern not available in container (no fallback).
-#set text(font: "CMU Sans Serif", size: 20pt, fill: black)
+#set text(font: "CMU Sans Serif", size: 22pt, fill: black)
 #show heading: set text(font: "CMU Sans Serif", size: 28pt)
 // Use DejaVu Sans (available in Alpine) with reduced size.
 // Applied AFTER theme to override theme defaults.

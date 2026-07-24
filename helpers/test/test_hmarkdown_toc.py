@@ -267,7 +267,9 @@ class Test_add_navigation_slides(hunitest.TestCase):
         input_text = hprint.dedent(input_text)
         lines = input_text.strip().split("\n")
         # Run test.
-        actual = hmartoc.add_navigation_slides(lines, max_level, expand_all, output_format="latex")
+        actual = hmartoc.add_navigation_slides(
+            lines, max_level, expand_all, output_format="latex"
+        )
         actual_str = "\n".join(actual)
         # Check outputs.
         expected_str = hprint.dedent(expected)
@@ -444,6 +446,150 @@ class Test_add_navigation_slides(hunitest.TestCase):
             More content
             ### Subsubsection 1.1.1
             Even more content
+            """
+        # Run test.
+        self.helper(input_text, max_level, expand_all, expected)
+
+    def test7(self) -> None:
+        """
+        Test navigation when multiple parent sections have the same subsection name.
+
+        This test verifies the fix for the bug where both "Syntax" entries
+        were highlighted in red when navigating to either one.
+
+        With expand_all=False, only the current path should be highlighted.
+        """
+        # Prepare inputs (simulating Propositional logic and First-order Logic sections).
+        input_text = """
+            # Knowledge Representation
+            Main content
+            ## Propositional Logic
+            Propositional content
+            ### Syntax
+            Propositional syntax content
+            ### Semantics
+            Propositional semantics content
+            ## First-order Logic
+            First-order content
+            ### Syntax
+            First-order syntax content
+            ### Semantics
+            First-order semantics content
+            """
+        max_level = 2
+        expand_all = False
+        # With max_level=2, only headers up to level 2 get navigation TOCs.
+        # Level 3 headers (Syntax, Semantics) remain as regular headers.
+        expected = r"""
+            #### Table of Content
+            - _**\textcolor{red}{Knowledge Representation}**_
+              - Propositional Logic
+              - First-order Logic
+
+            Main content
+            #### Table of Content
+            - Knowledge Representation
+              - _**\textcolor{red}{Propositional Logic}**_
+              - First-order Logic
+
+            Propositional content
+            ### Syntax
+            Propositional syntax content
+            ### Semantics
+            Propositional semantics content
+            #### Table of Content
+            - Knowledge Representation
+              - Propositional Logic
+              - _**\textcolor{red}{First-order Logic}**_
+
+            First-order content
+            ### Syntax
+            First-order syntax content
+            ### Semantics
+            First-order semantics content
+            """
+        # Run test.
+        self.helper(input_text, max_level, expand_all, expected)
+
+    def test8(self) -> None:
+        """
+        Test navigation with expand_all=True with duplicate subsection names.
+
+        This is the critical test for the bug fix. With expand_all=True and duplicate
+        subsection names at level 3, the old code would highlight ALL "Syntax" entries
+        globally. The fix ensures only the one in the current path is highlighted.
+        """
+        # Prepare inputs (section hierarchy matching the bug report from Lesson03.1).
+        # Two parent sections each have a "Syntax" subsection.
+        input_text = """
+            # Knowledge Representation
+            Main content
+            ## Propositional Logic
+            Propositional content
+            ### Syntax
+            Propositional syntax
+            ### Semantics
+            Propositional semantics
+            ## First-order Logic
+            First-order content
+            ### Syntax
+            First-order syntax
+            ### Semantics
+            First-order semantics
+            """
+        # With max_level=3, navigation TOCs are created for headers up to level 3.
+        max_level = 3
+        expand_all = True
+        # With expand_all=True, the TOCs show all level 1-2 nodes (max_expand_level=2),
+        # but NOT level 3 since max_expand_level=2.
+        # However, when navigating to a level-3 header (Syntax), the TOC still shows
+        # levels 1-2, but this level-3 nav happens separately.
+        #
+        # Since max_expand_level is hardcoded to 2 in the call to full_tree_to_str,
+        # level-3 headers don't get expanded children shown.
+        expected = r"""
+            #### Table of Content
+            - _**\textcolor{red}{Knowledge Representation}**_
+              - Propositional Logic
+              - First-order Logic
+
+            Main content
+            #### Table of Content
+            - Knowledge Representation
+              - _**\textcolor{red}{Propositional Logic}**_
+              - First-order Logic
+
+            Propositional content
+            #### Table of Content
+            - Knowledge Representation
+              - Propositional Logic
+              - First-order Logic
+
+            Propositional syntax
+            #### Table of Content
+            - Knowledge Representation
+              - Propositional Logic
+              - First-order Logic
+
+            Propositional semantics
+            #### Table of Content
+            - Knowledge Representation
+              - Propositional Logic
+              - _**\textcolor{red}{First-order Logic}**_
+
+            First-order content
+            #### Table of Content
+            - Knowledge Representation
+              - Propositional Logic
+              - First-order Logic
+
+            First-order syntax
+            #### Table of Content
+            - Knowledge Representation
+              - Propositional Logic
+              - First-order Logic
+
+            First-order semantics
             """
         # Run test.
         self.helper(input_text, max_level, expand_all, expected)

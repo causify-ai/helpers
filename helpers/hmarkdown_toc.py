@@ -207,11 +207,16 @@ def add_navigation_slides(
         close_modifier = r"}**_"
     else:
         raise ValueError(f"Invalid output_format='{output_format}'")
+    current_ancestry: List[hmarkdo.HeaderInfo] = []
     for line in lines:
         is_header, level, description = hmarkdo.is_header(line)
         if is_header and level <= max_level:
             _LOG.debug(hprint.to_str("line level description"))
-            # Get the navigation string corresponding to the current header.
+            while current_ancestry and current_ancestry[-1].level >= level:
+                current_ancestry.pop()
+            current_ancestry.append(
+                hmarkdo.HeaderInfo(level, description, len(out) + 1)
+            )
             if expand_all:
                 nav_str = hmarkdo.full_tree_to_str(
                     tree,
@@ -220,6 +225,7 @@ def add_navigation_slides(
                     max_expand_level=2,
                     open_modifier=open_modifier,
                     close_modifier=close_modifier,
+                    current_ancestry=current_ancestry,
                 )
             else:
                 nav_str = hmarkdo.selected_navigation_to_str(
@@ -228,6 +234,7 @@ def add_navigation_slides(
                     description,
                     open_modifier=open_modifier,
                     close_modifier=close_modifier,
+                    current_ancestry=current_ancestry,
                 )
             _LOG.debug("nav_str=\n%s", nav_str)
             # Replace the header slide with the navigation slide.
