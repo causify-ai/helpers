@@ -205,11 +205,11 @@ class TestTestCase1(hunitest.TestCase):
         expected = """
         # Dir structure
         $TMP_DIR
-        $TMP_DIR/tmp_diff.sh
+        $TMP_DIR/tmp.diff.sh
         # File signatures
         len(file_names)=1
-        file_names=$TMP_DIR/tmp_diff.sh
-        # $TMP_DIR/tmp_diff.sh
+        file_names=$TMP_DIR/tmp.diff.sh
+        # $TMP_DIR/tmp.diff.sh
         num_lines=8
         '''
         #!/bin/bash
@@ -343,7 +343,7 @@ completed failure Lint    Run_linter                                      |  com
 completed       success Lint    Fast_tests                                (
 completed       success Lint    Slow_tests                                (
 Diff with:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 ACTUAL VARIABLE: Test_AssertEqual1.test_not_equal1
 --------------------------------------------------------------------------------
@@ -375,7 +375,7 @@ completed       success Lint    Slow_tests
         actual = huntepur.purify_txt_from_client(actual)
         actual = actual.replace(tmp_dir, "$TMP_DIR")
         # Verify that the diff script was created.
-        self.assertIn("tmp_diff.sh", actual)
+        self.assertIn("tmp.diff.sh", actual)
 
     # For debugging: don't commit code with this test enabled.
     @pytest.mark.skip(
@@ -960,3 +960,248 @@ class Test_get_dir_signature1(hunitest.TestCase):
         actual = self.helper(include_file_content)
         # The golden outcome is long and uninteresting so we use check_string.
         self.check_string(actual, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_assert_equal_options1
+# #############################################################################
+
+
+class Test_assert_equal_options1(hunitest.TestCase):
+
+    def helper(
+        self,
+        actual: str,
+        expected: str,
+        expected_is_equal: bool,
+        *,
+        fuzzy_match: bool = False,
+        purify_text: bool = False,
+        purify_expected_text: bool = False,
+        ignore_line_breaks: bool = False,
+    ) -> None:
+        """
+        Helper for testing assert_equal with various options.
+
+        :param actual: actual test output
+        :param expected: expected test output
+        :param expected_is_equal: expected result of comparison
+        :param fuzzy_match: ignore whitespace differences
+        :param purify_text: remove environment-specific details
+        :param purify_expected_text: purify expected in addition to actual
+        :param ignore_line_breaks: treat line breaks as spaces
+        """
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        is_equal = hunitest.assert_equal(
+            actual,
+            expected,
+            test_name,
+            test_dir,
+            fuzzy_match=fuzzy_match,
+            purify_text=purify_text,
+            purify_expected_text=purify_expected_text,
+            ignore_line_breaks=ignore_line_breaks,
+        )
+        self.assertEqual(is_equal, expected_is_equal)
+
+    def test_fuzzy_match1(self) -> None:
+        """
+        Test fuzzy_match ignores trailing spaces.
+        """
+        actual = "hello world"
+        expected = "hello world   "
+        self.helper(actual, expected, True, fuzzy_match=True)
+
+    def test_fuzzy_match2(self) -> None:
+        """
+        Test fuzzy_match ignores leading spaces.
+        """
+        actual = "hello world"
+        expected = "   hello world"
+        self.helper(actual, expected, True, fuzzy_match=True)
+
+    def test_fuzzy_match3(self) -> None:
+        """
+        Test fuzzy_match collapses multiple spaces into one.
+        """
+        actual = "hello world"
+        expected = "hello    world"
+        self.helper(actual, expected, True, fuzzy_match=True)
+
+    def test_fuzzy_match4(self) -> None:
+        """
+        Test fuzzy_match removes empty lines.
+        """
+        actual = "hello\nworld"
+        expected = """
+        hello
+
+        world
+        """
+        expected = hprint.dedent(expected)
+        self.helper(actual, expected, True, fuzzy_match=True)
+
+    def test_fuzzy_match5(self) -> None:
+        """
+        Test fuzzy_match raises error on actual content mismatch.
+        """
+        actual = "hello world"
+        expected = "hello earth"
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        with self.assertRaises(RuntimeError):
+            hunitest.assert_equal(
+                actual, expected, test_name, test_dir, fuzzy_match=True
+            )
+
+    def test_purify_text1(self) -> None:
+        """
+        Test purify_text removes timestamps.
+
+        Timestamps like '2024-01-15 10:30:45' get normalized during purification.
+        """
+        # Use purify_text to normalize the actual output.
+        actual = "Processed at 2024-01-15 10:30:45"
+        expected = "Processed at 2024-01-15 10:30:45"
+        self.helper(actual, expected, True, purify_text=True)
+
+    def test_purify_text2(self) -> None:
+        """
+        Test purify_text normalizes memory addresses.
+
+        Memory addresses like 0x7f1234567890 get normalized during purification.
+        """
+        actual = "Object at address 0x7f1234567890"
+        expected = "Object at address 0x7f1234567890"
+        self.helper(actual, expected, True, purify_text=True)
+
+    def test_purify_text3(self) -> None:
+        """
+        Test purify_text only purifies actual when purify_expected_text=False.
+
+        When purify_expected_text=False, only actual text is purified,
+        expected remains as-is.
+        """
+        actual = "output value"
+        expected = "output value"
+        self.helper(
+            actual, expected, True, purify_text=True, purify_expected_text=False
+        )
+
+    def test_purify_expected_text1(self) -> None:
+        """
+        Test purify_expected_text purifies both when purify_text=True.
+
+        When both purify_text=True and purify_expected_text=True,
+        both actual and expected are purified.
+        """
+        actual = "output value"
+        expected = "output value"
+        self.helper(
+            actual, expected, True, purify_text=True, purify_expected_text=True
+        )
+
+    def test_purify_expected_text2(self) -> None:
+        """
+        Test purify_expected_text has no effect if purify_text=False.
+        """
+        actual = "output value"
+        expected = "output value"
+        self.helper(
+            actual, expected, True, purify_text=False, purify_expected_text=True
+        )
+
+    def test_ignore_line_breaks1(self) -> None:
+        """
+        Test ignore_line_breaks treats single newline as space.
+        """
+        actual = "hello\nworld"
+        expected = "hello world"
+        self.helper(actual, expected, True, ignore_line_breaks=True)
+
+    def test_ignore_line_breaks2(self) -> None:
+        """
+        Test ignore_line_breaks treats multiple newlines as spaces.
+        """
+        actual = "hello\n\n\nworld"
+        expected = "hello   world"
+        self.helper(actual, expected, True, ignore_line_breaks=True)
+
+    def test_ignore_line_breaks3(self) -> None:
+        """
+        Test ignore_line_breaks converts multiline text to single line.
+        """
+        actual = """
+        line1
+        line2
+        line3
+        """
+        actual = hprint.dedent(actual)
+        expected = "line1 line2 line3"
+        self.helper(actual, expected, True, ignore_line_breaks=True)
+
+    def test_ignore_line_breaks4(self) -> None:
+        """
+        Test ignore_line_breaks still catches content mismatches.
+        """
+        actual = "hello\nworld"
+        expected = "hello\nearth"
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        with self.assertRaises(RuntimeError):
+            hunitest.assert_equal(
+                actual, expected, test_name, test_dir, ignore_line_breaks=True
+            )
+
+    def test_combined1(self) -> None:
+        """
+        Test combining fuzzy_match and ignore_line_breaks.
+        """
+        actual = "hello\nworld"
+        expected = """
+        hello
+
+        world
+        """
+        expected = hprint.dedent(expected)
+        self.helper(
+            actual, expected, True, fuzzy_match=True, ignore_line_breaks=True
+        )
+
+    def test_combined2(self) -> None:
+        """
+        Test combining purify_text and fuzzy_match.
+
+        Combining purify_text and fuzzy_match allows matching text that has
+        both environment-specific differences and whitespace differences.
+        """
+        actual = "output    value"
+        expected = "output value"
+        self.helper(
+            actual, expected, True, purify_text=True, fuzzy_match=True
+        )
+
+    def test_combined3(self) -> None:
+        """
+        Test combining all four options: fuzzy_match, purify_text,
+        purify_expected_text, ignore_line_breaks.
+
+        Combining all options allows the most flexible text matching.
+        """
+        actual = "result:  value1  value2"
+        expected = """
+        result:
+        value1
+        value2
+        """
+        expected = hprint.dedent(expected)
+        self.helper(
+            actual,
+            expected,
+            True,
+            fuzzy_match=True,
+            purify_text=True,
+            purify_expected_text=True,
+            ignore_line_breaks=True,
+        )

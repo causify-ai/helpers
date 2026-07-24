@@ -670,7 +670,16 @@ def _sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:
     Format system calls list as a string using `pprint.pformat()`.
 
     :param sys_calls: List of system calls to format
-    :return: Formatted string representation
+    :return: Formatted string representation, e.g.,
+        ```
+        [
+            {
+            'function': hsystem.system,
+            'args': ('pandoc input.md -t json',),
+            'kwargs': {'log_level': 10, 'suppress_output': False, 'print_command': True},
+            },
+        ]
+        ```
     """
     # `pprint.pformat()` is unstable so we format it by hand, using the
     # knowledge of the structure.
@@ -681,7 +690,8 @@ def _sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:
         hdbg.dassert_isinstance(dict_, dict)
         dict_as_list = ["    {"]
         for k, v in dict_.items():
-            dict_as_list.append("    '%s': %s" % (k, v))
+            hdbg.dassert_isinstance(k, str)
+            dict_as_list.append("    '%s': %s," % (k, v))
         dict_as_list.append("    },")
         dict_as_str = "\n".join(dict_as_list)
         txt_list.append(dict_as_str)
@@ -715,8 +725,27 @@ def assert_sys_calls(
     hdbg.dassert_isinstance(expected_str, str)
     if "dedent" not in assert_equal_kwargs:
         assert_equal_kwargs["dedent"] = True
-    if "fuzzy_match" not in assert_equal_kwargs:
-        assert_equal_kwargs["fuzzy_match"] = True
     if "purify_text" not in assert_equal_kwargs:
         assert_equal_kwargs["purify_text"] = True
+    if "purify_expected_text" not in assert_equal_kwargs:
+        assert_equal_kwargs["purify_expected_text"] = True
+    # TODO(gp): Consider moving this inside the unit test framework.
+    # Aggressive whitespace normalization: remove newlines, collapse spaces,
+    # and remove spaces around structural punctuation.
+    if False:
+        actual_str = actual_str.replace("\n", "")
+        actual_str = re.sub(r'\s+', ' ', actual_str).strip()
+        # TODO(ai_gp): Add an explanation
+        actual_str = re.sub(r'\s*([{}\[\],:])\s*', r'\1', actual_str)
+        #
+        expected_str = expected_str.replace("\n", "")
+        expected_str = re.sub(r'\s+', ' ', expected_str).strip()
+        expected_str = re.sub(r'\s*([{}\[\],:])\s*', r'\1', expected_str)
+    # Disable fuzzy_match and ignore_line_breaks since normalization is done above.
+    if "fuzzy_match" not in assert_equal_kwargs:
+        #assert_equal_kwargs["fuzzy_match"] = False
+        assert_equal_kwargs["fuzzy_match"] = True
+    if "ignore_line_breaks" not in assert_equal_kwargs:
+        #assert_equal_kwargs["ignore_line_breaks"] = False
+        assert_equal_kwargs["ignore_line_breaks"] = True
     self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)

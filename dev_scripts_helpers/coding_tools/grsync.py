@@ -274,7 +274,7 @@ def _main():
             files.append(file)
         # Save a script to diff.
         vimdiff_cmd = f"vimdiff {files[0]} {files[1]}"
-        diff_script = "./tmp_diff.sh"
+        diff_script = "./tmp.diff.sh"
         hio.to_file(diff_script, vimdiff_cmd)
         cmd = "chmod +x " + diff_script
         hsystem.system(cmd)

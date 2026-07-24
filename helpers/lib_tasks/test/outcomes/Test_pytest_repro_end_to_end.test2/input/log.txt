@@ -87,7 +87,7 @@ timestamp                                                                 (
 Diff with:
 > vimdiff datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data1/tmp.actual.txt datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data1/tmp.expected.txt
 or running:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 EXPECTED VARIABLE: TestHistoricalPqByTileClient1.test_read_data1
 --------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ timestamp                                                                 (
 Diff with:
 > vimdiff datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data2/tmp.actual.txt datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data2/tmp.expected.txt
 or running:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 EXPECTED VARIABLE: TestHistoricalPqByTileClient1.test_read_data2
 --------------------------------------------------------------------------------
@@ -191,7 +191,7 @@ timestamp                                                                 (
 Diff with:
 > vimdiff datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data3/tmp.actual.txt datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data3/tmp.expected.txt
 or running:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 EXPECTED VARIABLE: TestHistoricalPqByTileClient1.test_read_data3
 --------------------------------------------------------------------------------
@@ -243,7 +243,7 @@ timestamp                                                                 (
 Diff with:
 > vimdiff datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data4/tmp.actual.txt datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data4/tmp.expected.txt
 or running:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 EXPECTED VARIABLE: TestHistoricalPqByTileClient1.test_read_data4
 --------------------------------------------------------------------------------
@@ -295,7 +295,7 @@ timestamp                                                                 (
 Diff with:
 > vimdiff datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data5/tmp.actual.txt datapull/common/data/client/test/TestHistoricalPqByTileClient1.test_read_data5/tmp.expected.txt
 or running:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 EXPECTED VARIABLE: TestHistoricalPqByTileClient1.test_read_data5
 --------------------------------------------------------------------------------

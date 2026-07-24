@@ -18,11 +18,22 @@ import helpers.hunit_test_utils as hunteuti
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code in helper
 class Test_is_jupytext_version_different(hunitest.TestCase):
     """
     Unit tests for _is_jupytext_version_different function.
     """
+
+    def helper(
+        self, output_txt: str, expected: bool
+    ) -> None:
+        """
+        Check if jupytext version difference detection returns expected value.
+        """
+        result = dshenoju._is_jupytext_version_different(output_txt)
+        if expected:
+            self.assertTrue(result)
+        else:
+            self.assertFalse(result)
 
     def test1(self) -> None:
         """
@@ -31,9 +42,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         # Prepare inputs.
         output_txt = "Some random output without jupytext_version"
         # Run test.
-        result = dshenoju._is_jupytext_version_different(output_txt)
-        # Check outputs.
-        self.assertFalse(result)
+        self.helper(output_txt, False)
 
     def test2(self) -> None:
         """
@@ -42,9 +51,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         # Prepare inputs.
         output_txt = "#       jupytext_version: 1.3.3"
         # Run test.
-        result = dshenoju._is_jupytext_version_different(output_txt)
-        # Check outputs.
-        self.assertFalse(result)
+        self.helper(output_txt, False)
 
     def test3(self) -> None:
         """
@@ -57,9 +64,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
             "#       jupytext_version: 1.3.0"
         )
         # Run test.
-        result = dshenoju._is_jupytext_version_different(output_txt)
-        # Check outputs.
-        self.assertTrue(result)
+        self.helper(output_txt, True)
 
     def test4(self) -> None:
         """
@@ -81,9 +86,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         # Run test.
-        result = dshenoju._is_jupytext_version_different(txt)
-        # Check outputs.
-        self.assertTrue(result)
+        self.helper(txt, True)
 
     def test5(self) -> None:
         """
@@ -105,9 +108,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         # Run test.
-        result = dshenoju._is_jupytext_version_different(txt)
-        # Check outputs.
-        self.assertFalse(result)
+        self.helper(txt, False)
 
 
 # #############################################################################
@@ -115,24 +116,35 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code in helper
 class Test_find_paired_file(hunitest.TestCase):
     """
     Unit tests for _find_paired_file function.
     """
+
+    def _create_file(self, scratch_dir: str, filename: str, content: str = "") -> str:
+        """
+        Create a file in scratch directory and return its path.
+        """
+        file_path = f"{scratch_dir}/{filename}"
+        with open(file_path, "w") as f:
+            f.write(content)
+        return file_path
+
+    def _create_paired_files(self) -> tuple:
+        """
+        Create paired .ipynb and .py files in scratch space.
+        """
+        scratch_dir = self.get_scratch_space()
+        ipynb_file = self._create_file(scratch_dir, "test_notebook.ipynb", "{}")
+        py_file = self._create_file(scratch_dir, "test_notebook.py", "")
+        return ipynb_file, py_file
 
     def test1(self) -> None:
         """
         Test _find_paired_file with a .ipynb file as input.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        py_file = f"{scratch_dir}/test_notebook.py"
-        with open(ipynb_file, "w") as f:
-            f.write("{}")
-        with open(py_file, "w") as f:
-            f.write("")
+        ipynb_file, py_file = self._create_paired_files()
         # Run test.
         result = dshenoju._find_paired_file(ipynb_file)
         # Check outputs.
@@ -143,13 +155,7 @@ class Test_find_paired_file(hunitest.TestCase):
         Test _find_paired_file with a .py file as input.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        py_file = f"{scratch_dir}/test_notebook.py"
-        with open(ipynb_file, "w") as f:
-            f.write("{}")
-        with open(py_file, "w") as f:
-            f.write("")
+        ipynb_file, py_file = self._create_paired_files()
         # Run test.
         result = dshenoju._find_paired_file(py_file)
         # Check outputs.
@@ -161,9 +167,7 @@ class Test_find_paired_file(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        with open(ipynb_file, "w") as f:
-            f.write("{}")
+        ipynb_file = self._create_file(scratch_dir, "test_notebook.ipynb", "{}")
         # Run test and check output.
         with self.assertRaises(AssertionError):
             dshenoju._find_paired_file(ipynb_file)
@@ -174,9 +178,7 @@ class Test_find_paired_file(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        invalid_file = f"{scratch_dir}/test_notebook.txt"
-        with open(invalid_file, "w") as f:
-            f.write("")
+        invalid_file = self._create_file(scratch_dir, "test_notebook.txt", "")
         # Run test and check output.
         with self.assertRaises((AssertionError, TypeError)):
             dshenoju._find_paired_file(invalid_file)
@@ -250,19 +252,19 @@ class Test_jupytext_py(hunitest.TestCase):
             dshenoju._test(ipynb_file, "test")
         # Check outputs.
         expected = r"""
-[
-{
-'function': hsystem.system
-'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test6/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
-'kwargs': {}
-},
-{
-'function': hsystem.system_to_string
-'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test6/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
-'kwargs': {'abort_on_error': False}
-},
-]
-"""
+        [
+        {
+        'function': hsystem.system
+        'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test6/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system_to_string
+        'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test6/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {'abort_on_error': False}
+        },
+        ]
+        """
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
@@ -283,19 +285,19 @@ class Test_jupytext_py(hunitest.TestCase):
             dshenoju._test(ipynb_file, "test_strict")
         # Check outputs.
         expected = r"""
-[
-{
-'function': hsystem.system
-'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test7/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
-'kwargs': {}
-},
-{
-'function': hsystem.system_to_string
-'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test7/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
-'kwargs': {'abort_on_error': False}
-},
-]
-"""
+        [
+        {
+        'function': hsystem.system
+        'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test7/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system_to_string
+        'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test7/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {'abort_on_error': False}
+        },
+        ]
+        """
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
@@ -315,18 +317,19 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._sync(ipynb_file)
         # Check outputs.
-        expected = r"""[
-{
-'function': hsystem.system
-'args': ('jupytext --to py $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test8/tmp.scratch/test_notebook.ipynb',)
-'kwargs': {}
-},
-{
-'function': hsystem.system
-'args': ('jupytext --sync $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test8/tmp.scratch/test_notebook.ipynb',)
-'kwargs': {}
-},
-]"""
+        expected = r"""
+        [
+        {
+        'function': hsystem.system
+        'args': ('jupytext --to py $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test8/tmp.scratch/test_notebook.ipynb',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': ('jupytext --sync $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test8/tmp.scratch/test_notebook.ipynb',)
+        'kwargs': {}
+        },
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test9(self) -> None:
@@ -345,18 +348,19 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             dshenoju._sync(py_file)
         # Check outputs.
-        expected = r"""[
-{
-'function': hsystem.system
-'args': ('jupytext --to ipynb --update $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test9/tmp.scratch/test_notebook.py',)
-'kwargs': {}
-},
-{
-'function': hsystem.system
-'args': ('jupytext --sync $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test9/tmp.scratch/test_notebook.py',)
-'kwargs': {}
-},
-]"""
+        expected = r"""
+        [
+        {
+        'function': hsystem.system
+        'args': ('jupytext --to ipynb --update $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test9/tmp.scratch/test_notebook.py',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': ('jupytext --sync $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test9/tmp.scratch/test_notebook.py',)
+        'kwargs': {}
+        },
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test10(self) -> None:
@@ -373,14 +377,14 @@ class Test_jupytext_py(hunitest.TestCase):
             dshenoju._extract_python_from_notebook(ipynb_file)
         # Check outputs.
         expected = r"""
-[
-{
-'function': hsystem.system
-'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test10/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
-'kwargs': {}
-},
-]
-"""
+        [
+        {
+        'function': hsystem.system
+        'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test10/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {}
+        },
+        ]
+        """
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
@@ -401,19 +405,19 @@ class Test_jupytext_py(hunitest.TestCase):
             _, _ = dshenoju._is_notebook_in_sync(ipynb_file)
         # Check outputs: should have extract and diff calls.
         expected = r"""
-[
-{
-'function': hsystem.system
-'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test11/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
-'kwargs': {}
-},
-{
-'function': hsystem.system_to_string
-'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test11/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
-'kwargs': {'abort_on_error': False}
-},
-]
-"""
+        [
+        {
+        'function': hsystem.system
+        'args': ('jupytext --to py:percent $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test11/tmp.scratch/test_notebook.ipynb -o tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system_to_string
+        'args': ('diff $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test11/tmp.scratch/test_notebook.py tmp.jupytext_diff.test_notebook.py',)
+        'kwargs': {'abort_on_error': False}
+        },
+        ]
+        """
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
@@ -447,13 +451,14 @@ class Test_jupytext_py(hunitest.TestCase):
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system(cmd)
         # Check outputs.
-        expected = r"""[
-{
-'function': hsystem.system
-'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test13/tmp.scratch/test_notebook.ipynb --action pair 2>&1',)
-'kwargs': {}
-},
-]"""
+        expected = r"""
+        [
+        {
+        'function': hsystem.system
+        'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test13/tmp.scratch/test_notebook.ipynb --action pair 2>&1',)
+        'kwargs': {}
+        },
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test14(self) -> None:
@@ -472,12 +477,12 @@ class Test_jupytext_py(hunitest.TestCase):
             hsystem.system(cmd)
         # Check outputs.
         expected = r"""[
-{
-'function': hsystem.system
-'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test14/tmp.scratch/test_notebook.ipynb --action test 2>&1',)
-'kwargs': {}
-},
-]"""
+        {
+        'function': hsystem.system
+        'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test14/tmp.scratch/test_notebook.ipynb --action test 2>&1',)
+        'kwargs': {}
+        },
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test15(self) -> None:
@@ -496,12 +501,12 @@ class Test_jupytext_py(hunitest.TestCase):
             hsystem.system(cmd)
         # Check outputs.
         expected = r"""[
-{
-'function': hsystem.system
-'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test15/tmp.scratch/test_notebook.ipynb --action test_strict 2>&1',)
-'kwargs': {}
-},
-]"""
+        {
+        'function': hsystem.system
+        'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test15/tmp.scratch/test_notebook.ipynb --action test_strict 2>&1',)
+        'kwargs': {}
+        },
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test16(self) -> None:
@@ -523,12 +528,12 @@ class Test_jupytext_py(hunitest.TestCase):
             hsystem.system(cmd)
         # Check outputs.
         expected = r"""[
-{
-'function': hsystem.system
-'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test16/tmp.scratch/test_notebook.ipynb --action sync 2>&1',)
-'kwargs': {}
-},
-]"""
+        {
+        'function': hsystem.system
+        'args': ('$GIT_ROOT/dev_scripts_helpers/notebooks/jupytext.py -f $GIT_ROOT/dev_scripts_helpers/notebooks/test/outcomes/Test_jupytext_py.test16/tmp.scratch/test_notebook.ipynb --action sync 2>&1',)
+        'kwargs': {}
+        },
+        ]"""
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test17(self) -> None:
