@@ -273,7 +273,7 @@ def _run_all(args: argparse.Namespace) -> None:
         dshdlntpd.cleanup_after(prefix)
     # Save script, if needed.
     if args.script:
-        txt = "\n".join(script)
+        txt = "\n".join(dshdlntpd._SCRIPT)
         hio.to_file(args.script, txt)
         _LOG.info("Saved script into '%s'", args.script)
     # Check that everything was executed.

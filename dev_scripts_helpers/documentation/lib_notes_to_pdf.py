@@ -386,7 +386,7 @@ def run_pandoc_to_pdf(
     _report_phase("latex")
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we copy
     # all the needed files.
-    out_dir = os.path.dirname(file_name)
+    out_dir = os.path.dirname(file_name) or "."
     # TODO(ai_gp): Make this more robust by looking for
     # `documentation/latex_abbrevs.sty`.
     latex_file = os.path.join(
@@ -533,7 +533,7 @@ def _build_pandoc_latex_cmd(
         "latex_abbrevs.sty",
     )
     hdbg.dassert_file_exists(latex_abbrevs_file)
-    out_dir = os.path.dirname(file_name)
+    out_dir = os.path.dirname(file_name) or "."
     _ = _system(f"cp -f {latex_abbrevs_file} {out_dir}")
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
