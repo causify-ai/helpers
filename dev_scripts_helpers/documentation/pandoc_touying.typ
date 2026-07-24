@@ -99,7 +99,7 @@ $endif$
 
 // Use Computer Modern Sans - standard TeX font (sans-serif variant).
 // Fails if Computer Modern not available in container (no fallback).
-#set text(font: "CMU Sans Serif", size: 20pt, fill: black)
+#set text(font: "CMU Sans Serif", size: 22pt, fill: black)
 #show heading: set text(font: "CMU Sans Serif", size: 28pt)
 // Use DejaVu Sans (available in Alpine) with reduced size.
 // Applied AFTER theme to override theme defaults.

@@ -280,37 +280,22 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
         logo_path = "data605/lectures_source/figures/UMD_Logo.png"
     lines = [
         "::: columns",
-        ":::: {.column width=15%}",
+        ":::: {.column width=20%}",
         f"![]({logo_path})",
         "::::",
-        ":::: {.column width=75%}",
+        ":::: {.column width=80%}",
         "",
-        r"\vspace{0.4cm}",
-        r"\begingroup \large",
         course_title,
-        r"\endgroup",
         "::::",
         ":::",
         "",
-        r"\vspace{1cm}",
+        r"\vspace{2cm}",
         "",
-        r"\begingroup \Large",
         f"**$$\\text{{\\blue{{{lesson_title}}}}}$$**",
-        r"\endgroup",
         "",
-        r"\vspace{1cm}",
+        r"\vspace{3cm}",
         "",
-        "::: columns",
-        ":::: {.column width=75%}",
-        "**Instructor**: Dr. GP Saggese, [gsaggese@umd.edu](gsaggese@umd.edu)",
-        "",
-        "**References**:",
-        "",
-        "::::",
-        ":::: {.column width=20%}",
-        "",
-        "::::",
-        ":::",
+        "**Instructor**: Dr. GP Saggese - gsaggese@umd.edu",
         "",
     ]
     return lines
@@ -337,20 +322,20 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
 
         #slide[
           #grid(
-            columns: (15%, 85%),
-            gutter: 0.15cm,
-            align(top + left)[#image("{}", width: 4.0cm)],
-            align(left)[
-              #v(-0.1cm)
-              #text(size: 20pt)[{}]
+            columns: (20%, 80%),
+            gutter: 0.5cm,
+            align(top + left)[#image("{}", width: 3.5cm)],
+            align(top + left)[
+              #v(0.2cm)
+              #text(size: 28pt)[{}]
             ]
           )
 
-          #v(0.15cm)
-          #text(size: 24pt)[*#text(fill: blue)[{}]*]
+          #v(1.5cm)
+          #align(center)[#text(size: 32pt, weight: "bold", fill: rgb("#0066CC"))[{}]]
 
-          #v(0.1cm)
-          #text(size: 20pt)[Dr. GP Saggese (#link("mailto:gsaggese@umd.edu")[gsaggese\@umd.edu])]
+          #v(2.5cm)
+          #text(size: 24pt)[Instructor: Dr. GP Saggese - #link("mailto:gsaggese@umd.edu")[_gsaggese\@umd.edu_]]
         ]
     """.format(logo_path, course_title, lesson_title)
     txt = hprint.dedent(txt)
