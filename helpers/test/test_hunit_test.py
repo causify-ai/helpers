@@ -973,26 +973,23 @@ class Test_assert_equal_options1(hunitest.TestCase):
         self,
         actual: str,
         expected: str,
+        expected_is_equal: bool,
         *,
         fuzzy_match: bool = False,
         purify_text: bool = False,
         purify_expected_text: bool = False,
         ignore_line_breaks: bool = False,
-        # TODO(ai_gp): Make this mandatory (before *) without a default value.
-        expected_is_equal: bool = True,
-        # TODO(ai_gp): Do not return any value, but do the comparison inside.
-    ) -> bool:
+    ) -> None:
         """
         Helper for testing assert_equal with various options.
 
         :param actual: actual test output
         :param expected: expected test output
+        :param expected_is_equal: expected result of comparison
         :param fuzzy_match: ignore whitespace differences
         :param purify_text: remove environment-specific details
         :param purify_expected_text: purify expected in addition to actual
         :param ignore_line_breaks: treat line breaks as spaces
-        :param expected_is_equal: expected result of comparison
-        :return: whether actual equals expected after transformations
         """
         test_name = self._get_test_name()
         test_dir = self.get_scratch_space()
@@ -1007,7 +1004,6 @@ class Test_assert_equal_options1(hunitest.TestCase):
             ignore_line_breaks=ignore_line_breaks,
         )
         self.assertEqual(is_equal, expected_is_equal)
-        return is_equal
 
     def test_fuzzy_match1(self) -> None:
         """
@@ -1015,8 +1011,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "hello world"
         expected = "hello world   "
-        is_equal = self.helper(actual, expected, fuzzy_match=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, fuzzy_match=True)
 
     def test_fuzzy_match2(self) -> None:
         """
@@ -1024,8 +1019,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "hello world"
         expected = "   hello world"
-        is_equal = self.helper(actual, expected, fuzzy_match=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, fuzzy_match=True)
 
     def test_fuzzy_match3(self) -> None:
         """
@@ -1033,8 +1027,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "hello world"
         expected = "hello    world"
-        is_equal = self.helper(actual, expected, fuzzy_match=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, fuzzy_match=True)
 
     def test_fuzzy_match4(self) -> None:
         """
@@ -1047,8 +1040,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         world
         """
         expected = hprint.dedent(expected)
-        is_equal = self.helper(actual, expected, fuzzy_match=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, fuzzy_match=True)
 
     def test_fuzzy_match5(self) -> None:
         """
@@ -1072,8 +1064,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         # Use purify_text to normalize the actual output.
         actual = "Processed at 2024-01-15 10:30:45"
         expected = "Processed at 2024-01-15 10:30:45"
-        is_equal = self.helper(actual, expected, purify_text=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, purify_text=True)
 
     def test_purify_text2(self) -> None:
         """
@@ -1083,8 +1074,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "Object at address 0x7f1234567890"
         expected = "Object at address 0x7f1234567890"
-        is_equal = self.helper(actual, expected, purify_text=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, purify_text=True)
 
     def test_purify_text3(self) -> None:
         """
@@ -1095,10 +1085,9 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "output value"
         expected = "output value"
-        is_equal = self.helper(
-            actual, expected, purify_text=True, purify_expected_text=False
+        self.helper(
+            actual, expected, True, purify_text=True, purify_expected_text=False
         )
-        self.assertTrue(is_equal)
 
     def test_purify_expected_text1(self) -> None:
         """
@@ -1109,10 +1098,9 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "output value"
         expected = "output value"
-        is_equal = self.helper(
-            actual, expected, purify_text=True, purify_expected_text=True
+        self.helper(
+            actual, expected, True, purify_text=True, purify_expected_text=True
         )
-        self.assertTrue(is_equal)
 
     def test_purify_expected_text2(self) -> None:
         """
@@ -1120,10 +1108,9 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "output value"
         expected = "output value"
-        is_equal = self.helper(
-            actual, expected, purify_text=False, purify_expected_text=True
+        self.helper(
+            actual, expected, True, purify_text=False, purify_expected_text=True
         )
-        self.assertTrue(is_equal)
 
     def test_ignore_line_breaks1(self) -> None:
         """
@@ -1131,8 +1118,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "hello\nworld"
         expected = "hello world"
-        is_equal = self.helper(actual, expected, ignore_line_breaks=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, ignore_line_breaks=True)
 
     def test_ignore_line_breaks2(self) -> None:
         """
@@ -1140,8 +1126,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "hello\n\n\nworld"
         expected = "hello   world"
-        is_equal = self.helper(actual, expected, ignore_line_breaks=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, ignore_line_breaks=True)
 
     def test_ignore_line_breaks3(self) -> None:
         """
@@ -1154,8 +1139,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = hprint.dedent(actual)
         expected = "line1 line2 line3"
-        is_equal = self.helper(actual, expected, ignore_line_breaks=True)
-        self.assertTrue(is_equal)
+        self.helper(actual, expected, True, ignore_line_breaks=True)
 
     def test_ignore_line_breaks4(self) -> None:
         """
@@ -1181,10 +1165,9 @@ class Test_assert_equal_options1(hunitest.TestCase):
         world
         """
         expected = hprint.dedent(expected)
-        is_equal = self.helper(
-            actual, expected, fuzzy_match=True, ignore_line_breaks=True
+        self.helper(
+            actual, expected, True, fuzzy_match=True, ignore_line_breaks=True
         )
-        self.assertTrue(is_equal)
 
     def test_combined2(self) -> None:
         """
@@ -1195,10 +1178,9 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "output    value"
         expected = "output value"
-        is_equal = self.helper(
-            actual, expected, purify_text=True, fuzzy_match=True
+        self.helper(
+            actual, expected, True, purify_text=True, fuzzy_match=True
         )
-        self.assertTrue(is_equal)
 
     def test_combined3(self) -> None:
         """
@@ -1214,12 +1196,12 @@ class Test_assert_equal_options1(hunitest.TestCase):
         value2
         """
         expected = hprint.dedent(expected)
-        is_equal = self.helper(
+        self.helper(
             actual,
             expected,
+            True,
             fuzzy_match=True,
             purify_text=True,
             purify_expected_text=True,
             ignore_line_breaks=True,
         )
-        self.assertTrue(is_equal)
