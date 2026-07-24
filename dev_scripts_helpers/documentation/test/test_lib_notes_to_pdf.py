@@ -122,8 +122,8 @@ class Test_render_images(hunitest.TestCase):
             self,
             sys_calls,
             expected_str,
-            purify_text=True,
-            purify_expected_text=True,
+            #purify_text=True,
+            #purify_expected_text=True,
         )
 
 
@@ -474,13 +474,20 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         self.assert_equal(
             result, "$GIT_ROOT/tmp.html", fuzzy_match=True, purify_text=True
         )
-        sys_calls_str = repr(sys_calls)
-        self.assert_equal(
-            sys_calls_str,
+#        sys_calls_str = hunteuti._sys_calls_to_str(sys_calls)
+#        self.assert_equal(
+#            sys_calls_str,
+#            expected,
+#            fuzzy_match=True,
+#            dedent=True,
+#            purify_text=True,
+#        )
+        hunteuti.assert_sys_calls(
+            self,
+            sys_calls,
             expected,
-            fuzzy_match=True,
-            dedent=True,
-            purify_text=True,
+            #purify_text=True,
+            #purify_expected_text=True,
         )
 
     def test1(self) -> None:
@@ -699,9 +706,9 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
-            expected_str,
-            purify_text=True,
-            purify_expected_text=True,
+            expected_str
+            #purify_text=True,
+            #purify_expected_text=True,
         )
 
     def test1(self) -> None:
@@ -1095,6 +1102,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
             purify_expected_text=True,
         )
 
+    # TODO(ai_gp): Use the helper
     def test1(self) -> None:
         """
         Test copy to specified Google Drive directory.
@@ -1166,6 +1174,6 @@ class Test_compress_pdf(hunitest.TestCase):
             self,
             sys_calls,
             expected_str,
-            purify_text=True,
-            purify_expected_text=True,
+            #purify_text=True,
+            #purify_expected_text=True,
         )

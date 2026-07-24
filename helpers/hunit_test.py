@@ -231,6 +231,7 @@ def diff_files(
     tag: str = "",
     abort_on_exit: bool = True,
     dst_dir: str = ".",
+    test_dir: str = "",
     error_msg: str = "",
 ) -> None:
     """
@@ -240,6 +241,7 @@ def diff_files(
     :param tag: add a banner the tag
     :param abort_on_exit: whether to assert or not
     :param dst_dir: dir where to save the comparing script
+    :param test_dir: optional test outcomes directory to also save script to
     """
     _LOG.debug(hprint.func_signature_to_str())
     file_name1 = os.path.relpath(file_name1, os.getcwd())
@@ -256,7 +258,6 @@ def diff_files(
     )
     msg.append(res)
     # Save a script to diff.
-    diff_script = os.path.join(dst_dir, "tmp_diff.sh")
     vimdiff_cmd = f"""
     #!/bin/bash
     if [[ $1 == "wrap" ]]; then
@@ -268,11 +269,17 @@ def diff_files(
     eval $cmd
     """
     vimdiff_cmd = hprint.dedent(vimdiff_cmd)
-    # TODO(gp): Use hio.create_executable_script().
-    hio.to_file(diff_script, vimdiff_cmd)
-    cmd = "chmod +x " + diff_script
-    hsystem.system(cmd)
-    # Report how to diff.
+    # Save diff script to both dst_dir and test_dir (if provided).
+    for save_dir in [dst_dir, test_dir]:
+        if not save_dir:
+            continue
+        diff_script = os.path.join(save_dir, "tmp.diff.sh")
+        # TODO(gp): Use hio.create_executable_script().
+        hio.to_file(diff_script, vimdiff_cmd)
+        cmd = "chmod +x " + diff_script
+        hsystem.system(cmd)
+    # Report how to diff using the dst_dir version.
+    diff_script = os.path.join(dst_dir, "tmp.diff.sh")
     msg.append("Diff with:")
     msg.append("> " + diff_script)
     msg_as_str = "\n".join(msg)
@@ -453,8 +460,14 @@ def assert_equal(
         hdbg.dassert_not_in(tag, values)
         values[tag] = (actual, expected)
 
-    #
     _LOG.debug("Before any transformation:")
+    # Save the passed values, before any transform to both current and test dir.
+    for save_dir in (".", test_dir):
+        act_file_name = f"{save_dir}/tmp.initial.actual.txt"
+        hio.to_file(act_file_name, actual)
+        exp_file_name = f"{save_dir}/tmp.initial.expected.txt"
+        hio.to_file(exp_file_name, expected)
+    #
     tag = "original"
     _append(tag, actual, expected)
     # 1) Remove white spaces.
@@ -587,6 +600,7 @@ def assert_equal(
         tag=msg,
         abort_on_exit=abort_on_error,
         dst_dir=dst_dir,
+        test_dir=test_dir,
         error_msg=error_msg,
     )
     return is_equal

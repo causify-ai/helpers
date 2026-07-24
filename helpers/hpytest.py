@@ -281,11 +281,11 @@ def parse_test_errors(
     --------------------------------------------------------------------------------
     ...
     Diff with:
-    > ./tmp_diff.sh
+    > ./tmp.diff.sh
     FAILED helpers/test/test_foo.py::Test2::test2 - AssertionError: boom
     ```
     the reason for `Test1.test1` is everything from "RuntimeError:" through
-    "> ./tmp_diff.sh", and the reason for `Test2.test2` is just
+    "> ./tmp.diff.sh", and the reason for `Test2.test2` is just
     "AssertionError: boom".
 
     :param lines: pytest output lines, same input as `parse_failed_tests()`

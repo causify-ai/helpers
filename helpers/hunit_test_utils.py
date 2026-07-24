@@ -732,15 +732,20 @@ def assert_sys_calls(
     # TODO(gp): Consider moving this inside the unit test framework.
     # Aggressive whitespace normalization: remove newlines, collapse spaces,
     # and remove spaces around structural punctuation.
-    actual_str = actual_str.replace("\n", "")
-    actual_str = re.sub(r'\s+', ' ', actual_str).strip()
-    actual_str = re.sub(r'\s*([{}\[\],:])\s*', r'\1', actual_str)
-    expected_str = expected_str.replace("\n", "")
-    expected_str = re.sub(r'\s+', ' ', expected_str).strip()
-    expected_str = re.sub(r'\s*([{}\[\],:])\s*', r'\1', expected_str)
+    if False:
+        actual_str = actual_str.replace("\n", "")
+        actual_str = re.sub(r'\s+', ' ', actual_str).strip()
+        # TODO(ai_gp): Add an explanation
+        actual_str = re.sub(r'\s*([{}\[\],:])\s*', r'\1', actual_str)
+        #
+        expected_str = expected_str.replace("\n", "")
+        expected_str = re.sub(r'\s+', ' ', expected_str).strip()
+        expected_str = re.sub(r'\s*([{}\[\],:])\s*', r'\1', expected_str)
     # Disable fuzzy_match and ignore_line_breaks since normalization is done above.
     if "fuzzy_match" not in assert_equal_kwargs:
-        assert_equal_kwargs["fuzzy_match"] = False
+        #assert_equal_kwargs["fuzzy_match"] = False
+        assert_equal_kwargs["fuzzy_match"] = True
     if "ignore_line_breaks" not in assert_equal_kwargs:
-        assert_equal_kwargs["ignore_line_breaks"] = False
+        #assert_equal_kwargs["ignore_line_breaks"] = False
+        assert_equal_kwargs["ignore_line_breaks"] = True
     self_.assert_equal(actual_str, expected_str, **assert_equal_kwargs)

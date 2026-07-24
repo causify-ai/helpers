@@ -32,7 +32,7 @@ find . -name '*\.pyc' -o -name '*\.pyo' -o -name '.coverage' -o -name '.i (
 Diff with:
 > vimdiff helpers/test/outcomes/TestDryRunTasks1.test_git_clean/tmp.actual.txt helpers/test/outcomes/TestDryRunTasks1.test_git_clean/tmp.expected.txt
 or running:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 EXPECTED VARIABLE: TestDryRunTasks1.test_git_clean
 --------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ end_ts                                                                    (
 Diff with:
 > vimdiff dataflow/system/example1/test/outcomes/Test_Example1_ForecastSystem_FitPredict.test_fit_over_backtest_period1/tmp.actual.txt dataflow/system/example1/test/outcomes/Test_Example1_ForecastSystem_FitPredict.test_fit_over_backtest_period1/tmp.expected.txt
 or running:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 EXPECTED VARIABLE: Test_Example1_ForecastSystem_FitPredict.test_fit_over_backtest_period1
 --------------------------------------------------------------------------------
@@ -312,7 +312,7 @@ end_ts                                                                    (
 Diff with:
 > vimdiff dataflow/system/example1/test/outcomes/Test_Example1_ForecastSystem_FitPredict.test_fit_over_period1/tmp.actual.txt dataflow/system/example1/test/outcomes/Test_Example1_ForecastSystem_FitPredict.test_fit_over_period1/tmp.expected.txt
 or running:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 EXPECTED VARIABLE: Test_Example1_ForecastSystem_FitPredict.test_fit_over_period1
 --------------------------------------------------------------------------------

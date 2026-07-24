@@ -205,11 +205,11 @@ class TestTestCase1(hunitest.TestCase):
         expected = """
         # Dir structure
         $TMP_DIR
-        $TMP_DIR/tmp_diff.sh
+        $TMP_DIR/tmp.diff.sh
         # File signatures
         len(file_names)=1
-        file_names=$TMP_DIR/tmp_diff.sh
-        # $TMP_DIR/tmp_diff.sh
+        file_names=$TMP_DIR/tmp.diff.sh
+        # $TMP_DIR/tmp.diff.sh
         num_lines=8
         '''
         #!/bin/bash
@@ -343,7 +343,7 @@ completed failure Lint    Run_linter                                      |  com
 completed       success Lint    Fast_tests                                (
 completed       success Lint    Slow_tests                                (
 Diff with:
-> ./tmp_diff.sh
+> ./tmp.diff.sh
 --------------------------------------------------------------------------------
 ACTUAL VARIABLE: Test_AssertEqual1.test_not_equal1
 --------------------------------------------------------------------------------
@@ -375,7 +375,7 @@ completed       success Lint    Slow_tests
         actual = huntepur.purify_txt_from_client(actual)
         actual = actual.replace(tmp_dir, "$TMP_DIR")
         # Verify that the diff script was created.
-        self.assertIn("tmp_diff.sh", actual)
+        self.assertIn("tmp.diff.sh", actual)
 
     # For debugging: don't commit code with this test enabled.
     @pytest.mark.skip(
