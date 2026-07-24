@@ -9,6 +9,7 @@ import logging
 import os
 import pprint
 import re
+import shlex
 import shutil
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -1159,6 +1160,56 @@ def write_repro_script(
     repro_txt = "\n".join(lines)
     hio.create_executable_script(file_name, repro_txt)
     _LOG.info("Created '%s'", file_name)
+
+
+# #############################################################################
+# Live repro script
+# #############################################################################
+
+# TODO(ai_gp): Add explanation of who calls it and when.
+
+# Name of the script incrementally built during a pytest run.
+LIVE_REPRO_SCRIPT_FILE_NAME = "tmp.pytest_repro.sh"
+
+
+def reset_live_repro_script(file_name: str = LIVE_REPRO_SCRIPT_FILE_NAME) -> None:
+    """
+    Delete and recreate an empty repro script at the start of a pytest session.
+
+    :param file_name: path to the repro script
+    """
+    hio.delete_file(file_name)
+    lines = [
+        "#!/bin/bash -xe",
+        "# Repro script for failed tests (auto-generated during the pytest run).",
+    ]
+    hio.create_executable_script(file_name, "\n".join(lines) + "\n")
+
+
+def append_failed_test_to_live_repro_script(
+    nodeid: str, *, file_name: str = LIVE_REPRO_SCRIPT_FILE_NAME
+) -> None:
+    """
+    Append a `pytest_log` command for one failed test to the repro script.
+
+    Avoids duplicates via content checking, as pytest-xdist's master
+    may relay a worker's report twice.
+
+    :param nodeid: pytest node ID of the failing test (e.g.,
+        'path/to/test.py::TestClass::test_method')
+    :param file_name: path to the repro script
+    """
+    line = f"pytest_log {shlex.quote(nodeid)} $*\n"
+    # Skip if already present: pytest-xdist relays each worker's report to
+    # the master too, which would otherwise call this a second time for the
+    # same test.
+    if os.path.exists(file_name):
+        content = hio.from_file(file_name)
+        if line in content:
+            return
+    # mode="a" maps to POSIX O_APPEND, so concurrent xdist workers writing
+    # different lines to the same file won't interleave/corrupt each other.
+    hio.to_file(file_name, line, mode="a")
 
 
 # #############################################################################

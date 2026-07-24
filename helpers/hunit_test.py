@@ -593,7 +593,8 @@ def assert_equal(
         msg = "FUZZY ACTUAL vs FUZZY EXPECTED"
     else:
         msg = "ACTUAL vs EXPECTED"
-    msg += f": {full_test_name}"
+    caller = "check_string()" if check_string else "assert_equal()"
+    msg += f" [via {caller}]: {full_test_name}"
     diff_files(
         act_file_name,
         exp_file_name,

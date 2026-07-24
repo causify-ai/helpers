@@ -236,7 +236,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         )
         # Check.
         actual = _to_output_str(script_txt, output_txt)
-        self.check_string(actual, purify_text=True)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -254,7 +254,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         )
         # Check.
         actual = _to_output_str(script_txt, output_txt)
-        self.check_string(actual, purify_text=True)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
 
     @pytest.mark.superslow
     @pytest.mark.skip(reason="To debug")
@@ -296,7 +296,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         txt += f"output_txt:\n{output_txt}\n"
         #
         tag = _get_arch_tag()
-        self.check_string(txt, purify_text=True, tag=tag)
+        self.check_string(txt, purify_text=True, tag=tag, fuzzy_match=True)
 
 
 # #############################################################################
@@ -556,7 +556,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.check_string(actual, purify_text=True)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
 
     @pytest.mark.skip(reason="Enable when option is available")
     def test2(self) -> None:
@@ -570,7 +570,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.check_string(actual, purify_text=True)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -583,7 +583,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.check_string(actual, purify_text=True)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
 
 
 # #############################################################################

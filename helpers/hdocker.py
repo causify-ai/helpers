@@ -123,7 +123,7 @@ def is_docker_running() -> bool:
     engine = get_docker_engine()
     if engine == "docker":
         rc, output = hsystem.system_to_string(
-            "docker version", abort_on_error=False
+            "docker ps", abort_on_error=False
         )
         is_running = rc == 0 and "failed to connect" not in output
     elif engine == "apple":
@@ -600,6 +600,8 @@ def build_container_image(
     :raises AssertionError: If the container ID is not found.
     """
     _LOG.debug(hprint.func_signature_to_str("dockerfile"))
+    # Verify that the Docker system is running before attempting to build.
+    hdbg.dassert(is_docker_running(), "Docker engine is not running")
     #
     image_name_out, dockerfile = get_container_image_name(image_name, dockerfile)
     # Check if the container already exists. If not, build it.

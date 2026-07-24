@@ -499,9 +499,12 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         toc_type = "none"
         expected = r"""
         [
-        {'function': 'hsystem.system',
-        'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html",),
-        'kwargs': {'log_level': 10, 'suppress_output': False},},]
+            {
+            'function': hsystem.system,
+            'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html",),
+            'kwargs': {'log_level': 10, 'suppress_output': False},
+            },
+        ]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -516,9 +519,12 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         toc_type = "pandoc_native"
         expected = r"""
         [
-        {'function': 'hsystem.system',
-        'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",),
-        'kwargs': {'log_level': 10, 'suppress_output': False},},]
+            {
+            'function': hsystem.system,
+            'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",),
+            'kwargs': {'log_level': 10, 'suppress_output': False},
+            },
+        ]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -533,9 +539,12 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         toc_type = "none"
         expected = r"""
         [
-        {'function': 'hsystem.system',
-        'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",),
-        'kwargs': {'log_level': 10, 'suppress_output': False},},]
+            {
+            'function': hsystem.system,
+            'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",),
+            'kwargs': {'log_level': 10, 'suppress_output': False},
+            },
+        ]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -686,19 +695,31 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
         file_out = file_name.replace(".txt", expected_ext)
         self.assert_equal(result, file_out)
         rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
-        cmd = (
+        find_cmd = "find $GIT_ROOT \\( -path '*/.git' -o -path '*/.mypy_cache' \\) -prune -o -name \"dev_scripts_helpers\" -print"
+        cp_cmd = f"cp -f documentation/latex_abbrevs.sty {os.path.dirname(file_name)}"
+        pandoc_cmd = (
             f"pandoc {file_name} -t beamer --slide-level 4"
             " -V theme:SimplePlus --include-in-header=latex_abbrevs.sty"
             " --fail-if-warnings"
             f" --resource-path={rel_path}"
         )
         if toc_type == "pandoc_native":
-            cmd += " --toc --toc-depth 2"
-        cmd += f" -o {file_out}"
+            pandoc_cmd += " --toc --toc-depth 2"
+        pandoc_cmd += f" -o {file_out}"
         expected_sys_calls = [
             {
                 "function": "hsystem.system_to_string",
-                "args": (cmd,),
+                "args": (find_cmd,),
+                "kwargs": {},
+            },
+            {
+                "function": "hsystem.system",
+                "args": (cp_cmd,),
+                "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
+            },
+            {
+                "function": "hsystem.system_to_string",
+                "args": (pandoc_cmd,),
                 "kwargs": {"log_level": logging.DEBUG, "abort_on_error": False},
             },
         ]
@@ -976,8 +997,18 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         expected_str = r"""[
         {
         'function': hsystem.system,
-        'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt -f markdown --number-sections -s -t typst --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/pandoc_touying.typ --resource-path=dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ',),
+        'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.with_defs.txt -t json --fail-if-warnings -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.with_defs.txt.ast.json',),
+        'kwargs': {'log_level': 10, 'suppress_output': False, 'print_command': True},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('convert_pandoc_divved_fence.py -i $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.with_defs.txt.ast.json -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.divved.ast.json',),
         'kwargs': {'log_level': 10, 'suppress_output': False},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.divved.ast.json -f json -t typst --fail-if-warnings --number-sections -s --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/pandoc_touying.typ --resource-path=dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ',),
+        'kwargs': {'log_level': 10, 'suppress_output': False, 'print_command': True},
         },
         {
         'function': hsystem.system,
