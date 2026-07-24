@@ -164,21 +164,19 @@ class Test_filter_diff_output(hunitest.TestCase):
         :param expected: Expected filtered output
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use get_scratch_space instead of temp dir
-        # Prepare inputs.
-        with tempfile.TemporaryDirectory() as tmpdir:
-            diff_file = os.path.join(tmpdir, "diff.txt")
-            hio.to_file(diff_file, diff_content)
-            if file_list_content is not None:
-                file_list = os.path.join(tmpdir, "files.txt")
-                hio.to_file(file_list, file_list_content)
-            else:
-                file_list = None
-            # Run test.
-            dscdtovi._filter_diff_output(diff_file, file_list)
-            # Check outputs.
-            result = hio.from_file(diff_file)
-            self.assert_equal(result, expected)
+        scratch_dir = self.get_scratch_space()
+        diff_file = os.path.join(scratch_dir, "diff.txt")
+        hio.to_file(diff_file, diff_content)
+        if file_list_content is not None:
+            file_list = os.path.join(scratch_dir, "files.txt")
+            hio.to_file(file_list, file_list_content)
+        else:
+            file_list = None
+        # Run test.
+        dscdtovi._filter_diff_output(diff_file, file_list)
+        # Check outputs.
+        result = hio.from_file(diff_file)
+        self.assert_equal(result, expected)
 
     def test1(self) -> None:
         """
