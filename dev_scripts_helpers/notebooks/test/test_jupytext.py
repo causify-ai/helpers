@@ -18,7 +18,7 @@ import helpers.hunit_test_utils as hunteuti
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code in helper
+# TODO(ai_gp): Factor out the common code in helper with /coding.factor_common_code
 class Test_is_jupytext_version_different(hunitest.TestCase):
     """
     Unit tests for _is_jupytext_version_different function.
@@ -115,17 +115,16 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code in helper
+# TODO(ai_gp): Factor out the common code in helper with /coding.factor_common_code
 class Test_find_paired_file(hunitest.TestCase):
     """
     Unit tests for _find_paired_file function.
     """
 
-    def test1(self) -> None:
+    def _create_paired_files(self) -> tuple:
         """
-        Test _find_paired_file with a .ipynb file as input.
+        Create paired .ipynb and .py files in scratch space.
         """
-        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
         py_file = f"{scratch_dir}/test_notebook.py"
@@ -133,6 +132,14 @@ class Test_find_paired_file(hunitest.TestCase):
             f.write("{}")
         with open(py_file, "w") as f:
             f.write("")
+        return ipynb_file, py_file
+
+    def test1(self) -> None:
+        """
+        Test _find_paired_file with a .ipynb file as input.
+        """
+        # Prepare inputs.
+        ipynb_file, py_file = self._create_paired_files()
         # Run test.
         result = dshenoju._find_paired_file(ipynb_file)
         # Check outputs.
@@ -143,13 +150,7 @@ class Test_find_paired_file(hunitest.TestCase):
         Test _find_paired_file with a .py file as input.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        py_file = f"{scratch_dir}/test_notebook.py"
-        with open(ipynb_file, "w") as f:
-            f.write("{}")
-        with open(py_file, "w") as f:
-            f.write("")
+        ipynb_file, py_file = self._create_paired_files()
         # Run test.
         result = dshenoju._find_paired_file(py_file)
         # Check outputs.

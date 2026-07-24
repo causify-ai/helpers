@@ -1,18 +1,6 @@
-All tests below using hunteuti.capture_sys_calls 
+In TODO(ai_gp2) in src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
 
-./dev_scripts_helpers/git/test/test_create_git_worktree.py
-./dev_scripts_helpers/notebooks/test/test_jupytext.py
-./linters2/test/test_lint.py
-./helpers/test/test_hunit_test_utils.py
-./dev_scripts_helpers/system_tools/test/test_lib_rig.py
-./dev_scripts_helpers/documentation/test/test_replace_latex.py
-./dev_scripts_helpers/documentation/test/test_open_md.py
-./dev_scripts_helpers/testing/test/test_pytest_multi_build.py
-./dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
-
-should 
-1) use hunteuti.assert_sys_calls(self, invocations, expected, dedent=True)
-2) use
+Use
   expected = """
   ...
   """
@@ -51,10 +39,8 @@ should
   expected_str = pprint.pformat(expected_sys_calls)
   hunteuti.assert_sys_calls(self, sys_calls, expected_str)
   ```
-3) No test should call hunteuti.sys_calls_to_str or pprint.pformat(expected_sys_calls)
 
-- Update the actual output since we have updated the function formatting the
-  output
+No test should call hunteuti.sys_calls_to_str or pprint.pformat(expected_sys_calls)
 
 # Conventions
 - When writing code you must always follow the instructions in

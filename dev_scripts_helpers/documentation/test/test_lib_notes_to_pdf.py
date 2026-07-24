@@ -8,7 +8,6 @@ including pandoc orchestration, file operations, and system calls.
 
 import logging
 import os
-import pprint
 from typing import Any, Dict, List, Optional
 from unittest import mock
 
@@ -18,8 +17,6 @@ import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -50,7 +47,8 @@ class Test_preprocess_notes(hunitest.TestCase):
         # Check outputs.
         expected_result = f"{prefix}.preprocess_notes.txt"
         self.assert_equal(result, expected_result)
-        expected_str = r"""[
+        expected_str = r"""
+        [
         {
         'function': hsystem.system_to_string
         'args': ('find $GIT_ROOT/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
@@ -66,7 +64,6 @@ class Test_preprocess_notes(hunitest.TestCase):
             self,
             sys_calls,
             expected_str,
-            dedent=True,
         )
 
 
@@ -98,6 +95,20 @@ class Test_render_images(hunitest.TestCase):
         expected_result = f"{prefix}.render_image2.txt"
         self.assert_equal(result, expected_result)
         git_root = hgit.find_git_root()
+        # TODO(ai_gp2): Convert the dictionary to a string
+        # expected_str = r"""
+        # [
+        # {
+        # 'function': hsystem.system_to_string
+        # 'args': ('find $GIT_ROOT/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
+        # 'kwargs': {}
+        # },
+        # {
+        # 'function': hsystem.system
+        # 'args': (' --input input.txt --output tmp.pandoc.preprocess_notes.txt --type pdf --toc_type pandoc_native --output_format latex',)
+        # 'kwargs': {'log_level': 10, 'suppress_output': False}
+        # },
+        # ]"""
         expected_sys_calls = [
             {
                 "function": "hsystem.system_to_string",
@@ -116,8 +127,6 @@ class Test_render_images(hunitest.TestCase):
                 "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
             },
         ]
-        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
-        expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
@@ -174,6 +183,7 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
         if fail_on_warnings:
             cmd += " --fail-if-warnings"
         cmd += f" -o {ast_file}"
+        # TODO(ai_gp2): Convert the dictionary to a string
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
@@ -184,8 +194,6 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
                 },
             },
         ]
-        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
-        expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
         hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test1(self) -> None:
@@ -260,6 +268,7 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
         for opt in extra_opts:
             cmd += f" {opt}"
         cmd += f" -o {output_file}"
+        # TODO(ai_gp2): Convert the dictionary to a string
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
@@ -270,8 +279,6 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
                 },
             },
         ]
-        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
-        expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
         hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test1(self) -> None:
@@ -361,15 +368,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                     no_pdf=no_pdf,
                 )
         # Check outputs.
-        # TODO(ai_gp): Use assert_sys_call
-        sys_calls_str = repr(sys_calls)
-        self.assert_equal(
-            sys_calls_str,
-            expected,
-            fuzzy_match=True,
-            dedent=True,
-            purify_text=True,
-        )
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
         return result
 
     def test1(self) -> None:
@@ -379,7 +378,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         no_pdf = False
-        # TODO(ai_gp): Format better.
+        # TODO(ai_gp2): Convert the dictionary to a multi line strings
         expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}, {'function': 'hsystem.system_to_string', 'args': ('find $GIT_ROOT/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "dev_scripts_helpers" -print',), 'kwargs': {}}, {'function': 'hsystem.system', 'args': ('cp -f documentation/latex_abbrevs.sty $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch',), 'kwargs': {'log_level': 10, 'suppress_output': False}}, {'function': 'hsystem.system', 'args': ('pdflatex -output-directory $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch -interaction=nonstopmode -halt-on-error -shell-escape $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected)
@@ -391,15 +390,13 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         no_pdf = True
-        # TODO(ai_gp): Format better.
-        expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
+        # TODO(ai_gp2): Convert the dictionary to a multi line strings
+        expected = r"""[{'function': hsystem.system, 'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         result = self.helper(toc_type, no_pdf, expected, prefix_suffix="tmp.pdf")
         # Check outputs.
         expected_result = r"$GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex"
-        self.assert_equal(
-            result, expected_result, fuzzy_match=True, purify_text=True
-        )
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test3(self) -> None:
         """
@@ -408,8 +405,8 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "pandoc_native"
         no_pdf = True
-        # TODO(ai_gp): Format better.
-        expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/tmp.pdf.tex --toc --toc-depth 2',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
+        # TODO(ai_gp2): Convert the dictionary to a multi line strings
+        expected = r"""[{'function': hsystem.system, 'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/tmp.pdf.tex --toc --toc-depth 2',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected)
 
@@ -461,7 +458,6 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         self.assert_equal(
             result, "$GIT_ROOT/helpers_root/tmp.html", fuzzy_match=True, purify_text=True
         )
-        # TODO(ai_gp): Use assert_sys_call
         sys_calls_str = repr(sys_calls)
         self.assert_equal(
             sys_calls_str,
@@ -478,7 +474,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "none"
-        # TODO(ai_gp): Format better.
+        # TODO(ai_gp2): Convert the dictionary to a multi line strings
         expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
@@ -490,8 +486,8 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "pandoc_native"
-        # TODO(ai_gp): Format better.
-        expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
+        # TODO(ai_gp2): Convert the dictionary to a multi line strings
+        expected = r"""[{'function': hsystem.system, 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
 
@@ -502,19 +498,18 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "notes.md"
         toc_type = "none"
-        # TODO(ai_gp): Format better.
-        expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
+        # TODO(ai_gp2): Convert the dictionary to a multi line strings
+        expected = r"""[{'function': hsystem.system, 'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
 
 
 # #############################################################################
-# Test_build_pandoc_cmd
+# Test_build_pandoc_latex_cmd
 # #############################################################################
 
 
-# TODO(ai_gp): Rename this to Test_build_pandoc_latex_cmd
-class Test_build_pandoc_cmd(hunitest.TestCase):
+class Test_build_pandoc_latex_cmd(hunitest.TestCase):
     """
     Test `_build_pandoc_latex_cmd()` function for slide command building.
     """
@@ -669,7 +664,6 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
                 "kwargs": {"log_level": logging.DEBUG, "abort_on_error": False},
             },
         ]
-        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
         expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
         hunteuti.assert_sys_calls(
             self,
@@ -1047,7 +1041,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         # Check outputs.
         basename = os.path.basename(input_).replace(".txt", "." + ext)
         dst_file = os.path.join(gdrive_dir, basename)
-        # TODO(ai_gp): Fix this.
+        # TODO(ai_gp2): Convert the dictionary to a multi line strings
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
@@ -1058,8 +1052,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
                 },
             },
         ]
-        # TODO(ai_gp): Use assert_sys_call
-        expected_str = repr(expected_sys_calls)
+        expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
         hunteuti.assert_sys_calls(
             self,
             sys_calls,

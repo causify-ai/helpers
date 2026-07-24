@@ -42,20 +42,32 @@ def _get_arch_tag() -> str:
     return tag
 
 
-# TODO(ai_gp): Update docstring.
-# TODO(ai_gp): Find a better name for this function.
-def _safe_read_text(file_name: str) -> str:
+# TODO(gp): Generalize and centralize this in a helper.
+def _skip_if_no_pandoc_in_docker(test_func):
     """
-    Read a file as text, returning "" if it's missing or not valid UTF-8.
+    Decorator to skip test if running in Docker without pandoc.
+    """
+    def wrapper(*args, **kwargs):
+        if hserver.is_inside_docker() and shutil.which("pandoc") is None:
+            pytest.skip("Pandoc not available in container")
+        return test_func(*args, **kwargs)
+    return wrapper
 
-    For PDF files, returns the filename instead of attempting to read binary
-    content.
+
+def _read_output_file(file_name: str) -> str:
+    """
+    Read test output file content safely.
+
+    For missing files or non-UTF8 files (e.g., PDFs), returns empty string.
+    For PDF files specifically, returns the filename since we can't read binary.
+
+    :param file_name: Path to output file
+    :return: File content or empty string if unreadable
     """
     if not os.path.exists(file_name):
         return ""
     if file_name.endswith(".pdf"):
         return os.path.basename(file_name)
-    # TODO(ai_gp): Find out what are the files that can't be read.
     try:
         return hio.from_file(file_name)
     except (RuntimeError, UnicodeDecodeError):
@@ -223,11 +235,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             in_file, type_, cmd_opts, expected
         )
         # Check.
-        # TODO(ai_gp): Use _to_output_str
-        self.check_string(
-            f"script_txt:\n{script_txt}\noutput_txt:\n{output_txt}\n",
-            purify_text=True
-        )
+        actual = _to_output_str(script_txt, output_txt)
+        self.check_string(actual, purify_text=True)
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -244,11 +253,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             in_file, type_, cmd_opts, expected
         )
         # Check.
-        # TODO(ai_gp): Use _to_output_str
-        self.check_string(
-            f"script_txt:\n{script_txt}\noutput_txt:\n{output_txt}\n",
-            purify_text=True
-        )
+        actual = _to_output_str(script_txt, output_txt)
+        self.check_string(actual, purify_text=True)
 
     @pytest.mark.superslow
     @pytest.mark.skip(reason="To debug")
@@ -384,7 +390,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -535,17 +541,14 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         return script_txt, output_txt
 
+    @_skip_if_no_pandoc_in_docker
     def test1(self) -> None:
         """
         Test HTML output generation.
         """
-        # TODO(ai_gp): Move it to a decorator.
-        # Skip if running in container without pandoc
-        if hserver.is_inside_docker() and shutil.which("pandoc") is None:
-            pytest.skip("Pandoc not available in container")
         # Prepare inputs.
         type_ = "html"
         cmd_opts = ""
@@ -657,7 +660,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         _LOG.debug("script_txt=%s", script_txt)
         return script_txt, output_txt
 
@@ -771,7 +774,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt = ""
         if os.path.exists(script_file):
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         expected = r"""
@@ -912,7 +915,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         if generate_script:
             hdbg.dassert_file_exists(script_file)
             script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1077,7 +1080,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         hsystem.system(cmd)
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1260,7 +1263,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         hsystem.system(cmd)
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1546,7 +1549,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         # Run test.
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
@@ -1725,7 +1728,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         # Run test.
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
-        output_txt = _safe_read_text(out_file)
+        output_txt = _read_output_file(out_file)
         return script_txt, output_txt
 
     def test1(self) -> None:
