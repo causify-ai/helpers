@@ -1,46 +1,18 @@
-In TODO(ai_gp2) in src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
+In src/umd_classes1/helpers_root/dev_scripts_helpers/documentation/test/test_lib_notes_to_pdf.py
 
 Use
-  expected = """
-  ...
-  """
-  expected = hprint.dedent(expected)
+  ```
+  expected = r"""
+  [
+  {'function': 'hsystem.system', 
+  'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 
+  'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
+  ```
   instead of 
   ```
-  # Check outputs.
-  expected_sys_calls = [
-      {
-          "args": (
-              "jupytext --update-metadata "
-              """'{"jupytext":{"formats":"ipynb,py:percent"}}' """
-              f"{ipynb_file}",
-          ),
-          "function": "hsystem.system",
-          "kwargs": {},
-      },
-      {
-          "args": (
-              f"jupytext --test --stop --to py:percent {ipynb_file}",
-          ),
-          "function": "hsystem.system",
-          "kwargs": {},
-      },
-      {
-          "args": (f"jupytext --to py:percent {ipynb_file}",),
-          "function": "hsystem.system",
-          "kwargs": {},
-      },
-      {
-          "args": (f"git add {scratch_dir}/test_notebook.py",),
-          "function": "hsystem.system",
-          "kwargs": {},
-      },
-  ]
-  expected_str = pprint.pformat(expected_sys_calls)
-  hunteuti.assert_sys_calls(self, sys_calls, expected_str)
-  ```
+  expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
 
-No test should call hunteuti.sys_calls_to_str or pprint.pformat(expected_sys_calls)
+  ```
 
 # Conventions
 - When writing code you must always follow the instructions in
