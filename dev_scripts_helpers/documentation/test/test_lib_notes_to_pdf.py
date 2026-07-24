@@ -14,6 +14,7 @@ from unittest import mock
 
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
@@ -43,8 +44,8 @@ class Test_preprocess_notes(hunitest.TestCase):
         output_format = "latex"
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            result = dshdlntpd._preprocess_notes(
-                file_name, prefix, type_, toc_type
+            result = dshdlntpd.preprocess_notes(
+                file_name, prefix, type_, toc_type, output_format
             )
         # Check outputs.
         expected_result = f"{prefix}.preprocess_notes.txt"
@@ -450,10 +451,13 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
-                result = dshdlntpd._run_pandoc_to_html(
+                result = dshdlntpd.run_pandoc_to_html(
                     file_in,
                     prefix,
                     toc_type,
+                    use_host_tools,
+                    dockerized_force_rebuild,
+                    dockerized_use_sudo,
                 )
         # Check outputs.
         self.assert_equal(
@@ -928,7 +932,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                     with mock.patch(
                         "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
                     ):
-                        result = dshdlntpd._run_pandoc_to_typst_slides(
+                        result = dshdlntpd.run_pandoc_to_typst_slides(
                             curr_path,
                             file_name,
                             use_host_tools,
@@ -985,7 +989,7 @@ class Test_copy_to_output(hunitest.TestCase):
         output = os.path.join(scratch_dir, "output.txt")
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            result = dshdlntpd._copy_to_output(file_in, output)
+            result = dshdlntpd.copy_to_output(file_in, output)
         # Check outputs.
         self.assert_equal(result, output)
         expected_str = r"""[
@@ -1012,7 +1016,7 @@ class Test_copy_to_output(hunitest.TestCase):
         output = None
         # Run test and check outputs.
         with self.assertRaises(AssertionError):
-            dshdlntpd._copy_to_output(file_in, output)  # type: ignore
+            dshdlntpd.copy_to_output(file_in, output)  # type: ignore
 
 
 # #############################################################################
@@ -1043,7 +1047,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         gdrive_dir = scratch_dir
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshdlntpd._copy_to_gdrive(file_name, ext, input_, gdrive_dir)
+            dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
         basename = os.path.basename(input_).replace(".txt", "." + ext)
         dst_file = os.path.join(gdrive_dir, basename)
@@ -1081,7 +1085,7 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         input_ = "notes.txt"
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshdlntpd._copy_to_gdrive(file_name, ext, input_, gdrive_dir)
+            dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
         expected_str = r"""[
         {
@@ -1119,7 +1123,7 @@ class Test_compress_pdf(hunitest.TestCase):
         hio.to_file(pdf_file, "PDF content")
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            result = dshdlntpd._compress_pdf(pdf_file)
+            result = dshdlntpd.compress_pdf(pdf_file)
         # Check outputs.
         self.assert_equal(result, pdf_file)
         expected_str = r"""[
