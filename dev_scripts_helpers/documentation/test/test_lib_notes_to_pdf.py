@@ -51,7 +51,7 @@ class Test_preprocess_notes(hunitest.TestCase):
         [
         {
         'function': hsystem.system_to_string
-        'args': ('find $GIT_ROOT/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
+        'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
         'kwargs': {}
         },
         {
@@ -59,7 +59,9 @@ class Test_preprocess_notes(hunitest.TestCase):
         'args': (' --input input.txt --output tmp.pandoc.preprocess_notes.txt --type pdf --toc_type pandoc_native --output_format latex',)
         'kwargs': {'log_level': 10, 'suppress_output': False}
         },
-        ]"""
+        ]
+        """
+        expected_str = hprint.dedent(expected_str)
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
@@ -371,31 +373,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         no_pdf = False
-        expected = r"""
-        [
-        {
-        'function': hsystem.system
-        'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
-        },
-        {
-        'function': hsystem.system_to_string
-        'args': ('find $GIT_ROOT/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "dev_scripts_helpers" -print',)
-        'kwargs': {}
-        },
-        {
-        'function': hsystem.system
-        'args': ('cp -f documentation/latex_abbrevs.sty $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
-        },
-        {
-        'function': hsystem.system
-        'args': ('pdflatex -output-directory $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch -interaction=nonstopmode -halt-on-error -shell-escape $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
-        },
-        ]
-        """
-        expected = hprint.dedent(expected)
+        expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}, {'function': 'hsystem.system_to_string', 'args': ('find $GIT_ROOT/helpers_root \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "dev_scripts_helpers" -print',), 'kwargs': {}}, {'function': 'hsystem.system', 'args': ('cp -f documentation/latex_abbrevs.sty $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch',), 'kwargs': {'log_level': 10, 'suppress_output': False}}, {'function': 'hsystem.system', 'args': ('pdflatex -output-directory $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch -interaction=nonstopmode -halt-on-error -shell-escape $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected)
 
@@ -406,16 +384,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         no_pdf = True
-        expected = r"""
-        [
-        {
-        'function': hsystem.system
-        'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
-        },
-        ]
-        """
-        expected = hprint.dedent(expected)
+        expected = r"""[{'function': hsystem.system, 'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected, prefix_suffix="tmp.pdf")
 
@@ -426,16 +395,7 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "pandoc_native"
         no_pdf = True
-        expected = r"""
-        [
-        {
-        'function': hsystem.system
-        'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/tmp.pdf.tex --toc --toc-depth 2',)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
-        },
-        ]
-        """
-        expected = hprint.dedent(expected)
+        expected = r"""[{'function': hsystem.system, 'args': ('pandoc $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/pandoc.latex -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/tmp.pdf.tex --toc --toc-depth 2',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected)
 
@@ -485,7 +445,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
                 )
         # Check outputs.
         self.assert_equal(
-            result, "$GIT_ROOT/helpers_root/tmp.html", fuzzy_match=True, purify_text=True
+            result, "$GIT_ROOT/tmp.html", fuzzy_match=True, purify_text=True
         )
         sys_calls_str = repr(sys_calls)
         self.assert_equal(
@@ -503,16 +463,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "none"
-        expected = r"""
-        [
-        {
-        'function': hsystem.system
-        'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html",)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
-        },
-        ]
-        """
-        expected = hprint.dedent(expected)
+        expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
 
@@ -523,16 +474,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "pandoc_native"
-        expected = r"""
-        [
-        {
-        'function': hsystem.system
-        'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
-        },
-        ]
-        """
-        expected = hprint.dedent(expected)
+        expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
 
@@ -543,16 +485,7 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "notes.md"
         toc_type = "none"
-        expected = r"""
-        [
-        {
-        'function': hsystem.system
-        'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",)
-        'kwargs': {'log_level': 10, 'suppress_output': False}
-        },
-        ]
-        """
-        expected = hprint.dedent(expected)
+        expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
 
@@ -911,7 +844,6 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         expected_sys_calls = self._build_expected_sys_calls(
             curr_path, file_name, typ_file, typst_only
         )
-        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
         expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
         hunteuti.assert_sys_calls(
             self,

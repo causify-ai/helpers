@@ -18,11 +18,22 @@ import helpers.hunit_test_utils as hunteuti
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code in helper with /coding.factor_common_code
 class Test_is_jupytext_version_different(hunitest.TestCase):
     """
     Unit tests for _is_jupytext_version_different function.
     """
+
+    def helper(
+        self, output_txt: str, expected: bool
+    ) -> None:
+        """
+        Check if jupytext version difference detection returns expected value.
+        """
+        result = dshenoju._is_jupytext_version_different(output_txt)
+        if expected:
+            self.assertTrue(result)
+        else:
+            self.assertFalse(result)
 
     def test1(self) -> None:
         """
@@ -31,9 +42,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         # Prepare inputs.
         output_txt = "Some random output without jupytext_version"
         # Run test.
-        result = dshenoju._is_jupytext_version_different(output_txt)
-        # Check outputs.
-        self.assertFalse(result)
+        self.helper(output_txt, False)
 
     def test2(self) -> None:
         """
@@ -42,9 +51,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         # Prepare inputs.
         output_txt = "#       jupytext_version: 1.3.3"
         # Run test.
-        result = dshenoju._is_jupytext_version_different(output_txt)
-        # Check outputs.
-        self.assertFalse(result)
+        self.helper(output_txt, False)
 
     def test3(self) -> None:
         """
@@ -57,9 +64,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
             "#       jupytext_version: 1.3.0"
         )
         # Run test.
-        result = dshenoju._is_jupytext_version_different(output_txt)
-        # Check outputs.
-        self.assertTrue(result)
+        self.helper(output_txt, True)
 
     def test4(self) -> None:
         """
@@ -81,9 +86,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         # Run test.
-        result = dshenoju._is_jupytext_version_different(txt)
-        # Check outputs.
-        self.assertTrue(result)
+        self.helper(txt, True)
 
     def test5(self) -> None:
         """
@@ -105,9 +108,7 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         # Run test.
-        result = dshenoju._is_jupytext_version_different(txt)
-        # Check outputs.
-        self.assertFalse(result)
+        self.helper(txt, False)
 
 
 # #############################################################################
@@ -115,23 +116,27 @@ class Test_is_jupytext_version_different(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code in helper with /coding.factor_common_code
 class Test_find_paired_file(hunitest.TestCase):
     """
     Unit tests for _find_paired_file function.
     """
+
+    def _create_file(self, scratch_dir: str, filename: str, content: str = "") -> str:
+        """
+        Create a file in scratch directory and return its path.
+        """
+        file_path = f"{scratch_dir}/{filename}"
+        with open(file_path, "w") as f:
+            f.write(content)
+        return file_path
 
     def _create_paired_files(self) -> tuple:
         """
         Create paired .ipynb and .py files in scratch space.
         """
         scratch_dir = self.get_scratch_space()
-        ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        py_file = f"{scratch_dir}/test_notebook.py"
-        with open(ipynb_file, "w") as f:
-            f.write("{}")
-        with open(py_file, "w") as f:
-            f.write("")
+        ipynb_file = self._create_file(scratch_dir, "test_notebook.ipynb", "{}")
+        py_file = self._create_file(scratch_dir, "test_notebook.py", "")
         return ipynb_file, py_file
 
     def test1(self) -> None:
@@ -162,9 +167,7 @@ class Test_find_paired_file(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        ipynb_file = f"{scratch_dir}/test_notebook.ipynb"
-        with open(ipynb_file, "w") as f:
-            f.write("{}")
+        ipynb_file = self._create_file(scratch_dir, "test_notebook.ipynb", "{}")
         # Run test and check output.
         with self.assertRaises(AssertionError):
             dshenoju._find_paired_file(ipynb_file)
@@ -175,9 +178,7 @@ class Test_find_paired_file(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        invalid_file = f"{scratch_dir}/test_notebook.txt"
-        with open(invalid_file, "w") as f:
-            f.write("")
+        invalid_file = self._create_file(scratch_dir, "test_notebook.txt", "")
         # Run test and check output.
         with self.assertRaises((AssertionError, TypeError)):
             dshenoju._find_paired_file(invalid_file)
