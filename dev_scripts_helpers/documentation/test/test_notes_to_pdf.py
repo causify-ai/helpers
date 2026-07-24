@@ -542,6 +542,9 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         """
         Test HTML output generation.
         """
+        # Skip if running in container without pandoc
+        if hserver.is_inside_docker() and shutil.which("pandoc") is None:
+            pytest.skip("Pandoc not available in container")
         # Prepare inputs.
         type_ = "html"
         cmd_opts = ""
