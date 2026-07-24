@@ -42,25 +42,18 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
-_SCRIPT: Optional[List[str]] = None
-
-
-def _append_script(msg: str) -> None:
-    if _SCRIPT is not None:
-        _SCRIPT.append(msg)
-
 
 def _report_phase(phase: str) -> None:
     msg = "# " + phase
     print(hprint.color_highlight(msg, "blue"))
     _LOG.debug("\n%s", hprint.frame(phase, char1="<", char2=">"))
-    _append_script(msg)
+    dshdlntpd._append_script(msg)
 
 
 def _log_system(cmd: str) -> None:
     hdbg.dassert_isinstance(cmd, str)
     print("> " + cmd)
-    _append_script(cmd)
+    dshdlntpd._append_script(cmd)
 
 
 def _system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
@@ -85,7 +78,7 @@ def _mark_action(
     _report_phase(action)
     to_execute, actions = hselacti.mark_action(action, actions)
     if not to_execute:
-        _append_script("## skipping this action")
+        dshdlntpd._append_script("## skipping this action")
     return to_execute, actions
 
 
@@ -134,10 +127,8 @@ def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("curr_path=%s", curr_path)
     #
     if args.script:
-        global _SCRIPT
-        _LOG.warning("Logging the actions into a script '%s'", args.script)
-        _SCRIPT = ["#/bin/bash -xe"]
-        dshdlntpd._SCRIPT = _SCRIPT
+        _LOG.info("Logging the actions into a script")
+        dshdlntpd._append_script("#!/bin/bash -xe")
     #
     file_name = args.input
     hdbg.dassert_path_exists(file_name)
@@ -340,11 +331,11 @@ def _parse() -> argparse.ArgumentParser:
         default=5,
         help="Number of slides to keep when using --filter_by_name (default: 5)",
     )
-    #
     # TODO(gp): -> --action_script
     parser.add_argument(
         "--script",
         action="store",
+        default="tmp.notes_to_pdf.sh",
         help="Bash script to generate with all the executed sub-commands",
     )
     parser.add_argument(

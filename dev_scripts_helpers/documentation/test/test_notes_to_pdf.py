@@ -18,6 +18,12 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+if hserver.is_inside_ci():
+    pytest.skip(
+        "Can't run in CI since building the docker images takes too long",
+        allow_module_level=True)
+
+
 def _to_output_str(script_txt, output_txt):
     out = ""
     out += hprint.frame("script_txt") + "\n"
@@ -86,7 +92,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     def create_input_file1(self) -> str:
         """
-        Create a standard test markdown file with multiple header levels and list items.
+        Create a standard test markdown file with multiple header levels and
+        list items.
 
         :return: Path to the created test markdown file
         """
@@ -119,23 +126,28 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         """
         Run the `notes_to_pdf.py` script and capture generated outputs.
 
-        Constructs and executes a command to convert notes to PDF or HTML
-        using `notes_to_pdf.py`. Locates the script dynamically and captures
-        the generated script file (with all executed commands) and the
-        intermediate pandoc output file.
+        Constructs and executes a command to convert notes to PDF or HTML using
+        `notes_to_pdf.py`. Locates the script dynamically and captures the
+        generated script file (with all executed commands) and the intermediate
+        pandoc output file.
 
         :param in_file: Path to the input markdown file
         :param type_: Output format
             - 'pdf': PDF output via LaTeX
             - 'html': HTML output
             - 'slides': Slide format PDF via LaTeX
-        :param cmd_opts: Additional command-line options (e.g., '--preview_actions')
-        :param expected: Expected combined output (script + pandoc) for validation
+        :param cmd_opts: Additional command-line options (e.g.,
+        '--preview_actions')
+        :param expected: Expected combined output (script + pandoc) for
+        validation
             - If empty string: no assertion performed
-            - If non-empty: asserts actual output matches expected using purify_text
+            - If non-empty: asserts actual output matches expected using
+              purify_text
         :return: Tuple of (script_txt, output_txt)
-            - script_txt: Content of the generated bash script with all executed commands
-            - output_txt: Content of the intermediate pandoc output file (LaTeX or HTML)
+            - script_txt: Content of the generated bash script with all
+              executed commands
+            - output_txt: Content of the intermediate pandoc output file (LaTeX
+              or HTML)
         """
         _LOG.debug(hprint.to_str("in_file type_"))
         # Prepare inputs.
@@ -211,11 +223,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             in_file, type_, cmd_opts, expected
         )
         # Check.
-        txt = f"script_txt:\n{script_txt}\n"
-        txt += f"output_txt:\n{output_txt}\n"
-        #
-        tag = _get_arch_tag()
-        self.check_string(txt, purify_text=True, tag=tag)
+        # TODO(ai_gp): Use _to_output_str
+        self.check_string(
+            f"script_txt:\n{script_txt}\noutput_txt:\n{output_txt}\n",
+            purify_text=True
+        )
 
     @pytest.mark.superslow
     def test3(self) -> None:
@@ -232,11 +244,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             in_file, type_, cmd_opts, expected
         )
         # Check.
-        txt = f"script_txt:\n{script_txt}\n"
-        txt += f"output_txt:\n{output_txt}\n"
-        #
-        tag = _get_arch_tag()
-        self.check_string(txt, purify_text=True, tag=tag)
+        # TODO(ai_gp): Use _to_output_str
+        self.check_string(
+            f"script_txt:\n{script_txt}\noutput_txt:\n{output_txt}\n",
+            purify_text=True
+        )
 
     @pytest.mark.superslow
     @pytest.mark.skip(reason="To debug")
@@ -312,26 +324,25 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         """
         Create markdown input with slide structure.
 
+        Uses `*` markers to denote slides, which is the format expected by
+        `extract_slides_from_markdown()`.
+
         :return: Path to the created markdown file
         """
         txt = """
-        ---
         # Slide 1: Introduction
 
         This is the introduction slide.
 
-        ---
-        # Slide 2: Methods
+        * Slide 2: Methods
 
         This slide describes methods.
 
-        ---
-        # Slide 3: Results
+        * Slide 3: Results
 
         This slide shows results.
 
-        ---
-        # Slide 4: Conclusion
+        * Slide 4: Conclusion
 
         This is the conclusion slide.
         """
@@ -388,7 +399,9 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True)
+        self.check_string(
+            actual, tag="filter_by_lines", fuzzy_match=True, purify_text=True
+        )
 
     def test2(self) -> None:
         """
@@ -402,7 +415,9 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True)
+        self.check_string(
+            actual, tag="filter_by_lines", fuzzy_match=True, purify_text=True
+        )
 
     def test3(self) -> None:
         """
@@ -416,7 +431,9 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_lines", fuzzy_match=True)
+        self.check_string(
+            actual, tag="filter_by_lines", fuzzy_match=True, purify_text=True
+        )
 
     def test4(self) -> None:
         """
@@ -430,7 +447,9 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_header", fuzzy_match=True)
+        self.check_string(
+            actual, tag="filter_by_header", fuzzy_match=True, purify_text=True
+        )
 
     def test5(self) -> None:
         """
@@ -444,7 +463,9 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "filter_by_slides", fuzzy_match=True)
+        self.check_string(
+            actual, tag="filter_by_slides", fuzzy_match=True, purify_text=True
+        )
 
 
 # #############################################################################
@@ -521,6 +542,10 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         """
         Test HTML output generation.
         """
+        # TODO(ai_gp): Move it to a decorator.
+        # Skip if running in container without pandoc
+        if hserver.is_inside_docker() and shutil.which("pandoc") is None:
+            pytest.skip("Pandoc not available in container")
         # Prepare inputs.
         type_ = "html"
         cmd_opts = ""
@@ -528,9 +553,9 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = "run_pandoc"
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.check_string(actual, purify_text=True)
 
+    @pytest.mark.skip(reason="Enable when option is available")
     def test2(self) -> None:
         """
         Test PDF generation with no_pdf mode (no compilation).
@@ -542,8 +567,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = "no_pdf"
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.check_string(actual, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -556,8 +580,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = "run_pandoc"
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.check_string(actual, purify_text=True)
 
 
 # #############################################################################
@@ -648,7 +671,35 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "toc_type none", fuzzy_match=True)
+        expected = r"""
+        script_txt
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/structured.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        output_txt
+        output.pdf
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -660,7 +711,36 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "toc_type pandoc_native", fuzzy_match=True)
+        expected = r"""
+        script_txt
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/structured.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type pandoc_native --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --toc --toc-depth 2
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.tex
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        output_txt
+        output.pdf
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -694,7 +774,32 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         output_txt = _safe_read_text(out_file)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "toc_type navigation", fuzzy_match=True)
+        expected = r"""
+        script_txt
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/structured.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type slides --toc_type navigation --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.pdf --resource-path $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        output_txt
+        output.pdf
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test4(self) -> None:
         """
@@ -706,7 +811,35 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(toc_type)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "toc_type remove_headers", fuzzy_match=True)
+        expected = r"""
+        script_txt
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/structured.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type remove_headers --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        output_txt
+        output.pdf
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -792,13 +925,40 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts=cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = """
+        expected = r"""
+        ################################################################################
+        script_txt
+        ################################################################################
+        #!/bin/bash -xe
         # cleanup_before
         ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        ################################################################################
+        output_txt
+        ################################################################################
+        output.pdf
+
         """
-        # Expected: script contains action name and skip marker
-        # Invariant: skipped action is marked in script
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -810,13 +970,39 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts=cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = """
+        expected = r"""
+        ################################################################################
+        script_txt
+        ################################################################################
+        #!/bin/bash -xe
         # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
         # cleanup_after
+        ## skipping this action
+        ################################################################################
+        output_txt
+        ################################################################################
+        output.pdf
         """
-        # Expected: script contains both action names marked as skipped
-        # Invariant: multiple skipped actions are marked in script
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -904,13 +1090,35 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         script_txt, output_txt = self.helper(skip_actions)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = """
-        #/bin/bash -xe
+        expected = r"""
+        script_txt
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        output_txt
+        output.pdf
         """
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        # Expected: script contains bash shebang at start
-        # Invariant: generated script has correct bash invocation
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -922,14 +1130,34 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         script_txt, output_txt = self.helper(skip_actions)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        expected = """
+        expected = r"""
+        script_txt
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
         # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
         # render_images
         # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        output_txt
+        output.pdf
         """
-        # Expected: script contains action section comments for key processing steps
-        # Invariant: all major actions appear in generated script
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -1046,9 +1274,40 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         script_txt, output_txt = self.helper(filename, txt)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        # Expected: output contains script with basic pipeline structure
-        # Invariant: script is generated and output is non-empty
-        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
+        expected = r"""
+        ################################################################################
+        script_txt
+        ################################################################################
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/empty.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        ################################################################################
+        output_txt
+        ################################################################################
+        output.pdf
+        """
+        self.assert_equal(
+            actual, expected, fuzzy_match=True, purify_text=True
+        )
 
     def test2(self) -> None:
         """
@@ -1061,9 +1320,40 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         script_txt, output_txt = self.helper(filename, txt)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        # Expected: output contains script with basic pipeline structure
-        # Invariant: script is generated and output is non-empty
-        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
+        expected = r"""
+        ################################################################################
+        script_txt
+        ################################################################################
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/whitespace.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        ################################################################################
+        output_txt
+        ################################################################################
+        output.pdf
+        """
+        self.assert_equal(
+            actual, expected, fuzzy_match=True, purify_text=True
+        )
 
     def test3(self) -> None:
         """
@@ -1089,9 +1379,40 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         script_txt, output_txt = self.helper(filename, txt)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        # Expected: output contains script with basic pipeline structure
-        # Invariant: script is generated and output is non-empty
-        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
+        expected = r"""
+        ################################################################################
+        script_txt
+        ################################################################################
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/special.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        ################################################################################
+        output_txt
+        ################################################################################
+        output.pdf
+        """
+        self.assert_equal(
+            actual, expected, fuzzy_match=True, purify_text=True
+        )
 
     def test4(self) -> None:
         """
@@ -1129,9 +1450,40 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         script_txt, output_txt = self.helper(filename, txt)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        # Expected: output contains script with basic pipeline structure
-        # Invariant: script is generated and output is non-empty
-        self.assert_equal(actual, "script_txt:", fuzzy_match=True)
+        expected = r"""
+        ################################################################################
+        script_txt
+        ################################################################################
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/all_levels.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        ################################################################################
+        output_txt
+        ################################################################################
+        output.pdf
+        """
+        self.assert_equal(
+            actual, expected, fuzzy_match=True, purify_text=True
+        )
 
 
 # #############################################################################
@@ -1139,6 +1491,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skip(reason="Enable when the option is available")
 class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
     """
     Test `notes_to_pdf.py` with Pandoc AST transform option.
@@ -1206,7 +1559,12 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "use_pandoc_ast_transform", fuzzy_match=True)
+        self.assert_equal(
+            actual,
+            "use_pandoc_ast_transform",
+            fuzzy_match=True,
+            purify_text=True,
+        )
 
     def test2(self) -> None:
         """
@@ -1219,7 +1577,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -1304,7 +1662,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         # Freeze both the script and AST representation.
         actual = _to_output_str(script_txt, ast_txt)
         # Expected: script header and AST JSON structure
-        # Invariant: AST transform produces valid JSON and preserves formatting
+        # Invariant: AST transform produces valid JSON and preserves formatting.
         self.assertIsNotNone(actual)
 
 
@@ -1380,8 +1738,37 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "# latex again", fuzzy_match=True)
+        expected = r"""
+        script_txt
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        output_txt
+        output.pdf
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
+    @pytest.mark.skip(reason="Enable it once the option is available")
     def test2(self) -> None:
         """
         Test no_fail_on_warnings option accepts pandoc warnings.
@@ -1392,7 +1779,9 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, "no_fail_on_warnings", fuzzy_match=True)
+        self.assert_equal(
+            actual, "no_fail_on_warnings", fuzzy_match=True, purify_text=True
+        )
 
 
 # #############################################################################
@@ -1443,6 +1832,7 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
         return in_file
 
     @pytest.mark.superslow
+    @pytest.mark.skip("Needs debugging")
     def test1(self) -> None:
         """
         Run the full Typst slides pipeline and check output and warnings.

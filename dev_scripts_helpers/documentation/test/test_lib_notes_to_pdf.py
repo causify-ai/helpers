@@ -43,40 +43,29 @@ class Test_preprocess_notes(hunitest.TestCase):
         output_format = "latex"
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            result = dshdlntpd.preprocess_notes(
-                file_name, prefix, type_, toc_type, output_format
+            result = dshdlntpd._preprocess_notes(
+                file_name, prefix, type_, toc_type
             )
         # Check outputs.
         expected_result = f"{prefix}.preprocess_notes.txt"
         self.assert_equal(result, expected_result)
-        git_root = hgit.find_git_root()
-        expected_sys_calls = [
-            {
-                "function": "hsystem.system_to_string",
-                "args": (
-                    f"find {git_root} "
-                    r"\( -path '*/.git' -o -path '*/.mypy_cache' \) -prune "
-                    '-o -name "preprocess_notes.py" -print',
-                ),
-                "kwargs": {},
-            },
-            {
-                "function": "hsystem.system",
-                "args": (
-                    f" --input {file_name} --output"
-                    f" {prefix}.preprocess_notes.txt --type {type_}"
-                    f" --toc_type {toc_type} --output_format {output_format}",
-                ),
-                "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
-            },
-        ]
-        expected_str = pprint.pformat(expected_sys_calls)
+        expected_str = r"""[
+        {
+        'function': hsystem.system_to_string
+        'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "preprocess_notes.py" -print',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': (' --input input.txt --output tmp.pandoc.preprocess_notes.txt --type pdf --toc_type pandoc_native --output_format latex',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
             expected_str,
-            purify_text=True,
-            purify_expected_text=True,
+            dedent=True,
         )
 
 
@@ -126,6 +115,7 @@ class Test_render_images(hunitest.TestCase):
                 "kwargs": {"log_level": logging.DEBUG, "suppress_output": False},
             },
         ]
+        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
         expected_str = pprint.pformat(expected_sys_calls)
         hunteuti.assert_sys_calls(
             self,
@@ -194,6 +184,7 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
                 },
             },
         ]
+        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
         expected_str = pprint.pformat(expected_sys_calls)
         hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
@@ -280,6 +271,7 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
                 },
             },
         ]
+        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
         expected_str = pprint.pformat(expected_sys_calls)
         hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
@@ -370,10 +362,15 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
                     no_pdf=no_pdf,
                 )
         # Check outputs.
-        sys_calls_str = hunteuti.sys_calls_to_str(sys_calls)
-        # Verify expected keywords appear in the output.
-        for keyword in expected.split():
-            self.assertIn(keyword, sys_calls_str)
+        # TODO(ai_gp): Use assert_sys_call
+        sys_calls_str = repr(sys_calls)
+        self.assert_equal(
+            sys_calls_str,
+            expected,
+            fuzzy_match=True,
+            dedent=True,
+            purify_text=True,
+        )
         return result
 
     def test1(self) -> None:
@@ -383,10 +380,8 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         no_pdf = False
-        expected = """
-        pandoc
-        pdflatex
-        """
+        # TODO(ai_gp): Format better.
+        expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}, {'function': 'hsystem.system_to_string', 'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "dev_scripts_helpers" -print',), 'kwargs': {}}, {'function': 'hsystem.system', 'args': ('cp -f documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch',), 'kwargs': {'log_level': 10, 'suppress_output': False}}, {'function': 'hsystem.system', 'args': ('pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch -interaction=nonstopmode -halt-on-error -shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch/tmp.pdf.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected)
 
@@ -397,11 +392,15 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "none"
         no_pdf = True
-        expected = "pandoc"
+        # TODO(ai_gp): Format better.
+        expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         result = self.helper(toc_type, no_pdf, expected, prefix_suffix="tmp.pdf")
         # Check outputs.
-        self.assertTrue(result.endswith(".tex"))
+        expected_result = r"$GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test2/tmp.scratch/tmp.tex.tex"
+        self.assert_equal(
+            result, expected_result, fuzzy_match=True, purify_text=True
+        )
 
     def test3(self) -> None:
         """
@@ -410,11 +409,8 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         # Prepare inputs.
         toc_type = "pandoc_native"
         no_pdf = True
-        expected = """
-        pandoc
-        --toc
-        --toc-depth 2
-        """
+        # TODO(ai_gp): Format better.
+        expected = r"""[{'function': 'hsystem.system', 'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/input.txt -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/pandoc.latex -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test3/tmp.scratch/tmp.pdf.tex --toc --toc-depth 2',), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(toc_type, no_pdf, expected)
 
@@ -454,20 +450,24 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
             with mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
             ):
-                result = dshdlntpd.run_pandoc_to_html(
+                result = dshdlntpd._run_pandoc_to_html(
                     file_in,
                     prefix,
                     toc_type,
-                    use_host_tools,
-                    dockerized_force_rebuild,
-                    dockerized_use_sudo,
                 )
         # Check outputs.
-        self.assertTrue(result.endswith("tmp.html"))
-        sys_calls_str = hunteuti.sys_calls_to_str(sys_calls)
-        # Verify expected keywords appear in the output.
-        for keyword in expected.split():
-            self.assertIn(keyword, sys_calls_str)
+        self.assert_equal(
+            result, "$GIT_ROOT/tmp.html", fuzzy_match=True, purify_text=True
+        )
+        # TODO(ai_gp): Use assert_sys_call
+        sys_calls_str = repr(sys_calls)
+        self.assert_equal(
+            sys_calls_str,
+            expected,
+            fuzzy_match=True,
+            dedent=True,
+            purify_text=True,
+        )
 
     def test1(self) -> None:
         """
@@ -476,10 +476,8 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "none"
-        expected = """
-        pandoc
-        -t html
-        """
+        # TODO(ai_gp): Format better.
+        expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
 
@@ -490,11 +488,8 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "input.md"
         toc_type = "pandoc_native"
-        expected = """
-        pandoc
-        -t html
-        --toc
-        """
+        # TODO(ai_gp): Format better.
+        expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc input.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='input.md' -o tmp.html --toc --toc-depth 2",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
 
@@ -505,11 +500,8 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         # Prepare inputs.
         file_in = "notes.md"
         toc_type = "none"
-        expected = """
-        pandoc
-        -t html
-        --metadata pagetitle=
-        """
+        # TODO(ai_gp): Format better.
+        expected = r"""[{'function': 'hsystem.system', 'args': ("pandoc notes.md -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t html --metadata pagetitle='notes.md' -o tmp.html",), 'kwargs': {'log_level': 10, 'suppress_output': False}}]"""
         # Run test.
         self.helper(file_in, toc_type, expected)
 
@@ -675,6 +667,7 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
                 "kwargs": {"log_level": logging.DEBUG, "abort_on_error": False},
             },
         ]
+        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
         expected_str = pprint.pformat(expected_sys_calls)
         hunteuti.assert_sys_calls(
             self,
@@ -871,6 +864,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         expected_sys_calls = self._build_expected_sys_calls(
             curr_path, file_name, typ_file, typst_only
         )
+        # TODO(ai_gp): Use _sys_call_to_str (even it's not great)
         expected_str = pprint.pformat(expected_sys_calls)
         hunteuti.assert_sys_calls(
             self,
@@ -934,7 +928,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                     with mock.patch(
                         "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
                     ):
-                        result = dshdlntpd.run_pandoc_to_typst_slides(
+                        result = dshdlntpd._run_pandoc_to_typst_slides(
                             curr_path,
                             file_name,
                             use_host_tools,
@@ -948,10 +942,19 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         expected_typ_content = 'image("/path/to/image.png")'
         actual_typ_content = hio.from_file(typ_file)
         self.assert_equal(actual_typ_content, expected_typ_content)
-        expected_sys_calls = self._build_expected_sys_calls(
-            curr_path, file_name, typ_file, typst_only
-        )
-        expected_str = pprint.pformat(expected_sys_calls)
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('pandoc $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt -f markdown --number-sections -s -t typst --template $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/pandoc_touying.typ --resource-path=dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        {
+        'function': hsystem.system
+        'args': ('typst compile --root $GIT_ROOT $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.typ $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
+        expected_str = hprint.dedent(expected_str)
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
@@ -982,20 +985,16 @@ class Test_copy_to_output(hunitest.TestCase):
         output = os.path.join(scratch_dir, "output.txt")
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            result = dshdlntpd.copy_to_output(file_in, output)
+            result = dshdlntpd._copy_to_output(file_in, output)
         # Check outputs.
         self.assert_equal(result, output)
-        expected_sys_calls = [
-            {
-                "function": "hsystem.system",
-                "args": (rf"\cp -af {file_in} {output}",),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                },
-            },
-        ]
-        expected_str = pprint.pformat(expected_sys_calls)
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('\\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/source.txt $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_output.test1/tmp.scratch/output.txt',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
@@ -1013,7 +1012,7 @@ class Test_copy_to_output(hunitest.TestCase):
         output = None
         # Run test and check outputs.
         with self.assertRaises(AssertionError):
-            dshdlntpd.copy_to_output(file_in, output)  # type: ignore
+            dshdlntpd._copy_to_output(file_in, output)  # type: ignore
 
 
 # #############################################################################
@@ -1044,10 +1043,11 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         gdrive_dir = scratch_dir
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
+            dshdlntpd._copy_to_gdrive(file_name, ext, input_, gdrive_dir)
         # Check outputs.
         basename = os.path.basename(input_).replace(".txt", "." + ext)
         dst_file = os.path.join(gdrive_dir, basename)
+        # TODO(ai_gp): Fix this.
         expected_sys_calls = [
             {
                 "function": "hsystem.system",
@@ -1058,7 +1058,8 @@ class Test_copy_to_gdrive(hunitest.TestCase):
                 },
             },
         ]
-        expected_str = pprint.pformat(expected_sys_calls)
+        # TODO(ai_gp): Use assert_sys_call
+        expected_str = repr(expected_sys_calls)
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
@@ -1072,10 +1073,30 @@ class Test_copy_to_gdrive(hunitest.TestCase):
         Test copy to specified Google Drive directory.
         """
         # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_name = os.path.join(scratch_dir, "output.pdf")
+        hio.to_file(file_name, "content")
+        gdrive_dir = scratch_dir
         ext = "pdf"
         input_ = "notes.txt"
-        # Run test.
-        self.helper(ext, input_)
+        # Run test and capture system calls.
+        with hunteuti.capture_sys_calls() as sys_calls:
+            dshdlntpd._copy_to_gdrive(file_name, ext, input_, gdrive_dir)
+        # Check outputs.
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('\\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/output.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/notes.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
+        hunteuti.assert_sys_calls(
+            self,
+            sys_calls,
+            expected_str,
+            purify_text=True,
+            purify_expected_text=True,
+        )
 
 
 # #############################################################################
@@ -1098,35 +1119,22 @@ class Test_compress_pdf(hunitest.TestCase):
         hio.to_file(pdf_file, "PDF content")
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as sys_calls:
-            result = dshdlntpd.compress_pdf(pdf_file)
+            result = dshdlntpd._compress_pdf(pdf_file)
         # Check outputs.
         self.assert_equal(result, pdf_file)
-        out_dir = os.path.dirname(pdf_file)
-        basename = os.path.basename(pdf_file)
-        compressed_file = os.path.join(out_dir, f"compressed-{basename}")
-        expected_sys_calls = [
-            {
-                "function": "hsystem.system",
-                "args": (
-                    "/opt/homebrew/bin/gs -sDEVICE=pdfwrite"
-                    " -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH"
-                    f" -sOutputFile={compressed_file} {pdf_file}",
-                ),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                },
-            },
-            {
-                "function": "hsystem.system",
-                "args": (f"mv {compressed_file} {pdf_file}",),
-                "kwargs": {
-                    "log_level": logging.DEBUG,
-                    "suppress_output": False,
-                },
-            },
-        ]
-        expected_str = pprint.pformat(expected_sys_calls)
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('/opt/homebrew/bin/gs -sDEVICE=pdfwrite -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=$GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        {
+        'function': hsystem.system
+        'args': ('mv $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/compressed-document.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_compress_pdf.test1/tmp.scratch/document.pdf',)
+        'kwargs': {'log_level': 10, 'suppress_output': False}
+        },
+        ]"""
+        expected_str = hprint.dedent(expected_str)
         hunteuti.assert_sys_calls(
             self,
             sys_calls,

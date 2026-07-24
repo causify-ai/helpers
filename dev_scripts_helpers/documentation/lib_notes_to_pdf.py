@@ -39,12 +39,14 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
-_SCRIPT: Optional[List[str]] = None
+_SCRIPT: List[str] = []
 
 
 def _append_script(msg: str) -> None:
-    if _SCRIPT is not None:
-        _SCRIPT.append(msg)
+    old_len = len(_SCRIPT)
+    _SCRIPT.append(msg)
+    hdbg.dassert_lt(old_len, len(_SCRIPT))
+    _LOG.debug("_SCRIPT=\n%s", "\n".join(_SCRIPT))
 
 
 def _report_phase(phase: str) -> None:
@@ -84,6 +86,9 @@ def _mark_action(
     if not to_execute:
         _append_script("## skipping this action")
     return to_execute, actions
+
+
+# #############################################################################
 
 
 def cleanup_before(prefix: str) -> None:
@@ -450,7 +455,6 @@ def run_pandoc_to_html(
     :return: The path to the generated HTML file
     """
     file2 = f"{prefix}.html"
-
     if not use_pandoc_ast_transform:
         # Single-shot pandoc invocation (default)
         cmd = []
@@ -497,7 +501,6 @@ def run_pandoc_to_html(
             extra_opts=extra_opts,
             fail_on_warnings=fail_on_warnings,
         )
-
     file_out = os.path.abspath(file2.replace(".tex", ".html"))
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
@@ -521,6 +524,17 @@ def _build_pandoc_latex_cmd(
     cmd.append("-t beamer")
     cmd.append("--slide-level 4")
     cmd.append("-V theme:SimplePlus")
+    # `--include-in-header` is resolved by Pandoc relative to the cwd or the
+    # `--resource-path` (set below), so copy `latex_abbrevs.sty` next to the
+    # input file, which is where `--resource-path` points.
+    latex_abbrevs_file = os.path.join(
+        hgit.find_file("dev_scripts_helpers"),
+        "documentation",
+        "latex_abbrevs.sty",
+    )
+    hdbg.dassert_file_exists(latex_abbrevs_file)
+    out_dir = os.path.dirname(file_name)
+    _ = _system(f"cp -f {latex_abbrevs_file} {out_dir}")
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
     # cmd.append("--pdf-engine=xelatex")
@@ -859,6 +873,8 @@ def run_pandoc_to_typst_slides(
     txt = re.sub(r'image\s*\(\s*"([^"]*)"\s*([^)]*)\)', convert_image_path, txt)
     # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
     # \textcolor{blue}{...} to typst blue text.
+    # TODO(ai_gp): Not sure if they are needed any longer, since we handle the
+    # colors properly.
     txt = re.sub(
         r"\\textcolor\{blue\}\{([^}]+)\}",
         r"#text(fill: blue, \1)",
@@ -877,10 +893,16 @@ def run_pandoc_to_typst_slides(
     # - Compile the Typst file to PDF.
     _report_phase("typst compile")
     pdf_file = typ_file.replace(".typ", ".pdf")
+    if False:
+        # Copy typst_abbrevs.typ to output dir so pandoc_touying.typ can include it.
+        typst_abbrevs_file = hgit.find_file_in_git_tree("typst_abbrevs.typ")
+        hdbg.dassert_file_exists(typst_abbrevs_file)
+        out_dir = os.path.dirname(typ_file)
+        cmd = f"cp -f {typst_abbrevs_file} {out_dir}"
+        _ = _system(cmd)
     if use_host_tools:
-        # cmd = f"typst compile --font-path /usr/share/fonts --root {root} {typ_file} {pdf_file}"
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
-        _LOG.info("cmd=%s", cmd)
+        #cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
         _ = _system(cmd)
     else:
         dshdlity.run_dockerized_typst(
