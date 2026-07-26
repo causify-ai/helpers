@@ -3,6 +3,7 @@ from typing import List
 from unittest import mock
 
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.documentation.replace_latex as dshdrela
@@ -101,6 +102,7 @@ class Test_replace_latex_py(hunitest.TestCase):
     End-to-end tests for the `replace_latex.py` executable.
     """
 
+    # TODO(ai_gp): -> helper
     def _run_main(self, argv: List[str]) -> List:
         """
         Run `dshdrela._main()` with a mocked `sys.argv` and capture system
@@ -116,6 +118,7 @@ class Test_replace_latex_py(hunitest.TestCase):
                 dshdrela._main(parser)
         return sys_calls
 
+    # TODO(ai_gp): Factor out common code in the helper
     def test1(self) -> None:
         """
         Test `checkout` action runs `git checkout`.
@@ -132,20 +135,24 @@ class Test_replace_latex_py(hunitest.TestCase):
             file_path,
         ]
         # Prepare outputs.
-        expected_sys_calls = [
-            {
-                "function": "hsystem.system",
-                "args": (f"git checkout -- {file_path}",),
-                "kwargs": {},
-            }
-        ]
-        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('git checkout -- $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test1/tmp.scratch/test.txt',)
+        'kwargs': {}
+        },
+        ]"""
         # Run test.
         actual = self._run_main(argv)
-        actual = hunteuti.sys_calls_to_str(actual)
         # Check outputs.
-        self.assert_equal(
-            actual, expected, purify_text=True, purify_expected_text=True
+        expected_str = hprint.dedent(expected_str)
+        hunteuti.assert_sys_calls(
+            self,
+            actual,
+            expected_str,
+            dedent=True,
+            purify_text=True,
+            purify_expected_text=True,
         )
 
     def test2(self) -> None:
@@ -167,20 +174,29 @@ class Test_replace_latex_py(hunitest.TestCase):
             file_path,
         ]
         # Prepare outputs.
-        cmd = (
-            f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {file_path}"
-        )
-        expected_sys_calls = [
-            {"function": "hsystem.system", "args": (cmd,), "kwargs": {}},
-            {"function": "hsystem.system", "args": (cmd,), "kwargs": {}},
-        ]
-        expected = hunteuti.sys_calls_to_str(expected_sys_calls)
+        expected_str = r"""[
+        {
+        'function': hsystem.system
+        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',)
+        'kwargs': {}
+        },
+        {
+        'function': hsystem.system
+        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',)
+        'kwargs': {}
+        },
+        ]"""
         # Run test.
         actual = self._run_main(argv)
-        actual = hunteuti.sys_calls_to_str(actual)
         # Check outputs.
-        self.assert_equal(
-            actual, expected, purify_text=True, purify_expected_text=True
+        expected_str = hprint.dedent(expected_str)
+        hunteuti.assert_sys_calls(
+            self,
+            actual,
+            expected_str,
+            dedent=True,
+            purify_text=True,
+            purify_expected_text=True,
         )
 
     def test3(self) -> None:

@@ -11,7 +11,7 @@ Workflow:
 
 Import as:
 
-import dev_scripts_helpers.git.create_git_worktree as dscgicgw
+import dev_scripts_helpers.git.git_create_issue_and_branch as dsggiab
 """
 
 import argparse

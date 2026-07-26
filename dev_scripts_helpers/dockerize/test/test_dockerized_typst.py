@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -36,6 +38,8 @@ def _create_typst_file(self_: hunitest.TestCase) -> str:
 # #############################################################################
 
 
+# TODO(ai_gp): Build the typst container with all the fonts is slow.
+@pytest.mark.slow
 class Test_run_dockerized_typst(hunitest.TestCase):
     """
     Test running the `dockerized_typst.py` script.

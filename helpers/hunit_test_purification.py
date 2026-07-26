@@ -12,6 +12,7 @@ from typing import List, Tuple
 
 import helpers.hgit as hgit
 import helpers.hintrospection as hintros
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -510,6 +511,11 @@ def purify_docker_cmd(txt: str) -> str:
         txt,
         flags=re.MULTILINE | re.VERBOSE,
     )
+    if hserver.is_inside_docker():
+        # Inside dev_container (with sibling containers, not DinD) some paths
+        # refer to CSFY_HOST_GIT_ROOT_PATH instead of GIT_ROOT, so we normalize
+        # it.
+        txt = txt.replace("CSFY_HOST_GIT_ROOT_PATH", "GIT_ROOT")
     return txt
 
 

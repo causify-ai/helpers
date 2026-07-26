@@ -684,6 +684,11 @@ def git_branch_create(  # type: ignore
     # Create a draft PR if requested.
     if create_pr:
         _LOG.info("Creating draft PR for branch '%s'", branch_name)
+        # Create empty commit to ensure there's at least one commit for the PR.
+        cmd = 'git commit --allow-empty -m "Draft PR"'
+        hltltaut.run(ctx, cmd)
+        cmd = "git push"
+        hltltaut.run(ctx, cmd)
         try:
             hltltagh.gh_create_pr(ctx, draft=True)
         except Exception as e:
