@@ -191,6 +191,48 @@ def _generate_ai_images_from_prompt(
     # Save cache to disk for persistence.
     write_through=True
 )
+def _clean_latex_code(latex_code: str) -> Tuple[str, List[str]]:
+    r"""
+    Clean LaTeX code by removing document structure.
+
+    Returns:
+        - cleaned code (with preamble removed)
+        - list of required packages/commands to add to wrapper's preamble
+    """
+    lines = latex_code.split('\n')
+    cleaned_lines = []
+    required_packages = []
+    in_document = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        if stripped.startswith('\\documentclass'):
+            continue
+        if stripped.startswith('\\begin{document}'):
+            in_document = True
+            continue
+        if stripped.startswith('\\end{document}'):
+            in_document = False
+            continue
+        if stripped.startswith('\\usepackage'):
+            required_packages.append(line)
+            continue
+        if stripped.startswith('\\usetikzlibrary'):
+            required_packages.append(line)
+            continue
+        if stripped.startswith('\\pgfplotsset'):
+            required_packages.append(line)
+            continue
+        if stripped.startswith('\\renewcommand'):
+            required_packages.append(line)
+            continue
+        if in_document or not stripped.startswith('\\'):
+            cleaned_lines.append(line)
+
+    return '\n'.join(cleaned_lines).strip(), required_packages
+
+
 def _render_image_code(
     image_code_txt: str,
     image_code_idx: int,
@@ -254,6 +296,7 @@ def _render_image_code(
         if not image_code_txt.endswith("@enduml"):
             image_code_txt = f"{image_code_txt}\n@enduml"
     elif image_code_type == "tikz":
+        image_code_txt, req_pkgs = _clean_latex_code(image_code_txt)
         # \documentclass[tikz, border=10pt]{standalone}
         # \usepackage{tikz}
         # \begin{document}
@@ -267,6 +310,12 @@ def _render_image_code(
             \usepackage{xcolor}
             \usetikzlibrary{positioning}
             \pgfplotsset{compat=newest}
+            """
+        )
+        if req_pkgs:
+            start_tag += "\n" + "\n".join(req_pkgs)
+        start_tag += hprint.dedent(
+            r"""
             \begin{document}
             \begin{tikzpicture}
             """
@@ -279,12 +328,19 @@ def _render_image_code(
         )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     elif image_code_type == "latex":
+        image_code_txt, req_pkgs = _clean_latex_code(image_code_txt)
         start_tag = hprint.dedent(
             r"""
             \documentclass[border=1pt]{standalone}  % No page, tight margins
             \usepackage{tabularx}
             \usepackage{enumitem}
             \usepackage{booktabs}  % Optional: For nicer tables
+            """
+        )
+        if req_pkgs:
+            start_tag += "\n" + "\n".join(req_pkgs)
+        start_tag += hprint.dedent(
+            r"""
             \begin{document}
 
             """
@@ -296,7 +352,7 @@ def _render_image_code(
         )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     elif image_code_type == "raw_latex":
-        pass
+        image_code_txt, _ = _clean_latex_code(image_code_txt)
     elif image_code_type == "image":
         # For AI-generated images, the image_code_txt is the prompt.
         pass
