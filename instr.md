@@ -1,6 +1,6 @@
 All tests below using hunteuti.capture_sys_calls 
 
-./dev_scripts_helpers/git/test/test_create_git_worktree.py
+./dev_scripts_helpers/git/test/test_git_create_issue_and_branch.py
 ./dev_scripts_helpers/notebooks/test/test_jupytext.py
 ./linters2/test/test_lint.py
 ./helpers/test/test_hunit_test_utils.py
