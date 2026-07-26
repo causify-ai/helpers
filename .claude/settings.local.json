@@ -16,7 +16,9 @@
     ],
     "deny": [
       "Bash(*git commit:*)",
+      "Bash(*git commit *)",
       "Bash(*git commit -m *)",
+      "Bash(*git commit -F *)",
       "Bash(*git push:*)"
     ]
   },

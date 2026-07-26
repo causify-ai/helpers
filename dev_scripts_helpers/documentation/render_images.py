@@ -254,9 +254,15 @@ def _render_image_code(
         if not image_code_txt.endswith("@enduml"):
             image_code_txt = f"{image_code_txt}\n@enduml"
     elif image_code_type == "tikz":
-        # \documentclass[tikz, border=10pt]{standalone}
-        # \usepackage{tikz}
-        # \begin{document}
+        # Expected input: tikz content only, between `\begin{tikzpicture}` and
+        # `\end{tikzpicture}`.
+        # E.g.,
+        #   ```
+        #   \draw (0,0) -- (1,1);
+        #   \node at (0.5, 0.5) {Label};
+        #   ```
+        # Do NOT include: \documentclass, \usepackage, \begin{document}, \end{document}
+        # This wrapper adds full document structure with tikz-specific packages.
         start_tag = hprint.dedent(
             r"""
             \documentclass{standalone}
@@ -273,12 +279,22 @@ def _render_image_code(
         )
         end_tag = hprint.dedent(
             r"""
-        \end{tikzpicture}
-        \end{document}
-        """
+            \end{tikzpicture}
+            \end{document}
+            """
         )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     elif image_code_type == "latex":
+        # Expected input: LaTeX content only (what goes inside \begin{document})
+        # E.g.,
+        #   ```
+        #   \begin{tabular}{ll}
+        #     Heading 1 & Heading 2 \\
+        #     Content 1 & Content 2 \\
+        #   \end{tabular}
+        #   ```
+        # This wrapper adds document class and basic packages (tabularx, enumitem, booktabs)
+        # Do NOT include: \documentclass, \usepackage, \begin{document}, \end{document}
         start_tag = hprint.dedent(
             r"""
             \documentclass[border=1pt]{standalone}  % No page, tight margins
@@ -291,11 +307,24 @@ def _render_image_code(
         )
         end_tag = hprint.dedent(
             r"""
-        \end{document}
-        """
+            \end{document}
+            """
         )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     elif image_code_type == "raw_latex":
+        # Expected input: Complete LaTeX document with full structure
+        # This wrapper does NOT modify the input: it is used as-is.
+        # E.g.,
+        #   ```
+        #   \documentclass{article}
+        #   \usepackage{tikz}
+        #   \begin{document}
+        #   \begin{tikzpicture}
+        #     \draw (0,0) -- (1,1);
+        #   \end{tikzpicture}
+        #   \end{document}
+        #   ```
+        # Use this type when you need complete control over preamble and packages
         pass
     elif image_code_type == "image":
         # For AI-generated images, the image_code_txt is the prompt.
