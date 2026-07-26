@@ -287,11 +287,15 @@ class Test_dassert_have_same_tz1(hunitest.TestCase):
         actual = str(cm.exception)
         # pylint: disable=line-too-long
         expected = """
+
+        ################################################################################
         * Failed assertion *
         'America/New_York'
         ==
         'UTC'
         datetime1=2021-01-04 09:30:00-05:00 (datetime1.tzinfo=America/New_York) datetime2=2021-01-04 09:30:00+00:00 (datetime2.tzinfo=UTC)
+        ################################################################################
+
         """
         # pylint: enable=line-too-long
         self.assert_equal(actual, expected, fuzzy_match=True)

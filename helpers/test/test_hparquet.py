@@ -1010,11 +1010,15 @@ class TestToPartitionedDataset(hunitest.TestCase):
             hparque.to_partitioned_parquet(df, partition_cols, test_dir)
         actual = str(cm.exception)
         expected = r"""
+
+        ################################################################################
         * Failed assertion *
         val1=['dummy_value_2', 'void_column']
         issubset
         val2=['dummy_value_1', 'dummy_value_2', 'dummy_value_3']
         val1 - val2=['void_column']
+        ################################################################################
+
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
