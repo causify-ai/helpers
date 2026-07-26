@@ -1,8 +1,11 @@
+// Run with:
+// > notes_to_pdf.py -i .claude/templates/lectures.template.md -o lectures.pdf --type slides --slides_engine typst
+
 // Controlling size:
 //
-// ![](msml610/lectures_source/figures/Chap7_Binomial_distribution.png){height=50%}
+// ![](msml610/lectures_source/figures/Binomial_distribution.png){height=50%}
 // Bad ![Smile Emoji](assets/emoji/angry_devil.png){width=12px}
-// \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Chap7_Binomial_distribution.png}
+// \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Binomial_distribution.png}
 // ```latex[width=50%]
 // ![](data605/lectures_source/images/lecture_1/lec_1_slide_4_image_1.png){ width=1cm }
 
@@ -106,7 +109,7 @@
 - Wrong ![](assets/emoji/wrong.png){ width=12px }
 
 * Emoji (Mac)
-- Good ![Smile Emoji](mac_emojis/emoji_smile.png){ width=12px }
+- Good ![Smile Emoji](assets/emoji/emoji_smile.png){ width=12px }
 
 # Listings
 
@@ -259,10 +262,10 @@ Normal
 
 * Width
 \begin{center}
-  \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Chap7_Binomial_distribution.png}
+  \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Binomial_distribution.png}
 \end{center}
 
-![](msml610/lectures_source/figures/Chap7_Binomial_distribution.png){height=50%}
+![](msml610/lectures_source/figures/Binomial_distribution.png){height=50%}
 
 ```latex[width=50%]
 ...
@@ -279,14 +282,14 @@ Normal
 
 \vspace{-1cm}
 
-//![](msml610/lectures_source/figures/Chap7_Binomial_distribution.png){ height=50%}
+//![](msml610/lectures_source/figures/Binomial_distribution.png){ height=50%}
 \begin{center}
-  \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Chap7_Binomial_distribution.png}
+  \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Binomial_distribution.png}
 \end{center}
 
 * Figure scaled down
-![](msml610/lectures_source/figures/Chap7_Binomial_distribution.png){ height=50%}
-![](msml610/lectures_source/figures/Chap7_Binomial_distribution.png)
+![](msml610/lectures_source/figures/Binomial_distribution.png){ height=50%}
+![](msml610/lectures_source/figures/Binomial_distribution.png)
 ```
 
 # Page formatting
@@ -314,7 +317,7 @@ Normal
 - Item 1.
 - Item 2.
 - Item 3.
-![Analytical sophistication](msml610/lectures_source/figures/Chap7_Chemical_shift_pymc_solution1.png)
+![Analytical sophistication](msml610/lectures_source/figures/L07.2.Chemical_shift_pymc_solution1.png)
 ::::
 :::
 
@@ -322,7 +325,7 @@ Normal
 
 ::: columns
 :::: {.column width=60%}
-![](msml610/lectures_source/figures/Chap7_Savage_Dickey.png)
+![](msml610/lectures_source/figures/L07.2.Savage_Dickey.png)
 ::::
 :::: column
 - E.g., posterior / prior = 0.76
@@ -415,21 +418,21 @@ Figure 4
 Hello
 ::::
 :::: {.column width=25%}
-// save_screenshot.py --dst_dir lectures_source/figures --filename Lesson12_4x3_environment.png
+// save_screenshot.py --dst_dir lectures_source/figures --filename L12.4x3_environment.png
 
-![](msml610/lectures_source/figures/Lesson12_4x3_environment1.png)
+![](msml610/lectures_source/figures/L12.4x3_environment1.png)
 
 \vspace{0.5cm}
 
 \begin{center}
-\includegraphics[width=0.5\textwidth]{msml610/lectures_source/figures/Lesson12_4x3_environment2.png}
+\includegraphics[width=0.5\textwidth]{msml610/lectures_source/figures/L12.4x3_environment2.png}
 {\scriptsize\text{Valid actions}}
 \end{center}
 
 \vspace{0.5cm}
 
 \begin{center}
-\includegraphics[width=1.0\textwidth]{msml610/lectures_source/figures/Lesson12_4x3_environment3.png}
+\includegraphics[width=1.0\textwidth]{msml610/lectures_source/figures/L12.4x3_environment3.png}
 {\scriptsize\text{Example of optimal policy}}
 \end{center}
 ::::
@@ -438,12 +441,11 @@ Hello
 * Mermaid1
 
 ```mermaid
-classDef roundedBox fill:#fff,stroke:#333,stroke-width:2px,rx:10,ry:10;
-
 flowchart LR
   U["Confounder (U)"] --> X["Cause (X)"]
   U["Confounder (U)"] --> Y["Effect (Y)"]
   X["Cause (X)"] --> Y["Effect (Y)"]
+  classDef roundedBox fill:#fff,stroke:#333,stroke-width:2px,rx:10,ry:10;
 ```
 
 * Styled graphviz
@@ -553,7 +555,8 @@ Carol & 22 & 93 \\
 
 * Latex figure
 
-```latex
+```raw_latex
+\documentclass{article}
 \usepackage{tikz}
 \begin{document}
 

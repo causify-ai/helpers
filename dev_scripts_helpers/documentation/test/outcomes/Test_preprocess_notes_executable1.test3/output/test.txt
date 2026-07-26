@@ -20,7 +20,7 @@ MSML610: Advanced Machine Learning
 \vspace{1cm}
 
 \begingroup \Large
-**$$\text{\textcolor{blue}{\text{Machine Learning Techniques}}}$$**
+**$$\text{\blue{Machine Learning Techniques}}$$**
 \endgroup
 \vspace{1cm}
 

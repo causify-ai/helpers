@@ -14,13 +14,15 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt \
     -t pdf \
     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
+
+Import as:
+
+import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 """
 
-import hashlib
 import logging
 import os
 import re
-import time
 from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
@@ -517,7 +519,18 @@ def _build_pandoc_latex_cmd(
     no_pdf: bool = False,
     fail_on_warnings: bool = True,
 ) -> Tuple[str, str]:
-    # TODO(ai_gp): Add docstring.
+    """
+    Build pandoc command to convert file to LaTeX beamer slides.
+
+    :param file_name: Input file name.
+    :param toc_type: Table of contents type (e.g., 'pandoc_native').
+    :param use_host_tools: Whether to use host tools or containerized pandoc.
+    :param dockerized_force_rebuild: Force rebuild of Docker image.
+    :param dockerized_use_sudo: Use sudo for Docker commands.
+    :param no_pdf: If True, output .tex instead of .pdf.
+    :param fail_on_warnings: If True, fail pandoc on warnings.
+    :return: Tuple of (command string, output file name).
+    """
     cmd = []
     cmd.append(f"pandoc {file_name}")
     #
@@ -795,8 +808,8 @@ def run_pandoc_to_typst_slides(
     ast_file = f"{file_with_defs}.ast.json"
     # Step 2: transform Div[columns] -> RawBlock[typst #grid()] for multi-column layouts.
     transformed_ast_file = f"{file_name}.divved.ast.json"
-    convert_script = hgit.find_file("convert_pandoc_divved_fence.py")
-    cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file}"
+    convert_script = hgit.find_file("transform_pandoc_ast_to_typst.py")
+    cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file} -a divved_fence"
     _ = _system(cmd)
     hdbg.dassert_path_exists(transformed_ast_file)
     # Step 3: JSON AST -> typst.
@@ -871,18 +884,11 @@ def run_pandoc_to_typst_slides(
             return f'image("/{path}"{params})'
 
     txt = re.sub(r'image\s*\(\s*"([^"]*)"\s*([^)]*)\)', convert_image_path, txt)
-    # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
-    # \textcolor{blue}{...} to typst blue text.
-    # TODO(ai_gp): Not sure if they are needed any longer, since we handle the
-    # colors properly.
+    # Replace #strong[...] with explicit black bold text to prevent color bleed
+    # from preceding markers
     txt = re.sub(
-        r"\\textcolor\{blue\}\{([^}]+)\}",
-        r"#text(fill: blue, \1)",
-        txt,
-    )
-    txt = re.sub(
-        r"\\textcolor\{red\}\{([^}]+)\}",
-        r"#text(fill: red, \1)",
+        r"#strong\[([^\]]+)\]",
+        r'#text(fill: black, weight: "bold")[\1]',
         txt,
     )
     hio.to_file(typ_file, txt)
@@ -902,7 +908,7 @@ def run_pandoc_to_typst_slides(
         _ = _system(cmd)
     if use_host_tools:
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
-        #cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
+        # cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
         _ = _system(cmd)
     else:
         dshdlity.run_dockerized_typst(

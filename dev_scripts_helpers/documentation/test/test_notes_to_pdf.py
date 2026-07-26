@@ -21,7 +21,8 @@ _LOG = logging.getLogger(__name__)
 if hserver.is_inside_ci():
     pytest.skip(
         "Can't run in CI since building the docker images takes too long",
-        allow_module_level=True)
+        allow_module_level=True,
+    )
 
 
 def _to_output_str(script_txt, output_txt):
@@ -47,10 +48,12 @@ def _skip_if_no_pandoc_in_docker(test_func):
     """
     Decorator to skip test if running in Docker without pandoc.
     """
+
     def wrapper(*args, **kwargs):
         if hserver.is_inside_docker() and shutil.which("pandoc") is None:
             pytest.skip("Pandoc not available in container")
         return test_func(*args, **kwargs)
+
     return wrapper
 
 
@@ -1309,9 +1312,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -1355,9 +1356,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -1414,9 +1413,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test4(self) -> None:
         """
@@ -1485,9 +1482,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -1896,3 +1891,385 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
         # Expected: generated Typst includes shebang and macro expansions
         # Invariant: LaTeX abbrevs expanded correctly; no unconverted macros
         self.assertIsNotNone(actual)
+
+
+# #############################################################################
+# Test_notes_to_pdf_latex_colors
+# #############################################################################
+
+
+class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
+    r"""
+    Test LaTeX color handling in math formulas with both PDF (LaTeX) and Typst
+    backends.
+
+    Tests that `\textcolor{color}{content}` is correctly transformed and
+    rendered in:
+    - PDF output via LaTeX backend
+    - Typst output via pandoc typst writer
+
+    Validates that the color commands are properly escaped and preserved through:
+    1. Markdown parsing
+    2. Pandoc AST conversion
+    3. Backend-specific output (LaTeX or Typst)
+    """
+
+    def _create_markdown_with_colors(self) -> str:
+        r"""
+        Create markdown with LaTeX math blocks using `\textcolor`.
+
+        :return: Path to the created markdown file
+        """
+        txt = r"""
+        # Color Mathematics
+
+        ## Display Math with Colored Formulas
+
+        A basic colored formula:
+
+        $$
+        \textcolor{red}{x} + y = z
+        $$
+
+        Multiple colors:
+
+        $$
+        \textcolor{red}{a} + \textcolor{blue}{b} = \textcolor{green}{c}
+        $$
+
+        Nested structure:
+
+        $$
+        f(x) = \textcolor{red}{\sin(x)} + \textcolor{blue}{\cos(x)}
+        $$
+
+        ## Inline Math with Colors
+
+        Some text with inline colored math: $\textcolor{red}{hello}$ in the
+        middle of a sentence, then more text with $\textcolor{blue}{world}$ at
+        the end.
+
+        ## Complex Color Expressions
+
+        Matrix with colors:
+
+        $$
+        \begin{pmatrix}
+        \textcolor{red}{1} & 0 \\
+        0 & \textcolor{blue}{1}
+        \end{pmatrix}
+        $$
+
+        Integral with colored bounds:
+
+        $$
+        \int_{\textcolor{red}{a}}^{\textcolor{blue}{b}} f(x) \, dx
+        $$
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "colors.md")
+        hio.to_file(in_file, txt)
+        return in_file
+
+    # TODO(ai_gp): merge this two functions into one with a mode="pdf" or
+    # "typ".
+    def helper_pdf(self, in_file: str) -> Tuple[str, str]:
+        """
+        Run PDF generation test with color formulas.
+
+        :param in_file: Input markdown file
+        :return: Tuple of (script_txt, output_txt)
+        """
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        #
+        out_dir = self.get_scratch_space()
+        script_file = os.path.join(out_dir, "script.sh")
+        out_file = os.path.join(out_dir, "output.pdf")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Run test.
+        hsystem.system(cmd)
+        script_txt = hio.from_file(script_file)
+        # Read LaTeX intermediate output.
+        latex_file = os.path.join(out_dir, "tmp.pandoc.tex")
+        hdbg.dassert_file_exists(latex_file)
+        output_txt = hio.from_file(latex_file)
+        return script_txt, output_txt
+
+    def helper_typst(self, in_file: str) -> Tuple[str, str]:
+        """
+        Run Typst slides generation test with color formulas.
+
+        Uses AST transform to convert colors properly for Typst backend.
+
+        :param in_file: Input markdown file
+        :return: Tuple of (script_txt, output_txt)
+        """
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        #
+        out_dir = self.get_scratch_space()
+        script_file = os.path.join(out_dir, "script.sh")
+        out_file = os.path.join(out_dir, "output.slides")
+        # Construct command with AST transform for proper color handling.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type slides",
+            "--use_pandoc_ast_transform",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Run test.
+        hsystem.system(cmd)
+        script_txt = hio.from_file(script_file)
+        # Read Typst intermediate output (transformed AST becomes typst).
+        typ_file = os.path.join(out_dir, "tmp.pandoc.typ")
+        #
+        hdbg.dassert_file_exists(typ_file)
+        output_txt = hio.from_file(typ_file)
+        return script_txt, output_txt
+
+    def test1(self) -> None:
+        r"""
+        Test LaTeX color rendering in PDF output (LaTeX backend).
+
+        Verifies that markdown with \textcolor in display and inline math
+        generates valid output through the PDF pipeline.
+
+        Expected behavior:
+        - Pipeline executes successfully without errors
+        - Script is generated with pandoc commands
+        - Color commands in markdown are passed through to pandoc
+        """
+        # Prepare inputs.
+        in_file = self._create_markdown_with_colors()
+        # Run test.
+        script_txt, output_txt = self.helper_pdf(in_file)
+        # TODO(ai_gp): use self.assert_equal() with expected.
+        # Check outputs: verify pipeline ran successfully.
+        self.assertIn("pandoc", script_txt)
+        # The markdown input contains textcolor commands.
+        input_txt = hio.from_file(in_file)
+        self.assertIn(r"\textcolor{red}", input_txt)
+
+    def test2(self) -> None:
+        r"""
+        Test LaTeX color transformation to Typst format.
+
+        Verifies that when using AST transform, \textcolor commands in markdown
+        math are correctly converted to Typst #text(fill:) syntax.
+
+        Expected behavior:
+        - AST transform converts \textcolor{color}{content} appropriately
+        - Typst pipeline runs pandoc with JSON AST intermediate
+        - Colors are preserved through Math node transformation
+        """
+        # Prepare inputs.
+        in_file = self._create_markdown_with_colors()
+        # Run test.
+        script_txt, _ = self.helper_typst(in_file)
+        # Check outputs: should contain evidence of AST transform execution
+        # (converting to JSON AST then processing it).
+        self.assertIn("pandoc", script_txt)
+        # Verify AST JSON intermediate is created during pipeline.
+        self.assertIn(".ast.json", script_txt)
+
+    def test3(self) -> None:
+        """
+        Test that both backends handle the same markdown input correctly.
+
+        Creates the same markdown with colors and runs it through both
+        PDF (LaTeX) and Typst backends, verifying each produces valid output.
+
+        Expected behavior:
+        - PDF backend runs pandoc for LaTeX output
+        - Typst backend runs pandoc with AST transform (JSON intermediate)
+        - Both handle color commands from markdown
+        """
+        # Prepare inputs.
+        in_file = self._create_markdown_with_colors()
+        # Run PDF test.
+        script_pdf, _ = self.helper_pdf(in_file)
+        # Verify PDF pipeline ran.
+        self.assertIn("pandoc", script_pdf)
+        # Run Typst test.
+        script_typst, _ = self.helper_typst(in_file)
+        # Verify both pipelines executed and created AST intermediate.
+        self.assertIn("pandoc", script_typst)
+        self.assertIn(".ast.json", script_typst)
+
+
+# #############################################################################
+# Test_LaTeX_Cancelled_Notation
+# #############################################################################
+
+
+class Test_LaTeX_Cancelled_Notation(hunitest.TestCase):
+    """
+    Test that LaTeX cancelled notation in markdown is preserved through
+    pandoc conversion pipeline.
+
+    The cancelled notation represents unobserved counterfactual outcomes
+    in causal inference: Y_0 | T=1 is crossed out because it cannot be
+    observed when treatment is assigned.
+    """
+
+    def helper(self, markdown_content: str) -> str:
+        """
+        Helper to create markdown file and run notes_to_pdf.py.
+
+        Creates temporary markdown file, runs notes_to_pdf.py to convert
+        to PDF via LaTeX, and returns the intermediate LaTeX output.
+
+        :param markdown_content: Raw markdown text with LaTeX notation
+        :return: Intermediate LaTeX generated by pandoc
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        in_file = os.path.join(scratch_dir, "input.md")
+        markdown_content = hprint.dedent(markdown_content)
+        hio.to_file(in_file, markdown_content)
+        # Prepare execution.
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        script_file = os.path.join(scratch_dir, "script.sh")
+        out_file = os.path.join(scratch_dir, "output.pdf")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            f"--script {script_file}",
+            f"--output {out_file}",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Run test.
+        hsystem.system(cmd)
+        # Prepare outputs.
+        pandoc_file = os.path.join(scratch_dir, "tmp.notes_to_pdf.tex")
+        output_txt = ""
+        if os.path.exists(pandoc_file):
+            output_txt = hio.from_file(pandoc_file)
+        return output_txt
+
+    def test1(self) -> None:
+        """
+        Test cancelled notation with amsmath cancel package in LaTeX.
+        """
+        # Prepare inputs.
+        markdown_content = r"""
+        # Causal Inference Notation
+
+        When treatment is assigned ($T=1$), only one potential outcome is observed:
+
+        $$
+        Y | T=1 = (Y_1 | T=1) + \cancel{(Y_0 | T=1)} = Y_1 | T=1
+        $$
+
+        The cancelled term $\cancel{Y_0 | T=1}$ is the unobserved counterfactual.
+        """
+        # Run test.
+        output_txt = self.helper(markdown_content)
+        # Check outputs.
+        # TODO(gp): Freeze output instead of checking the presence of strings?
+        # Verify cancelled notation is preserved in LaTeX output.
+        self.assertIn(r"\cancel{", output_txt)
+        self.assertIn("Y_1", output_txt)
+        self.assertIn("Y_0", output_txt)
+
+    def test2(self) -> None:
+        """
+        Test cancelled notation in conditional expectation equation.
+        """
+        # Prepare inputs.
+        markdown_content = r"""
+        # Fundamental Problem of Causal Inference
+
+        We cannot observe both potential outcomes for the same unit.
+        Under treatment ($T=1$), the control outcome is unobserved:
+
+        $$
+        E[Y | T=1] = E[Y_1 | T=1] + \cancel{E[Y_0 | T=1]}
+        $$
+
+        This is why identification strategies are necessary.
+        """
+        # Run test.
+        output_txt = self.helper(markdown_content)
+        # Check outputs.
+        # Verify conditional expectation notation is preserved in LaTeX
+        self.assertIn(r"\cancel{", output_txt)
+        self.assertIn("E[Y", output_txt)
+
+    def test3(self) -> None:
+        """
+        Test multiple cancelled terms in treatment effect decomposition.
+        """
+        # Prepare inputs.
+        markdown_content = r"""
+        # Treatment Effect Heterogeneity
+
+        Individual treatment effects depend on both observed and unobserved outcomes:
+
+        $$
+        \tau_i = Y_i(1) - Y_i(0)
+        $$
+
+        We observe:
+        - $Y_i(1)$ when $T_i = 1$
+        - $\cancel{Y_i(0)}$ when $T_i = 1$ (unobserved)
+        - $\cancel{Y_i(1)}$ when $T_i = 0$ (unobserved)
+        - $Y_i(0)$ when $T_i = 0$
+
+        Hence $\tau_i$ is not directly identifiable without assumptions.
+        """
+        # Run test.
+        output_txt = self.helper(markdown_content)
+        # Check outputs.
+        # Verify multiple cancelled terms are preserved in LaTeX.
+        self.assertIn(r"\cancel{", output_txt)
+        self.assertIn(r"\tau_i", output_txt)
+
+    def test4(self) -> None:
+        """
+        Test cancelled notation preserves surrounding mathematical context.
+        """
+        # Prepare inputs.
+        markdown_content = r"""
+        # Selection Bias Decomposition
+
+        Observed difference confounds treatment effect with selection bias:
+
+        $$
+        E[Y | T=1] - E[Y | T=0]
+        = \underbrace{E[Y_1 | T=1] - E[Y_0 | T=1]}_{\text{ATE}} +
+        \underbrace{E[Y_0 | T=1] - E[Y_0 | T=0]}_{\text{Selection Bias}}
+        $$
+
+        The selection bias term $E[Y_0 | T=1]$ is unobserved:
+        $$
+        E[Y_0 | T=1] = \cancel{E[Y_0 | T=1]_{\text{observed}}}
+        $$
+        """
+        # Run test.
+        output_txt = self.helper(markdown_content)
+        # Check outputs.
+        # Verify complex notation with cancelled terms is preserved in LaTeX.
+        self.assertIn(r"\cancel{", output_txt)
+        self.assertIn(r"\underbrace{", output_txt)

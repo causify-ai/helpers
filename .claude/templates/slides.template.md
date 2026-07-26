@@ -20,8 +20,8 @@ first-level bullet must have a bold label or tag:
 ```markdown
 * Slide Title
 
-- **Label**: bullet content
-- **Another label**: more content
+- @Tag@: bullet content
+- @Tag@: more content
 ```
 
 ## Core Tags & Examples
@@ -317,7 +317,7 @@ digraph {
 
 ### Running Example Across Multiple Slides
 
-Keep the same diagram and expand the question:
+- Keep the same diagram and expand the question:
 
 ```markdown
 * Weather World: Conditional Independence (1/3)
@@ -336,8 +336,6 @@ Keep the same diagram and expand the question:
 - @Answer@: No, they are not independent
   - Both cause wet grass, so observing wet grass creates dependence
 
----
-
 * Weather World: Conditional Independence (2/3)
 
 ::: columns
@@ -352,8 +350,6 @@ Keep the same diagram and expand the question:
 
 - @Answer@: No, they are _explained-away dependent_
   - If grass is wet and sprinkler is off, rain becomes more likely
-
----
 
 * Weather World: Conditional Independence (3/3)
 
@@ -371,59 +367,21 @@ Keep the same diagram and expand the question:
   - Weather is the common cause; conditioning on it blocks the path
 ```
 
-## Formatting Rules
-
-### Punctuation & Structure
-- Do **not** use periods at the end of bullet points
-- Every first-level bullet must have a **bold label**
-- Use `**bold**` for labels and defined terms
-- Use `_italic_` for quoted statements and emphasis
-
-### Notation & Symbols
-- Bind symbols to meaning: `$Rain$ = _"it's raining"_`
-- Use LaTeX symbols, not unicode: `$\to$` not `→`
-- Standard commands: `$\Pr(...)$`, `$\EE[...]$`, `$\VV[...]$`, `$\perp$`, `$\land$`, `$\lor$`, `$\lnot$`
-
-### Slide Density
-- Maximum 5–7 bullet points per slide (excluding sub-bullets)
-- Maximum 2–3 lines per bullet point
-- Use diagrams instead of long text
-
-### Pedagogical Progression
-- Start with **motivation**: explain why it matters
-- Then **intuition**: explain the concept informally
-- Then **formalism**: provide mathematical definition
-- End with **example**: concrete scenario demonstrating the concept
-
-### Problem-Solution Pattern
-- Present hard topics as progression:
-  `**Problem**` → `**(Naive) Solution**` → `**Solution**`
-- State the problem
-- Show why naive solution fails (explicit `Cons:`)
-- Introduce the real solution that addresses those cons
-
-### Running Examples
-- Use one concrete example across many slides
-- Reuse the identical diagram on each slide (student anchor point)
-- Vary the question or aspect asked of the example each time
-- Pair with domain examples (medical, finance, etc.) to show generality
-
 ## Column Layout
 
-For side-by-side content:
+- For side-by-side content:
+  ```markdown
+  ::: columns
+  :::: {.column width=60%}
+  Left content here
+  ::::
+  :::: {.column width=35%}
+  Right content here (diagram, etc.)
+  ::::
+  :::
+  ```
 
-```markdown
-::: columns
-:::: {.column width=60%}
-Left content here
-::::
-:::: {.column width=35%}
-Right content here (diagram, etc.)
-::::
-:::
-```
-
-Common widths: 50/45, 60/35, 65/30
+- Common widths: 50/50, 60/40, 70/30
 
 ## Mathematical Equations
 
@@ -440,7 +398,7 @@ a^*
 $$
 ```
 
-Multi-line alignment:
+- Multi-line alignment:
 
 ```markdown
 \begin{align*}
@@ -464,4 +422,4 @@ Multi-line alignment:
 ```
 ```
 
-Parameters: `headers` (required), `rows` (required), `caption`, `col-widths`, `bold-first-col`
+- Parameters: `headers` (required), `rows` (required), `caption`, `col-widths`, `bold-first-col`

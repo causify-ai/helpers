@@ -200,6 +200,50 @@ class Test_colorize_backticks(hunitest.TestCase):
         # Run test.
         self.helper(txt_in, expected)
 
+    def test16(self) -> None:
+        """
+        Test backticks followed by curly braces should NOT be colorized.
+        """
+        # Prepare inputs.
+        txt_in = "Use `custom`{.class} to apply styles."
+        # Prepare outputs (backticks NOT colorized because followed by {).
+        expected = "Use `custom`{.class} to apply styles."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test17(self) -> None:
+        """
+        Test multiple backticks, some followed by braces and some not.
+        """
+        # Prepare inputs.
+        txt_in = "The `simple` var and `styled`{.highlight} are different."
+        # Prepare outputs.
+        expected = r"The \textcolor{blue}{\texttt{simple}} var and `styled`{.highlight} are different."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test18(self) -> None:
+        """
+        Test payoff table with colored attributes (adjacent pairs with attributes).
+        """
+        # Prepare inputs.
+        txt_in = 'Payoffs: (`A`{color="red"}, `B`{color="blue"})'
+        # Prepare outputs (all should remain unchanged due to attributes).
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test19(self) -> None:
+        """
+        Test table cell with adjacent attribute-wrapped backticks.
+        """
+        # Prepare inputs.
+        txt_in = '(`1`{c="r"},`-1`{c="b"})'
+        # Prepare outputs (all should remain unchanged due to attributes).
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
 
 # #############################################################################
 # Test_colorize_backticks_typst
@@ -277,6 +321,50 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         expected = (
             "Import #text(fill: blue)[`numpy.array`] for matrix operations."
         )
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test6(self) -> None:
+        """
+        Test backticks followed by curly braces should NOT be colorized in Typst.
+        """
+        # Prepare inputs.
+        txt_in = "Use `custom`{.class} to apply styles."
+        # Prepare outputs (backticks NOT colorized because followed by {).
+        expected = "Use `custom`{.class} to apply styles."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test7(self) -> None:
+        """
+        Test multiple backticks with braces in Typst format.
+        """
+        # Prepare inputs.
+        txt_in = "The `simple` var and `styled`{.highlight} are different."
+        # Prepare outputs.
+        expected = "The #text(fill: blue)[`simple`] var and `styled`{.highlight} are different."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test8(self) -> None:
+        """
+        Test payoff table with colored attributes in Typst (adjacent pairs).
+        """
+        # Prepare inputs.
+        txt_in = 'Payoffs: (`A`{color="red"}, `B`{color="blue"})'
+        # Prepare outputs (all should remain unchanged due to attributes).
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test9(self) -> None:
+        """
+        Test table cell with adjacent attribute-wrapped backticks in Typst.
+        """
+        # Prepare inputs.
+        txt_in = '(`1`{c="r"},`-1`{c="b"})'
+        # Prepare outputs (all should remain unchanged due to attributes).
+        expected = txt_in
         # Run test.
         self.helper(txt_in, expected)
 
