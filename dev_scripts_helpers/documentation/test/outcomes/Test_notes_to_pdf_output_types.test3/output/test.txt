@@ -1,0 +1,26 @@
+################################################################################
+script_txt
+################################################################################
+#!/bin/bash -xe
+# cleanup_before
+## skipping this action
+# preprocess_notes
+$GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type slides --toc_type none --output_format latex
+# render_images
+$GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+# run_pandoc
+cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch
+$DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.pdf --resource-path $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch -t beamer --slide-level 4 -V theme:SimplePlus --include-in-header=latex_abbrevs.sty --fail-if-warnings
+# compress_pdf
+## skipping this action
+\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_output_types.test3/tmp.scratch/output.slides
+# copy_to_gdrive
+## skipping this action
+# open
+## skipping this action
+# cleanup_after
+## skipping this action
+################################################################################
+output_txt
+################################################################################
+

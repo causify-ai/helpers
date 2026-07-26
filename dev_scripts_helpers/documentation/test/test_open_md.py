@@ -187,9 +187,9 @@ class Test_open_file(hunitest.TestCase):
         # Check outputs.
         expected_str = r"""[
         {
-        'function': subprocess.run
-        'args': (['open', '/tmp/test.html'],)
-        'kwargs': {'check': True}
+        'function': subprocess.run,
+        'args': (['open', '/tmp/test.html'],),
+        'kwargs': {'check': True},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -208,9 +208,9 @@ class Test_open_file(hunitest.TestCase):
         # Check outputs.
         expected_str = r"""[
         {
-        'function': subprocess.run
-        'args': (['xdg-open', '/tmp/test.html'],)
-        'kwargs': {'check': True}
+        'function': subprocess.run,
+        'args': (['xdg-open', '/tmp/test.html'],),
+        'kwargs': {'check': True},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -563,9 +563,9 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
         # Check outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('uvx grip -b --quiet $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_render_with_grip_daemon.test1/tmp.scratch/input.md',)
-        'kwargs': {}
+        'function': hsystem.system,
+        'args': ('uvx grip -b --quiet $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_render_with_grip_daemon.test1/tmp.scratch/input.md',),
+        'kwargs': {},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
