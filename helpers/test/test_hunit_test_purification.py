@@ -299,6 +299,7 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         Test the replacement of `PWD` using real git root and pwd.
         """
         git_root = hgit.get_client_root(super_module=False)
+        git_root = git_root.rstrip("/")
         csfy_host_git_root = "/tmp/csfy_host_git_root"
         pwd = os.path.dirname(git_root)
         input_ = f"{pwd}/documents/file.py"
