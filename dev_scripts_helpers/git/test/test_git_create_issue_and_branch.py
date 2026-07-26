@@ -241,9 +241,9 @@ class Test_create_branch(hunitest.TestCase):
         # enabled.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -289,9 +289,9 @@ class Test_create_branch(hunitest.TestCase):
         # Check outputs: should call invoke git_branch_create with PR creation disabled.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch_No_PR --no-create-pr',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch_No_PR --no-create-pr',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -322,9 +322,9 @@ class Test_create_worktree(hunitest.TestCase):
         # Check outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Branch',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Branch',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -404,9 +404,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         # Check outputs: branch creation via invoke, no worktree creation.
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Issue_Title',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Issue_Title',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -457,14 +457,14 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         # Check outputs: branch creation via invoke and worktree creation.
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Issue_Title',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Issue_Title',),
+        'kwargs': {'log_level': 20},
         },
         {
-        'function': hsystem.system
-        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Issue_Title',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Issue_Title',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         hunteuti.assert_sys_calls(self, invocations, expected)

@@ -137,9 +137,9 @@ class Test_replace_latex_py(hunitest.TestCase):
         # Prepare outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('git checkout -- $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test1/tmp.scratch/test.txt',)
-        'kwargs': {}
+        'function': hsystem.system,
+        'args': ('git checkout -- $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test1/tmp.scratch/test.txt',),
+        'kwargs': {},
         },
         ]"""
         # Run test.
@@ -176,14 +176,14 @@ class Test_replace_latex_py(hunitest.TestCase):
         # Prepare outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',)
-        'kwargs': {}
+        'function': hsystem.system,
+        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',),
+        'kwargs': {},
         },
         {
-        'function': hsystem.system
-        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',)
-        'kwargs': {}
+        'function': hsystem.system,
+        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',),
+        'kwargs': {},
         },
         ]"""
         # Run test.
