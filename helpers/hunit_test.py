@@ -313,6 +313,8 @@ def _remove_spaces(txt: str) -> str:
     txt = txt.replace("\\n", "\n").replace("\\t", "\t")
     # Convert multiple empty spaces (but not newlines) into a single one.
     txt = re.sub(r"[^\S\n]+", " ", txt)
+    # Remove spaces around punctuation marks for better fuzzy matching.
+    txt = re.sub(r"\s*([,\[\]{}()])\s*", r"\1", txt)
     # Remove insignificant crap.
     lines = []
     for line in txt.split("\n"):

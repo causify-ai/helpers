@@ -336,7 +336,7 @@ completed       success Lint    Slow_tests
         actual = huntepur.purify_txt_from_client(actual)
         expected = '''
 --------------------------------------------------------------------------------
-ACTUAL vs EXPECTED: Test_AssertEqual1.test_not_equal1
+ACTUAL vs EXPECTED [via assert_equal()]: Test_AssertEqual1.test_not_equal1
 --------------------------------------------------------------------------------
 
                                                                           (
