@@ -41,48 +41,6 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-
-
-def _report_phase(phase: str) -> None:
-    msg = "# " + phase
-    print(hprint.color_highlight(msg, "blue"))
-    _LOG.debug("\n%s", hprint.frame(phase, char1="<", char2=">"))
-    dshdlntpd._append_script(msg)
-
-
-def _log_system(cmd: str) -> None:
-    hdbg.dassert_isinstance(cmd, str)
-    print("> " + cmd)
-    dshdlntpd._append_script(cmd)
-
-
-def _system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
-    _log_system(cmd)
-    rc = hsystem.system(
-        cmd, log_level=log_level, suppress_output=False, **kwargs
-    )
-    return rc  # type: ignore
-
-
-def _system_to_string(
-    cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any
-) -> Tuple[int, str]:
-    _log_system(cmd)
-    rc, txt = hsystem.system_to_string(cmd, log_level=log_level, **kwargs)
-    return rc, txt
-
-
-def _mark_action(
-    action: str, actions: Optional[List[str]]
-) -> Tuple[bool, Optional[List[str]]]:
-    _report_phase(action)
-    to_execute, actions = hselacti.mark_action(action, actions)
-    if not to_execute:
-        dshdlntpd._append_script("## skipping this action")
-    return to_execute, actions
-
-
-# #############################################################################
 # CLI
 # #############################################################################
 
@@ -139,7 +97,7 @@ def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("prefix=%s", prefix)
     # - Cleanup_before
     action = "cleanup_before"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         dshdlntpd.cleanup_before(prefix)
     # - Filter
@@ -178,7 +136,7 @@ def _run_all(args: argparse.Namespace) -> None:
         hio.to_file(file_name, filtered_text_str)
     # - Preprocess_notes
     action = "preprocess_notes"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         output_format = "typst" if args.slides_engine == "typst" else "latex"
         file_name = dshdlntpd.preprocess_notes(
@@ -186,12 +144,12 @@ def _run_all(args: argparse.Namespace) -> None:
         )
     # - Render_images
     action = "render_images"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         file_name = dshdlntpd.render_images(file_name, prefix)
     # - Run_pandoc
     action = "run_pandoc"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     file_out = file_name
     if to_execute:
         if args.type == "pdf":
@@ -248,7 +206,7 @@ def _run_all(args: argparse.Namespace) -> None:
     file_in = file_out
     # - Compress_pdf
     action = "compress_pdf"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         if args.type == "pdf":
             file_in = dshdlntpd.compress_pdf(file_in)
@@ -257,18 +215,18 @@ def _run_all(args: argparse.Namespace) -> None:
     file_final = dshdlntpd.copy_to_output(file_in, args.output)
     # - Copy_to_gdrive
     action = "copy_to_gdrive"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         ext = args.type
         dshdlntpd.copy_to_gdrive(file_final, ext, args.input, args.gdrive_dir)
     # - Open
     action = "open"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         hopen.open_file(file_final)
     # - Cleanup_after
     action = "cleanup_after"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         dshdlntpd.cleanup_after(prefix)
     # Save script, if needed.

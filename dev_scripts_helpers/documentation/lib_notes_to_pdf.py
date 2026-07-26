@@ -78,7 +78,7 @@ def _system_to_string(
     return rc, txt
 
 
-def _mark_action(
+def mark_action(
     action: str, actions: Optional[List[str]]
 ) -> Tuple[bool, Optional[List[str]]]:
     _report_phase(action)
