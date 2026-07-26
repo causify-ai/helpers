@@ -939,6 +939,8 @@ class TestCase(unittest.TestCase):
         self._test_was_updated = False
         # Store whether the output files need to be added to hgit.
         self._git_add = True
+        # Store list of files added to git during this test.
+        self._git_added_files: List[str] = []
         # Error message printed when comparing actual and expected outcome.
         self._error_msg = ""
         # Set the default pandas options (see AmpTask1140).
@@ -962,7 +964,13 @@ class TestCase(unittest.TestCase):
         # Report if the test was updated
         if self._test_was_updated:
             if not self._overriden_update_tests:
-                pytest_warning("Test was updated) ", prefix="(")
+                if self._git_added_files:
+                    # Format file paths as quoted strings
+                    files_str = ", ".join(f"'{f}'" for f in self._git_added_files)
+                    msg = f"Test was updated: {files_str}) "
+                else:
+                    msg = "Test was updated) "
+                pytest_warning(msg, prefix="(")
             else:
                 # We forced an update from the unit test itself, so no need
                 # to report an update.
@@ -1328,10 +1336,8 @@ class TestCase(unittest.TestCase):
                 # Add file to git and get list of added/created files.
                 added_files = hgit.git_add_file(file_name)
                 if added_files:
-                    # Print added/created files to stdout.
-                    pytest_print("\n# Git added/created files:")
-                    for added_file in added_files:
-                        pytest_print(f"  {added_file}")
+                    # Store added files to be reported in tearDown.
+                    self._git_added_files.extend(added_files)
             except Exception as e:
                 pytest_warning(
                     f"Can't git add file '{file_name}'\n"

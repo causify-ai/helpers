@@ -1147,18 +1147,15 @@ class Test_find_git_root6(hunitest.TestCase):
 
 class Test_git_add_file(hunitest.TestCase):
 
-    def helper(
-        self, file_content: str, expect_added: bool
-    ) -> None:
+    def _setup_git_repo_helper(self, repo_name: str) -> str:
         """
-        Test helper for git_add_file.
+        Create and initialize a git repo.
 
-        :param file_content: content to write to test file
-        :param expect_added: whether file should be in added list
+        :param repo_name: name of the repo directory
+        :return: path to the git repo
         """
-        # Prepare inputs: create a temporary git repo with a file.
         scratch_dir = self.get_scratch_space()
-        git_repo = os.path.join(scratch_dir, "test_repo")
+        git_repo = os.path.join(scratch_dir, repo_name)
         hio.create_dir(git_repo, incremental=False)
         # Initialize git repo.
         with hsystem.cd(git_repo):
@@ -1171,6 +1168,19 @@ class Test_git_add_file(hunitest.TestCase):
                 "git config user.name 'Test User'",
                 suppress_output=True
             )
+        return git_repo
+
+    def helper(
+        self, file_content: str, expect_added: bool
+    ) -> None:
+        """
+        Test helper for git_add_file.
+
+        :param file_content: content to write to test file
+        :param expect_added: whether file should be in added list
+        """
+        # Prepare inputs: create a temporary git repo with a file.
+        git_repo = self._setup_git_repo_helper("test_repo")
         # Create and add a file.
         test_file = os.path.join(git_repo, "test.txt")
         hio.to_file(test_file, file_content)
@@ -1211,21 +1221,12 @@ class Test_git_add_file(hunitest.TestCase):
         Test git_add_file with file in nested directory.
         """
         # Prepare inputs: create a temporary git repo with a nested file.
-        scratch_dir = self.get_scratch_space()
-        git_repo = os.path.join(scratch_dir, "test_repo3")
-        hio.create_dir(git_repo, incremental=False)
-        # Initialize git repo.
-        with hsystem.cd(git_repo):
-            hsystem.system("git init", suppress_output=True)
-            hsystem.system(
-                "git config user.email 'test@test.com'",
-                suppress_output=True
-            )
-            hsystem.system(
-                "git config user.name 'Test User'",
-                suppress_output=True
-            )
+        git_repo = self._setup_git_repo_helper("test_repo3")
         # Create nested directory and file.
+        # TODO(ai_gp): Pass a param to helper 'file_layout = "single_file", "nested_dir"
+        # to create different file layouts so that this can be accomodated.
+        # Print a comment with the file layout.
+        # Then make test3 call helper with file_layout = "nested_dir".
         nested_dir = os.path.join(git_repo, "subdir", "nested")
         hio.create_dir(nested_dir, incremental=False)
         test_file = os.path.join(nested_dir, "test.txt")
