@@ -21,7 +21,8 @@ _LOG = logging.getLogger(__name__)
 if hserver.is_inside_ci():
     pytest.skip(
         "Can't run in CI since building the docker images takes too long",
-        allow_module_level=True)
+        allow_module_level=True,
+    )
 
 
 def _to_output_str(script_txt, output_txt):
@@ -47,10 +48,12 @@ def _skip_if_no_pandoc_in_docker(test_func):
     """
     Decorator to skip test if running in Docker without pandoc.
     """
+
     def wrapper(*args, **kwargs):
         if hserver.is_inside_docker() and shutil.which("pandoc") is None:
             pytest.skip("Pandoc not available in container")
         return test_func(*args, **kwargs)
+
     return wrapper
 
 
@@ -156,8 +159,10 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             - If non-empty: asserts actual output matches expected using
               purify_text
         :return: Tuple of (script_txt, output_txt)
-            - script_txt: Content of the generated bash script with all executed commands
-            - output_txt: Content of the intermediate pandoc output file (LaTeX or HTML)
+            - script_txt: Content of the generated bash script with all
+              executed commands
+            - output_txt: Content of the intermediate pandoc output file (LaTeX
+              or HTML)
         """
         _LOG.debug(hprint.to_str("in_file type_"))
         # Prepare inputs.
@@ -334,10 +339,6 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         :return: Path to the created markdown file
         """
         txt = """
-<<<<<<< HEAD
-        ---
-=======
->>>>>>> master
         # Slide 1: Introduction
 
         This is the introduction slide.
@@ -1143,6 +1144,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         # preprocess_notes
         $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
         # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
         # run_pandoc
         $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
         # latex
@@ -1310,9 +1312,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -1356,9 +1356,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -1415,9 +1413,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test4(self) -> None:
         """
@@ -1486,9 +1482,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -1897,8 +1891,6 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
         # Expected: generated Typst includes shebang and macro expansions
         # Invariant: LaTeX abbrevs expanded correctly; no unconverted macros
         self.assertIsNotNone(actual)
-
-
 
 
 # #############################################################################

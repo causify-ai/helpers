@@ -319,9 +319,7 @@ class Test__handle_empty_lines(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after handling empty lines
         """
-        _helper_process_lines(
-            self, txt, expected, dshdllitx._handle_empty_lines
-        )
+        _helper_process_lines(self, txt, expected, dshdllitx._handle_empty_lines)
 
     def test1(self) -> None:
         """

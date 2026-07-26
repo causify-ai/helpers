@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 import pytest
 
-import dev_scripts_helpers.documentation.transform_pandoc_ast_to_typst as dsdoctap
+import dev_scripts_helpers.documentation.transform_pandoc_ast_to_typst as dshdtpatt
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -39,7 +39,7 @@ class Test__is_columns_container(hunitest.TestCase):
         :param expected: Expected result
         """
         # Run test.
-        actual = dsdoctap._is_columns_container(elem)
+        actual = dshdtpatt._is_columns_container(elem)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -119,7 +119,7 @@ class Test__extract_columns(hunitest.TestCase):
         :return: First columns container found, or None
         """
         if isinstance(ast, dict):
-            if dsdoctap._is_columns_container(ast):
+            if dshdtpatt._is_columns_container(ast):
                 return ast
             for value in ast.values():
                 result = Test__extract_columns._find_columns_container(value)
@@ -143,15 +143,15 @@ class Test__extract_columns(hunitest.TestCase):
         markdown_input = hprint.dedent(markdown_input)
         outcome["1. markdown_input"] = markdown_input
         # Convert markdown to AST.
-        ast, _, _ = dsdoctap.convert_markdown_to_pandoc_ast(
+        ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_input"] = dsdoctap.ast_to_str(ast)
+        outcome["2. ast_input"] = dshdtpatt.ast_to_str(ast)
         # Find columns container in AST.
         container = self._find_columns_container(ast)
         hdbg.dassert(container is not None, "No columns container found in AST")
         # Extract columns.
-        actual = dsdoctap._extract_columns(container)
+        actual = dshdtpatt._extract_columns(container)
         outcome["3. extracted_columns"] = str(actual)
         actual_outcome = outcome_to_str(outcome)
         self.check_string(actual_outcome)
@@ -233,7 +233,7 @@ class Test__format_grid_code(hunitest.TestCase):
         :param contents: Column contents
         :param expected: Expected output
         """
-        actual = dsdoctap._format_grid_code(widths, contents)
+        actual = dshdtpatt._format_grid_code(widths, contents)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -332,13 +332,13 @@ class Test__transform_elem(hunitest.TestCase):
         markdown_input = hprint.dedent(markdown_input)
         outcome["1. markdown_input"] = markdown_input
         # Convert markdown to AST.
-        ast, _, _ = dsdoctap.convert_markdown_to_pandoc_ast(
+        ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_input"] = dsdoctap.ast_to_str(ast)
+        outcome["2. ast_input"] = dshdtpatt.ast_to_str(ast)
         # Transform AST.
-        actual_ast = dsdoctap._transform_ast_divved_fence(ast)
-        outcome["3. ast_output"] = dsdoctap.ast_to_str(actual_ast)
+        actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
+        outcome["3. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         actual_outcome = outcome_to_str(outcome)
         self.check_string(actual_outcome)
 
@@ -441,13 +441,13 @@ class Test__transform_ast(hunitest.TestCase):
         markdown_input = hprint.dedent(markdown_input)
         outcome["1. markdown_input"] = markdown_input
         # Convert markdown to AST.
-        ast, _, _ = dsdoctap.convert_markdown_to_pandoc_ast(
+        ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_input"] = dsdoctap.ast_to_str(ast)
+        outcome["2. ast_input"] = dshdtpatt.ast_to_str(ast)
         # Transform AST.
-        actual_ast = dsdoctap._transform_ast_divved_fence(ast)
-        outcome["3. ast_output"] = dsdoctap.ast_to_str(actual_ast)
+        actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
+        outcome["3. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         actual_outcome = outcome_to_str(outcome)
         self.check_string(actual_outcome)
 
@@ -503,18 +503,18 @@ class Test_end_to_end(hunitest.TestCase):
         markdown_input = hprint.dedent(markdown_input)
         outcome["1. markdown_input"] = markdown_input
         # Convert markdown to AST.
-        ast, _, _ = dsdoctap.convert_markdown_to_pandoc_ast(
+        ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_input"] = dsdoctap.ast_to_str(ast)
+        outcome["2. ast_input"] = dshdtpatt.ast_to_str(ast)
         # Transform AST.
-        actual_ast = dsdoctap._transform_ast_divved_fence(ast)
-        outcome["3. ast_output"] = dsdoctap.ast_to_str(actual_ast)
+        actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
+        outcome["3. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         # Convert transformed AST back to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
-        actual_str = dsdoctap.ast_to_str(actual_ast)
+        actual_str = dshdtpatt.ast_to_str(actual_ast)
         hio.to_file(transformed_ast_file, actual_str)
-        actual_typst, _ = dsdoctap.convert_pandoc_ast_to_typst(
+        actual_typst, _ = dshdtpatt.convert_pandoc_ast_to_typst(
             transformed_ast_file, scratch_dir
         )
         outcome["4. typst_output"] = actual_typst
@@ -585,12 +585,11 @@ class Test_end_to_end(hunitest.TestCase):
 
 
 class Test_ColorTransformer(hunitest.TestCase):
-
     def test_textcolor_basic(self) -> None:
         r"""
         Test basic \textcolor transformation.
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         latex_string = r"\textcolor{red}{hello}"
         result = transformer.textcolor_to_typst(latex_string)
         expected = r"#text(fill: red)[hello]"
@@ -600,7 +599,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test \textcolor with special characters.
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         latex_string = r"\textcolor{blue}{test [content]}"
         result = transformer.textcolor_to_typst(latex_string)
         expected = r"#text(fill: blue)[test \[content\]]"
@@ -610,7 +609,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test \color command (placeholder behavior).
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         latex_string = r"\color{green}"
         result = transformer.color_to_typst(latex_string)
         expected = r"\color{green}"
@@ -620,7 +619,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test transformation of Math node with \textcolor.
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         node = {
             "t": "Math",
             "c": ["DisplayMath", r"\textcolor{red}{x + y}"],
@@ -635,7 +634,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test Math node without color commands remains unchanged.
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         node = {
             "t": "Math",
             "c": ["DisplayMath", "x + y"],
@@ -649,7 +648,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         """
         Test walking full AST and transforming Math nodes.
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         ast = {
             "t": "Para",
             "c": [
@@ -664,7 +663,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         """
         Test that stats are properly collected.
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         transformer.textcolor_to_typst(r"\textcolor{red}{a}")
         transformer.textcolor_to_typst(r"\textcolor{blue}{b}")
         transformer.color_to_typst(r"\color{green}")
@@ -747,20 +746,20 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         outcome["1. markdown_input"] = markdown_input
 
         # Convert markdown to AST.
-        ast, _, _ = dsdoctap.convert_markdown_to_pandoc_ast(
+        ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
         outcome["2. ast_generated"] = "AST generated successfully"
 
         # Transform AST: apply color transformation.
-        transformed_ast = dsdoctap._transform_ast_color_text(ast)
+        transformed_ast = dshdtpatt._transform_ast_color_text(ast)
         outcome["3. color_transform_applied"] = "Color transformation applied"
 
         # Convert transformed AST to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
-        ast_str = dsdoctap.ast_to_str(transformed_ast)
+        ast_str = dshdtpatt.ast_to_str(transformed_ast)
         hio.to_file(transformed_ast_file, ast_str)
-        typst_output, _ = dsdoctap.convert_pandoc_ast_to_typst(
+        typst_output, _ = dshdtpatt.convert_pandoc_ast_to_typst(
             transformed_ast_file, scratch_dir
         )
         outcome["4. typst_output_length"] = f"{len(typst_output)} characters"
@@ -776,7 +775,7 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         Verifies that \textcolor commands in $$ ... $$ equations are
         properly transformed to #text(fill: color)[...] syntax.
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         latex_formula = (
             r"\Pr(\textcolor{blue}{x_1, ..., x_{n-1}}, "
             r"\textcolor{red}{x_n}) = \Pr(\textcolor{red}{x_n} | "
@@ -796,7 +795,7 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         Input uses 6 different colors (gray, violet, teal, olive, orange)
         to highlight different random variables.
         """
-        transformer = dsdoctap.ColorTransformer()
+        transformer = dshdtpatt.ColorTransformer()
         latex_formula = (
             r"\Pr(\textcolor{gray}{x_1}, \textcolor{violet}{x_2}, "
             r"\textcolor{teal}{x_{n-2}}, \textcolor{olive}{x_{n-1}}, "

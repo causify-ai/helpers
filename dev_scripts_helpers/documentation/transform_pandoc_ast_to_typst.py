@@ -318,7 +318,7 @@ def _transform_ast_divved_fence(ast: PandocAst) -> PandocAst:
 
 
 # #############################################################################
-# Color Transformation (LaTeX to Typst)
+# ColorTransformer
 # #############################################################################
 
 

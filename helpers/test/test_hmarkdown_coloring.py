@@ -379,7 +379,9 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"\violet{important}"
         # Prepare outputs.
-        expected = r'`#text(fill: rgb("#8B00FF"), weight: "bold")[important]`{=typst}'
+        expected = (
+            r'`#text(fill: rgb("#8B00FF"), weight: "bold")[important]`{=typst}'
+        )
         # Run test.
         self.helper(txt_in, expected)
 
@@ -394,7 +396,9 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"- **\red{Target node}**"
         # Prepare outputs - should be wrapped with backticks and {=typst}.
-        expected = r'- **`#text(fill: red, weight: "bold")[Target node]`{=typst}**'
+        expected = (
+            r'- **`#text(fill: red, weight: "bold")[Target node]`{=typst}**'
+        )
         # Run test.
         self.helper(txt_in, expected)
 

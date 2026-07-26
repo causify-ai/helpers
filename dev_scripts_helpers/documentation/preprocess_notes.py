@@ -646,7 +646,9 @@ def _transform_lines(
         # For Typst output: The backtick-wrapped syntax can't be used in LaTeX math
         # blocks, so skip processing on lines with or inside math delimiters.
         has_math_delimiters = ("$$" in line) or in_math_block or in_inline_math
-        should_skip_for_typst = (output_format == "typst") and has_math_delimiters
+        should_skip_for_typst = (
+            output_format == "typst"
+        ) and has_math_delimiters
         if output_format == "latex" or not should_skip_for_typst:
             line = hmarkdo.process_color_commands(
                 line, output_format=output_format

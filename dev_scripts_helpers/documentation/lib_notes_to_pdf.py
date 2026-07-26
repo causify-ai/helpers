@@ -14,6 +14,10 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt \
     -t pdf \
     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
+
+Import as:
+
+import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 """
 
 import logging
@@ -904,7 +908,7 @@ def run_pandoc_to_typst_slides(
         _ = _system(cmd)
     if use_host_tools:
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
-        #cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
+        # cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
         _ = _system(cmd)
     else:
         dshdlity.run_dockerized_typst(

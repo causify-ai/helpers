@@ -203,7 +203,7 @@ def _render_image_code(
     use_sudo: bool = False,
     dry_run: bool = False,
     dpi: int = 300,
-    output_format: str = ""
+    output_format: str = "",
 ) -> List[str]:
     """
     Render the image code into one or more image files.
