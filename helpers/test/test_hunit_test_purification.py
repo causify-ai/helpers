@@ -300,8 +300,14 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         """
         git_root = hgit.get_client_root(super_module=False)
         git_root = git_root.rstrip("/")
-        csfy_host_git_root = "/tmp/csfy_host_git_root"
         pwd = os.path.dirname(git_root)
+        # TODO(gp): Skip test if pwd is "/": the purification function
+        # explicitly skips replacing "/" to avoid corrupting all paths. This
+        # edge case occurs when git_root has no parent as in the CI (e.g.,
+        # git_root="/app" gives pwd="/").
+        if pwd == "/":
+            pytest.skip("Cannot test PWD replacement when parent directory is /")
+        csfy_host_git_root = "/tmp/csfy_host_git_root"
         input_ = f"{pwd}/documents/file.py"
         expected = "$PWD/documents/file.py"
         env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
