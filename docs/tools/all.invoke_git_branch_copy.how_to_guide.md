@@ -36,8 +36,14 @@
 
 - The workflow executes the following operations:
   - Cleans up untracked files in the working directory
-  - Optionally merges the latest changes from `master` before creating the new
-    branch
+  - Detects the parent branch to create the new branch from:
+    - Uses `--parent-branch` if explicitly specified
+    - Otherwise auto-detects it from the current branch's remote tracking
+      branch (e.g., copying `gp_scratch_29` which tracks `gp_scratch` creates
+      the new branch from `gp_scratch`, not `master`)
+    - Falls back to `master` with a warning if auto-detection fails
+  - Optionally merges the latest changes from the detected parent branch before
+    creating the new branch
   - Creates and switches to a new branch
     - Automatically generates a suitable branch name if not explicitly provided
     - Validates the new branch name according to established naming conventions,
@@ -68,6 +74,11 @@
 
   # Create a new branch without checking for naming conventions.
   > i git_branch_copy --new-branch-name="wrongname_123" --no-check-branch-name
+
+  # Copy a scratch branch, explicitly branching from its parent instead of
+  # `master` (e.g., `gp_scratch_29` and `gp_scratch_31` both branch from
+  # `gp_scratch`).
+  > i git_branch_copy --new-branch-name="gp_scratch_31" --parent-branch="gp_scratch"
   ```
 
 ### Example

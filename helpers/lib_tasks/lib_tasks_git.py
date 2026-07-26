@@ -839,12 +839,14 @@ def git_branch_copy(  # type: ignore
     use_patch=False,
     check_branch_name=True,
     method="auto",
+    parent_branch="",
 ):
     """
     Create a new branch with the same content of the current branch.
 
     :param new_branch_name: name for the new branch
-    :param skip_git_merge_master: skip merging master into current branch
+    :param skip_git_merge_master: skip merging the parent branch into
+        current branch
     :param use_patch: apply patching instead of merging
     :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
@@ -852,60 +854,24 @@ def git_branch_copy(  # type: ignore
         - 'auto' (default): tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
+    :param parent_branch: explicit override for the parent branch to
+        branch from; if empty, the parent is auto-detected from the remote
+        tracking branch, falling back to `master`
     """
-    # Patch-based copying is not yet implemented.
-    hdbg.dassert(
-        not use_patch,
-        "Patch-based branch copying is not yet implemented",
-    )
-    # Remove untracked files to ensure clean state when copying branch.
-    cmd = "git clean -fd"
-    hltltaut.run(ctx, cmd)
-    curr_branch_name = hgit.get_branch_name()
-    # Cannot copy master branch since it would be copying the source to itself.
-    hdbg.dassert_ne(
-        curr_branch_name,
-        "master",
-        "Cannot copy master branch",
-    )
-    # Sync with master first to ensure new branch includes latest changes (if requested).
-    if not skip_git_merge_master:
-        cmd = "invoke git_merge_master --abort-if-not-ff --no-auto-merge"
-        hltltaut.run(ctx, cmd)
-    else:
-        _LOG.warning("Skipping git_merge_master as requested")
+    script_path = "dev_scripts_helpers/git/git_branch_copy.py"
+    cmd = f"python {script_path}"
+    if new_branch_name:
+        cmd += f" --new_branch_name '{new_branch_name}'"
+    if skip_git_merge_master:
+        cmd += " --skip_git_merge_master"
     if use_patch:
-        # TODO(gp): Create a patch or do a `git merge`.
-        pass
-    # Generate unique branch name if not provided.
-    if new_branch_name is None or new_branch_name == "":
-        new_branch_name = hgit.get_branch_next_name(method=method)
-    _LOG.info("new_branch_name='%s'", new_branch_name)
-    hdbg.dassert_ne(
-        new_branch_name,
-        None,
-        "Branch name must not be None after generation",
-    )
-    # Allow scratch branches to bypass naming convention.
-    if new_branch_name.startswith("gp_scratch"):
-        check_branch_name = False
-    # Create or checkout the target branch.
-    mode = "all"
-    new_branch_exists = hgit.does_branch_exist(new_branch_name, mode)
-    if new_branch_exists:
-        # Switch to existing branch to copy changes into it.
-        cmd = f"git checkout {new_branch_name}"
-    else:
-        # Create new branch from master as base.
-        cmd = f"git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'"
-        if not check_branch_name:
-            cmd += " --no-check-branch-name"
-    hltltaut.run(ctx, cmd)
-    if use_patch:
-        # TODO(gp): Apply the patch.
-        pass
-    # Squash merge copies all commits as a single change without creating a merge commit.
-    cmd = f"git merge --squash --ff {curr_branch_name} && git reset HEAD"
+        cmd += " --use_patch"
+    if not check_branch_name:
+        cmd += " --no_check_branch_name"
+    if method != "auto":
+        cmd += f" --method {method}"
+    if parent_branch:
+        cmd += f" --parent_branch '{parent_branch}'"
     hltltaut.run(ctx, cmd)
 
 
