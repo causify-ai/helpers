@@ -1,8 +1,3 @@
-Make the tests in Test_LaTeX_Cancelled_Notation call notes_to_pdf.py to verify
-that the text is rendered properly
-
-Factor out common code in a helper
- 
 # Conventions
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
@@ -17,4 +12,3 @@ Factor out common code in a helper
   - Create a `plan.md` in the same directory with 5 bullet points explaining what
     the plan is
   - Wait for the user to confirm
-

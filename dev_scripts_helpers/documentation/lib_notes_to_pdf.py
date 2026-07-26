@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Convert a txt file into a PDF / HTML / slides using `pandoc`.
 
@@ -39,12 +37,14 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
-_SCRIPT: Optional[List[str]] = None
+_SCRIPT: List[str] = []
 
 
 def _append_script(msg: str) -> None:
-    if _SCRIPT is not None:
-        _SCRIPT.append(msg)
+    old_len = len(_SCRIPT)
+    _SCRIPT.append(msg)
+    hdbg.dassert_lt(old_len, len(_SCRIPT))
+    _LOG.debug("_SCRIPT=\n%s", "\n".join(_SCRIPT))
 
 
 def _report_phase(phase: str) -> None:
@@ -76,7 +76,7 @@ def _system_to_string(
     return rc, txt
 
 
-def _mark_action(
+def mark_action(
     action: str, actions: Optional[List[str]]
 ) -> Tuple[bool, Optional[List[str]]]:
     _report_phase(action)
@@ -384,8 +384,8 @@ def run_pandoc_to_pdf(
     _report_phase("latex")
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we copy
     # all the needed files.
-    out_dir = os.path.dirname(file_name)
-    # TODO(ai_gp2): Make this more robust by looking for
+    out_dir = os.path.dirname(file_name) or "."
+    # TODO(ai_gp): Make this more robust by looking for
     # `documentation/latex_abbrevs.sty`.
     latex_file = os.path.join(
         hgit.find_file("dev_scripts_helpers"),
@@ -453,7 +453,6 @@ def run_pandoc_to_html(
     :return: The path to the generated HTML file
     """
     file2 = f"{prefix}.html"
-
     if not use_pandoc_ast_transform:
         # Single-shot pandoc invocation (default)
         cmd = []
@@ -500,7 +499,6 @@ def run_pandoc_to_html(
             extra_opts=extra_opts,
             fail_on_warnings=fail_on_warnings,
         )
-
     file_out = os.path.abspath(file2.replace(".tex", ".html"))
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
@@ -535,6 +533,17 @@ def _build_pandoc_latex_cmd(
     cmd.append("-t beamer")
     cmd.append("--slide-level 4")
     cmd.append("-V theme:SimplePlus")
+    # `--include-in-header` is resolved by Pandoc relative to the cwd or the
+    # `--resource-path` (set below), so copy `latex_abbrevs.sty` next to the
+    # input file, which is where `--resource-path` points.
+    latex_abbrevs_file = os.path.join(
+        hgit.find_file("dev_scripts_helpers"),
+        "documentation",
+        "latex_abbrevs.sty",
+    )
+    hdbg.dassert_file_exists(latex_abbrevs_file)
+    out_dir = os.path.dirname(file_name) or "."
+    _ = _system(f"cp -f {latex_abbrevs_file} {out_dir}")
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
     # cmd.append("--pdf-engine=xelatex")
@@ -545,7 +554,11 @@ def _build_pandoc_latex_cmd(
     # which is then saved in
     # ./data605/lectures_pdf/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png
     # Find the relative path to the resource path.
-    rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+    dir_path = os.path.dirname(file_name)
+    if dir_path:
+        rel_path = os.path.relpath(dir_path, os.getcwd())
+    else:
+        rel_path = "."
     cmd.append(f"--resource-path={rel_path}")
     # cmd.append("--resource-path=/app/data605/lectures_pdf/")
     if toc_type == "pandoc_native":
@@ -867,19 +880,6 @@ def run_pandoc_to_typst_slides(
             return f'image("/{path}"{params})'
 
     txt = re.sub(r'image\s*\(\s*"([^"]*)"\s*([^)]*)\)', convert_image_path, txt)
-    if False:
-        # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
-        # \textcolor{blue}{...} to typst blue text.
-        txt = re.sub(
-            r"\\textcolor\{blue\}\{([^}]+)\}",
-            r"#text(fill: blue, \1)",
-            txt,
-        )
-        txt = re.sub(
-            r"\\textcolor\{red\}\{([^}]+)\}",
-            r"#text(fill: red, \1)",
-            txt,
-        )
     # Replace #strong[...] with explicit black bold text to prevent color bleed
     # from preceding markers
     txt = re.sub(
@@ -895,10 +895,16 @@ def run_pandoc_to_typst_slides(
     # - Compile the Typst file to PDF.
     _report_phase("typst compile")
     pdf_file = typ_file.replace(".typ", ".pdf")
+    if False:
+        # Copy typst_abbrevs.typ to output dir so pandoc_touying.typ can include it.
+        typst_abbrevs_file = hgit.find_file_in_git_tree("typst_abbrevs.typ")
+        hdbg.dassert_file_exists(typst_abbrevs_file)
+        out_dir = os.path.dirname(typ_file)
+        cmd = f"cp -f {typst_abbrevs_file} {out_dir}"
+        _ = _system(cmd)
     if use_host_tools:
-        # cmd = f"typst compile --font-path /usr/share/fonts --root {root} {typ_file} {pdf_file}"
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
-        _LOG.info("cmd=%s", cmd)
+        #cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
         _ = _system(cmd)
     else:
         dshdlity.run_dockerized_typst(

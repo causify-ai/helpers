@@ -427,12 +427,16 @@ class Test_compare_dfs(hunitest.TestCase):
             )
         actual = str(cm.exception)
         expected = r"""
+
+        ################################################################################
         * Failed assertion *
         cond=False
         df1.index.difference(df2.index)=
         RangeIndex(start=0, stop=3, step=1)
         df2.index.difference(df1.index)=
         DatetimeIndex(['2021-01-01', '2021-01-02', '2021-01-03'], dtype='datetime64[ns]', freq=None)
+        ################################################################################
+
         """
         self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 

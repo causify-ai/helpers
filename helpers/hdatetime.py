@@ -228,7 +228,7 @@ def dassert_have_same_tz(
     hdbg.dassert_eq(
         tz1_as_str,
         tz2_as_str,
-        "datetime1=%s (datetime1.tzinfo=%s) datetime2=%s (datetime2.tzinfo=%s) ",
+        "datetime1=%s (datetime1.tzinfo=%s) datetime2=%s (datetime2.tzinfo=%s)",
         datetime1,
         tz1_as_str,
         datetime2,

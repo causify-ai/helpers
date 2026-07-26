@@ -21,11 +21,12 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 import argparse
 import logging
 import os
+import shlex
 import sys
 from typing import Any, List, Optional, Tuple, cast
 
-import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
+import helpers.hdaemon as hdaem
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -37,55 +38,6 @@ import helpers.hsystem as hsystem
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 _LOG = logging.getLogger(__name__)
-
-
-# #############################################################################
-
-_SCRIPT: Optional[List[str]] = None
-
-
-def _append_script(msg: str) -> None:
-    if _SCRIPT is not None:
-        _SCRIPT.append(msg)
-
-
-def _report_phase(phase: str) -> None:
-    msg = "# " + phase
-    print(hprint.color_highlight(msg, "blue"))
-    _LOG.debug("\n%s", hprint.frame(phase, char1="<", char2=">"))
-    _append_script(msg)
-
-
-def _log_system(cmd: str) -> None:
-    hdbg.dassert_isinstance(cmd, str)
-    print("> " + cmd)
-    _append_script(cmd)
-
-
-def _system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
-    _log_system(cmd)
-    rc = hsystem.system(
-        cmd, log_level=log_level, suppress_output=False, **kwargs
-    )
-    return rc  # type: ignore
-
-
-def _system_to_string(
-    cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any
-) -> Tuple[int, str]:
-    _log_system(cmd)
-    rc, txt = hsystem.system_to_string(cmd, log_level=log_level, **kwargs)
-    return rc, txt
-
-
-def _mark_action(
-    action: str, actions: Optional[List[str]]
-) -> Tuple[bool, Optional[List[str]]]:
-    _report_phase(action)
-    to_execute, actions = hselacti.mark_action(action, actions)
-    if not to_execute:
-        _append_script("## skipping this action")
-    return to_execute, actions
 
 
 # #############################################################################
@@ -133,10 +85,8 @@ def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("curr_path=%s", curr_path)
     #
     if args.script:
-        global _SCRIPT
-        _LOG.warning("Logging the actions into a script '%s'", args.script)
-        _SCRIPT = ["#/bin/bash -xe"]
-        dshdlntpd._SCRIPT = _SCRIPT
+        _LOG.info("Logging the actions into a script")
+        dshdlntpd._append_script("#!/bin/bash -xe")
     #
     file_name = args.input
     hdbg.dassert_path_exists(file_name)
@@ -147,7 +97,7 @@ def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("prefix=%s", prefix)
     # - Cleanup_before
     action = "cleanup_before"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         dshdlntpd.cleanup_before(prefix)
     # - Filter
@@ -186,7 +136,7 @@ def _run_all(args: argparse.Namespace) -> None:
         hio.to_file(file_name, filtered_text_str)
     # - Preprocess_notes
     action = "preprocess_notes"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         output_format = "typst" if args.slides_engine == "typst" else "latex"
         file_name = dshdlntpd.preprocess_notes(
@@ -194,12 +144,12 @@ def _run_all(args: argparse.Namespace) -> None:
         )
     # - Render_images
     action = "render_images"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         file_name = dshdlntpd.render_images(file_name, prefix)
     # - Run_pandoc
     action = "run_pandoc"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     file_out = file_name
     if to_execute:
         if args.type == "pdf":
@@ -256,7 +206,7 @@ def _run_all(args: argparse.Namespace) -> None:
     file_in = file_out
     # - Compress_pdf
     action = "compress_pdf"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         if args.type == "pdf":
             file_in = dshdlntpd.compress_pdf(file_in)
@@ -265,25 +215,23 @@ def _run_all(args: argparse.Namespace) -> None:
     file_final = dshdlntpd.copy_to_output(file_in, args.output)
     # - Copy_to_gdrive
     action = "copy_to_gdrive"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         ext = args.type
         dshdlntpd.copy_to_gdrive(file_final, ext, args.input, args.gdrive_dir)
     # - Open
     action = "open"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         hopen.open_file(file_final)
     # - Cleanup_after
     action = "cleanup_after"
-    to_execute, actions = _mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         dshdlntpd.cleanup_after(prefix)
     # Save script, if needed.
     if args.script:
-        hdbg.dassert_is_not(_SCRIPT, None)
-        script = cast(List[str], _SCRIPT)
-        txt = "\n".join(script)
+        txt = "\n".join(dshdlntpd._SCRIPT)
         hio.to_file(args.script, txt)
         _LOG.info("Saved script into '%s'", args.script)
     # Check that everything was executed.
@@ -339,11 +287,11 @@ def _parse() -> argparse.ArgumentParser:
         default=5,
         help="Number of slides to keep when using --filter_by_name (default: 5)",
     )
-    #
     # TODO(gp): -> --action_script
     parser.add_argument(
         "--script",
         action="store",
+        default="tmp.notes_to_pdf.sh",
         help="Bash script to generate with all the executed sub-commands",
     )
     parser.add_argument(
@@ -430,7 +378,11 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use the host tools instead of the dockerized ones",
     )
-    hdaemon.add_daemon_arg(parser)
+    parser.add_argument(
+        "--daemon",
+        action="store_true",
+        help="Watch input file for changes and regenerate on change",
+    )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -443,10 +395,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
-        watch_suffix = " --skip_action=open"
-        hdaemon.run_daemon_mode(
-            args.input, "notes_to_pdf", watch_cmd_suffix=watch_suffix
-        )
+        # Build command without --daemon flag for daemon_watch to execute.
+        cmd_parts = [sys.argv[0]] + [
+            arg for arg in sys.argv[1:] if arg != "--daemon"
+        ]
+        cmd = " ".join(shlex.quote(part) for part in cmd_parts)
+        hdaem.daemon_watch(args.input, cmd)
     else:
         _run_all(args)
 
