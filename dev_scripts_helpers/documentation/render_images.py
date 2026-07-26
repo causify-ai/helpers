@@ -285,13 +285,13 @@ def _render_image_code(
             \usepackage{tabularx}
             \usepackage{enumitem}
             \usepackage{booktabs}  % Optional: For nicer tables
-            %\begin{document}
+            \begin{document}
 
             """
         )
         end_tag = hprint.dedent(
             r"""
-        %\end{document}
+        \end{document}
         """
         )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
