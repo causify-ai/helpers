@@ -1324,34 +1324,21 @@ class TestCase(unittest.TestCase):
         """
         _LOG.debug(hprint.to_str("file_name"))
         if self._git_add:
-            # Find the file relative to here.
-            mode = "assert_unless_one_result"
-            # The problem is that when we run from an included repo, we look
-            # for files like:
-            # ```
-            # helpers_root/helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
-            # ```
-            # but in our directory we find files like:
-            # ```
-            # helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
-            # ```
-            # so we need to make the file relative to the innermost repo.
-            git_root = hgit.get_client_root(super_module=False)
-            rel_file_name = os.path.relpath(file_name, git_root)
-            _LOG.debug(hprint.to_str("rel_file_name"))
-            file_names_tmp = hgit.find_docker_file(rel_file_name, mode=mode)
-            hdbg.dassert_eq(len(file_names_tmp), 1)
-            file_name_tmp = file_names_tmp[0]
-            _LOG.debug(hprint.to_str("file_name_tmp"))
-            cmd = f"cd amp; git add -u {file_name_tmp}"
-            rc = hsystem.system(cmd, abort_on_error=False)
-            if rc:
+            try:
+                # Add file to git and get list of added/created files.
+                added_files = hgit.git_add_file(file_name)
+                if added_files:
+                    # Print added/created files to stdout.
+                    pytest_print("\n# Git added/created files:")
+                    for added_file in added_files:
+                        pytest_print(f"  {added_file}")
+            except Exception as e:
                 pytest_warning(
-                    f"Can't git add file\n'{file_name}' -> '{file_name_tmp}'\n"
+                    f"Can't git add file '{file_name}'\n"
+                    f"Error: {e}\n"
                     "You need to git add the file manually\n",
                     prefix="\n",
                 )
-                pytest_print(f"> {cmd}\n")
 
     def _check_string_update_outcome(
         self, file_name: str, actual: str, use_gzip: bool

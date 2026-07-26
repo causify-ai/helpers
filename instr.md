@@ -1,3 +1,12 @@
+In hunit_test.py when printng `The golden outcome doesn't exist` perform a git
+add creating a function in hgit.py that finds the right directory including the
+subrepo that that file belongs to, cd in that dir and perform the `git add` 
+after doing the difference of the paths
+
+Also print to screen, the files that are updated or created
+
+Add unit tests for these functionalities
+
 # Conventions
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
