@@ -1971,6 +1971,49 @@ def is_client_clean(
     return is_clean
 
 
+def git_add_file(file_path: str) -> List[str]:
+    """
+    Add file to git from its containing repository.
+
+    Handles files in submodules by cd-ing to the repo root and running git add.
+    Returns list of files that were added or created.
+
+    :param file_path: absolute path to the file to add
+    :return: list of file paths that were added/created
+    """
+    hdbg.dassert_path_exists(file_path, "File '%s' does not exist", file_path)
+    # Get directory containing the file to properly find git root.
+    file_dir = os.path.dirname(os.path.abspath(file_path))
+    # Find git root from file's directory context.
+    cmd_git_root = f"cd {file_dir} && git rev-parse --show-toplevel"
+    _, repo_root = hsystem.system_to_one_line(cmd_git_root)
+    # Compute relative path from repo root to file.
+    abs_file_path = os.path.abspath(file_path)
+    rel_file_path = os.path.relpath(abs_file_path, repo_root)
+    _LOG.debug(hprint.to_str("file_path repo_root rel_file_path"))
+    # Run git add from repo root.
+    cmd_add = f"cd {repo_root} && git add {rel_file_path}"
+    hsystem.system(cmd_add, abort_on_error=False)
+    # Get git status after add to see what files were staged.
+    cmd_status = f"cd {repo_root} && git status --porcelain {rel_file_path}"
+    _, status_output = hsystem.system_to_one_line(cmd_status)
+    # Parse added/created files from git status.
+    added_files = []
+    if status_output:
+        # Each line has format: XY FILENAME where XY are status codes.
+        lines = status_output.split("\n")
+        for line in lines:
+            if line.strip():
+                # First 2 chars are status flags, rest is filename.
+                status_flags = line[:2]
+                filename = line[3:] if len(line) > 3 else ""
+                # Status codes: A = added, M = modified, ?? = untracked.
+                if status_flags.strip() and filename:
+                    added_files.append(os.path.join(repo_root, filename))
+    _LOG.debug(hprint.to_str("added_files"))
+    return added_files
+
+
 def delete_branches(
     dir_name: str,
     mode: str,

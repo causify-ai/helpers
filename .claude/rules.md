@@ -16,6 +16,7 @@ rules
 ## Testing
 - For a file storing unit tests (files whose base name starts with
   `test/test_<file>.py`) you MUST follow:
+  - The rules `.claude/skills/coding.rules.md`
   - The rules `.claude/skills/testing.rules.md`
   - The template `.claude/templates/testing.template.py`
 

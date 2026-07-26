@@ -187,12 +187,16 @@ class Test_dassert_misc1(hunitest.TestCase):
         # Check.
         actual = str(cm.exception)
         expected = """
+
+        ################################################################################
         * Failed assertion *
         val1 - val2=[3]
         val2 - val1=[]
         val1=[1, 2, 3]
         set eq
         val2=[1, 2]
+        ################################################################################
+
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -211,11 +215,15 @@ class Test_dassert_misc1(hunitest.TestCase):
         # Check.
         actual = str(cm.exception)
         expected = """
+
+        ################################################################################
         * Failed assertion *
         val1=[1, 2, 3]
         issubset
         val2=[1, 2, 4]
         val1 - val2=[3]
+        ################################################################################
+
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -233,11 +241,15 @@ class Test_dassert_misc1(hunitest.TestCase):
             hdbg.dassert_not_intersection(a, b)
         actual = str(cm.exception)
         expected = """
+
+        ################################################################################
         * Failed assertion *
         val1=[1, 2, 3]
         has no intersection
         val2=[1, 2, 4]
         val1.intersection(val2)=[1, 2]
+        ################################################################################
+
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -775,10 +787,14 @@ class Test_dassert_all_attributes_are_same1(hunitest.TestCase):
             hdbg.dassert_all_attributes_are_same(list_, "b")
         actual = str(cm.exception)
         expected = """
+
+        ################################################################################
         * Failed assertion *
         Elements in the list have different values for
         attribute b:
         {2, 3}
+        ################################################################################
+
         """
         self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 

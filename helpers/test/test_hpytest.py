@@ -1244,7 +1244,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         script_txt:                                                               (
         #/bin/bash -xe                                                            (
         Diff with:
-        > ./tmp_diff.sh
+        > ./tmp.diff.sh
 
         ======================== 1 failed in 40.48s =========================
         """
@@ -1260,7 +1260,7 @@ class Test_parse_failed_tests(hunitest.TestCase):
         script_txt:                                                               (
         #/bin/bash -xe                                                            (
         Diff with:
-        > ./tmp_diff.sh
+        > ./tmp.diff.sh
         """
         expected = hprint.dedent(expected).strip("\n")
         # Check.
