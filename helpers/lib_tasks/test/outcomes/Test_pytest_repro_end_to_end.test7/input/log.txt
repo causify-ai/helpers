@@ -28,7 +28,7 @@ Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4546194Z find . -name '*\.pyc'
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4546664Z Diff with:
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4547307Z > vimdiff helpers/test/outcomes/TestDryRunTasks1.test_git_clean/tmp.actual.txt helpers/test/outcomes/TestDryRunTasks1.test_git_clean/tmp.expected.txt
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4547931Z or running:
-Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4548273Z > ./tmp_diff.sh
+Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4548273Z > ./tmp.diff.sh
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4548887Z --------------------------------------------------------------------------------
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4549484Z EXPECTED VARIABLE: TestDryRunTasks1.test_git_clean
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4550166Z --------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4688234Z 2000-01-01 10:10:00-0
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4693852Z Diff with:
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4694916Z > vimdiff dataflow/system/example1/test/outcomes/Test_Example1_ForecastSystem_FitPredict.test_fit_over_backtest_period1/tmp.actual.txt dataflow/system/example1/test/outcomes/Test_Example1_ForecastSystem_FitPredict.test_fit_over_backtest_period1/tmp.expected.txt
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4695757Z or running:
-Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4696094Z > ./tmp_diff.sh
+Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4696094Z > ./tmp.diff.sh
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4696806Z --------------------------------------------------------------------------------
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4697507Z EXPECTED VARIABLE: Test_Example1_ForecastSystem_FitPredict.test_fit_over_backtest_period1
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4698303Z --------------------------------------------------------------------------------
@@ -304,7 +304,7 @@ Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4815545Z 2000-01-01 10:10:00-0
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4815963Z Diff with:
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4816876Z > vimdiff dataflow/system/example1/test/outcomes/Test_Example1_ForecastSystem_FitPredict.test_fit_over_period1/tmp.actual.txt dataflow/system/example1/test/outcomes/Test_Example1_ForecastSystem_FitPredict.test_fit_over_period1/tmp.expected.txt
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4817745Z or running:
-Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4818089Z > ./tmp_diff.sh
+Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4818089Z > ./tmp.diff.sh
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4818751Z --------------------------------------------------------------------------------
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4819543Z EXPECTED VARIABLE: Test_Example1_ForecastSystem_FitPredict.test_fit_over_period1
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4820358Z --------------------------------------------------------------------------------

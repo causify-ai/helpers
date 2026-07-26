@@ -231,6 +231,7 @@ def diff_files(
     tag: str = "",
     abort_on_exit: bool = True,
     dst_dir: str = ".",
+    test_dir: str = "",
     error_msg: str = "",
 ) -> None:
     """
@@ -240,6 +241,7 @@ def diff_files(
     :param tag: add a banner the tag
     :param abort_on_exit: whether to assert or not
     :param dst_dir: dir where to save the comparing script
+    :param test_dir: optional test outcomes directory to also save script to
     """
     _LOG.debug(hprint.func_signature_to_str())
     file_name1 = os.path.relpath(file_name1, os.getcwd())
@@ -256,7 +258,6 @@ def diff_files(
     )
     msg.append(res)
     # Save a script to diff.
-    diff_script = os.path.join(dst_dir, "tmp_diff.sh")
     vimdiff_cmd = f"""
     #!/bin/bash
     if [[ $1 == "wrap" ]]; then
@@ -268,11 +269,17 @@ def diff_files(
     eval $cmd
     """
     vimdiff_cmd = hprint.dedent(vimdiff_cmd)
-    # TODO(gp): Use hio.create_executable_script().
-    hio.to_file(diff_script, vimdiff_cmd)
-    cmd = "chmod +x " + diff_script
-    hsystem.system(cmd)
-    # Report how to diff.
+    # Save diff script to both dst_dir and test_dir (if provided).
+    for save_dir in [dst_dir, test_dir]:
+        if not save_dir:
+            continue
+        diff_script = os.path.join(save_dir, "tmp.diff.sh")
+        # TODO(gp): Use hio.create_executable_script().
+        hio.to_file(diff_script, vimdiff_cmd)
+        cmd = "chmod +x " + diff_script
+        hsystem.system(cmd)
+    # Report how to diff using the dst_dir version.
+    diff_script = os.path.join(dst_dir, "tmp.diff.sh")
     msg.append("Diff with:")
     msg.append("> " + diff_script)
     msg_as_str = "\n".join(msg)
@@ -453,8 +460,14 @@ def assert_equal(
         hdbg.dassert_not_in(tag, values)
         values[tag] = (actual, expected)
 
-    #
     _LOG.debug("Before any transformation:")
+    # Save the passed values, before any transform to both current and test dir.
+    for save_dir in (".", test_dir):
+        act_file_name = f"{save_dir}/tmp.initial.actual.txt"
+        hio.to_file(act_file_name, actual)
+        exp_file_name = f"{save_dir}/tmp.initial.expected.txt"
+        hio.to_file(exp_file_name, expected)
+    #
     tag = "original"
     _append(tag, actual, expected)
     # 1) Remove white spaces.
@@ -580,13 +593,15 @@ def assert_equal(
         msg = "FUZZY ACTUAL vs FUZZY EXPECTED"
     else:
         msg = "ACTUAL vs EXPECTED"
-    msg += f": {full_test_name}"
+    caller = "check_string()" if check_string else "assert_equal()"
+    msg += f" [via {caller}]: {full_test_name}"
     diff_files(
         act_file_name,
         exp_file_name,
         tag=msg,
         abort_on_exit=abort_on_error,
         dst_dir=dst_dir,
+        test_dir=test_dir,
         error_msg=error_msg,
     )
     return is_equal
@@ -924,6 +939,8 @@ class TestCase(unittest.TestCase):
         self._test_was_updated = False
         # Store whether the output files need to be added to hgit.
         self._git_add = True
+        # Store list of files added to git during this test.
+        self._git_added_files: List[str] = []
         # Error message printed when comparing actual and expected outcome.
         self._error_msg = ""
         # Set the default pandas options (see AmpTask1140).
@@ -947,7 +964,13 @@ class TestCase(unittest.TestCase):
         # Report if the test was updated
         if self._test_was_updated:
             if not self._overriden_update_tests:
-                pytest_warning("Test was updated) ", prefix="(")
+                if self._git_added_files:
+                    # Format file paths as quoted strings
+                    files_str = ", ".join(f"'{f}'" for f in self._git_added_files)
+                    msg = f"Test was updated: {files_str}) "
+                else:
+                    msg = "Test was updated) "
+                pytest_warning(msg, prefix="(")
             else:
                 # We forced an update from the unit test itself, so no need
                 # to report an update.
@@ -1309,34 +1332,19 @@ class TestCase(unittest.TestCase):
         """
         _LOG.debug(hprint.to_str("file_name"))
         if self._git_add:
-            # Find the file relative to here.
-            mode = "assert_unless_one_result"
-            # The problem is that when we run from an included repo, we look
-            # for files like:
-            # ```
-            # helpers_root/helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
-            # ```
-            # but in our directory we find files like:
-            # ```
-            # helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
-            # ```
-            # so we need to make the file relative to the innermost repo.
-            git_root = hgit.get_client_root(super_module=False)
-            rel_file_name = os.path.relpath(file_name, git_root)
-            _LOG.debug(hprint.to_str("rel_file_name"))
-            file_names_tmp = hgit.find_docker_file(rel_file_name, mode=mode)
-            hdbg.dassert_eq(len(file_names_tmp), 1)
-            file_name_tmp = file_names_tmp[0]
-            _LOG.debug(hprint.to_str("file_name_tmp"))
-            cmd = f"cd amp; git add -u {file_name_tmp}"
-            rc = hsystem.system(cmd, abort_on_error=False)
-            if rc:
+            try:
+                # Add file to git and get list of added/created files.
+                added_files = hgit.git_add_file(file_name)
+                if added_files:
+                    # Store added files to be reported in tearDown.
+                    self._git_added_files.extend(added_files)
+            except Exception as e:
                 pytest_warning(
-                    f"Can't git add file\n'{file_name}' -> '{file_name_tmp}'\n"
+                    f"Can't git add file '{file_name}'\n"
+                    f"Error: {e}\n"
                     "You need to git add the file manually\n",
                     prefix="\n",
                 )
-                pytest_print(f"> {cmd}\n")
 
     def _check_string_update_outcome(
         self, file_name: str, actual: str, use_gzip: bool
