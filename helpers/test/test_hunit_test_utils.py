@@ -970,7 +970,7 @@ class Test_assert_sys_calls(hunitest.TestCase):
         # Capture and compare.
         with hunteuti.capture_sys_calls() as sys_calls:
             hsystem.system("echo test", suppress_output=True)
-        # Check outputs - should pass with fuzzy_match=True.
+        # Check outputs: should pass with fuzzy_match=True.
         hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test2(self) -> None:

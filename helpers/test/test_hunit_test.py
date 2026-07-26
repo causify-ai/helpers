@@ -59,6 +59,7 @@ def _to_skip_on_update_outcomes() -> bool:
 # #############################################################################
 
 
+# TODO(ai_gp): Split in multiple classes, one per function.
 class TestTestCase1(hunitest.TestCase):
     """
     Test free-standing functions in unit_test.py.
@@ -263,7 +264,7 @@ class TestTestCase1(hunitest.TestCase):
 # Test_AssertEqual1
 # #############################################################################
 
-
+# TODO(ai_gp): Indent the """ strings and use dedent.
 @pytest.mark.need_dev_container
 class Test_AssertEqual1(hunitest.TestCase):
     def test_equal1(self) -> None:
@@ -405,6 +406,7 @@ end
 # #############################################################################
 
 
+# TODO(ai_gp): Rename the methods and use /factor_common_code
 class TestCheckString1(hunitest.TestCase):
     def test_check_string1(self) -> None:
         """
@@ -613,6 +615,7 @@ class TestCheckString1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Rename the methods and use /factor_common_code
 class TestCheckDataFrame1(hunitest.TestCase):
     """
     Some of these tests can't pass with `--update_outcomes`, since they
@@ -1054,6 +1057,112 @@ class Test_assert_equal_options1(hunitest.TestCase):
             hunitest.assert_equal(
                 actual, expected, test_name, test_dir, fuzzy_match=True
             )
+
+    # TODO(ai_gp): This should pass when using ignore_line_breaks
+    def test_fuzzy_match6(self) -> None:
+        """
+        Test fuzzy_match + ignore_line_breaks with inline vs multiline dicts.
+
+        This test demonstrates a limitation of fuzzy_match when comparing
+        inline dictionary formatting with multiline indented formatting.
+
+        When newlines are converted to spaces via ignore_line_breaks, indented
+        content creates extra spaces that fuzzy_match cannot ignore:
+        - Inline: `}, {'key':` becomes `}, {'key':` (one space)
+        - Multiline indented: `},\n    {` becomes `}, {` then with
+          ignore_line_breaks creates `}, { ` (two spaces around `{`)
+
+        The extra space after `{` is from the indentation on the next line.
+        """
+        # Inline formatting (no indentation).
+        actual_inline = r"""
+        [
+        {'function': 'test', 'args': ('arg1',), 'kwargs': {}},
+        {'function': 'test2', 'args': ('arg2',), 'kwargs': {}},
+        ]
+        """
+        actual_inline = hprint.dedent(actual_inline)
+        # Multiline indented formatting (like _sys_calls_to_str produces).
+        actual_multiline = r"""
+        [
+        {
+        'function': 'test',
+        'args': ('arg1',),
+        'kwargs': {},
+        },
+        {
+        'function': 'test2',
+        'args': ('arg2',),
+        'kwargs': {},
+        },
+        ]
+        """
+        actual_multiline = hprint.dedent(actual_multiline)
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        # With fuzzy_match=True alone, these fail because newlines preserved.
+        with self.assertRaises(RuntimeError):
+            hunitest.assert_equal(
+                actual_inline,
+                actual_multiline,
+                test_name,
+                test_dir,
+                fuzzy_match=True,
+            )
+        # With both fuzzy_match and ignore_line_breaks, they still fail
+        # because indentation creates extra spaces when newlines -> spaces.
+        with self.assertRaises(RuntimeError):
+            hunitest.assert_equal(
+                actual_inline,
+                actual_multiline,
+                test_name,
+                test_dir,
+                fuzzy_match=True,
+                ignore_line_breaks=True,
+            )
+
+    # TODO(ai_gp): Use helper.
+    def test_fuzzy_match7(self) -> None:
+        """
+        Test fuzzy_match + ignore_line_breaks with consistent formatting.
+
+        When both expected and actual use the same formatting style
+        (both multiline with identical indentation), fuzzy_match works
+        correctly even after ignore_line_breaks converts newlines to spaces.
+        """
+        # Both use multiline indented formatting (consistent)
+        actual = r"""
+        [
+        {
+           'function':    'test',
+                'args':     ('arg1',    ),
+            'kwargs':       {},
+            },
+                        ]
+        """
+        actual = hprint.dedent(actual)
+        expected = r"""
+        [
+        {
+        'function': 'test',
+        'args': ('arg1',),
+        'kwargs': {},
+        },
+        ]
+        """
+        expected = hprint.dedent(expected)
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        # This passes because formatting is consistent
+        is_equal = hunitest.assert_equal(
+            actual,
+            expected,
+            test_name,
+            test_dir,
+            fuzzy_match=True,
+            ignore_line_breaks=True,
+        )
+        self.assertTrue(is_equal)
 
     def test_purify_text1(self) -> None:
         """
