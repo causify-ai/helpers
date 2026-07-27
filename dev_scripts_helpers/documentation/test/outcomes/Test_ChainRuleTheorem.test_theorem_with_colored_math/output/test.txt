@@ -48,7 +48,7 @@ Color transformation applied
 ################################################################################
 4. typst_output_length
 ################################################################################
-1536 characters
+1517 characters
 ################################################################################
 5. typst_output_preview
 ################################################################################
@@ -60,6 +60,4 @@ Color transformation applied
   - Ordering of the random variables
 - #strong[Proof]
   + #strong[Express one variable] conditionally to the remaining ones
-    \$\$
-    \\Pr(\#text(fill: blue)\[x\_1, ..., x\_{n-1\]}, \#text(fill: red)\[x\_n\])
-    = \\Pr(\#text(fill: red)\[x\_n\] | \#text(fill: blue)\[x\_{n-1\], ..., x\_1...
+    $ Pr \( #text(fill: blue)[$x_1 \, . . . \, x_(n - 1)$] \, #text(fill: red)[$x_n$] \) = Pr \( #text(fill: red)[$x_n$] \| #text(fill: blue)[$x_(n - 1) \, . . . \, x_...

@@ -29,7 +29,6 @@ import json
 import logging
 import os
 import re
-import sys
 import tempfile
 from typing import Any, Dict, List, Tuple
 
@@ -318,6 +317,70 @@ def _transform_ast_divved_fence(ast: PandocAst) -> PandocAst:
 
 
 # #############################################################################
+# Brace-aware `\textcolor{...}{...}` parsing
+# #############################################################################
+
+
+def _find_matching_brace(latex_string: str, open_index: int) -> int:
+    """
+    Find the index of the `}` that matches the `{` at `open_index`.
+
+    :param latex_string: string containing the brace group
+    :param open_index: index of the opening `{`
+    :return: index of the matching closing `}`
+    """
+    hdbg.dassert_eq(latex_string[open_index], "{")
+    depth = 0
+    for i in range(open_index, len(latex_string)):
+        if latex_string[i] == "{":
+            depth += 1
+        elif latex_string[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return i
+    raise ValueError(
+        f"Unbalanced braces starting at index {open_index} in: {latex_string}"
+    )
+
+
+def _find_textcolor_calls(
+    latex_string: str,
+) -> List[Tuple[int, int, str, str]]:
+    r"""
+    Find all top-level `\textcolor{color}{content}` calls.
+
+    Unlike a naive regex (e.g. `\{([^}]*)\}`), this correctly handles
+    `content` containing nested braces, e.g. `\textcolor{red}{x_{n-1}}`.
+
+    :param latex_string: LaTeX math string to scan
+    :return: list of `(start, end, color, content)` where `latex_string[start:end]`
+        is the full `\textcolor{...}{...}` call
+    """
+    marker = r"\textcolor{"
+    calls = []
+    i = 0
+    n = len(latex_string)
+    while i < n:
+        idx = latex_string.find(marker, i)
+        if idx == -1:
+            break
+        color_open = idx + len(marker) - 1
+        color_close = _find_matching_brace(latex_string, color_open)
+        content_open = color_close + 1
+        if content_open >= n or latex_string[content_open] != "{":
+            # Malformed `\textcolor` call (missing second argument): skip it
+            # and keep scanning past the `\textcolor` we just found.
+            i = idx + 1
+            continue
+        content_close = _find_matching_brace(latex_string, content_open)
+        color = latex_string[color_open + 1 : color_close]
+        content = latex_string[content_open + 1 : content_close]
+        calls.append((idx, content_close + 1, color, content))
+        i = content_close + 1
+    return calls
+
+
+# #############################################################################
 # ColorTransformer
 # #############################################################################
 
@@ -326,6 +389,14 @@ class ColorTransformer:
     """
     Transform LaTeX color commands to Typst syntax.
     """
+
+    # Placeholder wrapped in `\text{...}` so pandoc's LaTeX math parser
+    # (texmath) treats it as a single opaque, well-formed atom (just like the
+    # `\textcolor{...}{...}` call it stands in for), preserving the
+    # surrounding math structure (subscripts, matrix cells, integral bounds,
+    # ...) so the "skeleton" formula still parses. texmath renders
+    # `\text{X}` to `upright("X")` in Typst, which is what we grep for below.
+    _PLACEHOLDER_TEMPLATE = "XCOLORPLACEHOLDER{idx}"
 
     def __init__(self):
         self.stats = {
@@ -338,12 +409,19 @@ class ColorTransformer:
     def textcolor_to_typst(self, latex_string: str) -> str:
         r"""
         Transform \textcolor{color}{content} to #text(fill: color)[content]
-        """
-        pattern = r"\\textcolor\{([^}]+)\}\{([^}]*)\}"
 
-        def replace_color(match: Any) -> str:
-            color = match.group(1)
-            content = match.group(2)
+        This is a plain string substitution (no math-awareness): it is used
+        for standalone snippets, not for AST `Math` nodes (see
+        `process_math_node()` for the AST case, which additionally converts
+        `content` from LaTeX math to Typst math).
+        """
+        calls = _find_textcolor_calls(latex_string)
+        if not calls:
+            return latex_string
+        result = []
+        prev_end = 0
+        for start, end, color, content in calls:
+            result.append(latex_string[prev_end:start])
             self.stats["textcolor_count"] += 1
             _LOG.debug(
                 f"  \\textcolor{{{color}}}{{{content}}} → "
@@ -352,10 +430,10 @@ class ColorTransformer:
             content_escaped = content.replace("\\", "\\\\")
             content_escaped = content_escaped.replace("]", r"\]")
             content_escaped = content_escaped.replace("[", r"\[")
-            return f"#text(fill: {color})[{content_escaped}]"
-
-        result = re.sub(pattern, replace_color, latex_string)
-        return result
+            result.append(f"#text(fill: {color})[{content_escaped}]")
+            prev_end = end
+        result.append(latex_string[prev_end:])
+        return "".join(result)
 
     def color_to_typst(self, latex_string: str) -> str:
         r"""
@@ -367,8 +445,7 @@ class ColorTransformer:
             color = match.group(1)
             self.stats["color_count"] += 1
             _LOG.debug(
-                f"  \\color{{{color}}} → (requires context awareness, skipped)",
-                file=sys.stderr,
+                "  \\color{%s} → (requires context awareness, skipped)", color
             )
             return f"\\color{{{color}}}"
 
@@ -384,21 +461,123 @@ class ColorTransformer:
         result = self.color_to_typst(result)
         return result
 
-    def process_math_node(self, node: Dict[str, Any]) -> Dict[str, Any]:
+    @staticmethod
+    def _latex_math_to_typst(latex_str: str) -> str:
         """
-        Transform a Math AST node.
+        Convert a LaTeX math snippet to a Typst math snippet via pandoc.
+
+        `latex_str` must be a well-formed (balanced) LaTeX math expression
+        on its own: it is wrapped as an `InlineMath` node in a throwaway AST
+        and piped through `pandoc -f json -t typst`.
+
+        :param latex_str: LaTeX math source (no surrounding `$`)
+        :return: equivalent Typst math source (no surrounding `$`)
+        """
+        mini_ast = {
+            "pandoc-api-version": [1, 23, 1],
+            "meta": {},
+            "blocks": [
+                {
+                    "t": "Para",
+                    "c": [{"t": "Math", "c": [{"t": "InlineMath"}, latex_str]}],
+                }
+            ],
+        }
+        ast_json = json.dumps(mini_ast)
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=True
+        ) as tmp_in:
+            tmp_in.write(ast_json)
+            tmp_in.flush()
+            cmd = f"pandoc -f json -t typst < {tmp_in.name}"
+            rc, result = hsystem.system_to_string(cmd)
+        hdbg.dassert_eq(
+            rc, 0, "pandoc failed converting formula to typst: %s", latex_str
+        )
+        typst_text = result.strip()
+        hdbg.dassert(
+            typst_text.startswith("$") and typst_text.endswith("$"),
+            "Unexpected pandoc typst output for formula '%s': %s",
+            latex_str,
+            typst_text,
+        )
+        return typst_text[1:-1]
+
+    def _formula_to_raw_typst(self, latex_formula: str) -> str:
+        r"""
+        Convert a LaTeX math formula (possibly with `\textcolor`) to Typst.
+
+        Each top-level `\textcolor{color}{content}` is replaced by a
+        placeholder before the surrounding "skeleton" formula is handed to
+        pandoc/texmath (which has no notion of `\textcolor`); `content` is
+        recursively converted on its own and re-injected afterwards as
+        `#text(fill: color)[$...$]`. This way the skeleton stays valid LaTeX
+        math (braces/subscripts/environments all balanced) while `content`
+        never gets re-parsed as LaTeX after it has been turned into Typst.
+
+        :param latex_formula: LaTeX math source (no surrounding `$`)
+        :return: Typst math source (no surrounding `$`), safe to embed
+            verbatim in a `RawInline`/`RawBlock`
+        """
+        calls = _find_textcolor_calls(latex_formula)
+        if not calls:
+            return self._latex_math_to_typst(latex_formula)
+        skeleton_parts = []
+        placeholders = []
+        prev_end = 0
+        for start, end, color, content in calls:
+            skeleton_parts.append(latex_formula[prev_end:start])
+            idx = len(placeholders)
+            placeholder = self._PLACEHOLDER_TEMPLATE.format(idx=idx)
+            skeleton_parts.append(rf"\text{{{placeholder}}}")
+            placeholders.append((placeholder, color, content))
+            prev_end = end
+        skeleton_parts.append(latex_formula[prev_end:])
+        skeleton = "".join(skeleton_parts)
+        typst_skeleton = self._latex_math_to_typst(skeleton)
+        for placeholder, color, content in placeholders:
+            self.stats["textcolor_count"] += 1
+            token = f'upright("{placeholder}")'
+            hdbg.dassert_in(
+                token,
+                typst_skeleton,
+                "Placeholder for \\textcolor{%s}{%s} not found in pandoc "
+                "output",
+                color,
+                content,
+            )
+            translated_content = self._formula_to_raw_typst(content)
+            replacement = f"#text(fill: {color})[${translated_content}$]"
+            typst_skeleton = typst_skeleton.replace(token, replacement, 1)
+        return typst_skeleton
+
+    def process_math_node(self, node: Dict[str, Any]) -> Dict[str, Any]:
+        r"""
+        Transform a Math AST node containing `\textcolor`/`\color` into a
+        `RawInline` typst node.
+
+        The node is deliberately re-tagged from `Math` to `RawInline` (format
+        `typst`): once the formula contains Typst syntax like
+        `#text(fill: red)[...]`, it is no longer valid LaTeX, so it must not
+        be re-parsed as TeX math again downstream (e.g. by
+        `pandoc -f json -t typst`) — that reparse is exactly what raises
+        "Could not convert TeX math ... unexpected '#'".
         """
         if node.get("t") != "Math":
             return node
         self.stats["math_nodes_processed"] += 1
-        math_mode = node["c"][0]
-        latex_formula = node["c"][1]
+        mode_field, latex_formula = node["c"]
+        mode = mode_field["t"] if isinstance(mode_field, dict) else mode_field
         if "\\textcolor" not in latex_formula and "\\color" not in latex_formula:
             return node
         self.stats["formulas_transformed"] += 1
-        _LOG.debug(f"Transforming: {latex_formula[:50]}...", file=sys.stderr)
-        typst_formula = self.transform_formula(latex_formula)
-        return {"t": "Math", "c": [math_mode, typst_formula]}
+        _LOG.debug("Transforming: %s...", latex_formula[:50])
+        inner_typst = self._formula_to_raw_typst(latex_formula)
+        if mode == "InlineMath":
+            raw_typst = f"${inner_typst}$"
+        else:
+            raw_typst = f"$ {inner_typst} $"
+        return {"t": "RawInline", "c": ["typst", raw_typst]}
 
     def walk(self, obj: Any) -> Any:
         """

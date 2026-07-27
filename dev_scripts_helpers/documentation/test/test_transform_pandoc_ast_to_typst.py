@@ -1,5 +1,7 @@
+import json
 import os
 import shutil
+import subprocess
 from typing import Any, Dict, List
 
 import pytest
@@ -580,6 +582,62 @@ class Test_end_to_end(hunitest.TestCase):
 
 
 # #############################################################################
+# Test__find_textcolor_calls
+# #############################################################################
+
+
+class Test__find_textcolor_calls(hunitest.TestCase):
+    """
+    Test the `_find_textcolor_calls()` brace-aware parser.
+    """
+
+    def test_flat_content(self) -> None:
+        r"""
+        Test extraction of a single call with no nested braces.
+        """
+        latex_string = r"\textcolor{red}{hello}"
+        calls = dshdtpatt._find_textcolor_calls(latex_string)
+        self.assertEqual(len(calls), 1)
+        start, end, color, content = calls[0]
+        self.assertEqual(latex_string[start:end], latex_string)
+        self.assertEqual(color, "red")
+        self.assertEqual(content, "hello")
+
+    def test_nested_braces(self) -> None:
+        r"""
+        Test extraction when `content` contains a nested brace group, e.g. a
+        subscript `x_{n-1}`.
+
+        A naive `[^}]*` regex stops at the first `}` and truncates
+        `content`; this must capture it whole.
+        """
+        latex_string = r"\textcolor{blue}{x_1, ..., x_{n-1}}"
+        calls = dshdtpatt._find_textcolor_calls(latex_string)
+        self.assertEqual(len(calls), 1)
+        _, end, color, content = calls[0]
+        self.assertEqual(color, "blue")
+        self.assertEqual(content, "x_1, ..., x_{n-1}")
+        self.assertEqual(end, len(latex_string))
+
+    def test_multiple_calls(self) -> None:
+        r"""
+        Test extraction of multiple `\textcolor` calls in one formula.
+        """
+        latex_string = r"\Pr(\textcolor{blue}{x}, \textcolor{red}{y})"
+        calls = dshdtpatt._find_textcolor_calls(latex_string)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual((calls[0][2], calls[0][3]), ("blue", "x"))
+        self.assertEqual((calls[1][2], calls[1][3]), ("red", "y"))
+
+    def test_no_textcolor(self) -> None:
+        r"""
+        Test that a formula without `\textcolor` yields no calls.
+        """
+        calls = dshdtpatt._find_textcolor_calls("x + y")
+        self.assertEqual(calls, [])
+
+
+# #############################################################################
 # Test_ColorTransformer
 # #############################################################################
 
@@ -615,9 +673,17 @@ class Test_ColorTransformer(hunitest.TestCase):
         expected = r"\color{green}"
         self.assertEqual(result, expected)
 
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None, reason="pandoc is not installed"
+    )
     def test_math_node_with_textcolor(self) -> None:
         r"""
         Test transformation of Math node with \textcolor.
+
+        The node must be re-tagged from `Math` to `RawInline` (format
+        `typst`): once `\textcolor` has been turned into `#text(fill:
+        ...)[...]`, the string is Typst syntax, not LaTeX, so it must not be
+        re-parsed as TeX math again downstream.
         """
         transformer = dshdtpatt.ColorTransformer()
         node = {
@@ -625,8 +691,10 @@ class Test_ColorTransformer(hunitest.TestCase):
             "c": ["DisplayMath", r"\textcolor{red}{x + y}"],
         }
         result = transformer.process_math_node(node)
-        self.assertEqual(result["t"], "Math")
+        self.assertEqual(result["t"], "RawInline")
+        self.assertEqual(result["c"][0], "typst")
         self.assertIn("red", result["c"][1])
+        self.assertNotIn(r"\textcolor", result["c"][1])
         self.assertEqual(transformer.stats["math_nodes_processed"], 1)
         self.assertEqual(transformer.stats["formulas_transformed"], 1)
 
@@ -644,6 +712,9 @@ class Test_ColorTransformer(hunitest.TestCase):
         self.assertEqual(transformer.stats["math_nodes_processed"], 1)
         self.assertEqual(transformer.stats["formulas_transformed"], 0)
 
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None, reason="pandoc is not installed"
+    )
     def test_ast_walk_with_colors(self) -> None:
         """
         Test walking full AST and transforming Math nodes.
@@ -658,6 +729,22 @@ class Test_ColorTransformer(hunitest.TestCase):
         }
         result = transformer.walk(ast)
         self.assertIn("red", str(result))
+
+    def test_textcolor_nested_braces(self) -> None:
+        r"""
+        Test \textcolor with a nested brace group in content (e.g. a
+        subscript).
+
+        Regression test: the original `\{([^}]*)\}` regex stops at the
+        first inner `}`, truncating `content` to `"x_1, ..., x_{n-1"` and
+        leaving a dangling `}` in the output, e.g.
+        `#text(fill: blue)[x_1, ..., x_{n-1]}`.
+        """
+        transformer = dshdtpatt.ColorTransformer()
+        latex_string = r"\textcolor{blue}{x_1, ..., x_{n-1}}"
+        result = transformer.textcolor_to_typst(latex_string)
+        expected = r"#text(fill: blue)[x_1, ..., x_{n-1}]"
+        self.assertEqual(result, expected)
 
     def test_stats_collection(self) -> None:
         """
@@ -808,3 +895,58 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
             self.assertIn(color, result)
         # Verify all \textcolor removed.
         self.assertNotIn(r"\textcolor", result)
+
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None, reason="pandoc is not installed"
+    )
+    def test_no_pandoc_warnings_for_matrix_and_integral(self) -> None:
+        r"""
+        Regression test for the reported bug.
+
+        Previously the color-transformed `\textcolor{...}{...}` -> `#text(fill:
+        ...)[...]` substitution was injected into the Math node's string
+        while the node stayed tagged `Math`. `pandoc -f json -t typst`
+        re-parses `Math` node content as LaTeX (via texmath), so it choked
+        on the injected `#`:
+          "Could not convert TeX math ...: unexpected '#'"
+        and (with `fail_on_warnings`) failed the whole conversion.
+
+        Colored matrix cells and colored integral bounds (nested
+        `\begin{pmatrix}`/`\int_{}^{}` braces) are exactly the constructs
+        from the original bug report. This exercises the real `pandoc`
+        binary (not just the AST-transform in isolation) to confirm no
+        warnings are emitted and the color styling survives into the
+        output.
+        """
+        markdown_input = hprint.dedent(
+            r"""
+            $$
+            \begin{pmatrix}
+            \textcolor{red}{1} & 0 \\
+            0 & \textcolor{blue}{1}
+            \end{pmatrix}
+            $$
+
+            Integral: $\int_{\textcolor{red}{a}}^{\textcolor{blue}{b}} f(x) \, dx$
+            """
+        )
+        proc = subprocess.run(
+            ["pandoc", "-f", "markdown", "-t", "json"],
+            input=markdown_input,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        ast = json.loads(proc.stdout)
+        transformed_ast = dshdtpatt._transform_ast_color_text(ast)
+        proc2 = subprocess.run(
+            ["pandoc", "-f", "json", "-t", "typst"],
+            input=json.dumps(transformed_ast),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        self.assertEqual(proc2.stderr, "")
+        self.assertNotIn("Could not convert TeX math", proc2.stdout)
+        self.assertIn("#text(fill: red)", proc2.stdout)
+        self.assertIn("#text(fill: blue)", proc2.stdout)
