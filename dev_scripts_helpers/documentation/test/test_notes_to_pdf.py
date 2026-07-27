@@ -2058,48 +2058,6 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, f"output.{out_ext}")
         script_file = os.path.join(out_dir, "script.sh")
-        out_file = os.path.join(out_dir, "output.pdf")
-=======
-    def helper(self, type_: str, slides_engine: str, no_pdf: bool) -> Tuple[str, str]:
-        r"""
-        Run `notes_to_pdf.py` on markdown containing color commands.
-
-        :param type_: value for `--type` (e.g., `pdf`, `slides`)
-        :param slides_engine: value for `--slides_engine` (e.g., `beamer`,
-            `typst`)
-        :param no_pdf: if True, stop the pipeline at the intermediate
-            source file (`.tex` for LaTeX / beamer, `.typ` for Typst)
-            instead of compiling the PDF
-        :return: path to the generated output file
-            # TODO(ai_gp): Update
-        """
-        _LOG.debug("%s", hprint.to_str("type_ slides_engine no_pdf"))
-        # Prepare inputs.
-        in_file = self._create_markdown_with_colors()
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        # Prepare outputs. The extension of the output file matches what the
-        # pipeline produces, since `notes_to_pdf.py` copies the last generated
-        # file to `--output`.
-        if not no_pdf:
-            out_ext = "pdf"
-            cmd_opts = []
-        elif type_ == "slides" and slides_engine == "typst":
-            out_ext = "typ"
-            cmd_opts = [
-                "--use_pandoc_ast_transform",
-                #"--no_fail_on_warnings"
-            ]
-        elif type_ == "slides" and slides_engine == "beamer":
-            out_ext = "tex"
-            cmd_opts = []
-        else:
-            raise ValueError("Invalid inputs: " + hprint.to_str("type_ slides_engine no_pdf"))
-        #
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, f"output.{out_ext}")
-        script_file = os.path.join(out_dir, "script.sh")
->>>>>>> master
         # Construct command.
         cmd = [
             exec_path,
