@@ -313,12 +313,13 @@ def _summarize_text(
         digest = _compute_sha1_digest(text)
         summary, cost = f"SHA1: {digest}\n", 0.0
     else:
-        summary, cost = hllmcli.apply_llm(
+        summary, cost_stats = hllmcli.apply_llm(
             input_str=text,
             system_prompt=system_prompt,
             model=model,
             backend="library",
         )
+        cost = cost_stats.to_float()
         _LOG.debug("LLM cost: $%.6f", cost)
     return summary, cost
 

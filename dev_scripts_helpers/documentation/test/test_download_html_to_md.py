@@ -3,10 +3,36 @@
 
 import os
 
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.documentation.download_html_to_md as dshdhtomd
+
+
+def _run_script(
+    html_file: str,
+    md_file: str,
+    converter: str = "auto",
+) -> None:
+    """
+    Run download_html_to_md.py script via subprocess.
+
+    :param html_file: Path to input HTML file
+    :param md_file: Path to output markdown file
+    :param converter: Converter mode to use
+    """
+    script_path = hgit.find_file_in_git_tree("download_html_to_md.py")
+    cmd = [
+        script_path,
+        f"--input {html_file}",
+        f"--output {md_file}",
+        f"--converter {converter}",
+        "-e cleanup",
+    ]
+    cmd_str = " ".join(cmd)
+    hsystem.system(cmd_str)
 
 
 # #############################################################################
@@ -227,58 +253,88 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_convert_using_bs
+# Test_download_html_to_md_py_bs
 # #############################################################################
 
 
-class Test_convert_using_bs(hunitest.TestCase):
+class Test_download_html_to_md_py_bs(hunitest.TestCase):
     """
-    Test `_convert_using_bs()` function for BeautifulSoup extraction.
+    End-to-end test for script using BeautifulSoup converter.
     """
-
-    def helper(
-        self,
-        html_content: str,
-        expected_contains: str,
-    ) -> None:
-        """
-        Test helper for `_convert_using_bs()`.
-
-        :param html_content: HTML content to process
-        :param expected_contains: Expected substring in extracted content
-        """
-        # Run test.
-        actual = dshdhtomd._convert_using_bs(html_content)
-        # Check outputs: verify extracted content contains expected text.
-        self.assertIn(expected_contains, actual)
 
     def test1(self) -> None:
         """
-        Test extraction with <main> tag selector.
+        Test script with BeautifulSoup converter on HTML with main tag.
         """
         # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        html_file = os.path.join(scratch_dir, "test.html")
+        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
-        <head><title>Page</title></head>
         <body>
-        <nav>Navigation content</nav>
+        <nav>Navigation</nav>
         <main>
-            <h1>Main Content</h1>
-            <p>Article content here</p>
+            <h1>Title Here</h1>
+            <p>Content paragraph</p>
         </main>
-        <footer>Footer</footer>
         </body>
         </html>
         """
-        expected_contains = "Main Content"
+        hio.to_file(html_file, html_content)
         # Run test.
-        self.helper(html_content, expected_contains)
+        _run_script(html_file, md_file, converter="bs")
+        # Check outputs.
+        actual = hio.from_file(md_file)
+        expected = """
+        # Title Here
+
+        Content paragraph
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test2(self) -> None:
         """
-        Test extraction with [role='main'] selector.
+        Test script with main container and nested content.
         """
         # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        html_file = os.path.join(scratch_dir, "test.html")
+        md_file = os.path.join(scratch_dir, "test.md")
+        html_content = """
+        <html>
+        <body>
+        <nav>Navigation</nav>
+        <main>
+            <h1>Article Title</h1>
+            <h2>Section</h2>
+            <p>Nested content here</p>
+        </main>
+        </body>
+        </html>
+        """
+        hio.to_file(html_file, html_content)
+        # Run test.
+        _run_script(html_file, md_file, converter="bs")
+        # Check outputs.
+        actual = hio.from_file(md_file)
+        expected = """
+        # Article Title
+
+        ## Section
+
+        Nested content here
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test3(self) -> None:
+        """
+        Test script with role='main' selector.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        html_file = os.path.join(scratch_dir, "test.html")
+        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -290,110 +346,37 @@ class Test_convert_using_bs(hunitest.TestCase):
         </body>
         </html>
         """
-        expected_contains = "Documentation"
+        hio.to_file(html_file, html_content)
         # Run test.
-        self.helper(html_content, expected_contains)
+        _run_script(html_file, md_file, converter="bs")
+        # Check outputs.
+        actual = hio.from_file(md_file)
+        expected = """
+        ## Documentation
 
-    def test3(self) -> None:
+        Content in role main
         """
-        Test extraction with [data-content] selector.
-        """
-        # Prepare inputs.
-        html_content = """
-        <html>
-        <body>
-        <div data-content="true">
-            <h3>Article Title</h3>
-            <p>Data content here</p>
-        </div>
-        </body>
-        </html>
-        """
-        expected_contains = "Article Title"
-        # Run test.
-        self.helper(html_content, expected_contains)
-
-    def test4(self) -> None:
-        """
-        Test extraction with .content class selector.
-        """
-        # Prepare inputs.
-        html_content = """
-        <html>
-        <body>
-        <div class="sidebar">Sidebar</div>
-        <div class="content">
-            <h2>Main Heading</h2>
-            <p>Content with class</p>
-        </div>
-        </body>
-        </html>
-        """
-        expected_contains = "Main Heading"
-        # Run test.
-        self.helper(html_content, expected_contains)
-
-    def test5(self) -> None:
-        """
-        Test with no matching selector returns empty string.
-        """
-        # Prepare inputs.
-        html_content = """
-        <html>
-        <body>
-        <p>Just text without main content container</p>
-        </body>
-        </html>
-        """
-        # Run test.
-        actual = dshdhtomd._convert_using_bs(html_content)
-        # Check outputs: should return empty when no selector matches.
-        self.assert_equal(actual, "")
-
-    def test6(self) -> None:
-        """
-        Test extraction with nested content.
-        """
-        # Prepare inputs.
-        html_content = """
-        <html>
-        <body>
-        <main>
-            <article>
-                <h1>Article</h1>
-                <section>
-                    <h2>Section</h2>
-                    <p>Nested content</p>
-                </section>
-            </article>
-        </main>
-        </body>
-        </html>
-        """
-        expected_contains = "Nested content"
-        # Run test.
-        self.helper(html_content, expected_contains)
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
 
 # #############################################################################
-# Test_convert_using_readability
+# Test_download_html_to_md_py_readability
 # #############################################################################
 
 
-class Test_convert_using_readability(hunitest.TestCase):
+class Test_download_html_to_md_py_readability(hunitest.TestCase):
     """
-    Test `_convert_using_readability()` function for readability extraction.
+    End-to-end test for script using readability converter.
     """
 
     def test1(self) -> None:
         """
-        Test extraction with article-like content requires readability library.
+        Test script with readability converter on article-like content.
         """
-        try:
-            import readability  # noqa: F401  # type: ignore
-        except ImportError:
-            self.skipTest("readability library not installed")
         # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        html_file = os.path.join(scratch_dir, "test.html")
+        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <head><title>Article</title></head>
@@ -401,28 +384,36 @@ class Test_convert_using_readability(hunitest.TestCase):
         <nav>Navigation</nav>
         <article>
             <h1>Article Title</h1>
-            <p>This is the article content that readability should extract.</p>
+            <p>This is article content that readability should extract.</p>
             <p>More paragraph content here.</p>
         </article>
         <footer>Footer</footer>
         </body>
         </html>
         """
+        hio.to_file(html_file, html_content)
         # Run test.
-        actual = dshdhtomd._convert_using_readability(html_content)
-        # Check outputs: should extract article content.
-        self.assertIsNotNone(actual)
-        self.assertGreater(len(actual), 0)
+        _run_script(html_file, md_file, converter="readability")
+        # Check outputs.
+        actual = hio.from_file(md_file)
+        expected = """
+        Navigation
+
+        # Article Title
+        This is article content that readability should extract
+
+        More paragraph content here
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test2(self) -> None:
         """
-        Test extraction with dense text content requires readability library.
+        Test script with readability converter on dense text content.
         """
-        try:
-            import readability  # noqa: F401  # type: ignore
-        except ImportError:
-            self.skipTest("readability library not installed")
-        # Prepare inputs: simulate a documentation page.
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        html_file = os.path.join(scratch_dir, "test.html")
+        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -435,119 +426,42 @@ class Test_convert_using_readability(hunitest.TestCase):
         </body>
         </html>
         """
-        # Run test.
-        actual = dshdhtomd._convert_using_readability(html_content)
-        # Check outputs: should extract something.
-        self.assertIsNotNone(actual)
-        self.assertGreater(len(actual), 0)
-
-
-# #############################################################################
-# Test_convert_using_python
-# #############################################################################
-
-
-class Test_convert_using_python(hunitest.TestCase):
-    """
-    Test `_convert_using_python()` function with different converter modes.
-    """
-
-    def _check_dependencies(self) -> None:
-        """
-        Skip test if required dependencies are not installed.
-        """
-        try:
-            import markdownify  # noqa: F401  # type: ignore
-        except ImportError:
-            self.skipTest("markdownify library not installed")
-
-    def helper(
-        self,
-        html_content: str,
-        converter: str,
-        expected_keywords: list,
-    ) -> None:
-        """
-        Test helper for `_convert_using_python()`.
-
-        :param html_content: HTML content to convert
-        :param converter: Converter mode ("bs", "readability", "auto")
-        :param expected_keywords: List of keywords expected in markdown output
-        """
-        self._check_dependencies()
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
-        # Write test HTML file.
         hio.to_file(html_file, html_content)
         # Run test.
-        dshdhtomd._convert_using_python(
-            html_file,
-            md_file,
-            converter=converter,
-        )
+        _run_script(html_file, md_file, converter="readability")
         # Check outputs.
-        self.assertTrue(os.path.exists(md_file), "Markdown file should exist")
         actual = hio.from_file(md_file)
-        for keyword in expected_keywords:
-            self.assertIn(keyword, actual)
+        expected = """
+        ## Documentation Section
+        First paragraph of content
+        Second paragraph with more information
+        Third paragraph continuing the documentation
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_download_html_to_md_py_auto
+# #############################################################################
+
+
+class Test_download_html_to_md_py_auto(hunitest.TestCase):
+    """
+    End-to-end test for script using auto converter mode.
+    """
 
     def test1(self) -> None:
         """
-        Test conversion with 'bs' converter on HTML with main tag.
+        Test script with auto mode uses BeautifulSoup first when main exists.
         """
-        # Prepare inputs.
+        # Prepare inputs: HTML with main container (auto will use BS).
+        scratch_dir = self.get_scratch_space()
+        html_file = os.path.join(scratch_dir, "test.html")
+        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
         <nav>Navigation</nav>
-        <main>
-            <h1>Title Here</h1>
-            <p>Content paragraph</p>
-        </main>
-        </body>
-        </html>
-        """
-        converter = "bs"
-        expected_keywords = ["Title Here", "Content paragraph"]
-        # Run test.
-        self.helper(html_content, converter, expected_keywords)
-
-    def test2(self) -> None:
-        """
-        Test conversion with 'readability' converter requires readability.
-        """
-        self._check_dependencies()
-        try:
-            import readability  # noqa: F401  # type: ignore
-        except ImportError:
-            self.skipTest("readability library not installed")
-        # Prepare inputs.
-        html_content = """
-        <html>
-        <body>
-        <article>
-            <h1>Article Title</h1>
-            <p>Article content goes here with substantial text.</p>
-            <p>More content in the article section.</p>
-        </article>
-        </body>
-        </html>
-        """
-        converter = "readability"
-        expected_keywords = ["Article"]
-        # Run test.
-        self.helper(html_content, converter, expected_keywords)
-
-    def test3(self) -> None:
-        """
-        Test conversion with 'auto' mode uses BeautifulSoup first.
-        """
-        # Prepare inputs: HTML with main container (BS will find it).
-        html_content = """
-        <html>
-        <body>
         <main>
             <h1>Auto Mode Test</h1>
             <p>Content found by BS selector</p>
@@ -555,22 +469,26 @@ class Test_convert_using_python(hunitest.TestCase):
         </body>
         </html>
         """
-        converter = "auto"
-        expected_keywords = ["Auto Mode Test"]
+        hio.to_file(html_file, html_content)
         # Run test.
-        self.helper(html_content, converter, expected_keywords)
+        _run_script(html_file, md_file)
+        # Check outputs.
+        actual = hio.from_file(md_file)
+        expected = """
+        # Auto Mode Test
 
-    def test4(self) -> None:
+        Content found by BS selector
         """
-        Test conversion with 'auto' mode falls back to readability.
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test2(self) -> None:
         """
-        self._check_dependencies()
-        try:
-            import readability  # noqa: F401  # type: ignore
-        except ImportError:
-            self.skipTest("readability library not installed")
-        # Prepare inputs: HTML without main container (auto falls back to
-        # readability).
+        Test script with auto mode falls back to readability.
+        """
+        # Prepare inputs: HTML without main container (auto falls back).
+        scratch_dir = self.get_scratch_space()
+        html_file = os.path.join(scratch_dir, "test.html")
+        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -582,26 +500,26 @@ class Test_convert_using_python(hunitest.TestCase):
         </body>
         </html>
         """
-        converter = "auto"
+        hio.to_file(html_file, html_content)
+        # Run test.
+        _run_script(html_file, md_file)
+        # Check outputs.
+        actual = hio.from_file(md_file)
+        expected = """
+        ## Fallback Test Section
+        This should be extracted by readability fallback
+        Additional paragraph content for readability to process
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test3(self) -> None:
+        """
+        Test script preserves heading structure in markdown.
+        """
+        # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         html_file = os.path.join(scratch_dir, "test.html")
         md_file = os.path.join(scratch_dir, "test.md")
-        hio.to_file(html_file, html_content)
-        dshdhtomd._convert_using_python(
-            html_file,
-            md_file,
-            converter=converter,
-        )
-        # Check outputs.
-        self.assertTrue(os.path.exists(md_file))
-        actual = hio.from_file(md_file)
-        self.assertGreater(len(actual), 0, "Should produce some output")
-
-    def test5(self) -> None:
-        """
-        Test conversion preserves heading structure in markdown.
-        """
-        # Prepare inputs.
         html_content = """
         <html>
         <body>
@@ -613,7 +531,16 @@ class Test_convert_using_python(hunitest.TestCase):
         </body>
         </html>
         """
-        converter = "bs"
-        expected_keywords = ["# Main Heading", "## Subheading"]
+        hio.to_file(html_file, html_content)
         # Run test.
-        self.helper(html_content, converter, expected_keywords)
+        _run_script(html_file, md_file, converter="bs")
+        # Check outputs: verify markdown structure.
+        actual = hio.from_file(md_file)
+        expected = """
+        # Main Heading
+
+        ## Subheading
+
+        Paragraph text
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)

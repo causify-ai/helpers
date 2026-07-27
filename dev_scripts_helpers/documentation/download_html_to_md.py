@@ -337,7 +337,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _convert_html(
                     html_file,
                     args.output,
-                    args.converter,
+                    converter=args.converter,
                 )
             elif action == "cleanup":
                 _cleanup(args.output)
