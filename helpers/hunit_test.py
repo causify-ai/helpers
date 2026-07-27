@@ -45,8 +45,7 @@ import helpers.repo_config_utils as hrecouti
 
 # Minimize dependencies from installed packages.
 
-# TODO(gp): Use `hprint.color_highlight`.
-_WARNING = "\033[33mWARNING\033[0m"
+_WARNING = hprint.color_highlight("WARNING", "yellow")
 
 try:
     import numpy as np  # type: ignore[possibly-unbound]

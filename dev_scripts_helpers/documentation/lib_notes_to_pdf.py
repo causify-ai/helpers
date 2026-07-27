@@ -627,6 +627,17 @@ def run_pandoc_to_latex_slides(
         ast_file = f"{file_name}.ast.json"
         tex_file = file_name.replace(".txt", ".tex")
         rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+        # `--include-in-header` is resolved by Pandoc relative to the cwd or
+        # the `--resource-path` (set below), so copy `latex_abbrevs.sty` next
+        # to the input file, which is where `--resource-path` points.
+        latex_abbrevs_file = os.path.join(
+            hgit.find_file("dev_scripts_helpers"),
+            "documentation",
+            "latex_abbrevs.sty",
+        )
+        hdbg.dassert_file_exists(latex_abbrevs_file)
+        out_dir = os.path.dirname(file_name) or "."
+        _ = _system(f"cp -f {latex_abbrevs_file} {out_dir}")
         extra_opts = [
             "--number-sections",
             "--highlight-style=tango",
@@ -766,7 +777,7 @@ def run_pandoc_to_typst_slides(
     The flow always uses a 3-step pipeline for typst to support multi-column
     divved fence layouts:
       1. pandoc markdown -> JSON AST
-      2. convert_pandoc_divved_fence.py: transform Div[columns] -> RawBlock[#grid()]
+      2. transform_pandoc_ast_to_typst.py -> JSON AST
       3. pandoc JSON AST -> typst
 
     :param curr_path: The path where the script is located, used to reference
@@ -790,7 +801,7 @@ def run_pandoc_to_typst_slides(
     hdbg.dassert_path_exists(template)
     rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
     # TODO(gp): Consider using 1 stage pipeline with
-    # --filter=convert_pandoc_divved_fence.py
+    # --filter=transform_pandoc_ast_to_typst..py
     # Step 1: markdown -> JSON AST.
     # Prepend the LaTeX math abbreviation definitions so pandoc's
     # `latex_macros` extension expands macros like `\vx` into their full LaTeX
@@ -809,7 +820,7 @@ def run_pandoc_to_typst_slides(
     # Step 2: transform Div[columns] -> RawBlock[typst #grid()] for multi-column layouts.
     transformed_ast_file = f"{file_name}.divved.ast.json"
     convert_script = hgit.find_file("transform_pandoc_ast_to_typst.py")
-    cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file} -a divved_fence"
+    cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file}"
     _ = _system(cmd)
     hdbg.dassert_path_exists(transformed_ast_file)
     # Step 3: JSON AST -> typst.

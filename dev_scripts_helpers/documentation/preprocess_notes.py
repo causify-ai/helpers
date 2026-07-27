@@ -100,7 +100,7 @@ def _colorize_backticks(
             # Typst doesn't need underscore escaping in backticks.
             # Use #text with backticks for monospace colored text.
             txt = f"#text(fill: {color})[`{matched_text}`]"
-            txt = "``" + txt + "``{=typst}"
+            txt = "`" + txt + "`{=typst}"
         return txt
 
     line = re.sub(pattern, replace_func, line)

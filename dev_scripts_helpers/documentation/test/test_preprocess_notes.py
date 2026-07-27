@@ -274,7 +274,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "The `store` variable is used."
         # Prepare outputs.
-        expected = "The #text(fill: blue)[`store`] variable is used."
+        expected = "The `#text(fill: blue)[`store`]`{=typst} variable is used."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -285,7 +285,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Use `function1` and `function2` to process data."
         # Prepare outputs.
-        expected = "Use #text(fill: blue)[`function1`] and #text(fill: blue)[`function2`] to process data."
+        expected = "Use `#text(fill: blue)[`function1`]`{=typst} and `#text(fill: blue)[`function2`]`{=typst} to process data."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -296,7 +296,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Use the `_private_func` naming."
         # Prepare outputs.
-        expected = "Use the #text(fill: blue)[`_private_func`] naming."
+        expected = "Use the `#text(fill: blue)[`_private_func`]`{=typst} naming."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -307,7 +307,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "The `main function` is important."
         # Prepare outputs.
-        expected = "The #text(fill: blue)[`main function`] is important."
+        expected = "The `#text(fill: blue)[`main function`]`{=typst} is important."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -319,7 +319,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         txt_in = "Import `numpy.array` for matrix operations."
         # Prepare outputs.
         expected = (
-            "Import #text(fill: blue)[`numpy.array`] for matrix operations."
+            "Import `#text(fill: blue)[`numpy.array`]`{=typst} for matrix operations."
         )
         # Run test.
         self.helper(txt_in, expected)
@@ -342,7 +342,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "The `simple` var and `styled`{.highlight} are different."
         # Prepare outputs.
-        expected = "The #text(fill: blue)[`simple`] var and `styled`{.highlight} are different."
+        expected = "The `#text(fill: blue)[`simple`]`{=typst} var and `styled`{.highlight} are different."
         # Run test.
         self.helper(txt_in, expected)
 

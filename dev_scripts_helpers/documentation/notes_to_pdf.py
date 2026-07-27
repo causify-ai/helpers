@@ -336,7 +336,7 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help=(
             "Skip the second pdflatex pass. By default pdflatex runs twice to resolve "
-            "cross-references and TOC. Use this flag to skip the re-run for speed."
+            "cross-references and TOC."
         ),
     )
     parser.add_argument(
@@ -354,7 +354,7 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help=(
             "Use the two-stage AST pipeline instead of single-shot pandoc "
-            "conversion, instead of default single-shot pandoc"
+            "conversion"
         ),
     )
     parser.add_argument(

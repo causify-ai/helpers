@@ -51,7 +51,8 @@ $endif$
 #show math.equation.where(block: true): set text(size: 0.95em)
 
 // Make the inline verbatim font bigger.
-#show raw.where(block: false): set text(size: 1.15em)
+//#show raw.where(block: false): set text(size: 1.15em)
+#show raw.where(block: false): set text(size: 0.95em)
 
 // Styled table with zebra striping, lateral lines, and configurable width.
 #let styled-table(headers: (), rows: (), caption: none, col-widths: none, bold-first-col: true, size: 0.8em, width: 80%) = {
