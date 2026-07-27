@@ -39,7 +39,7 @@ def _create_typst_file(self_: hunitest.TestCase) -> str:
 
 
 # TODO(ai_gp): Build the typst container with all the fonts is slow.
-@pytest.mark.slow
+@pytest.mark.superslow
 class Test_run_dockerized_typst(hunitest.TestCase):
     """
     Test running the `dockerized_typst.py` script.
