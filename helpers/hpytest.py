@@ -1172,7 +1172,9 @@ def write_repro_script(
 LIVE_REPRO_SCRIPT_FILE_NAME = "tmp.pytest_repro.sh"
 
 
-def reset_live_repro_script(file_name: str = LIVE_REPRO_SCRIPT_FILE_NAME) -> None:
+def reset_live_repro_script(
+    file_name: str = LIVE_REPRO_SCRIPT_FILE_NAME,
+) -> None:
     """
     Delete and recreate an empty repro script at the start of a pytest session.
 

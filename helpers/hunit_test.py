@@ -754,8 +754,6 @@ def get_dir_signature(
     return result
 
 
-
-
 def diff_strings(
     string1: str,
     string2: str,
@@ -964,7 +962,9 @@ class TestCase(unittest.TestCase):
             if not self._overriden_update_tests:
                 if self._git_added_files:
                     # Format file paths as quoted strings
-                    files_str = ", ".join(f"'{f}'" for f in self._git_added_files)
+                    files_str = ", ".join(
+                        f"'{f}'" for f in self._git_added_files
+                    )
                     msg = f"Test was updated: {files_str}) "
                 else:
                     msg = "Test was updated) "
