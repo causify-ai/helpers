@@ -14,13 +14,15 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt \
     -t pdf \
     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
+
+Import as:
+
+import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 """
 
-import hashlib
 import logging
 import os
 import re
-import time
 from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
@@ -517,7 +519,18 @@ def _build_pandoc_latex_cmd(
     no_pdf: bool = False,
     fail_on_warnings: bool = True,
 ) -> Tuple[str, str]:
-    # TODO(ai_gp): Add docstring.
+    """
+    Build pandoc command to convert file to LaTeX beamer slides.
+
+    :param file_name: Input file name.
+    :param toc_type: Table of contents type (e.g., 'pandoc_native').
+    :param use_host_tools: Whether to use host tools or containerized pandoc.
+    :param dockerized_force_rebuild: Force rebuild of Docker image.
+    :param dockerized_use_sudo: Use sudo for Docker commands.
+    :param no_pdf: If True, output .tex instead of .pdf.
+    :param fail_on_warnings: If True, fail pandoc on warnings.
+    :return: Tuple of (command string, output file name).
+    """
     cmd = []
     cmd.append(f"pandoc {file_name}")
     #
@@ -614,6 +627,17 @@ def run_pandoc_to_latex_slides(
         ast_file = f"{file_name}.ast.json"
         tex_file = file_name.replace(".txt", ".tex")
         rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+        # `--include-in-header` is resolved by Pandoc relative to the cwd or
+        # the `--resource-path` (set below), so copy `latex_abbrevs.sty` next
+        # to the input file, which is where `--resource-path` points.
+        latex_abbrevs_file = os.path.join(
+            hgit.find_file("dev_scripts_helpers"),
+            "documentation",
+            "latex_abbrevs.sty",
+        )
+        hdbg.dassert_file_exists(latex_abbrevs_file)
+        out_dir = os.path.dirname(file_name) or "."
+        _ = _system(f"cp -f {latex_abbrevs_file} {out_dir}")
         extra_opts = [
             "--number-sections",
             "--highlight-style=tango",
@@ -753,7 +777,7 @@ def run_pandoc_to_typst_slides(
     The flow always uses a 3-step pipeline for typst to support multi-column
     divved fence layouts:
       1. pandoc markdown -> JSON AST
-      2. convert_pandoc_divved_fence.py: transform Div[columns] -> RawBlock[#grid()]
+      2. transform_pandoc_ast_to_typst.py -> JSON AST
       3. pandoc JSON AST -> typst
 
     :param curr_path: The path where the script is located, used to reference
@@ -777,7 +801,7 @@ def run_pandoc_to_typst_slides(
     hdbg.dassert_path_exists(template)
     rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
     # TODO(gp): Consider using 1 stage pipeline with
-    # --filter=convert_pandoc_divved_fence.py
+    # --filter=transform_pandoc_ast_to_typst..py
     # Step 1: markdown -> JSON AST.
     # Prepend the LaTeX math abbreviation definitions so pandoc's
     # `latex_macros` extension expands macros like `\vx` into their full LaTeX
@@ -795,7 +819,7 @@ def run_pandoc_to_typst_slides(
     ast_file = f"{file_with_defs}.ast.json"
     # Step 2: transform Div[columns] -> RawBlock[typst #grid()] for multi-column layouts.
     transformed_ast_file = f"{file_name}.divved.ast.json"
-    convert_script = hgit.find_file("convert_pandoc_divved_fence.py")
+    convert_script = hgit.find_file("transform_pandoc_ast_to_typst.py")
     cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file}"
     _ = _system(cmd)
     hdbg.dassert_path_exists(transformed_ast_file)
@@ -871,18 +895,11 @@ def run_pandoc_to_typst_slides(
             return f'image("/{path}"{params})'
 
     txt = re.sub(r'image\s*\(\s*"([^"]*)"\s*([^)]*)\)', convert_image_path, txt)
-    # Fix LaTeX color commands that pandoc couldn't convert to typst. Convert
-    # \textcolor{blue}{...} to typst blue text.
-    # TODO(ai_gp): Not sure if they are needed any longer, since we handle the
-    # colors properly.
+    # Replace #strong[...] with explicit black bold text to prevent color bleed
+    # from preceding markers
     txt = re.sub(
-        r"\\textcolor\{blue\}\{([^}]+)\}",
-        r"#text(fill: blue, \1)",
-        txt,
-    )
-    txt = re.sub(
-        r"\\textcolor\{red\}\{([^}]+)\}",
-        r"#text(fill: red, \1)",
+        r"#strong\[([^\]]+)\]",
+        r'#text(fill: black, weight: "bold")[\1]',
         txt,
     )
     hio.to_file(typ_file, txt)
@@ -902,7 +919,7 @@ def run_pandoc_to_typst_slides(
         _ = _system(cmd)
     if use_host_tools:
         cmd = f"typst compile --root {root} {typ_file} {pdf_file}"
-        #cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
+        # cmd = f"cd {root} && typst compile --root {root} {typ_file} {pdf_file}"
         _ = _system(cmd)
     else:
         dshdlity.run_dockerized_typst(

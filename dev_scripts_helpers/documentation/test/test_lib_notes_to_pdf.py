@@ -820,7 +820,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
             {
                 "function": "hsystem.system",
                 "args": (
-                    f"convert_pandoc_divved_fence.py -i {ast_file}"
+                    f"transform_pandoc_ast_to_typst.py -i {ast_file}"
                     f" -o {transformed_ast_file}",
                 ),
                 "kwargs": {
@@ -1011,7 +1011,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         },
         {
         'function': hsystem.system,
-        'args': ('convert_pandoc_divved_fence.py -i $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.with_defs.txt.ast.json -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.divved.ast.json',),
+        'args': ('transform_pandoc_ast_to_typst.py -i $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.with_defs.txt.ast.json -o $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_typst_slides.test3/tmp.scratch/slides.txt.divved.ast.json',),
         'kwargs': {'log_level': 10, 'suppress_output': False},
         },
         {

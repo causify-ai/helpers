@@ -17,25 +17,25 @@
 
 ## Engagement Strategies
 - **Open with motivation**: "Why does this matter?"
-- **Use questions**: Mark rhetorical questions with `**Question**:`
-- **Ground in examples**: Always include `**Example**:` with concrete scenarios
+- **Use questions**: Mark rhetorical questions with `@Question@:`
+- **Ground in examples**: Always include `@Example@:` with concrete scenarios
 - **Reference prior knowledge**: "As we saw in [previous topic]..."
 - **Contrast approaches**: Show what doesn't work vs what does
 
 ## Problem-Solution Arc
 - Introduce hard topics as a progression
-  `**Problem**` $\to$ `**(Naive) Solution**` $\to$ `**Solution**`
+  `@Problem@$\to$ `@Naive Solution@` $\to$ `@Solution@`
   so students see why the final approach is needed
 - Make the naive solution's weaknesses explicit with `Cons:` sub-bullets, then
   let the real solution address them
 
 - Example arc (from Lesson 06.1):
   ```
-  - Slide 1: `**Problem**`: logic-based AI fails under uncertainty (partial
+  - Slide 1: `@Problem@`: logic-based AI fails under uncertainty (partial
     observability, non-determinism, ...)
-  - Slide 2: `**(Naive) Solution**`: belief states + exhaustive rules, each with
+  - Slide 2: `@(Naive) Solution@`: belief states + exhaustive rules, each with
     a `Cons:` line
-  - Slide 3: `**Solution**`: combine _probability_ and _utility functions_
+  - Slide 3: `@Solution@`: combine _probability_ and _utility functions_
   ```
 
 ## Recurring Running Example
@@ -100,18 +100,18 @@
   ```markdown
   * <slide title>
 
-  - **Definition**:
+  - @Definition@:
     - ...
     - ...
 
-  - **Problem**:
+  - @Problem@:
     - ...
 
-  - **Solution**:
+  - @Solution@:
     - ...
   ```
 
-## Use Bold for Slide Sections
+## Use Tags for Slide Sections
 - Every first level bullet point (starting with `- ` and not `*`) should start
   with a bold label `<bold label>` for pedagogical structure
 
@@ -123,20 +123,20 @@
 
 #### Core Definition & Structure Tags
 
-- **Definition**: Defines a concept formally
+- _Definition_: Defines a concept formally
   - Use `@Definition@` formatting
   - The defined term should be in bold
   - E.g.,
     ```
     - @Definition@: A **time series** is modeled as a random process, ...
     ```
-  - E.g., (Lesson 11.01):
+  - E.g.,
     ```
     - @Definition@: **Bayesian updating** revises a belief over an unknown $\theta$
       by combining a _prior_ with the _likelihood_ of observed data $X$
     ```
 
-- **Components**: Describes building blocks, parts, or elements of a structure
+- _Components_: Describes building blocks, parts, or elements of a structure
   - Use when breaking down a concept into its parts
   - E.g., (from Lesson 03.3):
     ```
@@ -146,7 +146,7 @@
       - _Instances_: specific objects (e.g., $GP$, $Nuvolo$)
     ```
 
-- **Characteristics** / **Properties**: Notable features or qualities
+- _Characteristics_ / _Properties_: Notable features or qualities
   - Use `@Characteristics@` or `@Properties@` to list key attributes
   - E.g.,
     ```
@@ -157,26 +157,26 @@
 
 #### Content Organization Tags
 
-- **Comparison**: Contrasts different approaches or perspectives
+- _Comparison_: Contrasts different approaches or perspectives
   - Use when showing what distinguishes one method from another
-  - E.g., (from Lesson 03.3):
+  - E.g.,
     ```
     - @Comparison@:
       - _Classical logic_: once proven, conclusions remain true
       - _Non-monotonic logic_: conclusions change with new facts
     ```
 
-- **Example** (singular): A single concrete illustration
+- _Example_ (singular): A single concrete illustration
   - Use for one specific example with detail
-  - E.g., (from Lesson 03.3):
+  - E.g.,
     ```
     - @Example@: _"All students take some course"_:
       $\text{Student} \equiv \exists \text{takes}.\text{Course}$
     ```
 
-- **Examples** (plural): Multiple concrete illustrations
+- _Examples_ (plural): Multiple concrete illustrations
   - Use `@Examples@` when listing several instance of a concept
-  - E.g., (from Lesson 03.3):
+  - E.g.,
     ```
     - @Examples@:
       - _Propositional logic_: world consists of facts
@@ -184,115 +184,115 @@
       - _Temporal logic_: facts hold at particular times
     ```
 
-- **Problem**: A difficulty or open issue that motivates a solution
-  - E.g., (Lesson 02.01):
+- _Problem_: A difficulty or open issue that motivates a solution
+  - E.g.,
     ```
-    - **Problem**: a purely predictive model learns $\Pr(Y | X)$ from historical
+    - @Problem@: a purely predictive model learns $\Pr(Y | X)$ from historical
       data and absorbs any association in the data, spurious or not
     ```
 
-- **Intuition**: Explains the "why it makes sense" conceptually
+- _Intuition_: Explains the "why it makes sense" conceptually
   - Use to provide reasoning or conceptual clarity
-  - E.g., (Lesson 11.01):
+  - E.g.,
     ```
-    - **Intuition**: the posterior is a compromise between what was believed
+    - @Intuition@: the posterior is a compromise between what was believed
       before and what the data says now
     ```
 
 #### Evaluation & Application Tags
 
-- **Pros** / **Cons**: Advantages and disadvantages of an approach
-  - E.g., (Lesson 02.01):
+- _Pros_ / _Cons_: Advantages and disadvantages of an approach
+  - E.g.,
     ```
-    - **Pros**
+    - @Pros@
       - Express precise theory of the human mind as a computer program
     
-    - **Cons**
+    - @Cons@
       - Unknown workings of the human mind
     ```
 
-- **Challenges**: Difficulties, limitations, or constraints
+- _Challenges_: Difficulties, limitations, or constraints
   - Use `@Challenges@` to highlight what is hard or problematic
-  - E.g., (from Lesson 03.3):
+  - E.g.,
     ```
     - @Challenges@
       - Knowledge is vast, informal, imprecisely defined
       - Difficult to encode in machine-readable form
     ```
 
-- **Techniques** / **Methods**: Approaches or procedures for achieving something
+- _Techniques_ / _Methods_: Approaches or procedures for achieving something
   - Use when describing how something is done
-  - E.g., (from Lesson 03.3):
+  - E.g.,
     ```
     - @Techniques@
       - Knowledge graphs, non-monotonic logic, probabilistic reasoning
     ```
 
-- **Variants**: Different types or variations of a concept
-  - E.g., (from Lesson 03.3):
+- _Variants_: Different types or variations of a concept
+  - E.g.,
     ```
     - @Variants@:
       - _OWL Lite_: simpler, for classification hierarchies
       - _OWL DL_: full expressiveness with decidable reasoning
     ```
 
-- **Applications**: Practical uses or domains where a concept applies
+- _Applications_: Practical uses or domains where a concept applies
   - Use `@Applications@` to show real-world relevance
-  - E.g., (from Lesson 03.3):
+  - E.g.,
     ```
     - @Applications@: semantic search, biomedical data, knowledge graphs
     ```
 
 #### Traditional Mathematical Tags
 
-- **Question**: A question to introduce a problem
-  - E.g., (Lesson 11.01):
+- _Question_: A question to introduce a problem
+  - E.g.,
     ```
-    - **Question**: does the data provide evidence for or against a specific
+    - @Question@: does the data provide evidence for or against a specific
       hypothesis, such as "this coin is fair" or "this treatment has no effect"?
     ```
 
-- **Goal**: What we are trying to achieve before describing how
-  - E.g., (Lesson 11.01):
+- _Goal_: What we are trying to achieve before describing how
+  - E.g.,
     ```
-    - **Goal**: Analyze and study algorithms for the _simple_ end of the decision
+    - @Goal@: Analyze and study algorithms for the _simple_ end of the decision
       spectrum
     ```
 
-- **Assumptions**: Preconditions or constraints that apply
-  - E.g., (Lesson 11.01):
+- _Assumptions_: Preconditions or constraints that apply
+  - E.g.,
     ```
-    - **Assumptions**
+    - @Assumptions@
       - Single agent, one objective, a model that is either fully known or
         learnable from direct interaction
     ```
 
-- **(Naive) Solution**: A first, flawed attempt whose cons motivate a better one
-  - E.g., (Lesson 11.01):
+- _Naive Solution_: A first, flawed attempt whose cons motivate a better one
+  - E.g.,
     ```
-    - **(Naive) Solution**: grid the parameter space and evaluate the posterior
+    - @Naive Solution@: grid the parameter space and evaluate the posterior
       pointwise
       - Cons: the grid grows exponentially with the number of parameters
     ```
 
-- **Solution**: A solution to a previously introduced problem
-  - E.g., (Lesson 11.01):
+- _Solution_: A solution to a previously introduced problem
+  - E.g.,
     ```
-    - **Solution 1: Markov Chain Monte Carlo (MCMC)**
+    - @Solution 1: Markov Chain Monte Carlo (MCMC)@
       - Build a Markov chain whose stationary distribution is the posterior
     ```
 
-- **Key idea**: The single most important takeaway
-  - E.g., (Lesson 02.01):
+- _Key idea_: The single most important takeaway
+  - E.g.,
     ```
-    - **Key idea**: shipping a prediction when the business needs a decision delivers
+    - @Key idea@: shipping a prediction when the business needs a decision delivers
       little or no business value, however accurate the prediction is
     ```
 
-- **Remark**: A simple but useful fact
-  - E.g., (Lesson 11.01):
+- _Remark_: A simple but useful fact
+  - E.g.,
     ```
-    - **Remark**: sequential updating and batch updating reach the same posterior
+    - @Remark@: sequential updating and batch updating reach the same posterior
       - The order evidence arrives in does not change the final belief
     ```
 
@@ -337,10 +337,10 @@
     - The effect $\tau_i$ of going from treatment $t_0$ to $t_1$ for unit $i$ is
       the difference in the outcome of that unit under $t_1$ compared to $t_0$
 
-  - **Example**: for the sales example
+  - @Example@: for the sales example
     $$AmountSold_i|do(IsOnSales=1) - AmountSold_i|do(IsOnSales=0)$$
 
-  - **Problem**: you can only observe one term due to the fundamental problem of
+  - @Problem@: you can only observe one term due to the fundamental problem of
     causal inference
     - Represent it in theory, but can't recover it from data
   ```
@@ -366,7 +366,7 @@
       Y_i = T_i * Y_{1i} + (1 - T_i) * Y_{0i} = Y_{0i} + (Y_{1i} - Y_{0i}) * T_i
       $$
 
-  - **Remark**: there is a difference between conditioning and intervention
+  - @Remark@: there is a difference between conditioning and intervention
     - $Y|do(T=t)$ is _"what a business would sell if it cut prices"_
     - $Y|T=t$ is _"what a business that cut the prices sold"_
 ```
@@ -392,12 +392,17 @@
 - Use a numbered list under a bold label when the sub-points are an ordered
   procedure or an enumerated set; use bullets otherwise:
   ```markdown
-  - **Problem**: Real-world agents face _uncertainty_ from:
+  - @Problem@: Real-world agents face _uncertainty_ from:
     1. Partial observability
        - Agent can't see the full state of the world
     2. Non-determinism
        - Actions don't always have predictable outcomes
   ```
+
+## Use Bold
+- Use bold **term** when
+  - Defining a term as part of `@Definition` tag
+  - Highlighting a term that is particular important
 
 ## Use Italic
 - Use _italic_ (`_text_`) for:
@@ -408,6 +413,29 @@
   - Key terms
   - Important concepts
   - Emphasized definitions
+
+### Emphasis Precedence: Bold Over Italic
+- When a bullet point or line contains both bold and italic text, **bold takes
+  precedence**: make the entire emphasis bold rather than mixing styles
+- This keeps visual hierarchy clear and reduces visual noise
+
+- Examples
+  - **Bad** (mixing bold and italic on same line):
+    ```markdown
+    - _Order the nodes_ according to **cause-effect dependencies**
+    ```
+  - **Good** (bold for the entire emphasized phrase):
+    ```markdown
+    - **Order the nodes** according to cause-effect dependencies
+    ```
+  - **Bad** (mixing styles in emphasis):
+    ```markdown
+    - The _parents_ of $X$ (shown in **bold** for importance)
+    ```
+  - **Good** (consistent bold emphasis):
+    ```markdown
+    - **Parents** of $X$: the nodes that influence $X$
+    ```
 
 ## Use Inline Verbatim
 - Use inline verbatim (`code`) for:
@@ -528,6 +556,23 @@ Use these commands consistently across all slides:
   ```markdown
   $$Rain \perp Sprinkler | Weather$$
   $$Rain \not\perp Sprinkler \iff Rain \leftrightarrow Sprinkler$$
+  ```
+
+### Avoid `\text{...}` in Math Mode
+- Do **not** use `\text{...}` for variable or concept names inside `$ $`
+- Write identifiers directly in math mode without `\text{}` wrapper
+- Cleaner rendering and simpler code
+
+- **Bad**
+  ```markdown
+  $\Pr(\text{Rain}) = 0.5$
+  $\text{Parents}(X_i)$
+  ```
+
+- **Good**
+  ```markdown
+  $\Pr(Rain) = 0.5$
+  $Parents(X_i)$
   ```
 
 ### Spacing and Breaks

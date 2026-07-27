@@ -21,7 +21,8 @@ _LOG = logging.getLogger(__name__)
 if hserver.is_inside_ci():
     pytest.skip(
         "Can't run in CI since building the docker images takes too long",
-        allow_module_level=True)
+        allow_module_level=True,
+    )
 
 
 def _to_output_str(script_txt, output_txt):
@@ -47,10 +48,12 @@ def _skip_if_no_pandoc_in_docker(test_func):
     """
     Decorator to skip test if running in Docker without pandoc.
     """
+
     def wrapper(*args, **kwargs):
         if hserver.is_inside_docker() and shutil.which("pandoc") is None:
             pytest.skip("Pandoc not available in container")
         return test_func(*args, **kwargs)
+
     return wrapper
 
 
@@ -80,9 +83,6 @@ def _read_output_file(file_name: str) -> str:
 
 
 class Test_notes_to_pdf1(hunitest.TestCase):
-    """
-    Test `notes_to_pdf.py` with a simple input file.
-    """
 
     def create_input_file_from_txt(self, txt: str) -> str:
         """
@@ -128,6 +128,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         _LOG.debug("return=%s", result)
         return result
 
+    # TODO(gp): Factor this out since all the tests are using the same logic.
     def run_notes_to_pdf(
         self,
         in_file: str,
@@ -558,7 +559,6 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         self.check_string(actual, purify_text=True, fuzzy_match=True)
 
-    @pytest.mark.skip(reason="Enable when option is available")
     def test2(self) -> None:
         """
         Test PDF generation with no_pdf mode (no compilation).
@@ -1229,9 +1229,6 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
 
 
 class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
-    """
-    Test `notes_to_pdf.py` with edge cases and special inputs.
-    """
 
     def helper(self, filename: str, txt: str) -> Tuple[str, str]:
         """
@@ -1309,9 +1306,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test2(self) -> None:
         """
@@ -1355,9 +1350,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -1414,9 +1407,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
     def test4(self) -> None:
         """
@@ -1485,9 +1476,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         ################################################################################
         output.pdf
         """
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -1495,7 +1484,6 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skip(reason="Enable when the option is available")
 class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
     """
     Test `notes_to_pdf.py` with Pandoc AST transform option.
@@ -1563,9 +1551,42 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        expected = r"""
+        ################################################################################
+        script_txt
+        ################################################################################
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT pandoc/core:3.7 $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.ast.json -t json --fail-if-warnings
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT pandoc/core:3.7 $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.ast.json --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -f json -t latex --fail-if-warnings -V geometry:margin=1in --number-sections --highlight-style=tango -s
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        ################################################################################
+        output_txt
+        ################################################################################
+        output.pdf
+        """
+        expected = hprint.dedent(expected)
         self.assert_equal(
             actual,
-            "use_pandoc_ast_transform",
+            expected,
             fuzzy_match=True,
             purify_text=True,
         )
@@ -1576,12 +1597,16 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "html"
-        expected = "use_pandoc_ast_transform"
         # Run test.
         script_txt, output_txt = self.helper(type_)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
-        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
+        # Check script content for key indicators
+        self.assertIn("--type html", actual)
+        self.assertIn("-f json -t html --fail-if-warnings", actual)
+        self.assertIn("<!DOCTYPE html>", actual)
+        self.assertIn("<h1 data-number=\"1\"", actual)
+        self.assertIn("This document tests AST transformation", actual)
 
     def test3(self) -> None:
         """
@@ -1676,9 +1701,6 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
 
 
 class Test_notes_to_pdf_latex_options(hunitest.TestCase):
-    """
-    Test `notes_to_pdf.py` with LaTeX-specific options.
-    """
 
     def create_simple_input(self) -> str:
         """
@@ -1772,7 +1794,6 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
-    @pytest.mark.skip(reason="Enable it once the option is available")
     def test2(self) -> None:
         """
         Test no_fail_on_warnings option accepts pandoc warnings.
@@ -1783,8 +1804,40 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         script_txt, output_txt = self.helper(cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        expected = r"""
+        ################################################################################
+        script_txt
+        ################################################################################
+        #!/bin/bash -xe
+        # cleanup_before
+        ## skipping this action
+        # preprocess_notes
+        $GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/simple.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+        # render_images
+        $GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+        # run_pandoc
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s -t latex
+        # latex
+        cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch
+        $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.tex
+        # latex again
+        # compress_pdf
+        ## skipping this action
+        \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/output.pdf
+        # copy_to_gdrive
+        ## skipping this action
+        # open
+        ## skipping this action
+        # cleanup_after
+        ## skipping this action
+        ################################################################################
+        output_txt
+        ################################################################################
+        output.pdf
+        """
+        expected = hprint.dedent(expected)
         self.assert_equal(
-            actual, "no_fail_on_warnings", fuzzy_match=True, purify_text=True
+            actual, expected, fuzzy_match=True, purify_text=True
         )
 
 
@@ -1896,3 +1949,389 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
         # Expected: generated Typst includes shebang and macro expansions
         # Invariant: LaTeX abbrevs expanded correctly; no unconverted macros
         self.assertIsNotNone(actual)
+
+
+# #############################################################################
+# Test_notes_to_pdf_latex_colors
+# #############################################################################
+
+
+@pytest.mark.slow
+class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
+    """
+    Test color handling across the PDF, beamer, and Typst backends.
+    """
+
+    def _create_markdown_with_colors(self) -> str:
+        r"""
+        Create markdown with LaTeX math blocks using `\textcolor`.
+
+        :return: Path to the created markdown file
+        """
+        txt = r"""
+        # Color Mathematics
+
+        ## Display Math with Colored Formulas
+
+        A basic colored formula:
+
+        $$
+        \textcolor{red}{x} + y = z
+        $$
+
+        Multiple colors:
+
+        $$
+        \textcolor{red}{a} + \textcolor{blue}{b} = \textcolor{green}{c}
+        $$
+
+        Nested structure:
+
+        $$
+        f(x) = \textcolor{red}{\sin(x)} + \textcolor{blue}{\cos(x)}
+        $$
+
+        ## Inline Math with Colors
+
+        Some text with inline colored math: $\textcolor{red}{hello}$ in the
+        middle of a sentence, then more text with $\textcolor{blue}{world}$ at
+        the end.
+
+        ## Complex Color Expressions
+
+        Matrix with colors:
+
+        $$
+        \begin{pmatrix}
+        \textcolor{red}{1} & 0 \\
+        0 & \textcolor{blue}{1}
+        \end{pmatrix}
+        $$
+
+        Integral with colored bounds:
+
+        $$
+        \int_{\textcolor{red}{a}}^{\textcolor{blue}{b}} f(x) \, dx
+        $$
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "colors.md")
+        hio.to_file(in_file, txt)
+        return in_file
+
+    def helper(self, type_: str, slides_engine: str, no_pdf: bool) -> Tuple[str, str]:
+        r"""
+        Run `notes_to_pdf.py` on markdown containing color commands.
+
+        :param type_: value for `--type` (e.g., `pdf`, `slides`)
+        :param slides_engine: value for `--slides_engine` (e.g., `beamer`,
+            `typst`)
+        :param no_pdf: if True, stop the pipeline at the intermediate
+            source file (`.tex` for LaTeX / beamer, `.typ` for Typst)
+            instead of compiling the PDF
+        :return: path to the generated output file
+            # TODO(ai_gp): Update
+        """
+        _LOG.debug("%s", hprint.to_str("type_ slides_engine no_pdf"))
+        # Prepare inputs.
+        in_file = self._create_markdown_with_colors()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        # Prepare outputs. The extension of the output file matches what the
+        # pipeline produces, since `notes_to_pdf.py` copies the last generated
+        # file to `--output`.
+        if not no_pdf:
+            out_ext = "pdf"
+            cmd_opts = []
+        elif type_ == "slides" and slides_engine == "typst":
+            out_ext = "typ"
+            cmd_opts = [
+                "--use_pandoc_ast_transform",
+                #"--no_fail_on_warnings"
+            ]
+        elif type_ == "slides" and slides_engine == "beamer":
+            out_ext = "tex"
+            cmd_opts = []
+        else:
+            raise ValueError("Invalid inputs: " + hprint.to_str("type_ slides_engine no_pdf"))
+        #
+        out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, f"output.{out_ext}")
+        script_file = os.path.join(out_dir, "script.sh")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--use_pandoc_ast_transform",
+            f"--type {type_}",
+            f"--slides_engine {slides_engine}",
+            "--skip_action open",
+        ]
+        cmd.extend(cmd_opts)
+        if no_pdf:
+            cmd.append("--no_pdf")
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Run test.
+        hsystem.system(cmd)
+        # Check outputs.
+        self.assertTrue(os.path.exists(out_file))
+        self.assertGreater(os.path.getsize(out_file), 0)
+        if out_ext in ("typ", "tex"):
+            out_txt = hio.from_file(out_file)
+        else:
+            out_txt = "<pdf>"
+        # Verify script was generated.
+        self.assertTrue(os.path.exists(script_file))
+        script_txt = hio.from_file(script_file)
+        return script_txt, out_txt
+
+    def test1(self) -> None:
+        r"""
+        Test `--type pdf --slides_engine beamer`.
+        """
+        # Prepare inputs.
+        type_ = "pdf"
+        slides_engine = "beamer"
+        no_pdf = False
+        # Run test.
+        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, out_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+
+    def test2(self) -> None:
+        r"""
+        Test `--type pdf --slides_engine typst`.
+        """
+        # Prepare inputs.
+        type_ = "pdf"
+        slides_engine = "typst"
+        no_pdf = False
+        # Run test.
+        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, out_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+
+    def test3(self) -> None:
+        r"""
+        Test `--type slides --slides_engine beamer`.
+        """
+        # Prepare inputs.
+        type_ = "slides"
+        slides_engine = "beamer"
+        no_pdf = False
+        # Run test.
+        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, out_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+
+    def test4(self) -> None:
+        r"""
+        Test `--type slides --slides_engine typst`.
+        """
+        # Prepare inputs.
+        type_ = "slides"
+        slides_engine = "typst"
+        no_pdf = False
+        # Run test.
+        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, out_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+
+    def test5(self) -> None:
+        r"""
+        Test `--type slides --slides_engine beamer --no_pdf`.
+        """
+        # Prepare inputs.
+        type_ = "slides"
+        slides_engine = "beamer"
+        no_pdf = True
+        # Run test.
+        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, out_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        # Check outputs.
+        self.assertIn(r"\textcolor{red}", out_txt)
+        self.assertIn(r"\textcolor{blue}", out_txt)
+
+    def test6(self) -> None:
+        r"""
+        Test `--type slides --slides_engine typst --no_pdf`.
+        """
+        # Prepare inputs.
+        type_ = "slides"
+        slides_engine = "typst"
+        no_pdf = True
+        # Run test.
+        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, out_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        # Check outputs.
+        self.assertIn('#text(fill: red)', out_txt)
+        self.assertIn('#text(fill: blue)', out_txt)
+
+
+# #############################################################################
+# Test_notes_to_pdf_latex_cancel
+# #############################################################################
+
+
+class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
+    """
+    Test that LaTeX cancelled notation in markdown is preserved through
+    pandoc conversion pipeline.
+    """
+
+    def helper(self, markdown_content: str) -> str:
+        """
+        Helper to create markdown file and run notes_to_pdf.py.
+
+        Creates temporary markdown file, runs notes_to_pdf.py to convert
+        to PDF via LaTeX, and returns the intermediate LaTeX output.
+
+        :param markdown_content: Raw markdown text with LaTeX notation
+        :return: Intermediate LaTeX generated by pandoc
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        in_file = os.path.join(scratch_dir, "input.md")
+        markdown_content = hprint.dedent(markdown_content)
+        hio.to_file(in_file, markdown_content)
+        # Prepare execution.
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        script_file = os.path.join(scratch_dir, "script.sh")
+        out_file = os.path.join(scratch_dir, "output.pdf")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type pdf",
+            f"--script {script_file}",
+            f"--output {out_file}",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Run test.
+        hsystem.system(cmd)
+        # Prepare outputs.
+        pandoc_file = os.path.join(scratch_dir, "tmp.notes_to_pdf.tex")
+        output_txt = ""
+        if os.path.exists(pandoc_file):
+            output_txt = hio.from_file(pandoc_file)
+        return output_txt
+
+    def test1(self) -> None:
+        """
+        Test cancelled notation with amsmath cancel package in LaTeX.
+        """
+        # Prepare inputs.
+        markdown_content = r"""
+        # Causal Inference Notation
+
+        When treatment is assigned ($T=1$), only one potential outcome is observed:
+
+        $$
+        Y | T=1 = (Y_1 | T=1) + \cancel{(Y_0 | T=1)} = Y_1 | T=1
+        $$
+
+        The cancelled term $\cancel{Y_0 | T=1}$ is the unobserved counterfactual.
+        """
+        # Run test.
+        output_txt = self.helper(markdown_content)
+        # Check outputs.
+        # TODO(gp): Freeze output instead of checking the presence of strings?
+        # Verify cancelled notation is preserved in LaTeX output.
+        self.assertIn(r"\cancel{", output_txt)
+        self.assertIn("Y_1", output_txt)
+        self.assertIn("Y_0", output_txt)
+
+    def test2(self) -> None:
+        """
+        Test cancelled notation in conditional expectation equation.
+        """
+        # Prepare inputs.
+        markdown_content = r"""
+        # Fundamental Problem of Causal Inference
+
+        We cannot observe both potential outcomes for the same unit.
+        Under treatment ($T=1$), the control outcome is unobserved:
+
+        $$
+        E[Y | T=1] = E[Y_1 | T=1] + \cancel{E[Y_0 | T=1]}
+        $$
+
+        This is why identification strategies are necessary.
+        """
+        # Run test.
+        output_txt = self.helper(markdown_content)
+        # Check outputs.
+        # Verify conditional expectation notation is preserved in LaTeX
+        self.assertIn(r"\cancel{", output_txt)
+        self.assertIn("E[Y", output_txt)
+
+    def test3(self) -> None:
+        """
+        Test multiple cancelled terms in treatment effect decomposition.
+        """
+        # Prepare inputs.
+        markdown_content = r"""
+        # Treatment Effect Heterogeneity
+
+        Individual treatment effects depend on both observed and unobserved outcomes:
+
+        $$
+        \tau_i = Y_i(1) - Y_i(0)
+        $$
+
+        We observe:
+        - $Y_i(1)$ when $T_i = 1$
+        - $\cancel{Y_i(0)}$ when $T_i = 1$ (unobserved)
+        - $\cancel{Y_i(1)}$ when $T_i = 0$ (unobserved)
+        - $Y_i(0)$ when $T_i = 0$
+
+        Hence $\tau_i$ is not directly identifiable without assumptions.
+        """
+        # Run test.
+        output_txt = self.helper(markdown_content)
+        # Check outputs.
+        # Verify multiple cancelled terms are preserved in LaTeX.
+        self.assertIn(r"\cancel{", output_txt)
+        self.assertIn(r"\tau_i", output_txt)
+
+    def test4(self) -> None:
+        """
+        Test cancelled notation preserves surrounding mathematical context.
+        """
+        # Prepare inputs.
+        markdown_content = r"""
+        # Selection Bias Decomposition
+
+        Observed difference confounds treatment effect with selection bias:
+
+        $$
+        E[Y | T=1] - E[Y | T=0]
+        = \underbrace{E[Y_1 | T=1] - E[Y_0 | T=1]}_{\text{ATE}} +
+        \underbrace{E[Y_0 | T=1] - E[Y_0 | T=0]}_{\text{Selection Bias}}
+        $$
+
+        The selection bias term $E[Y_0 | T=1]$ is unobserved:
+        $$
+        E[Y_0 | T=1] = \cancel{E[Y_0 | T=1]_{\text{observed}}}
+        $$
+        """
+        # Run test.
+        output_txt = self.helper(markdown_content)
+        # Check outputs.
+        # Verify complex notation with cancelled terms is preserved in LaTeX.
+        self.assertIn(r"\cancel{", output_txt)
+        self.assertIn(r"\underbrace{", output_txt)
