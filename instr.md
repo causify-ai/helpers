@@ -1,5 +1,7 @@
-Extend dev_scripts_helpers/testing/pytest_multi_build.py to accept also a
---build_names <builds> and check that the builds passed are a subset of hpytest.BUILD_CONFIG.keys()
+The file in output.html from
+download_html_to_md.py -i https://code.claude.com/docs/en/platforms -o output.md -sa lint 
+
+has content but when running the action convert output.md is almost empty
 
 # Conventions
 - When writing code you must always follow the instructions in

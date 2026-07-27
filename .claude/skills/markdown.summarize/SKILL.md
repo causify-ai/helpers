@@ -1,100 +1,116 @@
 ---
-description: Summarize a markdown text, keeping the same header structure
+description: Summarize markdown content preserving header structure and converting to bullet points
 model: sonnet
 ---
 
-# Goal
-- The user will pass:
-  - Text `<INPUT>`
-  - A number of words `<NUM_WORDS>` (specified as an integer) or a fraction of
-    the size `<FRACTION>` (specified as a float between 0 and 1)
-  - Max level of header `<MAX_HEADER_LEV>`
+# Interface Specification
 
-- You will content in markdown, keeping the same header structure
+## Inputs
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `<INPUT>` | file path or text | Yes | Markdown file or text chunk to summarize |
+| `<NUM_WORDS>` | integer | No* | Target output word count |
+| `<FRACTION>` | float (0-1) | No* | Alternative to `<NUM_WORDS>`: fraction of original size |
+| `<MAX_HEADER_LEV>` | integer | No | Max header level to preserve (default: preserve all levels) |
+| `<TAG>` | string | No | Tag for output filename (default: derived from input) |
+
+- Exactly one of `<NUM_WORDS>` or `<FRACTION>` must be specified.
+
+## Outputs
+
+| Item | Format | Description |
+|------|--------|-------------|
+| Console output | Text | Header structure preview + summary + statistics |
+| Output file | Markdown | `explanation.<tag>.md` (overwrites if exists) |
+| Word count | Integer | Original and target word counts printed to console |
 
 # Workflow
 
-## Step 1: Read Content
-- Read the file `<INPUT>` passed by the user
+## 1. Parse Input
+- Read file from `<INPUT>` path
+- Extract headers using markdown syntax (# ## ### etc.)
 
-## Step 2: Extract the Header Section
+## 2. Determine Header Strategy
 
-- Extract the header sections based on `<INPUT>` and on `<MAX_HEADER_LEV>`
+**Case A: Input has header structure**
+- Extract all headers from the document
+- Print structure to console
 
-### Extract the Header Structure from `<INPUT>`
+**Case B: Input is plain text (no headers)**
+- Skip header extraction
+- Proceed directly to summarization
 
-- Extract the header structure from the `<INPUT>`
-- Print it
+## 3. Apply Header Level Filter
 
-### No Header Structure
-- If there is no structure (i.e., the passed text is just a chunk of text) then
-  do not use any headers
+**If `<MAX_HEADER_LEV>` not specified:**
+- Preserve all header levels from original
+- Prefix headers with chapter numbers (e.g., `# 1. Title`, `## 1.1. Subtitle`)
 
-### No `<MAX_HEADER_LEV>`
-- If there is a structure, use the same structure of the chapter and subchapter
-  in markdown headers, if the user has not specified `<MAX_HEADER_LEV>`
-  - Use numbers of chapter (e.g., 1.) and subchapters (e.g., 1.1)
+**If `<MAX_HEADER_LEV>` specified:**
+- Keep only headers with level ≤ `<MAX_HEADER_LEV>`
+- Summarize/collapse all deeper sections into bullet points
+- Example: `<MAX_HEADER_LEV>` = 1 → only H1 headers kept, all H2+ become bullets
 
-- An example of the output is:
-  ```
-  # 1. Hello
+## 4. Calculate Target Length
+- Count original word count → `<ORIG_NUM_WORDS>`
+- If `<FRACTION>` given: `<TARGET_WORDS>` = `<ORIG_NUM_WORDS>` × `<FRACTION>`
+- If `<NUM_WORDS>` given: `<TARGET_WORDS>` = `<NUM_WORDS>`
 
-  ## 1.1. Hello world
-
-  - Point
-    - Subpoint
-    - Subpoint
-  - Point
-
-  ## 1.2. Good bye world
-
-  # 2. Hello again
-  ```
-
-### Use `<MAX_HEADER_LEV>`
-- If the user specifies a `<MAX_HEADER_LEV>`, then keep only the structure of
-  the paper that has header level lower than `<MAX_HEADER_LEV>`
-
-- For instance if `<MAX_HEADER_LEV>` = 1, then all the text in H1 header needs
-  to be summarized, and the output is like:
-  ```
-  # 1. Hello
-
-  - Point
-    - Subpoint
-    - Subpoint
-  - Point
-
-  # 2. Hello again
-  ```
-
-### Print Header Structure
-
-- Print the structure of the headers to follow
-
-
-## Summarize Content in Bullet Points
-- Write a summary in nested bullet points of `<INPUT>` using the rules in:
+## 5. Summarize Content
+- Convert to nested bullet points
+- Follow rules from:
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
+- Constraints:
+  - All mathematical formulas → LaTeX format
+  - Wrap text at 80 columns
+  - Target `<TARGET_WORDS>` word count (±10% tolerance)
+  - Preserve key concepts and important details
 
-- All math formulas must be as Latex formulas
+## 6. Output Results
+- Print statistics: `<ORIG_NUM_WORDS>` → actual output word count
+- Write `explanation.<tag>.md` file (overwrite if exists)
 
-- Count the words of the content `<ORIG_NUM_WORDS>`
-- Target the length of the entire output to be around `<NUM_WORDS>`, where
-  `<NUM_WORDS>` is given by the user or as `<NUM_WORDS> * <FRACTION>`
-- Print the number of words after the summary
+## 7. Interactive Follow-up
+- Wait for user questions
+- Answer questions referencing specific sections of the summary
 
-- Format the text wrapped in 80 columns
+# Behavior Specifications
 
-## Keep the Structure
+## Header Numbering
+```markdown
+# 1. Main Topic
+## 1.1. Subtopic A
+## 1.2. Subtopic B
+# 2. Main Topic 2
+```
 
-## Write Output
-- Print the explanation on the screen
-- Write a file `<FILE>` `explanation.<tag>.md` with the explanation 
-  - If the file already exists, don't read it but just overwrite it
+## Bullet Point Format
+```markdown
+# 1. Topic
 
-## Answer Follow-up Questions
-- Do not do anything else, but wait for the user to ask questions
-- Answer any questions the user asks about the content just read, referencing
-  specific sections or concepts from the chapter summary
+- Main point
+  - Supporting detail
+  - Supporting detail
+- Main point
+```
+
+## Edge Cases
+
+| Condition | Behavior |
+|-----------|----------|
+| No headers in input | Summarize as plain text, no H1/H2 in output |
+| `<MAX_HEADER_LEV>` = 1 | Collapse all H2+ into bullets under H1 |
+| `<MAX_HEADER_LEV>` > deepest level | Preserve all headers as-is |
+| Empty input | Return error message |
+| Very short input | Return minimal summary maintaining structure |
+
+# Success Criteria
+
+- [ ] Output word count ≈ `<TARGET_WORDS>` (within 10%)
+- [ ] Header structure preserved (or filtered by `<MAX_HEADER_LEV>`)
+- [ ] All key information extracted into bullet points
+- [ ] Text wrapped at 80 columns
+- [ ] File written successfully
+- [ ] User can ask follow-up questions
