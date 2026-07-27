@@ -33,7 +33,7 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         # Run test.
         actual = dshtpmubu._build_pytest_cmd(targets)
         # Check outputs.
-        self.assert_equal(actual, "pytest_log helpers/test/test_module.py")
+        self.assert_equal(actual, "pytest_log --no_clear_screen helpers/test/test_module.py")
 
     def test2(self) -> None:
         """
@@ -49,7 +49,7 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(
             actual,
-            "pytest_log helpers/test/test_module1.py helpers/test/test_module2.py",
+            "pytest_log --no_clear_screen helpers/test/test_module1.py helpers/test/test_module2.py",
         )
 
     def test3(self) -> None:
@@ -61,7 +61,7 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         # Run test.
         actual = dshtpmubu._build_pytest_cmd(targets)
         # Check outputs.
-        self.assert_equal(actual, "pytest_log .")
+        self.assert_equal(actual, "pytest_log --no_clear_screen .")
 
 
 # #############################################################################

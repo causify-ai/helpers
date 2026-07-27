@@ -21,12 +21,11 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 import argparse
 import logging
 import os
-import shlex
 import sys
-from typing import Any, List, Optional, Tuple, cast
+from typing import List
 
 import helpers.hdbg as hdbg
-import helpers.hdaemon as hdaem
+import helpers.hdaemon as hdaemon
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -34,7 +33,6 @@ import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 _LOG = logging.getLogger(__name__)
@@ -395,12 +393,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
-        # Build command without --daemon flag for daemon_watch to execute.
-        cmd_parts = [sys.argv[0]] + [
-            arg for arg in sys.argv[1:] if arg != "--daemon"
-        ]
-        cmd = " ".join(shlex.quote(part) for part in cmd_parts)
-        hdaem.daemon_watch(args.input, cmd)
+        # Skip "open" action on watch runs (viewer auto-reloads).
+        hdaemon.run_daemon_mode(
+            args.input, "notes_to_pdf", watch_cmd_suffix=" --skip_action=open"
+        )
     else:
         _run_all(args)
 

@@ -6,7 +6,7 @@ watch-mode file processors (e.g., document rebuilders, format watchers).
 
 Import as:
 
-import helpers.hdaemon as hdaem
+import helpers.hdaemon as hdaemon
 """
 
 import argparse
@@ -41,31 +41,6 @@ def add_daemon_arg(
     return parser
 
 
-def run_daemon_mode(
-    input_file: str,
-    window_name_str: str,
-    watch_cmd_suffix: Optional[str] = None,
-) -> None:
-    """
-    Run daemon mode: watch file for changes and regenerate with debouncing.
-
-    Handles command building (removing --daemon flag), logging, tmux window
-    naming, and daemon watching. Blocks until the user interrupts.
-
-    :param input_file: File to watch for changes
-    :param window_name_str: Tmux window name to use while daemon is running
-    :param watch_cmd_suffix: Suffix to append to command for watch runs
-    """
-    # Build command without --daemon flag for daemon_watch to execute.
-    cmd_parts = [sys.argv[0]] + [
-        arg for arg in sys.argv[1:] if arg != "--daemon"
-    ]
-    cmd = " ".join(shlex.quote(part) for part in cmd_parts)
-    _LOG.info("Daemon mode: watching '%s' for changes", input_file)
-    with htmux.window_name(window_name_str):
-        daemon_watch(input_file, cmd, watch_cmd_suffix=watch_cmd_suffix)
-
-
 def file_hash(file_path: str) -> str:
     """
     Compute MD5 hash of a file.
@@ -87,6 +62,7 @@ def daemon_watch(
     wait_in_sec: int = 1,
     debounce_sec: int = 2,
     abort_on_error: bool = True,
+    # TODO(ai_gp): Use str = ""
     watch_cmd_suffix: Optional[str] = None,
 ) -> None:
     """
@@ -119,14 +95,14 @@ def daemon_watch(
         except Exception as e:
             _LOG.error("Daemon: command failed: %s", e)
 
-    # Run immediately on first launch, opening the output file so the user
-    # has a viewer (e.g., Skim) attached to it.
+    # Run immediately on first launch.
     _LOG.info("Initial run...")
     _run_cmd(cmd)
     _LOG.info("Initial run complete")
     # Build watch command with optional suffix.
     watch_cmd = cmd if watch_cmd_suffix is None else cmd + watch_cmd_suffix
     prev_hash = file_hash(file_path)
+    # TODO(ai_gp): Use str = ""
     stable_hash: Optional[str] = None
     time_since_last_change = 0
     while True:
@@ -151,3 +127,31 @@ def daemon_watch(
                 _run_cmd(watch_cmd)
                 _LOG.info("Regeneration complete")
                 stable_hash = None
+
+
+def run_daemon_mode(
+    input_file: str,
+    window_name_str: str,
+    *,
+    # TODO(ai_gp): Use str = ""
+    watch_cmd_suffix: Optional[str] = None,
+) -> None:
+    """
+    Run daemon mode: watch file for changes and regenerate with debouncing.
+
+    Handles command building (removing --daemon flag), logging, tmux window
+    naming, and daemon watching. Blocks until the user interrupts.
+
+    :param input_file: File to watch for changes
+    :param window_name_str: Tmux window name to use while daemon is running
+    :param watch_cmd_suffix: Suffix to append to command for watch runs
+    """
+    # Build command without --daemon flag for daemon_watch to execute.
+    # TODO(ai_gp): Pass cmd instead of extracting from sys.argv
+    cmd_parts = [sys.argv[0]] + [
+        arg for arg in sys.argv[1:] if arg != "--daemon"
+    ]
+    cmd = " ".join(shlex.quote(part) for part in cmd_parts)
+    _LOG.info("Daemon mode: watching '%s' for changes", input_file)
+    with htmux.window_name(window_name_str):
+        daemon_watch(input_file, cmd, watch_cmd_suffix=watch_cmd_suffix)
